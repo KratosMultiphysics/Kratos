@@ -22,7 +22,6 @@
 #include "../custom_utilities/properties_proxies.h"
 #include "includes/kratos_flags.h"
 
-
 namespace Kratos
 {
 
@@ -30,6 +29,7 @@ class DEMWall;
 
 class KRATOS_API(DEM_APPLICATION) SphericParticle : public DiscreteElement
 {
+
 public:
 
 /// Pointer definition of SphericParticle
@@ -55,17 +55,52 @@ virtual ~SphericParticle();
 class ParticleDataBuffer
 {
 public:
-    ParticleDataBuffer()
-    {
-      mDistance = 0.0;
-    }
+    ParticleDataBuffer(SphericParticle* p_this_particle): mpThisParticle(p_this_particle)
+    {}
 
     virtual ~ParticleDataBuffer(){}
 
-double mDistance;
+void CalculateRelativePosition(SphericParticle* p_neighbour_particle)
+{
+    if (!mpThisParticle->GetDomainPeriodicity()){ // default infinite-domain case
+        noalias(mOtherToMeVector) = mpThisParticle->GetGeometry()[0].Coordinates() - p_neighbour_particle->GetGeometry()[0].Coordinates();
+    }
 
+    else { // periodic domain
+        mMyCoors[0] = mpThisParticle->GetGeometry()[0].Coordinates()[0];
+        mMyCoors[1] = mpThisParticle->GetGeometry()[1].Coordinates()[1];
+        mMyCoors[2] = mpThisParticle->GetGeometry()[2].Coordinates()[2];
+        mOtherCoors[0] = mpThisParticle->GetGeometry()[0].Coordinates()[0];
+        mOtherCoors[1] = mpThisParticle->GetGeometry()[1].Coordinates()[1];
+        mOtherCoors[2] = mpThisParticle->GetGeometry()[2].Coordinates()[2];
+        mOtherToMeVector[0] = mMyCoors[0] - mOtherCoors[0];
+        mOtherToMeVector[1] = mMyCoors[1] - mOtherCoors[1];
+        mOtherToMeVector[2] = mMyCoors[2] - mOtherCoors[2];
+    }
+
+    mOtherRadius = p_neighbour_particle->GetInteractionRadius();
+    mDistance    = DEM_MODULUS_3(mOtherToMeVector);
+    mRadiusSum   = mpThisParticle->GetInteractionRadius() + mOtherRadius;
+    mIndentation = mRadiusSum - mDistance;
+}
+
+double mDistance;
+double mRadiusSum;
+double mOtherRadius;
+double mIndentation;
+double mMyCoors[3];
+double mOtherCoors[3];
+array_1d<double, 3> mOtherToMeVector;
+SphericParticle* mpThisParticle;
 };
 
+virtual std::shared_ptr<ParticleDataBuffer> CreateParticleDataBuffer(SphericParticle* p_this_particle)
+{
+    return std::shared_ptr<ParticleDataBuffer>(new ParticleDataBuffer(p_this_particle));
+}
+
+void TransformToClosestPeriodicCoordinates(double my_coors[3], double other_coors[3]);
+bool GetDomainPeriodicity();
 using DiscreteElement::Initialize; //To avoid Clang Warning. We tell the compiler that we are aware of the existence of this function, but we overload it still.
 virtual void Initialize(const ProcessInfo& r_process_info);
 virtual void MemberDeclarationFirstStep(const ProcessInfo& r_process_info);
@@ -242,7 +277,7 @@ virtual void CalculateMomentum(array_1d<double, 3>& rMomentum);
 
 virtual void CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum);
 
-virtual void ComputeBallToBallContactForce(ParticleDataBuffer & buffer,
+virtual void ComputeBallToBallContactForce(ParticleDataBuffer & data_buffer,
                                            array_1d<double, 3>& rElasticForce,
                                            array_1d<double, 3>& rContactForce,
                                            double& RollingResistance,

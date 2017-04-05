@@ -146,13 +146,17 @@ void SphericParticle::SetIntegrationScheme(DEMIntegrationScheme::Pointer& integr
 void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double dt, const array_1d<double,3>& gravity, int search_control)
 {
     KRATOS_TRY
+
+    // Creating a data buffer to store those variables that we want to reuse so that we can keep function parameter lists short
+
+    std::shared_ptr<ParticleDataBuffer> p_buffer = CreateParticleDataBuffer(this); // all memory will be freed once this shared pointer goes out of scope
+    ParticleDataBuffer& data_buffer = *p_buffer;
+
     array_1d<double, 3> additional_forces;
     array_1d<double, 3> additionally_applied_moment;
     array_1d<double, 3>& elastic_force       = this->GetGeometry()[0].FastGetSolutionStepValue(ELASTIC_FORCES);
     array_1d<double, 3>& contact_force       = this->GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCES);
     array_1d<double, 3>& rigid_element_force = this->GetGeometry()[0].FastGetSolutionStepValue(RIGID_ELEMENT_FORCE);
-
-    SphericParticle::ParticleDataBuffer buffer;
 
     mContactMoment.clear();
     additional_forces.clear();
@@ -161,13 +165,12 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
     contact_force.clear();
     rigid_element_force.clear();
     
-
     bool multi_stage_RHS = false;
     double RollingResistance = 0.0;
 
     InitializeForceComputation(r_process_info);
 
-    ComputeBallToBallContactForce(buffer, elastic_force, contact_force, RollingResistance, r_process_info, dt, multi_stage_RHS);
+    ComputeBallToBallContactForce(data_buffer, elastic_force, contact_force, RollingResistance, r_process_info, dt, multi_stage_RHS);
 
     ComputeBallToRigidFaceContactForce(elastic_force, contact_force, RollingResistance, rigid_element_force, r_process_info, dt, search_control);
 
@@ -714,19 +717,20 @@ void SphericParticle::ComputeMoments(double NormalLocalContactForce,
 
 void SphericParticle::ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt)
 {
-    const double coeff_acc      = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) / dt;
-    array_1d<double, 3> ang_velocity = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-    array_1d<double, 3> initial_rotation_moment = coeff_acc * ang_velocity; // the moment needed to stop the spin in one time step
+    const double coeff_acc                            = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) / dt;
+    const array_1d<double, 3>& ang_velocity           = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+    const array_1d<double, 3> initial_rotation_moment = coeff_acc * ang_velocity; // the moment needed to stop the spin in one time step
 
-    double MaxRotaMoment[3]      = {initial_rotation_moment[0] + mContactMoment[0], initial_rotation_moment[1] + mContactMoment[1], initial_rotation_moment[2] + mContactMoment[2]};
+    const double MaxRotaMoment[3]      = {initial_rotation_moment[0] + mContactMoment[0], initial_rotation_moment[1] + mContactMoment[1], initial_rotation_moment[2] + mContactMoment[2]};
     double CoordSystemMoment[3]  = {0.0};
 
-    CoordSystemMoment[0]         = MaxRotaMoment[0] / DEM_MODULUS_3(MaxRotaMoment);
-    CoordSystemMoment[1]         = MaxRotaMoment[1] / DEM_MODULUS_3(MaxRotaMoment);
-    CoordSystemMoment[2]         = MaxRotaMoment[2] / DEM_MODULUS_3(MaxRotaMoment);
+    double max_rota_moment_modulus_inv = 1.0 / DEM_MODULUS_3(MaxRotaMoment);
+    CoordSystemMoment[0]         = MaxRotaMoment[0] * max_rota_moment_modulus_inv;
+    CoordSystemMoment[1]         = MaxRotaMoment[1] * max_rota_moment_modulus_inv;
+    CoordSystemMoment[2]         = MaxRotaMoment[2] * max_rota_moment_modulus_inv;
 
-    double MR_now = DEM_MODULUS_3(CoordSystemMoment) * RollingResistance;
-    double MR_max = DEM_MODULUS_3(MaxRotaMoment);
+    const double MR_now = DEM_INNER_PRODUCT_3(CoordSystemMoment, CoordSystemMoment) * RollingResistance * RollingResistance;
+    const double MR_max = DEM_INNER_PRODUCT_3(MaxRotaMoment, MaxRotaMoment);
 
     if (MR_max > MR_now) {
         mContactMoment[0] -= CoordSystemMoment[0] * RollingResistance;
@@ -742,7 +746,7 @@ void SphericParticle::ComputeRollingFriction(array_1d<double, 3>& rolling_resist
     }   
 }
 
-void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer &,
+void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
                                                     array_1d<double, 3>& r_elastic_force,
                                                     array_1d<double, 3>& r_contact_force,
                                                     double& RollingResistance,
@@ -771,25 +775,27 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
         if (this->Is(NEW_ENTITY) && ineighbour->Is(NEW_ENTITY)) continue;
         if (multi_stage_RHS  &&  this->Id() > ineighbour->Id()) continue;
 
-        array_1d<double, 3> other_to_me_vect;
+//        array_1d<double, 3> other_to_me_vect;
 
-        if (!DiscreteParticleConfigure<3>::GetDomainPeriodicity()){ // default infinite-domain case
-            noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - ineighbour->GetGeometry()[0].Coordinates();
-        }
+        data_buffer.CalculateRelativePosition(ineighbour);
 
-        else { // periodic domain
-            double my_coors[3] = {this->GetGeometry()[0].Coordinates()[0], this->GetGeometry()[0].Coordinates()[1], this->GetGeometry()[0].Coordinates()[2]};
-            double other_coors[3] = {ineighbour->GetGeometry()[0].Coordinates()[0], ineighbour->GetGeometry()[0].Coordinates()[1], ineighbour->GetGeometry()[0].Coordinates()[2]};
-            DiscreteParticleConfigure<3>::TransformToClosestPeriodicCoordinates(my_coors, other_coors);
-            other_to_me_vect[0] = my_coors[0] - other_coors[0];
-            other_to_me_vect[1] = my_coors[1] - other_coors[1];
-            other_to_me_vect[2] = my_coors[2] - other_coors[2];
-        }
+//        if (!DiscreteParticleConfigure<3>::GetDomainPeriodicity()){ // default infinite-domain case
+//            noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - ineighbour->GetGeometry()[0].Coordinates();
+//        }
 
-        const double& other_radius = ineighbour->GetInteractionRadius();
-        double distance            = DEM_MODULUS_3(other_to_me_vect);
-        double radius_sum          = GetInteractionRadius() + other_radius;
-        double indentation         = radius_sum - distance;
+//        else { // periodic domain
+//            double my_coors[3] = {this->GetGeometry()[0].Coordinates()[0], this->GetGeometry()[0].Coordinates()[1], this->GetGeometry()[0].Coordinates()[2]};
+//            double other_coors[3] = {ineighbour->GetGeometry()[0].Coordinates()[0], ineighbour->GetGeometry()[0].Coordinates()[1], ineighbour->GetGeometry()[0].Coordinates()[2]};
+//            DiscreteParticleConfigure<3>::TransformToClosestPeriodicCoordinates(my_coors, other_coors);
+//            other_to_me_vect[0] = my_coors[0] - other_coors[0];
+//            other_to_me_vect[1] = my_coors[1] - other_coors[1];
+//            other_to_me_vect[2] = my_coors[2] - other_coors[2];
+//        }
+
+//        const double& other_radius = ineighbour->GetInteractionRadius();
+//        double distance            = DEM_MODULUS_3(data_buffer.mOtherToMeVector);
+//        double radius_sum          = GetInteractionRadius() + other_radius;
+//        double indentation         = radius_sum - distance;
 
         DEM_SET_COMPONENTS_TO_ZERO_3(DeltDisp)
         DEM_SET_COMPONENTS_TO_ZERO_3(LocalDeltDisp)
@@ -797,10 +803,10 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
         DEM_SET_COMPONENTS_TO_ZERO_3x3(LocalCoordSystem)
         DEM_SET_COMPONENTS_TO_ZERO_3x3(OldLocalCoordSystem)
 
-        EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, velocity, delta_displ, ineighbour, distance);
+        EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, data_buffer.mOtherToMeVector, velocity, delta_displ, ineighbour, data_buffer.mDistance);
 
         if (this->Is(DEMFlags::HAS_ROTATION)) {
-            RelativeDisplacementAndVelocityOfContactPointDueToRotation(indentation, DeltDisp, RelVel, LocalCoordSystem, other_radius, dt, ang_velocity, ineighbour);
+            RelativeDisplacementAndVelocityOfContactPointDueToRotation(data_buffer.mIndentation, DeltDisp, RelVel, LocalCoordSystem, data_buffer.mOtherRadius, dt, ang_velocity, ineighbour);
         }
 
         RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, OldLocalCoordSystem, LocalCoordSystem, ineighbour);
@@ -815,13 +821,13 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
         double ViscoDampingLocalContactForce[3]  = {0.0};
         double cohesive_force                    =  0.0;
 
-        if (indentation > 0.0) {            
+        if (data_buffer.mIndentation > 0.0) {
             EvaluateBallToBallForcesForPositiveIndentiations(r_process_info,
                                                              LocalElasticContactForce,
                                                              DeltDisp,
                                                              LocalDeltDisp,
                                                              RelVel,
-                                                             indentation,
+                                                             data_buffer.mIndentation,
                                                              ViscoDampingLocalContactForce,
                                                              cohesive_force,
                                                              ineighbour,
@@ -841,11 +847,11 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
         
         // ROTATION FORCES
         if (this->Is(DEMFlags::HAS_ROTATION) && !multi_stage_RHS) {
-            ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, LocalCoordSystem[2], ineighbour, indentation);
+            ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, LocalCoordSystem[2], ineighbour, data_buffer.mIndentation);
         }
 
         if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
-                AddNeighbourContributionToStressTensor(GlobalElasticContactForce, LocalCoordSystem[2], distance, radius_sum, this);
+                AddNeighbourContributionToStressTensor(GlobalElasticContactForce, LocalCoordSystem[2], data_buffer.mDistance, data_buffer.mRadiusSum, this);
         }
 
     }// for each neighbor
@@ -1687,7 +1693,18 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToOtherRea
                                                                                     double LocalCoordSystem[3][3],
                                                                                     SphericParticle* neighbour_iterator) {}
 
-void SphericParticle::SendForcesToFEM(){};
+void SphericParticle::SendForcesToFEM(){}
+
+bool SphericParticle::GetDomainPeriodicity()
+{
+    return DiscreteParticleConfigure<3>::GetDomainPeriodicity();
+}
+
+
+void SphericParticle::TransformToClosestPeriodicCoordinates(double my_coors[3], double other_coors[3])
+{
+   DiscreteParticleConfigure<3>::TransformToClosestPeriodicCoordinates(my_coors, other_coors);
+}
 
 void SphericParticle::Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) {
     GetIntegrationScheme().Move(GetGeometry()[0], delta_t, rotation_option, force_reduction_factor, StepFlag);
