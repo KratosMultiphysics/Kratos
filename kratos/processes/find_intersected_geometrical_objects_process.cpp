@@ -36,11 +36,16 @@ namespace Kratos
 		GenerateOctree();
 
 		std::vector<OctreeType::cell_type*> leaves;
-		for (auto p_element : mrModelPart1.ElementsArray()) {
+		for (auto p_element_1 : mrModelPart1.ElementsArray()) {
 			leaves.clear();
-			mOctree.GetIntersectedLeaves(p_element, leaves);
+			mOctree.GetIntersectedLeaves(p_element_1, leaves);
 			for (auto p_leaf : leaves) {
-				
+				for (auto p_element_2 : *(p_leaf->pGetObjects())) {
+					if (HasIntersection(p_element_1->GetGeometry(), p_element_2->GetGeometry())) {
+						p_element_1->Set(SELECTED);
+						break;
+					}
+				}
 			}
 		}
 
@@ -103,6 +108,9 @@ namespace Kratos
 		mOctree.SetBoundingBox(low.data().data(), high.data().data());
 	}
 
+	bool FindIntersectedGeometricalObjectsProcess::HasIntersection(Element::GeometryType& rFirstGeometry, Element::GeometryType& rSecondGeometry) {
+		return false;
+	}
 
 }  // namespace Kratos.
 

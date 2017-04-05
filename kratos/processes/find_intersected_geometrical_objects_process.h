@@ -351,6 +351,7 @@ namespace Kratos
 
 		void GenerateOctree();
 		void SetOctreeBoundingBox();
+		bool HasIntersection(Element::GeometryType& rFirstGeometry, Element::GeometryType& rSecondGeometry);
 
 
       ///@}
