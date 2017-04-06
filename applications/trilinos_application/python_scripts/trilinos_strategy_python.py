@@ -146,7 +146,7 @@ class SolvingStrategyPython:
             # reorder the list of degrees of freedom to identify fixity and system size
             self.builder_and_solver.SetUpSystem(self.model_part)
             # allocate memory for the system and preallocate the structure of the matrix
-            self.builder_and_solver.ResizeAndInitializeVectors(self.pA, self.pDx, self.pb, self.model_part.Elements, self.model_part.Conditions, self.model_part.ProcessInfo)
+            self.builder_and_solver.ResizeAndInitializeVectors(self.scheme, self.pA, self.pDx, self.pb, self.model_part.Elements, self.model_part.Conditions, self.model_part.ProcessInfo)
 
             # updating references
             self.A = (self.pA).GetReference()
@@ -233,7 +233,7 @@ class SolvingStrategyPython:
     def SetEchoLevel(self, level):
         self.echo_level = level
         self.builder_and_solver.SetEchoLevel(level)
-    
+
     #
     def Check(self):
         # TODO: Add stuff
