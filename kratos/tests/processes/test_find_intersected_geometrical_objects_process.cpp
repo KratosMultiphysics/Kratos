@@ -45,17 +45,19 @@ namespace Kratos {
 
 			ModelPart volume_part("Volume");
 			ModelPart skin_part("Boundaries");
-			skin_part.CreateNewNode(1, 1., 1., 1.);
-			skin_part.CreateNewNode(2, 1., 2., 2.);
-			skin_part.CreateNewNode(3, 4., 1., 1.);
+			skin_part.CreateNewNode(1, 1., .2, 0.);
+			skin_part.CreateNewNode(2, 1., .1, .5);
+			skin_part.CreateNewNode(3, 1., .1, 0.);
 			Properties::Pointer p_properties(new Properties(0));
 			skin_part.CreateNewElement("Element3D3N", 1, { 1,2,3 }, p_properties);
 			StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
 			FindIntersectedGeometricalObjectsProcess(volume_part, skin_part).Execute();
-			std::cout << std::endl;
-			for (auto& element : volume_part.Elements()) {
-				std::cout << element.Id() << " : " << element.Is(SELECTED) << std::endl;
-			}
+			KRATOS_CHECK(volume_part.GetElement(3).IsNot(SELECTED));
+			KRATOS_CHECK(volume_part.GetElement(4).IsNot(SELECTED));
+			KRATOS_CHECK(volume_part.GetElement(5).Is(SELECTED));
+			KRATOS_CHECK(volume_part.GetElement(6).Is(SELECTED));
+			for (std::size_t i = 7; i < volume_part.NumberOfElements(); i++)
+				KRATOS_CHECK(volume_part.GetElement(i).IsNot(SELECTED));
 		}
 	}
 }  // namespace Kratos.
