@@ -97,6 +97,10 @@ namespace Kratos
                                                  mEchoLevel,
                                                  mApproximationTolerance) );
 
+          if (mEchoLevel > 3) {
+              mpInterfaceObjectManagerOrigin->PrintInterfaceObjects("Origin");
+          }
+
           mInterfaceObjectTypeOrigin = InterfaceObjectTypeOrigin;
           mIntegrationMethodOrigin = IntegrationMethodOrigin;
       }
@@ -111,6 +115,10 @@ namespace Kratos
                                                  IntegrationMethodDestination,
                                                  mEchoLevel,
                                                  mApproximationTolerance) );
+
+          if (mEchoLevel > 3) {
+              mpInterfaceObjectManagerDestination->PrintInterfaceObjects("Destination");
+          }
 
           mInterfaceObjectTypeDestination = InterfaceObjectTypeDestination;
           mIntegrationMethodDestination = IntegrationMethodDestination;

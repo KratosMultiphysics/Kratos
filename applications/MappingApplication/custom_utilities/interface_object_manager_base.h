@@ -360,6 +360,16 @@ namespace Kratos
           }
       }
 
+      void PrintInterfaceObjects(const std::string& InterfaceSide) {
+          for (auto& r_interface_obj : m_interface_objects) {
+              std::cout << InterfaceSide << " , Rank " << m_comm_rank << " , " 
+                        << r_interface_obj->Info() << " [ "
+                        << r_interface_obj->X() << " "
+                        << r_interface_obj->Y() << " "
+                        << r_interface_obj->Z() << "]" << std::endl;
+          }
+      }
+
       ///@}
       ///@name Access
       ///@{
@@ -423,10 +433,6 @@ namespace Kratos
               InitializeInterfaceConditionManager(rModelPart, i_integration_method, ApproximationTolerance);
           } else {
               KRATOS_ERROR << "Type of interface object construction not implemented" << std::endl;
-          }
-
-          if (mEchoLevel > 3) {
-              PrintInterfaceObjects();
           }
       }
 
@@ -554,15 +560,6 @@ namespace Kratos
                                                               ApproximationTolerance) ));
                   }
               }
-          }
-      }
-
-      void PrintInterfaceObjects() {
-          for (auto& r_interface_obj : m_interface_objects) {
-              std::cout << "Rank " << m_comm_rank << " , Interface Object " << " [ "
-                        << r_interface_obj->X() << " "
-                        << r_interface_obj->Y() << " "
-                        << r_interface_obj->Z() << "]" << std::endl;
           }
       }
 

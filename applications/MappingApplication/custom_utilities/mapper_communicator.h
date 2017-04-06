@@ -103,6 +103,10 @@ namespace Kratos
                                                mEchoLevel,
                                                mApproximationTolerance) );
 
+          if (mEchoLevel > 3) {
+              mpInterfaceObjectManagerOrigin->PrintInterfaceObjects("Origin");
+          }
+
           // Save for updating the interface
           mInterfaceObjectTypeOrigin = InterfaceObjectTypeOrigin;
           mIntegrationMethodOrigin = IntegrationMethodOrigin;
@@ -118,6 +122,10 @@ namespace Kratos
                                                IntegrationMethodDestination,
                                                mEchoLevel,
                                                mApproximationTolerance) );
+
+          if (mEchoLevel > 3) {
+              mpInterfaceObjectManagerDestination->PrintInterfaceObjects("Destination");
+          }
 
           // Save for updating the interface
           mInterfaceObjectTypeDestination = InterfaceObjectTypeDestination;

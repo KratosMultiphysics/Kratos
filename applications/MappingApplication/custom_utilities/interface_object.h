@@ -159,6 +159,14 @@ namespace Kratos
           return mNeighborRank;
       }
 
+      void SetIsBeingSent() {
+          mIsBeingSent = true;
+      }
+
+      bool GetIsBeingSent() {
+          return mIsBeingSent;
+      }
+
       virtual bool EvaluateResult(const array_1d<double, 3>& global_coords, double& min_distance,
                                   double distance, array_1d<double,2>& local_coords,
                                   std::vector<double>& shape_function_values) {
@@ -324,6 +332,7 @@ namespace Kratos
       double mMinDistanceNeighbor;
       int mPairingStatus; // 0 no Neighbor found; 1 approximation (i.e. nearest Node found); 2 match found
       int mNeighborRank;
+      bool mIsBeingSent;
 
       ///@}
       ///@name Private Operators
@@ -338,6 +347,7 @@ namespace Kratos
           mMinDistanceNeighbor = std::numeric_limits<double>::max();
           mPairingStatus = this->GetIndexNoNeighbor();
           mNeighborRank = 0;
+          mIsBeingSent = false;
       }
 
       ///@}

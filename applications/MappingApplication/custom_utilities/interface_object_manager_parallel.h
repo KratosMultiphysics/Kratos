@@ -104,6 +104,7 @@ namespace Kratos
                           rCandidateManager.candidate_send_objects[partition_index].push_back(interface_obj);
                           local_comm_list[partition_index] = 1;
                           ++local_memory_size_array[partition_index];
+                          interface_obj->SetIsBeingSent();
                           partition_list.push_back(partition_index); // For debugging
                       }
                   }
@@ -115,14 +116,15 @@ namespace Kratos
 
               if (last_iteration) {
                   // Robustness check, if interface_obj has not found a neighbor, it is sent to every partition
-                  if (!interface_obj->NeighborOrApproximationFound()) {
+                  if (!interface_obj->GetIsBeingSent()) {
                       // Send interface_obj to all Partitions
+                      // TODO echo_level!
                       std::cout << "MAPPER WARNING, Rank " << m_comm_rank
                                 << ", interface_obj [ " 
                                 << interface_obj->X() << " " 
                                 << interface_obj->Y() << " "
                                 << interface_obj->Z() << " ] has not found "
-                                << "a neighbor or an approxiamtion yet and "
+                                << "a neighbor/approximation yet and "
                                 << "is sent to all partitions!" << std::endl;
 
                       for (int partition_index = 0; partition_index < m_comm_size; ++partition_index) {
