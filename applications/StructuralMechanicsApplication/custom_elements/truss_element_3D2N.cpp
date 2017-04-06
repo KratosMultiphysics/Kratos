@@ -72,6 +72,9 @@ namespace Kratos
 		if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2) == false) this->mPreStress = 0.00;
 		else this->mPreStress = GetProperties()[TRUSS_PRESTRESS_PK2];
 
+		if (this->GetProperties().Has(TRUSS_IS_CABLE) == false) this->mIsCable = false;
+		else this->mIsCable = GetProperties()[TRUSS_IS_CABLE];
+
 		if (this->mLength == 0.00) KRATOS_THROW_ERROR(std::invalid_argument, "Zero length found in element #", this->Id());
 
 		KRATOS_CATCH("")
@@ -344,8 +347,6 @@ namespace Kratos
 		const SizeType LocalSize = NumNodes * dimension;
 
 		this->Initialize();
-		//cable?
-		mIsCable = false;
 		//calculate internal forces
 		VectorType internalForces = ZeroVector(6);
 		this->UpdateInternalForces(internalForces);

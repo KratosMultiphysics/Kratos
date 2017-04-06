@@ -94,6 +94,7 @@ void KratosStructuralMechanicsApplication::Register()
 
 	// Truss generalized variables
 	KRATOS_REGISTER_VARIABLE(TRUSS_PRESTRESS_PK2)
+	KRATOS_REGISTER_VARIABLE(TRUSS_IS_CABLE)
 	// Beam generalized variables
 	KRATOS_REGISTER_VARIABLE(AREA_EFFECTIVE_Y)
 	KRATOS_REGISTER_VARIABLE(AREA_EFFECTIVE_Z)
