@@ -62,7 +62,6 @@ namespace Kratos
 		typedef BaseType::VectorType VectorType;
 		typedef BaseType::EquationIdVectorType EquationIdVectorType;
 		typedef BaseType::DofsVectorType DofsVectorType;
-		typedef unsigned int uint;
 
 
 		CrBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry);
