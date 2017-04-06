@@ -6,7 +6,7 @@
 //  License:     BSD License
 //           license: structural_mechanics_application/license.txt
 //
-//  Main authors:
+//  Main authors: Klaus B. Sautter
 //                   
 //                   
 //
@@ -45,7 +45,7 @@ namespace Kratos
 
 		if (rResult.size() != local_size) rResult.resize(local_size);
 
-		for (int i = 0; i < number_of_nodes; i++)
+		for (int i = 0; i < number_of_nodes; ++i)
 		{
 			int index = i * 3;
 			rResult[index] = this->GetGeometry()[i].GetDof(DISPLACEMENT_X)
@@ -68,7 +68,7 @@ namespace Kratos
 			rElementalDofList.resize(local_size);
 		}
 
-		for (int i = 0; i < GetGeometry().size(); i++)
+		for (int i = 0; i < GetGeometry().size(); ++i)
 		{
 			int index = i * 3;
 			rElementalDofList[index] = this->GetGeometry()[i]
@@ -270,11 +270,11 @@ namespace Kratos
 
 		LumpFact = this->GetGeometry().LumpingFactors(LumpFact);
 
-		for (int i = 0; i < number_of_nodes; i++)
+		for (int i = 0; i < number_of_nodes; ++i)
 		{
 			double temp = LumpFact[i] * TotalMass;
 
-			for (int j = 0; j < dimension; j++)
+			for (int j = 0; j < dimension; ++j)
 			{
 				int index = i *dimension + j;
 
@@ -300,11 +300,11 @@ namespace Kratos
 		VectorType BodyForcesGlobal = ZeroVector(MatSize);
 
 		//assemble global Vector
-		for (int i = 0; i < number_of_nodes; i++) {
+		for (int i = 0; i < number_of_nodes; ++i) {
 			BodyForcesNode = TotalMass*this->GetGeometry()[i]
 				.FastGetSolutionStepValue(VOLUME_ACCELERATION)*Ncontainer(0,i);
 
-			for (int j = 0; j < dimension; j++) {
+			for (int j = 0; j < dimension; ++j) {
 				BodyForcesGlobal[(i*dimension) + j] = BodyForcesNode[j];
 			}
 		}
@@ -322,7 +322,7 @@ namespace Kratos
 
 		if (rValues.size() != element_size) rValues.resize(element_size, false);
 
-		for (int i = 0; i < number_of_nodes; i++)
+		for (int i = 0; i < number_of_nodes; ++i)
 		{
 			int index = i * dimension;
 			rValues[index] = this->GetGeometry()[i]
@@ -344,7 +344,7 @@ namespace Kratos
 
 		if (rValues.size() != element_size) rValues.resize(element_size, false);
 
-		for (int i = 0; i < number_of_nodes; i++)
+		for (int i = 0; i < number_of_nodes; ++i)
 		{
 			int index = i * dimension;
 			rValues[index] = this->GetGeometry()[i]
@@ -366,7 +366,7 @@ namespace Kratos
 
 		if (rValues.size() != element_size) rValues.resize(element_size, false);
 
-		for (int i = 0; i < number_of_nodes; i++)
+		for (int i = 0; i < number_of_nodes; ++i)
 		{
 			int index = i * dimension;
 			rValues[index] = this->GetGeometry()[i]
@@ -539,7 +539,7 @@ namespace Kratos
 		if (CROSS_AREA.Key() == 0)
 			KRATOS_ERROR << ("CROSS_AREA has Key zero! (check if the application is correctly registered", "") << std::endl;
 		//verify that the dofs exist
-		for (unsigned int i = 0; i<this->GetGeometry().size(); i++)
+		for (unsigned int i = 0; i<this->GetGeometry().size(); ++i)
 			{
 			if (this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false)
 				KRATOS_ERROR << ("missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id()) << std::endl;
@@ -620,8 +620,8 @@ namespace Kratos
 		const double S_pre = this->mPreStress;
 		const double N = ((E*InternalStrainGL + S_pre) * l * A) / L0;
 
-		if (N < 0.00) mIsCompressed = true;
-		else mIsCompressed = false;
+		if (N < 0.00) this->mIsCompressed = true;
+		else this->mIsCompressed = false;
 
 		//internal force vectors
 		VectorType f_local = ZeroVector(6);
@@ -651,7 +651,7 @@ namespace Kratos
 		ReferenceCoordinates[4] = this->GetGeometry()[1].Y();
 		ReferenceCoordinates[5] = this->GetGeometry()[1].Z();
 
-		for (unsigned int i = 0; i < 3; i++)
+		for (unsigned int i = 0; i < 3; ++i)
 		{
 			DirectionVectorX[i] = (ReferenceCoordinates[i + 3] -
 				ReferenceCoordinates[i]);
@@ -687,7 +687,7 @@ namespace Kratos
 
 		//2nd fill big rotation matrix
 		MatrixType CurrentCS = ZeroMatrix(3, 3);
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < 3; ++i) {
 			CurrentCS(i, 0) = DirectionVectorX[i];
 			CurrentCS(i, 1) = DirectionVectorY[i];
 			CurrentCS(i, 2) = DirectionVectorZ[i];
@@ -698,9 +698,9 @@ namespace Kratos
 		//Building the rotation matrix for the local element matrix
 		for (unsigned int kk = 0; kk < 6; kk += 3)
 		{
-			for (unsigned int i = 0; i<3; i++)
+			for (unsigned int i = 0; i<3; ++i)
 			{
-				for (unsigned int j = 0; j<3; j++)
+				for (unsigned int j = 0; j<3; ++j)
 				{
 					rRotationMatrix(i + kk, j + kk) = CurrentCS(i, j);
 				}
@@ -709,6 +709,7 @@ namespace Kratos
 		KRATOS_CATCH("")
 
 	}	
-} 
+
+} // namespace Kratos.
 
 
