@@ -78,10 +78,6 @@ class VertexMorphingMethod:
         print("> ",self.timer.getTimeStamp(),": Starting optimization using the following algorithm: ",self.optimizationSettings["optimization_algorithm"]["name"].GetString())
         print("> ==============================================================================================================\n")
     
-        # communicator
-        communicatorFactory = __import__("communicator_factory")        
-        self.communicator = communicatorFactory.CreateCommunicator( self.optimizationSettings )    
-
         # model data
         self.designSurface = self.getDesignSurfaceFromInputModelPart()
         self.listOfDampingRegions = self.getListOfDampingRegionsFromInputModelPart()
@@ -89,24 +85,24 @@ class VertexMorphingMethod:
         # mapper
         self.vertexMorphingMapper = VertexMorphingMapper( self.designSurface, self.listOfDampingRegions, self.optimizationSettings["design_variables"] ) 
 
-        # dataWriter
-        optimizatoinDataLoggerFactory = __import__("optimization_data_logger_factory")
-        self.optimizationDataLogger = optimizatoinDataLoggerFactory.CreateDataLogger( self.designSurface, self.communicator, self.timer, self.optimizationSettings )
+        # communicator
+        communicatorFactory = __import__("communicator_factory")        
+        self.communicator = communicatorFactory.CreateCommunicator( self.optimizationSettings )    
 
         # algorithm_driver
         # .....algorithmDriver(timer, communicator, design_surface, vertexMorphingMapper, optimizationDataLogger )
 
+        # data logger
+        optimizationDataLoggerFactory = __import__("optimization_data_logger_factory")
+        self.optimizationDataLogger = optimizationDataLoggerFactory.CreateDataLogger( self.designSurface, self.communicator, self.timer, self.optimizationSettings )
+
         self.optimizationDataLogger.initializeDataLogging() 
-            
         self.runSpecifiedOptimizationAlgorithm()
-
         self.optimizationDataLogger.finalizeDataLogging()        
-
 
         print("\n> ==============================================================================================================")
         print("> Finished optimization                                                                                           ")
         print("> ==============================================================================================================\n")
-
     
     # --------------------------------------------------------------------------
     def getDesignSurfaceFromInputModelPart( self ):
@@ -169,8 +165,7 @@ class VertexMorphingMethod:
 
             self.analyzer.analyzeDesignAndReportToCommunicator( self.designSurface, optimizationIteration, self.communicator )
          
-            gradientOfObjectiveFunction = self.communicator.getReportedGradientOf ( onlyObjective )
-            self.storeGradientOnNodes( gradientOfObjectiveFunction )
+            self.storeGradientObtainedByCommunicatorOnNodes( onlyObjective )
 
             geometryTools.compute_unit_surface_normals()
             geometryTools.project_grad_on_unit_surface_normal( constraints_given )
@@ -197,7 +192,7 @@ class VertexMorphingMethod:
                     print("\n> Maximal iterations of optimization problem reached!")
                     break
 
-                relativeChangeOfObjectiveValue = self.optimizationDataLogger.getRelativeChangeOfObjectiveValue()
+                relativeChangeOfObjectiveValue = self.optimizationDataLogger.getRelativeChangeOfObjectiveValue( optimizationIteration )
                 
                 # Check for relative tolerance
                 relativeTolerance = self.optimizationSettings["optimization_algorithm"]["relative_tolerance"].GetDouble()
@@ -218,9 +213,9 @@ class VertexMorphingMethod:
         constraints_given = True
 
         # Get information about response functions
-        onlyObjectiveFunction = self.optimizationSettings["objectives"][0]["identifier"].GetString()
-        onlyConstraintFunction = self.optimizationSettings["constraints"][0]["identifier"].GetString()
-        typOfOnlyConstraintFunction = self.optimizationSettings["constraints"][0]["type"].GetString()      
+        onlyObjective = self.optimizationSettings["objectives"][0]["identifier"].GetString()
+        onlyConstraint = self.optimizationSettings["constraints"][0]["identifier"].GetString()
+        typOfOnlyConstraint = self.optimizationSettings["constraints"][0]["type"].GetString()      
 
         # Tools run optimization algorithm
         geometryTools = GeometryUtilities( self.designSurface )
@@ -236,24 +231,22 @@ class VertexMorphingMethod:
             print("> ",self.timer.getTimeStamp(),": Starting optimization iteration ",optimizationIteration)
             print(">===================================================================\n")
 
-            timeAtStartOfCurrentOptimizationStep = time.time()   
-
             self.communicator.initializeCommunication()
-            self.communicator.requestFunctionValueOf( onlyObjectiveFunction )
-            self.communicator.requestFunctionValueOf( onlyConstraintFunction )
-            self.communicator.requestGradientOf( onlyObjectiveFunction )
-            self.communicator.requestGradientOf( onlyConstraintFunction )
+            self.communicator.requestFunctionValueOf( onlyObjective )
+            self.communicator.requestFunctionValueOf( onlyConstraint )
+            self.communicator.requestGradientOf( onlyObjective )
+            self.communicator.requestGradientOf( onlyConstraint )
 
             self.analyzer.analyzeDesignAndReportToCommunicator( self.designSurface, optimizationIteration, self.communicator )
 
-            gradientOfObjectiveFunction = self.communicator.getReportedGradientOf ( onlyObjectiveFunction )
-            gradientOfConstraintFunction = self.communicator.getReportedGradientOf ( onlyConstraintFunction )
-            self.storeGradientOnNodes( gradientOfObjectiveFunction, gradientOfConstraintFunction )
+            constraintValue = self.communicator.getReportedFunctionValueOf ( onlyConstraint )
+
+            self.storeGradientObtainedByCommunicatorOnNodes( onlyObjective, onlyConstraint )
             
             # Check if constraint is active
-            if typOfOnlyConstraintFunction == "equality":
+            if typOfOnlyConstraint == "equality":
                 constraints_given = True
-            elif valueOfConstraintFunction > 0:
+            elif constraintValue > 0:
                 constraints_given = True
             else:
                 constraints_given = False       
@@ -266,8 +259,8 @@ class VertexMorphingMethod:
 
             correctionScaling = [False] 
             if constraints_given:
-                optimizationTools.compute_projected_search_direction( valueOfConstraintFunction )
-                optimizationTools.correct_projected_search_direction( valueOfConstraintFunction, correctionScaling )
+                optimizationTools.compute_projected_search_direction( constraintValue )
+                optimizationTools.correct_projected_search_direction( constraintValue, correctionScaling )
                 optimizationTools.compute_design_update()
             else:
                 optimizationTools.compute_search_direction_steepest_descent()
@@ -289,7 +282,7 @@ class VertexMorphingMethod:
                     print("\n> Maximal iterations of optimization problem reached!")
                     break
 
-                relativeChangeOfObjectiveValue = self.optimizationDataLogger.getRelativeChangeOfObjectiveValue()
+                relativeChangeOfObjectiveValue = self.optimizationDataLogger.getRelativeChangeOfObjectiveValue( optimizationIteration )
                 
                 # Check for relative tolerance
                 relativeTolerance = self.optimizationSettings["optimization_algorithm"]["relative_tolerance"].GetDouble()
@@ -303,13 +296,17 @@ class VertexMorphingMethod:
 
             self.timer.resetLapTime()                    
 
-
     # --------------------------------------------------------------------------
-    def storeGradientOnNodes( self,objective_grads,constraint_grads={} ):
+    def storeGradientObtainedByCommunicatorOnNodes( self, onlyObjective, onlyConstraint=None ):
+
+        gradientOfObjectiveFunction = self.communicator.getReportedGradientOf ( onlyObjective )
+        gradientOfConstraintFunction = {}
+        if onlyConstraint != None:
+            gradientOfConstraintFunction = self.communicator.getReportedGradientOf ( onlyConstraint )
 
         # Read objective gradients
         eucledian_norm_obj_sens = 0.0
-        for node_Id in objective_grads:
+        for node_Id in gradientOfObjectiveFunction:
 
             # If deactivated, nodal sensitivities will not be assigned and hence remain zero
             if self.designSurface.Nodes[node_Id].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED):
@@ -317,15 +314,15 @@ class VertexMorphingMethod:
 
             # If not deactivated, nodal sensitivities will be assigned
             sens_i = Vector(3)
-            sens_i[0] = objective_grads[node_Id][0]
-            sens_i[1] = objective_grads[node_Id][1]
-            sens_i[2] = objective_grads[node_Id][2]           
+            sens_i[0] = gradientOfObjectiveFunction[node_Id][0]
+            sens_i[1] = gradientOfObjectiveFunction[node_Id][1]
+            sens_i[2] = gradientOfObjectiveFunction[node_Id][2]           
             self.designSurface.Nodes[node_Id].SetSolutionStepValue(OBJECTIVE_SENSITIVITY,0,sens_i)
 
-        # When constraint_grads is defined also store constraint sensitivities (bool returns false if dictionary is empty)
-        if bool(constraint_grads):
+        # When gradientOfConstraintFunction is defined also store constraint sensitivities (bool returns false if dictionary is empty)
+        if onlyConstraint != None:
             eucledian_norm_cons_sens = 0.0
-            for node_Id in constraint_grads:
+            for node_Id in gradientOfConstraintFunction:
 
                 # If deactivated, nodal sensitivities will not be assigned and hence remain zero
                 if self.designSurface.Nodes[node_Id].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED):
@@ -333,9 +330,9 @@ class VertexMorphingMethod:
 
                 # If not deactivated, nodal sensitivities will be assigned
                 sens_i = Vector(3)
-                sens_i[0] = constraint_grads[node_Id][0]
-                sens_i[1] = constraint_grads[node_Id][1]
-                sens_i[2] = constraint_grads[node_Id][2]           
+                sens_i[0] = gradientOfConstraintFunction[node_Id][0]
+                sens_i[1] = gradientOfConstraintFunction[node_Id][1]
+                sens_i[2] = gradientOfConstraintFunction[node_Id][2]           
                 self.designSurface.Nodes[node_Id].SetSolutionStepValue(CONSTRAINT_SENSITIVITY,0,sens_i)                 
 
 # ==============================================================================

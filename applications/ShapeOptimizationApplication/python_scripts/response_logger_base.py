@@ -35,7 +35,7 @@ class ResponseLogger():
         raise RuntimeError("Response logger base class is called. Please check your implementation of the function >> logCurrentResponses << .")
 
     # --------------------------------------------------------------------------
-    def getRelativeChangeOfObjectiveValue( self ):
+    def getRelativeChangeOfObjectiveValue( self, optimizationIteration ):
         raise RuntimeError("Response logger base class is called. Please check your implementation of the function >> getRelativeChangeOfObjectiveValue << .")
 
     # --------------------------------------------------------------------------

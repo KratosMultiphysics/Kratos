@@ -22,7 +22,7 @@ CheckForPreviousImport()
 # Import logger classes
 from design_logger_gid import DesignLoggerGID
 from response_logger_steepest_descent import ResponseLoggerSteepestDescent
-from response_logger_penalized_projection import ResponsePenalizedProjection
+from response_logger_penalized_projection import ResponseLoggerPenalizedProjection
 
 
 # ==============================================================================
@@ -98,8 +98,8 @@ class optimizationDataLogger():
         self.responseLogger.logCurrentResponses( optimizationIteration )
 
     # --------------------------------------------------------------------------
-    def getRelativeChangeOfObjectiveValue( self ):
-        return self.responseLogger.getRelativeChangeOfObjectiveValue()
+    def getRelativeChangeOfObjectiveValue( self, optimizationIteration ):
+        return self.responseLogger.getRelativeChangeOfObjectiveValue( optimizationIteration )
 
     # --------------------------------------------------------------------------
     def finalizeDataLogging( self ):

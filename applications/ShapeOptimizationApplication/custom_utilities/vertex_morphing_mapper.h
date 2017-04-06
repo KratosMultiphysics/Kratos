@@ -248,7 +248,7 @@ public:
             }
         }
 
-        std::cout << "> Finished preparation of damping.\n" << std::endl;
+        std::cout << "> Finished preparation of damping." << std::endl;
     }
 
     // --------------------------------------------------------------------------

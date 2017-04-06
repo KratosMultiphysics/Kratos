@@ -179,7 +179,7 @@
                                           "SHAPE_UPDATE",
                                           "SHAPE_CHANGE_ABSOLUTE" ],            
             "output_format" : {
-                "name"                   : "GiD",
+                "name"                   : "gid",
                 "VolumeOutput"           : true,
                 "GiDPostMode"            : "Binary",
                 "GiDWriteMeshFlag"       : true,
