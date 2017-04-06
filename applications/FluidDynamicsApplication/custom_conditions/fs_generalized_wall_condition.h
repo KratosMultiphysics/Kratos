@@ -222,6 +222,14 @@ public:
 						GetGeometry().Create(ThisNodes), pProperties));
 	}
 
+	virtual Condition::Pointer Create(IndexType NewId,
+			GeometryType::Pointer pGeom,
+			PropertiesType::Pointer pProperties) const
+	{
+		return Condition::Pointer(new FSGeneralizedWallCondition(NewId,
+						pGeom, pProperties));
+	}
+
 	/// Find the condition's parent element.
 	void Initialize()
 	{
@@ -845,8 +853,9 @@ protected:
 				const NodeType& rNode = rGeometry[i];
 				if(rNode.GetValue(Y_WALL) != 0.0 && rNode.GetValue(IS_STRUCTURE) != 0.0)
 				{
-					WallVel = rNode.FastGetSolutionStepValue(VELOCITY,1) - rNode.FastGetSolutionStepValue(MESH_VELOCITY,1);
-					tmp = norm_2(WallVel);
+                    WallVel = rNode.FastGetSolutionStepValue(VELOCITY, 1) -
+                              rNode.FastGetSolutionStepValue(MESH_VELOCITY, 1);
+                    tmp = norm_2(WallVel);
 					WallVel /= (tmp != 0.0) ? tmp : 1.0;
 
 					for (unsigned int d=0; d < TDim; d++)
