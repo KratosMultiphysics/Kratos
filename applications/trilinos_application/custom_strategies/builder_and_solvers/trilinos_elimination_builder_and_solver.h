@@ -1153,8 +1153,8 @@ public:
 
                 if (num_active_indices != 0)
                 {
-                    int InsertGlobalIndicesError = Agraph.InsertGlobalIndices(num_active_indices,assembling_temp,num_active_indices, assembling_temp);
-                    KRATOS_ERROR_IF( InsertGlobalIndicesError < 0 );
+                    int ierr = Agraph.InsertGlobalIndices(num_active_indices,assembling_temp,num_active_indices, assembling_temp);
+                    KRATOS_ERROR_IF( ierr < 0 ) << "In " << __FILE__ << ":" << __LINE__ << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
                 }
           }
 
@@ -1176,14 +1176,14 @@ public:
 
               if (num_active_indices != 0)
               {
-                  int InsertGlobalIndicesError = Agraph.InsertGlobalIndices(num_active_indices,assembling_temp,num_active_indices, assembling_temp);
-                  KRATOS_ERROR_IF( InsertGlobalIndicesError < 0 );
+                  int ierr = Agraph.InsertGlobalIndices(num_active_indices,assembling_temp,num_active_indices, assembling_temp);
+                  KRATOS_ERROR_IF( ierr < 0 ) << "In " << __FILE__ << ":" << __LINE__ << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
               }
           }
 
           //finalizing graph construction
-          int GlobalAssembleError = Agraph.GlobalAssemble();
-          KRATOS_ERROR_IF( GlobalAssembleError != 0 );
+          int ierr = Agraph.GlobalAssemble();
+          KRATOS_ERROR_IF( ierr != 0 ) << "In " << __FILE__ << ":" << __LINE__ << ": Epetra failure in Graph.GlobalAssemble, Error code: " << ierr << std::endl;
 
           //generate a new matrix pointer according to this graph
           TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(Copy,Agraph) );
