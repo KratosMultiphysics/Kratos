@@ -1105,7 +1105,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
     void ParticleCreatorDestructor::SetLowNode(array_1d<double, 3 > node) { mLowPoint = node; }
     unsigned int ParticleCreatorDestructor::GetCurrentMaxNodeId() { return mMaxNodeId; } 
     unsigned int* ParticleCreatorDestructor::pGetCurrentMaxNodeId() { return &mMaxNodeId; }
-    void ParticleCreatorDestructor::SetMaxNodeId(unsigned int id) { mMaxNodeId = id; }
+    void ParticleCreatorDestructor::SetMaxNodeId(unsigned int id) { mMaxNodeId = id;}
 
     std::string ParticleCreatorDestructor::Info() const { return ""; }
     void ParticleCreatorDestructor::PrintInfo(std::ostream& rOStream) const {}
