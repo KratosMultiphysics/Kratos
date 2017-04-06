@@ -38,11 +38,13 @@ namespace Kratos
 		typedef BaseType::VectorType VectorType;
 		typedef BaseType::EquationIdVectorType EquationIdVectorType;
 		typedef BaseType::DofsVectorType DofsVectorType;
-		typedef unsigned int uint;
 
 
-		TrussElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry);
-		TrussElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+		TrussElement3D2N(IndexType NewId, 
+						GeometryType::Pointer pGeometry);
+		TrussElement3D2N(IndexType NewId,
+						GeometryType::Pointer pGeometry,
+						PropertiesType::Pointer pProperties);
 
 
 		virtual ~TrussElement3D2N();
@@ -55,11 +57,11 @@ namespace Kratos
 
 		void EquationIdVector(
 			EquationIdVectorType& rResult,
-			ProcessInfo& rCurrentProcessInfo);
+			ProcessInfo& rCurrentProcessInfo) override;
 
 		void GetDofList(
 			DofsVectorType& rElementalDofList,
-			ProcessInfo& rCurrentProcessInfo);
+			ProcessInfo& rCurrentProcessInfo) override;
 
 		void Initialize();
 
@@ -68,73 +70,65 @@ namespace Kratos
 		void CalculateOnIntegrationPoints(
 			const Variable<double>& rVariable,
 			std::vector<double>& rOutput,
-			const ProcessInfo& rCurrentProcessInfo);
+			const ProcessInfo& rCurrentProcessInfo) override;
 
 		void GetValueOnIntegrationPoints(
 			const Variable<double>& rVariable,
 			std::vector<double>& rValues,
-			const ProcessInfo& rCurrentProcessInfo);
+			const ProcessInfo& rCurrentProcessInfo) override;
 
-
-		//new functions
-		void UpdateInternalForces(VectorType& rinternalForces);
-		void CreateTransformationMatrix(Matrix& rRotationMatrix);
+		void UpdateInternalForces(
+			VectorType& rinternalForces);
+		void CreateTransformationMatrix(
+			Matrix& rRotationMatrix);
 		double CalculateCurrentLength();
-		//
 
 		void CalculateOnIntegrationPoints(
 			const Variable<Vector>& rVariable,
 			std::vector<Vector>& rOutput,
-			const ProcessInfo& rCurrentProcessInfo);
+			const ProcessInfo& rCurrentProcessInfo) override;
 
 		void GetValueOnIntegrationPoints(
 			const Variable<Vector>& rVariable,
 			std::vector<Vector>& rValues,
-			const ProcessInfo& rCurrentProcessInfo);
+			const ProcessInfo& rCurrentProcessInfo) override;
 
 		void CalculateLocalSystem(
 			MatrixType& rLeftHandSideMatrix,
 			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo);
+			ProcessInfo& rCurrentProcessInfo) override;
 
 
 		void CalculateRightHandSide(
 			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo);
+			ProcessInfo& rCurrentProcessInfo) override;
 
 		void CalculateLeftHandSide(
 			MatrixType& rLeftHandSideMatrix,
-			ProcessInfo& rCurrentProcessInfo);
+			ProcessInfo& rCurrentProcessInfo) override;
 
 		void CalculateMassMatrix(
 			MatrixType& rMassMatrix,
-			ProcessInfo& rCurrentProcessInfo);
+			ProcessInfo& rCurrentProcessInfo) override;
 
 		void CalculateDampingMatrix(
 			MatrixType& rDampingMatrix,
-			ProcessInfo& rCurrentProcessInfo);
+			ProcessInfo& rCurrentProcessInfo) override;
 
 		void GetValuesVector(
 			Vector& rValues,
-			int Step = 0);
+			int Step = 0) override;
 
 		void GetSecondDerivativesVector(
 			Vector& rValues,
-			int Step = 0);
+			int Step = 0) override;
 
 		void GetFirstDerivativesVector(
 			Vector& rValues,
-			int Step = 0);
+			int Step = 0) override;
 
-		void CalculateSecondDerivativesContributions(
-			MatrixType& rLeftHandSideMatrix,
-			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo);
-
-		void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
-		void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-
-		int  Check(const ProcessInfo& rCurrentProcessInfo);
+		int  Check(
+			const ProcessInfo& rCurrentProcessInfo);
 
 
 		double CalculateGreenLagrangeStrain();
@@ -144,9 +138,10 @@ namespace Kratos
 
 
 	private:
-		double mPreStress, mArea, mYoungsModulus, mLength, mDensity, mInternalStrainGL, mCurrentLength;
+		double mPreStress, mArea, mYoungsModulus, mLength, mDensity;
+		double mCurrentLength;
 		MatrixType mLHS;
-		uint mIterCount = 0; 
+		int mIterCount = 0; 
 		bool mIsCable;
 		bool mIsCompressed;
 
