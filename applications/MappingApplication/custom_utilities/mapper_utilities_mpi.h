@@ -16,12 +16,8 @@
 #if !defined(KRATOS_MAPPER_UTILITIES_MPI_H_INCLUDED )
 #define  KRATOS_MAPPER_UTILITIES_MPI_H_INCLUDED
 
-
 // System includes
-#include <string>
-#include <iostream>
-#include <iomanip>
-
+#include <iomanip> // for "std::setw"
 
 // External includes
 #include "mpi.h"

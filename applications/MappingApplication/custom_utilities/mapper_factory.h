@@ -16,20 +16,13 @@
 #if !defined(KRATOS_MAPPER_FACTORY_H_INCLUDED )
 #define  KRATOS_MAPPER_FACTORY_H_INCLUDED
 
-
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
-#include "containers/flags.h"
 #include "includes/kratos_parameters.h"
-#include "mapper_utilities.h"
 
 #include "custom_utilities/nearest_neighbor_mapper.h"
 #include "custom_utilities/nearest_element_mapper.h"
@@ -285,6 +278,8 @@ namespace Kratos
               KRATOS_ERROR << "No \"mapper_type\" defined in json" << std::endl;
           }
 
+          mMapperType = mrJsonParameters["mapper_type"].GetString();
+
           if (!mrJsonParameters.Has("interface_submodel_part_origin")) {
               KRATOS_ERROR << "No \"interface_submodel_part_origin\" "
                            << "defined in json" << std::endl;
@@ -329,7 +324,7 @@ namespace Kratos
 
           mrJsonParameters.RecursivelyValidateAndAssignDefaults(mDefaultParameters);
 
-          if (mrJsonParameters["approximation_tolerance"].GetDouble() < 0.0f) { // nothing specified
+          if (mrJsonParameters["approximation_tolerance"].GetDouble() < 0.0f) { // nothing specified, set to max
               mrJsonParameters["approximation_tolerance"].SetDouble(std::numeric_limits<double>::max());
           }
       }
@@ -342,28 +337,46 @@ namespace Kratos
         name_interface_submodel_part = mrJsonParameters["interface_submodel_part_destination"].GetString();
         mpInterfaceModelPartDestination = &mrModelPartDestination.GetSubModelPart(name_interface_submodel_part);
 
-        if (MapperUtilities::ComputeNumberOfNodes(*mpInterfaceModelPartOrigin) < 1 &&
-            MapperUtilities::ComputeNumberOfConditions(*mpInterfaceModelPartOrigin) < 1)
-            KRATOS_ERROR << "Neither nodes nor conditions found "
-                         << "in the origin model part" << std::endl;
+        const int num_nodes_origin = MapperUtilities::ComputeNumberOfNodes(*mpInterfaceModelPartOrigin);
+        const int num_conditions_origin = MapperUtilities::ComputeNumberOfConditions(*mpInterfaceModelPartOrigin);
+        const int num_elements_origin = MapperUtilities::ComputeNumberOfElements(*mpInterfaceModelPartOrigin);
 
-        if (MapperUtilities::ComputeNumberOfNodes(*mpInterfaceModelPartDestination) < 1 &&
-            MapperUtilities::ComputeNumberOfConditions(*mpInterfaceModelPartDestination) < 1)
-            KRATOS_ERROR << "Neither nodes nor conditions found "
-                         << "in the destination model part" << std::endl;
+        const int num_nodes_destination = MapperUtilities::ComputeNumberOfNodes(*mpInterfaceModelPartDestination);
+        const int num_conditions_destination = MapperUtilities::ComputeNumberOfConditions(*mpInterfaceModelPartDestination);
+        const int num_elements_destination = MapperUtilities::ComputeNumberOfElements(*mpInterfaceModelPartDestination);
+
+        // Check if the ModelPart contains entities
+        if (num_nodes_origin + num_conditions_origin + num_elements_origin < 1) {
+            KRATOS_ERROR << "Neither Nodes nor Conditions nor Elements "
+                         << "found in the Origin ModelPart" << std::endl;
+        }
+
+        if (num_nodes_destination + num_conditions_destination + num_elements_destination < 1) {
+            KRATOS_ERROR << "Neither Nodes nor Conditions nor Elements "
+                         << "found in the Destination ModelPart" << std::endl;
+        }
+
+        // Check if the ModelPart contains both elements and conditions (onl possible for NearestNeighbor)
+        if (num_conditions_origin > 0 && num_elements_origin > 0 && mMapperType != "NearestNeighbor") {
+            KRATOS_ERROR << "Conitions AND Elements found in the Origin "
+                         << "ModelPart, not possible for selected mapper" << std::endl;
+        }
+
+        if (num_conditions_destination > 0 && num_elements_destination > 0 && mMapperType != "NearestNeighbor") {
+            KRATOS_ERROR << "Conitions AND Elements found in the Destination "
+                         << "ModelPart, not possible for selected mapper" << std::endl;
+        }
 
         // Compute the search radius in case it was not specified, can only be done after the modelparts are read
         if (mComputeSearchRadius) {
-          double search_radius = MapperUtilities::ComputeSearchRadius(*mpInterfaceModelPartOrigin,
-                                                                      *mpInterfaceModelPartDestination,
-                                                                      mrJsonParameters["echo_level"].GetInt());
-          mrJsonParameters["search_radius"].SetDouble(search_radius);
+            double search_radius = MapperUtilities::ComputeSearchRadius(*mpInterfaceModelPartOrigin,
+                                                                        *mpInterfaceModelPartDestination,
+                                                                        mrJsonParameters["echo_level"].GetInt());
+            mrJsonParameters["search_radius"].SetDouble(search_radius);
         }
       }
 
       void ConstructMapper() {
-          mMapperType = mrJsonParameters["mapper_type"].GetString();
-
           double start_time = MapperUtilities::GetCurrentTime();
 
           if (mMapperType == "NearestNeighbor") {

@@ -16,22 +16,16 @@
 #if !defined(KRATOS_INTERFACE_SEARCH_STRUCTURE_H_INCLUDED )
 #define  KRATOS_INTERFACE_SEARCH_STRUCTURE_H_INCLUDED
 
-
-
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
-#include "interface_object.h"
 #include "interface_object_manager_serial.h"
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "custom_configures/interface_object_configure.h"
+
 
 namespace Kratos
 {

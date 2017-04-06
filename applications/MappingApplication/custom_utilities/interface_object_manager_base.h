@@ -16,17 +16,10 @@
 #if !defined(KRATOS_INTERFACE_OBJECT_MANAGER_BASE_H_INCLUDED )
 #define  KRATOS_INTERFACE_OBJECT_MANAGER_BASE_H_INCLUDED
 
-
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
-#include <vector>
 #include <unordered_map> // for CandidateManager
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -34,6 +27,7 @@
 #include "interface_node.h"
 #include "interface_condition.h"
 #include "custom_configures/interface_object_configure.h"
+
 
 namespace Kratos
 {

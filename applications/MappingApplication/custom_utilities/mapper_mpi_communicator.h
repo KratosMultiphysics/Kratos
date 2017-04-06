@@ -16,17 +16,11 @@
 #if !defined(KRATOS_MAPPER_MPI_COMMUNICATOR_H_INCLUDED )
 #define  KRATOS_MAPPER_MPI_COMMUNICATOR_H_INCLUDED
 
-
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
 #include "mapper_communicator.h"
 #include "interface_search_structure_mpi.h"
 #include "interface_object_manager_parallel.h"

@@ -21,12 +21,8 @@
 // External includes
 
 // Project includes
-
 #include "mapper.h"
 
-// #include <unordered_map>
-
-// External includes
 
 namespace Kratos {
 

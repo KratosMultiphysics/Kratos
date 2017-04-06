@@ -17,14 +17,10 @@
 #define  KRATOS_INTERFACE_SEARCH_STRUCTURE_MPI_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
 #include "interface_search_structure.h"
 #include "interface_object_manager_parallel.h"
 #include "mapper_utilities_mpi.h"

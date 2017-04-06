@@ -17,14 +17,10 @@
 #define  KRATOS_MAPPER_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <vector>
 
 // External includes
 
 // Project includes
-
 #include "includes/define.h"
 #include "mapper_communicator.h"
 #include "mapper_utilities.h"
@@ -35,6 +31,7 @@
 #include "mpi.h"
 #include "mapper_mpi_communicator.h"
 #endif
+
 
 namespace Kratos {
 

@@ -16,24 +16,18 @@
 #if !defined(KRATOS_MAPPER_UTILITIES_H_INCLUDED )
 #define  KRATOS_MAPPER_UTILITIES_H_INCLUDED
 
-
-
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
-
+#ifdef KRATOS_USING_MPI
+#include "mpi.h" // for GetCurrentTime()
+#endif
 
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/math_utils.h" // Cross Product
 #include "utilities/openmp_utils.h" // for GetCurrentTime()
-#ifdef KRATOS_USING_MPI
-#include "mpi.h" // for GetCurrentTime()
-#endif
 
 
 namespace Kratos

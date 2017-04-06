@@ -16,20 +16,12 @@
 #if !defined(KRATOS_INTERFACE_CONDITION_INCLUDED_H_INCLUDED )
 #define  KRATOS_INTERFACE_CONDITION_INCLUDED_H_INCLUDED
 
-
-
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
 #include "interface_object.h"
-
 
 
 namespace Kratos

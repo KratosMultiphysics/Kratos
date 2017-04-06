@@ -16,17 +16,11 @@
 #if !defined(KRATOS_INTERFACE_OBJECT_MANAGER_PARALLEL_H_INCLUDED )
 #define  KRATOS_INTERFACE_OBJECT_MANAGER_PARALLEL_H_INCLUDED
 
-
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
 #include "interface_object_manager_base.h"
 #include "mapper_utilities_mpi.h"
 

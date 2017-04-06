@@ -16,15 +16,9 @@
 #if !defined(KRATOS_MAPPER_FLAGS_H_INCLUDED )
 #define  KRATOS_MAPPER_FLAGS_H_INCLUDED
 
-
-
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
