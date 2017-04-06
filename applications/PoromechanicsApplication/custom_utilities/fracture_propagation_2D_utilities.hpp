@@ -731,9 +731,9 @@ protected:
         BodyGaussPointOldCellMatrix.resize(AuxVariables.NRows);
         for(int i = 0; i < AuxVariables.NRows; i++) BodyGaussPointOldCellMatrix[i].resize(AuxVariables.NColumns);
         
-        std::vector< std::vector< std::vector<GaussPointOld> > > GaussPointOldCellMatrix;
-        GaussPointOldCellMatrix.resize(AuxVariables.NRows);
-        for(int i = 0; i < AuxVariables.NRows; i++) GaussPointOldCellMatrix[i].resize(AuxVariables.NColumns);
+        std::vector< std::vector< std::vector<GaussPointOld> > > InterfaceGaussPointOldCellMatrix;
+        InterfaceGaussPointOldCellMatrix.resize(AuxVariables.NRows);
+        for(int i = 0; i < AuxVariables.NRows; i++) InterfaceGaussPointOldCellMatrix[i].resize(AuxVariables.NColumns);
 
         // Locate Old Gauss Points in cells
         GaussPointOld MyGaussPointOld;
@@ -791,7 +791,6 @@ protected:
                     #pragma omp critical
                     {
                         BodyGaussPointOldCellMatrix[Row][Column].push_back(MyGaussPointOld);
-                        GaussPointOldCellMatrix[Row][Column].push_back(MyGaussPointOld);
                     }
                 }
             }
@@ -844,7 +843,7 @@ protected:
                     Column = int((MyGaussPointOld.Coordinates[0]-AuxVariables.X_min)/AuxVariables.ColumnSize);
                     #pragma omp critical
                     {
-                        GaussPointOldCellMatrix[Row][Column].push_back(MyGaussPointOld);
+                        InterfaceGaussPointOldCellMatrix[Row][Column].push_back(MyGaussPointOld);
                     }
                 }
             }
@@ -1000,9 +999,9 @@ protected:
                     {
                         for(int l = Column_left; l<= Column_right; l++)
                         {
-                            for(unsigned int m = 0; m < GaussPointOldCellMatrix[k][l].size(); m++)
+                            for(unsigned int m = 0; m < InterfaceGaussPointOldCellMatrix[k][l].size(); m++)
                             {
-                                GaussPointOld& rOtherGaussPointOld = GaussPointOldCellMatrix[k][l][m];
+                                GaussPointOld& rOtherGaussPointOld = InterfaceGaussPointOldCellMatrix[k][l][m];
 
                                 Distance = sqrt((rOtherGaussPointOld.Coordinates[0]-X_me)*(rOtherGaussPointOld.Coordinates[0]-X_me) +
                                                 (rOtherGaussPointOld.Coordinates[1]-Y_me)*(rOtherGaussPointOld.Coordinates[1]-Y_me));
