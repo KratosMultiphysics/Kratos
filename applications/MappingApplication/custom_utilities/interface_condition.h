@@ -90,7 +90,7 @@ namespace Kratos
       ///@{
 
       bool EvaluateResult(const array_1d<double, 3>& GlobalCoords, 
-                          double& rMinDistance, double Distance,
+                          double& rMinDistance, const double Distance,
                           std::vector<double>& rShapeFunctionValues) override { // I am an object in the bins
           // Distance is the distance to the center and not the projection distance, therefore it is unused
           bool is_closer = false;
@@ -113,6 +113,21 @@ namespace Kratos
               is_inside = MapperUtilities::ProjectPointToQuadrilateral(mpCondition, GlobalCoords,
                                                                        projection_local_coords,
                                                                        projection_distance);
+          } else if (mGeometryFamily == GeometryData::Kratos_Tetrahedra
+                     && mNumPoints == 4) { // I am a linear quadrilateral condition
+              is_inside = MapperUtilities::ProjectPointToTetrahedra(mpCondition, GlobalCoords,
+                                                                    projection_local_coords,
+                                                                    projection_distance);
+          } else if (mGeometryFamily == GeometryData::Kratos_Prism
+                     && mNumPoints == 6) { // I am a linear quadrilateral condition
+              is_inside = MapperUtilities::ProjectPointToPrism(mpCondition, GlobalCoords,
+                                                               projection_local_coords,
+                                                               projection_distance);
+          } else if (mGeometryFamily == GeometryData::Kratos_Hexahedra
+                     && mNumPoints == 8) { // I am a linear quadrilateral condition
+              is_inside = MapperUtilities::ProjectPointToHexahedra(mpCondition, GlobalCoords,
+                                                                   projection_local_coords,
+                                                                   projection_distance);
           } else {
               std::cout << "MAPPER WARNING, Used Geometry is not implemented, " 
                         << "using an approximation" << std::endl;
@@ -135,11 +150,11 @@ namespace Kratos
       }
 
       bool ComputeApproximation(const array_1d<double, 3>& GlobalCoords, double& rMinDistance,
-                                double Distance, std::vector<double>& rShapeFunctionValues) override { // I am an object in the bins
+                                std::vector<double>& rShapeFunctionValues) override { // I am an object in the bins
           bool is_closer = false;
           double distance_point = std::numeric_limits<double>::max();
           int closest_point_index = -1;
-          // Loop over all points of the geometry
+          // Loop over all points of the geometry and check which one is the closest
           for (int i = 0; i < mNumPoints; ++i) {
               distance_point = MapperUtilities::ComputeDistance(GlobalCoords, 
                                                                 mpCondition->GetGeometry().GetPoint(i).Coordinates());
@@ -152,6 +167,7 @@ namespace Kratos
           }
 
           if (is_closer) {
+              // Use the value of the closest point by setting its corresponding sf-value to 1
               rShapeFunctionValues.resize(mNumPoints);
               for (int i = 0; i < mNumPoints; ++i) { 
                   if (i == closest_point_index) {

@@ -271,7 +271,7 @@ namespace Kratos
           if (rPairingStatus != (*rPoint)->GetIndexNeighborFound()) {
               for (int i = 0; i < static_cast<int>(NumResults); ++i) { // find index of best result
                   if (rResultList[i]->ComputeApproximation((*rPoint)->Coordinates(), min_distance, 
-                                                           rDistances[i], rShapeFunctionsValues)) {
+                                                           rShapeFunctionsValues)) {
                     rClosestDistance = min_distance;
                     rVecClosestResults = rResultList[i];
                     rPairingStatus = (*rPoint)->GetIndexApproximation();

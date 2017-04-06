@@ -339,6 +339,27 @@ namespace Kratos
           return is_inside;
       }
 
+      static bool ProjectPointToTetrahedra(Condition* pCondition,
+                                           const array_1d<double, 3>& GlobalCoords,
+                                           array_1d<double,3>& rLocalCoords,
+                                           double& rDistance) {
+          return false;
+      }
+
+      static bool ProjectPointToPrism(Condition* pCondition,
+                                      const array_1d<double, 3>& GlobalCoords,
+                                      array_1d<double,3>& rLocalCoords,
+                                      double& rDistance) {
+          return false;
+      }
+
+      static bool ProjectPointToHexahedra(Condition* pCondition,
+                                          const array_1d<double, 3>& GlobalCoords,
+                                          array_1d<double,3>& rLocalCoords,
+                                          double& rDistance) {
+          return false;
+      }
+
       static void CalculateLineNormal(Condition* pCondition,
                                       array_1d<double,3>& rNormal) {
           // TODO use the normal calculation in geometry.h once it is available
