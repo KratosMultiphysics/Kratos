@@ -60,29 +60,30 @@ public:
 
     virtual ~ParticleDataBuffer(){}
 
-void CalculateRelativePosition(SphericParticle* p_neighbour_particle)
-{
-    if (!mpThisParticle->GetDomainPeriodicity()){ // default infinite-domain case
-        noalias(mOtherToMeVector) = mpThisParticle->GetGeometry()[0].Coordinates() - p_neighbour_particle->GetGeometry()[0].Coordinates();
-    }
+//void CalculateRelativePosition(SphericParticle* p_neighbour_particle)
+//{
+//    mpOtherParticle = p_neighbour_particle;
+//    if (!mpThisParticle->GetDomainPeriodicity()){ // default infinite-domain case
+//        noalias(mOtherToMeVector) = mpThisParticle->GetGeometry()[0].Coordinates() - p_neighbour_particle->GetGeometry()[0].Coordinates();
+//    }
 
-    else { // periodic domain
-        mMyCoors[0] = mpThisParticle->GetGeometry()[0].Coordinates()[0];
-        mMyCoors[1] = mpThisParticle->GetGeometry()[1].Coordinates()[1];
-        mMyCoors[2] = mpThisParticle->GetGeometry()[2].Coordinates()[2];
-        mOtherCoors[0] = mpThisParticle->GetGeometry()[0].Coordinates()[0];
-        mOtherCoors[1] = mpThisParticle->GetGeometry()[1].Coordinates()[1];
-        mOtherCoors[2] = mpThisParticle->GetGeometry()[2].Coordinates()[2];
-        mOtherToMeVector[0] = mMyCoors[0] - mOtherCoors[0];
-        mOtherToMeVector[1] = mMyCoors[1] - mOtherCoors[1];
-        mOtherToMeVector[2] = mMyCoors[2] - mOtherCoors[2];
-    }
+//    else { // periodic domain
+//        mMyCoors[0] = mpThisParticle->GetGeometry()[0].Coordinates()[0];
+//        mMyCoors[1] = mpThisParticle->GetGeometry()[1].Coordinates()[1];
+//        mMyCoors[2] = mpThisParticle->GetGeometry()[2].Coordinates()[2];
+//        mOtherCoors[0] = mpThisParticle->GetGeometry()[0].Coordinates()[0];
+//        mOtherCoors[1] = mpThisParticle->GetGeometry()[1].Coordinates()[1];
+//        mOtherCoors[2] = mpThisParticle->GetGeometry()[2].Coordinates()[2];
+//        mOtherToMeVector[0] = mMyCoors[0] - mOtherCoors[0];
+//        mOtherToMeVector[1] = mMyCoors[1] - mOtherCoors[1];
+//        mOtherToMeVector[2] = mMyCoors[2] - mOtherCoors[2];
+//    }
 
-    mOtherRadius = p_neighbour_particle->GetInteractionRadius();
-    mDistance    = DEM_MODULUS_3(mOtherToMeVector);
-    mRadiusSum   = mpThisParticle->GetInteractionRadius() + mOtherRadius;
-    mIndentation = mRadiusSum - mDistance;
-}
+//    mOtherRadius = p_neighbour_particle->GetInteractionRadius();
+//    mDistance    = DEM_MODULUS_3(mOtherToMeVector);
+//    mRadiusSum   = mpThisParticle->GetInteractionRadius() + mOtherRadius;
+//    mIndentation = mRadiusSum - mDistance;
+//}
 
 double mDistance;
 double mRadiusSum;
@@ -92,6 +93,7 @@ double mMyCoors[3];
 double mOtherCoors[3];
 array_1d<double, 3> mOtherToMeVector;
 SphericParticle* mpThisParticle;
+SphericParticle* mpOtherParticle;
 };
 
 virtual std::shared_ptr<ParticleDataBuffer> CreateParticleDataBuffer(SphericParticle* p_this_particle)
@@ -101,6 +103,8 @@ virtual std::shared_ptr<ParticleDataBuffer> CreateParticleDataBuffer(SphericPart
 
 void TransformToClosestPeriodicCoordinates(double my_coors[3], double other_coors[3]);
 bool GetDomainPeriodicity();
+void CalculateRelativePositions(ParticleDataBuffer & data_buffer);
+
 using DiscreteElement::Initialize; //To avoid Clang Warning. We tell the compiler that we are aware of the existence of this function, but we overload it still.
 virtual void Initialize(const ProcessInfo& r_process_info);
 virtual void MemberDeclarationFirstStep(const ProcessInfo& r_process_info);

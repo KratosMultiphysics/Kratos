@@ -760,7 +760,6 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
     const array_1d<double, 3>& delta_displ  = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
     const array_1d<double, 3>& ang_velocity = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
 
-
     double LocalCoordSystem[3][3]    = {{0.0}, {0.0}, {0.0}};
     double OldLocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
     double DeltDisp[3]               = {0.0};
@@ -777,7 +776,7 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
 
 //        array_1d<double, 3> other_to_me_vect;
 
-        data_buffer.CalculateRelativePosition(ineighbour);
+        CalculateRelativePositions(data_buffer);
 
 //        if (!DiscreteParticleConfigure<3>::GetDomainPeriodicity()){ // default infinite-domain case
 //            noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - ineighbour->GetGeometry()[0].Coordinates();
@@ -1684,6 +1683,30 @@ void SphericParticle::RotateOldContactForces(const double OldLocalCoordSystem[3]
     GeometryFunctions::RotateAVectorAGivenAngleAroundAUnitaryVector(mNeighbourElasticContactForces, v3, alpha, mNeighbourElasticContactForcesFinal);
 
     DEM_COPY_SECOND_TO_FIRST_3(mNeighbourElasticContactForces, mNeighbourElasticContactForcesFinal)
+}
+
+void SphericParticle::CalculateRelativePositions(ParticleDataBuffer & data_buffer)
+{
+    if (!this->GetDomainPeriodicity()){ // default infinite-domain case
+        noalias(data_buffer.mOtherToMeVector) = this->GetGeometry()[0].Coordinates() - data_buffer.mpOtherParticle->GetGeometry()[0].Coordinates();
+    }
+
+    else { // periodic domain
+        data_buffer.mMyCoors[0] = this->GetGeometry()[0].Coordinates()[0];
+        data_buffer.mMyCoors[1] = this->GetGeometry()[1].Coordinates()[1];
+        data_buffer.mMyCoors[2] = this->GetGeometry()[2].Coordinates()[2];
+        data_buffer.mOtherCoors[0] = this->GetGeometry()[0].Coordinates()[0];
+        data_buffer.mOtherCoors[1] = this->GetGeometry()[1].Coordinates()[1];
+        data_buffer.mOtherCoors[2] = this->GetGeometry()[2].Coordinates()[2];
+        data_buffer.mOtherToMeVector[0] = data_buffer.mMyCoors[0] - data_buffer.mOtherCoors[0];
+        data_buffer.mOtherToMeVector[1] = data_buffer.mMyCoors[1] - data_buffer.mOtherCoors[1];
+        data_buffer.mOtherToMeVector[2] = data_buffer.mMyCoors[2] - data_buffer.mOtherCoors[2];
+    }
+
+    data_buffer.mOtherRadius = data_buffer.mpOtherParticle->GetInteractionRadius();
+    data_buffer.mDistance    = DEM_MODULUS_3(data_buffer.mOtherToMeVector);
+    data_buffer.mRadiusSum   = this->GetInteractionRadius() + data_buffer.mOtherRadius;
+    data_buffer.mIndentation = data_buffer.mRadiusSum - data_buffer.mDistance;
 }
 
 void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(const ProcessInfo& r_process_info,
