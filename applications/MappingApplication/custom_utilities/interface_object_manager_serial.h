@@ -115,12 +115,10 @@ namespace Kratos
       // **********************************************************************
       void StoreSearchResults(const std::vector<double>& distances,
                               const std::vector<InterfaceObject::Pointer> temp_closest_results,
-                              const std::vector<std::vector<double>> temp_shape_functions,
-                              const std::vector<array_1d<double,2>> temp_local_coordinates) override {
+                              const std::vector<std::vector<double>> temp_shape_functions) override {
           for (std::size_t i = 0; i < distances.size(); ++i) {
               if (distances[i] > -0.5f) { // failed search has value "-1"
                   m_receive_objects[m_comm_rank].push_back(temp_closest_results[i]);
-                  m_local_coordinates[m_comm_rank].push_back(temp_local_coordinates[i]);
                   m_shape_functions[m_comm_rank].push_back(temp_shape_functions[i]);
               }
           }
@@ -223,7 +221,6 @@ namespace Kratos
           m_send_objects[m_comm_rank].reserve(size);
           m_receive_objects[m_comm_rank].reserve(size);
           m_shape_functions[m_comm_rank].reserve(size);
-          m_local_coordinates[m_comm_rank].reserve(size);
       }
 
 

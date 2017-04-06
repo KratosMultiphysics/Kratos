@@ -61,7 +61,6 @@ namespace Kratos
       std::unordered_map<int, std::vector<InterfaceObject::Pointer> > candidate_send_objects;
       std::unordered_map<int, std::vector<InterfaceObject::Pointer> > candidate_receive_objects;
       std::unordered_map<int, std::vector<std::vector<double> > > candidate_shape_functions;
-      std::unordered_map<int, std::vector<array_1d<double,2> > > candidate_local_coordinates;
 
       std::unordered_map<int, std::vector<int> > matching_information;
   };
@@ -99,7 +98,6 @@ namespace Kratos
           m_send_objects.clear();
           m_receive_objects.clear();
           m_shape_functions.clear();
-          m_local_coordinates.clear();
 
           for (auto& interface_obj : m_interface_objects) {
               interface_obj->Reset(); // Set the object back to its initial state
@@ -232,8 +230,7 @@ namespace Kratos
       // ***** InterfaceObjectManagerSerial *****
       virtual void StoreSearchResults(const std::vector<double>& distances,
                                       const std::vector<InterfaceObject::Pointer> temp_closest_results,
-                                      const std::vector<std::vector<double>> temp_shape_functions,
-                                      const std::vector<array_1d<double,2>> temp_local_coordinates) {
+                                      const std::vector<std::vector<double>> temp_shape_functions) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
@@ -257,7 +254,6 @@ namespace Kratos
       virtual void StoreTempSearchResults(CandidateManager& rCandidateManager,
                                           const std::vector<InterfaceObject::Pointer> temp_closest_results,
                                           const std::vector<std::vector<double>> temp_shape_functions,
-                                          const std::vector<array_1d<double,2>> temp_local_coordinates,
                                           const int comm_partner) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
@@ -450,7 +446,6 @@ namespace Kratos
       // point-receiving interface
       std::unordered_map<int, std::vector<InterfaceObject::Pointer> > m_receive_objects;
       std::unordered_map<int, std::vector<std::vector<double> > > m_shape_functions;
-      std::unordered_map<int, std::vector<array_1d<double,2> > > m_local_coordinates;
 
 
       ///@}

@@ -80,8 +80,8 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      bool EvaluateResult(const array_1d<double, 3>& GlobalCooords, double& rMinDistance,
-                          double Distance, array_1d<double,2>& local_coords,
+      bool EvaluateResult(const array_1d<double, 3>& GlobalCooords, 
+                          double& rMinDistance, double Distance, 
                           std::vector<double>& rShapeFunctionValues) override { // I am an object in the bins
           bool is_closer = false;
 

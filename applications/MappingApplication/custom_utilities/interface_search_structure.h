@@ -205,8 +205,8 @@ namespace Kratos
 
       void FindLocalNeighbors(InterfaceObjectConfigure::ContainerType& rInterfaceObjects,
                               const int InterfaceObjectsSize, std::vector<InterfaceObject::Pointer>& rInterfaceObjectResults,
-                              std::vector<double>& rMinDistances, std::vector<array_1d<double,2>>& local_coordinates,
-                              std::vector<std::vector<double>>& rShapeFunctionValues, std::vector<int>& rPairingIndices) {
+                              std::vector<double>& rMinDistances, std::vector<std::vector<double>>& rShapeFunctionValues, 
+                              std::vector<int>& rPairingIndices) {
           // This function finds neighbors of the InterfaceObjects in rInterfaceObjects in bin_structure
           // It must be executable by serial and parallel version!
           // InterfaceObjectsSize must be passed bcs rInterfaceObjects might contain old entries (it has the max receive buffer size as size)!
@@ -235,7 +235,7 @@ namespace Kratos
                       SelectBestResult(interface_object_itr, neighbor_results,
                                        neighbor_distances, number_of_results,
                                        rInterfaceObjectResults[i], rMinDistances[i],
-                                       local_coordinates[i], rShapeFunctionValues[i], rPairingIndices[i]);
+                                       rShapeFunctionValues[i], rPairingIndices[i]);
                   } else {
                       rMinDistances[i] = -1.0f; // indicates that the search was not succesful
                       rInterfaceObjectResults[i].reset(); // Release an old pointer, that is probably existing from a previous search
@@ -253,19 +253,16 @@ namespace Kratos
                             const InterfaceObjectConfigure::ResultContainerType& rResultList,
                             const std::vector<double>& rDistances, const std::size_t NumResults,
                             InterfaceObject::Pointer& rVecClosestResults, double& rClosestDistance,
-                            array_1d<double,2>& local_coords, std::vector<double>& rShapeFunctionsValues
-                            , int& rPairingStatus) {
+                            std::vector<double>& rShapeFunctionsValues, int& rPairingStatus) {
 
           double min_distance = std::numeric_limits<double>::max();
           rClosestDistance = -1.0f; // indicate a failed search in case no result is good
-          array_1d<double,2> local_coords_temp;
           rPairingStatus = (*rPoint)->GetIndexNoNeighbor();
 
           for (int i = 0; i < static_cast<int>(NumResults); ++i) { // find index of best result
-              if (rResultList[i]->EvaluateResult((*rPoint)->Coordinates(), min_distance, rDistances[i],
-                                                 local_coords_temp, rShapeFunctionsValues)) {
+              if (rResultList[i]->EvaluateResult((*rPoint)->Coordinates(), min_distance, 
+                                                 rDistances[i], rShapeFunctionsValues)) {
                   rClosestDistance = min_distance;
-                  local_coords = local_coords_temp;
                   rVecClosestResults = rResultList[i];
                   rPairingStatus = (*rPoint)->GetIndexNeighborFound();
               }
@@ -273,8 +270,8 @@ namespace Kratos
 
           if (rPairingStatus != (*rPoint)->GetIndexNeighborFound()) {
               for (int i = 0; i < static_cast<int>(NumResults); ++i) { // find index of best result
-                  if (rResultList[i]->ComputeApproximation((*rPoint)->Coordinates(), min_distance, rDistances[i],
-                                                           rShapeFunctionsValues)) {
+                  if (rResultList[i]->ComputeApproximation((*rPoint)->Coordinates(), min_distance, 
+                                                           rDistances[i], rShapeFunctionsValues)) {
                     rClosestDistance = min_distance;
                     rVecClosestResults = rResultList[i];
                     rPairingStatus = (*rPoint)->GetIndexApproximation();
@@ -340,15 +337,13 @@ namespace Kratos
 
           std::vector<InterfaceObject::Pointer> interface_object_results(num_objects);
           std::vector<double> min_distances(num_objects);
-          std::vector<array_1d<double,2>> local_coordinates(num_objects);
           std::vector<std::vector<double>> shape_function_values(num_objects);
           std::vector<int> pairing_indices(num_objects);
 
           FindLocalNeighbors(interface_objects, num_objects, interface_object_results,
-                             min_distances, local_coordinates, shape_function_values,
-                             pairing_indices);
+                             min_distances, shape_function_values, pairing_indices);
 
-          mpInterfaceObjectManagerBins->StoreSearchResults(min_distances, interface_object_results, shape_function_values, local_coordinates);
+          mpInterfaceObjectManagerBins->StoreSearchResults(min_distances, interface_object_results, shape_function_values);
           mpInterfaceObjectManager->PostProcessReceivedResults(interface_objects, min_distances,
                                                                pairing_indices);
       }

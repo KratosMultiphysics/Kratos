@@ -268,10 +268,8 @@ namespace Kratos
       void StoreTempSearchResults(CandidateManager& rCandidateManager,
                                   std::vector<InterfaceObject::Pointer> temp_closest_results,
                                   std::vector<std::vector<double>> temp_shape_functions,
-                                  std::vector<array_1d<double,2>> temp_local_coordinates,
                                   const int comm_partner) override {
           MapInsertElement(rCandidateManager.candidate_receive_objects, comm_partner, temp_closest_results);
-          MapInsertElement(rCandidateManager.candidate_local_coordinates, comm_partner, temp_local_coordinates);
           MapInsertElement(rCandidateManager.candidate_shape_functions, comm_partner, temp_shape_functions);
       }
 
@@ -288,7 +286,6 @@ namespace Kratos
                   }
                   m_receive_objects[comm_partner].push_back(rCandidateManager.candidate_receive_objects.at(comm_partner)[i]);
                   m_shape_functions[comm_partner].push_back(rCandidateManager.candidate_shape_functions.at(comm_partner)[i]);
-                  m_local_coordinates[comm_partner].push_back(rCandidateManager.candidate_local_coordinates.at(comm_partner)[i]);
               }
           }
       }

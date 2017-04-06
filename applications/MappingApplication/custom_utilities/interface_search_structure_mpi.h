@@ -266,7 +266,6 @@ namespace Kratos
           InterfaceObjectConfigure::ContainerType remote_p_interface_object_list(m_receive_buffer_size);
           std::vector<InterfaceObject::Pointer> candidate_receive_objects(m_receive_buffer_size);
           std::vector<double> min_distances(m_receive_buffer_size);
-          std::vector<array_1d<double,2>> local_coordinates(m_receive_buffer_size);
           std::vector<std::vector<double>> shape_functions(m_receive_buffer_size);
           std::vector<int> pairing_indices(m_receive_buffer_size);
           // auto local_coordinates = boost::shared_ptr<std::vector<array_1d<double,2>>>(new std::vector<array_1d<double,2>>(max_receive_buffer_size));
@@ -280,10 +279,10 @@ namespace Kratos
               mpInterfaceObjectManager->FillBufferLocalSearch(candidate_manager, remote_p_interface_object_list, num_objects);
 
               FindLocalNeighbors(remote_p_interface_object_list, num_objects, candidate_receive_objects,
-                                 min_distances, local_coordinates, shape_functions, pairing_indices);
+                                 min_distances, shape_functions, pairing_indices);
 
               mpInterfaceObjectManagerBins->StoreTempSearchResults(candidate_manager, candidate_receive_objects,
-                                                                      shape_functions, local_coordinates, mCommRank);
+                                                                      shape_functions, mCommRank);
               mpInterfaceObjectManager->PostProcessReceivedResults(candidate_manager, min_distances, 
                                                                    pairing_indices, mCommRank);
           }
@@ -304,10 +303,10 @@ namespace Kratos
 
                   // Perform local Search
                   FindLocalNeighbors(remote_p_interface_object_list, num_objects, candidate_receive_objects,
-                                     min_distances, local_coordinates, shape_functions, pairing_indices);
+                                     min_distances, shape_functions, pairing_indices);
 
                   mpInterfaceObjectManagerBins->StoreTempSearchResults(candidate_manager, candidate_receive_objects,
-                                                                          shape_functions, local_coordinates, comm_partner);
+                                                                          shape_functions, comm_partner);
 
                   // Send results back / receive results (distances)
                   int tmp_var = receive_buffer_size / 3;
