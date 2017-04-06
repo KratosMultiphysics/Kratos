@@ -157,6 +157,7 @@
         },
         "optimization_algorithm" : {
             "name"               : "penalized_projection",
+            "correction_scaling" : 0.1,
             "max_iterations"     : 100,
             "relative_tolerance" : 1e-0
         },

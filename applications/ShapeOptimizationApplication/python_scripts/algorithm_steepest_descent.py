@@ -26,7 +26,7 @@ from algorithm_base import OptimizationAlgorithm
 class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
-    def __init__( self, designSurface, analyzer, mapper, communicator, dataLogger, timer, optimizationSettings ):
+    def __init__( self, designSurface, analyzer, mapper, communicator, optimizationSettings ):
 
         self.designSurface = designSurface
         self.analyzer = analyzer

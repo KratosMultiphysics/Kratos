@@ -24,7 +24,7 @@ def CreateOptimizer( inputModelPart, optimizationSettings ):
         optimizer = VertexMorphingMethod( inputModelPart, optimizationSettings )
         return optimizer
     else:
-        sys.exit( "Specified design_control not implemented" )
+        raise NameError("Specified design control not implemented or misspelled: " + optimizationAlgorithm)
 
 # ==============================================================================
 class VertexMorphingMethod:
@@ -70,9 +70,7 @@ class VertexMorphingMethod:
     # --------------------------------------------------------------------------
     def optimize( self ):
         
-        # timer
-        timerFactory = __import__("timer_factory")
-        timer = timerFactory.CreateTimer()
+        timer = (__import__("timer_factory")).CreateTimer()
 
         print("\n> ==============================================================================================================")
         print("> ",timer.getTimeStamp(),": Starting optimization using the following algorithm: ",self.optimizationSettings["optimization_algorithm"]["name"].GetString())
@@ -80,11 +78,11 @@ class VertexMorphingMethod:
     
         designSurface = self.getDesignSurfaceFromInputModelPart()
         listOfDampingRegions = self.getListOfDampingRegionsFromInputModelPart()
+
         mapper = VertexMorphingMapper( designSurface, listOfDampingRegions, self.optimizationSettings ) 
-        communicator = (__import__("communicator_factory")).CreateCommunicator( self.optimizationSettings )    
-        dataLogger = (__import__("optimization_data_logger_factory")).CreateDataLogger( designSurface, communicator, timer, self.optimizationSettings )
-        
-        algorithm = (__import__("algorithm_factory")).CreateAlgorithm( designSurface, self.analyzer, mapper, communicator, dataLogger, timer, self.optimizationSettings )
+        communicator = (__import__("communicator_factory")).CreateCommunicator( self.optimizationSettings )
+            
+        algorithm = (__import__("algorithm_factory")).CreateAlgorithm( designSurface, self.analyzer, mapper, communicator, self.optimizationSettings )
         algorithm.executeAlgorithm()       
 
         print("\n> ==============================================================================================================")

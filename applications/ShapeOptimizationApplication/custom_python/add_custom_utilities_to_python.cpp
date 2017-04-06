@@ -66,6 +66,8 @@ void  AddCustomUtilitiesToPython()
         // ----------------------------------------------------------------
         .def("compute_projected_search_direction", &OptimizationUtilities::compute_projected_search_direction)
         .def("correct_projected_search_direction", &OptimizationUtilities::correct_projected_search_direction)
+        .def("get_correction_scaling", &OptimizationUtilities::get_correction_scaling)
+        .def("set_correction_scaling", &OptimizationUtilities::set_correction_scaling)
         // ----------------------------------------------------------------
         // General optimization operations
         // ----------------------------------------------------------------

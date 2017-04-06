@@ -79,19 +79,15 @@ class ResponseFunctionCreator:
     # --------------------------------------------------------------------------
     def createAndAddGivenResponse( self, responseId, solverSettings ):
 
-        responseFunctionSolverIsNotImplemented = True
-
         if responseId == "strain_energy":
             responseFunctionSolverIsNotImplemented = False
             self.inputModelPart.AddNodalSolutionStepVariable(STRAIN_ENERGY_SHAPE_GRADIENT)
             self.listOfResponseFunctions["strain_energy"] = StrainEnergyResponseFunction( self.inputModelPart, solverSettings )
-
-        if responseId == "mass":
+        elif responseId == "mass":
             responseFunctionSolverIsNotImplemented = False
             self.inputModelPart.AddNodalSolutionStepVariable(MASS_SHAPE_GRADIENT)
             self.listOfResponseFunctions["mass"] = MassResponseFunction( self.inputModelPart, solverSettings )   
-
-        if responseFunctionSolverIsNotImplemented:
+        else:
             raise NameError("The following response function is not specified: " + responseId)
 
 # ==============================================================================

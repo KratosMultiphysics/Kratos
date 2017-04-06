@@ -24,27 +24,28 @@ from response_logger_steepest_descent import ResponseLoggerSteepestDescent
 from response_logger_penalized_projection import ResponseLoggerPenalizedProjection
 
 # ==============================================================================
-def CreateDataLogger( designSurface, communicator, timer, optimizationSettings ):
-    responseLogger = createResponseLogger( communicator, timer, optimizationSettings )
+def CreateDataLogger( designSurface, communicator, optimizationSettings, timer, additionalVariablesToBeLogged ):
+    responseLogger = createResponseLogger( communicator,  optimizationSettings, timer, additionalVariablesToBeLogged )
     designLogger = createDesignLogger( designSurface, optimizationSettings )
     return optimizationDataLogger( responseLogger, designLogger, optimizationSettings )
 
 # -----------------------------------------------------------------------------
-def createResponseLogger( communicator, timer, optimizationSettings ):
+def createResponseLogger( communicator, optimizationSettings, timer, additionalVariablesToBeLogged ):
 
     optimizationAlgorithm = optimizationSettings["optimization_algorithm"]["name"].GetString()
 
     if optimizationAlgorithm == "steepest_descent":
-        return ResponseLoggerSteepestDescent( communicator, timer, optimizationSettings )
-    if optimizationAlgorithm == "penalized_projection":
-        return ResponseLoggerPenalizedProjection( communicator, timer, optimizationSettings )        
+        return ResponseLoggerSteepestDescent( communicator, optimizationSettings, timer, additionalVariablesToBeLogged )
+    elif optimizationAlgorithm == "penalized_projection":
+        return ResponseLoggerPenalizedProjection( communicator, optimizationSettings, timer, additionalVariablesToBeLogged )   
     else:
         raise NameError("The following optimization algorithm not supported by the response logger (name may be a misspelling): " + optimizationAlgorithm)
 
 # -----------------------------------------------------------------------------
 def createDesignLogger( designSurface, optimizationSettings):
-    designLogger = None
+    
     outputFormatName = optimizationSettings["output"]["output_format"]["name"].GetString()
+
     if outputFormatName == "gid":
         return DesignLoggerGID( designSurface, optimizationSettings )
     else:
@@ -95,8 +96,8 @@ class optimizationDataLogger():
         self.responseLogger.logCurrentResponses( optimizationIteration )
 
     # --------------------------------------------------------------------------
-    def getRelativeChangeOfObjectiveValue( self, optimizationIteration ):
-        return self.responseLogger.getRelativeChangeOfObjectiveValue( optimizationIteration )
+    def getValue( self, variableKey ):
+        return self.responseLogger.getValue( variableKey )
 
     # --------------------------------------------------------------------------
     def finalizeDataLogging( self ):

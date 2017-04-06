@@ -232,7 +232,7 @@ public:
     }
 
     // ==============================================================================
-    void correct_projected_search_direction( double c, boost::python::list& py_correction_scaling )
+    void correct_projected_search_direction( double c )
     {
         // Check correction necessary
         if(c==0)
@@ -271,9 +271,6 @@ public:
     	}
     	double correction_factor = mCorrectionScaling * norm_search_direction / norm_correction_term;
 
-        // Rewrite value in container to keep track of the value in python
-    	py_correction_scaling[0] = mCorrectionScaling;
-
         // Perform correction
     	for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
     	{
@@ -285,6 +282,18 @@ public:
 
         // Store constraint value for next correction step
         previous_c = c;
+    }
+
+    // --------------------------------------------------------------------------
+    void set_correction_scaling( double correctionScaling )
+    {
+        mCorrectionScaling = correctionScaling;
+    }
+
+    // --------------------------------------------------------------------------
+    double get_correction_scaling()
+    {
+        return mCorrectionScaling;
     }
 
     // ==============================================================================
