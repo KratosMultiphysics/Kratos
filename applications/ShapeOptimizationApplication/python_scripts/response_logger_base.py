@@ -23,10 +23,6 @@ CheckForPreviousImport()
 class ResponseLogger():
 
     # --------------------------------------------------------------------------
-    def __init__( self, communicator, timer, optimizationSettings ):
-        raise RuntimeError("Response logger base class is called. Please check your implementation of the function >> __init__ << .")
-
-    # --------------------------------------------------------------------------
     def initializeLogging( self ):
         raise RuntimeError("Response logger base class is called. Please check your implementation of the function >> initializeLogging << .")
 

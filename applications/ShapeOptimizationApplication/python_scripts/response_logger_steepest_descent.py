@@ -91,8 +91,7 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
     def addCurrentObjectiveValueToHistory( self ):
         objectiveValue = self.communicator.getReportedFunctionValueOf ( self.onlyObjective )
         self.objectiveValueHistory[self.currentOptimizationIteration] = objectiveValue
-        print("\n> Current value of objective function = ", round(objectiveValue,12))
-
+        
     # --------------------------------------------------------------------------
     def initializeChangeOfObjectiveValueHistory( self ):
         self.absoluteChangeOfObjectiveValueHistory[self.currentOptimizationIteration] = 0.0

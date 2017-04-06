@@ -110,18 +110,18 @@ public:
     ///@{
 
     /// Default constructor.
-    VertexMorphingMapper( ModelPart& designSurface, boost::python::dict dampingRegions, Parameters& vertexMorphingSettings )
+    VertexMorphingMapper( ModelPart& designSurface, boost::python::dict dampingRegions, Parameters& optimizationSettings )
         : mrDesignSurface( designSurface ),
           mNumberOfDesignVariables(designSurface.Nodes().size()),
-          mFilterFunction( vertexMorphingSettings["filter"]["filter_function_type"].GetString() ),
-          mFilterRadius( vertexMorphingSettings["filter"]["filter_radius"].GetDouble() ),
-          mPerformDamping( vertexMorphingSettings["damping"]["perform_damping"].GetBool() )
+          mFilterFunction( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() ),
+          mFilterRadius( optimizationSettings["design_variables"]["filter"]["filter_radius"].GetDouble() ),
+          mPerformDamping( optimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool() )
     {
         setPrecisionForOutput();
         assignMappingMatrixIds();
         initalizeDampingFactorsToHaveNoInfluence(); 
         if(mPerformDamping)   
-            setDampingFactorsForAllDampingRegions( dampingRegions, vertexMorphingSettings["damping"]["damping_regions"] );
+            setDampingFactorsForAllDampingRegions( dampingRegions, optimizationSettings["design_variables"]["damping"]["damping_regions"] );
     }
 
     /// Destructor.

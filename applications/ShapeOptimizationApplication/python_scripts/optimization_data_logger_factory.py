@@ -19,11 +19,9 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 # check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
-# Import logger classes
 from design_logger_gid import DesignLoggerGID
 from response_logger_steepest_descent import ResponseLoggerSteepestDescent
 from response_logger_penalized_projection import ResponseLoggerPenalizedProjection
-
 
 # ==============================================================================
 def CreateDataLogger( designSurface, communicator, timer, optimizationSettings ):
@@ -34,7 +32,6 @@ def CreateDataLogger( designSurface, communicator, timer, optimizationSettings )
 # -----------------------------------------------------------------------------
 def createResponseLogger( communicator, timer, optimizationSettings ):
 
-    responseLogger = None
     optimizationAlgorithm = optimizationSettings["optimization_algorithm"]["name"].GetString()
 
     if optimizationAlgorithm == "steepest_descent":
