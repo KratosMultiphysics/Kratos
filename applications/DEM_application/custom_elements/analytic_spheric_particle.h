@@ -61,12 +61,11 @@ class ParticleDataBuffer: public SphericParticle::ParticleDataBuffer
 {
 public:
 
-ParticleDataBuffer(SphericParticle* p_this_particle): SphericParticle::ParticleDataBuffer(p_this_particle)
-{}
+ParticleDataBuffer(SphericParticle* p_this_particle): SphericParticle::ParticleDataBuffer(p_this_particle){}
 
 virtual ~ParticleDataBuffer(){}
 
-double mCollidingOrNot;
+std::vector<int> mCurrentNeighbourIds;
 
 };
 
@@ -92,6 +91,15 @@ array_1d<int, 4> mCollidingIds;
 array_1d<double, 4> mCollidingRadii;
 array_1d<double, 4> mCollidingNormalVelocities;
 array_1d<double, 4> mCollidingTangentialVelocities;
+std::vector<int> mContactingNeighbourIds;
+
+void FinalizeForceComputation(ParticleDataBuffer & data_buffer);
+
+void CalculateRelativePositions(ParticleDataBuffer & data_buffer);
+
+bool IsNewNeighbour(const int nighbour_id);
+
+void RecordNewImpact(ParticleDataBuffer & data_buffer);
 
 void save(Serializer& rSerializer) const override
 {

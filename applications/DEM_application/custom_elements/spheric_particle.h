@@ -60,30 +60,23 @@ public:
 
     virtual ~ParticleDataBuffer(){}
 
-//void CalculateRelativePosition(SphericParticle* p_neighbour_particle)
-//{
-//    mpOtherParticle = p_neighbour_particle;
-//    if (!mpThisParticle->GetDomainPeriodicity()){ // default infinite-domain case
-//        noalias(mOtherToMeVector) = mpThisParticle->GetGeometry()[0].Coordinates() - p_neighbour_particle->GetGeometry()[0].Coordinates();
-//    }
+bool SetNextNeighbourOrExit(const int& i)
+{
+    if (i < int(mpThisParticle->mNeighbourElements.size())){
+        SetCurrentNeighbour(mpThisParticle->mNeighbourElements[i]);
+        return true;
+    }
 
-//    else { // periodic domain
-//        mMyCoors[0] = mpThisParticle->GetGeometry()[0].Coordinates()[0];
-//        mMyCoors[1] = mpThisParticle->GetGeometry()[1].Coordinates()[1];
-//        mMyCoors[2] = mpThisParticle->GetGeometry()[2].Coordinates()[2];
-//        mOtherCoors[0] = mpThisParticle->GetGeometry()[0].Coordinates()[0];
-//        mOtherCoors[1] = mpThisParticle->GetGeometry()[1].Coordinates()[1];
-//        mOtherCoors[2] = mpThisParticle->GetGeometry()[2].Coordinates()[2];
-//        mOtherToMeVector[0] = mMyCoors[0] - mOtherCoors[0];
-//        mOtherToMeVector[1] = mMyCoors[1] - mOtherCoors[1];
-//        mOtherToMeVector[2] = mMyCoors[2] - mOtherCoors[2];
-//    }
+    else { // other_neighbour is nullified upon exiting loop
+        mpOtherParticle = NULL;
+        return false;
+    }
+}
 
-//    mOtherRadius = p_neighbour_particle->GetInteractionRadius();
-//    mDistance    = DEM_MODULUS_3(mOtherToMeVector);
-//    mRadiusSum   = mpThisParticle->GetInteractionRadius() + mOtherRadius;
-//    mIndentation = mRadiusSum - mDistance;
-//}
+void SetCurrentNeighbour(SphericParticle* p_neighbour)
+{
+    mpOtherParticle = p_neighbour;
+}
 
 double mDistance;
 double mRadiusSum;
@@ -91,6 +84,7 @@ double mOtherRadius;
 double mIndentation;
 double mMyCoors[3];
 double mOtherCoors[3];
+double mLocalRelVel[3];
 array_1d<double, 3> mOtherToMeVector;
 SphericParticle* mpThisParticle;
 SphericParticle* mpOtherParticle;
@@ -103,7 +97,7 @@ virtual std::unique_ptr<ParticleDataBuffer> CreateParticleDataBuffer(SphericPart
 
 void TransformToClosestPeriodicCoordinates(double my_coors[3], double other_coors[3]);
 bool GetDomainPeriodicity();
-void CalculateRelativePositions(ParticleDataBuffer & data_buffer);
+virtual void CalculateRelativePositions(ParticleDataBuffer & data_buffer);
 
 using DiscreteElement::Initialize; //To avoid Clang Warning. We tell the compiler that we are aware of the existence of this function, but we overload it still.
 virtual void Initialize(const ProcessInfo& r_process_info);
@@ -115,6 +109,7 @@ virtual void FirstCalculateRightHandSide(ProcessInfo& r_process_info, double dt,
 virtual void CollectCalculateRightHandSide(ProcessInfo& r_process_info);
 virtual void FinalCalculateRightHandSide(ProcessInfo& r_process_info, double dt, const array_1d<double,3>& gravity);
 virtual void InitializeForceComputation(ProcessInfo& r_process_info);
+virtual void FinalizeForceComputation(ParticleDataBuffer & data_buffer){}
 virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_process_info) override;
 virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info) override;
 virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info) override;
@@ -337,7 +332,8 @@ virtual double GetInitialDeltaWithFEM(int index);
 
 virtual void ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces);
 
-virtual void EvaluateBallToBallForcesForPositiveIndentiations(const ProcessInfo& r_process_info,
+virtual void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
+                                                              const ProcessInfo& r_process_info,
                                                               double LocalElasticContactForce[3],
                                                               double DeltDisp[3],
                                                               double LocalDeltDisp[3],
