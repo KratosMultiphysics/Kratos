@@ -6,7 +6,7 @@
 //  License:     BSD License
 //           license: structural_mechanics_application/license.txt
 //
-//  Main authors:
+//  Main authors: Klaus B. Sautter
 //                   
 //                   
 //
@@ -906,78 +906,7 @@ namespace Kratos
 		return element_forces_t;
 		KRATOS_CATCH("")
 	}
-	///////////////////////////// additional dynamic functions /////////////////////////////
-	void CrBeamElement3D2N::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
-			std::cout << "CalculateSecondDerivativesContributions" << std::endl;
-		const SizeType NumNodes = this->GetGeometry().PointsNumber();
-		const uint dimension = this->GetGeometry().WorkingSpaceDimension();
-		const SizeType LocalSize = NumNodes * dimension * 2;
 
-		if (rLeftHandSideMatrix.size1() != LocalSize) rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
-		rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
-		this->CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
-
-		if (rRightHandSideVector.size() != LocalSize) rRightHandSideVector.resize(LocalSize);
-		rRightHandSideVector = ZeroVector(LocalSize);
-
-		double AlphaM = 0.0;
-		Vector CurrentAccelerationVector = ZeroVector(LocalSize);
-		this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
-		if (rCurrentProcessInfo.Has(BOSSAK_ALPHA)) {
-			AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
-			Vector PreviousAccelerationVector = ZeroVector(LocalSize);
-			this->GetSecondDerivativesVector(PreviousAccelerationVector, 1);
-			CurrentAccelerationVector *= (1.0 - AlphaM);
-			CurrentAccelerationVector += AlphaM * (PreviousAccelerationVector);
-		}
-
-		rRightHandSideVector = prod(rLeftHandSideMatrix, CurrentAccelerationVector);
-		KRATOS_CATCH("")
-	}
-	void CrBeamElement3D2N::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
-			std::cout << "CalculateSecondDerivativesRHS" << std::endl;
-		const SizeType NumNodes = this->GetGeometry().PointsNumber();
-		const uint dimension = this->GetGeometry().WorkingSpaceDimension();
-		const SizeType LocalSize = NumNodes * dimension * 2;
-
-		MatrixType LeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
-		this->CalculateMassMatrix(LeftHandSideMatrix, rCurrentProcessInfo);
-
-		if (rRightHandSideVector.size() != LocalSize) rRightHandSideVector.resize(LocalSize);
-		rRightHandSideVector = ZeroVector(LocalSize);
-
-		Vector CurrentAccelerationVector = ZeroVector(LocalSize);
-		this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
-
-		double AlphaM = 0.0;
-		if (rCurrentProcessInfo.Has(BOSSAK_ALPHA)) {
-			AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
-			Vector PreviousAccelerationVector = ZeroVector(LocalSize);
-			this->GetSecondDerivativesVector(PreviousAccelerationVector, 1);
-			CurrentAccelerationVector *= (1.0 - AlphaM);
-			CurrentAccelerationVector += AlphaM * (PreviousAccelerationVector);
-		}
-
-		rRightHandSideVector = prod(LeftHandSideMatrix, CurrentAccelerationVector);
-
-		KRATOS_CATCH("")
-	}
-	void CrBeamElement3D2N::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
-			const SizeType NumNodes = this->GetGeometry().PointsNumber();
-		const uint dimension = this->GetGeometry().WorkingSpaceDimension();
-		const SizeType LocalSize = NumNodes * dimension * 2;
-
-		if (rLeftHandSideMatrix.size1() != LocalSize) rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
-		rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
-		this->CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
-		KRATOS_CATCH("")
-	}
 	///////////////////////////// additional helper functions /////////////////////////////
 	int  CrBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 	{
