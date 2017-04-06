@@ -22,6 +22,7 @@
 // Project includes
 #include "contact_structural_mechanics_application_variables.h"
 #include "contact_structural_mechanics_application.h"
+#include "custom_utilities/contact_utilities.h"
 
 namespace Kratos
 {
@@ -65,39 +66,33 @@ public:
     {
     }
 
-    PointItem(array_1d<double, 3> Coords):
+    PointItem(const array_1d<double, 3> Coords):
         Point<3>(Coords)
     {}
     
-    PointItem(
-        array_1d<double, 3> Coords,
-        Condition::Pointer Cond,
-        double Radius
-    ):
-        Point<3>(Coords),
-        mpOriginCond(Cond),
-        mRadius(Radius)
-    {}
+    PointItem(Condition::Pointer Cond):
+        mpOriginCond(Cond)
+    {
+        UpdatePoint();
+    }
     
     PointItem(
-        array_1d<double, 3> Coords,
-        Node<3>::Pointer Node
+        const array_1d<double, 3> Coords,
+        Condition::Pointer Cond
     ):
         Point<3>(Coords),
-        mpOriginNode(Node)
+        mpOriginCond(Cond)
     {}
 
     ///Copy constructor  (not really required)
     PointItem(const PointItem& rhs):
         Point<3>(rhs),
-        mpOriginCond(rhs.mpOriginCond),
-        mpOriginNode(rhs.mpOriginNode),
-        mRadius(rhs.mRadius)
+        mpOriginCond(rhs.mpOriginCond)
     {
     }
 
     /// Destructor.
-    // ~PointItem();
+    ~PointItem(){}
 
     ///@}
     ///@name Operators
@@ -122,27 +117,9 @@ public:
      * Set the point
      * @param The point
      */
-    void SetPoint(Point<3> Point)
+    void SetPoint(const Point<3> Point)
     {
         this->Coordinates() = Point.Coordinates();
-    }
-    
-    /**
-     * Returns the radius of the condition
-     * @return mRadius: The radius of the condition
-     */
-    double GetRadius()
-    {
-        return mRadius;
-    }
-    
-    /**
-     * Sets the radius of the condition
-     * @param Radius: The radius of the condition
-     */
-    void SetRadius(const double& Radius)
-    {
-        mRadius = Radius;
     }
 
     /**
@@ -166,23 +143,15 @@ public:
     }
     
     /**
-     * Sets the node associated to the point
-     * @param Node: The pointer to the node associated to the point
+     * This function updates the database, using as base for the coordinates the condition center
+     * @return Coordinates: The coordinates of the item
      */
 
-    void SetNode(Node<3>::Pointer Node)
+    void UpdatePoint()
     {
-        mpOriginNode = Node;
-    }
-    
-    /**
-     * Returns the condition associated to the point
-     * @return mpOriginNode: The pointer to the node associated to the point
-     */
-
-    Node<3>::Pointer GetNode()
-    {
-        return mpOriginNode;
+        Point<3> Center;
+        ContactUtilities::CenterAndRadius(mpOriginCond, Center); 
+        this->Coordinates() = Center.Coordinates();
     }
 
 protected:
@@ -222,10 +191,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    Condition::Pointer mpOriginCond; // Condition pointer
-    Node<3>::Pointer   mpOriginNode; // Node pointer
-    double                  mRadius; // Radius         
-    array_1d<double, 3>     mNormal; // Normal vector      
+    Condition::Pointer mpOriginCond; // Condition pointer          
 
     ///@}
     ///@name Private Operators

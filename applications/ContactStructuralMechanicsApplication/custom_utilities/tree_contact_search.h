@@ -71,11 +71,11 @@ public:
     
     // Type definitions for the tree
     typedef PointItem                                             PointType;
-    typedef PointItem::Pointer                             PointTypePointer;
-    typedef std::vector<PointType::Pointer>                     PointVector;
-    typedef std::vector<PointType::Pointer>::iterator         PointIterator;
+    typedef PointType::Pointer                             PointTypePointer;
+    typedef std::vector<PointTypePointer>                       PointVector;
+    typedef PointVector::iterator                             PointIterator;
     typedef std::vector<double>                              DistanceVector;
-    typedef std::vector<double>::iterator                  DistanceIterator;
+    typedef DistanceVector::iterator                       DistanceIterator;
     
     // KDtree definitions
     typedef Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
@@ -303,16 +303,14 @@ public:
         ConditionsArrayType& pConditions = mrMainModelPart.Conditions();
         auto numConditions = pConditions.end() - pConditions.begin();
 
-//         #pragma omp parallel for 
+        #pragma omp for nowait schedule(static)
         for(unsigned int i = 0; i < numConditions; i++) 
         {
             auto itCond = pConditions.begin() + i;
             
             if (itCond->Is(MASTER) == true)
             {
-                Point<3> Center;
-                const double Radius = ContactUtilities::CenterAndRadius((*itCond.base()), Center); 
-                PointItem::Pointer pPoint = PointItem::Pointer(new PointItem(Center, (*itCond.base()), Radius));
+                PointTypePointer pPoint = PointTypePointer(new PointItem((*itCond.base())));
                 (mPointListDestination).push_back(pPoint);
             }
         }
@@ -324,25 +322,16 @@ public:
     
     void UpdatePointListMortar()
     {
-        // Iterate in the conditions
-        ConditionsArrayType& pConditions = mrMainModelPart.Conditions();
-        auto numConditions = pConditions.end() - pConditions.begin();
-
-//         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numConditions; i++) 
+        auto numPoints = mPointListDestination.end() - mPointListDestination.begin();
+        
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numPoints; i++) 
         {
-            auto itCond = pConditions.begin() + i;
+            auto itPoint = mPointListDestination.begin() + i;
             
-            if (itCond->Is(MASTER) == true)
-            {
-                Point<3> Center;
-                const double Radius = ContactUtilities::CenterAndRadius((*itCond.base()), Center); 
-                PointItem::Pointer & pPoint = mPointListDestination[i];
-                pPoint->SetCondition((*itCond.base()));
-                pPoint->SetRadius(Radius);
-                pPoint->SetPoint(Center);
-            }
+            (*itPoint.base())->UpdatePoint();
         }
+
     }
 
     /**
@@ -361,6 +350,7 @@ public:
         // Create a tree
         // It will use a copy of mNodeList (a std::vector which contains pointers)
         // Copying the list is required because the tree will reorder it for efficiency
+        UpdatePointListMortar(); // NOTE: First we reorder
         KDTree TreePoints(mPointListDestination.begin(), mPointListDestination.end(), mBucketSize);
 
         // Calculate the mean of the normal in all the nodes

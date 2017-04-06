@@ -179,15 +179,6 @@ public:
      */
     
     void CreatePointListMortar();
-    
-    /**
-     * This function creates a node list
-     */
-    
-    void CreatePointListNodes(
-        ModelPart & rModelPart, 
-        PointVector & PoinList
-        );
 
     /**
      * This function creates a condition list

@@ -231,29 +231,6 @@ void DeprecatedTreeContactSearch::CreatePointListMortar()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void DeprecatedTreeContactSearch::CreatePointListNodes(
-    ModelPart & rModelPart, 
-    PointVector & PoinList
-    )
-{
-    array_1d<double, 3> Coord = ZeroVector(3); // Will store the coordinates 
-
-    NodesArrayType& pNode               = rModelPart.Nodes();
-    NodesArrayType::iterator node_begin = pNode.ptr_begin();
-    NodesArrayType::iterator node_end   = pNode.ptr_end();
-    
-    for(NodesArrayType::iterator node_it = node_begin; node_it!=node_end; node_it++)
-    {
-        noalias(Coord) = node_it->Coordinates();
-        
-        PointItem::Pointer pP = PointItem::Pointer(new PointItem(Coord, *(node_it.base()))); 
-        (PoinList).push_back(pP);
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void DeprecatedTreeContactSearch::CreatePointListConditions(
     ModelPart & rModelPart, 
     PointVector & PoinList
@@ -266,10 +243,8 @@ void DeprecatedTreeContactSearch::CreatePointListConditions(
     for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
     {
         const Condition::Pointer & pCond = (*cond_it.base());
-        Point<3> Center;
-        const double Radius = ContactUtilities::CenterAndRadius(pCond, Center); 
         ContactUtilities::ConditionNormal(pCond);
-        PointItem::Pointer pPoint = PointItem::Pointer(new PointItem(Center, pCond, Radius));
+        PointItem::Pointer pPoint = PointItem::Pointer(new PointItem(pCond));
         (PoinList).push_back(pPoint);
     }
 }
@@ -302,24 +277,15 @@ void DeprecatedTreeContactSearch::UpdatePointListConditions(
     PointVector & PoinList
     )
 {
-    // TODO: Think how to parallel this!!!!
-    ConditionsArrayType& pCond  = rModelPart.Conditions();
-    ConditionsArrayType::iterator it_begin = pCond.ptr_begin();
-    ConditionsArrayType::iterator it_end   = pCond.ptr_end();
+    auto numPoints = PoinList.end() - PoinList.begin();
     
-    unsigned int index = 0;
-    for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
+    #pragma omp parallel for 
+    for(unsigned int i = 0; i < numPoints; i++) 
     {
-        const Condition::Pointer pCond = (*cond_it.base());
-        Point<3> Center;
-        const double Radius = ContactUtilities::CenterAndRadius(pCond, Center); 
-        ContactUtilities::ConditionNormal(pCond);
-        PointItem::Pointer & pPoint = PoinList[index];
-        pPoint->SetCondition(pCond);
-        pPoint->SetRadius(Radius);
-        pPoint->SetPoint(Center);
-        index += 1;
-     }
+        auto itPoint = PoinList.begin() + i;
+        
+        (*itPoint.base())->UpdatePoint();
+    }
 }
 
 /***********************************************************************************/

@@ -220,7 +220,6 @@ class ALMContactProcess(KratosMultiphysics.Process):
 
     def ExecuteAfterOutputStep(self):
         if self.params["contact_type"].GetString() == "Frictionless":
-            self.contact_search.UpdatePointListMortar()
             self.contact_search.PartialClearALMFrictionlessMortarConditions()
             
     def ExecuteFinalize(self):
