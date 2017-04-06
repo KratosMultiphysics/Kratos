@@ -143,14 +143,6 @@ class MeshTyingProcess(KratosMultiphysics.Process):
     
     def ExecuteInitializeSolutionStep(self):
         pass
-        #for cond in self.d_interface.Conditions:
-            #print(cond.Is(KratosMultiphysics.ACTIVE))
-        
-        #self.contact_search.UpdateMortarConditions(self.search_factor)
-        #self.contact_search.CheckMortarConditions()
-            
-        #for cond in self.d_interface.Conditions:
-            #print(cond.Is(KratosMultiphysics.ACTIVE))
         
     def ExecuteFinalizeSolutionStep(self):
         pass
@@ -160,14 +152,6 @@ class MeshTyingProcess(KratosMultiphysics.Process):
 
     def ExecuteAfterOutputStep(self):
         pass
-        #self.contact_search.UpdatePointListMortar()
-        #if (self.type_variable == "Scalar"):
-            #self.contact_search.PartialClearScalarMortarConditions()
-        #else:
-            #self.contact_search.PartialClearComponentsMortarConditions()
-            
-        #for cond in self.d_interface.Conditions:
-            #print(cond.Is(KratosMultiphysics.ACTIVE))
             
     def ExecuteFinalize(self):
         pass
