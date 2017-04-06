@@ -55,16 +55,16 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
                                                                          variable_list,
                                                                          self.num_processors)  
 
-    def SetUpMapper(self, FileName):
+    def SetUpMapper(self, file_name):
         self.ResetValuesModelParts()
 
         if (self.GiD_output):
-            self.InitializeGiD(FileName)
+            self.InitializeGiD(file_name)
 
-        parameter_file_name = "MapperTests_json/" + FileName + "_parameters.json"
-        result_file_name = "MapperTests_results/" + FileName + "_results.json"
+        parameter_file_name = "MapperTests_json/"    + file_name + "_parameters.json"
+        result_file_name    = "MapperTests_results/" + file_name + "_results.json"
 
-        try:
+        try: # to read project parameters file
             parameter_file = open(parameter_file_name, 'r')
             project_parameters = Parameters(parameter_file.read())
             mapper_settings = project_parameters["mapper_settings"][0]
@@ -72,14 +72,12 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
             raise("Project Parameter JSON File \"", parameter_file_name, "\" could not be read")
         
         results_read = False
-        try:
+        try: # to read the result ifle
             result_file  = open(result_file_name, 'r')           
             self.results = Parameters(result_file.read())
             results_read = True
         except:
             print("Warning: Result JSON File \"", result_file_name, "\" could not be read")
-
-        
 
         # needed for the tests only, usually one does not need to get the submodel-parts for the mapper
         self.interface_sub_model_part_origin = self.model_part_origin.GetSubModelPart(
@@ -218,7 +216,7 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
 
         # Overwriting Values
         self.mapper.InverseMap(variable_origin,
-                                                variable_destination)
+                               variable_destination)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_origin,
@@ -233,8 +231,8 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
 
         # Adding Values
         self.mapper.InverseMap(variable_origin,
-                                                variable_destination,
-                                                MapperFactory.ADD_VALUES)
+                               variable_destination,
+                               MapperFactory.ADD_VALUES)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_origin,
@@ -249,8 +247,8 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
 
         # Swaping the sign of the Values and adding them
         self.mapper.InverseMap(variable_origin,
-                                                variable_destination,
-                                                MapperFactory.ADD_VALUES | MapperFactory.SWAP_SIGN)
+                               variable_destination,
+                               MapperFactory.ADD_VALUES | MapperFactory.SWAP_SIGN)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_origin,
@@ -283,7 +281,7 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
 
         # Overwriting Values
         self.mapper.Map(variable_origin,
-                                         variable_destination)
+                        variable_destination)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_destination,
@@ -298,8 +296,8 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
 
         # Adding Values
         self.mapper.Map(variable_origin,
-                                         variable_destination,
-                                         MapperFactory.ADD_VALUES)
+                        variable_destination,
+                        MapperFactory.ADD_VALUES)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_destination,
@@ -314,8 +312,8 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
 
         # Swaping the sign of the Values
         self.mapper.Map(variable_origin,
-                                         variable_destination,
-                                         MapperFactory.SWAP_SIGN)
+                        variable_destination,
+                        MapperFactory.SWAP_SIGN)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_destination,
@@ -327,7 +325,7 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
                          variable_destination,
                          [-x for x in map_value])
         
-        # self.mapper.UpdateInterface(0.075)
+        # self.mapper.UpdateInterface(0.075) // TODO use once it works
 
     def TestInverseMapConstantVectorValues(self, output_time):
         map_value = [1.4785, -0.88, -33.123]
@@ -346,7 +344,7 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
 
         # Overwriting Values
         self.mapper.InverseMap(variable_origin,
-                                                variable_destination)
+                               variable_destination)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_origin,
@@ -360,8 +358,8 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
 
         # Adding Values
         self.mapper.InverseMap(variable_origin,
-                                                variable_destination,
-                                                MapperFactory.ADD_VALUES)
+                               variable_destination,
+                               MapperFactory.ADD_VALUES)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_origin,
@@ -417,12 +415,13 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
                                          output_time)
 
         if (self.set_up_test_2):
-            self.PrintMappedValues(self.interface_sub_model_part_destination, variable_destination,
-                                  "Destination_receive Scalar")
+            self.PrintMappedValues(self.interface_sub_model_part_destination, 
+                                   variable_destination,
+                                   "Destination_receive Scalar")
         else:
             self.CheckValuesPrescribed(self.interface_sub_model_part_destination,
-                                      variable_destination,
-                                      self.scalar_values_destination_receive)
+                                       variable_destination,
+                                       self.scalar_values_destination_receive)
 
     def TestInverseMapNonConstantScalarValues(self, output_time):
         variable_origin = TEMPERATURE
@@ -448,12 +447,13 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
                                          output_time)
 
         if (self.set_up_test_2):
-            self.PrintMappedValues(self.interface_sub_model_part_origin, variable_origin,
-                                  "Origin_receive Scalar")
+            self.PrintMappedValues(self.interface_sub_model_part_origin, 
+                                   variable_origin,
+                                   "Origin_receive Scalar")
         else:
             self.CheckValuesPrescribed(self.interface_sub_model_part_origin,
-                                      variable_origin,
-                                      self.scalar_values_origin_receive)
+                                       variable_origin,
+                                       self.scalar_values_origin_receive)
 
     def TestMapNonConstantVectorValues(self, output_time):
         variable_origin = FORCE
@@ -479,12 +479,13 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
                                          output_time)
 
         if (self.set_up_test_2):
-            self.PrintMappedValues(self.interface_sub_model_part_destination, variable_destination,
-                                  "Destination_receive Vector")
+            self.PrintMappedValues(self.interface_sub_model_part_destination, 
+                                   variable_destination,
+                                   "Destination_receive Vector")
         else:
             self.CheckValuesPrescribed(self.interface_sub_model_part_destination,
-                                      variable_destination,
-                                   self.vector_values_destination_receive)
+                                       variable_destination,
+                                       self.vector_values_destination_receive)
 
     def TestInverseMapNonConstantVectorValues(self, output_time):
         variable_origin = VELOCITY
@@ -510,12 +511,13 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
                                          output_time)
 
         if (self.set_up_test_2):
-            self.PrintMappedValues(self.interface_sub_model_part_origin, variable_origin,
-                                  "Origin_receive Vector")
+            self.PrintMappedValues(self.interface_sub_model_part_origin, 
+                                   variable_origin,
+                                   "Origin_receive Vector")
         else:
             self.CheckValuesPrescribed(self.interface_sub_model_part_origin,
-                                      variable_origin,
-                                      self.vector_values_origin_receive)
+                                       variable_origin,
+                                       self.vector_values_origin_receive)
 
 
     ##### Value Checking Functions
@@ -532,6 +534,7 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
             for variable in self.variable_list_vector:
                 node.SetSolutionStepValue(variable, (0.0, 0.0, 0.0))
 
+
     def SetValuesOnNodes(self, model_part, variable, value):
         for node in model_part.Nodes:
             if (self.parallel_execution):
@@ -542,6 +545,7 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
 
     def SetValuesOnNodesExec(self, node, variable, value):
         node.SetSolutionStepValue(variable, value)
+
 
     def SetValuesOnNodesPrescribed(self, model_part, variable, nodal_values):
         for node in model_part.Nodes:
@@ -634,10 +638,10 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
 
         return model_part
 
-    def InitializeGiD(self, FileName):
+    def InitializeGiD(self, file_name):
         # Initialize GidIO
-        output_file_origin = "MapperTests_gid_output/output_" + FileName + "_origin"
-        output_file_destination = "MapperTests_gid_output/output_" + FileName + "_destination"
+        output_file_origin = "MapperTests_gid_output/output_" + file_name + "_origin"
+        output_file_destination = "MapperTests_gid_output/output_" + file_name + "_destination"
 
         if (self.parallel_execution):
             output_file_origin += "_r" + str(mpi.rank)
@@ -737,22 +741,20 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
 
         err # needed to get the output
 
-    def CreateMappingValues(self, Index, CoordsX, CoordsY, CoordsZ):
+    def CreateMappingValues(self, index, coords_x, coords_y, coords_z):
         values_precision = 4
         values = []
         value = 0.0
 
-        num_values = len(CoordsX)
-
-        for i in range(len(CoordsX)):
-            if (Index == 1):
-                value = (CoordsX[i] + CoordsY[i] + CoordsZ[i]) * 1e2
-            elif (Index == 2):
-                value = ((CoordsX[i]**2 + CoordsY[i] + CoordsZ[i])*1e2)**2
-            elif (Index == 3):
-                value = (CoordsX[i]**2 + CoordsY[i]**2 + CoordsZ[i]**2)*1e2
-            elif (Index == 4):
-                value = ((CoordsX[i] + CoordsY[i] + CoordsZ[i])*1e2)**(3)
+        for i in range(len(coords_x)):
+            if (index == 1):
+                value = (coords_x[i] + coords_y[i] + coords_z[i]) * 1e2
+            elif (index == 2):
+                value = ((coords_x[i]**2 + coords_y[i] + coords_z[i])*1e2)**2
+            elif (index == 3):
+                value = (coords_x[i]**2 + coords_y[i]**2 + coords_z[i]**2)*1e2
+            elif (index == 4):
+                value = ((coords_x[i] + coords_y[i] + coords_z[i])*1e2)**(3)
             else:
                 raise("ERROR: Wrong index for MappingValues specified")
             
@@ -861,16 +863,15 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
             if (value_type == "Scalar"):
                 try:
                     value = values[i].GetDouble()
-                except:
+                except: # skip the value in case the results are not yet in the file
                     pass
             elif(value_type == "Vector"):
                 try:
                     value = (values[0][i].GetDouble(),
                             values[1][i].GetDouble(),
                             values[2][i].GetDouble())
-                except:
+                except: # skip the value in case the results are not yet in the file
                     pass
             
             dictionary.update({coords : value})
-
             i += 1
