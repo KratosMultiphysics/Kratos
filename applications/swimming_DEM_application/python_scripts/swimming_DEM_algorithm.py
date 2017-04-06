@@ -20,10 +20,11 @@ class Algorithm(BaseAlgorithm):
         self.SetDoSolveDEMVariable()
         # creating a basset_force tool to perform the operations associated with the calculation of this force along the path of each particle
         self.GetBassetForceTools()
+        BaseAlgorithm.__init__(self)
+        self.CreateParts()
 
     def CreateParts(self):
         # Order must be respected here
-        BaseAlgorithm.__init__(self)
         # defining a fluid model
         self.all_model_parts.Add(ModelPart("FluidPart"))
         # defining a model part for the mixed part
@@ -129,17 +130,19 @@ class Algorithm(BaseAlgorithm):
         BaseAlgorithm.ReadModelParts(self, starting_node_Id, starting_elem_Id, starting_cond_Id)
 
     def Initialize(self):
-        self.fluid_solver.Initialize()
         BaseAlgorithm.Initialize(self)
 
-    def AddExtraVariables(self):
-        import variables_management as vars_man
-        spheres_model_part = self.all_model_parts.Get('SpheresPart')
+    def FluidInitialize(self):
+        self.fluid_solver.Initialize()
 
+    def AddExtraVariables(self):
+        spheres_model_part = self.all_model_parts.Get('SpheresPart')
         fluid_model_part = self.all_model_parts.Get('FluidPart')
 
                 # building lists of variables for which memory is to be allocated
         # TEMPORARY, HORRIBLE !!!
+        import variables_management as vars_man
+
         vars_man.ConstructListsOfVariables(self.pp)
         #_____________________________________________________________________________________________________________________________________
         #
@@ -172,9 +175,7 @@ class Algorithm(BaseAlgorithm):
         self.solver_module.AddVariables(fluid_model_part, SolverSettings)
         vars_man.AddNodalVariables(fluid_model_part, self.pp.fluid_vars)  #     MOD.
         # }
-
-
-
+        # self.ReadFluidModelPart()
         # Creating necessary directories
         [post_path, data_and_results, graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(self.pp.CFD_DEM.problem_name))
 
@@ -191,10 +192,14 @@ class Algorithm(BaseAlgorithm):
         # adding extra process info variables
         vars_man.AddingExtraProcessInfoVariables(self.pp, fluid_model_part, spheres_model_part)
 
+    def SetFluidBufferSizeAndAddAdditionalDofs(self):
+        spheres_model_part = self.all_model_parts.Get('SpheresPart')
+        fluid_model_part = self.all_model_parts.Get('FluidPart')
+        SolverSettings = self.pp.FluidSolverConfiguration
+
         fluid_model_part.SetBufferSize(3)
         self.solver_module.AddDofs(fluid_model_part, SolverSettings)
         SDP.AddExtraDofs(self.pp, fluid_model_part, spheres_model_part, self.cluster_model_part, self.DEM_inlet_model_part)
-
         os.chdir(self.main_path)
 
         self.KRATOSprint("\nInitializing Problem...")

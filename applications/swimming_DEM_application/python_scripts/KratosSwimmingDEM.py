@@ -69,7 +69,6 @@ class Solution:
         self.pp.main_path = os.getcwd()
         self.pp.CFD_DEM = DEM_parameters
         self.alg = algorithm.Algorithm(self.pp)
-        self.alg.CreateParts()
         self.alg.SetCustomBetaParamters(varying_parameters)
 
     def Run(self):
@@ -89,7 +88,6 @@ class Solution:
         swim_proc.CopyInputFilesIntoFolder(self.main_path, post_path)
 
         self.alg.AddExtraVariables()
-
         [post_path, data_and_results, graphs_path, MPI_results] = self.alg.procedures.CreateDirectories(str(self.main_path), str(self.pp.CFD_DEM.problem_name))
 
         os.chdir(self.main_path)
@@ -115,7 +113,7 @@ class Solution:
 
         #Setting up the BoundingBox
         bounding_box_time_limits = []
-        if (self.pp.CFD_DEM.BoundingBoxOption == "ON"):
+        if self.pp.CFD_DEM.BoundingBoxOption == "ON":
             self.alg.procedures.SetBoundingBox(self.alg.spheres_model_part, self.alg.cluster_model_part, self.alg.rigid_face_model_part, self.alg.creator_destructor)
             bounding_box_time_limits = [self.alg.solver.bounding_box_start_time, self.alg.solver.bounding_box_stop_time]
 
@@ -124,12 +122,17 @@ class Solution:
         # solver_module = import_solver(SolverSettings)
         fluid_model_part = self.alg.all_model_parts.Get('FluidPart')
         mixed_model_part = self.alg.all_model_parts.Get('MixedPart')
-        self.alg.fluid_solver = self.alg.solver_module.CreateSolver(fluid_model_part, SolverSettings)
 
         Dt_DEM = self.pp.CFD_DEM.MaxTimeStep
 
         # reading the fluid part
         self.alg.Initialize()
+
+        self.alg.SetFluidBufferSizeAndAddAdditionalDofs()
+
+        self.alg.fluid_solver = self.alg.solver_module.CreateSolver(fluid_model_part, SolverSettings)
+
+        self.alg.FluidInitialize()
 
         # activate turbulence model
         self.alg.ActivateTurbulenceModel()
