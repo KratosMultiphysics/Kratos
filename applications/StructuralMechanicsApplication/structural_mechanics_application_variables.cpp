@@ -14,6 +14,7 @@ namespace Kratos
 {
 typedef array_1d<double,3> Vector3;
 typedef std::vector<Matrix> MatrixArrayType;
+typedef boost::shared_ptr<MatrixArrayType> MatrixArrayPointerType;
 
 // Generalized eigenvalue problem
 KRATOS_CREATE_VARIABLE( int, BUILD_LEVEL )
@@ -47,7 +48,7 @@ KRATOS_CREATE_VARIABLE( Matrix , GEOMETRIC_STIFFNESS )
 // KRATOS_CREATE_VARIABLE( Vector3, MATERIAL_ORIENTATION_DZ )
 
 // Shell orthotropic layer stresses
-KRATOS_CREATE_VARIABLE( MatrixArrayType*, SHELL_ORTHOTROPIC_LAYER_STRESSES )
+KRATOS_CREATE_VARIABLE( MatrixArrayPointerType, SHELL_ORTHOTROPIC_LAYER_STRESSES )
 
 // Shell generalized variables
 KRATOS_CREATE_VARIABLE( Matrix, SHELL_STRAIN )
