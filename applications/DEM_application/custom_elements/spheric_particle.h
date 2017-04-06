@@ -96,9 +96,9 @@ SphericParticle* mpThisParticle;
 SphericParticle* mpOtherParticle;
 };
 
-virtual std::shared_ptr<ParticleDataBuffer> CreateParticleDataBuffer(SphericParticle* p_this_particle)
+virtual std::unique_ptr<ParticleDataBuffer> CreateParticleDataBuffer(SphericParticle* p_this_particle)
 {
-    return std::shared_ptr<ParticleDataBuffer>(new ParticleDataBuffer(p_this_particle));
+    return std::unique_ptr<ParticleDataBuffer>(new ParticleDataBuffer(p_this_particle));
 }
 
 void TransformToClosestPeriodicCoordinates(double my_coors[3], double other_coors[3]);
