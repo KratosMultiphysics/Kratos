@@ -728,12 +728,13 @@ public:
     //**************************************************************************
     //**************************************************************************
     void ResizeAndInitializeVectors(
-        TSystemMatrixPointerType& pA,
-        TSystemVectorPointerType& pDx,
-        TSystemVectorPointerType& pb,
-        ElementsArrayType& rElements,
-        ConditionsArrayType& rConditions,
-        ProcessInfo& CurrentProcessInfo
+      typename TSchemeType::Pointer pScheme,
+      TSystemMatrixPointerType& pA,
+      TSystemVectorPointerType& pDx,
+      TSystemVectorPointerType& pb,
+      ElementsArrayType& rElements,
+      ConditionsArrayType& rConditions,
+      ProcessInfo& CurrentProcessInfo
     ) override
     {
         KRATOS_TRY
@@ -761,69 +762,51 @@ public:
             //int ierr;
             Element::EquationIdVectorType EquationId;
             // assemble all elements
-            for (typename ElementsArrayType::ptr_iterator it=rElements.ptr_begin(); it!=rElements.ptr_end(); it++)
+            for (typename ElementsArrayType::ptr_iterator it=rElements.ptr_begin(); it!=rElements.ptr_end(); ++it)
             {
-                //TODO! this should go through the scheme!!!!!!!!!1
-                (*it)->EquationIdVector(EquationId,CurrentProcessInfo);
+                pScheme->EquationId(*it, EquationId, CurrentProcessInfo);
 
                 //filling the list of active global indices (non fixed)
                 unsigned int num_active_indices = 0;
                 for(unsigned int i=0; i<EquationId.size(); i++)
-                    //if ( EquationId[i] < BaseType::mEquationSystemSize ) //check!!!
                 {
                     temp[num_active_indices] =  EquationId[i];
                     num_active_indices += 1;
-// KRATOS_WATCH(temp[i]);
                 }
 
-// KRATOS_WATCH(" ");
                 if(num_active_indices != 0)
                 {
-                    int ierr = Agraph.InsertGlobalIndices(num_active_indices,temp,num_active_indices, temp);
-                    if(ierr < 0)
-                        KRATOS_ERROR << "Epetra failure found in Agraph.InsertGlobalIndices --> ln 942";
+                    int InsertGlobalIndicesError = Agraph.InsertGlobalIndices(num_active_indices,temp,num_active_indices, temp);
+                    KRATOS_ERROR_IF( InsertGlobalIndicesError < 0 );
                 }
             }
-// KRATOS_WATCH("assemble conditions");
+
             // assemble all conditions
-            for (typename ConditionsArrayType::ptr_iterator it=rConditions.ptr_begin(); it!=rConditions.ptr_end(); it++)
+            for (typename ConditionsArrayType::ptr_iterator it=rConditions.ptr_begin(); it!=rConditions.ptr_end(); ++it)
             {
-                //TODO! this should go through the scheme!!!!!!!!!1
-                (*it)->EquationIdVector(EquationId,CurrentProcessInfo);
+                pScheme->Condition_EquationId(*it, EquationId, CurrentProcessInfo);
 
                 //filling the list of active global indices (non fixed)
                 unsigned int num_active_indices = 0;
                 for(unsigned int i=0; i<EquationId.size(); i++)
-                    //if ( EquationId[i] < BaseType::mEquationSystemSize ) //check!!!
                 {
                     temp[num_active_indices] =  EquationId[i];
                     num_active_indices += 1;
-
-// KRATOS_WATCH(temp[i]);
                 }
 
                 if(num_active_indices != 0)
                 {
-                    int ierr = Agraph.InsertGlobalIndices(num_active_indices,temp,num_active_indices, temp);
-                    if(ierr < 0)
-                        KRATOS_ERROR << "Epetra failure found in Agraph.InsertGlobalIndices --> ln 966";
+                    int InsertGlobalIndicesError = Agraph.InsertGlobalIndices(num_active_indices,temp,num_active_indices, temp);
+                    KRATOS_ERROR_IF( InsertGlobalIndicesError < 0 );
                 }
-
             }
 
             //finalizing graph construction
-            int graph_assemble_ierr = Agraph.GlobalAssemble();
-            if(graph_assemble_ierr != 0)
-                KRATOS_ERROR << "Epetra failure found in Agraph.GlobalAssemble()";
-
-// KRATOS_WATCH(Agraph);
-
+            int GlobalAssembleError = Agraph.GlobalAssemble();
+            KRATOS_ERROR_IF( GlobalAssembleError != 0 );
             //generate a new matrix pointer according to this graph
             TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(Copy,Agraph) );
             pA.swap(pNewA);
-// KRATOS_WATCH(*pA);
-
-
             //generate new vector pointers according to the given map
             if( pb == NULL || TSparseSpace::Size(*pb) != BaseType::mEquationSystemSize)
             {
@@ -840,14 +823,7 @@ public:
                 TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(my_map) );
                 BaseType::mpReactionsVector.swap(pNewReactionsVector);
             }
-
-            KRATOS_WATCH( TSparseSpace::Size1(*pA) );
-            KRATOS_WATCH( TSparseSpace::Size(*pb) );
             delete [] temp;
-
-
-
-
         }
         else
         {
@@ -856,9 +832,6 @@ public:
                 KRATOS_ERROR << "It should not come here resizing is not allowed this way!!!!!!!! ... ";
             }
         }
-
-        //
-
 
         //if needed resize the vector for the calculation of reactions
         // if(BaseType::mCalculateReactionsFlag == true)
@@ -870,7 +843,6 @@ public:
         //~ std::cout << "finished ResizeAndInitializeVectors" << std::endl;
 
         KRATOS_CATCH("")
-
     }
 
 
