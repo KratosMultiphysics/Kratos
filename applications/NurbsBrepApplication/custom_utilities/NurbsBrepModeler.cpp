@@ -41,8 +41,6 @@ namespace Kratos
 
     for (unsigned int brep_itr = 0; brep_itr < m_brep_model_vector.size(); brep_itr++)
     {
-      //std::cout << "number of faces: " << m_brep_model_vector[brep_itr].GetFaceVector().size() << std::endl;
-      //std::cout << "number of edges: " << m_brep_model_vector[brep_itr].GetEdgeVector().size() << std::endl;
 
       for (unsigned int face_itr = 0; face_itr < m_brep_model_vector[brep_itr].GetFaceVector().size(); face_itr++)
       {
@@ -84,11 +82,7 @@ namespace Kratos
               ++cad_node_counter;
               Node<3>::Pointer cad_point = Node<3>::Pointer(new Node<3>(cad_node_counter, 0,0,0));
 
-              std::cout << "check point inside" << std::endl;
-
-              face.EvaluateSurfacePoint(cad_point, u_i, v_j, m_model_part);
-
-              std::cout << "check: " << std::endl;
+              face.EvaluateSurfacePoint(cad_point, u_i, v_j);
 
               cad_point->SetValue(LOCAL_PARAMETERS, point_of_interest);
               cad_point->SetValue(FACE_BREP_ID, face_id);
@@ -97,10 +91,29 @@ namespace Kratos
             }
           }
         }
-        std::cout << "Ende" << std::endl;
       }
     }
     unsigned int nodes = model_part.NumberOfNodes();
+  }
+
+  void NurbsBrepModeler::CreateIntegrationDomain(const int& shapefunction_order, ModelPart& model_part)
+  {
+    int id_itr = 1;
+    for (unsigned int brep_itr = 0; brep_itr < m_brep_model_vector.size(); brep_itr++)
+    {
+      for (unsigned int face_itr = 0; face_itr < m_brep_model_vector[brep_itr].GetFaceVector().size(); face_itr++)
+      {
+        BrepFace& face = m_brep_model_vector[brep_itr].GetFaceVector()[face_itr];
+
+        std::vector<Node<3>::Pointer> NodeVectorElement = face.GetQuadraturePoints(shapefunction_order);
+        for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
+        {
+          NodeVectorElement[k]->SetId(id_itr);
+          id_itr++;
+          model_part.AddNode(NodeVectorElement[k]);
+        }
+      }
+    }
   }
 
   BrepFace& NurbsBrepModeler::GetFace(const unsigned int face_id)
@@ -118,19 +131,7 @@ namespace Kratos
     }
     KRATOS_THROW_ERROR(std::logic_error, "NurbsBrepModeler::GetFace: face_id does not exist", "");
   }
-
-  //Tree< KDTreePartition<BucketType> > NurbsBrepModeler::CreateSearchTree(ModelPart model_part)
-  //{
-  //  std::cout << "\n> Starting construction of search-tree..." << std::endl;
-  //  //boost::timer timer;
-  //  typedef Bucket< 3, NodeType, NodeVector, NodeType::Pointer, std::vector<NodeType::Pointer>::iterator, std::vector<double>::iterator > BucketType;
-  //  //std::vector<NodeType::Pointer>& node_vector = model_part.NodesArray;
-  //  int bucket_size = 20;
-  //  Tree< KDTreePartition<BucketType> > search_tree(model_part.NodesArray.NodesStart, model_part.NodesArray.NodesEnd, bucket_size);
-  //  return search_tree;
-  //  //std::cout << "> Time needed for constructing search-tree: " << timer.elapsed() << " s" << std::endl;
-  //}
-
+  //void NurbsBrepModeler::GetClosestPoint(const Node<3>::Pointer& node, Node<3>::Pointer& node_on_geometry)
   void NurbsBrepModeler::MapNode(const Node<3>::Pointer& node, Node<3>::Pointer& node_on_geometry)
   {
     ModelPart local_model_part("MeshingPoints");
@@ -158,7 +159,7 @@ namespace Kratos
 
     BrepFace& face = GetFace(face_id_of_nearest_point);
 
-    face.MapNodeNewtonRaphson(node, node_on_geometry, m_model_part);
+    face.MapNodeNewtonRaphson(node, node_on_geometry);
 
     local_parameters_of_nearest_point = node_on_geometry->GetValue(LOCAL_PARAMETERS);
     face_id_of_nearest_point = node_on_geometry->GetValue(FACE_BREP_ID);
@@ -174,8 +175,8 @@ NurbsBrepModeler::NurbsBrepModeler(BrepModelGeometryReader& brep_model_geometry_
 {
   m_brep_model_vector = brep_model_geometry_reader.ReadGeometry(m_model_part);
 
-  Node<3>::Pointer node = Node<3>::Pointer(new Node<3>(0, 7.3, 0));
-  Node<3>::Pointer closest_point = Node<3>::Pointer(new Node<3>(0.25, 0.1792, 0));
+  Node<3>::Pointer node = Node<3>::Pointer(new Node<3>(0, 0, 7.3, 0));
+  Node<3>::Pointer closest_point = Node<3>::Pointer(new Node<3>(0, 0.25, 0.1792, 0));
 
   MapNode(node, closest_point);
 }

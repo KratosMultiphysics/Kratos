@@ -24,6 +24,7 @@
 // ------------------------------------------------------------------------------
 #include "BrepTrimmingCurve.h"
 #include "BrepBoundaryLoop.h"
+#include "../knot_span/KnotSpan2d.h"
 #include "../nurbs_utilities.h"
 #include "../../kratos/includes/node.h"
 
@@ -40,6 +41,7 @@ namespace Kratos
   ///@} 
   ///@name Type Definitions
   ///@{ 
+    typedef std::vector<int> IntVector;
   ///@}
   ///@name  Enum's
   ///@{
@@ -72,12 +74,17 @@ namespace Kratos
     //Get functions
     Vector& GetUKnotVector();
     Vector& GetVKnotVector();
+    IntVector GetIntegerUKnotVector(const int& tolerance);
+    IntVector GetIntegerVKnotVector(const int& tolerance);
 
     //Closest Point Functions
     void MapNodeNewtonRaphson(const Node<3>::Pointer& node,
-      Node<3>::Pointer& node_on_geometry, ModelPart& model_part);
+      Node<3>::Pointer& node_on_geometry);
+    std::vector<Node<3>::Pointer> GetQuadraturePoints(const int& shapefunction_order);
     bool CheckIfPointIsInside(Vector node_parameters);
-    void EvaluateSurfacePoint(Node<3>::Pointer& rSurfacePoint, double u, double v, ModelPart& model_part);
+    void EvaluateSurfacePoint(Node<3>::Pointer& rSurfacePoint, double u, double v);
+    Node<3>::Pointer EvaluateNode(double u, double v, const int& shapefunction_order);
+    std::vector<Node<3>::Pointer> EnhanceShapeFunctions(std::vector<array_1d<double, 3>>& points, const int& shapefunction_order);
 
 
     //TODO: you need to give reading access to your internals through the Calculate function
@@ -85,7 +92,8 @@ namespace Kratos
     BrepFace(unsigned int brep_id,
       TrimmingLoopVector& trimming_loops,
       Vector& knot_vector_u, Vector& knot_vector_v,
-      unsigned int& p, unsigned int& q, IntVector& control_point_ids);
+      unsigned int& p, unsigned int& q, IntVector& control_point_ids,
+      ModelPart& model_part);
 
     /// Destructor.
     virtual ~BrepFace();
@@ -103,10 +111,11 @@ namespace Kratos
     ///@name Private methods
     ///@{ 
     //Geometry functions
-    void EvaluateGradientsForClosestPointSearch(Vector QminP, Matrix& Hessian, Vector& Gradient, double& u, double& v, ModelPart& model_part);
-    void EvaluateNURBSFunctions(int span_u, int span_v, double _u, double _v, Matrix& R, ModelPart& model_part);
-    void EvaluateNURBSFunctionsDerivatives(int span_u, int span_v, double _u, double _v, Matrix& _dR, Matrix& _ddR, ModelPart& model_part);
-    void EvaluateNURBSFunctionsAndDerivative(int span_u, int span_v, double _u, double _v, Matrix& R, std::vector<Matrix>& dR, ModelPart& model_part);
+    void EvaluateGradientsForClosestPointSearch(Vector QminP, Matrix& Hessian, Vector& Gradient, double& u, double& v);
+    void EvaluateNURBSFunctions(int span_u, int span_v, double _u, double _v, Matrix& R);
+    void EvaluateNURBSFunctionsDerivatives(int span_u, int span_v, double _u, double _v, Matrix& _dR, Matrix& _ddR);
+    void EvaluateNURBSFunctionsAndDerivative(int span_u, int span_v, double _u, double _v, Matrix& R, std::vector<Matrix>& dR);
+    
     ///@} 
     ///@name Member Variables
     ///@{ 
@@ -117,6 +126,7 @@ namespace Kratos
     unsigned int m_p;
     unsigned int m_q;
     IntVector m_control_points_ids;
+    ModelPart& m_model_part;
 
     ///@}    
 

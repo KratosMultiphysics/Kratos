@@ -181,6 +181,7 @@ private:
 		Matrix& msG);
 
 	void CalculateMetricDeformed(const Matrix& DN_De,
+    const Matrix& DDN_DDe,
 		array_1d<double, 3>& gab,
 		array_1d<double, 3>& curvature_coefficient,
 		array_1d<double, 3>& g1,
@@ -197,10 +198,13 @@ private:
 		Matrix& B,
 		boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
 		const Matrix& DN_De,
+    const Matrix& DDN_DDe,
 		const array_1d<double, 3>& g1,
 		const array_1d<double, 3>& g2);
 
-	void CalculateSecondVariationStrainCurvature(Matrix DN_De,
+	void CalculateSecondVariationStrainCurvature(
+    const Matrix& DN_De,
+    const Matrix& DDN_DDe,
 		Matrix& Strain_curvature11,
 		Matrix& Strain_curvature22,
 		Matrix& Strain_curvature12,

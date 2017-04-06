@@ -145,6 +145,8 @@ void MeshlessBaseElement::Jacobian(const Matrix& DN_De,
 	Jacobian.clear();
 	for (unsigned int i = 0; i < number_of_points; i++)
 	{
+    std::cout << "Coords[" << i << "]" << (GetGeometry()[i]).Coordinates() << std::endl;
+
 		for (unsigned int k = 0; k<working_space_dimension; k++)
 		{
 			for (unsigned int m = 0; m<local_space_dimension; m++)
@@ -165,7 +167,7 @@ void MeshlessBaseElement::Jacobian(const Matrix& DN_De,
 *
 */
 //************************************************************************************
-void MeshlessBaseElement::Hessian(Matrix& Hessian, const Matrix DN_De)
+void MeshlessBaseElement::Hessian(Matrix& Hessian, const Matrix& DDN_DDe)
 {
 	const unsigned int number_of_points = GetGeometry().size();
 	const unsigned int working_space_dimension = 3;// GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES).size2();// GetGeometry().WorkingSpaceDimension();
@@ -177,17 +179,17 @@ void MeshlessBaseElement::Hessian(Matrix& Hessian, const Matrix DN_De)
 	{
 		const array_1d<double, 3> coords = GetGeometry()[k].Coordinates();
 
-		Hessian(0, 0) += DN_De(k, 2)*coords[0];
-		Hessian(0, 1) += DN_De(k, 3)*coords[0];
-		Hessian(0, 2) += DN_De(k, 4)*coords[0];
+		Hessian(0, 0) += DDN_DDe(k, 0)*coords[0];
+		Hessian(0, 1) += DDN_DDe(k, 1)*coords[0];
+		Hessian(0, 2) += DDN_DDe(k, 2)*coords[0];
 
-		Hessian(1, 0) += DN_De(k, 2)*coords[1];
-		Hessian(1, 1) += DN_De(k, 3)*coords[1];
-		Hessian(1, 2) += DN_De(k, 4)*coords[1];
+		Hessian(1, 0) += DDN_DDe(k, 0)*coords[1];
+		Hessian(1, 1) += DDN_DDe(k, 1)*coords[1];
+		Hessian(1, 2) += DDN_DDe(k, 2)*coords[1];
 
-		Hessian(2, 0) += DN_De(k, 2)*coords[2];
-		Hessian(2, 1) += DN_De(k, 3)*coords[2];
-		Hessian(2, 2) += DN_De(k, 4)*coords[2];
+		Hessian(2, 0) += DDN_DDe(k, 0)*coords[2];
+		Hessian(2, 1) += DDN_DDe(k, 1)*coords[2];
+		Hessian(2, 2) += DDN_DDe(k, 2)*coords[2];
 	}
 }
 

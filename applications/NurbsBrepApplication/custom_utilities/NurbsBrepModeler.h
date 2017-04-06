@@ -90,20 +90,25 @@ namespace Kratos
     typedef Tree< KDTreePartition<BucketType> > tree;
 
     /// Pointer definition of KratosNurbsTestcaseApplication
-        KRATOS_CLASS_POINTER_DEFINITION(NurbsBrepModeler);
+    KRATOS_CLASS_POINTER_DEFINITION(NurbsBrepModeler);
 
     ///@}
+    ///@name functions 
+    ///@{ 
+    void CreateIntegrationDomain(const int& shapefunction_order, ModelPart& model_part);
+
+    ///@} 
     ///@name Life Cycle 
     ///@{ 
         
    
     /// Constructor.
-        NurbsBrepModeler(BrepModelGeometryReader& brep_model_geometry_reader, ModelPart& model_part);
+    NurbsBrepModeler(BrepModelGeometryReader& brep_model_geometry_reader, ModelPart& model_part);
 
         //NurbsBrepModeler();
     /// Destructor.
-        virtual ~NurbsBrepModeler();
-
+    virtual ~NurbsBrepModeler();
+    ///@} 
   protected:
     ///@name Protected static Member Variables 
     ///@{

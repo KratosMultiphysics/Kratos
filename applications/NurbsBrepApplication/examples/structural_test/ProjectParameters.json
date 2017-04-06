@@ -1,0 +1,59 @@
+{
+  
+  "problem_data": {
+    "problem_name": "geometry_kratos",
+    "model_part_name": "IGAModelPart",
+    "domain_size": 5,
+    "start_time": 0,
+    "end_time": 0,
+    "time_step": 0.01
+  },
+  "Parameters": { "materials_filename": "materials.json" },
+  "solver_settings": {
+    "solver_type": "iga_structural_mechanics_solver",
+    "model_import_settings": {
+      "input_type": "txt",
+      "input_filename": "geometry_elements.txt"
+    },
+    "maximum_iterations": 1,
+    "echo_level": 3,
+    "compute_reactions": false,
+    "reform_dofs_at_each_iteration": false,
+    "relative_tolerance": 1E-07,
+    "absolute_tolerance": 1E-07,
+    "linear_solver_settings": {
+      "solver_type": "Super_LU",
+      "scaling": false,
+      "verbosity": 0
+    },
+    "problem_domain_sub_model_part_list": [ ],
+    "processes_sub_model_part_list": [ ],
+    "rotation_dofs": "false"
+  },
+  "output_configuration": {
+    "result_file_configuration": {
+      "gidpost_flags": {
+        "GiDPostMode": "GiD_PostAscii",
+        "WriteDeformedMeshFlag": "WriteUndeformed",
+        "WriteConditionsFlag": "WriteConditions",
+        "MultiFileFlag": "SingleFile"
+      },
+      "file_label": "step",
+      "output_control_type": "step",
+      "output_frequency": 1,
+      "body_output": false,
+      "node_output": true,
+      "skin_output": false,
+      "plane_output": [ ],
+      "nodal_results": [ "DISPLACEMENT" ],
+      "gauss_point_results": [ ]
+    },
+    "point_data_configuration": [ ]
+  },
+  "constraints_process_list": [
+  ],
+  "loads_process_list": [
+  ],
+  "coupling_condition_list": [
+  ]
+}

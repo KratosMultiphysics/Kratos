@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:     BSD License
-//           Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
+//               Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Tobias Teschemacher
 //                   Michael Breitenberger

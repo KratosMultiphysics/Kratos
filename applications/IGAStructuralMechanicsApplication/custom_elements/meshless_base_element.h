@@ -104,7 +104,7 @@ protected:
 		Matrix& Jacobian);
 
 	void Hessian(Matrix& Hessian,
-		const Matrix DN_De);
+		const Matrix& DDN_DDe);
 
 	void ComputeGlobalDerivatives(
 		const Matrix& DN_De,

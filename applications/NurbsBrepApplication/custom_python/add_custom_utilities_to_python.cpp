@@ -50,7 +50,9 @@ namespace Python
     typedef std::vector<BrepFace> BrepFacesVector;
     typedef std::vector<BrepEdge> BrepEdgesVector;
 
-    class_<NurbsBrepModeler, boost::noncopyable>("NurbsBrepModeler", init<BrepModelGeometryReader&, ModelPart&>());
+    class_<NurbsBrepModeler, boost::noncopyable>("NurbsBrepModeler", init<BrepModelGeometryReader&, ModelPart&>())
+      .def("CreateIntegrationDomain", &NurbsBrepModeler::CreateIntegrationDomain)
+      ;
       //.def("SetUp", &NurbsBrepModeler::SetUp)
       //;
     //class_<BrepModel, boost::noncopyable>("BrepModel", init<unsigned int&, FacesVector&, EdgesVector&>());

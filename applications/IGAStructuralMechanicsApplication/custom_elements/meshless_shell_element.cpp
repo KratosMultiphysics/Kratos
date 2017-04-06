@@ -126,6 +126,7 @@ void MeshlessShellElement::Initialize()
 	double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
 	Vector ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
 	Matrix DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+  Matrix DDN_DDe = this->GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
 
 
 
@@ -179,7 +180,7 @@ void MeshlessShellElement::Initialize()
 
 	//Hessian Matrix
 	Matrix H = ZeroMatrix(3, 3);
-	Hessian(H, DN_De);
+	Hessian(H, DDN_DDe);
 
 	mCurvature0[0] = H(0, 0)*n[0] + H(1, 0)*n[1] + H(2, 0)*n[2];
 	mCurvature0[1] = H(0, 1)*n[0] + H(1, 1)*n[1] + H(2, 1)*n[2];
@@ -415,9 +416,10 @@ void MeshlessShellElement::CalculateBMembrane(
 
 
 void MeshlessShellElement::CalculateBCurvature(
-	Matrix& B,
-	boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
-	const Matrix& DN_De,
+  Matrix& B,
+  boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+  const Matrix& DN_De,
+  const Matrix& DDN_DDe,
 	const array_1d<double, 3>& g1,
 	const array_1d<double, 3>& g2)
 {
@@ -429,7 +431,7 @@ void MeshlessShellElement::CalculateBCurvature(
 
 	//calculation of Hessian H
 	Matrix H = ZeroMatrix(3, 3);
-	Hessian(H, DN_De);
+	Hessian(H, DDN_DDe);
 
 	//basis vector g3
 	array_1d<double, 3> g3;
@@ -475,19 +477,19 @@ void MeshlessShellElement::CalculateBCurvature(
 		}
 
 		// curvature vector [K11,K22,K12] referred to curvilinear coordinate system
-		b(0, index)		= 0 - (DN_De(i, 2) * n[0] + H(0, 0)*dn(0, 0) + H(1, 0)*dn(0, 1) + H(2, 0)*dn(0, 2));
-		b(0, index + 1) = 0 - (DN_De(i, 2) * n[1] + H(0, 0)*dn(1, 0) + H(1, 0)*dn(1, 1) + H(2, 0)*dn(1, 2));
-		b(0, index + 2) = 0 - (DN_De(i, 2) * n[2] + H(0, 0)*dn(2, 0) + H(1, 0)*dn(2, 1) + H(2, 0)*dn(2, 2));
+		b(0, index)		= 0 - (DDN_DDe(i, 0) * n[0] + H(0, 0)*dn(0, 0) + H(1, 0)*dn(0, 1) + H(2, 0)*dn(0, 2));
+		b(0, index + 1) = 0 - (DDN_DDe(i, 0) * n[1] + H(0, 0)*dn(1, 0) + H(1, 0)*dn(1, 1) + H(2, 0)*dn(1, 2));
+		b(0, index + 2) = 0 - (DDN_DDe(i, 0) * n[2] + H(0, 0)*dn(2, 0) + H(1, 0)*dn(2, 1) + H(2, 0)*dn(2, 2));
 
 		//second line
-		b(1, index)		= 0 - (DN_De(i, 3) * n[0] + H(0, 1)*dn(0, 0) + H(1, 1)*dn(0, 1) + H(2, 1)*dn(0, 2));
-		b(1, index + 1) = 0 - (DN_De(i, 3) * n[1] + H(0, 1)*dn(1, 0) + H(1, 1)*dn(1, 1) + H(2, 1)*dn(1, 2));
-		b(1, index + 2) = 0 - (DN_De(i, 3) * n[2] + H(0, 1)*dn(2, 0) + H(1, 1)*dn(2, 1) + H(2, 1)*dn(2, 2));
+		b(1, index)		= 0 - (DDN_DDe(i, 1) * n[0] + H(0, 1)*dn(0, 0) + H(1, 1)*dn(0, 1) + H(2, 1)*dn(0, 2));
+		b(1, index + 1) = 0 - (DDN_DDe(i, 1) * n[1] + H(0, 1)*dn(1, 0) + H(1, 1)*dn(1, 1) + H(2, 1)*dn(1, 2));
+		b(1, index + 2) = 0 - (DDN_DDe(i, 1) * n[2] + H(0, 1)*dn(2, 0) + H(1, 1)*dn(2, 1) + H(2, 1)*dn(2, 2));
 
 		//third line
-		b(2, index)		= 0 - (DN_De(i, 4) * n[0] + H(0, 2)*dn(0, 0) + H(1, 2)*dn(0, 1) + H(2, 2)*dn(0, 2));
-		b(2, index + 1) = 0 - (DN_De(i, 4) * n[1] + H(0, 2)*dn(1, 0) + H(1, 2)*dn(1, 1) + H(2, 2)*dn(1, 2));
-		b(2, index + 2) = 0 - (DN_De(i, 4) * n[2] + H(0, 2)*dn(2, 0) + H(1, 2)*dn(2, 1) + H(2, 2)*dn(2, 2));
+		b(2, index)		= 0 - (DDN_DDe(i, 2) * n[0] + H(0, 2)*dn(0, 0) + H(1, 2)*dn(0, 1) + H(2, 2)*dn(0, 2));
+		b(2, index + 1) = 0 - (DDN_DDe(i, 2) * n[1] + H(0, 2)*dn(1, 0) + H(1, 2)*dn(1, 1) + H(2, 2)*dn(1, 2));
+		b(2, index + 2) = 0 - (DDN_DDe(i, 2) * n[2] + H(0, 2)*dn(2, 0) + H(1, 2)*dn(2, 1) + H(2, 2)*dn(2, 2));
 	}
 
 	B = prod(Q, b);
@@ -530,26 +532,29 @@ void MeshlessShellElement::CalculateCurvature(
 
 //***********************************************************************************
 //***********************************************************************************
-void MeshlessShellElement::CalculateMetricDeformed(const Matrix& DN_De, 
+void MeshlessShellElement::CalculateMetricDeformed(const Matrix& DN_De,
+  const Matrix& DDN_DDe,
 	array_1d<double, 3>& gab,
 	array_1d<double, 3>& curvature_coefficient,
 	array_1d<double, 3>& g1,
 	array_1d<double, 3>& g2)
 {
-	Matrix J0;
-	Jacobian(DN_De, J0);
+	Matrix J;
+	Jacobian(DN_De, J);
+
+  KRATOS_WATCH(J)
 
 	//auxiliary terms
 	array_1d<double, 3> g3;
 
 	//double IntegrationWeight = GetGeometry().IntegrationPoints()[0].Weight();
 
-	g1[0] = J0(0, 0);
-	g2[0] = J0(0, 1);
-	g1[1] = J0(1, 0);
-	g2[1] = J0(1, 1);
-	g1[2] = J0(2, 0);
-	g2[2] = J0(2, 1);
+	g1[0] = J(0, 0);
+	g2[0] = J(0, 1);
+	g1[1] = J(1, 0);
+	g2[1] = J(1, 1);
+	g1[2] = J(2, 0);
+	g2[2] = J(2, 1);
 
 	//basis vector g3
 	CrossProduct(g3, g1, g2);
@@ -564,7 +569,7 @@ void MeshlessShellElement::CalculateMetricDeformed(const Matrix& DN_De,
 	gab[2] = g1[0] * g2[0] + g1[1] * g2[1] + g1[2] * g2[2];
 
 	Matrix H = ZeroMatrix(3, 3);
-	Hessian(H, DN_De);
+	Hessian(H, DDN_DDe);
 
 	curvature_coefficient[0] = H(0, 0)*n[0] + H(1, 0)*n[1] + H(2, 0)*n[2];
 	curvature_coefficient[1] = H(0, 1)*n[0] + H(1, 1)*n[1] + H(2, 1)*n[2];
@@ -573,7 +578,9 @@ void MeshlessShellElement::CalculateMetricDeformed(const Matrix& DN_De,
 
 //***********************************************************************************
 //***********************************************************************************
-void MeshlessShellElement::CalculateSecondVariationStrainCurvature(Matrix DN_De,
+void MeshlessShellElement::CalculateSecondVariationStrainCurvature(
+  const Matrix& DN_De,
+  const Matrix& DDN_DDe,
 	Matrix& Strain_in_Q_coordinates11,
 	Matrix& Strain_in_Q_coordinates22,
 	Matrix& Strain_in_Q_coordinates12,
@@ -601,9 +608,9 @@ void MeshlessShellElement::CalculateSecondVariationStrainCurvature(Matrix DN_De,
 
 	CrossProduct(g3, g1, g2);
 
-	Matrix Hessian = ZeroMatrix(3, 3);
+	Matrix H = ZeroMatrix(3, 3);
 
-	this->Hessian(Hessian, DN_De);
+	this->Hessian(H, DDN_DDe);
 
 	//differential area dA
 	double dA = norm_2(g3);
@@ -711,12 +718,12 @@ void MeshlessShellElement::CalculateSecondVariationStrainCurvature(Matrix DN_De,
 					ddn[1] = ddg3[1] * invdA3 - g3dg3lg3m * dg3_n(i,1) - g3dg3lg3n * dg3_m(j,1) + (c + d)*g3[1];
 					ddn[2] = ddg3[2] * invdA3 - g3dg3lg3m * dg3_n(i,2) - g3dg3lg3n * dg3_m(j,2) + (c + d)*g3[2];
 
-					ddCurvature_curvilinear[0] = DN_De(n, 2)*dn_m(j,i) + DN_De(m, 2)*dn_n(i,j)
-						+ Hessian(0, 0)*ddn[0] + Hessian(1, 0)*ddn[1] + Hessian(2, 0)*ddn[2];
-					ddCurvature_curvilinear[1] = DN_De(n, 3)*dn_m(j,i) + DN_De(m, 3)*dn_n(i,j)
-						+ Hessian(0, 1)*ddn[0] + Hessian(1, 1)*ddn[1] + Hessian(2, 1)*ddn[2];
-					ddCurvature_curvilinear[2] = DN_De(n, 4)*dn_m(j,i) + DN_De(m, 4)*dn_n(i,j)
-						+ Hessian(0, 2)*ddn[0] + Hessian(1, 2)*ddn[1] + Hessian(2, 2)*ddn[2];
+					ddCurvature_curvilinear[0] = DDN_DDe(n, 0)*dn_m(j,i) + DDN_DDe(m, 0)*dn_n(i,j)
+						+ H(0, 0)*ddn[0] + H(1, 0)*ddn[1] + H(2, 0)*ddn[2];
+					ddCurvature_curvilinear[1] = DDN_DDe(n, 1)*dn_m(j,i) + DDN_DDe(m, 1)*dn_n(i,j)
+						+ H(0, 1)*ddn[0] + H(1, 1)*ddn[1] + H(2, 1)*ddn[2];
+					ddCurvature_curvilinear[2] = DDN_DDe(n, 2)*dn_m(j,i) + DDN_DDe(m, 2)*dn_n(i,j)
+						+ H(0, 2)*ddn[0] + H(1, 2)*ddn[1] + H(2, 2)*ddn[2];
 
 					Curvature_in_Q_coordinates11(3*n + i, 3*m + j) = Q(0, 0)*ddCurvature_curvilinear[0] + Q(0, 1)*ddCurvature_curvilinear[1] + Q(0, 2)*ddCurvature_curvilinear[2];
 					Curvature_in_Q_coordinates22(3*n + i, 3*m + j) = Q(1, 0)*ddCurvature_curvilinear[0] + Q(1, 1)*ddCurvature_curvilinear[1] + Q(1, 2)*ddCurvature_curvilinear[2];
@@ -774,6 +781,7 @@ void MeshlessShellElement::CalculateAll(
 	double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
 	Vector ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
 	Matrix DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+  Matrix DDN_DDe = this->GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
 
 	// covariant metric in deformed system
 	array_1d<double, 3> gab;
@@ -784,11 +792,15 @@ void MeshlessShellElement::CalculateAll(
 	boost::numeric::ublas::bounded_matrix<double, 3, 3>  Q = ZeroMatrix(3, 3);
 	Q = mQ;
 
+
+
 	// basis vectors in deformed system
-	array_1d<double, 3> g1;
-	array_1d<double, 3> g2;
-	CalculateMetricDeformed(DN_De, gab, curvature, g1, g2);
+	array_1d<double, 3> g1, g2;
+	CalculateMetricDeformed(DN_De, DDN_DDe, gab, curvature, g1, g2);
 	CalculateStrain(StrainVector, gab, mGab0);
+
+  KRATOS_WATCH(g1)
+  KRATOS_WATCH(g2)
 
 	Vector StrainVector_in_Q_coordinates = prod(Q, StrainVector);
 
@@ -819,10 +831,12 @@ void MeshlessShellElement::CalculateAll(
 	// calculate B MATRICES
 	//B matrices:
 	Matrix BMembrane = ZeroMatrix(3, MatSize);
-	Matrix BCurvature = ZeroMatrix(3, MatSize);
+  Matrix BCurvature = ZeroMatrix(3, MatSize);
 	CalculateBMembrane(BMembrane, Q, DN_De, g1, g2);
-	CalculateBCurvature(BCurvature, Q, DN_De, g1, g2);
+	CalculateBCurvature(BCurvature, Q, DN_De, DDN_DDe, g1, g2);
 	
+
+
 	// integration on the REFERENCE CONFIGURATION
 	double DetJ0 = mDetJ0;
 	double IntToReferenceWeight = integration_weight * DetJ0 * mThickness0;
@@ -834,7 +848,7 @@ void MeshlessShellElement::CalculateAll(
 	Matrix Curvature_in_Q_coordinates11 = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
 	Matrix Curvature_in_Q_coordinates22 = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
 	Matrix Curvature_in_Q_coordinates12 = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
-	CalculateSecondVariationStrainCurvature(DN_De,
+	CalculateSecondVariationStrainCurvature(DN_De, DDN_DDe,
 		Strain_in_Q_coordinates11, Strain_in_Q_coordinates22, Strain_in_Q_coordinates12,
 		Curvature_in_Q_coordinates11, Curvature_in_Q_coordinates22, Curvature_in_Q_coordinates12, Q, g1, g2);
 
@@ -872,11 +886,22 @@ void MeshlessShellElement::CalculateAll(
 		noalias(rRightHandSideVector) += IntToReferenceWeight * prod(trans(BCurvature), MomentVector_in_Q_coordinates);
 	}
 
-	//if (this->Id() == 30) //TODO: remove this! it is just for debugging purposes
-	//{
-	//	KRATOS_WATCH(rLeftHandSideMatrix)
-	//		KRATOS_WATCH(rRightHandSideVector)
-	//		Vector displacements;
+  if (this->Id() == 1) //TODO: remove this! it is just for debugging purposes
+  {
+
+    KRATOS_WATCH(ShapeFunctionsN)
+    KRATOS_WATCH(DN_De)
+    KRATOS_WATCH(DDN_DDe)
+
+    KRATOS_WATCH(IntToReferenceWeight)
+
+      KRATOS_WATCH(BMembrane)
+      KRATOS_WATCH(BCurvature)
+
+    KRATOS_WATCH(rLeftHandSideMatrix)
+    KRATOS_WATCH(rRightHandSideVector)
+  }
+  //		Vector displacements;
 	//	this->GetValuesVector(displacements, 0);
 	//	KRATOS_WATCH(displacements);
 

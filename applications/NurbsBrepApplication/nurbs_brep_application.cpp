@@ -35,36 +35,33 @@
 
 namespace Kratos {
 
-KratosNurbsBrepApplication::KratosNurbsBrepApplication()
-  //mMeshlessElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
-  //mMeshlessMembraneElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
-  //mMeshlessLaplaceElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
-  //mMeshlessShellElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
-  //mContinuityConditionLagrange(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-  //mMeshlessLagrangeCouplingCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-  //mContinuityConditionPenalty(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-  //mLoadCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-  //mSupportCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-  //mMeshlessLoadCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-  //mMeshlessSupportRotationCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-  //mMeshlessPenaltyCouplingRotationCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1))))
-{}
+KratosNurbsBrepApplication::KratosNurbsBrepApplication(){}
 
 void KratosNurbsBrepApplication::Register() {
    // calling base class register to register Kratos components
    KratosApplication::Register();
-   std::cout << "     Initializing KratosNurbsBrepApplication... " << std::endl;
+   //std::cout << "Kratos" << std::endl;
+   std::cout << "    _______   ____ _______________________  _________ _________________________________________" << std::endl;
+   std::cout << "    \\      \\ |    |   \\______   \\______   \\/  _____ / \\______   \\______   \\_   _____/ \\______   \\" << std::endl;
+   std::cout << "    /   |   \\|    |   /|       _/|     | _/\\_____  \\   |    |  _/|       _/|    __)_  |     ___ /" << std::endl;
+   std::cout << "   /    |    \\    |  / |    |   \\|     |  \\/        \\  |    |   \\|    |   \\|        \\ |    |" << std::endl;
+   std::cout << "   \\____|__  /______/  |____|_  /|______  /_______  /  |______  /|____|_  /_______  / |____|" << std::endl;
+   std::cout << "           \\/                 \\/        \\/        \\/          \\/        \\/        \\/" << std::endl;
+   std::cout << "Initializing KratosNurbsBrepApplication... " << std::endl;
 
   // 
-  KRATOS_REGISTER_VARIABLE(CONTROL_POINT_WEIGHT)
+  KRATOS_REGISTER_VARIABLE( CONTROL_POINT_WEIGHT)
 
+  KRATOS_REGISTER_VARIABLE( INTEGRATION_WEIGHT)
+  
   KRATOS_REGISTER_VARIABLE( LOCAL_PARAMETERS)
   KRATOS_REGISTER_VARIABLE( FACE_BREP_ID)
 
-  //KRATOS_REGISTER_VARIABLE( CONTROL_POINT_IDS)
+  KRATOS_REGISTER_VARIABLE( CONTROL_POINT_IDS)
 
   KRATOS_REGISTER_VARIABLE( SHAPE_FUNCTION_VALUES)
-  KRATOS_REGISTER_VARIABLE( SHAPE_FUNCTION_LOCAL_DERIVATIVES)
+  KRATOS_REGISTER_VARIABLE(SHAPE_FUNCTION_DERIVATIVES)
+  KRATOS_REGISTER_VARIABLE(SHAPE_FUNCTION_SECOND_DERIVATIVES)
   //KRATOS_REGISTER_VARIABLE( SHAPE_FUNCTION_LOCAL_DERIVATIVES_MASTER)
   //KRATOS_REGISTER_VARIABLE( SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE)
   
@@ -79,23 +76,5 @@ void KratosNurbsBrepApplication::Register() {
   //// for load condition
   //KRATOS_REGISTER_VARIABLE(LOAD_TYPE)
   //KRATOS_REGISTER_VARIABLE( DISTRIBUTED_LOAD_FACTOR)
-
-  //// Register the meshless element
-  //KRATOS_REGISTER_ELEMENT("MeshlessElement", mMeshlessElement)
-  //KRATOS_REGISTER_ELEMENT("MeshlessMembraneElement", mMeshlessMembraneElement)
-  //KRATOS_REGISTER_ELEMENT("MeshlessLaplaceElement", mMeshlessLaplaceElement)
-  //KRATOS_REGISTER_ELEMENT("MeshlessShellElement", mMeshlessShellElement)
-  //
-  //// Register meshless condition
-  //KRATOS_REGISTER_CONDITION("MeshlessSupportRotationCondition", mMeshlessSupportRotationCondition)
-  //KRATOS_REGISTER_CONDITION("MeshlessLoadCondition", mMeshlessLoadCondition)
-  //KRATOS_REGISTER_CONDITION("MeshlessLagrangeCouplingCondition", mMeshlessLagrangeCouplingCondition)
-  //KRATOS_REGISTER_CONDITION("MeshlessPenaltyCouplingRotationCondition", mMeshlessPenaltyCouplingRotationCondition)
-
-  //// Register outdated conditions
-  //KRATOS_REGISTER_CONDITION("LoadCondition", mLoadCondition)
-  //KRATOS_REGISTER_CONDITION("SupportCondition", mSupportCondition)
-  //KRATOS_REGISTER_CONDITION("ContinuityConditionPenalty", mContinuityConditionPenalty)
-  //KRATOS_REGISTER_CONDITION("ContinuityConditionLagrange", mContinuityConditionLagrange)
 }
 }  // namespace Kratos.

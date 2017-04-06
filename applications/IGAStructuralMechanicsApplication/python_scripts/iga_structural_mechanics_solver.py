@@ -115,11 +115,29 @@ class IGAStructuralMechanicsSolver:
 			self.model_part.SetBufferSize( self.GetMinimumBufferSize() )
 
 		print ("Model reading finished.")
+	
+	def ImportModelPartNurbsBrep(self, model_part_nurbs_brep):
+		#print ("\n------------------Import Elements--------------------")
 		
+		if(self.settings["model_import_settings"]["input_type"].GetString() == "txt"):
+            #here it would be the place to import restart data if required
+			ModelPartIO = ImportModelPart.Factory(model_part_nurbs_brep, self.settings)
+			ModelPartIO.ReadModelPart(self.model_part)
+
+		else:
+			raise Exception("Other input options are not implemented.")
+
+		current_buffer_size = self.model_part.GetBufferSize()
+		if(self.GetMinimumBufferSize() > current_buffer_size):
+			self.model_part.SetBufferSize( self.GetMinimumBufferSize() )
+
+		print ("Model reading finished.")
+	
 		
 	def AddDofs(self):
 		for node in self.model_part.Nodes:
 			# adding dofs
+			print(node.Id)
 			node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X);
 			node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y);
 			node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z);
