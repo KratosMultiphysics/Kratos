@@ -66,7 +66,6 @@ public:
     // General type definitions
     typedef ModelPart::NodesContainerType                    NodesArrayType;
     typedef ModelPart::ConditionsContainerType          ConditionsArrayType;
-    typedef GeometryData::IntegrationMethod               IntegrationMethod;
     typedef Node<3>                                                NodeType;
     typedef Geometry<NodeType>                                 GeometryType;
     
@@ -165,7 +164,7 @@ public:
         {
             auto itCond = pConditions.begin() + i;
 
-            itCond->GetValue(CONTACT_SETS) = new ConditionMap;
+            itCond->GetValue(CONTACT_SETS) = boost::shared_ptr<ConditionMap>(new ConditionMap); 
 //             itCond->GetValue(CONTACT_SETS)->reserve(mAllocationSize); 
         }
     }
@@ -403,7 +402,7 @@ public:
                 {   
 //                     KRATOS_WATCH(NumberPointsFound); 
                     
-                    ConditionMap *& ConditionPointersDestination = itCond->GetValue(CONTACT_SETS);
+                    boost::shared_ptr<ConditionMap>& ConditionPointersDestination = itCond->GetValue(CONTACT_SETS);
                     
                     for(unsigned int i = 0; i < NumberPointsFound; i++)
                     {   
@@ -453,7 +452,7 @@ public:
             {
                 KRATOS_WATCH(itCond->GetGeometry());
                 
-                ConditionMap *& ConditionPointersDestination = itCond->GetValue(CONTACT_SETS);
+                boost::shared_ptr<ConditionMap>& ConditionPointersDestination = itCond->GetValue(CONTACT_SETS);
                 KRATOS_WATCH(ConditionPointersDestination->size());
                 ConditionPointersDestination->print();
             }
@@ -491,9 +490,9 @@ public:
             
             if (itCond->Is(SLAVE) == true && itCond->Is(ACTIVE) == true)
             {            
-                ConditionMap *& ConditionPointers = itCond->GetValue(CONTACT_SETS);
+                boost::shared_ptr<ConditionMap>& ConditionPointers = itCond->GetValue(CONTACT_SETS);
                                 
-                if (ConditionPointers != NULL)
+                if (ConditionPointers != nullptr)
                 {
                     for ( auto ipair = ConditionPointers->begin(); ipair != ConditionPointers->end(); ++ipair )
                     {                        
@@ -532,7 +531,7 @@ public:
      */
     
     bool CheckCondition(
-        ConditionMap *& ConditionPointers1,
+        boost::shared_ptr<ConditionMap>& ConditionPointers1,
         const Condition::Pointer & pCond1,
         const Condition::Pointer & pCond2
         )
@@ -556,7 +555,7 @@ public:
         
         if (pCond2->Is(SLAVE) == true) // Otherwise will not be necessary to check
         {
-            ConditionMap *& ConditionPointers2 = pCond2->GetValue(CONTACT_SETS);
+            auto& ConditionPointers2 = pCond2->GetValue(CONTACT_SETS);
             
             if (ConditionPointers2->find(pCond1) != ConditionPointers2->end())
             {
@@ -634,9 +633,9 @@ protected:
             {
                 itCond->Set(ACTIVE, false);
                 
-                ConditionMap *& ConditionPointers = itCond->GetValue(CONTACT_SETS);
+                auto& ConditionPointers = itCond->GetValue(CONTACT_SETS);
                 
-                if (ConditionPointers != NULL)
+                if (ConditionPointers != nullptr)
                 {
                     ConditionPointers->clear();
 //                     ConditionPointers->reserve(mAllocationSize); 

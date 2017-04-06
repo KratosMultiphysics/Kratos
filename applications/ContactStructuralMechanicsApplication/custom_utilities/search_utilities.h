@@ -172,7 +172,7 @@ public:
      */
     
     static inline void ContactContainerFiller(
-        ConditionMap *& ConditionPointers,
+        boost::shared_ptr<ConditionMap>& ConditionPointers,
         Condition::Pointer & pCond1,       // SLAVE
         const Condition::Pointer & pCond2, // MASTER
         const array_1d<double, 3> & ContactNormal1, // SLAVE

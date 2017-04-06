@@ -19,8 +19,8 @@ typedef array_1d<double,3> Vector3;
 // CONDITIONS
 /* Mortar method general variables */
 KRATOS_CREATE_VARIABLE( std::vector<contact_container>*, CONTACT_CONTAINERS )     // A vector of which contains the structure which defines the contact conditions // TODO: Remove this, deprecated
-KRATOS_CREATE_VARIABLE( ConditionMap*, CONTACT_SETS )                              // An unordered map of which contains the structure which defines the contact conditions
-KRATOS_CREATE_VARIABLE( Element::Pointer , ELEMENT_POINTER )                      // A pointer to the element belonging to this condition
+KRATOS_CREATE_VARIABLE( boost::shared_ptr<ConditionMap>, CONTACT_SETS )                   // An unordered map of which contains the structure which defines the contact conditions
+KRATOS_CREATE_VARIABLE( Element::Pointer , ELEMENT_POINTER )                      // A pointer  the element belonging to this condition
 KRATOS_CREATE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                         // The integration order computed in the contact
 KRATOS_CREATE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                         // Mortar Contact Operator
 KRATOS_CREATE_VARIABLE( double, ACTIVE_CHECK_FACTOR )                             // The factor employed to search an active/inactive node
