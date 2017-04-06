@@ -5,7 +5,7 @@
 //                   license: TopologyOptimizationApplication/license.txt
 //
 //  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
-//		     Octaviano Malfavón Farías
+//                   Octaviano Malfavón Farías
 //                   Eric Gonzales
 //
 // ==============================================================================
