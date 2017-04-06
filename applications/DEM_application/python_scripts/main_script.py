@@ -149,8 +149,10 @@ class Solution(object):
         # Setting up the buffer size
         self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.DEM_inlet_model_part, 1, self.rigid_face_model_part, 1)
         # Adding dofs
+
         self.solver.AddDofs(self.spheres_model_part)
         self.solver.AddDofs(self.cluster_model_part)
+
         self.solver.AddDofs(self.DEM_inlet_model_part)
 
         os.chdir(self.main_path)
@@ -174,8 +176,8 @@ class Solution(object):
 
         #Finding the max id of the nodes... (it is necessary for anything that will add spheres to the self.spheres_model_part, for instance, the INLETS and the CLUSTERS read from mdpa file.z
         max_Id = self.procedures.FindMaxNodeIdAccrossModelParts(self.creator_destructor, self.all_model_parts)
-
-        self.creator_destructor.SetMaxNodeId(max_Id)
+        
+        self.creator_destructor.SetMaxNodeId(self.all_model_parts.MaxNodeId)
 
         #Strategy Initialization
         os.chdir(self.main_path)
@@ -183,10 +185,11 @@ class Solution(object):
         self.dt = min(DEM_parameters.MaxTimeStep, self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)) # under revision. linked to automatic timestep? Possible modifications of DELTA_TIME
         #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation
         #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
-        if (DEM_parameters.dem_inlet_option):
+        if DEM_parameters.dem_inlet_option:
             #Constructing the inlet and initializing it (must be done AFTER the self.spheres_model_part Initialize)
             self.DEM_inlet = DEM_Inlet(self.DEM_inlet_model_part)
             self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.creator_destructor, self.solver.continuum_type)
+
 
         self.DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(DEM_parameters, self.graphs_path, self.spheres_model_part, self.rigid_face_model_part)
 
@@ -249,9 +252,15 @@ class Solution(object):
         max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.cluster_model_part)
         max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.cluster_model_part)
         DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"
+        
+        
         model_part_io_demInlet = model_part_reader(DEM_Inlet_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
         model_part_io_demInlet.ReadModelPart(self.DEM_inlet_model_part)
+
         self.model_parts_have_been_read = True
+        
+        self.all_model_parts.ComputeMaxIds()
+
 
     def RunMainTemporalLoop(self):
 
