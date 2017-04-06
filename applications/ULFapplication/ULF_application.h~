@@ -219,7 +219,9 @@ private:
     //
     const UlfFrac2D mUlfFrac2D;
     const UlfFrac3D mUlfFrac3D;
-    const UlfAxisym mUlfAxisym;    
+    const UlfAxisym mUlfAxisym;    //
+    //const UlfFrac2DSwimming mUlfFrac2DSwimming;
+    //const UlfFrac3DSwimming mUlfFrac3DSwimming;
     const PointNeumann3D  mPointNeumann3D;
     const PointNeumann2D  mPointNeumann2D;
     const PointNeumannAxisym  mPointNeumannAxisym;

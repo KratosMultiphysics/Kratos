@@ -11,7 +11,7 @@ set( KRATOS_PFEM_APPLICATION_SOURCES
   	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_meshers_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_processes_to_python.cpp 
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp      
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp      
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/free_surface_cond2d.cpp
 )

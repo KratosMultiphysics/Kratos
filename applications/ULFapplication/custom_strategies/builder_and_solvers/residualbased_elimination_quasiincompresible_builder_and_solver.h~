@@ -198,6 +198,7 @@ public:
     {
         KRATOS_TRY
 	
+	KRATOS_WATCH("ENTERED SETUP DOFSET OF BUILDER AND SOLVER OF ULF")
 	mActiveNodes.clear(); 
         mActiveNodes.reserve(r_model_part.Nodes().size() );
 
@@ -218,19 +219,23 @@ public:
 
         for(WeakPointerVector< Node<3> >::iterator iii = mActiveNodes.begin(); iii!=mActiveNodes.end(); iii++)
         {
-            BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_X).get() );
-            BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_Y).get() );
+
+	     BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_X).get());
+	     BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_Y).get());
+            //BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_Y));
 	    if (TDim==3)
-	            BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_Z).get() );
+	            BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_Z));
         }
 
 
+	this->mEquationSystemSize = BaseType::mDofSet.size();
 
 	 if (BaseType::mDofSet.size()==0)
             KRATOS_THROW_ERROR(std::logic_error, "No degrees of freedom!", "");
 
         BaseType::mDofSetIsInitialized = true;
-	
+
+	KRATOS_WATCH("FINISHED SETUP DOFSET OF BUILDER AND SOLVER OF ULF")
 
 	//BELOW IS THE OLD VERSION
 	/*
@@ -616,6 +621,7 @@ public:
     TSystemVectorType mMdiagInv;
     TSystemVectorType mpreconditioner;
     unsigned int mnumber_of_active_nodes;
+    WeakPointerVector<Node<3> > mActiveNodes;
 
 //private:
     /**@name Static Member Variables */

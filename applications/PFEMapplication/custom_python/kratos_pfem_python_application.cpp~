@@ -82,7 +82,7 @@ BOOST_PYTHON_MODULE(KratosPFEMApplication)
            ;
     AddMeshersToPython();
     AddCustomUtilitiesToPython();
-    //AddCustomIOToPython();
+    AddCustomIOToPython();
     AddProcessesToPython();
 
     //registering variables in python

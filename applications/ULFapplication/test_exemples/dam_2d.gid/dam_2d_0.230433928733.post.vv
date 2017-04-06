@@ -1,0 +1,96 @@
+BeginZE /home/pavel/Kratos/applications/ULFapplication/test_exemples/dam_2d.gid/dam_2d_0.230433928733.post.vv
+   x -0.367783159017562866 0.966457128524780273
+   y 0.493670076131820679 -0.201670080423355103
+   z -1.04301023483276367 1.04301023483276367
+   e 0.347670078277587891
+   v 0.0256955716758966446 -0.135465130209922791 -0.00374508113600313663
+   r -0.990441799163818359
+   m 0.963270366191864014 -0.0143802780658006668 0.268148183822631836 0 0.000456861744169145823 0.998651444911956787 0.0519145913422107697 0 -0.268533110618591309 -0.049885280430316925 0.961977899074554443 0 0 0 0 1
+   c 0.299336999654769897 0.145999997854232788 0
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 2
+   DrawingType 3
+   LightVector -46.5848007202148438 6.17173004150390625 141.0989990234375 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 0
+   OGLShadow(FBOSize) 1024
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/pavel/Kratos/applications/ULFapplication/test_exemples/dam_2d.gid/dam_2d_0.230433928733.post.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+
+
+BeginPostState
+BeginSingleMesh
+  Num meshes: 1
+  Num sets: 2
+  Num cuts: 0
+  Mesh: 0
+  State: On
+    Name: "Kratos Mesh"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 1
+    Property Transparent: 0
+    Property Style: 8126524
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 1
+  EndMesh: 0
+  Set: 0
+  State: On
+    Name: "Kratos_Triangle2D3_Mesh_0"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 1
+    Property Transparent: 0
+    Property Style: 8126524
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 1
+  EndSet: 0
+  Set: 1
+  State: On
+    Name: "Kratos_Triangle2D3_Mesh_1"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 1
+    Property Transparent: 0
+    Property Style: 8126524
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 1
+  EndSet: 1
+EndSingleMesh
+  Post_Prefs_Vector_Size: 1 100 32 32
+  ResultView: {Id 429} {No results} {} {} {} {} 4 0
+EndPostState
+

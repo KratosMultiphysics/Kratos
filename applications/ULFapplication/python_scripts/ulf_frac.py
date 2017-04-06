@@ -92,8 +92,8 @@ class ULF_FSISolver:
         self.pres_linear_solver = CGSolver(1e-3, 1000)  # SkylineLUFactorizationSolver()
 
         # definition of the convergence criteria
-        # self.conv_criteria = DisplacementCriteria(1e-6,1e-9)
-        self.conv_criteria = IncrementalDisplacementCriteria(1e-3, 1e-6)
+        self.conv_criteria = DisplacementCriteria(1e-6,1e-9)
+        #self.conv_criteria = IncrementalDisplacementCriteria(1e-3, 1e-6)
 
         # self.pressure_calculate_process = PressureCalculateProcess(fluid_model_part,domain_size);
         self.ulf_apply_bc_process = UlfApplyBCProcess(fluid_model_part);
