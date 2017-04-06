@@ -1,4 +1,4 @@
-import KratosSwimmingDEMCandelier as script
+import KratosSwimmingDEM as script
 import os
 
 def PrintMessage(run_name, radial_error, tolerance):
@@ -22,16 +22,22 @@ def PrintMessage(run_name, radial_error, tolerance):
 tolerance = 1e-4
 errors = []
 error_names = []
+varying_parameters = dict()
+varying_parameters['simulation_time'] = 1
+varying_parameters['Nq'] = 1
+varying_parameters['m'] = 10
+varying_parameters['number_of_quadrature_steps_in_window'] = 10
+varying_parameters['basset_force_type'] = 0
 
 # No history force benchmark
-test = script.Solution(simulation_time = 1.0, basset_force_type = 0)
+import candelier_algorithm
+test = script.Solution(candelier_algorithm, varying_parameters)
 error_names.append('No history force, Daitche')
 errors.append(test.Run())
 
-os.remove('candelier_results.h5py')
-
+varying_parameters['basset_force_type'] = 2
 # Second-order accurate Daitche benchmark
-test = script.Solution(simulation_time = 1.0, basset_force_type = 2)
+test = script.Solution(candelier_algorithm, varying_parameters)
 error_names.append('All forces, Daitche')
 errors.append(test.Run())
 

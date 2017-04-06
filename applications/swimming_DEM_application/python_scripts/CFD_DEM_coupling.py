@@ -68,11 +68,28 @@ class ProjectionModule:
         else:
             self.bin_of_objects_fluid.UpdateSearchDatabaseAssignedSize(HMin)
 
+    def ApplyForwardCoupling(self, alpha = None):
+        if self.do_impose_flow_from_field:
+            self.ImposeFluidFlowOnParticles()
+        elif alpha == None:
+            self.ProjectFromNewestFluid()
+        else:
+            self.ProjectFromFluid(alpha)
+
+    def ApplyForwardCouplingOfVelocityOnly(self):
+        if self.do_impose_flow_from_field:
+            self.ImposeVelocityOnDEMFromField()
+        else:
+            self.InterpolateVelocity()
+
     def ProjectFromFluid(self, alpha):
         self.projector.InterpolateFromFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid, alpha)
 
     def ProjectFromNewestFluid(self):
         self.projector.InterpolateFromNewestFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)
+
+    def InterpolateVelocity(self):
+        self.projector.InterpolateVelocity(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)
 
     def ImposeFluidFlowOnParticles(self):
         self.projector.ImposeFlowOnDEMFromField(self.flow_field, self.particles_model_part)
@@ -84,7 +101,7 @@ class ProjectionModule:
         print("\nProjecting from particles to the fluid...")
         sys.stdout.flush()
 
-        if (self.coupling_type != 3):
+        if self.coupling_type != 3:
             self.projector.InterpolateFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.bin_of_objects_fluid)
 
         else:
@@ -92,8 +109,6 @@ class ProjectionModule:
 
         print("\nFinished projecting from particles to the fluid...")
         sys.stdout.flush()
-    def InterpolateVelocity(self):
-        self.projector.InterpolateVelocity(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)
 
     def ComputePostProcessResults(self, particles_process_info):
         self.projector.ComputePostProcessResults(self.particles_model_part, self.fluid_model_part, self.FEM_DEM_model_part, self.bin_of_objects_fluid, particles_process_info)
