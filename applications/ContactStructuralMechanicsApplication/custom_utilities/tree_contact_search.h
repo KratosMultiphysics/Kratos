@@ -343,6 +343,9 @@ public:
     
     void UpdateMortarConditions(const double SearchFactor)
     {        
+        // We update the list of points
+        UpdatePointListMortar();
+        
         // Initialize values
         PointVector PointsFound(mAllocationSize);
         unsigned int NumberPointsFound = 0;    
@@ -350,7 +353,6 @@ public:
         // Create a tree
         // It will use a copy of mNodeList (a std::vector which contains pointers)
         // Copying the list is required because the tree will reorder it for efficiency
-        UpdatePointListMortar(); // NOTE: First we reorder
         KDTree TreePoints(mPointListDestination.begin(), mPointListDestination.end(), mBucketSize);
 
         // Calculate the mean of the normal in all the nodes

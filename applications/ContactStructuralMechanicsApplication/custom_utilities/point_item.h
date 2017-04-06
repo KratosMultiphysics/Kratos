@@ -22,7 +22,6 @@
 // Project includes
 #include "contact_structural_mechanics_application_variables.h"
 #include "contact_structural_mechanics_application.h"
-#include "custom_utilities/contact_utilities.h"
 
 namespace Kratos
 {
@@ -149,9 +148,7 @@ public:
 
     void UpdatePoint()
     {
-        Point<3> Center;
-        ContactUtilities::CenterAndRadius(mpOriginCond, Center); 
-        this->Coordinates() = Center.Coordinates();
+        this->Coordinates() = mpOriginCond->GetGeometry().Center().Coordinates();
     }
 
 protected:
