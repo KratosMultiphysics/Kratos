@@ -78338,7 +78338,7 @@ Begin SubModelPart PointLoad3D_load // Group load // Subtree PointLoad3D
     End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart design_surface_fine
+Begin SubModelPart design_surface
     Begin SubModelPartNodes
         1
         2

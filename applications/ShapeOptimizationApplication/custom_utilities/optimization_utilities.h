@@ -94,6 +94,9 @@ public:
         // Set precision for output
         std::cout.precision(12);
 
+        // Initialize constraint value
+        previous_c = 0.0;
+
         // Initialize variables
         mCorrectionScaling = 0.1;
     }
@@ -229,7 +232,7 @@ public:
     }
 
     // ==============================================================================
-    void correct_projected_search_direction( double c, double previous_c, boost::python::list& py_correction_scaling )
+    void correct_projected_search_direction( double c, boost::python::list& py_correction_scaling )
     {
         // Check correction necessary
         if(c==0)
@@ -279,6 +282,9 @@ public:
             // KRATOS_WATCH(node_i->FastGetSolutionStepValue(SEARCH_DIRECTION));
     		node_i->FastGetSolutionStepValue(SEARCH_DIRECTION) -= correction_term;
     	}
+
+        // Store constraint value for next correction step
+        previous_c = c;
     }
 
     // ==============================================================================
@@ -374,6 +380,7 @@ private:
     ModelPart& mrDesignSurface;
     double mStepSize;
     bool mNormalizeSearchDirection;
+    double previous_c;
 
     // ==============================================================================
     // For running penalized projection method

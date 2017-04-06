@@ -26,7 +26,7 @@ from response_logger_base import ResponseLogger
 import csv
 
 # ==============================================================================
-class ResponseLoggerSteepestDescent( ResponseLogger ):
+class ResponseLoggerPenalizedProjection( ResponseLogger ):
 
     # --------------------------------------------------------------------------
     def __init__( self, communicator, timer, optimizationSettings ):
@@ -34,8 +34,12 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
         self.timer = timer
         self.optimizationSettings = optimizationSettings
         self.completeResponseLogFileName = self.createCompleteResponseLogFilename( optimizationSettings )
-        self.onlyObjective = self.optimizationSettings["objectives"][0]["identifier"].GetString()
+        self.onlyObjective = self.optimizationSettings["objectives"][0]["identifier"].GetString()   
+        self.onlyConstraint = self.optimizationSettings["constraints"][0]["identifier"].GetString()  
+        self.typOfOnlyConstraint = self.optimizationSettings["constraints"][0]["type"].GetString()     
         self.objectiveValueHistory = {}
+        self.constraintValueHistory = {}
+        self.constraintReferenceValueHistory = {}
         self.currentOptimizationIteration = 0
         self.previousOptimizationIteration = 0
         self.initialOptimizationIteration = 0
@@ -58,16 +62,19 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
             row.append("\tf\t")
             row.append("\tdf_absolute[%]\t")
             row.append("\tdf_relative[%]\t")
+            row.append("\tc["+onlyConstraint+"]: "+typOfOnlyConstraint+"\t")    
+            row.append("\tc["+onlyConstraint+"] / reference_value[%]"+"\t")        
+            row.append("\tcorrection_scaling[-]\t")
             row.append("\tstep_size[-]\t")
             row.append("\tt_iteration[s]\t")
             row.append("\tt_total[s]") 
             row.append("\ttime_stamp") 
-            historyWriter.writerow(row)    
+            historyWriter.writerow(row)      
 
     # --------------------------------------------------------------------------
     def logCurrentResponses( self, optimizationIteration ):
         self.currentOptimizationIteration = optimizationIteration
-        self.addCurrentObjectiveValueToHistory()
+        self.addCurrentResponseValuesToHistory()
         if self.isFirstLog():
             self.initialOptimizationIteration = optimizationIteration
         else:
@@ -83,10 +90,23 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
             return False
 
     # --------------------------------------------------------------------------
-    def addCurrentObjectiveValueToHistory( self ):
+    def addCurrentResponseValuesToHistory( self ):
+        self.addObjectiveValuesToHistory()
+        self.addConstraintValuesToHistory()
+
+    # --------------------------------------------------------------------------
+    def addObjectiveValuesToHistory( self ):
         objectiveValue = self.communicator.getReportedFunctionValueOf ( self.onlyObjective )
         self.objectiveValueHistory[self.currentOptimizationIteration] = objectiveValue
         print("\n> Current value of objective function = ", round(objectiveValue,12))
+
+    # --------------------------------------------------------------------------
+    def addConstraintValuesToHistory( self ):
+        constraintValue = self.communicator.getReportedFunctionValueOf ( self.onlyConstraint )
+        constraintReferenceValue = self.communicator.getReportedFunctionReferenceValueOf ( self.onlyConstraint )
+        self.constraintValueHistory[self.currentOptimizationIteration] = constraintValue
+        self.constraintReferenceValueHistory[self.currentOptimizationIteration] = constraintReferenceValue
+        print("\n> Current value of constraint function = ", round(constraintValue,12))
 
     # --------------------------------------------------------------------------
     def computeChangeOfObjectiveValue( self ):
@@ -104,20 +124,29 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
     def writeDataToLogFile( self ):
 
         objectiveValue = self.objectiveValueHistory[self.currentOptimizationIteration]
-        
-        with open(self.completeResponseLogFileName, 'a') as csvfile:
+        constraintValue = self.constraintValueHistory[self.currentOptimizationIteration]
+        constraintReferenceValue = self.constraintReferenceValueHistory[self.currentOptimizationIteration]
+
+        with open(self.optimizationLogFile, 'a') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
             row.append(str(self.currentOptimizationIteration)+"\t")
             row.append("\t"+str("%.12f"%(objectiveValue))+"\t")
             row.append("\t"+str("%.2f"%(self.absoluteChangeOfObjectiveValue))+"\t")
             row.append("\t"+str("%.6f"%(self.relativeChangeOfObjectiveValue))+"\t")
+            row.append("\t"+str("%.12f"%(constraintValue))+"\t")
+            if not constraintReferenceValue:
+                row.append("\t"+str("-\t"))
+            else: 
+                percentageOfReference = 100*(constraintValue / constraintReferenceValue)
+                row.append("\t"+str("%.6f"%(percentageOfReference)))
+            row.append("\t"+str("%.12f"%(correctionScaling[0]))+"\t")
             row.append("\t"+str(self.optimizationSettings["line_search"]["step_size"].GetDouble())+"\t")
             row.append("\t"+str("%.1f"%(self.timer.getLapTime()))+"\t")
             row.append("\t"+str("%.1f"%(self.timer.getTotalTime()))+"\t")
             row.append("\t"+str(self.timer.getTimeStamp()))
-            historyWriter.writerow(row)       
-
+            historyWriter.writerow(row)  
+            
     # --------------------------------------------------------------------------
     def getRelativeChangeOfObjectiveValue( self ):
         if self.isFirstLog():

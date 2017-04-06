@@ -58,7 +58,9 @@ for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_li
 # Analyzer
 # ======================================================================================================================================
 
-class kratosCSMAnalyzer( optimizerFactory.analyzerBaseClass ):
+class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
+    
+    # --------------------------------------------------------------------------    
     def __init__( self ):
 
         self.initializeGIDOutput()

@@ -18,11 +18,6 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 # check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
-# Further necessary imports
-import math
-import time
-import json
-
 # ==============================================================================
 def CreateOptimizer( inputModelPart, optimizationSettings ):
     if  optimizationSettings["design_variables"]["variable_type"].GetString() == "vertex_morphing":
@@ -78,9 +73,14 @@ class VertexMorphingMethod:
         # timer
         timerFactory = __import__("timer_factory")
         self.timer = timerFactory.CreateTimer()
+
+        print("\n> ==============================================================================================================")
+        print("> ",self.timer.getTimeStamp(),": Starting optimization using the following algorithm: ",self.optimizationSettings["optimization_algorithm"]["name"].GetString())
+        print("> ==============================================================================================================\n")
     
         # communicator
-        self.communicator = Communicator( self.optimizationSettings )    
+        communicatorFactory = __import__("communicator_factory")        
+        self.communicator = communicatorFactory.CreateCommunicator( self.optimizationSettings )    
 
         # model data
         self.designSurface = self.getDesignSurfaceFromInputModelPart()
@@ -93,17 +93,11 @@ class VertexMorphingMethod:
         optimizatoinDataLoggerFactory = __import__("optimization_data_logger_factory")
         self.optimizationDataLogger = optimizatoinDataLoggerFactory.CreateDataLogger( self.designSurface, self.communicator, self.timer, self.optimizationSettings )
 
-
         # algorithm_driver
         # .....algorithmDriver(timer, communicator, design_surface, vertexMorphingMapper, optimizationDataLogger )
 
-        print("\n> ==============================================================================================================")
-        print("> ",self.timer.getTimeStamp(),": Starting optimization using the following algorithm: ",self.optimizationSettings["optimization_algorithm"]["name"].GetString())
-        print("> ==============================================================================================================\n")
-
         self.optimizationDataLogger.initializeDataLogging() 
             
-        self.optimizationTools = OptimizationUtilities( self.designSurface, self.optimizationSettings )
         self.runSpecifiedOptimizationAlgorithm()
 
         self.optimizationDataLogger.finalizeDataLogging()        
@@ -152,11 +146,12 @@ class VertexMorphingMethod:
         # Flags to trigger proper function calls
         constraints_given = False
 
-        # Tools to perform geometric operations
-        geometryTools = GeometryUtilities( self.designSurface )
-
         # Get Id of objective (right now only one objective is considered!!)
         onlyObjective = self.optimizationSettings["objectives"][0]["identifier"].GetString()
+
+        # Tools run optimization algorithm
+        geometryTools = GeometryUtilities( self.designSurface )
+        optimizationTools = OptimizationUtilities( self.designSurface, self.optimizationSettings )
 
         # Start optimization loop
         self.timer.startTimer()
@@ -173,8 +168,8 @@ class VertexMorphingMethod:
             self.communicator.requestGradientOf( onlyObjective )
 
             self.analyzer.analyzeDesignAndReportToCommunicator( self.designSurface, optimizationIteration, self.communicator )
-
-            gradientOfObjectiveFunction = self.communicator.getReportedGradientOf ( onlyObjective )            
+         
+            gradientOfObjectiveFunction = self.communicator.getReportedGradientOf ( onlyObjective )
             self.storeGradientOnNodes( gradientOfObjectiveFunction )
 
             geometryTools.compute_unit_surface_normals()
@@ -183,8 +178,8 @@ class VertexMorphingMethod:
             self.vertexMorphingMapper.compute_mapping_matrix()
             self.vertexMorphingMapper.map_sensitivities_to_design_space( constraints_given )
 
-            self.optimizationTools.compute_search_direction_steepest_descent()
-            self.optimizationTools.compute_design_update()
+            optimizationTools.compute_search_direction_steepest_descent()
+            optimizationTools.compute_design_update()
 
             self.vertexMorphingMapper.map_design_update_to_geometry_space()         
             
@@ -193,7 +188,6 @@ class VertexMorphingMethod:
             # Take time needed for current optimization step
             print("\n> Time needed for current optimization step = ", self.timer.getLapTime(), "s")
             print("> Time needed for total optimization so far = ", self.timer.getTotalTime(), "s") 
-            self.timer.resetLapTime()                             
 
             # Check convergence
             if optimizationIteration > 1 :
@@ -203,9 +197,10 @@ class VertexMorphingMethod:
                     print("\n> Maximal iterations of optimization problem reached!")
                     break
 
+                relativeChangeOfObjectiveValue = self.optimizationDataLogger.getRelativeChangeOfObjectiveValue()
+                
                 # Check for relative tolerance
                 relativeTolerance = self.optimizationSettings["optimization_algorithm"]["relative_tolerance"].GetDouble()
-                relativeChangeOfObjectiveValue = self.optimizationDataLogger.getRelativeChangeOfObjectiveValue()
                 if abs(relativeChangeOfObjectiveValue) < relativeTolerance:
                     print("\n> Optimization problem converged within a relative objective tolerance of ",relativeTolerance,"%.")
                     break
@@ -214,54 +209,31 @@ class VertexMorphingMethod:
                 if relativeChangeOfObjectiveValue > 0:
                     print("\n> Value of objective function increased!")
 
+            self.timer.resetLapTime()
+
     # --------------------------------------------------------------------------
     def runPenalizedProjectionAlgorithm( self ):
-
-        # README!!!
-        # Note that the current implementation assumes that only one scalar objective & constraint is present
 
         # Flags to trigger proper function calls
         constraints_given = True
 
-        # Tools to perform geometric operations
-        geometryTools = GeometryUtilities( self.designSurface )        
-
-        # Get Id of objective
+        # Get information about response functions
         onlyObjectiveFunction = self.optimizationSettings["objectives"][0]["identifier"].GetString()
-
-        # Get Id of constraint
         onlyConstraintFunction = self.optimizationSettings["constraints"][0]["identifier"].GetString()
         typOfOnlyConstraintFunction = self.optimizationSettings["constraints"][0]["type"].GetString()      
 
-        # Initialize file where design evolution is recorded
-        with open(self.optimizationLogFile, 'w') as csvfile:
-            historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
-            row = []
-            row.append("itr\t")
-            row.append("\tf\t")
-            row.append("\tdf_absolute[%]\t")
-            row.append("\tdf_relative[%]\t")
-            row.append("\tc["+onlyConstraintFunction+"]: "+typOfOnlyConstraintFunction+"\t")    
-            row.append("\tc["+onlyConstraintFunction+"] / reference_value[%]"+"\t")        
-            row.append("\tcorrection_scaling[-]\t")
-            row.append("\tstep_size[-]\t")
-            row.append("\tt_iteration[s]\t")
-            row.append("\tt_total[s]") 
-            row.append("\ttime_stamp") 
-            historyWriter.writerow(row)    
-
-        # Miscellaneous working variables for data management
-        initialValueOfObjectiveFunction = 0.0
-        previousValueOfObjectiveFunction = 0.0 
-        previousValueOfConstraintFunction = 0.0        
+        # Tools run optimization algorithm
+        geometryTools = GeometryUtilities( self.designSurface )
+        optimizationTools = OptimizationUtilities( self.designSurface, self.optimizationSettings )      
 
         # Start optimization loop
-        maxOptimizationIterations = self.optimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1 
+        self.timer.startTimer()
+        maxOptimizationIterations = self.optimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1
         for optimizationIteration in range(1,maxOptimizationIterations):
 
             # Some output
             print("\n>===================================================================")
-            print("> ",time.ctime(),": Starting optimization iteration ",optimizationIteration)
+            print("> ",self.timer.getTimeStamp(),": Starting optimization iteration ",optimizationIteration)
             print(">===================================================================\n")
 
             timeAtStartOfCurrentOptimizationStep = time.time()   
@@ -274,12 +246,8 @@ class VertexMorphingMethod:
 
             self.analyzer.analyzeDesignAndReportToCommunicator( self.designSurface, optimizationIteration, self.communicator )
 
-            valueOfObjectiveFunction = self.communicator.getReportedFunctionValueOf ( onlyObjectiveFunction )
-            valueOfConstraintFunction = self.communicator.getReportedFunctionValueOf ( onlyConstraintFunction )
-            referenceValueOfConstraintFunction = self.communicator.getReportedFunctionReferenceValueOf ( onlyConstraintFunction )
             gradientOfObjectiveFunction = self.communicator.getReportedGradientOf ( onlyObjectiveFunction )
             gradientOfConstraintFunction = self.communicator.getReportedGradientOf ( onlyConstraintFunction )
-
             self.storeGradientOnNodes( gradientOfObjectiveFunction, gradientOfConstraintFunction )
             
             # Check if constraint is active
@@ -298,64 +266,31 @@ class VertexMorphingMethod:
 
             correctionScaling = [False] 
             if constraints_given:
-                self.optimizationTools.compute_projected_search_direction( valueOfConstraintFunction )
-                self.optimizationTools.correct_projected_search_direction( valueOfConstraintFunction, previousValueOfConstraintFunction, correctionScaling )
-                self.optimizationTools.compute_design_update()
+                optimizationTools.compute_projected_search_direction( valueOfConstraintFunction )
+                optimizationTools.correct_projected_search_direction( valueOfConstraintFunction, correctionScaling )
+                optimizationTools.compute_design_update()
             else:
-                self.optimizationTools.compute_search_direction_steepest_descent()
-                self.optimizationTools.compute_design_update()
+                optimizationTools.compute_search_direction_steepest_descent()
+                optimizationTools.compute_design_update()
 
             self.vertexMorphingMapper.map_design_update_to_geometry_space()  
-            
-            # Compute and output some measures to track response functions
-            absoluteChangeOfObjectiveValue = 0.0
-            relativeChangeOfObjectiveValue = 0.0
-            print("\n> Current value of objective function = ",valueOfObjectiveFunction)
-            if optimizationIteration > 1:
-                absoluteChangeOfObjectiveValue = 100*(valueOfObjectiveFunction-initialValueOfObjectiveFunction) / initialValueOfObjectiveFunction
-                relativeChangeOfObjectiveValue = 100*(valueOfObjectiveFunction-previousValueOfObjectiveFunction) / initialValueOfObjectiveFunction
-                print("> Absolut change of objective function = ",round(absoluteChangeOfObjectiveValue,6)," [%]")
-                print("> Relative change of objective function = ",round(relativeChangeOfObjectiveValue,6)," [%]")  
-            print("\n> Current value of constraint function = ",round(valueOfConstraintFunction,12))     
 
-            # Write design in GID format
-            self.gidIO.write_results(optimizationIteration, self.designSurface, self.nodalResults, [])   
-
-            # Write design history to file
-            runTimeOptimizationStep = round(time.time() - timeAtStartOfCurrentOptimizationStep,2)
-            runTimeOptimization = round(time.time() - self.timeAtStartOfOptimization,2)            
-            with open(self.optimizationLogFile, 'a') as csvfile:
-                historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
-                row = []
-                row.append(str(optimizationIteration)+"\t")
-                row.append("\t"+str("%.12f"%(valueOfObjectiveFunction))+"\t")
-                row.append("\t"+str("%.2f"%(absoluteChangeOfObjectiveValue))+"\t")
-                row.append("\t"+str("%.6f"%(relativeChangeOfObjectiveValue))+"\t")
-                row.append("\t"+str("%.12f"%(valueOfConstraintFunction))+"\t")
-                if not referenceValueOfConstraintFunction:
-                    row.append("\t"+str("-\t"))
-                else: 
-                    percentageOfReference = 100*(valueOfConstraintFunction / referenceValueOfConstraintFunction)
-                    row.append("\t"+str("%.6f"%(percentageOfReference)))
-                row.append("\t"+str("%.12f"%(correctionScaling[0]))+"\t")
-                row.append("\t"+str(self.optimizationSettings["line_search"]["step_size"].GetDouble())+"\t")
-                row.append("\t"+str("%.1f"%(runTimeOptimizationStep))+"\t")
-                row.append("\t"+str("%.1f"%(runTimeOptimization))+"\t")
-                row.append("\t"+str(time.ctime()))
-                historyWriter.writerow(row)   
+            self.optimizationDataLogger.logCurrentData( optimizationIteration )
 
             # Take time needed for current optimization step
-            print("\n> Time needed for current optimization step = ",runTimeOptimizationStep,"s")
-            print("\n> Time needed for total optimization so far = ",runTimeOptimization,"s")                       
+            print("\n> Time needed for current optimization step = ", self.timer.getLapTime(), "s")
+            print("> Time needed for total optimization so far = ", self.timer.getTotalTime(), "s") 
 
-            # Check convergence (Further convergence criterions to be implemented )
-            if optimizationIteration>1:
+            # Check convergence
+            if optimizationIteration > 1 :
 
                 # Check if maximum iterations were reached
                 if optimizationIteration == maxOptimizationIterations:
                     print("\n> Maximal iterations of optimization problem reached!")
                     break
 
+                relativeChangeOfObjectiveValue = self.optimizationDataLogger.getRelativeChangeOfObjectiveValue()
+                
                 # Check for relative tolerance
                 relativeTolerance = self.optimizationSettings["optimization_algorithm"]["relative_tolerance"].GetDouble()
                 if abs(relativeChangeOfObjectiveValue) < relativeTolerance:
@@ -363,16 +298,11 @@ class VertexMorphingMethod:
                     break
 
                 # Check if value of objective increases
-                if  valueOfObjectiveFunction > previousValueOfObjectiveFunction:
-                    print("\n> Value of objective function increased!")                    
+                if relativeChangeOfObjectiveValue > 0:
+                    print("\n> Value of objective function increased!")
 
-            # Store values of for next iteration
-            previousValueOfObjectiveFunction = valueOfObjectiveFunction
-            previousValueOfConstraintFunction = valueOfConstraintFunction
+            self.timer.resetLapTime()                    
 
-            # Store initial objective value
-            if optimizationIteration == 1:
-                initialValueOfObjectiveFunction = valueOfObjectiveFunction      
 
     # --------------------------------------------------------------------------
     def storeGradientOnNodes( self,objective_grads,constraint_grads={} ):
@@ -407,122 +337,5 @@ class VertexMorphingMethod:
                 sens_i[1] = constraint_grads[node_Id][1]
                 sens_i[2] = constraint_grads[node_Id][2]           
                 self.designSurface.Nodes[node_Id].SetSolutionStepValue(CONSTRAINT_SENSITIVITY,0,sens_i)                 
-
-    # --------------------------------------------------------------------------
-
-# ==============================================================================
-class Communicator:
-    # --------------------------------------------------------------------------
-    def __init__( self, optimizationSettings ):
-        self.listOfRequests = self.initializeListOfRequests( optimizationSettings )
-        self.listOfResponses = self.initializeListOfResponses( optimizationSettings )
-
-    # --------------------------------------------------------------------------
-    def initializeListOfRequests( self, optimizationSettings ):
-
-        listOfRequests = {}
-        numberOfObjectives = optimizationSettings["objectives"].size()
-        numberOfConstraints = optimizationSettings["constraints"].size()
-
-        for objectiveNumber in range(numberOfObjectives):
-            objectiveId = optimizationSettings["objectives"][objectiveNumber]["identifier"].GetString()
-            listOfRequests[objectiveId] = {"calculateValue": False, "calculateGradient": False}
-
-        for constraintNumber in range(numberOfConstraints):
-            constraintId = optimizationSettings["constraints"][constraintNumber]["identifier"].GetString()
-            listOfRequests[constraintId] = {"calculateValue": False, "calculateGradient": False}
-
-        return listOfRequests
-
-    # --------------------------------------------------------------------------
-    def initializeListOfResponses( self, optimizationSettings ):
-        
-        listOfResponses = {}  
-        numberOfObjectives = optimizationSettings["objectives"].size()
-        numberOfConstraints = optimizationSettings["constraints"].size()
-
-        for objectiveNumber in range(numberOfObjectives):
-            objectiveId = optimizationSettings["objectives"][objectiveNumber]["identifier"].GetString()
-            listOfResponses[objectiveId] = {}
-
-        for constraintNumber in range(numberOfConstraints):
-            constraintId = optimizationSettings["constraints"][constraintNumber]["identifier"].GetString()
-            listOfResponses[constraintId] = {}  
-
-        for responseId in listOfResponses:
-            listOfResponses[responseId] = {"value": None, "referenceValue": None, "gradient": None} 
-
-        return listOfResponses
-    
-    # --------------------------------------------------------------------------
-    def initializeCommunication( self ):
-        self.deleteAllRequests()
-        self.deleteAllReportedValues()
-
-    # --------------------------------------------------------------------------
-    def deleteAllRequests( self ):
-        for responseId in self.listOfRequests:
-            self.listOfRequests[responseId] = {"calculateValue": False, "calculateGradient": False}
-
-    # --------------------------------------------------------------------------
-    def deleteAllReportedValues( self ):
-        for responseId in self.listOfResponses:
-            self.listOfResponses[responseId] = {"value": None, "referenceValue": None, "gradient": None}  
-
-    # --------------------------------------------------------------------------
-    def requestFunctionValueOf( self, responseId ):
-        self.listOfRequests[responseId]["calculateValue"] = True
-
-    # --------------------------------------------------------------------------
-    def requestGradientOf( self, responseId ):
-        self.listOfRequests[responseId]["calculateGradient"] = True
-
-    # --------------------------------------------------------------------------
-    def isRequestingFunctionValueOf( self, responseId ):
-        return self.listOfRequests[responseId]["calculateValue"]
-
-    # --------------------------------------------------------------------------
-    def isRequestingGradientOf( self, responseId ):
-        return self.listOfRequests[responseId]["calculateGradient"]
-
-    # --------------------------------------------------------------------------
-    def reportFunctionValue( self, responseId, functionValue ):
-        if responseId in self.listOfResponses.keys():
-            self.listOfResponses[responseId]["value"] = functionValue
-        else:
-            raise NameError("Reported function is not specified: " + responseId)
-
-    # --------------------------------------------------------------------------
-    def reportFunctionReferenceValue( self, responseId, functionReferenceValue ):
-        if responseId in self.listOfResponses.keys():
-            self.listOfResponses[responseId]["referenceValue"] = functionReferenceValue
-        else:
-            raise NameError("Reported function is not specified: " + responseId)
-
-    # --------------------------------------------------------------------------
-    def reportGradient( self, responseId, gradient ):
-        if responseId in self.listOfResponses.keys():        
-            self.listOfResponses[responseId]["gradient"] = gradient
-        else:
-            raise NameError("Reported function is not specified: " + responseId)
-
-    # --------------------------------------------------------------------------
-    def getReportedFunctionValueOf( self, responseId ):
-        return self.listOfResponses[responseId]["value"]
-
-    # --------------------------------------------------------------------------
-    def getReportedFunctionReferenceValueOf( self, responseId ):
-        return self.listOfResponses[responseId]["referenceValue"]
-
-    # --------------------------------------------------------------------------    
-    def getReportedGradientOf( self, responseId ):
-        return self.listOfResponses[responseId]["gradient"]
-
-    # --------------------------------------------------------------------------
-
-# ==============================================================================
-class analyzerBaseClass:
-    def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
-        raise RuntimeError("Analyzer base class is called. Please check your implementation of the function >> analyzeDesignAndReportToCommunicator << .")
 
 # ==============================================================================

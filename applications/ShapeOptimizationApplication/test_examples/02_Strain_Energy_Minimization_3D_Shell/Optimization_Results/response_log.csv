@@ -1,0 +1,3 @@
+itr	,	f	,	df_absolute[%]	,	df_relative[%]	,	step_size[-]	,	t_iteration[s]	,	t_total[s],	time_stamp
+1	,	4.281537458606	,	0.00	,	0.000000	,	0.1	,	1.8	,	1.8	,	Thu Apr  6 08:56:50 2017
+2	,	4.134112765871	,	-3.44	,	-3.443265	,	0.1	,	1.7	,	3.6	,	Thu Apr  6 08:56:52 2017

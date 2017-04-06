@@ -22,6 +22,8 @@ CheckForPreviousImport()
 # Import logger classes
 from design_logger_gid import DesignLoggerGID
 from response_logger_steepest_descent import ResponseLoggerSteepestDescent
+from response_logger_penalized_projection import ResponsePenalizedProjection
+
 
 # ==============================================================================
 def CreateDataLogger( designSurface, communicator, timer, optimizationSettings ):
@@ -31,10 +33,14 @@ def CreateDataLogger( designSurface, communicator, timer, optimizationSettings )
 
 # -----------------------------------------------------------------------------
 def createResponseLogger( communicator, timer, optimizationSettings ):
+
     responseLogger = None
     optimizationAlgorithm = optimizationSettings["optimization_algorithm"]["name"].GetString()
+
     if optimizationAlgorithm == "steepest_descent":
         return ResponseLoggerSteepestDescent( communicator, timer, optimizationSettings )
+    if optimizationAlgorithm == "penalized_projection":
+        return ResponseLoggerPenalizedProjection( communicator, timer, optimizationSettings )        
     else:
         raise NameError("The following optimization algorithm not supported by the response logger (name may be a misspelling): " + optimizationAlgorithm)
 
