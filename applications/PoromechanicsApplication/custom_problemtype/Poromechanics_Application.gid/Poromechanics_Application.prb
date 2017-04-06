@@ -27,27 +27,30 @@ QUESTION: Non-local_Damage#CB#(true,false)
 VALUE: false
 DEPENDENCIES: (true,RESTORE,Characteristic_Length,#CURRENT#)(false,HIDE,Characteristic_Length,#CURRENT#)
 QUESTION: Characteristic_Length
-Value: 0.05
+VALUE: 0.05
 HELP: Length defining the domain of interaction between non-local damaged points.
 QUESTION: Fracture_Propagation#CB#(true,false)
 VALUE: false
 HELP: Only for pre-defined crack-tips defined with interface elements.
-DEPENDENCIES: (true,RESTORE,Propagation_Length,#CURRENT#,RESTORE,Propagation_Damage,#CURRENT#,RESTORE,Propagation_Frequency,#CURRENT#,RESTORE,Propagation_Width,#CURRENT#,RESTORE,Propagation_Height,#CURRENT#,RESTORE,Propagation_CosAngle,#CURRENT#)(false,HIDE,Propagation_Length,#CURRENT#,HIDE,Propagation_Damage,#CURRENT#,HIDE,Propagation_Frequency,#CURRENT#,HIDE,Propagation_Width,#CURRENT#,HIDE,Propagation_Height,#CURRENT#,HIDE,Propagation_CosAngle,#CURRENT#)
+DEPENDENCIES: (true,RESTORE,Propagation_Length,#CURRENT#,RESTORE,Propagation_Damage,#CURRENT#,RESTORE,Propagation_Frequency,#CURRENT#,RESTORE,Propagation_Width,#CURRENT#,RESTORE,Propagation_Height,#CURRENT#,RESTORE,Propagation_CosAngle,#CURRENT#,RESTORE,Straight_Propagation,#CURRENT#)(false,HIDE,Propagation_Length,#CURRENT#,HIDE,Propagation_Damage,#CURRENT#,HIDE,Propagation_Frequency,#CURRENT#,HIDE,Propagation_Width,#CURRENT#,HIDE,Propagation_Height,#CURRENT#,HIDE,Propagation_CosAngle,#CURRENT#,HIDE,Straight_Propagation,#CURRENT#)
 QUESTION: Propagation_Damage
-Value: 0.5
+VALUE: 0.5
 HELP: Damage threshold after which propagation occurs.
 QUESTION: Propagation_Length
-Value: 0.05
+VALUE: 0.05
 HELP: Length defining the domain of influence of the crack tip. It is also the first dimension of the propagation.
 QUESTION: Propagation_Width
-Value: 0.01
+VALUE: 0.01
 HELP: Second dimension of the propagation. 
 QUESTION: Propagation_Height
-Value: 0.01
+VALUE: 0.01
 HELP: Third dimension of the propagation. Only for 3D cases.
 QUESTION: Propagation_CosAngle
-Value: 0.0
-HELP: Cosinus of the angle defining the front sector of straight propagation. It ranges from 0.0 (only straight propagation) to 1.0 (only bifurcation).
+VALUE: 0.0
+HELP: Cosinus of the angle defining the front sector of simple propagation. It ranges from 0.0 (only simple propagation) to 1.0 (only bifurcation).
+QUESTION: Straight_Propagation#CB#(true,false)
+VALUE: true
+HELP: Flag defining whether the fracture must advance allways in the direction of the initial crack.
 QUESTION: Propagation_Frequency
 VALUE: 1
 HELP: Number of steps after which the fracture propagation will be checked. Set 1 if propagation should be checked at every time step.
@@ -59,16 +62,16 @@ VALUE: Quasi-Static
 QUESTION: Scheme_Type#CB#(Newmark)
 VALUE: Newmark
 QUESTION: Newmark_Beta
-Value: 0.25
+VALUE: 0.25
 QUESTION: Newmark_Gamma
-Value: 0.5
+VALUE: 0.5
 QUESTION: Newmark_Theta
-Value: 0.5
+VALUE: 0.5
 HELP: 0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson
 QUESTION: Rayleigh_Mass
-Value: 0.0
+VALUE: 0.0
 QUESTION: Rayleigh_Stiffness
-Value: 0.0
+VALUE: 0.0
 QUESTION: Strategy_Type#CB#(Newton-Raphson,Arc-Length)
 VALUE: Newton-Raphson
 DEPENDENCIES: (Newton-Raphson,HIDE,Desired_Iterations,#CURRENT#,HIDE,Max_Radius_Factor,#CURRENT#,HIDE,Min_Radius_Factor,#CURRENT#)(Arc-Length,RESTORE,Desired_Iterations,#CURRENT#,RESTORE,Max_Radius_Factor,#CURRENT#,RESTORE,Min_Radius_Factor,#CURRENT#)
@@ -76,28 +79,28 @@ QUESTION: Convergence_Criterion#CB#(Displacement_criterion,Residual_criterion,An
 VALUE: Displacement_criterion
 DEPENDENCIES: (Displacement_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,HIDE,Residual_Relative_Tolerance,#CURRENT#,HIDE,Residual_Absolute_Tolerance,#CURRENT#)(Residual_criterion,HIDE,Displacement_Relative_Tolerance,#CURRENT#,HIDE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)(And_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)(Or_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)
 QUESTION: Displacement_Relative_Tolerance
-Value: 1.0E-4
+VALUE: 1.0E-4
 QUESTION: Displacement_Absolute_Tolerance
-Value: 1.0E-9
+VALUE: 1.0E-9
 QUESTION: Residual_Relative_Tolerance
-Value: 1.0E-4
+VALUE: 1.0E-4
 QUESTION: Residual_Absolute_Tolerance
-Value: 1.0E-9
+VALUE: 1.0E-9
 QUESTION: Max_Iterations
 VALUE: 15
 QUESTION: Desired_Iterations
-Value: 4
+VALUE: 4
 HELP: The larger this number, the larger the radius
 QUESTION: Max_Radius_Factor
-Value: 10.0
+VALUE: 10.0
 HELP: Times the initial radius. In order to use a constant radius, choose the same value for Min Radius Factor and Max Radius Factor
 QUESTION: Min_Radius_Factor
-Value: 0.1
+VALUE: 0.1
 HELP: Times the initial radius. In order to use a constant radius, choose the same value for Min Radius Factor and Max Radius Factor
 QUESTION: Block_Builder#CB#(true,false)
 VALUE: true
 QUESTION: Solver_Type#CB#(SkylineLUFactorizationSolver,SuperLUSolver,BICGSTABSolver,AMGCL,Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver)
-Value: AMGCL
+VALUE: AMGCL
 HELP: OpenMP solvers: SkylineLUFactorizationSolver (Direct), SuperLUSolver (Direct), BICGSTABSolver (Iter.) and AMGCL (Iter.). MPI solvers: Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver.
 QUESTION: Scaling#CB#(true,false)
 VALUE: false
@@ -153,7 +156,7 @@ VALUE: false
 QUESTION: GiD_post_mode#CB#(GiD_PostAscii,GiD_PostAsciiZipped,GiD_PostBinary,GiD_PostHDF5)
 VALUE: GiD_PostBinary
 QUESTION: Write_deformed_mesh#CB#(WriteDeformed,WriteUndeformed)
-VALUE: WriteDeformed
+VALUE: WriteUndeformed
 HELP: Write the coordinates of the mesh in its deformed position. Note: With the DISPLACEMENT variable GiD allows obtaining the deformed mesh regardless of this flag.
 QUESTION: Write_conditions#CB#(WriteConditions,WriteElementsOnly,WriteConditionsOnly)
 VALUE: WriteElementsOnly

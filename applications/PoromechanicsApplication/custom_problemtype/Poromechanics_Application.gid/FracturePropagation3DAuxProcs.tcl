@@ -151,6 +151,7 @@ proc WriteFractureData {FileVar} {
     puts $MyFileVar "        \"propagation_width\":                    [GiD_AccessValue get gendata Propagation_Width],"
     puts $MyFileVar "        \"propagation_height\":                   [GiD_AccessValue get gendata Propagation_Height],"
     puts $MyFileVar "        \"propagation_cosangle\":                 [GiD_AccessValue get gendata Propagation_CosAngle],"
+    puts $MyFileVar "        \"straight_propagation\":                 [GiD_AccessValue get gendata Straight_Propagation],"
     puts $MyFileVar "        \"propagation_frequency\":                [GiD_AccessValue get gendata Propagation_Frequency],"
     # body_domain_sub_model_part_list
     set PutStrings \[

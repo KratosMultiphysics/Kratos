@@ -1417,8 +1417,7 @@ private:
             MyPropagation.TipCoordinates[1] = TipY/TipDen;
             MyPropagation.TipCoordinates[2] = 0.0;
             
-            //TODO: add flag asking for straight propagation
-            bool StraightPropagation = true;
+            const bool StraightPropagation = rParameters["fracture_data"]["straight_propagation"].GetBool();
             if (StraightPropagation == true)
             {
                 AuxArray1[0] = rAuxPropagationVariables.TipLocalCoordinates[0] + PropagationLength;

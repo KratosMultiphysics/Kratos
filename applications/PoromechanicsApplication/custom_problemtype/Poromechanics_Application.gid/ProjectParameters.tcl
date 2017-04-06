@@ -217,13 +217,12 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         puts $FileVar "                \"MultiFileFlag\":         \"MultipleFiles\""
         puts $FileVar "            \},"
         puts $FileVar "            \"file_label\":          \"time\","
-        puts $FileVar "            \"output_control_type\": \"time\","
     } else {
         puts $FileVar "                \"MultiFileFlag\":         \"[GiD_AccessValue get gendata Multi_file_flag]\""
         puts $FileVar "            \},"
         puts $FileVar "            \"file_label\":          \"[GiD_AccessValue get gendata File_label]\","
-        puts $FileVar "            \"output_control_type\": \"[GiD_AccessValue get gendata Output_control_type]\","
     }
+    puts $FileVar "            \"output_control_type\": \"[GiD_AccessValue get gendata Output_control_type]\","
     puts $FileVar "            \"output_frequency\":    [GiD_AccessValue get gendata Output_frequency],"
     puts $FileVar "            \"body_output\":         [GiD_AccessValue get gendata Body_output],"
     puts $FileVar "            \"node_output\":         [GiD_AccessValue get gendata Node_output],"
