@@ -69,7 +69,6 @@ class Solution:
         self.pp.main_path = os.getcwd()
         self.pp.CFD_DEM = DEM_parameters
         self.alg = algorithm.Algorithm(self.pp)
-        self.alg.CreateParts()
         self.alg.SetCustomBetaParamters(varying_parameters)
 
     def Run(self):
@@ -89,7 +88,6 @@ class Solution:
         swim_proc.CopyInputFilesIntoFolder(self.main_path, post_path)
 
         self.alg.AddExtraVariables()
-
         [post_path, data_and_results, graphs_path, MPI_results] = self.alg.procedures.CreateDirectories(str(self.main_path), str(self.pp.CFD_DEM.problem_name))
 
         os.chdir(self.main_path)
@@ -115,7 +113,7 @@ class Solution:
 
         #Setting up the BoundingBox
         bounding_box_time_limits = []
-        if (self.pp.CFD_DEM.BoundingBoxOption == "ON"):
+        if self.pp.CFD_DEM.BoundingBoxOption == "ON":
             self.alg.procedures.SetBoundingBox(self.alg.spheres_model_part, self.alg.cluster_model_part, self.alg.rigid_face_model_part, self.alg.creator_destructor)
             bounding_box_time_limits = [self.alg.solver.bounding_box_start_time, self.alg.solver.bounding_box_stop_time]
 
@@ -124,12 +122,17 @@ class Solution:
         # solver_module = import_solver(SolverSettings)
         fluid_model_part = self.alg.all_model_parts.Get('FluidPart')
         mixed_model_part = self.alg.all_model_parts.Get('MixedPart')
-        self.alg.fluid_solver = self.alg.solver_module.CreateSolver(fluid_model_part, SolverSettings)
 
         Dt_DEM = self.pp.CFD_DEM.MaxTimeStep
 
         # reading the fluid part
         self.alg.Initialize()
+
+        self.alg.SetFluidBufferSizeAndAddAdditionalDofs()
+
+        self.alg.fluid_solver = self.alg.solver_module.CreateSolver(fluid_model_part, SolverSettings)
+
+        self.alg.FluidInitialize()
 
         # activate turbulence model
         self.alg.ActivateTurbulenceModel()
@@ -252,10 +255,6 @@ class Solution:
 
         # creating a derivative recovery tool to calculate the necessary derivatives from the fluid solution (gradient, laplacian, material acceleration...)
         derivative_recovery_tool = DerivativeRecoveryTool3D(fluid_model_part)
-
-        # creating a basset_force tool to perform the operations associated with the calculation of this force along the path of each particle
-        if self.pp.CFD_DEM.basset_force_type > 0:
-            basset_force_tool = swim_proc.BassetForceTools()
 
         # creating a stationarity assessment tool
         stationarity_tool = swim_proc.StationarityAssessmentTool(self.pp.CFD_DEM.max_pressure_variation_rate_tol , custom_functions_tool)
@@ -387,12 +386,7 @@ class Solution:
         import derivative_recovery.derivative_recovery_strategy as derivative_recoverer
         recovery = derivative_recoverer.DerivativeRecoveryStrategy(self.pp, fluid_model_part, derivative_recovery_tool, custom_functions_tool)
 
-        N_steps = int(final_time / Dt_DEM) + 20
-
-        if self.pp.CFD_DEM.basset_force_type > 0:
-            basset_force_tool.FillDaitcheVectors(N_steps, self.pp.CFD_DEM.quadrature_order, self.pp.CFD_DEM.time_steps_per_quadrature_step)
-        if self.pp.CFD_DEM.basset_force_type >= 3 or self.pp.CFD_DEM.basset_force_type == 1:
-            basset_force_tool.FillHinsbergVectors(self.alg.spheres_model_part, self.pp.CFD_DEM.number_of_exponentials, self.pp.CFD_DEM.number_of_quadrature_steps_in_window)
+        self.alg.FillHistoryForcePrecalculatedVectors()
 
         self.alg.PerformZeroStepInitializations()
 
@@ -491,10 +485,7 @@ class Solution:
                                 node.SetSolutionStepValue(SLIP_VELOCITY_Y, vy)
 
                         if quadrature_counter.Tick():
-                            if self.pp.CFD_DEM.basset_force_type == 1 or self.pp.CFD_DEM.basset_force_type >= 3:
-                                basset_force_tool.AppendIntegrandsWindow(self.alg.spheres_model_part)
-                            elif self.pp.CFD_DEM.basset_force_type == 2:
-                                basset_force_tool.AppendIntegrands(self.alg.spheres_model_part)
+                            self.alg.AppendValuesForTheHistoryForce()
 
                 # performing the time integration of the DEM part
 
