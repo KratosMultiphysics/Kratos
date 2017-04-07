@@ -406,7 +406,7 @@ public:
         const double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
         const double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
 
-        return MathUtils<double>::Heron<true>(a,b,c); // NOTE: To check if the triangle is in bad shape
+        return MathUtils<double>::Heron<false>(a,b,c); // NOTE: To check if the triangle is in bad shape
 //         return MathUtils<double>::Heron<false>(a,b,c);
     }
 
