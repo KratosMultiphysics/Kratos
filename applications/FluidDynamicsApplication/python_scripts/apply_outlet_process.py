@@ -103,7 +103,7 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
 
         # Compute the body force unit normal vector
         body_force_norm = math.sqrt(math.pow(body_force[0],2)+math.pow(body_force[1],2)+math.pow(body_force[2],2))  # Body force norm
-        body_force_dir = (1/body_force_norm)*body_force                                                             # Body force unit director vector
+        body_force_dir = (1/(body_force_norm+1e-10))*body_force                                                     # Body force unit director vector
 
         # Compute the minimum body force projection value (reference value)
         min_proj = 0.0
