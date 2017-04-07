@@ -202,7 +202,8 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                                                                             max_iters, 
                                                                             compute_reactions, 
                                                                             reform_step_dofs, 
-                                                                            move_mesh_flag)
+                                                                            move_mesh_flag
+                                                                            )
         else:
             if(line_search):
                 if(implex):
@@ -214,7 +215,8 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                                                                                                             max_iters, 
                                                                                                             compute_reactions, 
                                                                                                             reform_step_dofs, 
-                                                                                                            move_mesh_flag)
+                                                                                                            move_mesh_flag
+                                                                                                            )
                 else:
                     self.mechanical_solver = KratosMultiphysics.LineSearchStrategy(
                                                                                 self.computing_model_part, 
@@ -225,7 +227,8 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                                                                                 max_iters, 
                                                                                 compute_reactions, 
                                                                                 reform_step_dofs, 
-                                                                                move_mesh_flag)
+                                                                                move_mesh_flag
+                                                                                )
 
             else:
                 if self.settings["analysis_type"].GetString() == "Linear":
@@ -237,7 +240,8 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                                                                             compute_reactions, 
                                                                             reform_step_dofs, 
                                                                             False, 
-                                                                            move_mesh_flag)
+                                                                            move_mesh_flag
+                                                                            )
                     
                 else:
                     if  self.settings["compute_mortar_contact"].GetInt() > 0:

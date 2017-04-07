@@ -218,7 +218,8 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                                                                                                             max_iters, 
                                                                                                             compute_reactions, 
                                                                                                             reform_step_dofs, 
-                                                                                                            move_mesh_flag)
+                                                                                                            move_mesh_flag
+                                                                                                            )
                 else:
                     self.mechanical_solver = KratosMultiphysics.LineSearchStrategy(
                                                                                 self.computing_model_part, 
@@ -229,7 +230,8 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                                                                                 max_iters, 
                                                                                 compute_reactions, 
                                                                                 reform_step_dofs, 
-                                                                                move_mesh_flag)
+                                                                                move_mesh_flag
+                                                                                )
 
             else:
                 if self.settings["analysis_type"].GetString() == "Linear":
@@ -241,7 +243,8 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                                                                             compute_reactions, 
                                                                             reform_step_dofs, 
                                                                             False, 
-                                                                            move_mesh_flag)
+                                                                            move_mesh_flag
+                                                                            )
                     
                 elif self.settings["analysis_type"].GetString() == "Arc-Length":
                     Ide = self.settings["arc_length_settings"]["Ide"].GetInt()
@@ -259,7 +262,8 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                                                                             factor_delta_lmax,
                                                                             compute_reactions, 
                                                                             reform_step_dofs, 
-                                                                            move_mesh_flag)
+                                                                            move_mesh_flag
+                                                                            )
                 else:
                     if  self.settings["compute_mortar_contact"].GetInt() > 0:
                         split_factor   = self.settings["split_factor"].GetDouble()

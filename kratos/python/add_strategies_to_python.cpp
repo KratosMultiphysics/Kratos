@@ -272,8 +272,12 @@ namespace Kratos
                     ;
 
             class_< LineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases< ResidualBasedNewtonRaphsonStrategyType >, boost::noncopyable >
-                    ("LineSearchStrategy",
-                    init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
+                    ("LineSearchStrategy", init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
+                    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+                    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool >())
+                    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool >())
+                    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int >())
+                    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer >())
                     ;
 
             class_< ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
