@@ -1,9 +1,9 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication
-import KratosMultiphysics.StructuralMechanicsApplication
-import KratosMultiphysics.ContactStructuralMechanicsApplication
+import KratosMultiphysics.SolidMechanicsApplication as SolidMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import KratosMultiphysics.ContactStructuralMechanicsApplication as ContactStructuralMechanicsApplication
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -114,7 +114,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)                                     # Add vector LM
                 
         if self.settings["analysis_type"].GetString() == "Arc-Length":
-            self.main_model_part.ProcessInfo[KratosMultiphysics.StructuralMechanicsApplication.LAMBDA] = 0.00;
+            self.main_model_part.ProcessInfo[StructuralMechanicsApplication.LAMBDA] = 0.00;
    
         print("::[Mechanical Solver]:: Variables ADDED")
     
@@ -153,7 +153,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
             self.settings["dynamic_factor"].SetDouble(0.0) # Quasi-static scheme
             
             if component_wise:
-                mechanical_scheme = KratosMultiphysics.SolidMechanicsApplication.ComponentWiseBossakScheme(
+                mechanical_scheme = SolidMechanicsApplication.ComponentWiseBossakScheme(
                                                               self.settings["damp_factor_m"].GetDouble(), 
                                                               self.settings["dynamic_factor"].GetDouble())
             else:
@@ -162,9 +162,9 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                     #mechanical_scheme = ResidualBasedContactBossakScheme(self.settings["damp_factor_m"].GetDouble(), 
                                                                          #self.settings["dynamic_factor"].GetDouble())
                 elif  self.settings["compute_mortar_contact"].GetInt() == 1:
-                    mechanical_scheme = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedIncrementalUpdateStaticContactScheme()
+                    mechanical_scheme = ContactStructuralMechanicsApplication.ResidualBasedIncrementalUpdateStaticContactScheme()
                 elif  self.settings["compute_mortar_contact"].GetInt() == 2:
-                    mechanical_scheme = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedIncrementalUpdateStaticALMContactScheme()
+                    mechanical_scheme = ContactStructuralMechanicsApplication.ResidualBasedIncrementalUpdateStaticALMContactScheme()
                 else:
                     mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
                                 
@@ -187,7 +187,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params)
         
         if  (self.settings["compute_mortar_contact"].GetInt() == 1 or self.settings["compute_mortar_contact"].GetInt() == 2):
-            Mortar = KratosMultiphysics.ContactStructuralMechanicsApplication.MortarConvergenceCriteria()
+            Mortar = ContactStructuralMechanicsApplication.MortarConvergenceCriteria()
             Mortar.SetEchoLevel(self.echo_level)
 
             convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Mortar, convergence_criterion.mechanical_convergence_criterion)
@@ -197,7 +197,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
     def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search, implex):
         
         if(component_wise):
-            self.mechanical_solver = KratosMultiphysics.SolidMechanicsApplication.ComponentWiseNewtonRaphsonStrategy(
+            self.mechanical_solver = SolidMechanicsApplication.ComponentWiseNewtonRaphsonStrategy(
                                                                             self.computing_model_part, 
                                                                             mechanical_scheme, 
                                                                             self.linear_solver, 
@@ -210,7 +210,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         else:
             if(line_search):
                 if(implex):
-                    self.mechanical_solver = KratosMultiphysics.SolidMechanicsApplication.ResidualBasedNewtonRaphsonLineSearchImplexStrategy(self.computing_model_part, 
+                    self.mechanical_solver = SolidMechanicsApplication.ResidualBasedNewtonRaphsonLineSearchImplexStrategy(self.computing_model_part, 
                                                                                                             mechanical_scheme, 
                                                                                                             self.linear_solver, 
                                                                                                             mechanical_convergence_criterion, 
@@ -220,7 +220,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                                                                                                             reform_step_dofs, 
                                                                                                             move_mesh_flag)
                 else:
-                    self.mechanical_solver = KratosMultiphysics.SolidMechanicsApplication.ResidualBasedNewtonRaphsonLineSearchStrategy(
+                    self.mechanical_solver = KratosMultiphysics.LineSearchStrategy(
                                                                                 self.computing_model_part, 
                                                                                 mechanical_scheme, 
                                                                                 self.linear_solver, 
@@ -248,7 +248,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                     max_iteration = self.settings["arc_length_settings"]["max_iteration"].GetInt()
                     max_recursive = self.settings["arc_length_settings"]["max_recursive"].GetInt()
                     factor_delta_lmax = self.settings["arc_length_settings"]["factor_delta_lmax"].GetDouble()
-                    self.mechanical_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedArcLengthStrategy(
+                    self.mechanical_solver = StructuralMechanicsApplication.ResidualBasedArcLengthStrategy(
                                                                             self.computing_model_part, 
                                                                             mechanical_scheme, 
                                                                             self.linear_solver, 
@@ -264,7 +264,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                     if  self.settings["compute_mortar_contact"].GetInt() > 0:
                         split_factor   = self.settings["split_factor"].GetDouble()
                         max_number_splits = self.settings["max_number_splits"].GetInt()
-                        self.mechanical_solver = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactStrategy(
+                        self.mechanical_solver = ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactStrategy(
                                                                                 self.computing_model_part, 
                                                                                 mechanical_scheme, 
                                                                                 self.linear_solver, 

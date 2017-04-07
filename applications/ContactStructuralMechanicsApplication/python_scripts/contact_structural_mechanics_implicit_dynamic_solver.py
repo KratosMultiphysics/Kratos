@@ -1,9 +1,9 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication
-import KratosMultiphysics.StructuralMechanicsApplication
-import KratosMultiphysics.ContactStructuralMechanicsApplication
+import KratosMultiphysics.SolidMechanicsApplication as SolidMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import KratosMultiphysics.ContactStructuralMechanicsApplication as ContactStructuralMechanicsApplication
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -135,21 +135,21 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
     def _GetSolutionScheme(self, scheme_type, component_wise, compute_contact_forces):
 
         if(scheme_type == "Newmark") or (scheme_type == "Bossak"):
-            self.main_model_part.ProcessInfo[KratosMultiphysics.SolidMechanicsApplication.RAYLEIGH_ALPHA] = self.settings["rayleigh_alpha"].GetDouble()
-            self.main_model_part.ProcessInfo[KratosMultiphysics.SolidMechanicsApplication.RAYLEIGH_BETA ] = self.settings["rayleigh_beta" ].GetDouble()
+            self.main_model_part.ProcessInfo[SolidMechanicsApplication.RAYLEIGH_ALPHA] = self.settings["rayleigh_alpha"].GetDouble()
+            self.main_model_part.ProcessInfo[SolidMechanicsApplication.RAYLEIGH_BETA ] = self.settings["rayleigh_beta" ].GetDouble()
             
             if  (self.settings["compute_mortar_contact"].GetInt() == 1):
                 if (scheme_type == "Newmark"):
-                    mechanical_scheme = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedBossakDisplacementContactScheme(0.0)
+                    mechanical_scheme = ContactStructuralMechanicsApplication.ResidualBasedBossakDisplacementContactScheme(0.0)
                 else:
                     alpha = self.settings["damp_factor_m"].GetDouble()
-                    mechanical_scheme = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedBossakDisplacementContactScheme(alpha)
+                    mechanical_scheme = ContactStructuralMechanicsApplication.ResidualBasedBossakDisplacementContactScheme(alpha)
             elif  (self.settings["compute_mortar_contact"].GetInt() == 2):
                 if (scheme_type == "Newmark"):
-                    mechanical_scheme = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedBossakDisplacementALMContactScheme(0.0)
+                    mechanical_scheme = ContactStructuralMechanicsApplication.ResidualBasedBossakDisplacementALMContactScheme(0.0)
                 else:
                     alpha = self.settings["damp_factor_m"].GetDouble()
-                    mechanical_scheme = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedBossakDisplacementALMContactScheme(alpha)
+                    mechanical_scheme = ContactStructuralMechanicsApplication.ResidualBasedBossakDisplacementALMContactScheme(alpha)
             else:
                 mechanical_scheme = super(ImplicitMechanicalSolver,self)._GetSolutionScheme(scheme_type, component_wise, compute_contact_forces)
 
@@ -161,7 +161,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             self.settings["damp_factor_f"].SetDouble(-0.3)
             self.settings["dynamic_factor_m"].SetDouble(10.0) 
             
-            mechanical_scheme = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedRelaxationScheme(self.settings["damp_factor_f"].GetDouble(),
+            mechanical_scheme = StructuralMechanicsApplication.ResidualBasedRelaxationScheme(self.settings["damp_factor_f"].GetDouble(),
                                                                                                                 self.settings["dynamic_factor_m"].GetDouble())
                                 
         return mechanical_scheme
@@ -183,7 +183,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params)
         
         if  (self.settings["compute_mortar_contact"].GetInt() == 1 or self.settings["compute_mortar_contact"].GetInt() == 2):
-            Mortar = KratosMultiphysics.ContactStructuralMechanicsApplication.MortarConvergenceCriteria()
+            Mortar = ContactStructuralMechanicsApplication.MortarConvergenceCriteria()
             Mortar.SetEchoLevel(self.echo_level)
 
             convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Mortar, convergence_criterion.mechanical_convergence_criterion)
@@ -193,7 +193,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
     def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search, implex):
         
         if(component_wise):
-            self.mechanical_solver = KratosMultiphysics.SolidMechanicsApplication.ComponentWiseNewtonRaphsonStrategy(
+            self.mechanical_solver = SolidMechanicsApplication.ComponentWiseNewtonRaphsonStrategy(
                                                                             self.computing_model_part, 
                                                                             mechanical_scheme, 
                                                                             self.linear_solver, 
@@ -206,7 +206,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         else:
             if(line_search):
                 if(implex):
-                    self.mechanical_solver = KratosMultiphysics.SolidMechanicsApplication.ResidualBasedNewtonRaphsonLineSearchImplexStrategy(self.computing_model_part, 
+                    self.mechanical_solver = SolidMechanicsApplication.ResidualBasedNewtonRaphsonLineSearchImplexStrategy(self.computing_model_part, 
                                                                                                             mechanical_scheme, 
                                                                                                             self.linear_solver, 
                                                                                                             mechanical_convergence_criterion, 
@@ -216,7 +216,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                                                                                                             reform_step_dofs, 
                                                                                                             move_mesh_flag)
                 else:
-                    self.mechanical_solver = KratosMultiphysics.SolidMechanicsApplication.ResidualBasedNewtonRaphsonLineSearchStrategy(
+                    self.mechanical_solver = KratosMultiphysics.LineSearchStrategy(
                                                                                 self.computing_model_part, 
                                                                                 mechanical_scheme, 
                                                                                 self.linear_solver, 
@@ -243,7 +243,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                     if  self.settings["compute_mortar_contact"].GetInt() > 0:
                         split_factor   = self.settings["split_factor"].GetDouble()
                         max_number_splits = self.settings["max_number_splits"].GetInt()
-                        self.mechanical_solver = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactStrategy(
+                        self.mechanical_solver = ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactStrategy(
                                                                                 self.computing_model_part, 
                                                                                 mechanical_scheme, 
                                                                                 self.linear_solver, 
