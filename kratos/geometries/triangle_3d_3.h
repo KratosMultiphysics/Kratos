@@ -562,8 +562,8 @@ public:
 	}
 
 	int GetMajorAxis(array_1d<double, 3> const& V) {
-		int index = static_cast<int>(V[0] < V[1]);
-		return (V[index] > V[2]) ? index : 2;
+		int index = static_cast<int>(fabs(V[0]) < fabs(V[1]));
+		return (fabs(V[index]) > fabs(V[2])) ? index : 2;
 	}
 
 	bool HasIntersection(const GeometryType& ThisGeometry) {
@@ -603,7 +603,7 @@ public:
 
 		// compute interval for triangle 1 //
 		double a, b, c, x0, x1;
-		if (New_Compute_Intervals(vp0, vp1, vp2, distances_2[0], distances_2[1], distances_2[2], distances_2[0]* distances_2[1], distances_2[0]* distances_2[2], a, b, c, x0, x1) == true)
+		if (New_Compute_Intervals(vp0, vp1, vp2, distances_2[0], distances_2[1], distances_2[2], a, b, c, x0, x1) == true)
 		{
 			return coplanar_tri_tri(plane_1.GetNormal(), GetPoint(0), GetPoint(1), GetPoint(2),
 				ThisGeometry[0], ThisGeometry[1], ThisGeometry[2]);
@@ -611,7 +611,7 @@ public:
 
 		// compute interval for triangle 2 //
 		double d, e, f, y0, y1;
-		if (New_Compute_Intervals(up0, up1, up2, distances_1[0], distances_1[1], distances_1[2], distances_1[0] * distances_1[1], distances_1[0] * distances_1[2], d, e, f, y0, y1) == true)
+		if (New_Compute_Intervals(up0, up1, up2, distances_1[0], distances_1[1], distances_1[2], d, e, f, y0, y1) == true)
 		{
 			return coplanar_tri_tri(plane_1.GetNormal(), GetPoint(0), GetPoint(1), GetPoint(2),
 				ThisGeometry[0], ThisGeometry[1], ThisGeometry[2]);
@@ -633,185 +633,13 @@ public:
 		isect2[0] = tmp + e*xx*y1;
 		isect2[1] = tmp + f*xx*y0;
 
-
-		Sort(isect1[0], isect1[1]);
-		Sort(isect2[0], isect2[1]);
-
-		if (isect1[1]<isect2[0] || isect2[1]<isect1[0]) return false;
-		return true;
-
-		//return  NoDivTriTriIsect(GetPoint(0), GetPoint(1), GetPoint(2),
-		//	ThisGeometry[0], ThisGeometry[1], ThisGeometry[2]);
-	}
-
-
-
-	/* Triangle/triangle intersection test routine,
-	* by Tomas Moller, 1997.
-	* See article "A Fast Triangle-Triangle Intersection Test",
-	* Journal of Graphics Tools, 2(2), 1997
-	*
-	* Updated June 1999: removed the divisions -- a little faster now!
-	* Updated October 1999: added {} to CROSS and SUB macros
-	*
-	* int NoDivTriTriIsect(float V0[3],float V1[3],float V2[3],
-	*                      float U0[3],float U1[3],float U2[3])
-	*
-	* parameters: vertices of triangle 1: V0,V1,V2
-	*             vertices of triangle 2: U0,U1,U2
-	* result    : returns 1 if the triangles intersect, otherwise 0
-	*
-	*/
-
-	bool NoDivTriTriIsect(const Point<3, double>& V0,
-		const Point<3, double>& V1,
-		const Point<3, double>& V2,
-		const Point<3, double>& U0,
-		const Point<3, double>& U1,
-		const Point<3, double>& U2)
-	{
-		short index;
-		double d1, d2;
-		double du0, du1, du2, dv0, dv1, dv2;
-		double du0du1, du0du2, dv0dv1, dv0dv2;
-		double vp0, vp1, vp2;
-		double up0, up1, up2;
-		double bb, cc, max;
-		array_1d<double, 2> isect1, isect2;
-		array_1d<double, 3> D;
-		array_1d<double, 3> E1, E2;
-		array_1d<double, 3> N1, N2;
-
-
-		const double epsilon = 1E-6;
-
-		// compute plane equation of triangle(V0,V1,V2) //
-		noalias(E1) = V1 - V0;
-		noalias(E2) = V2 - V0;
-		MathUtils<double>::CrossProduct(N1, E1, E2);
-		d1 = -inner_prod(N1, V0);
-		// plane equation 1: N1.X+d1=0 //
-
-		// put U0,U1,U2 into plane equation 1 to compute signed distances to the plane//
-		du0 = inner_prod(N1, U0) + d1;
-		du1 = inner_prod(N1, U1) + d1;
-		du2 = inner_prod(N1, U2) + d1;
-
-		// coplanarity robustness check //
-		if (fabs(du0)<epsilon) du0 = 0.0;
-		if (fabs(du1)<epsilon) du1 = 0.0;
-		if (fabs(du2)<epsilon) du2 = 0.0;
-
-		du0du1 = du0*du1;
-		du0du2 = du0*du2;
-
-		if (du0du1>0.00 && du0du2>0.00)// same sign on all of them + not equal 0 ? //
-			return false;                   // no intersection occurs //
-
-											// compute plane of triangle (U0,U1,U2) //
-		noalias(E1) = U1 - U0;
-		noalias(E2) = U2 - U0;
-		MathUtils<double>::CrossProduct(N2, E1, E2);
-		d2 = -inner_prod(N2, U0);
-		// plane equation 2: N2.X+d2=0 //
-
-		// put V0,V1,V2 into plane equation 2 //
-		dv0 = inner_prod(N2, V0) + d2;
-		dv1 = inner_prod(N2, V1) + d2;
-		dv2 = inner_prod(N2, V2) + d2;
-
-		if (fabs(dv0)<epsilon) dv0 = 0.0;
-		if (fabs(dv1)<epsilon) dv1 = 0.0;
-		if (fabs(dv2)<epsilon) dv2 = 0.0;
-
-		dv0dv1 = dv0*dv1;
-		dv0dv2 = dv0*dv2;
-
-		if (dv0dv1>0.00 && dv0dv2>0.00)// same sign on all of them + not equal 0 ? //
-			return false;                   // no intersection occurs //
-
-											// compute direction of intersection line //
-		MathUtils<double>::CrossProduct(D, N1, N2);
-
-		// compute and index to the largest component of D //
-		max = (double)fabs(D[0]);
-		index = 0;
-		bb = (double)fabs(D[1]);
-		cc = (double)fabs(D[2]);
-		if (bb>max)
-		{
-			max = bb, index = 1;
-		}
-		if (cc>max)
-		{
-			max = cc, index = 2;
-		}
-
-		// this is the simplified projection onto L//
-		vp0 = V0[index];
-		vp1 = V1[index];
-		vp2 = V2[index];
-
-		up0 = U0[index];
-		up1 = U1[index];
-		up2 = U2[index];
-
-
-		// compute interval for triangle 1 //
-		double a, b, c, x0, x1;
-		if (New_Compute_Intervals(vp0, vp1, vp2, dv0, dv1, dv2, dv0dv1, dv0dv2, a, b, c, x0, x1) == true)
-		{
-			return coplanar_tri_tri(N1, V0, V1, V2, U0, U1, U2);
-		}
-
-		// compute interval for triangle 2 //
-		double d, e, f, y0, y1;
-		if (New_Compute_Intervals(up0, up1, up2, du0, du1, du2, du0du1, du0du2, d, e, f, y0, y1) == true)
-		{
-			return coplanar_tri_tri(N1, V0, V1, V2, U0, U1, U2);
-		}
-
-
-		double xx, yy, xxyy, tmp;
-		xx = x0*x1;
-		yy = y0*y1;
-		xxyy = xx*yy;
-
-		tmp = a*xxyy;
-		isect1[0] = tmp + b*x1*yy;
-		isect1[1] = tmp + c*x0*yy;
-
-		tmp = d*xxyy;
-		isect2[0] = tmp + e*xx*y1;
-		isect2[1] = tmp + f*xx*y0;
-
-
-		Sort(isect1[0], isect1[1]);
-		Sort(isect2[0], isect2[1]);
+		std::sort(isect1.begin(), isect1.end());
+		std::sort(isect2.begin(), isect2.end());
 
 		if (isect1[1]<isect2[0] || isect2[1]<isect1[0]) return false;
 		return true;
+
 	}
-
-
-	//*************************************************************************************
-	//*************************************************************************************
-
-
-	// sort so that a<=b //
-	void Sort(double& a, double& b)
-	{
-		if (a>b)
-		{
-			double c;
-			c = a;
-			a = b;
-			b = c;
-		}
-	}
-
-	//*************************************************************************************
-	//*************************************************************************************
 
 	bool New_Compute_Intervals(double& VV0,
 		double& VV1,
@@ -819,8 +647,6 @@ public:
 		double& D0,
 		double& D1,
 		double& D2,
-		double D0D1,
-		double D0D2,
 		double& A,
 		double& B,
 		double& C,
@@ -828,7 +654,10 @@ public:
 		double& X1
 		)
 	{
-		if (D0D1>0.00)
+		double D0D1 = D0*D1;
+		double D0D2 = D0*D2;
+
+			if (D0D1>0.00)
 		{
 			// here we know that D0D2<=0.0 //
 			// that is D0, D1 are on the same side, D2 on the other or on the plane //
@@ -1005,7 +834,7 @@ public:
         if((f>0.00 && d>=0.00 && d<=f) || (f<0.00 && d<=0.00 && d>=f))
         {
             e=Ax*Cy-Ay*Cx;
-            //std::cout<< "e =  "<< e << std::endl;
+
             if(f>0.00)
             {
                 if(e>=0.00 && e<=f) return true;
@@ -1205,7 +1034,6 @@ public:
     /**
      * Returns whether given arbitrary point is inside the Geometry
      */
-    // Charlie: It appears to be wrong for 3D
     virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() )
     {
         PointLocalCoordinates( rResult, rPoint );

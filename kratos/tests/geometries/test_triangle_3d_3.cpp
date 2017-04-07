@@ -415,5 +415,20 @@ namespace Testing {
 		KRATOS_CHECK(triangle_1.HasIntersection(triangle_2));
 	}
 
+	KRATOS_TEST_CASE_IN_SUITE(Triangle3D3InsideIntersection, KratosCoreGeometriesFastSuite) {
+		Triangle3D3<Point<3> > triangle_1(
+			GeneratePoint<Node<3> >(0.0, 0.0, 0.0),
+			GeneratePoint<Node<3> >(0.0, 0.0, 4.0),
+			GeneratePoint<Node<3> >(0.0, 4.0, 0.0)
+			);
+		Triangle3D3<Point<3> > triangle_2(
+			GeneratePoint<Node<3> >(0.0, 1.0, 1.0),
+			GeneratePoint<Node<3> >(0.0, 1.0, 3.0),
+			GeneratePoint<Node<3> >(0.0, 3.0, 1.0)
+			);
+
+		KRATOS_CHECK(triangle_1.HasIntersection(triangle_2));
+	}
+
 } // namespace Testing.
 } // namespace Kratos.
