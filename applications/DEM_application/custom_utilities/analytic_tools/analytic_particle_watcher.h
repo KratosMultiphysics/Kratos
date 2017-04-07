@@ -8,6 +8,7 @@
 #include <iomanip>
 
 // Project includes
+#include "includes/define.h"
 
 /* External includes */
 #ifdef _OPENMP
@@ -16,12 +17,11 @@
 
 namespace Kratos
 {
-
 class AnalyticParticleWatcher {
 
-KRATOS_CLASS_POINTER_DEFINITION(AnalyticParticleWatcher);
-
 public:
+
+KRATOS_CLASS_POINTER_DEFINITION(AnalyticParticleWatcher);
 
 /// Default constructor
 
@@ -42,12 +42,9 @@ virtual void PrintData(std::ostream& rOStream) const;
 
 protected:
 
-    vector<unsigned int> mElementPartition;
 
 private:
 
-    array_1d<double, 3> mInitialCenterOfMassAndMass;
-    double mInitialMass;
 
 /// Assignment operator
 AnalyticParticleWatcher & operator=(AnalyticParticleWatcher const& rOther);
