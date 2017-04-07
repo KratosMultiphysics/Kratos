@@ -102,8 +102,8 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
             break
 
         # Compute the body force unit normal vector
-        body_force_norm = math.sqrt(math.pow(body_force[0],2)+math.pow(body_force[1],2)+math.pow(body_force[2],2))  # Body force norm
-        body_force_dir = (1/(body_force_norm+1e-10))*body_force                                                     # Body force unit director vector
+        body_force_norm = math.sqrt(body_force[0]*body_force[0] + body_force[1]*body_force[1] + body_force[2]*body_force[2])    # Body force norm
+        body_force_dir = (1/(body_force_norm+1e-10))*body_force                                                                 # Body force unit director vector
 
         # Compute the minimum body force projection value (reference value)
         min_proj = 0.0
@@ -127,7 +127,7 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         outlet_avg_vel_norm = 0.0
         for node in self.outlet_model_part.GetCommunicator().LocalMesh().Nodes:
             vnode = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
-            outlet_avg_vel_norm += math.sqrt(vnode[0]**2+vnode[1]**2+vnode[2]**2)
+            outlet_avg_vel_norm += math.sqrt(vnode[0]*vnode[0] + vnode[1]*vnode[1] + vnode[2]*vnode[2])
             outlet_avg_vel_norm /= len(self.outlet_model_part.GetCommunicator().LocalMesh().Nodes)
 
             # Perform MPI communication
