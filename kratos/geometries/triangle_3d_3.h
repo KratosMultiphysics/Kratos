@@ -605,7 +605,7 @@ public:
 		double a, b, c, x0, x1;
 		if (New_Compute_Intervals(vp0, vp1, vp2, distances_2[0], distances_2[1], distances_2[2], a, b, c, x0, x1) == true)
 		{
-			return coplanar_tri_tri(plane_1.GetNormal(), GetPoint(0), GetPoint(1), GetPoint(2),
+			return coplanar_tri_tri(plane_1.GetNormal(),
 				ThisGeometry[0], ThisGeometry[1], ThisGeometry[2]);
 		}
 
@@ -613,7 +613,7 @@ public:
 		double d, e, f, y0, y1;
 		if (New_Compute_Intervals(up0, up1, up2, distances_1[0], distances_1[1], distances_1[2], d, e, f, y0, y1) == true)
 		{
-			return coplanar_tri_tri(plane_1.GetNormal(), GetPoint(0), GetPoint(1), GetPoint(2),
+			return coplanar_tri_tri(plane_1.GetNormal(),
 				ThisGeometry[0], ThisGeometry[1], ThisGeometry[2]);
 		}
 
@@ -715,9 +715,6 @@ public:
 	//*************************************************************************************
 
 	bool coplanar_tri_tri(const array_1d<double, 3>& N,
-		const Point<3, double>& V0,
-		const Point<3, double>& V1,
-		const Point<3, double>& V2,
 		const Point<3, double>& U0,
 		const Point<3, double>& U1,
 		const Point<3, double>& U2)
@@ -759,17 +756,18 @@ public:
 
 		// test all edges of triangle 1 against the edges of triangle 2 //
 		//std::cout<< "Proof One " << std::endl;
-		if (Edge_Against_Tri_Edges(i0, i1, V0, V1, U0, U1, U2) == true) return true;
+		if (Edge_Against_Tri_Edges(i0, i1, GetPoint(0), GetPoint(1), U0, U1, U2) == true) return true;
 
 		//std::cout<< "Proof Two " << std::endl;
-		if (Edge_Against_Tri_Edges(i0, i1, V1, V2, U0, U1, U2) == true) return true;
+		if (Edge_Against_Tri_Edges(i0, i1, GetPoint(1), GetPoint(2), U0, U1, U2) == true) return true;
 
 		//std::cout<< "Proof Three " << std::endl;
-		if (Edge_Against_Tri_Edges(i0, i1, V2, V0, U0, U1, U2) == true) return true;
+		if (Edge_Against_Tri_Edges(i0, i1, GetPoint(2), GetPoint(0), U0, U1, U2) == true) return true;
 
 		// finally, test if tri1 is totally contained in tri2 or vice versa //
-		if (Point_In_Tri(i0, i1, V0, U0, U1, U2) == true) return true;
-		if (Point_In_Tri(i0, i1, U0, V0, V1, V2) == true) return true;
+		array_1d<double, 3> local_coordinates;
+		if (Point_In_Tri(i0, i1, GetPoint(0), U0, U1, U2) == true) return true;
+		if (IsInside(U0, local_coordinates) == true) return true;
 
 		return false;
 	}
