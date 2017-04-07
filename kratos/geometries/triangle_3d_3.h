@@ -603,14 +603,14 @@ public:
 
 		// compute interval for triangle 1 //
 		double a, b, c, x0, x1;
-		if (New_Compute_Intervals(vp0, vp1, vp2, distances_2[0], distances_2[1], distances_2[2], a, b, c, x0, x1) == true)
+		if (ComputeIntervals(vp0, vp1, vp2, distances_2[0], distances_2[1], distances_2[2], a, b, c, x0, x1) == true)
 		{
 			return CoplanarIntersectionCheck(plane_1.GetNormal(), ThisGeometry);
 		}
 
 		// compute interval for triangle 2 //
 		double d, e, f, y0, y1;
-		if (New_Compute_Intervals(up0, up1, up2, distances_1[0], distances_1[1], distances_1[2], d, e, f, y0, y1) == true)
+		if (ComputeIntervals(up0, up1, up2, distances_1[0], distances_1[1], distances_1[2], d, e, f, y0, y1) == true)
 		{
 			return CoplanarIntersectionCheck(plane_1.GetNormal(), ThisGeometry);
 		}
@@ -638,209 +638,6 @@ public:
 		return true;
 
 	}
-
-	bool New_Compute_Intervals(double& VV0,
-		double& VV1,
-		double& VV2,
-		double& D0,
-		double& D1,
-		double& D2,
-		double& A,
-		double& B,
-		double& C,
-		double& X0,
-		double& X1
-		)
-	{
-		double D0D1 = D0*D1;
-		double D0D2 = D0*D2;
-
-			if (D0D1>0.00)
-		{
-			// here we know that D0D2<=0.0 //
-			// that is D0, D1 are on the same side, D2 on the other or on the plane //
-			A = VV2;
-			B = (VV0 - VV2)*D2;
-			C = (VV1 - VV2)*D2;
-			X0 = D2 - D0;
-			X1 = D2 - D1;
-		}
-		else if (D0D2>0.00)
-		{
-			// here we know that d0d1<=0.0 //
-			A = VV1;
-			B = (VV0 - VV1)*D1;
-			C = (VV2 - VV1)*D1;
-			X0 = D1 - D0;
-			X1 = D1 - D2;
-		}
-		else if (D1*D2>0.00 || D0 != 0.00)
-		{
-			// here we know that d0d1<=0.0 or that D0!=0.0 //
-			A = VV0;
-			B = (VV1 - VV0)*D0;
-			C = (VV2 - VV0)*D0;
-			X0 = D0 - D1;
-			X1 = D0 - D2;
-		}
-		else if (D1 != 0.00)
-		{
-			A = VV1;
-			B = (VV0 - VV1)*D1;
-			C = (VV2 - VV1)*D1;
-			X0 = D1 - D0;
-			X1 = D1 - D2;
-		}
-		else if (D2 != 0.00)
-		{
-			A = VV2;
-			B = (VV0 - VV2)*D2;
-			C = (VV1 - VV2)*D2;
-			X0 = D2 - D0;
-			X1 = D2 - D1;
-		}
-		else
-		{
-			///Triangles are coplanar
-			return true;
-		}
-
-		return false;
-
-	}
-
-	//*************************************************************************************
-	//*************************************************************************************
-
-	bool CoplanarIntersectionCheck(const array_1d<double, 3>& N,
-		const GeometryType& OtherTriangle)
-	{
-		array_1d<double, 3 > A;
-		short i0, i1;
-
-		// first project onto an axis-aligned plane, that maximizes the area //
-		// of the triangles, compute indices: i0,i1. //
-		A[0] = fabs(N[0]);
-		A[1] = fabs(N[1]);
-		A[2] = fabs(N[2]);
-		if (A[0]>A[1])
-		{
-			if (A[0]>A[2])
-			{
-				i0 = 1;      // A[0] is greatest //
-				i1 = 2;
-			}
-			else
-			{
-				i0 = 0;      // A[2] is greatest //
-				i1 = 1;
-			}
-		}
-		else   // A[0]<=A[1] //
-		{
-			if (A[2]>A[1])
-			{
-				i0 = 0;      // A[2] is greatest //
-				i1 = 1;
-			}
-			else
-			{
-				i0 = 0;      // A[1] is greatest //
-				i1 = 2;
-			}
-		}
-
-		// test all edges of triangle 1 against the edges of triangle 2 //
-		//std::cout<< "Proof One " << std::endl;
-		if (Edge_Against_Tri_Edges(i0, i1, GetPoint(0), GetPoint(1), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
-
-		//std::cout<< "Proof Two " << std::endl;
-		if (Edge_Against_Tri_Edges(i0, i1, GetPoint(1), GetPoint(2), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
-
-		//std::cout<< "Proof Three " << std::endl;
-		if (Edge_Against_Tri_Edges(i0, i1, GetPoint(2), GetPoint(0), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
-
-		// finally, test if tri1 is totally contained in tri2 or vice versa //
-		array_1d<double, 3> local_coordinates;
-		// TODO: I should add the const to the is inside method in all geometries. Pooyan.
-		if (const_cast<GeometryType&>(OtherTriangle).IsInside(GetPoint(0), local_coordinates) == true) return true;
-		if (IsInside(OtherTriangle[0], local_coordinates) == true) return true;
-
-		return false;
-	}
-    bool Edge_Against_Tri_Edges(const short& i0,
-                                const short& i1,
-                                const Point<3,double>& V0,
-                                const Point<3,double>& V1,
-                                const Point<3,double>&U0,
-                                const Point<3,double>&U1,
-                                const Point<3,double>&U2)
-    {
-
-        double Ax,Ay,Bx,By,Cx,Cy,e,d,f;
-        Ax=V1[i0]-V0[i0];
-        Ay=V1[i1]-V0[i1];
-        // test edge U0,U1 against V0,V1 //
-
-        //std::cout<< "Proof One B " << std::endl;
-        if(Edge_Edge_Test(Ax, Ay, Bx, By, Cx, Cy, e, d, f, i0, i1, V0, U0, U1)==true) return true;
-        // test edge U1,U2 against V0,V1 //
-        //std::cout<< "Proof Two B " << std::endl;
-        if(Edge_Edge_Test(Ax, Ay, Bx, By, Cx, Cy, e, d, f, i0, i1, V0, U1, U2)==true) return true;
-        // test edge U2,U1 against V0,V1 //
-        if(Edge_Edge_Test(Ax, Ay, Bx, By, Cx, Cy, e, d, f, i0, i1, V0, U2, U0)==true) return true;
-
-        return false;
-    }
-
-
-//*************************************************************************************
-//*************************************************************************************
-
-//   this edge to edge test is based on Franlin Antonio's gem:
-//   "Faster Line Segment Intersection", in Graphics Gems III,
-//   pp. 199-202
-    bool Edge_Edge_Test(double& Ax,
-                        double& Ay,
-                        double& Bx,
-                        double& By,
-                        double& Cx,
-                        double& Cy,
-                        double& e,
-                        double& d,
-                        double& f,
-                        const short& i0,
-                        const short& i1,
-                        const Point<3,double>&V0,
-                        const Point<3,double>&U0,
-                        const Point<3,double>&U1)
-    {
-        Bx=U0[i0]-U1[i0];
-        By=U0[i1]-U1[i1];
-        Cx=V0[i0]-U0[i0];
-        Cy=V0[i1]-U0[i1];
-        f=Ay*Bx-Ax*By;
-        d=By*Cx-Bx*Cy;
-
-        if(std::fabs(f)<1E-10) f = 0.00;
-        if(std::fabs(d)<1E-10) d = 0.00;
-
-
-        if((f>0.00 && d>=0.00 && d<=f) || (f<0.00 && d<=0.00 && d>=f))
-        {
-            e=Ax*Cy-Ay*Cx;
-
-            if(f>0.00)
-            {
-                if(e>=0.00 && e<=f) return true;
-            }
-            else
-            {
-                if(e<=0.00 && e>=f) return true;
-            }
-        }
-        return false;
-    }
 
 
     /// Quality functions
@@ -2090,6 +1887,202 @@ private:
     inline double CalculateInradius(const double a, const double b, const double c) const {
       return 0.5 * std::sqrt((b+c-a) * (c+a-b) * (a+b-c) / (a+b+c));
     }
+
+	bool ComputeIntervals(double& VV0,
+		double& VV1,
+		double& VV2,
+		double& D0,
+		double& D1,
+		double& D2,
+		double& A,
+		double& B,
+		double& C,
+		double& X0,
+		double& X1
+		)
+	{
+		double D0D1 = D0*D1;
+		double D0D2 = D0*D2;
+
+		if (D0D1>0.00)
+		{
+			// here we know that D0D2<=0.0 //
+			// that is D0, D1 are on the same side, D2 on the other or on the plane //
+			A = VV2;
+			B = (VV0 - VV2)*D2;
+			C = (VV1 - VV2)*D2;
+			X0 = D2 - D0;
+			X1 = D2 - D1;
+		}
+		else if (D0D2>0.00)
+		{
+			// here we know that d0d1<=0.0 //
+			A = VV1;
+			B = (VV0 - VV1)*D1;
+			C = (VV2 - VV1)*D1;
+			X0 = D1 - D0;
+			X1 = D1 - D2;
+		}
+		else if (D1*D2>0.00 || D0 != 0.00)
+		{
+			// here we know that d0d1<=0.0 or that D0!=0.0 //
+			A = VV0;
+			B = (VV1 - VV0)*D0;
+			C = (VV2 - VV0)*D0;
+			X0 = D0 - D1;
+			X1 = D0 - D2;
+		}
+		else if (D1 != 0.00)
+		{
+			A = VV1;
+			B = (VV0 - VV1)*D1;
+			C = (VV2 - VV1)*D1;
+			X0 = D1 - D0;
+			X1 = D1 - D2;
+		}
+		else if (D2 != 0.00)
+		{
+			A = VV2;
+			B = (VV0 - VV2)*D2;
+			C = (VV1 - VV2)*D2;
+			X0 = D2 - D0;
+			X1 = D2 - D1;
+		}
+		else
+		{
+			///Triangles are coplanar
+			return true;
+		}
+
+		return false;
+
+	}
+
+	bool CoplanarIntersectionCheck(const array_1d<double, 3>& N,
+		const GeometryType& OtherTriangle)
+	{
+		array_1d<double, 3 > A;
+		short i0, i1;
+
+		// first project onto an axis-aligned plane, that maximizes the area //
+		// of the triangles, compute indices: i0,i1. //
+		A[0] = fabs(N[0]);
+		A[1] = fabs(N[1]);
+		A[2] = fabs(N[2]);
+		if (A[0]>A[1])
+		{
+			if (A[0]>A[2])
+			{
+				i0 = 1;      // A[0] is greatest //
+				i1 = 2;
+			}
+			else
+			{
+				i0 = 0;      // A[2] is greatest //
+				i1 = 1;
+			}
+		}
+		else   // A[0]<=A[1] //
+		{
+			if (A[2]>A[1])
+			{
+				i0 = 0;      // A[2] is greatest //
+				i1 = 1;
+			}
+			else
+			{
+				i0 = 0;      // A[1] is greatest //
+				i1 = 2;
+			}
+		}
+
+		// test all edges of triangle 1 against the edges of triangle 2 //
+		if (EdgeToTriangleEdgesCheck(i0, i1, GetPoint(0), GetPoint(1), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
+
+		if (EdgeToTriangleEdgesCheck(i0, i1, GetPoint(1), GetPoint(2), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
+
+		if (EdgeToTriangleEdgesCheck(i0, i1, GetPoint(2), GetPoint(0), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
+
+		// finally, test if tri1 is totally contained in tri2 or vice versa //
+		array_1d<double, 3> local_coordinates;
+		// TODO: I should add the const to the is inside method in all geometries. Pooyan.
+		if (const_cast<GeometryType&>(OtherTriangle).IsInside(GetPoint(0), local_coordinates) == true) return true;
+		if (IsInside(OtherTriangle[0], local_coordinates) == true) return true;
+
+		return false;
+	}
+
+	bool EdgeToTriangleEdgesCheck(const short& i0,
+		const short& i1,
+		const Point<3, double>& V0,
+		const Point<3, double>& V1,
+		const Point<3, double>&U0,
+		const Point<3, double>&U1,
+		const Point<3, double>&U2)
+	{
+
+		double Ax, Ay, Bx, By, Cx, Cy, e, d, f;
+		Ax = V1[i0] - V0[i0];
+		Ay = V1[i1] - V0[i1];
+		// test edge U0,U1 against V0,V1 //
+
+		//std::cout<< "Proof One B " << std::endl;
+		if (EdgeToEdgeIntersectionCheck(Ax, Ay, Bx, By, Cx, Cy, e, d, f, i0, i1, V0, U0, U1) == true) return true;
+		// test edge U1,U2 against V0,V1 //
+		//std::cout<< "Proof Two B " << std::endl;
+		if (EdgeToEdgeIntersectionCheck(Ax, Ay, Bx, By, Cx, Cy, e, d, f, i0, i1, V0, U1, U2) == true) return true;
+		// test edge U2,U1 against V0,V1 //
+		if (EdgeToEdgeIntersectionCheck(Ax, Ay, Bx, By, Cx, Cy, e, d, f, i0, i1, V0, U2, U0) == true) return true;
+
+		return false;
+	}
+
+	//   this edge to edge test is based on Franlin Antonio's gem:
+	//   "Faster Line Segment Intersection", in Graphics Gems III,
+	//   pp. 199-202
+	bool EdgeToEdgeIntersectionCheck(double& Ax,
+		double& Ay,
+		double& Bx,
+		double& By,
+		double& Cx,
+		double& Cy,
+		double& e,
+		double& d,
+		double& f,
+		const short& i0,
+		const short& i1,
+		const Point<3, double>&V0,
+		const Point<3, double>&U0,
+		const Point<3, double>&U1)
+	{
+		Bx = U0[i0] - U1[i0];
+		By = U0[i1] - U1[i1];
+		Cx = V0[i0] - U0[i0];
+		Cy = V0[i1] - U0[i1];
+		f = Ay*Bx - Ax*By;
+		d = By*Cx - Bx*Cy;
+
+		if (std::fabs(f)<1E-10) f = 0.00;
+		if (std::fabs(d)<1E-10) d = 0.00;
+
+
+		if ((f>0.00 && d >= 0.00 && d <= f) || (f<0.00 && d <= 0.00 && d >= f))
+		{
+			e = Ax*Cy - Ay*Cx;
+
+			if (f>0.00)
+			{
+				if (e >= 0.00 && e <= f) return true;
+			}
+			else
+			{
+				if (e <= 0.00 && e >= f) return true;
+			}
+		}
+		return false;
+	}
+
+
 
     ///@}
     ///@name Private  Access
