@@ -183,9 +183,10 @@ namespace Kratos
 		Orientation(array_1d<double, 3>& v1, array_1d<double, 3>& v2);
 
 
-		void GetRotationMatrix(bounded_matrix<double, 3, 3>& R);
-		void GetBasisVectors(array_1d<double, 3>& v1, array_1d<double, 3>& v2,
-													  array_1d<double, 3>& v3);
+		void CalculateRotationMatrix(bounded_matrix<double, 3, 3>& R);
+		void CalculateBasisVectors(array_1d<double, 3>& v1,
+								   array_1d<double, 3>& v2,
+								   array_1d<double, 3>& v3);
 
 		Quaternion<double>& GetQuaternion() { return morientation; }
 

@@ -261,7 +261,7 @@ namespace Kratos
 		LocalStiffnessMatrix(2, 10) = LocalStiffnessMatrix(2, 4);
 		LocalStiffnessMatrix(2, 11) = LocalStiffnessMatrix(1, 10);
 
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < 3; ++i) {
 			LocalStiffnessMatrix(3, i) = LocalStiffnessMatrix(i, 3);
 		}
 		LocalStiffnessMatrix(3, 4) = (-mz_A / 3.00) + (mz_B / 6.00);
@@ -269,7 +269,7 @@ namespace Kratos
 		LocalStiffnessMatrix(3, 10) = L*Qy / 6.00;
 		LocalStiffnessMatrix(3, 11) = L*Qz / 6.00;
 
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 4; ++i) {
 			LocalStiffnessMatrix(4, i) = LocalStiffnessMatrix(i, 4);
 		}
 		LocalStiffnessMatrix(4, 4) = 2.00 * L*N / 15.00;
@@ -281,7 +281,7 @@ namespace Kratos
 		LocalStiffnessMatrix(4, 11) = Mt / 2.00;
 
 
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < 5; ++i) {
 			LocalStiffnessMatrix(5, i) = LocalStiffnessMatrix(i, 5);
 		}
 		LocalStiffnessMatrix(5, 5) = LocalStiffnessMatrix(4, 4);
@@ -292,13 +292,13 @@ namespace Kratos
 		LocalStiffnessMatrix(5, 10) = -1.00 * LocalStiffnessMatrix(4, 11);
 		LocalStiffnessMatrix(5, 11) = LocalStiffnessMatrix(4, 10);
 
-		for (int i = 0; i < 6; i++) {
+		for (int i = 0; i < 6; ++i) {
 			LocalStiffnessMatrix(6, i) = LocalStiffnessMatrix(i, 6);
 		}
 		LocalStiffnessMatrix(6, 7) = LocalStiffnessMatrix(0, 1);
 		LocalStiffnessMatrix(6, 8) = LocalStiffnessMatrix(0, 2);
 
-		for (int i = 0; i < 7; i++) {
+		for (int i = 0; i < 7; ++i) {
 			LocalStiffnessMatrix(7, i) = LocalStiffnessMatrix(i, 7);
 		}
 		LocalStiffnessMatrix(7, 7) = LocalStiffnessMatrix(1, 1);
@@ -306,7 +306,7 @@ namespace Kratos
 		LocalStiffnessMatrix(7, 10) = LocalStiffnessMatrix(4, 1);
 		LocalStiffnessMatrix(7, 11) = LocalStiffnessMatrix(2, 4);
 
-		for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < 8; ++i) {
 			LocalStiffnessMatrix(8, i) = LocalStiffnessMatrix(i, 8);
 		}
 		LocalStiffnessMatrix(8, 8) = LocalStiffnessMatrix(1, 1);
@@ -314,18 +314,18 @@ namespace Kratos
 		LocalStiffnessMatrix(8, 10) = LocalStiffnessMatrix(1, 5);
 		LocalStiffnessMatrix(8, 11) = LocalStiffnessMatrix(1, 4);
 
-		for (int i = 0; i < 9; i++) {
+		for (int i = 0; i < 9; ++i) {
 			LocalStiffnessMatrix(9, i) = LocalStiffnessMatrix(i, 9);
 		}
 		LocalStiffnessMatrix(9, 10) = (mz_A / 6.00) - (mz_B / 3.00);
 		LocalStiffnessMatrix(9, 11) = (-my_A / 6.00) + (my_B / 3.00);
 
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 10; ++i) {
 			LocalStiffnessMatrix(10, i) = LocalStiffnessMatrix(i, 10);
 		}
 		LocalStiffnessMatrix(10, 10) = LocalStiffnessMatrix(4, 4);
 
-		for (int i = 0; i < 11; i++) {
+		for (int i = 0; i < 11; ++i) {
 			LocalStiffnessMatrix(11, i) = LocalStiffnessMatrix(i, 11);
 		}
 		LocalStiffnessMatrix(11, 11) = LocalStiffnessMatrix(4, 4);
@@ -388,11 +388,17 @@ namespace Kratos
 		ReferenceCoordinates[4] = this->GetGeometry()[1].Y0();
 		ReferenceCoordinates[5] = this->GetGeometry()[1].Z0();
 
-		for (unsigned int i = 0; i < dimension; i++)
+		for (unsigned int i = 0; i < dimension; ++i)
 		{
 			DirectionVectorX[i] = (ReferenceCoordinates[i + dimension]
 				- ReferenceCoordinates[i]);
 		}
+
+		//test orientation class
+		array_1d<double, 3> X_vector = DirectionVectorX;
+		Orientation element_axis(X_vector, 0);
+
+
 		// local x-axis (e1_local) is the beam axis  (in GID is e3_local)
 		double VectorNorm;
 		VectorNorm = MathUtils<double>::Norm(DirectionVectorX);
@@ -469,9 +475,9 @@ namespace Kratos
 		//Building the rotation matrix for the local element matrix
 		for (int kk = 0; kk < MatSize; kk += dimension)
 		{
-			for (int i = 0; i<dimension; i++)
+			for (int i = 0; i<dimension; ++i)
 			{
-				for (int j = 0; j<dimension; j++)
+				for (int j = 0; j<dimension; ++j)
 				{
 					rRotationMatrix(i + kk, j + kk) = AuxRotationMatrix(i, j);
 				}
@@ -498,23 +504,23 @@ namespace Kratos
 
 		const double L = this->mCurrentLength;
 		MatrixType S = ZeroMatrix(MatSize, size);
-		for (int i = 0; i < dimension; i++) S(3 + i, 0) = -1.0* n_x[i];
-		for (int i = 0; i < dimension; i++) S(9 + i, 0) = n_x[i];
-		for (int i = 0; i < dimension; i++) S(3 + i, 1) = -1.0* n_y[i];
-		for (int i = 0; i < dimension; i++) S(9 + i, 1) = n_y[i];
-		for (int i = 0; i < dimension; i++) S(3 + i, 2) = -1.0* n_z[i];
-		for (int i = 0; i < dimension; i++) S(9 + i, 2) = n_z[i];
-		for (int i = 0; i < dimension; i++) S(0 + i, 3) = -1.0* n_x[i];
-		for (int i = 0; i < dimension; i++) S(6 + i, 3) = n_x[i];
-		for (int i = 0; i < dimension; i++) S(3 + i, 4) = n_y[i];
-		for (int i = 0; i < dimension; i++) S(9 + i, 4) = n_y[i];
-		for (int i = 0; i < dimension; i++) S(3 + i, 5) = n_z[i];
-		for (int i = 0; i < dimension; i++) S(9 + i, 5) = n_z[i];
+		for (int i = 0; i < dimension; ++i) S(3 + i, 0) = -1.0* n_x[i];
+		for (int i = 0; i < dimension; ++i) S(9 + i, 0) = n_x[i];
+		for (int i = 0; i < dimension; ++i) S(3 + i, 1) = -1.0* n_y[i];
+		for (int i = 0; i < dimension; ++i) S(9 + i, 1) = n_y[i];
+		for (int i = 0; i < dimension; ++i) S(3 + i, 2) = -1.0* n_z[i];
+		for (int i = 0; i < dimension; ++i) S(9 + i, 2) = n_z[i];
+		for (int i = 0; i < dimension; ++i) S(0 + i, 3) = -1.0* n_x[i];
+		for (int i = 0; i < dimension; ++i) S(6 + i, 3) = n_x[i];
+		for (int i = 0; i < dimension; ++i) S(3 + i, 4) = n_y[i];
+		for (int i = 0; i < dimension; ++i) S(9 + i, 4) = n_y[i];
+		for (int i = 0; i < dimension; ++i) S(3 + i, 5) = n_z[i];
+		for (int i = 0; i < dimension; ++i) S(9 + i, 5) = n_z[i];
 
-		for (int i = 0; i < dimension; i++) S(0 + i, 4) = -2.0 * n_z[i] / L;
-		for (int i = 0; i < dimension; i++) S(6 + i, 4) = 2.0 * n_z[i] / L;
-		for (int i = 0; i < dimension; i++) S(0 + i, 5) = 2.0 * n_y[i] / L;
-		for (int i = 0; i < dimension; i++) S(6 + i, 5) = -2.0 * n_y[i] / L;
+		for (int i = 0; i < dimension; ++i) S(0 + i, 4) = -2.0 * n_z[i] / L;
+		for (int i = 0; i < dimension; ++i) S(6 + i, 4) = 2.0 * n_z[i] / L;
+		for (int i = 0; i < dimension; ++i) S(0 + i, 5) = 2.0 * n_y[i] / L;
+		for (int i = 0; i < dimension; ++i) S(6 + i, 5) = -2.0 * n_y[i] / L;
 
 		return S;
 		KRATOS_CATCH("")
@@ -533,7 +539,7 @@ namespace Kratos
 		Vector IncrementDeformation = ZeroVector(MatSize);
 		IncrementDeformation = this->mIncrementDeformation;
 
-		for (int i = 0; i < dimension; i++) {
+		for (int i = 0; i < dimension; ++i) {
 			dPhiA[i] = IncrementDeformation[i + 3];
 			dPhiB[i] = IncrementDeformation[i + 9];
 		}
@@ -548,7 +554,7 @@ namespace Kratos
 
 		drA_sca = 0.00;
 		drB_sca = 0.00;
-		for (int i = 0; i < dimension; i++) {
+		for (int i = 0; i < dimension; ++i) {
 			drA_sca += drA_vec[i] * drA_vec[i];
 			drB_sca += drB_vec[i] * drB_vec[i];
 		}
@@ -574,7 +580,7 @@ namespace Kratos
 		tempSca = mQuaternionSCA_A;
 
 		mQuaternionSCA_A = drA_sca *tempSca;
-		for (int i = 0; i < dimension; i++) {
+		for (int i = 0; i < dimension; ++i) {
 			mQuaternionSCA_A -= drA_vec[i] * tempVec[i];
 		}
 		mQuaternionVEC_A = drA_sca*tempVec;
@@ -586,7 +592,7 @@ namespace Kratos
 		tempSca = mQuaternionSCA_B;
 
 		mQuaternionSCA_B = drB_sca *tempSca;
-		for (int i = 0; i < dimension; i++) {
+		for (int i = 0; i < dimension; ++i) {
 			mQuaternionSCA_B -= drB_vec[i] * tempVec[i];
 		}
 
@@ -640,7 +646,7 @@ namespace Kratos
 		q.RotateVector3(rotatedNZ0);
 
 		MatrixType RotatedCS = ZeroMatrix(dimension, dimension);
-		for (int i = 0; i < dimension; i++) {
+		for (int i = 0; i < dimension; ++i) {
 			RotatedCS(i, 0) = rotatedNX0[i];
 			RotatedCS(i, 1) = rotatedNY0[i];
 			RotatedCS(i, 2) = rotatedNZ0[i];
@@ -650,7 +656,7 @@ namespace Kratos
 		//rotate basis to element axis + redefine R
 		VectorType n_bisectrix = ZeroVector(dimension);
 		VectorType nx = ZeroVector(dimension);
-		for (int i = 0; i < dimension; i++) nx[i] = RotatedCS(i, 0);
+		for (int i = 0; i < dimension; ++i) nx[i] = RotatedCS(i, 0);
 
 		VectorType deltaX = ZeroVector(dimension);
 		deltaX[0] = this->mTotalNodalPosistion[3] - this->mTotalNodalPosistion[0];
@@ -663,14 +669,14 @@ namespace Kratos
 		n_bisectrix /= VectorNorm;
 
 		MatrixType n_xyz = ZeroMatrix(dimension);
-		for (int i = 0; i < dimension; i++) {
+		for (int i = 0; i < dimension; ++i) {
 			n_xyz(i, 0) = -1.0 * RotatedCS(i, 0);
 			n_xyz(i, 1) = 1.0 * RotatedCS(i, 1);
 			n_xyz(i, 2) = 1.0 * RotatedCS(i, 2);
 		}
 
 		MatrixType Identity = ZeroMatrix(dimension);
-		for (int i = 0; i < dimension; i++) Identity(i, i) = 1.0;
+		for (int i = 0; i < dimension; ++i) Identity(i, i) = 1.0;
 		Identity -= 2.0 * outer_prod(n_bisectrix, n_bisectrix);
 		n_xyz = prod(Identity, n_xyz);
 
@@ -681,7 +687,7 @@ namespace Kratos
 
 		nx = ZeroVector(dimension);
 		tempVec = ZeroVector(dimension);
-		for (int i = 0; i < dimension; i++) nx[i] = n_xyz(i, 0);
+		for (int i = 0; i < dimension; ++i) nx[i] = n_xyz(i, 0);
 		tempVec = MathUtils<double>::CrossProduct(nx, n_bisectrix);
 		mPhiA = 4.00 * prod(Matrix(trans(n_xyz)), tempVec);
 
@@ -698,7 +704,7 @@ namespace Kratos
 
 		if (rValues.size() != element_size) rValues.resize(element_size, false);
 
-		for (int i = 0; i < number_of_nodes; i++)
+		for (int i = 0; i < number_of_nodes; ++i)
 		{
 			int index = i * dimension * 2;
 			rValues[index] = this->GetGeometry()[i]
@@ -727,7 +733,7 @@ namespace Kratos
 
 		if (rValues.size() != element_size) rValues.resize(element_size, false);
 
-		for (int i = 0; i < number_of_nodes; i++)
+		for (int i = 0; i < number_of_nodes; ++i)
 		{
 			int index = i * dimension * 2;
 			rValues[index] = this->GetGeometry()[i].
@@ -755,7 +761,7 @@ namespace Kratos
 
 		if (rValues.size() != element_size) rValues.resize(element_size, false);
 
-		for (int i = 0; i < number_of_nodes; i++)
+		for (int i = 0; i < number_of_nodes; ++i)
 		{
 			int index = i * dimension * 2;
 
@@ -793,11 +799,11 @@ namespace Kratos
 		LumpFact = GetGeometry().LumpingFactors(LumpFact);
 
 		//translatonal mass	
-		for (int i = 0; i < number_of_nodes; i++)
+		for (int i = 0; i < number_of_nodes; ++i)
 		{
 			double temp = LumpFact[i] * TotalMass;
 
-			for (int j = 0; j < dimension; j++)
+			for (int j = 0; j < dimension; ++j)
 			{
 				int index = i * (dimension * 2) + j;
 				rMassMatrix(index, index) = temp;
@@ -873,11 +879,11 @@ namespace Kratos
 		VectorType BodyForcesGlobal = ZeroVector(MatSize);
 
 		//assemble global Vector
-		for (int i = 0; i < number_of_nodes; i++) {
+		for (int i = 0; i < number_of_nodes; ++i) {
 			BodyForcesNode = TotalMass*this->GetGeometry()[i].
 				FastGetSolutionStepValue(VOLUME_ACCELERATION)*Ncontainer(0, i);
 
-			for (int j = 0; j < dimension; j++) {
+			for (int j = 0; j < dimension; ++j) {
 				BodyForcesGlobal[(i*dimension * 2) + j] = BodyForcesNode[j];
 			}
 		}
@@ -1011,8 +1017,8 @@ namespace Kratos
 		KRATOS_TRY
 		Vector deformation_modes_total_V = ZeroVector(6);
 		deformation_modes_total_V[3] = this->mCurrentLength - this->mLength;
-		for (int i = 0; i < 3; i++) deformation_modes_total_V[i] = mPhiS[i];
-		for (int i = 0; i < 2; i++) deformation_modes_total_V[i + 4] = mPhiA[i + 1];
+		for (int i = 0; i < 3; ++i) deformation_modes_total_V[i] = mPhiS[i];
+		for (int i = 0; i < 2; ++i) deformation_modes_total_V[i + 4] = mPhiA[i + 1];
 		//calculate element forces
 		VectorType element_forces_t = ZeroVector(6);
 		MatrixType material_stiffness_Kd = ZeroMatrix(6);
@@ -1216,7 +1222,7 @@ namespace Kratos
 						if (CROSS_AREA.Key() == 0)
 							KRATOS_THROW_ERROR(std::invalid_argument, "CROSS_AREA has Key zero! (check if the application is correctly registered", "")
 							//verify that the dofs exist
-							for (unsigned int i = 0; i<this->GetGeometry().size(); i++)
+							for (unsigned int i = 0; i<this->GetGeometry().size(); ++i)
 							{
 								if (this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false)
 									KRATOS_THROW_ERROR(std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id())
@@ -1312,7 +1318,7 @@ namespace Kratos
 		}
 
 		Matrix RotationMatrix = ZeroMatrix(dimension);
-		for (int i = 0; i < dimension; i++) {
+		for (int i = 0; i < dimension; ++i) {
 			RotationMatrix(i, 0) = v1[i];
 			RotationMatrix(i, 1) = v2[i];
 			RotationMatrix(i, 2) = v3[i];
@@ -1347,7 +1353,7 @@ namespace Kratos
 
 
 		Matrix RotationMatrix = ZeroMatrix(dimension);
-		for (int i = 0; i < dimension; i++) {
+		for (int i = 0; i < dimension; ++i) {
 			RotationMatrix(i, 0) = v1[i];
 			RotationMatrix(i, 1) = v2[i];
 			RotationMatrix(i, 2) = v3[i];
@@ -1358,7 +1364,7 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	void Orientation::GetRotationMatrix(bounded_matrix<double, 3, 3>& R) {
+	void Orientation::CalculateRotationMatrix(bounded_matrix<double, 3, 3>& R) {
 
 		KRATOS_TRY
 		if (R.size1() != 3 || R.size2() != 3) R.resize(3, 3, false);	
@@ -1367,7 +1373,7 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	void Orientation::GetBasisVectors(array_1d<double, 3>& v1,
+	void Orientation::CalculateBasisVectors(array_1d<double, 3>& v1,
 		array_1d<double, 3>& v2,
 		array_1d<double, 3>& v3) {
 
@@ -1375,7 +1381,7 @@ namespace Kratos
 		const Quaternion<double> q = this->GetQuaternion();
 		Matrix R = ZeroMatrix(3);
 		q.ToRotationMatrix(R);
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < 3; ++i) {
 			v1[i] = R(i, 0);
 			v2[i] = R(i, 1);
 			v3[i] = R(i, 2);
