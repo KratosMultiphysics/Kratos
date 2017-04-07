@@ -605,16 +605,14 @@ public:
 		double a, b, c, x0, x1;
 		if (New_Compute_Intervals(vp0, vp1, vp2, distances_2[0], distances_2[1], distances_2[2], a, b, c, x0, x1) == true)
 		{
-			return coplanar_tri_tri(plane_1.GetNormal(),
-				ThisGeometry[0], ThisGeometry[1], ThisGeometry[2]);
+			return CoplanarIntersectionCheck(plane_1.GetNormal(), ThisGeometry);
 		}
 
 		// compute interval for triangle 2 //
 		double d, e, f, y0, y1;
 		if (New_Compute_Intervals(up0, up1, up2, distances_1[0], distances_1[1], distances_1[2], d, e, f, y0, y1) == true)
 		{
-			return coplanar_tri_tri(plane_1.GetNormal(),
-				ThisGeometry[0], ThisGeometry[1], ThisGeometry[2]);
+			return CoplanarIntersectionCheck(plane_1.GetNormal(), ThisGeometry);
 		}
 
 
@@ -714,10 +712,8 @@ public:
 	//*************************************************************************************
 	//*************************************************************************************
 
-	bool coplanar_tri_tri(const array_1d<double, 3>& N,
-		const Point<3, double>& U0,
-		const Point<3, double>& U1,
-		const Point<3, double>& U2)
+	bool CoplanarIntersectionCheck(const array_1d<double, 3>& N,
+		const GeometryType& OtherTriangle)
 	{
 		array_1d<double, 3 > A;
 		short i0, i1;
@@ -756,18 +752,19 @@ public:
 
 		// test all edges of triangle 1 against the edges of triangle 2 //
 		//std::cout<< "Proof One " << std::endl;
-		if (Edge_Against_Tri_Edges(i0, i1, GetPoint(0), GetPoint(1), U0, U1, U2) == true) return true;
+		if (Edge_Against_Tri_Edges(i0, i1, GetPoint(0), GetPoint(1), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
 
 		//std::cout<< "Proof Two " << std::endl;
-		if (Edge_Against_Tri_Edges(i0, i1, GetPoint(1), GetPoint(2), U0, U1, U2) == true) return true;
+		if (Edge_Against_Tri_Edges(i0, i1, GetPoint(1), GetPoint(2), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
 
 		//std::cout<< "Proof Three " << std::endl;
-		if (Edge_Against_Tri_Edges(i0, i1, GetPoint(2), GetPoint(0), U0, U1, U2) == true) return true;
+		if (Edge_Against_Tri_Edges(i0, i1, GetPoint(2), GetPoint(0), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
 
 		// finally, test if tri1 is totally contained in tri2 or vice versa //
 		array_1d<double, 3> local_coordinates;
-		if (Point_In_Tri(i0, i1, GetPoint(0), U0, U1, U2) == true) return true;
-		if (IsInside(U0, local_coordinates) == true) return true;
+		// TODO: I should add the const to the is inside method in all geometries. Pooyan.
+		if (const_cast<GeometryType&>(OtherTriangle).IsInside(GetPoint(0), local_coordinates) == true) return true;
+		if (IsInside(OtherTriangle[0], local_coordinates) == true) return true;
 
 		return false;
 	}
@@ -845,41 +842,6 @@ public:
         return false;
     }
 
-//*************************************************************************************
-//*************************************************************************************
-
-
-    bool Point_In_Tri(const short& i0,
-                      const short& i1,
-                      const Point<3,double>& V0,
-                      const Point<3,double>& U0,
-                      const Point<3,double>& U1,
-                      const Point<3,double>& U2)
-    {
-        double a,b,c,d0,d1,d2;
-        // is T1 completly inside T2? //
-        // check if V0 is inside tri(U0,U1,U2) //
-        a=U1[i1]-U0[i1];
-        b=-(U1[i0]-U0[i0]);
-        c=-a*U0[i0]-b*U0[i1];
-        d0=a*V0[i0]+b*V0[i1]+c;
-
-        a=U2[i1]-U1[i1];
-        b=-(U2[i0]-U1[i0]);
-        c=-a*U1[i0]-b*U1[i1];
-        d1=a*V0[i0]+b*V0[i1]+c;
-
-        a=U0[i1]-U2[i1];
-        b=-(U0[i0]-U2[i0]);
-        c=-a*U2[i0]-b*U2[i1];
-        d2=a*V0[i0]+b*V0[i1]+c;
-        if(d0*d1>0.0)
-        {
-            if(d0*d2>0.0) return true;
-        }
-
-        return false;
-    }
 
     /// Quality functions
 
