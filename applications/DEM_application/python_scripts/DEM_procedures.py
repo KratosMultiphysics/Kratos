@@ -10,6 +10,13 @@ import shutil
 import sys
 from glob import glob
 
+def Flush(a):
+    a.flush()
+
+def KratosPrint(*args):
+    print(*args)
+    Flush(sys.stdout)
+
 def Var_Translator(variable):
 
     if (variable == "OFF" or variable == "0" or variable == 0):
@@ -69,11 +76,17 @@ class MdpaCreator(object):
 
 class SetOfModelParts(object):
     def __init__(self, model_parts_list):
+        self.MaxNodeId = 0
+        self.MaxElemId = 0
+        self.MaxCondId = 0
+        
         names = [l.Name for l in model_parts_list]
         self.model_parts = dict()
+        self.mp_list = []
         for mp in model_parts_list:
             self.model_parts[mp.Name] = mp
-
+            self.mp_list.append(mp)
+            
         self.spheres_model_part    = self.Get("SpheresPart")
         self.rigid_face_model_part = self.Get("RigidFacePart")
         self.cluster_model_part    = self.Get("ClusterPart")
@@ -81,12 +94,29 @@ class SetOfModelParts(object):
         self.mapping_model_part    = self.Get("MappingPart")
         self.contact_model_part    = self.Get("ContactPart")
 
+    def ComputeMaxIds(self):
+
+        for mp in self.mp_list:
+            self.GetMaxIds(mp)
+
+    def GetMaxIds(self, model_part):
+        
+        for node in model_part.Nodes:
+            self.MaxNodeId = max(self.MaxNodeId, node.Id)
+            
+        for elem in model_part.Elements:
+            self.MaxElemId = max(self.MaxElemId, elem.Id)
+        
+        for cond in model_part.Conditions:
+            self.MaxCondId = max(self.MaxCondId, cond.Id)  
+
     def Get(self, name):
         return self.model_parts[name]
 
     def Add(self, model_part):
         self.model_parts[model_part.Name] = model_part
-
+        self.mp_list.append(model_part)
+        
 class GranulometryUtils(object):
 
     def __init__(self, domain_volume, model_part):

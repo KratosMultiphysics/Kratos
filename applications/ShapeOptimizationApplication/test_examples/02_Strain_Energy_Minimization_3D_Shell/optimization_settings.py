@@ -50,6 +50,7 @@ damping_regions = [ ["support_edges", False, True, True, "linear", 3 ],
 #                    ... ]
 # options for damping function: "cosine"
 #                               "linear"
+#                               "quartic"
 
 # ================================================================================================================
 # Optimization algorithm 
@@ -83,8 +84,6 @@ nodal_results=[ "NORMALIZED_SURFACE_NORMAL",
                 "DESIGN_UPDATE",
                 "DESIGN_CHANGE_ABSOLUTE",
                 "SHAPE_UPDATE",
-                "SENSITIVITIES_DEACTIVATED",
-                "SHAPE_UPDATES_DEACTIVATED",
                 "SHAPE_CHANGE_ABSOLUTE"]
 VolumeOutput = True
 GiDPostMode = "Binary"

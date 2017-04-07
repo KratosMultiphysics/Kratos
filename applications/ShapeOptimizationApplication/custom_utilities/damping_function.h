@@ -1,45 +1,11 @@
 // ==============================================================================
-/*
- KratosShapeOptimizationApplication
- A library based on:
- Kratos
- A General Purpose Software for Multi-Physics Finite Element Analysis
- (Released on march 05, 2007).
-
- Copyright (c) 2016: Daniel Baumgaertner
-                     daniel.baumgaertner@tum.de
-                     Chair of Structural Analysis
-                     Technische Universitaet Muenchen
-                     Arcisstrasse 21 80333 Munich, Germany
-
- Permission is hereby granted, free  of charge, to any person obtaining
- a  copy  of this  software  and  associated  documentation files  (the
- "Software"), to  deal in  the Software without  restriction, including
- without limitation  the rights to  use, copy, modify,  merge, publish,
- distribute,  sublicense and/or  sell copies  of the  Software,  and to
- permit persons to whom the Software  is furnished to do so, subject to
- the following condition:
-
- Distribution of this code for  any  commercial purpose  is permissible
- ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
- The  above  copyright  notice  and  this permission  notice  shall  be
- included in all copies or substantial portions of the Software.
-
- THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
- EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
- CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
- TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
- SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-//==============================================================================
+//  KratosShapeOptimizationApplication
 //
-//   Project Name:        KratosShape                            $
-//   Created by:          $Author:    daniel.baumgaertner@tum.de $
-//   Date:                $Date:                   December 2016 $
-//   Revision:            $Revision:                         0.0 $
+//  License:         BSD License
+//                   license: ShapeOptimizationApplication/license.txt
+//
+//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//                   Geiser Armin, https://github.com/armingeiser
 //
 // ==============================================================================
 
@@ -130,6 +96,7 @@ class DampingFunction
         // Create strings to compare to
         std::string cosine("cosine");
         std::string linear("linear");
+        std::string quartic("quartic");
 
         // Set type of dymping function
 
@@ -140,6 +107,10 @@ class DampingFunction
         // Type 2: Linear function
         else if (damping_function_type.compare(linear) == 0)
             m_damping_function_type = 2;
+
+        // Type 3: Quartic function
+        else if (damping_function_type.compare(quartic) == 0)
+            m_damping_function_type = 3;            
 
         // Throw error message in case of wrong specification
         else
@@ -176,9 +147,9 @@ class DampingFunction
         case 1:
         {
             // Compute distance
-            double scalar_distance = sqrt(dist_vector[0] * dist_vector[0] + dist_vector[1] * dist_vector[1] + dist_vector[2] * dist_vector[2]);
+            double distance = sqrt(dist_vector[0] * dist_vector[0] + dist_vector[1] * dist_vector[1] + dist_vector[2] * dist_vector[2]);
             // Compute damping factor
-            damping_factor = std::min(1.0, 0.5*(1-cos(PI/m_damping_radius*scalar_distance)));
+            damping_factor = std::min(1.0, 0.5*(1-cos(PI/m_damping_radius*distance)));
             break;
         }
         // Linear damping function
@@ -190,6 +161,16 @@ class DampingFunction
             damping_factor = std::min(1.0, distance / m_damping_radius);
             break;
         }
+        // Quartic damping function
+        case 3:
+        {
+            // Compute distance
+            double distance = sqrt(dist_vector[0] * dist_vector[0] + dist_vector[1] * dist_vector[1] + dist_vector[2] * dist_vector[2]);
+            double numerator = distance-m_damping_radius;
+            // Compute damping factor
+            damping_factor = std::min(1.0, (1-pow(numerator,4.0)/pow(m_damping_radius,4.0)));
+            break;
+        }        
         }
 
         return damping_factor;

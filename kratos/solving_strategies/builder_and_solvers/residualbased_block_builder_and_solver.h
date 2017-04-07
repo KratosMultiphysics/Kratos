@@ -1164,8 +1164,13 @@ protected:
 
 #ifdef USE_LOCKS_IN_ASSEMBLY
             omp_set_lock(&lock_array[i_global]);
-#endif
             b[i_global] += RHS_Contribution(i_local);
+#else
+            double& r_a = b[i_global];
+            const double& v_a = RHS_Contribution(i_local);
+            #pragma omp atomic
+            r_a += v_a;
+#endif
 
             AssembleRowContribution(A, LHS_Contribution, i_global, i_local, EquationId);
 
