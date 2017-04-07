@@ -14,7 +14,6 @@
 // Project includes
 #include "analytic_spheric_particle.h"
 
-
 namespace Kratos
 {
 // using namespace GeometryFunctions;
@@ -22,44 +21,28 @@ namespace Kratos
 AnalyticSphericParticle::AnalyticSphericParticle()
     : SphericParticle()
 {
-    mNumberOfCollidingSpheres = 0;
-
-    for (unsigned int i = 0; i < 4; ++i){
-        mCollidingIds[i] = 0;
-        mCollidingRadii[i] = 0.0;
-        mCollidingNormalVelocities[i] = 0.0;
-        mCollidingTangentialVelocities[i] = 0.0;
-    }
+    ClearMemberVariables();
 }
 
 AnalyticSphericParticle::AnalyticSphericParticle(IndexType NewId, GeometryType::Pointer pGeometry)
     : SphericParticle(NewId, pGeometry)
 {
-    mNumberOfCollidingSpheres = 0;
-
-    for (unsigned int i = 0; i < 4; ++i){
-        mCollidingIds[i] = 0;
-        mCollidingRadii[i] = 0.0;
-        mCollidingNormalVelocities[i] = 0.0;
-        mCollidingTangentialVelocities[i] = 0.0;
-    }
+    ClearMemberVariables();
 }
 
 AnalyticSphericParticle::AnalyticSphericParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
     : SphericParticle(NewId, pGeometry, pProperties)
 {
-    mNumberOfCollidingSpheres = 0;
-
-    for (unsigned int i = 0; i < 4; ++i){
-        mCollidingIds[i] = 0;
-        mCollidingRadii[i] = 0.0;
-        mCollidingNormalVelocities[i] = 0.0;
-        mCollidingTangentialVelocities[i] = 0.0;
-    }
+    ClearMemberVariables();
 }
 
 AnalyticSphericParticle::AnalyticSphericParticle(IndexType NewId, NodesArrayType const& ThisNodes)
     : SphericParticle(NewId, ThisNodes)
+{
+    ClearMemberVariables();
+}
+
+void AnalyticSphericParticle::ClearMemberVariables()
 {
     mNumberOfCollidingSpheres = 0;
 
@@ -85,7 +68,7 @@ void AnalyticSphericParticle::CalculateRelativePositions(ParticleDataBuffer & da
         RecordNewImpact(data_buffer);
     }
 
-    data_buffer.mCurrentNeighbourIds.push_back(id);
+    data_buffer.mCurrentContactingNeighbourIds.push_back(id);
 }
 
 bool AnalyticSphericParticle::IsNewNeighbour(const int nighbour_id)
@@ -111,7 +94,7 @@ void AnalyticSphericParticle::RecordNewImpact(ParticleDataBuffer & data_buffer)
 void AnalyticSphericParticle::FinalizeForceComputation(ParticleDataBuffer & data_buffer)
 {
     mNumberOfCollidingSpheres = 0;
-    mContactingNeighbourIds = data_buffer.mCurrentNeighbourIds;
+    mContactingNeighbourIds = data_buffer.mCurrentContactingNeighbourIds;
 }
 
 }  // namespace Kratos.

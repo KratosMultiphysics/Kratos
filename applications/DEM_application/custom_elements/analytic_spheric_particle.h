@@ -65,7 +65,7 @@ ParticleDataBuffer(SphericParticle* p_this_particle): SphericParticle::ParticleD
 
 virtual ~ParticleDataBuffer(){}
 
-std::vector<int> mCurrentNeighbourIds;
+std::vector<int> mCurrentContactingNeighbourIds;
 
 };
 
@@ -92,6 +92,8 @@ array_1d<double, 4> mCollidingRadii;
 array_1d<double, 4> mCollidingNormalVelocities;
 array_1d<double, 4> mCollidingTangentialVelocities;
 std::vector<int> mContactingNeighbourIds;
+
+void ClearMemberVariables();
 
 void FinalizeForceComputation(ParticleDataBuffer & data_buffer);
 

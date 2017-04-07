@@ -223,13 +223,12 @@ namespace Kratos {
     KRATOS_CATCH("")
     }*/
 
-    void SphericContinuumParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer &,
+    void SphericContinuumParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
+                                                                 ProcessInfo& r_process_info,
                                                                  array_1d<double, 3>& rElasticForce,
                                                                  array_1d<double, 3>& rContactForce,
-                                                                 double& RollingResistance,
-                                                                 ProcessInfo& r_process_info,
-                                                                 const double dt,
-                                                                 const bool multi_stage_RHS) {
+                                                                 double& RollingResistance)
+    {
         KRATOS_TRY
         
         const int time_steps = r_process_info[TIME_STEPS];
@@ -299,7 +298,7 @@ namespace Kratos {
             EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator, distance);
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                RelativeDisplacementAndVelocityOfContactPointDueToRotationMatrix(DeltDisp, RelVel, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);                
+                RelativeDisplacementAndVelocityOfContactPointDueToRotationMatrix(DeltDisp, RelVel, OldLocalCoordSystem, other_radius, data_buffer.mDt, ang_vel, neighbour_iterator);
             }
 
             RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, OldLocalCoordSystem, LocalCoordSystem, neighbour_iterator);
