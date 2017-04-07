@@ -368,18 +368,14 @@ namespace Kratos
 	void CrBeamElement3D2N::CalculateInitialLocalCS(){
 
 		KRATOS_TRY
-		//Transformation matrix T = [e1_local, e2_local, e3_local]
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const int size = number_of_nodes * dimension;
-		const int MatSize = 2 * size;
 
-		Vector DirectionVectorX = ZeroVector(dimension);
-		Vector DirectionVectorY = ZeroVector(dimension);
-		Vector DirectionVectorZ = ZeroVector(dimension);
+		array_1d<double, 3> DirectionVectorX = ZeroVector(dimension);
+		array_1d<double, 3> DirectionVectorY = ZeroVector(dimension);
+		array_1d<double, 3> DirectionVectorZ = ZeroVector(dimension);
 		Vector ReferenceCoordinates = ZeroVector(size);
-		Vector GlobalZ = ZeroVector(dimension);
-		GlobalZ[2] = 1.0;
 
 		ReferenceCoordinates[0] = this->GetGeometry()[0].X0();
 		ReferenceCoordinates[1] = this->GetGeometry()[0].Y0();
@@ -394,55 +390,11 @@ namespace Kratos
 				- ReferenceCoordinates[i]);
 		}
 
-		//test orientation class
-		array_1d<double, 3> X_vector = DirectionVectorX;
-		Orientation element_axis(X_vector, 0);
-
-
-		// local x-axis (e1_local) is the beam axis  (in GID is e3_local)
-		double VectorNorm;
-		VectorNorm = MathUtils<double>::Norm(DirectionVectorX);
-		if (VectorNorm != 0) DirectionVectorX /= VectorNorm;
-
-		const double tolerance = 1.0 / 1000.0;
-		if ((fabs(DirectionVectorX[0]) < tolerance) &&
-			(fabs(DirectionVectorX[1]) < tolerance)) {
-			DirectionVectorX = ZeroVector(dimension);
-			DirectionVectorX[2] = 1.0;
-			DirectionVectorY[1] = 1.0;
-			DirectionVectorZ[0] = -1.0;
-			if (ReferenceCoordinates[2] > ReferenceCoordinates[5]) {
-				DirectionVectorX *= -1.0;
-				DirectionVectorZ *= -1.0;
-			}
-		}
-		else {
-			DirectionVectorY = MathUtils<double>::CrossProduct(GlobalZ,
-				DirectionVectorX);
-			VectorNorm = MathUtils<double>::Norm(DirectionVectorY);
-			if(VectorNorm != 0) DirectionVectorY /= VectorNorm;
-
-			DirectionVectorZ = MathUtils<double>::CrossProduct(DirectionVectorX,
-				DirectionVectorY);
-			VectorNorm = MathUtils<double>::Norm(DirectionVectorZ);
-			if (VectorNorm != 0) DirectionVectorZ /= VectorNorm;
-		}
-
-		//manual rotation around the beam axis
-		double theta = this->mtheta;
-		Vector nz = DirectionVectorZ;
-		Vector ny = DirectionVectorY;
-		if (theta != 0) {
-			DirectionVectorY = ny * cos(theta) + nz * sin(theta);
-			DirectionVectorY /= MathUtils<double>::Norm(DirectionVectorY);
-
-			DirectionVectorZ = nz * cos(theta) - ny * sin(theta);
-			DirectionVectorZ /= MathUtils<double>::Norm(DirectionVectorZ);
-		}
-
-		this->mNX0 = ZeroVector(dimension);
-		this->mNY0 = ZeroVector(dimension);
-		this->mNZ0 = ZeroVector(dimension);
+		//use orientation class 1st constructor
+		Orientation element_axis(DirectionVectorX, this->mtheta);
+		element_axis.CalculateBasisVectors(DirectionVectorX, DirectionVectorY,
+										   DirectionVectorZ);
+		//save them to update the local axis in every following iter. step
 		this->mNX0 = DirectionVectorX;
 		this->mNY0 = DirectionVectorY;
 		this->mNZ0 = DirectionVectorZ;
@@ -471,19 +423,8 @@ namespace Kratos
 		}
 
 		rRotationMatrix = ZeroMatrix(MatSize);
-
 		//Building the rotation matrix for the local element matrix
-		for (int kk = 0; kk < MatSize; kk += dimension)
-		{
-			for (int i = 0; i<dimension; ++i)
-			{
-				for (int j = 0; j<dimension; ++j)
-				{
-					rRotationMatrix(i + kk, j + kk) = AuxRotationMatrix(i, j);
-				}
-			}
-		}
-		mRotationMatrix = rRotationMatrix;
+		this->AssembleSmallInBigMatrix(AuxRotationMatrix, rRotationMatrix);
 		KRATOS_CATCH("")
 	}
 
@@ -681,15 +622,15 @@ namespace Kratos
 		n_xyz = prod(Identity, n_xyz);
 
 		//calculating deformation modes
-		mPhiS = ZeroVector(dimension);
-		mPhiA = ZeroVector(dimension);
-		mPhiS = 4.00 * prod(Matrix(trans(n_xyz)), vector_diff);
+		this->mPhiS = ZeroVector(dimension);
+		this->mPhiA = ZeroVector(dimension);
+		this->mPhiS = 4.00 * prod(Matrix(trans(n_xyz)), vector_diff);
 
 		nx = ZeroVector(dimension);
 		tempVec = ZeroVector(dimension);
 		for (int i = 0; i < dimension; ++i) nx[i] = n_xyz(i, 0);
 		tempVec = MathUtils<double>::CrossProduct(nx, n_bisectrix);
-		mPhiA = 4.00 * prod(Matrix(trans(n_xyz)), tempVec);
+		this->mPhiA = 4.00 * prod(Matrix(trans(n_xyz)), tempVec);
 
 		return n_xyz;
 		KRATOS_CATCH("")
@@ -1202,6 +1143,28 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
+	void CrBeamElement3D2N::AssembleSmallInBigMatrix(Matrix SmallMatrix,
+						Matrix& BigMatrix) {
+
+		KRATOS_TRY
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
+		const int dimension = this->GetGeometry().WorkingSpaceDimension();
+		const int size = number_of_nodes * dimension;
+		const int MatSize = 2 * size;
+
+		for (int kk = 0; kk < MatSize; kk += dimension)
+		{
+			for (int i = 0; i<dimension; ++i)
+			{
+				for (int j = 0; j<dimension; ++j)
+				{
+					BigMatrix(i + kk, j + kk) = SmallMatrix(i, j);
+				}
+			}
+		}
+		KRATOS_CATCH("")
+	}
+
 	int  CrBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
@@ -1262,13 +1225,14 @@ namespace Kratos
 	Orientation::Orientation(array_1d<double, 3>& v1, const double theta) {
 
 		KRATOS_TRY
+		//!!!!!!!!!! if crossproduct with array_1d type switch input order !!!!!!!
 		//If only direction of v1 is given -> Default case
 		const int number_of_nodes = 2;
 		const int dimension = 3;
 		const int size = number_of_nodes * dimension;
 		const int MatSize = 2 * size;
 
-		Vector GlobalZ = ZeroVector(dimension);
+		array_1d<double, 3> GlobalZ = ZeroVector(dimension);
 		GlobalZ[2] = 1.0;
 
 		array_1d<double, 3> v2;
@@ -1297,11 +1261,11 @@ namespace Kratos
 			}
 		}
 		else {
-			v2 = MathUtils<double>::CrossProduct(GlobalZ,v1);
+			v2 = MathUtils<double>::CrossProduct(v1,GlobalZ);
 			VectorNorm = MathUtils<double>::Norm(v2);
 			v2 /= VectorNorm;
 
-			v3 = MathUtils<double>::CrossProduct(v1,v2);
+			v3 = MathUtils<double>::CrossProduct(v2,v1);
 			VectorNorm = MathUtils<double>::Norm(v3);
 			if (VectorNorm != 0) v3 /= VectorNorm;
 		}
@@ -1347,7 +1311,7 @@ namespace Kratos
 		VectorNorm = MathUtils<double>::Norm(v2);
 		if (VectorNorm != 0) v2 /= VectorNorm;
 
-		v3 = MathUtils<double>::CrossProduct(v1,v2);
+		v3 = MathUtils<double>::CrossProduct(v2,v1);
 		VectorNorm = MathUtils<double>::Norm(v3);
 		if (VectorNorm != 0) v3 /= VectorNorm;
 

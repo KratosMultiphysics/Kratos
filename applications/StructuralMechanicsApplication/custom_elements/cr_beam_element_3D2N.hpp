@@ -133,6 +133,8 @@ namespace Kratos
 			Vector& rValues,
 			int Step = 0) override;
 
+		void AssembleSmallInBigMatrix(Matrix SmallMatrix, Matrix& BigMatrix);
+
 		int Check(const ProcessInfo& rCurrentProcessInfo);
 
 
