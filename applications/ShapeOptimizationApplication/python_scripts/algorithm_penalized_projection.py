@@ -38,19 +38,19 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         self.onlyConstraint = optimizationSettings["constraints"][0]["identifier"].GetString()
         self.typOfOnlyConstraint = optimizationSettings["constraints"][0]["type"].GetString()          
         self.maxIterations = optimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1        
-        self.correctionScaling = optimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble()
-        self.stepSize = optimizationSettings["line_search"]["step_size"].GetDouble()
+        self.initialCorrectionScaling = optimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble()
+        self.initialStepSize = optimizationSettings["line_search"]["step_size"].GetDouble()
 
         self.geometryTools = GeometryUtilities( designSurface )
         self.optimizationTools = OptimizationUtilities( designSurface, optimizationSettings )
 
         self.timer = (__import__("timer_factory")).CreateTimer()
-        specificVariablesToBeLogged = { "stepSize": self.stepSize, "correctionScaling": self.correctionScaling }
+        self.specificVariablesToBeLogged = { "correctionScaling": self.initialCorrectionScaling, "stepSize": self.initialStepSize }
         self.dataLogger = (__import__("optimization_data_logger_factory")).CreateDataLogger( designSurface, 
                                                                                              communicator, 
                                                                                              optimizationSettings, 
                                                                                              self.timer, 
-                                                                                             specificVariablesToBeLogged  )        
+                                                                                             self.specificVariablesToBeLogged  )        
     # --------------------------------------------------------------------------
     def execute( self ):
         self.initializeOptimizationLoop()
@@ -61,7 +61,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
     def initializeOptimizationLoop( self ):   
         self.timer.startTimer()
         self.dataLogger.initializeDataLogging() 
-        self.optimizationTools.set_correction_scaling( self.correctionScaling )
+        self.optimizationTools.set_correction_scaling( self.initialCorrectionScaling )
 
     # --------------------------------------------------------------------------
     def startOptimizationLoop( self ):
@@ -90,7 +90,9 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
             self.mapper.map_design_update_to_geometry_space()  
 
+            self.updateSpecificVariablesForLog()            
             self.dataLogger.logCurrentData( optimizationIteration )
+
 
             print("\n> Time needed for current optimization step = ", self.timer.getLapTime(), "s")
             print("> Time needed for total optimization so far = ", self.timer.getTotalTime(), "s") 
@@ -157,10 +159,12 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         if constraintIsActive:
             self.optimizationTools.compute_projected_search_direction( constraintValue )
             self.optimizationTools.correct_projected_search_direction( constraintValue )
-            self.correctionScaling = self.optimizationTools.get_correction_scaling()
         else:
             self.optimizationTools.compute_search_direction_steepest_descent()
-            self.correctionScaling = "-"        
+
+    # --------------------------------------------------------------------------
+    def updateSpecificVariablesForLog( self ):
+        self.specificVariablesToBeLogged["correctionScaling"] = self.optimizationTools.get_correction_scaling()
 
     # --------------------------------------------------------------------------
     def isAlgorithmConverged( self, optimizationIteration ):

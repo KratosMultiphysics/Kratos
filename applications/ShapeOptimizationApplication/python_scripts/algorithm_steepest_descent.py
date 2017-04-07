@@ -36,19 +36,19 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
         self.maxIterations = optimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1        
         self.onlyObjective = optimizationSettings["objectives"][0]["identifier"].GetString()
-        self.stepSize = optimizationSettings["line_search"]["step_size"].GetDouble()
+        self.initialStepSize = optimizationSettings["line_search"]["step_size"].GetDouble()
         self.isConstraintGiven = False
 
         self.geometryTools = GeometryUtilities( designSurface )
         self.optimizationTools = OptimizationUtilities( designSurface, optimizationSettings )
 
         self.timer = (__import__("timer_factory")).CreateTimer()
-        specificVariablesToBeLogged = { "stepSize": self.stepSize }
+        self.specificVariablesToBeLogged = { "stepSize": self.initialStepSize }
         self.dataLogger = (__import__("optimization_data_logger_factory")).CreateDataLogger( designSurface, 
                                                                                              communicator, 
                                                                                              optimizationSettings, 
                                                                                              self.timer, 
-                                                                                             specificVariablesToBeLogged  )             
+                                                                                             self.specificVariablesToBeLogged  )             
 
     # --------------------------------------------------------------------------
     def execute( self ):

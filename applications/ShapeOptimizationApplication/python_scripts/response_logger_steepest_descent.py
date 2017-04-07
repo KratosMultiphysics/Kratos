@@ -34,10 +34,9 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
         self.communicator = communicator
         self.optimizationSettings = optimizationSettings
         self.timer = timer
+        self.specificVariablesToBeLogged = specificVariablesToBeLogged
 
         self.onlyObjective = self.optimizationSettings["objectives"][0]["identifier"].GetString()   
-
-        self.stepSize = specificVariablesToBeLogged["stepSize"]
 
         self.completeResponseLogFileName = self.createCompleteResponseLogFilename( optimizationSettings )
 
@@ -126,6 +125,7 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
         objectiveValue = self.objectiveValueHistory[self.currentOptimizationIteration]
         absoluteChangeOfObjectiveValue = self.absoluteChangeOfObjectiveValueHistory[self.currentOptimizationIteration]
         relativeChangeOfObjectiveValue = self.relativeChangeOfObjectiveValueHistory[self.currentOptimizationIteration]  
+        stepSize = self.specificVariablesToBeLogged["stepSize"]        
         
         with open(self.completeResponseLogFileName, 'a') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
@@ -134,7 +134,7 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
             row.append("\t"+str("%.12f"%(objectiveValue))+"\t")
             row.append("\t"+str("%.2f"%(absoluteChangeOfObjectiveValue))+"\t")
             row.append("\t"+str("%.6f"%(relativeChangeOfObjectiveValue))+"\t")
-            row.append("\t"+str(self.stepSize)+"\t")
+            row.append("\t"+str(stepSize)+"\t")
             row.append("\t"+str("%.1f"%(self.timer.getLapTime()))+"\t")
             row.append("\t"+str("%.1f"%(self.timer.getTotalTime()))+"\t")
             row.append("\t"+str(self.timer.getTimeStamp()))

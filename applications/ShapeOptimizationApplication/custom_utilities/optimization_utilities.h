@@ -95,7 +95,7 @@ public:
         std::cout.precision(12);
 
         // Initialize constraint value
-        previous_c = 0.0;
+        mPreviousConstraintValue = 0.0;
 
         // Initialize variables
         mCorrectionScaling = 0.1;
@@ -257,14 +257,14 @@ public:
 		// 1) In case we have two subsequently decreasing constraint values --> correction is fine --> leave current correction scaling
 
     	// 2) In case the correction jumps over the constraint (change of sign) --> correction was too big --> reduce
-    	if(c*previous_c<0)
+    	if(c*mPreviousConstraintValue<0)
     	{
     		mCorrectionScaling *= 0.5;
     		std::cout << "Correction scaling needs to decrease...." << std::endl;
     	}
 
     	// 3) In case we have subsequently increasing constraint value --> correction was too low --> increase
-    	if(std::abs(c)>std::abs(previous_c) && c*previous_c>0)
+    	if(std::abs(c)>std::abs(mPreviousConstraintValue) && c*mPreviousConstraintValue>0)
     	{
     		std::cout << "Correction scaling needs to increase...." << std::endl;
     		mCorrectionScaling = std::min(mCorrectionScaling*2,1.0);
@@ -281,7 +281,7 @@ public:
     	}
 
         // Store constraint value for next correction step
-        previous_c = c;
+        mPreviousConstraintValue = c;
     }
 
     // --------------------------------------------------------------------------
@@ -389,7 +389,7 @@ private:
     ModelPart& mrDesignSurface;
     double mStepSize;
     bool mNormalizeSearchDirection;
-    double previous_c;
+    double mPreviousConstraintValue;
 
     // ==============================================================================
     // For running penalized projection method

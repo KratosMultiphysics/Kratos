@@ -33,14 +33,12 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
         self.communicator = communicator
         self.optimizationSettings = optimizationSettings
         self.timer = timer
+        self.specificVariablesToBeLogged = specificVariablesToBeLogged
 
         self.onlyObjective = self.optimizationSettings["objectives"][0]["identifier"].GetString()   
         self.onlyConstraint = self.optimizationSettings["constraints"][0]["identifier"].GetString()  
         self.typOfOnlyConstraint = self.optimizationSettings["constraints"][0]["type"].GetString()
             
-        self.stepSize = specificVariablesToBeLogged["stepSize"]
-        self.correctionScaling = specificVariablesToBeLogged["correctionScaling"]
-
         self.completeResponseLogFileName = self.createCompleteResponseLogFilename( optimizationSettings )
 
         self.objectiveValueHistory = {}
@@ -150,6 +148,8 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
         constraintReferenceValue = self.constraintReferenceValueHistory[self.currentOptimizationIteration]
         absoluteChangeOfObjectiveValue = self.absoluteChangeOfObjectiveValueHistory[self.currentOptimizationIteration]
         relativeChangeOfObjectiveValue = self.relativeChangeOfObjectiveValueHistory[self.currentOptimizationIteration]             
+        correctionScaling = self.specificVariablesToBeLogged["correctionScaling"]
+        stepSize = self.specificVariablesToBeLogged["stepSize"]
 
         with open(self.completeResponseLogFileName, 'a') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
@@ -164,8 +164,8 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
             else: 
                 percentageOfReference = 100*(constraintValue / constraintReferenceValue)
                 row.append("\t"+str("%.6f"%(percentageOfReference)))
-            row.append("\t"+str("%.6f"%(self.correctionScaling))+"\t")
-            row.append("\t"+str(self.stepSize)+"\t")
+            row.append("\t"+str("%.6f"%(correctionScaling))+"\t")
+            row.append("\t"+str(stepSize)+"\t")
             row.append("\t"+str("%.1f"%(self.timer.getLapTime()))+"\t")
             row.append("\t"+str("%.1f"%(self.timer.getTotalTime()))+"\t")
             row.append("\t"+str(self.timer.getTimeStamp()))
