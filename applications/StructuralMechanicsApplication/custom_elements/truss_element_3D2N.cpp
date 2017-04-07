@@ -68,7 +68,7 @@ namespace Kratos
 			rElementalDofList.resize(local_size);
 		}
 
-		for (int i = 0; i < GetGeometry().size(); ++i)
+		for (int i = 0; i < number_of_nodes; ++i)
 		{
 			int index = i * 3;
 			rElementalDofList[index] = this->GetGeometry()[i]
@@ -204,7 +204,7 @@ namespace Kratos
 									ProcessInfo& rCurrentProcessInfo){
 
 		KRATOS_TRY
-		const int number_of_nodes = this->GetGeometry().size();
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const int MatSize = number_of_nodes * dimension;
 
@@ -253,7 +253,7 @@ namespace Kratos
 									ProcessInfo& rCurrentProcessInfo){
 
 		KRATOS_TRY
-		const int number_of_nodes = this->GetGeometry().size();
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const int MatSize = number_of_nodes * dimension;
 
@@ -263,8 +263,7 @@ namespace Kratos
 
 		rMassMatrix = ZeroMatrix(MatSize, MatSize);
 
-		double TotalMass = 0.00;
-		TotalMass = this->mArea * this->mLength * this->mDensity;
+		const double TotalMass = this->mArea * this->mLength * this->mDensity;
 
 		Vector LumpFact = ZeroVector(number_of_nodes);
 
@@ -287,7 +286,7 @@ namespace Kratos
 	TrussElement3D2N::VectorType TrussElement3D2N::CalculateBodyForces(){
 
 		KRATOS_TRY
-		const int number_of_nodes = this->GetGeometry().size();
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const int MatSize = number_of_nodes * dimension;
 
@@ -522,7 +521,7 @@ namespace Kratos
 	int  TrussElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo){
 		KRATOS_TRY
 
-		if (GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size() != 2)
+		if (this->GetGeometry().WorkingSpaceDimension() != 3 || this->GetGeometry().PointsNumber() != 2)
 			{
 				KRATOS_THROW_ERROR(std::invalid_argument,
 					"The truss element works only in 3D and with 2 noded elements", "")
@@ -539,7 +538,7 @@ namespace Kratos
 		if (CROSS_AREA.Key() == 0)
 			KRATOS_ERROR << ("CROSS_AREA has Key zero! (check if the application is correctly registered", "") << std::endl;
 		//verify that the dofs exist
-		for (unsigned int i = 0; i<this->GetGeometry().size(); ++i)
+		for (unsigned int i = 0; i<this->GetGeometry().PointsNumber(); ++i)
 			{
 			if (this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false)
 				KRATOS_ERROR << ("missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id()) << std::endl;

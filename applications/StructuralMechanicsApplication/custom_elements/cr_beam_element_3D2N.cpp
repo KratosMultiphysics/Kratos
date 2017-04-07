@@ -369,7 +369,7 @@ namespace Kratos
 
 		KRATOS_TRY
 		//Transformation matrix T = [e1_local, e2_local, e3_local]
-		const int number_of_nodes = this->GetGeometry().size();
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const int size = number_of_nodes * dimension;
 		const int MatSize = 2 * size;
@@ -398,7 +398,7 @@ namespace Kratos
 		VectorNorm = MathUtils<double>::Norm(DirectionVectorX);
 		if (VectorNorm != 0) DirectionVectorX /= VectorNorm;
 
-		double tolerance = 1.0 / 1000.0;
+		const double tolerance = 1.0 / 1000.0;
 		if ((fabs(DirectionVectorX[0]) < tolerance) &&
 			(fabs(DirectionVectorX[1]) < tolerance)) {
 			DirectionVectorX = ZeroVector(3);
@@ -448,7 +448,7 @@ namespace Kratos
 
 		KRATOS_TRY
 		//12x12
-		const int number_of_nodes = this->GetGeometry().size();
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const int size = number_of_nodes * dimension;
 		const int MatSize = 2 * size;
@@ -623,9 +623,9 @@ namespace Kratos
 		const double r3 = meanRotationVector[2];
 
 		Quaternion<double> q(r0, r1, r2, r3);
-		VectorType rotatedNX0 = mNX0;
-		VectorType rotatedNY0 = mNY0;
-		VectorType rotatedNZ0 = mNZ0;
+		VectorType rotatedNX0 = this->mNX0;
+		VectorType rotatedNY0 = this->mNY0;
+		VectorType rotatedNZ0 = this->mNZ0;
 		q.RotateVector3(rotatedNX0);
 		q.RotateVector3(rotatedNY0);
 		q.RotateVector3(rotatedNZ0);
@@ -710,9 +710,10 @@ namespace Kratos
 	}
 
 	void CrBeamElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step){
+
 		KRATOS_TRY
-		const int number_of_nodes = GetGeometry().PointsNumber();
-		const int dimension = GetGeometry().WorkingSpaceDimension();
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
+		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const int element_size = number_of_nodes * dimension * 2;
 
 		if (rValues.size() != element_size) rValues.resize(element_size, false);
@@ -736,22 +737,25 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	void CrBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step)
-	{
+	void CrBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step){
+
 		KRATOS_TRY
-			const uint number_of_nodes = GetGeometry().PointsNumber();
-		const uint dimension = GetGeometry().WorkingSpaceDimension();
-		uint       element_size = number_of_nodes * dimension * 2;
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
+		const int dimension = this->GetGeometry().WorkingSpaceDimension();
+		const int element_size = number_of_nodes * dimension * 2;
 
 		if (rValues.size() != element_size) rValues.resize(element_size, false);
 
-		for (uint i = 0; i < number_of_nodes; i++)
+		for (int i = 0; i < number_of_nodes; i++)
 		{
-			uint index = i * (dimension * 2);
+			int index = i * dimension * 2;
 
-			rValues[index] = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_X, Step);
-			rValues[index + 1] = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_Y, Step);
-			rValues[index + 2] = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_Z, Step);
+			rValues[index] = this->GetGeometry()[i]
+				.FastGetSolutionStepValue(ACCELERATION_X, Step);
+			rValues[index + 1] = this->GetGeometry()[i]
+				.FastGetSolutionStepValue(ACCELERATION_Y, Step);
+			rValues[index + 2] = this->GetGeometry()[i]
+				.FastGetSolutionStepValue(ACCELERATION_Z, Step);
 
 			//rotational dofs negelcted
 			rValues[index + 3] = 0.00;
@@ -760,49 +764,47 @@ namespace Kratos
 		}
 		KRATOS_CATCH("")
 	}
-	///////////////////////////// System functions /////////////////////////////
-	void CrBeamElement3D2N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
-			const uint number_of_nodes = GetGeometry().size();
-		const uint dimension = GetGeometry().WorkingSpaceDimension();
-		uint MatSize = number_of_nodes * dimension * 2;
 
-		if (rMassMatrix.size1() != MatSize) rMassMatrix.resize(MatSize, MatSize, false);
+	void CrBeamElement3D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
+								ProcessInfo& rCurrentProcessInfo){
+
+		KRATOS_TRY
+		const int number_of_nodes = GetGeometry().PointsNumber();
+		const int dimension = GetGeometry().WorkingSpaceDimension();
+		const int MatSize = number_of_nodes * dimension * 2;
+
+		if (rMassMatrix.size1() != MatSize) {
+			rMassMatrix.resize(MatSize, MatSize, false);
+		}
 		rMassMatrix = ZeroMatrix(MatSize, MatSize);
 
-		double TotalMass = 0;
-		TotalMass = this->mArea * this->mLength * this->mDensity;
+		const double TotalMass = this->mArea * this->mLength * this->mDensity;
 
 		Vector LumpFact = ZeroVector(number_of_nodes);
 		LumpFact = GetGeometry().LumpingFactors(LumpFact);
 
-		double temp;
-		uint index;
 		//translatonal mass	
-		for (uint i = 0; i < number_of_nodes; i++)
+		for (int i = 0; i < number_of_nodes; i++)
 		{
-			temp = LumpFact[i] * TotalMass;
+			double temp = LumpFact[i] * TotalMass;
 
-			for (uint j = 0; j < dimension; j++)
+			for (int j = 0; j < dimension; j++)
 			{
-				index = i * (dimension * 2) + j;
+				int index = i * (dimension * 2) + j;
 				rMassMatrix(index, index) = temp;
 			}
 		}
-		//rotaional mass neglecte
+		//rotaional mass neglected
 		KRATOS_CATCH("")
 	}
 
-	void CrBeamElement3D2N::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
-			// 0.-Initialize the DampingMatrix:
-			const unsigned int number_of_nodes = GetGeometry().size();
-		const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+	void CrBeamElement3D2N::CalculateDampingMatrix(MatrixType& rDampingMatrix,
+								ProcessInfo& rCurrentProcessInfo){
 
-		// Resizing as needed the LHS
-		const unsigned int MatSize = number_of_nodes * dimension * 2;
+		KRATOS_TRY
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
+		const int dimension = this->GetGeometry().WorkingSpaceDimension();
+		const int MatSize = number_of_nodes * dimension * 2;
 
 		if (rDampingMatrix.size1() != MatSize)
 		{
@@ -811,23 +813,18 @@ namespace Kratos
 
 		noalias(rDampingMatrix) = ZeroMatrix(MatSize, MatSize);
 
-		// 1.-Calculate StiffnessMatrix:
-
 		MatrixType StiffnessMatrix = ZeroMatrix(MatSize, MatSize);
 
 		this->CalculateLeftHandSide(StiffnessMatrix, rCurrentProcessInfo);
-
-		// 2.-Calculate MassMatrix:
 
 		MatrixType MassMatrix = ZeroMatrix(MatSize, MatSize);
 
 		this->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
 
-		// 3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
 		double alpha = 0.0;
-		if (GetProperties().Has(RAYLEIGH_ALPHA))
+		if (this->GetProperties().Has(RAYLEIGH_ALPHA))
 		{
-			alpha = GetProperties()[RAYLEIGH_ALPHA];
+			alpha = this->GetProperties()[RAYLEIGH_ALPHA];
 		}
 		else if (rCurrentProcessInfo.Has(RAYLEIGH_ALPHA))
 		{
@@ -835,56 +832,59 @@ namespace Kratos
 		}
 
 		double beta = 0.0;
-		if (GetProperties().Has(RAYLEIGH_BETA))
+		if (this->GetProperties().Has(RAYLEIGH_BETA))
 		{
-			beta = GetProperties()[RAYLEIGH_BETA];
+			beta = this->GetProperties()[RAYLEIGH_BETA];
 		}
 		else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA))
 		{
 			beta = rCurrentProcessInfo[RAYLEIGH_BETA];
 		}
 
-		// 4.-Compose the Damping Matrix:
-
-		// Rayleigh Damping Matrix: alpha*M + beta*K
 		noalias(rDampingMatrix) += alpha * MassMatrix;
 		noalias(rDampingMatrix) += beta  * StiffnessMatrix;
+
 		KRATOS_CATCH("")
 	}
 
 
-	CrBeamElement3D2N::VectorType CrBeamElement3D2N::CalculateBodyForces()
-	{
+	CrBeamElement3D2N::VectorType CrBeamElement3D2N::CalculateBodyForces(){
+
 		KRATOS_TRY
-			const uint number_of_nodes = GetGeometry().size();
-		const uint dimension = GetGeometry().WorkingSpaceDimension();
-		uint MatSize = number_of_nodes * dimension * 2;
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
+		const int dimension = this->GetGeometry().WorkingSpaceDimension();
+		const int MatSize = number_of_nodes * dimension * 2;
 
 		//getting shapefunctionvalues 
-		const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues();
+		const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues();
 
 		//creating necessary values 
-		double TotalMass = this->mArea * this->mLength * this->mDensity;
+		const double TotalMass = this->mArea * this->mLength * this->mDensity;
 		VectorType BodyForcesNode = ZeroVector(dimension);
 		VectorType BodyForcesGlobal = ZeroVector(MatSize);
 
 		//assemble global Vector
-		for (uint i = 0; i < number_of_nodes; i++) {
-			BodyForcesNode = TotalMass*this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION)*Ncontainer(0, i);
+		for (int i = 0; i < number_of_nodes; i++) {
+			BodyForcesNode = TotalMass*this->GetGeometry()[i].
+				FastGetSolutionStepValue(VOLUME_ACCELERATION)*Ncontainer(0, i);
 
-			for (uint j = 0; j < dimension; j++) {
+			for (int j = 0; j < dimension; j++) {
 				BodyForcesGlobal[(i*dimension * 2) + j] = BodyForcesNode[j];
 			}
 		}
 		return BodyForcesGlobal;
 		KRATOS_CATCH("")
 	}
-	void CrBeamElement3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-	{
+
+	void CrBeamElement3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+								VectorType& rRightHandSideVector,
+								ProcessInfo& rCurrentProcessInfo){
+
 		KRATOS_TRY
-		const SizeType NumNodes = this->GetGeometry().PointsNumber();
-		const uint dimension = this->GetGeometry().WorkingSpaceDimension();
-		const SizeType LocalSize = NumNodes * dimension * 2;
+		const int NumNodes = this->GetGeometry().PointsNumber();
+		const int dimension = this->GetGeometry().WorkingSpaceDimension();
+		const int size = NumNodes * dimension;
+		const int LocalSize = NumNodes * dimension * 2;
 
 		//update displacement_delta
 		this->Initialize();
@@ -895,38 +895,41 @@ namespace Kratos
 		this->CalculateTransformationMatrix(TransformationMatrix);
 
 		//deformation modes
-		VectorType elementForces_t = ZeroVector(6);
+		VectorType elementForces_t = ZeroVector(size);
 		elementForces_t = this->CalculateElementForces();
 
 		//Nodal element forces local
 		VectorType nodalForcesLocal_qe = ZeroVector(LocalSize);
-		Matrix TransformationMatrixS = ZeroMatrix(12,6);
+		Matrix TransformationMatrixS = ZeroMatrix(LocalSize,size);
 		TransformationMatrixS = this->CalculateTransformationS();
 		nodalForcesLocal_qe = prod(TransformationMatrixS, elementForces_t);
 
-		mNodalForces = ZeroVector(LocalSize);
-		mNodalForces = nodalForcesLocal_qe;
-
 		//resizing the matrices + create memory for LHS
-		if (rLeftHandSideMatrix.size1() != LocalSize) rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
+		if (rLeftHandSideMatrix.size1() != LocalSize) {
+			rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
+		}
 		rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 		//creating LHS
-		noalias(rLeftHandSideMatrix) += this->CreateElementStiffnessMatrix_Material();
-		noalias(rLeftHandSideMatrix) += this->CreateElementStiffnessMatrix_Geometry(nodalForcesLocal_qe);
-		mlocalStiffness = rLeftHandSideMatrix;
+		noalias(rLeftHandSideMatrix) += 
+			this->CreateElementStiffnessMatrix_Material();
+		noalias(rLeftHandSideMatrix) += 
+			this->CreateElementStiffnessMatrix_Geometry(nodalForcesLocal_qe);
 
 		Matrix aux_matrix = ZeroMatrix(LocalSize);
-
 		noalias(aux_matrix) = prod(TransformationMatrix, rLeftHandSideMatrix);
-		noalias(rLeftHandSideMatrix) = prod(aux_matrix, Matrix(trans(TransformationMatrix)));
+		noalias(rLeftHandSideMatrix) = prod(aux_matrix,
+			Matrix(trans(TransformationMatrix)));
 
 		//Nodal element forces global
 		VectorType nodalForcesGlobal_q = ZeroVector(LocalSize);
-		nodalForcesGlobal_q = prod(TransformationMatrix, nodalForcesLocal_qe);
+		noalias(nodalForcesGlobal_q) = prod(TransformationMatrix,
+			nodalForcesLocal_qe);
 
 		//create+compute RHS
 		//update Residual
-		if (rRightHandSideVector.size() != LocalSize) rRightHandSideVector = ZeroVector(LocalSize);
+		if (rRightHandSideVector.size() != LocalSize) {
+			rRightHandSideVector = ZeroVector(LocalSize);
+		}
 		rRightHandSideVector = ZeroVector(LocalSize);
 		noalias(rRightHandSideVector) -= nodalForcesGlobal_q;
 
@@ -935,34 +938,40 @@ namespace Kratos
 		this->mLHS = rLeftHandSideMatrix;
 
 		//add bodyforces 
-		mBodyForces = ZeroVector(12);
-		mBodyForces = this->CalculateBodyForces();
-		noalias(rRightHandSideVector) += mBodyForces;
+		this->mBodyForces = ZeroVector(LocalSize);
+		this->mBodyForces = this->CalculateBodyForces();
+		noalias(rRightHandSideVector) += this->mBodyForces;
 
-		mIterationCount++;
+		this->mIterationCount++;
 		KRATOS_CATCH("")
 	}
 
-	void CrBeamElement3D2N::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-	{
+	void CrBeamElement3D2N::CalculateRightHandSide(
+								VectorType& rRightHandSideVector,
+								ProcessInfo& rCurrentProcessInfo){
+
 		KRATOS_TRY
-		//needed for Reacion Forces
-		if (rRightHandSideVector.size() != 12) rRightHandSideVector = ZeroVector(12);
-		rRightHandSideVector = ZeroVector(12);
-		//VectorType currentDisp = ZeroVector(12);
-		//this->GetValuesVector(currentDisp, 0);
-		//noalias(rRightHandSideVector) -= prod(this->mLHS, currentDisp);
+		const int NumNodes = this->GetGeometry().PointsNumber();
+		const int dimension = this->GetGeometry().WorkingSpaceDimension();
+		const int size = NumNodes * dimension;
+		const int LocalSize = NumNodes * dimension * 2;
+
+		if (rRightHandSideVector.size() != LocalSize) {
+			rRightHandSideVector = ZeroVector(LocalSize);
+		}
+		rRightHandSideVector = ZeroVector(LocalSize);
 		
 		this->UpdateIncrementDeformation();
-		Matrix TransformationMatrix = ZeroMatrix(12);
+		Matrix TransformationMatrix = ZeroMatrix(LocalSize);
 		this->CalculateTransformationMatrix(TransformationMatrix);
-		VectorType elementForces_t = ZeroVector(6);
+		VectorType elementForces_t = ZeroVector(size);
 		elementForces_t = this->CalculateElementForces();
-		VectorType nodalForcesLocal_qe = ZeroVector(12);
-		Matrix TransformationMatrixS = ZeroMatrix(12, 6);
+		VectorType nodalForcesLocal_qe = ZeroVector(LocalSize);
+		Matrix TransformationMatrixS = ZeroMatrix(LocalSize, size);
 		TransformationMatrixS = this->CalculateTransformationS();
-		nodalForcesLocal_qe = prod(TransformationMatrixS, elementForces_t);
-		VectorType nodalForcesGlobal_q = ZeroVector(12);
+		noalias(nodalForcesLocal_qe) = prod(TransformationMatrixS,
+			elementForces_t);
+		VectorType nodalForcesGlobal_q = ZeroVector(LocalSize);
 		nodalForcesGlobal_q = prod(TransformationMatrix, nodalForcesLocal_qe);
 		noalias(rRightHandSideVector) -= nodalForcesGlobal_q;
 
@@ -971,33 +980,213 @@ namespace Kratos
 		KRATOS_CATCH("")
 
 	}
-	void CrBeamElement3D2N::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
-	{
+
+	void CrBeamElement3D2N::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+								ProcessInfo& rCurrentProcessInfo){
+
 		KRATOS_TRY
-		if (rLeftHandSideMatrix.size1() != 12) rLeftHandSideMatrix = ZeroMatrix(12, 12);
-		rLeftHandSideMatrix = ZeroMatrix(12, 12);
+		const int NumNodes = this->GetGeometry().PointsNumber();
+		const int dimension = this->GetGeometry().WorkingSpaceDimension();
+		const int LocalSize = NumNodes * dimension * 2;
+
+		if (rLeftHandSideMatrix.size1() != LocalSize) {
+			rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
+		}
+		rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 		noalias(rLeftHandSideMatrix) = this->mLHS;
 		KRATOS_CATCH("")
 	}
-	CrBeamElement3D2N::VectorType CrBeamElement3D2N::CalculateElementForces()
-	{
+
+	CrBeamElement3D2N::VectorType CrBeamElement3D2N::CalculateElementForces(){
+
 		KRATOS_TRY
 		Vector deformation_modes_total_V = ZeroVector(6);
 		deformation_modes_total_V[3] = this->mCurrentLength - this->mLength;
-		for (uint i = 0; i < 3; i++) deformation_modes_total_V[i] = mPhiS[i];
-		for (uint i = 0; i < 2; i++) deformation_modes_total_V[i + 4] = mPhiA[i + 1];
+		for (int i = 0; i < 3; i++) deformation_modes_total_V[i] = mPhiS[i];
+		for (int i = 0; i < 2; i++) deformation_modes_total_V[i + 4] = mPhiA[i + 1];
 		//calculate element forces
 		VectorType element_forces_t = ZeroVector(6);
 		MatrixType material_stiffness_Kd = ZeroMatrix(6);
 
 		material_stiffness_Kd = this->CalculateMaterialStiffness();
-		element_forces_t = prod(material_stiffness_Kd, deformation_modes_total_V);
+		noalias(element_forces_t) = prod(material_stiffness_Kd,
+			deformation_modes_total_V);
 
 		return element_forces_t;
 		KRATOS_CATCH("")
 	}
 
-	///////////////////////////// additional helper functions /////////////////////////////
+	double CrBeamElement3D2N::CalculateGreenLagrangeStrain(){
+
+		KRATOS_TRY
+		const double l = this->mCurrentLength;
+		const double L = this->mLength;
+		const double e = ((l * l - L * L) / (2 * L * L));
+		return e;
+		KRATOS_CATCH("")
+	}
+
+	double CrBeamElement3D2N::CalculateCurrentLength(){
+
+		KRATOS_TRY
+		const double du = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X)
+			- this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+		const double dv = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y)
+			- this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+		const double dw = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Z)
+			- this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
+		const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
+		const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
+		const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
+		const double l = sqrt((du + dx)*(du + dx) + (dv + dy)*(dv + dy) +
+			(dw + dz)*(dw + dz));
+		return l;
+		KRATOS_CATCH("")
+
+	}
+	double CrBeamElement3D2N::CalculatePsi(const double I, const double A_eff){
+
+		KRATOS_TRY
+		const double E = this->mYoungsModulus;
+		const double L = this->mCurrentLength;
+		const double G = this->mShearModulus;
+
+		const double phi = (12.0 * E * I) / (L*L * G*A_eff);
+		double psi;
+		//interpret input A_eff == 0 as shearstiff -> psi = 1.0
+		if (A_eff == 0.00) psi = 1.00;
+		else psi = 1.0 / (1.0 + phi);
+
+		return psi;
+		KRATOS_CATCH("")
+	}
+
+	double CrBeamElement3D2N::CalculateReferenceLength(){
+
+		KRATOS_TRY
+		const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
+		const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
+		const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
+		const double L = sqrt(dx*dx + dy*dy + dz*dz);
+		return L;
+		KRATOS_CATCH("")
+	}
+
+	void CrBeamElement3D2N::UpdateIncrementDeformation() {
+
+		KRATOS_TRY
+		const int NumNodes = this->GetGeometry().PointsNumber();
+		const int dimension = this->GetGeometry().WorkingSpaceDimension();
+		const int size = NumNodes * dimension;
+		const int LocalSize = NumNodes * dimension * 2;
+
+		VectorType actualDeformation = ZeroVector(LocalSize);
+		VectorType total_nodal_def = ZeroVector(LocalSize);
+		VectorType total_nodal_pos = ZeroVector(size);
+
+		if (mIterationCount == 0) this->mTotalNodalDeformation = ZeroVector(LocalSize);
+		this->GetValuesVector(actualDeformation, 0);
+		this->mIncrementDeformation = actualDeformation 
+			- this->mTotalNodalDeformation;
+
+		this->mTotalNodalDeformation = ZeroVector(LocalSize);
+		this->mTotalNodalDeformation = actualDeformation;
+
+		this->mTotalNodalPosistion = ZeroVector(size);
+		this->mTotalNodalPosistion[0] = this->GetGeometry()[0].X0()
+			+ actualDeformation[0];
+		this->mTotalNodalPosistion[1] = this->GetGeometry()[0].Y0()
+			+ actualDeformation[1];
+		this->mTotalNodalPosistion[2] = this->GetGeometry()[0].Z0()
+			+ actualDeformation[2];
+
+		this->mTotalNodalPosistion[3] = this->GetGeometry()[1].X0()
+			+ actualDeformation[6];
+		this->mTotalNodalPosistion[4] = this->GetGeometry()[1].Y0()
+			+ actualDeformation[7];
+		this->mTotalNodalPosistion[5] = this->GetGeometry()[1].Z0()
+			+ actualDeformation[8];
+
+		this->mCurrentLength = this->CalculateCurrentLength();
+		KRATOS_CATCH("")
+	}
+
+	void CrBeamElement3D2N::CalculateOnIntegrationPoints(
+								const Variable<array_1d<double, 3 > >& rVariable,
+								std::vector< array_1d<double, 3 > >& rOutput,
+								const ProcessInfo& rCurrentProcessInfo){
+
+		KRATOS_TRY
+		const int NumNodes = this->GetGeometry().PointsNumber();
+		const int dimension = this->GetGeometry().WorkingSpaceDimension();
+		const int size = NumNodes * dimension;
+		const int LocalSize = NumNodes * dimension * 2;
+
+		const int&  write_points_number = GetGeometry()
+			.IntegrationPointsNumber(GeometryData::GI_GAUSS_3);
+		if (rOutput.size() != write_points_number) {
+			rOutput.resize(write_points_number);
+		}
+
+		this->UpdateIncrementDeformation();
+		//calculate Transformation Matrix
+		Matrix TransformationMatrix = ZeroMatrix(LocalSize);
+		this->CalculateTransformationMatrix(TransformationMatrix);
+		//deformation modes
+		VectorType elementForces_t = ZeroVector(size);
+		elementForces_t = this->CalculateElementForces();
+		VectorType Stress = ZeroVector(LocalSize);
+		Matrix TransformationMatrixS = ZeroMatrix(LocalSize, size);
+		TransformationMatrixS = this->CalculateTransformationS();
+		Stress = prod(TransformationMatrixS, elementForces_t);
+
+		////calculate Body Forces here ngelected atm
+		//Vector BodyForces = ZeroVector(12);
+		//this->CalculateLocalBodyForce(LocalForceVector, rVolumeForce);
+		//Stress -= BodyForces;
+
+		if (rVariable == MOMENT)
+		{
+			rOutput[0][0] = -1.0 *Stress[3] * 0.75 + Stress[9] * 0.25;
+			rOutput[1][0] = -1.0 *Stress[3] * 0.50 + Stress[9] * 0.50;
+			rOutput[2][0] = -1.0 *Stress[3] * 0.25 + Stress[9] * 0.75;
+
+			rOutput[0][1] = -1.0 *Stress[4] * 0.75 + Stress[10] * 0.25;
+			rOutput[1][1] = -1.0 *Stress[4] * 0.50 + Stress[10] * 0.50;
+			rOutput[2][1] = -1.0 *Stress[4] * 0.25 + Stress[10] * 0.75;
+
+			rOutput[0][2] = -1.0 *Stress[5] * 0.75 + Stress[11] * 0.25;
+			rOutput[1][2] = -1.0 *Stress[5] * 0.50 + Stress[11] * 0.50;
+			rOutput[2][2] = -1.0 *Stress[5] * 0.25 + Stress[11] * 0.75;
+		}
+		if (rVariable == FORCE)
+		{
+			rOutput[0][0] = -1.0 * Stress[0] * 0.75 + Stress[6] * 0.25;
+			rOutput[1][0] = -1.0 * Stress[0] * 0.50 + Stress[6] * 0.50;
+			rOutput[2][0] = -1.0 * Stress[0] * 0.25 + Stress[6] * 0.75;
+
+			rOutput[0][1] = -1.0 * Stress[1] * 0.75 + Stress[7] * 0.25;
+			rOutput[1][1] = -1.0 *Stress[1] * 0.50 + Stress[7] * 0.50;
+			rOutput[2][1] = -1.0 *Stress[1] * 0.25 + Stress[7] * 0.75;
+
+			rOutput[0][2] = -1.0 *Stress[2] * 0.75 + Stress[8] * 0.25;
+			rOutput[1][2] = -1.0 *Stress[2] * 0.50 + Stress[8] * 0.50;
+			rOutput[2][2] = -1.0 *Stress[2] * 0.25 + Stress[8] * 0.75;
+		}
+
+		KRATOS_CATCH("")
+	}
+
+	void CrBeamElement3D2N::GetValueOnIntegrationPoints(
+								const Variable<array_1d<double, 3 > >& rVariable,
+								std::vector< array_1d<double, 3 > >& rOutput,
+								const ProcessInfo& rCurrentProcessInfo)
+	{
+		KRATOS_TRY
+		this->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+		KRATOS_CATCH("")
+	}
+
 	int  CrBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
@@ -1047,147 +1236,7 @@ namespace Kratos
 
 		KRATOS_CATCH("")
 	}
-	double CrBeamElement3D2N::CalculateGreenLagrangeStrain()
-	{
-		KRATOS_TRY
-		double l = this->mCurrentLength;
-		double L = this->mLength;
-		//longitudinal green lagrange strain
-		return ((l * l - L * L) / (2 * L * L));
-		KRATOS_CATCH("")
-	}
-	double CrBeamElement3D2N::CalculateCurrentLength()
-	{
-		KRATOS_TRY
-			double du, dv, dw, dx, dy, dz, l;
-		du = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X) - GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-		dv = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y) - GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
-		dw = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Z) - GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
-		dx = GetGeometry()[1].X0() - GetGeometry()[0].X0();
-		dy = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
-		dz = GetGeometry()[1].Z0() - GetGeometry()[0].Z0();
-		l = sqrt((du + dx)*(du + dx) + (dv + dy)*(dv + dy) + (dw + dz)*(dw + dz));
-		return l;
-		KRATOS_CATCH("")
-	}
-	double CrBeamElement3D2N::CalculatePsi(double I, double A_eff)
-	{
-		KRATOS_TRY
-		double E = this->mYoungsModulus;
-		double L = this->mCurrentLength;
-		double G = this->mShearModulus;
 
-		double phi = (12.0 * E * I) / (L*L * G*A_eff);
-		double psi;
-
-		//interpret input A_eff == 0 as shearstiff -> psi = 1.0
-		if (A_eff == 0.00) psi = 1.00;
-		else psi = 1.0 / (1.0 + phi);
-
-		return psi;
-		KRATOS_CATCH("")
-	}
-	double CrBeamElement3D2N::CalculateReferenceLength()
-	{
-		KRATOS_TRY
-			double dx, dy, dz, L;
-		dx = GetGeometry()[1].X0() - GetGeometry()[0].X0();
-		dy = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
-		dz = GetGeometry()[1].Z0() - GetGeometry()[0].Z0();
-		L = sqrt(dx*dx + dy*dy + dz*dz);
-		return L;
-		KRATOS_CATCH("")
-	}
-	void CrBeamElement3D2N::UpdateIncrementDeformation() {
-		KRATOS_TRY
-		VectorType actualDeformation = ZeroVector(12);
-		VectorType total_nodal_def = ZeroVector(12);
-		VectorType total_nodal_pos = ZeroVector(6);
-		if (mIterationCount == 0) mTotalNodalDeformation = ZeroVector(12);
-		this->GetValuesVector(actualDeformation, 0);
-		mIncrementDeformation = actualDeformation - mTotalNodalDeformation;
-
-		mTotalNodalDeformation = ZeroVector(12);
-		mTotalNodalDeformation = actualDeformation;
-
-		mTotalNodalPosistion = ZeroVector(6);
-		mTotalNodalPosistion[0] = GetGeometry()[0].X0() + actualDeformation[0];
-		mTotalNodalPosistion[1] = GetGeometry()[0].Y0() + actualDeformation[1];
-		mTotalNodalPosistion[2] = GetGeometry()[0].Z0() + actualDeformation[2];
-
-		mTotalNodalPosistion[3] = GetGeometry()[1].X0() + actualDeformation[6];
-		mTotalNodalPosistion[4] = GetGeometry()[1].Y0() + actualDeformation[7];
-		mTotalNodalPosistion[5] = GetGeometry()[1].Z0() + actualDeformation[8];
-
-		this->mCurrentLength = this->CalculateCurrentLength();
-		KRATOS_CATCH("")
-	}
-	void CrBeamElement3D2N::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-		std::vector< array_1d<double, 3 > >& rOutput,
-		const ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
-			const unsigned int&  write_points_number = GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_3);
-		if (rOutput.size() != write_points_number) rOutput.resize(write_points_number);
-
-		this->UpdateIncrementDeformation();
-		//calculate Transformation Matrix
-		Matrix TransformationMatrix = ZeroMatrix(12);
-		this->CalculateTransformationMatrix(TransformationMatrix);
-		//deformation modes
-		VectorType elementForces_t = ZeroVector(6);
-		elementForces_t = this->CalculateElementForces();
-		VectorType Stress = ZeroVector(12);
-		Matrix TransformationMatrixS = ZeroMatrix(12, 6);
-		TransformationMatrixS = this->CalculateTransformationS();
-		Stress = prod(TransformationMatrixS, elementForces_t);
-
-		////calculate Body Forces here ngelected atm
-		//Vector BodyForces = ZeroVector(12);
-		//this->CalculateLocalBodyForce(LocalForceVector, rVolumeForce);
-		//Stress -= BodyForces;
-
-		if (rVariable == MOMENT)
-		{
-			rOutput[0][0] = -1.0 *Stress[3] * 0.75 + Stress[9] * 0.25;
-			rOutput[1][0] = -1.0 *Stress[3] * 0.50 + Stress[9] * 0.50;
-			rOutput[2][0] = -1.0 *Stress[3] * 0.25 + Stress[9] * 0.75;
-
-			rOutput[0][1] = -1.0 *Stress[4] * 0.75 + Stress[10] * 0.25;
-			rOutput[1][1] = -1.0 *Stress[4] * 0.50 + Stress[10] * 0.50;
-			rOutput[2][1] = -1.0 *Stress[4] * 0.25 + Stress[10] * 0.75;
-
-			rOutput[0][2] = -1.0 *Stress[5] * 0.75 + Stress[11] * 0.25;
-			rOutput[1][2] = -1.0 *Stress[5] * 0.50 + Stress[11] * 0.50;
-			rOutput[2][2] = -1.0 *Stress[5] * 0.25 + Stress[11] * 0.75;
-		}
-		if (rVariable == FORCE)
-		{
-			rOutput[0][0] = -1.0 * Stress[0] * 0.75 + Stress[6] * 0.25;
-			rOutput[1][0] = -1.0 * Stress[0] * 0.50 + Stress[6] * 0.50;
-			rOutput[2][0] = -1.0 * Stress[0] * 0.25 + Stress[6] * 0.75;
-
-			rOutput[0][1] = -1.0 * Stress[1] * 0.75 + Stress[7] * 0.25;
-			rOutput[1][1] = -1.0 *Stress[1] * 0.50 + Stress[7] * 0.50;
-			rOutput[2][1] = -1.0 *Stress[1] * 0.25 + Stress[7] * 0.75;
-
-			rOutput[0][2] = -1.0 *Stress[2] * 0.75 + Stress[8] * 0.25;
-			rOutput[1][2] = -1.0 *Stress[2] * 0.50 + Stress[8] * 0.50;
-			rOutput[2][2] = -1.0 *Stress[2] * 0.25 + Stress[8] * 0.75;
-		}
-
-		KRATOS_CATCH("")
-	}
-
-	void CrBeamElement3D2N::GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-		std::vector< array_1d<double, 3 > >& rOutput,
-		const ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
-			this->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-		KRATOS_CATCH("")
-	}
-
-}
+} // namespace Kratos.
 
 

@@ -138,7 +138,7 @@ namespace Kratos
 
 		double CalculateGreenLagrangeStrain();
 		double CalculateCurrentLength();
-		double CalculatePsi(double I, double A_eff);
+		double CalculatePsi(const double I, const double A_eff);
 		double CalculateReferenceLength();
 		void UpdateIncrementDeformation();
 
@@ -162,8 +162,8 @@ namespace Kratos
 		double mdPhi_x_a;
 		VectorType mNX, mNY, mNZ, mRHS, mTotalDef, mTotalPos;
 		VectorType mTotalNodalDeformation, mTotalNodalPosistion, mBodyForces;
-		VectorType mDeformationModes, mIncrementDeformation, mNodalForces;
-		MatrixType mLHS, mlocalStiffness, mRotationMatrix;
+		VectorType mDeformationModes, mIncrementDeformation;
+		MatrixType mLHS, mRotationMatrix;
 		VectorType mNX0, mNY0, mNZ0;
 		VectorType mQuaternionVEC_A, mQuaternionVEC_B;
 		double mQuaternionSCA_A, mQuaternionSCA_B;
