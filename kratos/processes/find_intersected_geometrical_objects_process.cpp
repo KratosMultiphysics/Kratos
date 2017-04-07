@@ -64,11 +64,7 @@ namespace Kratos
 
 		// Adding mrModelPart2 to the octree
 		for (auto i_node = mrModelPart2.NodesBegin(); i_node != mrModelPart2.NodesEnd(); i_node++) {
-			double temp_point[3];
-			temp_point[0] = i_node->X();
-			temp_point[1] = i_node->Y();
-			temp_point[2] = i_node->Z();
-			mOctree.Insert(temp_point);
+			mOctree.Insert(i_node->Coordinates().data().data());
 		}
 		
 		for (auto i_element = mrModelPart2.ElementsBegin(); i_element != mrModelPart2.ElementsEnd(); i_element++) {
