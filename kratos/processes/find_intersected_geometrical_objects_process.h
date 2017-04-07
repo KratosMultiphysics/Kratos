@@ -175,16 +175,6 @@ namespace Kratos
 
 
 			///@}
-			///@name Access
-			///@{
-
-
-			///@}
-			///@name Inquiry
-			///@{
-
-
-			///@}
 			///@name Input and output
 			///@{
 
@@ -224,7 +214,7 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  /// This class takes two modelparts and marks the intersected ones.
+  /// This class takes two modelparts and marks the intersected ones with SELECTED flag.
   /** It creates a spatial datastructure and search for interaction.
   It also provides some helper methods for derived classes to check
   individual element or condition interesections.
@@ -282,49 +272,6 @@ namespace Kratos
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const;
 
-
-      ///@}
-      ///@name Friends
-      ///@{
-
-
-      ///@}
-
-    protected:
-      ///@name Protected static Member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Protected member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Protected Operators
-      ///@{
-
-
-      ///@}
-      ///@name Protected Operations
-      ///@{
-
-
-      ///@}
-      ///@name Protected  Access
-      ///@{
-
-
-      ///@}
-      ///@name Protected Inquiry
-      ///@{
-
-
-      ///@}
-      ///@name Protected LifeCycle
-      ///@{
-
-
       ///@}
 
     private:
@@ -341,11 +288,6 @@ namespace Kratos
 		OctreeType mOctree;
 
       ///@}
-      ///@name Private Operators
-      ///@{
-
-
-      ///@}
       ///@name Private Operations
       ///@{
 
@@ -353,16 +295,6 @@ namespace Kratos
 		void SetOctreeBoundingBox();
 		void MarkIfIntersected(Element& rElement1, std::vector<OctreeType::cell_type*>& leaves);
 		bool HasIntersection(Element::GeometryType& rFirstGeometry, Element::GeometryType& rSecondGeometry);
-
-
-      ///@}
-      ///@name Private  Access
-      ///@{
-
-
-      ///@}
-      ///@name Private Inquiry
-      ///@{
 
 
       ///@}
