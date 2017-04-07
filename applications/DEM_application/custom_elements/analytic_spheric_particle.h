@@ -53,6 +53,8 @@ void PrintInfo(std::ostream& rOStream) const override {rOStream << "AnalyticSphe
 /// Print object's data.
 void PrintData(std::ostream& rOStream) const override {}
 
+array_1d<int, 4> GetCollidingIds();
+
 protected:
 
 AnalyticSphericParticle();

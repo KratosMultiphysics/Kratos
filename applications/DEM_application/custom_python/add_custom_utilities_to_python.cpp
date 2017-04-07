@@ -9,6 +9,7 @@
 
 #include "includes/model_part.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_utilities/analytic_tools/analytic_particle_watcher.h"
 #include "custom_utilities/create_and_destroy.h"
 #include "custom_utilities/calculate_global_physical_properties.h"
 #include "custom_utilities/pre_utilities.h"

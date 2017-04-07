@@ -42,6 +42,12 @@ AnalyticSphericParticle::AnalyticSphericParticle(IndexType NewId, NodesArrayType
     ClearMemberVariables();
 }
 
+array_1d<int, 4> AnalyticSphericParticle::GetCollidingIds()
+{
+    return mCollidingIds;
+}
+
+
 void AnalyticSphericParticle::ClearMemberVariables()
 {
     mNumberOfCollidingSpheres = 0;

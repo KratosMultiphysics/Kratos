@@ -9,6 +9,9 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
+#include "../../custom_elements/analytic_spheric_particle.h"
+
 
 /* External includes */
 #ifdef _OPENMP
@@ -30,6 +33,8 @@ AnalyticParticleWatcher() {}
 /// Destructor
 
 virtual ~AnalyticParticleWatcher();
+
+virtual void MakeMeasurements(ModelPart& analytic_model_part);
 
 /// Turn back information as a string
 virtual std::string Info() const;
