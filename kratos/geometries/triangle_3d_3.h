@@ -66,6 +66,8 @@ public:
      */
     typedef Geometry<TPointType> BaseType;
 
+    typedef Geometry<TPointType> GeometryType;
+
     /**
      * Type of edge geometry
      */
@@ -544,9 +546,9 @@ public:
 	bool HasIntersection(const GeometryType& ThisGeometry) {
 		// Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/opttritri.txt
 		// and the article "A Fast Triangle-Triangle Intersection Test", Journal of Graphics Tools, 2(2), 1997:
-		// http://web.stanford.edu/class/cs277/resources/papers/Moller1997b.pdf 
+		// http://web.stanford.edu/class/cs277/resources/papers/Moller1997b.pdf
 
-		Plane3D plane_1(GetPoint(0), GetPoint(1), GetPoint(2));
+		Plane3D plane_1(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2));
 		array_1d<double, 3> distances_1;
 		for (int i = 0; i < 3; i++)
 			distances_1[i] = plane_1.CalculateSignedDistance(ThisGeometry[i]);
@@ -556,7 +558,7 @@ public:
 		Plane3D plane_2(ThisGeometry[0], ThisGeometry[1], ThisGeometry[2]);
 		array_1d<double, 3> distances_2;
 		for (int i = 0; i < 3; i++)
-			distances_2[i] = plane_2.CalculateSignedDistance(GetPoint(i));
+			distances_2[i] = plane_2.CalculateSignedDistance(this->GetPoint(i));
 		if (AllSameSide(distances_2))
 			return false;
 
@@ -567,9 +569,9 @@ public:
 		int index = GetMajorAxis(intersection_direction);
 
 		// this is the simplified projection onto L//
-		double vp0 = GetPoint(0)[index];
-		double vp1 = GetPoint(1)[index];
-		double vp2 = GetPoint(2)[index];
+		double vp0 = this->GetPoint(0)[index];
+		double vp1 = this->GetPoint(1)[index];
+		double vp2 = this->GetPoint(2)[index];
 
 		double up0 = ThisGeometry[0][index];
 		double up1 = ThisGeometry[1][index];
@@ -1972,16 +1974,16 @@ private:
 		}
 
 		// test all edges of triangle 1 against the edges of triangle 2 //
-		if (EdgeToTriangleEdgesCheck(i0, i1, GetPoint(0), GetPoint(1), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
+		if (EdgeToTriangleEdgesCheck(i0, i1, this->GetPoint(0), this->GetPoint(1), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
 
-		if (EdgeToTriangleEdgesCheck(i0, i1, GetPoint(1), GetPoint(2), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
+		if (EdgeToTriangleEdgesCheck(i0, i1, this->GetPoint(1), this->GetPoint(2), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
 
-		if (EdgeToTriangleEdgesCheck(i0, i1, GetPoint(2), GetPoint(0), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
+		if (EdgeToTriangleEdgesCheck(i0, i1, this->GetPoint(2), this->GetPoint(0), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
 
 		// finally, test if tri1 is totally contained in tri2 or vice versa //
 		array_1d<double, 3> local_coordinates;
 		// TODO: I should add the const to the is inside method in all geometries. Pooyan.
-		if (const_cast<GeometryType&>(OtherTriangle).IsInside(GetPoint(0), local_coordinates) == true) return true;
+		if (const_cast<GeometryType&>(OtherTriangle).IsInside(this->GetPoint(0), local_coordinates) == true) return true;
 		if (IsInside(OtherTriangle[0], local_coordinates) == true) return true;
 
 		return false;
