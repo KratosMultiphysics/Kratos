@@ -57,6 +57,23 @@ protected:
 
 AnalyticSphericParticle();
 
+class ParticleDataBuffer: public SphericParticle::ParticleDataBuffer
+{
+public:
+
+ParticleDataBuffer(SphericParticle* p_this_particle): SphericParticle::ParticleDataBuffer(p_this_particle){}
+
+virtual ~ParticleDataBuffer(){}
+
+std::vector<int> mCurrentContactingNeighbourIds;
+
+};
+
+virtual std::unique_ptr<SphericParticle::ParticleDataBuffer> CreateParticleDataBuffer(SphericParticle* p_this_particle)
+{
+    return std::unique_ptr<SphericParticle::ParticleDataBuffer>(new ParticleDataBuffer(p_this_particle));
+}
+
 private:
 
 friend class Serializer;
@@ -65,50 +82,35 @@ unsigned int mNumberOfCollidingSpheres;
 /*
 4 is taken as the maximum number of particles simultaneously coming into contact
 with this sphere. Whenever more than 4 particles happen to come into contact at
-the same time step, which should be extremely rare, the extra collisions will
-not be recorded in the present step, but will in forecomming steps (with the
-corresponding slightly increased error in measurement) unless an extraordinarily
-short contact time (of only 1 time step) takes place.
+the same time step, which should be extremely rare in collisional regime, the extra
+collisions will not be recorded in the present step, but will in forecomming steps
+(with the corresponding slightly increased error in measurement) unless an
+extraordinarily short contact time (of only 1 time step) takes place.
 */
 array_1d<int, 4> mCollidingIds;
 array_1d<double, 4> mCollidingRadii;
 array_1d<double, 4> mCollidingNormalVelocities;
 array_1d<double, 4> mCollidingTangentialVelocities;
+std::vector<int> mContactingNeighbourIds;
+
+void ClearMemberVariables();
+
+void FinalizeForceComputation(ParticleDataBuffer & data_buffer);
+
+void CalculateRelativePositions(ParticleDataBuffer & data_buffer);
+
+bool IsNewNeighbour(const int nighbour_id);
+
+void RecordNewImpact(ParticleDataBuffer & data_buffer);
 
 void save(Serializer& rSerializer) const override
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DiscreteElement );
-    rSerializer.save("mRadius",mRadius);
-    rSerializer.save("mSearchRadius", mSearchRadius);
-    rSerializer.save("mSearchRadiusWithFem", mSearchRadiusWithFem);
-    rSerializer.save("mRealMass",mRealMass);
-    rSerializer.save("mClusterId",mClusterId);
-    rSerializer.save("mBoundDeltaDispSq",mBoundDeltaDispSq);
-    rSerializer.save("HasStressTensor", (int)this->Is(DEMFlags::HAS_STRESS_TENSOR));
-    if (this->Is(DEMFlags::HAS_STRESS_TENSOR)){
-        rSerializer.save("mSymmStressTensor", mSymmStressTensor);
-    }
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SphericParticle);
 }
 
 void load(Serializer& rSerializer) override
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DiscreteElement );
-    rSerializer.load("mRadius",mRadius);
-    rSerializer.load("mSearchRadius", mSearchRadius);
-    rSerializer.load("mSearchRadiusWithFem", mSearchRadiusWithFem);
-    rSerializer.load("mRealMass",mRealMass);
-    rSerializer.load("mClusterId",mClusterId);
-    rSerializer.load("mBoundDeltaDispSq",mBoundDeltaDispSq); 
-    int aux_int=0;
-    rSerializer.load("HasStressTensor", aux_int);
-    if(aux_int) this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
-    if (this->Is(DEMFlags::HAS_STRESS_TENSOR)){
-        mStressTensor  = new Matrix(3,3);
-        *mStressTensor = ZeroMatrix(3,3);
-        mSymmStressTensor  = new Matrix(3,3);
-        *mSymmStressTensor = ZeroMatrix(3,3);
-        rSerializer.load("mSymmStressTensor", mSymmStressTensor);
-    }
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericParticle);
 }
 
 }; // Class AnalyticSphericParticle
