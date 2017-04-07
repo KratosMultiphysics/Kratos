@@ -154,7 +154,6 @@ namespace Kratos
 			std::vector< array_1d<double, 3 > >& rOutput,
 			const ProcessInfo& rCurrentProcessInfo) override;
 
-
 	private:
 		double mArea, mYoungsModulus, mLength, mDensity, mInertiaX, mInertiaY;
 		double mInertiaZ, mCurrentLength, mPsiY, mPsiZ;
@@ -177,7 +176,25 @@ namespace Kratos
 	};
 
 
-}
+	class Orientation : public CrBeamElement3D2N
+	{
+	public:
+		Orientation(array_1d<double, 3>& v1, const double theta);
+		Orientation(array_1d<double, 3>& v1, array_1d<double, 3>& v2,
+										     const double theta);
 
+
+		void GetRotationMatrix(bounded_matrix<double, 3, 3>& R);
+		void GetBasisVectors(array_1d<double, 3>& v1, array_1d<double, 3>& v2,
+													  array_1d<double, 3>& v3);
+
+		Quaternion<double>& GetQuaternion() { return morientation; }
+
+	private:
+		Quaternion<double> morientation;
+	};
+
+
+}
 
 #endif

@@ -1237,6 +1237,78 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
+
+
+
+
+
+
+
+	Orientation::Orientation(array_1d<double, 3>& v1, const double theta) {
+
+		KRATOS_TRY
+		//If only direction of v1 is given -> Default case
+		const int number_of_nodes = 2;
+		const int dimension = 3;
+		const int size = number_of_nodes * dimension;
+		const int MatSize = 2 * size;
+
+		Vector DirectionVectorX = ZeroVector(3);
+		Vector DirectionVectorY = ZeroVector(3);
+		Vector DirectionVectorZ = ZeroVector(3);
+
+		Vector GlobalZ = ZeroVector(3);
+		GlobalZ[2] = 1.0;
+
+		DirectionVectorX = v1;
+
+		double VectorNorm;
+		VectorNorm = MathUtils<double>::Norm(DirectionVectorX);
+		if (VectorNorm != 0) DirectionVectorX /= VectorNorm;
+
+		const double tolerance = 1.0 / 1000.0;
+		if ((fabs(DirectionVectorX[0]) < tolerance) &&
+			(fabs(DirectionVectorX[1]) < tolerance)) {
+
+			if (DirectionVectorX[2] > 0.00) {
+				DirectionVectorX = ZeroVector(3);
+				DirectionVectorX[2] = 1.0;
+				DirectionVectorY[1] = 1.0;
+				DirectionVectorZ[0] = -1.0;
+			}
+
+			if (DirectionVectorX[2] < 0.00) {
+				DirectionVectorX = ZeroVector(3);
+				DirectionVectorX[2] = -1.0;
+				DirectionVectorY[1] = 1.0;
+				DirectionVectorZ[0] = 1.0;
+			}
+		}
+		else {
+			DirectionVectorY = MathUtils<double>::CrossProduct(GlobalZ,
+				DirectionVectorX);
+			VectorNorm = MathUtils<double>::Norm(DirectionVectorY);
+			DirectionVectorY /= VectorNorm;
+
+			DirectionVectorZ = MathUtils<double>::CrossProduct(DirectionVectorX,
+				DirectionVectorY);
+			VectorNorm = MathUtils<double>::Norm(DirectionVectorZ);
+			DirectionVectorZ /= VectorNorm;
+		}
+
+		//manual rotation around the beam axis
+		Vector nz_temp = DirectionVectorZ;
+		Vector ny_temp = DirectionVectorY;
+		if (theta != 0) {
+			DirectionVectorY = ny_temp * cos(theta) + nz_temp * sin(theta);
+			DirectionVectorY /= MathUtils<double>::Norm(DirectionVectorY);
+
+			DirectionVectorZ = nz_temp * cos(theta) - ny_temp * sin(theta);
+			DirectionVectorZ /= MathUtils<double>::Norm(DirectionVectorZ);
+		}
+
+		KRATOS_CATCH("")
+	}
 } // namespace Kratos.
 
 
