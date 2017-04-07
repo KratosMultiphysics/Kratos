@@ -337,5 +337,83 @@ namespace Testing {
       KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
     }
 
+
+	/** Tests two very near parallel triangles HasIntegration which should give false
+	*/
+	KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ParallelNoIntersection, KratosCoreGeometriesFastSuite) {
+		Triangle3D3<Point<3> > triangle_1(
+			GeneratePoint<Node<3> >(0.0, 0.0, 0.0),
+			GeneratePoint<Node<3> >(10., 0.0, 2.0),
+			GeneratePoint<Node<3> >(0.0, 1.0, 0.0)
+			);
+		Triangle3D3<Point<3> > triangle_2(
+			GeneratePoint<Node<3> >(0.0, 0.0, 0.01),
+			GeneratePoint<Node<3> >(10., 0.0, 2.01),
+			GeneratePoint<Node<3> >(0.0, 1.0, 0.01)
+			);
+
+		KRATOS_CHECK_IS_FALSE(triangle_1.HasIntersection(triangle_2));
+	}
+
+	KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ParallelNearIntersection, KratosCoreGeometriesFastSuite) {
+		Triangle3D3<Point<3> > triangle_1(
+			GeneratePoint<Node<3> >(0.0, 0.0, 0.0),
+			GeneratePoint<Node<3> >(10., 0.0, 2.0),
+			GeneratePoint<Node<3> >(0.0, 1.0, 0.0)
+			);
+		Triangle3D3<Point<3> > triangle_2(
+			GeneratePoint<Node<3> >(0.0, 0.0, 0.00000001),
+			GeneratePoint<Node<3> >(10., 0.0, 2.00000001),
+			GeneratePoint<Node<3> >(0.0, 1.0, 0.00000001)
+			);
+
+		KRATOS_CHECK_IS_FALSE(triangle_1.HasIntersection(triangle_2));
+	}
+
+	KRATOS_TEST_CASE_IN_SUITE(Triangle3D3CoplanarNoIntersection, KratosCoreGeometriesFastSuite) {
+		Triangle3D3<Point<3> > triangle_1(
+			GeneratePoint<Node<3> >(0.0, 0.0, 0.0),
+			GeneratePoint<Node<3> >(10., 0.0, 2.0),
+			GeneratePoint<Node<3> >(0.0, 1.0, 0.0)
+			);
+		Triangle3D3<Point<3> > triangle_2(
+			GeneratePoint<Node<3> >(0.00000001, 0.00000001, 0.00000001),
+			GeneratePoint<Node<3> >(-10., 0.0, -2.0),
+			GeneratePoint<Node<3> >(0.0, -1.0, 0.00)
+			);
+
+		KRATOS_CHECK_IS_FALSE(triangle_1.HasIntersection(triangle_2));
+	}
+
+	KRATOS_TEST_CASE_IN_SUITE(Triangle3D3CoplanarPointIntersection, KratosCoreGeometriesFastSuite) {
+		Triangle3D3<Point<3> > triangle_1(
+			GeneratePoint<Node<3> >(0.0, 0.0, 0.0),
+			GeneratePoint<Node<3> >(10., 0.0, 2.0),
+			GeneratePoint<Node<3> >(0.0, 1.0, 0.0)
+			);
+		Triangle3D3<Point<3> > triangle_2(
+			GeneratePoint<Node<3> >(0.00, 0.00, 0.0),
+			GeneratePoint<Node<3> >(-10., 0.0, -2.0),
+			GeneratePoint<Node<3> >(0.0, -1.0, 0.00)
+			);
+
+		KRATOS_CHECK(triangle_1.HasIntersection(triangle_2));
+	}
+
+	KRATOS_TEST_CASE_IN_SUITE(Triangle3D3EdgeIntersection, KratosCoreGeometriesFastSuite) {
+		Triangle3D3<Point<3> > triangle_1(
+			GeneratePoint<Node<3> >(0.0, 0.0, 0.0),
+			GeneratePoint<Node<3> >(10., 0.0, 2.0),
+			GeneratePoint<Node<3> >(0.0, 1.0, 0.0)
+			);
+		Triangle3D3<Point<3> > triangle_2(
+			GeneratePoint<Node<3> >(0.00, 0.00, 0.0),
+			GeneratePoint<Node<3> >(10., 0.0, 2.0),
+			GeneratePoint<Node<3> >(0.0, -1.0, 0.00)
+			);
+
+		KRATOS_CHECK(triangle_1.HasIntersection(triangle_2));
+	}
+
 } // namespace Testing.
 } // namespace Kratos.
