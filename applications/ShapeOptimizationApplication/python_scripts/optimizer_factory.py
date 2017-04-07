@@ -98,7 +98,7 @@ class VertexMorphingMethod:
             print("> The following design surface was defined:\n\n",optimizationModel)
             return optimizationModel
         else:
-            raise RuntimeError("Sub-model part specified for optimization does not exist!")
+            raise ValueError("The following sub-model part (design surface) specified for shape optimization does not exist: ",nameOfDesingSurface)         
 
     # --------------------------------------------------------------------------
     def getListOfDampingRegionsFromInputModelPart( self ):
