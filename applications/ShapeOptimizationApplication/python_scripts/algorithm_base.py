@@ -23,7 +23,7 @@ CheckForPreviousImport()
 class OptimizationAlgorithm:
 
     # --------------------------------------------------------------------------
-    def executeAlgorithm( self, designSurface, analyzer, mapper, communicator, optimizationSettings ):
-        raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> executeAlgorithm << .")     
+    def execute( self ):
+        raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> execute << .")     
 
 # ==============================================================================

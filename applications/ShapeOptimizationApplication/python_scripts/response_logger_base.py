@@ -31,11 +31,11 @@ class ResponseLogger():
         raise RuntimeError("Response logger base class is called. Please check your implementation of the function >> logCurrentResponses << .")
 
     # --------------------------------------------------------------------------
-    def getValue( self, variableKey ):
-        raise RuntimeError("Response logger base class is called. Please check your implementation of the function >> getValue << .")
-
-    # --------------------------------------------------------------------------
     def finalizeLogging( self ):      
         raise RuntimeError("Response logger base class is called. Please check your implementation of the function >> finalizeLogging << .")
+
+    # --------------------------------------------------------------------------
+    def getValue( self, variableKey ):
+        raise RuntimeError("Response logger base class is called. Please check your implementation of the function >> getValue << .")
 
 # ==============================================================================

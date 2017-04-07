@@ -34,7 +34,7 @@ optimizer = optimizerFactory.CreateOptimizer( inputModelPart, ProjectParameters[
 # Solver preparation
 # ======================================================================================================================================
 
-class externalAnalyzer( optimizerFactory.analyzerBaseClass ):
+class externalAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
     
     # --------------------------------------------------------------------------
     def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):

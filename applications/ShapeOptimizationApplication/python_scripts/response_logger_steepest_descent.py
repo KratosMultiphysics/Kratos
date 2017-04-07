@@ -29,15 +29,22 @@ import csv
 class ResponseLoggerSteepestDescent( ResponseLogger ):
 
     # --------------------------------------------------------------------------
-    def __init__( self, communicator, timer, optimizationSettings ):
+    def __init__( self, communicator, optimizationSettings, timer, specificVariablesToBeLogged ):
+
         self.communicator = communicator
-        self.timer = timer
         self.optimizationSettings = optimizationSettings
+        self.timer = timer
+
+        self.onlyObjective = self.optimizationSettings["objectives"][0]["identifier"].GetString()   
+
+        self.stepSize = specificVariablesToBeLogged["stepSize"]
+
         self.completeResponseLogFileName = self.createCompleteResponseLogFilename( optimizationSettings )
-        self.onlyObjective = self.optimizationSettings["objectives"][0]["identifier"].GetString()
+
         self.objectiveValueHistory = {}
         self.absoluteChangeOfObjectiveValueHistory = {}
         self.relativeChangeOfObjectiveValueHistory = {}
+
         self.currentOptimizationIteration = 0
         self.previousOptimizationIteration = 0
         self.initialOptimizationIteration = 0
@@ -66,18 +73,17 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
 
     # --------------------------------------------------------------------------
     def logCurrentResponses( self, optimizationIteration ):
-
         self.currentOptimizationIteration = optimizationIteration
 
         self.addCurrentObjectiveValueToHistory()
         if self.isFirstLog():
-            self.initialOptimizationIteration = optimizationIteration
+            self.initialOptimizationIteration = optimizationIteration        
             self.initializeChangeOfObjectiveValueHistory()
         else:
             self.addChangeOfObjectiveValueToHistory()
+        self.printInfoAboutResponseFunctionValues()
         self.writeDataToLogFile()
-        self.printInfoAboutResponseFunction()
-
+        
         self.previousOptimizationIteration = optimizationIteration
 
     # -------------------------------------------------------------------------
@@ -106,7 +112,7 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
         self.relativeChangeOfObjectiveValueHistory[self.currentOptimizationIteration] = 100*(objectiveValue-previousObjectiveValue) / initialObjectiveValue
 
     # --------------------------------------------------------------------------
-    def printInfoAboutResponseFunction( self ):
+    def printInfoAboutResponseFunctionValues( self ):
         objectiveValue = self.objectiveValueHistory[self.currentOptimizationIteration]
         absoluteChangeOfObjectiveValue = self.absoluteChangeOfObjectiveValueHistory[self.currentOptimizationIteration]
         relativeChangeOfObjectiveValue = self.relativeChangeOfObjectiveValueHistory[self.currentOptimizationIteration]        
@@ -128,21 +134,25 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
             row.append("\t"+str("%.12f"%(objectiveValue))+"\t")
             row.append("\t"+str("%.2f"%(absoluteChangeOfObjectiveValue))+"\t")
             row.append("\t"+str("%.6f"%(relativeChangeOfObjectiveValue))+"\t")
-            row.append("\t"+str(self.optimizationSettings["line_search"]["step_size"].GetDouble())+"\t")
+            row.append("\t"+str(self.stepSize)+"\t")
             row.append("\t"+str("%.1f"%(self.timer.getLapTime()))+"\t")
             row.append("\t"+str("%.1f"%(self.timer.getTotalTime()))+"\t")
             row.append("\t"+str(self.timer.getTimeStamp()))
             historyWriter.writerow(row)       
 
     # --------------------------------------------------------------------------
-    def getRelativeChangeOfObjectiveValue( self, optimizationIteration ):
-        if self.isFirstLog():
-            raise RuntimeError("Relative change of objective function can not be computed since only one logged value is existing!")
-        else:
-            return self.relativeChangeOfObjectiveValueHistory[optimizationIteration]
-
-    # --------------------------------------------------------------------------
     def finalizeLogging( self ):      
         pass # No finalization necessary here
+
+    # --------------------------------------------------------------------------
+    def getValue( self, variableKey ):
+        
+        if variableKey=="RELATIVE_CHANGE_OF_OBJECTIVE_VALUE":
+            if self.isFirstLog():
+                raise RuntimeError("Relative change of objective function can not be computed since only one logged value is existing!")
+            else:
+                return self.relativeChangeOfObjectiveValueHistory[self.currentOptimizationIteration]
+        else:
+            raise NameError("Value with the following variable key not defined in response_logger_penalized_projection.py: " + variableKey)
 
 # ==============================================================================

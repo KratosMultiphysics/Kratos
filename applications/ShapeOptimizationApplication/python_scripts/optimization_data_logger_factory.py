@@ -24,20 +24,20 @@ from response_logger_steepest_descent import ResponseLoggerSteepestDescent
 from response_logger_penalized_projection import ResponseLoggerPenalizedProjection
 
 # ==============================================================================
-def CreateDataLogger( designSurface, communicator, optimizationSettings, timer, additionalVariablesToBeLogged ):
-    responseLogger = createResponseLogger( communicator,  optimizationSettings, timer, additionalVariablesToBeLogged )
+def CreateDataLogger( designSurface, communicator, optimizationSettings, timer, specificVariablesToBeLogged ):
+    responseLogger = createResponseLogger( communicator,  optimizationSettings, timer, specificVariablesToBeLogged )
     designLogger = createDesignLogger( designSurface, optimizationSettings )
     return optimizationDataLogger( responseLogger, designLogger, optimizationSettings )
 
 # -----------------------------------------------------------------------------
-def createResponseLogger( communicator, optimizationSettings, timer, additionalVariablesToBeLogged ):
+def createResponseLogger( communicator, optimizationSettings, timer, specificVariablesToBeLogged ):
 
     optimizationAlgorithm = optimizationSettings["optimization_algorithm"]["name"].GetString()
 
     if optimizationAlgorithm == "steepest_descent":
-        return ResponseLoggerSteepestDescent( communicator, optimizationSettings, timer, additionalVariablesToBeLogged )
+        return ResponseLoggerSteepestDescent( communicator, optimizationSettings, timer, specificVariablesToBeLogged )
     elif optimizationAlgorithm == "penalized_projection":
-        return ResponseLoggerPenalizedProjection( communicator, optimizationSettings, timer, additionalVariablesToBeLogged )   
+        return ResponseLoggerPenalizedProjection( communicator, optimizationSettings, timer, specificVariablesToBeLogged )   
     else:
         raise NameError("The following optimization algorithm not supported by the response logger (name may be a misspelling): " + optimizationAlgorithm)
 
@@ -96,12 +96,13 @@ class optimizationDataLogger():
         self.responseLogger.logCurrentResponses( optimizationIteration )
 
     # --------------------------------------------------------------------------
-    def getValue( self, variableKey ):
-        return self.responseLogger.getValue( variableKey )
-
-    # --------------------------------------------------------------------------
     def finalizeDataLogging( self ):
         self.designLogger.finalizeLogging()  
         self.responseLogger.finalizeLogging()
+
+    # --------------------------------------------------------------------------
+    def getValue( self, variableKey ):
+        return self.responseLogger.getValue( variableKey )
+        
 
 # ==============================================================================

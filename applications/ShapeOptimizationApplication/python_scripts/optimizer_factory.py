@@ -71,9 +71,10 @@ class VertexMorphingMethod:
     def optimize( self ):
         
         timer = (__import__("timer_factory")).CreateTimer()
+        algorithmName = self.optimizationSettings["optimization_algorithm"]["name"].GetString()
 
         print("\n> ==============================================================================================================")
-        print("> ",timer.getTimeStamp(),": Starting optimization using the following algorithm: ",self.optimizationSettings["optimization_algorithm"]["name"].GetString())
+        print("> ",timer.getTimeStamp(),": Starting optimization using the following algorithm: ", algorithmName)
         print("> ==============================================================================================================\n")
     
         designSurface = self.getDesignSurfaceFromInputModelPart()
@@ -83,7 +84,7 @@ class VertexMorphingMethod:
         communicator = (__import__("communicator_factory")).CreateCommunicator( self.optimizationSettings )
             
         algorithm = (__import__("algorithm_factory")).CreateAlgorithm( designSurface, self.analyzer, mapper, communicator, self.optimizationSettings )
-        algorithm.executeAlgorithm()       
+        algorithm.execute()       
 
         print("\n> ==============================================================================================================")
         print("> Finished optimization                                                                                           ")

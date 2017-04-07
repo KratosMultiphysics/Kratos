@@ -29,17 +29,19 @@ import csv
 class ResponseLoggerPenalizedProjection( ResponseLogger ):
 
     # --------------------------------------------------------------------------
-    def __init__( self, communicator , optimizationSettings, timer, additionalVariablesToBeLogged ):
+    def __init__( self, communicator, optimizationSettings, timer, specificVariablesToBeLogged ):
         self.communicator = communicator
         self.optimizationSettings = optimizationSettings
         self.timer = timer
-        self.stepSize = additionalVariablesToBeLogged["stepSize"]
-        self.correctionScaling = additionalVariablesToBeLogged["correctionScaling"]
 
-        self.completeResponseLogFileName = self.createCompleteResponseLogFilename( optimizationSettings )
         self.onlyObjective = self.optimizationSettings["objectives"][0]["identifier"].GetString()   
         self.onlyConstraint = self.optimizationSettings["constraints"][0]["identifier"].GetString()  
-        self.typOfOnlyConstraint = self.optimizationSettings["constraints"][0]["type"].GetString()    
+        self.typOfOnlyConstraint = self.optimizationSettings["constraints"][0]["type"].GetString()
+            
+        self.stepSize = specificVariablesToBeLogged["stepSize"]
+        self.correctionScaling = specificVariablesToBeLogged["correctionScaling"]
+
+        self.completeResponseLogFileName = self.createCompleteResponseLogFilename( optimizationSettings )
 
         self.objectiveValueHistory = {}
         self.constraintValueHistory = {}
@@ -80,16 +82,14 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
     def logCurrentResponses( self, optimizationIteration ):
 
         self.currentOptimizationIteration = optimizationIteration
-        if self.isFirstLog():
-            self.initialOptimizationIteration = optimizationIteration        
 
         self.addCurrentResponseValuesToHistory()
         if self.isFirstLog():
+            self.initialOptimizationIteration = optimizationIteration        
             self.initializeChangeOfObjectiveValueHistory()
         else:
             self.addChangeOfObjectiveValueToHistory()
-            
-        self.printInfoAboutResponseFunction()
+        self.printInfoAboutResponseFunctionValues()
         self.writeDataToLogFile()
 
         self.previousOptimizationIteration = optimizationIteration
@@ -132,7 +132,7 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
         self.relativeChangeOfObjectiveValueHistory[self.currentOptimizationIteration] = 100*(objectiveValue-previousObjectiveValue) / initialObjectiveValue
 
     # --------------------------------------------------------------------------
-    def printInfoAboutResponseFunction( self ):
+    def printInfoAboutResponseFunctionValues( self ):
         objectiveValue = self.objectiveValueHistory[self.currentOptimizationIteration]
         constraintValue = self.constraintValueHistory[self.currentOptimizationIteration]
         absoluteChangeOfObjectiveValue = self.absoluteChangeOfObjectiveValueHistory[self.currentOptimizationIteration]
@@ -172,7 +172,12 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
             historyWriter.writerow(row)   
 
     # --------------------------------------------------------------------------
+    def finalizeLogging( self ):      
+        pass # No finalization necessary here
+
+    # --------------------------------------------------------------------------
     def getValue( self, variableKey ):
+        
         if variableKey=="RELATIVE_CHANGE_OF_OBJECTIVE_VALUE":
             if self.isFirstLog():
                 raise RuntimeError("Relative change of objective function can not be computed since only one logged value is existing!")
@@ -180,9 +185,5 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
                 return self.relativeChangeOfObjectiveValueHistory[self.currentOptimizationIteration]
         else:
             raise NameError("Value with the following variable key not defined in response_logger_penalized_projection.py: " + variableKey)
-
-    # --------------------------------------------------------------------------
-    def finalizeLogging( self ):      
-        pass # No finalization necessary here
 
 # ==============================================================================
