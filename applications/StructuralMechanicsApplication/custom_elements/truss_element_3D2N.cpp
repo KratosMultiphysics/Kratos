@@ -110,10 +110,14 @@ namespace Kratos
 	TrussElement3D2N::MatrixType TrussElement3D2N::CreateElementStiffnessMatrix(){
 
 		KRATOS_TRY
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
+		const int dimension = this->GetGeometry().WorkingSpaceDimension();
+		const int local_size = number_of_nodes * dimension;
+
 		const double E = this->mYoungsModulus;
 		double A = this->mArea;
 		const double S_pre = this->mPreStress;
-		MatrixType LocalStiffnessMatrix = ZeroMatrix(6, 6);
+		MatrixType LocalStiffnessMatrix = ZeroMatrix(local_size, local_size);
 
 		// du... delta displacement in x-direction
 		// dv... delta displacement in y-direction
@@ -390,7 +394,7 @@ namespace Kratos
 
 		this->Initialize();
 		//calculate internal forces
-		VectorType InternalForces = ZeroVector(6);
+		VectorType InternalForces = ZeroVector(LocalSize);
 		this->UpdateInternalForces(InternalForces);
 		//resizing the matrices + create memory for LHS
 		if (rLeftHandSideMatrix.size1() != LocalSize) {
@@ -432,7 +436,7 @@ namespace Kratos
 		}
 		rRightHandSideVector = ZeroVector(LocalSize);
 
-		VectorType InternalForces = ZeroVector(6);
+		VectorType InternalForces = ZeroVector(LocalSize);
 		this->UpdateInternalForces(InternalForces);
 		noalias(rRightHandSideVector) -= InternalForces;
 
@@ -482,6 +486,7 @@ namespace Kratos
 										std::vector<Vector>& rOutput,
 										const ProcessInfo& rCurrentProcessInfo){
 		KRATOS_TRY
+		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const GeometryType::IntegrationPointsArrayType& integration_points =
 			GetGeometry().IntegrationPoints();
 		if (rOutput.size() != integration_points.size()) {
@@ -489,7 +494,7 @@ namespace Kratos
 		}
 		if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR)
 		{
-			Vector Strain = ZeroVector(3);
+			Vector Strain = ZeroVector(dimension);
 			Strain[0] = this->CalculateGreenLagrangeStrain();
 			Strain[1] = 0.00;
 			Strain[2] = 0.00;
@@ -574,7 +579,7 @@ namespace Kratos
 		KRATOS_TRY
 		const double l = this->CalculateCurrentLength();
 		const double L = this->mLength;
-		const double e = ((l * l - L * L) / (2.00f * L * L));
+		const double e = ((l * l - L * L) / (2.00 * L * L));
 		return e;
 		KRATOS_CATCH("")
 	}
@@ -609,7 +614,11 @@ namespace Kratos
 	void TrussElement3D2N::UpdateInternalForces(VectorType& rinternalForces){
 
 		KRATOS_TRY
-		MatrixType TransformationMatrix = ZeroMatrix(6, 6);
+		const int NumNodes = this->GetGeometry().PointsNumber();
+		const int dimension = this->GetGeometry().WorkingSpaceDimension();
+		const int LocalSize = NumNodes * dimension;
+
+		MatrixType TransformationMatrix = ZeroMatrix(LocalSize, LocalSize);
 		this->CreateTransformationMatrix(TransformationMatrix);
 		const double InternalStrainGL = this->CalculateGreenLagrangeStrain();
 		const double l = this->CalculateCurrentLength();
@@ -623,24 +632,28 @@ namespace Kratos
 		else this->mIsCompressed = false;
 
 		//internal force vectors
-		VectorType f_local = ZeroVector(6);
+		VectorType f_local = ZeroVector(LocalSize);
 		f_local[0] = -1.00 * N;
 		f_local[3] = 1.00 * N;
 
-		rinternalForces = ZeroVector(6);
+		rinternalForces = ZeroVector(LocalSize);
 		noalias(rinternalForces) = prod(TransformationMatrix, f_local);
 		KRATOS_CATCH("");
 	}
 
 	void TrussElement3D2N::CreateTransformationMatrix(Matrix& rRotationMatrix){
+
 		KRATOS_TRY
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
+		const int dimension = this->GetGeometry().WorkingSpaceDimension();
+		const int local_size = number_of_nodes * dimension;
 
 		//1st calculate transformation matrix
-		Vector DirectionVectorX = ZeroVector(3);
-		Vector DirectionVectorY = ZeroVector(3);
-		Vector DirectionVectorZ = ZeroVector(3);
-		Vector ReferenceCoordinates = ZeroVector(6);
-		Vector GlobalZ = ZeroVector(3);
+		Vector DirectionVectorX = ZeroVector(dimension);
+		Vector DirectionVectorY = ZeroVector(dimension);
+		Vector DirectionVectorZ = ZeroVector(dimension);
+		Vector ReferenceCoordinates = ZeroVector(local_size);
+		Vector GlobalZ = ZeroVector(dimension);
 		GlobalZ[2] = 1.0;
 
 		ReferenceCoordinates[0] = this->GetGeometry()[0].X();
@@ -650,9 +663,9 @@ namespace Kratos
 		ReferenceCoordinates[4] = this->GetGeometry()[1].Y();
 		ReferenceCoordinates[5] = this->GetGeometry()[1].Z();
 
-		for (unsigned int i = 0; i < 3; ++i)
+		for (unsigned int i = 0; i < dimension; ++i)
 		{
-			DirectionVectorX[i] = (ReferenceCoordinates[i + 3] -
+			DirectionVectorX[i] = (ReferenceCoordinates[i + dimension] -
 				ReferenceCoordinates[i]);
 		}
 		// local x-axis (e1_local) is the beam axis  (in GID is e3_local)
@@ -663,7 +676,7 @@ namespace Kratos
 		double tolerance = 1.0 / 1000.0;
 		if ((fabs(DirectionVectorX[0]) < tolerance) &&
 			(fabs(DirectionVectorX[1]) < tolerance)) {
-			DirectionVectorX = ZeroVector(3);
+			DirectionVectorX = ZeroVector(dimension);
 			DirectionVectorX[2] = 1.0;
 			DirectionVectorY[1] = 1.0;
 			DirectionVectorZ[0] = -1.0;
@@ -685,21 +698,23 @@ namespace Kratos
 		}
 
 		//2nd fill big rotation matrix
-		MatrixType CurrentCS = ZeroMatrix(3, 3);
-		for (int i = 0; i < 3; ++i) {
+		MatrixType CurrentCS = ZeroMatrix(dimension, dimension);
+		for (int i = 0; i < dimension; ++i) {
 			CurrentCS(i, 0) = DirectionVectorX[i];
 			CurrentCS(i, 1) = DirectionVectorY[i];
 			CurrentCS(i, 2) = DirectionVectorZ[i];
 		}
 
-		rRotationMatrix = ZeroMatrix(6, 6);
-		if (rRotationMatrix.size1() != 6) rRotationMatrix.resize(6, 6, false);
+		rRotationMatrix = ZeroMatrix(local_size, local_size);
+		if (rRotationMatrix.size1() != local_size) {
+			rRotationMatrix.resize(local_size, local_size, false);
+		}
 		//Building the rotation matrix for the local element matrix
-		for (unsigned int kk = 0; kk < 6; kk += 3)
+		for (unsigned int kk = 0; kk < local_size; kk += dimension)
 		{
-			for (unsigned int i = 0; i<3; ++i)
+			for (unsigned int i = 0; i<dimension; ++i)
 			{
-				for (unsigned int j = 0; j<3; ++j)
+				for (unsigned int j = 0; j<dimension; ++j)
 				{
 					rRotationMatrix(i + kk, j + kk) = CurrentCS(i, j);
 				}

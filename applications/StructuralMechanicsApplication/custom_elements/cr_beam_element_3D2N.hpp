@@ -176,12 +176,11 @@ namespace Kratos
 	};
 
 
-	class Orientation : public CrBeamElement3D2N
+	class Orientation 
 	{
 	public:
-		Orientation(array_1d<double, 3>& v1, const double theta);
-		Orientation(array_1d<double, 3>& v1, array_1d<double, 3>& v2,
-										     const double theta);
+		Orientation(array_1d<double, 3>& v1, const double theta = 0);
+		Orientation(array_1d<double, 3>& v1, array_1d<double, 3>& v2);
 
 
 		void GetRotationMatrix(bounded_matrix<double, 3, 3>& R);

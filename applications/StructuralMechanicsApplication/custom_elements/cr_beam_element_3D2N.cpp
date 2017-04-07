@@ -374,11 +374,11 @@ namespace Kratos
 		const int size = number_of_nodes * dimension;
 		const int MatSize = 2 * size;
 
-		Vector DirectionVectorX = ZeroVector(3);
-		Vector DirectionVectorY = ZeroVector(3);
-		Vector DirectionVectorZ = ZeroVector(3);
+		Vector DirectionVectorX = ZeroVector(dimension);
+		Vector DirectionVectorY = ZeroVector(dimension);
+		Vector DirectionVectorZ = ZeroVector(dimension);
 		Vector ReferenceCoordinates = ZeroVector(size);
-		Vector GlobalZ = ZeroVector(3);
+		Vector GlobalZ = ZeroVector(dimension);
 		GlobalZ[2] = 1.0;
 
 		ReferenceCoordinates[0] = this->GetGeometry()[0].X0();
@@ -390,7 +390,7 @@ namespace Kratos
 
 		for (unsigned int i = 0; i < dimension; i++)
 		{
-			DirectionVectorX[i] = (ReferenceCoordinates[i + 3] 
+			DirectionVectorX[i] = (ReferenceCoordinates[i + dimension]
 				- ReferenceCoordinates[i]);
 		}
 		// local x-axis (e1_local) is the beam axis  (in GID is e3_local)
@@ -401,7 +401,7 @@ namespace Kratos
 		const double tolerance = 1.0 / 1000.0;
 		if ((fabs(DirectionVectorX[0]) < tolerance) &&
 			(fabs(DirectionVectorX[1]) < tolerance)) {
-			DirectionVectorX = ZeroVector(3);
+			DirectionVectorX = ZeroVector(dimension);
 			DirectionVectorX[2] = 1.0;
 			DirectionVectorY[1] = 1.0;
 			DirectionVectorZ[0] = -1.0;
@@ -414,12 +414,12 @@ namespace Kratos
 			DirectionVectorY = MathUtils<double>::CrossProduct(GlobalZ,
 				DirectionVectorX);
 			VectorNorm = MathUtils<double>::Norm(DirectionVectorY);
-			DirectionVectorY /= VectorNorm;
+			if(VectorNorm != 0) DirectionVectorY /= VectorNorm;
 
 			DirectionVectorZ = MathUtils<double>::CrossProduct(DirectionVectorX,
 				DirectionVectorY);
 			VectorNorm = MathUtils<double>::Norm(DirectionVectorZ);
-			DirectionVectorZ /= VectorNorm;
+			if (VectorNorm != 0) DirectionVectorZ /= VectorNorm;
 		}
 
 		//manual rotation around the beam axis
@@ -434,9 +434,9 @@ namespace Kratos
 			DirectionVectorZ /= MathUtils<double>::Norm(DirectionVectorZ);
 		}
 
-		this->mNX0 = ZeroVector(3);
-		this->mNY0 = ZeroVector(3);
-		this->mNZ0 = ZeroVector(3);
+		this->mNX0 = ZeroVector(dimension);
+		this->mNY0 = ZeroVector(dimension);
+		this->mNZ0 = ZeroVector(dimension);
 		this->mNX0 = DirectionVectorX;
 		this->mNY0 = DirectionVectorY;
 		this->mNZ0 = DirectionVectorZ;
@@ -484,32 +484,37 @@ namespace Kratos
 	CrBeamElement3D2N::MatrixType CrBeamElement3D2N::CalculateTransformationS(){
 
 		KRATOS_TRY
-		VectorType n_x = ZeroVector(3);
-		VectorType n_y = ZeroVector(3);
-		VectorType n_z = ZeroVector(3);
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
+		const int dimension = this->GetGeometry().WorkingSpaceDimension();
+		const int size = number_of_nodes * dimension;
+		const int MatSize = 2 * size;
+
+		VectorType n_x = ZeroVector(dimension);
+		VectorType n_y = ZeroVector(dimension);
+		VectorType n_z = ZeroVector(dimension);
 		n_x[0] = 1.0;
 		n_y[1] = 1.0;
 		n_z[2] = 1.0;
 
 		const double L = this->mCurrentLength;
-		MatrixType S = ZeroMatrix(12, 6);
-		for (int i = 0; i < 3; i++) S(3 + i, 0) = -1.0* n_x[i];
-		for (int i = 0; i < 3; i++) S(9 + i, 0) = n_x[i];
-		for (int i = 0; i < 3; i++) S(3 + i, 1) = -1.0* n_y[i];
-		for (int i = 0; i < 3; i++) S(9 + i, 1) = n_y[i];
-		for (int i = 0; i < 3; i++) S(3 + i, 2) = -1.0* n_z[i];
-		for (int i = 0; i < 3; i++) S(9 + i, 2) = n_z[i];
-		for (int i = 0; i < 3; i++) S(0 + i, 3) = -1.0* n_x[i];
-		for (int i = 0; i < 3; i++) S(6 + i, 3) = n_x[i];
-		for (int i = 0; i < 3; i++) S(3 + i, 4) = n_y[i];
-		for (int i = 0; i < 3; i++) S(9 + i, 4) = n_y[i];
-		for (int i = 0; i < 3; i++) S(3 + i, 5) = n_z[i];
-		for (int i = 0; i < 3; i++) S(9 + i, 5) = n_z[i];
+		MatrixType S = ZeroMatrix(MatSize, size);
+		for (int i = 0; i < dimension; i++) S(3 + i, 0) = -1.0* n_x[i];
+		for (int i = 0; i < dimension; i++) S(9 + i, 0) = n_x[i];
+		for (int i = 0; i < dimension; i++) S(3 + i, 1) = -1.0* n_y[i];
+		for (int i = 0; i < dimension; i++) S(9 + i, 1) = n_y[i];
+		for (int i = 0; i < dimension; i++) S(3 + i, 2) = -1.0* n_z[i];
+		for (int i = 0; i < dimension; i++) S(9 + i, 2) = n_z[i];
+		for (int i = 0; i < dimension; i++) S(0 + i, 3) = -1.0* n_x[i];
+		for (int i = 0; i < dimension; i++) S(6 + i, 3) = n_x[i];
+		for (int i = 0; i < dimension; i++) S(3 + i, 4) = n_y[i];
+		for (int i = 0; i < dimension; i++) S(9 + i, 4) = n_y[i];
+		for (int i = 0; i < dimension; i++) S(3 + i, 5) = n_z[i];
+		for (int i = 0; i < dimension; i++) S(9 + i, 5) = n_z[i];
 
-		for (int i = 0; i < 3; i++) S(0 + i, 4) = -2.0 * n_z[i] / L;
-		for (int i = 0; i < 3; i++) S(6 + i, 4) = 2.0 * n_z[i] / L;
-		for (int i = 0; i < 3; i++) S(0 + i, 5) = 2.0 * n_y[i] / L;
-		for (int i = 0; i < 3; i++) S(6 + i, 5) = -2.0 * n_y[i] / L;
+		for (int i = 0; i < dimension; i++) S(0 + i, 4) = -2.0 * n_z[i] / L;
+		for (int i = 0; i < dimension; i++) S(6 + i, 4) = 2.0 * n_z[i] / L;
+		for (int i = 0; i < dimension; i++) S(0 + i, 5) = 2.0 * n_y[i] / L;
+		for (int i = 0; i < dimension; i++) S(6 + i, 5) = -2.0 * n_y[i] / L;
 
 		return S;
 		KRATOS_CATCH("")
@@ -518,10 +523,14 @@ namespace Kratos
 	CrBeamElement3D2N::MatrixType CrBeamElement3D2N::UpdateRotationMatrixLocal(){
 
 		KRATOS_TRY
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
+		const int size = number_of_nodes * dimension;
+		const int MatSize = 2 * size;
+
 		VectorType dPhiA = ZeroVector(dimension);
 		VectorType dPhiB = ZeroVector(dimension);
-		Vector IncrementDeformation = ZeroVector(12);
+		Vector IncrementDeformation = ZeroVector(MatSize);
 		IncrementDeformation = this->mIncrementDeformation;
 
 		for (int i = 0; i < dimension; i++) {
@@ -1253,62 +1262,127 @@ namespace Kratos
 		const int size = number_of_nodes * dimension;
 		const int MatSize = 2 * size;
 
-		Vector DirectionVectorX = ZeroVector(3);
-		Vector DirectionVectorY = ZeroVector(3);
-		Vector DirectionVectorZ = ZeroVector(3);
-
-		Vector GlobalZ = ZeroVector(3);
+		Vector GlobalZ = ZeroVector(dimension);
 		GlobalZ[2] = 1.0;
 
-		DirectionVectorX = v1;
+		array_1d<double, 3> v2;
+		array_1d<double, 3> v3;
 
 		double VectorNorm;
-		VectorNorm = MathUtils<double>::Norm(DirectionVectorX);
-		if (VectorNorm != 0) DirectionVectorX /= VectorNorm;
+		VectorNorm = MathUtils<double>::Norm(v1);
+		if (VectorNorm != 0) v1 /= VectorNorm;
 
 		const double tolerance = 1.0 / 1000.0;
-		if ((fabs(DirectionVectorX[0]) < tolerance) &&
-			(fabs(DirectionVectorX[1]) < tolerance)) {
+		if ((fabs(v1[0]) < tolerance) &&
+			(fabs(v1[1]) < tolerance)) {
 
-			if (DirectionVectorX[2] > 0.00) {
-				DirectionVectorX = ZeroVector(3);
-				DirectionVectorX[2] = 1.0;
-				DirectionVectorY[1] = 1.0;
-				DirectionVectorZ[0] = -1.0;
+			if (v1[2] > 0.00) {
+				v1 = ZeroVector(dimension);
+				v1[2] = 1.0;
+				v2[1] = 1.0;
+				v3[0] = -1.0;
 			}
 
-			if (DirectionVectorX[2] < 0.00) {
-				DirectionVectorX = ZeroVector(3);
-				DirectionVectorX[2] = -1.0;
-				DirectionVectorY[1] = 1.0;
-				DirectionVectorZ[0] = 1.0;
+			if (v1[2] < 0.00) {
+				v1 = ZeroVector(dimension);
+				v1[2] = -1.0;
+				v2[1] = 1.0;
+				v3[0] = 1.0;
 			}
 		}
 		else {
-			DirectionVectorY = MathUtils<double>::CrossProduct(GlobalZ,
-				DirectionVectorX);
-			VectorNorm = MathUtils<double>::Norm(DirectionVectorY);
-			DirectionVectorY /= VectorNorm;
+			v2 = MathUtils<double>::CrossProduct(GlobalZ,v1);
+			VectorNorm = MathUtils<double>::Norm(v2);
+			v2 /= VectorNorm;
 
-			DirectionVectorZ = MathUtils<double>::CrossProduct(DirectionVectorX,
-				DirectionVectorY);
-			VectorNorm = MathUtils<double>::Norm(DirectionVectorZ);
-			DirectionVectorZ /= VectorNorm;
+			v3 = MathUtils<double>::CrossProduct(v1,v2);
+			VectorNorm = MathUtils<double>::Norm(v3);
+			if (VectorNorm != 0) v3 /= VectorNorm;
 		}
 
 		//manual rotation around the beam axis
-		Vector nz_temp = DirectionVectorZ;
-		Vector ny_temp = DirectionVectorY;
+		Vector nz_temp = v3;
+		Vector ny_temp = v2;
 		if (theta != 0) {
-			DirectionVectorY = ny_temp * cos(theta) + nz_temp * sin(theta);
-			DirectionVectorY /= MathUtils<double>::Norm(DirectionVectorY);
+			v2 = ny_temp * cos(theta) + nz_temp * sin(theta);
+			v2 /= MathUtils<double>::Norm(v2);
 
-			DirectionVectorZ = nz_temp * cos(theta) - ny_temp * sin(theta);
-			DirectionVectorZ /= MathUtils<double>::Norm(DirectionVectorZ);
+			v3 = nz_temp * cos(theta) - ny_temp * sin(theta);
+			v3 /= MathUtils<double>::Norm(v3);
 		}
+
+		Matrix RotationMatrix = ZeroMatrix(dimension);
+		for (int i = 0; i < dimension; i++) {
+			RotationMatrix(i, 0) = v1[i];
+			RotationMatrix(i, 1) = v2[i];
+			RotationMatrix(i, 2) = v3[i];
+		}
+
+		this->GetQuaternion() = Quaternion<double>::FromRotationMatrix(RotationMatrix);
 
 		KRATOS_CATCH("")
 	}
+
+	Orientation::Orientation(array_1d<double, 3>& v1, array_1d<double, 3>& v2) {
+
+		KRATOS_TRY
+		//If the user defines an aditional direction v2
+		const int number_of_nodes = 2;
+		const int dimension = 3;
+		const int size = number_of_nodes * dimension;
+		const int MatSize = 2 * size;
+
+		array_1d<double, 3> v3;
+
+		double VectorNorm;
+		VectorNorm = MathUtils<double>::Norm(v1);
+		if (VectorNorm != 0) v1 /= VectorNorm;
+
+		VectorNorm = MathUtils<double>::Norm(v2);
+		if (VectorNorm != 0) v2 /= VectorNorm;
+
+		v3 = MathUtils<double>::CrossProduct(v1,v2);
+		VectorNorm = MathUtils<double>::Norm(v3);
+		if (VectorNorm != 0) v3 /= VectorNorm;
+
+
+		Matrix RotationMatrix = ZeroMatrix(dimension);
+		for (int i = 0; i < dimension; i++) {
+			RotationMatrix(i, 0) = v1[i];
+			RotationMatrix(i, 1) = v2[i];
+			RotationMatrix(i, 2) = v3[i];
+		}
+
+		this->GetQuaternion() = Quaternion<double>::FromRotationMatrix(RotationMatrix);
+	
+		KRATOS_CATCH("")
+	}
+
+	void Orientation::GetRotationMatrix(bounded_matrix<double, 3, 3>& R) {
+
+		KRATOS_TRY
+		if (R.size1() != 3 || R.size2() != 3) R.resize(3, 3, false);	
+		const Quaternion<double> q = this->GetQuaternion();
+		q.ToRotationMatrix(R);
+		KRATOS_CATCH("")
+	}
+
+	void Orientation::GetBasisVectors(array_1d<double, 3>& v1,
+		array_1d<double, 3>& v2,
+		array_1d<double, 3>& v3) {
+
+		KRATOS_TRY
+		const Quaternion<double> q = this->GetQuaternion();
+		Matrix R = ZeroMatrix(3);
+		q.ToRotationMatrix(R);
+		for (int i = 0; i < 3; i++) {
+			v1[i] = R(i, 0);
+			v2[i] = R(i, 1);
+			v3[i] = R(i, 2);
+		}
+		KRATOS_CATCH("")
+	}
+
 } // namespace Kratos.
 
 
