@@ -397,18 +397,12 @@ namespace Kratos
 		VectorType InternalForces = ZeroVector(LocalSize);
 		this->UpdateInternalForces(InternalForces);
 		//resizing the matrices + create memory for LHS
-		if (rLeftHandSideMatrix.size1() != LocalSize) {
-			rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
-		}
 		rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 		//creating LHS
 		noalias(rLeftHandSideMatrix) = this->CreateElementStiffnessMatrix();
 		this->mLHS = rLeftHandSideMatrix;
 
 		//create+compute RHS
-		if (rRightHandSideVector.size() != LocalSize) {
-			rRightHandSideVector = ZeroVector(LocalSize);
-		}
 		rRightHandSideVector = ZeroVector(LocalSize);
 		//update Residual
 		noalias(rRightHandSideVector) -= InternalForces;
@@ -431,9 +425,6 @@ namespace Kratos
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const int LocalSize = NumNodes * dimension;
 
-		if (rRightHandSideVector.size() != LocalSize) {
-			rRightHandSideVector = ZeroVector(LocalSize);
-		}
 		rRightHandSideVector = ZeroVector(LocalSize);
 
 		VectorType InternalForces = ZeroVector(LocalSize);
@@ -457,9 +448,6 @@ namespace Kratos
 		const int LocalSize = NumNodes * dimension;
 
 		////resizing the matrices + create memory for LHS
-		if (rLeftHandSideMatrix.size1() != LocalSize) {
-			rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
-		}
 		rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 		////creating LHS
 		noalias(rLeftHandSideMatrix) = this->mLHS;
@@ -543,7 +531,7 @@ namespace Kratos
 		if (CROSS_AREA.Key() == 0)
 			KRATOS_ERROR << ("CROSS_AREA has Key zero! (check if the application is correctly registered", "") << std::endl;
 		//verify that the dofs exist
-		for (unsigned int i = 0; i<this->GetGeometry().PointsNumber(); ++i)
+		for (int i = 0; i<this->GetGeometry().PointsNumber(); ++i)
 			{
 			if (this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false)
 				KRATOS_ERROR << ("missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id()) << std::endl;
@@ -663,7 +651,7 @@ namespace Kratos
 		ReferenceCoordinates[4] = this->GetGeometry()[1].Y();
 		ReferenceCoordinates[5] = this->GetGeometry()[1].Z();
 
-		for (unsigned int i = 0; i < dimension; ++i)
+		for (int i = 0; i < dimension; ++i)
 		{
 			DirectionVectorX[i] = (ReferenceCoordinates[i + dimension] -
 				ReferenceCoordinates[i]);
@@ -685,11 +673,13 @@ namespace Kratos
 
 		if (fabs(DirectionVectorX[2]) != 1.00) {
 
-			DirectionVectorY = MathUtils<double>::CrossProduct(GlobalZ, DirectionVectorX);
+			DirectionVectorY = MathUtils<double>::CrossProduct(GlobalZ,
+				DirectionVectorX);
 			VectorNorm = MathUtils<double>::Norm(DirectionVectorY);
 			if (VectorNorm != 0) DirectionVectorY /= VectorNorm;
 
-			DirectionVectorZ = MathUtils<double>::CrossProduct(DirectionVectorX,DirectionVectorY);
+			DirectionVectorZ = MathUtils<double>::CrossProduct(DirectionVectorX,
+				DirectionVectorY);
 			VectorNorm = MathUtils<double>::Norm(DirectionVectorZ);
 			if (VectorNorm != 0) DirectionVectorZ /= VectorNorm;
 		}
@@ -707,11 +697,11 @@ namespace Kratos
 			rRotationMatrix.resize(local_size, local_size, false);
 		}
 		//Building the rotation matrix for the local element matrix
-		for (unsigned int kk = 0; kk < local_size; kk += dimension)
+		for (int kk = 0; kk < local_size; kk += dimension)
 		{
-			for (unsigned int i = 0; i<dimension; ++i)
+			for (int i = 0; i<dimension; ++i)
 			{
-				for (unsigned int j = 0; j<dimension; ++j)
+				for (int j = 0; j<dimension; ++j)
 				{
 					rRotationMatrix(i + kk, j + kk) = CurrentCS(i, j);
 				}

@@ -861,9 +861,6 @@ namespace Kratos
 		nodalForcesLocal_qe = prod(TransformationMatrixS, elementForces_t);
 
 		//resizing the matrices + create memory for LHS
-		if (rLeftHandSideMatrix.size1() != LocalSize) {
-			rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
-		}
 		rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 		//creating LHS
 		noalias(rLeftHandSideMatrix) +=
@@ -883,9 +880,6 @@ namespace Kratos
 
 		//create+compute RHS
 		//update Residual
-		if (rRightHandSideVector.size() != LocalSize) {
-			rRightHandSideVector = ZeroVector(LocalSize);
-		}
 		rRightHandSideVector = ZeroVector(LocalSize);
 		noalias(rRightHandSideVector) -= nodalForcesGlobal_q;
 
@@ -912,9 +906,6 @@ namespace Kratos
 		const int size = NumNodes * dimension;
 		const int LocalSize = NumNodes * dimension * 2;
 
-		if (rRightHandSideVector.size() != LocalSize) {
-			rRightHandSideVector = ZeroVector(LocalSize);
-		}
 		rRightHandSideVector = ZeroVector(LocalSize);
 
 		this->UpdateIncrementDeformation();
@@ -945,9 +936,6 @@ namespace Kratos
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const int LocalSize = NumNodes * dimension * 2;
 
-		if (rLeftHandSideMatrix.size1() != LocalSize) {
-			rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
-		}
 		rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 		noalias(rLeftHandSideMatrix) = this->mLHS;
 		KRATOS_CATCH("")
