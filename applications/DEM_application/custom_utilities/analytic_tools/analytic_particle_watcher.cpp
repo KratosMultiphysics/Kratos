@@ -27,7 +27,8 @@ void AnalyticParticleWatcher::MakeMeasurements(ModelPart& analytic_model_part)
     unsigned int i = 0;
     for (ElementsIteratorType i_elem = analytic_model_part.ElementsBegin(); i_elem != analytic_model_part.ElementsEnd(); ++i_elem){
         AnalyticParticle& particle = dynamic_cast<Kratos::AnalyticSphericParticle&>(*(*(i_elem.base())));
-        KRATOS_WATCH(particle.GetCollidingIds());
+        if (particle.GetCollidingIds()[0]){
+        }
         ++i;
     }
 }

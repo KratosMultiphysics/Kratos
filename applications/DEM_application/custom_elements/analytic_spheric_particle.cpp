@@ -65,30 +65,37 @@ Element::Pointer AnalyticSphericParticle::Create(IndexType NewId, NodesArrayType
     return Element::Pointer(new AnalyticSphericParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
-void AnalyticSphericParticle::CalculateRelativePositions(ParticleDataBuffer & data_buffer)
+void AnalyticSphericParticle::PushBackIdToContactingNeighbours(BaseBufferType & data_buffer, int id)
+{
+    GetPointerToDerivedDataBuffer(data_buffer)->mCurrentContactingNeighbourIds.push_back(id);
+}
+
+void AnalyticSphericParticle::ClearNeighbours(BaseBufferType & data_buffer)
+{
+    GetPointerToDerivedDataBuffer(data_buffer)->mCurrentContactingNeighbourIds.clear();
+}
+
+void AnalyticSphericParticle::CalculateRelativePositions(BaseBufferType & data_buffer)
 {
     SphericParticle::CalculateRelativePositions(data_buffer);
     const auto id = data_buffer.mpOtherParticle->Id();
 
     if (IsNewNeighbour(id)){
         RecordNewImpact(data_buffer);
+        KRATOS_WATCH(id)
     }
 
-    data_buffer.mCurrentContactingNeighbourIds.push_back(id);
+    PushBackIdToContactingNeighbours(data_buffer, int(id));
 }
 
 bool AnalyticSphericParticle::IsNewNeighbour(const int nighbour_id)
 {
-    for (int i = 0; i < int(mContactingNeighbourIds.size()); ++i){
-       if (mContactingNeighbourIds[i] == int(nighbour_id)){
-           return false;
-       }
-    }
+    const bool already_in_contact = std::find(mContactingNeighbourIds.begin(), mContactingNeighbourIds.end(), nighbour_id) != mContactingNeighbourIds.end();
 
-    return true;
+    return !already_in_contact;
 }
 
-void AnalyticSphericParticle::RecordNewImpact(ParticleDataBuffer & data_buffer)
+void AnalyticSphericParticle::RecordNewImpact(BaseBufferType & data_buffer)
 {
     mCollidingIds[mNumberOfCollidingSpheres] = data_buffer.mpOtherParticle->Id();
     mCollidingRadii[mNumberOfCollidingSpheres] = data_buffer.mOtherRadius;
@@ -97,10 +104,11 @@ void AnalyticSphericParticle::RecordNewImpact(ParticleDataBuffer & data_buffer)
     ++mNumberOfCollidingSpheres;
 }
 
-void AnalyticSphericParticle::FinalizeForceComputation(ParticleDataBuffer & data_buffer)
+void AnalyticSphericParticle::FinalizeForceComputation(BaseType::ParticleDataBuffer & data_buffer)
 {
     mNumberOfCollidingSpheres = 0;
-    mContactingNeighbourIds = data_buffer.mCurrentContactingNeighbourIds;
+    mContactingNeighbourIds = AnalyticSphericParticle::GetPointerToDerivedDataBuffer(data_buffer)->mCurrentContactingNeighbourIds;
+    ClearNeighbours(data_buffer);
 }
 
 }  // namespace Kratos.

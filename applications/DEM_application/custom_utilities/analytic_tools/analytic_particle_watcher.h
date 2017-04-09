@@ -28,11 +28,11 @@ KRATOS_CLASS_POINTER_DEFINITION(AnalyticParticleWatcher);
 
 /// Default constructor
 
-AnalyticParticleWatcher() {}
+AnalyticParticleWatcher(){}
 
 /// Destructor
 
-virtual ~AnalyticParticleWatcher();
+virtual ~AnalyticParticleWatcher(){}
 
 virtual void MakeMeasurements(ModelPart& analytic_model_part);
 

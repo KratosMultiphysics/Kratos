@@ -28,6 +28,9 @@ typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
 typedef WeakPointerVector<Element> ParticleWeakVectorType;
 typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
 typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+typedef SphericParticle BaseType;
+typedef BaseType::ParticleDataBuffer BaseBufferType;
+typedef std::unique_ptr<BaseType::ParticleDataBuffer> BaseBufferPointerType;
 
 /// Default constructor.
 AnalyticSphericParticle( IndexType NewId, GeometryType::Pointer pGeometry );
@@ -68,13 +71,16 @@ ParticleDataBuffer(SphericParticle* p_this_particle): SphericParticle::ParticleD
 virtual ~ParticleDataBuffer(){}
 
 std::vector<int> mCurrentContactingNeighbourIds;
-
 };
 
 virtual std::unique_ptr<SphericParticle::ParticleDataBuffer> CreateParticleDataBuffer(SphericParticle* p_this_particle)
 {
     return std::unique_ptr<SphericParticle::ParticleDataBuffer>(new ParticleDataBuffer(p_this_particle));
 }
+
+void PushBackIdToContactingNeighbours(BaseBufferType &data_buffer, int id);
+
+void ClearNeighbours(BaseBufferType & data_buffer);
 
 private:
 
@@ -94,16 +100,23 @@ array_1d<double, 4> mCollidingRadii;
 array_1d<double, 4> mCollidingNormalVelocities;
 array_1d<double, 4> mCollidingTangentialVelocities;
 std::vector<int> mContactingNeighbourIds;
+std::unique_ptr<ParticleDataBuffer> mpDataBuffer;
+
+ParticleDataBuffer* GetPointerToDerivedDataBuffer(BaseBufferType& data_buffer)
+{
+  BaseBufferType *p_raw_data_buffer = &data_buffer;
+  return static_cast<ParticleDataBuffer*>(p_raw_data_buffer);
+}
 
 void ClearMemberVariables();
 
-void FinalizeForceComputation(ParticleDataBuffer & data_buffer);
+void FinalizeForceComputation(BaseBufferType & data_buffer);
 
-void CalculateRelativePositions(ParticleDataBuffer & data_buffer);
+void CalculateRelativePositions(BaseType::ParticleDataBuffer & data_buffer) override;
 
 bool IsNewNeighbour(const int nighbour_id);
 
-void RecordNewImpact(ParticleDataBuffer & data_buffer);
+void RecordNewImpact(BaseType::ParticleDataBuffer & data_buffer);
 
 void save(Serializer& rSerializer) const override
 {

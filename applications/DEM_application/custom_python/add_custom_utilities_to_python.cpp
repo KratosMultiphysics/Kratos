@@ -128,6 +128,11 @@ void AddCustomUtilitiesToPython() {
         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesLL)
         ;
 
+    class_<AnalyticParticleWatcher, boost::noncopyable >
+        ("AnalyticParticleWatcher", init<>())
+        .def("MakeMeasurements", &AnalyticParticleWatcher::MakeMeasurements)
+        ;
+
     class_<DEM_FEM_Search, boost::noncopyable >
         ("DEM_FEM_Search", init<>())
         .def("GetBBHighPoint", &DEM_FEM_Search::GetBBHighPoint)

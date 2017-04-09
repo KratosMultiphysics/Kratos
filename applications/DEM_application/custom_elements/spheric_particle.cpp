@@ -149,7 +149,7 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
 
     // Creating a data buffer to store those variables that we want to reuse so that we can keep function parameter lists short
 
-    std::unique_ptr<ParticleDataBuffer> p_buffer = CreateParticleDataBuffer(this); // all memory will be freed once this shared pointer goes out of scope
+    SphericParticle::BufferPointerType p_buffer = CreateParticleDataBuffer(this); // all memory will be freed once this shared pointer goes out of scope
     ParticleDataBuffer& data_buffer = *p_buffer;
     NodeType& this_node = GetGeometry()[0];
 
