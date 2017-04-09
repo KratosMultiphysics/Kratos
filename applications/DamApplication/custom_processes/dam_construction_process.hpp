@@ -14,7 +14,6 @@
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
-#include "utilities/activation_utilities.h"
 #include "dam_application_variables.h"
 
 namespace Kratos
@@ -26,9 +25,6 @@ class DamConstructionProcess : public Process
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION(DamConstructionProcess);
-
-    typedef ModelPart::NodesContainerType NodesArrayType;
-    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
