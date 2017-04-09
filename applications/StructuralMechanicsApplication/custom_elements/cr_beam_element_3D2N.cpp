@@ -1272,26 +1272,21 @@ namespace Kratos
 		VectorNorm = MathUtils<double>::Norm(v1);
 		if (VectorNorm != 0) v1 /= VectorNorm;
 
-		if (fabs(v1[2]) > cos(10 * 2 * PI / 360)) {
-
-			if (v1[2] > 0.00) {
-				v1 = ZeroVector(dimension);
-				v1[2] = 1.0;
+		if (v1[2] == 1.00) {
 				v2[1] = 1.0;
 				v3[0] = -1.0;
 			}
 
-			else if (v1[2] < 0.00) {
-				v1 = ZeroVector(dimension);
-				v1[2] = -1.0;
+		if (v1[2] ==  -1.00) {
 				v2[1] = 1.0;
 				v3[0] = 1.0;
-			}
 		}
-		else {
+
+		if (fabs(v1[2]) != 1.00) {
+
 			v2 = MathUtils<double>::CrossProduct(v1, GlobalZ);
 			VectorNorm = MathUtils<double>::Norm(v2);
-			v2 /= VectorNorm;
+			if (VectorNorm != 0) v2 /= VectorNorm;
 
 			v3 = MathUtils<double>::CrossProduct(v2, v1);
 			VectorNorm = MathUtils<double>::Norm(v3);
@@ -1306,10 +1301,12 @@ namespace Kratos
 			const double SinTheta = sin(theta);
 
 			v2 = ny_temp * CosTheta + nz_temp * SinTheta;
-			v2 /= MathUtils<double>::Norm(v2);
+			VectorNorm = MathUtils<double>::Norm(v2);
+			if (VectorNorm != 0) v2 /= VectorNorm;
 
 			v3 = nz_temp * CosTheta - ny_temp * SinTheta;
-			v3 /= MathUtils<double>::Norm(v3);
+			VectorNorm = MathUtils<double>::Norm(v3);
+			if (VectorNorm != 0) v3 /= VectorNorm;
 		}
 
 		Matrix RotationMatrix = ZeroMatrix(dimension);
@@ -1318,7 +1315,6 @@ namespace Kratos
 			RotationMatrix(i, 1) = v2[i];
 			RotationMatrix(i, 2) = v3[i];
 		}
-
 
 		this->GetQuaternion() = Quaternion<double>::FromRotationMatrix(RotationMatrix);
 

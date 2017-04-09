@@ -673,28 +673,25 @@ namespace Kratos
 		VectorNorm = MathUtils<double>::Norm(DirectionVectorX);
 		if (VectorNorm != 0) DirectionVectorX /= VectorNorm;
 
-		double tolerance = 1.0 / 1000.0;
-		if ((fabs(DirectionVectorX[0]) < tolerance) &&
-			(fabs(DirectionVectorX[1]) < tolerance)) {
-			DirectionVectorX = ZeroVector(dimension);
-			DirectionVectorX[2] = 1.0;
+		if (DirectionVectorX[2] == 1.00) {
 			DirectionVectorY[1] = 1.0;
 			DirectionVectorZ[0] = -1.0;
-			if (ReferenceCoordinates[2] > ReferenceCoordinates[5]) {
-				DirectionVectorX *= -1.0;
-				DirectionVectorZ *= -1.0;
-			}
 		}
-		else {
-			DirectionVectorY = MathUtils<double>::CrossProduct(GlobalZ,
-				DirectionVectorX);
-			VectorNorm = MathUtils<double>::Norm(DirectionVectorY);
-			DirectionVectorY /= VectorNorm;
 
-			DirectionVectorZ = MathUtils<double>::CrossProduct(DirectionVectorX,
-				DirectionVectorY);
+		if (DirectionVectorX[2] == -1.00) {
+			DirectionVectorY[1] = 1.0;
+			DirectionVectorZ[0] = 1.0;
+		}
+
+		if (fabs(DirectionVectorX[2]) != 1.00) {
+
+			DirectionVectorY = MathUtils<double>::CrossProduct(GlobalZ, DirectionVectorX);
+			VectorNorm = MathUtils<double>::Norm(DirectionVectorY);
+			if (VectorNorm != 0) DirectionVectorY /= VectorNorm;
+
+			DirectionVectorZ = MathUtils<double>::CrossProduct(DirectionVectorX,DirectionVectorY);
 			VectorNorm = MathUtils<double>::Norm(DirectionVectorZ);
-			DirectionVectorZ /= VectorNorm;
+			if (VectorNorm != 0) DirectionVectorZ /= VectorNorm;
 		}
 
 		//2nd fill big rotation matrix
