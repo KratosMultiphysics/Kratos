@@ -1299,8 +1299,8 @@ namespace Kratos
 		}
 
 		//manual rotation around the beam axis
-		Vector nz_temp = v3;
-		Vector ny_temp = v2;
+		const Vector nz_temp = v3;
+		const Vector ny_temp = v2;
 		if (theta != 0) {
 			v2 = ny_temp * cos(theta) + nz_temp * sin(theta);
 			v2 /= MathUtils<double>::Norm(v2);
