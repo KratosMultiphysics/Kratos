@@ -181,7 +181,7 @@ namespace Kratos
 	class Orientation 
 	{
 	public:
-		Orientation(array_1d<double, 3>& v1, const double theta = 0);
+		Orientation(array_1d<double, 3>& v1, const double theta = 0.00);
 		Orientation(array_1d<double, 3>& v1, array_1d<double, 3>& v2);
 
 
