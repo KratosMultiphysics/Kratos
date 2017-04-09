@@ -1272,9 +1272,7 @@ namespace Kratos
 		VectorNorm = MathUtils<double>::Norm(v1);
 		if (VectorNorm != 0) v1 /= VectorNorm;
 
-		const double tolerance = 1.0 / 1000.0;
-		if ((fabs(v1[0]) < tolerance) &&
-			(fabs(v1[1]) < tolerance)) {
+		if (fabs(v1[2]) > cos(10 * 2 * PI / 360)) {
 
 			if (v1[2] > 0.00) {
 				v1 = ZeroVector(dimension);
@@ -1317,6 +1315,7 @@ namespace Kratos
 			RotationMatrix(i, 1) = v2[i];
 			RotationMatrix(i, 2) = v3[i];
 		}
+
 
 		this->GetQuaternion() = Quaternion<double>::FromRotationMatrix(RotationMatrix);
 
