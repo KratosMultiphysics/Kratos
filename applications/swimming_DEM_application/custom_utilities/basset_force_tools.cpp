@@ -10,7 +10,7 @@ namespace Kratos
 {
 void BassetForceTools::FillDaitcheVectors(const int N, const int order, const int n_steps_per_quad_step)
 {
-    std::cout << "\nFilling up vectors of coefficients for Daitche quadrature...";
+    std::cout << "\nFilling up vectors of coefficients for Daitche quadrature...\n";
 
     if (!N){
         return;
@@ -138,7 +138,22 @@ void BassetForceTools::FillDaitcheVectors(const int N, const int order, const in
                     48 * OneOver315 *  (       SWIMMING_POW_7(sqrt_j_minus_2)     - SWIMMING_POW_7(sqrt_j)) + 336 * OneOver315 * SWIMMING_POW_5(sqrt_j)
                          + OneOver9 *  (- 22 * SWIMMING_POW_3(sqrt_j)         - 2 * SWIMMING_POW_3(sqrt_j_minus_2)) + 2 * sqrt_j);
         }
+
     }
+
+    // Filling up the static variables of other versions of swimming particle, since each template instance has their own variables
+
+    std::vector<double>& Ajs_analytic = SphericSwimmingParticle<AnalyticSphericParticle>::mAjs;
+    std::vector<double>& Bns_analytic = SphericSwimmingParticle<AnalyticSphericParticle>::mBns;
+    std::vector<double>& Cns_analytic = SphericSwimmingParticle<AnalyticSphericParticle>::mCns;
+    std::vector<double>& Dns_analytic = SphericSwimmingParticle<AnalyticSphericParticle>::mDns;
+    std::vector<double>& Ens_analytic = SphericSwimmingParticle<AnalyticSphericParticle>::mEns;
+
+    Ajs_analytic = Ajs;
+    Bns_analytic = Bns;
+    Cns_analytic = Cns;
+    Dns_analytic = Dns;
+    Ens_analytic = Ens;
 
     std::cout << "...Finished filling up vectors of coefficients.\n";
 }
@@ -157,7 +172,7 @@ void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m,
         return;
     }
 
-    std::cout << "\nFilling up vectors of coefficients for Hinsberg method with m = " << m << " ...";
+    std::cout << "\nFilling up vectors of coefficients for Hinsberg method with m = " << m << " ...\n";
     double & t_win = SphericSwimmingParticle<SphericParticle>::mTimeWindow;
     std::vector<double>& As = SphericSwimmingParticle<SphericParticle>::mAs;
     std::vector<double>& Ts = SphericSwimmingParticle<SphericParticle>::mTs;
@@ -468,6 +483,20 @@ void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m,
         Alphas[i] = std::sqrt(e / Ts[i]);
         Betas[i] = - 0.5 / Ts[i];
     }
+
+    // Filling up the static variables of other versions of swimming particle, since each template instance has their own variables
+
+     double & t_win_analytic = SphericSwimmingParticle<AnalyticSphericParticle>::mTimeWindow;
+     std::vector<double>& As_analytic = SphericSwimmingParticle<AnalyticSphericParticle>::mAs;
+     std::vector<double>& Ts_analytic = SphericSwimmingParticle<AnalyticSphericParticle>::mTs;
+     std::vector<double>& Alphas_analytic = SphericSwimmingParticle<AnalyticSphericParticle>::mAlphas;
+     std::vector<double>& Betas_analytic = SphericSwimmingParticle<AnalyticSphericParticle>::mBetas;
+
+     t_win_analytic = t_win;
+     As_analytic = As;
+     Ts_analytic = Ts;
+     Alphas_analytic = Alphas;
+     Betas_analytic = Betas;
 
     // Filling up the particles' individual vectors
 
