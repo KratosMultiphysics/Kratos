@@ -24,7 +24,7 @@
 
 
 // Project includes
-#include "includes/define.h"
+#include "processes/find_intersected_geometrical_objects_process.h"
 
 
 namespace Kratos
