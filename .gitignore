@@ -53,28 +53,3 @@ kratos/includes/kratos_version.h
 # Output of tests of meshing application (MMG)
 *.o.sol
 *.o.mesh
-
-
-# User defined by Philipp##
-cmake_build_debug/*
-
-# Partitioned mdpa files
-*0.mdpa
-*1.mdpa
-*2.mdpa
-*3.mdpa
-*4.mdpa
-*5.mdpa
-*6.mdpa
-*7.mdpa
-*8.mdpa
-*9.mdpa
-
-# Tests output directories
-applications/MappingApplication/tests/NearestNeighborMapperTest_gid_output
-applications/MappingApplication/tests/MapperTests_gid_output
-applications/MappingApplication/tests/NearestElementMapperTest2D_gid_output
-applications/MappingApplication/development
-
-applications/MappingApplication/tests/output_tests.txt
-applications/MappingApplication/tests/output_kratos.txt
