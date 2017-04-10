@@ -360,6 +360,19 @@ public:
         return sqrt( length );
     }
 
+    /**
+     * Returns whether given arbitrary point is inside the Geometry
+     */
+    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() ) override
+    {
+        this->PointLocalCoordinates( rResult, rPoint );
+
+        if ( fabs( rResult[0] ) <= (1.0 + Tolerance) )
+            return true;
+
+        return false;
+    }
+
 
     ///@}
     ///@name Jacobian
