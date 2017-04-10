@@ -505,10 +505,9 @@ protected:
     std::vector<std::size_t> localSlaveEquationIds;
     std::vector<std::size_t> localInternEquationIds;
     // Formulating the local slave equationId vector
-    int i = 0;
-    for(auto id : EquationId){
+    // Formulating the local slave equationId vector
+    for(int i=0; i<EquationId.size(); ++i){
         localEquationIds.push_back(i);
-        ++i;
     }
     
     for ( unsigned int j = 0; j < number_of_nodes; ++j ){ // Loop over the nodes
@@ -667,10 +666,8 @@ protected:
     std::vector<std::size_t> localSlaveEquationIds;
     std::vector<std::size_t> localInternEquationIds;
     // Formulating the local slave equationId vector
-    int i = 0;
-    for(auto id : EquationId){
+    for(int i=0; i<EquationId.size(); ++i){
         localEquationIds.push_back(i);
-        ++i;
     }
     
     for ( unsigned int j = 0; j < number_of_nodes; ++j ){ // Loop over the nodes
