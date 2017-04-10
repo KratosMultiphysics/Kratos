@@ -6,7 +6,7 @@ QUESTION: Start_Time
 VALUE: 0.0
 HELP: Units in IS: s
 QUESTION: End_Time
-VALUE: 2.4
+VALUE: 3.0
 HELP: Units in IS: s
 QUESTION: Delta_Time
 VALUE: 0.1
@@ -31,7 +31,7 @@ HELP: Length defining the domain of interaction between non-local damaged points
 QUESTION: Fracture_Propagation#CB#(true,false)
 VALUE: true
 HELP: Only for pre-defined crack-tips defined with interface elements.
-DEPENDENCIES: (true,RESTORE,Propagation_Length,#CURRENT#,RESTORE,Propagation_Damage,#CURRENT#,RESTORE,Propagation_Frequency,#CURRENT#,RESTORE,Propagation_Width,#CURRENT#,RESTORE,Propagation_Height,#CURRENT#,RESTORE,Propagation_CosAngle,#CURRENT#)(false,HIDE,Propagation_Length,#CURRENT#,HIDE,Propagation_Damage,#CURRENT#,HIDE,Propagation_Frequency,#CURRENT#,HIDE,Propagation_Width,#CURRENT#,HIDE,Propagation_Height,#CURRENT#,HIDE,Propagation_CosAngle,#CURRENT#)
+DEPENDENCIES: (true,RESTORE,Propagation_Length,#CURRENT#,RESTORE,Propagation_Damage,#CURRENT#,RESTORE,Propagation_Frequency,#CURRENT#,RESTORE,Propagation_Width,#CURRENT#,RESTORE,Propagation_Height,#CURRENT#,RESTORE,Propagation_CosAngle,#CURRENT#,RESTORE,Straight_Propagation,#CURRENT#)(false,HIDE,Propagation_Length,#CURRENT#,HIDE,Propagation_Damage,#CURRENT#,HIDE,Propagation_Frequency,#CURRENT#,HIDE,Propagation_Width,#CURRENT#,HIDE,Propagation_Height,#CURRENT#,HIDE,Propagation_CosAngle,#CURRENT#,HIDE,Straight_Propagation,#CURRENT#)
 QUESTION: Propagation_Damage
 VALUE: 0.5
 HELP: Damage threshold after which propagation occurs.
@@ -46,7 +46,10 @@ VALUE: 0.01
 HELP: Third dimension of the propagation. Only for 3D cases.
 QUESTION: Propagation_CosAngle
 VALUE: 0.0
-HELP: Cosinus of the angle defining the front sector of straight propagation. It ranges from 0.0 (only straight propagation) to 1.0 (only bifurcation).
+HELP: Cosinus of the angle defining the front sector of simple propagation. It ranges from 0.0 (only simple propagation) to 1.0 (only bifurcation).
+QUESTION: Straight_Propagation#CB#(true,false)
+VALUE: true
+HELP: Flag defining whether the fracture must advance allways in the direction of the initial crack.
 QUESTION: Propagation_Frequency
 VALUE: 1
 HELP: Number of steps after which the fracture propagation will be checked. Set 1 if propagation should be checked at every time step.
@@ -145,8 +148,8 @@ QUESTION: Write_Local_Permeability#CB#(true,false)
 VALUE: false
 QUESTION: GiD_post_mode#CB#(GiD_PostAscii,GiD_PostAsciiZipped,GiD_PostBinary,GiD_PostHDF5)
 VALUE: GiD_PostBinary
-QUESTION: Write_deformed_mesh#CB#(WriteDeformed,WriteUndeformed)
-VALUE: WriteDeformed
+QUESTION: Write_deformed_mesh#CB#(WriteUndeformed,WriteDeformed)
+VALUE: WriteUndeformed
 HELP: Write the coordinates of the mesh in its deformed position. Note: With the DISPLACEMENT variable GiD allows obtaining the deformed mesh regardless of this flag.
 QUESTION: Write_conditions#CB#(WriteConditions,WriteElementsOnly,WriteConditionsOnly)
 VALUE: WriteElementsOnly
@@ -156,9 +159,9 @@ VALUE: MultipleFiles
 QUESTION: File_label#CB#(step,time)
 VALUE: time
 QUESTION: Output_control_type#CB#(step,time)
-VALUE: time
+VALUE: step
 QUESTION: Output_frequency
-VALUE: 0.0001
+VALUE: 1
 QUESTION: Body_output#CB#(true,false)
 VALUE: true
 QUESTION: Node_output#CB#(true,false)

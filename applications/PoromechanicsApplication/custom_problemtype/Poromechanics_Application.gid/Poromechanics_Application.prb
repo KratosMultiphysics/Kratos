@@ -155,7 +155,7 @@ VALUE: false
 
 QUESTION: GiD_post_mode#CB#(GiD_PostAscii,GiD_PostAsciiZipped,GiD_PostBinary,GiD_PostHDF5)
 VALUE: GiD_PostBinary
-QUESTION: Write_deformed_mesh#CB#(WriteDeformed,WriteUndeformed)
+QUESTION: Write_deformed_mesh#CB#(WriteUndeformed,WriteDeformed)
 VALUE: WriteUndeformed
 HELP: Write the coordinates of the mesh in its deformed position. Note: With the DISPLACEMENT variable GiD allows obtaining the deformed mesh regardless of this flag.
 QUESTION: Write_conditions#CB#(WriteConditions,WriteElementsOnly,WriteConditionsOnly)
