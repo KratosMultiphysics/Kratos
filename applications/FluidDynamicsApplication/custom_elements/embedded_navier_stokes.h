@@ -54,12 +54,10 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-// TODO: UPDATE THIS INFORMATION
-/**this element is a 3D stokes element, stabilized by employing an ASGS stabilization
-* formulation is described in the file:
-*    https://drive.google.com/file/d/0B_gRLnSH5vCwZ2Zxd09YUmlPZ28/view?usp=sharing
-* symbolic implementation is defined in the file:
-*    https://drive.google.com/file/d/0B_gRLnSH5vCwaXRKRUpDbmx4VXM/view?usp=sharing
+/**
+* This is a 2D and 3D Navier-Stokes embedded element, stabilized by employing an ASGS stabilization
+* Both the formulation and the symbolic implementation can be found in the symbolic_generation
+* folder of the FluidDynamicsApplication.
 */
 template< unsigned int TDim, unsigned int TNumNodes = TDim + 1 >
 class EmbeddedNavierStokes : public NavierStokes<TDim, TNumNodes>
@@ -144,25 +142,32 @@ public:
         return pNewElement;
     }
 
+
+    /**
+     * Calculates both LHS and RHS contributions
+     * @param rLeftHandSideMatrix: reference to the LHS matrix
+     * @param rRightHandSideVector: reference to the RHS vector
+     * @param rCurrentProcessInfo: reference to the ProcessInfo
+     */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
                               ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);    // Matrix size
+        constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);
 
         if (rLeftHandSideMatrix.size1() != MatrixSize)
         {
-            rLeftHandSideMatrix.resize(MatrixSize, MatrixSize, false); // false says not to preserve existing storage!!
+            rLeftHandSideMatrix.resize(MatrixSize, MatrixSize, false); // false says to not preserve existing storage!!
         }
         else if (rLeftHandSideMatrix.size2() != MatrixSize)
         {
-            rLeftHandSideMatrix.resize(MatrixSize, MatrixSize, false); // false says not to preserve existing storage!!
+            rLeftHandSideMatrix.resize(MatrixSize, MatrixSize, false); // false says to not preserve existing storage!!
         }
 
         if (rRightHandSideVector.size() != MatrixSize)
-            rRightHandSideVector.resize(MatrixSize, false); // false says not to preserve existing storage!!
+            rRightHandSideVector.resize(MatrixSize, false);            // false says to not preserve existing storage!!
 
         // Struct to pass around the data
         ElementDataType data;
@@ -293,13 +298,22 @@ public:
     }
 
 
+    /**
+     * Calculates both LHS and RHS elemental contributions for those cases in where
+     * all the nodes belong to the fluid domain.
+     * @param lhs_local: reference to the Gauss pt. LHS matrix
+     * @param rhs_local: reference to the Gauss pt. RHS vector
+     * @param rLeftHandSideMatrix: reference to the LHS matrix
+     * @param rRightHandSideVector: reference to the RHS vector
+     * @param rData: reference to element data structure
+     * @param rCurrentProcessInfo: reference to the ProcessInfo
+     */
     template<unsigned int MatrixSize>
     void ComputeElementAsFluid(bounded_matrix<double,MatrixSize, MatrixSize>& lhs_local,
                                array_1d<double,MatrixSize>& rhs_local,
                                MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
-                            //    const double& Volume,
-                               ElementDataType& data,
+                               ElementDataType& rData,
                                ProcessInfo& rCurrentProcessInfo)
     {
         // Shape functions Gauss points values
@@ -309,35 +323,44 @@ public:
         // Loop on gauss point
         for(unsigned int igauss = 0; igauss<Ncontainer.size2(); igauss++)
         {
-            noalias(data.N) = row(Ncontainer, igauss);
+            noalias(rData.N) = row(Ncontainer, igauss);
 
-            BaseType::ComputeConstitutiveResponse(data, rCurrentProcessInfo);
+            BaseType::ComputeConstitutiveResponse(rData, rCurrentProcessInfo);
 
-            BaseType::ComputeGaussPointLHSContribution(lhs_local, data);
-            BaseType::ComputeGaussPointRHSContribution(rhs_local, data);
+            BaseType::ComputeGaussPointLHSContribution(lhs_local, rData);
+            BaseType::ComputeGaussPointRHSContribution(rhs_local, rData);
 
             // All the Gauss pts. have the same weight so the accumulated contributions can be multiplied by volume/n_nodes at the end
             noalias(rLeftHandSideMatrix) += lhs_local;
             noalias(rRightHandSideVector) += rhs_local;
         }
 
-        rLeftHandSideMatrix *= data.volume/static_cast<double>(TNumNodes);
-        rRightHandSideVector *= data.volume/static_cast<double>(TNumNodes);;
+        rLeftHandSideMatrix *= rData.volume/static_cast<double>(TNumNodes);
+        rRightHandSideVector *= rData.volume/static_cast<double>(TNumNodes);;
     }
 
 
+    /**
+    * Calculates both LHS and RHS elemental contributions for those cases in where
+    * the element has both fluid and structure nodes.
+    * @param lhs_local: reference to the Gauss pt. LHS matrix
+    * @param rhs_local: reference to the Gauss pt. RHS vector
+    * @param rLeftHandSideMatrix: reference to the LHS matrix
+    * @param rRightHandSideVector: reference to the RHS vector
+    * @param rData: reference to element data structure
+    * @param rCurrentProcessInfo: reference to the ProcessInfo
+    * @param distances: reference to an array containing the nodal distance
+    */
     template<unsigned int MatrixSize>
     void ComputeElementAsMixed(bounded_matrix<double,MatrixSize, MatrixSize>& lhs_local,
                                array_1d<double,MatrixSize>& rhs_local,
                                MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
-                            //    const double& Volume,
-                               ElementDataType& data,
+                               ElementDataType& rData,
                                ProcessInfo& rCurrentProcessInfo,
                                array_1d<double, TNumNodes>& distances)
     {
-        constexpr unsigned int nEdges = (TDim-1)*3;                // Edges per element
-        //~ constexpr unsigned int BlockSize = TDim+1;                 // Block size
+        constexpr unsigned int nEdges = (TDim-1)*3;     // Edges per element
 
         MatrixType Ncontainer;
         VectorType gauss_volumes;
@@ -345,8 +368,7 @@ public:
         VectorType edge_areas(nEdges);
 
         // Splitting to determine the new Gauss pts.
-        //~ unsigned int ndivisions = ComputeSplitting(data, Ncontainer, gauss_volumes, DNvalues, Nenriched, signs, distances, edge_areas);
-        unsigned int ndivisions = ComputeSplitting(data, Ncontainer, gauss_volumes, signs, distances, edge_areas);
+        unsigned int ndivisions = ComputeSplitting(rData, Ncontainer, gauss_volumes, signs, distances, edge_areas);
 
         //~ std::cout << "Mixed element: " << this->Id() << " ndivisions = " << ndivisions << " distances: " << distances[0] << " " << distances[1] << " " << distances[2] << " " << distances[3] << " " << std::endl;
 
@@ -361,8 +383,7 @@ public:
             // Gauss pt. is FLUID (the element is close to be full of fluid)
             if(dgauss > 0.0)
             {
-                // ComputeElementAsFluid<MatrixSize>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, rCurrentProcessInfo);
-                ComputeElementAsFluid<MatrixSize>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, data, rCurrentProcessInfo);
+                ComputeElementAsFluid<MatrixSize>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, rData, rCurrentProcessInfo);
             }
         }
         else
@@ -373,17 +394,17 @@ public:
                 // Loop on gauss points
                 for(unsigned int igauss = 0; igauss<4; igauss++)
                 {
-                    noalias(data.N) = row(Ncontainer, division*4+igauss); // Take the new Gauss pts. shape functions values
+                    noalias(rData.N) = row(Ncontainer, division*4+igauss); // Take the new Gauss pts. shape functions values
 
-                    const double dgauss = inner_prod(distances, data.N);  // Compute the distance on the gauss point
+                    const double dgauss = inner_prod(distances, rData.N);  // Compute the distance on the gauss point
 
                     // Gauss pt. is FLUID
                     if(dgauss > 0.0)
                     {
-                        BaseType::ComputeConstitutiveResponse(data, rCurrentProcessInfo);
+                        BaseType::ComputeConstitutiveResponse(rData, rCurrentProcessInfo);
 
-                        BaseType::ComputeGaussPointLHSContribution(lhs_local, data);
-                        BaseType::ComputeGaussPointRHSContribution(rhs_local, data);
+                        BaseType::ComputeGaussPointLHSContribution(lhs_local, rData);
+                        BaseType::ComputeGaussPointRHSContribution(rhs_local, rData);
 
                         noalias(rLeftHandSideMatrix) += gauss_volumes[division*4+igauss]*lhs_local;
                         noalias(rRightHandSideVector) += gauss_volumes[division*4+igauss]*rhs_local;
@@ -393,7 +414,7 @@ public:
         }
 
         // Add level set boundary terms, penalty and modified Nitche contributions
-        AddBoundaryConditionElementContribution(rLeftHandSideMatrix, rRightHandSideVector, data, distances, edge_areas, ndivisions);
+        AddBoundaryConditionElementContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, distances, edge_areas, ndivisions);
     }
 
 
@@ -534,17 +555,27 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    unsigned int ComputeSplitting(const ElementDataType& data,
+    /**
+    * Computes the element splitting according to the distance values.
+    * @param rData: reference to element data structure
+    * @param rShapeFunctionValues: reference to a matrix containing the Gauss pt. shape function values
+    * @param rGaussVolumes: reference to a vector containing the Gauss pt. volumes (or areas)
+    * @param rPartitionSigns: reference to a vector containing the computed partition signs
+    * @param rDistances: reference to an array containing the nodal distance values
+    * @param rEdgeAreas: reference to an array containing intersection edge areas
+    * @return ndivisions: number of divisions
+    */
+    unsigned int ComputeSplitting(const ElementDataType& rData,
                                   MatrixType& rShapeFunctionValues,
                                   VectorType& rGaussVolumes,
                                   VectorType& rPartitionSigns,
-                                  const array_1d<double,TNumNodes>& distances,
+                                  const array_1d<double,TNumNodes>& rDistances,
                                   VectorType& rEdgeAreas)
     {
 
         unsigned int ndivisions = 1;
-        VectorType NodalDistances = distances;
-        MatrixType NoSplitGradients = data.DN_DX;
+        VectorType NodalDistances = rDistances;
+        MatrixType NoSplitGradients = rData.DN_DX;
 
         // Fill nodal coordinates
         MatrixType NodalCoords(TNumNodes, TDim);
@@ -558,60 +589,61 @@ protected:
             }
         }
 
-        //~ ndivisions = DiscontinuousShapeFunctionsUtilities::CalculateDiscontinuousShapeFunctions(NodalCoords, NoSplitGradients,
-        //~ NodalDistances, rGaussVolumes,
-        //~ rShapeFunctionValues, rPartitionSigns,
-        //~ rEnrGradientsValues, rEnrShapeFunctionValues,
-        //~ rEdgeAreas);
-
-        //~ ndivisions = EnrichmentUtilitiesDuplicateDofs_new::CalculateTetrahedraEnrichedShapeFuncions_new(NodalCoords, NoSplitGradients,
-        //~ NodalDistances, rGaussVolumes,
-        //~ rShapeFunctionValues, rPartitionSigns,
-        //~ rEnrGradientsValues, rEnrShapeFunctionValues,
-        //~ rEdgeAreas);
-
-        ndivisions = SplitTetrahedraUtilities::CalculateSplitTetrahedraShapeFuncions(NodalCoords, NoSplitGradients,
-                                                                                     NodalDistances, rGaussVolumes,
-                                                                                     rShapeFunctionValues, rPartitionSigns,
-                                                                                     rEdgeAreas);
+        ndivisions = SplitTetrahedraUtilities::CalculateSplitTetrahedraShapeFuncions(NodalCoords, NoSplitGradients, NodalDistances, rGaussVolumes,
+                                                                                     rShapeFunctionValues, rPartitionSigns, rEdgeAreas);
 
         return ndivisions;
     }
 
-
-    unsigned int IntersectionGeometryUtility(const array_1d<double,TNumNodes>& distances,
-                                             const VectorType& edge_areas,
-                                             const ElementDataType& data,
-                                             unsigned int& npos,
-                                             unsigned int& nneg,
-                                             std::vector<unsigned int>& int_vec,
-                                             std::vector<unsigned int>& out_vec,
-                                             VectorType& cut_areas,
-                                             array_1d<double, TDim>& intersection_normal,
-                                             MatrixType& Ncontainer_cut,
-                                             MatrixType& Ncontainer_int,
-                                             MatrixType& Ncontainer_out)
+    /**
+    * Computes the element splitting according to the distance values.
+    * @param rDistances: reference to an array containing the nodal distance values
+    * @param rEdgeAreas: reference to an array containing intersection edge areas
+    * @param rData: reference to element data structure
+    * @param nPos: reference to the number of positive distance nodes
+    * @param nNeg: reference to the number of negative distance nodes
+    * @param rInt_vec: reference to a vector containing the identifiers of the interior nodes
+    * @param rOut_vec: reference to a vector containing the identifiers of the outside nodes
+    * @param rCut_areas: reference to a vector containing the intersection areas
+    * @param rIntersection_normal: reference to the intersection normal vector
+    * @param rNcontainer_cut: reference to a matrix containing all the shape function values at the intersection
+    * @param rNcontainer_int: reference to a matrix containing the interior shape function values at the intersection
+    * @param rNcontainer_out: reference to a matrix containing the outside shape function values at the intersection
+    * @return cut_points: number of cut points
+    */
+    unsigned int IntersectionGeometryUtility(const array_1d<double,TNumNodes>& rDistances,
+                                             const VectorType& rEdgeAreas,
+                                             const ElementDataType& rData,
+                                             unsigned int& nPos,
+                                             unsigned int& nNeg,
+                                             std::vector<unsigned int>& rInt_vec,
+                                             std::vector<unsigned int>& rOut_vec,
+                                             VectorType& rCut_areas,
+                                             array_1d<double, TDim>& rIntersection_normal,
+                                             MatrixType& rNcontainer_cut,
+                                             MatrixType& rNcontainer_int,
+                                             MatrixType& rNcontainer_out)
     {
-        constexpr unsigned int nDOFs = TDim+1;                     // DOFs per node
-        constexpr unsigned int nEdges = (TDim-1)*3;                // Edges per element
+        constexpr unsigned int nDOFs = TDim+1;          // DOFs per node
+        constexpr unsigned int nEdges = (TDim-1)*3;     // Edges per element
 
-        npos = 0;
-        nneg = 0;
+        nPos = 0;
+        nNeg = 0;
 
-        int_vec.clear();
-        out_vec.clear();
+        rInt_vec.clear();
+        rOut_vec.clear();
 
         for (unsigned int inode = 0; inode<TNumNodes; inode++)
         {
-            if(distances[inode] > 0)
+            if(rDistances[inode] > 0)
             {
-                int_vec.push_back(inode);
-                npos++; // Number of positive distance value nodes (fluid)
+                rInt_vec.push_back(inode);
+                nPos++; // Number of positive distance value nodes (fluid)
             }
             else
             {
-                out_vec.push_back(inode);
-                nneg++; // Number of negative distance value nodes (structure)
+                rOut_vec.push_back(inode);
+                nNeg++; // Number of negative distance value nodes (structure)
             }
         }
 
@@ -630,7 +662,7 @@ protected:
                 j_edges(aux_count) = j;     // Construct the edges j-nodes vector
                 cut_edges(aux_count) = 0;
 
-                if((distances[i]*distances[j])<0)
+                if((rDistances[i]*rDistances[j])<0)
                 {
                     cut_points++;
                     cut_edges(aux_count) = 1; // Flag 1 says that this edge is cut
@@ -641,14 +673,14 @@ protected:
         }
 
         // Store the non-zero edge areas in an auxiliar vector cut_areas
-        cut_areas.resize(cut_points, false);
+        rCut_areas.resize(cut_points, false);
 
         // Compute the shape function values at the intersection points
-        Ncontainer_cut = ZeroMatrix(cut_points, TNumNodes);     // Shape function values at the interface
-        Ncontainer_int = ZeroMatrix(cut_points, npos);          // Interior nodes shape function values at the interface
-        Ncontainer_out = ZeroMatrix(cut_points, nneg);          // Exterior nodes shape function values at the interface
+        rNcontainer_cut = ZeroMatrix(cut_points, TNumNodes);     // Shape function values at the interface
+        rNcontainer_int = ZeroMatrix(cut_points, nPos);          // Interior nodes shape function values at the interface
+        rNcontainer_out = ZeroMatrix(cut_points, nNeg);          // Exterior nodes shape function values at the interface
 
-        // Ncontainer_cut matrix fill
+        // rNcontainer_cut matrix fill
         unsigned int icut = 0;
         for (unsigned int i = 0; i<nEdges; i++)
         {
@@ -658,13 +690,13 @@ protected:
                 unsigned int j_node = j_edges(i);
 
                 // We take advantage of the fact that the sh. funct. that do not belong to the edge vanish along it (linear elements)
-                double aux = fabs(distances[i_node])/(fabs(distances[i_node])+fabs(distances[j_node])+1e-30);
+                double aux = fabs(rDistances[i_node])/(fabs(rDistances[i_node])+fabs(rDistances[j_node])+1e-30);
 
                 // The columns associated to the nodes that conform the cut edge are filled. The other two columns remain as zero
-                Ncontainer_cut(icut,i_node) = 1.0-aux;
-                Ncontainer_cut(icut,j_node) = aux;
+                rNcontainer_cut(icut,i_node) = 1.0-aux;
+                rNcontainer_cut(icut,j_node) = aux;
 
-                cut_areas(icut) = edge_areas(i);
+                rCut_areas(icut) = rEdgeAreas(i);
 
                 icut++;
             }
@@ -673,34 +705,42 @@ protected:
         // Ncontainer_int and Ncontainer_out matrices fill
         for (unsigned int i = 0; i<cut_points; i++)
         {
-            for (unsigned int j = 0; j<npos; j++)
+            for (unsigned int j = 0; j<nPos; j++)
             {
-                Ncontainer_int(i,j) = Ncontainer_cut(i,int_vec[j]);
+                rNcontainer_int(i,j) = rNcontainer_cut(i,rInt_vec[j]);
             }
 
-            for (unsigned int j = 0; j<nneg; j++)
+            for (unsigned int j = 0; j<nNeg; j++)
             {
-                Ncontainer_out(i,j) = Ncontainer_cut(i,out_vec[j]);
+                rNcontainer_out(i,j) = rNcontainer_cut(i,rOut_vec[j]);
             }
         }
 
         // Compute intersection normal (gradient of the distance function)
-        noalias(intersection_normal) = -prod(trans(data.DN_DX), distances);
-        intersection_normal /= (norm_2(intersection_normal)+1e-15);
+        noalias(rIntersection_normal) = -prod(trans(rData.DN_DX), rDistances);
+        rIntersection_normal /= (norm_2(rIntersection_normal)+1e-15);
 
         return cut_points;
 
     }
 
 
-    // This functions adds the contribution of the boundary terms in the level set cut
-    // These terms, which do not vanish at the level set since the test function is not zero
-    // at the intersection points, come from the integration by parts of the stress term.
+    /**
+    * This functions adds the contribution of the boundary terms in the level set cut
+    * These terms, which do not vanish at the level set since the test function is not zero
+    * at the intersection points, come from the integration by parts of the stress term.
+    * @param rLeftHandSideMatrix: reference to the LHS matrix
+    * @param rRightHandSideVector: reference to the RHS vector
+    * @param rData: reference to element data structure
+    * @param rCut_areas: reference to the intersection areas vector
+    * @param rIntersection_normal: reference to the intersection normal vector
+    * @param rNcontainer_cut: reference to a matrix containing all the shape function values at the intersection
+    */
     void AddIntersectionBoundaryTermsContribution(MatrixType& rLeftHandSideMatrix,
                                                   VectorType& rRightHandSideVector,
-                                                  const ElementDataType& data,
-                                                  const VectorType& cut_areas,
-                                                  const VectorType& intersection_normal,
+                                                  const ElementDataType& rData,
+                                                  const VectorType& rCut_areas,
+                                                  const VectorType& rIntersection_normal,
                                                   const MatrixType& Ncontainer_cut)
     {
         constexpr unsigned int BlockSize = TDim+1;
@@ -712,7 +752,7 @@ protected:
         VectorType auxRightHandSideVector = ZeroVector(MatrixSize);
         MatrixType auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, TNumNodes);
 
-        unsigned int cut_points = cut_areas.size();
+        unsigned int cut_points = rCut_areas.size();
 
         // Compute the contribution of the boundary pressure term at the intersection
         for (unsigned int icut=0; icut<cut_points; icut++)
@@ -721,13 +761,13 @@ protected:
             aux = row(Ncontainer_cut, icut);
             aux_normal = ZeroVector(MatrixSize);
 
-            double weight = cut_areas(icut);
+            double weight = rCut_areas(icut);
 
             for (unsigned int i=0; i<TNumNodes; i++)
             {
                 for(unsigned int j=0; j<TDim; j++)
                 {
-                    aux_normal(i*BlockSize+j) = aux(i)*intersection_normal(j);
+                    aux_normal(i*BlockSize+j) = aux(i)*rIntersection_normal(j);
                 }
             }
 
@@ -745,14 +785,14 @@ protected:
         }
 
         // Assemble and compute the RHS pressure residual contribution at the intersection
-        noalias(rRightHandSideVector) -= prod(auxLeftHandSideMatrix, data.p);
+        noalias(rRightHandSideVector) -= prod(auxLeftHandSideMatrix, rData.p);
 
         // Compute the contribution of the tangential boundary stress term at the intersection
         bounded_matrix<double, TDim, (TDim-1)*3> normal_matrix;         // Set normal matrix
-        SetNormalMatrix(intersection_normal, normal_matrix);
+        SetNormalMatrix(rIntersection_normal, normal_matrix);
 
         bounded_matrix<double, (TDim-1)*3, TNumNodes*TDim> B_matrix;    // Set strain matrix
-        SetStrainMatrix(data, B_matrix);
+        SetStrainMatrix(rData, B_matrix);
 
         bounded_matrix<double, TNumNodes*TDim, TDim> w_matrix;
         bounded_matrix<double, TNumNodes*TDim, (TDim-1)*3> aux_matrix;
@@ -766,7 +806,7 @@ protected:
         for (unsigned int icut=0; icut<cut_points; icut++)
         {
             aux = row(Ncontainer_cut, icut);
-            double weight = cut_areas(icut);
+            double weight = rCut_areas(icut);
 
             w_matrix.clear();
             aux_matrix.clear();
@@ -780,7 +820,7 @@ protected:
             }
 
             noalias(aux_matrix) = prod(w_matrix, normal_matrix);
-            aux_matrix = prod(aux_matrix, data.C);
+            aux_matrix = prod(aux_matrix, rData.C);
 
             noalias(auxLeftHandSideMatrix) += weight*prod(aux_matrix, B_matrix);
 
@@ -807,9 +847,9 @@ protected:
 
         for (unsigned int i = 0; i<TNumNodes; i++)
         {
-            prev_sol(i*TDim) = data.v(i,0);
-            prev_sol(i*TDim+1) = data.v(i,1);
-            prev_sol(i*TDim+2) = data.v(i,2);
+            prev_sol(i*TDim) = rData.v(i,0);
+            prev_sol(i*TDim+1) = rData.v(i,1);
+            prev_sol(i*TDim+2) = rData.v(i,2);
         }
 
         noalias(auxRightHandSideVector) = prod(auxLeftHandSideMatrix, prev_sol);
@@ -827,12 +867,21 @@ protected:
     }
 
 
+    /**
+    * This functions adds the penalty extra term level set contribution.
+    * @param rLeftHandSideMatrix: reference to the LHS matrix
+    * @param rRightHandSideVector: reference to the RHS vector
+    * @param rData: reference to element data structure
+    * @param rCut_points: reference to the number of cut points
+    * @param rCut_areas: reference to the intersection areas vector
+    * @param rNcontainer_cut: reference to a matrix containing all the shape function values at the intersection
+    */
     void AddBoundaryConditionPenaltyContribution(MatrixType& rLeftHandSideMatrix,
                                                  VectorType& rRightHandSideVector,
-                                                 const ElementDataType& data,
-                                                 const unsigned int& cut_points,
-                                                 const VectorType& cut_areas,
-                                                 const MatrixType& Ncontainer_cut)
+                                                 const ElementDataType& rData,
+                                                 const unsigned int& rCut_points,
+                                                 const VectorType& rCut_areas,
+                                                 const MatrixType& rNcontainer_cut)
     {
         constexpr unsigned int BlockSize = TDim+1;                 // Block size
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;   // Matrix size
@@ -844,7 +893,7 @@ protected:
         {
             for (unsigned int comp=0; comp<TDim; comp++)
             {
-                prev_sol(i*BlockSize+comp) = data.v(i,comp);
+                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
             }
         }
 
@@ -855,12 +904,12 @@ protected:
 
         double intersection_area = 0.0;
 
-        for (unsigned int icut = 0; icut<cut_points; icut++)
+        for (unsigned int icut = 0; icut<rCut_points; icut++)
         {
-            double weight = cut_areas(icut);
+            double weight = rCut_areas(icut);
             intersection_area += weight;
 
-            aux_cut = row(Ncontainer_cut, icut);
+            aux_cut = row(rNcontainer_cut, icut);
 
             P_gamma += weight*outer_prod(aux_cut,aux_cut);
         }
@@ -876,20 +925,10 @@ protected:
         }
 
         // TODO: Think about this value. Now is K*max(LHS(i,i))*IntArea (we integrate P_gamma over the intersection area)
-        double h = data.h;
+        double h = rData.h;
         double denominator = std::max(0.0001*h*h, intersection_area);
-        //~ KRATOS_WATCH(denominator)
-        //~ KRATOS_WATCH(diag_max)
 
         double pen_coef = 100.0*diag_max/denominator;
-
-        //~ if (diag_max < 10e-6)
-        //~ {
-        //~ pen_coef = 10e6*diag_max/denominator;
-        //~ }
-        //~ double pen_coef = 1.0;
-
-        //~ KRATOS_WATCH(pen_coef)
 
         // Multiply the penalty matrix by the penalty coefficient
         P_gamma *= pen_coef;
@@ -940,13 +979,26 @@ protected:
     }
 
 
+    /**
+    * This functions adds the level set strong boundary condition imposition contribution.
+    * @param rLeftHandSideMatrix: reference to the LHS matrix
+    * @param rRightHandSideVector: reference to the RHS vector
+    * @param rData: reference to element data structure
+    * @param rCut_points: reference to the number of cut points
+    * @param rInt_vec: reference to a vector containing the interior nodes identifiers
+    * @param rOut_vec: reference to a vector containing the outside nodes identifiers
+    * @param rCut_areas: reference to the intersection areas vector
+    * @param rNcontainer_cut: reference to a matrix containing all the shape function values at the intersection
+    * @param rNcontainer_int: reference to a matrix containing the interior shape function values at the intersection
+    * @param rNcontainer_out: reference to a matrix containing the outside shape function values at the intersection
+    */
     void AddBoundaryConditionNitcheContribution(MatrixType& rLeftHandSideMatrix,
                                                 VectorType& rRightHandSideVector,
-                                                const ElementDataType& data,
-                                                const unsigned int& cut_points,
-                                                const std::vector<unsigned int> int_vec,
-                                                const std::vector<unsigned int> out_vec,
-                                                const VectorType& cut_areas,
+                                                const ElementDataType& rData,
+                                                const unsigned int& rCut_points,
+                                                const std::vector<unsigned int>& rInt_vec,
+                                                const std::vector<unsigned int>& rOut_vec,
+                                                const VectorType& rCut_areas,
                                                 const MatrixType& Ncontainer_cut,
                                                 const MatrixType& Ncontainer_int,
                                                 const MatrixType& Ncontainer_out)
@@ -956,8 +1008,8 @@ protected:
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;   // Matrix size
 
         // Intersection geometry data computation
-        unsigned int npos = int_vec.size();
-        unsigned int nneg = out_vec.size();
+        unsigned int npos = rInt_vec.size();
+        unsigned int nneg = rOut_vec.size();
 
         // Obtain the previous iteration velocity solution
         array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
@@ -966,7 +1018,7 @@ protected:
         {
             for (unsigned int comp=0; comp<TDim; comp++)
             {
-                prev_sol(i*BlockSize+comp) = data.v(i,comp);
+                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
             }
         }
 
@@ -979,9 +1031,9 @@ protected:
         VectorType aux_int(npos);
         VectorType aux_cut(TNumNodes);
 
-        for (unsigned int icut=0; icut<cut_points; icut++)
+        for (unsigned int icut=0; icut<rCut_points; icut++)
         {
-            double weight = cut_areas(icut);
+            double weight = rCut_areas(icut);
 
             aux_out = row(Ncontainer_out, icut);
             aux_int = row(Ncontainer_int, icut);
@@ -992,24 +1044,13 @@ protected:
             f_gamma += weight*outer_prod(aux_out,aux_cut);
         }
 
-        //~ KRATOS_WATCH(M_gamma)
-        //~ KRATOS_WATCH(N_gamma)
-        //~ KRATOS_WATCH(f_gamma)
-
-        //~ double min_M = pow(0.01*data.h,4);
-
-        //~ for (unsigned int i=0; i<nneg; i++)
-        //~ {
-        //~ M_gamma(i,i) = std::max(M_gamma(i,i), min_M);
-        //~ }
-
         // Declare auxLeftHandSideMatrix
         MatrixType auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
 
         // Set the u_out rows to zero (outside nodes used to impose the BC)
         for (unsigned int i = 0; i<nneg; i++)
         {
-            unsigned int out_node_row_id = out_vec[i];
+            unsigned int out_node_row_id = rOut_vec[i];
 
             for (unsigned int j = 0; j<TDim; j++)
             {
@@ -1028,11 +1069,11 @@ protected:
         // Outer nodes contribution assembly
         for (unsigned int i = 0; i<nneg; i++)
         {
-            unsigned int out_node_row_id = out_vec[i];
+            unsigned int out_node_row_id = rOut_vec[i];
 
             for (unsigned int j = 0; j<nneg; j++)
             {
-                unsigned int out_node_col_id = out_vec[j];
+                unsigned int out_node_col_id = rOut_vec[j];
 
                 for (unsigned int comp = 0; comp<TDim; comp++)
                 {
@@ -1044,11 +1085,11 @@ protected:
         // Interior nodes contribution assembly
         for (unsigned int i = 0; i<nneg; i++)
         {
-            unsigned int out_node_row_id = out_vec[i];
+            unsigned int out_node_row_id = rOut_vec[i];
 
             for (unsigned int j = 0; j<npos; j++)
             {
-                unsigned int int_node_col_id = int_vec[j];
+                unsigned int int_node_col_id = rInt_vec[j];
 
                 for (unsigned int comp = 0; comp<TDim; comp++)
                 {
@@ -1082,7 +1123,7 @@ protected:
             // Asemble the RHS f_gamma contribution
             for (unsigned int i=0; i<nneg; i++)
             {
-                unsigned int out_node_row_id = out_vec[i];
+                unsigned int out_node_row_id = rOut_vec[i];
 
                 for (unsigned int j=0; j<TNumNodes; j++)
                 {
@@ -1099,12 +1140,21 @@ protected:
     }
 
 
+    /**
+    * This functions collects and adds all the level set boundary condition contributions
+    * @param rLeftHandSideMatrix: reference to the LHS matrix
+    * @param rRightHandSideVector: reference to the RHS vector
+    * @param rData: reference to element data structure
+    * @param rDistances: reference to an array containing the nodal distance values
+    * @param rEdge_areas: reference to an array containing the intersection edge areas
+    * @param rNdivisions: reference to the number of divisions
+    */
     void AddBoundaryConditionElementContribution(MatrixType& rLeftHandSideMatrix,
-            VectorType& rRightHandSideVector,
-            const ElementDataType& data,
-            const array_1d<double, TNumNodes>& distances,
-            const VectorType& edge_areas,
-            const unsigned int& ndivisions)
+                                                 VectorType& rRightHandSideVector,
+                                                 const ElementDataType& rData,
+                                                 const array_1d<double, TNumNodes>& rDistances,
+                                                 const VectorType& rEdge_areas,
+                                                 const unsigned int& rNdivisions)
     {
 
         // Intersection geometry data computation
@@ -1115,28 +1165,33 @@ protected:
         array_1d<double, TDim> intersection_normal;
         MatrixType Ncontainer_cut, Ncontainer_int, Ncontainer_out;
 
-        unsigned int cut_points = IntersectionGeometryUtility(distances, edge_areas, data, npos, nneg,
+        unsigned int cut_points = IntersectionGeometryUtility(rDistances, rEdge_areas, rData, npos, nneg,
                                                               int_vec, out_vec, cut_areas, intersection_normal,
                                                               Ncontainer_cut, Ncontainer_int, Ncontainer_out);
 
         // Add all the boundary intersection terms
-        if (ndivisions > 1)
+        if (rNdivisions > 1)
         {
             // Compute and assemble the boundary terms level set contribution
-            AddIntersectionBoundaryTermsContribution(rLeftHandSideMatrix, rRightHandSideVector, data,
+            AddIntersectionBoundaryTermsContribution(rLeftHandSideMatrix, rRightHandSideVector, rData,
                                                      cut_areas, intersection_normal, Ncontainer_cut);
 
             // Compute and assemble the penalty boundary condition imposition contribution
+            // TODO: AddSlipBoundaryConditionPenaltyContribution
             AddBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector,
-                                                    data, cut_points, cut_areas, Ncontainer_cut);
+                                                    rData, cut_points, cut_areas, Ncontainer_cut);
 
             // Compute and assemble the modified Nitche method boundary condition imposition contribution
             // Note that the Nitche contribution has to be computed the last since it modifies the outer nodes contribution
-            AddBoundaryConditionNitcheContribution(rLeftHandSideMatrix, rRightHandSideVector, data, cut_points, int_vec,
+            // TODO: AddSlipBoundaryConditionNitcheContribution
+            AddBoundaryConditionNitcheContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, cut_points, int_vec,
                                                    out_vec, cut_areas, Ncontainer_cut, Ncontainer_int, Ncontainer_out);
         }
         // Add a penalty contribution to enforce the BC imposition at the level set when the distance value is close to 0
-        else if (ndivisions == 1)
+        // Note that this is an excepcional case in where there are both positive and negative distance value but the intersection
+        // utility determines that there are no intersections (this might happen if the level set is too close to a node).
+        // TODO: Add slip version
+        else if (rNdivisions == 1)
         {
             constexpr unsigned int BlockSize = TDim+1;                 // Block size
             constexpr unsigned int MatrixSize = TNumNodes*BlockSize;   // Matrix size
@@ -1155,18 +1210,18 @@ protected:
 
             if (TDim == 2)
             {
-                tol_d = 1e-2*sqrt(data.h);
+                tol_d = 1e-2*sqrt(rData.h);
             }
             else
             {
-                tol_d = 1e-2*pow(data.h, 1.0/3.0);
+                tol_d = 1e-2*pow(rData.h, 1.0/3.0);
             }
 
-            double pen_coef = std::max((diag_max/(0.1*data.h*data.h)),(1000*data.h*data.h));
+            double pen_coef = std::max((diag_max/(0.1*rData.h*rData.h)),(1000*rData.h*rData.h));
 
             for (unsigned int i=0; i<TNumNodes; i++)
             {
-                if (fabs(distances[i])<tol_d)
+                if (fabs(rDistances[i])<tol_d)
                 {
                     // LHS penalty contribution assembly
                     for (unsigned int comp=0; comp<TDim; comp++)
@@ -1187,70 +1242,79 @@ protected:
                     // RHS residual contribution assembly
                     for (unsigned int comp = 0; comp<TDim; comp++)
                     {
-                        rRightHandSideVector(i*BlockSize+comp) -= pen_coef*data.v(i,comp);
+                        rRightHandSideVector(i*BlockSize+comp) -= pen_coef*rData.v(i,comp);
                     }
-                    //~ rRightHandSideVector(i*BlockSize+BlockSize) -= pen_coef*data.p(i);
                 }
             }
         }
     }
 
 
-    void SetNormalMatrix(const VectorType& intersection_normal,
-                         bounded_matrix<double, TDim, (TDim-1)*3>& normal_matrix)
+    /**
+    * This functions sets the intersection normal matrix
+    * @param rIntersection_normal: reference to intersection normal vector
+    * @param rNormal_matrix: reference to the computed intersection normal matrix
+    */
+    void SetNormalMatrix(const VectorType& rIntersection_normal,
+                         bounded_matrix<double, TDim, (TDim-1)*3>& rNormal_matrix)
     {
-        normal_matrix.clear();
+        rNormal_matrix.clear();
 
         if (TDim == 3)
         {
-            normal_matrix(0,0) = intersection_normal(0);
-            normal_matrix(0,3) = intersection_normal(1);
-            normal_matrix(0,5) = intersection_normal(2);
-            normal_matrix(1,1) = intersection_normal(1);
-            normal_matrix(1,3) = intersection_normal(0);
-            normal_matrix(1,4) = intersection_normal(2);
-            normal_matrix(2,2) = intersection_normal(2);
-            normal_matrix(2,4) = intersection_normal(1);
-            normal_matrix(2,5) = intersection_normal(0);
+            rNormal_matrix(0,0) = rIntersection_normal(0);
+            rNormal_matrix(0,3) = rIntersection_normal(1);
+            rNormal_matrix(0,5) = rIntersection_normal(2);
+            rNormal_matrix(1,1) = rIntersection_normal(1);
+            rNormal_matrix(1,3) = rIntersection_normal(0);
+            rNormal_matrix(1,4) = rIntersection_normal(2);
+            rNormal_matrix(2,2) = rIntersection_normal(2);
+            rNormal_matrix(2,4) = rIntersection_normal(1);
+            rNormal_matrix(2,5) = rIntersection_normal(0);
         }
         else
         {
-            normal_matrix(0,0) = intersection_normal(0);
-            normal_matrix(0,2) = intersection_normal(1);
-            normal_matrix(1,1) = intersection_normal(1);
-            normal_matrix(1,2) = intersection_normal(0);
+            rNormal_matrix(0,0) = rIntersection_normal(0);
+            rNormal_matrix(0,2) = rIntersection_normal(1);
+            rNormal_matrix(1,1) = rIntersection_normal(1);
+            rNormal_matrix(1,2) = rIntersection_normal(0);
         }
     }
 
 
-    void SetStrainMatrix(const ElementDataType& data,
-                         bounded_matrix<double, (TDim-1)*3, TNumNodes*TDim>& B_matrix)
+    /**
+    * This functions sets the B strain matrix
+    * @param rData: reference to element data structure (it contains the shape functions derivatives)
+    * @param rB_matrix: reference to the computed B strain matrix
+    */
+    void SetStrainMatrix(const ElementDataType& rData,
+                         bounded_matrix<double, (TDim-1)*3, TNumNodes*TDim>& rB_matrix)
     {
-        B_matrix.clear();
+        rB_matrix.clear();
 
         if (TDim == 3)
         {
             for (unsigned int i=0; i<TNumNodes; i++)
             {
-                B_matrix(0,i*TDim) = data.DN_DX(i,0);
-                B_matrix(1,i*TDim+1) = data.DN_DX(i,1);
-                B_matrix(2,i*TDim+2) = data.DN_DX(i,2);
-                B_matrix(3,i*TDim) = data.DN_DX(i,1);
-                B_matrix(3,i*TDim+1) = data.DN_DX(i,0);
-                B_matrix(4,i*TDim+1) = data.DN_DX(i,2);
-                B_matrix(4,i*TDim+2) = data.DN_DX(i,1);
-                B_matrix(5,i*TDim) = data.DN_DX(i,2);
-                B_matrix(5,i*TDim+2) = data.DN_DX(i,0);
+                rB_matrix(0,i*TDim)   = rData.DN_DX(i,0);
+                rB_matrix(1,i*TDim+1) = rData.DN_DX(i,1);
+                rB_matrix(2,i*TDim+2) = rData.DN_DX(i,2);
+                rB_matrix(3,i*TDim)   = rData.DN_DX(i,1);
+                rB_matrix(3,i*TDim+1) = rData.DN_DX(i,0);
+                rB_matrix(4,i*TDim+1) = rData.DN_DX(i,2);
+                rB_matrix(4,i*TDim+2) = rData.DN_DX(i,1);
+                rB_matrix(5,i*TDim)   = rData.DN_DX(i,2);
+                rB_matrix(5,i*TDim+2) = rData.DN_DX(i,0);
             }
         }
         else
         {
             for (unsigned int i=0; i<TNumNodes; i++)
             {
-                B_matrix(0,i*TDim) = data.DN_DX(i,0);
-                B_matrix(1,i*TDim+1) = data.DN_DX(i,1);
-                B_matrix(2,i*TDim) = data.DN_DX(i,1);
-                B_matrix(2,i*TDim+1) = data.DN_DX(i,0);
+                rB_matrix(0,i*TDim)   = rData.DN_DX(i,0);
+                rB_matrix(1,i*TDim+1) = rData.DN_DX(i,1);
+                rB_matrix(2,i*TDim)   = rData.DN_DX(i,1);
+                rB_matrix(2,i*TDim+1) = rData.DN_DX(i,0);
             }
         }
     }
