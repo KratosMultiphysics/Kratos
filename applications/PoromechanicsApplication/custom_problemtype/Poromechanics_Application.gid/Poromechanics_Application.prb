@@ -50,7 +50,7 @@ VALUE: 0.0
 HELP: Cosinus of the angle defining the front sector of simple propagation. It ranges from 0.0 (only simple propagation) to 1.0 (only bifurcation).
 QUESTION: Straight_Propagation#CB#(true,false)
 VALUE: true
-HELP: Flag defining whether the fracture must advance allways in the direction of the initial crack.
+HELP: Flag defining whether the fracture must advance always in the direction of the initial crack.
 QUESTION: Propagation_Frequency
 VALUE: 1
 HELP: Number of steps after which the fracture propagation will be checked. Set 1 if propagation should be checked at every time step.
