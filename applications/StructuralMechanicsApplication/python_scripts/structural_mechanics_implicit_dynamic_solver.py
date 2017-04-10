@@ -49,6 +49,7 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             "implex": false,
             "compute_reactions": true,
             "compute_contact_forces": false,
+            "multi_point_constraints_used":false,
             "block_builder": false,
             "clear_storage": false,
             "component_wise": false,
@@ -91,6 +92,10 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
         if self.settings["rotation_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.POINT_TORQUE)
+        '''elif self.settings["multi_point_constraints_used"].GetBool():
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.IS_SLAVE)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.SLAVES)'''
+            
    
         print("::[Mechanical Solver]:: Variables ADDED")
 
@@ -98,7 +103,7 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
     def _GetSolutionScheme(self, scheme_type, component_wise, compute_contact_forces):
 
         if(scheme_type == "Newmark") or (scheme_type == "Bossak"):
-            mechanical_scheme = super(ImplicitMechanicalSolver,self)._GetSolutionScheme(scheme_type, component_wise, compute_contact_forces)
+            mechanical_scheme = super(ImplicitMechanicalSolver,self)._GetSolutionScheme(scheme_type, component_wise, compute_contact_forces)            
 
         elif(scheme_type == "Relaxation"):
           #~ self.main_model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString()).AddNodalSolutionStepVariable(DISPLACEMENT)  
@@ -112,3 +117,11 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
                                                                                                                 self.settings["dynamic_factor_m"].GetDouble())
                                 
         return mechanical_scheme
+    
+    def _GetBuilderAndSolver(self, component_wise, block_builder):
+        if self.settings["multi_point_constraints_used"].GetBool():
+            builder_and_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedBlockBuilderAndSolverWithMpc(self.linear_solver)
+        else:
+            builder_and_solver = super(ImplicitMechanicalSolver,self)._GetBuilderAndSolver(component_wise, block_builder)
+            
+        return builder_and_solver

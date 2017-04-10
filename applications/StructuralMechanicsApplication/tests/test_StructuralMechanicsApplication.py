@@ -20,8 +20,12 @@ from SmallTests import ShellT3ThinBendingRollUpTests as TShellT3ThinBendingRollU
 from SmallTests import ShellT3ThinDrillingRollUpTests as TShellT3ThinDrillingRollUpTests
 from SmallTests import EigenQ4Thick2x2PlateTests as TEigenQ4Thick2x2PlateTests
 from SmallTests import EigenTL3D8NCubeTests as TEigenTL3D8NCubeTests
+<<<<<<< HEAD
 from SmallTests import Simple3D2NTrussTest as T3D2NTrussTest
 from SmallTests import Simple3D2NBeamCrTest as T3D2NBeamCrTest
+=======
+from SmallTests import MPCSmallDisplacementElementTests as MPCSmallDisplacementElementTests
+>>>>>>> multipoint_constraints
 
 ## NIGTHLY TESTS
 from NightlyTests import ShellT3IsotropicScordelisTests as TShellT3IsotropicScordelisTests
@@ -56,8 +60,12 @@ def AssambleTestSuites():
     smallSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
     smallSuite.addTest(TEigenQ4Thick2x2PlateTests('test_execution'))
     smallSuite.addTest(TEigenTL3D8NCubeTests('test_execution'))
+<<<<<<< HEAD
     smallSuite.addTest(T3D2NTrussTest('test_execution'))  
     smallSuite.addTest(T3D2NBeamCrTest('test_execution'))    
+=======
+    smallSuite.addTest(MPCSmallDisplacementElementTests('test_execution'))
+>>>>>>> multipoint_constraints
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -82,8 +90,12 @@ def AssambleTestSuites():
             TShellT3ThinBendingRollUpTests,
             TShellT3ThinDrillingRollUpTests,
             TShellT3IsotropicScordelisTests,
+<<<<<<< HEAD
             T3D2NTrussTest,
             T3D2NBeamCrTest
+=======
+            TMpcSmallDispElemTests
+>>>>>>> multipoint_constraints
             ######TSprismPanTests
         ])
     )
