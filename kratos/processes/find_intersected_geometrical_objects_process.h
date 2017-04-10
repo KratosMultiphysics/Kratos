@@ -274,6 +274,10 @@ namespace Kratos
 
       ///@}
 
+	protected:
+		void FindIntersectedSkinObjects(ModelPart::ElementsContainerType::ContainerType& rElements,
+			std::vector<PointerVector<GeometricalObject>>& rResults);
+
     private:
       ///@name Static Member Variables
       ///@{
@@ -295,6 +299,7 @@ namespace Kratos
 		void SetOctreeBoundingBox();
 		void MarkIfIntersected(Element& rElement1, std::vector<OctreeType::cell_type*>& leaves);
 		bool HasIntersection(Element::GeometryType& rFirstGeometry, Element::GeometryType& rSecondGeometry);
+		void FindIntersectedSkinObjects(Element& rElement1, std::vector<OctreeType::cell_type*>& leaves, PointerVector<GeometricalObject>& rResults);
 
 
       ///@}
