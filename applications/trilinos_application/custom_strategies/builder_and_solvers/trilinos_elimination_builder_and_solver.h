@@ -1099,7 +1099,7 @@ public:
 
     //**************************************************************************
     //**************************************************************************
-    void ResizeAndInitializeVectors(
+    void ResizeAndInitializeVectors( typename TSchemeType::Pointer pScheme,
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,

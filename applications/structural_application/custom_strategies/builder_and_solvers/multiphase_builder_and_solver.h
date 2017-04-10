@@ -898,7 +898,7 @@ public:
 
     //**************************************************************************
     //**************************************************************************
-    void ResizeAndInitializeVectors(
+    void ResizeAndInitializeVectors( typename TSchemeType::Pointer pScheme,
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
@@ -1024,8 +1024,8 @@ public:
             Kaa.resize( mAirPressureFreeDofs, mAirPressureFreeDofs, false );
 
 
-            ConstructMatrixStructure( Kuu, Kuw, Kua, Kwu, Kww, Kwa, Kau, Kaw, Kaa, rElements, rConditions, rCurrentProcessInfo );
-            ConstructMatrixStructure( A, rElements, rConditions, rCurrentProcessInfo );
+            ConstructMatrixStructure(pScheme,  Kuu, Kuw, Kua, Kwu, Kww, Kwa, Kau, Kaw, Kaa, rElements, rConditions, rCurrentProcessInfo );
+            ConstructMatrixStructure(pScheme,  A, rElements, rConditions, rCurrentProcessInfo );
             A.resize( BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false );
             AllocateSystemMatrix( A );
             ConstructSystemMatrix( A );
@@ -1197,7 +1197,7 @@ protected:
     /**@name Protected Operators*/
     /*@{ */
     //**************************************************************************
-    virtual void ConstructMatrixStructure(
+    virtual void ConstructMatrixStructure( typename TSchemeType::Pointer pScheme,
         TSystemMatrixType& A,
         ElementsContainerType& rElements,
         ConditionsArrayType& rConditions,
@@ -1326,7 +1326,7 @@ protected:
 //         }
 
     /// Compute graphs for the different matrices involved in the problem
-    virtual void ConstructMatrixStructure(
+    virtual void ConstructMatrixStructure( typename TSchemeType::Pointer pScheme,
         TSystemMatrixType& Kuu, TSystemMatrixType& Kuw, TSystemMatrixType& Kua,
         TSystemMatrixType& Kwu, TSystemMatrixType& Kww, TSystemMatrixType& Kwa,
         TSystemMatrixType& Kau, TSystemMatrixType& Kaw, TSystemMatrixType& Kaa,

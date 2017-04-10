@@ -865,7 +865,7 @@ public:
 
     //**************************************************************************
     //**************************************************************************
-    void ResizeAndInitializeVectors(
+    void ResizeAndInitializeVectors( typename TSchemeType::Pointer pScheme,
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
@@ -904,7 +904,7 @@ public:
         if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
         {
             A.resize(BaseType::mEquationSystemSize,BaseType::mEquationSystemSize,false);
-            ConstructMatrixStructure(A,rElements,rConditions,CurrentProcessInfo);
+            ConstructMatrixStructure(pScheme, A,rElements,rConditions,CurrentProcessInfo);
         }
         else
         {
@@ -912,7 +912,7 @@ public:
             {
                 KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
                 A.resize(BaseType::mEquationSystemSize,BaseType::mEquationSystemSize,true);
-                ConstructMatrixStructure(A,rElements,rConditions,CurrentProcessInfo);
+                ConstructMatrixStructure(pScheme, A,rElements,rConditions,CurrentProcessInfo);
             }
         }
         if(Dx.size() != BaseType::mEquationSystemSize)
@@ -1068,7 +1068,7 @@ protected:
     /**@name Protected Operators*/
     /*@{ */
     //**************************************************************************
-    virtual void ConstructMatrixStructure(
+    virtual void ConstructMatrixStructure( typename TSchemeType::Pointer pScheme,
         TSystemMatrixType& A,
         ElementsContainerType& rElements,
         ConditionsArrayType& rConditions,
