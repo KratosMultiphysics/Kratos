@@ -75,6 +75,7 @@ std::vector<int> mCurrentContactingNeighbourIds;
 
 virtual std::unique_ptr<SphericParticle::ParticleDataBuffer> CreateParticleDataBuffer(SphericParticle* p_this_particle)
 {
+    ClearMemberVariables();
     return std::unique_ptr<SphericParticle::ParticleDataBuffer>(new ParticleDataBuffer(p_this_particle));
 }
 
