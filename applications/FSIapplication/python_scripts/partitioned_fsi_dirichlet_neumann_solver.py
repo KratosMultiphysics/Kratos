@@ -154,13 +154,14 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
     def _InitializeDirichletNeumannInterface(self):
         # Fix the VELOCITY and MESH_VELOCITY variables
         # MESH_DISPLACEMENT variable is supposed to be already fixed by the set_interface_process
-        for node in self._GetFluidInterfaceSubmodelPart().Nodes:
-            node.Fix(KratosMultiphysics.VELOCITY_X)
-            node.Fix(KratosMultiphysics.VELOCITY_Y)
-            node.Fix(KratosMultiphysics.VELOCITY_Z)
-            node.Fix(KratosMultiphysics.MESH_VELOCITY_X)
-            node.Fix(KratosMultiphysics.MESH_VELOCITY_Y)
-            node.Fix(KratosMultiphysics.MESH_VELOCITY_Z)
+        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_X, True, self._GetFluidInterfaceSubmodelPart().Nodes)
+        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_Y, True, self._GetFluidInterfaceSubmodelPart().Nodes)
+        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_VELOCITY_X, True, self._GetFluidInterfaceSubmodelPart().Nodes)
+        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_VELOCITY_Y, True, self._GetFluidInterfaceSubmodelPart().Nodes)
+        if (self.domain_size == 3):
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_Z, True, self._GetFluidInterfaceSubmodelPart().Nodes)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_VELOCITY_Z, True, self._GetFluidInterfaceSubmodelPart().Nodes)
+
 
 
     def _SolveMeshAndFluid(self):
