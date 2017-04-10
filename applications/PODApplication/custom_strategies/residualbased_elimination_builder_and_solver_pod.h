@@ -1082,7 +1082,8 @@ protected:
         Element::EquationIdVectorType ids(3,0);
         for(typename ElementsContainerType::iterator i_element = rElements.begin() ; i_element != rElements.end() ; i_element++)
         {
-            (i_element)->EquationIdVector(ids, CurrentProcessInfo);
+            
+            pScheme->EquationId( *(i_element.base()) , ids, CurrentProcessInfo);
 
             for(std::size_t i = 0 ; i < ids.size() ; i++)
                 if(ids[i] < equation_size)
@@ -1100,7 +1101,7 @@ protected:
 
         for(typename ConditionsArrayType::iterator i_condition = rConditions.begin() ; i_condition != rConditions.end() ; i_condition++)
         {
-            (i_condition)->EquationIdVector(ids, CurrentProcessInfo);
+            pScheme->Condition_EquationId( *(i_condition.base()), ids, CurrentProcessInfo);
             for(std::size_t i = 0 ; i < ids.size() ; i++)
                 if(ids[i] < equation_size)
                 {

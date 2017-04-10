@@ -1301,7 +1301,7 @@ protected:
         for (typename ElementsContainerType::const_iterator itElem = rElements.begin();
                 itElem != rElements.end(); itElem++)
         {
-            itElem->EquationIdVector(ids, CurrentProcessInfo);
+            pScheme->EquationId( *(itElem.base()) , ids, CurrentProcessInfo);
 
             for (std::size_t i = 0; i < ids.size(); i++)
                 if (ids[i] < mVelFreeDofs)
@@ -1335,8 +1335,8 @@ protected:
         // Do the same for conditions
         for (typename ConditionsArrayType::const_iterator itCond = rConditions.begin();
                 itCond != rConditions.end(); itCond++)
-        {
-            itCond->EquationIdVector(ids, CurrentProcessInfo);
+        {            
+            pScheme->Condition_EquationId( *(i_condition.base()), ids, CurrentProcessInfo);
 
             for (std::size_t i = 0; i < ids.size(); i++)
                 if (ids[i] < mVelFreeDofs)
