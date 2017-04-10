@@ -55,7 +55,7 @@ namespace Kratos
   /** This process takes a volume model part (with tetrahedra mesh) and a skin model part (with triangle mesh) and
       and calcualtes the distance to the skin for all the elements and nodes of the volume model part.
   */
-  class CalculateDistanceToSkinProcess
+  class CalculateDistanceToSkinProcess : public FindIntersectedGeometricalObjectsProcess
     {
     public:
       ///@name Type Definitions
@@ -69,9 +69,15 @@ namespace Kratos
       ///@{
 
       /// Default constructor.
-      CalculateDistanceToSkinProcess();
+      CalculateDistanceToSkinProcess() = delete;
 
-      /// Destructor.
+	  /// Copy constructor.
+	  CalculateDistanceToSkinProcess(FindIntersectedGeometricalObjectsProcess const& rOther) = delete;
+
+	  /// Constructor to be used.
+	  CalculateDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart);
+
+	  /// Destructor.
       virtual ~CalculateDistanceToSkinProcess();
 
 
