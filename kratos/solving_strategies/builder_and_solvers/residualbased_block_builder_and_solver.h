@@ -1044,7 +1044,7 @@ protected:
         for(int iii=0; iii<nelements; iii++)
         {
             typename ElementsContainerType::iterator i_element = rElements.begin() + iii;
-	        pScheme->EquationId(Element::Pointer(&(rElements[iii])), ids, CurrentProcessInfo);
+            pScheme->EquationId( *(i_element.base()) , ids, CurrentProcessInfo);
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
@@ -1065,7 +1065,7 @@ protected:
         for (int iii = 0; iii<nconditions; iii++)
         {
             typename ConditionsArrayType::iterator i_condition = rConditions.begin() + iii;
- 	        pScheme->Condition_EquationId(Condition::Pointer(&(rConditions[iii])), ids, CurrentProcessInfo);
+            pScheme->Condition_EquationId( *(i_condition.base()), ids, CurrentProcessInfo);
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
