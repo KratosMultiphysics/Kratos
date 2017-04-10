@@ -66,6 +66,8 @@ public:
      */
     typedef Geometry<TPointType> BaseType;
 
+    typedef Geometry<TPointType> GeometryType;
+
     /**
      * Type of edge geometry
      */
@@ -513,6 +515,108 @@ public:
       );
     }
 
+
+	bool AllSameSide(array_1d<double, 3> const& Distances) {
+		constexpr double epsilon = std::numeric_limits<double>::epsilon();
+		// put U0,U1,U2 into plane equation 1 to compute signed distances to the plane//
+		double du0 = Distances[0];
+		double du1 = Distances[1];
+		double du2 = Distances[2];
+
+		// coplanarity robustness check //
+		if (fabs(du0)<epsilon) du0 = 0.0;
+		if (fabs(du1)<epsilon) du1 = 0.0;
+		if (fabs(du2)<epsilon) du2 = 0.0;
+
+		double du0du1 = du0*du1;
+		double du0du2 = du0*du2;
+
+		if (du0du1>0.00 && du0du2>0.00)// same sign on all of them + not equal 0 ? //
+			return true;                   // no intersection occurs //
+
+		return false;
+
+	}
+
+	int GetMajorAxis(array_1d<double, 3> const& V) {
+		int index = static_cast<int>(fabs(V[0]) < fabs(V[1]));
+		return (fabs(V[index]) > fabs(V[2])) ? index : 2;
+	}
+
+	bool HasIntersection(const GeometryType& ThisGeometry) {
+		// Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/opttritri.txt
+		// and the article "A Fast Triangle-Triangle Intersection Test", Journal of Graphics Tools, 2(2), 1997:
+		// http://web.stanford.edu/class/cs277/resources/papers/Moller1997b.pdf
+
+		Plane3D plane_1(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2));
+		array_1d<double, 3> distances_1;
+		for (int i = 0; i < 3; i++)
+			distances_1[i] = plane_1.CalculateSignedDistance(ThisGeometry[i]);
+		if (AllSameSide(distances_1))
+			return false;
+
+		Plane3D plane_2(ThisGeometry[0], ThisGeometry[1], ThisGeometry[2]);
+		array_1d<double, 3> distances_2;
+		for (int i = 0; i < 3; i++)
+			distances_2[i] = plane_2.CalculateSignedDistance(this->GetPoint(i));
+		if (AllSameSide(distances_2))
+			return false;
+
+		// compute direction of intersection line //
+		array_1d<double, 3> intersection_direction;
+		MathUtils<double>::CrossProduct(intersection_direction, plane_1.GetNormal(), plane_2.GetNormal());
+
+		int index = GetMajorAxis(intersection_direction);
+
+		// this is the simplified projection onto L//
+		double vp0 = this->GetPoint(0)[index];
+		double vp1 = this->GetPoint(1)[index];
+		double vp2 = this->GetPoint(2)[index];
+
+		double up0 = ThisGeometry[0][index];
+		double up1 = ThisGeometry[1][index];
+		double up2 = ThisGeometry[2][index];
+
+
+		// compute interval for triangle 1 //
+		double a, b, c, x0, x1;
+		if (ComputeIntervals(vp0, vp1, vp2, distances_2[0], distances_2[1], distances_2[2], a, b, c, x0, x1) == true)
+		{
+			return CoplanarIntersectionCheck(plane_1.GetNormal(), ThisGeometry);
+		}
+
+		// compute interval for triangle 2 //
+		double d, e, f, y0, y1;
+		if (ComputeIntervals(up0, up1, up2, distances_1[0], distances_1[1], distances_1[2], d, e, f, y0, y1) == true)
+		{
+			return CoplanarIntersectionCheck(plane_1.GetNormal(), ThisGeometry);
+		}
+
+
+		double xx, yy, xxyy, tmp;
+		xx = x0*x1;
+		yy = y0*y1;
+		xxyy = xx*yy;
+
+		array_1d<double, 2> isect1, isect2;
+
+		tmp = a*xxyy;
+		isect1[0] = tmp + b*x1*yy;
+		isect1[1] = tmp + c*x0*yy;
+
+		tmp = d*xxyy;
+		isect2[0] = tmp + e*xx*y1;
+		isect2[1] = tmp + f*xx*y0;
+
+		std::sort(isect1.begin(), isect1.end());
+		std::sort(isect2.begin(), isect2.end());
+
+		if (isect1[1]<isect2[0] || isect2[1]<isect1[0]) return false;
+		return true;
+
+	}
+
+
     /// Quality functions
 
     /** Calculates the inradius to circumradius quality metric.
@@ -664,7 +768,7 @@ public:
     /**
      * Returns whether given arbitrary point is inside the Geometry
      */
-    // Charlie: It appears to be wrong for 3D
+
     virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() ) override
     {
         PointLocalCoordinates( rResult, rPoint );
@@ -1761,6 +1865,226 @@ private:
     inline double CalculateInradius(const double a, const double b, const double c) const {
       return 0.5 * std::sqrt((b+c-a) * (c+a-b) * (a+b-c) / (a+b+c));
     }
+
+	bool ComputeIntervals(double& VV0,
+		double& VV1,
+		double& VV2,
+		double& D0,
+		double& D1,
+		double& D2,
+		double& A,
+		double& B,
+		double& C,
+		double& X0,
+		double& X1
+		)
+	{
+		double D0D1 = D0*D1;
+		double D0D2 = D0*D2;
+
+		if (D0D1>0.00)
+		{
+			// here we know that D0D2<=0.0 //
+			// that is D0, D1 are on the same side, D2 on the other or on the plane //
+			A = VV2;
+			B = (VV0 - VV2)*D2;
+			C = (VV1 - VV2)*D2;
+			X0 = D2 - D0;
+			X1 = D2 - D1;
+		}
+		else if (D0D2>0.00)
+		{
+			// here we know that d0d1<=0.0 //
+			A = VV1;
+			B = (VV0 - VV1)*D1;
+			C = (VV2 - VV1)*D1;
+			X0 = D1 - D0;
+			X1 = D1 - D2;
+		}
+		else if (D1*D2>0.00 || D0 != 0.00)
+		{
+			// here we know that d0d1<=0.0 or that D0!=0.0 //
+			A = VV0;
+			B = (VV1 - VV0)*D0;
+			C = (VV2 - VV0)*D0;
+			X0 = D0 - D1;
+			X1 = D0 - D2;
+		}
+		else if (D1 != 0.00)
+		{
+			A = VV1;
+			B = (VV0 - VV1)*D1;
+			C = (VV2 - VV1)*D1;
+			X0 = D1 - D0;
+			X1 = D1 - D2;
+		}
+		else if (D2 != 0.00)
+		{
+			A = VV2;
+			B = (VV0 - VV2)*D2;
+			C = (VV1 - VV2)*D2;
+			X0 = D2 - D0;
+			X1 = D2 - D1;
+		}
+		else
+		{
+			///Triangles are coplanar
+			return true;
+		}
+
+		return false;
+
+	}
+
+	bool CoplanarIntersectionCheck(const array_1d<double, 3>& N,
+		const GeometryType& OtherTriangle)
+	{
+		array_1d<double, 3 > A;
+		short i0, i1;
+
+		// first project onto an axis-aligned plane, that maximizes the area //
+		// of the triangles, compute indices: i0,i1. //
+		A[0] = fabs(N[0]);
+		A[1] = fabs(N[1]);
+		A[2] = fabs(N[2]);
+		if (A[0]>A[1])
+		{
+			if (A[0]>A[2])
+			{
+				i0 = 1;      // A[0] is greatest //
+				i1 = 2;
+			}
+			else
+			{
+				i0 = 0;      // A[2] is greatest //
+				i1 = 1;
+			}
+		}
+		else   // A[0]<=A[1] //
+		{
+			if (A[2]>A[1])
+			{
+				i0 = 0;      // A[2] is greatest //
+				i1 = 1;
+			}
+			else
+			{
+				i0 = 0;      // A[1] is greatest //
+				i1 = 2;
+			}
+		}
+
+		// test all edges of triangle 1 against the edges of triangle 2 //
+		if (EdgeToTriangleEdgesCheck(i0, i1, this->GetPoint(0), this->GetPoint(1), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
+
+		if (EdgeToTriangleEdgesCheck(i0, i1, this->GetPoint(1), this->GetPoint(2), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
+
+		if (EdgeToTriangleEdgesCheck(i0, i1, this->GetPoint(2), this->GetPoint(0), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
+
+		// finally, test if tri1 is totally contained in tri2 or vice versa //
+		array_1d<double, 3> local_coordinates;
+		// TODO: I should add the const to the is inside method in all geometries. Pooyan.
+		if (const_cast<GeometryType&>(OtherTriangle).IsInside(this->GetPoint(0), local_coordinates) == true) return true;
+		if (IsInside(OtherTriangle[0], local_coordinates) == true) return true;
+
+		return false;
+	}
+
+	bool EdgeToTriangleEdgesCheck(const short& i0,
+		const short& i1,
+		const Point<3, double>& V0,
+		const Point<3, double>& V1,
+		const Point<3, double>&U0,
+		const Point<3, double>&U1,
+		const Point<3, double>&U2)
+	{
+
+		double Ax, Ay, Bx, By, Cx, Cy, e, d, f;
+		Ax = V1[i0] - V0[i0];
+		Ay = V1[i1] - V0[i1];
+		// test edge U0,U1 against V0,V1 //
+
+		//std::cout<< "Proof One B " << std::endl;
+		if (EdgeToEdgeIntersectionCheck(Ax, Ay, Bx, By, Cx, Cy, e, d, f, i0, i1, V0, U0, U1) == true) return true;
+		// test edge U1,U2 against V0,V1 //
+		//std::cout<< "Proof Two B " << std::endl;
+		if (EdgeToEdgeIntersectionCheck(Ax, Ay, Bx, By, Cx, Cy, e, d, f, i0, i1, V0, U1, U2) == true) return true;
+		// test edge U2,U1 against V0,V1 //
+		if (EdgeToEdgeIntersectionCheck(Ax, Ay, Bx, By, Cx, Cy, e, d, f, i0, i1, V0, U2, U0) == true) return true;
+
+		return false;
+	}
+
+	//   this edge to edge test is based on Franlin Antonio's gem:
+	//   "Faster Line Segment Intersection", in Graphics Gems III,
+	//   pp. 199-202
+	bool EdgeToEdgeIntersectionCheck(double& Ax,
+		double& Ay,
+		double& Bx,
+		double& By,
+		double& Cx,
+		double& Cy,
+		double& e,
+		double& d,
+		double& f,
+		const short& i0,
+		const short& i1,
+		const Point<3, double>&V0,
+		const Point<3, double>&U0,
+		const Point<3, double>&U1)
+	{
+		Bx = U0[i0] - U1[i0];
+		By = U0[i1] - U1[i1];
+		Cx = V0[i0] - U0[i0];
+		Cy = V0[i1] - U0[i1];
+		f = Ay*Bx - Ax*By;
+		d = By*Cx - Bx*Cy;
+
+		if (std::fabs(f)<1E-10) f = 0.00;
+		if (std::fabs(d)<1E-10) d = 0.00;
+
+
+		if ((f>0.00 && d >= 0.00 && d <= f) || (f<0.00 && d <= 0.00 && d >= f))
+		{
+			e = Ax*Cy - Ay*Cx;
+
+			if (f>0.00)
+			{
+				if (e >= 0.00 && e <= f) return true;
+			}
+			else
+			{
+				if (e <= 0.00 && e >= f) return true;
+			}
+		}
+		return false;
+	}
+
+
+	// TODO: I should move this class to a separate file but is out of scope of this branch
+	class Plane3D {
+	public:
+		using VectorType = array_1d<double, 3>;
+		using PointType = Point<3>;
+
+		Plane3D(VectorType const& TheNormal, double DistanceToOrigin) :mNormal(TheNormal), mD(DistanceToOrigin) {}
+		Plane3D() = delete;
+		Plane3D(PointType const& Point1, PointType const& Point2, PointType const& Point3) {
+			VectorType v1 = Point2 - Point1;
+			VectorType v2 = Point3 - Point1;
+			MathUtils<double>::CrossProduct(mNormal, v1, v2);
+			mD = -inner_prod(mNormal, Point1);
+		}
+		VectorType const& GetNormal() { return mNormal; }
+		double GetDistance() { return mD; }
+		double CalculateSignedDistance(PointType const& ThePoint) {
+			return inner_prod(mNormal, ThePoint) + mD;
+		}
+
+	private:
+		VectorType mNormal;
+		double mD;
+	};
 
 
     ///@}
