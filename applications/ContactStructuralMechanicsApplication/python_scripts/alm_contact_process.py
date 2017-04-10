@@ -65,6 +65,10 @@ class ALMContactProcess(KratosMultiphysics.Process):
         self.type_search = self.params["type_search"].GetString()
         self.debug_mode = self.params["debug_mode"].GetBool()
         
+        # Debug
+        if (self.debug_mode == True):
+            self.label = 0
+        
     def ExecuteInitialize(self):
         
         # Appending the conditions created to the self.main_model_part
@@ -199,18 +203,18 @@ class ALMContactProcess(KratosMultiphysics.Process):
             gid_io = KratosMultiphysics.GidIO(output_file, gid_mode, singlefile,
                             deformed_mesh_flag, write_conditions)
             
-            label = 0
-            gid_io.InitializeMesh(label)
+            self.label += 1
+            gid_io.InitializeMesh(self.label)
             gid_io.WriteMesh(self.main_model_part.GetMesh())
             gid_io.FinalizeMesh()
-            gid_io.InitializeResults(label, self.main_model_part.GetMesh())
-            gid_io.WriteNodalResults(KratosMultiphysics.DISPLACEMENT, self.main_model_part.Nodes, label, 0)
-            gid_io.WriteNodalFlags(KratosMultiphysics.ACTIVE, "ACTIVE", self.main_model_part.Nodes, label)
-            gid_io.WriteNodalResultsNonHistorical(KratosMultiphysics.NORMAL, self.main_model_part.Nodes, label)
-            gid_io.WriteNodalResultsNonHistorical(KratosMultiphysics.DISTANCE, self.main_model_part.Nodes, label)
+            gid_io.InitializeResults(self.label, self.main_model_part.GetMesh())
+            gid_io.WriteNodalResults(KratosMultiphysics.DISPLACEMENT, self.main_model_part.Nodes, self.label, 0)
+            gid_io.WriteNodalFlags(KratosMultiphysics.ACTIVE, "ACTIVE", self.main_model_part.Nodes, self.label)
+            gid_io.WriteNodalResultsNonHistorical(KratosMultiphysics.NORMAL, self.main_model_part.Nodes, self.label)
+            #gid_io.WriteNodalResultsNonHistorical(KratosMultiphysics.DISTANCE, self.main_model_part.Nodes, self.label)
             gid_io.FinalizeResults()
             
-            raise NameError('DEBUG')
+            #raise NameError('DEBUG')
         
     def ExecuteFinalizeSolutionStep(self):
         pass
