@@ -29,7 +29,7 @@
 #include "custom_utilities/vertex_morphing_mapper.h"
 #include "custom_utilities/response_functions/strain_energy_response_function.h"
 #include "custom_utilities/response_functions/mass_response_function.h"
-#include "linear_solvers/linear_solver.h"
+#include "custom_utilities/input_output/universal_file_io.h"
 
 // ==============================================================================
 
@@ -102,6 +102,14 @@ void  AddCustomUtilitiesToPython()
         .def("get_initial_value", &MassResponseFunction::get_initial_value) 
         .def("get_gradient", &MassResponseFunction::get_gradient)                              
         ;                     
+
+    // ========================================================================
+    // For input / output
+    // ======================================================================== 
+    class_<UniversalFileIO, bases<Process> >("UniversalFileIO", init<ModelPart&, Parameters&>())
+        .def("initializeLogging", &UniversalFileIO::initializeLogging)
+        .def("logCurrentDesign", &UniversalFileIO::logCurrentDesign)
+        ;            
 }
 
 
