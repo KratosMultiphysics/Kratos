@@ -41,7 +41,7 @@ class ApplySlipProcess(KratosMultiphysics.Process):
             node.SetValue(KratosMultiphysics.Y_WALL,0.0)
 
 
-    def InitializeSolutionStep(self):
+    def ExecuteInitializeSolutionStep(self):
         # Recompute the normals if needed
         if self.avoid_recomputing_normals == False:
             NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
