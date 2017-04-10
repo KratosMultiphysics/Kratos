@@ -257,6 +257,9 @@ namespace Kratos
                                          const array_1d<double, 3>& GlobalCoords,
                                          array_1d<double,3>& rLocalCoords,
                                          double& rDistance) {
+
+          // Condition::GeometryType& r_condition_geometry = pCondition->GetGeometry();
+          // bool test = r_condition_geometry.IsInside(GlobalCoords, rLocalCoords);
           // xi,yi,zi are Nodal Coordinates, n is the destination condition's unit normal
           // and d is the distance along n from the point to its projection in the condition
           // | DestX-x1 |   | x2-x1  x3-x1  nx |   | Chi |
@@ -319,21 +322,41 @@ namespace Kratos
           
           if (is_inside) {
               // Calculate Distance
-              array_1d<double, 3> projection_physical_coords;
-              projection_physical_coords[0] = 0.0f;
-              projection_physical_coords[1] = 0.0f;
-              projection_physical_coords[2] = 0.0f;
+              array_1d<double, 3> projection_global_coords;
+              r_condition_geometry.GlobalCoordinates(projection_global_coords, rLocalCoords);
 
-              double shape_function_value = 0.0f;
+              // projection_global_coords[0] = 0.0f;
+              // projection_global_coords[1] = 0.0f;
+              // projection_global_coords[2] = 0.0f;
 
-              for (int i = 0; i < static_cast<int>(r_condition_geometry.PointsNumber()); ++i) {
-                  shape_function_value = r_condition_geometry.ShapeFunctionValue(i, rLocalCoords);
-                  projection_physical_coords[0] += shape_function_value * r_condition_geometry[i].X();
-                  projection_physical_coords[1] += shape_function_value * r_condition_geometry[i].Y();
-                  projection_physical_coords[2] += shape_function_value * r_condition_geometry[i].Z();
-              }
+              // double shape_function_value = 0.0f;
 
-              rDistance = ComputeDistance(GlobalCoords, projection_physical_coords);
+              // for (int i = 0; i < static_cast<int>(r_condition_geometry.PointsNumber()); ++i) {
+              //     shape_function_value = r_condition_geometry.ShapeFunctionValue(i, rLocalCoords);
+              //     projection_global_coords[0] += shape_function_value * r_condition_geometry[i].X();
+              //     projection_global_coords[1] += shape_function_value * r_condition_geometry[i].Y();
+              //     projection_global_coords[2] += shape_function_value * r_condition_geometry[i].Z();
+              // }
+
+              rDistance = ComputeDistance(GlobalCoords, projection_global_coords);
+          }
+
+          return is_inside;
+      }
+
+      static bool ProjectPointToCondition(Condition* pCondition,
+                                          const array_1d<double, 3>& GlobalCoords,
+                                          array_1d<double,3>& rLocalCoords,
+                                          double& rDistance) {
+          
+          Condition::GeometryType& r_condition_geometry = pCondition->GetGeometry();
+          bool is_inside = r_condition_geometry.IsInside(GlobalCoords, rLocalCoords);
+          
+          if (is_inside) {
+              // Calculate Distance
+              array_1d<double, 3> projection_global_coords;
+              r_condition_geometry.GlobalCoordinates(projection_global_coords, rLocalCoords);
+              rDistance = ComputeDistance(GlobalCoords, projection_global_coords);
           }
 
           return is_inside;
@@ -343,7 +366,52 @@ namespace Kratos
                                            const array_1d<double, 3>& GlobalCoords,
                                            array_1d<double,3>& rLocalCoords,
                                            double& rDistance) {
-          return false;
+          // xi,yi,zi are Nodal Coordinates
+          // | DestX-x1 |   | x2-x1  x3-x1  x4-x1 |   | Chi1 |
+          // | DestY-y1 | = | y2-y1  y3-y1  y4-y1 | . | Chi2 |
+          // | DestZ-z1 |   | z2-z1  z3-z1  z4-z1 |   | Chi3 |
+
+          Matrix transform_matrix(3, 3, false);
+          Matrix inv_transform_matrix(3, 3, false);
+          double det;
+
+          array_1d<double, 3> RHS;
+          
+          RHS[0] = GlobalCoords[0] - pCondition->GetGeometry()[0].X();
+          RHS[1] = GlobalCoords[1] - pCondition->GetGeometry()[0].Y();
+          RHS[2] = GlobalCoords[2] - pCondition->GetGeometry()[0].Z();
+
+          transform_matrix(0, 0) = pCondition->GetGeometry()[1].X() - pCondition->GetGeometry()[0].X();
+          transform_matrix(1, 0) = pCondition->GetGeometry()[1].Y() - pCondition->GetGeometry()[0].Y();
+          transform_matrix(2, 0) = pCondition->GetGeometry()[1].Z() - pCondition->GetGeometry()[0].Z();
+
+          transform_matrix(0, 1) = pCondition->GetGeometry()[2].X() - pCondition->GetGeometry()[0].X();
+          transform_matrix(1, 1) = pCondition->GetGeometry()[2].Y() - pCondition->GetGeometry()[0].Y();
+          transform_matrix(2, 1) = pCondition->GetGeometry()[2].Z() - pCondition->GetGeometry()[0].Z();
+
+          transform_matrix(0, 2) = pCondition->GetGeometry()[3].X() - pCondition->GetGeometry()[0].X();
+          transform_matrix(1, 2) = pCondition->GetGeometry()[3].Y() - pCondition->GetGeometry()[0].Y();
+          transform_matrix(2, 2) = pCondition->GetGeometry()[3].Z() - pCondition->GetGeometry()[0].Z();
+
+          MathUtils<double>::InvertMatrix3(transform_matrix,inv_transform_matrix,det);
+          noalias(rLocalCoords) = prod(inv_transform_matrix, RHS);
+
+          bool is_inside = false;
+
+          if( rLocalCoords[0] >= 0.0-MapperUtilities::tol_local_coords ) { 
+              if( rLocalCoords[1] >= 0.0-MapperUtilities::tol_local_coords ) {
+                  if( rLocalCoords[2] >= 0.0-MapperUtilities::tol_local_coords ) {
+                      if( (rLocalCoords[0] + rLocalCoords[1] + rLocalCoords[2]) <= (1.0+MapperUtilities::tol_local_coords)) {
+                          is_inside = true;
+
+                          rDistance = ComputeDistance(GlobalCoords, pCondition->GetGeometry().Center());
+                          rDistance /= pCondition->GetGeometry().Volume(); // Normalize Distance by Volume
+                      }
+                  }
+              }
+          }
+          
+          return is_inside;
       }
 
       static bool ProjectPointToPrism(Condition* pCondition,
@@ -357,7 +425,17 @@ namespace Kratos
                                           const array_1d<double, 3>& GlobalCoords,
                                           array_1d<double,3>& rLocalCoords,
                                           double& rDistance) {
-          return false;
+          
+          Condition::GeometryType& r_condition_geometry = pCondition->GetGeometry();
+          bool is_inside = r_condition_geometry.IsInside(GlobalCoords, rLocalCoords);
+          
+          if (is_inside) {
+              // Calculate Distance
+              rDistance = ComputeDistance(GlobalCoords, r_condition_geometry.Center());
+              rDistance /= r_condition_geometry.Volume();  // Normalize Distance by Volume
+          }
+
+          return is_inside;
       }
 
       static void CalculateLineNormal(Condition* pCondition,

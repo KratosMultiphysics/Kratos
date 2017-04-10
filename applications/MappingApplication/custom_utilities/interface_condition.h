@@ -100,17 +100,17 @@ namespace Kratos
 
           if (mGeometryFamily == GeometryData::Kratos_Linear 
               && mNumPoints == 2) { // I am a linear line condition
-              is_inside = MapperUtilities::ProjectPointToLine(mpCondition, GlobalCoords,
+              is_inside = MapperUtilities::ProjectPointToCondition(mpCondition, GlobalCoords,
                                                               projection_local_coords,
                                                               projection_distance);
           } else if (mGeometryFamily == GeometryData::Kratos_Triangle 
                      && mNumPoints == 3) { // I am a linear triangular condition
-              is_inside = MapperUtilities::ProjectPointToTriangle(mpCondition, GlobalCoords,
+              is_inside = MapperUtilities::ProjectPointToCondition(mpCondition, GlobalCoords,
                                                                   projection_local_coords,
                                                                   projection_distance);
           } else if (mGeometryFamily == GeometryData::Kratos_Quadrilateral
                      && mNumPoints == 4) { // I am a linear quadrilateral condition
-              is_inside = MapperUtilities::ProjectPointToQuadrilateral(mpCondition, GlobalCoords,
+              is_inside = MapperUtilities::ProjectPointToCondition(mpCondition, GlobalCoords,
                                                                        projection_local_coords,
                                                                        projection_distance);
           } else if (mGeometryFamily == GeometryData::Kratos_Tetrahedra
