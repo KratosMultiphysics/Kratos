@@ -421,10 +421,10 @@ namespace Kratos
           return false;
       }
 
-      static bool ProjectPointToHexahedra(Condition* pCondition,
-                                          const array_1d<double, 3>& GlobalCoords,
-                                          array_1d<double,3>& rLocalCoords,
-                                          double& rDistance) {
+      static bool PointLocalCoordinatesInVolume(Condition* pCondition,
+                                                const array_1d<double, 3>& GlobalCoords,
+                                                array_1d<double,3>& rLocalCoords,
+                                                double& rDistance) {
           
           Condition::GeometryType& r_condition_geometry = pCondition->GetGeometry();
           bool is_inside = r_condition_geometry.IsInside(GlobalCoords, rLocalCoords);

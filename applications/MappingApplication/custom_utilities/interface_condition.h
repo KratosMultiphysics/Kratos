@@ -115,17 +115,17 @@ namespace Kratos
                                                                        projection_distance);
           } else if (mGeometryFamily == GeometryData::Kratos_Tetrahedra
                      && mNumPoints == 4) { // I am a linear quadrilateral condition
-              is_inside = MapperUtilities::ProjectPointToTetrahedra(mpCondition, GlobalCoords,
+              is_inside = MapperUtilities::PointLocalCoordinatesInVolume(mpCondition, GlobalCoords,
                                                                     projection_local_coords,
                                                                     projection_distance);
           } else if (mGeometryFamily == GeometryData::Kratos_Prism
                      && mNumPoints == 6) { // I am a linear quadrilateral condition
-              is_inside = MapperUtilities::ProjectPointToPrism(mpCondition, GlobalCoords,
+              is_inside = MapperUtilities::PointLocalCoordinatesInVolume(mpCondition, GlobalCoords,
                                                                projection_local_coords,
                                                                projection_distance);
           } else if (mGeometryFamily == GeometryData::Kratos_Hexahedra
                      && mNumPoints == 8) { // I am a linear quadrilateral condition
-              is_inside = MapperUtilities::ProjectPointToHexahedra(mpCondition, GlobalCoords,
+              is_inside = MapperUtilities::PointLocalCoordinatesInVolume(mpCondition, GlobalCoords,
                                                                    projection_local_coords,
                                                                    projection_distance);
           } else {
