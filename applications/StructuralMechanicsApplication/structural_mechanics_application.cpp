@@ -176,7 +176,7 @@ void KratosStructuralMechanicsApplication::Register()
 
     // For MPC implementations
     KRATOS_REGISTER_VARIABLE(IS_SLAVE);
-    KRATOS_REGISTER_VARIABLE(SLAVES); // Amap of the master nodes to their corresponding weights
+    KRATOS_REGISTER_VARIABLE(MPC_DATA); // Amap of the master nodes to their corresponding weights
 }
 
 }  // namespace Kratos.

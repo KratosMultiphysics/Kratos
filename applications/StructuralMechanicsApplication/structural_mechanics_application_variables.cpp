@@ -90,5 +90,5 @@ KRATOS_CREATE_VARIABLE(Matrix, HENCKY_STRAIN_TENSOR);
 
 // For MPC implementations
 KRATOS_CREATE_VARIABLE(bool, IS_SLAVE)
-KRATOS_CREATE_VARIABLE(MpcData, SLAVES) // Amap of the master nodes to their corresponding weights
+KRATOS_CREATE_VARIABLE(MpcData, MPC_DATA) // Amap of the master nodes to their corresponding weights
 }

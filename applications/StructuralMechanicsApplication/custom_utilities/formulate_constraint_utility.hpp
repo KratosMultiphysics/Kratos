@@ -29,7 +29,7 @@
 #include "includes/model_part.h"
 #include "includes/dof.h"
 
-#include "constraint_slave.hpp"
+#include "multipoint_constraint_data.hpp"
 
 namespace Kratos
 {
@@ -84,7 +84,7 @@ public:
     void ApplyConstraint(Node<3> &MasterNode, VariableComponentType& MasterVariable, Node<3> &SlaveNode, VariableComponentType& SlaveVariable, float weight){
 
     	// Master dofs and weights vectors for the slave nodes.
-    	MpcData &mpcData       = SlaveNode.GetValue(SLAVES);
+    	MpcData &mpcData       = SlaveNode.GetValue(MPC_DATA);
     	bool isSlave = SlaveNode.GetValue(IS_SLAVE);
 
     	if(!isSlave){

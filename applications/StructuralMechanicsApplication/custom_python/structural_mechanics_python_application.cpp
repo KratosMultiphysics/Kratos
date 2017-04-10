@@ -118,7 +118,7 @@ BOOST_PYTHON_MODULE(KratosStructuralMechanicsApplication)
 
     // For MPC implementations
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(IS_SLAVE);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(SLAVES); // Amap of the master nodes to their corresponding weights
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MPC_DATA); // Amap of the master nodes to their corresponding weights
 
 
 }
