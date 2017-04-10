@@ -70,6 +70,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "custom_strategies/fracstep_GLS_strategy.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -114,11 +115,26 @@ namespace Kratos
 		         class_< PFEM2MonolithicSlipScheme< SparseSpaceType, LocalSpaceType >,
 		 	       bases< BaseSchemeType >,  boost::noncopyable >
 			       ("PFEM2MonolithicSlipScheme",init<unsigned int>() )
-			       .def(init<unsigned int >())// constructor without a turbulence model
-			       ;
+			   .def(init<unsigned int >())// constructor without a turbulence model
+			   ;
+			 class_< FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases< BaseSolvingStrategyType >, boost::noncopyable >        ("FracStepStrategy",          init < 				ModelPart&, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, double, double,int, int, unsigned int, unsigned int,bool >())
+			   .def("SolveStep1", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
+			   .def("SolveStep2", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
+			   .def("SolveStep3", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
+			   .def("SolveStep4", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep4)
+			   .def("IterativeSolve", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::IterativeSolve)
+			   .def("SavePressureIteration", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SavePressureIteration)
+			   .def("SolvePressure", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolvePressure)
+			   .def("SolveStep7", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep7)
+			   .def("FractionalVelocityIteration", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::FractionalVelocityIteration)
+			   .def("ConvergenceCheck", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ConvergenceCheck)
+			   .def("Clear", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
+			   .def("Compute", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Compute)
+			   ;
+			 
 		}
-
+	  
 	}  // namespace Python.
-
+  
 } // Namespace Kratos
 

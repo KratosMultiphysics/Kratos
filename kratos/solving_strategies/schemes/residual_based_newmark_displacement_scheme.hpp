@@ -100,7 +100,7 @@ public:
     /**
      * Clone 
      */
-    virtual BaseTypePointer Clone()
+    virtual BaseTypePointer Clone() override
     {
       return BaseTypePointer( new ResidualBasedNewmarkDisplacementScheme(*this) );
     }

@@ -48,12 +48,13 @@ namespace Kratos {
         
         KRATOS_TRY
         
+        int max_Id = mpParticleCreatorDestructor->GetCurrentMaxNodeId();
         ModelPart& r_model_part = GetModelPart();
-        int max_Id = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart(r_model_part);
+        int max_DEM_Id = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart(r_model_part);
         int max_FEM_Id = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart(*mpFem_model_part);
         int max_cluster_Id = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart(*mpCluster_model_part);
 
-        //max_Id = std::max({max_Id, max_FEM_Id,max_cluster_Id});
+        max_Id = std::max(max_Id, max_DEM_Id);       
         max_Id = std::max(max_Id, max_FEM_Id);
         max_Id = std::max(max_Id, max_cluster_Id);
         mpParticleCreatorDestructor->SetMaxNodeId(max_Id);
@@ -109,6 +110,19 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
+
+    void ExplicitSolverStrategy::DisplayThreadInfo() {
+
+        ModelPart& r_model_part = GetModelPart();
+        std::cout << "          **************************************************" << std::endl;
+        std::cout << "            Parallelism Info:  MPI number of nodes: " << r_model_part.GetCommunicator().TotalProcesses() << std::endl;
+        if (r_model_part.GetCommunicator().TotalProcesses() > 1)
+            std::cout << "            Parallelism Info:  MPI node Id: " << r_model_part.GetCommunicator().MyPID() << std::endl;
+        std::cout << "            Parallelism Info:  OMP number of processors: " << mNumberOfThreads << std::endl;
+        std::cout << "          **************************************************" << std::endl << std::endl;
+
+    }
+
     void ExplicitSolverStrategy::Initialize() {
         
         KRATOS_TRY
@@ -119,6 +133,7 @@ namespace Kratos {
         SendProcessInfoToClustersModelPart();
 
         mNumberOfThreads = OpenMPUtils::GetNumThreads();
+        DisplayThreadInfo();
 
         RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
         RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);

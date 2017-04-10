@@ -120,7 +120,7 @@ public:
                         DofsArrayType& rDofSet,
                         TSystemMatrixType& A,
                         TSystemVectorType& Dx,
-                        TSystemVectorType& b)
+                        TSystemVectorType& b) override
     {
         KRATOS_TRY;
 
@@ -139,7 +139,7 @@ public:
                                               LocalSystemMatrixType& LHS_Contribution,
                                               LocalSystemVectorType& RHS_Contribution,
                                               Element::EquationIdVectorType& EquationId,
-                                              ProcessInfo& CurrentProcessInfo)
+                                              ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -155,7 +155,7 @@ public:
     virtual void Calculate_RHS_Contribution(Element::Pointer rCurrentElement,
                                             LocalSystemVectorType& RHS_Contribution,
                                             Element::EquationIdVectorType& EquationId,
-                                            ProcessInfo& CurrentProcessInfo)
+                                            ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -171,7 +171,7 @@ public:
     virtual void Calculate_LHS_Contribution(Element::Pointer rCurrentElement,
                                             LocalSystemMatrixType& LHS_Contribution,
                                             Element::EquationIdVectorType& EquationId,
-                                            ProcessInfo& CurrentProcessInfo)
+                                            ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -190,7 +190,7 @@ public:
                                                         LocalSystemMatrixType& LHS_Contribution,
                                                         LocalSystemVectorType& RHS_Contribution,
                                                         Element::EquationIdVectorType& EquationId,
-                                                        ProcessInfo& CurrentProcessInfo)
+                                                        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -206,7 +206,7 @@ public:
     virtual void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
                                                       LocalSystemVectorType& RHS_Contribution,
                                                       Element::EquationIdVectorType& EquationId,
-                                                      ProcessInfo& CurrentProcessInfo)
+                                                      ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 

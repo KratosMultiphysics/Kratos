@@ -125,6 +125,14 @@ void KratosDamApplication::Register()
     Serializer::Register("ThermalLinearElastic2DPlaneStress",mThermalLinearElastic2DPlaneStress);
     Serializer::Register("ThermalLinearElastic2DPlaneStrain",mThermalLinearElastic2DPlaneStrain);
 
+    Serializer::Register("LinearElastic3DLawNodal",mLinearElastic3DLawNodal);
+    Serializer::Register("LinearElastic2DPlaneStressNodal",mLinearElastic2DPlaneStressNodal);
+    Serializer::Register("LinearElastic2DPlaneStrainNodal",mLinearElastic2DPlaneStrainNodal);
+
+    Serializer::Register("ThermalLinearElastic3DLawNodal",mThermalLinearElastic3DLawNodal);
+    Serializer::Register("ThermalLinearElastic2DPlaneStressNodal",mThermalLinearElastic2DPlaneStressNodal);
+    Serializer::Register("ThermalLinearElastic2DPlaneStrainNodal",mThermalLinearElastic2DPlaneStrainNodal);
+
     Serializer::Register("ThermalSimoJuLocalDamage3DLaw",mThermalSimoJuLocalDamage3DLaw);
     Serializer::Register("ThermalSimoJuLocalDamagePlaneStrain2DLaw",mThermalSimoJuLocalDamagePlaneStrain2DLaw);
     Serializer::Register("ThermalSimoJuLocalDamagePlaneStress2DLaw",mThermalSimoJuLocalDamagePlaneStress2DLaw);
@@ -174,7 +182,9 @@ void KratosDamApplication::Register()
     KRATOS_REGISTER_VARIABLE( Dt_PRESSURE )
     KRATOS_REGISTER_VARIABLE( Dt2_PRESSURE ) 
     KRATOS_REGISTER_VARIABLE( VELOCITY_PRESSURE_COEFFICIENT )
-    KRATOS_REGISTER_VARIABLE( ACCELERATION_PRESSURE_COEFFICIENT )   
+    KRATOS_REGISTER_VARIABLE( ACCELERATION_PRESSURE_COEFFICIENT )  
+
+    KRATOS_REGISTER_VARIABLE( NODAL_YOUNG_MODULUS ) 
     
 }
 

@@ -32,6 +32,7 @@
 #include "custom_processes/select_mesh_elements_for_fluids_process.hpp"
 #include "custom_processes/generate_new_nodes_before_meshing_process.hpp"
 #include "custom_processes/inlet_management_process.hpp"
+#include "custom_processes/set_inlet_process.hpp"
 #include "custom_processes/model_start_end_meshing_for_fluids_process.hpp"
 #include "custom_processes/transfer_model_part_elements_process.hpp"
 
@@ -83,6 +84,12 @@ namespace Kratos
       class_<InletManagementProcess, bases<ProcessBaseType>, boost::noncopyable >
       	(
       	 "InletManagement", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
+      	 )
+      	;
+
+      class_<SetInletProcess, bases<ProcessBaseType>, boost::noncopyable >
+      	(
+      	 "SetInlet", init<ModelPart&, int>()
       	 )
       	;
 

@@ -1,45 +1,10 @@
 # ==============================================================================
-'''
- KratosShapeOptimizationApplication
- A library based on:
- Kratos
- A General Purpose Software for Multi-Physics Finite Element Analysis
- (Released on march 05, 2007).
-
- Copyright (c) 2016: Daniel Baumgaertner
-                     daniel.baumgaertner@tum.de
-                     Chair of Structural Analysis
-                     Technische Universitaet Muenchen
-                     Arcisstrasse 21 80333 Munich, Germany
-
- Permission is hereby granted, free  of charge, to any person obtaining
- a  copy  of this  software  and  associated  documentation files  (the
- "Software"), to  deal in  the Software without  restriction, including
- without limitation  the rights to  use, copy, modify,  merge, publish,
- distribute,  sublicense and/or  sell copies  of the  Software,  and to
- permit persons to whom the Software  is furnished to do so, subject to
- the following condition:
-
- Distribution of this code for  any  commercial purpose  is permissible
- ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
- The  above  copyright  notice  and  this permission  notice  shall  be
- included in all copies or substantial portions of the Software.
-
- THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
- EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
- CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
- TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
- SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-'''
-#==============================================================================
+#  KratosShapeOptimizationApplication
 #
-#   Project Name:        KratosShape                            $
-#   Created by:          $Author:    daniel.baumgaertner@tum.de $
-#   Date:                $Date:                   December 2016 $
-#   Revision:            $Revision:                         0.0 $
+#  License:         BSD License
+#                   license: ShapeOptimizationApplication/license.txt
+#
+#  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
 #
 # ==============================================================================
 
@@ -260,6 +225,7 @@ class VertexMorphingMethod:
             row.append("\tstep_size[-]\t")
             row.append("\tt_iteration[s]\t")
             row.append("\tt_total[s]") 
+            row.append("\ttime_stamp") 
             historyWriter.writerow(row)    
 
         # Miscellaneous working variables for data management
@@ -323,7 +289,8 @@ class VertexMorphingMethod:
                 row.append("\t"+str("%.6f"%(relativeChangeOfObjectiveValue))+"\t")
                 row.append("\t"+str(self.optimizationSettings.step_size)+"\t")
                 row.append("\t"+str("%.1f"%(runTimeOptimizationStep))+"\t")
-                row.append("\t"+str("%.1f"%(runTimeOptimization)))
+                row.append("\t"+str("%.1f"%(runTimeOptimization))+"\t")
+                row.append("\t"+str(time.ctime()))
                 historyWriter.writerow(row)     
 
             # Take time needed for current optimization step
@@ -389,6 +356,7 @@ class VertexMorphingMethod:
             row.append("\tstep_size[-]\t")
             row.append("\tt_iteration[s]\t")
             row.append("\tt_total[s]") 
+            row.append("\ttime_stamp") 
             historyWriter.writerow(row)    
 
         # Miscellaneous working variables for data management
@@ -482,7 +450,8 @@ class VertexMorphingMethod:
                 row.append("\t"+str("%.12f"%(correctionScaling[0]))+"\t")
                 row.append("\t"+str(self.optimizationSettings.step_size)+"\t")
                 row.append("\t"+str("%.1f"%(runTimeOptimizationStep))+"\t")
-                row.append("\t"+str("%.1f"%(runTimeOptimization)))
+                row.append("\t"+str("%.1f"%(runTimeOptimization))+"\t")
+                row.append("\t"+str(time.ctime()))
                 historyWriter.writerow(row)   
 
             # Take time needed for current optimization step
@@ -573,7 +542,7 @@ class Communicator:
         for func_id in optimizationSettings.constraints:
             self.responseContainer[func_id] = {}          
         for func_id in self.responseContainer:
-            self.responseContainer[func_id] = {"value": None, "reference_value": None, "gradient": None}  
+            self.responseContainer[func_id] = {"value": None, "referenceValue": None, "gradient": None}  
     
     # --------------------------------------------------------------------------
     def initializeCommunication( self ):
@@ -588,7 +557,7 @@ class Communicator:
     # --------------------------------------------------------------------------
     def deleteAllReportedValues( self ):
         for func_id in self.responseContainer:
-            self.responseContainer[func_id] = {"value": None, "reference_value": None, "gradient": None}  
+            self.responseContainer[func_id] = {"value": None, "referenceValue": None, "gradient": None}  
 
     # --------------------------------------------------------------------------
     def requestFunctionValueOf( self, functionId ):
@@ -616,7 +585,7 @@ class Communicator:
     # --------------------------------------------------------------------------
     def reportFunctionReferenceValue( self, functionId, functionReferenceValue ):
         if functionId in self.responseContainer.keys():
-            self.responseContainer[functionId]["reference"] = functionReferenceValue
+            self.responseContainer[functionId]["referenceValue"] = functionReferenceValue
         else:
             raise NameError("Reported function is not specified: " + functionId)
 
@@ -633,7 +602,7 @@ class Communicator:
 
     # --------------------------------------------------------------------------
     def getReportedFunctionReferenceValueOf( self, functionId ):
-        return self.responseContainer[functionId]["reference"]
+        return self.responseContainer[functionId]["referenceValue"]
 
     # --------------------------------------------------------------------------    
     def getReportedGradientOf( self, functionId ):

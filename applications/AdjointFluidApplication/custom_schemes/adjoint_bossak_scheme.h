@@ -19,15 +19,17 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/condition.h"
+#include "includes/communicator.h"
 #include "includes/model_part.h"
 #include "includes/process_info.h"
 #include "includes/kratos_parameters.h"
 #include "includes/ublas_interface.h"
 #include "utilities/openmp_utils.h"
 #include "solving_strategies/schemes/scheme.h"
+#include "containers/variable.h"
 
 // Application includes
-#include "custom_utilities/objective_function.h"
+#include "../../AdjointFluidApplication/custom_utilities/objective_function.h"
 
 namespace Kratos
 {
@@ -176,7 +178,7 @@ public:
 
         // check domain dimension and element
         const unsigned int WorkingSpaceDimension =
-            rModelPart.GetElement(1).WorkingSpaceDimension();
+            rModelPart.Elements().begin()->WorkingSpaceDimension();
 
         ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
         const unsigned int DomainSize =
@@ -202,8 +204,7 @@ public:
             it->FastGetSolutionStepValue(SHAPE_SENSITIVITY) = SHAPE_SENSITIVITY.Zero();
             it->FastGetSolutionStepValue(ADJOINT_VELOCITY) = ADJOINT_VELOCITY.Zero();
             it->FastGetSolutionStepValue(ADJOINT_PRESSURE) = ADJOINT_PRESSURE.Zero();
-            it->FastGetSolutionStepValue(ADJOINT_ACCELERATION) =
-                ADJOINT_ACCELERATION.Zero();
+            it->FastGetSolutionStepValue(ADJOINT_ACCELERATION) = ADJOINT_ACCELERATION.Zero();
         }
 
         ModelPart& rBoundaryModelPart = rModelPart.GetSubModelPart(mBoundaryModelPartName);
@@ -231,7 +232,7 @@ public:
         ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
         double DeltaTime = -rCurrentProcessInfo[DELTA_TIME]; // DELTA_TIME < 0
 
-        if (DeltaTime <= 0)
+        if (DeltaTime <= 0.0)
         {
             KRATOS_THROW_ERROR(std::runtime_error,
                                "detected for adjoint solution DELTA_TIME >= 0",
@@ -246,6 +247,8 @@ public:
         for (auto it = rModelPart.ElementsBegin(); it != rModelPart.ElementsEnd(); ++it)
             for (unsigned int iNode = 0; iNode < it->GetGeometry().PointsNumber(); ++iNode)
                 it->GetGeometry()[iNode].GetValue(NODAL_AREA) += 1.0;
+
+        rModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_AREA);
 
         mpObjectiveFunction->InitializeSolutionStep(rModelPart);
 
@@ -279,24 +282,62 @@ public:
     {
         KRATOS_TRY
 
-        for (auto it = rDofSet.begin(); it != rDofSet.end(); ++it)
-            if (it->IsFree() == true)
-                it->GetSolutionStepValue() +=
-                    TSparseSpace::GetValue(rDx, it->EquationId());
-
         ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
         const unsigned int DomainSize =
             static_cast<unsigned int>(rCurrentProcessInfo[DOMAIN_SIZE]);
+        Communicator& rComm = rModelPart.GetCommunicator();
 
-        for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
+        if (rComm.TotalProcesses() == 1)
         {
-            array_1d<double, 3>& rCurrentAdjointAcceleration =
-                it->FastGetSolutionStepValue(ADJOINT_ACCELERATION, 0);
-            const array_1d<double, 3>& rOldAdjointAcceleration =
-                it->FastGetSolutionStepValue(ADJOINT_ACCELERATION, 1);
-            for (unsigned int d = 0; d < DomainSize; ++d)
-                rCurrentAdjointAcceleration[d] =
-                    (mGammaNewmark - 1.0) * mInvGamma * rOldAdjointAcceleration[d];
+            for (auto it = rDofSet.begin(); it != rDofSet.end(); ++it)
+                if (it->IsFree() == true)
+                    it->GetSolutionStepValue() +=
+                        TSparseSpace::GetValue(rDx, it->EquationId());
+
+            for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
+            {
+                array_1d<double, 3>& rCurrentAdjointAcceleration =
+                    it->FastGetSolutionStepValue(ADJOINT_ACCELERATION);
+                const array_1d<double, 3>& rOldAdjointAcceleration =
+                    it->FastGetSolutionStepValue(ADJOINT_ACCELERATION, 1);
+                for (unsigned int d = 0; d < DomainSize; ++d)
+                    rCurrentAdjointAcceleration[d] =
+                        (mGammaNewmark - 1.0) * mInvGamma * rOldAdjointAcceleration[d];
+            }
+        }
+        else
+        {
+            for (auto it = rDofSet.begin(); it != rDofSet.end(); ++it)
+                if (it->GetSolutionStepValue(PARTITION_INDEX) == rComm.MyPID())
+                    if (it->IsFree() == true)
+                        it->GetSolutionStepValue() +=
+                            TSparseSpace::GetValue(rDx, it->EquationId());
+
+            // todo: add a function Communicator::SynchronizeDofVariables() to
+            // reduce communication here.
+            rComm.SynchronizeNodalSolutionStepsData();
+
+            for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
+            {
+                array_1d<double, 3>& rCurrentAdjointAcceleration =
+                    it->FastGetSolutionStepValue(ADJOINT_ACCELERATION);
+
+                // in the end we need to assemble so we only compute this part
+                // on the process that owns the node.
+                if (it->FastGetSolutionStepValue(PARTITION_INDEX) == rComm.MyPID())
+                {
+                    const array_1d<double, 3>& rOldAdjointAcceleration =
+                        it->FastGetSolutionStepValue(ADJOINT_ACCELERATION, 1);
+                    for (unsigned int d = 0; d < DomainSize; ++d)
+                        rCurrentAdjointAcceleration[d] = (mGammaNewmark - 1.0) * mInvGamma *
+                                                         rOldAdjointAcceleration[d];
+                }
+                else
+                {
+                    for (unsigned int d = 0; d < DomainSize; ++d)
+                        rCurrentAdjointAcceleration[d] = 0.0;
+                }
+            }
         }
 
         const int NumThreads = OpenMPUtils::GetNumThreads();
@@ -340,7 +381,7 @@ public:
                     *it, mAdjointMassMatrix[k], mObjectiveGradient[k], rCurrentProcessInfo);
 
                 // adjoint velocity
-                it->GetFirstDerivativesVector(mAdjointVelocity[k], 0);
+                it->GetFirstDerivativesVector(mAdjointVelocity[k]);
 
                 // terms depending on the mass matrix
                 noalias(mAdjointAcceleration[k]) +=
@@ -366,6 +407,8 @@ public:
                 }
             }
         }
+
+        rModelPart.GetCommunicator().AssembleCurrentData(ADJOINT_ACCELERATION);
 
         KRATOS_CATCH("")
     }
@@ -435,7 +478,7 @@ public:
         noalias(rLHS_Contribution) += mInvGamma * mInvDt * mAdjointMassMatrix[ThreadId];
 
         // residual form
-        pCurrentElement->GetFirstDerivativesVector(mAdjointVelocity[ThreadId], 0);
+        pCurrentElement->GetFirstDerivativesVector(mAdjointVelocity[ThreadId]);
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointVelocity[ThreadId]);
 
         pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
@@ -577,7 +620,7 @@ private:
         const unsigned int DomainSize =
             static_cast<unsigned int>(rProcessInfo[DOMAIN_SIZE]);
 
-        if (DeltaTime <= 0)
+        if (DeltaTime <= 0.0)
         {
             KRATOS_THROW_ERROR(std::runtime_error,
                                "detected for adjoint solution DELTA_TIME >= 0",
@@ -585,6 +628,17 @@ private:
         }
 
         double Weight = DeltaTime / (mAdjointEndTime - mAdjointStartTime);
+
+        Communicator& rComm = rModelPart.GetCommunicator();
+        if (rComm.TotalProcesses() > 1)
+        {
+            // here we make sure we only add the old shape sensitivity once
+            // when we assemble.
+            for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
+                if (it->FastGetSolutionStepValue(PARTITION_INDEX) != rComm.MyPID())
+                    it->FastGetSolutionStepValue(SHAPE_SENSITIVITY) =
+                        SHAPE_SENSITIVITY.Zero();
+        }
 
 #pragma omp parallel
         {
@@ -616,7 +670,7 @@ private:
                     *it, ShapeDerivativesMatrix[k], mObjectiveGradient[k], rProcessInfo);
 
                 // adjoint solution
-                it->GetFirstDerivativesVector(mAdjointVelocity[k], 0);
+                it->GetFirstDerivativesVector(mAdjointVelocity[k]);
 
                 if (CoordAuxVector[k].size() != ShapeDerivativesMatrix[k].size1())
                     CoordAuxVector[k].resize(ShapeDerivativesMatrix[k].size1(), false);
@@ -646,6 +700,8 @@ private:
                 }
             }
         }
+
+        rModelPart.GetCommunicator().AssembleCurrentData(SHAPE_SENSITIVITY);
 
         KRATOS_CATCH("")
     }

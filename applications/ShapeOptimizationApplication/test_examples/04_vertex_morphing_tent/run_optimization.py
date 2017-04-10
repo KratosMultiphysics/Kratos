@@ -20,59 +20,67 @@ import sys
 #
 # 
 
+import optimization_settings as optimizationSettings
+import optimizer_factory as optimizerFactory
+
 # ======================================================================================================================================
 # Solver preparation
 # ======================================================================================================================================
 
-def TentFunction(x):
-    """ Defines the target curve z=TentFunction(x) """
-    if x <= 15.0:
-        return 0.0
-    elif x<= 20.0:
-        return (x - 15.0) / 5.0
-    elif x <= 25.0:
-        return 1.0 - (x - 20.0) / 5.0
-    else:
-        return 0.0
+class externalAnalyzer( optimizerFactory.analyzerBaseClass ):
+    
+    # --------------------------------------------------------------------------
+    def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
+        if communicator.isRequestingFunctionValueOf("targetDeviation"): 
+            communicator.reportFunctionValue("targetDeviation", self.ObjectiveFunction(currentDesign))    
+        if communicator.isRequestingGradientOf("targetDeviation"): 
+            communicator.reportGradient("targetDeviation", self.ObjectiveGradient(currentDesign))   
 
-def ObjectiveFunction(currentDesign):
-    """ Returns the objective function to be minimized """
-    objective = 0.0
-    for node in currentDesign.Nodes:
-        objective = objective + abs(TentFunction(node.X) - node.Z)
-    return objective
+    # --------------------------------------------------------------------------
+    def ObjectiveFunction( self, currentDesign ):
+        """ Returns the objective function to be minimized """
+        objective = 0.0
+        for node in currentDesign.Nodes:
+            objective = objective + abs(self.TentFunction(node.X) - node.Z)
+        return objective
 
-def ObjectiveGradient(currentDesign):
-    """ Returns the gradient of the objective function """
-    sensitivity = dict()
-    for node in currentDesign.Nodes:
-        delta = node.Z - TentFunction(node.X)
-        if abs(delta) == 0.0:
-            sz = 0.0
+    # --------------------------------------------------------------------------
+    def ObjectiveGradient( self, currentDesign ):
+        """ Returns the gradient of the objective function """
+        sensitivity = dict()
+        for node in currentDesign.Nodes:
+            delta = node.Z - self.TentFunction(node.X)
+            if abs(delta) == 0.0:
+                sz = 0.0
+            else:
+                sz = delta / abs(delta)
+            sensitivity[node.Id] = [0.0, 0.0, sz]
+        return sensitivity
+
+    # --------------------------------------------------------------------------
+    def TentFunction( self, x ):
+        """ Defines the target curve z=TentFunction(x) """
+        if x <= 15.0:
+            return 0.0
+        elif x<= 20.0:
+            return (x - 15.0) / 5.0
+        elif x <= 25.0:
+            return 1.0 - (x - 20.0) / 5.0
         else:
-            sz = delta / abs(delta)
-        sensitivity[node.Id] = [0.0, 0.0, sz]
-    return sensitivity
+            return 0.0
+
 
 # ======================================================================================================================================
 # Optimization part
 # ======================================================================================================================================
 
-import optimization_settings as optimizationSettings
-import optimizer_factory
-
-class externalAnalyzer( optimizer_factory.analyzerBaseClass ):
-    def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
-        if communicator.isRequestingFunctionValueOf("targetDeviation"): 
-            communicator.reportFunctionValue("targetDeviation", ObjectiveFunction(currentDesign))    
-        if communicator.isRequestingGradientOf("targetDeviation"): 
-            communicator.reportGradient("targetDeviation", ObjectiveGradient(currentDesign))            
-
 inputModelPart = ModelPart(optimizationSettings.input_model_part_name)
 newAnalyzer = externalAnalyzer()
 
-optimizer = optimizer_factory.CreateOptimizer( inputModelPart, optimizationSettings )
+optimizer = optimizerFactory.CreateOptimizer( inputModelPart, optimizationSettings )
 optimizer.importAnalyzer( newAnalyzer )
 optimizer.importModelPart()
 
 optimizer.optimize()
+
+# ======================================================================================================================================
