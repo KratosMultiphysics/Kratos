@@ -139,4 +139,4 @@ class MapperTests(MapperTestsFactory):
     file_name_5 = "NearestElement_surface"
     file_name_6 = "NearestElement_volume"
     
-    file_name_list = [file_name_1, file_name_2, file_name_3, file_name_4, file_name_5]
+    file_name_list = [file_name_1, file_name_2, file_name_3, file_name_4, file_name_5, file_name_6]

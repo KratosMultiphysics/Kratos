@@ -486,7 +486,7 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
             self.CheckValuesPrescribed(self.interface_sub_model_part_destination,
                                        variable_destination,
                                        self.vector_values_destination_receive)
-
+        
     def TestInverseMapNonConstantVectorValues(self, output_time):
         variable_origin = VELOCITY
         variable_destination = FORCE
@@ -570,10 +570,7 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
 
     def CheckValuesExec(self, node, variable, value_mapped):
         value_expected = node.GetSolutionStepValue(variable)
-        if (isinstance(value_mapped, float) or isinstance(value_mapped, int)): # Variable is a scalar
-            self.assertAlmostEqual(value_mapped,value_expected,4)
-        else: # Variable is a vector
-            self.assertAlmostEqualVector(value_mapped,value_expected)
+        self.assertAlmostEqualCustom(value_mapped,value_expected)
 
 
     def CheckValuesPrescribed(self, model_part, variable, nodal_values):
@@ -588,13 +585,16 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
         value_mapped = node.GetSolutionStepValue(variable)
         nodal_coords = (node.X, node.Y, node.Z)
         value_expected = nodal_values[nodal_coords]
+        print(value_mapped, value_expected, nodal_coords)
+        self.assertAlmostEqualCustom(value_mapped,value_expected)
+
+
+    def assertAlmostEqualCustom(self, value_mapped, value_expected):
         if (isinstance(value_mapped, float) or isinstance(value_mapped, int)): # Variable is a scalar
             self.assertAlmostEqual(value_mapped,value_expected,4)
-
-
-    def assertAlmostEqualVector(self, values_mapped, values_expected):
-        for i in range(0,3):
-            self.assertAlmostEqual(values_mapped[i],values_expected[i],4)
+        else: # Variable is a vector
+            for i in range(0,3):
+              self.assertAlmostEqual(value_mapped[i],value_expected[i],4)       
 
 
     ##### IO related Functions #####
@@ -747,20 +747,24 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
         value = 0.0
 
         for i in range(len(coords_x)):
-            if (index == 1):
-                value = (coords_x[i] + coords_y[i] + coords_z[i]) * 1e2
-            elif (index == 2):
-                value = ((coords_x[i]**2 + coords_y[i] + coords_z[i])*1e2)**2
-            elif (index == 3):
-                value = (coords_x[i]**2 + coords_y[i]**2 + coords_z[i]**2)*1e2
-            elif (index == 4):
-                value = ((coords_x[i] + coords_y[i] + coords_z[i])*1e2)**(3)
-            else:
-                raise("ERROR: Wrong index for MappingValues specified")
-            
-            values.append(round(value, values_precision))
+            values.append(round(self.CalculateMappingValue(index, coords_x[i], coords_y[i], coords_z[i]), values_precision))
     
         return values
+
+    def CalculateMappingValue(self, index, x, y, z):
+        if (index == 1):
+            value = (x + y + z) * 1e2
+        elif (index == 2):
+            value = ((x**2 + y + z)*1e2)**2
+        elif (index == 3):
+            value = (x**2 + y**2 + z**2)*1e2
+        elif (index == 4):
+            value = ((x + y + z)*1e2)**(3)
+        else:
+            raise("ERROR: Wrong index for MappingValues specified")
+
+
+        return value
 
     def PrintMappedValues(self, model_part, variable, info_string):
         values_precision = 6 # higher than the precision of the mapped values bcs of "round()"
@@ -776,7 +780,7 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
             print("\n\n Values for:", info_string)
             print("        \"Vector_X\":", values_x, ",")
             print("        \"Vector_Y\":", values_y, ",")
-            print("        \"Vector_Z\":", values_x)
+            print("        \"Vector_Z\":", values_z)
 
         else: # Scalar Variable
             values = []
