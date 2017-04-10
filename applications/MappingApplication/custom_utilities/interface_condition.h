@@ -98,38 +98,36 @@ namespace Kratos
           double projection_distance;
           array_1d<double,3> projection_local_coords;
 
-          if (mGeometryFamily == GeometryData::Kratos_Linear 
-              && mNumPoints == 2) { // I am a linear line condition
-              is_inside = MapperUtilities::ProjectPointToCondition(mpCondition, GlobalCoords,
-                                                              projection_local_coords,
-                                                              projection_distance);
-          } else if (mGeometryFamily == GeometryData::Kratos_Triangle 
-                     && mNumPoints == 3) { // I am a linear triangular condition
-              is_inside = MapperUtilities::ProjectPointToCondition(mpCondition, GlobalCoords,
+          try {
+              if (mGeometryFamily == GeometryData::Kratos_Linear 
+                  && mNumPoints == 2) { // I am a linear line condition
+                  is_inside = MapperUtilities::ProjectPointToLine(mpCondition, GlobalCoords,
                                                                   projection_local_coords,
                                                                   projection_distance);
-          } else if (mGeometryFamily == GeometryData::Kratos_Quadrilateral
-                     && mNumPoints == 4) { // I am a linear quadrilateral condition
-              is_inside = MapperUtilities::ProjectPointToCondition(mpCondition, GlobalCoords,
-                                                                       projection_local_coords,
-                                                                       projection_distance);
-          } else if (mGeometryFamily == GeometryData::Kratos_Tetrahedra
-                     && mNumPoints == 4) { // I am a linear quadrilateral condition
-              is_inside = MapperUtilities::PointLocalCoordinatesInVolume(mpCondition, GlobalCoords,
-                                                                    projection_local_coords,
-                                                                    projection_distance);
-          } else if (mGeometryFamily == GeometryData::Kratos_Prism
-                     && mNumPoints == 6) { // I am a linear quadrilateral condition
-              is_inside = MapperUtilities::PointLocalCoordinatesInVolume(mpCondition, GlobalCoords,
-                                                               projection_local_coords,
-                                                               projection_distance);
-          } else if (mGeometryFamily == GeometryData::Kratos_Hexahedra
-                     && mNumPoints == 8) { // I am a linear quadrilateral condition
-              is_inside = MapperUtilities::PointLocalCoordinatesInVolume(mpCondition, GlobalCoords,
-                                                                   projection_local_coords,
-                                                                   projection_distance);
-          } else {
-              std::cout << "MAPPER WARNING, Used Geometry is not implemented, " 
+              } else if (mGeometryFamily == GeometryData::Kratos_Triangle 
+                        && mNumPoints == 3) { // I am a linear triangular condition
+                  is_inside = MapperUtilities::ProjectPointToTriangle(mpCondition, GlobalCoords,
+                                                                      projection_local_coords,
+                                                                      projection_distance);
+              } else if (mGeometryFamily == GeometryData::Kratos_Quadrilateral
+                        && mNumPoints == 4) { // I am a linear quadrilateral condition
+                  is_inside = MapperUtilities::ProjectPointToQuadrilateral(mpCondition, GlobalCoords,
+                                                                          projection_local_coords,
+                                                                          projection_distance);
+              } else if (mGeometryFamily == GeometryData::Kratos_Tetrahedra ||
+                         mGeometryFamily == GeometryData::Kratos_Prism ||
+                         mGeometryFamily == GeometryData::Kratos_Hexahedra) { // Volume Mapping
+                  is_inside = MapperUtilities::PointLocalCoordinatesInVolume(mpCondition, GlobalCoords,
+                                                                             projection_local_coords,
+                                                                             projection_distance);
+              } else {
+                  std::cout << "MAPPER WARNING, Unsupported geometry, " 
+                            << "using an approximation" << std::endl;
+                  return false;
+              }
+          } catch (...) {
+              std::cout << "MAPPER WARNING, Functions necessary for projection "
+                        << "are not implemented in the core, " 
                         << "using an approximation" << std::endl;
               return false;
           }

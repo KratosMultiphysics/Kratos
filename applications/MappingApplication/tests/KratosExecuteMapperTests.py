@@ -585,7 +585,6 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
         value_mapped = node.GetSolutionStepValue(variable)
         nodal_coords = (node.X, node.Y, node.Z)
         value_expected = nodal_values[nodal_coords]
-        print(value_mapped, value_expected, nodal_coords)
         self.assertAlmostEqualCustom(value_mapped,value_expected)
 
 
