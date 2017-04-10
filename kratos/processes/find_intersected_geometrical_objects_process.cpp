@@ -2,18 +2,18 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Davand
 //
-	           
+
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -23,7 +23,7 @@
 namespace Kratos
 {
 
-	FindIntersectedGeometricalObjectsProcess::FindIntersectedGeometricalObjectsProcess(ModelPart& rPart1, ModelPart& rPart2) 
+	FindIntersectedGeometricalObjectsProcess::FindIntersectedGeometricalObjectsProcess(ModelPart& rPart1, ModelPart& rPart2)
 	:mrModelPart1(rPart1), mrModelPart2(rPart2) {
 
 	}
@@ -66,7 +66,7 @@ namespace Kratos
 		for (auto i_node = mrModelPart2.NodesBegin(); i_node != mrModelPart2.NodesEnd(); i_node++) {
 			mOctree.Insert(i_node->Coordinates().data().data());
 		}
-		
+
 		for (auto i_element = mrModelPart2.ElementsBegin(); i_element != mrModelPart2.ElementsEnd(); i_element++) {
 			mOctree.Insert(*(i_element).base());
 		}
@@ -91,6 +91,12 @@ namespace Kratos
 				high[i] = i_node->Coordinate(i + 1) > high[i] ? i_node->Coordinate(i + 1) : high[i];
 			}
 		}
+
+    for(int i = 0 ; i < 3; i++){
+			low[i] -= std::numeric_limits<double>::epsilon();
+			high[i] += std::numeric_limits<double>::epsilon();
+		}
+
 
 		// TODO: Octree needs refactoring to work with BoundingBox. Pooyan.
 		mOctree.SetBoundingBox(low.data().data(), high.data().data());
@@ -123,5 +129,3 @@ namespace Kratos
 
 
 }  // namespace Kratos.
-
-
