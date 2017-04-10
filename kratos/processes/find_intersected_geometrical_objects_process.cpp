@@ -59,18 +59,22 @@ namespace Kratos
 
 	}
 
-	void FindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects(ModelPart::ElementsContainerType::ContainerType& rElements, 
-		std::vector<PointerVector<GeometricalObject>>& rResults) {
-		const std::size_t number_of_elements = rElements.size();
+	void FindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults) {
+		const std::size_t number_of_elements = mrModelPart1.NumberOfElements();
+		auto& r_elements = mrModelPart1.ElementsArray();
 		std::vector<OctreeType::cell_type*> leaves;
 
 		rResults.resize(number_of_elements);
 		for (std::size_t i = 0; i < number_of_elements; i++) {
-			auto p_element_1 = rElements[i];
+			auto p_element_1 = r_elements[i];
 			leaves.clear();
 			mOctree.GetIntersectedLeaves(p_element_1, leaves);
 			FindIntersectedSkinObjects(*p_element_1, leaves, rResults[i]);
 		}
+	}
+
+	ModelPart& FindIntersectedGeometricalObjectsProcess::GetModelPart1() {
+		return mrModelPart1;
 	}
 
 	void FindIntersectedGeometricalObjectsProcess::GenerateOctree() {

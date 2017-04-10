@@ -179,6 +179,7 @@ namespace Kratos
       ///@name Private Operations
       ///@{
 
+		void CalculateDistance(Element& rElement1, PointerVector<GeometricalObject>& rIntesectedObjects);
 
       ///@}
       ///@name Private  Access

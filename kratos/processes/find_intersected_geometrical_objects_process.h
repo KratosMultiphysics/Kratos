@@ -275,8 +275,9 @@ namespace Kratos
       ///@}
 
 	protected:
-		void FindIntersectedSkinObjects(ModelPart::ElementsContainerType::ContainerType& rElements,
-			std::vector<PointerVector<GeometricalObject>>& rResults);
+
+		void FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults);
+		ModelPart& GetModelPart1();
 
     private:
       ///@name Static Member Variables
