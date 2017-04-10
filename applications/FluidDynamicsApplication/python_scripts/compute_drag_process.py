@@ -38,16 +38,17 @@ class ComputeDragProcess(python_process.PythonProcess):
         self.print_drag_to_screen = settings["print_drag_to_screen"].GetBool()
         self.write_drag_output_file = settings["write_drag_output_file"].GetBool()
 
-        if (self.write_drag_output_file):
-            # Set drag output file name
-            self.drag_filename = settings["model_part_name"].GetString() + ".drag"
+        if (self.model_part.GetCommunicator().MyPID() == 0):
+            if (self.write_drag_output_file):
+                # Set drag output file name
+                self.drag_filename = settings["model_part_name"].GetString() + ".drag"
 
-            # File creation to store the drag evolution
-            with open(self.drag_filename, 'w') as file:
-                file.write(settings["model_part_name"].GetString() + " drag \n")
-                file.write("\n")
-                file.write("Time   Fx   Fy   Fz \n")
-                file.close()
+                # File creation to store the drag evolution
+                with open(self.drag_filename, 'w') as file:
+                    file.write(settings["model_part_name"].GetString() + " drag \n")
+                    file.write("\n")
+                    file.write("Time   Fx   Fy   Fz \n")
+                    file.close()
 
 
     def ExecuteFinalizeSolutionStep(self):
@@ -56,15 +57,15 @@ class ComputeDragProcess(python_process.PythonProcess):
 
         if((current_time >= self.interval[0]) and  (current_time < self.interval[1])):
 
-            drag_x = -KratosMultiphysics.VariableUtils().SumHistoricalNodeScalarVariable(KratosMultiphysics.REACTION_X, self.model_part, 0)
-            drag_y = -KratosMultiphysics.VariableUtils().SumHistoricalNodeScalarVariable(KratosMultiphysics.REACTION_Y, self.model_part, 0)
-            drag_z = -KratosMultiphysics.VariableUtils().SumHistoricalNodeScalarVariable(KratosMultiphysics.REACTION_Z, self.model_part, 0)
+            # Note that MPI communication is done within VariableUtils().SumHistoricalNodeVectorVariable()
+            reaction_vector = KratosMultiphysics.VariableUtils().SumHistoricalNodeVectorVariable(KratosMultiphysics.REACTION, self.model_part, 0)
 
-            if (self.print_drag_to_screen):
-                print("DRAG RESULTS:")
-                print("Current time: " + str(current_time) + " x-drag: " + str(drag_x) + " y-drag: " + str(drag_y) + " z-drag: " + str(drag_z))
+            if (self.model_part.GetCommunicator().MyPID() == 0):
+                if (self.print_drag_to_screen):
+                    print("DRAG RESULTS:")
+                    print("Current time: " + str(current_time) + " x-drag: " + str(-reaction_vector[0]) + " y-drag: " + str(-reaction_vector[1]) + " z-drag: " + str(-reaction_vector[2]))
 
-            if (self.write_drag_output_file):
-                with open(self.drag_filename, 'a') as file:
-                    file.write(str(current_time)+"   "+str(drag_x)+"   "+str(drag_y)+"   "+str(drag_z)+"\n")
-                    file.close()
+                if (self.write_drag_output_file):
+                    with open(self.drag_filename, 'a') as file:
+                        file.write(str(current_time)+"   "+str(-reaction_vector[0])+"   "+str(-reaction_vector[1])+"   "+str(-reaction_vector[2])+"\n")
+                        file.close()

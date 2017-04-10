@@ -48,6 +48,7 @@ add_library(KratosPfemFluidDynamicsApplication SHARED ${KRATOS_PFEM_FLUID_DYNAMI
 #####***target_link_libraries(KratosPfemFluidDynamicsApplication KratosCore)
 target_link_libraries(KratosPfemFluidDynamicsApplication KratosCore KratosSolidMechanicsApplication KratosPfemBaseApplication)
 set_target_properties(KratosPfemFluidDynamicsApplication PROPERTIES PREFIX "")
+set_target_properties(KratosPfemFluidDynamicsApplication PROPERTIES COMPILE_DEFINITIONS "PFEM_FLUID_DYNAMICS_APPLICATION=EXPORT,API")
 install(TARGETS KratosPfemFluidDynamicsApplication DESTINATION libs )
 
 

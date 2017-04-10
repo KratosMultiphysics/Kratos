@@ -49,8 +49,9 @@ void  AddCustomUtilitiesToPython()
     .def("GetStructureInterfaceArea",&PartitionedFSIUtilities<TSpace,2>::GetStructureInterfaceArea)
     .def("GetFluidInterfaceResidualSize",&PartitionedFSIUtilities<TSpace,2>::GetFluidInterfaceResidualSize)
     .def("GetStructureInterfaceResidualSize",&PartitionedFSIUtilities<TSpace,2>::GetStructureInterfaceResidualSize)
+    .def("SetFluidInterfaceVectorVariable",&PartitionedFSIUtilities<TSpace,2>::SetFluidInterfaceVectorVariable)
     .def("SetAndFixFluidInterfaceVectorVariable",&PartitionedFSIUtilities<TSpace,2>::SetAndFixFluidInterfaceVectorVariable)
-    .def("ComputeFluidInterfaceVelocityResidual",&PartitionedFSIUtilities<TSpace,2>::ComputeFluidInterfaceVelocityResidual)
+    .def("ComputeFluidInterfaceVectorResidual",&PartitionedFSIUtilities<TSpace,2>::ComputeFluidInterfaceVectorResidual)
     .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&PartitionedFSIUtilities<TSpace,2>::ComputeFluidInterfaceMeshVelocityResidualNorm)
     ;
 
@@ -59,8 +60,9 @@ void  AddCustomUtilitiesToPython()
     .def("GetStructureInterfaceArea",&PartitionedFSIUtilities<TSpace,3>::GetStructureInterfaceArea)
     .def("GetFluidInterfaceResidualSize",&PartitionedFSIUtilities<TSpace,3>::GetFluidInterfaceResidualSize)
     .def("GetStructureInterfaceResidualSize",&PartitionedFSIUtilities<TSpace,3>::GetStructureInterfaceResidualSize)
+    .def("SetFluidInterfaceVectorVariable",&PartitionedFSIUtilities<TSpace,3>::SetFluidInterfaceVectorVariable)
     .def("SetAndFixFluidInterfaceVectorVariable",&PartitionedFSIUtilities<TSpace,3>::SetAndFixFluidInterfaceVectorVariable)
-    .def("ComputeFluidInterfaceVelocityResidual",&PartitionedFSIUtilities<TSpace,3>::ComputeFluidInterfaceVelocityResidual)
+    .def("ComputeFluidInterfaceVectorResidual",&PartitionedFSIUtilities<TSpace,3>::ComputeFluidInterfaceVectorResidual)
     .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&PartitionedFSIUtilities<TSpace,3>::ComputeFluidInterfaceMeshVelocityResidualNorm)
     ;
 
