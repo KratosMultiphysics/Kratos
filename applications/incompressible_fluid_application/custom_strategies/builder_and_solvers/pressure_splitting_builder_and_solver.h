@@ -1336,7 +1336,7 @@ protected:
         for (typename ConditionsArrayType::const_iterator itCond = rConditions.begin();
                 itCond != rConditions.end(); itCond++)
         {            
-            pScheme->Condition_EquationId( *(i_condition.base()), ids, CurrentProcessInfo);
+            pScheme->Condition_EquationId( *(itCond.base()), ids, CurrentProcessInfo);
 
             for (std::size_t i = 0; i < ids.size(); i++)
                 if (ids[i] < mVelFreeDofs)
