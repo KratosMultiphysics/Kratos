@@ -80,13 +80,9 @@
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_X"      : true,
-            "is_fixed_Y"      : true,
-            "is_fixed_Z"      : true,
+            "is_fixed"        : [true,true,true],
             "value"           : [0.0,0.0,0.0],
-            "Value_X_Table"   : 0,
-            "Value_Y_Table"   : 0,
-            "Value_Z_Table"   : 0
+            "Value_Table"     : [0,0,0]
         }
     }],
     "loads_process_list"       : [{
