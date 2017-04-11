@@ -59,17 +59,17 @@ class optimizationDataLogger():
         self.responseLogger = responseLogger
         self.designLogger = designLogger
         self.optimizationSettings = optimizationSettings
-        self.createFolderToStoreOptimizationResults()     
-        self.outputInformationAboutResponseFunctions()   
+        self.__createFolderToStoreOptimizationResults()     
+        self.__outputInformationAboutResponseFunctions()   
 
     # --------------------------------------------------------------------------
-    def createFolderToStoreOptimizationResults ( self ):
+    def __createFolderToStoreOptimizationResults ( self ):
         resultsDirectory = self.optimizationSettings["output"]["output_directory"].GetString()
         os.system( "rm -rf " + resultsDirectory )
         os.system( "mkdir -p " + resultsDirectory )          
 
     # --------------------------------------------------------------------------
-    def outputInformationAboutResponseFunctions( self ):
+    def __outputInformationAboutResponseFunctions( self ):
 
         numberOfObjectives = self.optimizationSettings["objectives"].size()
         numberOfConstraints = self.optimizationSettings["constraints"].size()

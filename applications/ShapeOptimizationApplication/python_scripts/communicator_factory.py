@@ -27,11 +27,11 @@ class Communicator:
     
     # --------------------------------------------------------------------------
     def __init__( self, optimizationSettings ):
-        self.listOfRequests = self.initializeListOfRequests( optimizationSettings )
-        self.listOfResponses = self.initializeListOfResponses( optimizationSettings )
+        self.listOfRequests = self.__initializeListOfRequests( optimizationSettings )
+        self.listOfResponses = self.__initializeListOfResponses( optimizationSettings )
 
     # --------------------------------------------------------------------------
-    def initializeListOfRequests( self, optimizationSettings ):
+    def __initializeListOfRequests( self, optimizationSettings ):
 
         listOfRequests = {}
         numberOfObjectives = optimizationSettings["objectives"].size()
@@ -48,7 +48,7 @@ class Communicator:
         return listOfRequests
 
     # --------------------------------------------------------------------------
-    def initializeListOfResponses( self, optimizationSettings ):
+    def __initializeListOfResponses( self, optimizationSettings ):
         
         listOfResponses = {}  
         numberOfObjectives = optimizationSettings["objectives"].size()
@@ -69,16 +69,16 @@ class Communicator:
     
     # --------------------------------------------------------------------------
     def initializeCommunication( self ):
-        self.deleteAllRequests()
-        self.deleteAllReportedValues()
+        self.__deleteAllRequests()
+        self.__deleteAllReportedValues()
 
     # --------------------------------------------------------------------------
-    def deleteAllRequests( self ):
+    def __deleteAllRequests( self ):
         for responseId in self.listOfRequests:
             self.listOfRequests[responseId] = {"calculateValue": False, "calculateGradient": False}
 
     # --------------------------------------------------------------------------
-    def deleteAllReportedValues( self ):
+    def __deleteAllReportedValues( self ):
         for responseId in self.listOfResponses:
             self.listOfResponses[responseId] = {"value": None, "referenceValue": None, "gradient": None}  
 

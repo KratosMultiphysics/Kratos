@@ -32,19 +32,19 @@ class DesignLoggerGID( DesignLogger ):
     def __init__( self, designSurface, optimizationSettings ):
         self.designSurface = designSurface
         self.optimizationSettings = optimizationSettings
-        self.nodalResults = self.createListOfNodalResults( self.optimizationSettings["output"] )
+        self.nodalResults = self.__createListOfNodalResults( self.optimizationSettings["output"] )
         self.gaussPointResults = []
-        self.gidIO = self.createGiDIO( optimizationSettings )
+        self.gidIO = self.__createGiDIO( optimizationSettings )
 
     # ---------------------------------------------------------------------------
-    def createListOfNodalResults( self, outputSettings ):
+    def __createListOfNodalResults( self, outputSettings ):
         listOfNodalResults = []
         for nodalResultNumber in range(outputSettings["nodal_results"].size()):
             listOfNodalResults.append( outputSettings["nodal_results"][nodalResultNumber].GetString() )
         return listOfNodalResults          
 
     # --------------------------------------------------------------------------
-    def createGiDIO( self, optimizationSettings ):
+    def __createGiDIO( self, optimizationSettings ):
         resultsDirectory = optimizationSettings["output"]["output_directory"].GetString()
         designHistoryFilename = optimizationSettings["output"]["design_history_filename"].GetString()
         designHistoryFilenameWithPath =  resultsDirectory+"/"+designHistoryFilename

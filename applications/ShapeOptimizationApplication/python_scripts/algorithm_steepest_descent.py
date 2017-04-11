@@ -56,28 +56,28 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def execute( self ):
-        self.initializeOptimizationLoop()
-        self.startOptimizationLoop()
-        self.finalizeOptimizationLoop()
+        self.__initializeOptimizationLoop()
+        self.__startOptimizationLoop()
+        self.__finalizeOptimizationLoop()
 
     # --------------------------------------------------------------------------
-    def initializeOptimizationLoop( self ):   
+    def __initializeOptimizationLoop( self ):   
         self.timer.startTimer()
         self.dataLogger.initializeDataLogging() 
 
     # --------------------------------------------------------------------------
-    def startOptimizationLoop( self ):
+    def __startOptimizationLoop( self ):
 
         for optimizationIteration in range(1,self.maxIterations):
             print("\n>===================================================================")
             print("> ",self.timer.getTimeStamp(),": Starting optimization iteration ",optimizationIteration)
             print(">===================================================================\n")
 
-            self.callCoumminicatorToCreateNewRequests()
+            self.__callCoumminicatorToCreateNewRequests()
 
             self.analyzer.analyzeDesignAndReportToCommunicator( self.designSurface, optimizationIteration, self.communicator )
          
-            self.storeGradientsObtainedByCommunicatorOnNodes()
+            self.__storeGradientsObtainedByCommunicatorOnNodes()
 
             self.geometryTools.compute_unit_surface_normals()
             self.geometryTools.project_grad_on_unit_surface_normal( self.isConstraintGiven )
@@ -98,21 +98,21 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             print("> Time needed for total optimization so far = ", self.timer.getTotalTime(), "s")
             self.timer.resetLapTime()
 
-            if self.isAlgorithmConverged( optimizationIteration ):
+            if self.__isAlgorithmConverged( optimizationIteration ):
                 break            
 
     # --------------------------------------------------------------------------
-    def finalizeOptimizationLoop( self ):
+    def __finalizeOptimizationLoop( self ):
         self.dataLogger.finalizeDataLogging() 
 
     # --------------------------------------------------------------------------
-    def callCoumminicatorToCreateNewRequests( self ):
+    def __callCoumminicatorToCreateNewRequests( self ):
         self.communicator.initializeCommunication()
         self.communicator.requestFunctionValueOf( self.onlyObjective )
         self.communicator.requestGradientOf( self.onlyObjective )    
 
     # --------------------------------------------------------------------------
-    def storeGradientsObtainedByCommunicatorOnNodes( self ):
+    def __storeGradientsObtainedByCommunicatorOnNodes( self ):
         gradientOfObjectiveFunction = self.communicator.getReportedGradientOf ( self.onlyObjective )        
         for nodeId in gradientOfObjectiveFunction:
             if self.designSurface.Nodes[nodeId].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED):
@@ -124,7 +124,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             self.designSurface.Nodes[nodeId].SetSolutionStepValue(OBJECTIVE_SENSITIVITY,0,sensitivity)
 
     # --------------------------------------------------------------------------
-    def isAlgorithmConverged( self, optimizationIteration ):
+    def __isAlgorithmConverged( self, optimizationIteration ):
 
         if optimizationIteration > 1 :
 

@@ -37,11 +37,11 @@ class ResponseFunctionCreator:
      # --------------------------------------------------------------------------
     def AddSpecifiedKratosResponseFunctionsToList( self, listOfResponseFunctions ):        
         self.listOfResponseFunctions = listOfResponseFunctions
-        self.addObjectivesToListOfResponseFunctions()
-        self.addConstraintsToListOfResponseFunctions()
+        self.__addObjectivesToListOfResponseFunctions()
+        self.__addConstraintsToListOfResponseFunctions()
         
     # --------------------------------------------------------------------------
-    def addObjectivesToListOfResponseFunctions( self ):
+    def __addObjectivesToListOfResponseFunctions( self ):
 
         numberOfObjectives = self.optimizationSettings["objectives"].size()
 
@@ -51,14 +51,14 @@ class ResponseFunctionCreator:
             useKratos = self.optimizationSettings["objectives"][objectiveNumber]["use_kratos"].GetBool()
 
             if useKratos:
-                self.checkIfGivenResponseFunctionIsAlreadyDefined( objectiveId )
-                self.createAndAddGivenResponse( objectiveId, self.optimizationSettings["objectives"][objectiveNumber] )
+                self.__checkIfGivenResponseFunctionIsAlreadyDefined( objectiveId )
+                self.__createAndAddGivenResponse( objectiveId, self.optimizationSettings["objectives"][objectiveNumber] )
 
         if not self.listOfResponseFunctions:
             raise ValueError("No objective function specified!")
 
     # --------------------------------------------------------------------------
-    def addConstraintsToListOfResponseFunctions( self ):
+    def __addConstraintsToListOfResponseFunctions( self ):
 
         numberOfConstraints = self.optimizationSettings["constraints"].size()
 
@@ -68,16 +68,16 @@ class ResponseFunctionCreator:
             useKratos = self.optimizationSettings["constraints"][constraintNumber]["use_kratos"].GetBool()
 
             if useKratos:
-                self.checkIfGivenResponseFunctionIsAlreadyDefined( constraintId )
-                self.createAndAddGivenResponse( constraintId, self.optimizationSettings["constraints"][constraintNumber] )         
+                self.__checkIfGivenResponseFunctionIsAlreadyDefined( constraintId )
+                self.__createAndAddGivenResponse( constraintId, self.optimizationSettings["constraints"][constraintNumber] )         
 
     # --------------------------------------------------------------------------
-    def checkIfGivenResponseFunctionIsAlreadyDefined( self, responseId ):
+    def __checkIfGivenResponseFunctionIsAlreadyDefined( self, responseId ):
         if responseId in self.listOfResponseFunctions.keys():
             raise NameError("There are multiple response functions with the following identifier: " + responseId)
 
     # --------------------------------------------------------------------------
-    def createAndAddGivenResponse( self, responseId, solverSettings ):
+    def __createAndAddGivenResponse( self, responseId, solverSettings ):
 
         if responseId == "strain_energy":
             responseFunctionSolverIsNotImplemented = False

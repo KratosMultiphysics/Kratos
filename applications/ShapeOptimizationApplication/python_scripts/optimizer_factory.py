@@ -38,10 +38,10 @@ class VertexMorphingMethod:
         
         self.inputModelPart = inputModelPart
         self.optimizationSettings = optimizationSettings
-        self.addVariablesNeededForOptimization( inputModelPart )
+        self.__addVariablesNeededForOptimization( inputModelPart )
 
     # --------------------------------------------------------------------------
-    def addVariablesNeededForOptimization( self, inputModelPart ):
+    def __addVariablesNeededForOptimization( self, inputModelPart ):
         inputModelPart.AddNodalSolutionStepVariable(NORMAL)
         inputModelPart.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
         inputModelPart.AddNodalSolutionStepVariable(OBJECTIVE_SENSITIVITY)
@@ -82,8 +82,8 @@ class VertexMorphingMethod:
         print("> ",timer.getTimeStamp(),": Starting optimization using the following algorithm: ", algorithmName)
         print("> ==============================================================================================================\n")
     
-        designSurface = self.getDesignSurfaceFromInputModelPart()
-        listOfDampingRegions = self.getListOfDampingRegionsFromInputModelPart()
+        designSurface = self.__getDesignSurfaceFromInputModelPart()
+        listOfDampingRegions = self.__getListOfDampingRegionsFromInputModelPart()
 
         mapper = VertexMorphingMapper( designSurface, listOfDampingRegions, self.optimizationSettings ) 
         communicator = communicator_factory.CreateCommunicator( self.optimizationSettings )
@@ -96,7 +96,7 @@ class VertexMorphingMethod:
         print("> ==============================================================================================================\n")
     
     # --------------------------------------------------------------------------
-    def getDesignSurfaceFromInputModelPart( self ):
+    def __getDesignSurfaceFromInputModelPart( self ):
         nameOfDesingSurface = self.optimizationSettings["design_variables"]["design_submodel_part_name"].GetString()
         if self.inputModelPart.HasSubModelPart( nameOfDesingSurface ):
             optimizationModel = self.inputModelPart.GetSubModelPart( nameOfDesingSurface )
@@ -106,7 +106,7 @@ class VertexMorphingMethod:
             raise ValueError("The following sub-model part (design surface) specified for shape optimization does not exist: ",nameOfDesingSurface)         
 
     # --------------------------------------------------------------------------
-    def getListOfDampingRegionsFromInputModelPart( self ):
+    def __getListOfDampingRegionsFromInputModelPart( self ):
         listOfDampingRegions = {}
         print("> The following damping regions are defined: \n")
         for regionNumber in range(self.optimizationSettings["design_variables"]["damping"]["damping_regions"].size()):

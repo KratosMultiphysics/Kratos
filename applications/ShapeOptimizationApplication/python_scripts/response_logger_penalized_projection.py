@@ -39,7 +39,7 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
         self.onlyConstraint = self.optimizationSettings["constraints"][0]["identifier"].GetString()  
         self.typOfOnlyConstraint = self.optimizationSettings["constraints"][0]["type"].GetString()
             
-        self.completeResponseLogFileName = self.createCompleteResponseLogFilename( optimizationSettings )
+        self.completeResponseLogFileName = self.__createCompleteResponseLogFilename( optimizationSettings )
 
         self.objectiveValueHistory = {}
         self.constraintValueHistory = {}
@@ -52,7 +52,7 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
         self.initialOptimizationIteration = 0
 
     # --------------------------------------------------------------------------
-    def createCompleteResponseLogFilename( self, optimizationSettings ):
+    def __createCompleteResponseLogFilename( self, optimizationSettings ):
         resultsDirectory = optimizationSettings["output"]["output_directory"].GetString()
         responseLogFilename = optimizationSettings["output"]["response_log_filename"].GetString()
         completeResponseLogFilename = resultsDirectory+"/"+responseLogFilename+".csv"
@@ -81,48 +81,48 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
 
         self.currentOptimizationIteration = optimizationIteration
 
-        self.addCurrentResponseValuesToHistory()
-        if self.isFirstLog():
+        self.__addCurrentResponseValuesToHistory()
+        if self.__isFirstLog():
             self.initialOptimizationIteration = optimizationIteration        
-            self.initializeChangeOfObjectiveValueHistory()
+            self.__initializeChangeOfObjectiveValueHistory()
         else:
-            self.addChangeOfObjectiveValueToHistory()
-        self.printInfoAboutResponseFunctionValues()
-        self.writeDataToLogFile()
+            self.__addChangeOfObjectiveValueToHistory()
+        self.__printInfoAboutResponseFunctionValues()
+        self.__writeDataToLogFile()
 
         self.previousOptimizationIteration = optimizationIteration
 
-    # -------------------------------------------------------------------------
-    def isFirstLog( self ):
-        if len(self.objectiveValueHistory) < 2:
-            return True
-        else:
-            return False
+    # --------------------------------------------------------------------------
+    def __addCurrentResponseValuesToHistory( self ):
+        self.__addObjectiveValuesToHistory()
+        self.__addConstraintValuesToHistory()
 
     # --------------------------------------------------------------------------
-    def addCurrentResponseValuesToHistory( self ):
-        self.addObjectiveValuesToHistory()
-        self.addConstraintValuesToHistory()
-
-    # --------------------------------------------------------------------------
-    def addObjectiveValuesToHistory( self ):
+    def __addObjectiveValuesToHistory( self ):
         objectiveValue = self.communicator.getReportedFunctionValueOf ( self.onlyObjective )
         self.objectiveValueHistory[self.currentOptimizationIteration] = objectiveValue
 
     # --------------------------------------------------------------------------
-    def addConstraintValuesToHistory( self ):
+    def __addConstraintValuesToHistory( self ):
         constraintValue = self.communicator.getReportedFunctionValueOf ( self.onlyConstraint )
         constraintReferenceValue = self.communicator.getReportedFunctionReferenceValueOf ( self.onlyConstraint )
         self.constraintValueHistory[self.currentOptimizationIteration] = constraintValue
         self.constraintReferenceValueHistory[self.currentOptimizationIteration] = constraintReferenceValue
 
+    # -------------------------------------------------------------------------
+    def __isFirstLog( self ):
+        if len(self.objectiveValueHistory) < 2:
+            return True
+        else:
+            return False        
+
     # --------------------------------------------------------------------------
-    def initializeChangeOfObjectiveValueHistory( self ):
+    def __initializeChangeOfObjectiveValueHistory( self ):
         self.absoluteChangeOfObjectiveValueHistory[self.currentOptimizationIteration] = 0.0
         self.relativeChangeOfObjectiveValueHistory[self.currentOptimizationIteration] = 0.0
 
     # --------------------------------------------------------------------------
-    def addChangeOfObjectiveValueToHistory( self ):
+    def __addChangeOfObjectiveValueToHistory( self ):
         objectiveValue = self.objectiveValueHistory[self.currentOptimizationIteration]
         previousObjectiveValue = self.objectiveValueHistory[self.previousOptimizationIteration]
         initialObjectiveValue = self.objectiveValueHistory[self.initialOptimizationIteration]
@@ -130,7 +130,7 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
         self.relativeChangeOfObjectiveValueHistory[self.currentOptimizationIteration] = 100*(objectiveValue-previousObjectiveValue) / initialObjectiveValue
 
     # --------------------------------------------------------------------------
-    def printInfoAboutResponseFunctionValues( self ):
+    def __printInfoAboutResponseFunctionValues( self ):
         objectiveValue = self.objectiveValueHistory[self.currentOptimizationIteration]
         constraintValue = self.constraintValueHistory[self.currentOptimizationIteration]
         absoluteChangeOfObjectiveValue = self.absoluteChangeOfObjectiveValueHistory[self.currentOptimizationIteration]
@@ -141,7 +141,7 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
         print("\n> Current value of constraint function = ", round(constraintValue,12))
 
     # --------------------------------------------------------------------------
-    def writeDataToLogFile( self ):
+    def __writeDataToLogFile( self ):
 
         objectiveValue = self.objectiveValueHistory[self.currentOptimizationIteration]
         constraintValue = self.constraintValueHistory[self.currentOptimizationIteration]
@@ -179,7 +179,7 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
     def getValue( self, variableKey ):
         
         if variableKey=="RELATIVE_CHANGE_OF_OBJECTIVE_VALUE":
-            if self.isFirstLog():
+            if self.__isFirstLog():
                 raise RuntimeError("Relative change of objective function can not be computed since only one logged value is existing!")
             else:
                 return self.relativeChangeOfObjectiveValueHistory[self.currentOptimizationIteration]
