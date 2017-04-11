@@ -65,7 +65,7 @@ public:
     typedef ModelPart::NodesContainerType                   NodesArrayType;
     typedef ModelPart::ElementsContainerType             ElementsArrayType;
     typedef ModelPart::ConditionsContainerType         ConditionsArrayType;
-    typedef typename Element::DofsVectorType                DofsVectorType;
+    typedef typename Element::DofsVectorType                DofsVectorType; // having typename in visual studio does not work. 
     typedef std::vector<std::size_t> EquationIdVectorType;
     typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > VariableComponentType;
     typedef Dof<double>::Pointer DofPointerType;
