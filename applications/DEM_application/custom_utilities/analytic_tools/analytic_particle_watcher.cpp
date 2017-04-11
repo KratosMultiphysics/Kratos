@@ -97,14 +97,30 @@ void AnalyticParticleWatcher::GetAllParticlesData(ModelPart& analytic_model_part
 
 }
 
-//void AnalyticParticleWatcher::GetTimeStepsData(int id,
-//                                              boost::python::list times,
-//                                              boost::python::list neighbour_ids,
-//                                              boost::python::list normal_relative_vel,
-//                                              boost::python::list tangential_relative_vel)
-//{
-//    mMapOfParticleHistoryDatabases[id].FillUpPythonLists(id, times, neighbour_ids, normal_relative_vel, tangential_relative_vel);
-//}
+void AnalyticParticleWatcher::GetTimeStepsData(boost::python::list ids,
+                                               boost::python::list neighbour_ids,
+                                               boost::python::list normal_relative_vel,
+                                               boost::python::list tangential_relative_vel)
+{
+    ClearList(ids);
+    ClearList(neighbour_ids);
+    ClearList(normal_relative_vel);
+    ClearList(tangential_relative_vel);
+    const int n_time_steps = mVectorOfTimeStepDatabases.size();
+
+    for (int i = 0; i < n_time_steps; ++i){
+        boost::python::list ids_i;
+        boost::python::list neighbour_ids_i;
+        boost::python::list normal_relative_vel_i;
+        boost::python::list tangential_relative_vel_i;
+        mVectorOfTimeStepDatabases[i].FillUpPythonLists(ids_i, neighbour_ids_i, normal_relative_vel_i, tangential_relative_vel_i);
+        ids.append(ids_i);
+        neighbour_ids.append(neighbour_ids_i);
+        normal_relative_vel.append(normal_relative_vel_i);
+        tangential_relative_vel.append(tangential_relative_vel_i);
+    }
+}
+
 
 AnalyticParticleWatcher::ParticleHistoryDatabase& AnalyticParticleWatcher::GetParticleDataBase(int id)
 {

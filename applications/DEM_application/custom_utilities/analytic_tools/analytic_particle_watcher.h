@@ -59,6 +59,23 @@ class ImpactsTimeStepDataBase  // It holds the historical information gathered i
         }
     }
 
+    void FillUpPythonLists(boost::python::list& ids,
+                           boost::python::list& neighbour_ids,
+                           boost::python::list& normal_relative_vel,
+                           boost::python::list& tangential_relative_vel)
+    {
+        for (int i = 0; i < mNImpacts; ++i){
+            AnalyticParticleWatcher::ClearList(ids);
+            AnalyticParticleWatcher::ClearList(neighbour_ids);
+            AnalyticParticleWatcher::ClearList(normal_relative_vel);
+            AnalyticParticleWatcher::ClearList(tangential_relative_vel);
+            ids.append(mId1[i]);
+            neighbour_ids.append(mId2[i]);
+            normal_relative_vel.append(mRelVelNormal[i]);
+            tangential_relative_vel.append(mRelVelTangential[i]);
+        }
+    }
+
     private:
 
         int mNImpacts;
@@ -131,6 +148,11 @@ void GetAllParticlesData(ModelPart& analytic_model_part,
                          boost::python::list neighbour_ids,
                          boost::python::list normal_relative_vel,
                          boost::python::list tangential_relative_vel);
+
+void GetTimeStepsData(boost::python::list ids,
+                      boost::python::list neighbour_ids,
+                      boost::python::list normal_relative_vel,
+                      boost::python::list tangential_relative_vel);
 
 virtual void MakeMeasurements(ModelPart& analytic_model_part);
 
