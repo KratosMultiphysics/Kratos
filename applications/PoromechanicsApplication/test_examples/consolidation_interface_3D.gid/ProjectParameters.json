@@ -61,7 +61,7 @@
         "result_file_configuration": {
             "gidpost_flags":       {
                 "GiDPostMode":           "GiD_PostBinary",
-                "WriteDeformedMeshFlag": "WriteDeformed",
+                "WriteDeformedMeshFlag": "WriteUndeformed",
                 "WriteConditionsFlag":   "WriteElementsOnly",
                 "MultiFileFlag":         "SingleFile"
             },
@@ -76,12 +76,6 @@
             "gauss_point_results": ["CAUCHY_STRESS_TENSOR","TOTAL_STRESS_TENSOR"]
         },
         "point_data_configuration":  []
-    },
-    "restart_options": {
-        "SaveRestart":      false,
-        "RestartFrequency": 0,
-        "LoadRestart":      false,
-        "Restart_Step":     0
     },
     "constraints_process_list": [{
         "python_module": "apply_constraint_vector_table_process",
