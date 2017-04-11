@@ -131,6 +131,8 @@ void AddCustomUtilitiesToPython() {
     class_<AnalyticParticleWatcher, boost::noncopyable >
         ("AnalyticParticleWatcher", init<>())
         .def("MakeMeasurements", &AnalyticParticleWatcher::MakeMeasurements)
+        .def("GetParticleData", &AnalyticParticleWatcher::GetParticleData)
+        .def("GetAllParticlesData", &AnalyticParticleWatcher::GetAllParticlesData)
         ;
 
     class_<DEM_FEM_Search, boost::noncopyable >

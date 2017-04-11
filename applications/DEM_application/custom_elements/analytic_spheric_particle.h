@@ -56,7 +56,10 @@ void PrintInfo(std::ostream& rOStream) const override {rOStream << "AnalyticSphe
 /// Print object's data.
 void PrintData(std::ostream& rOStream) const override {}
 
-array_1d<int, 4> GetCollidingIds();
+int GetNumberOfCollisions();
+void GetCollidingIds(array_1d<int, 4>& colliding_ids);
+void GetCollidingNormalRelativeVelocity(array_1d<double, 4>& colliding_normal_vel);
+void GetCollidingTangentialRelativeVelocity(array_1d<double, 4>& colliding_tangential_vel);
 
 protected:
 
@@ -75,7 +78,7 @@ std::vector<int> mCurrentContactingNeighbourIds;
 
 virtual std::unique_ptr<SphericParticle::ParticleDataBuffer> CreateParticleDataBuffer(SphericParticle* p_this_particle)
 {
-    ClearMemberVariables();
+    ClearImpactMemberVariables();
     return std::unique_ptr<SphericParticle::ParticleDataBuffer>(new ParticleDataBuffer(p_this_particle));
 }
 
@@ -109,11 +112,25 @@ ParticleDataBuffer* GetPointerToDerivedDataBuffer(BaseBufferType& data_buffer)
   return static_cast<ParticleDataBuffer*>(p_raw_data_buffer);
 }
 
-void ClearMemberVariables();
+void ClearImpactMemberVariables();
 
 void FinalizeForceComputation(BaseBufferType & data_buffer);
 
-void CalculateRelativePositions(BaseType::ParticleDataBuffer & data_buffer) override;
+void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
+                                                       const ProcessInfo& r_process_info,
+                                                       double LocalElasticContactForce[3],
+                                                       double DeltDisp[3],
+                                                       double LocalDeltDisp[3],
+                                                       double RelVel[3],
+                                                       const double indentation,
+                                                       double ViscoDampingLocalContactForce[3],
+                                                       double& cohesive_force,
+                                                       SphericParticle* p_neighbour_element,
+                                                       bool& sliding,
+                                                       double LocalCoordSystem[3][3],
+                                                       double OldLocalCoordSystem[3][3],
+                                                       array_1d<double, 3>& neighbour_elastic_contact_force) override;
+
 
 bool IsNewNeighbour(const int nighbour_id);
 
