@@ -339,32 +339,19 @@ namespace Kratos
 
         const int num_nodes_origin = MapperUtilities::ComputeNumberOfNodes(*mpInterfaceModelPartOrigin);
         const int num_conditions_origin = MapperUtilities::ComputeNumberOfConditions(*mpInterfaceModelPartOrigin);
-        const int num_elements_origin = MapperUtilities::ComputeNumberOfElements(*mpInterfaceModelPartOrigin);
 
         const int num_nodes_destination = MapperUtilities::ComputeNumberOfNodes(*mpInterfaceModelPartDestination);
         const int num_conditions_destination = MapperUtilities::ComputeNumberOfConditions(*mpInterfaceModelPartDestination);
-        const int num_elements_destination = MapperUtilities::ComputeNumberOfElements(*mpInterfaceModelPartDestination);
 
         // Check if the ModelPart contains entities
-        if (num_nodes_origin + num_conditions_origin + num_elements_origin < 1) {
-            KRATOS_ERROR << "Neither Nodes nor Conditions nor Elements "
-                         << "found in the Origin ModelPart" << std::endl;
+        if (num_nodes_origin + num_conditions_origin < 1) {
+            KRATOS_ERROR << "Neither Nodes nor Conditions found "
+                         << "in the Origin ModelPart" << std::endl;
         }
 
-        if (num_nodes_destination + num_conditions_destination + num_elements_destination < 1) {
-            KRATOS_ERROR << "Neither Nodes nor Conditions nor Elements "
-                         << "found in the Destination ModelPart" << std::endl;
-        }
-
-        // Check if the ModelPart contains both elements and conditions (onl possible for NearestNeighbor)
-        if (num_conditions_origin > 0 && num_elements_origin > 0 && mMapperType != "NearestNeighbor") {
-            KRATOS_ERROR << "Conitions AND Elements found in the Origin "
-                         << "ModelPart, not possible for selected mapper" << std::endl;
-        }
-
-        if (num_conditions_destination > 0 && num_elements_destination > 0 && mMapperType != "NearestNeighbor") {
-            KRATOS_ERROR << "Conitions AND Elements found in the Destination "
-                         << "ModelPart, not possible for selected mapper" << std::endl;
+        if (num_nodes_destination + num_conditions_destination < 1) {
+            KRATOS_ERROR << "Neither Nodes nor Conditions found "
+                         << "in the Destination ModelPart" << std::endl;
         }
 
         // Compute the search radius in case it was not specified, can only be done after the modelparts are read

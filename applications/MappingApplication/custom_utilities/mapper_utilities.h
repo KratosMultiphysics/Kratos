@@ -126,12 +126,6 @@ namespace Kratos
           return num_conditions;
       }
 
-      static int ComputeNumberOfElements(ModelPart& rModelPart) {
-          int num_elements = rModelPart.GetCommunicator().LocalMesh().NumberOfElements();
-          rModelPart.GetCommunicator().SumAll(num_elements); // Compute the sum among the partitions
-          return num_elements;
-      }
-
       static double ComputeDistance(const array_1d<double, 3>& rCoords1, 
                                     const array_1d<double, 3>& rCoords2) {
           return sqrt(pow(rCoords1[0] - rCoords2[0] , 2) +
@@ -179,13 +173,9 @@ namespace Kratos
           double max_element_size = 0.0;
 
           int num_conditions_global = ComputeNumberOfConditions(rModelPart);
-          int num_elements_global = ComputeNumberOfElements(rModelPart);
 
           if (num_conditions_global > 0) {
               max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Conditions());
-
-          } else if (num_elements_global > 0) {
-              max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Elements());
 
           } else {
               if (EchoLevel > 1 && rModelPart.GetCommunicator().MyPID() == 0)
