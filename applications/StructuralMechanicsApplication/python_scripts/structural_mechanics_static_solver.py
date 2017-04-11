@@ -47,6 +47,7 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
             "implex": false,
             "compute_reactions": true,
             "compute_contact_forces": false,
+            "multi_point_constraints_used":false,
             "block_builder": false,
             "clear_storage": false,
             "component_wise": false,
@@ -178,6 +179,16 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
                     mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
                                 
         return mechanical_scheme
+    
+    
+    def _GetBuilderAndSolver(self, component_wise, block_builder):
+        if self.settings["multi_point_constraints_used"].GetBool():
+            builder_and_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedBlockBuilderAndSolverWithMpc(self.linear_solver)
+        else:
+            builder_and_solver = super(ImplicitMechanicalSolver,self)._GetBuilderAndSolver(component_wise, block_builder)
+            
+        return builder_and_solver   
+    
         
     def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search, implex):
         
