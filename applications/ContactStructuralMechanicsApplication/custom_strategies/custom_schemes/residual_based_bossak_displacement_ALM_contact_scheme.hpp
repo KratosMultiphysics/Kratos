@@ -205,7 +205,7 @@ public:
         }
         
         // Reset the weighted variables
-        ContactUtilities::ResetWeightedALMFrictionlessValues( rModelPart ); 
+        ContactUtilities::ResetWeightedALMValues<true>( rModelPart ); // FIXME: Implement frinctional case in the future  
         
         // Initializes the non-linear iteration for all the conditions
         ConditionsArrayType& rConditions = rModelPart.Conditions();
@@ -306,7 +306,7 @@ public:
 //         ContactUtilities::ResetVisited(rModelPart);
         
 //         // It recomputes the active/inactive pair
-//         ContactUtilities::ReComputeActiveInactiveALMFrictionless( rModelPart );  
+//         ContactUtilities::ReComputeActiveInactiveALM<true>( rModelPart );  // FIXME: Implement frinctional case in the future  
         
         KRATOS_CATCH("");
     }
@@ -383,7 +383,7 @@ public:
         ContactUtilities::ResetVisited(rModelPart);
         
         // It recomputes the active/inactive pair
-        ContactUtilities::ReComputeActiveInactiveALMFrictionless( rModelPart );   
+        ContactUtilities::ReComputeActiveInactiveALM<true>( rModelPart ); // FIXME: Implement frinctional case in the future  
         
         KRATOS_CATCH("");
     }
