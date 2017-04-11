@@ -186,7 +186,7 @@ while(time <= end_time):
         main_model_part.Nodes[9].SetValue(IS_SLAVE, True)
         print("Setting MPC Constraints .. !!") 
        
-        constraintMaker.ApplyConstraint(main_model_part.Nodes[16],DISPLACEMENT_Y, main_model_part.Nodes[6], DISPLACEMENT_Y,  1.0 )  
+        constraintMaker.ApplyConstraint(main_model_part.Nodes[16],DISPLACEMENT_Y, main_model_part.Nodes[6], DISPLACEMENT_Y,  1.0 )        
         constraintMaker.ApplyConstraint(main_model_part.Nodes[16],DISPLACEMENT_X, main_model_part.Nodes[6], DISPLACEMENT_X,  1.0 )   
         constraintMaker.ApplyConstraint(main_model_part.Nodes[17],DISPLACEMENT_X, main_model_part.Nodes[7], DISPLACEMENT_X,  1.0 )
         constraintMaker.ApplyConstraint(main_model_part.Nodes[17],DISPLACEMENT_Y, main_model_part.Nodes[7], DISPLACEMENT_Y,  1.0 )                   
