@@ -22,6 +22,10 @@ CheckForPreviousImport()
 # Import algorithm base classes
 from algorithm_base import OptimizationAlgorithm
 
+# Additional imports
+import timer_factory as timer_factory
+import optimization_data_logger_factory as optimization_data_logger_factory
+
 # ==============================================================================
 class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
@@ -44,13 +48,13 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         self.geometryTools = GeometryUtilities( designSurface )
         self.optimizationTools = OptimizationUtilities( designSurface, optimizationSettings )
 
-        self.timer = (__import__("timer_factory")).CreateTimer()
+        self.timer = timer_factory.CreateTimer()
         self.specificVariablesToBeLogged = { "correctionScaling": self.initialCorrectionScaling, "stepSize": self.initialStepSize }
-        self.dataLogger = (__import__("optimization_data_logger_factory")).CreateDataLogger( designSurface, 
-                                                                                             communicator, 
-                                                                                             optimizationSettings, 
-                                                                                             self.timer, 
-                                                                                             self.specificVariablesToBeLogged  )        
+        self.dataLogger = optimization_data_logger_factory.CreateDataLogger( designSurface, 
+                                                                             communicator, 
+                                                                             optimizationSettings, 
+                                                                             self.timer, 
+                                                                             self.specificVariablesToBeLogged  )        
     # --------------------------------------------------------------------------
     def execute( self ):
         self.initializeOptimizationLoop()
@@ -58,13 +62,13 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         self.finalizeOptimizationLoop()
 
     # --------------------------------------------------------------------------
-    def initializeOptimizationLoop( self ):   
+    def __initializeOptimizationLoop( self ):   
         self.timer.startTimer()
         self.dataLogger.initializeDataLogging() 
         self.optimizationTools.set_correction_scaling( self.initialCorrectionScaling )
 
     # --------------------------------------------------------------------------
-    def startOptimizationLoop( self ):
+    def __startOptimizationLoop( self ):
 
         for optimizationIteration in range(1,self.maxIterations):
             print("\n>===================================================================")
@@ -102,11 +106,11 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
                 break
 
     # --------------------------------------------------------------------------
-    def finalizeOptimizationLoop( self ):
+    def __finalizeOptimizationLoop( self ):
         self.dataLogger.finalizeDataLogging() 
 
     # --------------------------------------------------------------------------
-    def callCoumminicatorToCreateNewRequests( self ):
+    def __callCoumminicatorToCreateNewRequests( self ):
         self.communicator.initializeCommunication()
         self.communicator.requestFunctionValueOf( self.onlyObjective )
         self.communicator.requestFunctionValueOf( self.onlyConstraint )
@@ -114,13 +118,13 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         self.communicator.requestGradientOf( self.onlyConstraint )    
 
     # --------------------------------------------------------------------------
-    def storeGradientsObtainedByCommunicatorOnNodes( self ):
+    def __storeGradientsObtainedByCommunicatorOnNodes( self ):
         self.storeObjectiveGradients()
         if self.onlyConstraint != None:
             self.storeConstraintGradients()
 
     # --------------------------------------------------------------------------
-    def storeObjectiveGradients( self ):
+    def __storeObjectiveGradients( self ):
         gradientOfObjectiveFunction = self.communicator.getReportedGradientOf ( self.onlyObjective )        
         for nodeId in gradientOfObjectiveFunction:
             if self.designSurface.Nodes[nodeId].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED):
@@ -132,7 +136,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
             self.designSurface.Nodes[nodeId].SetSolutionStepValue(OBJECTIVE_SENSITIVITY,0,sensitivity)
 
     # --------------------------------------------------------------------------
-    def storeConstraintGradients( self ):
+    def __storeConstraintGradients( self ):
         gradientOfConstraintFunction = self.communicator.getReportedGradientOf ( self.onlyConstraint )        
         for nodeId in gradientOfConstraintFunction:
             if self.designSurface.Nodes[nodeId].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED):
@@ -144,7 +148,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
             self.designSurface.Nodes[nodeId].SetSolutionStepValue(CONSTRAINT_SENSITIVITY,0,sensitivity)     
 
     # --------------------------------------------------------------------------
-    def isConstraintActive( self ):
+    def __isConstraintActive( self ):
         constraintValue = self.communicator.getReportedFunctionValueOf ( self.onlyConstraint )        
         if self.typOfOnlyConstraint == "equality":
             return True
@@ -154,7 +158,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
             return False              
 
     # --------------------------------------------------------------------------
-    def computeSearchDirection( self, constraintIsActive ):
+    def __computeSearchDirection( self, constraintIsActive ):
         constraintValue = self.communicator.getReportedFunctionValueOf ( self.onlyConstraint )        
         if constraintIsActive:
             self.optimizationTools.compute_projected_search_direction( constraintValue )
@@ -163,11 +167,11 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
             self.optimizationTools.compute_search_direction_steepest_descent()
 
     # --------------------------------------------------------------------------
-    def updateSpecificVariablesForLog( self ):
+    def __updateSpecificVariablesForLog( self ):
         self.specificVariablesToBeLogged["correctionScaling"] = self.optimizationTools.get_correction_scaling()
 
     # --------------------------------------------------------------------------
-    def isAlgorithmConverged( self, optimizationIteration ):
+    def __isAlgorithmConverged( self, optimizationIteration ):
 
         if optimizationIteration > 1 :
 

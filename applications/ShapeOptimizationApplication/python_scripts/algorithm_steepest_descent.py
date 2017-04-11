@@ -22,6 +22,10 @@ CheckForPreviousImport()
 # Import algorithm base classes
 from algorithm_base import OptimizationAlgorithm
 
+# Additional imports
+import timer_factory as timer_factory
+import optimization_data_logger_factory as optimization_data_logger_factory
+
 # ==============================================================================
 class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
@@ -42,13 +46,13 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.geometryTools = GeometryUtilities( designSurface )
         self.optimizationTools = OptimizationUtilities( designSurface, optimizationSettings )
 
-        self.timer = (__import__("timer_factory")).CreateTimer()
+        self.timer = timer_factory.CreateTimer()
         self.specificVariablesToBeLogged = { "stepSize": self.initialStepSize }
-        self.dataLogger = (__import__("optimization_data_logger_factory")).CreateDataLogger( designSurface, 
-                                                                                             communicator, 
-                                                                                             optimizationSettings, 
-                                                                                             self.timer, 
-                                                                                             self.specificVariablesToBeLogged  )             
+        self.dataLogger = optimization_data_logger_factory.CreateDataLogger( designSurface, 
+                                                                             communicator, 
+                                                                             optimizationSettings, 
+                                                                             self.timer, 
+                                                                             self.specificVariablesToBeLogged  )             
 
     # --------------------------------------------------------------------------
     def execute( self ):

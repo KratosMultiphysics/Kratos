@@ -18,6 +18,11 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 # check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
+# Additional imports
+import timer_factory as timer_factory
+import communicator_factory as communicator_factory
+import algorithm_factory as algorithm_factory
+
 # ==============================================================================
 def CreateOptimizer( inputModelPart, optimizationSettings ):
     if  optimizationSettings["design_variables"]["variable_type"].GetString() == "vertex_morphing":
@@ -70,7 +75,7 @@ class VertexMorphingMethod:
     # --------------------------------------------------------------------------
     def optimize( self ):
         
-        timer = (__import__("timer_factory")).CreateTimer()
+        timer = timer_factory.CreateTimer()
         algorithmName = self.optimizationSettings["optimization_algorithm"]["name"].GetString()
 
         print("\n> ==============================================================================================================")
@@ -81,9 +86,9 @@ class VertexMorphingMethod:
         listOfDampingRegions = self.getListOfDampingRegionsFromInputModelPart()
 
         mapper = VertexMorphingMapper( designSurface, listOfDampingRegions, self.optimizationSettings ) 
-        communicator = (__import__("communicator_factory")).CreateCommunicator( self.optimizationSettings )
+        communicator = communicator_factory.CreateCommunicator( self.optimizationSettings )
             
-        algorithm = (__import__("algorithm_factory")).CreateAlgorithm( designSurface, self.analyzer, mapper, communicator, self.optimizationSettings )
+        algorithm = algorithm_factory.CreateAlgorithm( designSurface, self.analyzer, mapper, communicator, self.optimizationSettings )
         algorithm.execute()       
 
         print("\n> ==============================================================================================================")
