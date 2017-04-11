@@ -81,7 +81,6 @@ public:
         : mrDesignSurface( designSurface ),
           mrOptimizationSettings( optimizationSettings )
     {
-        setPrecisionForOutput();
         mOutputFilename = createCompleteOutputFilenameWithPath( optimizationSettings );
     }
 
@@ -101,12 +100,6 @@ public:
     ///@{
 
     // ==============================================================================
-    void setPrecisionForOutput()
-    {
-        cout.precision(12);
-    }
-
-    // --------------------------------------------------------------------------
     string createCompleteOutputFilenameWithPath( Parameters& optimizationSettings  )
     {
         string outputDirectory = optimizationSettings["output"]["output_directory"].GetString();
@@ -116,11 +109,7 @@ public:
     // --------------------------------------------------------------------------
     void initializeLogging()
     {
-        KRATOS_TRY;
-
         writeMeshToResultFile();
-
-        KRATOS_CATCH("");
     }
 
     // --------------------------------------------------------------------------
@@ -155,12 +144,12 @@ public:
         const double unitFactorTemperature = 1.0;
         const double temperatureOffset = 273.15;
 
-        outputFile << setw(6) << "-1\n";
+        outputFile << setw(6) << "-1" << "\n";
         outputFile << setw(6) << dataSetNumberForNodes << "\n";
         outputFile << setw(10) << unitCode << setw(30) << temperatureMode << "\n";
         outputFile << setw(25) << unitFactorLenght << setw(25) <<  unitFactorForce << setw(25) << unitFactorTemperature << "\n";
         outputFile << setw(25) << temperatureOffset << "\n";
-        outputFile << setw(6) << "-1\n";
+        outputFile << setw(6) << "-1" << "\n";
 
         outputFile.close();     
     }   
@@ -178,7 +167,7 @@ public:
         const int displacementCoordinateSystemNumber = 0;
         const int color = 0;
 
-        outputFile << setw(6) << "-1\n";
+        outputFile << setw(6) << "-1" << "\n";
         outputFile << setw(6) << dataSetNumberForNodes << "\n";
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
@@ -189,7 +178,7 @@ public:
             outputFile << setw(10) << node_label << setw(10) << exportCoordinateSystemNumber << setw(10) << displacementCoordinateSystemNumber << setw(10) << color << "\n";
             outputFile << setw(25) << x_coordinate << setw(25) <<  y_coordinate << setw(25) << z_coordinate << "\n";
         }
-        outputFile << setw(6) << "-1\n";
+        outputFile << setw(6) << "-1" << "\n";
 
         outputFile.close();     
     }
@@ -206,7 +195,7 @@ public:
         const int materialPropertyTableNumber = 1;
         const int color = 0;
 
-        outputFile << setw(6) << "-1\n";
+        outputFile << setw(6) << "-1" << "\n";
         outputFile << setw(6) << dataSetNumberForElements << "\n";
         for (ModelPart::ConditionIterator condition_i = mrDesignSurface.ConditionsBegin(); condition_i != mrDesignSurface.ConditionsEnd(); ++condition_i)
         {
@@ -245,7 +234,7 @@ public:
             else 
                 KRATOS_THROW_ERROR(std::runtime_error,"Design surface contains conditions with geometries for which no UNV-output is implemented!","" )
         }
-        outputFile << setw(6) << "-1\n";
+        outputFile << setw(6) << "-1" << "\n";
 
         outputFile.close();     
     }    
@@ -262,12 +251,12 @@ public:
 
         const int analysisDataSetLabel = 1;
         const int dataSetLocation = 1; // Data at nodes
-        string analysisDataSetName = "specified_loadcase";
+        string analysisDataSetName = "KratosShapeOptimization";
         const int expressionNameKey = 1;
 
         const int modelType = 1; // Structural
         const int analysisType = 4; // Transient analysis
-        const int resultType = 2000; // User defined result type
+        const int resultType = 95; // Unknown 3DOF Vector
         const int dataType = 4; // Double precision floating point
         const int numberOfDataValuesForTheDataComponent = 3;
 
@@ -296,6 +285,7 @@ public:
         const double imaginaryPartOfModalA = 0.0;
         const double imaginaryPartOfMass = 0.0;   
 
+        // Loop over all nodal result variables
         Parameters nodalResults = mrOptimizationSettings["output"]["nodal_results"];
         for(unsigned int entry = 0; entry<nodalResults.size(); entry++)
         {
@@ -307,7 +297,7 @@ public:
             else if( KratosComponents<Variable< array_1d<double,3>>>::Has(nodalResultName))
                 dataCharacteristic = 2;
 
-            outputFile << setw(6) << "-1\n";
+            outputFile << setw(6) << "-1" << "\n";
             outputFile << setw(6) << dataSetNumberForResults << "\n";
 
             outputFile << setw(10) << analysisDataSetLabel << "\n";
@@ -370,7 +360,7 @@ public:
                     outputFile << setw(13) << nodalResult[2] << "\n"; 
                 }
             }
-            outputFile << setw(6) << "-1\n";
+            outputFile << setw(6) << "-1" << "\n";
         }
 
         outputFile.close(); 

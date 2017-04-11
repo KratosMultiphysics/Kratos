@@ -33,9 +33,7 @@ class DesignLoggerUNV( DesignLogger ):
 
     # --------------------------------------------------------------------------
     def initializeLogging( self ):
-        iteratorForInitialDesign = 0
         self.unvIO.initializeLogging()
-        self.unvIO.logNodalResults( iteratorForInitialDesign )
 
     # --------------------------------------------------------------------------
     def logCurrentDesign( self, optimizationIteration ):
