@@ -876,30 +876,33 @@ public:
         VectorPoint[1] = rPoint[1] - FirstPoint[1];
         const double dist_proy = VectorPoint[0] * Normal[0] + VectorPoint[1] * Normal[1];
 
-        const CoordinatesArrayType ProjectedPoint = rPoint - Normal * dist_proy;
-
-        const double L  = Length();
-
-        const double l1 = std::sqrt((ProjectedPoint[0] - FirstPoint[0]) * (ProjectedPoint[0] - FirstPoint[0])
-                    + (ProjectedPoint[1] - FirstPoint[1]) * (ProjectedPoint[1] - FirstPoint[1]));
-
-        const double l2 = std::sqrt((ProjectedPoint[0] - SecondPoint[0]) * (ProjectedPoint[0] - SecondPoint[0])
-                    + (ProjectedPoint[1] - SecondPoint[1]) * (ProjectedPoint[1] - SecondPoint[1]));
-
-        if ((l1 <= (L + tol) && l2 <= (L + tol)) || (l1 > (L + tol)))
+        if (std::abs(dist_proy) < tol)
         {
-            rResult[0] = 2.0 * l1/(L + tol) - 1.0;
-        }
-        else if (l2 > (L + tol))
-        {
-            rResult[0] = 1.0 - 2.0 * l2/(L + tol);
-        }
-        else
-        {
-            std::cout << "First line point coordinates:       X: " << FirstPoint[0]  << " Y: " << FirstPoint[1]  << std::endl;  
-            std::cout << "Second line point coordinates:      X: " << SecondPoint[0] << " Y: " << SecondPoint[1] << std::endl;  
-            std::cout << "Point to compute local coordinates: X: " << rPoint[0]      << " Y: " << rPoint[1]      << std::endl;  
-            KRATOS_ERROR << "WARNING:: The local coordinates can not be calculated. Check the points" << std::endl;
+            const CoordinatesArrayType ProjectedPoint = rPoint - Normal * dist_proy;
+
+            const double L  = Length();
+
+            const double l1 = std::sqrt((ProjectedPoint[0] - FirstPoint[0]) * (ProjectedPoint[0] - FirstPoint[0])
+                        + (ProjectedPoint[1] - FirstPoint[1]) * (ProjectedPoint[1] - FirstPoint[1]));
+
+            const double l2 = std::sqrt((ProjectedPoint[0] - SecondPoint[0]) * (ProjectedPoint[0] - SecondPoint[0])
+                        + (ProjectedPoint[1] - SecondPoint[1]) * (ProjectedPoint[1] - SecondPoint[1]));
+
+            if ((l1 <= (L + tol) && l2 <= (L + tol)) || (l1 > (L + tol)))
+            {
+                rResult[0] = 2.0 * l1/(L + tol) - 1.0;
+            }
+            else if (l2 > (L + tol))
+            {
+                rResult[0] = 1.0 - 2.0 * l2/(L + tol);
+            }
+            else
+            {
+                std::cout << "First line point coordinates:       X: " << FirstPoint[0]  << " Y: " << FirstPoint[1]  << std::endl;  
+                std::cout << "Second line point coordinates:      X: " << SecondPoint[0] << " Y: " << SecondPoint[1] << std::endl;  
+                std::cout << "Point to compute local coordinates: X: " << rPoint[0]      << " Y: " << rPoint[1]      << std::endl;  
+                KRATOS_ERROR << "WARNING:: The local coordinates can not be calculated. Check the points" << std::endl;
+            }
         }
 
         return( rResult );
