@@ -864,14 +864,14 @@ public:
         const double tol = 1e-14; // Tolerance
 
         // Normal
-        array_1d<double,3> Normal = ZeroVector(3);
+        array_1d<double,3> Normal(3, 0.0);
         Normal[0] = SecondPoint[1] -  FirstPoint[1];
         Normal[1] =  FirstPoint[0] - SecondPoint[0];
         const double norm = std::sqrt(Normal[0] * Normal[0] + Normal[1] * Normal[1]);
         Normal /= norm;
 
         // Vector point and distance
-        array_1d<double,2> VectorPoint = ZeroVector(2);
+        array_1d<double,2> VectorPoint(2, 0.0);
         VectorPoint[0] = rPoint[0] - FirstPoint[0];
         VectorPoint[1] = rPoint[1] - FirstPoint[1];
         const double dist_proy = VectorPoint[0] * Normal[0] + VectorPoint[1] * Normal[1];
@@ -886,13 +886,9 @@ public:
         const double l2 = std::sqrt((ProjectedPoint[0] - SecondPoint[0]) * (ProjectedPoint[0] - SecondPoint[0])
                     + (ProjectedPoint[1] - SecondPoint[1]) * (ProjectedPoint[1] - SecondPoint[1]));
 
-        if (l1 <= (L + tol) && l2 <= (L + tol))
+        if ((l1 <= (L + tol) && l2 <= (L + tol)) || (l1 > (L + tol)))
         {
             rResult[0] = 2.0 * l1/(L + tol) - 1.0;
-        }
-        else if (l1 > (L + tol))
-        {
-            rResult[0] = 2.0 * l1/(L + tol) - 1.0; // NOTE: The same value as before, but it will be > than 1
         }
         else if (l2 > (L + tol))
         {
