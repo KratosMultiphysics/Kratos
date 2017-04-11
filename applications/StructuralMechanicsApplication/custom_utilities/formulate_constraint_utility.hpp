@@ -98,8 +98,8 @@ public:
     	DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
     	DofType &pointerMasterDOF = MasterNode.GetDof(MasterVariable);
 
-    	mpcData.AddSlave(pointerSlaveDOF);
-    	mpcData.AddMaster(pointerSlaveDOF, pointerMasterDOF, weight);
+    	mpcData.AddSlave( &pointerSlaveDOF );
+    	mpcData.AddMaster( &pointerSlaveDOF, &pointerMasterDOF, weight );
 
     	//mpcData.GetInfo();
     }
