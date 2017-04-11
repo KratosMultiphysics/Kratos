@@ -35,11 +35,11 @@ class DesignLoggerUNV( DesignLogger ):
     def initializeLogging( self ):
         iteratorForInitialDesign = 0
         self.unvIO.initializeLogging()
-        self.unvIO.logCurrentDesign( iteratorForInitialDesign )
+        self.unvIO.logNodalResults( iteratorForInitialDesign )
 
     # --------------------------------------------------------------------------
     def logCurrentDesign( self, optimizationIteration ):
-        self.unvIO.logCurrentDesign( optimizationIteration )
+        self.unvIO.logNodalResults( optimizationIteration )
 
     # --------------------------------------------------------------------------
     def finalizeLogging( self ):      

@@ -78,7 +78,8 @@ public:
 
     /// Default constructor.
     UniversalFileIO( ModelPart& designSurface, Parameters& optimizationSettings )
-        : mrDesignSurface( designSurface )
+        : mrDesignSurface( designSurface ),
+          mrOptimizationSettings( optimizationSettings )
     {
         setPrecisionForOutput();
         mOutputFilename = createCompleteOutputFilenameWithPath( optimizationSettings );
@@ -248,8 +249,9 @@ public:
 
         outputFile.close();     
     }    
+
     // --------------------------------------------------------------------------
-    void logCurrentDesign( const int optimizationIteration )
+    void logNodalResults( const int optimizationIteration )
     {
         ofstream outputFile;
         outputFile.open(mOutputFilename, ios::out | ios::app );
@@ -258,17 +260,13 @@ public:
 
         const int dataSetNumberForResults = 2414;
 
-        // Looper over all nodal results
-
         const int analysisDataSetLabel = 1;
-        string analysisDataSetName = "specified_loadcase";
         const int dataSetLocation = 1; // Data at nodes
-        string nodalResultName = "SHAPE_CHANGE_ABSOLUTE";
+        string analysisDataSetName = "specified_loadcase";
         const int expressionNameKey = 1;
 
         const int modelType = 1; // Structural
         const int analysisType = 4; // Transient analysis
-        const int dataCharacteristic = 2; // 3 DOF global translation vector
         const int resultType = 2000; // User defined result type
         const int dataType = 4; // Double precision floating point
         const int numberOfDataValuesForTheDataComponent = 3;
@@ -298,55 +296,85 @@ public:
         const double imaginaryPartOfModalA = 0.0;
         const double imaginaryPartOfMass = 0.0;   
 
-        outputFile << setw(6) << "-1\n";
-        outputFile << setw(6) << dataSetNumberForResults << "\n";
+        Parameters nodalResults = mrOptimizationSettings["output"]["nodal_results"];
+        for(unsigned int entry = 0; entry<nodalResults.size(); entry++)
+        {
+            string nodalResultName = nodalResults[entry].GetString();
 
-        outputFile << setw(10) << analysisDataSetLabel << "\n";
-        outputFile << "LOADCASE_NAME_KEY " << analysisDataSetName << "\n";
-        outputFile << setw(10) << dataSetLocation << "\n";
-        outputFile << "RESULT_NAME_KEY " << nodalResultName << "\n";
-        outputFile << "NONE" << "\n";
-        outputFile << "EXPRESSION_NAME_KEY " << expressionNameKey << "\n";
-        outputFile << "NONE" << "\n";
-        outputFile << "NONE" << "\n";    
+            unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
+            if( KratosComponents<Variable<double>>::Has(nodalResultName))
+                dataCharacteristic = 1;
+            else if( KratosComponents<Variable< array_1d<double,3>>>::Has(nodalResultName))
+                dataCharacteristic = 2;
 
-        outputFile << setw(10) << modelType; 
-        outputFile << setw(10) << analysisType; 
-        outputFile << setw(10) << dataCharacteristic;
-        outputFile << setw(10) << resultType;
-        outputFile << setw(10) << dataType;
-        outputFile << setw(10) << numberOfDataValuesForTheDataComponent << "\n";
+            outputFile << setw(6) << "-1\n";
+            outputFile << setw(6) << dataSetNumberForResults << "\n";
 
-        outputFile << setw(10) << DesignSetId; 
-        outputFile << setw(10) << iterationNumber; 
-        outputFile << setw(10) << solutionSetId;
-        outputFile << setw(10) << boundaryCondition;
-        outputFile << setw(10) << loadSet;
-        outputFile << setw(10) << modeNumber;
-        outputFile << setw(10) << timeStepNumber;
-        outputFile << setw(10) << frequencyNumber << "\n";
+            outputFile << setw(10) << analysisDataSetLabel << "\n";
+            outputFile << "LOADCASE_NAME_KEY " << analysisDataSetName << "\n";
+            outputFile << setw(10) << dataSetLocation << "\n";
+            outputFile << "RESULT_NAME_KEY " << nodalResultName << "\n";
+            outputFile << "NONE" << "\n";
+            outputFile << "EXPRESSION_NAME_KEY " << expressionNameKey << "\n";
+            outputFile << "NONE" << "\n";
+            outputFile << "NONE" << "\n";    
 
-        outputFile << setw(10) << creationOption;
-        outputFile << setw(10) << numberRetained << "\n";
+            outputFile << setw(10) << modelType; 
+            outputFile << setw(10) << analysisType; 
+            outputFile << setw(10) << dataCharacteristic;
+            outputFile << setw(10) << resultType;
+            outputFile << setw(10) << dataType;
+            outputFile << setw(10) << numberOfDataValuesForTheDataComponent << "\n";
 
-        outputFile << setw(13) << givenTime; 
-        outputFile << setw(13) << frequency; 
-        outputFile << setw(13) << eigenvalue;
-        outputFile << setw(13) << modalMass;
-        outputFile << setw(13) << viscousDampingRation;
-        outputFile << setw(13) << hystereticDampingRatio << "\n";      
+            outputFile << setw(10) << DesignSetId; 
+            outputFile << setw(10) << iterationNumber; 
+            outputFile << setw(10) << solutionSetId;
+            outputFile << setw(10) << boundaryCondition;
+            outputFile << setw(10) << loadSet;
+            outputFile << setw(10) << modeNumber;
+            outputFile << setw(10) << timeStepNumber;
+            outputFile << setw(10) << frequencyNumber << "\n";
 
-        outputFile << setw(13) << realPartEigenvalue; 
-        outputFile << setw(13) << imaginaryPartEigenvalue; 
-        outputFile << setw(13) << realPartOfModalA;
-        outputFile << setw(13) << realPartOfMass;
-        outputFile << setw(13) << imaginaryPartOfModalA;
-        outputFile << setw(13) << imaginaryPartOfMass << "\n";               
+            outputFile << setw(10) << creationOption;
+            outputFile << setw(10) << numberRetained << "\n";
 
-        outputFile << setw(6) << "-1\n";
+            outputFile << setw(13) << givenTime; 
+            outputFile << setw(13) << frequency; 
+            outputFile << setw(13) << eigenvalue;
+            outputFile << setw(13) << modalMass;
+            outputFile << setw(13) << viscousDampingRation;
+            outputFile << setw(13) << hystereticDampingRatio << "\n";      
+
+            outputFile << setw(13) << realPartEigenvalue; 
+            outputFile << setw(13) << imaginaryPartEigenvalue; 
+            outputFile << setw(13) << realPartOfModalA;
+            outputFile << setw(13) << realPartOfMass;
+            outputFile << setw(13) << imaginaryPartOfModalA;
+            outputFile << setw(13) << imaginaryPartOfMass << "\n";    
+
+            for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+            {
+                outputFile << setw(10) << node_i->Id() << "\n"; 
+                if(dataCharacteristic==1)
+                {
+                    Variable<double> nodalResultVariable = KratosComponents<Variable<double>>::Get(nodalResultName);
+                    double& nodalResult = node_i->FastGetSolutionStepValue(nodalResultVariable);
+                    outputFile << setw(13) << nodalResult << "\n"; 
+                }
+                else if(dataCharacteristic==2)
+                {
+                    Variable< array_1d<double,3>> nodalResultVariable = KratosComponents<Variable< array_1d<double,3>>>::Get(nodalResultName);
+                    array_1d<double,3>& nodalResult = node_i->FastGetSolutionStepValue(nodalResultVariable);
+                    outputFile << setw(13) << nodalResult[0];
+                    outputFile << setw(13) << nodalResult[1];
+                    outputFile << setw(13) << nodalResult[2] << "\n"; 
+                }
+            }
+            outputFile << setw(6) << "-1\n";
+        }
 
         outputFile.close(); 
-    }         
+    }  
 
     // ==============================================================================
 
@@ -439,6 +467,7 @@ private:
     // Initialized by class constructor
     // ==============================================================================
     ModelPart& mrDesignSurface;
+    Parameters& mrOptimizationSettings;
     string mOutputFilename;
 
     ///@}
