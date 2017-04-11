@@ -136,7 +136,7 @@ public:
             double max_norm_search_dir = 0.0;
             for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
             {
-                array_3d search_dir = node_i->FastGetSolutionStepValue(SEARCH_DIRECTION);
+                array_3d& search_dir = node_i->FastGetSolutionStepValue(SEARCH_DIRECTION);
                 double squared_length = inner_prod(search_dir,search_dir);
                 
                 if(squared_length>max_norm_search_dir)
@@ -203,7 +203,7 @@ public:
         double norm_2_dCds_i = 0.0;
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
-        	array_3d dCds_i = node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
+        	array_3d& dCds_i = node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
             norm_2_dCds_i += inner_prod(dCds_i,dCds_i);
         }
        norm_2_dCds_i = sqrt(norm_2_dCds_i);
@@ -220,8 +220,8 @@ public:
         // Compute and assign projected search direction
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
-        	array_3d dFds_i = node_i->FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY);
-        	array_3d dCds_i = node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
+        	array_3d& dFds_i = node_i->FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY);
+        	array_3d& dCds_i = node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
 
         	array_3d projection_term = dot_dFds_dCds * (dCds_i / norm_2_dCds_i);
 

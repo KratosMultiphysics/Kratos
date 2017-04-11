@@ -236,14 +236,13 @@ public:
 
                     // For every specified damping direction we check if new damping factor is smaller than the assigned one for current node. 
                     // In case yes, we overwrite the value. This ensures that the damping factor of a node is computed by its closest distance to the damping region
-                    if(dampX == true && dampingFactor < node_j.GetValue(DAMPING_FACTOR_X))
-                        node_j.SetValue(DAMPING_FACTOR_X, dampingFactor);   
-
-                    if(dampY == true && dampingFactor < node_j.GetValue(DAMPING_FACTOR_Y))       
-                        node_j.SetValue(DAMPING_FACTOR_Y, dampingFactor);   
-
-                    if(dampZ == true && dampingFactor < node_j.GetValue(DAMPING_FACTOR_Z))       
-                        node_j.SetValue(DAMPING_FACTOR_Z, dampingFactor);                            
+                    auto& damping_factor_variable = node_j.GetValue(DAMPING_FACTOR);
+                    if(dampX && dampingFactor < damping_factor_variable[0])
+                        damping_factor_variable[0] = dampingFactor;
+                    if(dampY && dampingFactor < damping_factor_variable[1])       
+                        damping_factor_variable[1] = dampingFactor;   
+                    if(dampZ && dampingFactor < damping_factor_variable[2])       
+                        damping_factor_variable[2] = dampingFactor;                            
                 }
             }
         }
@@ -384,7 +383,7 @@ public:
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
             int i = node_i->GetValue(MAPPING_MATRIX_ID);
-            array_3d node_sens = node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
+            array_3d& node_sens = node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
             dJdX[i] = node_sens[0];
             dJdY[i] = node_sens[1];
             dJdZ[i] = node_sens[2];
@@ -398,7 +397,7 @@ public:
             for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
             {
                 int i = node_i->GetValue(MAPPING_MATRIX_ID);
-                array_3d node_sens = node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY);
+                array_3d& node_sens = node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY);
                 dCdX[i] = node_sens[0];
                 dCdY[i] = node_sens[1];
                 dCdZ[i] = node_sens[2];
@@ -526,7 +525,7 @@ public:
         // Update model part and record absolute shape change 
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
-            array_3d shape_update = node_i->FastGetSolutionStepValue(SHAPE_UPDATE);
+            array_3d& shape_update = node_i->FastGetSolutionStepValue(SHAPE_UPDATE);
                 
             // Update coordinates
             node_i->X() += shape_update[0];

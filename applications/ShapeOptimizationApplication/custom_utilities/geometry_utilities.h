@@ -151,9 +151,9 @@ public:
         for (ModelPart::NodeIterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); ++node_i)
         {
             // Normalize normal and assign to solution step value
-            array_3d area_normal = node_i->FastGetSolutionStepValue(NORMAL);
-            array_3d normalized_normal = area_normal / norm_2(area_normal);
-            noalias(node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)) = normalized_normal;
+            array_3d& normalized_normal = node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
+            const array_1d<double,3>& area_normal = node_i->FastGetSolutionStepValue(NORMAL);
+            noalias(normalized_normal) = area_normal/norm_2(area_normal);
         }
 
         KRATOS_CATCH("");
