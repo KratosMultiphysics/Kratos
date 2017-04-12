@@ -63,10 +63,10 @@ KratosContactStructuralMechanicsApplication::KratosContactStructuralMechanicsApp
 
 void KratosContactStructuralMechanicsApplication::Register()
 {
-    // calling base class register to register Kratos components
+    // Calling base class register to register Kratos components
     KratosApplication::Register();
 
-    // CONDITIONS // TODO: Clean all this mesh
+    // VARIABLES
     /* Mortar method general variables */
     KRATOS_REGISTER_VARIABLE( CONTACT_CONTAINERS )                              // A vector of which contains the structure which defines the contact conditions // TODO: Remove this, deprecated
     KRATOS_REGISTER_VARIABLE( CONTACT_SETS )                                    // An unordened map of which contains the structure which defines the contact conditions
@@ -96,11 +96,12 @@ void KratosContactStructuralMechanicsApplication::Register()
     /* For ALM mortar condition */
     KRATOS_REGISTER_VARIABLE( PENALTY_FACTOR )                                  // The penalty factor for the ALM
     KRATOS_REGISTER_VARIABLE( SCALE_FACTOR )                                    // The scale factor for the ALM
+    KRATOS_REGISTER_VARIABLE( REFERENCE_NORM )                                  // This value will be used to compute a consistent scale factor
     
     /* For mesh tying mortar condition */
     KRATOS_REGISTER_VARIABLE( TYING_VARIABLE )                                  // The variable name for the mesh tying 
 
-    // Register the conditions
+    // CONDITIONS
     // Mesh tying mortar condition
     KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition2D2NTriangleScalar", mMeshTyingMortarCondition2D2NTriangleScalar );
     KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition2D2NQuadrilateralScalar", mMeshTyingMortarCondition2D2NQuadrilateralScalar );

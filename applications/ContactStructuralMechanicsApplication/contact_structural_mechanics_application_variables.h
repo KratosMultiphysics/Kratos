@@ -169,6 +169,7 @@ KRATOS_DEFINE_VARIABLE( bool, AUXILIAR_SLIP )                                  /
 /* For ALM mortar condition */
 KRATOS_DEFINE_VARIABLE( double, PENALTY_FACTOR )                               // The penalty factor for the ALM
 KRATOS_DEFINE_VARIABLE( double, SCALE_FACTOR )                                 // The scale factor for the ALM
+KRATOS_DEFINE_VARIABLE( double, REFERENCE_NORM )                               // This value will be used to compute a consistent scale factor
 
 /* For mesh tying mortar condition */
 KRATOS_DEFINE_VARIABLE( std::string, TYING_VARIABLE )                          // The variable name for the mesh tying  
