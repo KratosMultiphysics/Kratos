@@ -70,18 +70,18 @@ namespace Kratos {
 	  //CalculateDistanceToSkinProcess(volume_part, skin_part).Execute();
 	  CalculateSignedDistanceTo3DSkinProcess(skin_part, volume_part).Execute();
 
-       //GidIO<> gid_io_fluid("C:/Temp/Tests/distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-       //gid_io_fluid.InitializeMesh(0.00);
-       //gid_io_fluid.WriteMesh(volume_part.GetMesh());
-       //gid_io_fluid.FinalizeMesh();
-       //gid_io_fluid.InitializeResults(0, volume_part.GetMesh());
-       //gid_io_fluid.WriteNodalResults(DISTANCE, volume_part.Nodes(), 0, 0);
-       //gid_io_fluid.FinalizeResults();
+       GidIO<> gid_io_fluid("C:/Temp/Tests/distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+       gid_io_fluid.InitializeMesh(0.00);
+       gid_io_fluid.WriteMesh(volume_part.GetMesh());
+       gid_io_fluid.FinalizeMesh();
+       gid_io_fluid.InitializeResults(0, volume_part.GetMesh());
+       gid_io_fluid.WriteNodalResults(DISTANCE, volume_part.Nodes(), 0, 0);
+       gid_io_fluid.FinalizeResults();
       
-       //GidIO<> gid_io_skin("C:/Temp/Tests/distance_test_skin", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-       //gid_io_skin.InitializeMesh(0.00);
-       //gid_io_skin.WriteMesh(skin_part.GetMesh());
-       //gid_io_skin.FinalizeMesh();
+       GidIO<> gid_io_skin("C:/Temp/Tests/distance_test_skin", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+       gid_io_skin.InitializeMesh(0.00);
+       gid_io_skin.WriteMesh(skin_part.GetMesh());
+       gid_io_skin.FinalizeMesh();
 
     }
   }
