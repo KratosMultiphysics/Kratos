@@ -12,6 +12,11 @@
 #if !defined(KRATOS_SEARCH_UTILITIES)
 #define KRATOS_SEARCH_UTILITIES
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "utilities/math_utils.h"
 #include "contact_structural_mechanics_application_variables.h"
 #include "includes/model_part.h"
