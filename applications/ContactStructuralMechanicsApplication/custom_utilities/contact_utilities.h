@@ -873,7 +873,7 @@ public:
      * @return The modelparts with the conditions changed
      */
     
-    static inline void ReComputeActiveInactive(ModelPart & rModelPart)
+    static inline void ReComputeActiveInactive(ModelPart & rModelPart) // NOTE: This is deprecated
     {
         // TODO: If works make it parallell (it is difficult, be careful with the repeated nodes) 
        
@@ -996,7 +996,7 @@ public:
      * @return The modelparts with the nodes changed
      */
     
-    static inline void ResetWeightedValues(ModelPart & rModelPart)
+    static inline void ResetWeightedValues(ModelPart & rModelPart) // NOTE: This is deprecated
     {
         NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
         
