@@ -169,6 +169,95 @@ namespace Kratos
 				this->operator[](1) = pPoint2;
 			}
 
+			Point<3> const& GetPoint(int PointId) {
+				return *(this->operator[](0).get());
+			}
+
+			int TriangleIntersectionPoint(Element::GeometryType& rGeometry, Point<3> IntersectionPoint)
+			{
+				// This is the adaption of the implemnetation provided in:
+				// http://www.softsurfer.com/Archive/algorithm_0105/algorithm_0105.htm#intersect_RayTriangle()
+				// with additional segment range check
+
+				const double epsilon = 1.00e-12;
+
+				Point<3> const& r_point_1 = GetPoint(0);
+				Point<3> const& r_point_2 = GetPoint(1);
+
+				array_1d<double, 3>    u, v, n;             // triangle vectors
+				array_1d<double, 3>    dir, w0, w;          // ray vectors
+				double     r, a, b;             // params to calc ray-plane intersect
+
+
+												// get triangle edge vectors and plane normal
+				u = rGeometry[1] - rGeometry[0];
+				v = rGeometry[2] - rGeometry[0];
+
+				MathUtils<double>::CrossProduct(n, u, v);             // cross product
+
+				if (norm_2(n) == 0)            // triangle is degenerate
+					return -1;                 // do not deal with this case
+
+				double triangle_origin_distance = -inner_prod(n, rGeometry[0]);
+
+				double sign_distance_1 = inner_prod(n, r_point_1) + triangle_origin_distance;
+				double sign_distance_2 = inner_prod(n, r_point_1) + triangle_origin_distance;
+
+				if (sign_distance_1*sign_distance_2 > epsilon) // segment line point on the same side of plane
+					return 0;
+
+				for (int i = 0; i < 3; i++)
+				{
+					dir[i] = r_point_2[i] - r_point_1[i];             // ray direction vector
+					w0[i] = r_point_1[i] - rGeometry[0][i];
+				}
+
+				a = -inner_prod(n, w0);
+				b = inner_prod(n, dir);
+
+				if (fabs(b) < epsilon) {     // ray is parallel to triangle plane
+					if (a == 0)                // ray lies in triangle plane
+						return 2;
+					else return 0;             // ray disjoint from plane (should not happend as we check it before)
+				}
+
+				// get intersect point of ray with triangle plane
+				r = a / b;
+				if (r < 0.0)                   // ray goes away from triangle
+					return 0;                  // => no intersect
+											   // for a segment, also test if (r > 1.0) => no intersect
+
+				for (int i = 0; i < 3; i++)
+					IntersectionPoint[i] = r_point_1[i] + r * dir[i];           // intersect point of ray and plane
+
+																				// is I inside T?
+				double    uu, uv, vv, wu, wv, D;
+				uu = inner_prod(u, u);
+				uv = inner_prod(u, v);
+				vv = inner_prod(v, v);
+
+
+				for (int i = 0; i < 3; i++)
+					w[i] = IntersectionPoint[i] - rGeometry[0][i];
+
+
+				wu = inner_prod(w, u);
+				wv = inner_prod(w, v);
+				D = uv * uv - uu * vv;
+
+				// get and test parametric coords
+				double s, t;
+				s = (uv * wv - vv * wu) / D;
+				if (s < 0.0 - epsilon || s > 1.0 + epsilon)        // I is outside T
+					return 0;
+				t = (uv * wu - uu * wv) / D;
+				if (t < 0.0 - epsilon || (s + t) > 1.0 + epsilon)  // I is outside T
+					return 0;
+
+				return 1;                      // I is in T
+
+			}
+
 		};
 
       ///@name Static Member Variables
@@ -190,6 +279,7 @@ namespace Kratos
       ///@{
 
 		void CalculateElementDistance(Element& rElement1, PointerVector<GeometricalObject>& rIntersectedObjects);
+		int CalculateIntersectionPoints(LineSegment& rSegment, PointerVector<GeometricalObject>& rIntersectedObjects, std::vector<Point<3> >& IntersectionPoints);
 
       ///@}
       ///@name Private  Access
