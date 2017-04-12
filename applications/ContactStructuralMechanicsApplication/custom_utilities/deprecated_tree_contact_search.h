@@ -464,11 +464,6 @@ public:
             {
                 std::vector<contact_container> *& ConditionPointersDestination = cond_it->GetValue(CONTACT_CONTAINERS);
                 KRATOS_WATCH(ConditionPointersDestination->size());
-                
-                for (unsigned int i = 0; i < ConditionPointersDestination->size(); i++)
-                {
-                    (*ConditionPointersDestination)[i].print();
-                } 
             }
         }
         

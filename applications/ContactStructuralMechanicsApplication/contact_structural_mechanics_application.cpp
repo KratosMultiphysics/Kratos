@@ -96,7 +96,6 @@ void KratosContactStructuralMechanicsApplication::Register()
     /* For ALM mortar condition */
     KRATOS_REGISTER_VARIABLE( PENALTY_FACTOR )                                  // The penalty factor for the ALM
     KRATOS_REGISTER_VARIABLE( SCALE_FACTOR )                                    // The scale factor for the ALM
-    KRATOS_REGISTER_VARIABLE( REFERENCE_NORM )                                  // This value will be used to compute a consistent scale factor
     
     /* For mesh tying mortar condition */
     KRATOS_REGISTER_VARIABLE( TYING_VARIABLE )                                  // The variable name for the mesh tying 

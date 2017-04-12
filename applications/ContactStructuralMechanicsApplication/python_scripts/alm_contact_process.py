@@ -72,7 +72,6 @@ class ALMContactProcess(KratosMultiphysics.Process):
             self.write_conditions = KratosMultiphysics.WriteConditionsFlag.WriteElementsOnly
         
     def ExecuteInitialize(self):
-        
         # Appending the conditions created to the self.main_model_part
         computing_model_part = self.main_model_part.GetSubModelPart(self.computing_model_part_name)
         if (computing_model_part.HasSubModelPart("Contact")):
