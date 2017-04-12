@@ -7,7 +7,9 @@ from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.MeshingApplication import *
 import KratosMultiphysics.MappingApplication as KratosMapping
 
-# "Abusing the Mapper to enforce periodic boundary conditions"
+# "Abusing"" the Mapper to enforce periodic boundary conditions
+# This only works because he channel is straight and nodes an be projected
+# between Inlet and Outlet
 # Mapping Velocity from Outlet to Inlet
 
 ######################################################################################
