@@ -82,45 +82,6 @@ class ALMContactProcess(KratosMultiphysics.Process):
 
         if (self.normal_variation == True):
             computing_model_part.Set(KratosMultiphysics.INTERACTION, True)
-
-        #if (self.params["manual_ALM"].GetBool() == False):
-            ## Computing the scale factors or the penalty parameters (10 * E_mean/h_mean)
-            #self.find_nodal_h = KratosMultiphysics.FindNodalHProcess(computing_model_part)
-            #self.find_nodal_h.Execute()
-            
-            ##self.alm_var_process = ContactStructuralMechanicsApplication.ALMVariablesCalculationProcess(computing_model_part)
-            ##self.alm_var_process.Execute()
-            
-            #import statistics as stat 
-            #nodal_h_values = [] 
-            #for node in computing_model_part.Nodes: 
-                #nodal_h_values.append(node.GetSolutionStepValue(KratosMultiphysics.NODAL_H)) 
-                 
-            #mean_h = stat.mean(nodal_h_values) 
-                 
-            #elem_E_values = [] 
-            #for elem in computing_model_part.Elements: 
-                #prop = elem.Properties 
-                #elem_E_values.append(prop[KratosMultiphysics.YOUNG_MODULUS]) 
-                 
-            #mean_E = stat.mean(elem_E_values) 
-            
-            ## Penalty and scalar factor 
-            #penalty = 10.0 * mean_E/mean_h 
-            #scale_factor = 10.0 * mean_E/mean_h 
-            
-            #for prop in computing_model_part.GetProperties():
-                #prop[ContactStructuralMechanicsApplication.PENALTY_FACTOR] = penalty
-                #prop[ContactStructuralMechanicsApplication.SCALE_FACTOR]   = scale_factor
-            
-        #else:
-            ## Penalty and scalar factor
-            #penalty = self.params["penalty"].GetDouble()
-            #scale_factor = self.params["scale_factor"].GetDouble()
-            
-            #for prop in computing_model_part.GetProperties():
-                #prop[ContactStructuralMechanicsApplication.PENALTY_FACTOR] = penalty
-                #prop[ContactStructuralMechanicsApplication.SCALE_FACTOR]   = scale_factor
         
         # Copying the properties in the contact model part
         self.contact_model_part.SetProperties(computing_model_part.GetProperties())
