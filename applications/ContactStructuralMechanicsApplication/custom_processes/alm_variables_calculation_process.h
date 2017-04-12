@@ -189,7 +189,14 @@ public:
         }
         
         /* We set the scale factor */
-        // TODO: Finish me
+        // TODO: Finish me, use the REFERENCE_NORM 
+        
+        for (unsigned int iProp = 0; iProp < mrThisModelPart.NumberOfProperties(); iProp++)
+        {
+            Properties::Pointer pProperties = mrThisModelPart.pGetProperties(iProp);
+            
+            pProperties->GetValue(SCALE_FACTOR) = PenaltyFactor;
+        }
         
         KRATOS_CATCH("");
     }

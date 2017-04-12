@@ -21,6 +21,7 @@
 #include "contact_structural_mechanics_application_variables.h"
 #include "contact_structural_mechanics_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
+#include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_mappers_to_python.h"
 
@@ -44,6 +45,7 @@ BOOST_PYTHON_MODULE(KratosContactStructuralMechanicsApplication)
 
     AddCustomStrategiesToPython();
     AddCustomUtilitiesToPython();
+    AddCustomProcessesToPython();
     AddCustomMappersToPython();
 
     //registering variables in python

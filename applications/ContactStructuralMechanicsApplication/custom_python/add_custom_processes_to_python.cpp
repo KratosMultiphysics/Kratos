@@ -39,7 +39,7 @@ namespace Kratos
             (
                 "ALMVariablesCalculationProcess", init<ModelPart&, Variable<double>&>()
             )
-            .def(init<ModelPart&, ModelPart&>()) // Considering default variables
+            .def(init<ModelPart&>()) // Considering default variables
             .def("Execute", &ALMVariablesCalculationProcess::Execute)
             ;
         }

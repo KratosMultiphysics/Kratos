@@ -1,9 +1,9 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library 
 import KratosMultiphysics 
-import KratosMultiphysics.SolidMechanicsApplication
-import KratosMultiphysics.StructuralMechanicsApplication
-import KratosMultiphysics.ContactStructuralMechanicsApplication
+import KratosMultiphysics.SolidMechanicsApplication as SolidMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import KratosMultiphysics.ContactStructuralMechanicsApplication as ContactStructuralMechanicsApplication
 
 KratosMultiphysics.CheckForPreviousImport()
 
@@ -12,7 +12,6 @@ def Factory(settings, Model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return ALMContactProcess(Model, settings["Parameters"])
 
-# NOTE: To gain efficency we can do the distinction between MASTER and SLAVE (the automatic search is expensive). Maybe looking to the submodelparts the nodes belong
 class ALMContactProcess(KratosMultiphysics.Process):
   
     def __init__(self,model_part,params):
@@ -31,11 +30,8 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "max_number_results"          : 1000,
             "normal_variation"            : false,
             "manual_ALM"                  : false,
-            "manual_ALM_parameters"       :
-            {
-                "penalty"                   : 0.0,
-                "scale_factor"              : 1.0
-            },
+            "penalty"                     : 0.0,
+            "scale_factor"                : 1.0,
             "type_search"                 : "InRadius",
             "integration_order"           : 2,
             "debug_mode"                  : false
@@ -89,41 +85,52 @@ class ALMContactProcess(KratosMultiphysics.Process):
 
         if (self.params["manual_ALM"].GetBool() == False):
             # Computing the scale factors or the penalty parameters (10 * E_mean/h_mean)
-            find_nodal_h = KratosMultiphysics.FindNodalHProcess(computing_model_part)
-            find_nodal_h.Execute()
-
-            import statistics as stat
-            nodal_h_values = []
-            for node in computing_model_part.Nodes:
-                nodal_h_values.append(node.GetSolutionStepValue(KratosMultiphysics.NODAL_H))
-                
-            mean_h = stat.mean(nodal_h_values)
-                
-            elem_E_values = []
-            for elem in computing_model_part.Elements:
-                prop = elem.Properties
-                elem_E_values.append(prop[KratosMultiphysics.YOUNG_MODULUS])
-                
-            mean_E = stat.mean(elem_E_values)
+            self.find_nodal_h = KratosMultiphysics.FindNodalHProcess(computing_model_part)
+            self.find_nodal_h.Execute()
             
-            # Penalty and scalar factor
-            penalty = 10.0 * mean_E/mean_h
-            scale_factor = 10.0 * mean_E/mean_h
+            #self.alm_var_process = ContactStructuralMechanicsApplication.ALMVariablesCalculationProcess(computing_model_part)
+            #self.alm_var_process.Execute()
+            
+            import statistics as stat 
+            nodal_h_values = [] 
+            for node in computing_model_part.Nodes: 
+                nodal_h_values.append(node.GetSolutionStepValue(KratosMultiphysics.NODAL_H)) 
+                 
+            mean_h = stat.mean(nodal_h_values) 
+                 
+            elem_E_values = [] 
+            for elem in computing_model_part.Elements: 
+                prop = elem.Properties 
+                elem_E_values.append(prop[KratosMultiphysics.YOUNG_MODULUS]) 
+                 
+            mean_E = stat.mean(elem_E_values) 
+            
+            # Penalty and scalar factor 
+            penalty = 10.0 * mean_E/mean_h 
+            scale_factor = 10.0 * mean_E/mean_h 
+            
+            for prop in computing_model_part.GetProperties():
+                prop[ContactStructuralMechanicsApplication.PENALTY_FACTOR] = penalty
+                prop[ContactStructuralMechanicsApplication.SCALE_FACTOR]   = scale_factor
+            
         else:
             # Penalty and scalar factor
-            penalty = self.params["manual_ALM_parameters"]["penalty"].GetDouble()
-            scale_factor = self.params["manual_ALM_parameters"]["scale_factor"].GetDouble()
+            penalty = self.params["penalty"].GetDouble()
+            scale_factor = self.params["scale_factor"].GetDouble()
+            
+            for prop in computing_model_part.GetProperties():
+                prop[ContactStructuralMechanicsApplication.PENALTY_FACTOR] = penalty
+                prop[ContactStructuralMechanicsApplication.SCALE_FACTOR]   = scale_factor
         
+        # Setting the integration order
         for prop in computing_model_part.GetProperties():
-            prop[KratosMultiphysics.ContactStructuralMechanicsApplication.PENALTY_FACTOR] = penalty
-            prop[KratosMultiphysics.ContactStructuralMechanicsApplication.SCALE_FACTOR] = scale_factor
-            prop[KratosMultiphysics.ContactStructuralMechanicsApplication.INTEGRATION_ORDER_CONTACT] = self.integration_order
+            prop[ContactStructuralMechanicsApplication.INTEGRATION_ORDER_CONTACT] = self.integration_order
             
         for node in self.contact_model_part.Nodes:
             node.Set(KratosMultiphysics.INTERFACE, True)
         del(node)
         
-        self.Preprocess = KratosMultiphysics.ContactStructuralMechanicsApplication.InterfacePreprocessCondition(computing_model_part)
+        self.Preprocess = ContactStructuralMechanicsApplication.InterfacePreprocessCondition(computing_model_part)
         
         if self.params["contact_type"].GetString() == "Frictionless":
             condition_name = "ALMFrictionlessMortarContact"
@@ -154,7 +161,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             interface_model_part.AddNode(node, 0)    
         del(node)
 
-        self.contact_search = KratosMultiphysics.ContactStructuralMechanicsApplication.TreeContactSearch(computing_model_part, self.max_number_results, self.active_check_factor, self.type_search)
+        self.contact_search = ContactStructuralMechanicsApplication.TreeContactSearch(computing_model_part, self.max_number_results, self.active_check_factor, self.type_search)
         
         if self.params["contact_type"].GetString() == "Frictionless":
             ZeroVector = KratosMultiphysics.Vector(3) 
@@ -164,9 +171,9 @@ class ALMContactProcess(KratosMultiphysics.Process):
             
             # Initilialize weighted variables and LM
             for node in self.contact_model_part.Nodes:
-                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_GAP, 0.0)
-                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_ACTIVE, False)
-                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_SLIP,   False)
+                node.SetValue(ContactStructuralMechanicsApplication.WEIGHTED_GAP, 0.0)
+                node.SetValue(ContactStructuralMechanicsApplication.AUXILIAR_ACTIVE, False)
+                node.SetValue(ContactStructuralMechanicsApplication.AUXILIAR_SLIP,   False)
                 node.SetValue(KratosMultiphysics.NODAL_AREA, 0.0)
                 node.SetValue(KratosMultiphysics.NORMAL,      ZeroVector)
                 node.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector)
