@@ -164,29 +164,9 @@ class ALMContactProcess(KratosMultiphysics.Process):
         self.contact_search = ContactStructuralMechanicsApplication.TreeContactSearch(computing_model_part, self.max_number_results, self.active_check_factor, self.type_search)
         
         if self.params["contact_type"].GetString() == "Frictionless":
-            ZeroVector = KratosMultiphysics.Vector(3) 
-            ZeroVector[0] = 0.0
-            ZeroVector[1] = 0.0
-            ZeroVector[2] = 0.0
             
-            # Initilialize weighted variables and LM
-            for node in self.contact_model_part.Nodes:
-                node.SetValue(ContactStructuralMechanicsApplication.WEIGHTED_GAP, 0.0)
-                node.SetValue(ContactStructuralMechanicsApplication.AUXILIAR_ACTIVE, False)
-                node.SetValue(ContactStructuralMechanicsApplication.AUXILIAR_SLIP,   False)
-                node.SetValue(KratosMultiphysics.NODAL_AREA, 0.0)
-                node.SetValue(KratosMultiphysics.NORMAL,      ZeroVector)
-                node.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector)
-                node.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector)
-                
-            del(node)
-            
-            # Setting the conditions 
-            for cond in self.contact_model_part.Conditions:
-                cond.SetValue(KratosMultiphysics.NORMAL,      ZeroVector) 
-                cond.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector) 
-                cond.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector) 
-            del(cond)
+            self.alm_init_var = ContactStructuralMechanicsApplication.ALMFastInit(self.contact_model_part) 
+            self.alm_init_var.Execute()
             
             self.contact_search.CreatePointListMortar()
             self.contact_search.InitializeMortarConditions()

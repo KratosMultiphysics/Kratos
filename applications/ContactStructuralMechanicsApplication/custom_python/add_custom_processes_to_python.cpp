@@ -24,6 +24,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 
 //Processes
+#include "custom_processes/alm_fast_init_process.h"
 #include "custom_processes/alm_variables_calculation_process.h"
 
 namespace Kratos
@@ -35,6 +36,13 @@ namespace Kratos
             using namespace boost::python;
             typedef Process  ProcessBaseType;
 
+            class_<ALMFastInit, bases<ProcessBaseType>, boost::noncopyable >
+            (
+                "ALMFastInit", init<ModelPart&>()
+            )
+            .def("Execute", &ALMFastInit::Execute)
+            ;
+            
             class_<ALMVariablesCalculationProcess, bases<ProcessBaseType>, boost::noncopyable >
             (
                 "ALMVariablesCalculationProcess", init<ModelPart&, Variable<double>&>()
