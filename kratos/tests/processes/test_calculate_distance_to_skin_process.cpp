@@ -67,7 +67,8 @@ namespace Kratos {
 
       // Compute distance
       // TODO: Change the tested process as soon as the new distance process is available
-	  CalculateDistanceToSkinProcess(volume_part, skin_part).Execute();
+	  //CalculateDistanceToSkinProcess(volume_part, skin_part).Execute();
+	  CalculateSignedDistanceTo3DSkinProcess(skin_part, volume_part).Execute();
 
        //GidIO<> gid_io_fluid("C:/Temp/Tests/distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
        //gid_io_fluid.InitializeMesh(0.00);

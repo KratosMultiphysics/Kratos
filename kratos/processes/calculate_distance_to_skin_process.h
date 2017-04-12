@@ -201,7 +201,7 @@ namespace Kratos
 				double triangle_origin_distance = -inner_prod(n, rGeometry[0]);
 
 				double sign_distance_1 = inner_prod(n, r_point_1) + triangle_origin_distance;
-				double sign_distance_2 = inner_prod(n, r_point_1) + triangle_origin_distance;
+				double sign_distance_2 = inner_prod(n, r_point_2) + triangle_origin_distance;
 
 				if (sign_distance_1*sign_distance_2 > epsilon) // segment line point on the same side of plane
 					return 0;

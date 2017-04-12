@@ -2392,13 +2392,23 @@ public:
         if (norm_2(n) == 0)            // triangle is degenerate
             return -1;                 // do not deal with this case
 
-        for(int i = 0 ; i < 3 ; i++)
+		double triangle_origin_distance = -inner_prod(n, rGeometry[0]);
+		Point<3> ray_point_1, ray_point_2;
+		
+		for(int i = 0 ; i < 3 ; i++)
         {
             dir[i] = RayPoint2[i] - RayPoint1[i];             // ray direction vector
             w0[i] = RayPoint1[i] - rGeometry[0][i];
-        }
+			ray_point_1[i] = RayPoint1[i];
+			ray_point_2[i] = RayPoint2[i];
+		}
 
-        a = -inner_prod(n,w0);
+		double sign_distance_1 = inner_prod(n, ray_point_1) + triangle_origin_distance;
+		double sign_distance_2 = inner_prod(n, ray_point_2) + triangle_origin_distance;
+
+		if (sign_distance_1*sign_distance_2 > epsilon) // segment line point on the same side of plane
+			return 0;
+		a = -inner_prod(n,w0);
         b = inner_prod(n,dir);
 
         if (fabs(b) < epsilon) {     // ray is parallel to triangle plane
