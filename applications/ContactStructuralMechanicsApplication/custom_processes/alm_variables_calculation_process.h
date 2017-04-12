@@ -151,7 +151,7 @@ public:
                 Element::Pointer pElem = itCond->GetValue(ELEMENT_POINTER);
                 
                 const double YoungModulus = pElem->GetProperties()[YOUNG_MODULUS];
-                const double ElementVolume = pElem->GetGeometry().Volume();
+                const double ElementVolume = pElem->GetGeometry().Area();
                 
                 #pragma omp atomic
                 TotalVolume += ElementVolume;
@@ -161,7 +161,7 @@ public:
                 const double NodalConditionArea = ConditionArea/NumNodesGeometry;
                 
                 #pragma omp atomic
-                TotalArea   += ConditionArea;
+                TotalArea += ConditionArea;
                 
                 #pragma omp atomic
                 MeanYoungModulus += YoungModulus * ElementVolume;
