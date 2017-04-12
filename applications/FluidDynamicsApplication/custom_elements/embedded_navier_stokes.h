@@ -976,6 +976,180 @@ protected:
         }
     }
 
+    /**
+    * This functions adds the level set strong slip boundary condition imposition contribution.
+    * @param rLeftHandSideMatrix: reference to the LHS matrix
+    * @param rRightHandSideVector: reference to the RHS vector
+    * @param rData: reference to element data structure
+    * @param rSplittingData: reference to the intersection data structure
+    */
+    void AddSlipBoundaryConditionNitcheContribution(MatrixType& rLeftHandSideMatrix,
+                                                    VectorType& rRightHandSideVector,
+                                                    const ElementDataType& rData,
+                                                    const ElementSplittingDataStruct& rSplittingData)
+    {
+
+        constexpr unsigned int BlockSize = TDim+1;                 // Block size
+        constexpr unsigned int MatrixSize = TNumNodes*BlockSize;   // Matrix size
+
+        // Obtain the previous iteration velocity solution
+        array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
+
+        for (unsigned int i=0; i<TNumNodes; i++)
+        {
+            for (unsigned int comp=0; comp<TDim; comp++)
+            {
+                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
+            }
+        }
+
+        // Compute the BCs imposition matrices
+        MatrixType M_gamma = ZeroMatrix(rSplittingData.n_neg, rSplittingData.n_neg);      // Outside nodes matrix (Nitche contribution)
+        MatrixType N_gamma = ZeroMatrix(rSplittingData.n_neg, rSplittingData.n_pos);      // Interior nodes matrix (Nitche contribution)
+        MatrixType f_gamma = ZeroMatrix(rSplittingData.n_neg, TNumNodes);                 // Matrix to compute the RHS (Nitche contribution)
+        MatrixType n_gamma = ZeroMatrix(TDim, TDim);                                      // Normal matrix (generated with the intersection normal outer product)
+
+        VectorType aux_out(rSplittingData.n_neg);
+        VectorType aux_int(rSplittingData.n_pos);
+        VectorType aux_cut(TNumNodes);
+
+        for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
+        {
+            double weight = rSplittingData.cut_edge_areas(icut);
+
+            aux_out = row(rSplittingData.N_container_out, icut);
+            aux_int = row(rSplittingData.N_container_int, icut);
+            aux_cut = row(rSplittingData.N_container_cut, icut);
+
+            M_gamma += weight*outer_prod(aux_out,aux_out);
+            N_gamma += weight*outer_prod(aux_out,aux_int);
+            f_gamma += weight*outer_prod(aux_out,aux_cut);
+        }
+
+        for (unsigned int i=0; i<TDim; ++i)
+        {
+            for (unsigned int j=0; j<TDim; ++j)
+            {
+                n_gamma(i,j) = rSplittingData.intersection_normal(i)*rSplittingData.intersection_normal(j);
+            }
+        }
+
+        // Declare auxLeftHandSideNormalMatrix
+        MatrixType auxNormalLHS;
+        MatrixType auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
+        MatrixType auxLeftHandSideNormalMatrix = ZeroMatrix(MatrixSize, MatrixSize);
+
+        // Fill auxLeftHandSideNormalMatrix (zero in fluid nodes rows and n outer n in matrix in structure rows)
+        for (unsigned int i = 0; i<rSplittingData.n_neg; ++i)
+        {
+            unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
+
+            for (unsigned int j=0; j<TNumNodes; ++j)
+            {
+                for (unsigned int d1=0; d1<TDim; ++d1)
+                {
+                    for (unsigned int d2=0; d2<TDim; ++d2)
+                    {
+                        auxLeftHandSideNormalMatrix(out_node_row_id*BlockSize+d1,j*BlockSize+d2) = n_gamma(d1,d2);
+                    }
+                }
+            }
+        }
+
+        // Set the LHS and RHS u_out rows to zero (outside nodes used to impose the BC)
+        for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
+        {
+            unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
+
+            for (unsigned int j=0; j<TDim; ++j)
+            {
+                // LHS matrix u_out zero set (note that just the velocity rows are set to 0)
+                for (unsigned int col = 0; col<MatrixSize; col++)
+                {
+                    rLeftHandSideMatrix(out_node_row_id*BlockSize+j, col) = 0.0;
+                }
+
+                // RHS vector u_out zero set (note that just the velocity rows are set to 0)
+                rRightHandSideVector(out_node_row_id*BlockSize+j) = 0.0;
+            }
+        }
+
+        // LHS outside nodes contribution assembly
+        // Outer nodes contribution assembly
+        for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
+        {
+            unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
+
+            for (unsigned int j=0; j<rSplittingData.n_neg; ++j)
+            {
+                unsigned int out_node_col_id = rSplittingData.out_vec_identifiers[j];
+
+                for (unsigned int comp = 0; comp<TDim; comp++)
+                {
+                    auxLeftHandSideMatrix(out_node_row_id*BlockSize+comp, out_node_col_id*BlockSize+comp) = M_gamma(i, j);
+                }
+            }
+        }
+
+        // Interior nodes contribution assembly
+        for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
+        {
+            unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
+
+            for (unsigned int j=0; j<rSplittingData.n_pos; ++j)
+            {
+                unsigned int int_node_col_id = rSplittingData.int_vec_identifiers[j];
+
+                for (unsigned int comp=0; comp<TDim; ++comp)
+                {
+                    auxLeftHandSideMatrix(out_node_row_id*BlockSize+comp, int_node_col_id*BlockSize+comp) = N_gamma(i, j);
+                }
+            }
+        }
+
+        // LHS outside Nitche contribution assembly
+        auxNormalLHS = prod(auxLeftHandSideNormalMatrix, auxLeftHandSideMatrix);
+        rLeftHandSideMatrix += auxNormalLHS;
+
+        // RHS outside Nitche contribution assembly
+        // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
+        rRightHandSideVector -= prod(auxNormalLHS, prev_sol);
+
+        // Compute f_gamma if level set velocity is not 0
+        if (this->Has(EMBEDDED_VELOCITY))
+        {
+            auxLeftHandSideMatrix.clear();
+
+            const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
+            array_1d<double, MatrixSize> aux_embedded_vel = ZeroVector(MatrixSize);
+
+            for (unsigned int i=0; i<TNumNodes; i++)
+            {
+                aux_embedded_vel(i*BlockSize) = embedded_vel(0);
+                aux_embedded_vel(i*BlockSize+1) = embedded_vel(1);
+                aux_embedded_vel(i*BlockSize+2) = embedded_vel(2);
+            }
+
+            // Asemble the RHS f_gamma contribution
+            for (unsigned int i=0; i<rSplittingData.n_neg; i++)
+            {
+                unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
+
+                for (unsigned int j=0; j<TNumNodes; j++)
+                {
+                    for (unsigned int comp = 0; comp<TDim; comp++)
+                    {
+                        auxLeftHandSideMatrix(out_node_row_id*BlockSize+comp, j*BlockSize+comp) = f_gamma(i,j);
+                    }
+                }
+            }
+
+            auxNormalLHS = prod(auxLeftHandSideNormalMatrix, auxLeftHandSideMatrix);
+            rRightHandSideVector += prod(auxNormalLHS, aux_embedded_vel);
+
+        }
+    }
+
 
     /**
     * This functions collects and adds all the level set boundary condition contributions
