@@ -45,6 +45,8 @@
 #include "processes/check_skin_process.h"
 #include "processes/replace_elements_and_condition_process.h"
 #include "processes/compute_nodal_gradient_process.h"
+#include "processes/calculate_distance_to_skin_process.h"
+
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -208,7 +210,11 @@ void  AddProcessesToPython()
     class_<ComputeNodalGradientProcess<3, component_type> , bases<Process>, boost::noncopyable >("ComputeNodalGradientProcessComp3D",
             init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
-    
+
+	class_<CalculateDistanceToSkinProcess, bases<Process>, boost::noncopyable >("CalculateDistanceToSkinProcess",
+		init<ModelPart&, ModelPart&>())
+		;
+
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
     //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;
 

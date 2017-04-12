@@ -55,7 +55,7 @@ namespace Kratos
   /** This process takes a volume model part (with tetrahedra mesh) and a skin model part (with triangle mesh) and
       and calcualtes the distance to the skin for all the elements and nodes of the volume model part.
   */
-  class CalculateDistanceToSkinProcess : public FindIntersectedGeometricalObjectsProcess
+  class KRATOS_API(KRATOS_CORE) CalculateDistanceToSkinProcess : public FindIntersectedGeometricalObjectsProcess
     {
     public:
       ///@name Type Definitions
@@ -161,6 +161,16 @@ namespace Kratos
       ///@}
 
     private:
+
+		class LineSegment : public std::array<Point<3>::Pointer, 2>{
+		public:
+			LineSegment(Point<3>::Pointer pPoint1, Point<3>::Pointer pPoint2) {
+				this->operator[](0) = pPoint1;
+				this->operator[](1) = pPoint2;
+			}
+
+		};
+
       ///@name Static Member Variables
       ///@{
 
@@ -179,7 +189,7 @@ namespace Kratos
       ///@name Private Operations
       ///@{
 
-		void CalculateDistance(Element& rElement1, PointerVector<GeometricalObject>& rIntesectedObjects);
+		void CalculateElementDistance(Element& rElement1, PointerVector<GeometricalObject>& rIntersectedObjects);
 
       ///@}
       ///@name Private  Access

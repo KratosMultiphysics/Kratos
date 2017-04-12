@@ -19,6 +19,7 @@
 #include "processes/calculate_signed_distance_to_3d_skin_process.h" // TODO: Change the tested process as soon as the new distance process is available
 #include "processes/structured_mesh_generator_process.h"
 #include "geometries/hexahedra_3d_8.h"
+#include "processes/calculate_distance_to_skin_process.h"
 
 namespace Kratos {
   namespace Testing {
@@ -66,7 +67,7 @@ namespace Kratos {
 
       // Compute distance
       // TODO: Change the tested process as soon as the new distance process is available
-      CalculateSignedDistanceTo3DSkinProcess(skin_part, volume_part).Execute();
+	  CalculateDistanceToSkinProcess(volume_part, skin_part).Execute();
 
        //GidIO<> gid_io_fluid("C:/Temp/Tests/distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
        //gid_io_fluid.InitializeMesh(0.00);
