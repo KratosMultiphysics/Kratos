@@ -577,6 +577,16 @@ namespace Kratos {
             (it)->InitializeSolutionStep(r_process_info);
         }
 
+        ModelPart& r_fem_model_part = GetFemModelPart();
+        ProcessInfo& r_fem_process_info = r_fem_model_part.GetProcessInfo();
+        ConditionsArrayType& pConditions = r_fem_model_part.GetCommunicator().LocalMesh().Conditions();
+
+        #pragma omp parallel for
+        for (int k = 0; k < (int) pConditions.size(); k++) {
+            ConditionsArrayType::iterator it = pConditions.ptr_begin() + k;
+            (it)->InitializeSolutionStep(r_fem_process_info);
+        }
+
         ApplyPrescribedBoundaryConditions();
         KRATOS_CATCH("")
     }

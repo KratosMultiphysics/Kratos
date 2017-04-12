@@ -33,14 +33,16 @@ typedef BaseType::ParticleDataBuffer BaseBufferType;
 typedef std::unique_ptr<BaseType::ParticleDataBuffer> BaseBufferPointerType;
 
 /// Default constructor.
-AnalyticSphericParticle( IndexType NewId, GeometryType::Pointer pGeometry );
+AnalyticSphericParticle();
+AnalyticSphericParticle( IndexType NewId, GeometryType::Pointer pGeometry);
 AnalyticSphericParticle( IndexType NewId, NodesArrayType const& ThisNodes);
-AnalyticSphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
+AnalyticSphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+AnalyticSphericParticle(Element::Pointer p_spheric_particle);
 
 Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
 /// Destructor.
-virtual ~AnalyticSphericParticle(){};
+virtual ~AnalyticSphericParticle(){}
 
 /// Turn back information as a string.
 std::string Info() const override
@@ -62,8 +64,6 @@ void GetCollidingNormalRelativeVelocity(array_1d<double, 4>& colliding_normal_ve
 void GetCollidingTangentialRelativeVelocity(array_1d<double, 4>& colliding_tangential_vel);
 
 protected:
-
-AnalyticSphericParticle();
 
 class ParticleDataBuffer: public SphericParticle::ParticleDataBuffer
 {

@@ -42,6 +42,14 @@ AnalyticSphericParticle::AnalyticSphericParticle(IndexType NewId, NodesArrayType
     ClearImpactMemberVariables();
 }
 
+AnalyticSphericParticle::AnalyticSphericParticle(Element::Pointer p_spheric_particle)
+{
+    GeometryType::Pointer p_geom = p_spheric_particle->pGetGeometry();
+    PropertiesType::Pointer pProperties = p_spheric_particle->pGetProperties();
+    AnalyticSphericParticle(p_spheric_particle->Id(), p_geom, pProperties);
+}
+
+
 int AnalyticSphericParticle::GetNumberOfCollisions()
 {
     return mNumberOfCollidingSpheres;

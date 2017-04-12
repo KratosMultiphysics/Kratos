@@ -175,19 +175,37 @@ void RigidFace3D::CalculateElasticForces(VectorType& rElasticForces,
 
 void RigidFace3D::CalculateNormal(array_1d<double, 3>& rnormal){
 
-    array_1d<double, 3> v1, v2;
+//    array_1d<double, 3> v1, v2;
+//    Geometry<Node<3> >& geom = GetGeometry();
+
+//    v1[0] = geom[1][0] - geom[0][0];
+//    v1[1] = geom[1][1] - geom[0][1];
+//    v1[2] = geom[1][2] - geom[0][2];
+
+//    v2[0] = geom[2][0] - geom[0][0];
+//    v2[1] = geom[2][1] - geom[0][1];
+//    v2[2] = geom[2][2] - geom[0][2];
+
+//    MathUtils<double>::CrossProduct(rnormal, v1, v2);
+
+//    rnormal /= MathUtils<double>::Norm3(rnormal);
+    double v1[3];
+    double v2[3];
     Geometry<Node<3> >& geom = GetGeometry();
-    v1[0] = geom[1][0] - geom[0][0];
-    v1[1] = geom[1][1] - geom[0][1];
-    v1[2] = geom[1][2] - geom[0][2];
+    double p0[3] = {geom[0][0], geom[0][1], geom[0][2]};
+    double p1[3] = {geom[1][0], geom[1][1], geom[1][2]};
+    double p2[3] = {geom[2][0], geom[2][1], geom[2][2]};
 
-    v2[0] = geom[2][0] - geom[0][0];
-    v2[1] = geom[2][1] - geom[0][1];
-    v2[2] = geom[2][2] - geom[0][2];
+    v1[0] = p1[0] - p0[0];
+    v1[1] = p1[1] - p0[1];
+    v1[2] = p1[2] - p0[2];
 
-    MathUtils<double>::CrossProduct(rnormal, v1, v2);
-
-    rnormal /= MathUtils<double>::Norm3(rnormal);
+    v2[0] = p2[0] - p0[0];
+    v2[1] = p2[1] - p0[1];
+    v2[2] = p2[2] - p0[2];
+    DEM_SET_TO_CROSS_OF_FIRST_TWO_3(v1, v2, rnormal)
+    const double norm_n_inv = 1.0 / DEM_MODULUS_3(rnormal) ;
+    DEM_MULTIPLY_BY_SCALAR_3(rnormal, norm_n_inv)
 }
 
 
@@ -306,9 +324,138 @@ void RigidFace3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
     
 }
 
+void RigidFace3D::ComputeConditionRelativeData(int rigid_neighbour_index,
+                                               SphericParticle* const particle,
+                                               double LocalCoordSystem[3][3],
+                                               double& DistPToB,
+                                               array_1d<double, 4>& Weight,
+                                               array_1d<double, 3>& wall_delta_disp_at_contact_point,
+                                               array_1d<double, 3>& wall_velocity_at_contact_point,
+                                               int& ContactType)
+{
+    size_t FE_size = this->GetGeometry().size();
+    std::vector< array_1d <double,3> >Coord;
+    Coord.resize(FE_size, array_1d<double,3>(3,0.0) );
+    std::vector<double> TempWeight;
+    TempWeight.resize(FE_size);
+
+    double total_weight = 0.0;
+    int points = 0;
+    int inode1 = 0, inode2 = 0;
+
+    for (unsigned int inode = 0; inode < FE_size; inode++) {
+
+        if (Weight[inode] > 1.0e-12) {
+
+            for (unsigned int j = 0; j < 3; j++)
+            {
+                Coord[inode][j] = this->GetGeometry()[inode].Coordinates()[j];
+            }
+            total_weight = total_weight + Weight[inode];
+            points++;
+            if (points == 1) {inode1 = inode;}
+            if (points == 2) {inode2 = inode;}
+        }
+
+        if (fabs(total_weight - 1.0) < 1.0e-12) {
+            break;
+        }
+    }
+
+    bool contact_exists = true;
+    array_1d<double, 3>& node_coordinates = particle->GetGeometry()[0].Coordinates();
+    double node_coor[3] = {0.0};
+    DEM_COPY_SECOND_TO_FIRST_3(node_coor, node_coordinates)
+
+    const double radius = particle->GetInteractionRadius();
+
+    if (points == 3 || points == 4)
+    {
+        unsigned int dummy_current_edge_index;
+        contact_exists = GeometryFunctions::FacetCheck(Coord, node_coor, radius, LocalCoordSystem, DistPToB, TempWeight, dummy_current_edge_index);
+        ContactType = 1;
+        Weight[0]=TempWeight[0];
+        Weight[1]=TempWeight[1];
+        Weight[2]=TempWeight[2];
+        if (points == 4)
+        {
+            Weight[3] = TempWeight[3];
+        }
+        else
+        {
+            Weight[3] = 0.0;
+        }
+    }
+
+    else if (points == 2) {
+
+        double eta = 0.0;
+        contact_exists = GeometryFunctions::EdgeCheck(Coord[inode1], Coord[inode2], node_coor, radius, LocalCoordSystem, DistPToB, eta);
+
+        Weight[inode1] = 1-eta;
+        Weight[inode2] = eta;
+        ContactType = 2;
+
+    }
+
+    else if (points == 1) {
+        contact_exists = GeometryFunctions::VertexCheck(Coord[inode1], node_coor, radius, LocalCoordSystem, DistPToB);
+        Weight[inode1] = 1.0;
+        ContactType = 3;
+    }
+
+    if (contact_exists == false) {ContactType = -1;}
+
+    for (std::size_t inode = 0; inode < FE_size; inode++) {
+        noalias(wall_velocity_at_contact_point) += this->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY) * Weight[inode];
+
+        array_1d<double, 3>  wall_delta_displacement = ZeroVector(3);
+        this->GetDeltaDisplacement(wall_delta_displacement, inode);
+        noalias(wall_delta_disp_at_contact_point) += wall_delta_displacement* Weight[inode];
+
+    }
+}//ComputeConditionRelativeData
+
+int RigidFace3D::CheckSide(SphericParticle *p_particle){
+    const array_1d<double, 3>& particle_center_coors = p_particle->GetGeometry()[0].Coordinates();
+    const Geometry<Node<3> >& geom = GetGeometry();
+    const array_1d<double, 3> a1 = geom[0].Coordinates() - particle_center_coors;
+    const array_1d<double, 3> a2 = geom[1].Coordinates() - particle_center_coors;
+    const array_1d<double, 3> a3 = geom[2].Coordinates() - particle_center_coors;
+    const double ball_to_vertices_determinant = DEM_DETERMINANT_3x3(a1, a2, a3);  // each side corresponds to a different sign of this determina
+
+    return RigidFace3D::Sign(ball_to_vertices_determinant);
+}
+
+bool RigidFace3D::CheckProjectionFallsInSide(SphericParticle *p_particle)
+{
+    const array_1d<double, 3>& P = p_particle->GetGeometry()[0].Coordinates();
+    const Geometry<Node<3> >& geom = GetGeometry();
+    const array_1d<double, 3> u1 = geom[1].Coordinates() - geom[0].Coordinates();
+    const array_1d<double, 3> u2 = geom[2].Coordinates() - geom[0].Coordinates();
+    const array_1d<double, 3> w  = P - geom[0].Coordinates();
+    array_1d<double, 3> n;
+    DEM_SET_TO_CROSS_OF_FIRST_TWO_3(u1, u2, n)
+    array_1d<double, 3> cross_gamma;
+    array_1d<double, 3> cross_beta;
+    double alpha;
+    double beta;
+    double gamma;
+    DEM_SET_TO_CROSS_OF_FIRST_TWO_3(w, u2, cross_beta)
+    beta = DEM_INNER_PRODUCT_3(cross_beta, u2);
+    DEM_SET_TO_CROSS_OF_FIRST_TWO_3(u1, w, cross_gamma)
+    gamma = DEM_INNER_PRODUCT_3(cross_gamma, n);
+    const double n2 = DEM_INNER_PRODUCT_3(n, n);
+    alpha = n2 - beta - gamma;
+
+    bool falls_inside = alpha >=  0 && beta >=  0 && gamma >= 0
+                     && alpha <= n2 && beta <= n2 && gamma <= n2;
+
+    return falls_inside;
+}
+
 void RigidFace3D::FinalizeSolutionStep(ProcessInfo& r_process_info)   
 {
-  
   
 }
 
