@@ -96,7 +96,6 @@ def AssambleTestSuites():
             test_processes.TestProcesses,
             test_importing.TestImporting,
             test_connectivity_preserve_modeler.TestConnectivityPreserveModeler,
-            test_importing.TestImporting,
             test_model.TestModel,
             test_redistance.TestRedistance,
             test_variable_utils.TestVariableUtils
