@@ -25,10 +25,10 @@ class ApplyConstraintVectorDamTableProcess(Process):
         x_params.AddValue("is_fixed",settings["is_fixed"][0])
         x_params.AddValue("value",settings["value"][0])
         x_params.AddEmptyValue("variable_name").SetString(variable_name+"_X")
-        if settings["Value_X_Table"].GetInt() == 0:
+        if settings["Value_Table"][0].GetInt() == 0:
             self.components_process_list.append(ApplyConstantScalarValueProcess(model_part, x_params))
         else:
-            x_params.AddValue("table",settings["Value_X_Table"])
+            x_params.AddValue("table",settings["Value_Table"][0])
             self.components_process_list.append(ApplyComponentTableProcess(model_part, x_params))
 
         y_params = Parameters("{}")
@@ -37,10 +37,10 @@ class ApplyConstraintVectorDamTableProcess(Process):
         y_params.AddValue("is_fixed",settings["is_fixed"][1])
         y_params.AddValue("value",settings["value"][1])
         y_params.AddEmptyValue("variable_name").SetString(variable_name+"_Y")
-        if settings["Value_Y_Table"].GetInt() == 0:
+        if settings["Value_Table"][1].GetInt() == 0:
             self.components_process_list.append(ApplyConstantScalarValueProcess(model_part, y_params))
         else:
-            y_params.AddValue("table",settings["Value_Y_Table"])
+            y_params.AddValue("table",settings["Value_Table"][1])
             self.components_process_list.append(ApplyComponentTableProcess(model_part, y_params))
 
         z_params = Parameters("{}")
@@ -49,10 +49,10 @@ class ApplyConstraintVectorDamTableProcess(Process):
         z_params.AddValue("is_fixed",settings["is_fixed"][2])
         z_params.AddValue("value",settings["value"][2])
         z_params.AddEmptyValue("variable_name").SetString(variable_name+"_Z")
-        if settings["Value_Z_Table"].GetInt() == 0:
+        if settings["Value_Table"][2].GetInt() == 0:
             self.components_process_list.append(ApplyConstantScalarValueProcess(model_part, z_params))
         else:
-            z_params.AddValue("table",settings["Value_Z_Table"])
+            z_params.AddValue("table",settings["Value_Table"][2])
             self.components_process_list.append(ApplyComponentTableProcess(model_part, z_params))
 
     def ExecuteInitialize(self):
