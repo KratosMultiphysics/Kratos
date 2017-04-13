@@ -562,8 +562,8 @@ private:
                     empty = false;
                     break;
                 }
-            if(empty == true)
-                rA(k,k) = 1.0;
+            //if(empty == true)
+            //    rA(k,k) = 1.0;
         }
 
         #pragma omp parallel for
