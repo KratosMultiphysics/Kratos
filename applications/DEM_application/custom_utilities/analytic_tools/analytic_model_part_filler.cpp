@@ -19,4 +19,15 @@
 namespace Kratos
 {
 
+/// Turn back information as a string.
+std::string AnalyticModelPartFiller::Info() const {
+        return "AnalyticModelPartFiller";
+}
+
+/// Print information about this object.
+void AnalyticModelPartFiller::PrintInfo(std::ostream& rOStream) const {}
+
+/// Print object's data.
+void AnalyticModelPartFiller::PrintData(std::ostream& rOStream) const {}
+
 } // namespace Kratos

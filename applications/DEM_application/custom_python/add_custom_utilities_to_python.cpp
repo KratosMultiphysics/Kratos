@@ -4,11 +4,13 @@
 
 // External includes 
 #include <boost/python.hpp>
+#include <boost/python/overloads.hpp>
 
 // Project includes
 
 #include "includes/model_part.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_utilities/analytic_tools/analytic_model_part_filler.h"
 #include "custom_utilities/analytic_tools/analytic_particle_watcher.h"
 #include "custom_utilities/create_and_destroy.h"
 #include "custom_utilities/calculate_global_physical_properties.h"
@@ -25,7 +27,6 @@
 
 #include "boost/python/list.hpp"
 #include "boost/python/extract.hpp"
-
 
 namespace Kratos {
 
@@ -126,6 +127,13 @@ void AddCustomUtilitiesToPython() {
         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesML)
         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesLM)
         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesLL)
+        ;
+
+    // This macro defines the 'thin wrappers' needed to use default parameters
+
+    class_<AnalyticModelPartFiller, boost::noncopyable >
+        ("AnalyticModelPartFiller", init<>())
+        .def("FillAnalyticModelPartGivenFractionOfParticlesToTransform", &AnalyticModelPartFiller::FillAnalyticModelPartGivenFractionOfParticlesToTransform, arg("analytic_sub_model_part_name") = "")
         ;
 
     class_<AnalyticParticleWatcher, boost::noncopyable >

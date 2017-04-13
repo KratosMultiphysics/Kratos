@@ -154,7 +154,7 @@ void GetTimeStepsData(boost::python::list ids,
                       boost::python::list normal_relative_vel,
                       boost::python::list tangential_relative_vel);
 
-virtual void MakeMeasurements(ModelPart& analytic_model_part);
+virtual void MakeMeasurements(ModelPart &analytic_model_part);
 
 virtual ParticleHistoryDatabase& GetParticleDataBase(int id);
 
