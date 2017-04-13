@@ -185,7 +185,7 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
         if self.settings["multi_point_constraints_used"].GetBool():
             builder_and_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedBlockBuilderAndSolverWithMpc(self.linear_solver)
         else:
-            builder_and_solver = super(ImplicitMechanicalSolver,self)._GetBuilderAndSolver(component_wise, block_builder)
+            builder_and_solver = super(StaticMechanicalSolver,self)._GetBuilderAndSolver(component_wise, block_builder)
             
         return builder_and_solver   
     
@@ -257,7 +257,7 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
                                                                             reform_step_dofs, 
                                                                             move_mesh_flag)
 
-                else:
+                else:                    
                     self.mechanical_solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
                                                                             self.computing_model_part, 
                                                                             mechanical_scheme, 
