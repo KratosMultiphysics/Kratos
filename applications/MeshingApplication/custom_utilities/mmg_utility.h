@@ -77,18 +77,24 @@ namespace Kratos
     typedef MeshType::ConditionConstantIterator       ConditionConstantIterator;
     typedef MeshType::ElementConstantIterator           ElementConstantIterator;
     
-    #if !defined(KEY_COMPAROR)
-    #define KEY_COMPAROR
-    struct KeyComparor
+    #if !defined(KEY_COMPAROR_VECTOR)
+    #define KEY_COMPAROR_VECTOR
+    template<class TClassType>
+    struct KeyComparorVector
     {
-        bool operator()(const vector<unsigned int>& lhs, const vector<unsigned int>& rhs) const
+        bool operator()(const vector<TClassType>& lhs, const vector<TClassType>& rhs) const
         {
             if(lhs.size() != rhs.size())
+            {
                 return false;
+            }
 
             for(unsigned int i=0; i<lhs.size(); i++)
             {
-                if(lhs[i] != rhs[i]) return false;
+                if(lhs[i] != rhs[i]) 
+                {
+                    return false;
+                }
             }
 
             return true;
@@ -96,11 +102,12 @@ namespace Kratos
     };
     #endif
     
-    #if !defined(KEY_HASHER)
-    #define KEY_HASHER
-    struct KeyHasher
+    #if !defined(KEY_HASHER_VECTOR)
+    #define KEY_HASHER_VECTOR
+    template<class TClassType>
+    struct KeyHasherVector
     {
-        std::size_t operator()(const vector<int>& k) const
+        std::size_t operator()(const vector<TClassType>& k) const
         {
             return boost::hash_range(k.begin(), k.end());
         }
@@ -949,7 +956,7 @@ protected:
     
     std::vector<unsigned int> CheckNodes()
     {
-        typedef boost::unordered_map<vector<double>, unsigned int, KeyHasher, KeyComparor > hashmap;
+        typedef boost::unordered_map<vector<double>, unsigned int, KeyHasherVector<double>, KeyComparorVector<double> > hashmap;
         hashmap node_map;
         
         std::vector<unsigned int> nodes_to_remove_ids;
@@ -1883,7 +1890,7 @@ protected:
     template<>  
     std::vector<unsigned int> MmgUtility<2>::CheckConditions0()
     {
-        typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
+        typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasherVector<unsigned int>, KeyComparorVector<unsigned int> > hashmap;
         hashmap edge_map;
 
         vector<unsigned int> ids(2);
@@ -1923,7 +1930,7 @@ protected:
     template<>  
     std::vector<unsigned int> MmgUtility<3>::CheckConditions0()
     {
-        typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
+        typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasherVector<unsigned int>, KeyComparorVector<unsigned int> > hashmap;
         hashmap triangle_map;
 
         vector<unsigned int> ids_triangles(3);
@@ -1963,7 +1970,7 @@ protected:
     template<>  
     std::vector<unsigned int> MmgUtility<3>::CheckConditions1()
     {
-        typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
+        typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasherVector<unsigned int>, KeyComparorVector<unsigned int> > hashmap;
         hashmap quadrilateral_map;
 
         vector<unsigned int> ids_quadrilaterals(4);
@@ -2004,7 +2011,7 @@ protected:
     template<>  
     std::vector<unsigned int> MmgUtility<2>::CheckElements0()
     {
-        typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
+        typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasherVector<unsigned int>, KeyComparorVector<unsigned int> > hashmap;
         hashmap triangle_map;
 
         vector<unsigned int> ids_triangles(3);
@@ -2045,7 +2052,7 @@ protected:
     template<>  
     std::vector<unsigned int> MmgUtility<3>::CheckElements0()
     {
-        typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
+        typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasherVector<unsigned int>, KeyComparorVector<unsigned int> > hashmap;
         hashmap triangle_map;
 
         vector<unsigned int> ids_tetrahedron(4);
@@ -2086,7 +2093,7 @@ protected:
     template<>  
     std::vector<unsigned int> MmgUtility<3>::CheckElements1()
     {
-        typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
+        typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasherVector<unsigned int>, KeyComparorVector<unsigned int> > hashmap;
         hashmap prism_map;
 
         vector<unsigned int> ids_prisms(6);
