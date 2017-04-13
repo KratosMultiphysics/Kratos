@@ -8,7 +8,7 @@ from KratosMultiphysics.MeshingApplication import *
 import KratosMultiphysics.MappingApplication as KratosMapping
 
 # In this example two domains are solved, a coarse background mesh and a fine mesh around
-# an obstacle. The small domain receives the values from the coarse domain as input on it's boundary
+# an obstacle. The fine domain receives the values from the coarse domain as input on it's boundary
 
 ######################################################################################
 ######################################################################################
