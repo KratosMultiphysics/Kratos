@@ -7,16 +7,19 @@ from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.MeshingApplication import *
 import KratosMultiphysics.MappingApplication as KratosMapping
 
+# In this example two domains are solved, a coarse background mesh and a fine mesh around
+# an obstacle. The small domain receives the values from the coarse domain as input on it's boundary
+
 ######################################################################################
 ######################################################################################
 ######################################################################################
 ##PARSING THE PARAMETERS
 #import define_output
 
-parameter_file_background = open("ProjectParametersBackground.json",'r')
+parameter_file_background = open("ProjectParameters_Background.json",'r')
 Projectparameters_BG = Parameters( parameter_file_background.read())
 
-parameter_file_bodyfitted = open("ProjectParametersBodyFitted.json",'r')
+parameter_file_bodyfitted = open("ProjectParameters_BodyFitted.json",'r')
 Projectparameters_BF = Parameters( parameter_file_bodyfitted.read())
 
 ## Fluid model part definition 

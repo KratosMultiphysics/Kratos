@@ -1,6 +1,6 @@
 {
     "problem_data"                     : {
-        "problem_name"    : "Chimera_background",
+        "problem_name"    : "Model_Background",
         "model_part_name" : "MainModelPart",
         "domain_size"     : 2,
         "start_step"      : 0.0,
@@ -37,7 +37,7 @@
         "solver_type"                     : "navier_stokes_solver_fractionalstep",
         "model_import_settings"           : {
             "input_type"     : "mdpa",
-            "input_filename" : "Chimera_background"
+            "input_filename" : "Mesh_Background"
         },
         "predictor_corrector"             : false,
         "maximum_velocity_iterations"     : 4,
