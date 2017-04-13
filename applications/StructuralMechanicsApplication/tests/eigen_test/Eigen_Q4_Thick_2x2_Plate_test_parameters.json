@@ -19,7 +19,7 @@
         },
 	"eigensolver_settings":{
 	    "solver_type": "FEAST",
-	    "print_feast_output": true,
+	    "print_feast_output": false,
         "perform_stochastic_estimate": false,
         "solve_eigenvalue_problem": true,
         "lambda_min": 0.0,
