@@ -85,3 +85,6 @@ class EigenQ4Thick2x2PlateTests(StructuralMechanichsTestFactory):
 
 class EigenTL3D8NCubeTests(StructuralMechanichsTestFactory):
     file_name = "eigen_test/Eigen_TL_3D8N_Cube_test"
+
+class Eigen3D3NThinCircleTests(StructuralMechanichsTestFactory):
+    file_name = "eigen_test/Eigen_3D3N_Thin_Circle_test"
