@@ -130,13 +130,14 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
             outlet_avg_vel_norm += math.sqrt(vnode[0]*vnode[0] + vnode[1]*vnode[1] + vnode[2]*vnode[2])
             outlet_avg_vel_norm /= len(self.outlet_model_part.GetCommunicator().LocalMesh().Nodes)
 
-            # Perform MPI communication
-            self.outlet_model_part.GetCommunicator().SumAll(outlet_avg_vel_norm)                 # Accumulate the average velocity in each processor
-            outlet_avg_vel_norm /= self.outlet_model_part.GetCommunicator().TotalProcesses()     # Compute the average between processors
+        # Perform MPI communication
+        self.outlet_model_part.GetCommunicator().Barrier()                                   # Wait for all the processors to compute the average
+        self.outlet_model_part.GetCommunicator().SumAll(outlet_avg_vel_norm)                 # Accumulate the average velocity in each processor
+        outlet_avg_vel_norm /= self.outlet_model_part.GetCommunicator().TotalProcesses()     # Compute the average between processors
 
-            # Store the average velocity in the ProcessInfo to be used in the outlet inflow prevention condition
-            min_outlet_avg_vel_norm = 1.0
-            if (outlet_avg_vel_norm >= min_outlet_avg_vel_norm):
-                self.outlet_model_part.GetRootModelPart().ProcessInfo[KratosFluid.CHARACTERISTIC_VELOCITY] = outlet_avg_vel_norm
-            else:
-                self.outlet_model_part.GetRootModelPart().ProcessInfo[KratosFluid.CHARACTERISTIC_VELOCITY] = min_outlet_avg_vel_norm
+        # Store the average velocity in the ProcessInfo to be used in the outlet inflow prevention condition
+        min_outlet_avg_vel_norm = 1.0
+        if (outlet_avg_vel_norm >= min_outlet_avg_vel_norm):
+            self.outlet_model_part.GetRootModelPart().ProcessInfo[KratosFluid.CHARACTERISTIC_VELOCITY] = outlet_avg_vel_norm
+        else:
+            self.outlet_model_part.GetRootModelPart().ProcessInfo[KratosFluid.CHARACTERISTIC_VELOCITY] = min_outlet_avg_vel_norm
