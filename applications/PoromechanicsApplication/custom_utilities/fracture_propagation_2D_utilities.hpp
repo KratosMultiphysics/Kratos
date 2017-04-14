@@ -1419,7 +1419,9 @@ private:
             const bool StraightPropagation = rParameters["fracture_data"]["straight_propagation"].GetBool();
             if (StraightPropagation == true)
             {
-                AuxArray1[0] = rAuxPropagationVariables.TipLocalCoordinates[0] + PropagationLength;
+                AuxArray2[0] = MyPropagation.TipCoordinates[0];
+                AuxArray2[1] = MyPropagation.TipCoordinates[1];
+                noalias(AuxArray1) = prod(rAuxPropagationVariables.RotationMatrix,AuxArray2);
                 AuxArray1[1] = rAuxPropagationVariables.TipLocalCoordinates[1];
                 noalias(AuxArray2) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
                 MyPropagation.TipCoordinates[0] = AuxArray2[0];
