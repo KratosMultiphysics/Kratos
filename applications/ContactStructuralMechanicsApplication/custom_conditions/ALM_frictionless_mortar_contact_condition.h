@@ -100,6 +100,8 @@ public:
     
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
     
+    static constexpr unsigned int MatrixSize = TDim * (TNumNodes + TNumNodes) + TNumNodes;
+    
     /**
      * Parameters to be used in the Condition as they are.
      */
@@ -259,7 +261,7 @@ public:
     /**
     * Initialize System Matrices
     */
-    template<unsigned int TMatrixSize>
+    
     void InitializeSystemMatrices( 
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -793,7 +795,7 @@ protected:
     /**
      * Calculates the condition contribution
      */
-    template<unsigned int TMatrixSize>
+    
     void CalculateConditionSystem( 
         LocalSystemComponents& rLocalSystem,
         const ProcessInfo& CurrentProcessInfo 
@@ -838,7 +840,7 @@ protected:
      * This function loops over all conditions and calculates the overall number of DOFs
      * total_dofs = SUM( master_u_dofs + 2 * slave_u_dofs) 
      */
-    template<unsigned int TMatrixSize>
+    
     const unsigned int CalculateConditionSize( );
     
     /**
@@ -861,19 +863,19 @@ protected:
     /*
      * Calculation and addition of the matrices of the LHS of a contact pair
      */
-    template<unsigned int TMatrixSize>
+
     void CalculateAndAddLHS( 
         LocalSystemComponents& rLocalSystem,
-        const bounded_matrix<double, TMatrixSize, TMatrixSize>& LHS_contact_pair, 
+        const bounded_matrix<double, MatrixSize, MatrixSize>& LHS_contact_pair, 
         const unsigned int rPairIndex
         );
 
     /*
      * Assembles the contact pair LHS block into the condition's LHS
      */
-    template<unsigned int TMatrixSize>
+    
     void AssembleContactPairLHSToConditionSystem( 
-        const bounded_matrix<double, TMatrixSize, TMatrixSize>& rPairLHS,
+        const bounded_matrix<double, MatrixSize, MatrixSize>& rPairLHS,
         MatrixType& rConditionLHS,
         const unsigned int rPairIndex
         );
@@ -881,8 +883,8 @@ protected:
     /*
      * Calculates the local contibution of the LHS
      */
-    template<unsigned int TMatrixSize>
-    bounded_matrix<double, TMatrixSize, TMatrixSize> CalculateLocalLHS(
+    
+    bounded_matrix<double, MatrixSize, MatrixSize> CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const unsigned int& rMasterElementIndex,
         const unsigned int& rActiveInactive
@@ -891,19 +893,19 @@ protected:
     /*
      * Calculation and addition fo the vectors of the RHS of a contact pair
      */
-    template<unsigned int TMatrixSize>
+    
     void CalculateAndAddRHS( 
         LocalSystemComponents& rLocalSystem,
-        const array_1d<double, TMatrixSize>& RHS_contact_pair, 
+        const array_1d<double, MatrixSize>& RHS_contact_pair, 
         const unsigned int rPairIndex
         );
     
     /*
      * Assembles the contact pair RHS block into the condition's RHS
      */
-    template<unsigned int TMatrixSize>
+    
     void AssembleContactPairRHSToConditionSystem( 
-        const array_1d<double, TMatrixSize>& rPairRHS,
+        const array_1d<double, MatrixSize>& rPairRHS,
         VectorType& rConditionRHS,
         const unsigned int rPairIndex
         );
@@ -911,8 +913,8 @@ protected:
     /*
      * Calculates the local contibution of the LHS
      */
-    template<unsigned int TMatrixSize>
-    array_1d<double, TMatrixSize> CalculateLocalRHS(
+    
+    array_1d<double, MatrixSize> CalculateLocalRHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const unsigned int& rMasterElementIndex,
         const unsigned int& rActiveInactive
