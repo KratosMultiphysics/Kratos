@@ -93,6 +93,8 @@ for dim, nnodes in zip(dim_combinations, nnodes_combinations):
             slipeta = DefineVector('slipeta',nnodes) 
             DOperator = DefineMatrix('DOperator',nnodes,nnodes) 
             MOperator = DefineMatrix('MOperator',nnodes,nnodes) 
+            #DOperatorold = DefineMatrix('DOperatorold',nnodes,nnodes) 
+            #MOperatorold = DefineMatrix('MOperatorold',nnodes,nnodes) 
 
             # Define other parameters
             X1 = DefineMatrix('X1',nnodes,dim)
@@ -129,7 +131,7 @@ for dim, nnodes in zip(dim_combinations, nnodes_combinations):
             #normalslave = DefineDofDependencyMatrix(normalslave, u1_var)
             #tangentxislave = DefineDofDependencyMatrix(tangentxislave, u1_var)
             #tangentetaslave = DefineDofDependencyMatrix(tangentetaslave, u1_var)
-            DOperator = DefineDofDependencyMatrix(DOperator, u12_var)
+            DOperator = DefineDofDependencyMatrix(DOperator, u12_var) # If you consider Gitterle you need to keep the old operators
             MOperator = DefineDofDependencyMatrix(MOperator, u12_var)
 
             # Defining the normal gap
@@ -178,6 +180,13 @@ for dim, nnodes in zip(dim_combinations, nnodes_combinations):
                     rv_galerkin +=  scale_factor * gap[node] * wlmnormal[node]
                 else:
                     rv_galerkin += - 0.5/penalty_parameter * scale_factor**2.0 * lmnormal[node] * wlmnormal[node]
+                    
+                #slip = slip_stick[node] 
+                #if (slip == 1):                
+                    #rv_galerkin += ((((scale_factor * lmnormal[node] + penalty_parameter * gap[node]) * normalslave.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
+                    #rv_galerkin +=  scale_factor * gap[node] * wlmnormal[node]
+                #else:
+                    #rv_galerkin += - 0.5/penalty_parameter * scale_factor**2.0 * lmnormal[node] * wlmnormal[node]
 
             if(do_simplifications):
                 rv_galerkin = simplify(rv_galerkin)
