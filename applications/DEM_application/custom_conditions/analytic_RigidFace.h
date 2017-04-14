@@ -56,6 +56,7 @@ public:
     bool IsPhantom() override {return true;}
 
     int GetNumberOfCrossings();
+    std::vector<int> GetIdsOfCrossers();
     std::vector<int> GetSignedCollidingIds();
     std::vector<double> GetCollidingNormalRelativeVelocity();
     std::vector<double> GetCollidingTangentialRelativeVelocity();
@@ -66,6 +67,7 @@ private:
     std::vector<int> mContactingNeighbourSignedIds;
     std::vector<int> mOldContactingNeighbourSignedIds;
     std::vector<int> mCrossers;
+    std::vector<int> mAllCrossers;
     std::vector<double> mCollidingNormalVelocities;
     std::vector<double> mCollidingTangentialVelocities;
 

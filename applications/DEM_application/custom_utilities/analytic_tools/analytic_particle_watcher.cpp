@@ -134,7 +134,7 @@ AnalyticParticleWatcher::ParticleHistoryDatabase& AnalyticParticleWatcher::GetPa
 
 /// Turn back information as a string.
 std::string AnalyticParticleWatcher::Info() const {
-        return "";
+        return "AnalyticParticleWatcher";
 }
 
 /// Print information about this object.

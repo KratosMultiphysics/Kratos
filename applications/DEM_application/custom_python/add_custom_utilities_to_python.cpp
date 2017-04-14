@@ -12,6 +12,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/analytic_tools/analytic_model_part_filler.h"
 #include "custom_utilities/analytic_tools/analytic_particle_watcher.h"
+#include "custom_utilities/analytic_tools/analytic_face_watcher.h"
 #include "custom_utilities/create_and_destroy.h"
 #include "custom_utilities/calculate_global_physical_properties.h"
 #include "custom_utilities/pre_utilities.h"
@@ -140,6 +141,14 @@ void AddCustomUtilitiesToPython() {
         .def("GetTimeStepsData", &AnalyticParticleWatcher::GetTimeStepsData)
         .def("GetParticleData", &AnalyticParticleWatcher::GetParticleData)
         .def("GetAllParticlesData", &AnalyticParticleWatcher::GetAllParticlesData)
+        ;
+
+    class_<AnalyticFaceWatcher, boost::noncopyable >
+        ("AnalyticFaceWatcher", init<>())
+        .def("MakeMeasurements", &AnalyticFaceWatcher::MakeMeasurements)
+        .def("GetTimeStepsData", &AnalyticFaceWatcher::GetTimeStepsData)
+        .def("GetFaceData", &AnalyticFaceWatcher::GetFaceData)
+        .def("GetAllFacesData", &AnalyticFaceWatcher::GetAllFacesData)
         ;
 
     class_<DEM_FEM_Search, boost::noncopyable >

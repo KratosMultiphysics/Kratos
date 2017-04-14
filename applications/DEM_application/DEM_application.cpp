@@ -738,6 +738,7 @@ namespace Kratos
     KRATOS_REGISTER_CONDITION("RigidFace3D", mRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D", mAnalyticRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("RigidFace3D3N", mRigidFace3D3N)
+    KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D3N", mAnalyticRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("RigidFace3D4N", mRigidFace3D4N)
     KRATOS_REGISTER_CONDITION("RigidEdge3D", mRigidEdge3D2N)
     KRATOS_REGISTER_CONDITION("RigidEdge3D2N", mRigidEdge3D2N)

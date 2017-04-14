@@ -1,3 +1,4 @@
+//   $Author: Guillermo Casas
 #ifndef ANALYTIC_FACE_WATCHER_H
 #define ANALYTIC_FACE_WATCHER_H
 
@@ -36,27 +37,25 @@ AnalyticFaceWatcher(){}
 virtual ~AnalyticFaceWatcher(){}
 
 
-class ImpactsTimeStepDataBase  // It holds the historical information gathered in a single time step
+class CrossingsTimeStepDataBase  // It holds the historical information gathered in a single time step
 {
     public:
 
-    ImpactsTimeStepDataBase(const double time) : mNImpacts(0), mTime(time){}
-    ~ImpactsTimeStepDataBase(){}
+    CrossingsTimeStepDataBase(const double time) : mNCrossings(0), mTime(time){}
+    ~CrossingsTimeStepDataBase(){}
 
-    int GetNumberOfImpacts()
+    int GetNumberOfCrossings()
     {
-        return mNImpacts;
+        return mNCrossings;
     }
 
-    void PushBackImpacts(const int id1, const int id2, const double normal_vel, const double tang_vel)
+    void PushBackCrossings(const int id1, const int id2, const double normal_vel, const double tang_vel)
     {
-        if (ImpactIsNew(id2)){
-            ++mNImpacts;
-            mId1.push_back(id1);
-            mId2.push_back(id2);
-            mRelVelNormal.push_back(normal_vel);
-            mRelVelTangential.push_back(tang_vel);
-        }
+        ++mNCrossings;
+        mId1.push_back(id1);
+        mId2.push_back(id2);
+        mRelVelNormal.push_back(normal_vel);
+        mRelVelTangential.push_back(tang_vel);
     }
 
     void FillUpPythonLists(boost::python::list& ids,
@@ -64,11 +63,12 @@ class ImpactsTimeStepDataBase  // It holds the historical information gathered i
                            boost::python::list& normal_relative_vel,
                            boost::python::list& tangential_relative_vel)
     {
-        for (int i = 0; i < mNImpacts; ++i){
-            AnalyticFaceWatcher::ClearList(ids);
-            AnalyticFaceWatcher::ClearList(neighbour_ids);
-            AnalyticFaceWatcher::ClearList(normal_relative_vel);
-            AnalyticFaceWatcher::ClearList(tangential_relative_vel);
+        AnalyticFaceWatcher::ClearList(ids);
+        AnalyticFaceWatcher::ClearList(neighbour_ids);
+        AnalyticFaceWatcher::ClearList(normal_relative_vel);
+        AnalyticFaceWatcher::ClearList(tangential_relative_vel);
+
+        for (int i = 0; i < mNCrossings; ++i){
             ids.append(mId1[i]);
             neighbour_ids.append(mId2[i]);
             normal_relative_vel.append(mRelVelNormal[i]);
@@ -78,30 +78,25 @@ class ImpactsTimeStepDataBase  // It holds the historical information gathered i
 
     private:
 
-        int mNImpacts;
+        int mNCrossings;
         double mTime;
         std::vector<int> mId1;
         std::vector<int> mId2;
         std::vector<double> mRelVelNormal;
         std::vector<double> mRelVelTangential;
-
-        bool ImpactIsNew(const int id_2)
-        {
-            return std::find(mId1.begin(), mId1.end(), id_2) != mId1.end();
-        }
     };
 
 class FaceHistoryDatabase // It holds the historical information gathered for a single face
     {
         public:
 
-        FaceHistoryDatabase(): mNImpacts(0), mId(0){}
-        FaceHistoryDatabase(const int id) : mNImpacts(0), mId(id){}
+        FaceHistoryDatabase(): mNCrossings(0), mId(0){}
+        FaceHistoryDatabase(const int id) : mNCrossings(0), mId(id){}
         ~FaceHistoryDatabase(){}
 
-        void PushBackImpacts(const double time, const int id2, const double normal_vel, const double tang_vel)
+        void PushBackCrossings(const double time, const int id2, const double normal_vel, const double tang_vel)
         {
-            ++mNImpacts;
+            ++mNCrossings;
             mTimes.push_back(time);
             mId2.push_back(id2);
             mRelVelNormal.push_back(normal_vel);
@@ -113,11 +108,12 @@ class FaceHistoryDatabase // It holds the historical information gathered for a 
                                boost::python::list& normal_relative_vel,
                                boost::python::list& tangential_relative_vel)
         {
-            for (int i = 0; i < mNImpacts; ++i){
-                AnalyticFaceWatcher::ClearList(times);
-                AnalyticFaceWatcher::ClearList(neighbour_ids);
-                AnalyticFaceWatcher::ClearList(normal_relative_vel);
-                AnalyticFaceWatcher::ClearList(tangential_relative_vel);
+            AnalyticFaceWatcher::ClearList(times);
+            AnalyticFaceWatcher::ClearList(neighbour_ids);
+            AnalyticFaceWatcher::ClearList(normal_relative_vel);
+            AnalyticFaceWatcher::ClearList(tangential_relative_vel);
+
+            for (int i = 0; i < mNCrossings; ++i){
                 times.append(mTimes[i]);
                 neighbour_ids.append(mId2[i]);
                 normal_relative_vel.append(mRelVelNormal[i]);
@@ -127,7 +123,7 @@ class FaceHistoryDatabase // It holds the historical information gathered for a 
 
     private:
 
-        int mNImpacts;
+        int mNCrossings;
         int mId;
         std::vector<double> mTimes;
         std::vector<int> mId2;
@@ -171,7 +167,7 @@ virtual void PrintData(std::ostream& rOStream) const;
 private:
 
 std::set<int> mSetOfIds;
-std::vector<ImpactsTimeStepDataBase> mVectorOfTimeStepDatabases;
+std::vector<CrossingsTimeStepDataBase> mVectorOfTimeStepDatabases;
 std::map<int, FaceHistoryDatabase> mMapOfFaceHistoryDatabases;
 
 /// Assignment operator

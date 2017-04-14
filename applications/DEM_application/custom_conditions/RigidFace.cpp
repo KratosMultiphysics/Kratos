@@ -417,12 +417,12 @@ void RigidFace3D::ComputeConditionRelativeData(int rigid_neighbour_index,
 }//ComputeConditionRelativeData
 
 int RigidFace3D::CheckSide(SphericParticle *p_particle){
-    const array_1d<double, 3>& particle_center_coors = p_particle->GetGeometry()[0].Coordinates();
-    const Geometry<Node<3> >& geom = GetGeometry();
-    const array_1d<double, 3> a1 = geom[0].Coordinates() - particle_center_coors;
-    const array_1d<double, 3> a2 = geom[1].Coordinates() - particle_center_coors;
-    const array_1d<double, 3> a3 = geom[2].Coordinates() - particle_center_coors;
-    const double ball_to_vertices_determinant = DEM_DETERMINANT_3x3(a1, a2, a3);  // each side corresponds to a different sign of this determina
+    const array_1d<double, 3>& particle_center_coors = p_particle->GetGeometry()[0];
+    const Geometry<Node<3> >& geom = this->GetGeometry();
+    const array_1d<double, 3> a0 = geom[1] - geom[0];
+    const array_1d<double, 3> a1 = geom[2] - geom[0];
+    const array_1d<double, 3> a2 = particle_center_coors - geom[0];
+    const double ball_to_vertices_determinant = DEM_DETERMINANT_3x3(a0, a1, a2);  // each side corresponds to a different sign of this determinant
 
     return RigidFace3D::Sign(ball_to_vertices_determinant);
 }

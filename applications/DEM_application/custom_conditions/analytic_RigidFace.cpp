@@ -58,31 +58,34 @@ void AnalyticRigidFace3D::ComputeConditionRelativeData(int rigid_neighbour_index
 
 int AnalyticRigidFace3D::CheckSide(SphericParticle* p_particle)
 {
-    const int signed_id = int(p_particle->Id() * BaseType::CheckSide(p_particle));
+    const int side_sign = BaseType::CheckSide(p_particle);
 
-    const bool just_changed_side = std::end(mOldContactingNeighbourSignedIds)
-                                 == std::find(std::begin(mOldContactingNeighbourSignedIds),
-                                              std::end(mOldContactingNeighbourSignedIds),
-                                            - signed_id);
+    const int signed_id = int(p_particle->Id() * side_sign);
+
+    // the particle just changed side if it can be found in the old list with the opposite sign:
+    const auto beginning = std::begin(mOldContactingNeighbourSignedIds);
+    const auto end       = std::end(mOldContactingNeighbourSignedIds);
+    const bool just_changed_side = (end != std::find(beginning, end, - signed_id));
 
 #pragma omp critical
 {
-        mContactingNeighbourSignedIds.push_back(signed_id);
+    mContactingNeighbourSignedIds.push_back(signed_id);
 
-        if (just_changed_side){
-            const bool is_a_crosser = CheckProjectionFallsInSide(p_particle);
-            if (is_a_crosser){
-                ++mNumberOfCrossingSpheres;
-                mCrossers.push_back(fabs(signed_id));
-                array_1d<double, 3> normal;
-                CalculateNormal(normal);
-                array_1d<double, 3> particle_vel = p_particle->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-                const double normal_vel_component = DEM_INNER_PRODUCT_3(particle_vel, normal);
-                mCollidingNormalVelocities.push_back(normal_vel_component);
-                noalias(particle_vel) += - normal_vel_component * normal;
-                mCollidingTangentialVelocities.push_back(DEM_MODULUS_3(particle_vel));
-            }
+    if (just_changed_side){
+        mAllCrossers.push_back(fabs(signed_id));
+        const bool is_a_crosser = CheckProjectionFallsInSide(p_particle);
+        if (is_a_crosser || true){
+            ++mNumberOfCrossingSpheres;
+            mCrossers.push_back(fabs(signed_id));
+            array_1d<double, 3> normal;
+            CalculateNormal(normal);
+            array_1d<double, 3> particle_vel = p_particle->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+            const double normal_vel_component = DEM_INNER_PRODUCT_3(particle_vel, normal);
+            mCollidingNormalVelocities.push_back(normal_vel_component);
+            noalias(particle_vel) += - normal_vel_component * normal;
+            mCollidingTangentialVelocities.push_back(DEM_MODULUS_3(particle_vel));
         }
+    }
 }
     return signed_id;
 }
@@ -90,6 +93,11 @@ int AnalyticRigidFace3D::CheckSide(SphericParticle* p_particle)
 int AnalyticRigidFace3D::GetNumberOfCrossings()
 {
     return mNumberOfCrossingSpheres;
+}
+
+std::vector<int> AnalyticRigidFace3D::GetIdsOfCrossers()
+{
+    return mCrossers;
 }
 
 std::vector<int> AnalyticRigidFace3D::GetSignedCollidingIds()

@@ -1,5 +1,4 @@
-//   $Main author: Guillermo Casas
-//
+//   $Author: Guillermo Casas
 
 // Project includes
 
@@ -26,7 +25,7 @@ typedef AnalyticRigidFace3D AnalyticFace;
 void AnalyticFaceWatcher::MakeMeasurements(ModelPart& analytic_model_part)
 {
     const double current_time = analytic_model_part.GetProcessInfo()[TIME];
-    ImpactsTimeStepDataBase time_step_database(current_time);
+    CrossingsTimeStepDataBase time_step_database(current_time);
 
     for (ConditionsIteratorType i_cond = analytic_model_part.ConditionsBegin(); i_cond != analytic_model_part.ConditionsEnd(); ++i_cond){
         AnalyticFace& face = dynamic_cast<Kratos::AnalyticRigidFace3D&>(*(*(i_cond.base())));
@@ -35,27 +34,27 @@ void AnalyticFaceWatcher::MakeMeasurements(ModelPart& analytic_model_part)
         if (n_collisions){
             const int id = int(i_cond->Id());
             FaceHistoryDatabase& face_database = GetFaceDataBase(id);
-            std::vector<int> colliding_ids = face.GetSignedCollidingIds();
+            std::vector<int> colliding_ids = face.GetIdsOfCrossers();
             std::vector<double> colliding_normal_vel = face.GetCollidingNormalRelativeVelocity();
             std::vector<double> colliding_tangential_vel = face.GetCollidingTangentialRelativeVelocity();
 
             for (int i = 0; i < n_collisions; ++i){
-                time_step_database.PushBackImpacts(id, colliding_ids[i], colliding_normal_vel[i], colliding_tangential_vel[i]);
-                face_database.PushBackImpacts(current_time, colliding_ids[i], colliding_normal_vel[i], colliding_tangential_vel[i]);
+                time_step_database.PushBackCrossings(id, colliding_ids[i], colliding_normal_vel[i], colliding_tangential_vel[i]);
+                face_database.PushBackCrossings(current_time, colliding_ids[i], colliding_normal_vel[i], colliding_tangential_vel[i]);
             }
         }
     }
 
     mVectorOfTimeStepDatabases.push_back(time_step_database);
 
-    if (time_step_database.GetNumberOfImpacts()){
+    if (time_step_database.GetNumberOfCrossings()){
 
     }
 }
 
 void AnalyticFaceWatcher::ClearList(boost::python::list& my_list)
 {
-    while(len(my_list)){
+    while (len(my_list)){
         my_list.pop(); // only way I found to remove all entries
     }
 }
@@ -96,9 +95,9 @@ void AnalyticFaceWatcher::GetAllFacesData(ModelPart& analytic_model_part,
 }
 
 void AnalyticFaceWatcher::GetTimeStepsData(boost::python::list ids,
-                                               boost::python::list neighbour_ids,
-                                               boost::python::list normal_relative_vel,
-                                               boost::python::list tangential_relative_vel)
+                                           boost::python::list neighbour_ids,
+                                           boost::python::list normal_relative_vel,
+                                           boost::python::list tangential_relative_vel)
 {
     ClearList(ids);
     ClearList(neighbour_ids);
@@ -118,7 +117,6 @@ void AnalyticFaceWatcher::GetTimeStepsData(boost::python::list ids,
         tangential_relative_vel.append(tangential_relative_vel_i);
     }
 }
-
 
 AnalyticFaceWatcher::FaceHistoryDatabase& AnalyticFaceWatcher::GetFaceDataBase(int id)
 {
