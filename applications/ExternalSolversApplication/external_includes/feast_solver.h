@@ -49,144 +49,6 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/// Sparse system matrix required for FEAST's inner iterations.
-/**
- *  Matrix arrays are accessed the same as for ublas compressed_matrix.
- */
-struct FEASTSystemMatrix
-{
-    typedef std::complex<double> ScalarType;
-    typedef boost::numeric::ublas::compressed_matrix<double> RealMatrixType;
-
-    /**
-     * The crs matrix structure remains constant during the inner iterations.
-     * It is initialized here.
-     */
-    void Initialize(const RealMatrixType& M, const RealMatrixType& K)
-    {
-        const std::size_t dimension = M.size1();
-
-        row_ptr.resize(dimension + 1);
-
-        std::vector<std::unordered_set<std::size_t> > indices(dimension);
-
-        row_ptr[0] = 0;
-        for (std::size_t i = 0; i < dimension; i++)
-        {
-            std::size_t row_begin, row_end;
-            indices[i].reserve(40);
-
-            row_begin = M.index1_data()[i];
-            row_end = M.index1_data()[i + 1];
-
-            indices[i].insert(M.index2_data().begin() + row_begin,
-                    M.index2_data().begin() + row_end);
-
-            row_begin = K.index1_data()[i];
-            row_end = K.index1_data()[i + 1];
-
-            indices[i].insert(K.index2_data().begin() + row_begin,
-                    K.index2_data().begin() + row_end);
-
-            row_ptr[i + 1] = row_ptr[i] + indices[i].size();
-        }
-
-        col_idx.resize(row_ptr[dimension]);
-
-        size_t k = 0;
-        for (std::size_t i = 0; i < dimension; i++)
-        {
-            std::for_each(std::begin(indices[i]), std::end(indices[i]),
-                    [&](std::size_t j) {col_idx[k++] = j;});
-
-            indices[i].clear();
-
-            std::sort(col_idx.begin() + row_ptr[i],
-                    col_idx.begin() + row_ptr[i + 1]);
-        }
-
-        values.resize(row_ptr[dimension]);
-    }
-
-    /**
-     * Similar to FEAST's zdaddcsr subroutine. Assumes crs matrix structure is
-     * already initialized.
-     */
-    void Calculate(const RealMatrixType& M, const RealMatrixType& K, ScalarType z)
-    {
-        std::size_t jm, jk;
-        double mij, kij;
-        const std::size_t dimension = M.size1();
-
-        std::size_t ptr = 0;
-        for (std::size_t i = 0; i < dimension; i++)
-        {
-            std::size_t m_ptr = M.index1_data()[i];
-            std::size_t k_ptr = K.index1_data()[i];
-            while (m_ptr < M.index1_data()[i + 1] || k_ptr < K.index1_data()[i + 1])
-            {
-                jm = (m_ptr < M.index1_data()[i + 1]) ?
-                        M.index2_data()[m_ptr] : dimension;
-                jk = (k_ptr < K.index1_data()[i + 1]) ?
-                        K.index2_data()[k_ptr] : dimension;
-
-                if (jm < jk)
-                {
-                    mij = M(i, jm);
-                    values[ptr] = z * mij;
-                    m_ptr++;
-                }
-                else if (jm > jk)
-                {
-                    kij = K(i, jk);
-                    values[ptr] = -kij;
-                    k_ptr++;
-                }
-                else
-                { // jm == jk
-                    mij = M(i, jm);
-                    kij = K(i, jk);
-                    values[ptr] = z * mij - kij;
-                    m_ptr++;
-                    k_ptr++;
-                }
-                ptr++;
-            }
-        }
-    }
-
-    boost::numeric::ublas::unbounded_array<std::ptrdiff_t>&
-    index1_data()
-    {
-        return row_ptr;
-    }
-
-    boost::numeric::ublas::unbounded_array<std::ptrdiff_t>&
-    index2_data()
-    {
-        return col_idx;
-    }
-
-    boost::numeric::ublas::unbounded_array<ScalarType>&
-    value_data()
-    {
-        return values;
-    }
-
-    std::size_t size1() const
-    {
-        return row_ptr.size() - 1;
-    }
-
-    std::size_t size2() const
-    {
-        return size1();
-    }
-
-    boost::numeric::ublas::unbounded_array<std::ptrdiff_t> row_ptr;
-    boost::numeric::ublas::unbounded_array<std::ptrdiff_t> col_idx;
-    boost::numeric::ublas::unbounded_array<ScalarType> values;
-};
 
 template<typename TScalarType>
 struct SkylineLUSolver
@@ -250,6 +112,8 @@ public:
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
     typedef typename TDenseSpaceType::VectorType DenseVectorType;
+
+    typedef boost::numeric::ublas::compressed_matrix<std::complex<double>> ComplexSparseMatrixType;
 
     ///@}
     ///@name Life Cycle
@@ -403,11 +267,11 @@ private:
         matrix<double,column_major> Aq(SearchDimension,SearchDimension);
         matrix<double,column_major> Bq(SearchDimension,SearchDimension);
         std::complex<double> Ze;
-        FEASTSystemMatrix Az;
+        ComplexSparseMatrixType Az;
         std::vector<std::complex<double> > b(SystemSize);
         std::vector<std::complex<double> > x(SystemSize);
 
-        Az.Initialize(rMassMatrix,rStiffnessMatrix);
+        this->InitializeFEASTSystemMatrix(rMassMatrix, rStiffnessMatrix, Az);
 
         Parameters& FEAST_Settings = *mpParam;
 
@@ -459,7 +323,7 @@ private:
                 case 10:
                 {
                     // set up quadrature matrix (ZeM-K) and solver
-                    Az.Calculate(rMassMatrix,rStiffnessMatrix,Ze);
+                    this->CalculateFEASTSystemMatrix(Ze, rMassMatrix, rStiffnessMatrix, Az);
                     Solver.Factorize(Az);
                 } break;
                 case 11:
@@ -496,6 +360,101 @@ private:
         } // while
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * Initialize CSR matrix structure for FEAST system matrix: C = z * B - A.
+     */
+    void InitializeFEASTSystemMatrix(const SparseMatrixType& B,
+                                     const SparseMatrixType& A,
+                                     ComplexSparseMatrixType& C)
+    {
+        C.resize(B.size1(), B.size2(), false);
+
+        std::vector<std::unordered_set<std::size_t> > indices(C.size1());
+
+        // indices for row begin / end
+        C.index1_data()[0] = 0;
+        for (std::size_t i = 0; i < C.size1(); ++i)
+        {
+            std::size_t row_begin, row_end;
+            indices[i].reserve(40); // initialize C's indices
+
+            row_begin = B.index1_data()[i];
+            row_end = B.index1_data()[i + 1];
+            indices[i].insert(B.index2_data().begin() + row_begin,
+                    B.index2_data().begin() + row_end); // insert B's column indices for row i
+
+            row_begin = A.index1_data()[i];
+            row_end = A.index1_data()[i + 1];
+            indices[i].insert(A.index2_data().begin() + row_begin,
+                    A.index2_data().begin() + row_end); // insert A's column indices for row i
+
+            // C.index1_data()[i+1] = number of non-zeros in rows <= i
+            C.index1_data()[i + 1] = C.index1_data()[i] + indices[i].size();
+        }
+
+        // C.index1_data()[C.size1()] = number of non-zeros
+        C.reserve(C.index1_data()[C.size1()]);
+
+        // column indices
+        std::size_t k = 0;
+        for (std::size_t i = 0; i < C.size1(); ++i)
+        {
+            for (std::size_t j : indices[i])
+                C.index2_data()[k++] = j; // fill C's column indices
+
+            indices[i].clear();
+
+            std::sort(C.index2_data().begin() + C.index1_data()[i],
+                    C.index2_data().begin() + C.index1_data()[i + 1]);
+        }
+
+        C.set_filled(C.size1() + 1, C.index1_data()[C.size1()]);
+    }
+
+    /**
+     * Calculate FEAST system matrix: C = z * B - A. Similar to FEAST's zdaddcsr subroutine.
+     */
+    void CalculateFEASTSystemMatrix(std::complex<double> z,
+                                    SparseMatrixType& B,
+                                    SparseMatrixType& A,
+                                    ComplexSparseMatrixType& C)
+    {
+        std::size_t jb, ja;
+        const std::size_t dimension = B.size1();
+
+        std::size_t ptr = 0;
+        for (std::size_t i = 0; i < dimension; ++i)
+        {
+            std::size_t b_ptr = B.index1_data()[i];
+            std::size_t a_ptr = A.index1_data()[i];
+            while (b_ptr < B.index1_data()[i + 1] || a_ptr < A.index1_data()[i + 1])
+            {
+                jb = (b_ptr < B.index1_data()[i + 1]) ?
+                        B.index2_data()[b_ptr] : dimension;
+                ja = (a_ptr < A.index1_data()[i + 1]) ?
+                        A.index2_data()[a_ptr] : dimension;
+
+                if (jb < ja)
+                {
+                    C.value_data()[ptr] = z * B(i, jb).ref();
+                    b_ptr++;
+                }
+                else if (jb > ja)
+                {
+                    C.value_data()[ptr] = -A(i, ja).ref();
+                    a_ptr++;
+                }
+                else
+                { // jb == ja
+                    C.value_data()[ptr] = z * B(i, jb).ref() - A(i, ja).ref();
+                    b_ptr++;
+                    a_ptr++;
+                }
+                ptr++;
+            }
+        }
     }
 
     ///@}
