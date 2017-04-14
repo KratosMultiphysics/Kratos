@@ -5,6 +5,7 @@
 
 #include "create_and_destroy.h"
 #include "../custom_elements/spheric_continuum_particle.h"
+#include "../custom_elements/analytic_spheric_particle.h"
 #include "../custom_elements/cluster3D.h"
 #include "../custom_utilities/GeometryFunctions.h"
 #include "../custom_utilities/AuxiliaryFunctions.h"
@@ -796,17 +797,25 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         KRATOS_CATCH("")
     }    
     
-    void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
-
+    void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part)
+    {
         KRATOS_TRY
         
-
         DestroyParticles(r_model_part.GetCommunicator().LocalMesh());
         DestroyParticles(r_model_part.GetCommunicator().GhostMesh());
           
         KRATOS_CATCH("")
     }    
     
+    void ParticleCreatorDestructor::DestroyParticleElements(ModelPart& r_model_part, Flags flag_for_destruction)
+    {
+        KRATOS_TRY
+
+        r_model_part.RemoveElements(flag_for_destruction);
+
+        KRATOS_CATCH("")
+    }
+
     void ParticleCreatorDestructor::DestroyParticles(ModelPart::MeshType& rMesh) {
 
         KRATOS_TRY
@@ -1124,6 +1133,33 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         }
         KRATOS_CATCH("")
     }
+
+    Element::Pointer ParticleCreatorDestructor::GetAnalyticReplacement(const Element& sample_element,
+                                                                       Geometry<Node<3> >::PointsArrayType nodelist,
+                                                                       Element::Pointer p_elem_to_be_replaced,
+                                                                       ModelPart& spheres_model_part)
+    {
+        Element::Pointer p_elem = sample_element.Create(p_elem_to_be_replaced->Id(), nodelist, p_elem_to_be_replaced->pGetProperties());
+        AnalyticSphericParticle* analytic_sample_element = dynamic_cast<AnalyticSphericParticle*> (p_elem.get());
+        SphericParticle* regular_sample_element = dynamic_cast<SphericParticle*>(p_elem_to_be_replaced.get());
+
+        analytic_sample_element->SetFastProperties(regular_sample_element->GetFastProperties());
+        analytic_sample_element->SetRadius(nodelist[0].FastGetSolutionStepValue(RADIUS));
+        analytic_sample_element->SetSearchRadius(nodelist[0].FastGetSolutionStepValue(RADIUS));
+        analytic_sample_element->SetSearchRadiusWithFem(nodelist[0].FastGetSolutionStepValue(RADIUS));
+        analytic_sample_element->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
+        analytic_sample_element->Set(DEMFlags::BELONGS_TO_A_CLUSTER, false);
+        analytic_sample_element->CreateDiscontinuumConstitutiveLaws(spheres_model_part.GetProcessInfo());
+
+        for (int i_neigh = 0; i_neigh < int(regular_sample_element->mNeighbourElements.size()); ++i_neigh){
+            analytic_sample_element->mNeighbourElements.push_back(regular_sample_element->mNeighbourElements[i_neigh]);
+            analytic_sample_element->mNeighbourElasticContactForces.push_back(regular_sample_element->mNeighbourElasticContactForces[i_neigh]);
+            analytic_sample_element->mNeighbourElasticExtraContactForces.push_back(regular_sample_element->mNeighbourElasticExtraContactForces[i_neigh]);
+        }
+        analytic_sample_element->Initialize(spheres_model_part.GetProcessInfo());
+        return p_elem;
+    }
+
 
     void ParticleCreatorDestructor::ClearVariables(ModelPart::NodesContainerType::iterator node_it, Variable<array_1d<double, 3 > >& rVariable) {
         KRATOS_TRY

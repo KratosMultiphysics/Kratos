@@ -129,8 +129,6 @@ void AddCustomUtilitiesToPython() {
         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesLL)
         ;
 
-    // This macro defines the 'thin wrappers' needed to use default parameters
-
     class_<AnalyticModelPartFiller, boost::noncopyable >
         ("AnalyticModelPartFiller", init<>())
         .def("FillAnalyticModelPartGivenFractionOfParticlesToTransform", &AnalyticModelPartFiller::FillAnalyticModelPartGivenFractionOfParticlesToTransform, arg("analytic_sub_model_part_name") = "")
