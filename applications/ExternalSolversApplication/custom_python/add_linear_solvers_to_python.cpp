@@ -39,6 +39,7 @@
 
 #ifdef INCLUDE_PASTIX
   #include "external_includes/pastix_solver.h"
+  #include "external_includes/pastix_complex_solver.h"
 #endif
   
 
@@ -52,6 +53,9 @@ void  AddLinearSolversToPython()
     typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
+    typedef UblasSpace<std::complex<double>, boost::numeric::ublas::compressed_matrix<std::complex<double>>, boost::numeric::ublas::vector<std::complex<double>>> ComplexSpaceType;
+    typedef UblasSpace<std::complex<double>, boost::numeric::ublas::matrix<std::complex<double>>, boost::numeric::ublas::vector<std::complex<double>>> ComplexLocalSpaceType;
+    typedef LinearSolver<ComplexSpaceType,  ComplexLocalSpaceType> ComplexLinearSolverType;
     typedef DirectSolver<SpaceType,  LocalSpaceType> DirectSolverType;
     typedef SuperLUSolver<SpaceType,  LocalSpaceType> SuperLUSolverType;
     typedef SuperLUIterativeSolver<SpaceType,  LocalSpaceType> SuperLUIterativeSolverType;
@@ -97,6 +101,10 @@ void  AddLinearSolversToPython()
     ( "PastixSolver",init<int,bool>() )
     .def(init<double,int,int,int,bool>())
     .def(init<Parameters>());
+    ;
+    typedef PastixComplexSolver<ComplexSpaceType, ComplexLocalSpaceType> PastixComplexSolverType;
+    class_<PastixComplexSolverType, bases<ComplexLinearSolverType>, boost::noncopyable >
+    ( "PastixComplexSolver",init<Parameters&>() )
     ;
 #endif
     
