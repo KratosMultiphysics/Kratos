@@ -479,9 +479,6 @@ protected:
         GeometryType SlaveGeometry;
         GeometryType MasterGeometry;
         
-        // The current Lagrange Multipliers
-        Type1 LagrangeMultipliers;
-        
         // The normals of the nodes
         Type2 NormalMaster; // TODO: Think about remove "_"
         Type2 NormalSlave;
@@ -515,9 +512,6 @@ protected:
                 )
         {
             SlaveGeometry  = GeometryInput;
-            
-            // The current Lagrange Multipliers
-            LagrangeMultipliers = ZeroVector(TNumNodes);
             
             // The normals of the nodes
             NormalSlave = ZeroMatrix(TNumNodes, TDim);
