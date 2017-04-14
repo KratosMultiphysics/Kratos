@@ -20,9 +20,9 @@ array_1d<double, 10> AugmentedLagrangianMethodFrictionlessMortarContactCondition
     const bounded_matrix<double, 2, 2> X1 = ContactUtilities::GetCoordinates<2,2>(this->GetGeometry(), false);
     const bounded_matrix<double, 2, 2> X2 = ContactUtilities::GetCoordinates<2,2>(CurrentMasterElement, false);
     
-    const array_1d<double, 2> lmnormal = ContactUtilities::GetVariableVector<2>(this->GetGeometry(), NORMAL_CONTACT_STRESS, 0); 
+    const array_1d<double, 2> lmnormal = ContactUtilities::GetVariableVector<2>(this->GetGeometry(), NORMAL_CONTACT_STRESS, 0);
     
-    const bounded_matrix<double, 2, 2> normalslave = ContactUtilities::GetVariableMatrix<2,2>(this->GetGeometry(),  NORMAL); 
+    const bounded_matrix<double, 2, 2> normalslave = ContactUtilities::GetVariableMatrix<2,2>(this->GetGeometry(),  NORMAL);
     
     // Augmentation parameters
     double scale_factor = 1.0;
@@ -163,9 +163,9 @@ array_1d<double, 21> AugmentedLagrangianMethodFrictionlessMortarContactCondition
     const bounded_matrix<double, 3, 3> X1 = ContactUtilities::GetCoordinates<3,3>(this->GetGeometry(), false);
     const bounded_matrix<double, 3, 3> X2 = ContactUtilities::GetCoordinates<3,3>(CurrentMasterElement, false);
     
-    const array_1d<double, 3> lmnormal = ContactUtilities::GetVariableVector<3>(this->GetGeometry(), NORMAL_CONTACT_STRESS, 0); 
+    const array_1d<double, 3> lmnormal = ContactUtilities::GetVariableVector<3>(this->GetGeometry(), NORMAL_CONTACT_STRESS, 0);
     
-    const bounded_matrix<double, 3, 3> normalslave = ContactUtilities::GetVariableMatrix<3,3>(this->GetGeometry(),  NORMAL); 
+    const bounded_matrix<double, 3, 3> normalslave = ContactUtilities::GetVariableMatrix<3,3>(this->GetGeometry(),  NORMAL);
     
     // Augmentation parameters
     double scale_factor = 1.0;
@@ -617,9 +617,9 @@ array_1d<double, 28> AugmentedLagrangianMethodFrictionlessMortarContactCondition
     const bounded_matrix<double, 4, 3> X1 = ContactUtilities::GetCoordinates<3,4>(this->GetGeometry(), false);
     const bounded_matrix<double, 4, 3> X2 = ContactUtilities::GetCoordinates<3,4>(CurrentMasterElement, false);
     
-    const array_1d<double, 4> lmnormal = ContactUtilities::GetVariableVector<4>(this->GetGeometry(), NORMAL_CONTACT_STRESS, 0); 
+    const array_1d<double, 4> lmnormal = ContactUtilities::GetVariableVector<4>(this->GetGeometry(), NORMAL_CONTACT_STRESS, 0);
     
-    const bounded_matrix<double, 4, 3> normalslave = ContactUtilities::GetVariableMatrix<3,4>(this->GetGeometry(),  NORMAL); 
+    const bounded_matrix<double, 4, 3> normalslave = ContactUtilities::GetVariableMatrix<3,4>(this->GetGeometry(),  NORMAL);
     
     // Augmentation parameters
     double scale_factor = 1.0;

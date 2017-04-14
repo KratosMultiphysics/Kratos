@@ -28,12 +28,12 @@ dim_combinations = [2,3,3]
 nnodes_combinations = [2,3,4]
 
 lhs_string = ""
-lhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\nbounded_matrix<double, MatrixSize, MatrixSize> AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes>::CalculateLocalLHS(\n        const MortarConditionMatrices& rMortarConditionMatrices,\n        const unsigned int& rMasterElementIndex,\n        const unsigned int& rActiveInactive\n        )\n{\n    bounded_matrix<double,MatrixSize,MatrixSize> lhs;\n    \n    // Master segment info\n    GeometryType& CurrentMasterElement = mThisMasterElements[rMasterElementIndex]->GetGeometry();\n\n    // Initialize values\n    const bounded_matrix<double, TNumNodes, TDim> u1 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), DISPLACEMENT, 0);\n    const bounded_matrix<double, TNumNodes, TDim> u2 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(CurrentMasterElement, DISPLACEMENT, 0);\n    const bounded_matrix<double, TNumNodes, TDim> X1 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(this->GetGeometry(), false);\n    const bounded_matrix<double, TNumNodes, TDim> X2 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(CurrentMasterElement, false);\n    \n    const array_1d<double, TNumNodes> lmnormal = ContactUtilities::GetVariableVector<TNumNodes>(this->GetGeometry(), NORMAL_CONTACT_STRESS, 0); \n    \n    const bounded_matrix<double, TNumNodes, TDim> normalslave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(),  NORMAL); \n    \n    // Augmentation parameters\n    double scale_factor = 1.0;\n    double penalty_parameter = 0.0;\n    if (GetProperties().Has(SCALE_FACTOR) == true)\n    {\n        scale_factor  = GetProperties().GetValue(SCALE_FACTOR);\n    }\n    if (GetProperties().Has(PENALTY_FACTOR) == true)\n    {\n        penalty_parameter = GetProperties().GetValue(PENALTY_FACTOR);\n    }\n    \n    // Mortar operators\n    const bounded_matrix<double, TNumNodes, TNumNodes> MOperator = rMortarConditionMatrices.MOperator;\n    const bounded_matrix<double, TNumNodes, TNumNodes> DOperator = rMortarConditionMatrices.DOperator;\n    // Mortar operators derivatives\n    const array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2> DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;\n    const array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2> DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;\n\n"
+lhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\nbounded_matrix<double, MatrixSize, MatrixSize> AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes>::CalculateLocalLHS(\n        const MortarConditionMatrices& rMortarConditionMatrices,\n        const unsigned int& rMasterElementIndex,\n        const unsigned int& rActiveInactive\n        )\n{\n    bounded_matrix<double,MatrixSize,MatrixSize> lhs;\n    \n    // Master segment info\n    GeometryType& CurrentMasterElement = mThisMasterElements[rMasterElementIndex]->GetGeometry();\n\n    // Initialize values\n    const bounded_matrix<double, TNumNodes, TDim> u1 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), DISPLACEMENT, 0);\n    const bounded_matrix<double, TNumNodes, TDim> u2 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(CurrentMasterElement, DISPLACEMENT, 0);\n    const bounded_matrix<double, TNumNodes, TDim> X1 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(this->GetGeometry(), false);\n    const bounded_matrix<double, TNumNodes, TDim> X2 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(CurrentMasterElement, false);\n    \n    const array_1d<double, TNumNodes> lmnormal = ContactUtilities::GetVariableVector<TNumNodes>(this->GetGeometry(), NORMAL_CONTACT_STRESS, 0);\n    \n    const bounded_matrix<double, TNumNodes, TDim> normalslave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(),  NORMAL);\n    \n    // Augmentation parameters\n    double scale_factor = 1.0;\n    double penalty_parameter = 0.0;\n    if (GetProperties().Has(SCALE_FACTOR) == true)\n    {\n        scale_factor  = GetProperties().GetValue(SCALE_FACTOR);\n    }\n    if (GetProperties().Has(PENALTY_FACTOR) == true)\n    {\n        penalty_parameter = GetProperties().GetValue(PENALTY_FACTOR);\n    }\n    \n    // Mortar operators\n    const bounded_matrix<double, TNumNodes, TNumNodes> MOperator = rMortarConditionMatrices.MOperator;\n    const bounded_matrix<double, TNumNodes, TNumNodes> DOperator = rMortarConditionMatrices.DOperator;\n    // Mortar operators derivatives\n    const array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2> DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;\n    const array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2> DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;\n\n"
 
 lhs_template_end_string = "\n\n    return lhs;\n}\n"
 
 rhs_string = ""
-rhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\narray_1d<double, MatrixSize> AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes>::CalculateLocalRHS(\n        const MortarConditionMatrices& rMortarConditionMatrices,\n        const unsigned int& rMasterElementIndex,\n        const unsigned int& rActiveInactive\n        )\n{\n    array_1d<double,MatrixSize> rhs;\n\n    // Master segment info\n    GeometryType& CurrentMasterElement = mThisMasterElements[rMasterElementIndex]->GetGeometry();\n\n    // Initialize values\n    const bounded_matrix<double, TNumNodes, TDim> u1 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), DISPLACEMENT, 0);\n    const bounded_matrix<double, TNumNodes, TDim> u2 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(CurrentMasterElement, DISPLACEMENT, 0);\n    const bounded_matrix<double, TNumNodes, TDim> X1 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(this->GetGeometry(), false);\n    const bounded_matrix<double, TNumNodes, TDim> X2 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(CurrentMasterElement, false);\n    \n    const array_1d<double, TNumNodes> lmnormal = ContactUtilities::GetVariableVector<TNumNodes>(this->GetGeometry(), NORMAL_CONTACT_STRESS, 0); \n    \n    const bounded_matrix<double, TNumNodes, TDim> normalslave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(),  NORMAL); \n    \n    // Augmentation parameters\n    double scale_factor = 1.0;\n    double penalty_parameter = 0.0;\n    if (GetProperties().Has(SCALE_FACTOR) == true)\n    {\n        scale_factor  = GetProperties().GetValue(SCALE_FACTOR);\n    }\n    if (GetProperties().Has(PENALTY_FACTOR) == true)\n    {\n        penalty_parameter = GetProperties().GetValue(PENALTY_FACTOR);\n    }\n    \n    // Mortar operators\n    const bounded_matrix<double, TNumNodes, TNumNodes> MOperator = rMortarConditionMatrices.MOperator;\n    const bounded_matrix<double, TNumNodes, TNumNodes> DOperator = rMortarConditionMatrices.DOperator;\n\n"
+rhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\narray_1d<double, MatrixSize> AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes>::CalculateLocalRHS(\n        const MortarConditionMatrices& rMortarConditionMatrices,\n        const unsigned int& rMasterElementIndex,\n        const unsigned int& rActiveInactive\n        )\n{\n    array_1d<double,MatrixSize> rhs;\n\n    // Master segment info\n    GeometryType& CurrentMasterElement = mThisMasterElements[rMasterElementIndex]->GetGeometry();\n\n    // Initialize values\n    const bounded_matrix<double, TNumNodes, TDim> u1 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), DISPLACEMENT, 0);\n    const bounded_matrix<double, TNumNodes, TDim> u2 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(CurrentMasterElement, DISPLACEMENT, 0);\n    const bounded_matrix<double, TNumNodes, TDim> X1 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(this->GetGeometry(), false);\n    const bounded_matrix<double, TNumNodes, TDim> X2 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(CurrentMasterElement, false);\n    \n    const array_1d<double, TNumNodes> lmnormal = ContactUtilities::GetVariableVector<TNumNodes>(this->GetGeometry(), NORMAL_CONTACT_STRESS, 0);\n    \n    const bounded_matrix<double, TNumNodes, TDim> normalslave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(),  NORMAL);\n    \n    // Augmentation parameters\n    double scale_factor = 1.0;\n    double penalty_parameter = 0.0;\n    if (GetProperties().Has(SCALE_FACTOR) == true)\n    {\n        scale_factor  = GetProperties().GetValue(SCALE_FACTOR);\n    }\n    if (GetProperties().Has(PENALTY_FACTOR) == true)\n    {\n        penalty_parameter = GetProperties().GetValue(PENALTY_FACTOR);\n    }\n    \n    // Mortar operators\n    const bounded_matrix<double, TNumNodes, TNumNodes> MOperator = rMortarConditionMatrices.MOperator;\n    const bounded_matrix<double, TNumNodes, TNumNodes> DOperator = rMortarConditionMatrices.DOperator;\n\n"
 
 rhs_template_end_string = "\n\n    return rhs;\n}\n"
 
@@ -98,7 +98,7 @@ for dim, nnodes in zip(dim_combinations, nnodes_combinations):
         Dx1Mx2 = DOperator * x1 - MOperator * x2
         Dw1Mw2 = DOperator * w1 - MOperator * w2
         for node in range(nnodes): 
-            gap[node]  = Dx1Mx2.row(node) * - normalslave.row(node).transpose() # NOTE: SIGN?¿
+            gap[node]  = Dx1Mx2.row(node) * - normalslave.row(node).transpose()
 
         # Define dofs & test function vector
         dofs = Matrix( zeros(number_dof, 1) )
@@ -176,61 +176,61 @@ for dim, nnodes in zip(dim_combinations, nnodes_combinations):
         if (active_inactive_comb == len(active_inactive_combinations)):
             rhs_string += rhs_template_end_string
         
-        lhs_string = lhs_string.replace("TDim", str(dim))
-        lhs_string = lhs_string.replace("TNumNodes", str(nnodes))
-        lhs_string = lhs_string.replace("MatrixSize", str(lhs.shape[0]))
-        lhs_string = lhs_string.replace("SIZEDERIVATIVES2", str(2 * (nnodes * dim)))
+    lhs_string = lhs_string.replace("TDim", str(dim))
+    lhs_string = lhs_string.replace("TNumNodes", str(nnodes))
+    lhs_string = lhs_string.replace("MatrixSize", str(lhs.shape[0]))
+    lhs_string = lhs_string.replace("SIZEDERIVATIVES2", str(2 * (nnodes * dim)))
 
-        rhs_string = rhs_string.replace("TDim", str(dim))
-        rhs_string = rhs_string.replace("TNumNodes", str(nnodes))
-        rhs_string = rhs_string.replace("MatrixSize", str(lhs.shape[0]))
-    
-        ##############################################################################
-        ##############################################################################
-        ##################### DEFINE VARIABLES AND DERIVATIVES #######################
-        ##############################################################################
-        ##############################################################################
+    rhs_string = rhs_string.replace("TDim", str(dim))
+    rhs_string = rhs_string.replace("TNumNodes", str(nnodes))
+    rhs_string = rhs_string.replace("MatrixSize", str(lhs.shape[0]))
 
-        var_strings = []
-        var_strings_subs = []
-        var_strings_aux_subs = []
-        der_var_strings = []
-        der_var_list = []
-        der_var_used_index = []
+    ##############################################################################
+    ##############################################################################
+    ##################### DEFINE VARIABLES AND DERIVATIVES #######################
+    ##############################################################################
+    ##############################################################################
 
-        #var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list = DefineVariableLists(normalslave, "normalslave", "normalslave", u1_var, var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list, "matrix")
-        var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list = DefineVariableLists(DOperator, "DOperator", "DOperator", u12_var, var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list, "matrix")
-        var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list = DefineVariableLists(MOperator, "MOperator", "MOperator", u12_var, var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list, "matrix")
+    var_strings = []
+    var_strings_subs = []
+    var_strings_aux_subs = []
+    der_var_strings = []
+    der_var_list = []
+    der_var_used_index = []
 
-        #############################################################################
-        ############################### SUBSTITUTION ################################
-        #############################################################################
+    #var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list = DefineVariableLists(normalslave, "normalslave", "normalslave", u1_var, var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list, "matrix")
+    var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list = DefineVariableLists(DOperator, "DOperator", "DOperator", u12_var, var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list, "matrix")
+    var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list = DefineVariableLists(MOperator, "MOperator", "MOperator", u12_var, var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list, "matrix")
 
-        # Replace all
-        lhs_string = lhs_string.replace("//subsvar_", "")
-        rhs_string = rhs_string.replace("//subsvar_", "")
+    #############################################################################
+    ############################### SUBSTITUTION ################################
+    #############################################################################
 
-        for index in range(len(der_var_strings)):
-            if (separate_derivatives == True):
-                lhs_string = lhs_string.replace(der_var_strings[index], der_var_list[index])
-                rhs_string = rhs_string.replace(der_var_strings[index], der_var_list[index])
-            else:
-                aux_out = ccode(der_var_strings_subs[index])
-                if ("// Not supported in C:") in aux_out:
-                    print("WARNING")
-                    print(der_var_strings[index])
-                    print(der_var_strings_subs[index])
-                lhs_string = lhs_string.replace(der_var_strings[index], aux_out)
-                rhs_string = rhs_string.replace(der_var_strings[index], aux_out)
-                
-        for index in range(len(var_strings)):
-            lhs_string = lhs_string.replace(var_strings[index], var_strings_subs[index])
-            rhs_string = rhs_string.replace(var_strings[index], var_strings_subs[index])
+    # Replace all
+    lhs_string = lhs_string.replace("//subsvar_", "")
+    rhs_string = rhs_string.replace("//subsvar_", "")
 
-        lhs_string = SubstituteIndex(lhs_string, mode, number_dof)
-        rhs_string = SubstituteIndex(rhs_string, mode, number_dof)
-        lhs_string = lhs_string.replace("array[1]d", "array_1d") # Repair the definition
-        rhs_string = rhs_string.replace("array[1]d", "array_1d") # Repair the definition
+    for index in range(len(der_var_strings)):
+        if (separate_derivatives == True):
+            lhs_string = lhs_string.replace(der_var_strings[index], der_var_list[index])
+            rhs_string = rhs_string.replace(der_var_strings[index], der_var_list[index])
+        else:
+            aux_out = ccode(der_var_strings_subs[index])
+            if ("// Not supported in C:") in aux_out:
+                print("WARNING")
+                print(der_var_strings[index])
+                print(der_var_strings_subs[index])
+            lhs_string = lhs_string.replace(der_var_strings[index], aux_out)
+            rhs_string = rhs_string.replace(der_var_strings[index], aux_out)
+            
+    for index in range(len(var_strings)):
+        lhs_string = lhs_string.replace(var_strings[index], var_strings_subs[index])
+        rhs_string = rhs_string.replace(var_strings[index], var_strings_subs[index])
+
+    lhs_string = SubstituteIndex(lhs_string, mode, number_dof)
+    rhs_string = SubstituteIndex(rhs_string, mode, number_dof)
+    lhs_string = lhs_string.replace("array[1]d", "array_1d") # Repair the definition
+    rhs_string = rhs_string.replace("array[1]d", "array_1d") # Repair the definition
 
 #############################################################################
 ############################### SIMPLIFICATION ##############################
