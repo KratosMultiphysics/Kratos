@@ -16,6 +16,7 @@
 // Project includes
 #include "utilities/math_utils.h"
 #include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
 #include "utilities/openmp_utils.h"
 #include "input_output/logger.h"
 #include <set>
@@ -27,8 +28,8 @@
 #include "mmg/mmgs/libmmgs.h"
 // Include the point locator
 #include "utilities/binbased_fast_point_locator.h"
-// // Include the nodal area process
-// #include "processes/calculate_nodal_area_process.h"
+// Include the spatial containers needed for search
+#include "spatial_containers/spatial_containers.h" // kd-tree 
 
 // NOTE: The following contains the license of the MMG library
 /* =============================================================================
@@ -61,16 +62,25 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    // Containers definition
     typedef ModelPart::NodesContainerType                        NodesArrayType;
     typedef ModelPart::ElementsContainerType                  ElementsArrayType;
     typedef ModelPart::ConditionsContainerType              ConditionsArrayType;
+    
+    // Components definition
     typedef Node <3>                                                   NodeType;
     typedef Properties                                           PropertiesType;
     typedef Element                                                 ElementType;
     typedef Condition                                             ConditionType;
+    
+    // Index defintion
     typedef std::size_t                                               IndexType;
     typedef std::size_t                                                SizeType;
+    
+    // DoF definition
     typedef Dof<double>                                                 DofType;
+    
+    // Mesh definition
     typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
     typedef MeshType::PropertiesContainerType           PropertiesContainerType;
     typedef MeshType::NodeConstantIterator                 NodeConstantIterator;
@@ -167,7 +177,8 @@ public:
         ModelPart& rThisModelPart,
         const std::string Filename = "output_remesh",
         const unsigned int echo_level = 3,
-        const std::string framework = "Eulerian"
+        const std::string framework = "Eulerian",
+        Parameters& rOtherParameters = Parameters("{}")
         )
         :mThisModelPart(rThisModelPart),
         mStdStringFilename(Filename),
@@ -1137,105 +1148,30 @@ protected:
             }
         }
         
-//         if (mFramework == Lagrangian) // We interpolate the internal variables
-//         {
-//             // We get the process info from th mode
-//             const ProcessInfo& rCurrentProcessInfo = mThisModelPart.GetProcessInfo();
-//             
-// //             // We calculate the NODAL_AREA in both model parts
-// //             /* Old model part */
-// //             CalculateNodalAreaProcess NodalAreaCalculatorOld = CalculateNodalAreaProcess(rOldModelPart, TDim);
-// //             NodalAreaCalculatorOld.Execute();
-// //             
-// //             /* New model part */
-// //             CalculateNodalAreaProcess NodalAreaCalculatorNew = CalculateNodalAreaProcess(rThisModelPart, TDim);
-// //             NodalAreaCalculatorNew.Execute();
-//             
-//             // Iterate in the elements
-//             ElementsArrayType& pElem = mThisModelPart.Elements();
-//             auto numElements = pElem.end() - pElem.begin();
-//             
-//             // TODO: Put the input in the parameters (PK2_STRESS_TENSOR is for TL)
-//             Variable<Matrix> VariableTensor = PK2_STRESS_TENSOR; 
-//             Variable<Vector> VariableVector = PK2_STRESS_VECTOR;
-// //             Variable<double> PlasticVariable = PLASTIC_STRESS_LIKE; // TODO: Add plasticity variable
-//             bool DetF0Interpolation = true;
-//             
-// //             #pragma omp parallel for 
-//             for(unsigned int i = 0; i < numElements; i++) 
-//             {
-//                 auto itElem = pElem.begin() + i;
-//                 
-//                 std::vector<Matrix> ResultTensor;
-//                 std::vector<double> ResultJ; 
-//                 
-//                 // Initialize: We set to 0 (the tensor and Jacobian are right now, then getting the value we got 0)
-//                 itElem->GetValueOnIntegrationPoints( VariableTensor, ResultTensor, rCurrentProcessInfo);
-//                 itElem->GetValueOnIntegrationPoints( DETERMINANT_F, ResultJ, rCurrentProcessInfo);
-//                 
-//                 for (unsigned int i_node = 0; i_node < itElem->GetGeometry().size(); i_node++)
-//                 {
-//                     Vector shape_functions;
-//                     ElementType::Pointer pElement;
-//                 
-//                     const bool found = PointLocator.FindPointOnMeshSimplified(itElem->GetGeometry()[i_node].Coordinates(), shape_functions, pElement, MaxNumberOfResults);
-//                     
-//                     if (found == false)
-//                     {
-//                         if (mEchoLevel > 0)
-//                         {
-//                             std::cout << "WARNING: Node "<< itElem->GetGeometry()[i_node].Id() << " not found (interpolation not posible)" << std::endl;
-//                             std::cout << "\t X:"<< itElem->GetGeometry()[i_node].X() << "\t Y:"<< itElem->GetGeometry()[i_node].Y() << "\t Z:"<< itElem->GetGeometry()[i_node].Z() << std::endl;
-//                             std::cout << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
-//                         }
-//                     }
-//                     else
-//                     {
-//                         // NOTE: Can we do a check of the internal variables?
-//                         
-//                         const double Volume = pElement->GetGeometry().Volume();
-// 
-//                         std::vector<Matrix> Tensor;
-//                         std::vector<double> J;         
-//                         
-//                         // We calculate the current state in the origin model part
-//                         pElement->GetValueOnIntegrationPoints( VariableTensor, Tensor, rCurrentProcessInfo);
-//                         pElement->GetValueOnIntegrationPoints( DETERMINANT_F, J, rCurrentProcessInfo);
-//                         
-//                         // We add to the previous values (we iterate over the vector)
-//                         for (unsigned int i = 0; i < Tensor.size(); i++)
-//                         {
-//                             ResultTensor[i] += Tensor[i] * Volume;
-//                         }
-//                         for (unsigned int j = 0; j < J.size(); j++)
-//                         {
-//                             ResultJ[j] += J[j] * Volume;
-//                         }
-//                     }
-//                 }
-//                 
-//                 // Finally we set the values
-//                 const double VolumeDestiny = itElem->GetGeometry().Volume();
-//                 
-//                 /* Iterating over the vector */
-//                 for (unsigned int i = 0; i < ResultTensor.size(); i++)
-//                 {
-//                     ResultTensor[i] = ResultTensor[i]/VolumeDestiny;
-//                 }
-//                     
-//                 itElem->SetValueOnIntegrationPoints( VariableTensor, ResultTensor, rCurrentProcessInfo);
-//                 if (DetF0Interpolation == true)
-//                 {
-//                     /* Iterating over the vector */
-//                     for (unsigned int j = 0; j < ResultJ.size(); j++)
-//                     {
-//                         ResultJ[j] = ResultJ[j]/VolumeDestiny;
-//                     }
-//                     
-//                     itElem->SetValueOnIntegrationPoints( DETERMINANT_F, ResultJ, rCurrentProcessInfo);
-//                 }
-//             }
-//         }
+        /* We interpolate the internal variables */
+        /** NOTE: There are mainly two ways to interpolate the internal variables (there are three, but just two are behave correctly)
+         * CPT: Closest point transfer. It transfer the values from the closest GP
+         * LST: Least-square projection transfer. It transfers from the closest GP from the old mesh
+         * SFT: It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the sahpe functions all the time (NOTE: THIS DOESN'T WORK, AND REQUIRES EXTRA STORE)
+         */ 
+        if (mFramework == Lagrangian) 
+        {
+            // We get the process info from th mode
+            const ProcessInfo& rCurrentProcessInfo = mThisModelPart.GetProcessInfo();
+            
+            // Iterate in the elements
+            ElementsArrayType& pElem = mThisModelPart.Elements();
+            auto numElements = pElem.end() - pElem.begin();
+
+//             #pragma omp parallel for 
+            for(unsigned int i = 0; i < numElements; i++) 
+            {
+                auto itElem = pElem.begin() + i;
+
+                
+                
+            }
+        }
     }
     
     /**
