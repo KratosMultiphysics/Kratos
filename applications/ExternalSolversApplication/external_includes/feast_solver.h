@@ -177,13 +177,13 @@ public:
             "number_of_eigenvalues": 0,
             "search_dimension": 10,
             "linear_solver_settings": {
-                "solver.type": "skyline_lu"
+                "solver_type": "skyline_lu"
             }
         })");
 
         mpParam->RecursivelyValidateAndAssignDefaults(default_params);
 
-        if (mpParam->GetValue("linear_solver_settings")["solver.type"].GetString() != "skyline_lu")
+        if (mpParam->GetValue("linear_solver_settings")["solver_type"].GetString() != "skyline_lu")
             KRATOS_ERROR << "built-in solver type must be used with this constructor" << std::endl;
 
         mpLinearSolver = boost::make_shared<SkylineLUSolver<ComplexSparseSpaceType, ComplexDenseSpaceType>>();
@@ -343,8 +343,6 @@ private:
 
         Parameters& FEAST_Settings = *mpParam;
 
-        mpLinearSolver->Initialize(Az,x,b);
-
         // initialize FEAST eigenvalue solver (see FEAST documentation for details)
         feastinit(FEAST_Params);
         if (FEAST_Settings["print_feast_output"].GetBool())
@@ -390,7 +388,8 @@ private:
                 {
                     // set up quadrature matrix (ZeM-K) and solver
                     this->CalculateFEASTSystemMatrix(Ze, rMassMatrix, rStiffnessMatrix, Az);
-                    mpLinearSolver->FinalizeSolutionStep(Az, x, b);
+                    mpLinearSolver->Clear();
+                    mpLinearSolver->Initialize(Az,x,b);
                     mpLinearSolver->InitializeSolutionStep(Az, x, b);
                 } break;
                 case 11:
