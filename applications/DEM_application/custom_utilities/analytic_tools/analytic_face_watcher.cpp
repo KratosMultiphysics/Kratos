@@ -118,6 +118,18 @@ void AnalyticFaceWatcher::GetTimeStepsData(boost::python::list ids,
     }
 }
 
+void AnalyticFaceWatcher::GetTotalFlux(boost::python::list times, boost::python::list n_particles)
+{
+    ClearList(times);
+    ClearList(n_particles);
+    const int n_time_steps = mVectorOfTimeStepDatabases.size();
+
+    for (int i = 0; i < n_time_steps; ++i){
+        times.append(mVectorOfTimeStepDatabases[i].GetTime());
+        n_particles.append(mVectorOfTimeStepDatabases[i].GetTotalThroughput());
+    }
+}
+
 AnalyticFaceWatcher::FaceHistoryDatabase& AnalyticFaceWatcher::GetFaceDataBase(int id)
 {
     if (mMapOfFaceHistoryDatabases.find(id) == mMapOfFaceHistoryDatabases.end()){

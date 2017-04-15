@@ -149,6 +149,7 @@ void AddCustomUtilitiesToPython() {
         .def("GetTimeStepsData", &AnalyticFaceWatcher::GetTimeStepsData)
         .def("GetFaceData", &AnalyticFaceWatcher::GetFaceData)
         .def("GetAllFacesData", &AnalyticFaceWatcher::GetAllFacesData)
+        .def("GetTotalFlux", &AnalyticFaceWatcher::GetTotalFlux)
         ;
 
     class_<DEM_FEM_Search, boost::noncopyable >
