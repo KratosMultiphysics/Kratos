@@ -38,10 +38,11 @@ extern "C" {
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
+#include "linear_solvers/direct_solver.h"
 #include "includes/ublas_interface.h"
 #include "spaces/ublas_space.h"
 
-#if !defined(KRATOS_FEAST_SOLVER )
+#if !defined(KRATOS_FEAST_SOLVER)
 #define  KRATOS_FEAST_SOLVER
 
 namespace Kratos {
@@ -49,46 +50,73 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-
-template<typename TScalarType>
-struct SkylineLUSolver
+template <class TSparseSpaceType, class TDenseSpaceType, class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
+class SkylineLUSolver
+    : public DirectSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>
 {
-    typedef typename amgcl::backend::builtin<TScalarType>::matrix MatrixType;
-    typedef amgcl::solver::skyline_lu<TScalarType> SolverType;
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(SkylineLUSolver);
 
-    boost::shared_ptr<MatrixType> pBuiltinMatrix;
+    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
 
-    boost::shared_ptr<SolverType> pSolver;
+    typedef typename TSparseSpaceType::VectorType VectorType;
+
+    typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+
+    typedef typename TSparseSpaceType::DataType DataType;
+    
+    typedef typename amgcl::backend::builtin<DataType>::matrix BuiltinMatrixType;
+    
+    typedef amgcl::solver::skyline_lu<DataType> SolverType;
 
     ~SkylineLUSolver()
     {
         Clear();
     }
 
-    template<class Matrix>
-    void Factorize(Matrix &A)
+    void InitializeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         Clear();
 
         pBuiltinMatrix = amgcl::adapter::zero_copy(
-                A.size1(),
-                A.index1_data().begin(),
-                A.index2_data().begin(),
-                A.value_data().begin());
+                rA.size1(),
+                rA.index1_data().begin(),
+                rA.index2_data().begin(),
+                rA.value_data().begin());
 
         pSolver = boost::make_shared<SolverType>(*pBuiltinMatrix);
     }
 
-    void Solve(std::vector<TScalarType> &b, std::vector<TScalarType> &x)
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
+        std::vector<DataType> x(rX.size());
+        std::vector<DataType> b(rB.size());
+
+        std::copy(std::begin(rB), std::end(rB), std::begin(b));
+
         (*pSolver)(b, x);
+
+        std::copy(std::begin(x), std::end(x), std::begin(rX));
+
+        return true;
     }
 
-    void Clear()
+    void FinalizeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    {
+        Clear();
+    }
+
+    void Clear() override
     {
         pSolver.reset();
         pBuiltinMatrix.reset();
     }
+
+private:
+
+    boost::shared_ptr<BuiltinMatrixType> pBuiltinMatrix;
+
+    boost::shared_ptr<SolverType> pSolver;
 };
 
 /// Adapter to FEAST eigenvalue problem solver.
@@ -113,13 +141,26 @@ public:
 
     typedef typename TDenseSpaceType::VectorType DenseVectorType;
 
-    typedef boost::numeric::ublas::compressed_matrix<std::complex<double>> ComplexSparseMatrixType;
+    typedef std::complex<double> ComplexType;
+
+    typedef boost::numeric::ublas::compressed_matrix<ComplexType> ComplexSparseMatrixType;
+
+    typedef boost::numeric::ublas::matrix<ComplexType> ComplexDenseMatrixType;
+
+    typedef boost::numeric::ublas::vector<ComplexType> ComplexVectorType;
+
+    typedef UblasSpace<ComplexType, ComplexSparseMatrixType, ComplexVectorType> ComplexSparseSpaceType;
+
+    typedef UblasSpace<ComplexType, ComplexDenseMatrixType, ComplexVectorType> ComplexDenseSpaceType;
+
+    typedef LinearSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexLinearSolverType;
+
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Constructor.
+    /// Constructor for built-in linear solver.
     /**
      * Parameters let the user control the settings of the FEAST library.
      */
@@ -142,6 +183,11 @@ public:
         })");
 
         mpParam->RecursivelyValidateAndAssignDefaults(default_params);
+
+        if (mpParam->GetValue("linear_solver_settings")["solver.type"].GetString() != "skyline_lu")
+            KRATOS_ERROR << "built-in solver type must be used with this constructor" << std::endl;
+
+        mpLinearSolver = boost::make_shared<SkylineLUSolver<ComplexSparseSpaceType, ComplexDenseSpaceType>>();
     }
 
     /// Deleted copy constructor.
@@ -238,6 +284,8 @@ private:
 
     Parameters::Pointer mpParam;
 
+    ComplexLinearSolverType::Pointer mpLinearSolver;
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -268,8 +316,8 @@ private:
         matrix<double,column_major> Bq(SearchDimension,SearchDimension);
         std::complex<double> Ze;
         ComplexSparseMatrixType Az;
-        std::vector<std::complex<double> > b(SystemSize);
-        std::vector<std::complex<double> > x(SystemSize);
+        ComplexVectorType b(SystemSize);
+        ComplexVectorType x(SystemSize);
 
         this->InitializeFEASTSystemMatrix(rMassMatrix, rStiffnessMatrix, Az);
 
@@ -277,7 +325,8 @@ private:
 
         // warning: if an iterative solver is used, very small tolerances (~1e-15)
         // may be needed for FEAST to work properly.
-        SkylineLUSolver<std::complex<double> > Solver;
+        //SkylineLUSolver<std::complex<double> > Solver;
+        mpLinearSolver->Initialize(Az,x,b);
 
         // initialize FEAST eigenvalue solver (see FEAST documentation for details)
         feastinit(FEAST_Params);
@@ -324,7 +373,7 @@ private:
                 {
                     // set up quadrature matrix (ZeM-K) and solver
                     this->CalculateFEASTSystemMatrix(Ze, rMassMatrix, rStiffnessMatrix, Az);
-                    Solver.Factorize(Az);
+                    mpLinearSolver->InitializeSolutionStep(Az,x,b);
                 } break;
                 case 11:
                 {
@@ -333,7 +382,7 @@ private:
                     {
                         for (int i=0; i < SystemSize; i++)
                             b[i] = zwork(i,j);
-                        Solver.Solve(b,x);
+                        mpLinearSolver->Solve(Az,x,b);
                         for (int i=0; i < SystemSize; i++)
                             zwork(i,j) = x[i];
                     }
