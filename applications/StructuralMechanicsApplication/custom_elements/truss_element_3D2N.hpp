@@ -161,6 +161,7 @@ namespace Kratos
 		VectorType CalculateBodyForces();  
 
 
+
 	private:
 		double mPreStress, mArea, mYoungsModulus, mLength, mDensity;
 		double mCurrentLength;

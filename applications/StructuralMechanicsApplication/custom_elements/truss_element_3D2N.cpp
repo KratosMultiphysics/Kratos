@@ -295,7 +295,8 @@ namespace Kratos
 		const int MatSize = number_of_nodes * dimension;
 
 		//getting shapefunctionvalues 
-		const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues();
+		const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues(
+			GeometryData::GI_GAUSS_1);
 
 		//creating necessary values 
 		double TotalMass = this->mArea * this->mLength * this->mDensity;
