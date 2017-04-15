@@ -12,11 +12,11 @@ class ExplicitStrategy:
 
         # Initialization of member variables        
 
-        self.spheres_model_part = all_model_parts.spheres_model_part
-        self.inlet_model_part = all_model_parts.DEM_inlet_model_part
-        self.fem_model_part = all_model_parts.rigid_face_model_part
-        self.cluster_model_part = all_model_parts.cluster_model_part
-        self.contact_model_part = all_model_parts.contact_model_part
+        self.spheres_model_part = all_model_parts.Get("SpheresPart")
+        self.inlet_model_part = all_model_parts.Get("DEMInletPart")
+        self.fem_model_part = all_model_parts.Get("RigidFacePart")
+        self.cluster_model_part = all_model_parts.Get("ClusterPart")
+        self.contact_model_part = all_model_parts.Get("ContactPart")
         
         self.Parameters = Param
 

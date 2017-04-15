@@ -550,21 +550,21 @@ private:
         std::size_t* AColIndices = std::begin(rA.index2_data());
 
         // if there is a line of all zeros, put one on the diagonal
-        #pragma omp parallel for firstprivate(SystemSize)
-        for(int k = 0; k < static_cast<int>(SystemSize); ++k)
-        {
-            std::size_t ColBegin = ARowIndices[k];
-            std::size_t ColEnd = ARowIndices[k+1];
-            bool empty = true;
-            for (auto j = ColBegin; j < ColEnd; ++j)
-                if(AValues[j] != 0.0)
-                {
-                    empty = false;
-                    break;
-                }
-            if(empty == true)
-                rA(k,k) = 1.0;
-        }
+        // #pragma omp parallel for firstprivate(SystemSize)
+        // for(int k = 0; k < static_cast<int>(SystemSize); ++k)
+        // {
+        //     std::size_t ColBegin = ARowIndices[k];
+        //     std::size_t ColEnd = ARowIndices[k+1];
+        //     bool empty = true;
+        //     for (auto j = ColBegin; j < ColEnd; ++j)
+        //         if(AValues[j] != 0.0)
+        //         {
+        //             empty = false;
+        //             break;
+        //         }
+        //     if(empty == true)
+        //         rA(k,k) = 1.0;
+        // }
 
         #pragma omp parallel for
         for (int k = 0; k < static_cast<int>(SystemSize); ++k)

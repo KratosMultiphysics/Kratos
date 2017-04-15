@@ -81,7 +81,15 @@ cluster_model_part    = ModelPart("ClusterPart")
 DEM_inlet_model_part  = ModelPart("DEMInletPart")
 mapping_model_part    = ModelPart("MappingPart")
 contact_model_part    = ModelPart("ContactPart")
-all_model_parts = DEM_procedures.SetOfModelParts(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, mapping_model_part, contact_model_part)
+mp_list = []
+mp_list.append(spheres_model_part)
+mp_list.append(rigid_face_model_part)
+mp_list.append(cluster_model_part)
+mp_list.append(DEM_inlet_model_part)
+mp_list.append(mapping_model_part)
+mp_list.append(contact_model_part)
+
+all_model_parts = DEM_procedures.SetOfModelParts(mp_list)
 
 # Constructing a utilities objects
 creator_destructor = ParticleCreatorDestructor()

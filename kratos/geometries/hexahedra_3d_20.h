@@ -282,12 +282,12 @@ public:
     virtual ~Hexahedra3D20() {}
 
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily()
+    GeometryData::KratosGeometryFamily GetGeometryFamily() override
     {
         return GeometryData::Kratos_Hexahedra;
     }
 
-    GeometryData::KratosGeometryType GetGeometryType()
+    GeometryData::KratosGeometryType GetGeometryType() override
     {
         return GeometryData::Kratos_Hexahedra3D20;
     }
@@ -336,13 +336,13 @@ public:
      * Operations
      */
 
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const
+    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
         return typename BaseType::Pointer( new Hexahedra3D20( ThisPoints ) );
     }
 
 
-        virtual Geometry< Point<3> >::Pointer Clone() const
+        virtual Geometry< Point<3> >::Pointer Clone() const override
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
 
@@ -363,7 +363,7 @@ public:
     /**
      */
     //lumping factors for the calculation of the lumped mass matrix
-    virtual Vector& LumpingFactors( Vector& rResult ) const
+    virtual Vector& LumpingFactors( Vector& rResult ) const override
     {
 	    if(rResult.size() != 20)
             rResult.resize( 20, false );
@@ -395,7 +395,7 @@ public:
      *
      * :TODO: might need to be changed to be useful!
      */
-    virtual double Length() const
+    virtual double Length() const override
     {
         return sqrt( fabs( this->DeterminantOfJacobian( PointType() ) ) );
     }
@@ -413,7 +413,7 @@ public:
      *
      * :TODO: might need to be changed to be useful!
      */
-    virtual double Area() const
+    virtual double Area() const override
     {
          return Volume(); 
          
@@ -421,7 +421,7 @@ public:
 
 
 
-    virtual double Volume() const //Not a closed formula for a hexahedra
+    virtual double Volume() const override //Not a closed formula for a hexahedra
     {
 
         Vector temp;
@@ -454,7 +454,7 @@ public:
      *
      * :TODO: might need to be changed to be useful!
      */
-    virtual double DomainSize() const
+    virtual double DomainSize() const override
     {
         return Volume(); 
     }
@@ -463,7 +463,7 @@ public:
     /**
      * Returns whether given arbitrary point is inside the Geometry
      */
-    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() )
+    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() ) override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
@@ -488,12 +488,12 @@ public:
     @see Edge()
      */
     // will be used by refinement algorithm, thus uncommented. janosch.
-    virtual SizeType EdgesNumber() const
+    virtual SizeType EdgesNumber() const override
     {
         return 12;
     }
 
-    virtual SizeType FacesNumber() const
+    virtual SizeType FacesNumber() const override
     {
         return 6;
     }
@@ -504,7 +504,7 @@ public:
     @see EdgesNumber()
     @see Edge()
      */
-    virtual GeometriesArrayType Edges( void )
+    virtual GeometriesArrayType Edges( void ) override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
@@ -564,7 +564,7 @@ public:
         return edges;
     }
 
-    virtual GeometriesArrayType Faces( void )
+    virtual GeometriesArrayType Faces( void ) override
     {
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;
@@ -641,7 +641,7 @@ public:
      * TODO: implemented but not yet tested
      */
     virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex,
-                                       const CoordinatesArrayType& rPoint ) const
+                                       const CoordinatesArrayType& rPoint ) const override
     {
         switch ( ShapeFunctionIndex )
         {
@@ -732,7 +732,7 @@ public:
     @see ShapeFunctionsLocalGradients
     @see ShapeFunctionLocalGradient
     */
-    virtual Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const
+    virtual Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
     {
       if(rResult.size() != 20) rResult.resize(20,false);
         rResult[0] = -(( 1.0 + rCoordinates[0] )*( 1.0 - rCoordinates[1] )*( 2.0
@@ -795,7 +795,7 @@ public:
      * @see PrintData()
      * @see PrintInfo()
      */
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "3 dimensional hexahedra with 20 nodes and quadratic shape functions in 3D space";
     }
@@ -807,7 +807,7 @@ public:
      * @see PrintData()
      * @see Info()
      */
-    virtual void PrintInfo( std::ostream& rOStream ) const
+    virtual void PrintInfo( std::ostream& rOStream ) const override
     {
         rOStream << "3 dimensional hexahedra with 20 nodes and quadratic shape functions in 3D space";
     }
@@ -821,7 +821,7 @@ public:
      * @see PrintInfo()
      * @see Info()
      */
-    virtual void PrintData( std::ostream& rOStream ) const
+    virtual void PrintData( std::ostream& rOStream ) const override
     {
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
@@ -842,7 +842,7 @@ public:
      * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
      */
     virtual Matrix& ShapeFunctionsLocalGradients( Matrix& result,
-            const CoordinatesArrayType& rPoint ) const
+            const CoordinatesArrayType& rPoint ) const override
     {
         //setting up result matrix
         if ( result.size1() != 20 || result.size2() != 3 )
@@ -1020,13 +1020,13 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    virtual void save( Serializer& rSerializer ) const override
     {
 
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
     }
 
-    virtual void load( Serializer& rSerializer )
+    virtual void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }

@@ -64,27 +64,6 @@ class ManufacturedSolutionTestFactory(KratosUnittest.TestCase):
 
     def tearDown(self):
         pass
-#
-#
-# class EmbeddedReservoirTestFactory(KratosUnittest.TestCase):
-#
-#     def setUp(self):
-#         # Within this location context:
-#         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-#             # Get the ProjectParameters file
-#             parameter_file = open(self.file_name + "_parameters.json", 'r')
-#             ProjectParameters = Parameters(parameter_file.read())
-#
-#             # Create the test
-#             self.test = ExecuteEmbeddedTest.KratosExecuteEmbeddedTest(ProjectParameters)
-#
-#     def test_execution(self):
-#         # Within this location context:
-#         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-#             self.test.Solve()
-#
-#     def tearDown(self):
-#         pass
 
 
 class EmbeddedArtificialCompressibilityTest(EmbeddedTestFactory):
@@ -105,3 +84,7 @@ class EmbeddedReservoirTest(EmbeddedTestFactory):
 
 class ManufacturedSolutionTest(ManufacturedSolutionTestFactory):
     file_name = "ManufacturedSolutionTest/ManufacturedSolutionTest"
+
+
+class NavierStokesWallConditionTest(EmbeddedTestFactory):
+    file_name = "NavierStokesWallConditionTest/NavierSokesWallConditionTest"

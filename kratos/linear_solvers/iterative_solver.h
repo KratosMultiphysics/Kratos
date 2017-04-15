@@ -193,7 +193,7 @@ public:
     		@param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     		@param rB. Right hand side vector.
     		*/
-    virtual void InitializeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    virtual void InitializeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         GetPreconditioner()->InitializeSolutionStep(rA,rX,rB);
     }
@@ -204,7 +204,7 @@ public:
     @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    virtual void FinalizeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    virtual void FinalizeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         GetPreconditioner()->FinalizeSolutionStep(rA,rX,rB);
     }
@@ -213,7 +213,7 @@ public:
      * Clear is designed to leave the solver object as if newly created.
      * After a clear a new Initialize is needed
      */
-    virtual void Clear()
+    virtual void Clear() override
     {
         GetPreconditioner()->Clear();
     }
@@ -224,7 +224,7 @@ public:
      * which require knowledge on the spatial position of the nodes associated to a given dof.
      * This function tells if the solver requires such data
      */
-    virtual bool AdditionalPhysicalDataIsNeeded()
+    virtual bool AdditionalPhysicalDataIsNeeded() override
     {
         if (GetPreconditioner()->AdditionalPhysicalDataIsNeeded())
             return true;
@@ -244,7 +244,7 @@ public:
         VectorType& rB,
         typename ModelPart::DofsArrayType& rdof_set,
         ModelPart& r_model_part
-    )
+    ) override
     {
         if (GetPreconditioner()->AdditionalPhysicalDataIsNeeded())
             GetPreconditioner()->ProvideAdditionalData(rA,rX,rB,rdof_set,r_model_part);
@@ -304,12 +304,12 @@ public:
         return mIterationsNumber;
     }
 
-    virtual void SetTolerance(double NewTolerance)
+    virtual void SetTolerance(double NewTolerance) override
     {
         mTolerance = NewTolerance;
     }
 
-    virtual double GetTolerance()
+    virtual double GetTolerance() override
     {
         return mTolerance;
     }
@@ -345,7 +345,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Iterative solver with " << GetPreconditioner()->Info();
@@ -353,13 +353,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         if (mBNorm == 0.00)
             if (mResidualNorm != 0.00)

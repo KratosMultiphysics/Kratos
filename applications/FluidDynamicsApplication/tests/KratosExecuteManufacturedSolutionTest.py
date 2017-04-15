@@ -172,7 +172,6 @@ class ManufacturedSolutionProblem:
     def SolveFluidProblem(self):
 
         ## Stepping and time settings
-        Dt = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
         end_time = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
 
         time = 0.0
@@ -184,6 +183,7 @@ class ManufacturedSolutionProblem:
 
         while(time <= end_time):
 
+            Dt = self.solver.ComputeDeltaTime()
             time = time + Dt
             step = step + 1
             self.main_model_part.CloneTimeStep(time)

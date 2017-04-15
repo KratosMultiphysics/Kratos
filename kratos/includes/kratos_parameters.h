@@ -219,6 +219,10 @@ public:
         return this->GetValue(entry);
     }
 
+    bool RemoveValue(const std::string entry)
+    {
+        return mpvalue->RemoveMember(entry.c_str());
+    }
 
     //*******************************************************************************************************
     bool Has(const std::string entry) const

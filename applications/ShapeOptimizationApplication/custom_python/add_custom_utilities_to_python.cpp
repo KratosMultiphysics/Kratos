@@ -1,45 +1,10 @@
 // ==============================================================================
-/*
- KratosShapeOptimizationApplication
- A library based on:
- Kratos
- A General Purpose Software for Multi-Physics Finite Element Analysis
- (Released on march 05, 2007).
-
- Copyright (c) 2016: Daniel Baumgaertner
-                     daniel.baumgaertner@tum.de
-                     Chair of Structural Analysis
-                     Technische Universitaet Muenchen
-                     Arcisstrasse 21 80333 Munich, Germany
-
- Permission is hereby granted, free  of charge, to any person obtaining
- a  copy  of this  software  and  associated  documentation files  (the
- "Software"), to  deal in  the Software without  restriction, including
- without limitation  the rights to  use, copy, modify,  merge, publish,
- distribute,  sublicense and/or  sell copies  of the  Software,  and to
- permit persons to whom the Software  is furnished to do so, subject to
- the following condition:
-
- Distribution of this code for  any  commercial purpose  is permissible
- ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
- The  above  copyright  notice  and  this permission  notice  shall  be
- included in all copies or substantial portions of the Software.
-
- THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
- EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
- CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
- TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
- SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-//==============================================================================
+//  KratosShapeOptimizationApplication
 //
-//   Project Name:        KratosShape                            $
-//   Created by:          $Author:    daniel.baumgaertner@tum.de $
-//   Date:                $Date:                   December 2016 $
-//   Revision:            $Revision:                         0.0 $
+//  License:         BSD License
+//                   license: ShapeOptimizationApplication/license.txt
+//
+//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
 //
 // ==============================================================================
 
@@ -56,6 +21,7 @@
 // Project includes
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
+#include "includes/kratos_parameters.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/optimization_utilities.h"
@@ -63,7 +29,7 @@
 #include "custom_utilities/vertex_morphing_mapper.h"
 #include "custom_utilities/response_functions/strain_energy_response_function.h"
 #include "custom_utilities/response_functions/mass_response_function.h"
-#include "linear_solvers/linear_solver.h"
+#include "custom_utilities/input_output/universal_file_io.h"
 
 // ==============================================================================
 
@@ -81,7 +47,7 @@ void  AddCustomUtilitiesToPython()
     // ================================================================
     // For perfoming the mapping according to Vertex Morphing
     // ================================================================
-    class_<VertexMorphingMapper, bases<Process> >("VertexMorphingMapper", init<ModelPart&, std::string, double, bool, boost::python::list>())
+    class_<VertexMorphingMapper, bases<Process> >("VertexMorphingMapper", init<ModelPart&, boost::python::dict, Parameters&>())
         .def("compute_mapping_matrix", &VertexMorphingMapper::compute_mapping_matrix)
         .def("map_sensitivities_to_design_space", &VertexMorphingMapper::map_sensitivities_to_design_space)
         .def("map_design_update_to_geometry_space", &VertexMorphingMapper::map_design_update_to_geometry_space)
@@ -90,7 +56,7 @@ void  AddCustomUtilitiesToPython()
     // ========================================================================
     // For performing individual steps of an optimization algorithm
     // ========================================================================
-    class_<OptimizationUtilities, bases<Process> >("OptimizationUtilities", init<ModelPart&, boost::python::dict, boost::python::dict, double, bool>())
+    class_<OptimizationUtilities, bases<Process> >("OptimizationUtilities", init<ModelPart&, Parameters&>())
         // ----------------------------------------------------------------
         // For running unconstrained descent methods
         // ----------------------------------------------------------------
@@ -100,6 +66,8 @@ void  AddCustomUtilitiesToPython()
         // ----------------------------------------------------------------
         .def("compute_projected_search_direction", &OptimizationUtilities::compute_projected_search_direction)
         .def("correct_projected_search_direction", &OptimizationUtilities::correct_projected_search_direction)
+        .def("get_correction_scaling", &OptimizationUtilities::get_correction_scaling)
+        .def("set_correction_scaling", &OptimizationUtilities::set_correction_scaling)
         // ----------------------------------------------------------------
         // General optimization operations
         // ----------------------------------------------------------------
@@ -118,7 +86,7 @@ void  AddCustomUtilitiesToPython()
     // ========================================================================
     // For calculations related to response functions
     // ========================================================================
-    class_<StrainEnergyResponseFunction, bases<Process> >("StrainEnergyResponseFunction", init<ModelPart&, boost::python::dict>())
+    class_<StrainEnergyResponseFunction, bases<Process> >("StrainEnergyResponseFunction", init<ModelPart&, Parameters&>())
         .def("initialize", &StrainEnergyResponseFunction::initialize)
         .def("calculate_value", &StrainEnergyResponseFunction::calculate_value)
         .def("calculate_gradient", &StrainEnergyResponseFunction::calculate_gradient) 
@@ -126,7 +94,7 @@ void  AddCustomUtilitiesToPython()
         .def("get_initial_value", &StrainEnergyResponseFunction::get_initial_value)  
         .def("get_gradient", &StrainEnergyResponseFunction::get_gradient)                              
         ; 
-    class_<MassResponseFunction, bases<Process> >("MassResponseFunction", init<ModelPart&, boost::python::dict>())
+    class_<MassResponseFunction, bases<Process> >("MassResponseFunction", init<ModelPart&, Parameters&>())
         .def("initialize", &MassResponseFunction::initialize)
         .def("calculate_value", &MassResponseFunction::calculate_value)
         .def("calculate_gradient", &MassResponseFunction::calculate_gradient)  
@@ -134,6 +102,14 @@ void  AddCustomUtilitiesToPython()
         .def("get_initial_value", &MassResponseFunction::get_initial_value) 
         .def("get_gradient", &MassResponseFunction::get_gradient)                              
         ;                     
+
+    // ========================================================================
+    // For input / output
+    // ======================================================================== 
+    class_<UniversalFileIO, bases<Process> >("UniversalFileIO", init<ModelPart&, Parameters&>())
+        .def("initializeLogging", &UniversalFileIO::initializeLogging)
+        .def("logNodalResults", &UniversalFileIO::logNodalResults)
+        ;            
 }
 
 

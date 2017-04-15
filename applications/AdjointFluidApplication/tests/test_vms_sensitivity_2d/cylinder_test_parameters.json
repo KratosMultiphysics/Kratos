@@ -20,7 +20,7 @@
             },
             "file_label"          : "time",
             "output_control_type" : "step",
-            "output_frequency"    : 0.01,
+            "output_frequency"    : 1.0,
             "body_output"         : true,
             "node_output"         : false,
             "skin_output"         : false,
@@ -135,6 +135,54 @@
         "Parameters" : {
         "drag_model_part_name" : "NoSlip2D_Cylinder",
         "drag_file_name"       : "test_vms_sensitivity_2d/cylinder_test.dat"
+        }
+     },{
+        "kratos_module"   : "KratosMultiphysics",
+        "python_module"   : "point_output_process",
+        "help"            : "",
+        "process_name"    : "PointOutputProcess",
+        "Parameters" : {
+            "position"         : [0.015717, 0.0043484, 0.0],
+            "model_part_name"  : "Parts_Fluid",
+            "output_file_name" : "test_vms_sensitivity_2d/cylinder_test_probe1.dat",
+            "output_variables" : [
+                "VELOCITY_X",
+                "VELOCITY_Y",
+                "PRESSURE"]
+        }
+     },{
+        "kratos_module"   : "KratosMultiphysics",
+        "python_module"   : "point_output_process",
+        "help"            : "",
+        "process_name"    : "PointOutputProcess",
+        "Parameters" : {
+            "position"         : [0.02601,-0.0018744, 0.0],
+            "model_part_name"  : "Parts_Fluid",
+            "output_file_name" : "test_vms_sensitivity_2d/cylinder_test_probe2.dat",
+            "output_variables" : [
+                "VELOCITY_X",
+                "VELOCITY_Y",
+                "PRESSURE"]
+        }
+    },{
+        "python_module"   : "compare_two_point_output_files_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "help"            : "",
+        "process_name"    : "CompareTwoPointOutputFilesProcess",
+        "Parameters" :{
+            "file_name_1"         : "test_vms_sensitivity_2d/cylinder_test_probe1.dat",
+            "file_name_2"         : "test_vms_sensitivity_2d/cylinder_test_probe1_ref.dat",
+        "decimal_places" : 7
+        }
+    },{
+        "python_module"   : "compare_two_point_output_files_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "help"            : "",
+        "process_name"    : "CompareTwoPointOutputFilesProcess",
+        "Parameters" :{
+            "file_name_1"         : "test_vms_sensitivity_2d/cylinder_test_probe2.dat",
+            "file_name_2"         : "test_vms_sensitivity_2d/cylinder_test_probe2_ref.dat",
+	    "decimal_places" : 7
         }
     }]
 }

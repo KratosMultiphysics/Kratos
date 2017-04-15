@@ -222,7 +222,7 @@ public:
     static inline boost::numeric::ublas::bounded_matrix<TDataType, TDim, TDim> InvertMatrix(
             const boost::numeric::ublas::bounded_matrix<TDataType, TDim, TDim>& InputMatrix,
             TDataType& InputMatrixDet,
-            const TDataType Tolerance = 1.0e-18
+            const TDataType Tolerance = std::numeric_limits<double>::epsilon()
             )
     {
         boost::numeric::ublas::bounded_matrix<TDataType, TDim, TDim> InvertedMatrix;
@@ -301,6 +301,41 @@ public:
         }
         
         return InvertedMatrix;
+    }
+    
+    /**
+     * It inverts non square matrices (https://en.wikipedia.org/wiki/Inverse_element#Matrices)
+     * @param InputMatrix: Is the input matrix (unchanged at output)
+     * @return InvertedMatrix: Is the inverse of the input matrix
+     * @return InputMatrixDet: Is the determinant of the input matrix
+     */
+
+    static void GeneralizedInvertMatrix(
+        const MatrixType& InputMatrix,
+        MatrixType& InvertedMatrix,
+        TDataType& InputMatrixDet
+        )
+    {
+        if (InputMatrix.size1() == InputMatrix.size2())
+        {
+            InvertMatrix(InputMatrix, InvertedMatrix, InputMatrixDet);
+        }
+        else if (InputMatrix.size1() < InputMatrix.size2()) // Right inverse
+        {
+            const Matrix aux = prod(InputMatrix, trans(InputMatrix));
+            Matrix auxInv;
+            InvertMatrix(aux, auxInv, InputMatrixDet);
+	    InputMatrixDet = std::sqrt(InputMatrixDet);
+            InvertedMatrix = prod(trans(InputMatrix), auxInv);
+        }
+        else // Left inverse
+        {
+            const Matrix aux = prod(trans(InputMatrix), InputMatrix);
+            Matrix auxInv;
+            InvertMatrix(aux, auxInv, InputMatrixDet);
+	    InputMatrixDet = std::sqrt(InputMatrixDet);
+            InvertedMatrix = prod(auxInv, trans(InputMatrix));
+        }
     }
     
     /**

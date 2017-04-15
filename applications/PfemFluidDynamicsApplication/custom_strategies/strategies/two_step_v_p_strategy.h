@@ -312,7 +312,7 @@ public:
 	  array_1d<double, 3 > & PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
 	  if((i)->IsNot(ISOLATED) || (i)->Is(SOLID)){
-	      UpdateAccelerations (CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity,BDFcoeffs);
+	    UpdateAccelerations (CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity,BDFcoeffs);
 	  }else {
 	    (i)->FastGetSolutionStepValue(PRESSURE) = 0.0; 
 	    if((i)->SolutionStepsDataHas(VOLUME_ACCELERATION)){
@@ -321,6 +321,8 @@ public:
 	      (i)->FastGetSolutionStepValue(VELOCITY,0) += VolumeAcceleration*rCurrentProcessInfo[DELTA_TIME];
 	    }
 	  }
+
+
         }
     }
 
@@ -404,6 +406,7 @@ public:
 	      (itElem)->Set(ACTIVE);
 	    }
 	  }
+
       }
         
     }
@@ -612,10 +615,10 @@ protected:
       double DpErrorNorm = 0; 
       ConvergedContinuity = this->CheckPressureConvergence(NormDp,DpErrorNorm);
 
-      // Check convergence
-      if(it==maxIt-1){
-      	this->FixTimeStep(DpErrorNorm);
-      }
+      /* // Check convergence */
+      /* if(it==maxIt-1){ */
+      /* 	this->FixTimeStep(DpErrorNorm); */
+      /* } */
 
       if (!ConvergedContinuity && BaseType::GetEchoLevel() > 0 && Rank == 0)
 	std::cout << "Continuity equation did not reach the convergence tolerance." << std::endl;
@@ -756,6 +759,7 @@ protected:
 	      itNode->FastGetSolutionStepValue(VELOCITY,0)=itNode->FastGetSolutionStepValue(VELOCITY,1);
 	      itNode->FastGetSolutionStepValue(PRESSURE,0)=itNode->FastGetSolutionStepValue(PRESSURE,1);
 	      itNode->FastGetSolutionStepValue(ACCELERATION,0)=itNode->FastGetSolutionStepValue(ACCELERATION,1);
+
 	    }
 	}
       }

@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.AdjointFluidApplication as AdjointFluidApplication
-#import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -12,18 +11,11 @@ def CreateSolver(main_model_part, custom_settings):
 
 class AdjointVMSMonolithicSolver:
 
-    ##constructor. the constructor shall only take care of storing the settings
-    ##and the pointer to the main_model part. This is needed since at the point of constructing the
-    ##model part is still not filled and the variables are not yet allocated
-    ##
-    ##real construction shall be delayed to the function "Initialize" which
-    ##will be called once the model is already filled
     def __init__(self, main_model_part, custom_settings):
 
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
 
-        ##settings string in json format
+        # default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type" : "adjoint_vmsmonolithic_solver",
@@ -47,11 +39,11 @@ class AdjointVMSMonolithicSolver:
             "echo_level"  : 0
         }""")
 
-        ##overwrite the default settings with user-provided parameters
+        # overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        #construct the linear solver
+        # construct the linear solver
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
@@ -79,28 +71,28 @@ class AdjointVMSMonolithicSolver:
     def ImportModelPart(self):
 
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-            #here it would be the place to import restart data if required
+            # here it would be the place to import restart data if required
             KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
 
-            ##here we shall check that the input read has the shape we like
+            # here we shall check that the input read has the shape we like
             aux_params = KratosMultiphysics.Parameters("{}")
             aux_params.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
             aux_params.AddValue("skin_parts",self.settings["skin_parts"])
 
-            #here we replace the dummy elements we read with proper elements
+            # here we replace the dummy elements we read with proper elements
             self.settings.AddEmptyValue("element_replace_settings")
             if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
                 self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
                     "element_name": "VMSAdjointElement3D",
-                    "condition_name": "Condition3D4N"
+                    "condition_name": "SurfaceCondition3D3N"
                     }
                     """)
             elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
                 self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
                     "element_name": "VMSAdjointElement2D",
-                    "condition_name": "Condition2D3N"
+                    "condition_name": "LineCondition2D2N"
                     }
                     """)
             else:
@@ -185,10 +177,7 @@ class AdjointVMSMonolithicSolver:
         print ("Adjoint solver initialization finished.")
 
     def GetComputingModelPart(self):
-        # Get as computational model part the "volume_model_part_name" in the ProjectParameters Json string
-        #~ return self.main_model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString())
-
-        # Get as computational model part the submodelpart generated in CheckAndPrepareModelProcess
+        # get the submodelpart generated in CheckAndPrepareModelProcess
         return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
 
     def GetOutputVariables(self):

@@ -4,13 +4,14 @@ import h5py
 from KratosMultiphysics import *
 
 def GetOldTimeIndicesAndWeights(current_time, times_array, fluid_dt):
+    print(current_time)
     old_index = bi.bisect(times_array, current_time)
+    print(times_array[old_index])
     future_index = old_index + 1
     print('old_index',old_index)
     print('future_index',future_index)
     print(times_array[old_index])
     print(times_array[future_index])
-    cacac
     old_time =  times_array[old_index]
 
     if future_index >= len(times_array):
@@ -43,21 +44,24 @@ class FluidHDF5Loader:
 
         self.extended_shape = self.shape + (number_of_variables,)
 
-        self.file_name = main_path + '/fluid_results.hdf5'
+        self.file_name = main_path + '/box_32_history.hdf5'
         self.fluid_model_part = fluid_model_part
 
         if pp.CFD_DEM.fluid_already_calculated:
 
             with h5py.File(self.file_name, 'r') as f:
-                self.times_str = list([str(key) for key in f.keys() if key not in {'density', 'viscosity', 'nodes', 'number of nodes'}])
+                self.times_str = list([str(key) for key in f.keys() if key not in {'nodes'}])
                 nodes_ids = np.array([node_id for node_id in f['nodes'][:, 0]])
                 self.permutations = np.array(range(len(nodes_ids)))
                 # obtaining the vector of permutations by ordering [0, 1, ..., n_nodes] as nodes_ids, by increasing order of id.
                 self.permutations = np.array([x for (y, x) in sorted(zip(nodes_ids, self.permutations))])
                 self.times     = np.array([float(f[key].attrs['time']) for key in self.times_str])
+                self.times_str = np.array([x for (y, x) in sorted(zip(self.times, self.times_str))])
+                self.times = sorted(self.times)
+                print('time0',f[self.times_str[0]].attrs['time'])
+                print('time1',f[self.times_str[1]].attrs['time'])
                 self.dt = self.times[-1] - self.times[-2]
-                print(self.times)
-                caca
+
             self.old_data_array = np.zeros(self.extended_shape)
             self.future_data_array = np.zeros(self.extended_shape)
             self.old_time_index = 0
@@ -130,13 +134,13 @@ class FluidHDF5Loader:
 
     def ConvertComponent(self, f, component_name):
         if '/vx' in component_name:
-            read_values = f[component_name.replace('/vx', '/VELOCITY')][:, 0]
+            read_values = f[component_name][:, 0]
         elif '/vy' in component_name:
-            read_values = f[component_name.replace('/vy', '/VELOCITY')][:, 1]
+            read_values = f[component_name][:, 0]
         elif '/vz' in component_name:
-            read_values = f[component_name.replace('/vz', '/VELOCITY')][:, 2]
+            read_values = f[component_name][:, 0]
         else:
-            read_values = f[component_name.replace('/p', '/PRESSURE')][:, 0]
+            read_values = f[component_name][:, 0]
 
         return read_values[self.permutations]
 

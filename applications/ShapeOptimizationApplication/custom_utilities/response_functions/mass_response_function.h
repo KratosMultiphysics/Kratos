@@ -1,46 +1,11 @@
 // ==============================================================================
-/*
- KratosShapeOptimizationApplication
- A library based on:
- Kratos
- A General Purpose Software for Multi-Physics Finite Element Analysis
- (Released on march 05, 2007).
-
- Copyright (c) 2016: Daniel Baumgaertner
-                     daniel.baumgaertner@tum.de
-                     Chair of Structural Analysis
-                     Technische Universitaet Muenchen
-                     Arcisstrasse 21 80333 Munich, Germany
-
- Permission is hereby granted, free  of charge, to any person obtaining
- a  copy  of this  software  and  associated  documentation files  (the
- "Software"), to  deal in  the Software without  restriction, including
- without limitation  the rights to  use, copy, modify,  merge, publish,
- distribute,  sublicense and/or  sell copies  of the  Software,  and to
- permit persons to whom the Software  is furnished to do so, subject to
- the following condition:
-
- Distribution of this code for  any  commercial purpose  is permissible
- ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
- The  above  copyright  notice  and  this permission  notice  shall  be
- included in all copies or substantial portions of the Software.
-
- THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
- EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
- CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
- TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
- SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-//==============================================================================
+//  KratosShapeOptimizationApplication
 //
-//   Project Name:        KratosShape                            $
-//   Created by:          $Author:    daniel.baumgaertner@tum.de $
-//                        $Author:           armin.geiser@tum.de $
-//   Date:                $Date:                   December 2016 $
-//   Revision:            $Revision:                         0.0 $
+//  License:         BSD License
+//                   license: ShapeOptimizationApplication/license.txt
+//
+//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//                   Geiser Armin, https://github.com/armingeiser
 //
 // ==============================================================================
 
@@ -117,23 +82,25 @@ public:
 	///@{
 
 	/// Default constructor.
-	MassResponseFunction(ModelPart &model_part, boost::python::dict response_settings)
+	MassResponseFunction(ModelPart& model_part, Parameters& responseSettings)
 	: mr_model_part(model_part)
 	{
 		// Set gradient mode
-		boost::python::extract<const char *> grad_mode(response_settings["gradient_mode"]);
+		std::string gradientMode = responseSettings["gradient_mode"].GetString();
+
+		// Strings for comparison
 
 		// Mode 3: global finite differencing
-		if (std::strcmp(grad_mode, "finite_differencing") == 0)
+		if (gradientMode.compare("finite_differencing") == 0)
 		{
 			m_gradient_mode = 3;
-			boost::python::extract<double> delta(response_settings["step_size"]);
-			m_delta = delta;
+			double delta = responseSettings["step_size"].GetDouble();
+			mDelta = delta;
 		}
 
 		// Throw error message in case of wrong specification
 		else
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. Options are: finite_differencing ", grad_mode);
+			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. Options are: finite_differencing ", gradientMode);
 
 		// Initialize member variables to NULL
 		m_initial_value = 0.0;
@@ -240,7 +207,7 @@ public:
 
 				// Apply pertubation in X-direction and recompute total mass of all neighbor elements
 				double mass_after_fd = 0.0;
-				node_i->X() += m_delta;
+				node_i->X() += mDelta;
 				for(unsigned int i = 0; i < ng_elem.size(); i++)
 				{
 					Kratos::Element ng_elem_i = ng_elem[i];
@@ -255,12 +222,12 @@ public:
 						elem_volume = ng_elem_i.GetGeometry().Volume();
 					mass_after_fd +=  elem_density*elem_volume;
 				}
-				gradient[0] = (mass_after_fd - mass_before_fd) / m_delta;
-				node_i->X() -= m_delta;
+				gradient[0] = (mass_after_fd - mass_before_fd) / mDelta;
+				node_i->X() -= mDelta;
 
 				// Apply pertubation in Y-direction and recompute total mass of all neighbor elements
 				mass_after_fd = 0.0;
-				node_i->Y() += m_delta;
+				node_i->Y() += mDelta;
 				for(unsigned int i = 0; i < ng_elem.size(); i++)
 				{
 					Kratos::Element ng_elem_i = ng_elem[i];
@@ -275,12 +242,12 @@ public:
 						elem_volume = ng_elem_i.GetGeometry().Volume();
 					mass_after_fd +=  elem_density*elem_volume;
 				}
-				gradient[1] = (mass_after_fd - mass_before_fd) / m_delta;
-				node_i->Y() -= m_delta;
+				gradient[1] = (mass_after_fd - mass_before_fd) / mDelta;
+				node_i->Y() -= mDelta;
 
 				// Apply pertubation in Z-direction and recompute total mass of all neighbor elements
 				mass_after_fd = 0.0;
-				node_i->Z() += m_delta;
+				node_i->Z() += mDelta;
 				for(unsigned int i = 0; i < ng_elem.size(); i++)
 				{
 					Kratos::Element ng_elem_i = ng_elem[i];
@@ -295,8 +262,8 @@ public:
 						elem_volume = ng_elem_i.GetGeometry().Volume();
 					mass_after_fd +=  elem_density*elem_volume;
 				}
-				gradient[2] = (mass_after_fd - mass_before_fd) / m_delta;
-				node_i->Z() -= m_delta;
+				gradient[2] = (mass_after_fd - mass_before_fd) / mDelta;
+				node_i->Z() -= mDelta;
 
 				// Compute sensitivity
 				noalias(node_i->FastGetSolutionStepValue(MASS_SHAPE_GRADIENT)) = gradient;
@@ -430,7 +397,7 @@ private:
 	ModelPart &mr_model_part;
 	unsigned int m_gradient_mode;
 	double m_total_mass;
-	double m_delta;
+	double mDelta;
 	double m_initial_value;
 	bool m_initial_value_defined;
 

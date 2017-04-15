@@ -82,7 +82,7 @@ Node < 3 > ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, doubl
 Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id, boost::python::list& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
 {
     Geometry< Node < 3 > >::PointsArrayType pElementNodeList;
-    
+
     for(unsigned int i = 0; i < len(NodeIdList); i++) {
         pElementNodeList.push_back(rModelPart.pGetNode(boost::python::extract<int>(NodeIdList[i])));
     }
@@ -91,13 +91,13 @@ Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, const std::str
 }
 
 Condition::Pointer ModelPartCreateNewCondition(ModelPart& rModelPart, const std::string ConditionName, ModelPart::IndexType Id, boost::python::list& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
-{  
+{
     Geometry< Node < 3 > >::PointsArrayType pConditionNodeList;
-    
+
     for(unsigned int i = 0; i < len(NodeIdList); i++) {
         pConditionNodeList.push_back(rModelPart.pGetNode(boost::python::extract<int>(NodeIdList[i])));
     }
-    
+
     return rModelPart.CreateNewCondition(ConditionName, Id, pConditionNodeList, pProperties);
 }
 
@@ -490,10 +490,10 @@ void AddNodesByIds(ModelPart& rModelPart, boost::python::list& NodeIdList )
 {
     std::vector< ModelPart::IndexType > ConditionNodeIds;
     ConditionNodeIds.reserve( len(NodeIdList) );
-    
-    for(unsigned int i = 0; i < len(NodeIdList); i++) 
+
+    for(unsigned int i = 0; i < len(NodeIdList); i++)
         ConditionNodeIds.push_back(boost::python::extract<int>(NodeIdList[i]));
-    
+
     rModelPart.AddNodes(ConditionNodeIds);
 }
 
@@ -501,10 +501,10 @@ void AddConditionsByIds(ModelPart& rModelPart, boost::python::list& ConditionIdL
 {
     std::vector< ModelPart::IndexType > ConditionsIds;
     ConditionsIds.reserve( len(ConditionIdList) );
-    
-    for(unsigned int i = 0; i < len(ConditionIdList); i++) 
+
+    for(unsigned int i = 0; i < len(ConditionIdList); i++)
         ConditionsIds.push_back(boost::python::extract<int>(ConditionIdList[i]));
-    
+
     rModelPart.AddConditions(ConditionsIds);
 }
 
@@ -512,10 +512,10 @@ void AddElementsByIds(ModelPart& rModelPart, boost::python::list& ElementIdList 
 {
     std::vector< ModelPart::IndexType > ElementIds;
     ElementIds.reserve( len(ElementIdList) );
-    
-    for(unsigned int i = 0; i < len(ElementIdList); i++) 
+
+    for(unsigned int i = 0; i < len(ElementIdList); i++)
         ElementIds.push_back(boost::python::extract<int>(ElementIdList[i]));
-    
+
     rModelPart.AddElements(ElementIds);
 }
 
@@ -541,6 +541,29 @@ bool CommunicatorAssembleNonHistoricalData(Communicator& rCommunicator, Variable
     return rCommunicator.AssembleNonHistoricalData(ThisVariable);
 }
 
+template<class TDataType>
+TDataType CommunicatorSumAll(Communicator& rCommunicator, TDataType rValue)
+{
+    TDataType Value = rValue;
+    rCommunicator.SumAll(Value);
+    return Value;
+}
+
+template<class TDataType>
+TDataType CommunicatorMinAll(Communicator& rCommunicator, TDataType rValue)
+{
+    TDataType Value = rValue;
+    rCommunicator.MinAll(Value);
+    return Value;
+}
+
+template<class TDataType>
+TDataType CommunicatorMaxAll(Communicator& rCommunicator, TDataType rValue)
+{
+    TDataType Value = rValue;
+    rCommunicator.MaxAll(Value);
+    return Value;
+}
 
 
 void AddModelPartToPython()
@@ -556,30 +579,37 @@ void AddModelPartToPython()
     using namespace boost::python;
 
     class_<Communicator > ("Communicator")
-    .def(init<>())
-    .def("MyPID", &Communicator::MyPID)
-    .def("TotalProcesses", &Communicator::TotalProcesses)
-    .def("GetNumberOfColors", &Communicator::GetNumberOfColors)
-    .def("NeighbourIndices", NeighbourIndicesConst, return_internal_reference<>())
-    .def("SynchronizeNodalSolutionStepsData", &Communicator::SynchronizeNodalSolutionStepsData)
-    .def("SynchronizeDofs", &Communicator::SynchronizeDofs)
-    .def("LocalMesh", CommunicatorGetLocalMesh, return_internal_reference<>() )
-    .def("LocalMesh", CommunicatorGetLocalMeshWithIndex, return_internal_reference<>() )
-    .def("GhostMesh", CommunicatorGetGhostMesh, return_internal_reference<>() )
-    .def("GhostMesh", CommunicatorGetGhostMeshWithIndex, return_internal_reference<>() )
-    .def("InterfaceMesh", CommunicatorGetInterfaceMesh, return_internal_reference<>() )
-    .def("InterfaceMesh", CommunicatorGetInterfaceMeshWithIndex, return_internal_reference<>() )
-    .def("AssembleCurrentData", CommunicatorAssembleCurrentData<int> )
-    .def("AssembleCurrentData", CommunicatorAssembleCurrentData<double> )
-    .def("AssembleCurrentData", CommunicatorAssembleCurrentData<array_1d<double,3> > )
-    .def("AssembleCurrentData", CommunicatorAssembleCurrentData<Vector> )
-    .def("AssembleCurrentData", CommunicatorAssembleCurrentData<Matrix> )
-    .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<int> )
-    .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<double> )
-    .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<array_1d<double,3> > )
-    .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<Vector> )
-    .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<Matrix> )
-    ;
+        .def(init<>())
+        .def("MyPID", &Communicator::MyPID)
+        .def("TotalProcesses", &Communicator::TotalProcesses)
+        .def("GetNumberOfColors", &Communicator::GetNumberOfColors)
+        .def("NeighbourIndices", NeighbourIndicesConst, return_internal_reference<>())
+        .def("SynchronizeNodalSolutionStepsData", &Communicator::SynchronizeNodalSolutionStepsData)
+        .def("SynchronizeDofs", &Communicator::SynchronizeDofs)
+        .def("LocalMesh", CommunicatorGetLocalMesh, return_internal_reference<>() )
+        .def("LocalMesh", CommunicatorGetLocalMeshWithIndex, return_internal_reference<>() )
+        .def("GhostMesh", CommunicatorGetGhostMesh, return_internal_reference<>() )
+        .def("GhostMesh", CommunicatorGetGhostMeshWithIndex, return_internal_reference<>() )
+        .def("InterfaceMesh", CommunicatorGetInterfaceMesh, return_internal_reference<>() )
+        .def("InterfaceMesh", CommunicatorGetInterfaceMeshWithIndex, return_internal_reference<>() )
+        .def("SumAll", CommunicatorSumAll<int> )
+        .def("SumAll", CommunicatorSumAll<double> )
+        .def("SumAll", CommunicatorSumAll<array_1d<double,3> > )
+        .def("MinAll", CommunicatorMinAll<int> )
+        .def("MinAll", CommunicatorMinAll<double> )
+        .def("MaxAll", CommunicatorMaxAll<int> )
+        .def("MaxAll", CommunicatorMaxAll<double> )
+        .def("AssembleCurrentData", CommunicatorAssembleCurrentData<int> )
+        .def("AssembleCurrentData", CommunicatorAssembleCurrentData<double> )
+        .def("AssembleCurrentData", CommunicatorAssembleCurrentData<array_1d<double,3> > )
+        .def("AssembleCurrentData", CommunicatorAssembleCurrentData<Vector> )
+        .def("AssembleCurrentData", CommunicatorAssembleCurrentData<Matrix> )
+        .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<int> )
+        .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<double> )
+        .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<array_1d<double,3> > )
+        .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<Vector> )
+        .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<Matrix> )
+        ;
 
 
 
@@ -693,7 +723,7 @@ void AddModelPartToPython()
 		.def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<array_1d<double, 3 > >)
 		.def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<Vector>)
 		.def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<Matrix>)
-                .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<Quaternion<double> >)
+        .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<Quaternion<double> >)
 		.def("GetNodalSolutionStepDataSize", &ModelPart::GetNodalSolutionStepDataSize)
 		.def("GetNodalSolutionStepTotalDataSize", &ModelPart::GetNodalSolutionStepTotalDataSize)
 		.def("OverwriteSolutionStepData", &ModelPart::OverwriteSolutionStepData)
@@ -719,4 +749,3 @@ void AddModelPartToPython()
 } // namespace Python.
 
 } // Namespace Kratos
-

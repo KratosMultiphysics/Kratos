@@ -140,7 +140,7 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
         if (TSparseSpace::Size(b) != 0) //if we are solving for something
         {
@@ -202,7 +202,7 @@ public:
 
     void Initialize(
         ModelPart& r_model_part
-    )
+    ) override
     {
         BaseType::mConvergenceCriteriaIsInitialized = true;
     }
@@ -213,7 +213,7 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
         mInitialResidualIsSet = false;
     }
@@ -224,7 +224,7 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
 
     }

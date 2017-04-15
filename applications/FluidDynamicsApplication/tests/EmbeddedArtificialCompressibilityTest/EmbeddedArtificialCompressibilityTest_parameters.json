@@ -2,10 +2,10 @@
     "problem_data"                     : {
         "problem_name"    : "cavity_compressibility",
         "model_part_name" : "MainModelPart",
+        "parallel_type"   : "OpenMP",
         "domain_size"     : 2,
         "start_step"      : 0.0,
-        "end_time"        : 1,
-        "time_step"       : 0.01
+        "end_time"        : 1
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -34,7 +34,7 @@
         "Restart_Step"     : 0
     },
     "solver_settings"                  : {
-        "solver_type"                  : "navier_stokes_embedded_solver",
+        "solver_type"                  : "Embedded",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
             "input_filename" : "EmbeddedArtificialCompressibilityTest/cavity_compressibility"
@@ -64,6 +64,10 @@
         "volume_model_part_name"       : "Parts_Fluid",
         "skin_parts"                   : ["Inlet2D_Inlet","NoSlip2D_No_slip"],
         "no_skin_parts"                : [],
+        "time_stepping"                : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.01
+        },
         "distance_reading_settings"    : {
             "import_mode"         : "from_mdpa"
         }

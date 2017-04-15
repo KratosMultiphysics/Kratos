@@ -325,7 +325,7 @@ public:
 
                     Condition::Pointer p_env_cond_first = KratosComponents<Condition>::Get("EnvironmentContact").Create(cnd_id, env_temp, mr_model_part.GetMesh().pGetProperties(prop_id));
                     
-                    p_env_cond_first->Set(ACTIVE,false) 
+                    p_env_cond_first->Set(ACTIVE,false); 
                     p_env_cond_first->SetValue( REF_ID, (prop_id*mr_Nmax + prop_id) );
                     mr_model_part.Conditions().push_back(p_env_cond_first);
 

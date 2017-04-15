@@ -267,5 +267,9 @@ if(${CONSTITUTIVE_MODELS_APPLICATION} MATCHES ON)
   add_subdirectory(ConstitutiveModelsApplication)
 endif(${CONSTITUTIVE_MODELS_APPLICATION} MATCHES ON)
 
+if(${COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION} MATCHES ON)
+  add_subdirectory(CompressiblePotentialFlowApplication)
+endif(${COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION} MATCHES ON)
+
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")
