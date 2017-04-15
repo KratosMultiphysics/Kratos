@@ -9,7 +9,7 @@
 //
 //   Project Name:        $ExternalSolversApplication   $
 //   Last modified by:    $Author: michael.andre@tum.de $
-//   Date:                $Date:         September 2016 $
+//   Date:                $Date:             April 2017 $
 //   Revision:            $Revision:                0.0 $
 //
 //
@@ -164,8 +164,7 @@ public:
     /**
      * Parameters let the user control the settings of the FEAST library.
      */
-    FEASTSolver(Parameters::Pointer pParam)
-    : mpParam(pParam)
+    FEASTSolver(Parameters::Pointer pParam) : mpParam(pParam)
     {
         Parameters default_params(R"(
         {
@@ -188,6 +187,34 @@ public:
             KRATOS_ERROR << "built-in solver type must be used with this constructor" << std::endl;
 
         mpLinearSolver = boost::make_shared<SkylineLUSolver<ComplexSparseSpaceType, ComplexDenseSpaceType>>();
+    }
+
+    /// Constructor for externally provided linear solver.
+    /**
+     * Parameters let the user control the settings of the FEAST library.
+     * Warning: For iterative solvers, very small tolerances (~1e-15)
+     *          may be needed for FEAST to work properly. Common iterative 
+     *          solvers normally don't perform efficiently with FEAST 
+     *          (M. Galgon et al., Parallel Computing (49) 2015 153-163).
+     */
+    FEASTSolver(Parameters::Pointer pParam, ComplexLinearSolverType::Pointer pLinearSolver)
+        : mpParam(pParam), mpLinearSolver(pLinearSolver)
+    {
+        Parameters default_params(R"(
+        {
+            "solver_type": "FEAST",
+            "print_feast_output": false,
+            "perform_stochastic_estimate": true,
+            "solve_eigenvalue_problem": true,
+            "lambda_min": 0.0,
+            "lambda_max": 1.0,
+            "number_of_eigenvalues": 0,
+            "search_dimension": 10,
+            "linear_solver_settings": {}
+        })");
+
+        // don't validate linear_solver_settings here
+        mpParam->ValidateAndAssignDefaults(default_params);
     }
 
     /// Deleted copy constructor.
@@ -218,15 +245,10 @@ public:
             DenseMatrixType& Eigenvectors)
     {
         const auto SystemSize = K.size1();
-        //constexpr double Dt = 1.0;
-        //std::for_each(std::begin(M.value_data()), std::end(M.value_data()),
-        //            [](double& val) { val *= 1.0 / (Dt * Dt); });
 
         Parameters& FEAST_Settings = *mpParam;
         const double EigenvalueRangeMin = FEAST_Settings["lambda_min"].GetDouble();
         const double EigenvalueRangeMax = FEAST_Settings["lambda_max"].GetDouble();
-        //const double EigenvalueRangeMin = FEAST_Settings["lambda_min"].GetDouble() * Dt * Dt;
-        //const double EigenvalueRangeMax = FEAST_Settings["lambda_max"].GetDouble() * Dt * Dt;
 
         int SearchDimension = FEAST_Settings["search_dimension"].GetInt();
         int NumEigenvalues = FEAST_Settings["number_of_eigenvalues"].GetInt();
@@ -257,8 +279,6 @@ public:
 
         }
         FEAST_Settings["number_of_eigenvalues"].SetInt(NumEigenvalues);
-        //std::for_each(std::begin(Eigenvalues.data()), std::end(Eigenvalues.data()),
-        //            [](double& val) { val *= 1.0 / (Dt * Dt); });
     }
 
     ///@}
@@ -323,9 +343,6 @@ private:
 
         Parameters& FEAST_Settings = *mpParam;
 
-        // warning: if an iterative solver is used, very small tolerances (~1e-15)
-        // may be needed for FEAST to work properly.
-        //SkylineLUSolver<std::complex<double> > Solver;
         mpLinearSolver->Initialize(Az,x,b);
 
         // initialize FEAST eigenvalue solver (see FEAST documentation for details)
