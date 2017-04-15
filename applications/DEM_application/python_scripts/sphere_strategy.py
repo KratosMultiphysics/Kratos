@@ -430,7 +430,6 @@ class ExplicitStrategy:
         type_of_law = DiscontinuumConstitutiveLaw.GetTypeOfLaw()
 
         write_gamma = False
-        write_AlphaFunction = False
 
         if (type_of_law == 'Linear'):
             gamma = self.RootByBisection(self.coeff_of_rest_diff, 0.0, 16.0, 0.0001, 300, coefficient_of_restitution)

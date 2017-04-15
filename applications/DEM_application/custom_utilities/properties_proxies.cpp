@@ -64,7 +64,7 @@ namespace Kratos {
     double* PropertiesProxy::pGetParticleKTangential()                                           { return  mParticleKTangential;                }
     void    PropertiesProxy::SetParticleKTangentialFromProperties(double* particle_k_tangential) { mParticleKTangential = particle_k_tangential;}
     
-    //Conical damage    
+    // Dependent Friction    
     double  PropertiesProxy::GetParticleContactRadius()                                              { return *mParticleContactRadius;                   }
     double* PropertiesProxy::pGetParticleContactRadius()                                             { return  mParticleContactRadius;                   }
     void    PropertiesProxy::SetParticleContactRadiusFromProperties(double* particle_contact_radius) { mParticleContactRadius = particle_contact_radius; }
@@ -72,10 +72,6 @@ namespace Kratos {
     double  PropertiesProxy::GetParticleMaxStress()                                           { return *mParticleMaxStress;                  }
     double* PropertiesProxy::pGetParticleMaxStress()                                          { return  mParticleMaxStress;                  }
     void    PropertiesProxy::SetParticleMaxStressFromProperties(double* particle_max_stress)  { mParticleMaxStress = particle_max_stress;    }
-    
-    double  PropertiesProxy::GetParticleAlpha()                                               { return *mParticleAlpha;                      }
-    double* PropertiesProxy::pGetParticleAlpha()                                              { return  mParticleAlpha;                      }
-    void    PropertiesProxy::SetParticleAlphaFromProperties(double* particle_alpha)           { mParticleAlpha = particle_alpha;             }
     
     double  PropertiesProxy::GetParticleGamma()                                               { return *mParticleGamma;                      }
     double* PropertiesProxy::pGetParticleGamma()                                              { return  mParticleGamma;                      }
