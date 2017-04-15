@@ -23,6 +23,10 @@
 #include "custom_processes/dam_uplift_condition_load_process.hpp"
 #include "custom_processes/dam_uplift_circular_condition_load_process.hpp"
 #include "custom_processes/dam_westergaard_condition_load_process.hpp"
+#include "custom_processes/dam_nodal_young_modulus_process.hpp"
+#include "custom_processes/dam_construction_process.hpp"
+
+
 
 namespace Kratos
 {
@@ -53,6 +57,16 @@ void  AddCustomProcessesToPython()
    // Westergaard Condition (for hydrostatic + hydrodynamic pressure)     
     class_< DamWestergaardConditionLoadProcess, bases< Process >, boost::noncopyable > ( "DamWestergaardConditionLoadProcess",
         init < ModelPart&, Parameters>());
+
+    // Nodal Young Modulus Process     
+    class_< DamNodalYoungModulusProcess, bases< Process >, boost::noncopyable > ( "DamNodalYoungModulusProcess",
+        init < ModelPart&, Parameters>());
+
+    // Construction Process     
+    class_< DamConstructionProcess, bases< Process >, boost::noncopyable > ( "DamConstructionProcess",
+        init < ModelPart&, Parameters>());
+
+
 }
 
 }  // namespace Python.
