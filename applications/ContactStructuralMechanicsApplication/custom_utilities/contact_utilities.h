@@ -1035,7 +1035,8 @@ public:
     template< unsigned int TDim, unsigned int TNumNodes>
     static inline boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> GetCoordinates(
         const GeometryType& nodes,
-        const bool current = true
+        const bool current = true,
+        const unsigned int step = 0
         )
     {
         /* DEFINITIONS */            
@@ -1047,7 +1048,12 @@ public:
             
             if (current == false)
             {
-                coord -= nodes[iNode].FastGetSolutionStepValue(DISPLACEMENT, 0);
+                coord -= nodes[iNode].FastGetSolutionStepValue(DISPLACEMENT);
+                
+                if (step > 0)
+                {
+                    coord += nodes[iNode].FastGetSolutionStepValue(DISPLACEMENT, step);
+                }
             }
 
             for (unsigned int iDof = 0; iDof < TDim; iDof++)
@@ -1071,7 +1077,7 @@ public:
     static inline array_1d<double, TNumNodes> GetVariableVector(
         const GeometryType& nodes,
         const Variable<double>& rVarName,
-        unsigned int step
+        const unsigned int step
         )
     {
         /* DEFINITIONS */        
