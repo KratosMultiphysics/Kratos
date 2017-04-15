@@ -54,7 +54,8 @@ class EigenSolver(solid_mechanics_solver.MechanicalSolver):
 
         self.eigensolver_settings = self.settings["eigensolver_settings"] 
         if self.eigensolver_settings["solver_type"].GetString() == "FEAST":
-            self.linear_solver = ExternalSolversApplication.FEASTSolver(self.eigensolver_settings)
+            self.complex_feast_solver = ExternalSolversApplication.PastixComplexSolver(KratosMultiphysics.Parameters("{}"))
+            self.linear_solver = ExternalSolversApplication.FEASTSolver(self.eigensolver_settings,self.complex_feast_solver)
         else:
             raise Exception("solver_type is not yet implemented.")
 

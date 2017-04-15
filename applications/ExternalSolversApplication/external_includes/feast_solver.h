@@ -390,7 +390,8 @@ private:
                 {
                     // set up quadrature matrix (ZeM-K) and solver
                     this->CalculateFEASTSystemMatrix(Ze, rMassMatrix, rStiffnessMatrix, Az);
-                    mpLinearSolver->InitializeSolutionStep(Az,x,b);
+                    mpLinearSolver->FinalizeSolutionStep(Az, x, b);
+                    mpLinearSolver->InitializeSolutionStep(Az, x, b);
                 } break;
                 case 11:
                 {

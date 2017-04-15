@@ -67,6 +67,13 @@ void  AddLinearSolversToPython()
 
     using namespace boost::python;
 
+    class_<ComplexLinearSolverType, ComplexLinearSolverType::Pointer, boost::noncopyable>("ComplexLinearSolver")
+    .def(self_ns::str(self))
+    ;
+    class_<ComplexDirectSolverType, ComplexDirectSolverType::Pointer, bases<ComplexLinearSolverType>, boost::noncopyable >("ComplexDirectSolver")
+    .def(self_ns::str(self))
+    ;
+
     //***************************************************************************
     //linear solvers
     //***************************************************************************
@@ -74,6 +81,7 @@ void  AddLinearSolversToPython()
     typedef FEASTSolver<SpaceType, LocalSpaceType> FEASTSolverType;
     class_<FEASTSolverType, FEASTSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >
         ( "FEASTSolver", init<Parameters::Pointer>() )
+        .def(init<Parameters::Pointer, ComplexLinearSolverType::Pointer>())
         ;
 #endif    
           
@@ -103,12 +111,6 @@ void  AddLinearSolversToPython()
     ( "PastixSolver",init<int,bool>() )
     .def(init<double,int,int,int,bool>())
     .def(init<Parameters>());
-    ;
-    class_<ComplexLinearSolverType, ComplexLinearSolverType::Pointer, boost::noncopyable>("ComplexLinearSolver")
-    .def(self_ns::str(self))
-    ;
-    class_<ComplexDirectSolverType, ComplexDirectSolverType::Pointer, bases<ComplexLinearSolverType>, boost::noncopyable >("ComplexDirectSolver")
-    .def(self_ns::str(self))
     ;
     typedef PastixComplexSolver<ComplexSpaceType, ComplexLocalSpaceType> PastixComplexSolverType;
     class_<PastixComplexSolverType, bases<ComplexDirectSolverType>, boost::noncopyable >

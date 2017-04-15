@@ -1,6 +1,9 @@
 #if !defined(KRATOS_PASTIX_COMPLEX_SOLVER)
 #define KRATOS_PASTIX_COMPLEX_SOLVER
 
+#ifdef _OPENMP
+#  include <omp.h>
+#endif
 #include <complex>
 #include <vector>
 #include <algorithm>
@@ -33,25 +36,31 @@ public:
 	{
 	}
 
-    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+	void InitializeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-		pastix_data_t *pastix_data;
+		
+    }
+
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    {
+		pastix_data_t *pastix_data = NULL;
 		pastix_int_t nrows = rA.size1();
 		std::vector<pastix_int_t> row_ptr(rA.index1_data().size());
 		std::vector<pastix_int_t> col_idx(rA.index2_data().size());
-		std::vector<pastix_int_t> perm;
+		std::vector<pastix_int_t> perm(nrows), invp(nrows);
 		pastix_int_t iparm[IPARM_SIZE];
 		double dparm[DPARM_SIZE];
 
 		std::copy(std::begin(rA.index1_data()),std::end(rA.index1_data()),std::begin(row_ptr));
-		for(auto &i : rA.index1_data())
+		for (auto &i : row_ptr)
 			++i;
 		std::copy(std::begin(rA.index2_data()),std::end(rA.index2_data()),std::begin(col_idx));
-		for(auto &i : rA.index2_data())
+		for (auto &i : col_idx)
 			++i;
 
 		// Initialize
 		iparm[IPARM_MODIFY_PARAMETER] = API_NO;
+		//iparm[IPARM_MATRIX_VERIFICATION] = API_YES;
 		iparm[IPARM_START_TASK] = API_TASK_INIT;
         iparm[IPARM_END_TASK  ] = API_TASK_INIT;
 
@@ -60,7 +69,7 @@ public:
 			static_cast<pastix_int_t*>(&col_idx[0]),
 			static_cast<std::complex<double>*>(&rA.value_data()[0]),
 			static_cast<pastix_int_t*>(&perm[0]),
-			NULL,
+			static_cast<pastix_int_t*>(&invp[0]),
 			NULL,
 			1,iparm,dparm);
 
@@ -70,6 +79,9 @@ public:
         iparm[IPARM_SYM            ] = API_SYM_NO;
         iparm[IPARM_FACTORIZATION  ] = API_FACT_LU;
         iparm[IPARM_TRANSPOSE_SOLVE] = API_YES;
+#ifdef _OPENMP
+        iparm[IPARM_THREAD_NBR     ] = omp_get_max_threads();
+#endif
 
         iparm[IPARM_START_TASK] = API_TASK_ORDERING;
         iparm[IPARM_END_TASK  ] = API_TASK_NUMFACT;
@@ -79,7 +91,7 @@ public:
 			static_cast<pastix_int_t*>(&col_idx[0]),
 			static_cast<std::complex<double>*>(&rA.value_data()[0]),
 			static_cast<pastix_int_t*>(&perm[0]),
-			NULL,
+			static_cast<pastix_int_t*>(&invp[0]),
 			NULL,
 			1,iparm,dparm);
 
@@ -93,7 +105,7 @@ public:
 			static_cast<pastix_int_t*>(&col_idx[0]),
 			static_cast<std::complex<double>*>(&rA.value_data()[0]),
 			static_cast<pastix_int_t*>(&perm[0]),
-			NULL,
+			static_cast<pastix_int_t*>(&invp[0]),
 			static_cast<std::complex<double>*>(&rX[0]),
 			1,iparm,dparm);
 
@@ -106,24 +118,19 @@ public:
 			static_cast<pastix_int_t*>(&col_idx[0]),
 			static_cast<std::complex<double>*>(&rA.value_data()[0]),
 			static_cast<pastix_int_t*>(&perm[0]),
-			NULL,
+			static_cast<pastix_int_t*>(&invp[0]),
 			NULL,
 			1,iparm,dparm);
 
 		return true;
     }
 
-    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
-    {
-		return true;
-    }
-
-    void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Pastix direct solver finished.";
     }
 
-    void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
