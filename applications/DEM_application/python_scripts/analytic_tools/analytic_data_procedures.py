@@ -8,6 +8,6 @@ class WatcherAnalyzer:
         times = []
         fluxes = []
         self.face_watcher.GetTotalFlux(times, fluxes)
-        self.accumulated_flux = [abs(sum(fluxes[:i])) for i in range(1, len(fluxes)+1)]
+        self.accumulated_flux = [sum(fluxes[:i]) for i in range(1, len(fluxes) + 1)]
         plt.plot(times, self.accumulated_flux)
         plt.show()

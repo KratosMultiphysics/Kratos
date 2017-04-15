@@ -23,6 +23,7 @@
 #include "custom_utilities/dem_fem_utilities.h"
 #include "custom_utilities/benchmark_utilities.h" 
 #include "custom_utilities/inlet.h"
+#include "custom_utilities/force_based_inlet.h"
 #include "custom_utilities/reorder_consecutive_from_given_ids_model_part_io.h"
 #include "custom_utilities/AuxiliaryUtilities.h" 
 
@@ -96,6 +97,10 @@ void AddCustomUtilitiesToPython() {
         ("DEM_Inlet", init<ModelPart&>())
         .def("CreateElementsFromInletMesh", &DEM_Inlet::CreateElementsFromInletMesh)        
         .def("InitializeDEM_Inlet", &DEM_Inlet::InitializeDEM_Inlet) 
+        ;
+
+    class_<DEM_Force_Based_Inlet, bases<DEM_Inlet> >
+        ("DEM_Force_Based_Inlet", init<ModelPart&>())
         ;
 
     class_<SphericElementGlobalPhysicsCalculator, boost::noncopyable >
