@@ -14,6 +14,7 @@
 
 // External includes
 #include <boost/python.hpp>
+#include <complex>
 
 
 // Project includes
@@ -56,6 +57,7 @@ void  AddLinearSolversToPython()
     typedef UblasSpace<std::complex<double>, boost::numeric::ublas::compressed_matrix<std::complex<double>>, boost::numeric::ublas::vector<std::complex<double>>> ComplexSpaceType;
     typedef UblasSpace<std::complex<double>, boost::numeric::ublas::matrix<std::complex<double>>, boost::numeric::ublas::vector<std::complex<double>>> ComplexLocalSpaceType;
     typedef LinearSolver<ComplexSpaceType,  ComplexLocalSpaceType> ComplexLinearSolverType;
+    typedef DirectSolver<ComplexSpaceType,  ComplexLocalSpaceType> ComplexDirectSolverType;
     typedef DirectSolver<SpaceType,  LocalSpaceType> DirectSolverType;
     typedef SuperLUSolver<SpaceType,  LocalSpaceType> SuperLUSolverType;
     typedef SuperLUIterativeSolver<SpaceType,  LocalSpaceType> SuperLUIterativeSolverType;
@@ -102,9 +104,15 @@ void  AddLinearSolversToPython()
     .def(init<double,int,int,int,bool>())
     .def(init<Parameters>());
     ;
+    class_<ComplexLinearSolverType, ComplexLinearSolverType::Pointer, boost::noncopyable>("ComplexLinearSolver")
+    .def(self_ns::str(self))
+    ;
+    class_<ComplexDirectSolverType, ComplexDirectSolverType::Pointer, bases<ComplexLinearSolverType>, boost::noncopyable >("ComplexDirectSolver")
+    .def(self_ns::str(self))
+    ;
     typedef PastixComplexSolver<ComplexSpaceType, ComplexLocalSpaceType> PastixComplexSolverType;
-    class_<PastixComplexSolverType, bases<ComplexLinearSolverType>, boost::noncopyable >
-    ( "PastixComplexSolver",init<Parameters&>() )
+    class_<PastixComplexSolverType, bases<ComplexDirectSolverType>, boost::noncopyable >
+    ("PastixComplexSolver",init<Parameters&>())
     ;
 #endif
     
