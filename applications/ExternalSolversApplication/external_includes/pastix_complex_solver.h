@@ -4,7 +4,6 @@
 #include <complex>
 #include <vector>
 #include <algorithm>
-#include <stdint.h>
 extern "C" {
 #include <pastix.h>
 }
