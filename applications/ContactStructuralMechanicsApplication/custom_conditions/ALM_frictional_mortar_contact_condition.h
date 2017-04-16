@@ -202,6 +202,8 @@ protected:
     ///@name Protected member Variables
     ///@{
     
+    // TODO: Define the "CL" or friction law to compute this
+    
     ///@}
     ///@name Protected Operators
     ///@{
@@ -263,6 +265,20 @@ protected:
         
         return value;
     }
+    
+    /*
+     * Returns a value depending of the active/inactive set
+     */
+    
+    array_1d<double, TNumNodes> GetFrictionCoefficient()
+    {
+        array_1d<double, TNumNodes> mu(TNumNodes, 0.0);
+        
+        // TODO: Define the "CL" or friction law to compute this
+        
+        return mu;
+    }
+    
     ///@}
     ///@name Protected  Access
     ///@{
