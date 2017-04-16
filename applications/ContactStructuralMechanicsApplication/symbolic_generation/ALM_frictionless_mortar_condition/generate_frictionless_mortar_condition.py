@@ -252,13 +252,12 @@ for dof in reversed(range(len(u12_var))):
 ################################# FINAL SAVING ##############################
 #############################################################################
 
-out = open("lhs.txt",'w')
-out.write(lhs_string)
-out.close()
-
-out = open("rhs.txt",'w')
-out.write(rhs_string)
-out.close()
+input = open("ALM_frictionless_mortar_contact_condition_template.cpp",'r').read()
+outputstring = input.replace("// replace_lhs", lhs_string)
+outputstring = outputstring.replace("// replace_rhs", rhs_string)
+output = open("ALM_frictionless_mortar_contact_condition.cpp",'w')
+output.write(outputstring)
+output.close()
 
 print("Strings have been replaced...")
 
