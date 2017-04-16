@@ -294,7 +294,7 @@ public:
      * @return a Pointer to the new element
      */
     
-    Condition::Pointer Create( 
+    virtual Condition::Pointer Create( 
         IndexType NewId,
         NodesArrayType const& rThisNodes,
         PropertiesType::Pointer pProperties 
@@ -308,10 +308,11 @@ public:
      * @return a Pointer to the new element
      */
     
-    Condition::Pointer Create(
+    virtual Condition::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties) const;
+        PropertiesType::Pointer pProperties
+        ) const;
         
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
@@ -864,7 +865,7 @@ protected:
         const PointType& LocalPointDecomp,
         const PointType& LocalPointParent,
         GeometryPointType& GeometryDecomp
-    );
+        );
 
     /********************************************************************************/
     /**************** METHODS TO CALCULATE MORTAR CONDITION MATRICES ****************/
