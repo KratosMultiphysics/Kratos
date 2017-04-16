@@ -233,7 +233,36 @@ protected:
         const unsigned int& rMasterElementIndex,
         const unsigned int& rActiveInactive
         ) override;
+        
+    /******************************************************************/
+    /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
+    /******************************************************************/
     
+    /*
+     * Returns a value depending of the active/inactive set
+     */
+    
+    unsigned int GetActiveInactiveValue(GeometryType& CurrentGeometry) const override
+    {
+        unsigned int value = 0;
+        
+        for (unsigned int i_node = 0; i_node < CurrentGeometry.size(); i_node++)
+        {
+            if (CurrentGeometry[i_node].Is(ACTIVE) == true)
+            {
+                if (CurrentGeometry[i_node].Is(SLIP) == true)
+                {
+                    value += std::pow(3, i_node);
+                }
+                else
+                {
+                    value += 2 * std::pow(3, i_node);
+                }
+            }
+        }
+        
+        return value;
+    }
     ///@}
     ///@name Protected  Access
     ///@{

@@ -234,6 +234,29 @@ protected:
         const unsigned int& rActiveInactive
         ) override;
     
+    /******************************************************************/
+    /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
+    /******************************************************************/
+    
+    /*
+     * Returns a value depending of the active/inactive set
+     */
+    
+    unsigned int GetActiveInactiveValue(GeometryType& CurrentGeometry) const override
+    {
+        unsigned int value = 0;
+        
+        for (unsigned int i_node = 0; i_node < CurrentGeometry.size(); i_node++)
+        {
+            if (CurrentGeometry[i_node].Is(ACTIVE) == true)
+            {
+                value += std::pow(2, i_node);
+            }
+        }
+        
+        return value;
+    }
+        
     ///@}
     ///@name Protected  Access
     ///@{

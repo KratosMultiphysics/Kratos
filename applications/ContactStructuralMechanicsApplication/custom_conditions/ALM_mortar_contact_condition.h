@@ -1052,26 +1052,11 @@ protected:
      * Returns a value depending of the active/inactive set
      */
     
-    unsigned int GetActiveInactiveValue(GeometryType& CurrentGeometry) const
+    virtual unsigned int GetActiveInactiveValue(GeometryType& CurrentGeometry) const
     {
-        unsigned int value = 0;
+        KRATOS_ERROR << "You are calling to the base class method GetActiveInactiveValue, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
         
-        for (unsigned int i_node = 0; i_node < CurrentGeometry.size(); i_node++)
-        {
-            if (CurrentGeometry[i_node].Is(ACTIVE) == true)
-            {
-                if (TFrictional == true && CurrentGeometry[i_node].Is(SLIP) == false) // STICK
-                {
-                    value += std::pow(3, i_node);
-                }
-                else // SLIP
-                {
-                    value += std::pow(2, i_node);
-                }
-            }
-        }
-        
-        return value;
+        return 0;
     }
 
     /*
