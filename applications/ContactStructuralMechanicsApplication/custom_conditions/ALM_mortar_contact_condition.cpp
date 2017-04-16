@@ -267,7 +267,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes>::FinalizeNo
                     const array_1d<double, TDim> aux_array = row(Dx1OldMx2Old, iNode);
                                     
                     #pragma omp atomic 
-                    GetGeometry()[iNode].GetValue(WEIGHTED_SLIP) += (inner_prod(aux_array, TangentXi) + inner_prod(aux_array, TangentEta)); 
+                    GetGeometry()[iNode].GetValue(WEIGHTED_SLIP) += std::sqrt(std::pow(inner_prod(aux_array, TangentXi), 2) + std::pow(inner_prod(aux_array, TangentEta), 2)); 
                 }
             }
         }

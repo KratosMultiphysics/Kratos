@@ -479,7 +479,7 @@ protected:
         typedef bounded_matrix<double, TNumNodes, TNumNodes> Type3;
         
         // Auxiliar sizes
-        static const unsigned int Size1 = (TNumNodes * TDim);
+        static const unsigned int Size1 =     (TNumNodes * TDim);
         static const unsigned int Size2 = 2 * (TNumNodes * TDim);
         
         // Master and element geometries
@@ -487,7 +487,7 @@ protected:
         GeometryType MasterGeometry;
         
         // The normals of the nodes
-        Type2 NormalMaster; // TODO: Think about remove "_"
+        Type2 NormalMaster;
         Type2 NormalSlave;
         
         // Displacements and velocities
