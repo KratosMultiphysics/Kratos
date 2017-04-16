@@ -788,6 +788,15 @@ namespace Kratos
 		rMassMatrix(11, 11) = 4.00 * L * L;
 
 		rMassMatrix *= MassScaling;
+
+		MatrixType RotationMatrix = ZeroMatrix(MatSize);
+		Matrix aux_matrix = ZeroMatrix(MatSize);
+
+		RotationMatrix = this->mRotationMatrix;
+		noalias(aux_matrix) = prod(RotationMatrix, rMassMatrix);
+		noalias(rMassMatrix) = prod(aux_matrix,
+			Matrix(trans(RotationMatrix)));
+
 		KRATOS_CATCH("")
 	}
 
@@ -888,7 +897,8 @@ namespace Kratos
 		//calculate Transformation Matrix
 		Matrix TransformationMatrix = ZeroMatrix(LocalSize);
 		this->CalculateTransformationMatrix(TransformationMatrix);
-
+		this->mRotationMatrix = ZeroMatrix(LocalSize);
+		this->mRotationMatrix = TransformationMatrix;
 
 		//deformation modes
 		VectorType elementForces_t = ZeroVector(size);
