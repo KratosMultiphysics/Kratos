@@ -1253,21 +1253,21 @@ bounded_matrix<double, 28, 28> AugmentedLagrangianMethodMortarContactCondition<3
     return ZeroMatrix(28, 28);
 }
 
-// /***********************************************************************************/
-// /***********************************************************************************/
-// 
-// template<>
-// bounded_matrix<double, 12, 12> AugmentedLagrangianMethodMortarContactCondition<2,2, true>::CalculateLocalLHS(
-//         const MortarConditionMatrices& rMortarConditionMatrices,
-//         const unsigned int& rMasterElementIndex,
-//         const unsigned int& rActiveInactive
-//         )
-// {
-//     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
-//     
-//     return ZeroMatrix(12, 12);
-// }
-// 
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+bounded_matrix<double, 12, 12> AugmentedLagrangianMethodMortarContactCondition<2,2, true>::CalculateLocalLHS(
+        const MortarConditionMatrices& rMortarConditionMatrices,
+        const unsigned int& rMasterElementIndex,
+        const unsigned int& rActiveInactive
+        )
+{
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    
+    return ZeroMatrix(12, 12);
+}
+
 // /***********************************************************************************/
 // /***********************************************************************************/
 // 
@@ -1406,21 +1406,21 @@ array_1d<double,28> AugmentedLagrangianMethodMortarContactCondition<3,4, false>:
     return ZeroVector(28);
 }
 
-// /***********************************************************************************/
-// /***********************************************************************************/
-// 
-// template<>
-// array_1d<double,12> AugmentedLagrangianMethodMortarContactCondition<2,2, true>::CalculateLocalRHS(
-//         const MortarConditionMatrices& rMortarConditionMatrices,
-//         const unsigned int& rMasterElementIndex,
-//         const unsigned int& rActiveInactive
-//         )
-// {
-//     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
-//     
-//     return ZeroVector(12);
-// }
-// 
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+array_1d<double,12> AugmentedLagrangianMethodMortarContactCondition<2,2, true>::CalculateLocalRHS(
+        const MortarConditionMatrices& rMortarConditionMatrices,
+        const unsigned int& rMasterElementIndex,
+        const unsigned int& rActiveInactive
+        )
+{
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    
+    return ZeroVector(12);
+}
+
 // /***********************************************************************************/
 // /***********************************************************************************/
 // 
@@ -2239,7 +2239,7 @@ template class AugmentedLagrangianMethodMortarContactCondition<3, 3, false>;
 template class AugmentedLagrangianMethodMortarContactCondition<3, 4, false>;
 
 // Frictional cases
-// template class AugmentedLagrangianMethodMortarContactCondition<2, 2, true>;
+template class AugmentedLagrangianMethodMortarContactCondition<2, 2, true>;
 // template class AugmentedLagrangianMethodMortarContactCondition<3, 3, true>;
 // template class AugmentedLagrangianMethodMortarContactCondition<3, 4, true>;
 

@@ -28,7 +28,7 @@
 // Mortar conditions
 #include "custom_conditions/mesh_tying_mortar_condition.h"
 #include "custom_conditions/ALM_frictionless_mortar_contact_condition.h"
-// #include "custom_conditions/ALM_frictional_mortar_contact_condition.h"
+#include "custom_conditions/ALM_frictional_mortar_contact_condition.h"
 
 // OLD Mortar conditions 
 #include "custom_conditions/mortar_contact_condition.h"
@@ -215,7 +215,7 @@ private:
     const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3> mALMFrictionlessMortarContactCondition3D3N;
     const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4> mALMFrictionlessMortarContactCondition3D4N;
     // Frictional cases
-//     const AugmentedLagrangianMethodFrictionalMortarContactCondition<2, 2> mALMFrictionalMortarContactCondition2D2N;
+    const AugmentedLagrangianMethodFrictionalMortarContactCondition<2, 2> mALMFrictionalMortarContactCondition2D2N;
 //     const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 3> mALMFrictionalMortarContactCondition3D3N;
 //     const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 4> mALMFrictionalMortarContactCondition3D4N;
     
