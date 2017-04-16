@@ -55,6 +55,7 @@ namespace Kratos {
 
     private:
         virtual void FixInjectionConditions(Element* p_element);
+        virtual void RemoveInjectionConditions(Element &element);
         Vector mPartialParticleToInsert; //array of doubles, must be resized in the constructor to the number of meshes
         Vector mLastInjectionTimes; //array of doubles, must be resized in the constructor to the number of meshes
         std::vector<int> mTotalNumberOfDetachedParticles;

@@ -256,6 +256,21 @@ namespace Kratos {
         pnew_node->AddDof(ANGULAR_VELOCITY_Y, REACTION_Y);
         pnew_node->AddDof(ANGULAR_VELOCITY_Z, REACTION_Z);
 
+        if (initial) {
+            pnew_node->pGetDof(VELOCITY_X)->FixDof();
+            pnew_node->pGetDof(VELOCITY_Y)->FixDof();
+            pnew_node->pGetDof(VELOCITY_Z)->FixDof();
+            pnew_node->pGetDof(ANGULAR_VELOCITY_X)->FixDof();
+            pnew_node->pGetDof(ANGULAR_VELOCITY_Y)->FixDof();
+            pnew_node->pGetDof(ANGULAR_VELOCITY_Z)->FixDof();
+
+            pnew_node->Set(DEMFlags::FIXED_VEL_X, true);
+            pnew_node->Set(DEMFlags::FIXED_VEL_Y, true);
+            pnew_node->Set(DEMFlags::FIXED_VEL_Z, true);
+            pnew_node->Set(DEMFlags::FIXED_ANG_VEL_X, true);
+            pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Y, true);
+            pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Z, true);
+        }
         KRATOS_CATCH("")
     }
     
@@ -313,6 +328,7 @@ namespace Kratos {
   
         pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY) = null_vector;
 
+
         pnew_node->AddDof(VELOCITY_X, REACTION_X);
         pnew_node->AddDof(VELOCITY_Y, REACTION_Y);
         pnew_node->AddDof(VELOCITY_Z, REACTION_Z);
@@ -333,6 +349,7 @@ namespace Kratos {
         pnew_node->Set(DEMFlags::FIXED_ANG_VEL_X, true);
         pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Y, true);
         pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Z, true);
+
         KRATOS_CATCH("")
     }
 

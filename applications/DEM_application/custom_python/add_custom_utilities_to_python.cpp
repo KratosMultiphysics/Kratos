@@ -100,7 +100,7 @@ void AddCustomUtilitiesToPython() {
         ;
 
     class_<DEM_Force_Based_Inlet, bases<DEM_Inlet> >
-        ("DEM_Force_Based_Inlet", init<ModelPart&>())
+        ("DEM_Force_Based_Inlet", init<ModelPart&, array_1d<double, 3>>())
         ;
 
     class_<SphericElementGlobalPhysicsCalculator, boost::noncopyable >

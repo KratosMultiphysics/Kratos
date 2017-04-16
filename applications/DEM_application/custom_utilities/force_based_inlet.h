@@ -17,13 +17,16 @@ namespace Kratos {
     public:              
         
         /// Constructor:               
-        DEM_Force_Based_Inlet(ModelPart& inlet_modelpart);
+        DEM_Force_Based_Inlet(ModelPart& inlet_modelpart, array_1d<double, 3> injection_force);
 
         /// Destructor.
         virtual ~DEM_Force_Based_Inlet(){}
 
     private:
+        array_1d<double, 3> mInjectionForce;
         void FixInjectionConditions(Element* p_element) override;
+        void RemoveInjectionConditions(Element &element) override;
+        array_1d<double, 3> GetInjectionForce();
     };
 }// namespace Kratos.
 
