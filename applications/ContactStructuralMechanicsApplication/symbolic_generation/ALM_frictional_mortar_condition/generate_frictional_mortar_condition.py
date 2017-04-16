@@ -8,10 +8,6 @@ mode = "c" #to output to a c++ file
 separate_derivatives = True
 impose_partion_of_unity = False
 
-# For debug    
-#dim_combinations = [2] 
-#nnodes_combinations = [2]
-
 def convert_chain_int_int(list_slip_stick):
     value = 0
     count = 0
@@ -21,11 +17,11 @@ def convert_chain_int_int(list_slip_stick):
     return value
         
 ## Debug
-dim_combinations = [2]
-nnodes_combinations = [2]
+#dim_combinations = [2]
+#nnodes_combinations = [2]
 
-#dim_combinations = [2,3,3]
-#nnodes_combinations = [2,3,4]
+dim_combinations = [2,3,3]
+nnodes_combinations = [2,3,4]
 
 def ternary (n, size):
     nums = [0] * size
@@ -122,11 +118,6 @@ for dim, nnodes in zip(dim_combinations, nnodes_combinations):
             for idim in range(dim):
                 lmtangent[node,idim] = tangentxislave[node,idim] * lmtangentxi[node] + tangentetaslave[node,idim] * lmtangenteta[node]
                 wlmtangent[node,idim] = tangentxislave[node,idim] * wlmtangentxi[node] + tangentetaslave[node,idim] * wlmtangenteta[node]
-        
-        # Now we can compute the resultant tangent
-        tangentslave = lmtangent.copy()
-        for node in range(nnodes):
-            tangentslave /= real_norm(lmtangent.row(node))
             
         # Defining additional variables
         gap = DefineVector('gap',nnodes) 
@@ -207,6 +198,17 @@ for dim, nnodes in zip(dim_combinations, nnodes_combinations):
         ########################## FUNCTIONAL DEFINITION ############################
         #############################################################################
         #############################################################################
+
+        # We compute the augmented tangent LM
+        hatlmtangent = DefineMatrix('hatlmtangent',nnodes,dim)
+        for node in range(nnodes):
+            for idim in range(dim):
+                hatlmtangent[node,idim] = scale_factor * lmtangent[node,idim] + slipxi[node] * penalty_parameter + slipeta[node] * penalty_parameter
+        
+        # Now we can compute the resultant tangent
+        tangentslave = hatlmtangent.copy()
+        for node in range(nnodes):
+            tangentslave /= real_norm(hatlmtangent.row(node))
 
         # Compute galerkin functional # NOTE: Maybe you can define a different penalty and scale factor in the tangent direction
         rv_galerkin = 0
