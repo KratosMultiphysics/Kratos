@@ -93,7 +93,7 @@ public:
     
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
     
-    static constexpr unsigned int MatrixSize = TDim * (TNumNodes + TNumNodes) + TNumNodes;
+    static constexpr unsigned int MatrixSize = TDim * (TNumNodes + TNumNodes + TNumNodes);
          
     ///@}
     ///@name Life Cycle
