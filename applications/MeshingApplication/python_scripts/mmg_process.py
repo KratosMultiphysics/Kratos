@@ -31,7 +31,7 @@ class MmgProcess(KratosMultiphysics.Process):
                 "gradient_variable"                : "DISTANCE_GRADIENT"
             },
             "framework"                            : "Eulerian",
-            "internal_variable_interpolation_list" : []
+            "internal_variable_interpolation_list" : [],
             "hessian_strategy_parameters"              :{
                 "metric_variable"                  : ["DISTANCE"],
                 "interpolation_error"              : 0.04,
@@ -89,7 +89,7 @@ class MmgProcess(KratosMultiphysics.Process):
             mesh_dependent_constant = self.params["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble()
             if (mesh_dependent_constant == 0.0):
                 self.params["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(0.5 * (self.dim/(self.dim + 1))**2.0)
-
+        
         # Calculate NODAL_H
         self.find_nodal_h = KratosMultiphysics.FindNodalHProcess(self.Model[self.model_part_name])
         self.find_nodal_h.Execute()
@@ -142,6 +142,13 @@ class MmgProcess(KratosMultiphysics.Process):
 
         if (self.strategy == "LevelSet"):
             self._CreateGradientProcess()
+
+        if (self.dim == 2):
+            self.initialize_metric = MeshingApplication.MetricFastInit2D(self.Model[self.model_part_name])
+        else:
+            self.initialize_metric = MeshingApplication.MetricFastInit3D(self.Model[self.model_part_name])
+            
+        self.initialize_metric.Execute()
 
         self._CreateMetricsProcess()
 
@@ -236,7 +243,8 @@ class MmgProcess(KratosMultiphysics.Process):
         # Recalculate NODAL_H
         self.find_nodal_h.Execute()
 
-        self._InitializeMetric()
+        # Initialize metric
+        self.initialize_metric.Execute()
 
         print("Calculating the metrics")
         # Execute metric computation
@@ -253,24 +261,6 @@ class MmgProcess(KratosMultiphysics.Process):
         self.Model[self.model_part_name].Set(KratosMultiphysics.MODIFIED, True)
 
         print("Remesh finished")
-
-    def _InitializeMetric(self):
-        # Initialize metric
-        if (self.dim == 2):
-            ZeroVector = KratosMultiphysics.Vector(3)
-            ZeroVector[0] = 0.0
-            ZeroVector[1] = 0.0
-            ZeroVector[2] = 0.0
-        else:
-            ZeroVector = KratosMultiphysics.Vector(6)
-            ZeroVector[0] = 0.0
-            ZeroVector[1] = 0.0
-            ZeroVector[2] = 0.0
-            ZeroVector[3] = 0.0
-            ZeroVector[4] = 0.0
-            ZeroVector[5] = 0.0
-        for node in self.Model[self.model_part_name].Nodes:
-            node.SetValue(MeshingApplication.MMG_METRIC, ZeroVector)
 
     def __generate_submodelparts_list_from_input(self,param):
         '''Parse a list of variables from input.'''
