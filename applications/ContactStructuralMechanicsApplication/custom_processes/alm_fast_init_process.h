@@ -9,8 +9,8 @@
 //  Main authors:    Vicente Mataix Ferrándiz
 //
 
-#if !defined(KRATOS_FAST_INIT_PROCESS)
-#define KRATOS_FAST_INIT_PROCESS
+#if !defined(KRATOS_ALM_FAST_INIT_PROCESS)
+#define KRATOS_ALM_FAST_INIT_PROCESS
 
 // System includes
 
@@ -108,7 +108,11 @@ public:
     {
         KRATOS_TRY;
         
+        // We initialize the zero vector
         const array_1d<double, 3> zerovector(3, 0.0);
+        
+        // We differentiate between frictional or frictionless
+        const bool frictional = mrThisModelPart.Is(SLIP);
         
         // We iterate over the node
         NodesArrayType& pNodes = mrThisModelPart.Nodes();
@@ -121,6 +125,10 @@ public:
             
             // Weighted values
             itNode->GetValue(WEIGHTED_GAP) = 0.0;
+            if (frictional == true)
+            {
+                itNode->GetValue(WEIGHTED_SLIP) = 0.0;
+            }
             
             // Nodal area
             itNode->GetValue(NODAL_AREA)   = 0.0;
@@ -298,4 +306,4 @@ private:
 // }
 
 }
-#endif /* KRATOS_FAST_INIT_PROCESS defined */
+#endif /* KRATOS_ALM_FAST_INIT_PROCESS defined */
