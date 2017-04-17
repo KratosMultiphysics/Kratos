@@ -31,7 +31,14 @@ class MmgProcess(KratosMultiphysics.Process):
                 "gradient_variable"                : "DISTANCE_GRADIENT"
             },
             "framework"                            : "Eulerian",
-            "internal_variable_interpolation_list" : [],
+            "internal_variables_parameters"        :
+            {
+                "allocation_size"                      : 1000, 
+                "bucket_size"                          : 4, 
+                "search_factor"                        : 2, 
+                "interpolation_type"                   : "LST",
+                "internal_variable_interpolation_list" :[]
+            },
             "hessian_strategy_parameters"              :{
                 "metric_variable"                  : ["DISTANCE"],
                 "interpolation_error"              : 0.04,
