@@ -1026,6 +1026,7 @@ protected:
             f_gamma += weight*outer_prod(aux_out,aux_cut);
         }
 
+        // Normal matrix (generated with the intersection normal outer product)
         for (unsigned int i=0; i<TDim; ++i)
         {
             for (unsigned int j=0; j<TDim; ++j)
@@ -1108,7 +1109,9 @@ protected:
         }
 
         // LHS outside Nitche contribution assembly
+        KRATOS_WATCH(auxLeftHandSideMatrix)
         auxNormalLHS = prod(auxLeftHandSideNormalMatrix, auxLeftHandSideMatrix);
+        KRATOS_WATCH(auxNormalLHS)
         rLeftHandSideMatrix += auxNormalLHS;
 
         // RHS outside Nitche contribution assembly
@@ -1166,6 +1169,8 @@ protected:
     {
 
         // Add all the boundary intersection terms
+        // TODO: Now, all the elements are marked with the SLIP flag. Even though the contribution is only added
+        // in those elements that are split
         if (rSplittingData.ndivisions > 1)
         {
             // Compute and assemble the boundary terms level set contribution
@@ -1173,12 +1178,18 @@ protected:
 
             // Compute and assemble the penalty boundary condition imposition contribution
             // TODO: AddSlipBoundaryConditionPenaltyContribution
-            AddBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
+            // AddBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
 
             // Compute and assemble the modified Nitche method boundary condition imposition contribution
             // Note that the Nitche contribution has to be computed the last since it modifies the outer nodes contribution
-            // TODO: AddSlipBoundaryConditionNitcheContribution
-            AddBoundaryConditionNitcheContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
+            if (this->Is(SLIP))
+            {
+                AddSlipBoundaryConditionNitcheContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
+            }
+            else
+            {
+                AddBoundaryConditionNitcheContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
+            }
         }
         // Add a penalty contribution to enforce the BC imposition at the level set when the distance value is close to 0
         // Note that this is an excepcional case in where there are both positive and negative distance value but the intersection
@@ -1310,6 +1321,59 @@ protected:
                 rB_matrix(2,i*TDim+1) = rData.DN_DX(i,0);
             }
         }
+    }
+
+
+    /**
+    * This functions sets the B strain matrix
+    * @param rData: reference to element data structure (it contains the shape functions derivatives)
+    * @param rSplittingData: reference to the intersection data structure
+    * @param rGradNormProj: reference to the computed gradient normal projection
+    */
+    void ComputeGradientNormalProjection(const ElementDataType& rData,
+                                         const ElementSplittingDataStruct& rSplittingData,
+                                         array_1d<double, TDim>& rGradNormProj)
+    {
+        rGradNormProj.clear();
+        MatrixType Gradient = ZeroMatrix(TDim, TDim); // Matrix to temporary store the velocity gradient dvj/dxi
+
+        // Fill the gradient matrix
+        if (TDim == 3)
+        {
+            for (unsigned int i=0; i<TNumNodes; i++)
+            {
+                Gradient(0,0) += rData.DN_DX(i,0)*rData.v(i,0);
+                Gradient(0,1) += rData.DN_DX(i,0)*rData.v(i,1);
+                Gradient(0,2) += rData.DN_DX(i,0)*rData.v(i,2);
+                Gradient(1,0) += rData.DN_DX(i,1)*rData.v(i,0);
+                Gradient(1,1) += rData.DN_DX(i,1)*rData.v(i,1);
+                Gradient(1,2) += rData.DN_DX(i,1)*rData.v(i,2);
+                Gradient(2,0) += rData.DN_DX(i,2)*rData.v(i,0);
+                Gradient(2,1) += rData.DN_DX(i,2)*rData.v(i,1);
+                Gradient(2,2) += rData.DN_DX(i,2)*rData.v(i,2);
+            }
+
+        }
+        else
+        {
+            for (unsigned int i=0; i<TNumNodes; ++i)
+            {
+                Gradient(0,0) += rData.DN_DX(i,0)*rData.v(i,0);
+                Gradient(0,1) += rData.DN_DX(i,0)*rData.v(i,1);
+                Gradient(1,0) += rData.DN_DX(i,1)*rData.v(i,0);
+                Gradient(1,1) += rData.DN_DX(i,1)*rData.v(i,1);
+            }
+        }
+
+        // Compute the intersection normal projection of the gradient
+        for (unsigned int i=0; i<TDim; ++i)
+        {
+            for (unsigned int j=0; j<TDim; ++j)
+            {
+                rGradNormProj(i) = rSplittingData.intersection_normal[j]*Gradient(j,i)
+            }
+        }
+
     }
 
     ///@}
