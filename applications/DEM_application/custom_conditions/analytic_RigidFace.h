@@ -60,6 +60,14 @@ public:
     std::vector<int> GetSignedCollidingIds();
     std::vector<double> GetCollidingNormalRelativeVelocity();
     std::vector<double> GetCollidingTangentialRelativeVelocity();
+    std::vector<double> GetMasses();
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "Analytic" << RigidFace3D::Info();
+        return buffer.str();
+    }
+
 
 private:
 
@@ -70,6 +78,7 @@ private:
     std::vector<int> mAllCrossers;
     std::vector<double> mCollidingNormalVelocities;
     std::vector<double> mCollidingTangentialVelocities;
+    std::vector<double> mMasses;
 
     void TestForNewCrosserAndPushBack(SphericParticle* p_particle);
 

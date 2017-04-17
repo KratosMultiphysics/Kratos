@@ -176,7 +176,7 @@ namespace Kratos {
                 // (more strict), since we want to make sure that the particle is taken far enough away to avoid
                 // interferences with the newly injected ones to come.
                 const double admissible_indentation_ratio_for_release = 0;
-                const double admissible_indentation_ratio_for_injection = 0.2;
+                const double admissible_indentation_ratio_for_injection = 0.05;
                 const double indentation = CalculateNormalizedIndentation(spheric_particle, *neighbour_particle);
                 const bool indentation_is_significant_for_release = indentation > admissible_indentation_ratio_for_release;
                 const bool indentation_is_significant_for_injection = indentation > admissible_indentation_ratio_for_injection;

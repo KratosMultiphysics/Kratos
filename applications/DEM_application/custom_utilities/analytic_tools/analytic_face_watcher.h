@@ -46,7 +46,7 @@ class CrossingsTimeStepDataBase  // It holds the historical information gathered
 {
     public:
 
-    CrossingsTimeStepDataBase(const double time) : mNCrossings(0), mTime(time){}
+    CrossingsTimeStepDataBase(const double time) : mNCrossings(0), mNSignedCrossings(0), mTime(time), mMass(0.0){}
     ~CrossingsTimeStepDataBase(){}
 
     int GetNumberOfCrossings()
@@ -54,10 +54,12 @@ class CrossingsTimeStepDataBase  // It holds the historical information gathered
         return mNCrossings;
     }
 
-    void PushBackCrossings(const int id1, const int id2, const double normal_vel, const double tang_vel)
+    void PushBackCrossings(const int id1, const int id2, const double mass, const double normal_vel, const double tang_vel)
     {
         ++mNCrossings;
         mNSignedCrossings = mNSignedCrossings + Sign(normal_vel);
+        mMass += mass;
+        mMasses.push_back(mass);
         mId1.push_back(id1);
         mId2.push_back(id2);
         mRelVelNormal.push_back(normal_vel);
@@ -69,6 +71,11 @@ class CrossingsTimeStepDataBase  // It holds the historical information gathered
         return mNSignedCrossings;
     }
 
+    double GetTotalMassThroughput()
+    {
+        return mMass;
+    }
+
     double GetTime()
     {
         return mTime;
@@ -76,17 +83,20 @@ class CrossingsTimeStepDataBase  // It holds the historical information gathered
 
     void FillUpPythonLists(boost::python::list& ids,
                            boost::python::list& neighbour_ids,
+                           boost::python::list& masses,
                            boost::python::list& normal_relative_vel,
                            boost::python::list& tangential_relative_vel)
     {
         AnalyticFaceWatcher::ClearList(ids);
         AnalyticFaceWatcher::ClearList(neighbour_ids);
+        AnalyticFaceWatcher::ClearList(masses);
         AnalyticFaceWatcher::ClearList(normal_relative_vel);
         AnalyticFaceWatcher::ClearList(tangential_relative_vel);
 
         for (int i = 0; i < mNCrossings; ++i){
             ids.append(mId1[i]);
             neighbour_ids.append(mId2[i]);
+            masses.append(mMasses[i]);
             normal_relative_vel.append(mRelVelNormal[i]);
             tangential_relative_vel.append(mRelVelTangential[i]);
         }
@@ -97,6 +107,8 @@ class CrossingsTimeStepDataBase  // It holds the historical information gathered
         int mNCrossings;
         int mNSignedCrossings;
         double mTime;
+        double mMass;
+        std::vector<double> mMasses;
         std::vector<int> mId1;
         std::vector<int> mId2;
         std::vector<double> mRelVelNormal;
@@ -107,16 +119,20 @@ class FaceHistoryDatabase // It holds the historical information gathered for a 
     {
     public:
 
-    FaceHistoryDatabase(): mNCrossings(0), mId(0){}
-    FaceHistoryDatabase(const int id) : mNCrossings(0), mId(id){}
+    FaceHistoryDatabase(): mNCrossings(0), mNSignedCrossings(0), mId(0), mMass(0.0){}
+    FaceHistoryDatabase(const int id) : mNCrossings(0), mNSignedCrossings(0), mId(id), mMass(0.0){}
     ~FaceHistoryDatabase(){}
 
-    void PushBackCrossings(const double time, const int id2, const double normal_vel, const double tang_vel)
+    void PushBackCrossings(const double time, const int id2, const double mass, const double normal_vel, const double tang_vel)
     {
         ++mNCrossings;
         mNSignedCrossings = mNSignedCrossings + Sign(normal_vel);
+        mMass += mass * Sign(normal_vel);
+        KRATOS_WATCH(mNSignedCrossings)
+        KRATOS_WATCH(mMass)
         mTimes.push_back(time);
         mId2.push_back(id2);
+        mMasses.push_back(mass * Sign(normal_vel));
         mRelVelNormal.push_back(normal_vel);
         mRelVelTangential.push_back(tang_vel);
     }
@@ -126,19 +142,27 @@ class FaceHistoryDatabase // It holds the historical information gathered for a 
         return mNSignedCrossings;
     }
 
+    double GetTotalMassThroughput()
+    {
+        return mMass;
+    }
+
     void FillUpPythonLists(boost::python::list& times,
                            boost::python::list& neighbour_ids,
+                           boost::python::list& masses,
                            boost::python::list& normal_relative_vel,
                            boost::python::list& tangential_relative_vel)
     {
         AnalyticFaceWatcher::ClearList(times);
         AnalyticFaceWatcher::ClearList(neighbour_ids);
+        AnalyticFaceWatcher::ClearList(masses);
         AnalyticFaceWatcher::ClearList(normal_relative_vel);
         AnalyticFaceWatcher::ClearList(tangential_relative_vel);
 
         for (int i = 0; i < mNCrossings; ++i){
             times.append(mTimes[i]);
             neighbour_ids.append(mId2[i]);
+            masses.append(mMasses[i]);
             normal_relative_vel.append(mRelVelNormal[i]);
             tangential_relative_vel.append(mRelVelTangential[i]);
         }
@@ -148,8 +172,10 @@ class FaceHistoryDatabase // It holds the historical information gathered for a 
 
         int mNCrossings;
         int mNSignedCrossings;
-        int mId;
+        int mId;        
+        double mMass;
         std::vector<double> mTimes;
+        std::vector<double> mMasses;
         std::vector<int> mId2;
         std::vector<double> mRelVelNormal;
         std::vector<double> mRelVelTangential;
@@ -157,24 +183,29 @@ class FaceHistoryDatabase // It holds the historical information gathered for a 
 
 static void ClearList(boost::python::list& my_list); // its best to pass empty lists in the first place to avoid this operation
 
+void ClearData();
+
 void GetFaceData(int id,
                  boost::python::list times,
                  boost::python::list neighbour_ids,
+                 boost::python::list masses,
                  boost::python::list normal_relative_vel,
                  boost::python::list tangential_relative_vel);
 
 void GetAllFacesData(ModelPart& analytic_model_part,
                      boost::python::list times,
                      boost::python::list neighbour_ids,
+                     boost::python::list masses,
                      boost::python::list normal_relative_vel,
                      boost::python::list tangential_relative_vel);
 
 void GetTimeStepsData(boost::python::list ids,
                       boost::python::list neighbour_ids,
+                      boost::python::list masses,
                       boost::python::list normal_relative_vel,
                       boost::python::list tangential_relative_vel);
 
-void GetTotalFlux(boost::python::list times, boost::python::list n_particles);
+void GetTotalFlux(boost::python::list &times, boost::python::list &n_particles, boost::python::list &mass);
 
 virtual void MakeMeasurements(ModelPart& analytic_model_part);
 

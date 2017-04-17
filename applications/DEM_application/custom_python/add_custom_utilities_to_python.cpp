@@ -150,6 +150,7 @@ void AddCustomUtilitiesToPython() {
 
     class_<AnalyticFaceWatcher, boost::noncopyable >
         ("AnalyticFaceWatcher", init<>())
+        .def("ClearData", &AnalyticFaceWatcher::ClearData)
         .def("MakeMeasurements", &AnalyticFaceWatcher::MakeMeasurements)
         .def("GetTimeStepsData", &AnalyticFaceWatcher::GetTimeStepsData)
         .def("GetFaceData", &AnalyticFaceWatcher::GetFaceData)

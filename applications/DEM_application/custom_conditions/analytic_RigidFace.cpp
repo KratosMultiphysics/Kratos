@@ -70,13 +70,13 @@ int AnalyticRigidFace3D::CheckSide(SphericParticle* p_particle)
 #pragma omp critical
 {
     mContactingNeighbourSignedIds.push_back(signed_id);
-
     if (just_changed_side){
         mAllCrossers.push_back(fabs(signed_id));
         const bool is_a_crosser = CheckProjectionFallsInSide(p_particle);
         if (is_a_crosser || true){
             ++mNumberOfCrossingSpheres;
             mCrossers.push_back(fabs(signed_id));
+            mMasses.push_back(p_particle->GetMass());
             array_1d<double, 3> normal;
             CalculateNormal(normal);
             array_1d<double, 3> particle_vel = p_particle->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
@@ -115,11 +115,17 @@ std::vector<double> AnalyticRigidFace3D::GetCollidingTangentialRelativeVelocity(
     return mCollidingTangentialVelocities;
 }
 
-void AnalyticRigidFace3D::InitializeSolutionStep(ProcessInfo& r_process_info)
+std::vector<double> AnalyticRigidFace3D::GetMasses()
 {
+    return mMasses;
+}
+
+void AnalyticRigidFace3D::InitializeSolutionStep(ProcessInfo& r_process_info)
+{   RigidFace3D::InitializeSolutionStep(r_process_info);
     mOldContactingNeighbourSignedIds.swap(mContactingNeighbourSignedIds);
     mContactingNeighbourSignedIds.clear();
     mCrossers.clear();
+    mMasses.clear();
     mCollidingNormalVelocities.clear();
     mCollidingTangentialVelocities.clear();
     mNumberOfCrossingSpheres = 0;
