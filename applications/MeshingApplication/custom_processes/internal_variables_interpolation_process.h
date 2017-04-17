@@ -51,7 +51,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
     
-/** @brief Custom Point container to be used by the search
+/** @brief Custom Gauss Point container to be used by the search
  */
 class GaussPointItem: public Point<3>
 {
@@ -76,18 +76,14 @@ public:
         Point<3>(Coords)
     {}
     
-    GaussPointItem(Condition::Pointer Cond):
-        mpOriginCond(Cond)
-    {
-        UpdatePoint();
-    }
-    
     GaussPointItem(
         const array_1d<double, 3> Coords,
-        Condition::Pointer Cond
+        ConstitutiveLaw::Pointer pConstitutiveLaw,
+        double Weight
     ):
         Point<3>(Coords),
-        mpOriginCond(Cond)
+        mpConstitutiveLaw(pConstitutiveLaw),
+        mWeight(Weight)
     {}
 
     ///Copy constructor  (not really required)
@@ -112,6 +108,7 @@ public:
      * Returns the point
      * @return The point
      */
+    
     Point<3> GetPoint()
     {
         Point<3> Point(this->Coordinates());
@@ -130,35 +127,55 @@ public:
     }
 
     /**
-     * Sets the condition associated to the point
-     * @param Cond: The pointer to the condition
+     * Sets the Constitutive Law associated to the point
+     * @param pConstitutiveLaw: The pointer to the Constitutive Law
      */
 
-    void SetCondition(Condition::Pointer Cond)
+    void SetConstitutiveLaw(ConstitutiveLaw::Pointer pConstitutiveLaw)
     {
-        mpOriginCond = Cond;
+        mpConstitutiveLaw = pConstitutiveLaw;
     }
     
     /**
-     * Returns the condition associated to the point
-     * @return mpOriginCond: The pointer to the condition associated to the point
+     * Returns the Constitutive Law associated to the point
+     * @return mpConstitutiveLaw: The pointer to the Constitutive Law associated to the point
      */
 
-    Condition::Pointer GetCondition()
+    ConstitutiveLaw::Pointer GetConstitutiveLaw()
     {
-        return mpOriginCond;
+        return mpConstitutiveLaw;
     }
     
     /**
-     * This function updates the database, using as base for the coordinates the condition center
-     * @return Coordinates: The coordinates of the item
+     * Sets the Constitutive Law associated to the point
+     * @param pConstitutiveLaw: The pointer to the Constitutive Law
      */
 
-    void UpdatePoint()
+    void SetConstitutiveLaw(ConstitutiveLaw::Pointer pConstitutiveLaw)
     {
-        this->Coordinates() = mpOriginCond->GetGeometry().Center().Coordinates();
+        mpConstitutiveLaw = pConstitutiveLaw;
     }
+    
+    /**
+     * Returns the integration weigth associated to the point
+     * @return mWeight: The pointer to the Constitutive Law associated to the point
+     */
 
+    double GetWeight()
+    {
+        return mWeight;
+    }
+    
+    /**
+     * Sets the integration weigth associated to the point
+     * @param Weight: The integration weight
+     */
+
+    void SetWeight(double Weight)
+    {
+        mWeight = Weight;
+    }
+    
 protected:
 
     ///@name Protected static Member Variables
@@ -196,7 +213,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    Condition::Pointer mpOriginCond; // Condition pointer          
+    ConstitutiveLaw::Pointer mpConstitutiveLaw; // The constitutive law pointer
+    double mWeight;                             // The integration weight of the GP
 
     ///@}
     ///@name Private Operators
