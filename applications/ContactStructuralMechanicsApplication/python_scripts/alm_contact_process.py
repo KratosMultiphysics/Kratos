@@ -25,6 +25,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "contact_model_part"          : "Contact_Part",
             "assume_master_slave"         : "",
             "contact_type"                : "Frictionless",
+            "frictional_law"              : "Coulomb",
             "search_factor"               : 1.5,
             "active_check_factor"         : 0.01,
             "max_number_results"          : 1000,
@@ -59,6 +60,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
         self.normal_variation         = self.params["normal_variation"].GetBool()
         self.integration_order        = self.params["integration_order"].GetInt() 
         self.type_search = self.params["type_search"].GetString()
+        self.frictional_law = self.params["frictional_law"].GetString()
         self.debug_mode = self.params["debug_mode"].GetBool()
         
         # Debug
@@ -97,6 +99,8 @@ class ALMContactProcess(KratosMultiphysics.Process):
         
         if self.params["contact_type"].GetString() == "Frictionless":
             condition_name = "ALMFrictionlessMortarContact"
+        elif self.params["contact_type"].GetString() == "Frictional":
+            condition_name = "ALMFrictionalMortarContact"
         
         #print("MODEL PART BEFORE CREATING INTERFACE")
         #print(computing_model_part) 
@@ -142,22 +146,22 @@ class ALMContactProcess(KratosMultiphysics.Process):
 
         self.contact_search = ContactStructuralMechanicsApplication.TreeContactSearch(computing_model_part, self.max_number_results, self.active_check_factor, self.type_search)
         
-        if self.params["contact_type"].GetString() == "Frictionless":
-            
-            self.alm_init_var = ContactStructuralMechanicsApplication.ALMFastInit(self.contact_model_part) 
-            self.alm_init_var.Execute()
-            
-            self.contact_search.CreatePointListMortar()
-            self.contact_search.InitializeMortarConditions()
+        # We initialize the conditions    
+        self.alm_init_var = ContactStructuralMechanicsApplication.ALMFastInit(self.contact_model_part) 
+        self.alm_init_var.Execute()
+        
+        self.contact_search.CreatePointListMortar()
+        self.contact_search.InitializeMortarConditions()
         
     def ExecuteBeforeSolutionLoop(self):
         if self.params["contact_type"].GetString() == "Frictionless":  
             self.contact_search.TotalClearALMFrictionlessMortarConditions()
+        else:
+            self.contact_search.TotalClearComponentsMortarConditions()
     
     def ExecuteInitializeSolutionStep(self):
-        if self.params["contact_type"].GetString() == "Frictionless":    
-            self.contact_search.UpdateMortarConditions(self.search_factor)
-            #self.contact_search.CheckMortarConditions()
+        self.contact_search.UpdateMortarConditions(self.search_factor)
+        #self.contact_search.CheckMortarConditions()
             
         # Debug
         if (self.debug_mode == True):
@@ -186,6 +190,8 @@ class ALMContactProcess(KratosMultiphysics.Process):
     def ExecuteAfterOutputStep(self):
         if self.params["contact_type"].GetString() == "Frictionless":
             self.contact_search.PartialClearALMFrictionlessMortarConditions()
+        else:
+            self.contact_search.PartialClearComponentsMortarConditions()
             
     def ExecuteFinalize(self):
         pass
