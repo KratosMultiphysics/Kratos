@@ -16,6 +16,7 @@
 // Project includes
 #include "utilities/math_utils.h"
 #include "custom_utilities/metrics_math_utils.h"
+#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
 #include "meshing_application.h"
@@ -88,26 +89,31 @@ public:
     ComputeHessianSolMetricProcess(
         ModelPart& rThisModelPart,
         TVarType& rVariable,
-        const double rMinSize,
-        const double rMaxSize,
-        const bool rEnforceCurrent = true,
-        const double rInterpError = 1.0e-6,
-        const double rMeshConstant = 0.28125, // TODO: This is for tetrahedron, look in literature for more
-        const double rAnisRatio = 1.0,
-        const double rBoundLayer =  1.0,
-        const std::string rInterpolation = "Linear"
+        Parameters ThisParameters = Parameters("{'minimal_size': 0.1,'maximal_size': 10.0, 'enforce_current': true, 'hessian_strategy_parameters': { 'interpolation_error': 1.0e-6, 'mesh_dependent_constant': 0.28125}, 'anisotropy_remeshing': true, 'anisotropy_parameters': {'hmin_over_hmax_anisotropic_ratio': 1.0, 'boundary_layer_max_distance': 1.0, 'interpolation': 'Linear'}}")
         )
         :mThisModelPart(rThisModelPart),
         mVariable(rVariable),
-        mMinSize(rMinSize),
-        mMaxSize(rMaxSize),
-        mEnforceCurrent(rEnforceCurrent),
-        mInterpError(rInterpError),
-        mMeshConstant(rMeshConstant),
-        mAnisRatio(rAnisRatio),
-        mBoundLayer(rBoundLayer)
-    {       
-        mInterpolation = ConvertInter(rInterpolation);
+        mMinSize(ThisParameters["minimal_size"].GetDouble()),
+        mMaxSize(ThisParameters["maximal_size"].GetDouble()),
+        mEnforceCurrent(ThisParameters["enforce_current"].GetBool())
+    {               
+        // In case we have isotropic remeshing (default values)
+        if (ThisParameters["anisotropy_remeshing"].GetBool() == false)
+        {
+            mInterpError = 1.0e-6;
+            mMeshConstant = 0.28125;
+            mAnisRatio = 1.0;
+            mBoundLayer = 1.0;
+            mInterpolation = ConvertInter("Linear");
+        }
+        else
+        {
+            mInterpError = ThisParameters["hessian_strategy_parameters"]["interpolation_error"].GetDouble();
+            mMeshConstant = ThisParameters["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble();
+            mAnisRatio = ThisParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
+            mBoundLayer = ThisParameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
+            mInterpolation = ConvertInter(ThisParameters["anisotropy_parameters"]["interpolation"].GetString());
+        }
     }
     
     /// Destructor.

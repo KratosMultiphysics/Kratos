@@ -91,63 +91,35 @@ void  AddProcessesToPython()
     
         /* METRICS PROCESSES */
         // LEVEL SET
-	class_<ComputeLevelSetSolMetricProcess<2>, bases<Process> >("ComputeLevelSetSolMetricProcess2D", init<ModelPart&, const double>())
-        .def(init<ModelPart&, const double, const bool>())
-        .def(init<ModelPart&, const double, const bool, const Variable<array_1d<double,3>>>())
-        .def(init<ModelPart&, const double, const bool, const Variable<array_1d<double,3>>, const double>())
-        .def(init<ModelPart&, const double, const bool, const Variable<array_1d<double,3>>, const double, const double>())
-        .def(init<ModelPart&, const double, const bool, const Variable<array_1d<double,3>>, const double, const double, const std::string>())
+	class_<ComputeLevelSetSolMetricProcess<2>, bases<Process> >("ComputeLevelSetSolMetricProcess2D", init<ModelPart&, const Variable<array_1d<double,3>>>())
+        .def(init<ModelPart&, const Variable<array_1d<double,3>>, Parameters>())
         .def("Execute",&ComputeLevelSetSolMetricProcess<2>::Execute)
         ;
         
-	class_<ComputeLevelSetSolMetricProcess<3>, bases<Process> >("ComputeLevelSetSolMetricProcess3D", init<ModelPart&, const double>())
-        .def(init<ModelPart&, const double, const bool>())
-        .def(init<ModelPart&, const double, const bool, const Variable<array_1d<double,3>>>())
-        .def(init<ModelPart&, const double, const bool, const Variable<array_1d<double,3>>, const double>())
-        .def(init<ModelPart&, const double, const bool, const Variable<array_1d<double,3>>, const double, const double>())
-        .def(init<ModelPart&, const double, const bool, const Variable<array_1d<double,3>>, const double, const double, const std::string>())
+	class_<ComputeLevelSetSolMetricProcess<3>, bases<Process> >("ComputeLevelSetSolMetricProcess3D", init<ModelPart&, const Variable<array_1d<double,3>>>())
+        .def(init<ModelPart&, const Variable<array_1d<double,3>>, Parameters>())
         .def("Execute",&ComputeLevelSetSolMetricProcess<3>::Execute)
         ;
         
         // HESSIAN DOUBLE
-	class_<ComputeHessianSolMetricProcess<2, Variable<double>>, bases<Process> >("ComputeHessianSolMetricProcess2D", init<ModelPart&, Variable<double>&, const double, const double>())
-        .def(init<ModelPart&, Variable<double>&, const double, const double, const bool>())
-        .def(init<ModelPart&, Variable<double>&, const double, const double, const bool, const double>())
-        .def(init<ModelPart&, Variable<double>&, const double, const double, const bool, const double, const double>())
-        .def(init<ModelPart&, Variable<double>&, const double, const double, const bool, const double, const double, const double>())
-        .def(init<ModelPart&, Variable<double>&, const double, const double, const bool, const double, const double, const double, const double>())
-        .def(init<ModelPart&, Variable<double>&, const double, const double, const bool, const double, const double, const double, const double, const std::string>())
+	class_<ComputeHessianSolMetricProcess<2, Variable<double>>, bases<Process> >("ComputeHessianSolMetricProcess2D", init<ModelPart&, Variable<double>&>())
+        .def(init<ModelPart&, Variable<double>&, Parameters>())
         .def("Execute",&ComputeHessianSolMetricProcess<2, Variable<double>>::Execute)
         ;
    
-	class_<ComputeHessianSolMetricProcess<3, Variable<double>>, bases<Process> >("ComputeHessianSolMetricProcess3D", init<ModelPart&, Variable<double>&, const double, const double>())
-        .def(init<ModelPart&, Variable<double>&, const double, const double, const bool>())
-        .def(init<ModelPart&, Variable<double>&, const double, const double, const bool, const double>())
-        .def(init<ModelPart&, Variable<double>&, const double, const double, const bool, const double, const double>())
-        .def(init<ModelPart&, Variable<double>&, const double, const double, const bool, const double, const double, const double>())
-        .def(init<ModelPart&, Variable<double>&, const double, const double, const bool, const double, const double, const double, const double>())
-        .def(init<ModelPart&, Variable<double>&, const double, const double, const bool, const double, const double, const double, const double, const std::string>())
+	class_<ComputeHessianSolMetricProcess<3, Variable<double>>, bases<Process> >("ComputeHessianSolMetricProcess3D", init<ModelPart&, Variable<double>&>())
+        .def(init<ModelPart&, Variable<double>&, Parameters>())
         .def("Execute",&ComputeHessianSolMetricProcess<3, Variable<double>>::Execute)
         ;
         
         // HESSIAN ARRAY 1D
-	class_<ComputeHessianSolMetricProcess<2, component_type>, bases<Process> >("ComputeHessianSolMetricProcessComp2D", init<ModelPart&, component_type&, const double, const double>())
-        .def(init<ModelPart&, component_type&, const double, const double, const bool>())
-        .def(init<ModelPart&, component_type&, const double, const double, const bool, const double>())
-        .def(init<ModelPart&, component_type&, const double, const double, const bool, const double, const double>())
-        .def(init<ModelPart&, component_type&, const double, const double, const bool, const double, const double, const double>())
-        .def(init<ModelPart&, component_type&, const double, const double, const bool, const double, const double, const double, const double>())
-        .def(init<ModelPart&, component_type&, const double, const double, const bool, const double, const double, const double, const double, const std::string>())
+	class_<ComputeHessianSolMetricProcess<2, component_type>, bases<Process> >("ComputeHessianSolMetricProcessComp2D", init<ModelPart&, component_type&>())
+        .def(init<ModelPart&, component_type&, Parameters>())
         .def("Execute",&ComputeHessianSolMetricProcess<2, component_type>::Execute)
         ;
    
-	class_<ComputeHessianSolMetricProcess<3, component_type>, bases<Process> >("ComputeHessianSolMetricProcessComp3D", init<ModelPart&, component_type&, const double, const double>())
-        .def(init<ModelPart&, component_type&, const double, const double, const bool>())
-        .def(init<ModelPart&, component_type&, const double, const double, const bool, const double>())
-        .def(init<ModelPart&, component_type&, const double, const double, const bool, const double, const double>())
-        .def(init<ModelPart&, component_type&, const double, const double, const bool, const double, const double, const double>())
-        .def(init<ModelPart&, component_type&, const double, const double, const bool, const double, const double, const double, const double>())
-        .def(init<ModelPart&, component_type&, const double, const double, const bool, const double, const double, const double, const double, const std::string>())
+	class_<ComputeHessianSolMetricProcess<3, component_type>, bases<Process> >("ComputeHessianSolMetricProcessComp3D", init<ModelPart&, component_type&>())
+        .def(init<ModelPart&, component_type&, Parameters>())
         .def("Execute",&ComputeHessianSolMetricProcess<3, component_type>::Execute)
         ;
 }
