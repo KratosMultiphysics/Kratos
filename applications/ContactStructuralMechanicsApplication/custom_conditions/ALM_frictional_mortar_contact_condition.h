@@ -272,11 +272,14 @@ protected:
     
     array_1d<double, TNumNodes> GetFrictionCoefficient()
     {
-        array_1d<double, TNumNodes> mu(TNumNodes, 0.0);
+        // The friction coefficient
+        const double mu = this->GetProperties().GetValue(FRICTION_COEFFICIENT);
+        
+        array_1d<double, TNumNodes> FrictionCoefficientVector(TNumNodes, mu);
         
         // TODO: Define the "CL" or friction law to compute this
         
-        return mu;
+        return FrictionCoefficientVector;
     }
     
     ///@}

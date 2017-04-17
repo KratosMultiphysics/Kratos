@@ -1082,22 +1082,51 @@ public:
                 {
                     if (CondGeometry[itNode].Is(VISITED) == false)
                     {
+                        const array_1d<double,3> LagrangeMultiplier = CondGeometry[itNode].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                        const array_1d<double,3> NodalNormal = CondGeometry[itNode].GetValue(NORMAL);
+                        
                         const double gn = CondGeometry[itNode].GetValue(WEIGHTED_GAP);
-                        const double AugmentedNormalPressure = k * CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + epsilon * gn;     
+                        const double AugmentedNormalPressure = k * inner_prod(NodalNormal, LagrangeMultiplier) + epsilon * gn;  
+                        
+//                         // Debug 
+//                         std::cout << CondGeometry[itNode].Id() << " Gap: " << gn  << " Pressure: " << AugmentedNormalPressure << " Active: " << CondGeometry[itNode].Is(ACTIVE) << std::endl;
                         
                         if (AugmentedNormalPressure < 0.0) // NOTE: This could be conflictive (< or <=)
                         {
                             CondGeometry[itNode].Set(ACTIVE, true);
                             DeactivateCondition = false; // The condition is active
+                            
+                            // Computing the augmented tangent pressure
+                            const array_1d<double, 3> NodalTangentXi  = CondGeometry[itNode].GetValue(TANGENT_XI); 
+                            const array_1d<double, 3> NodalTangentEta = CondGeometry[itNode].GetValue(TANGENT_ETA);
+                            const double TangentXiLM  = inner_prod(NodalTangentXi,  LagrangeMultiplier);
+                            const double TangentEtaLM = inner_prod(NodalTangentEta, LagrangeMultiplier);
+                            const double LambdaTangent = std::sqrt(TangentXiLM * TangentXiLM + TangentEtaLM * TangentEtaLM); 
+                            
+                            // The friction coefficient
+                            const double mu = itCond->GetProperties().GetValue(FRICTION_COEFFICIENT); // TODO: Change by a friction law
+                            
+                            // Finally we compute the augmented tangent pressure
+                            const double gt = CondGeometry[itNode].GetValue(WEIGHTED_SLIP);
+                            const double AugmentedTangentPressure = std::abs(k * LambdaTangent + epsilon * gt) + mu * AugmentedNormalPressure;
+                            
+//                             // Debug 
+//                         std::cout << CondGeometry[itNode].Id() << " Slip: " << gt  << " Tangent Pressure: " << AugmentedTangentPressure << " Slip: " << CondGeometry[itNode].Is(SLIP) << std::endl;
+                            
+                            if (AugmentedTangentPressure <= 0.0) // TODO: Check if it is minor equal or just minor
+                            {
+                                CondGeometry[itNode].Set(SLIP, false);
+                            }
+                            else
+                            {
+                                CondGeometry[itNode].Set(SLIP, true);
+                            }   
                         }
                         else
                         {
                             CondGeometry[itNode].Set(ACTIVE, false);
 //                             CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) = 0.0;
                         }
-                        
-//                         // Debug 
-//                         std::cout << CondGeometry[itNode].Id() << " Gap: " << gn  << " Pressure: " << AugmentedNormalPressure << " Active: " << CondGeometry[itNode].Is(ACTIVE) << std::endl;
                         
                         CondGeometry[itNode].Set(VISITED, true);
                     }
