@@ -169,25 +169,22 @@ public:
     
     /**
      * This is the default constructor, which is used to read the input files 
-     * @param Filename: The input name of the output file
+     * @param filename: The input name of the output file
      * @param echo_level: The level of verbosity
      */
     
     MmgUtility(
         ModelPart& rThisModelPart,
-        const std::string Filename = "output_remesh",
-        const unsigned int echo_level = 3,
-        const std::string framework = "Eulerian",
-        Parameters& rOtherParameters = Parameters("{}")
+        Parameters ThisParameters = Parameters("{'filename': 'output_remesh','echo_level': 3, 'framework': 'Eulerian'}")
         )
         :mThisModelPart(rThisModelPart),
-        mStdStringFilename(Filename),
-        mEchoLevel(echo_level)
+        mStdStringFilename(ThisParameters["filename"].GetString()),
+        mEchoLevel(ThisParameters["echo_level"].GetInt())
     {       
-       mFilename = new char [Filename.length() + 1];
-       std::strcpy (mFilename, Filename.c_str());
+       mFilename = new char [mStdStringFilename.length() + 1];
+       std::strcpy (mFilename, mStdStringFilename.c_str());
        
-       mFramework = ConvertFramework(framework);
+       mFramework = ConvertFramework(ThisParameters["framework"].GetString());
        
        mpRefElement.resize(TDim - 1);
        mpRefCondition.resize(TDim - 1);
@@ -1148,30 +1145,31 @@ protected:
             }
         }
         
-        /* We interpolate the internal variables */
-        /** NOTE: There are mainly two ways to interpolate the internal variables (there are three, but just two are behave correctly)
-         * CPT: Closest point transfer. It transfer the values from the closest GP
-         * LST: Least-square projection transfer. It transfers from the closest GP from the old mesh
-         * SFT: It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the sahpe functions all the time (NOTE: THIS DOESN'T WORK, AND REQUIRES EXTRA STORE)
-         */ 
-        if (mFramework == Lagrangian) 
-        {
-            // We get the process info from th mode
-            const ProcessInfo& rCurrentProcessInfo = mThisModelPart.GetProcessInfo();
-            
-            // Iterate in the elements
-            ElementsArrayType& pElem = mThisModelPart.Elements();
-            auto numElements = pElem.end() - pElem.begin();
-
-//             #pragma omp parallel for 
-            for(unsigned int i = 0; i < numElements; i++) 
-            {
-                auto itElem = pElem.begin() + i;
-
-                
-                
-            }
-        }
+        // TODO: Create a new independent process (I am not speaking about "el proces")
+//         /* We interpolate the internal variables */
+//         /** NOTE: There are mainly two ways to interpolate the internal variables (there are three, but just two are behave correctly)
+//          * CPT: Closest point transfer. It transfer the values from the closest GP
+//          * LST: Least-square projection transfer. It transfers from the closest GP from the old mesh
+//          * SFT: It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the sahpe functions all the time (NOTE: THIS DOESN'T WORK, AND REQUIRES EXTRA STORE)
+//          */ 
+//         if (mFramework == Lagrangian) 
+//         {
+//             // We get the process info from th mode
+//             const ProcessInfo& rCurrentProcessInfo = mThisModelPart.GetProcessInfo();
+//             
+//             // Iterate in the elements
+//             ElementsArrayType& pElem = mThisModelPart.Elements();
+//             auto numElements = pElem.end() - pElem.begin();
+// 
+// //             #pragma omp parallel for 
+//             for(unsigned int i = 0; i < numElements; i++) 
+//             {
+//                 auto itElem = pElem.begin() + i;
+// 
+//                 
+//                 
+//             }
+//         }
     }
     
     /**
@@ -1225,7 +1223,7 @@ protected:
         // Free the MMG structures 
         FreeAll();
 
-        // Free Filename (NOTE: Problems with more that one iteration)
+        // Free filename (NOTE: Problems with more that one iteration)
 //         free(mFilename);
 //         mFilename = NULL;
        

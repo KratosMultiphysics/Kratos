@@ -121,7 +121,7 @@
         "help"                  : "This process automatically remesh using MMG library",
         "process_name"          : "MmgProcess",
         "Parameters"            : {
-        "output_file_name"                 : "mmg_test/2D_cavity_test",
+        "filename"                         : "mmg_test/2D_cavity_test",
         "step_frequency"                   : 0,
         "automatic_remesh"                 : false,
         "minimal_size"                     : 0.01,

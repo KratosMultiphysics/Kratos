@@ -129,7 +129,7 @@
         "help"                  : "This process automatically remesh using MMG library",
         "process_name"          : "MmgProcess",
         "Parameters"            : {
-            "output_file_name"                  : "mmg_test/bunny_test",
+            "filename"                          : "mmg_test/bunny_test",
             "step_frequency"                    : 0,
             "minimal_size"                      : 3.0,
             "anisotropy_remeshing"              : true,

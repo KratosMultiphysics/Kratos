@@ -23,7 +23,7 @@ class MmgProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters("""
         {
             "mesh_id"                          : 0,
-            "output_file_name"                 : "out",
+            "filename"                         : "out",
             "model_part_name"                  : "MainModelPart",
             "strategy"                         : "LevelSet",
             "level_set_strategy_parameters"              :{
@@ -73,8 +73,6 @@ class MmgProcess(KratosMultiphysics.Process):
         self.model_part_name = self.params["model_part_name"].GetString()
         self.dim = self.Model[self.model_part_name].ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         self.params = params
-
-        self.output_file_name = self.params["output_file_name"].GetString()
 
         self.enforce_current = self.params["enforce_current"].GetBool()
 
@@ -137,11 +135,9 @@ class MmgProcess(KratosMultiphysics.Process):
             self.interpolation = self.params["anisotropy_parameters"]["interpolation"].GetString()
 
         self.initial_step = self.params["initial_step"].GetInt()
-        self.framework = self.params["framework"].GetString()
         self.step_frequency = self.params["step_frequency"].GetInt()
         self.save_external_files = self.params["save_external_files"].GetBool()
         self.max_number_of_searchs = self.params["max_number_of_searchs"].GetInt()
-        self.echo_level = self.params["echo_level"].GetInt()
 
     def ExecuteInitialize(self):
 
@@ -158,9 +154,9 @@ class MmgProcess(KratosMultiphysics.Process):
         self._CreateMetricsProcess()
 
         if (self.dim == 2):
-            self.MmgUtility = MeshingApplication.MmgUtility2D(self.Model[self.model_part_name], self.output_file_name, self.echo_level, self.framework)
+            self.MmgUtility = MeshingApplication.MmgUtility2D(self.Model[self.model_part_name], self.params)
         else:
-            self.MmgUtility = MeshingApplication.MmgUtility3D(self.Model[self.model_part_name], self.output_file_name, self.echo_level, self.framework)
+            self.MmgUtility = MeshingApplication.MmgUtility3D(self.Model[self.model_part_name], self.params)
 
         if (self.initial_remeshing == True):
             self._ExecuteRefinement()

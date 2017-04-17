@@ -112,7 +112,7 @@
         "process_name"          : "MmgProcess",
         "Parameters"            : {
             "step_frequency"                    : 0,
-            "output_file_name"                 : "mmg_test/2D_hessian_test",
+            "filename"                         : "mmg_test/2D_hessian_test",
             "strategy"                         : "Hessian",
             "hessian_strategy_parameters"              :{
                 "metric_variable"                  : ["DISTANCE"],
