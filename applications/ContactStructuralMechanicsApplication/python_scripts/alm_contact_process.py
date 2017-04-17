@@ -81,8 +81,17 @@ class ALMContactProcess(KratosMultiphysics.Process):
         else:
             interface_model_part = computing_model_part.CreateSubModelPart("Contact")
 
+        # We consider frictional contact (We use the SLIP flag because was the easiest way)
+        if self.params["contact_type"].GetString() == "Frictional":
+            computing_model_part.Set(KratosMultiphysics.SLIP, True) 
+        else:
+            computing_model_part.Set(KratosMultiphysics.SLIP, False) 
+            
+        # We recompute the normal at each iteration (false by default)
         if (self.normal_variation == True):
-            computing_model_part.Set(KratosMultiphysics.INTERACTION, True)
+            computing_model_part.Set(KratosMultiphysics.INTERACTION, True) # TODO: Pending to implement
+        else:
+            computing_model_part.Set(KratosMultiphysics.INTERACTION, False)
         
         # Copying the properties in the contact model part
         self.contact_model_part.SetProperties(computing_model_part.GetProperties())

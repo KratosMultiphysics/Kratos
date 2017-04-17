@@ -961,13 +961,156 @@ public:
     }
     
     /**
-     * It changes from active to inactive and viceversa the nodes 
+     * It changes from active to inactive and viceversa the nodes in the frictionless case
      * @param ModelPart: The model part to compute
      * @return The modelparts with the conditions changed
      */
     
-    template<bool TFrictionCase>
-    static inline void ReComputeActiveInactiveALM(ModelPart & rModelPart);
+    static inline void ReComputeActiveInactiveFrictionlessALM(ModelPart & rModelPart)
+    {
+        // TODO: If works make it parallell (it is difficult, be careful with the repeated nodes) 
+       
+        ConditionsArrayType& pConditions = rModelPart.GetSubModelPart("Contact").Conditions();
+        auto numConditions = pConditions.end() - pConditions.begin();
+
+//         #pragma omp parallel for 
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCond = pConditions.begin() + i;
+            
+            bool ConditionIsActive = false; // It is supposed to be always defined, and with this only the slave conditions will be taken into account
+            if( (itCond)->IsDefined(ACTIVE) == true)
+            {
+                ConditionIsActive = (itCond)->Is(ACTIVE);
+            }
+            
+            if ( ConditionIsActive == true )
+            {
+                // Recompute Active/Inactive nodes
+                double epsilon = 0.0;
+                if (itCond->GetProperties().Has(PENALTY_FACTOR) == true)
+                {
+                    epsilon = itCond->GetProperties().GetValue(PENALTY_FACTOR); 
+                }
+                
+                double k = 1.0;
+                if (itCond->GetProperties().Has(SCALE_FACTOR) == true)
+                {
+                    k = itCond->GetProperties().GetValue(SCALE_FACTOR); 
+                }
+
+                bool DeactivateCondition = true; // If all nodes are inactive we deactivate the condition
+                GeometryType & CondGeometry = itCond->GetGeometry();
+                
+                for(unsigned int itNode = 0; itNode!=CondGeometry.PointsNumber(); itNode++)
+                {
+                    if (CondGeometry[itNode].Is(VISITED) == false)
+                    {
+                        const double gn = CondGeometry[itNode].GetValue(WEIGHTED_GAP);
+                        const double AugmentedNormalPressure = k * CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + epsilon * gn;     
+                        
+                        if (AugmentedNormalPressure < 0.0) // NOTE: This could be conflictive (< or <=)
+                        {
+                            CondGeometry[itNode].Set(ACTIVE, true);
+                            DeactivateCondition = false; // The condition is active
+                        }
+                        else
+                        {
+                            CondGeometry[itNode].Set(ACTIVE, false);
+//                             CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) = 0.0;
+                        }
+                        
+//                         // Debug 
+//                         std::cout << CondGeometry[itNode].Id() << " Gap: " << gn  << " Pressure: " << AugmentedNormalPressure << " Active: " << CondGeometry[itNode].Is(ACTIVE) << std::endl;
+                        
+                        CondGeometry[itNode].Set(VISITED, true);
+                    }
+                }
+                
+                // We deactivate the condition if necessary
+                if (DeactivateCondition == true)
+                {
+                    itCond->Set(ACTIVE, false);
+                }
+            }
+        }
+    }
+    
+    /**
+     * It changes from active to inactive and viceversa the nodes , as well as slip or stick in the frictional case
+     * @param ModelPart: The model part to compute
+     * @return The modelparts with the conditions changed
+     */
+    
+    static inline void ReComputeActiveInactiveFrictionalALM(ModelPart & rModelPart)
+    {
+        // TODO: If works make it parallell (it is difficult, be careful with the repeated nodes) 
+       
+        ConditionsArrayType& pConditions = rModelPart.GetSubModelPart("Contact").Conditions();
+        auto numConditions = pConditions.end() - pConditions.begin();
+
+//         #pragma omp parallel for 
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCond = pConditions.begin() + i;
+            
+            bool ConditionIsActive = false; // It is supposed to be always defined, and with this only the slave conditions will be taken into account
+            if( (itCond)->IsDefined(ACTIVE) == true)
+            {
+                ConditionIsActive = (itCond)->Is(ACTIVE);
+            }
+            
+            if ( ConditionIsActive == true )
+            {
+                // Recompute Active/Inactive nodes
+                double epsilon = 0.0;
+                if (itCond->GetProperties().Has(PENALTY_FACTOR) == true)
+                {
+                    epsilon = itCond->GetProperties().GetValue(PENALTY_FACTOR); 
+                }
+                
+                double k = 1.0;
+                if (itCond->GetProperties().Has(SCALE_FACTOR) == true)
+                {
+                    k = itCond->GetProperties().GetValue(SCALE_FACTOR); 
+                }
+
+                bool DeactivateCondition = true; // If all nodes are inactive we deactivate the condition
+                GeometryType & CondGeometry = itCond->GetGeometry();
+                
+                for(unsigned int itNode = 0; itNode!=CondGeometry.PointsNumber(); itNode++)
+                {
+                    if (CondGeometry[itNode].Is(VISITED) == false)
+                    {
+                        const double gn = CondGeometry[itNode].GetValue(WEIGHTED_GAP);
+                        const double AugmentedNormalPressure = k * CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + epsilon * gn;     
+                        
+                        if (AugmentedNormalPressure < 0.0) // NOTE: This could be conflictive (< or <=)
+                        {
+                            CondGeometry[itNode].Set(ACTIVE, true);
+                            DeactivateCondition = false; // The condition is active
+                        }
+                        else
+                        {
+                            CondGeometry[itNode].Set(ACTIVE, false);
+//                             CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) = 0.0;
+                        }
+                        
+//                         // Debug 
+//                         std::cout << CondGeometry[itNode].Id() << " Gap: " << gn  << " Pressure: " << AugmentedNormalPressure << " Active: " << CondGeometry[itNode].Is(ACTIVE) << std::endl;
+                        
+                        CondGeometry[itNode].Set(VISITED, true);
+                    }
+                }
+                
+                // We deactivate the condition if necessary
+                if (DeactivateCondition == true)
+                {
+                    itCond->Set(ACTIVE, false);
+                }
+            }
+        }
+    }
     
     /**
      * It resets the visited status in all the nodes
@@ -1017,13 +1160,57 @@ public:
     }
     
     /**
-     * It resets the value of the weighted gap 
+     * It resets the value of the weighted gap in the frictionless case
      * @param ModelPart: The model part to compute
      * @return The modelparts with the nodes changed
      */
     
-    template<bool TFrictionCase>
-    static inline void ResetWeightedALMValues(ModelPart & rModelPart);
+    static inline void ResetWeightedFrictionlessALMValues(ModelPart & rModelPart)
+    {
+        NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
+        
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+
+            if (itNode->Is(ACTIVE) == false)
+            {
+                itNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
+            }
+            
+            itNode->GetValue(WEIGHTED_GAP) = 0.0;
+        }
+    }
+    
+    /**
+     * It resets the value of the weighted gap and weighted slip in the frictional case
+     * @param ModelPart: The model part to compute
+     * @return The modelparts with the nodes changed
+     */
+    
+    static inline void ResetWeightedFrictionalALMValues(ModelPart & rModelPart)
+    {
+        NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
+        
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+
+            if (itNode->Is(ACTIVE) == false)
+            {
+                itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector(3);
+            }
+            
+            itNode->GetValue(WEIGHTED_GAP)  = 0.0;
+            itNode->GetValue(WEIGHTED_SLIP) = 0.0;
+        }
+    }
     
     /**
      * It calculates the matrix of coordinates of a geometry
@@ -1199,134 +1386,6 @@ private:
 
 ///@name Explicit Specializations
 ///@{
-
-    template<>
-    inline void ContactUtilities::ReComputeActiveInactiveALM<true>(ModelPart & rModelPart)
-    {
-        // TODO: If works make it parallell (it is difficult, be careful with the repeated nodes) 
-       
-        ConditionsArrayType& pConditions = rModelPart.GetSubModelPart("Contact").Conditions();
-        auto numConditions = pConditions.end() - pConditions.begin();
-
-//         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numConditions; i++) 
-        {
-            auto itCond = pConditions.begin() + i;
-            
-            bool ConditionIsActive = false; // It is supposed to be always defined, and with this only the slave conditions will be taken into account
-            if( (itCond)->IsDefined(ACTIVE) == true)
-            {
-                ConditionIsActive = (itCond)->Is(ACTIVE);
-            }
-            
-            if ( ConditionIsActive == true )
-            {
-                // Recompute Active/Inactive nodes
-                double epsilon = 0.0;
-                if (itCond->GetProperties().Has(PENALTY_FACTOR) == true)
-                {
-                    epsilon = itCond->GetProperties().GetValue(PENALTY_FACTOR); 
-                }
-                
-                double k = 1.0;
-                if (itCond->GetProperties().Has(SCALE_FACTOR) == true)
-                {
-                    k = itCond->GetProperties().GetValue(SCALE_FACTOR); 
-                }
-
-                bool DeactivateCondition = true; // If all nodes are inactive we deactivate the condition
-                GeometryType & CondGeometry = itCond->GetGeometry();
-                
-                for(unsigned int itNode = 0; itNode!=CondGeometry.PointsNumber(); itNode++)
-                {
-                    if (CondGeometry[itNode].Is(VISITED) == false)
-                    {
-                        const double gn = CondGeometry[itNode].GetValue(WEIGHTED_GAP);
-                        const double AugmentedNormalPressure = k * CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + epsilon * gn;     
-                        
-                        if (AugmentedNormalPressure < 0.0) // NOTE: This could be conflictive (< or <=)
-                        {
-                            CondGeometry[itNode].Set(ACTIVE, true);
-                            DeactivateCondition = false; // The condition is active
-                        }
-                        else
-                        {
-                            CondGeometry[itNode].Set(ACTIVE, false);
-//                             CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) = 0.0;
-                        }
-                        
-//                         // Debug 
-//                         std::cout << CondGeometry[itNode].Id() << " Gap: " << gn  << " Pressure: " << AugmentedNormalPressure << " Active: " << CondGeometry[itNode].Is(ACTIVE) << std::endl;
-                        
-                        CondGeometry[itNode].Set(VISITED, true);
-                    }
-                }
-                
-                // We deactivate the condition if necessary
-                if (DeactivateCondition == true)
-                {
-                    itCond->Set(ACTIVE, false);
-                }
-            }
-        }
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    template<>
-    inline void ContactUtilities::ReComputeActiveInactiveALM<false>(ModelPart & rModelPart)
-    {
-        KRATOS_ERROR << "Warning:: Frictional case has not been implemented yet" << std::endl;
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    template<>
-    inline void ContactUtilities::ResetWeightedALMValues<true>(ModelPart & rModelPart)
-    {
-        NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
-        
-        auto numNodes = pNode.end() - pNode.begin();
-        
-        #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
-        {
-            auto itNode = pNode.begin() + i;
-
-            if (itNode->Is(ACTIVE) == false)
-            {
-                itNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
-            }
-            
-            itNode->GetValue(WEIGHTED_GAP) = 0.0;
-        }
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    template<>
-    inline void ContactUtilities::ResetWeightedALMValues<false>(ModelPart & rModelPart)
-    {
-        NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
-        
-        auto numNodes = pNode.end() - pNode.begin();
-        
-        #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
-        {
-            auto itNode = pNode.begin() + i;
-
-            if (itNode->Is(ACTIVE) == false)
-            {
-                itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector(3);
-            }
-            
-            itNode->GetValue(WEIGHTED_GAP) = 0.0;
-        }
-    }
 
 }
 #endif /* KRATOS_CONTACT_UTILITIES defined */
