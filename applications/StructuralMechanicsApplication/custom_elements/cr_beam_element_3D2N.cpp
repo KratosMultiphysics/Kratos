@@ -777,6 +777,7 @@ namespace Kratos
 
 		for (int i = 0; i < 8; i++) rMassMatrix(8, i) = rMassMatrix(i, 8);
 		rMassMatrix(8, 8) = 156.00;
+		rMassMatrix(8, 10) = -22.0 * L;
 
 		rMassMatrix(9, 3) = 70.00;
 		rMassMatrix(9, 9) = 140.00;
