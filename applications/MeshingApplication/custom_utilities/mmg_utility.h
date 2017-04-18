@@ -1151,11 +1151,11 @@ protected:
             }
         }
         
-//         /* We interpolate the internal variables */
-//         if (mFramework == Lagrangian) 
-//         {
-//             InternalVariablesInterpolationProcess InternalVariablesInterpolation = InternalVariablesInterpolationProcess(rOldModelPart, mThisModelPart, mThisParameters);
-//         }
+        /* We interpolate the internal variables */
+        if (mFramework == Lagrangian) 
+        {
+            InternalVariablesInterpolationProcess InternalVariablesInterpolation = InternalVariablesInterpolationProcess(rOldModelPart, mThisModelPart, mThisParameters["internal_variables_parameters"]);
+        }
 
     }
     

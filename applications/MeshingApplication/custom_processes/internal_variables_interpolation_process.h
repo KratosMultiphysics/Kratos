@@ -83,11 +83,13 @@ public:
         const array_1d<double, 3> Coords,
         ConstitutiveLaw::Pointer pConstitutiveLaw,
         double Weight,
-        double Radius
+        double Radius,
+        double CharacteristicLength
         ):Point<3>(Coords),
           mpConstitutiveLaw(pConstitutiveLaw),
           mWeight(Weight),
-          mRadius(Radius)
+          mRadius(Radius),
+          mCharacteristicLength(CharacteristicLength)
     {
     }
 
@@ -96,7 +98,8 @@ public:
         Point<3>(GP),
         mpConstitutiveLaw(GP.mpConstitutiveLaw),
         mWeight(GP.mWeight),
-        mRadius(GP.mRadius)
+        mRadius(GP.mRadius),
+        mCharacteristicLength(GP.mCharacteristicLength)
     {
     }
 
@@ -174,7 +177,7 @@ public:
     }
     
     /**
-     * Returns the integration weigth associated to the point
+     * Returns the element radius associated to the point
      * @return mRadius: The pointer to the Constitutive Law associated to the point
      */
 
@@ -184,13 +187,33 @@ public:
     }
     
     /**
-     * Sets the integration weigth associated to the point
+     * Sets the element radius associated to the point
      * @param Radius: The integration weight
      */
 
     void SetRadius(double Radius)
     {
         mRadius = Radius;
+    }
+    
+    /**
+     * Returns the characteristic length associated to the point
+     * @return mCharacteristicLength: The pointer to the Constitutive Law associated to the point
+     */
+
+    double GetCharacteristicLength()
+    {
+        return mCharacteristicLength;
+    }
+    
+    /**
+     * Sets the characteristic length associated to the point
+     * @param CharacteristicLength: The integration weight
+     */
+
+    void SetCharacteristicLength(double CharacteristicLength)
+    {
+        mCharacteristicLength = CharacteristicLength;
     }
     
 protected:
@@ -233,6 +256,7 @@ private:
     ConstitutiveLaw::Pointer mpConstitutiveLaw; // The constitutive law pointer
     double mWeight;                             // The integration weight of the GP
     double mRadius;                             // The "radius" of the element containing the GP
+    double mCharacteristicLength;               // The "characteristic length" of the element containing the GP
 
     ///@}
     ///@name Private Operators
@@ -415,11 +439,27 @@ public:
             // Computing the radius
             const double Radius = (mDimension == 2 ? std::sqrt(rThisGeometry.Area()) : std::cbrt(rThisGeometry.Volume()));
             
+            // We get the NODAL_H vector
+            Vector NodalHVector(rThisGeometry.size());
+            for (unsigned int iNode = 0; iNode < rThisGeometry.size(); iNode++)
+            {
+                NodalHVector[iNode] = rThisGeometry[iNode].FastGetSolutionStepValue(NODAL_H);
+            }
+            
             for (unsigned int iGaussPoint = 0; iGaussPoint < IntegrationPointsNumber; iGaussPoint++ )
             {
+                array_1d<double, 3> LocalCoordinates = IntegrationPoints[iGaussPoint].Coordinates();
+                
+                // We compute the corresponding weight
                 const double Weight = VectorDetJ[iGaussPoint] * IntegrationPoints[iGaussPoint].Weight();
                 
-                PointTypePointer pPoint = PointTypePointer(new PointType(IntegrationPoints[iGaussPoint].Coordinates(), ConstitutiveLawVector[iGaussPoint], Weight, Radius));
+                // We compute the pondered characteristic length
+                Vector N( rThisGeometry.size() );
+                rThisGeometry.ShapeFunctionsValues( N, LocalCoordinates );
+                const double CharacteristicLength = inner_prod(N, NodalHVector);
+                
+                // We create the respective GP
+                PointTypePointer pPoint = PointTypePointer(new PointType(LocalCoordinates, ConstitutiveLawVector[iGaussPoint], Weight, Radius, CharacteristicLength));
                 (ThisPointVector).push_back(pPoint);
             }
         }
@@ -446,7 +486,36 @@ public:
     
     void InterpolateGaussPointsCPT()
     {
-        KRATOS_ERROR << "WARNING:: CPT not implemented yet" << std::endl;
+        // We Initialize the process info
+        const ProcessInfo& CurrentProcessInfo = mrDestinationMainModelPart.GetProcessInfo();
+        
+        // We update the list of points
+        UpdateGaussPointList();
+        
+        // Create a tree
+        // It will use a copy of mNodeList (a std::vector which contains pointers)
+        // Copying the list is required because the tree will reorder it for efficiency
+        KDTree TreePoints(mPointListOrigin.begin(), mPointListOrigin.end(), mBucketSize); 
+        
+        // Iterate over the destination GP
+        #pragma omp parallel for 
+        for(unsigned int iGaussPoint = 0; iGaussPoint < mPointListDestination.size(); iGaussPoint++) 
+        {
+            PointTypePointer pGPDestination = mPointListDestination[iGaussPoint];
+            
+            PointTypePointer pGPOrigin = TreePoints.SearchNearestPoint(pGPDestination->Coordinates());
+            
+            for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
+            {
+                Variable<double> ThisVar = mInternalVariableList[iVar];
+                
+                double OriginValue;
+        
+                OriginValue = (pGPOrigin->GetConstitutiveLaw())->GetValue(ThisVar, OriginValue);
+                
+                (pGPDestination->GetConstitutiveLaw())->SetValue(ThisVar, OriginValue, CurrentProcessInfo);
+            }
+        }
     }
     
     /**
@@ -455,6 +524,9 @@ public:
         
     void InterpolateGaussPointsLST()
     {
+        // We Initialize the process info
+        const ProcessInfo& CurrentProcessInfo = mrDestinationMainModelPart.GetProcessInfo();
+        
         // We update the list of points
         UpdateGaussPointList();
         
@@ -470,21 +542,42 @@ public:
         
         // Iterate over the destination GP
         #pragma omp parallel for 
-        for(int iGaussPoint = 0; iGaussPoint < mPointListDestination.size(); iGaussPoint++) 
+        for(unsigned int iGaussPoint = 0; iGaussPoint < mPointListDestination.size(); iGaussPoint++) 
         {
-            PointTypePointer pGP = mPointListDestination[iGaussPoint];
+            PointTypePointer pGPDestination = mPointListDestination[iGaussPoint];
             
-            const double SearchRadius = mSearchFactor * pGP->GetRadius();
+            const double SearchRadius = mSearchFactor * pGPDestination->GetRadius();
             
-            NumberPointsFound = TreePoints.SearchInRadius(pGP->Coordinates(), SearchRadius, PointsFound.begin(), PointsDistances.begin(), mAllocationSize);
+            NumberPointsFound = TreePoints.SearchInRadius(pGPDestination->Coordinates(), SearchRadius, PointsFound.begin(), PointsDistances.begin(), mAllocationSize);
             
             if (NumberPointsFound > 0)
             {
+                const double CharacteristicLength = pGPDestination->GetCharacteristicLength();
+                
                 for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
                 {
                     Variable<double> ThisVar = mInternalVariableList[iVar];
                     
+                    double WeightingFunctionNumerator = 0.0;
+                    double WeightingFunctionDenominator = 0.0;
+                    double OriginValue;
                     
+                    for (unsigned int iPointFound = 0; iPointFound < NumberPointsFound; iPointFound++)
+                    {
+                        PointTypePointer pGPOrigin = PointsFound[iPointFound];
+                        
+                        const double Distance = PointsDistances[iPointFound];
+                        
+                        OriginValue = (pGPOrigin->GetConstitutiveLaw())->GetValue(ThisVar, OriginValue);
+                        
+                        const double PonderatedWeight = pGPOrigin->GetWeight()*std::exp( -4.0 * Distance * Distance /(CharacteristicLength * CharacteristicLength));
+                        
+                        WeightingFunctionNumerator += PonderatedWeight * OriginValue;
+                        WeightingFunctionDenominator += PonderatedWeight;
+                    }
+                    
+                    const double DestinationValue = WeightingFunctionNumerator/WeightingFunctionDenominator;
+                    (pGPDestination->GetConstitutiveLaw())->SetValue(ThisVar, DestinationValue, CurrentProcessInfo);
                 }
             }
             else
@@ -492,8 +585,6 @@ public:
                 std::cout << "WARNING:: It wasn't impossible to find any Gauss Point from where interpolate the internal variables" << std::endl;
             }
         }
-        
-        
     }
     
     /**
