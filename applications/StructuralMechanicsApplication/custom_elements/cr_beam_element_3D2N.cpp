@@ -457,7 +457,6 @@ namespace Kratos
 		S(11, 2) = 1.00;
 		S(11, 5) = 1.00;
 
-		KRATOS_WATCH(S);
 		return S;
 		KRATOS_CATCH("")
 	}
