@@ -154,10 +154,6 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( PREVIOUS_DELTA_TIME )
     KRATOS_REGISTER_VARIABLE( RAYLEIGH_ALPHA )
     KRATOS_REGISTER_VARIABLE( RAYLEIGH_BETA )
-
-    //constitutive law
-    KRATOS_REGISTER_VARIABLE( IMPLEX )
-    KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW_NAME )
        
     //nodal load variables
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_LOAD )
@@ -177,47 +173,7 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( SURFACE_LOADS_VECTOR )
     KRATOS_REGISTER_VARIABLE( POSITIVE_FACE_PRESSURES_VECTOR )
     KRATOS_REGISTER_VARIABLE( NEGATIVE_FACE_PRESSURES_VECTOR )
-      
-    //material orientation
-    KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DX )
-    KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DY )
-    KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DZ )
-    
-    //othotropic/anisotropic constants
-    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_X )
-    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_Y )
-    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_Z )
-    KRATOS_REGISTER_VARIABLE( SHEAR_MODULUS_XY )
-    KRATOS_REGISTER_VARIABLE( SHEAR_MODULUS_YZ )
-    KRATOS_REGISTER_VARIABLE( SHEAR_MODULUS_XZ )
-    KRATOS_REGISTER_VARIABLE( POISSON_RATIO_XY )
-    KRATOS_REGISTER_VARIABLE( POISSON_RATIO_YZ )
-    KRATOS_REGISTER_VARIABLE( POISSON_RATIO_XZ )
-    
-    //material : hyperelastic_plastic
-    KRATOS_REGISTER_VARIABLE( NORM_ISOCHORIC_STRESS )
-    KRATOS_REGISTER_VARIABLE( PLASTIC_STRAIN )
-    KRATOS_REGISTER_VARIABLE( DELTA_PLASTIC_STRAIN )
-    KRATOS_REGISTER_VARIABLE( ISOTROPIC_HARDENING_MODULUS )
-    KRATOS_REGISTER_VARIABLE( KINEMATIC_HARDENING_MODULUS )
-    KRATOS_REGISTER_VARIABLE( HARDENING_EXPONENT )
-    KRATOS_REGISTER_VARIABLE( REFERENCE_HARDENING_MODULUS )
-    KRATOS_REGISTER_VARIABLE( INFINITY_HARDENING_MODULUS )
-
-    //material : isotropic damage
-    KRATOS_REGISTER_VARIABLE( DAMAGE_VARIABLE )
-    KRATOS_REGISTER_VARIABLE( DAMAGE_THRESHOLD )
-    KRATOS_REGISTER_VARIABLE( STRENGTH_RATIO )
-    KRATOS_REGISTER_VARIABLE( FRACTURE_ENERGY )
-    KRATOS_REGISTER_VARIABLE( RESIDUAL_STRENGTH )
-    KRATOS_REGISTER_VARIABLE( SOFTENING_SLOPE )
-
-    //thermal
-    KRATOS_REGISTER_VARIABLE( THERMAL_EXPANSION_COEFFICIENT );
-    KRATOS_REGISTER_VARIABLE( REFERENCE_TEMPERATURE );
-    KRATOS_REGISTER_VARIABLE( PLASTIC_DISSIPATION );
-    KRATOS_REGISTER_VARIABLE( DELTA_PLASTIC_DISSIPATION );
-
+          
     //element
     KRATOS_REGISTER_VARIABLE( ALMANSI_STRAIN_TENSOR )
     KRATOS_REGISTER_VARIABLE( GREEN_LAGRANGE_STRAIN_VECTOR )
@@ -326,42 +282,42 @@ namespace Kratos
 
     //Register Constitutive Laws
 
-    //Hyperelastic laws
-    Serializer::Register( "HyperElastic3DLaw", mHyperElastic3DLaw );
-    Serializer::Register( "HyperElasticPlaneStrain2DLaw", mHyperElasticPlaneStrain2DLaw );
-    Serializer::Register( "HyperElasticAxisym2DLaw", mHyperElasticAxisym2DLaw );
+    // //Hyperelastic laws
+    // Serializer::Register( "HyperElastic3DLaw", mHyperElastic3DLaw );
+    // Serializer::Register( "HyperElasticPlaneStrain2DLaw", mHyperElasticPlaneStrain2DLaw );
+    // Serializer::Register( "HyperElasticAxisym2DLaw", mHyperElasticAxisym2DLaw );
 
-    //Hyperelastic laws U-P
-    Serializer::Register( "HyperElasticUP3DLaw", mHyperElasticUP3DLaw );
-    Serializer::Register( "HyperElasticUPPlaneStrain2DLaw", mHyperElasticUPPlaneStrain2DLaw );
-    Serializer::Register( "HyperElasticUPAxisym2DLaw", mHyperElasticUPAxisym2DLaw );
+    // //Hyperelastic laws U-P
+    // Serializer::Register( "HyperElasticUP3DLaw", mHyperElasticUP3DLaw );
+    // Serializer::Register( "HyperElasticUPPlaneStrain2DLaw", mHyperElasticUPPlaneStrain2DLaw );
+    // Serializer::Register( "HyperElasticUPAxisym2DLaw", mHyperElasticUPAxisym2DLaw );
 
-    //Linear Elastic laws
-    Serializer::Register( "LinearElastic3DLaw", mLinearElastic3DLaw );
-    Serializer::Register( "LinearElasticPlaneStrain2DLaw", mLinearElasticPlaneStrain2DLaw );
-    Serializer::Register( "LinearElasticPlaneStress2DLaw", mLinearElasticPlaneStress2DLaw );
-    Serializer::Register( "LinearElasticAxisym2DLaw", mLinearElasticAxisym2DLaw );
+    // //Linear Elastic laws
+    // Serializer::Register( "LinearElastic3DLaw", mLinearElastic3DLaw );
+    // Serializer::Register( "LinearElasticPlaneStrain2DLaw", mLinearElasticPlaneStrain2DLaw );
+    // Serializer::Register( "LinearElasticPlaneStress2DLaw", mLinearElasticPlaneStress2DLaw );
+    // Serializer::Register( "LinearElasticAxisym2DLaw", mLinearElasticAxisym2DLaw );
 
-    //Hyperelastic Plastic J2 specilization laws 
-    Serializer::Register( "HyperElasticPlasticJ23DLaw", mHyperElasticPlasticJ23DLaw );
-    Serializer::Register( "HyperElasticPlasticJ2PlaneStrain2DLaw", mHyperElasticPlasticJ2PlaneStrain2DLaw );
-    Serializer::Register( "HyperElasticPlasticJ2Axisym2DLaw", mHyperElasticPlasticJ2Axisym2DLaw );
+    // //Hyperelastic Plastic J2 specilization laws 
+    // Serializer::Register( "HyperElasticPlasticJ23DLaw", mHyperElasticPlasticJ23DLaw );
+    // Serializer::Register( "HyperElasticPlasticJ2PlaneStrain2DLaw", mHyperElasticPlasticJ2PlaneStrain2DLaw );
+    // Serializer::Register( "HyperElasticPlasticJ2Axisym2DLaw", mHyperElasticPlasticJ2Axisym2DLaw );
 
-    //Hyperelastic Plastic J2 specilization laws U-P
-    Serializer::Register( "HyperElasticPlasticUPJ23DLaw", mHyperElasticPlasticUPJ23DLaw );
-    Serializer::Register( "HyperElasticPlasticUPJ2PlaneStrain2DLaw", mHyperElasticPlasticUPJ2PlaneStrain2DLaw );
-    Serializer::Register( "HyperElasticPlasticUPJ2Axisym2DLaw", mHyperElasticPlasticUPJ2Axisym2DLaw );
+    // //Hyperelastic Plastic J2 specilization laws U-P
+    // Serializer::Register( "HyperElasticPlasticUPJ23DLaw", mHyperElasticPlasticUPJ23DLaw );
+    // Serializer::Register( "HyperElasticPlasticUPJ2PlaneStrain2DLaw", mHyperElasticPlasticUPJ2PlaneStrain2DLaw );
+    // Serializer::Register( "HyperElasticPlasticUPJ2Axisym2DLaw", mHyperElasticPlasticUPJ2Axisym2DLaw );
 
-    Serializer::Register( "PythonOutfittedConstitutiveLaw", mPythonOutfittedConstitutiveLaw );
+    // Serializer::Register( "PythonOutfittedConstitutiveLaw", mPythonOutfittedConstitutiveLaw );
     
-    //Isotropic Damage laws
-    Serializer::Register( "IsotropicDamageSimoJu3DLaw", mIsotropicDamageSimoJu3DLaw );
-    Serializer::Register( "IsotropicDamageSimoJuPlaneStrain2DLaw", mIsotropicDamageSimoJuPlaneStrain2DLaw );
-    Serializer::Register( "IsotropicDamageSimoJuPlaneStress2DLaw", mIsotropicDamageSimoJuPlaneStress2DLaw );
+    // //Isotropic Damage laws
+    // Serializer::Register( "IsotropicDamageSimoJu3DLaw", mIsotropicDamageSimoJu3DLaw );
+    // Serializer::Register( "IsotropicDamageSimoJuPlaneStrain2DLaw", mIsotropicDamageSimoJuPlaneStrain2DLaw );
+    // Serializer::Register( "IsotropicDamageSimoJuPlaneStress2DLaw", mIsotropicDamageSimoJuPlaneStress2DLaw );
 
-    Serializer::Register( "IsotropicDamageModifiedMises3DLaw", mIsotropicDamageModifiedMises3DLaw );
-    Serializer::Register( "IsotropicDamageModifiedMisesPlaneStrain2DLaw", mIsotropicDamageModifiedMisesPlaneStrain2DLaw );
-    Serializer::Register( "IsotropicDamageModifiedMisesPlaneStress2DLaw", mIsotropicDamageModifiedMisesPlaneStress2DLaw );
+    // Serializer::Register( "IsotropicDamageModifiedMises3DLaw", mIsotropicDamageModifiedMises3DLaw );
+    // Serializer::Register( "IsotropicDamageModifiedMisesPlaneStrain2DLaw", mIsotropicDamageModifiedMisesPlaneStrain2DLaw );
+    // Serializer::Register( "IsotropicDamageModifiedMisesPlaneStress2DLaw", mIsotropicDamageModifiedMisesPlaneStress2DLaw );
     
     //REGISTER FOR SERIALIZATION
     //Linear Elastic Plastic laws
@@ -379,21 +335,21 @@ namespace Kratos
     // Serializer::Register( "HyperElasticPlasticUPPlaneStrain2DLaw", mHyperElasticPlasticUPPlaneStrain2DLaw );
     // Serializer::Register( "HyperElasticPlasticUPAxisym2DLaw", mHyperElasticPlasticUPAxisym2DLaw );
 
-    //Flow Rules
-    Serializer::Register( "NonLinearAssociativePlasticFlowRule", mNonLinearAssociativePlasticFlowRule );
-    Serializer::Register( "LinearAssociativePlasticFlowRule", mLinearAssociativePlasticFlowRule );
-    Serializer::Register( "IsotropicDamageFlowRule", mIsotropicDamageFlowRule );
+    // //Flow Rules
+    // Serializer::Register( "NonLinearAssociativePlasticFlowRule", mNonLinearAssociativePlasticFlowRule );
+    // Serializer::Register( "LinearAssociativePlasticFlowRule", mLinearAssociativePlasticFlowRule );
+    // Serializer::Register( "IsotropicDamageFlowRule", mIsotropicDamageFlowRule );
 
-    //Yield Criteria
-    Serializer::Register( "MisesHuberYieldCriterion", mMisesHuberYieldCriterion );
-    Serializer::Register( "SimoJuYieldCriterion", mSimoJuYieldCriterion );
-    Serializer::Register( "ModifiedMisesYieldCriterion", mModifiedMisesYieldCriterion );
+    // //Yield Criteria
+    // Serializer::Register( "MisesHuberYieldCriterion", mMisesHuberYieldCriterion );
+    // Serializer::Register( "SimoJuYieldCriterion", mSimoJuYieldCriterion );
+    // Serializer::Register( "ModifiedMisesYieldCriterion", mModifiedMisesYieldCriterion );
     
-    //Hardening Laws
-    Serializer::Register( "NonLinearIsotropicKinematicHardeningLaw", mNonLinearIsotropicKinematicHardeningLaw );
-    Serializer::Register( "LinearIsotropicKinematicHardeningLaw", mLinearIsotropicKinematicHardeningLaw );
-    Serializer::Register( "ExponentialDamageHardeningLaw", mExponentialDamageHardeningLaw );
-    Serializer::Register( "ModifiedExponentialDamageHardeningLaw", mModifiedExponentialDamageHardeningLaw );
+    // //Hardening Laws
+    // Serializer::Register( "NonLinearIsotropicKinematicHardeningLaw", mNonLinearIsotropicKinematicHardeningLaw );
+    // Serializer::Register( "LinearIsotropicKinematicHardeningLaw", mLinearIsotropicKinematicHardeningLaw );
+    // Serializer::Register( "ExponentialDamageHardeningLaw", mExponentialDamageHardeningLaw );
+    // Serializer::Register( "ModifiedExponentialDamageHardeningLaw", mModifiedExponentialDamageHardeningLaw );
 
    }
 
