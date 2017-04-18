@@ -88,7 +88,7 @@ namespace Kratos
 		void Initialize();
 
 		MatrixType CreateElementStiffnessMatrix_Material();
-		MatrixType CreateElementStiffnessMatrix_Geometry(VectorType qe);
+		MatrixType CreateElementStiffnessMatrix_Geometry(const VectorType qe);
 		MatrixType CalculateMaterialStiffness();
 		MatrixType CalculateTransformationS();
 

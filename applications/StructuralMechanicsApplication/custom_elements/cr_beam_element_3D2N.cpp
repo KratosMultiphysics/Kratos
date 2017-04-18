@@ -212,10 +212,11 @@ namespace Kratos
 	}
 
 	CrBeamElement3D2N::MatrixType
-		CrBeamElement3D2N::CreateElementStiffnessMatrix_Geometry(VectorType qe) {
+		CrBeamElement3D2N::CreateElementStiffnessMatrix_Geometry(
+			const VectorType qe) {
 
 		KRATOS_TRY
-			const int number_of_nodes = this->GetGeometry().PointsNumber();
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const int local_size = number_of_nodes * dimension * 2;
 
@@ -432,38 +433,31 @@ namespace Kratos
 	CrBeamElement3D2N::MatrixType CrBeamElement3D2N::CalculateTransformationS() {
 
 		KRATOS_TRY
-			const int number_of_nodes = this->GetGeometry().PointsNumber();
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const int size = number_of_nodes * dimension;
 		const int MatSize = 2 * size;
 
-		VectorType n_x = ZeroVector(dimension);
-		VectorType n_y = ZeroVector(dimension);
-		VectorType n_z = ZeroVector(dimension);
-		n_x[0] = 1.0;
-		n_y[1] = 1.0;
-		n_z[2] = 1.0;
-
 		const double L = this->mCurrentLength;
 		MatrixType S = ZeroMatrix(MatSize, size);
-		for (int i = 0; i < dimension; ++i) S(3 + i, 0) = -1.0* n_x[i];
-		for (int i = 0; i < dimension; ++i) S(9 + i, 0) = n_x[i];
-		for (int i = 0; i < dimension; ++i) S(3 + i, 1) = -1.0* n_y[i];
-		for (int i = 0; i < dimension; ++i) S(9 + i, 1) = n_y[i];
-		for (int i = 0; i < dimension; ++i) S(3 + i, 2) = -1.0* n_z[i];
-		for (int i = 0; i < dimension; ++i) S(9 + i, 2) = n_z[i];
-		for (int i = 0; i < dimension; ++i) S(0 + i, 3) = -1.0* n_x[i];
-		for (int i = 0; i < dimension; ++i) S(6 + i, 3) = n_x[i];
-		for (int i = 0; i < dimension; ++i) S(3 + i, 4) = n_y[i];
-		for (int i = 0; i < dimension; ++i) S(9 + i, 4) = n_y[i];
-		for (int i = 0; i < dimension; ++i) S(3 + i, 5) = n_z[i];
-		for (int i = 0; i < dimension; ++i) S(9 + i, 5) = n_z[i];
+		S(0, 3) = -1.00;
+		S(1, 5) = 2.00 / L;
+		S(2, 4) = -2.00 / L;
+		S(3, 0) = -1.00;
+		S(4, 1) = -1.00;
+		S(4, 4) = 1.00;
+		S(5, 2) = -1.00;
+		S(5, 5) = 1.00;
+		S(6, 3) = 1.00;
+		S(7, 5) = -2.00 / L;
+		S(8, 4) = 2.00 / L;
+		S(9, 0) = 1.00;
+		S(10, 1) = 1.00;
+		S(10, 4) = 1.00;
+		S(11, 2) = 1.00;
+		S(11, 5) = 1.00;
 
-		for (int i = 0; i < dimension; ++i) S(0 + i, 4) = -2.0 * n_z[i] / L;
-		for (int i = 0; i < dimension; ++i) S(6 + i, 4) = 2.0 * n_z[i] / L;
-		for (int i = 0; i < dimension; ++i) S(0 + i, 5) = 2.0 * n_y[i] / L;
-		for (int i = 0; i < dimension; ++i) S(6 + i, 5) = -2.0 * n_y[i] / L;
-
+		KRATOS_WATCH(S);
 		return S;
 		KRATOS_CATCH("")
 	}
@@ -886,7 +880,7 @@ namespace Kratos
 		ProcessInfo& rCurrentProcessInfo) {
 
 		KRATOS_TRY
-			const int NumNodes = this->GetGeometry().PointsNumber();
+		const int NumNodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const int size = NumNodes * dimension;
 		const int LocalSize = NumNodes * dimension * 2;
@@ -1074,7 +1068,7 @@ namespace Kratos
 	void CrBeamElement3D2N::UpdateIncrementDeformation() {
 
 		KRATOS_TRY
-			const int NumNodes = this->GetGeometry().PointsNumber();
+		const int NumNodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const int size = NumNodes * dimension;
 		const int LocalSize = NumNodes * dimension * 2;
