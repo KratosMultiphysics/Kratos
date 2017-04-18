@@ -308,10 +308,15 @@ public:
             DenseMatrixType& Eigenvectors)
     {
         const auto SystemSize = K.size1();
+        //constexpr double Dt = 1.0;
+        //std::for_each(std::begin(M.value_data()), std::end(M.value_data()),
+        //            [](double& val) { val *= 1.0 / (Dt * Dt); });
 
         Parameters& FEAST_Settings = *mpParam;
         const double EigenvalueRangeMin = FEAST_Settings["lambda_min"].GetDouble();
         const double EigenvalueRangeMax = FEAST_Settings["lambda_max"].GetDouble();
+        //const double EigenvalueRangeMin = FEAST_Settings["lambda_min"].GetDouble() * Dt * Dt;
+        //const double EigenvalueRangeMax = FEAST_Settings["lambda_max"].GetDouble() * Dt * Dt;
 
         int SearchDimension = FEAST_Settings["search_dimension"].GetInt();
         int NumEigenvalues = FEAST_Settings["number_of_eigenvalues"].GetInt();
@@ -342,6 +347,8 @@ public:
 
         }
         FEAST_Settings["number_of_eigenvalues"].SetInt(NumEigenvalues);
+        //std::for_each(std::begin(Eigenvalues.data()), std::end(Eigenvalues.data()),
+        //            [](double& val) { val *= 1.0 / (Dt * Dt); });
     }
 
     ///@}

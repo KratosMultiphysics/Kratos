@@ -256,14 +256,9 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
         }
         
         ## Set Mesh options
-        set TopCoord [dict get $FracturesDict $MotherFractureId TopPoint Coordinates]
-        set BotCoord [dict get $FracturesDict $MotherFractureId BotPoint Coordinates]
-        set Distance [expr { sqrt(([lindex $TopCoord 0]-[lindex $BotCoord 0])**2 + ([lindex $TopCoord 1]-[lindex $BotCoord 1])**2) }]
-        GiD_Process Mescape Meshing AssignSizes Lines [expr { $Distance*1.25 }] \
-            [expr { [GiD_Info Geometry MaxNumLines]-3 }] [expr { [GiD_Info Geometry MaxNumLines]-2 }] escape escape
-        GiD_Process Mescape Meshing AssignSizes Lines [expr { [GiD_AccessValue get gendata Propagation_Width]*1.25 }] \
-            [expr { [GiD_Info Geometry MaxNumLines]-1 }] [GiD_Info Geometry MaxNumLines] escape escape
-        GiD_Process Mescape Meshing AssignSizes Points [GiD_AccessValue get gendata Propagation_Width] [GiD_Info Geometry MaxNumPoints] escape escape
+        # GiD_Process Mescape Meshing Structured Lines 2 \
+        #     [expr { [GiD_Info Geometry MaxNumLines]-3 }] [expr { [GiD_Info Geometry MaxNumLines]-2 }] \
+        #     [expr { [GiD_Info Geometry MaxNumLines]-1 }] [GiD_Info Geometry MaxNumLines] escape escape
 
         ## Replace $FracturesDict $MotherFractureId by the new fracture
         dict set FracturesDict $MotherFractureId TopPoint Id [expr { [GiD_Info Geometry MaxNumPoints]-2 }]
@@ -369,17 +364,11 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
         GiD_EntitiesGroups assign $LinkInterfaceGroup surfaces [GiD_Info Geometry MaxNumSurfaces]
         
         ## Set Mesh options
-        set TopCoord [dict get $FracturesDict $MotherFractureId TopPoint Coordinates]
-        set BotCoord [dict get $FracturesDict $MotherFractureId BotPoint Coordinates]
-        set Distance [expr { sqrt(([lindex $TopCoord 0]-[lindex $BotCoord 0])**2 + ([lindex $TopCoord 1]-[lindex $BotCoord 1])**2) }]
-        GiD_Process Mescape Meshing AssignSizes Lines [expr { $Distance*1.25 }] \
-            [expr { [GiD_Info Geometry MaxNumLines]-7 }] [expr { [GiD_Info Geometry MaxNumLines]-8 }] escape escape
-        GiD_Process Mescape Meshing AssignSizes Lines [expr { [GiD_AccessValue get gendata Propagation_Width]*1.25 }] \
-            [expr { [GiD_Info Geometry MaxNumLines]-3 }] [expr { [GiD_Info Geometry MaxNumLines]-4 }] \
-            [expr { [GiD_Info Geometry MaxNumLines]-5 }] [expr { [GiD_Info Geometry MaxNumLines]-6 }] escape escape
+        # GiD_Process Mescape Meshing Structured Lines 2 \
+        #     [expr { [GiD_Info Geometry MaxNumLines]-7 }] [expr { [GiD_Info Geometry MaxNumLines]-8 }] \
+        #     [expr { [GiD_Info Geometry MaxNumLines]-3 }] [expr { [GiD_Info Geometry MaxNumLines]-4 }] \
+        #     [expr { [GiD_Info Geometry MaxNumLines]-5 }] [expr { [GiD_Info Geometry MaxNumLines]-6 }] escape escape
         GiD_Process Mescape Meshing AssignSizes Points 0.0 [dict get $FracturesDict $MotherFractureId TipPoint Id] escape escape
-        GiD_Process Mescape Meshing AssignSizes Points [GiD_AccessValue get gendata Propagation_Width] \
-            [expr { [GiD_Info Geometry MaxNumPoints]-1 }] [GiD_Info Geometry MaxNumPoints] escape escape
         GiD_Process Mescape Meshing Structured Surfaces [GiD_Info Geometry MaxNumSurfaces] escape 1 [GiD_Info Geometry MaxNumLines] escape escape
         
         ## Replace $FracturesDict $MotherFractureId by the new TopTip fracture
