@@ -599,28 +599,245 @@ public:
     
     void InterpolateGaussPointsSFT()
     {
-//         // Iterate in the elements
-//         NodesArrayType& pNode = mThisModelPart.Nodes();
-//         auto numNodes = pNode.end() - pNode.begin();
-//         
-//         /* Nodes */
-// //         #pragma omp parallel for 
-//         for(unsigned int i = 0; i < numNodes; i++) 
-//         {
-//             
-//         }
+        // Initialize some values
+        GeometryData::IntegrationMethod ThisIntegrationMethod;
+                
+        // Iterate in the nodes to initialize the values
+        NodesArrayType& pNode = mrOriginMainModelPart.Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
         
+        /* Nodes */
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+            
+            for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
+            {
+                Variable<double> ThisVar = mInternalVariableList[iVar];
+                
+                itNode->SetValue(ThisVar, 0.0);
+            }
+        }
+        
+        // Iterate in the elements to ponderate the values
+        ElementsArrayType& pElementsOrigin = mrOriginMainModelPart.Elements();
+        auto numElements = pElementsOrigin.end() - pElementsOrigin.begin();
+        
+        const ProcessInfo& OriginProcessInfo = mrOriginMainModelPart.GetProcessInfo();
+        
+        /* Elements */
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numElements; i++) 
+        {
+            auto itElem = pElementsOrigin.begin() + i;
+            
+            // Getting the geometry
+            Element::GeometryType& rThisGeometry = itElem->GetGeometry();
+            
+            // Getting the integration points
+            ThisIntegrationMethod = itElem->GetIntegrationMethod();
+            const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rThisGeometry.IntegrationPoints(ThisIntegrationMethod);
+            const unsigned int IntegrationPointsNumber = IntegrationPoints.size();
+            
+            // Computing the Jacobian
+            Vector VectorDetJ(IntegrationPointsNumber);
+            rThisGeometry.DeterminantOfJacobian(VectorDetJ,ThisIntegrationMethod);
+            
+            // Getting the CL
+            std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector(IntegrationPointsNumber);
+            itElem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,ConstitutiveLawVector,OriginProcessInfo);
+            
+            // We initialize the total weigth
+            double TotalWeight = 0.0;
+            
+            for (unsigned int iGaussPoint = 0; iGaussPoint < IntegrationPointsNumber; iGaussPoint++ )
+            {
+                array_1d<double, 3> LocalCoordinates = IntegrationPoints[iGaussPoint].Coordinates();
+                
+                // We compute the corresponding weight
+                const double Weight = VectorDetJ[iGaussPoint] * IntegrationPoints[iGaussPoint].Weight();
+                TotalWeight += Weight;
+                
+                // We compute the pondered characteristic length
+                Vector N( rThisGeometry.size() );
+                rThisGeometry.ShapeFunctionsValues( N, LocalCoordinates );
+                
+                // We compute the global coordinates
+                array_1d<double, 3> GlobalCoordinates;
+                GlobalCoordinates = rThisGeometry.GlobalCoordinates( GlobalCoordinates, LocalCoordinates );
+                
+                for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
+                {
+                    Variable<double> ThisVar = mInternalVariableList[iVar];
+                    
+                    double OriginValue;
+                    OriginValue = ConstitutiveLawVector[iGaussPoint]->GetValue(ThisVar, OriginValue);
+                    
+                    // We sum all the contributions
+                    for (unsigned int iNode = 0; iNode < rThisGeometry.size(); iNode++)
+                    {
+                        #pragma omp atomic
+                        rThisGeometry[iNode].GetValue(ThisVar) += N[iNode] * OriginValue * Weight;
+                    }
+                }
+            }
+            
+            // We divide by the total weight
+            for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
+            {
+                Variable<double> ThisVar = mInternalVariableList[iVar];
+                
+                for (unsigned int iNode = 0; iNode < rThisGeometry.size(); iNode++)
+                {
+                    #pragma omp critical
+                    rThisGeometry[iNode].GetValue(ThisVar) /= TotalWeight;
+                }
+            }
+        }
+        
+        // We interpolate to the new nodes
         if (mDimension == 2)
         {
             // We create the locator
-            BinBasedFastPointLocator<2> PointLocator = BinBasedFastPointLocator<2>(rOldModelPart);
+            BinBasedFastPointLocator<2> PointLocator = BinBasedFastPointLocator<2>(mrOriginMainModelPart);
             PointLocator.UpdateSearchDatabase();
+            
+            // Iterate in the nodes
+            NodesArrayType& pNode = mrDestinationMainModelPart.Nodes();
+            auto numNodes = pNode.end() - pNode.begin();
+            
+            /* Nodes */
+            #pragma omp parallel for 
+            for(unsigned int i = 0; i < numNodes; i++) 
+            {
+                auto itNode = pNode.begin() + i;
+                
+                Vector N;
+                Element::Pointer pElement;
+                
+                const bool found = PointLocator.FindPointOnMeshSimplified(itNode->Coordinates(), N, pElement, mAllocationSize);
+                
+                if (found == false)
+                {
+                    std::cout << "WARNING: GP not found (interpolation not posible)" << std::endl;
+                    std::cout << "\t X:"<< itNode->X() << "\t Y:"<< itNode->Y() << std::endl;
+                }
+                else
+                {
+                    for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
+                    {
+                        Variable<double> ThisVar = mInternalVariableList[iVar];
+                        
+                        Vector Values(pElement->GetGeometry().size());
+                        
+                        for (unsigned int iNode = 0; iNode < pElement->GetGeometry().size(); iNode++)
+                        {
+                            Values[iNode] = pElement->GetGeometry()[iNode].GetValue(ThisVar);
+                        }
+                        
+                        itNode->GetValue(ThisVar) = inner_prod(Values, N);
+                    }
+                }
+            }
         }
         else
         {
             // We create the locator
-            BinBasedFastPointLocator<3> PointLocator = BinBasedFastPointLocator<3>(rOldModelPart);
+            BinBasedFastPointLocator<3> PointLocator = BinBasedFastPointLocator<3>(mrOriginMainModelPart);
             PointLocator.UpdateSearchDatabase();
+            
+            // Iterate in the nodes
+            NodesArrayType& pNode = mrDestinationMainModelPart.Nodes();
+            auto numNodes = pNode.end() - pNode.begin();
+            
+            /* Nodes */
+            #pragma omp parallel for 
+            for(unsigned int i = 0; i < numNodes; i++) 
+            {
+                auto itNode = pNode.begin() + i;
+                
+                Vector N;
+                Element::Pointer pElement;
+                
+                const bool found = PointLocator.FindPointOnMeshSimplified(itNode->Coordinates(), N, pElement, mAllocationSize);
+                
+                if (found == false)
+                {
+                    std::cout << "WARNING: Node "<< itNode->Id() << " not found (interpolation not posible)" << std::endl;
+                    std::cout << "\t X:"<< itNode->X() << "\t Y:"<< itNode->Y() << "\t Z:"<< itNode->Z() << std::endl;
+                }
+                else
+                {
+                    for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
+                    {
+                        Variable<double> ThisVar = mInternalVariableList[iVar];
+                        
+                        Vector Values(pElement->GetGeometry().size());
+                        
+                        for (unsigned int iNode = 0; iNode < pElement->GetGeometry().size(); iNode++)
+                        {
+                            Values[iNode] = pElement->GetGeometry()[iNode].GetValue(ThisVar);
+                        }
+                        
+                        itNode->GetValue(ThisVar) = inner_prod(Values, N);
+                    }
+                }
+            }
+        }
+        
+        // Finally we interpolate to the new GP
+        ElementsArrayType& pElementsDestination = mrDestinationMainModelPart.Elements();
+        numElements = pElementsDestination.end() - pElementsDestination.begin();
+        
+        const ProcessInfo& DestinationProcessInfo = mrOriginMainModelPart.GetProcessInfo();
+        
+        /* Elements */
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numElements; i++) 
+        {
+            auto itElem = pElementsDestination.begin() + i;
+            
+            // Getting the geometry
+            Element::GeometryType& rThisGeometry = itElem->GetGeometry();
+            
+            // Getting the integration points
+            ThisIntegrationMethod = itElem->GetIntegrationMethod();
+            const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rThisGeometry.IntegrationPoints(ThisIntegrationMethod);
+            const unsigned int IntegrationPointsNumber = IntegrationPoints.size();
+            
+            // Getting the CL
+            std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector(IntegrationPointsNumber);
+            itElem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,ConstitutiveLawVector,DestinationProcessInfo);
+            
+            for (unsigned int iGaussPoint = 0; iGaussPoint < IntegrationPointsNumber; iGaussPoint++ )
+            {
+                array_1d<double, 3> LocalCoordinates = IntegrationPoints[iGaussPoint].Coordinates();
+                
+                // We compute the pondered characteristic length
+                Vector N( rThisGeometry.size() );
+                rThisGeometry.ShapeFunctionsValues( N, LocalCoordinates );
+                
+                // We compute the global coordinates
+                array_1d<double, 3> GlobalCoordinates;
+                GlobalCoordinates = rThisGeometry.GlobalCoordinates( GlobalCoordinates, LocalCoordinates );
+                
+                Vector Values(rThisGeometry.size() );
+                
+                for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
+                {
+                    Variable<double> ThisVar = mInternalVariableList[iVar];
+                    
+                    for (unsigned int iNode = 0; iNode < rThisGeometry.size(); iNode++)
+                    {
+                        Values[iNode] = rThisGeometry[iNode].GetValue(ThisVar);
+                    }
+                    
+                    const double DestinationValue = inner_prod(Values, N);
+                    
+                    ConstitutiveLawVector[iGaussPoint]->SetValue(ThisVar, DestinationValue, DestinationProcessInfo);
+                }
+            }
         }
     }
     
