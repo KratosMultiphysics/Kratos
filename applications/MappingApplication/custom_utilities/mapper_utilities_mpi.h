@@ -81,99 +81,98 @@ namespace Kratos
       ///@{
 
       template<class T>
-      static inline int SizeOfVariable(const T& variable);
+      static inline int SizeOfVariable(const T& rVariable);
 
       template<typename T>
-      static void MpiSendRecv(T* send_buffer, T* receive_buffer, const int send_buffer_size,
-                              int& receive_buffer_size, const int comm_partner) {
+      static void MpiSendRecv(T* pSendBuffer, T* pReceiveBuffer, const int SendBufferSize,
+                              int& ReceiveBufferSize, const int CommPartner) {
           // Determine data type
   		    MPI_Datatype DataType = MapperUtilitiesMPI::GetMPIDatatype(T());
 
           //   Exchange the information about the receiving buffer size
-          MPI_Sendrecv(&send_buffer_size, 1, MPI_INT, comm_partner, 0, &receive_buffer_size,
-                       1, MPI_INT, comm_partner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          MPI_Sendrecv(&SendBufferSize, 1, MPI_INT, CommPartner, 0, &ReceiveBufferSize,
+                       1, MPI_INT, CommPartner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
           // Perform the actual exchange of the buffers
-          MPI_Sendrecv(send_buffer, send_buffer_size, DataType, comm_partner, 0, receive_buffer,
-                       receive_buffer_size, DataType, comm_partner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          MPI_Sendrecv(pSendBuffer, SendBufferSize, DataType, CommPartner, 0, pReceiveBuffer,
+                       ReceiveBufferSize, DataType, CommPartner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       }
 
       // This function checks if the buffer sizes are large enough
       template<typename T>
-      static void MpiSendRecv(T* send_buffer, T* receive_buffer, const int send_buffer_size,
-                              int& receive_buffer_size, const int max_send_buffer_size,
-                              const int max_receive_buffer_size, const int comm_partner) {
+      static void MpiSendRecv(T* pSendBuffer, T* pReceiveBuffer, const int SendBufferSize,
+                              int& rReceiveBufferSize, const int MaxSendBufferSize,
+                              const int MaxReceiveBufferSize, const int CommPartner) {
           // Determine data type
           MPI_Datatype DataType = MapperUtilitiesMPI::GetMPIDatatype(T());
 
           //   Exchange the information about the receiving buffer size
-          MPI_Sendrecv(&send_buffer_size, 1, MPI_INT, comm_partner, 0, &receive_buffer_size,
-                       1, MPI_INT, comm_partner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          MPI_Sendrecv(&SendBufferSize, 1, MPI_INT, CommPartner, 0, &rReceiveBufferSize,
+                       1, MPI_INT, CommPartner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-          if (MapperUtilities::MAPPER_DEBUG_LEVEL) {
-              if (send_buffer_size > max_send_buffer_size) {
-                  KRATOS_ERROR << "Send Buffer too small!; "
-                               << "send_buffer_size = " << send_buffer_size
-                               << ", max_send_buffer_size = "
-                               << max_send_buffer_size << std::endl;
-              }
+          // Debug Check
+          if (SendBufferSize > MaxSendBufferSize) {
+              KRATOS_ERROR << "Send Buffer too small!; "
+                           << "SendBufferSize = " << SendBufferSize
+                           << ", MaxSendBufferSize = "
+                           << MaxSendBufferSize << std::endl;
+          }
 
-              if (receive_buffer_size > max_receive_buffer_size) {
-                  KRATOS_ERROR << "Receive Buffer too small!; "
-                               << "receive_buffer_size = " << receive_buffer_size
-                               << ", max_receive_buffer_size = "
-                               << max_receive_buffer_size << std::endl;
-              }
+          if (rReceiveBufferSize > MaxReceiveBufferSize) {
+              KRATOS_ERROR << "Receive Buffer too small!; "
+                           << "rReceiveBufferSize = " << rReceiveBufferSize
+                           << ", MaxReceiveBufferSize = "
+                           << MaxReceiveBufferSize << std::endl;
           }
 
           // Perform the actual exchange of the buffers
-          MPI_Sendrecv(send_buffer, send_buffer_size, DataType, comm_partner, 0, receive_buffer,
-                       receive_buffer_size, DataType, comm_partner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          MPI_Sendrecv(pSendBuffer, SendBufferSize, DataType, CommPartner, 0, pReceiveBuffer,
+                       rReceiveBufferSize, DataType, CommPartner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       }
 
-      static void ComputeMaxBufferSizes(int* local_memory_size_array,
-                                        int& send_buffer_size,
-                                        int& receive_buffer_size,
-                                        const int comm_rank,
-                                        const int comm_size) {
-          int* global_memory_size_array = new int[comm_size]();
+      static void ComputeMaxBufferSizes(int* pLocalMemorySizeArray,
+                                        int& rSendBufferSize,
+                                        int& rReceiveBufferSize,
+                                        const int CommRank,
+                                        const int CommSize) {
+          int* global_memory_size_array = new int[CommSize]();
 
           // Go through list of how many objects will be sent and find maximum
-          send_buffer_size = local_memory_size_array[0];
-          for (int i = 1; i < comm_size; ++i) {
-              send_buffer_size = std::max(local_memory_size_array[i], send_buffer_size);
+          rSendBufferSize = pLocalMemorySizeArray[0];
+          for (int i = 1; i < CommSize; ++i) {
+              rSendBufferSize = std::max(pLocalMemorySizeArray[i], rSendBufferSize);
           }
 
           // TODO comment that it could be done more efficient, but only with a lot of code => what Charlie explained
           // Basically splitting the matrix and doing partial reduces
           // Exchange information about how much is going to be sent around among the
           // partitions and take the maximum that my partition will receive
-          MPI_Allreduce(local_memory_size_array, global_memory_size_array,
-                        comm_size, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+          MPI_Allreduce(pLocalMemorySizeArray, global_memory_size_array,
+                        CommSize, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
 
-          receive_buffer_size = global_memory_size_array[comm_rank];
+          rReceiveBufferSize = global_memory_size_array[CommRank];
 
           delete [] global_memory_size_array;
       }
 
-      static void ComputeColoringGraph(int* local_comm_list,
-                                       int num_partitions,
-                                       GraphType& domains_colored_graph,
-                                       int& max_colors) {
-          int comm_list_size = num_partitions * num_partitions;
+      static void ComputeColoringGraph(int* pLocalCommList,
+                                       int NumPartitions,
+                                       GraphType& rDomainsColoredGraph,
+                                       int& rMaxColors) {
+          int comm_list_size = NumPartitions * NumPartitions;
           int* global_comm_list = new int[comm_list_size]();
 
-          MPI_Allgather(local_comm_list, num_partitions, MPI_INT, global_comm_list,
-                        num_partitions, MPI_INT, MPI_COMM_WORLD);
+          MPI_Allgather(pLocalCommList, NumPartitions, MPI_INT, global_comm_list,
+                        NumPartitions, MPI_INT, MPI_COMM_WORLD);
 
           GraphType domains_graph;
-          domains_graph.resize(num_partitions, num_partitions,false);
-          domains_graph = ScalarMatrix(num_partitions, num_partitions, -1.0f);
+          domains_graph.resize(NumPartitions, NumPartitions,false);
+          domains_graph = ScalarMatrix(NumPartitions, NumPartitions, -1.0f);
 
           // set up communication matrix as input for the coloring process
-          for (int i = 0; i < num_partitions; ++i) {
-              for (int j = 0; j < num_partitions; ++j) {
-                  domains_graph(i,j) = global_comm_list[(i * num_partitions) + j];
+          for (int i = 0; i < NumPartitions; ++i) {
+              for (int j = 0; j < NumPartitions; ++j) {
+                  domains_graph(i,j) = global_comm_list[(i * NumPartitions) + j];
               }
           }
 
@@ -188,8 +187,8 @@ namespace Kratos
               domains_graph(i,i) = 0; // set main diagonal to zero, i.e. avoid communication with myself
           }
 
-          GraphColoringProcess(num_partitions, domains_graph,
-                               domains_colored_graph, max_colors).Execute();
+          GraphColoringProcess(NumPartitions, domains_graph,
+                               rDomainsColoredGraph, rMaxColors).Execute();
 
           delete [] global_comm_list;
       }
@@ -233,17 +232,17 @@ namespace Kratos
                                                        const double Tolerance,
                                                        const int CommRank,
                                                        const int EchoLevel,
-                                                       double* local_bounding_box_tol) {
+                                                       double* pLocalBoundingBoxWithTolerance) {
           // xmax, xmin,  ymax, ymin,  zmax, zmin
-          local_bounding_box_tol[0] = pLocalBoundingBox[0] + Tolerance;
-          local_bounding_box_tol[1] = pLocalBoundingBox[1] - Tolerance;
-          local_bounding_box_tol[2] = pLocalBoundingBox[2] + Tolerance;
-          local_bounding_box_tol[3] = pLocalBoundingBox[3] - Tolerance;
-          local_bounding_box_tol[4] = pLocalBoundingBox[4] + Tolerance;
-          local_bounding_box_tol[5] = pLocalBoundingBox[5] - Tolerance;
+          pLocalBoundingBoxWithTolerance[0] = pLocalBoundingBox[0] + Tolerance;
+          pLocalBoundingBoxWithTolerance[1] = pLocalBoundingBox[1] - Tolerance;
+          pLocalBoundingBoxWithTolerance[2] = pLocalBoundingBox[2] + Tolerance;
+          pLocalBoundingBoxWithTolerance[3] = pLocalBoundingBox[3] - Tolerance;
+          pLocalBoundingBoxWithTolerance[4] = pLocalBoundingBox[4] + Tolerance;
+          pLocalBoundingBoxWithTolerance[5] = pLocalBoundingBox[5] - Tolerance;
 
           if (EchoLevel > 3) {
-              MapperUtilitiesMPI::PrintBoundingBox(local_bounding_box_tol, CommRank);
+              MapperUtilitiesMPI::PrintBoundingBox(pLocalBoundingBoxWithTolerance, CommRank);
           }
       }
 
@@ -373,7 +372,7 @@ namespace Kratos
       /// An auxiliary function to determine the MPI_Datatype corresponding to a given C type
       // copied from "external_libraries/mpi_python/mpi_python.h"
       template<class T>
-      static inline MPI_Datatype GetMPIDatatype(const T& value);
+      static inline MPI_Datatype GetMPIDatatype(const T& rValue);
 
 
       ///@}
@@ -404,22 +403,22 @@ namespace Kratos
   ///@}
 
   template<>
-  inline MPI_Datatype MapperUtilitiesMPI::GetMPIDatatype<int>(const int& value) {
+  inline MPI_Datatype MapperUtilitiesMPI::GetMPIDatatype<int>(const int& rValue) {
       return MPI_INT ;
   }
 
   template<>
-  inline MPI_Datatype MapperUtilitiesMPI::GetMPIDatatype<double>(const double& value) {
+  inline MPI_Datatype MapperUtilitiesMPI::GetMPIDatatype<double>(const double& rValue) {
       return MPI_DOUBLE ;
   }
 
   template<>
-  inline int MapperUtilitiesMPI::SizeOfVariable< double >(const double& variable) {
+  inline int MapperUtilitiesMPI::SizeOfVariable< double >(const double& rVariable) {
       return 1;
   }
 
   template<>
-  inline int MapperUtilitiesMPI::SizeOfVariable< array_1d<double,3> >(const array_1d<double,3>& variable) {
+  inline int MapperUtilitiesMPI::SizeOfVariable< array_1d<double,3> >(const array_1d<double,3>& rVariable) {
       return 3;
   }
 

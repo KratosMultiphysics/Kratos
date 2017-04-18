@@ -167,53 +167,53 @@ namespace Kratos
           return mIsBeingSent;
       }
 
-      virtual bool EvaluateResult(const array_1d<double, 3>& global_coords, 
-                                  double& min_distance, const double distance,
-                                  std::vector<double>& shape_function_values) {
+      virtual bool EvaluateResult(const array_1d<double, 3>& rGlobalCoords, 
+                                  double& rMinDistance, const double Distance,
+                                  std::vector<double>& rShapeFunctionValues) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
           return false;
       }
 
-      virtual bool ComputeApproximation(const array_1d<double, 3>& global_coords, double& min_distance,
-                                        std::vector<double>& shape_function_values) {
+      virtual bool ComputeApproximation(const array_1d<double, 3>& rGlobalCoords, double& rMinDistance,
+                                        std::vector<double>& rShapeFunctionValues) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
           return false;
       }
 
       // These functions have to be duplicated because virtual templates are not possible in C++
       // Scalars
-      virtual double GetObjectValue(const Variable<double>& variable,
-                                    const Kratos::Flags& options) {
+      virtual double GetObjectValue(const Variable<double>& rVariable,
+                                    const Kratos::Flags& rOptions) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
-      virtual void SetObjectValue(const Variable<double>& variable,
-                                  const double value,
-                                  const Kratos::Flags& options,
-                                  const double factor) {
+      virtual void SetObjectValue(const Variable<double>& rVariable,
+                                  const double& Value,
+                                  const Kratos::Flags& rOptions,
+                                  const double Factor) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
       virtual double GetObjectValueInterpolated(const Variable<double>& rVariable,
-                                                std::vector<double>& rShapeFunctionValues) {
+                                                const std::vector<double>& rShapeFunctionValues) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
       // Vectors
-      virtual array_1d<double,3> GetObjectValue(const Variable< array_1d<double,3> >& variable,
-                                                const Kratos::Flags& options) {
+      virtual array_1d<double,3> GetObjectValue(const Variable< array_1d<double,3> >& rVariable,
+                                                const Kratos::Flags& rOptions) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
-      virtual void SetObjectValue(const Variable< array_1d<double,3> >& variable,
-                                  const array_1d<double,3>& value,
-                                  const Kratos::Flags& options,
-                                  const double factor) {
+      virtual void SetObjectValue(const Variable< array_1d<double,3> >& rVariable,
+                                  const array_1d<double,3>& rValue,
+                                  const Kratos::Flags& rOptions,
+                                  const double Factor) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
-      virtual array_1d<double,3> GetObjectValueInterpolated(const Variable< array_1d<double,3> >& variable,
-                                                            std::vector<double>& shape_function_values) {
+      virtual array_1d<double,3> GetObjectValueInterpolated(const Variable< array_1d<double,3> >& rVariable,
+                                                            const std::vector<double>& rShapeFunctionValues) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 

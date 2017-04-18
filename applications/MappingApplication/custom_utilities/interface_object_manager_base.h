@@ -58,11 +58,11 @@ namespace Kratos
   // This struct stores temporary variables, such that they don't have to be
   // stored as members in the InterfaceObjectManager
   struct CandidateManager {
-      std::unordered_map<int, std::vector<InterfaceObject::Pointer> > candidate_send_objects;
-      std::unordered_map<int, std::vector<InterfaceObject::Pointer> > candidate_receive_objects;
-      std::unordered_map<int, std::vector<std::vector<double> > > candidate_shape_functions;
+      std::unordered_map<int, std::vector<InterfaceObject::Pointer> > mCandidateSendObjects;
+      std::unordered_map<int, std::vector<InterfaceObject::Pointer> > mCandidateReceiveObjects;
+      std::unordered_map<int, std::vector<std::vector<double> > > mCandidateShapeFunctionValues;
 
-      std::unordered_map<int, std::vector<int> > matching_information;
+      std::unordered_map<int, std::vector<int> > mMatchingInformation;
   };
 
   /// Short class definition.
@@ -95,11 +95,11 @@ namespace Kratos
       ///@{
 
       void Clear() {
-          m_send_objects.clear();
-          m_receive_objects.clear();
-          m_shape_functions.clear();
+          mSendObjects.clear();
+          mReceiveObjects.clear();
+          mShapeFunctionValues.clear();
 
-          for (auto& interface_obj : m_interface_objects) {
+          for (auto& interface_obj : mInterfaceObjects) {
               interface_obj->Reset(); // Set the object back to its initial state
               // i.e. reset its information whether it has been sent somewhere or
               // whether it already found a neighbor
@@ -107,13 +107,12 @@ namespace Kratos
       }
 
       template <typename T>
-      void MapInsertElement(std::unordered_map<int, T>& map, int key, T& value) {
-          if (MapperUtilities::MAPPER_DEBUG_LEVEL) {
-              if (map.count(key) > 0) {
-                  KRATOS_ERROR << "Key already present in Map!" << std::endl;
-              }
+      void MapInsertElement(std::unordered_map<int, T>& rMap, int Key, T& rValue) {
+          // Debug Check
+          if (rMap.count(Key) > 0) {
+              KRATOS_ERROR << "Key already present in Map!" << std::endl;
           }
-          map.emplace(key, value);
+          rMap.emplace(Key, rValue);
       }
 
       // **********************************************************************
@@ -125,30 +124,30 @@ namespace Kratos
           int all_neighbors_found = 1; // set to "1" aka "true" by default in case
                                        // this partition doesn't have a part of the interface!
 
-          for (auto& interface_obj : m_interface_objects) {
+          for (auto& interface_obj : mInterfaceObjects) {
               if (!interface_obj->NeighborOrApproximationFound()) { // TODO this prevents from printing warnings in case only an approx is found
                   all_neighbors_found = 0;
               }
           }
 
           // This is necessary bcs not all partitions would start a new search iteration!
-          m_model_part.GetCommunicator().MinAll(all_neighbors_found);
+          mrModelPart.GetCommunicator().MinAll(all_neighbors_found);
 
           return all_neighbors_found;
       }
 
       void CheckResults() {
-          for (auto& interface_obj : m_interface_objects) {
+          for (auto& interface_obj : mInterfaceObjects) {
               const int pairing_status = interface_obj->GetPairingStatus();
               if (pairing_status == 0) { // TODO
-                  std::cout << "MAPPER WARNING, Rank " << m_comm_rank
+                  std::cout << "MAPPER WARNING, Rank " << mCommRank
                             << "\tPoint [ "
                             << interface_obj->X() << " | "
                             << interface_obj->Y() << " | "
                             << interface_obj->Z() << " ] " 
                             << "has not found a neighbor" << std::endl;
               } else if (pairing_status == 1) { // TODO
-                  std::cout << "MAPPER WARNING, Rank " << m_comm_rank
+                  std::cout << "MAPPER WARNING, Rank " << mCommRank
                             << "\tPoint [ "
                             << interface_obj->X() << " | "
                             << interface_obj->Y() << " | "
@@ -159,11 +158,11 @@ namespace Kratos
       }
 
       InterfaceObjectConfigure::ContainerType& GetInterfaceObjects() {
-          return m_interface_objects;
+          return mInterfaceObjects;
       }
 
       // ***** InterfaceObjectManagerSerial *****
-      virtual void GetInterfaceObjectsSerialSearch(InterfaceObjectConfigure::ContainerType& candidate_send_objects) {
+      virtual void GetInterfaceObjectsSerialSearch(InterfaceObjectConfigure::ContainerType& rCandidateSendObjects) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
@@ -174,39 +173,39 @@ namespace Kratos
       }
 
       // ***** InterfaceObjectManagerParallel *****
-      virtual void ComputeCandidatePartitions(CandidateManager& rCandidateManager, int* local_comm_list,
-                                              int* local_memory_size_array,
-                                              double* global_bounding_boxes,
-                                              const bool last_iteration) {
+      virtual void ComputeCandidatePartitions(CandidateManager& rCandidateManager, int* pLocalCommList,
+                                              int* pLocalMemorySizeArray,
+                                              double* pGlobalBoundingBoxes,
+                                              const bool LastIteration) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
       // Function for debugging
-      virtual void PrintCandidatePartitions(const InterfaceObject::Pointer point,
-                                            std::vector<int>& partition_list) {
+      virtual void PrintCandidatePartitions(const InterfaceObject::Pointer pInterfaceObject,
+                                            std::vector<int>& rPartitionList) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
-      virtual void PrepareMatching(CandidateManager& rCandidateManager, int* local_comm_list,
-                                   int* local_memory_size_array) {
+      virtual void PrepareMatching(CandidateManager& rCandidateManager, int* pLocalCommList,
+                                   int* pLocalMemorySizeArray) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
       virtual void FillSendBufferWithMatchInformation(CandidateManager& rCandidateManager,
-                                                      int* send_buffer, int& send_buffer_size,
-                                                      const int comm_partner){
+                                                      int* pSendBuffer, int& rSendBufferSize,
+                                                      const int CommPartner){
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
       virtual void FillBufferLocalSearch(CandidateManager& rCandidateManager,
-                                         InterfaceObjectConfigure::ContainerType& send_points,
-                                         int& num_objects) {
+                                         InterfaceObjectConfigure::ContainerType& rSendObjects,
+                                         int& rNumObjects) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
       virtual void FillSendBufferRemoteSearch(CandidateManager& rCandidateManager,
-                                              double* send_buffer, int& send_buffer_size,
-                                              const int comm_partner) {
+                                              double* pSendBuffer, int& rSendBufferSize,
+                                              const int CommPartner) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
@@ -228,39 +227,39 @@ namespace Kratos
       // Side where we search neighbors aka origin ****************************
       // **********************************************************************
       // ***** InterfaceObjectManagerSerial *****
-      virtual void StoreSearchResults(const std::vector<double>& distances,
-                                      const std::vector<InterfaceObject::Pointer> temp_closest_results,
-                                      const std::vector<std::vector<double>> temp_shape_functions) {
+      virtual void StoreSearchResults(const std::vector<double>& rDistances,
+                                      const std::vector<InterfaceObject::Pointer> TempClosestResults,
+                                      const std::vector<std::vector<double>> TempShapeFunctionValues) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
       // ***** InterfaceObjectManagerParallel *****
-      virtual void ProcessReceiveBuffer(InterfaceObjectConfigure::ContainerType& remote_p_point_list,
-                                const double* coordinate_list, const int coordinate_list_size,
-                                int& num_objects) {
+      virtual void ProcessReceiveBuffer(InterfaceObjectConfigure::ContainerType& rRemotePointList,
+                                        const double* pCoordinateList, const int CoordinateListSize,
+                                        int& rNumObjects) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
-      virtual void FillSendBufferWithResults(double* send_buffer, const int send_buffer_size,
-                                             const std::vector<double>& min_distances) {
+      virtual void FillSendBufferWithResults(double* pSendBuffer, const int SendBufferSize,
+                                             const std::vector<double>& rMinDistances) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
-      virtual void FillSendBufferWithResults(int* send_buffer, const int send_buffer_size,
-                                             const std::vector<int>& pairing_indices) {
+      virtual void FillSendBufferWithResults(int* pSendBuffer, const int SendBufferSize,
+                                             const std::vector<int>& rPairingIndices) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
       virtual void StoreTempSearchResults(CandidateManager& rCandidateManager,
-                                          const std::vector<InterfaceObject::Pointer> temp_closest_results,
-                                          const std::vector<std::vector<double>> temp_shape_functions,
-                                          const int comm_partner) {
+                                          const std::vector<InterfaceObject::Pointer> TempClosestResults,
+                                          const std::vector<std::vector<double>> TempShapeFunctionValues,
+                                          const int CommPartner) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
       virtual void ProcessMatchInformation(CandidateManager& rCandidateManager,
-                                           int* buffer, const int buffer_size,
-                                           const int comm_partner) {
+                                           int* pBuffer, const int BufferSize,
+                                           const int CommPartner) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
@@ -269,96 +268,95 @@ namespace Kratos
       // **********************************************************************
       // ** InterfaceObjectManagerSerial and InterfaceObjectManagerParallel **
       template <typename T>
-      void FillBufferWithValues(std::vector< T >& buffer, const Variable< T >& variable,
-                                Kratos::Flags& options) {
+      void FillBufferWithValues(std::vector< T >& rBuffer, const Variable< T >& rVariable,
+                                Kratos::Flags& rOptions) {
           int i = 0;
 
           std::vector<InterfaceObject::Pointer> interface_objects;
-          if (m_receive_objects.count(m_comm_rank) > 0) {
-              interface_objects = m_receive_objects.at(m_comm_rank);
+          if (mReceiveObjects.count(mCommRank) > 0) {
+              interface_objects = mReceiveObjects.at(mCommRank);
           }
 
-          buffer.resize(interface_objects.size());
+          rBuffer.resize(interface_objects.size());
 
           for (auto interface_obj : interface_objects) {
-              if (options.Is(MapperFlags::INTERPOLATE_VALUES)) {
-                  buffer[i] = interface_obj->GetObjectValueInterpolated(variable, m_shape_functions.at(m_comm_rank)[i]);
+              if (rOptions.Is(MapperFlags::INTERPOLATE_VALUES)) {
+                  rBuffer[i] = interface_obj->GetObjectValueInterpolated(rVariable, mShapeFunctionValues.at(mCommRank)[i]);
               } else {
-                  buffer[i] = interface_obj->GetObjectValue(variable, options);
+                  rBuffer[i] = interface_obj->GetObjectValue(rVariable, rOptions);
               }
               ++i;
           }
       }
 
       template <typename T>
-      void ProcessValues(const std::vector< T >& buffer, const Variable< T >& variable,
-                         Kratos::Flags& options, const double factor) {
+      void ProcessValues(const std::vector< T >& rBuffer, const Variable< T >& rVariable,
+                         Kratos::Flags& rOptions, const double Factor) {
           std::vector<InterfaceObject::Pointer> interface_objects;
-          if (m_send_objects.count(m_comm_rank) > 0) {
-             interface_objects = m_send_objects.at(m_comm_rank);
+          if (mSendObjects.count(mCommRank) > 0) {
+             interface_objects = mSendObjects.at(mCommRank);
           }
 
-          if (MapperUtilities::MAPPER_DEBUG_LEVEL) {
-             if (interface_objects.size() != buffer.size()) {
-                 KRATOS_ERROR << "Wrong number of results received!;"
-                              << " \"interface_objects.size() = "
-                              << interface_objects.size() << ", buffer.size() = "
-                              << buffer.size() << std::endl;
-             }
+          // Debug Check
+          if (interface_objects.size() != rBuffer.size()) {
+              KRATOS_ERROR << "Wrong number of results received!;"
+                           << " \"interface_objects.size() = "
+                           << interface_objects.size() << ", rBuffer.size() = "
+                           << rBuffer.size() << std::endl;
           }
 
           for (std::size_t i = 0; i < interface_objects.size(); ++i) {
-             interface_objects[i]->SetObjectValue(variable, buffer[i],
-                                                  options, factor);
+             interface_objects[i]->SetObjectValue(rVariable, rBuffer[i],
+                                                  rOptions, Factor);
           }
       }
 
       // ***** InterfaceObjectManagerParallel *****
-      virtual void ComputeBufferSizesAndCommunicationGraph(int& max_send_buffer_size,
-                                                           int& max_receive_buffer_size,
-                                                           GraphType& colored_graph,
-                                                           int& max_colors) {
+      virtual void ComputeBufferSizesAndCommunicationGraph(int& rMaxSendBufferSize,
+                                                           int& rMaxReceiveBufferSize,
+                                                           GraphType& rColoredGraph,
+                                                           int& rMaxColors) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
-      virtual void FillBufferWithValues(double* buffer, int& buffer_size, const int comm_partner,
-                                        const Variable<double>& variable, Kratos::Flags& options) {
-          KRATOS_ERROR << "Base class function called!" << std::endl;
-      }
-
-      virtual void FillBufferWithValues(double* buffer, int& buffer_size, const int comm_partner,
-                                        const Variable< array_1d<double,3> >& variable,
-                                        Kratos::Flags& options) {
+      virtual void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
+                                        const Variable<double>& rVariable, Kratos::Flags& rOptions) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
-      virtual void ProcessValues(const double* buffer, const int buffer_size, const int comm_partner,
-                         const Variable<double>& variable,
-                         Kratos::Flags& options, const double factor) {
+      virtual void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
+                                        const Variable< array_1d<double,3> >& rVariable,
+                                        Kratos::Flags& rOptions) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
-      virtual void ProcessValues(const double* buffer, const int buffer_size, const int comm_partner,
-                         const Variable< array_1d<double,3> >& variable,
-                         Kratos::Flags& options, const double factor) {
+      virtual void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
+                         const Variable<double>& rVariable,
+                         Kratos::Flags& rOptions, const double Factor) {
+          KRATOS_ERROR << "Base class function called!" << std::endl;
+      }
+
+      virtual void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
+                         const Variable< array_1d<double,3> >& rVariable,
+                         Kratos::Flags& rOptions, const double Factor) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
       // Functions used for Debugging
       void WriteNeighborRankAndCoordinates() {
-          for (auto& interface_obj : m_interface_objects) {
-              interface_obj->WriteRankAndCoordinatesToVariable(m_comm_rank); 
+          for (auto& interface_obj : mInterfaceObjects) {
+              interface_obj->WriteRankAndCoordinatesToVariable(mCommRank); 
           }
       }
 
       void PrintNeighbors() {
-          for (auto& interface_obj : m_interface_objects) {
-              interface_obj->PrintNeighbors(m_comm_rank); 
+          for (auto& interface_obj : mInterfaceObjects) {
+              interface_obj->PrintNeighbors(mCommRank); 
           }
       }
 
-      void PrintInterfaceObjects(const std::string& InterfaceSide) {
-          for (auto& r_interface_obj : m_interface_objects) {
-              std::cout << InterfaceSide << " , Rank " << m_comm_rank << " , " 
+      void PrintInterfaceObjects(const std::string& rInterfaceSide) {
+          for (auto& r_interface_obj : mInterfaceObjects) {
+              std::cout << rInterfaceSide << " , Rank " << mCommRank << " , " 
                         << r_interface_obj->Info() << " [ "
                         << r_interface_obj->X() << " "
                         << r_interface_obj->Y() << " "
@@ -411,41 +409,41 @@ namespace Kratos
       ///@name Protected member Variables
       ///@{
 
-      InterfaceObjectManagerBase(ModelPart& rModelPart, int i_comm_rank, int i_comm_size,
-                                 MapperUtilities::InterfaceObjectConstructionType i_interface_object_type,
-                                 GeometryData::IntegrationMethod i_integration_method, const int i_echo_level,
+      InterfaceObjectManagerBase(ModelPart& rModelPart, int CommRank, int CommSize,
+                                 MapperUtilities::InterfaceObjectConstructionType InterfaceObjectType,
+                                 GeometryData::IntegrationMethod IntegrationMethod, const int EchoLevel,
                                  const double ApproximationTolerance) :
-                                 m_model_part(rModelPart) {
+                                 mrModelPart(rModelPart) {
 
-          m_comm_rank = i_comm_rank;
-          m_comm_size = i_comm_size;
+          mCommRank = CommRank;
+          mCommSize = CommSize;
 
-          mEchoLevel = i_echo_level;
+          mEchoLevel = EchoLevel;
 
-          if (i_interface_object_type == MapperUtilities::Node) {
+          if (InterfaceObjectType == MapperUtilities::Node) {
               InitializeInterfaceNodeManager(rModelPart);
-          } else if (i_interface_object_type == MapperUtilities::Condition_Center ||
-                     i_interface_object_type == MapperUtilities::Condition_Gauss_Point) {
-              InitializeInterfaceConditionManager(rModelPart, i_integration_method, ApproximationTolerance);
+          } else if (InterfaceObjectType == MapperUtilities::Condition_Center ||
+                     InterfaceObjectType == MapperUtilities::Condition_Gauss_Point) {
+              InitializeInterfaceConditionManager(rModelPart, IntegrationMethod, ApproximationTolerance);
           } else {
               KRATOS_ERROR << "Type of interface object construction not implemented" << std::endl;
           }
       }
 
-      ModelPart& m_model_part;
+      ModelPart& mrModelPart;
 
-      InterfaceObjectConfigure::ContainerType m_interface_objects;
+      InterfaceObjectConfigure::ContainerType mInterfaceObjects;
 
-      int m_comm_rank = 0;
-      int m_comm_size = 0;
+      int mCommRank = 0;
+      int mCommSize = 0;
       int mEchoLevel = 0;
 
       // point-sending interface (destination)
-      std::unordered_map<int, std::vector<InterfaceObject::Pointer> > m_send_objects;
+      std::unordered_map<int, std::vector<InterfaceObject::Pointer> > mSendObjects;
 
       // point-receiving interface
-      std::unordered_map<int, std::vector<InterfaceObject::Pointer> > m_receive_objects;
-      std::unordered_map<int, std::vector<std::vector<double> > > m_shape_functions;
+      std::unordered_map<int, std::vector<InterfaceObject::Pointer> > mReceiveObjects;
+      std::unordered_map<int, std::vector<std::vector<double> > > mShapeFunctionValues;
 
 
       ///@}
@@ -494,44 +492,44 @@ namespace Kratos
       ///@name Private Operations
       ///@{
 
-      void InitializeInterfaceNodeManager(ModelPart& model_part) {
-          m_interface_objects.resize(model_part.GetCommunicator().LocalMesh().NumberOfNodes());
+      void InitializeInterfaceNodeManager(ModelPart& rModelPart) {
+          mInterfaceObjects.resize(rModelPart.GetCommunicator().LocalMesh().NumberOfNodes());
 
           int i = 0;
-          for (auto &local_node : model_part.GetCommunicator().LocalMesh().Nodes()) {
-              m_interface_objects[i] = InterfaceObject::Pointer( new InterfaceNode(local_node) );
+          for (auto &local_node : rModelPart.GetCommunicator().LocalMesh().Nodes()) {
+              mInterfaceObjects[i] = InterfaceObject::Pointer( new InterfaceNode(local_node) );
               ++i;
           }
       }
 
-      void InitializeInterfaceConditionManager(ModelPart& model_part,
-                                               GeometryData::IntegrationMethod integration_method,
+      void InitializeInterfaceConditionManager(ModelPart& rModelPart,
+                                               GeometryData::IntegrationMethod IntegrationMethod,
                                                const double ApproximationTolerance) {
           bool construct_with_center;
           int size_factor = 1;
-          if (integration_method == GeometryData::NumberOfIntegrationMethods) {
+          if (IntegrationMethod == GeometryData::NumberOfIntegrationMethods) {
               construct_with_center = true;
               size_factor = 1;
           } else {
               construct_with_center = false;
-              if (model_part.GetCommunicator().LocalMesh().NumberOfConditions() > 0) {
-                  size_factor = model_part.GetCommunicator().LocalMesh().ConditionsBegin()->GetGeometry().IntegrationPointsNumber(integration_method);
+              if (rModelPart.GetCommunicator().LocalMesh().NumberOfConditions() > 0) {
+                  size_factor = rModelPart.GetCommunicator().LocalMesh().ConditionsBegin()->GetGeometry().IntegrationPointsNumber(IntegrationMethod);
               }
           }
 
-          m_interface_objects.reserve(size_factor * model_part.GetCommunicator().LocalMesh().NumberOfConditions());
+          mInterfaceObjects.reserve(size_factor * rModelPart.GetCommunicator().LocalMesh().NumberOfConditions());
 
           if (construct_with_center) { // construct with condition center point
-              for (auto& condition : model_part.GetCommunicator().LocalMesh().Conditions()) {
-                  m_interface_objects.push_back(InterfaceObject::Pointer( new InterfaceCondition(condition, 
+              for (auto& condition : rModelPart.GetCommunicator().LocalMesh().Conditions()) {
+                  mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceCondition(condition, 
                                                               condition.GetGeometry().Center(),
                                                               ApproximationTolerance) ));
               }
           } else { // construct with condition gauss points
-              for (auto& condition : model_part.GetCommunicator().LocalMesh().Conditions()) {
+              for (auto& condition : rModelPart.GetCommunicator().LocalMesh().Conditions()) {
                   const Geometry< Node<3> >& condition_geometry = condition.GetGeometry();
 
-                  Matrix shape_functions = condition_geometry.ShapeFunctionsValues(integration_method); // TODO "ShapeFunctionsValues" seems to not be implemented for every geometry!!!
+                  Matrix shape_functions = condition_geometry.ShapeFunctionsValues(IntegrationMethod); // TODO "ShapeFunctionsValues" seems to not be implemented for every geometry!!!
 
                   const int num_gauss_points = shape_functions.size1();
                   const int num_nodes = shape_functions.size2();
@@ -550,7 +548,7 @@ namespace Kratos
                       }
                       // TODO check again if this is whole computation of the GPs is correct
 
-                      m_interface_objects.push_back(InterfaceObject::Pointer( new InterfaceCondition(condition, 
+                      mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceCondition(condition, 
                                                               gauss_point_global_coords,
                                                               ApproximationTolerance) ));
                   }

@@ -94,61 +94,61 @@ namespace Kratos
       }
 
       // Scalars
-      double GetObjectValue(const Variable<double>& variable,
-                            const Kratos::Flags& options) override {
-          if (options.Is(MapperFlags::NON_HISTORICAL_DATA)) {
-              return mpNode->GetValue(variable);
+      double GetObjectValue(const Variable<double>& rVariable,
+                            const Kratos::Flags& rOptions) override {
+          if (rOptions.Is(MapperFlags::NON_HISTORICAL_DATA)) {
+              return mpNode->GetValue(rVariable);
           } else {
-              return mpNode->FastGetSolutionStepValue(variable);
+              return mpNode->FastGetSolutionStepValue(rVariable);
           }
       }
 
-      void SetObjectValue(const Variable<double>& variable,
-                          const double value,
-                          const Kratos::Flags& options,
-                          const double factor) override {
-          if (options.Is(MapperFlags::NON_HISTORICAL_DATA)) {
-              if (options.Is(MapperFlags::ADD_VALUES)) {
-                  double old_value = mpNode->GetValue(variable);
-                  mpNode->SetValue(variable, old_value + value * factor);
+      void SetObjectValue(const Variable<double>& rVariable,
+                          const double& rValue,
+                          const Kratos::Flags& rOptions,
+                          const double Factor) override {
+          if (rOptions.Is(MapperFlags::NON_HISTORICAL_DATA)) {
+              if (rOptions.Is(MapperFlags::ADD_VALUES)) {
+                  double old_value = mpNode->GetValue(rVariable);
+                  mpNode->SetValue(rVariable, old_value + rValue * Factor);
               } else {
-                  mpNode->SetValue(variable, value * factor);
+                  mpNode->SetValue(rVariable, rValue * Factor);
               }
           } else { // Variable with history
-              if (options.Is(MapperFlags::ADD_VALUES)) {
-                  mpNode->FastGetSolutionStepValue(variable) += value * factor;
+              if (rOptions.Is(MapperFlags::ADD_VALUES)) {
+                  mpNode->FastGetSolutionStepValue(rVariable) += rValue * Factor;
               } else {
-                  mpNode->FastGetSolutionStepValue(variable) = value * factor;
+                  mpNode->FastGetSolutionStepValue(rVariable) = rValue * Factor;
               }
           }   
       }
 
       // Vectors
-      array_1d<double,3> GetObjectValue(const Variable< array_1d<double,3> >& variable,
-                                        const Kratos::Flags& options) override {
-          if (options.Is(MapperFlags::NON_HISTORICAL_DATA)) {
-              return mpNode->GetValue(variable);
+      array_1d<double,3> GetObjectValue(const Variable< array_1d<double,3> >& rVariable,
+                                        const Kratos::Flags& rOptions) override {
+          if (rOptions.Is(MapperFlags::NON_HISTORICAL_DATA)) {
+              return mpNode->GetValue(rVariable);
           } else {
-              return mpNode->FastGetSolutionStepValue(variable);
+              return mpNode->FastGetSolutionStepValue(rVariable);
           }
       }
 
-      void SetObjectValue(const Variable< array_1d<double,3> >& variable,
-                          const array_1d<double,3>& value,
-                          const Kratos::Flags& options,
-                          const double factor) override {
-          if (options.Is(MapperFlags::NON_HISTORICAL_DATA)) {
-              if (options.Is(MapperFlags::ADD_VALUES)) {
-                  array_1d<double,3> old_value = mpNode->GetValue(variable);
-                  mpNode->SetValue(variable, old_value + value * factor);
+      void SetObjectValue(const Variable< array_1d<double,3> >& rVariable,
+                          const array_1d<double,3>& rValue,
+                          const Kratos::Flags& rOptions,
+                          const double Factor) override {
+          if (rOptions.Is(MapperFlags::NON_HISTORICAL_DATA)) {
+              if (rOptions.Is(MapperFlags::ADD_VALUES)) {
+                  array_1d<double,3> old_value = mpNode->GetValue(rVariable);
+                  mpNode->SetValue(rVariable, old_value + rValue * Factor);
               } else {
-                  mpNode->SetValue(variable, value * factor);
+                  mpNode->SetValue(rVariable, rValue * Factor);
               }
           } else {
-              if (options.Is(MapperFlags::ADD_VALUES)) {
-                  mpNode->FastGetSolutionStepValue(variable) += value * factor;
+              if (rOptions.Is(MapperFlags::ADD_VALUES)) {
+                  mpNode->FastGetSolutionStepValue(rVariable) += rValue * Factor;
               } else {
-                  mpNode->FastGetSolutionStepValue(variable) = value * factor;
+                  mpNode->FastGetSolutionStepValue(rVariable) = rValue * Factor;
               }
           }
       }

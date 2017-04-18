@@ -90,7 +90,6 @@ namespace Kratos
       ///@name Operators
       ///@{
 
-      static constexpr bool MAPPER_DEBUG_LEVEL = true;
 
       ///@}
       ///@name Operations
@@ -109,7 +108,6 @@ namespace Kratos
           #else // serial compilation
               current_time = OpenMPUtils::GetCurrentTime();
           #endif
-
 
           return current_time;
       }

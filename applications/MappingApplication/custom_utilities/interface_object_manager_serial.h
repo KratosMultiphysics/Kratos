@@ -64,13 +64,13 @@ namespace Kratos
       ///@name Life Cycle
       ///@{
 
-      InterfaceObjectManagerSerial(ModelPart& rModelPart, int i_comm_rank, int i_comm_size,
-                                   MapperUtilities::InterfaceObjectConstructionType i_interface_object_type,
-                                   GeometryData::IntegrationMethod i_integration_method, const int i_echo_level,
+      InterfaceObjectManagerSerial(ModelPart& rModelPart, int CommRank, int CommSize,
+                                   MapperUtilities::InterfaceObjectConstructionType InterfaceObjectType,
+                                   GeometryData::IntegrationMethod IntegrationMethod, const int EchoLevel,
                                    const double ApproximationTolerance) :
                                    InterfaceObjectManagerBase(
-                                   rModelPart, i_comm_rank, i_comm_size, i_interface_object_type,
-                                   i_integration_method, i_echo_level, ApproximationTolerance) { }
+                                   rModelPart, CommRank, CommSize, InterfaceObjectType,
+                                   IntegrationMethod, EchoLevel, ApproximationTolerance) { }
 
       /// Destructor.
       virtual ~InterfaceObjectManagerSerial() { }
@@ -90,7 +90,7 @@ namespace Kratos
       // **********************************************************************
       void GetInterfaceObjectsSerialSearch(InterfaceObjectConfigure::ContainerType& rCandidateSendObjects) override {
           InitializeSizes();
-          for (auto interface_obj : m_interface_objects) {
+          for (auto interface_obj : mInterfaceObjects) {
               if (!interface_obj->NeighborOrApproximationFound()) { // check if the interface object already found a neighbor
                   rCandidateSendObjects.push_back(interface_obj);
               }
@@ -103,8 +103,8 @@ namespace Kratos
           int i = 0;
           for (auto interface_obj : rCandidateSendObjects) {
               if (rDistances[i] > -0.5f) { // failed search has value "-1"
-                  interface_obj->ProcessSearchResult(rDistances[i], rPairingIndices[i], m_comm_rank);
-                  m_send_objects[m_comm_rank].push_back(interface_obj);
+                  interface_obj->ProcessSearchResult(rDistances[i], rPairingIndices[i], mCommRank);
+                  mSendObjects[mCommRank].push_back(interface_obj);
               }
               ++i;
           }
@@ -113,13 +113,13 @@ namespace Kratos
       // **********************************************************************
       // Side where we search neighbors aka origin ****************************
       // **********************************************************************
-      void StoreSearchResults(const std::vector<double>& distances,
-                              const std::vector<InterfaceObject::Pointer> temp_closest_results,
-                              const std::vector<std::vector<double>> temp_shape_functions) override {
-          for (std::size_t i = 0; i < distances.size(); ++i) {
-              if (distances[i] > -0.5f) { // failed search has value "-1"
-                  m_receive_objects[m_comm_rank].push_back(temp_closest_results[i]);
-                  m_shape_functions[m_comm_rank].push_back(temp_shape_functions[i]);
+      void StoreSearchResults(const std::vector<double>& rDistances,
+                              const std::vector<InterfaceObject::Pointer> TempClosestResults,
+                              const std::vector<std::vector<double>> TempShapeFunctionValues) override {
+          for (std::size_t i = 0; i < rDistances.size(); ++i) {
+              if (rDistances[i] > -0.5f) { // failed search has value "-1"
+                  mReceiveObjects[mCommRank].push_back(TempClosestResults[i]);
+                  mShapeFunctionValues[mCommRank].push_back(TempShapeFunctionValues[i]);
               }
           }
       }
@@ -217,10 +217,10 @@ namespace Kratos
       ///@{
 
       void InitializeSizes() {
-          int size = m_interface_objects.size();
-          m_send_objects[m_comm_rank].reserve(size);
-          m_receive_objects[m_comm_rank].reserve(size);
-          m_shape_functions[m_comm_rank].reserve(size);
+          int size = mInterfaceObjects.size();
+          mSendObjects[mCommRank].reserve(size);
+          mReceiveObjects[mCommRank].reserve(size);
+          mShapeFunctionValues[mCommRank].reserve(size);
       }
 
 

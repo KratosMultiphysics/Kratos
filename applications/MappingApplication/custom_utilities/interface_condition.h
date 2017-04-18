@@ -89,7 +89,7 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      bool EvaluateResult(const array_1d<double, 3>& GlobalCoords, 
+      bool EvaluateResult(const array_1d<double, 3>& rGlobalCoords, 
                           double& rMinDistance, const double Distance,
                           std::vector<double>& rShapeFunctionValues) override { // I am an object in the bins
           // Distance is the distance to the center and not the projection distance, therefore it is unused
@@ -101,23 +101,23 @@ namespace Kratos
           try {
               if (mGeometryFamily == GeometryData::Kratos_Linear 
                   && mNumPoints == 2) { // I am a linear line condition
-                  is_inside = MapperUtilities::ProjectPointToLine(mpCondition, GlobalCoords,
+                  is_inside = MapperUtilities::ProjectPointToLine(mpCondition, rGlobalCoords,
                                                                   projection_local_coords,
                                                                   projection_distance);
               } else if (mGeometryFamily == GeometryData::Kratos_Triangle 
                         && mNumPoints == 3) { // I am a linear triangular condition
-                  is_inside = MapperUtilities::ProjectPointToTriangle(mpCondition, GlobalCoords,
+                  is_inside = MapperUtilities::ProjectPointToTriangle(mpCondition, rGlobalCoords,
                                                                       projection_local_coords,
                                                                       projection_distance);
               } else if (mGeometryFamily == GeometryData::Kratos_Quadrilateral
                         && mNumPoints == 4) { // I am a linear quadrilateral condition
-                  is_inside = MapperUtilities::ProjectPointToQuadrilateral(mpCondition, GlobalCoords,
+                  is_inside = MapperUtilities::ProjectPointToQuadrilateral(mpCondition, rGlobalCoords,
                                                                           projection_local_coords,
                                                                           projection_distance);
               } else if (mGeometryFamily == GeometryData::Kratos_Tetrahedra ||
                          mGeometryFamily == GeometryData::Kratos_Prism ||
                          mGeometryFamily == GeometryData::Kratos_Hexahedra) { // Volume Mapping
-                  is_inside = MapperUtilities::PointLocalCoordinatesInVolume(mpCondition, GlobalCoords,
+                  is_inside = MapperUtilities::PointLocalCoordinatesInVolume(mpCondition, rGlobalCoords,
                                                                              projection_local_coords,
                                                                              projection_distance);
               } else {
@@ -147,14 +147,14 @@ namespace Kratos
           return is_closer;
       }
 
-      bool ComputeApproximation(const array_1d<double, 3>& GlobalCoords, double& rMinDistance,
+      bool ComputeApproximation(const array_1d<double, 3>& rGlobalCoords, double& rMinDistance,
                                 std::vector<double>& rShapeFunctionValues) override { // I am an object in the bins
           bool is_closer = false;
           double distance_point = std::numeric_limits<double>::max();
           int closest_point_index = -1;
           // Loop over all points of the geometry and check which one is the closest
           for (int i = 0; i < mNumPoints; ++i) {
-              distance_point = MapperUtilities::ComputeDistance(GlobalCoords, 
+              distance_point = MapperUtilities::ComputeDistance(rGlobalCoords, 
                                                                 mpCondition->GetGeometry().GetPoint(i).Coordinates());
 
               if (distance_point < rMinDistance && distance_point <= mApproximationTolerance) {
@@ -182,30 +182,30 @@ namespace Kratos
       
       // Scalars
       double GetObjectValue(const Variable<double>& rVariable,
-                            const Kratos::Flags& options) override {
-          KRATOS_ERROR_IF_NOT(options.Is(MapperFlags::NON_HISTORICAL_DATA))
+                            const Kratos::Flags& rOptions) override {
+          KRATOS_ERROR_IF_NOT(rOptions.Is(MapperFlags::NON_HISTORICAL_DATA))
               << "Only Non-Historical Variables are accessible for Conditions" << std::endl;
 
           return mpCondition->GetValue(rVariable);
       }
 
       void SetObjectValue(const Variable<double>& rVariable,
-                          const double value,
-                          const Kratos::Flags& options,
-                          const double factor) override {
-          KRATOS_ERROR_IF_NOT(options.Is(MapperFlags::NON_HISTORICAL_DATA))
+                          const double& rValue,
+                          const Kratos::Flags& rOptions,
+                          const double Factor) override {
+          KRATOS_ERROR_IF_NOT(rOptions.Is(MapperFlags::NON_HISTORICAL_DATA))
               << "Only Non-Historical Variables are accessible for Conditions" << std::endl;
 
-          if (options.Is(MapperFlags::ADD_VALUES)) {
+          if (rOptions.Is(MapperFlags::ADD_VALUES)) {
               double old_value = mpCondition->GetValue(rVariable);
-              mpCondition->SetValue(rVariable, old_value + value * factor);
+              mpCondition->SetValue(rVariable, old_value + rValue * Factor);
           } else {
-              mpCondition->SetValue(rVariable, value * factor);
+              mpCondition->SetValue(rVariable, rValue * Factor);
           } 
       }
 
       double GetObjectValueInterpolated(const Variable<double>& rVariable,
-                                        std::vector<double>& rShapeFunctionValues) override {
+                                        const std::vector<double>& rShapeFunctionValues) override {
           double interpolated_value = 0.0f;
           double shape_fct_value = 0.0f;
           
@@ -227,30 +227,30 @@ namespace Kratos
 
       // Vectors
       array_1d<double,3> GetObjectValue(const Variable< array_1d<double,3> >& rVariable,
-                                        const Kratos::Flags& options) override {
-          KRATOS_ERROR_IF_NOT(options.Is(MapperFlags::NON_HISTORICAL_DATA))
+                                        const Kratos::Flags& rOptions) override {
+          KRATOS_ERROR_IF_NOT(rOptions.Is(MapperFlags::NON_HISTORICAL_DATA))
               << "Only Non-Historical Variables are accessible for Conditions" << std::endl;
           
           return mpCondition->GetValue(rVariable);
       }
 
       void SetObjectValue(const Variable< array_1d<double,3> >& rVariable,
-                          const array_1d<double,3>& value,
-                          const Kratos::Flags& options,
-                          const double factor) override {
-          KRATOS_ERROR_IF_NOT(options.Is(MapperFlags::NON_HISTORICAL_DATA))
+                          const array_1d<double,3>& rValue,
+                          const Kratos::Flags& rOptions,
+                          const double Factor) override {
+          KRATOS_ERROR_IF_NOT(rOptions.Is(MapperFlags::NON_HISTORICAL_DATA))
               << "Only Non-Historical Variables are accessible for Conditions" << std::endl;
 
-          if (options.Is(MapperFlags::ADD_VALUES)) {
+          if (rOptions.Is(MapperFlags::ADD_VALUES)) {
               array_1d<double,3> old_value = mpCondition->GetValue(rVariable);
-              mpCondition->SetValue(rVariable, old_value + value * factor);
+              mpCondition->SetValue(rVariable, old_value + rValue * Factor);
           } else {
-              mpCondition->SetValue(rVariable, value * factor);
+              mpCondition->SetValue(rVariable, rValue * Factor);
           }
       }
 
       array_1d<double,3> GetObjectValueInterpolated(const Variable< array_1d<double,3> >& rVariable,
-                                                    std::vector<double>& rShapeFunctionValues) override {
+                                                    const std::vector<double>& rShapeFunctionValues) override {
           array_1d<double,3> interpolated_value;
           interpolated_value[0] = 0.0f;
           interpolated_value[1] = 0.0f;
