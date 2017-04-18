@@ -27,7 +27,7 @@
 #include "mmg/mmg3d/libmmg3d.h"
 #include "mmg/mmgs/libmmgs.h"
 // We indlude the internal variable interpolation process
-// #include "custom_processes/internal_variables_interpolation_process.h"
+#include "custom_processes/internal_variables_interpolation_process.h"
 // Include the point locator
 #include "utilities/binbased_fast_point_locator.h"
 // Include the spatial containers needed for search

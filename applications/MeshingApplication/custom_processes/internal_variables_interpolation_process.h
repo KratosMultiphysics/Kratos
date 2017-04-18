@@ -21,6 +21,7 @@
 #include "meshing_application.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "includes/kratos_components.h"
 // #include "spatial_containers/bounding_volume_tree.h" // k-DOP
 #include "spatial_containers/spatial_containers.h" // kd-tree 
 #include "utilities/math_utils.h"                  // Cross Product
@@ -53,7 +54,8 @@ namespace Kratos
     
 /** @brief Custom Gauss Point container to be used by the search
  */
-class GaussPointItem: public Point<3>
+class GaussPointItem 
+    : public Point<3>
 {
 public:
 
@@ -74,22 +76,27 @@ public:
 
     GaussPointItem(const array_1d<double, 3> Coords):
         Point<3>(Coords)
-    {}
+    {
+    }
     
     GaussPointItem(
         const array_1d<double, 3> Coords,
         ConstitutiveLaw::Pointer pConstitutiveLaw,
-        double Weight
-    ):
-        Point<3>(Coords),
-        mpConstitutiveLaw(pConstitutiveLaw),
-        mWeight(Weight)
-    {}
+        double Weight,
+        double Radius
+        ):Point<3>(Coords),
+          mpConstitutiveLaw(pConstitutiveLaw),
+          mWeight(Weight),
+          mRadius(Radius)
+    {
+    }
 
     ///Copy constructor  (not really required)
-    GaussPointItem(const GaussPointItem& rhs):
-        Point<3>(rhs),
-        mpOriginCond(rhs.mpOriginCond)
+    GaussPointItem(const GaussPointItem& GP):
+        Point<3>(GP),
+        mpConstitutiveLaw(GP.mpConstitutiveLaw),
+        mWeight(GP.mWeight),
+        mRadius(GP.mRadius)
     {
     }
 
@@ -166,6 +173,26 @@ public:
         mWeight = Weight;
     }
     
+    /**
+     * Returns the integration weigth associated to the point
+     * @return mRadius: The pointer to the Constitutive Law associated to the point
+     */
+
+    double GetRadius()
+    {
+        return mRadius;
+    }
+    
+    /**
+     * Sets the integration weigth associated to the point
+     * @param Radius: The integration weight
+     */
+
+    void SetRadius(double Radius)
+    {
+        mRadius = Radius;
+    }
+    
 protected:
 
     ///@name Protected static Member Variables
@@ -205,6 +232,7 @@ private:
 
     ConstitutiveLaw::Pointer mpConstitutiveLaw; // The constitutive law pointer
     double mWeight;                             // The integration weight of the GP
+    double mRadius;                             // The "radius" of the element containing the GP
 
     ///@}
     ///@name Private Operators
@@ -246,6 +274,7 @@ public:
     
     // General type definitions
     typedef ModelPart::NodesContainerType                    NodesArrayType;
+    typedef ModelPart::ElementsContainerType              ElementsArrayType;
     typedef ModelPart::ConditionsContainerType          ConditionsArrayType;
     typedef Node<3>                                                NodeType;
     typedef Geometry<NodeType>                                 GeometryType;
@@ -291,7 +320,18 @@ public:
      mSearchFactor(ThisParameters["search_factor"].GetDouble()),
      mThisInterpolationType(ConvertInter(ThisParameters["interpolation_type"].GetString()))
     {        
-        // TODO: Add somethig if necessary
+        if (ThisParameters["internal_variable_interpolation_list"].IsArray())
+        {
+            for (unsigned int iVar = 0; iVar < ThisParameters.size(); iVar++)
+            {
+                mInternalVariableList.push_back(KratosComponents<Variable<double>>::Get(ThisParameters[iVar].GetString()));
+            }
+        }
+        else
+        {
+            std::cout << "WARNING:: No variables to interpolate, look that internal_variable_interpolation_list is correctly defined in your parameters" << std::endl;
+            mInternalVariableList.clear();
+        }
     }
     
     virtual ~InternalVariablesInterpolationProcess(){};
@@ -315,63 +355,154 @@ public:
     
     virtual void Execute()
     {
-    }
-        
-    /**
-     * This function has as pourpose to find potential contact conditions and fill the mortar conditions with the necessary pointers
-     * @param Searchfactor: The proportion increased of the Radius/Bounding-box volume for the search
-     * @param TypeSearch: 0 means search in radius, 1 means search in box // TODO: Add more types of bounding boxes, as kdops, look bounding_volume_tree.h
-     * @return The mortar conditions alreay created
-     */
-    
-    void SearchGaussPoints()
-    {  
         /** NOTE: There are mainly two ways to interpolate the internal variables (there are three, but just two are behave correctly)
          * CPT: Closest point transfer. It transfer the values from the closest GP
          * LST: Least-square projection transfer. It transfers from the closest GP from the old mesh
          * SFT: It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the sahpe functions all the time (NOTE: THIS DOESN'T WORK, AND REQUIRES EXTRA STORE)
          */ 
         
+        if (mThisInterpolationType == CPT && mInternalVariableList.size() > 0)
+        {
+            InterpolateGaussPointsCPT();
+        }
+        else if (mThisInterpolationType == LST && mInternalVariableList.size() > 0)
+        {
+            InterpolateGaussPointsLST();
+        }
+        else if (mThisInterpolationType == SFT && mInternalVariableList.size() > 0)
+        {
+            InterpolateGaussPointsSFT();
+        }
+    }
+        
+    /**
+     * This function creates a lists of gauss points ready for the search 
+     */
+    
+    PointVector CreateGaussPointList(ModelPart& ThisModelPart)
+    {
+        PointVector ThisPointVector;
+        
+        GeometryData::IntegrationMethod ThisIntegrationMethod;
+        
+        // Iterate in the conditions
+        ElementsArrayType& pElements = ThisModelPart.Elements();
+        auto numElements = pElements.end() - pElements.begin();
+        
+        const ProcessInfo& CurrentProcessInfo = ThisModelPart.GetProcessInfo();
+
+        #pragma omp for private(ThisIntegrationMethod)
+        for(unsigned int i = 0; i < numElements; i++) 
+        {
+            auto itElem = pElements.begin() + i;
+            
+            // Getting the geometry
+            Element::GeometryType& rThisGeometry = itElem->GetGeometry();
+            
+            // Getting the integration points
+            ThisIntegrationMethod = itElem->GetIntegrationMethod();
+            const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rThisGeometry.IntegrationPoints(ThisIntegrationMethod);
+            const unsigned int IntegrationPointsNumber = IntegrationPoints.size();
+            
+            // Computing the Jacobian
+            Vector VectorDetJ(IntegrationPointsNumber);
+            rThisGeometry.DeterminantOfJacobian(VectorDetJ,ThisIntegrationMethod);
+            
+            // Getting the CL
+            std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector(IntegrationPointsNumber);
+            itElem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,ConstitutiveLawVector,CurrentProcessInfo);
+                
+            // Computing the radius
+            const double Radius = (mDimension == 2 ? std::sqrt(rThisGeometry.Area()) : std::cbrt(rThisGeometry.Volume()));
+            
+            for (unsigned int iGaussPoint = 0; iGaussPoint < IntegrationPointsNumber; iGaussPoint++ )
+            {
+                const double Weight = VectorDetJ[iGaussPoint] * IntegrationPoints[iGaussPoint].Weight();
+                
+                PointTypePointer pPoint = PointTypePointer(new PointType(IntegrationPoints[iGaussPoint].Coordinates(), ConstitutiveLawVector[iGaussPoint], Weight, Radius));
+                (ThisPointVector).push_back(pPoint);
+            }
+        }
+        
+        return ThisPointVector;
+    }
+    
+    /**
+     * This function updates the list of Gauss Point
+     */
+    
+    void UpdateGaussPointList()
+    {
+        mPointListOrigin.clear();     
+        mPointListDestination.clear();
+        
+        mPointListOrigin = CreateGaussPointList(mrOriginMainModelPart);
+        mPointListDestination = CreateGaussPointList(mrDestinationMainModelPart);
+    }
+
+    /**
+     * This method interpolate the values of the GP using the CPT method
+     */
+    
+    void InterpolateGaussPointsCPT()
+    {
+        KRATOS_ERROR << "WARNING:: CPT not implemented yet" << std::endl;
+    }
+    
+    /**
+     * This method interpolate the values of the GP using the LST method
+     */
+        
+    void InterpolateGaussPointsLST()
+    {
         // We update the list of points
         UpdateGaussPointList();
         
         // Initialize values
         PointVector PointsFound(mAllocationSize);
-        unsigned int NumberPointsFound = 0;    
+        std::vector<double> PointsDistances(mAllocationSize);
+        unsigned int NumberPointsFound = 0;
         
         // Create a tree
         // It will use a copy of mNodeList (a std::vector which contains pointers)
         // Copying the list is required because the tree will reorder it for efficiency
-        KDTree TreePoints(mPointListDestination.begin(), mPointListDestination.end(), mBucketSize); 
+        KDTree TreePoints(mPointListOrigin.begin(), mPointListOrigin.end(), mBucketSize); 
         
-        // Iterate in the conditions
-        ConditionsArrayType& pConditions = mrMainModelPart.Conditions();
-        auto numConditions = pConditions.end() - pConditions.begin();
-
-//         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numConditions; i++) 
+        // Iterate over the destination GP
+        #pragma omp parallel for 
+        for(int iGaussPoint = 0; iGaussPoint < mPointListDestination.size(); iGaussPoint++) 
         {
-            auto itCond = pConditions.begin() + i;
+            PointTypePointer pGP = mPointListDestination[iGaussPoint];
             
-            if (itCond->Is(SLAVE) == true)
+            const double SearchRadius = mSearchFactor * pGP->GetRadius();
+            
+            NumberPointsFound = TreePoints.SearchInRadius(pGP->Coordinates(), SearchRadius, PointsFound.begin(), PointsDistances.begin(), mAllocationSize);
+            
+            if (NumberPointsFound > 0)
             {
-                Point<3> Center;
-                const double SearchRadius = mSearchFactor * ContactUtilities::CenterAndRadius((*itCond.base()), Center);
-
-                NumberPointsFound = TreePoints.SearchInRadius(Center, SearchRadius, PointsFound.begin(), mAllocationSize);
-                
-                if (NumberPointsFound > 0)
-                {   
+                for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
+                {
+                    Variable<double> ThisVar = mInternalVariableList[iVar];
                     
-                    for(unsigned int i = 0; i < NumberPointsFound; i++)
-                    {   
-                        Condition::Pointer pCondOrigin = PointsFound[i]->GetCondition();
-                        
-                        // TODO: Do something
-                    }
+                    
                 }
             }
+            else
+            {
+                std::cout << "WARNING:: It wasn't impossible to find any Gauss Point from where interpolate the internal variables" << std::endl;
+            }
         }
+        
+        
+    }
+    
+    /**
+     * This method interpolate the values of the GP using the SFT method
+     */
+    
+    void InterpolateGaussPointsSFT()
+    {
+        KRATOS_ERROR << "WARNING:: SFT not implemented yet" << std::endl;
     }
     
     ///@}
