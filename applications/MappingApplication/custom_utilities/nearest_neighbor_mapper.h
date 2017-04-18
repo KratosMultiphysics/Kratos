@@ -65,11 +65,11 @@ public:
   NearestNeighborMapper(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination,
                         Parameters& rJsonParameters) : Mapper(
                         i_model_part_origin, i_model_part_destination, rJsonParameters) {
-      m_p_mapper_communicator->InitializeOrigin(MapperUtilities::Node);
-      m_p_mapper_communicator->InitializeDestination(MapperUtilities::Node);
-      m_p_mapper_communicator->Initialize();
+      mpMapperCommunicator->InitializeOrigin(MapperUtilities::Node);
+      mpMapperCommunicator->InitializeDestination(MapperUtilities::Node);
+      mpMapperCommunicator->Initialize();
 
-      m_p_inverse_mapper.reset(); // explicitly specified to be safe
+      mpInverseMapper.reset(); // explicitly specified to be safe
   }
 
   /// Destructor.
@@ -83,79 +83,79 @@ public:
   ///@name Operations
   ///@{
 
-  void UpdateInterface(Kratos::Flags options, double search_radius) override {
-      m_p_mapper_communicator->UpdateInterface(options, search_radius);
-      if (m_p_inverse_mapper) {
-          m_p_inverse_mapper->UpdateInterface(options, search_radius);
+  void UpdateInterface(Kratos::Flags Options, double SearchRadius) override {
+      mpMapperCommunicator->UpdateInterface(Options, SearchRadius);
+      if (mpInverseMapper) {
+          mpInverseMapper->UpdateInterface(Options, SearchRadius);
       }
 
-      if (options.Is(MapperFlags::REMESHED)) {
+      if (Options.Is(MapperFlags::REMESHED)) {
           ComputeNumberOfNodesAndConditions();
       }
   }
 
   /* This function maps from Origin to Destination */
-  void Map(const Variable<double>& origin_variable,
-           const Variable<double>& destination_variable,
-           Kratos::Flags options) override {
+  void Map(const Variable<double>& rOriginVariable,
+           const Variable<double>& rDestinationVariable,
+           Kratos::Flags Options) override {
       double factor = 1.0f;
 
-      if (options.Is(MapperFlags::CONSERVATIVE)) {
+      if (Options.Is(MapperFlags::CONSERVATIVE)) {
           factor = MapperUtilities::ComputeConservativeFactor(
-              m_num_nodes_origin,
-              m_num_nodes_destination);
+              mNumNodesOrigin,
+              mNumNodesDestination);
       }
 
-      m_p_mapper_communicator->TransferNodalData(origin_variable,
-                                               destination_variable,
-                                               options,
-                                               factor);
+      mpMapperCommunicator->TransferNodalData(rOriginVariable,
+                                              rDestinationVariable,
+                                              Options,
+                                              factor);
   }
 
   /* This function maps from Origin to Destination */
-  void Map(const Variable< array_1d<double,3> >& origin_variable,
-           const Variable< array_1d<double,3> >& destination_variable,
-           Kratos::Flags options) override {
+  void Map(const Variable< array_1d<double,3> >& rOriginVariable,
+           const Variable< array_1d<double,3> >& rDestinationVariable,
+           Kratos::Flags Options) override {
       double factor = 1.0f;
 
-      if (options.Is(MapperFlags::CONSERVATIVE)) {
+      if (Options.Is(MapperFlags::CONSERVATIVE)) {
           factor = MapperUtilities::ComputeConservativeFactor(
-              m_num_nodes_origin,
-              m_num_nodes_destination);
+              mNumNodesOrigin,
+              mNumNodesDestination);
       }
 
-      m_p_mapper_communicator->TransferNodalData(origin_variable,
-                                               destination_variable,
-                                               options,
-                                               factor);
+      mpMapperCommunicator->TransferNodalData(rOriginVariable,
+                                              rDestinationVariable,
+                                              Options,
+                                              factor);
     }
 
   /* This function maps from Destination to Origin */
-  void InverseMap(const Variable<double>& origin_variable,
-                  const Variable<double>& destination_variable,
-                  Kratos::Flags options) override {
+  void InverseMap(const Variable<double>& rOriginVariable,
+                  const Variable<double>& rDestinationVariable,
+                  Kratos::Flags Options) override {
       // Construct the inverse mapper if it hasn't been done before
       // It is constructed with the order of the model_parts changed!
-      if (!m_p_inverse_mapper) {
-          m_p_inverse_mapper = Mapper::Pointer( new NearestNeighborMapper(m_model_part_destination,
-                                                                        m_model_part_origin,
-                                                                        m_json_parameters) );
+      if (!mpInverseMapper) {
+          mpInverseMapper = Mapper::Pointer( new NearestNeighborMapper(mModelPartDestination,
+                                                                        mModelPartOrigin,
+                                                                        mJsonParameters) );
       }
-      m_p_inverse_mapper->Map(destination_variable, origin_variable, options);
+      mpInverseMapper->Map(rDestinationVariable, rOriginVariable, Options);
   }
 
   /* This function maps from Destination to Origin */
-  void InverseMap(const Variable< array_1d<double,3> >& origin_variable,
-                  const Variable< array_1d<double,3> >& destination_variable,
-                  Kratos::Flags options) override {
+  void InverseMap(const Variable< array_1d<double,3> >& rOriginVariable,
+                  const Variable< array_1d<double,3> >& rDestinationVariable,
+                  Kratos::Flags Options) override {
       // Construct the inverse mapper if it hasn't been done before
       // It is constructed with the order of the model_parts changed!
-      if (!m_p_inverse_mapper) {
-          m_p_inverse_mapper = Mapper::Pointer( new NearestNeighborMapper(m_model_part_destination,
-                                                                        m_model_part_origin,
-                                                                        m_json_parameters) );
+      if (!mpInverseMapper) {
+          mpInverseMapper = Mapper::Pointer( new NearestNeighborMapper(mModelPartDestination,
+                                                                        mModelPartOrigin,
+                                                                        mJsonParameters) );
       }
-      m_p_inverse_mapper->Map(destination_variable, origin_variable, options);
+      mpInverseMapper->Map(rDestinationVariable, rOriginVariable, Options);
     }
 
   ///@}
@@ -230,7 +230,7 @@ protected:
   ///@name Member Variables
   ///@{
 
-  Mapper::Pointer m_p_inverse_mapper;
+  Mapper::Pointer mpInverseMapper;
 
   ///@}
   ///@name Private Operators

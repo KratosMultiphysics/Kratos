@@ -83,30 +83,30 @@ public:
   ///@name Operations
   ///@{
 
-  virtual void UpdateInterface(Kratos::Flags options, double search_radius) = 0;
+  virtual void UpdateInterface(Kratos::Flags Options, double SearchRadius) = 0;
 
   /* This function maps from Origin to Destination */
-  virtual void Map(const Variable<double>& origin_variable,
-                   const Variable<double>& destination_variable,
-                   Kratos::Flags options) = 0;
+  virtual void Map(const Variable<double>& rOriginVariable,
+                   const Variable<double>& rDestinationVariable,
+                   Kratos::Flags Options) = 0;
 
   /* This function maps from Origin to Destination */
-  virtual void Map(const Variable< array_1d<double,3> >& origin_variable,
-                   const Variable< array_1d<double,3> >& destination_variable,
-                   Kratos::Flags options) = 0;
+  virtual void Map(const Variable< array_1d<double,3> >& rOriginVariable,
+                   const Variable< array_1d<double,3> >& rDestinationVariable,
+                   Kratos::Flags Options) = 0;
 
   /* This function maps from Destination to Origin */
-  virtual void InverseMap(const Variable<double>& origin_variable,
-                          const Variable<double>& destination_variable,
-                          Kratos::Flags options) = 0;
+  virtual void InverseMap(const Variable<double>& rOriginVariable,
+                          const Variable<double>& rDestinationVariable,
+                          Kratos::Flags Options) = 0;
 
   /* This function maps from Destination to Origin */
-  virtual void InverseMap(const Variable< array_1d<double,3> >& origin_variable,
-                          const Variable< array_1d<double,3> >& destination_variable,
-                          Kratos::Flags options) = 0;
+  virtual void InverseMap(const Variable< array_1d<double,3> >& rOriginVariable,
+                          const Variable< array_1d<double,3> >& rDestinationVariable,
+                          Kratos::Flags Options) = 0;
 
-  MapperCommunicator::Pointer GetMapperCommunicator() {
-      return m_p_mapper_communicator;
+  MapperCommunicator::Pointer pGetMapperCommunicator() {
+      return mpMapperCommunicator;
   }
 
   ///@}
@@ -149,21 +149,21 @@ protected:
   ///@}
   ///@name Protected member Variables
   ///@{
-  ModelPart& m_model_part_origin;
-  ModelPart& m_model_part_destination;
+  ModelPart& mModelPartOrigin;
+  ModelPart& mModelPartDestination;
 
-  Parameters m_json_parameters;
+  Parameters mJsonParameters;
 
-  MapperCommunicator::Pointer m_p_mapper_communicator;
+  MapperCommunicator::Pointer mpMapperCommunicator;
 
   // global, aka of the entire submodel-parts
-  int m_num_conditions_origin;
-  int m_num_conditions_destination;
+  int mNumConditionsOrigin;
+  int mNumConditionsDestination;
 
-  int m_num_nodes_origin;
-  int m_num_nodes_destination;
+  int mNumNodesOrigin;
+  int mNumNodesDestination;
 
-  int m_echo_level = 0;
+  int mEchoLevel = 0;
 
   ///@}
   ///@name Protected Operators
@@ -176,13 +176,13 @@ protected:
   // Constructor, can only be called by derived classes (actual mappers)
   Mapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
          Parameters JsonParameters) :
-  	  m_model_part_origin(rModelPartOrigin),
-      m_model_part_destination(rModelPartDestination),
-      m_json_parameters(JsonParameters) {
+  	  mModelPartOrigin(rModelPartOrigin),
+      mModelPartDestination(rModelPartDestination),
+      mJsonParameters(JsonParameters) {
 
       ComputeNumberOfNodesAndConditions();
 
-      m_echo_level = JsonParameters["echo_level"].GetInt();
+      mEchoLevel = JsonParameters["echo_level"].GetInt();
 
       // Create the mapper communicator
       #ifdef KRATOS_USING_MPI // mpi-parallel compilation
@@ -192,10 +192,10 @@ protected:
               int comm_size;
               MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
               if (comm_size > 1) {
-                  m_p_mapper_communicator = MapperCommunicator::Pointer (
-                      new MapperMPICommunicator(m_model_part_origin,
-                                                m_model_part_destination,
-                                                m_json_parameters) );
+                  mpMapperCommunicator = MapperCommunicator::Pointer (
+                      new MapperMPICommunicator(mModelPartOrigin,
+                                                mModelPartDestination,
+                                                mJsonParameters) );
               } else { // mpi importet in python, but execution with one process only
                   InitializeSerialCommunicator();
               }
@@ -210,18 +210,18 @@ protected:
 
   void ComputeNumberOfNodesAndConditions() {
     // Compute the quantities of the local model_parts
-    m_num_conditions_origin = m_model_part_origin.GetCommunicator().LocalMesh().NumberOfConditions();
-    m_num_conditions_destination = m_model_part_destination.GetCommunicator().LocalMesh().NumberOfConditions();
+    mNumConditionsOrigin = mModelPartOrigin.GetCommunicator().LocalMesh().NumberOfConditions();
+    mNumConditionsDestination = mModelPartDestination.GetCommunicator().LocalMesh().NumberOfConditions();
 
-    m_num_nodes_origin = m_model_part_origin.GetCommunicator().LocalMesh().NumberOfNodes();
-    m_num_nodes_destination = m_model_part_destination.GetCommunicator().LocalMesh().NumberOfNodes();
+    mNumNodesOrigin = mModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes();
+    mNumNodesDestination = mModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes();
 
     // Compute the quantities of the global model_parts
-    m_model_part_origin.GetCommunicator().SumAll(m_num_conditions_origin);
-    m_model_part_destination.GetCommunicator().SumAll(m_num_conditions_destination);
+    mModelPartOrigin.GetCommunicator().SumAll(mNumConditionsOrigin);
+    mModelPartDestination.GetCommunicator().SumAll(mNumConditionsDestination);
 
-    m_model_part_origin.GetCommunicator().SumAll(m_num_nodes_origin);
-    m_model_part_destination.GetCommunicator().SumAll(m_num_nodes_destination);
+    mModelPartOrigin.GetCommunicator().SumAll(mNumNodesOrigin);
+    mModelPartDestination.GetCommunicator().SumAll(mNumNodesDestination);
   }
 
   ///@}
@@ -256,10 +256,10 @@ private:
   ///@{
 
   void InitializeSerialCommunicator() {
-      m_p_mapper_communicator = MapperCommunicator::Pointer (
-          new MapperCommunicator(m_model_part_origin,
-                                 m_model_part_destination,
-                                 m_json_parameters) );
+      mpMapperCommunicator = MapperCommunicator::Pointer (
+          new MapperCommunicator(mModelPartOrigin,
+                                 mModelPartDestination,
+                                 mJsonParameters) );
   }
 
   ///@}

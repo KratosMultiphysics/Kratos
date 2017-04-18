@@ -98,9 +98,9 @@ namespace Kratos
           mpMapper->UpdateInterface(rOptions, SearchRadius);
           double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
 
-          mpMapper->GetMapperCommunicator()->PrintTime(mMapperType,
-                                                         "UpdateInterface",
-                                                         elapsed_time);
+          mpMapper->pGetMapperCommunicator()->PrintTime(mMapperType,
+                                                        "UpdateInterface",
+                                                        elapsed_time);
       }
 
 
@@ -112,9 +112,9 @@ namespace Kratos
           mpMapper->Map(rOriginVariable, rDestinationVariable, rOptions);
           double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
 
-          mpMapper->GetMapperCommunicator()->PrintTime(mMapperType,
-                                                         "Map",
-                                                         elapsed_time);
+          mpMapper->pGetMapperCommunicator()->PrintTime(mMapperType,
+                                                        "Map",
+                                                        elapsed_time);
       }
 
       /* This function maps a variable from Origin to Destination */
@@ -125,9 +125,9 @@ namespace Kratos
           mpMapper->Map(rOriginVariable, rDestinationVariable, rOptions);
           double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
 
-          mpMapper->GetMapperCommunicator()->PrintTime(mMapperType,
-                                                         "Map",
-                                                         elapsed_time);
+          mpMapper->pGetMapperCommunicator()->PrintTime(mMapperType,
+                                                        "Map",
+                                                        elapsed_time);
       }
 
 
@@ -139,9 +139,9 @@ namespace Kratos
           mpMapper->InverseMap(rOriginVariable, rDestinationVariable, rOptions);
           double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
 
-          mpMapper->GetMapperCommunicator()->PrintTime(mMapperType,
-                                                         "InverseMap",
-                                                         elapsed_time);
+          mpMapper->pGetMapperCommunicator()->PrintTime(mMapperType,
+                                                        "InverseMap",
+                                                        elapsed_time);
       }
 
       /* This function maps from Destination to Origin */
@@ -152,9 +152,9 @@ namespace Kratos
           mpMapper->InverseMap(rOriginVariable, rDestinationVariable, rOptions);
           double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
 
-          mpMapper->GetMapperCommunicator()->PrintTime(mMapperType,
-                                                         "InverseMap",
-                                                         elapsed_time);
+          mpMapper->pGetMapperCommunicator()->PrintTime(mMapperType,
+                                                        "InverseMap",
+                                                        elapsed_time);
       }
 
 
@@ -401,9 +401,9 @@ namespace Kratos
 
           double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
 
-          mpMapper->GetMapperCommunicator()->PrintTime(mMapperType,
-                                                         "Mapper Construction",
-                                                         elapsed_time);
+          mpMapper->pGetMapperCommunicator()->PrintTime(mMapperType,
+                                                        "Mapper Construction",
+                                                        elapsed_time);
 
       }
 
