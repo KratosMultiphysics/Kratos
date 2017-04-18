@@ -346,11 +346,13 @@ public:
      mSearchFactor(ThisParameters["search_factor"].GetDouble()),
      mThisInterpolationType(ConvertInter(ThisParameters["interpolation_type"].GetString()))
     {        
-        if (ThisParameters["internal_variable_interpolation_list"].IsArray())
+        if (ThisParameters["internal_variable_interpolation_list"].IsArray() == true)
         {
-            for (unsigned int iVar = 0; iVar < ThisParameters.size(); iVar++)
+            auto VariableArrayList = ThisParameters["internal_variable_interpolation_list"];
+            
+            for (unsigned int iVar = 0; iVar < VariableArrayList.size(); iVar++)
             {
-                mInternalVariableList.push_back(KratosComponents<Variable<double>>::Get(ThisParameters[iVar].GetString()));
+                mInternalVariableList.push_back(KratosComponents<Variable<double>>::Get(VariableArrayList[iVar].GetString()));
             }
         }
         else
