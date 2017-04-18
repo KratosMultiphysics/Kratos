@@ -903,6 +903,9 @@ protected:
         
         /* We initialize elements and conditions */
         InitializeElementsAndConditions();
+        
+        /* We interpolate the internal variables */
+        InterpolateIntervalVariables(rOldModelPart);
     }
     
     /**
@@ -1150,13 +1153,21 @@ protected:
                 }
             }
         }
-        
+    }
+    
+    /**
+     * It interpolates the internal variables in the new model part using the old model part
+     * @param rOldModelPart: The old model part
+     */
+    
+    void InterpolateIntervalVariables(ModelPart& rOldModelPart)
+    {
         /* We interpolate the internal variables */
         if (mFramework == Lagrangian) 
         {
             InternalVariablesInterpolationProcess InternalVariablesInterpolation = InternalVariablesInterpolationProcess(rOldModelPart, mThisModelPart, mThisParameters["internal_variables_parameters"]);
+            InternalVariablesInterpolation.Execute();
         }
-
     }
     
     /**

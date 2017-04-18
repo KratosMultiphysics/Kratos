@@ -118,7 +118,7 @@ public:
         NodesArrayType& pNodes = mrThisModelPart.Nodes();
         auto numNodes = pNodes.end() - pNodes.begin();
         
-        #pragma omp parallel for 
+//         #pragma omp parallel for 
         for(unsigned int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNodes.begin() + i;

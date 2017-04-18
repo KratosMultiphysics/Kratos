@@ -340,12 +340,12 @@ public:
         )
     :mrOriginMainModelPart(rOriginMainModelPart),
      mrDestinationMainModelPart(rDestinationMainModelPart),
-     mDimension(mrOriginMainModelPart.GetProcessInfo()[DOMAIN_SIZE]),
+     mDimension(rDestinationMainModelPart.GetProcessInfo()[DOMAIN_SIZE]),
      mAllocationSize(ThisParameters["allocation_size"].GetInt()),
      mBucketSize(ThisParameters["bucket_size"].GetInt()),
      mSearchFactor(ThisParameters["search_factor"].GetDouble()),
      mThisInterpolationType(ConvertInter(ThisParameters["interpolation_type"].GetString()))
-    {        
+     {        
         if (ThisParameters["internal_variable_interpolation_list"].IsArray() == true)
         {
             auto VariableArrayList = ThisParameters["internal_variable_interpolation_list"];
@@ -360,7 +360,7 @@ public:
             std::cout << "WARNING:: No variables to interpolate, look that internal_variable_interpolation_list is correctly defined in your parameters" << std::endl;
             mInternalVariableList.clear();
         }
-    }
+     }
     
     virtual ~InternalVariablesInterpolationProcess(){};
 
@@ -394,7 +394,7 @@ public:
             InterpolateGaussPointsCPT();
         }
         else if (mThisInterpolationType == LST && mInternalVariableList.size() > 0)
-        {
+        {            
             InterpolateGaussPointsLST();
         }
         else if (mThisInterpolationType == SFT && mInternalVariableList.size() > 0)
@@ -506,7 +506,6 @@ public:
         KDTree TreePoints(mPointListOrigin.begin(), mPointListOrigin.end(), mBucketSize); 
         
         // Iterate over the destination GP
-        #pragma omp parallel for 
         for(unsigned int iGaussPoint = 0; iGaussPoint < mPointListDestination.size(); iGaussPoint++) 
         {
             PointTypePointer pGPDestination = mPointListDestination[iGaussPoint];
@@ -549,7 +548,6 @@ public:
         KDTree TreePoints(mPointListOrigin.begin(), mPointListOrigin.end(), mBucketSize); 
         
         // Iterate over the destination GP
-        #pragma omp parallel for 
         for(unsigned int iGaussPoint = 0; iGaussPoint < mPointListDestination.size(); iGaussPoint++) 
         {
             PointTypePointer pGPDestination = mPointListDestination[iGaussPoint];
@@ -578,6 +576,9 @@ public:
                         
                         OriginValue = (pGPOrigin->GetConstitutiveLaw())->GetValue(ThisVar, OriginValue);
                         
+//                         // Debug
+//                         KRATOS_WATCH(OriginValue);
+                        
                         const double PonderatedWeight = pGPOrigin->GetWeight()*std::exp( -4.0 * Distance * Distance /(CharacteristicLength * CharacteristicLength));
                         
                         WeightingFunctionNumerator += PonderatedWeight * OriginValue;
@@ -585,6 +586,10 @@ public:
                     }
                     
                     const double DestinationValue = WeightingFunctionNumerator/WeightingFunctionDenominator;
+                    
+//                     // Debug
+//                     KRATOS_WATCH(DestinationValue);
+                    
                     (pGPDestination->GetConstitutiveLaw())->SetValue(ThisVar, DestinationValue, CurrentProcessInfo);
                 }
             }
