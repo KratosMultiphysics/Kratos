@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_modelers/contact_domain_2D_modeler.hpp"
+#include "custom_modelers/contact_domain_3D_modeler.hpp"
 
 #include "contact_mechanics_application_variables.h"
 
@@ -22,7 +22,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  void ContactDomain2DModeler::SetNodes(ModelPart& rModelPart,
+  void ContactDomain3DModeler::SetNodes(ModelPart& rModelPart,
 					MeshingParametersType& rMeshingVariables)
   {
 
@@ -153,9 +153,9 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  void ContactDomain2DModeler::SetFaces(ModelPart& rModelPart,
+  void ContactDomain3DModeler::SetFaces(ModelPart& rModelPart,
 					MeshingParametersType& rMeshingVariables,
-					struct triangulateio& in)
+					tetgenio& in)
   {
     KRATOS_TRY
       
@@ -164,13 +164,13 @@ namespace Kratos
     const unsigned int dimension = rModelPart.ConditionsBegin(MeshId)->GetGeometry().WorkingSpaceDimension();
 
     //*********************************************************************
-    if( in.segmentlist != NULL ){
-      delete [] in.segmentlist;
-      in.numberofsegments = 0;
+    if( in.facetlist != NULL ){
+      delete [] in.facetlist;
+      in.numberoffacets = 0;
     }
 
-    if( in.segmentmarkerlist != NULL )
-      delete [] in.segmentmarkerlist;
+    if( in.facetmarkerlist != NULL )
+      delete [] in.facetmarkerlist;
     
     if( in.holelist != NULL ){
       delete [] in.holelist;
@@ -182,7 +182,7 @@ namespace Kratos
       in.numberofregions = 0;
     }
     
-    //PART 2: facet list (we can have holes in facets != area holes)
+    //PART 2: facet list (we can have holes in facets != volume holes)
     //*********************************************************************
     std::vector<PointType> BoxVertices;
     BoxVertices.resize(0);
@@ -193,52 +193,93 @@ namespace Kratos
     BoxVertices = DomainBox.GetVertices( CurrentProcessInfo[TIME], dimension );
     
     
-    in.numberofsegments           = rModelPart.NumberOfConditions() + BoxVertices.size();
-    in.segmentmarkerlist          = new int[in.numberofsegments];
-    in.segmentlist                = new int[in.numberofsegments*2];
+    in.numberoffacets       = rModelPart.NumberOfConditions() + BoxVertices.size();
+    in.facetmarkerlist      = new int[in.numberoffacets];
+    in.facetlist            = new tetgenio::facet[in.numberoffacets];
     
     ModelPart::ConditionsContainerType::iterator conditions_begin = rModelPart.ConditionsBegin();
-    
-    int base = 0;
-    for(unsigned int i = 0; i<rModelPart.Conditions(MeshId).size(); i++)
-      {
-	Geometry< Node<3> >& rGeometry = (conditions_begin + i)->GetGeometry();
-	in.segmentlist[base]   = rGeometry[0].Id();
-	in.segmentlist[base+1] = rGeometry[1].Id();
-	
-	base+=2;
-      }  
 
+    //facets
+    tetgenio::facet   *f;
+    tetgenio::polygon *p;
+    
+    for(unsigned int fc=0; fc<rModelPart.Conditions(MeshId).size(); fc++)
+      {
+	f = &in.facetlist[fc];
+	
+	f->numberofpolygons = 1;
+	f->polygonlist      = new tetgenio::polygon[f->numberofpolygons];
+	
+	f->numberofholes    = 0;
+	f->holelist         = NULL;
+            
+	p = &f->polygonlist[0];
+
+	p->numberofvertices = 3; //face is a triangle
+	p->vertexlist       = new int[p->numberofvertices];
+	  
+
+	if( (conditions_begin + fc)->Is(TO_ERASE) )
+	  std::cout<<" ERROR: condition to erase present "<<std::endl;
+
+	Geometry< Node<3> >& rGeometry = (conditions_begin + fc)->GetGeometry();
+	  
+	for (int nd=0;nd<3;nd++)
+	  {
+	    p->vertexlist[nd] = rGeometry[nd].Id();
+	  }      
+
+	in.facetmarkerlist[fc] = MeshId+1;
+	
+      }
+
+    //BoundaryBox facets
     ModelerUtilities::MeshContainer& InMesh = rMeshingVariables.InMesh;
     int& NumberOfPoints   = InMesh.GetNumberOfPoints();
 
     int ids = NumberOfPoints - BoxVertices.size() + 1;
-    for(unsigned int i = 0; i<BoxVertices.size()-1; i++) //2d (rectangular box of 4 sides)
+    for(int fc=rModelPart.Conditions(MeshId).size(); fc<in.numberoffacets; fc++) //3d (prismatic box of 6 sides)
       {
-	in.segmentlist[base]   = ids;
-	in.segmentlist[base+1] = ids+1;
-	
-	ids+=1;
-	base+=2;
+	f = &in.facetlist[fc];
+
+	f->numberofpolygons = 1;
+	f->polygonlist      = new tetgenio::polygon[f->numberofpolygons];
+
+	f->numberofholes    = 0;
+	f->holelist         = NULL;
+            
+	p = &f->polygonlist[0];
+
+	p->numberofvertices = 4; //faces of a quadrilateral
+	p->vertexlist       = new int[p->numberofvertices];
+
+	if( (conditions_begin + fc)->Is(TO_ERASE) )
+	  std::cout<<" ERROR: condition to erase present "<<std::endl;
+
+	for (int nd=0;nd<4;nd++)
+	  {
+	    p->vertexlist[nd] = ids+nd;
+	  }      
+
+	in.facetmarkerlist[fc] = MeshId+1;	
       }  
+
     
-    in.segmentlist[base]   = ids;
-    in.segmentlist[base+1] = NumberOfPoints - BoxVertices.size() + 1;
-    
-    //PART 3: (area) hole list    
+    //PART 3: (volume) hole list    
     std::vector<bounded_vector<double, 3> >& Holes = rMeshingVariables.GetHoles();
 
     //holes
     in.numberofholes              = Holes.size();
-    in.holelist                   = new REAL[in.numberofholes * 2];
+    in.holelist                   = new REAL[in.numberofholes * 3];
     
      for(unsigned int hl=0; hl<Holes.size();hl++)
        {
-	 //std::cout<<"   BoxHoles ["<<hl<<"]= ("<<Holes[hl][0]<<", "<<Holes[hl][1]<<")"<<std::endl;
+	 //std::cout<<"   BoxHoles ["<<hl<<"]= ("<<Holes[hl][0]<<", "<<Holes[hl][1]<<", "<<Holes[hl][2]<<")"<<std::endl;
 
 	 //inside point of the hole:
-	 in.holelist[hl*2+0] = Holes[hl][0];
-	 in.holelist[hl*2+1] = Holes[hl][1];
+	 in.holelist[hl*3+0] = Holes[hl][0];
+	 in.holelist[hl*3+1] = Holes[hl][1];
+	 in.holelist[hl*3+2] = Holes[hl][2];
        }
      
      
