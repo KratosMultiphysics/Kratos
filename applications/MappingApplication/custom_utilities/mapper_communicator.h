@@ -137,7 +137,7 @@ namespace Kratos
           InvokeSearch(mInitialSearchRadius, mMaxSearchIterations);
       }
 
-      void UpdateInterface(Kratos::Flags& rOptions, double i_initial_search_radius) {
+      void UpdateInterface(Kratos::Flags& rOptions, double InitialSearchRadius) {
           if (rOptions.Is(MapperFlags::REMESHED)) { // recompute the managers and the search structure
               InitializeOrigin(mInterfaceObjectTypeOrigin, mIntegrationMethodOrigin);
               InitializeDestination(mInterfaceObjectTypeDestination, mIntegrationMethodDestination);
@@ -153,11 +153,11 @@ namespace Kratos
               // InitializeSearchStructure();
           }
 
-          if (i_initial_search_radius < 0.0f) {
-              i_initial_search_radius = MapperUtilities::ComputeSearchRadius(mrModelPartOrigin,
-                                                                             mrModelPartDestination);
+          if (InitialSearchRadius < 0.0f) {
+              InitialSearchRadius = MapperUtilities::ComputeSearchRadius(mrModelPartOrigin,
+                                                                         mrModelPartDestination);
           }
-          mInitialSearchRadius = i_initial_search_radius; // update the search radius
+          mInitialSearchRadius = InitialSearchRadius; // update the search radius
 
           InvokeSearch(mInitialSearchRadius, mMaxSearchIterations);
       }
@@ -218,13 +218,13 @@ namespace Kratos
           return 1;
       }
 
-      InterfaceObjectManagerBase::Pointer GetInterfaceObjectManagerOrigin() {
-          return mpInterfaceObjectManagerOrigin;
-      }
+      // InterfaceObjectManagerBase::Pointer pGetInterfaceObjectManagerOrigin() {
+      //     return mpInterfaceObjectManagerOrigin;
+      // }
 
-      InterfaceObjectManagerBase::Pointer GetInterfaceObjectManagerDestination() {
-          return mpInterfaceObjectManagerDestination;
-      }
+      // InterfaceObjectManagerBase::Pointer pGetInterfaceObjectManagerDestination() {
+      //     return mpInterfaceObjectManagerDestination;
+      // }
 
       void PrintTime(const std::string& rMapperName,
                      const std::string& rFunctionName,
@@ -367,10 +367,10 @@ namespace Kratos
             mpInterfaceObjectManagerDestination, mpInterfaceObjectManagerOrigin, mEchoLevel) );
       }
 
-      virtual void InvokeSearch(const double i_initial_search_radius,
-                                const int i_max_search_iterations) {
-          mpSearchStructure->Search(i_initial_search_radius,
-                                       i_max_search_iterations);
+      virtual void InvokeSearch(const double InitialSearchRadius,
+                                const int MaxSearchIterations) {
+          mpSearchStructure->Search(InitialSearchRadius,
+                                       MaxSearchIterations);
           if (mEchoLevel > 3) {
               PrintPairs();
           }                

@@ -209,7 +209,8 @@ namespace Kratos
                               std::vector<int>& rPairingIndices) {
           // This function finds neighbors of the InterfaceObjects in rInterfaceObjects in bin_structure
           // It must be executable by serial and parallel version!
-          // InterfaceObjectsSize must be passed bcs rInterfaceObjects might contain old entries (it has the max receive buffer size as size)!
+          // InterfaceObjectsSize must be passed bcs rInterfaceObjects might contain old entries (it has 
+          // the max receive buffer size as size)!
 
           if (mpLocalBinStructure) { // this partition has a bin structure
               InterfaceObjectConfigure::ResultContainerType neighbor_results(mLocalBinStructureSize);
