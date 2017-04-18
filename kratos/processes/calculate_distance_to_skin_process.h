@@ -96,6 +96,8 @@ namespace Kratos
       ///@name Access
       ///@{
 
+	  ModelPart& GetSkinRepresentation() { return mSkinRepresentation; }
+
 
       ///@}
       ///@name Inquiry
@@ -268,6 +270,7 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
+		ModelPart mSkinRepresentation;
 
       ///@}
       ///@name Private Operators

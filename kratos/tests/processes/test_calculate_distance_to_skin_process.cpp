@@ -67,7 +67,10 @@ namespace Kratos {
 
       // Compute distance
       // TODO: Change the tested process as soon as the new distance process is available
-	  //CalculateDistanceToSkinProcess(volume_part, skin_part).Execute();
+	  CalculateDistanceToSkinProcess process(volume_part, skin_part);
+	  process.Execute();
+	  ModelPart& skin_rpresentation_part = process.GetSkinRepresentation();
+	  KRATOS_WATCH(skin_rpresentation_part);
 	  CalculateSignedDistanceTo3DSkinProcess(skin_part, volume_part).Execute();
 
        GidIO<> gid_io_fluid("C:/Temp/Tests/distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
@@ -80,9 +83,48 @@ namespace Kratos {
       
        GidIO<> gid_io_skin("C:/Temp/Tests/distance_test_skin", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
        gid_io_skin.InitializeMesh(0.00);
-       gid_io_skin.WriteMesh(skin_part.GetMesh());
+       gid_io_skin.WriteMesh(skin_rpresentation_part.GetMesh());
        gid_io_skin.FinalizeMesh();
 
     }
+
+	KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3IntersectionDistanceProcess, KratosCoreFastSuite)
+	{
+
+		ModelPart volume_part("Volume");
+		volume_part.AddNodalSolutionStepVariable(DISTANCE);
+		volume_part.CreateNewNode(1, 1.00, 1.00, -10.00);
+		volume_part.CreateNewNode(2, 1.00, 1.00, 10.00);
+		volume_part.CreateNewNode(3, 10.00, 0.00, 0.00);
+		volume_part.CreateNewNode(4, 0.00, 0.00, 0.00);
+
+		Properties::Pointer p_properties(new Properties(0));
+		volume_part.CreateNewElement("Element3D4N", 1, { 1,2,3,4 }, p_properties);
+
+		// Generate the skin
+		ModelPart skin_part("Skin");
+		skin_part.AddNodalSolutionStepVariable(VELOCITY);
+		skin_part.CreateNewNode(11, 0.0, 0.0, 2.0);
+		skin_part.CreateNewNode(12, 12.0, 0.0, 2.0);
+		skin_part.CreateNewNode(13, 0.0, 12.0, 2.0);
+		skin_part.CreateNewElement("Element3D3N", 1, { 11,12,13 }, p_properties);
+
+		CalculateDistanceToSkinProcess(volume_part,skin_part).Execute();
+
+		GidIO<> gid_io_fluid("C:/Temp/Tests/tetrahedra_3_intersection_distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+		gid_io_fluid.InitializeMesh(0.00);
+		gid_io_fluid.WriteMesh(volume_part.GetMesh());
+		gid_io_fluid.FinalizeMesh();
+		gid_io_fluid.InitializeResults(0, volume_part.GetMesh());
+		gid_io_fluid.WriteNodalResults(DISTANCE, volume_part.Nodes(), 0, 0);
+		gid_io_fluid.FinalizeResults();
+
+		GidIO<> gid_io_skin("C:/Temp/Tests/tetrahedra_3_intersection_distance_test_skin", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+		gid_io_skin.InitializeMesh(0.00);
+		gid_io_skin.WriteMesh(skin_part.GetMesh());
+		gid_io_skin.FinalizeMesh();
+
+
+	}
   }
 }  // namespace Kratos.
