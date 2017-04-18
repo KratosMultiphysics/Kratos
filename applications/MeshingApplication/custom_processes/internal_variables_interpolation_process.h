@@ -147,16 +147,6 @@ public:
     }
     
     /**
-     * Sets the Constitutive Law associated to the point
-     * @param pConstitutiveLaw: The pointer to the Constitutive Law
-     */
-
-    void SetConstitutiveLaw(ConstitutiveLaw::Pointer pConstitutiveLaw)
-    {
-        mpConstitutiveLaw = pConstitutiveLaw;
-    }
-    
-    /**
      * Returns the integration weigth associated to the point
      * @return mWeight: The pointer to the Constitutive Law associated to the point
      */
@@ -261,7 +251,7 @@ public:
     typedef Geometry<NodeType>                                 GeometryType;
     
     // Type definitions for the tree
-    typedef GaussGaussPointItem                                        PointType;
+    typedef GaussPointItem                                        PointType;
     typedef PointType::Pointer                             PointTypePointer;
     typedef std::vector<PointTypePointer>                       PointVector;
     typedef PointVector::iterator                             PointIterator;
@@ -295,7 +285,7 @@ public:
         )
     :mrOriginMainModelPart(rOriginMainModelPart),
      mrDestinationMainModelPart(rDestinationMainModelPart),
-     mDimension(rMainModelPart.GetProcessInfo()[DOMAIN_SIZE]),
+     mDimension(mrOriginMainModelPart.GetProcessInfo()[DOMAIN_SIZE]),
      mAllocationSize(ThisParameters["allocation_size"].GetInt()),
      mBucketSize(ThisParameters["bucket_size"].GetInt()),
      mSearchFactor(ThisParameters["search_factor"].GetDouble()),
@@ -458,15 +448,23 @@ private:
     ///@name Member Variables
     ///@{
     
-    ModelPart& rOriginMainModelPart;             // The origin model part
-    ModelPart& rDestinationMainModelPart;        // The destination model part
-    const unsigned int mDimension;               // Dimension size of the space
-    const unsigned int mAllocationSize;          // Allocation size for the vectors and max number of potential results
-    const unsigned int mBucketSize;              // Bucket size for kd-tree
-    const double mSearchFactor;                  // The search factor to be considered
-    std::vector<Variable<double>> mVariableList; // The list of variables to interpolate
-    PointVector mPointListDestination;           // A list that contents the all the points (from nodes) from the modelpart 
-    InterpolationTypes mThisInterpolationType;   // The interpolation type considered
+    // The model parts
+    ModelPart& mrOriginMainModelPart;                    // The origin model part
+    ModelPart& mrDestinationMainModelPart;               // The destination model part
+    const unsigned int mDimension;                       // Dimension size of the space
+    
+    // The allocation parameters
+    const unsigned int mAllocationSize;                  // Allocation size for the vectors and max number of potential results
+    const unsigned int mBucketSize;                      // Bucket size for kd-tree
+    
+    // The seatch variables 
+    const double mSearchFactor;                          // The search factor to be considered
+    PointVector mPointListOrigin;                        // A list that contents the all the gauss points from the origin modelpart 
+    PointVector mPointListDestination;                   // A list that contents the all the gauss points from the destination modelpart 
+    
+    // Variables to interpolate
+    std::vector<Variable<double>> mInternalVariableList; // The list of variables to interpolate
+    InterpolationTypes mThisInterpolationType;           // The interpolation type considered
 
     ///@}
     ///@name Private Operators

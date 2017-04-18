@@ -26,6 +26,8 @@
 #include "mmg/mmg2d/libmmg2d.h" 
 #include "mmg/mmg3d/libmmg3d.h"
 #include "mmg/mmgs/libmmgs.h"
+// We indlude the internal variable interpolation process
+// #include "custom_processes/internal_variables_interpolation_process.h"
 // Include the point locator
 #include "utilities/binbased_fast_point_locator.h"
 // Include the spatial containers needed for search
@@ -178,13 +180,14 @@ public:
         Parameters ThisParameters = Parameters("{'filename': 'output_remesh','echo_level': 3, 'framework': 'Eulerian'}")
         )
         :mThisModelPart(rThisModelPart),
-        mStdStringFilename(ThisParameters["filename"].GetString()),
-        mEchoLevel(ThisParameters["echo_level"].GetInt())
+        mThisParameters(ThisParameters),
+        mStdStringFilename(mThisParameters["filename"].GetString()),
+        mEchoLevel(mThisParameters["echo_level"].GetInt())
     {       
        mFilename = new char [mStdStringFilename.length() + 1];
        std::strcpy (mFilename, mStdStringFilename.c_str());
        
-       mFramework = ConvertFramework(ThisParameters["framework"].GetString());
+       mFramework = ConvertFramework(mThisParameters["framework"].GetString());
        
        mpRefElement.resize(TDim - 1);
        mpRefCondition.resize(TDim - 1);
@@ -290,6 +293,9 @@ protected:
     
     // The model part to compute
     ModelPart& mThisModelPart;                      
+    
+    // The parameters (can be used for general pourposes)
+    Parameters mThisParameters;
     
     // Storage for the dof of the node
     Node<3>::DofsContainerType  mDofs;
@@ -1145,10 +1151,10 @@ protected:
             }
         }
         
-//         // TODO: Create a new independent process (I am not speaking about "el proces")
 //         /* We interpolate the internal variables */
 //         if (mFramework == Lagrangian) 
 //         {
+//             InternalVariablesInterpolationProcess InternalVariablesInterpolation = InternalVariablesInterpolationProcess(rOldModelPart, mThisModelPart, mThisParameters);
 //         }
 
     }
