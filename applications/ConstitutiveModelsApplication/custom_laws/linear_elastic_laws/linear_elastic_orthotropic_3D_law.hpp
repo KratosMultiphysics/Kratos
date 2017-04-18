@@ -211,8 +211,7 @@ namespace Kratos
        * @return the linear elastic constitutive matrix
        */
       void CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix,
-					 const double &rYoungModulus,
-					 const double &rPoissonCoefficient ) override
+					 const Properties& rMaterialProperties) override
       {
 	KRATOS_TRY
   

@@ -62,7 +62,7 @@ namespace Kratos
       HyperElasticUPAxisymmetric2DLaw() : HyperElasticUP3DLaw() {}
 
       /// Constructor.
-      HyperElasticUPAxisymmetric2DLaw(HModelType::Pointer pHyperElasticModel) : HyperElasticUP3DLaw(pHyperElasticModel) {} 
+      HyperElasticUPAxisymmetric2DLaw(ModelType::Pointer pModel) : HyperElasticUP3DLaw(pModel) {} 
 
       /// Copy constructor.
       HyperElasticUPAxisymmetric2DLaw(const HyperElasticUPAxisymmetric2DLaw& rOther) : HyperElasticUP3DLaw(rOther) {}

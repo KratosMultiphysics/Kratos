@@ -59,7 +59,7 @@ namespace Kratos
     ///@{
 
     /// Default constructor.
-    IsochoricNeoHookeanModel() : IsochoricHyperelasticModel() {}
+    IsochoricNeoHookeanModel() : IsochoricHyperElasticModel() {}
     
     /// Copy constructor.
     IsochoricNeoHookeanModel(IsochoricNeoHookeanModel const& rOther) : IsochoricHyperElasticModel(rOther) {}
@@ -68,7 +68,7 @@ namespace Kratos
     IsochoricNeoHookeanModel& operator=(IsochoricNeoHookeanModel const& rOther) { return *this; }
 
     /// Clone.
-    virtual ElasticityModel::Pointer Clone() const
+    virtual ElasticityModel::Pointer Clone() const override
     {
       return ( IsochoricNeoHookeanModel::Pointer(new IsochoricNeoHookeanModel(*this)) );      
     }
@@ -139,7 +139,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "IsochoricNeoHookeanModel";
@@ -147,16 +147,15 @@ namespace Kratos
     }
     
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "IsochoricNeoHookeanModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "IsochoricNeoHookeanModel Data";
-      rOStream << "StrainInvariants (" << mStrainInvariants.I1 <<", " << mStrainInvariants.I2 <<", " << mStrainInvariants.I3 <<", " << mStrainInvariants.J <<") ";
     }
     
 
@@ -366,14 +365,14 @@ namespace Kratos
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const  override
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, IsochoricNeoHookeanModel )
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, IsochoricHyperElasticModel )
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, IsochoricNeoHookeanModel )      
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, IsochoricHyperElasticModel )      
     }
 
     ///@}

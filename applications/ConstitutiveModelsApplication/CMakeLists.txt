@@ -22,9 +22,6 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_SOURCES
 	#isotropic linear elastic laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/linear_elastic_laws/linear_elastic_3D_law.cpp
 
-	#orthotropic linear elastic laws
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/linear_elastic_laws/orthotropic_linear_elastic_3D_law.cpp
-
 	#isotropic hyperelastic laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/hyperelastic_laws/hyperelastic_3D_law.cpp
 		
@@ -35,21 +32,8 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_SOURCES
 	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/linear_elastic_plastic_laws/linear_elastic_plastic_axysimmetric_2D_law.cpp
 
 	#isotropic hyperelastic plasticity laws
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/hyperelastic_plastic_laws/hyperelastic_plastic_3D_law.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/hyperelastic_plastic_laws/hyperelastic_plastic_plane_strain_2D_law.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/hyperelastic_plastic_laws/hyperelastic_plastic_axisymmetric_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/hyperelastic_plastic_laws/hyperelastic_plastic_3D_law.cpp
 
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/hyperelastic_plastic_laws/incompressible_hyperelastic_plastic_3D_law.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/hyperelastic_plastic_laws/incompressible_hyperelastic_plastic_plane_strain_2D_law.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/hyperelastic_plastic_laws/incompressible_hyperelastic_plastic_axisymmetric_2D_law.cpp
-
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/hyperelastic_plastic_laws/hyperelastic_plastic_J2_3D_law.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/hyperelastic_plastic_laws/hyperelastic_plastic_J2_plane_strain_2D_law.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/hyperelastic_plastic_laws/hyperelastic_plastic_J2_axisymmetric_2D_law.cpp
-
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/hyperelastic_plastic_laws/incompressible_hyperelastic_plastic_J2_3D_law.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/hyperelastic_plastic_laws/incompressible_hyperelastic_plastic_J2_plane_strain_2D_law.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/hyperelastic_plastic_laws/incompressible_hyperelastic_plastic_J2_axisymmetric_2D_law.cpp
 
 	#isotropic linear elastic damage laws
 	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/linear_elastic_damage_laws/isotropic_damage_simo_ju_3D_law.cpp
@@ -69,19 +53,15 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_SOURCES
 	#hyperelastic models
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/hyperelastic_models/hyperelastic_model.cpp
 
-	#plasticity models
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/non_linear_associative_plastic_model.cpp
+	#plastic models (template, all in headers)
+	
+	#yield criteria (template, all in headers)
 
 	#hardening laws
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_laws/non_linear_isotropic_kinematic_hardening_law.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_laws/linear_isotropic_kinematic_hardening_law.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_laws/exponential_damage_hardening_law.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/pcustom_models/lasticity_models/hardening_laws/modified_exponential_damage_hardening_law.cpp
-
-	#yield criteria
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/yield_criteria/mises_huber_yield_criterion.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/yield_criteria/simo_ju_yield_criterion.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/yield_criteria/modified_mises_yield_criterion.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_laws/non_linear_isotropic_kinematic_hardening_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_laws/linear_isotropic_kinematic_hardening_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_laws/exponential_damage_hardening_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_laws/modified_exponential_damage_hardening_law.cpp
 
 	
 )

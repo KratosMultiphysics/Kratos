@@ -16,6 +16,7 @@
 
 // Project includes
 #include "custom_models/plasticity_models/hardening_laws/hardening_law.hpp"
+#include "custom_utilities/constitutive_law_utilities.hpp"
 
 namespace Kratos
 {
@@ -52,9 +53,14 @@ namespace Kratos
     ///@name Type Definitions
     ///@{
 
+    typedef ConstitutiveModelData::MatrixType                          MatrixType;
+    typedef ConstitutiveModelData::VectorType                          VectorType;
+    typedef ConstitutiveModelData::ModelData                        ModelDataType;
+    typedef ConstitutiveModelData::MaterialData                  MaterialDataType;
+    
     typedef THardeningLaw                                        HardeningLawType;
     typedef typename THardeningLaw::PlasticDataType               PlasticDataType;
-    typedef typename THardeningLaw::Pointer               HardeningLawTypePointer;
+    typedef typename THardeningLaw::Pointer                   HardeningLawPointer;
     
     typedef typename THardeningLaw::InternalVariablesType   InternalVariablesType;
     
@@ -66,10 +72,17 @@ namespace Kratos
     ///@{
 
     /// Default constructor.
-    YieldCriterion() {}
+    YieldCriterion()
+    {
+      KRATOS_TRY
+
+      mpHardeningLaw = HardeningLawPointer( new HardeningLawType() );
+	
+      KRATOS_CATCH(" ")
+    }
 
     /// Constructor.
-    YieldCriterion(HardeningLawTypePointer pHardeningLaw) : mpHardeningLaw(pHardeningLaw) {}
+    YieldCriterion(HardeningLawPointer pHardeningLaw) : mpHardeningLaw(pHardeningLaw) {}
 
     /// Copy constructor.
     YieldCriterion(YieldCriterion const& rOther) : mpHardeningLaw(rOther.mpHardeningLaw) {}
@@ -225,6 +238,7 @@ namespace Kratos
     ///@name Access
     ///@{
 
+    HardeningLawType& GetHardeningLaw() { return *mpHardeningLaw; };
     
     ///@}
     ///@name Inquiry
@@ -245,10 +259,16 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "YieldCriterion";}
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+      rOStream << "YieldCriterion";
+    }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+      rOStream << "YieldCriterion Data";
+    }
 
 
     ///@}
@@ -267,7 +287,7 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 	
-    HardeningLawTypePointer mpHardeningLaw;
+    HardeningLawPointer mpHardeningLaw;
     
     ///@}
     ///@name Protected Operators

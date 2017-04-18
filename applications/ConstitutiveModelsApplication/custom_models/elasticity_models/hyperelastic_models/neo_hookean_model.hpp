@@ -68,7 +68,7 @@ namespace Kratos
     NeoHookeanModel& operator=(NeoHookeanModel const& rOther) { return *this; }
 
     /// Clone.
-    virtual ElasticityModel::Pointer Clone() const
+    virtual ElasticityModel::Pointer Clone() const override
     {
       return ( NeoHookeanModel::Pointer(new NeoHookeanModel(*this)) );      
     }
@@ -136,7 +136,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "NeoHookeanModel";
@@ -144,13 +144,13 @@ namespace Kratos
     }
     
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "NeoHookeanModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "NeoHookeanModel Data";
     }
@@ -326,14 +326,14 @@ namespace Kratos
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NeoHookeanModel )
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticModel )
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NeoHookeanModel )      
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticModel )      
     }
 
     ///@}

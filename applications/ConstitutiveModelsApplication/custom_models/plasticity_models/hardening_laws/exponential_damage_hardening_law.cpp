@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-include "custom_models/plasticity_models/hardening_laws/exponential_damage_hardening_law.hpp"
+#include "custom_models/plasticity_models/hardening_laws/exponential_damage_hardening_law.hpp"
 
 namespace Kratos
 {
@@ -71,7 +71,7 @@ namespace Kratos
   {
     KRATOS_TRY
    
-    const ModelData& rModelData           = rVariables.GetModelData();
+    const ModelDataType& rModelData       = rVariables.GetModelData();
     const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
     const double& rFractureEnergy         = rMaterialProperties[FRACTURE_ENERGY];
     const double& rDamageThreshold        = rMaterialProperties[DAMAGE_THRESHOLD];
@@ -109,7 +109,7 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    const ModelData& rModelData           = rVariables.GetModelData();
+    const ModelDataType& rModelData       = rVariables.GetModelData();
     const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
     const double& rFractureEnergy         = rMaterialProperties[FRACTURE_ENERGY];
     const double& rDamageThreshold        = rMaterialProperties[DAMAGE_THRESHOLD];

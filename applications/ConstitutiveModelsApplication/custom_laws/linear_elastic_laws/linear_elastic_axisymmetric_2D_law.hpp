@@ -169,11 +169,14 @@ namespace Kratos
        * @param NU the Poisson ratio
        * @return the linear elastic constitutive matrix
        */
-      void CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix,
-					 const double &rYoungModulus,
-					 const double &rPoissonCoefficient ) override
+      void CalculateLinearElasticMatrix(Matrix& rConstitutiveMatrix,
+					const Properties& rMaterialProperties) override
       {
 	KRATOS_TRY
+
+	// Lame constants
+	const double& rYoungModulus          = rMaterialProperties[YOUNG_MODULUS];
+	const double& rPoissonCoefficient    = rMaterialProperties[POISSON_RATIO];
 	  
 	rConstitutiveMatrix ( 0 , 0 ) = (rYoungModulus*(1.0-rPoissonCoefficient)/((1.0+rPoissonCoefficient)*(1.0-2*rPoissonCoefficient)));
 	rConstitutiveMatrix ( 1 , 1 ) = rConstitutiveMatrix ( 0 , 0 );

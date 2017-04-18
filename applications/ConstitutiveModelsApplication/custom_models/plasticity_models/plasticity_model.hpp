@@ -46,7 +46,7 @@ namespace Kratos
   /** Detail class definition.
    */
   template<class TElasticityModel, class TYieldCriterion>
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) PlasticityModel
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) PlasticityModel : public ElasticityModel
   {
   public:
     
@@ -62,8 +62,8 @@ namespace Kratos
     typedef TYieldCriterion                                     YieldCriterionType;
     typedef typename TYieldCriterion::PlasticDataType              PlasticDataType;
 
-    typedef typename TElasticityModel::Pointer          ElasticityModelTypePointer;
-    typedef typename TYieldCriterion::Pointer            YieldCriterionTypePointer;
+    typedef typename TElasticityModel::Pointer              ElasticityModelPointer;
+    typedef typename TYieldCriterion::Pointer                YieldCriterionPointer;
 
     typedef typename TYieldCriterion::InternalVariablesType  InternalVariablesType;
     
@@ -75,23 +75,31 @@ namespace Kratos
     ///@{
 
     /// Default constructor.
-    PlasticityModel() {}
+    PlasticityModel() : ElasticityModel()
+    {
+      KRATOS_TRY
+	
+      mpElasticityModel = ElasticityModelPointer( new ElasticityModelType() );
+      mpYieldCriterion  = YieldCriterionPointer( new YieldCriterionType() );
+	
+      KRATOS_CATCH(" ")
+    }
 
 
     /// Constructor.
-    PlasticityModel(ElasticityModelTypePointer pElasticityModel, YieldCriterionTypePointer pYieldCriterion) : mpElasticityModel(pElasticityModel), mpYieldCriterion(pYieldCriterion){}
+    PlasticityModel(ElasticityModelPointer pElasticityModel, YieldCriterionPointer pYieldCriterion) : ElasticityModel(), mpElasticityModel(pElasticityModel), mpYieldCriterion(pYieldCriterion) {}
 
     
     /// Copy constructor.
-    PlasticityModel(PlasticityModel const& rOther) : mpElasticityModel(rOther.mpElasticityModel), mpYieldCriterion(rOther.mpYieldCriterion) {}
+    PlasticityModel(PlasticityModel const& rOther) : ElasticityModel(rOther), mpElasticityModel(rOther.mpElasticityModel), mpYieldCriterion(rOther.mpYieldCriterion) {}
 
     /// Assignment operator.
     PlasticityModel& operator=(PlasticityModel const& rOther) {return *this;}
 
     /// Clone.
-    PlasticityModel<TElasticityModel,TYieldCriterion>::Pointer Clone() const
+    ElasticityModel::Pointer Clone() const override
     {
-      return (PlasticityModel<TElasticityModel,TYieldCriterion>::Pointer(new PlasticityModel(*this)));
+      return ( PlasticityModel::Pointer(new PlasticityModel(*this)) );
     }
     
     /// Destructor.
@@ -111,7 +119,7 @@ namespace Kratos
      * Calculate Stresses
      */
 
-    virtual void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix)
+    virtual void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
 	
@@ -120,7 +128,7 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
 
-    virtual void CalculateIsochoricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix)
+    virtual void CalculateIsochoricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
 	
@@ -129,11 +137,11 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
 
-    virtual void CalculateVolumetricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix)
+    virtual void CalculateVolumetricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
 	
-      mpElasticityModel->CalculateVolumetricStress(rValues,rStressMatrix);
+      mpElasticityModel->CalculateVolumetricStressTensor(rValues,rStressMatrix);
 	
       KRATOS_CATCH(" ")
     }
@@ -142,17 +150,17 @@ namespace Kratos
     /**
      * Calculate Constitutive Tensor
      */
-    virtual void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) 
+    virtual void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override
     {
       KRATOS_THROW_ERROR( std::logic_error, "calling PlasticityModel base class ..", "" )
     }
     
-    virtual void CalculateIsochoricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) 
+    virtual void CalculateIsochoricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override
     {
       KRATOS_THROW_ERROR( std::logic_error, "calling PlasticityModel base class ..", "" )
     }
     
-    virtual void CalculateVolumetricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) 
+    virtual void CalculateVolumetricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override
     {
       KRATOS_TRY
 	
@@ -165,17 +173,17 @@ namespace Kratos
     /**
      * Calculate Stress and Constitutive Tensor
      */
-    virtual void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix)
+    virtual void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
     {
       KRATOS_THROW_ERROR( std::logic_error, "calling PlasticityModel base class ..", "" )
     }
     
-    virtual void CalculateIsochoricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix)
+    virtual void CalculateIsochoricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
     {
       KRATOS_THROW_ERROR( std::logic_error, "calling PlasticityModel base class ..", "" )
     }
     
-    virtual void CalculateVolumetricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix)
+    virtual void CalculateVolumetricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
     {
       KRATOS_THROW_ERROR( std::logic_error, "calling PlasticityModel base class ..", "" )
     }
@@ -198,7 +206,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "PlasticityModel" ;
@@ -206,10 +214,16 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "PlasticityModel";}
+    virtual void PrintInfo(std::ostream& rOStream) const override
+    {
+      rOStream << "PlasticityModel";
+    }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    virtual void PrintData(std::ostream& rOStream) const override
+    {
+      rOStream << "PlasticityModel Data";
+    }
 
     ///@}
     ///@name Friends
@@ -227,8 +241,8 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
     
-    ElasticityModelType   mpElasticityModel;
-    YieldCriterionType    mpYieldCriterion;
+    ElasticityModelPointer   mpElasticityModel;
+    YieldCriterionPointer    mpYieldCriterion;
     
     ///@}
     ///@name Protected Operators

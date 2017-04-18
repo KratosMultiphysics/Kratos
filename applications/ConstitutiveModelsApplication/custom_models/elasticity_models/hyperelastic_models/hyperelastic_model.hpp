@@ -214,7 +214,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "HyperElasticModel";
@@ -222,13 +222,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "HyperElasticModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "HyperElasticModel Data";
     }
@@ -633,12 +633,14 @@ namespace Kratos
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ElasticityModel )
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ElasticityModel )      
     }
 
     ///@}
@@ -665,20 +667,6 @@ namespace Kratos
   ///@{
 
 
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream,
-                                    HyperElasticModel& rThis);
-
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream,
-                                    const HyperElasticModel& rThis)
-  {
-      rThis.PrintInfo(rOStream);
-      rOStream <<" : " << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
-  }
   ///@}
 
   ///@} addtogroup block

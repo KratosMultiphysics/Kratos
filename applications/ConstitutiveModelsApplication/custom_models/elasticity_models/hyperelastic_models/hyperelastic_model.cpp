@@ -207,34 +207,38 @@ namespace Kratos
     const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
     
     MatrixType StressPartMatrix;
-      
+    MatrixType StressMatrix;
+	    
     if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mCauchyGreenMatrix = RightCauchyGreen (C)
 
       StressPartMatrix = GetI1RightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
-      noalias(rStressMatrix)  = rVariables.Factors.Alpha1 * StressPartMatrix;
+      noalias(StressMatrix)  = rVariables.Factors.Alpha1 * StressPartMatrix;
 
       StressPartMatrix = GetI2RightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
-      noalias(rStressMatrix) += rVariables.Factors.Alpha2 * StressPartMatrix;
+      noalias(StressMatrix) += rVariables.Factors.Alpha2 * StressPartMatrix;
 
       StressPartMatrix = GetI3RightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
-      noalias(rStressMatrix) += rVariables.Factors.Alpha3 * StressPartMatrix;
+      noalias(StressMatrix) += rVariables.Factors.Alpha3 * StressPartMatrix;
 
-      rStressMatrix *= 2.0;
-	
+      StressMatrix *= 2.0;
+      
+      rStressMatrix += StressMatrix;
+      
     }
     else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mCauchyGreenMatrix = LeftCauchyGreen (b)
 
       StressPartMatrix = GetI1LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
-      noalias(rStressMatrix)  = rVariables.Factors.Alpha1 * StressPartMatrix;
+      noalias(StressMatrix)  = rVariables.Factors.Alpha1 * StressPartMatrix;
 
       StressPartMatrix = GetI2LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
-      noalias(rStressMatrix) += rVariables.Factors.Alpha2 * StressPartMatrix;
+      noalias(StressMatrix) += rVariables.Factors.Alpha2 * StressPartMatrix;
 
       StressPartMatrix = GetI3LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
-      noalias(rStressMatrix) += rVariables.Factors.Alpha3 * StressPartMatrix;
+      noalias(StressMatrix) += rVariables.Factors.Alpha3 * StressPartMatrix;
 
-      rStressMatrix *= 2.0 * rVariables.Strain.Invariants.J;
+      StressMatrix *= 2.0 * rVariables.Strain.Invariants.J;
 
+      rStressMatrix += StressMatrix;      
     }
 
     rVariables.State().Set(ConstitutiveModelData::COMPUTED_STRESS);

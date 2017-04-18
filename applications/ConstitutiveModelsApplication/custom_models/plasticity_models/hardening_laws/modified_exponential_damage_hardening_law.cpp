@@ -71,7 +71,7 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    const ModelData& rModelData           = rVariables.GetModelData();
+    const ModelDataType& rModelData       = rVariables.GetModelData();
     const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
     const double& rDamageThreshold        = rMaterialProperties[DAMAGE_THRESHOLD];
     const double& rResidualStrength       = rMaterialProperties[RESIDUAL_STRENGTH];
@@ -105,7 +105,7 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    const ModelData& rModelData           = rVariables.GetModelData();
+    const ModelDataType& rModelData       = rVariables.GetModelData();
     const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
     const double& rDamageThreshold        = rMaterialProperties[DAMAGE_THRESHOLD];
     const double& rResidualStrength       = rMaterialProperties[RESIDUAL_STRENGTH];

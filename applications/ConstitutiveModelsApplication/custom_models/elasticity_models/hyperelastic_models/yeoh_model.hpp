@@ -1,4 +1,4 @@
-//
+ç//
 //   Project Name:        KratosConstitutiveModelsApplication $
 //   Created by:          $Author:                JMCarbonell $
 //   Last modified by:    $Co-Author:                         $
@@ -146,14 +146,25 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    virtual std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "YeohModel";
+        return buffer.str();
+    }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    virtual void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "YeohModel";
+    }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
-
+    virtual void PrintData(std::ostream& rOStream) const override
+    {
+      rOStream << "YeohModel Data";
+    }
+    
     ///@}
     ///@name Friends
     ///@{
@@ -300,13 +311,15 @@ namespace Kratos
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
-    };
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticModel )
+    }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
-    };
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticModel )      
+    }
 
     ///@}
     ///@name Private Inquiry

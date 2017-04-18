@@ -72,15 +72,15 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const ModelData& rModelData = rVariables.GetModelData();
+    const ModelDataType& rModelData = rVariables.GetModelData();
 
     //get values
-    const double& rEquivalentPlasticStrain = rVariables.GetEquivalentPlasticStrain();
+    const double& rEquivalentPlasticStrain    = rVariables.GetInternalVariables()[0];
 
     //linear hardening properties
-    const Properties& rMaterialProperties     =  rModelData.GetMaterialProperties();
-    const double& YieldStress                 =  rMaterialProperties[YIELD_STRESS];
-    const double& KinematicHardeningConstant  =  rMaterialProperties[KINEMATIC_HARDENING_MODULUS];
+    const Properties& rMaterialProperties     = rModelData.GetMaterialProperties();
+    const double& YieldStress                 = rMaterialProperties[YIELD_STRESS];
+    const double& KinematicHardeningConstant  = rMaterialProperties[KINEMATIC_HARDENING_MODULUS];
 	
 
     //Linear Hardening law: (mTheta = 0)
@@ -101,7 +101,7 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    const ModelData& rModelData = rVariables.GetModelData();
+    const ModelDataType& rModelData = rVariables.GetModelData();
 
     //linear hardening properties
     const double& KinematicHardeningConstant  =  rModelData.GetMaterialProperties()[KINEMATIC_HARDENING_MODULUS];
@@ -122,7 +122,7 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    const ModelData& rModelData = rVariables.GetModelData();
+    const ModelDataType& rModelData = rVariables.GetModelData();
 
     //linear hardening properties
     const double& KinematicHardeningConstant  =  rModelData.GetMaterialProperties()[KINEMATIC_HARDENING_MODULUS];

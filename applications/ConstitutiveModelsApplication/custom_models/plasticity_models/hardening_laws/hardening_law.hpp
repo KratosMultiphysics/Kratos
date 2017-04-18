@@ -72,6 +72,25 @@ namespace Kratos
     {
       //internal variables
       array_1d<double, TVarSize> Variables;
+
+      const array_1d<double, TVarSize>& GetVariables() {return Variables;};
+
+    private:
+
+      friend class Serializer;
+
+      // A private default constructor necessary for serialization
+      
+      void save(Serializer& rSerializer) const
+      {
+	rSerializer.save("Variables",Variables);
+      };
+
+      void load(Serializer& rSerializer)
+      {
+	rSerializer.load("Variables",Variables);
+      };
+      
     };
 
 
@@ -80,6 +99,25 @@ namespace Kratos
     {
       //internal variables
       array_1d<double, TVarSize> Variables;
+
+      const array_1d<double, TVarSize>& GetVariables() {return Variables;};
+
+    private:
+
+      friend class Serializer;
+
+      // A private default constructor necessary for serialization
+      
+      void save(Serializer& rSerializer) const
+      {
+	rSerializer.save("Variables",Variables);
+      };
+
+      void load(Serializer& rSerializer)
+      {
+	rSerializer.load("Variables",Variables);
+      };
+      
     };
     
 
@@ -106,24 +144,27 @@ namespace Kratos
       
       //Set Data Pointers
       void SetState           (Flags& rState)                    {mpState = &rState;};
-      void SetModelDataType   (const ModelDataType&  rModelData) {mpModelData = &rModelData;};
+      void SetModelData       (const ModelDataType&  rModelData) {mpModelData = &rModelData;};
       
       //Get Data Pointers
-      const ModelDataType&    GetModelData                () {return *mpModelData;};
-      const MaterialDataType& GetMaterialParameters       () {return mpModelData->GetMaterialParameters();};
+      const ModelDataType&    GetModelData                () const {return *mpModelData;};
+      const MaterialDataType& GetMaterialParameters       () const {return mpModelData->GetMaterialParameters();};
 
       //Get non const Data
       Flags& State                                        () {return *mpState;};
 
       //Get const Data
-      const Flags&  GetState              () {return *mpState;};
-      const double& GetTrialStateFunction () {return TrialStateFunction;};
-      const double& GetStressNorm         () {return StressNorm;};     
-      const double& GetRateFactor         () {return RateFactor;};
+      const Flags&  GetState              () const {return *mpState;};
+      const double& GetTrialStateFunction () const {return TrialStateFunction;};
+      const double& GetStressNorm         () const {return StressNorm;};     
+      const double& GetRateFactor         () const {return RateFactor;};
       
-      const InternalVariables<TVarSize>&      GetInternalVariables       () {return Internal;};
-      const DeltaInternalVariables<TVarSize>& GetDeltaInternalVariables  () {return DeltaInternal;};
-      
+      const InternalVariables<TVarSize>&      GetInternal         () const {return Internal;};
+      const DeltaInternalVariables<TVarSize>& GetDeltaInternal    () const {return DeltaInternal;};
+
+      const array_1d<double,TVarSize>& GetInternalVariables       () const {return Internal.Variables;};
+      const array_1d<double,TVarSize>& GetDeltaInternalVariables  () const {return DeltaInternal.Variables;};
+     
     };
 
     typedef InternalVariables<VarSize>   InternalVariablesType;
@@ -234,11 +275,16 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "HardeningLaw";}
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+      rOStream << "HardeningLaw";
+    }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
-
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+      rOStream << "HardeningLaw Data";
+    }
 
     ///@}
     ///@name Friends

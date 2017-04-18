@@ -181,8 +181,7 @@ namespace Kratos
 
 
     virtual void CalculateLinearElasticMatrix(Matrix& rConstitutiveMatrix,
-					      const double &rYoungModulus,
-					      const double &rPoissonCoefficient );
+					      const Properties& rMaterialProperties);
 
 
     /**

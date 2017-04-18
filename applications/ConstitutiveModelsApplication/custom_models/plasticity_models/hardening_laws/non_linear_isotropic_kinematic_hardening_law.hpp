@@ -111,7 +111,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "NonLinearIsotropicKinematicHardeningLaw" ;
@@ -119,10 +119,16 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "NonLinearIsotropicKinematicHardeningLaw";}
+    virtual void PrintInfo(std::ostream& rOStream) const override
+    {
+      rOStream << "NonLinearIsotropicKinematicHardeningLaw";
+    }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}    
+    virtual void PrintData(std::ostream& rOStream) const override
+    {
+      rOStream << "NonLinearIsotropicKinematicHardeningLaw Data";
+    }    
 
 
     ///@}

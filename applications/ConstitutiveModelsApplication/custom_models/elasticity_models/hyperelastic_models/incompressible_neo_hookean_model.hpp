@@ -118,6 +118,8 @@ namespace Kratos
 
       if( rMaterialProperties[HYPERELASTIC_MODEL_PARAMETERS][0] <= 0.00 )
         KRATOS_THROW_ERROR( std::invalid_argument,"HYPERELASTIC_MODEL_PARAMETERS has an invalid value ", "" )
+
+      return 0;
 	  
       KRATOS_CATCH(" ")	  
     };
@@ -138,13 +140,24 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    virtual std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "IncompressibleHyperElasticModel";
+        return buffer.str();
+    }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    virtual void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "IncompressibleHyperElasticModel";
+    }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    virtual void PrintData(std::ostream& rOStream) const override
+    {
+      rOStream << "IncompressibleHyperElasticModel Data";
+    }    
 
 
     ///@}
@@ -335,14 +348,17 @@ namespace Kratos
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
-    };
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, IsochoricNeoHookeanModel )
+    }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
-    };
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, IsochoricNeoHookeanModel )      
+    }
 
+ 
     ///@}
     ///@name Private Inquiry
     ///@{

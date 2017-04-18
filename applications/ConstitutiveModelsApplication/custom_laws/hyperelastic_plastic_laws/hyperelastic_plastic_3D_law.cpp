@@ -32,11 +32,11 @@ namespace Kratos
   //******************************CONSTRUCTOR WITH THE MODEL****************************
   //************************************************************************************
 
-  HyperElasticPlastic3DLaw::HyperElasticPlastic3DLaw(ModelType::Pointer pHyperElasticPlasticModel)
-    : HyperElastic3DLaw(pHyperElasticPlasticModel->pGetElasticityModel())
+  HyperElasticPlastic3DLaw::HyperElasticPlastic3DLaw(ModelTypePointer pModel)
+    : HyperElastic3DLaw(pModel)
   {
     KRATOS_TRY
-
+      
     KRATOS_CATCH(" ")
   }
 
@@ -69,7 +69,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void  HyperElastic3DLaw::InitializeModelData(Parameters& rValues,ModelDataType& rModelValues)
+  void  HyperElasticPlastic3DLaw::InitializeModelData(Parameters& rValues,ModelDataType& rModelValues)
   {
     KRATOS_TRY
 
@@ -81,7 +81,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void  HyperElastic3DLaw::FinalizeModelData(Parameters& rValues,ModelDataType& rModelValues)
+  void  HyperElasticPlastic3DLaw::FinalizeModelData(Parameters& rValues,ModelDataType& rModelValues)
   {
     KRATOS_TRY
       
@@ -94,17 +94,17 @@ namespace Kratos
       //update total deformation gradient
       MatrixType DeformationGradientF0;
       noalias(DeformationGradientF0) = ConstitutiveLawUtilities::DeformationGradientTo3D(DeformationGradientF0,rDeformationGradientF);
-      MathUtils<double>::InvertMatrix( DeformationGradientF0, mInverseDeformationGradientF0, mDeterminantF0);
+      ConstitutiveLawUtilities::InvertMatrix3( DeformationGradientF0, mInverseDeformationGradientF0, mDeterminantF0);
       mDeterminantF0 = rDeterminantF; //special treatment of the determinant
       
       //update total strain measure
-      mCauchyGreenVector[0] = rModelValues.StressMatrix(0,0) * TensorPart;
-      mCauchyGreenVector[1] = rModelValues.StressMatrix(1,1) * TensorPart;
-      mCauchyGreenVector[2] = rModelValues.StressMatrix(2,2) * TensorPart;
+      mCauchyGreenVector[0] = rModelValues.StressMatrix(0,0);
+      mCauchyGreenVector[1] = rModelValues.StressMatrix(1,1);
+      mCauchyGreenVector[2] = rModelValues.StressMatrix(2,2);
       
-      mCauchyGreenVector[3] = rModelValues.StressMatrix(0,1) * TensorPart;
-      mCauchyGreenVector[4] = rModelValues.StressMatrix(1,2) * TensorPart;
-      mCauchyGreenVector[5] = rModelValues.StressMatrix(2,0) * TensorPart;
+      mCauchyGreenVector[3] = rModelValues.StressMatrix(0,1);
+      mCauchyGreenVector[4] = rModelValues.StressMatrix(1,2);
+      mCauchyGreenVector[5] = rModelValues.StressMatrix(2,0);
       
       mCauchyGreenVector   *=  ( 1.0 / rModelValues.MaterialParameters.LameMu );
       
@@ -123,7 +123,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void  HyperElastic3DLaw::CalculateMaterialResponsePK2(Parameters& rValues)
+  void  HyperElasticPlastic3DLaw::CalculateMaterialResponsePK2(Parameters& rValues)
   {
     KRATOS_TRY
 

@@ -205,50 +205,7 @@ namespace Kratos
     };
 
 
-    // template<std::size_t Tsize>
-    // struct PlasticModelData
-    // {
-    // private:
-
-    //   Flags*               mpState;
-    //   const ModelData* mpModelData;
-      
-    // public:
-
-    //   //flow rule internal variables     
-    //   double TrialStateFunction;
-    //   double StressNorm;
-      
-    //   //hardening law internal variables
-    //   double RateFactor;
-
-    //   //internal variables
-    //   array_1d<double,Tsize> InternalVariables;
-    //   array_1d<double,Tsize> DeltaInternalVariables;
-
-    //   //Set Data Pointers
-    //   void SetState           (Flags& rState)                {mpState = &rState;};
-    //   void SetModelData       (const ModelData&  rModelData) {mpModelData = &rModelData;};
-      
-    //   //Get Data Pointers
-    //   const ModelData&        GetModelData                () {return *mpModelData;};
-    //   const MaterialData&     GetMaterialParameters       () {return mpModelData->GetMaterialParameters();};
-
-    //   //Get non const Data
-    //   Flags& State                                        () {return *mpState;};
-
-    //   //Get const Data
-    //   const Flags&  GetState              () {return *mpState;};
-    //   const double& GetTrialStateFunction () {return TrialStateFunction;};
-    //   const double& GetStressNorm         () {return StressNorm;};     
-    //   const double& GetRateFactor         () {return RateFactor;};
-      
-    //   const array_1d<double,Tsize>& GetInternalVariables       () {return InternalVariables;};
-    //   const array_1d<double,Tsize>& GetDeltaInternalVariables  () {return InternalVariables;};
-      
-    // };
-
-    
+   
     // struct ThermalParameters
     // {
     //   //general thermal properties
@@ -265,18 +222,19 @@ namespace Kratos
     ///@{
 
     /// Default constructor.    
-    ConstitutiveModelData();
+    ConstitutiveModelData(){}
 
     /// Copy constructor.
-    ConstitutiveModelData(ConstitutiveModelData const& rOther);
+    ConstitutiveModelData(ConstitutiveModelData const& rOther){}
 
     /// Clone.
-    virtual ConstitutiveModelData::Pointer Clone() const;
-    
-
+    ConstitutiveModelData::Pointer Clone() const
+    {
+      return (ConstitutiveModelData::Pointer(new ConstitutiveModelData(*this)));
+    }
 
     /// Destructor.
-    virtual ~ConstitutiveModelData();
+    virtual ~ConstitutiveModelData(){}
 
 
     ///@}

@@ -41,7 +41,7 @@ namespace Kratos
   //******************************CONSTRUCTOR WITH THE MODEL****************************
   //************************************************************************************
 
-  HyperElastic3DLaw::HyperElastic3DLaw(ModelType::Pointer pModel)
+  HyperElastic3DLaw::HyperElastic3DLaw(ModelTypePointer pModel)
     : Elastic3DLaw()
     , mpModel(pModel)
   {

@@ -15,8 +15,8 @@
 // External includes
 
 // Project includes
-#include "custom_laws/hyperelastic_laws/hyperelastic_3d_law.hpp"
-#include "custom_laws/plasticity_laws/plasticity_model.hpp"
+#include "custom_laws/hyperelastic_laws/hyperelastic_3D_law.hpp"
+#include "custom_models/plasticity_models/plasticity_model.hpp"
 
 namespace Kratos
 {
@@ -30,11 +30,12 @@ namespace Kratos
 
     ///@name Type Definitions
     ///@{      
-    typedef HyperElasticityModel                                               ElasticModelType;
+
+    typedef HyperElasticModel                                                  ElasticModelType;
     typedef HardeningLaw                                                       HardeningLawType; 
     typedef YieldCriterion<HardeningLawType>                                 YieldCriterionType;
     typedef PlasticityModel<ElasticModelType,YieldCriterionType>                      ModelType;
-
+    typedef typename ModelType::Pointer                                        ModelTypePointer;
        
     /// Pointer definition of HyperElasticPlastic3DLaw
     KRATOS_CLASS_POINTER_DEFINITION( HyperElasticPlastic3DLaw );
@@ -47,16 +48,13 @@ namespace Kratos
     HyperElasticPlastic3DLaw();
 
     /// Constructor.
-    HyperElasticPlastic3DLaw(ModelType::Pointer pModel); 
+    HyperElasticPlastic3DLaw(ModelTypePointer pModel); 
 
     /// Copy constructor.
     HyperElasticPlastic3DLaw (const HyperElasticPlastic3DLaw& rOther);
 
     /// Clone.
     ConstitutiveLaw::Pointer Clone() const override;
-    
-    /// Assignment operator.
-    HyperElasticPlastic3DLaw& operator=(const HyperElasticPlastic3DLaw& rOther);
     
     /// Destructor.
     virtual ~HyperElasticPlastic3DLaw();
@@ -206,6 +204,10 @@ namespace Kratos
     ///@}
     ///@name Un accessible methods
     ///@{
+
+    /// Assignment operator.
+    HyperElasticPlastic3DLaw& operator=(HyperElasticPlastic3DLaw const& rOther){ return *this; }
+
 
     ///@}
   }; // Class HyperElasticPlastic3DLaw

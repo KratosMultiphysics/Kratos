@@ -62,7 +62,7 @@ namespace Kratos
       HyperElasticPlaneStrain2DLaw() : HyperElastic3DLaw() {}
 
       /// Constructor.
-      HyperElasticPlaneStrain2DLaw(ModelType::Pointer pHyperElasticModel) : HyperElastic3DLaw(pHyperElasticModel) {} 
+      HyperElasticPlaneStrain2DLaw(ModelType::Pointer pModel) : HyperElastic3DLaw(pModel) {} 
       
       /// Copy constructor.
       HyperElasticPlaneStrain2DLaw(const HyperElasticPlaneStrain2DLaw& rOther) : HyperElastic3DLaw(rOther) {}

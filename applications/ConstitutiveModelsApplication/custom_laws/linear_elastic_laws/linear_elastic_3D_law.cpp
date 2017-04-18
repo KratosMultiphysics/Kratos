@@ -102,7 +102,7 @@ namespace Kratos
     //b.- Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
     
-    const Properties& MaterialProperties  = rValues.GetMaterialProperties();    
+    const Properties& rMaterialProperties  = rValues.GetMaterialProperties();    
 
     Vector& rStrainVector                  = rValues.GetStrainVector();
     Vector& rStressVector                  = rValues.GetStressVector();
@@ -111,9 +111,6 @@ namespace Kratos
     
     //-----------------------------//
 
-    //1.- Lame constants
-    const double& rYoungModulus          = MaterialProperties[YOUNG_MODULUS];
-    const double& rPoissonCoefficient    = MaterialProperties[POISSON_RATIO];
     
     //2.-Calculate total Kirchhoff stress
 
@@ -121,7 +118,7 @@ namespace Kratos
       
       Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
       
-      this->CalculateLinearElasticMatrix(rConstitutiveMatrix, rYoungModulus, rPoissonCoefficient);
+      this->CalculateLinearElasticMatrix(rConstitutiveMatrix, rMaterialProperties);
       
       this->CalculateStress(rStrainVector, rConstitutiveMatrix, rStressVector);
       
@@ -129,7 +126,7 @@ namespace Kratos
     else if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
 
       Matrix& rConstitutiveMatrix  = rValues.GetConstitutiveMatrix();
-      this->CalculateLinearElasticMatrix(rConstitutiveMatrix, rYoungModulus, rPoissonCoefficient);
+      this->CalculateLinearElasticMatrix(rConstitutiveMatrix, rMaterialProperties);
       
     }
     
@@ -154,7 +151,7 @@ namespace Kratos
     Flags &Options=rValues.GetOptions();
 
     
-    const Properties& MaterialProperties  = rValues.GetMaterialProperties();    
+    const Properties& rMaterialProperties  = rValues.GetMaterialProperties();    
 
     Vector& rStrainVector                  = rValues.GetStrainVector();
     Vector& rStressVector                  = rValues.GetStressVector();
@@ -163,17 +160,13 @@ namespace Kratos
     
     //-----------------------------//
 
-    //1.- Lame constants
-    const double& rYoungModulus          = MaterialProperties[YOUNG_MODULUS];
-    const double& rPoissonCoefficient    = MaterialProperties[POISSON_RATIO];
-
-    //2.-Calculate total Kirchhoff stress
+    // Calculate total Kirchhoff stress
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
       
       Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
       
-      this->CalculateLinearElasticMatrix( rConstitutiveMatrix, rYoungModulus, rPoissonCoefficient );
+      this->CalculateLinearElasticMatrix( rConstitutiveMatrix, rMaterialProperties);
       
       this->CalculateStress( rStrainVector, rConstitutiveMatrix, rStressVector );
       
@@ -181,7 +174,7 @@ namespace Kratos
     else if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
 
       Matrix& rConstitutiveMatrix  = rValues.GetConstitutiveMatrix();
-      this->CalculateLinearElasticMatrix(rConstitutiveMatrix, rYoungModulus, rPoissonCoefficient);
+      this->CalculateLinearElasticMatrix(rConstitutiveMatrix, rMaterialProperties);
       
     }
 
@@ -217,13 +210,17 @@ namespace Kratos
 
 
   void LinearElastic3DLaw::CalculateLinearElasticMatrix(Matrix& rConstitutiveMatrix,
-							const double &rYoungModulus,
-							const double &rPoissonCoefficient)
+							const Properties& rMaterialProperties)
   {
     KRATOS_TRY
           
     rConstitutiveMatrix.clear();
 
+    // Lame constants
+    const double& rYoungModulus          = rMaterialProperties[YOUNG_MODULUS];
+    const double& rPoissonCoefficient    = rMaterialProperties[POISSON_RATIO];
+
+    
     // 3D linear elastic constitutive matrix
     rConstitutiveMatrix ( 0 , 0 ) = (rYoungModulus*(1.0-rPoissonCoefficient)/((1.0+rPoissonCoefficient)*(1.0-2.0*rPoissonCoefficient)));
     rConstitutiveMatrix ( 1 , 1 ) = rConstitutiveMatrix ( 0 , 0 );

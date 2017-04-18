@@ -111,7 +111,7 @@ namespace Kratos
     ///@{
     
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "ModifiedExponentialDamageHardeningLaw" ;
@@ -119,10 +119,16 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "ModifiedExponentialDamageHardeningLaw";}
+    virtual void PrintInfo(std::ostream& rOStream) const override
+    {
+      rOStream << "ModifiedExponentialDamageHardeningLaw";
+    }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {} 
+    virtual void PrintData(std::ostream& rOStream) const override
+    {
+      rOStream << "ModifiedExponentialDamageHardeningLaw Data";
+    } 
 
     ///@}
     ///@name Friends

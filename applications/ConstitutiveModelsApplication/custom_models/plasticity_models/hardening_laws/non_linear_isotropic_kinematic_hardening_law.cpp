@@ -89,16 +89,16 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const ModelData& rModelData = rVariables.GetModelData();
+    const ModelDataType& rModelData = rVariables.GetModelData();
       
     //get values   
     const double& rEquivalentPlasticStrain = rVariables.GetInternalVariables()[0];
     const double& rTemperature             = rModelData.GetTemperature();
 
     //linear hardening properties
-    const Properties& rMaterialProperties =  rModelData.GetMaterialProperties();
-    double  YieldStress                   =  rMaterialProperties[YIELD_STRESS];
-    double  KinematicHardeningConstant    =  rMaterialProperties[KINEMATIC_HARDENING_MODULUS];
+    const Properties& rMaterialProperties  = rModelData.GetMaterialProperties();
+    double  YieldStress                    = rMaterialProperties[YIELD_STRESS];
+    double  KinematicHardeningConstant     = rMaterialProperties[KINEMATIC_HARDENING_MODULUS];
 	
     //exponential saturation properties
     double  K_reference         =  rMaterialProperties[REFERENCE_HARDENING_MODULUS];
@@ -134,7 +134,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const ModelData& rModelData = rVariables.GetModelData();
+    const ModelDataType& rModelData = rVariables.GetModelData();
       
     //get values
     const double& rTemperature          =  rModelData.GetTemperature();
@@ -162,14 +162,11 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    double DeltaIsotropicHardening = this->CalculateDeltaIsotropicHardening( DeltaIsotropicHardening );
+    rDeltaHardening = this->CalculateAndAddDeltaIsotropicHardening(rVariables, rDeltaHardening);
 
-    double DeltaKinematicHardening = this->CalculateDeltaKinematicHardening( DeltaKinematicHardening );
+    rDeltaHardening = this->CalculateAndAddDeltaKinematicHardening(rVariables, rDeltaHardening);
 
-    rDeltaHardening = DeltaIsotropicHardening + DeltaKinematicHardening;
-
-	
-    return rDeltaHardening;	
+   return rDeltaHardening;	
 	
     KRATOS_CATCH(" ")
   }
@@ -181,7 +178,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const ModelData& rModelData = rVariables.GetModelData();
+    const ModelDataType& rModelData = rVariables.GetModelData();
 
     //get values
     const double& rEquivalentPlasticStrain = rVariables.GetInternalVariables()[0];

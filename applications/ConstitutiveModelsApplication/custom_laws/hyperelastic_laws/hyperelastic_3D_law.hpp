@@ -30,7 +30,9 @@ namespace Kratos
 
     ///@name Type Definitions
     ///@{
-    typedef HyperElasticModel      ModelType;
+
+    typedef ElasticityModel                                       ModelType; //in fact it must be a hyperelastic model
+    typedef typename ModelType::Pointer                    ModelTypePointer;
     
     /// Pointer definition of HyperElastic3DLaw
     KRATOS_CLASS_POINTER_DEFINITION( HyperElastic3DLaw );
@@ -43,16 +45,13 @@ namespace Kratos
     HyperElastic3DLaw();
 
     /// Constructor.
-    HyperElastic3DLaw(ModelType::Pointer pModel);
+    HyperElastic3DLaw(ModelTypePointer pModel);
     
     /// Copy constructor.
     HyperElastic3DLaw(const HyperElastic3DLaw& rOther);
 
     /// Clone.
     ConstitutiveLaw::Pointer Clone() const override;
-
-    /// Assignment operator.
-    HyperElastic3DLaw& operator=(const HyperElastic3DLaw& rOther);
 
     /// Destructor.
     virtual ~HyperElastic3DLaw();
@@ -181,7 +180,7 @@ namespace Kratos
     ///@{
 
     //hyper elastic model
-    ModelType::Pointer mpModel;
+    ModelTypePointer mpModel;
     
     //internal elastic variables
 
@@ -294,6 +293,9 @@ namespace Kratos
     ///@name Un accessible methods
     ///@{
 
+    /// Assignment operator.
+    HyperElastic3DLaw& operator=(HyperElastic3DLaw const& rOther){ return *this; }
+    
     ///@}
   }; // Class HyperElastic3DLaw
 
