@@ -22,9 +22,11 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "includes/kratos_components.h"
+// Include the point locator
+#include "utilities/binbased_fast_point_locator.h"
+// Include the trees
 // #include "spatial_containers/bounding_volume_tree.h" // k-DOP
 #include "spatial_containers/spatial_containers.h" // kd-tree 
-#include "utilities/math_utils.h"                  // Cross Product
 
 namespace Kratos
 {
@@ -458,8 +460,12 @@ public:
                 rThisGeometry.ShapeFunctionsValues( N, LocalCoordinates );
                 const double CharacteristicLength = inner_prod(N, NodalHVector);
                 
+                // We compute the global coordinates
+                array_1d<double, 3> GlobalCoordinates;
+                GlobalCoordinates = rThisGeometry.GlobalCoordinates( GlobalCoordinates, LocalCoordinates );
+                
                 // We create the respective GP
-                PointTypePointer pPoint = PointTypePointer(new PointType(LocalCoordinates, ConstitutiveLawVector[iGaussPoint], Weight, Radius, CharacteristicLength));
+                PointTypePointer pPoint = PointTypePointer(new PointType(GlobalCoordinates, ConstitutiveLawVector[iGaussPoint], Weight, Radius, CharacteristicLength));
                 (ThisPointVector).push_back(pPoint);
             }
         }
@@ -593,7 +599,29 @@ public:
     
     void InterpolateGaussPointsSFT()
     {
-        KRATOS_ERROR << "WARNING:: SFT not implemented yet" << std::endl;
+//         // Iterate in the elements
+//         NodesArrayType& pNode = mThisModelPart.Nodes();
+//         auto numNodes = pNode.end() - pNode.begin();
+//         
+//         /* Nodes */
+// //         #pragma omp parallel for 
+//         for(unsigned int i = 0; i < numNodes; i++) 
+//         {
+//             
+//         }
+        
+        if (mDimension == 2)
+        {
+            // We create the locator
+            BinBasedFastPointLocator<2> PointLocator = BinBasedFastPointLocator<2>(rOldModelPart);
+            PointLocator.UpdateSearchDatabase();
+        }
+        else
+        {
+            // We create the locator
+            BinBasedFastPointLocator<3> PointLocator = BinBasedFastPointLocator<3>(rOldModelPart);
+            PointLocator.UpdateSearchDatabase();
+        }
     }
     
     ///@}
