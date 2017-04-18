@@ -92,10 +92,12 @@ class Communicator:
 
     # --------------------------------------------------------------------------
     def isRequestingFunctionValueOf( self, responseId ):
+        if responseId not in self.listOfRequests.keys(): return False
         return self.listOfRequests[responseId]["calculateValue"]
 
     # --------------------------------------------------------------------------
     def isRequestingGradientOf( self, responseId ):
+        if responseId not in self.listOfRequests.keys(): return False
         return self.listOfRequests[responseId]["calculateGradient"]
 
     # --------------------------------------------------------------------------
