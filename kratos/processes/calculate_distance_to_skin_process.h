@@ -172,10 +172,10 @@ namespace Kratos
 			}
 
 			Point<3> const& GetPoint(int PointId) {
-				return *(this->operator[](0).get());
+				return *(this->operator[](PointId).get());
 			}
 
-			int TriangleIntersectionPoint(Element::GeometryType& rGeometry, Point<3> IntersectionPoint)
+			int TriangleIntersectionPoint(Element::GeometryType& rGeometry, Point<3>& IntersectionPoint)
 			{
 				// This is the adaption of the implemnetation provided in:
 				// http://www.softsurfer.com/Archive/algorithm_0105/algorithm_0105.htm#intersect_RayTriangle()
@@ -185,6 +185,9 @@ namespace Kratos
 
 				Point<3> const& r_point_1 = GetPoint(0);
 				Point<3> const& r_point_2 = GetPoint(1);
+				KRATOS_WATCH(r_point_1);
+				KRATOS_WATCH(r_point_2);
+
 
 				array_1d<double, 3>    u, v, n;             // triangle vectors
 				array_1d<double, 3>    dir, w0, w;          // ray vectors
@@ -200,14 +203,6 @@ namespace Kratos
 				if (norm_2(n) == 0)            // triangle is degenerate
 					return -1;                 // do not deal with this case
 
-				double triangle_origin_distance = -inner_prod(n, rGeometry[0]);
-
-				double sign_distance_1 = inner_prod(n, r_point_1) + triangle_origin_distance;
-				double sign_distance_2 = inner_prod(n, r_point_2) + triangle_origin_distance;
-
-				if (sign_distance_1*sign_distance_2 > epsilon) // segment line point on the same side of plane
-					return 0;
-
 				for (int i = 0; i < 3; i++)
 				{
 					dir[i] = r_point_2[i] - r_point_1[i];             // ray direction vector
@@ -220,14 +215,15 @@ namespace Kratos
 				if (fabs(b) < epsilon) {     // ray is parallel to triangle plane
 					if (a == 0)                // ray lies in triangle plane
 						return 2;
-					else return 0;             // ray disjoint from plane (should not happend as we check it before)
+					else return 0;             // ray disjoint from plane 
 				}
 
 				// get intersect point of ray with triangle plane
 				r = a / b;
 				if (r < 0.0)                   // ray goes away from triangle
 					return 0;                  // => no intersect
-											   // for a segment, also test if (r > 1.0) => no intersect
+				if (r > 1.0) // for a segment, also test if (r > 1.0) => no intersect
+					return 0; 
 
 				for (int i = 0; i < 3; i++)
 					IntersectionPoint[i] = r_point_1[i] + r * dir[i];           // intersect point of ray and plane
