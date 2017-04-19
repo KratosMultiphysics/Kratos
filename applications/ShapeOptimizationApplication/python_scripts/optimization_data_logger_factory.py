@@ -54,7 +54,9 @@ def createDesignLogger( designSurface, optimizationSettings):
     if outputFormatName == "gid":
         return DesignLoggerGID( designSurface, optimizationSettings )
     if outputFormatName == "unv":
-        return DesignLoggerUNV( designSurface, optimizationSettings )        
+        return DesignLoggerUNV( designSurface, optimizationSettings )  
+    if outputFormatName == "vtk":
+        return DesignLoggerVTK( designSurface, optimizationSettings )                
     else:
         raise NameError("The following output format is not supported by the design logger (name may be misspelled): " + outputFormatName)
 
