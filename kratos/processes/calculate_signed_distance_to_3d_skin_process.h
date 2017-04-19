@@ -326,7 +326,7 @@ public:
 
         GenerateOctree();
 
-        DistanceFluidStructure();
+        //DistanceFluidStructure();
 
 		CalculateDistanceToSkinProcess(mrFluidModelPart, mrBodyModelPart).Execute();
 

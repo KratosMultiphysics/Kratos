@@ -68,7 +68,7 @@ namespace Kratos {
       // Compute distance
       // TODO: Change the tested process as soon as the new distance process is available
 	  CalculateDistanceToSkinProcess process(volume_part, skin_part);
-//	  process.Execute();
+	  process.Execute();
 	  ModelPart& skin_rpresentation_part = process.GetSkinRepresentation();
 	  KRATOS_WATCH(skin_rpresentation_part);
 	  CalculateSignedDistanceTo3DSkinProcess(skin_part, volume_part).Execute();
