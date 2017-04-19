@@ -337,11 +337,11 @@ namespace Kratos
 	  rMatrix = rTensor;
 	  
 	}
-	else if( rMatrix.size() == 4 ){
+	else if( rMatrix.size1() == 4 ){
 
 	  for(unsigned int i=0; i<3; i++)
 	    {
-	      for(unsigned int i=0; i<3; i++)
+	      for(unsigned int j=0; j<3; j++)
 		{
 		  rMatrix(i,j) = rTensor(i,j);
 		}
@@ -350,11 +350,11 @@ namespace Kratos
 	  rMatrix(3,3) = rTensor(3,3);
 	  
 	}
-	else if( rStrainVector.size() == 3){
+	else if( rMatrix.size1() == 3){
 	  
 	  for(unsigned int i=0; i<2; i++)
 	    {
-	      for(unsigned int i=0; i<2; i++)
+	      for(unsigned int j=0; j<2; j++)
 		{
 		  rMatrix(i,j) = rTensor(i,j);
 		}
