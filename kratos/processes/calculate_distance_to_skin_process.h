@@ -185,8 +185,6 @@ namespace Kratos
 
 				Point<3> const& r_point_1 = GetPoint(0);
 				Point<3> const& r_point_2 = GetPoint(1);
-				KRATOS_WATCH(r_point_1);
-				KRATOS_WATCH(r_point_2);
 
 
 				array_1d<double, 3>    u, v, n;             // triangle vectors
