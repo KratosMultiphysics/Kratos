@@ -19,7 +19,7 @@
 
 // Meshers
 #include "custom_modelers/contact_domain_2D_modeler.hpp"
-//#include "custom_modelers/contact_domain_3D_modeler.hpp"
+#include "custom_modelers/contact_domain_3D_modeler.hpp"
 
 // Bounding Boxes
 
@@ -41,6 +41,11 @@ namespace Python
     
     //class that allows 2D adaptive remeshing (inserting and erasing nodes)
 
+
+    //class that allows 3D contact domain spatial search
+    class_<ContactDomain3DModeler, bases<MeshModelerBaseType>, boost::noncopyable >
+      ("ContactDomain3DModeler", init< >())
+      ;
 
     //class that allows 2D contact domain spatial search
     class_<ContactDomain2DModeler, bases<MeshModelerBaseType>, boost::noncopyable >

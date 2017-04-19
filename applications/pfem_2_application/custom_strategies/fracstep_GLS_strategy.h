@@ -1,10 +1,14 @@
-/* *********************************************************
-
-*   Last Modified by:    $Author: jmarti $
-*   Date:                $Date: 2008-11-10 14:23:32 $
-*   Revision:            $Revision: 1.12 $
-*
-* ***********************************************************/
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
+//
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Author Julio Marti
+//
 
 #if !defined(KRATOS_GLS_STRATEGY)
 #define  KRATOS_GLS_STRATEGY
