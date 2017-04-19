@@ -14,7 +14,7 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "solid_mechanics_implicit_dynamic_solver",
-        "echo_level"                         : 1,
+        "echo_level"                         : 0,
         "solution_type"                      : "Dynamic",
         "time_integration_method"            : "Implicit",
         "scheme_type"                        : "Newmark",
@@ -65,7 +65,7 @@
             "interval"        : [0.0,"End"]
         }
     }],
-    "output_configuration"     : {
+    "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -118,7 +118,8 @@
             "initial_remeshing"                : false,
             "step_frequency"                   : 10,
             "enforce_current"                   : true,
-            "save_external_files"               : false,
+            "filename"                         : "mmg_lagrangian_test/beam2D_test",
+            "save_external_files"               : true,
             "anisotropy_remeshing"              : false,
             "anisotropy_parameters":{
                 "hmin_over_hmax_anisotropic_ratio" : 0.1,
@@ -127,6 +128,18 @@
                 "interpolation"                    : "Linear"
             },
             "echo_level"                        : 0
+        }
+    }
+    ],
+    "compare_two_files_check_process" :[
+    {
+        "python_module"   : "compare_two_files_check_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "help"                  : "This process compares two files and executes an Unittest Assert",
+        "process_name"          : "CompareTwoFilesCheckProcess",
+        "Parameters"            : {
+            "file_name_1"       : "mmg_lagrangian_test/beam2D_test_step=10.o.mesh",
+            "file_name_2"       : "mmg_lagrangian_test/beam2D_test_result.mesh"
         }
     }
     ]

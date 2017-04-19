@@ -86,7 +86,7 @@ def AssambleTestSuites():
                 TThreeDHessianTest,
                 TTwoDCavityTest,
                 TCoarseSphereTest,
-                #TTwoDDynamicBeamTest,
+                TTwoDDynamicBeamTest,
                 #TThreeDDynamicBeamTest,
                 #TTwoDDynamicPlasticBeamTest,
                 #TStanfordBunnyTest,
