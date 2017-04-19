@@ -72,7 +72,8 @@ class optimizationDataLogger():
     # --------------------------------------------------------------------------
     def __createFolderToStoreOptimizationResults ( self ):
         resultsDirectory = self.optimizationSettings["output"]["output_directory"].GetString()
-        shutil.rmtree(resultsDirectory)
+        if os.path.exists(resultsDirectory):
+            shutil.rmtree(resultsDirectory)
         os.makedirs(resultsDirectory)
 
     # --------------------------------------------------------------------------
