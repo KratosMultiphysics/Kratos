@@ -23,6 +23,7 @@
 #include "custom_processes/metric_fast_init_process.h"
 #include "custom_processes/metrics_levelset_process.h"
 #include "custom_processes/metrics_hessian_process.h"
+#include "custom_processes/internal_variables_interpolation_process.h"
 // #include "custom_processes/set_h_map_process.h"
 //#include "custom_processes/find_nodal_h_process.h"
 // #include "custom_processes/embedded_mesh_locator_process.h"
@@ -50,6 +51,12 @@ void  AddProcessesToPython()
 //	class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",init<ModelPart&>())
 //		   .def("Execute",&FindNodalHProcess::Execute)
 //		 ;
+    
+        // The process to interpolate internal variables 
+        class_<InternalVariablesInterpolationProcess, bases<Process> >("InternalVariablesInterpolationProcess",init<ModelPart&, ModelPart&>())
+        .def(init<ModelPart&, ModelPart&, Parameters>())
+        .def("Execute",&InternalVariablesInterpolationProcess::Execute)
+        ;
     
         /* METRICS PROCESSES */
         // Fast metric initializer
