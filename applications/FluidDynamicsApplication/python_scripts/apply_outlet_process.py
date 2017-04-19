@@ -128,10 +128,10 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         for node in self.outlet_model_part.GetCommunicator().LocalMesh().Nodes:
             vnode = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
             outlet_avg_vel_norm += math.sqrt(vnode[0]*vnode[0] + vnode[1]*vnode[1] + vnode[2]*vnode[2])
-        self.outlet_model_part.GetCommunicator().SumAll(outlet_avg_vel_norm)
+        outlet_avg_vel_norm = self.outlet_model_part.GetCommunicator().SumAll(outlet_avg_vel_norm)
 
         tot_len = len(self.outlet_model_part.GetCommunicator().LocalMesh().Nodes)   # Partition outlet model part number of nodes
-        self.outlet_model_part.GetCommunicator().SumAll(tot_len)                    # Get the total outlet model part nodes
+        tot_len = self.outlet_model_part.GetCommunicator().SumAll(tot_len)          # Get the total outlet model part nodes
 
         outlet_avg_vel_norm /= tot_len;
 
