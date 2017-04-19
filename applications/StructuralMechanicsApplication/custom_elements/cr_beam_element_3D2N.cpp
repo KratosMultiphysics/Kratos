@@ -338,7 +338,7 @@ namespace Kratos
 	Matrix CrBeamElement3D2N::CalculateMaterialStiffness() {
 
 		KRATOS_TRY
-			const int number_of_nodes = this->GetGeometry().PointsNumber();
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const int local_size = number_of_nodes * dimension;
 
@@ -749,12 +749,16 @@ namespace Kratos
 		rMassMatrix(3, 3) = 140.00;
 		rMassMatrix(3, 9) = 70.00;
 
-		for (int i = 0; i < 4; i++) rMassMatrix(4, i) = rMassMatrix(i, 4);
+		for (int i = 0; i < 4; ++i) {
+			rMassMatrix(4, i) = rMassMatrix(i, 4);
+		}
 		rMassMatrix(4, 4) = 4.00 * L * L;
 		rMassMatrix(4, 8) = 13.00 * L;
 		rMassMatrix(4, 10) = -3.00 * L * L;
 
-		for (int i = 0; i < 5; i++) rMassMatrix(5, i) = rMassMatrix(i, 5);
+		for (int i = 0; i < 5; ++i) {
+			rMassMatrix(5, i) = rMassMatrix(i, 5);
+		}
 		rMassMatrix(5, 5) = 4.00 * L * L;
 		rMassMatrix(5, 7) = 13.00 * L;
 		rMassMatrix(5, 11) = -3.00 * L *L;
@@ -762,21 +766,29 @@ namespace Kratos
 		rMassMatrix(6, 0) = 70.00;
 		rMassMatrix(6, 6) = 140.00;
 
-		for (int i = 0; i < 7; i++) rMassMatrix(7, i) = rMassMatrix(i, 7);
+		for (int i = 0; i < 7; ++i) {
+			rMassMatrix(7, i) = rMassMatrix(i, 7);
+		}
 		rMassMatrix(7, 7) = 156.00;
 		rMassMatrix(7, 11) = -22.0 * L;
 
-		for (int i = 0; i < 8; i++) rMassMatrix(8, i) = rMassMatrix(i, 8);
+		for (int i = 0; i < 8; ++i) {
+			rMassMatrix(8, i) = rMassMatrix(i, 8);
+		}
 		rMassMatrix(8, 8) = 156.00;
 		rMassMatrix(8, 10) = -22.0 * L;
 
 		rMassMatrix(9, 3) = 70.00;
 		rMassMatrix(9, 9) = 140.00;
 	
-		for (int i = 0; i < 10; i++) rMassMatrix(10, i) = rMassMatrix(i, 10);
+		for (int i = 0; i < 10; ++i) {
+			rMassMatrix(10, i) = rMassMatrix(i, 10);
+		}
 		rMassMatrix(10, 10) = 4.00 * L * L;
 
-		for (int i = 0; i < 11; i++) rMassMatrix(11, i) = rMassMatrix(i, 11);
+		for (int i = 0; i < 11; ++i) {
+			rMassMatrix(11, i) = rMassMatrix(i, 11);
+		}
 		rMassMatrix(11, 11) = 4.00 * L * L;
 
 		rMassMatrix *= MassScaling;
