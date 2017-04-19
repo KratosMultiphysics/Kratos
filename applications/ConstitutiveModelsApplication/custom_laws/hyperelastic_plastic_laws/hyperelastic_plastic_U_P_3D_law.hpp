@@ -7,15 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_HYPERELASTIC_UP_3D_LAW_H_INCLUDED)
-#define  KRATOS_HYPERELASTIC_UP_3D_LAW_H_INCLUDED
+#if !defined(KRATOS_HYPERELASTIC_PLASTIC_UP_3D_LAW_H_INCLUDED)
+#define  KRATOS_HYPERELASTIC_PLASTIC_UP_3D_LAW_H_INCLUDED
 
 // System includes
 
 // External includes 
 
 // Project includes
-#include "custom_laws/hyperelastic_laws/hyperelastic_3D_law.hpp"
+#include "custom_laws/hyperelastic_plastic_laws/hyperelastic_plastic_3D_law.hpp"
 
 namespace Kratos
 {
@@ -44,36 +44,36 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) HyperElasticUP3DLaw : public HyperElastic3DLaw
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) HyperElasticPlasticUP3DLaw : public HyperElasticPlastic3DLaw
     {
     public:
       ///@name Type Definitions
       ///@{
       
-      /// Pointer definition of HyperElasticUP3DLaw
-      KRATOS_CLASS_POINTER_DEFINITION(HyperElasticUP3DLaw);
+      /// Pointer definition of HyperElasticPlasticUP3DLaw
+      KRATOS_CLASS_POINTER_DEFINITION(HyperElasticPlasticUP3DLaw);
   
       ///@}
       ///@name Life Cycle 
       ///@{ 
       
       /// Default constructor.
-      HyperElasticUP3DLaw() : HyperElastic3DLaw() {}
+      HyperElasticPlasticUP3DLaw() : HyperElasticPlastic3DLaw() {}
 
       /// Constructor.
-      HyperElasticUP3DLaw(ModelType::Pointer pModel) : HyperElastic3DLaw(pModel) {} 
+      HyperElasticPlasticUP3DLaw(ModelType::Pointer pModel) : HyperElasticPlastic3DLaw(pModel) {} 
 
       /// Copy constructor.
-      HyperElasticUP3DLaw(const HyperElasticUP3DLaw& rOther) : HyperElastic3DLaw(rOther) {}
+      HyperElasticPlasticUP3DLaw(const HyperElasticPlasticUP3DLaw& rOther) : HyperElasticPlastic3DLaw(rOther) {}
 
       /// Clone.
       ConstitutiveLaw::Pointer Clone() const override
       {
-	return (HyperElasticUP3DLaw::Pointer(new HyperElasticUP3DLaw(*this)));
+	return (HyperElasticPlasticUP3DLaw::Pointer(new HyperElasticPlasticUP3DLaw(*this)));
       }
       
       /// Destructor.
-      virtual ~HyperElasticUP3DLaw(){}
+      virtual ~HyperElasticPlasticUP3DLaw(){}
       
 
       ///@}
@@ -132,12 +132,12 @@ namespace Kratos
       virtual std::string Info() const override
       {
 	std::stringstream buffer;
-        buffer << "HyperElasticUP3DLaw" ;
+        buffer << "HyperElasticPlasticUP3DLaw" ;
         return buffer.str();
       }
       
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "HyperElasticUP3DLaw";}
+      virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "HyperElasticPlasticUP3DLaw";}
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const override {}
@@ -225,12 +225,12 @@ namespace Kratos
 
       virtual void save(Serializer& rSerializer) const override
       {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElastic3DLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticPlastic3DLaw )
       }
       
       virtual void load(Serializer& rSerializer) override
       {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElastic3DLaw )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticPlastic3DLaw )
       }
 
       
@@ -239,12 +239,12 @@ namespace Kratos
       ///@{ 
       
       /// Assignment operator.
-      HyperElasticUP3DLaw& operator=(HyperElasticUP3DLaw const& rOther){ return *this; }
+      HyperElasticPlasticUP3DLaw& operator=(HyperElasticPlasticUP3DLaw const& rOther){ return *this; }
 
         
       ///@}    
         
-    }; // Class HyperElasticUP3DLaw 
+    }; // Class HyperElasticPlasticUP3DLaw 
 
   ///@} 
   
@@ -263,4 +263,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_HYPERELASTIC_UP_3D_LAW_H_INCLUDED  defined
+#endif // KRATOS_HYPERELASTIC_PLASTIC_UP_3D_LAW_H_INCLUDED  defined

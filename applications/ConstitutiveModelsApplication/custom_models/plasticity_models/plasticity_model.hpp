@@ -52,21 +52,24 @@ namespace Kratos
     
     ///@name Type Definitions
     ///@{
+
+    //elasticity model
+    typedef TElasticityModel                                   ElasticityModelType;
+    typedef typename TElasticityModel::Pointer              ElasticityModelPointer;
+
+    //yield criterion
+    typedef TYieldCriterion                                     YieldCriterionType;
+    typedef typename TYieldCriterion::Pointer                YieldCriterionPointer;
+
+    //common types
     typedef ConstitutiveModelData::SizeType                               SizeType;
     typedef ConstitutiveModelData::VoigtIndexType                   VoigtIndexType;
     typedef ConstitutiveModelData::MatrixType                           MatrixType;
     typedef ConstitutiveModelData::VectorType                           VectorType;
     typedef ConstitutiveModelData::ModelData                         ModelDataType;
-
-    typedef TElasticityModel                                   ElasticityModelType;
-    typedef TYieldCriterion                                     YieldCriterionType;
     typedef typename TYieldCriterion::PlasticDataType              PlasticDataType;
-
-    typedef typename TElasticityModel::Pointer              ElasticityModelPointer;
-    typedef typename TYieldCriterion::Pointer                YieldCriterionPointer;
-
     typedef typename TYieldCriterion::InternalVariablesType  InternalVariablesType;
-    
+
     /// Pointer definition of PlasticityModel
     KRATOS_CLASS_POINTER_DEFINITION( PlasticityModel );
 
@@ -306,19 +309,22 @@ namespace Kratos
     ///@{    
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ElasticityModel )
+
       rSerializer.save("mpElasticityModel",mpElasticityModel);
       rSerializer.save("mpYieldCriterion",mpYieldCriterion);
     }
-
-    virtual void load(Serializer& rSerializer)
+    
+    virtual void load(Serializer& rSerializer) override
     {
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ElasticityModel )
+
       rSerializer.load("mpElasticityModel",mpElasticityModel);
-      rSerializer.load("mpYieldCriterion",mpYieldCriterion);
+      rSerializer.load("mpYieldCriterion",mpYieldCriterion);	
     }
-
-
+    
     ///@}
     ///@name Un accessible methods
     ///@{

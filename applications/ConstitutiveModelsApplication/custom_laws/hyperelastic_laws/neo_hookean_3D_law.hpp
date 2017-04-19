@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_HYPERELASTIC_UP_3D_LAW_H_INCLUDED)
-#define  KRATOS_HYPERELASTIC_UP_3D_LAW_H_INCLUDED
+#if !defined(KRATOS_NEO_HOOKEAN_3D_LAW_H_INCLUDED)
+#define  KRATOS_NEO_HOOKEAN_3D_LAW_H_INCLUDED
 
 // System includes
 
@@ -16,6 +16,7 @@
 
 // Project includes
 #include "custom_laws/hyperelastic_laws/hyperelastic_3D_law.hpp"
+#include "custom_models/elasticity_models/hyperelastic_models/neo_hookean_model.hpp"
 
 namespace Kratos
 {
@@ -44,36 +45,43 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) HyperElasticUP3DLaw : public HyperElastic3DLaw
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) NeoHookean3DLaw : public HyperElastic3DLaw
     {
     public:
       ///@name Type Definitions
       ///@{
       
-      /// Pointer definition of HyperElasticUP3DLaw
-      KRATOS_CLASS_POINTER_DEFINITION(HyperElasticUP3DLaw);
+      /// Pointer definition of NeoHookean3DLaw
+      KRATOS_CLASS_POINTER_DEFINITION(NeoHookean3DLaw);
   
       ///@}
       ///@name Life Cycle 
       ///@{ 
       
       /// Default constructor.
-      HyperElasticUP3DLaw() : HyperElastic3DLaw() {}
+      NeoHookean3DLaw() : HyperElastic3DLaw()
+      {
+	KRATOS_TRY
+
+        mpModel = NeoHookeanModel::Pointer( new NeoHookeanModel() );
+	  
+	KRATOS_CATCH(" ")    
+     }
 
       /// Constructor.
-      HyperElasticUP3DLaw(ModelType::Pointer pModel) : HyperElastic3DLaw(pModel) {} 
+      //NeoHookean3DLaw(ModelType::Pointer pModel) : HyperElastic3DLaw(pModel) {} 
 
       /// Copy constructor.
-      HyperElasticUP3DLaw(const HyperElasticUP3DLaw& rOther) : HyperElastic3DLaw(rOther) {}
+      NeoHookean3DLaw(const NeoHookean3DLaw& rOther) : HyperElastic3DLaw(rOther) {}
 
       /// Clone.
       ConstitutiveLaw::Pointer Clone() const override
       {
-	return (HyperElasticUP3DLaw::Pointer(new HyperElasticUP3DLaw(*this)));
+	return (NeoHookean3DLaw::Pointer(new NeoHookean3DLaw(*this)));
       }
       
       /// Destructor.
-      virtual ~HyperElasticUP3DLaw(){}
+      virtual ~NeoHookean3DLaw(){}
       
 
       ///@}
@@ -95,7 +103,6 @@ namespace Kratos
 	rFeatures.mOptions.Set( THREE_DIMENSIONAL_LAW );
 	rFeatures.mOptions.Set( FINITE_STRAINS );
 	rFeatures.mOptions.Set( ISOTROPIC );
-	rFeatures.mOptions.Set( U_P_LAW );
 
 	//Set strain measure required by the consitutive law
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
@@ -132,12 +139,12 @@ namespace Kratos
       virtual std::string Info() const override
       {
 	std::stringstream buffer;
-        buffer << "HyperElasticUP3DLaw" ;
+        buffer << "NeoHookean3DLaw" ;
         return buffer.str();
       }
       
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "HyperElasticUP3DLaw";}
+      virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "NeoHookean3DLaw";}
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const override {}
@@ -239,12 +246,12 @@ namespace Kratos
       ///@{ 
       
       /// Assignment operator.
-      HyperElasticUP3DLaw& operator=(HyperElasticUP3DLaw const& rOther){ return *this; }
+      NeoHookean3DLaw& operator=(NeoHookean3DLaw const& rOther){ return *this; }
 
         
       ///@}    
         
-    }; // Class HyperElasticUP3DLaw 
+    }; // Class NeoHookean3DLaw 
 
   ///@} 
   
@@ -263,4 +270,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_HYPERELASTIC_UP_3D_LAW_H_INCLUDED  defined
+#endif // KRATOS_NEO_HOOKEAN_3D_LAW_H_INCLUDED  defined

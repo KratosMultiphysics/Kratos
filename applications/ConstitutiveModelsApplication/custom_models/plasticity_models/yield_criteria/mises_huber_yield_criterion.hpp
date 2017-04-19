@@ -250,8 +250,6 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    // A private default constructor necessary for serialization
-
     virtual void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )

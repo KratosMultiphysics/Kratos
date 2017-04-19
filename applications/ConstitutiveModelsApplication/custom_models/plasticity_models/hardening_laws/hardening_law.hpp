@@ -78,9 +78,7 @@ namespace Kratos
     private:
 
       friend class Serializer;
-
-      // A private default constructor necessary for serialization
-      
+     
       void save(Serializer& rSerializer) const
       {
 	rSerializer.save("Variables",Variables);
@@ -105,8 +103,6 @@ namespace Kratos
     private:
 
       friend class Serializer;
-
-      // A private default constructor necessary for serialization
       
       void save(Serializer& rSerializer) const
       {
@@ -360,8 +356,7 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    // A private default constructor necessary for serialization
-
+    
     virtual void save(Serializer& rSerializer) const
     {
     }

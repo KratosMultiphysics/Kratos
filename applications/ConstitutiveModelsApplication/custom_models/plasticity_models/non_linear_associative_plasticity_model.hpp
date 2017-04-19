@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_NON_LINEAR_ASSOCIATIVE_PLASTIC_MODEL_H_INCLUDED )
-#define  KRATOS_NON_LINEAR_ASSOCIATIVE_PLASTIC_MODEL_H_INCLUDED
+#if !defined(KRATOS_NON_LINEAR_ASSOCIATIVE_PLASTICITY_MODEL_H_INCLUDED )
+#define  KRATOS_NON_LINEAR_ASSOCIATIVE_PLASTICITY_MODEL_H_INCLUDED
 
 
 // System includes
@@ -46,29 +46,35 @@ namespace Kratos
   /** Detail class definition.
    */
   template<class TElasticityModel, class TYieldCriterion>
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) NonLinearAssociativePlasticModel : public PlasticityModel<TElasticityModel,TYieldCriterion>
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) NonLinearAssociativePlasticityModel : public PlasticityModel<TElasticityModel,TYieldCriterion>
   {
   public:
     
     ///@name Type Definitions
     ///@{
-    typedef PlasticityModel<TElasticityModel,TYieldCriterion>         BaseType;
+
+    //elasticity model
+    typedef TElasticityModel                               ElasticityModelType;
+    typedef typename  ElasticityModelType::Pointer      ElasticityModelPointer;
+
+    //yield criterion
+    typedef TYieldCriterion                                 YieldCriterionType;
+    typedef typename YieldCriterionType::Pointer         YieldCriterionPointer;
+
+    //base type
+    typedef PlasticityModel<ElasticityModelType,YieldCriterionType>   BaseType;
+
+    //common types
     typedef typename BaseType::Pointer                         BaseTypePointer;
     typedef typename BaseType::SizeType                               SizeType;
     typedef typename BaseType::VoigtIndexType                   VoigtIndexType;
     typedef typename BaseType::MatrixType                           MatrixType;
     typedef typename BaseType::ModelDataType                     ModelDataType;
     typedef typename BaseType::MaterialDataType               MaterialDataType;
-    typedef typename BaseType::ElasticityModelType         ElasticityModelType;
-    typedef typename BaseType::YieldCriterionType           YieldCriterionType;
-
-    typedef typename BaseType::ElasticityModelPointer   ElasticityModelPointer;
-    typedef typename BaseType::YieldCriterionPointer     YieldCriterionPointer;
-
     typedef typename BaseType::PlasticDataType                 PlasticDataType;
     typedef typename BaseType::InternalVariablesType     InternalVariablesType;
-    
-  protected:
+
+  protected:    
 
     struct ThermalVariables
     {
@@ -79,8 +85,6 @@ namespace Kratos
     private:
 
       friend class Serializer;
-
-      // A private default constructor necessary for serialization
       
       void save(Serializer& rSerializer) const
       {
@@ -113,30 +117,30 @@ namespace Kratos
   public:
 
     
-    /// Pointer definition of NonLinearAssociativePlasticModel
-    KRATOS_CLASS_POINTER_DEFINITION( NonLinearAssociativePlasticModel );
+    /// Pointer definition of NonLinearAssociativePlasticityModel
+    KRATOS_CLASS_POINTER_DEFINITION( NonLinearAssociativePlasticityModel );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    NonLinearAssociativePlasticModel();
+    NonLinearAssociativePlasticityModel();
 
     /// Constructor.
-    NonLinearAssociativePlasticModel(ElasticityModelPointer pElasticityModel, YieldCriterionPointer pYieldCriterion);
+    NonLinearAssociativePlasticityModel(ElasticityModelPointer pElasticityModel, YieldCriterionPointer pYieldCriterion);
     
     /// Copy constructor.
-    NonLinearAssociativePlasticModel(NonLinearAssociativePlasticModel const& rOther);
+    NonLinearAssociativePlasticityModel(NonLinearAssociativePlasticityModel const& rOther);
 
     /// Assignment operator.
-    NonLinearAssociativePlasticModel& operator=(NonLinearAssociativePlasticModel const& rOther);
+    NonLinearAssociativePlasticityModel& operator=(NonLinearAssociativePlasticityModel const& rOther);
 
     /// Clone.
     virtual ElasticityModel::Pointer Clone() const override;
     
     /// Destructor.
-    virtual ~NonLinearAssociativePlasticModel();
+    virtual ~NonLinearAssociativePlasticityModel();
 
 
     ///@}
@@ -185,20 +189,20 @@ namespace Kratos
     virtual std::string Info() const override
     {
       std::stringstream buffer;
-      buffer << "NonLinearAssociativePlasticModel" ;
+      buffer << "NonLinearAssociativePlasticityModel" ;
       return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-      rOStream << "NonLinearAssociativePlasticModel";
+      rOStream << "NonLinearAssociativePlasticityModel";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "NonLinearAssociativePlasticModel Data";	    
+      rOStream << "NonLinearAssociativePlasticityModel Data";	    
     }
 
     ///@}
@@ -324,8 +328,6 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    // A private default constructor necessary for serialization
-
     virtual void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
@@ -353,7 +355,7 @@ namespace Kratos
 
     ///@}
 
-  }; // Class NonLinearAssociativePlasticModel
+  }; // Class NonLinearAssociativePlasticityModel
 
   ///@}
 
@@ -372,7 +374,7 @@ namespace Kratos
   //************************************************************************************
 
   template<class TElasticityModel,class TYieldCriterion>
-  NonLinearAssociativePlasticModel<TElasticityModel,TYieldCriterion>::NonLinearAssociativePlasticModel()
+  NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>::NonLinearAssociativePlasticityModel()
     :BaseType()
   {
     KRATOS_TRY
@@ -385,7 +387,7 @@ namespace Kratos
   //************************************************************************************
 
   template<class TElasticityModel,class TYieldCriterion>
-  NonLinearAssociativePlasticModel<TElasticityModel,TYieldCriterion>::NonLinearAssociativePlasticModel(ElasticityModelPointer pElasticityModel, YieldCriterionPointer pYieldCriterion)
+  NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>::NonLinearAssociativePlasticityModel(ElasticityModelPointer pElasticityModel, YieldCriterionPointer pYieldCriterion)
     :BaseType(pElasticityModel, pYieldCriterion)
   {
     KRATOS_TRY
@@ -398,7 +400,7 @@ namespace Kratos
   //************************************************************************************
 
   template<class TElasticityModel,class TYieldCriterion>
-  NonLinearAssociativePlasticModel<TElasticityModel,TYieldCriterion>& NonLinearAssociativePlasticModel<TElasticityModel,TYieldCriterion>::operator=(NonLinearAssociativePlasticModel const& rOther)
+  NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>& NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>::operator=(NonLinearAssociativePlasticityModel const& rOther)
   {
     BaseType::operator=(rOther);
     return *this;
@@ -408,7 +410,7 @@ namespace Kratos
   //************************************************************************************
 
   template<class TElasticityModel,class TYieldCriterion>
-  NonLinearAssociativePlasticModel<TElasticityModel,TYieldCriterion>::NonLinearAssociativePlasticModel(NonLinearAssociativePlasticModel const& rOther)
+  NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>::NonLinearAssociativePlasticityModel(NonLinearAssociativePlasticityModel const& rOther)
     :BaseType(rOther)
     ,mInternal(rOther.mInternal)
     ,mPreviousInternal(rOther.mPreviousInternal)
@@ -421,16 +423,16 @@ namespace Kratos
   //************************************************************************************
 
   template<class TElasticityModel,class TYieldCriterion>
-  ElasticityModel::Pointer NonLinearAssociativePlasticModel<TElasticityModel,TYieldCriterion>::Clone() const
+  ElasticityModel::Pointer NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>::Clone() const
   {
-    return ( NonLinearAssociativePlasticModel::Pointer(new NonLinearAssociativePlasticModel(*this)) );
+    return ( NonLinearAssociativePlasticityModel::Pointer(new NonLinearAssociativePlasticityModel(*this)) );
   }
 
   //********************************DESTRUCTOR******************************************
   //************************************************************************************
 
   template<class TElasticityModel,class TYieldCriterion>
-  NonLinearAssociativePlasticModel<TElasticityModel,TYieldCriterion>::~NonLinearAssociativePlasticModel()
+  NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>::~NonLinearAssociativePlasticityModel()
   {
   }
 
@@ -438,7 +440,7 @@ namespace Kratos
   //************************************************************************************
 
   template<class TElasticityModel,class TYieldCriterion>
-  void NonLinearAssociativePlasticModel<TElasticityModel,TYieldCriterion>::InitializeVariables(ModelDataType& rValues, PlasticDataType& rVariables)
+  void NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>::InitializeVariables(ModelDataType& rValues, PlasticDataType& rVariables)
   {
     KRATOS_TRY
 
@@ -473,7 +475,7 @@ namespace Kratos
   //************************************************************************************
 
   template<class TElasticityModel,class TYieldCriterion>
-  void NonLinearAssociativePlasticModel<TElasticityModel,TYieldCriterion>::CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix)
+  void NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>::CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix)
   {
 
     KRATOS_TRY
@@ -499,7 +501,7 @@ namespace Kratos
   //************************************************************************************
   
   template<class TElasticityModel,class TYieldCriterion>
-  void NonLinearAssociativePlasticModel<TElasticityModel,TYieldCriterion>::CalculateIsochoricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix)
+  void NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>::CalculateIsochoricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix)
   {
 
     KRATOS_TRY
@@ -526,7 +528,7 @@ namespace Kratos
   //************************************************************************************
   
   template<class TElasticityModel,class TYieldCriterion>
-  void NonLinearAssociativePlasticModel<TElasticityModel,TYieldCriterion>::CalculateAndAddIsochoricStressTensor(PlasticDataType& rVariables, MatrixType& rStressMatrix)
+  void NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>::CalculateAndAddIsochoricStressTensor(PlasticDataType& rVariables, MatrixType& rStressMatrix)
   {
 
     KRATOS_TRY
@@ -580,7 +582,7 @@ namespace Kratos
   
   // local newton procedure
   template<class TElasticityModel,class TYieldCriterion>
-  bool NonLinearAssociativePlasticModel<TElasticityModel,TYieldCriterion>::CalculateRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix)
+  bool NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>::CalculateRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix)
   {
     KRATOS_TRY
       
@@ -636,7 +638,7 @@ namespace Kratos
   //************************************************************************************
 
   template<class TElasticityModel,class TYieldCriterion>
-  void NonLinearAssociativePlasticModel<TElasticityModel,TYieldCriterion>::CalculateImplexRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix)
+  void NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>::CalculateImplexRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix)
   {
     KRATOS_TRY
       
@@ -672,7 +674,7 @@ namespace Kratos
 
 
   template<class TElasticityModel,class TYieldCriterion>
-  void NonLinearAssociativePlasticModel<TElasticityModel,TYieldCriterion>::CalculateThermalDissipation( PlasticDataType& rVariables )
+  void NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>::CalculateThermalDissipation( PlasticDataType& rVariables )
   {
     KRATOS_TRY
       
@@ -697,7 +699,7 @@ namespace Kratos
   //************************************************************************************
 
   template<class TElasticityModel,class TYieldCriterion>
-  void NonLinearAssociativePlasticModel<TElasticityModel,TYieldCriterion>::CalculateImplexThermalDissipation( PlasticDataType& rVariables )
+  void NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>::CalculateImplexThermalDissipation( PlasticDataType& rVariables )
   {
     KRATOS_TRY
        
@@ -717,7 +719,7 @@ namespace Kratos
   //************************************************************************************
 
   template<class TElasticityModel,class TYieldCriterion>
-  void NonLinearAssociativePlasticModel<TElasticityModel,TYieldCriterion>::UpdateStressConfiguration(PlasticDataType& rVariables, MatrixType& rStressMatrix)
+  void NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>::UpdateStressConfiguration(PlasticDataType& rVariables, MatrixType& rStressMatrix)
   {
     KRATOS_TRY
           
@@ -739,7 +741,7 @@ namespace Kratos
   //************************************************************************************
 
   template<class TElasticityModel,class TYieldCriterion>
-  void NonLinearAssociativePlasticModel<TElasticityModel,TYieldCriterion>::UpdateInternalVariables(PlasticDataType& rVariables)
+  void NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>::UpdateInternalVariables(PlasticDataType& rVariables)
   {
     KRATOS_TRY
     
@@ -762,7 +764,7 @@ namespace Kratos
   //************************************************************************************
 
   template<class TElasticityModel,class TYieldCriterion>
-  void NonLinearAssociativePlasticModel<TElasticityModel,TYieldCriterion>::CalculateScalingFactors(PlasticDataType& rVariables, PlasticFactors& rFactors)
+  void NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>::CalculateScalingFactors(PlasticDataType& rVariables, PlasticFactors& rFactors)
   {
     KRATOS_TRY
 
@@ -834,7 +836,7 @@ namespace Kratos
   //************************************************************************************
 
   template<class TElasticityModel,class TYieldCriterion>
-  void NonLinearAssociativePlasticModel<TElasticityModel,TYieldCriterion>::CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix)
+  void NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>::CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix)
   {
     KRATOS_TRY
 
@@ -870,7 +872,7 @@ namespace Kratos
   //************************************************************************************
   
   template<class TElasticityModel,class TYieldCriterion>
-  void NonLinearAssociativePlasticModel<TElasticityModel,TYieldCriterion>::CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix)
+  void NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>::CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix)
   {
     KRATOS_TRY
 
@@ -913,7 +915,7 @@ namespace Kratos
   //************************************************************************************
   
   template<class TElasticityModel,class TYieldCriterion>
-  void NonLinearAssociativePlasticModel<TElasticityModel,TYieldCriterion>::CalculateAndAddPlasticConstitutiveTensor(PlasticDataType& rVariables, Matrix& rConstitutiveMatrix)
+  void NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>::CalculateAndAddPlasticConstitutiveTensor(PlasticDataType& rVariables, Matrix& rConstitutiveMatrix)
   {
     KRATOS_TRY
     
@@ -953,7 +955,7 @@ namespace Kratos
   //************************************************************************************
 
   template<class TElasticityModel,class TYieldCriterion>
-  double& NonLinearAssociativePlasticModel<TElasticityModel,TYieldCriterion>::AddPlasticConstitutiveComponent(PlasticDataType& rVariables,
+  double& NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>::AddPlasticConstitutiveComponent(PlasticDataType& rVariables,
 													      PlasticFactors& rFactors, double& rCabcd,
 													      const unsigned int& a, const unsigned int& b,
 													      const unsigned int& c, const unsigned int& d)
@@ -991,6 +993,6 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_NON_LINEAR_ASSOCIATIVE_PLASTIC_MODEL_H_INCLUDED  defined 
+#endif // KRATOS_NON_LINEAR_ASSOCIATIVE_PLASTICITY_MODEL_H_INCLUDED  defined 
 
 

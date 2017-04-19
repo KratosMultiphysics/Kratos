@@ -7,57 +7,69 @@
 //
 //
 
-#if !defined (KRATOS_HYPERELASTIC_PLASTIC_3D_LAW_H_INCLUDED)
-#define  KRATOS_HYPERELASTIC_PLASTIC_3D_LAW_H_INCLUDED
+#if !defined (KRATOS_VON_MISES_HYPERELASTIC_PLASTIC_3D_LAW_H_INCLUDED)
+#define  KRATOS_VON_MISES_HYPERELASTIC_PLASTIC_3D_LAW_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_laws/hyperelastic_laws/hyperelastic_3D_law.hpp"
-#include "custom_models/plasticity_models/plasticity_model.hpp"
+#include "custom_laws/hyperelastic_plastic_laws/hyperelastic_plastic_3D_law.hpp"
+#include "custom_models/elasticity_models/hyperelastic_models/isochoric_neo_hookean_model.hpp"
+#include "custom_models/plasticity_models/von_mises_plasticity_model.hpp"
 
 namespace Kratos
 {
   /**
-   * Defines a hyperelastic-plastic isotropic constitutive law in 3D 
+   * Defines a hyperelastic-plastic isotropic constitutive law in 3D with von Mises plasticity model
    * the functionality is limited to large displacements plasticity.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) HyperElasticPlastic3DLaw : public HyperElastic3DLaw
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) VonMisesHyperElasticPlastic3DLaw : public HyperElasticPlastic3DLaw
   {
   public:
 
     ///@name Type Definitions
     ///@{      
 
-    typedef HyperElasticModel                                                  ElasticModelType;
-    typedef HardeningLaw                                                       HardeningLawType; 
-    typedef YieldCriterion<HardeningLawType>                                 YieldCriterionType;
-    typedef PlasticityModel<ElasticModelType,YieldCriterionType>                      ModelType;
+    typedef IsochoricNeoHookeanModel                                      HyperElasticModelType;
+    typedef VonMisesPlasticityModel<HyperElasticModelType>                            ModelType;
     typedef typename ModelType::Pointer                                        ModelTypePointer;
-       
-    /// Pointer definition of HyperElasticPlastic3DLaw
-    KRATOS_CLASS_POINTER_DEFINITION( HyperElasticPlastic3DLaw );
+
+    //base type
+    typedef HyperElasticPlastic3DLaw                                                   BaseType;
+      
+    /// Pointer definition of VonMisesHyperElasticPlastic3DLaw
+    KRATOS_CLASS_POINTER_DEFINITION( VonMisesHyperElasticPlastic3DLaw );
     
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    HyperElasticPlastic3DLaw();
+    VonMisesHyperElasticPlastic3DLaw() : BaseType()
+    {
+     KRATOS_TRY
+
+     mpModel = ModelTypePointer( new ModelType() );
+       
+     KRATOS_CATCH(" ")	  
+    }
 
     /// Constructor.
-    HyperElasticPlastic3DLaw(ModelTypePointer pModel); 
+    //VonMisesHyperElasticPlastic3DLaw(ModelTypePointer pModel) :  BaseType(pModel) {} 
 
     /// Copy constructor.
-    HyperElasticPlastic3DLaw (const HyperElasticPlastic3DLaw& rOther);
+    VonMisesHyperElasticPlastic3DLaw (const VonMisesHyperElasticPlastic3DLaw& rOther) : BaseType(rOther) {}
 
     /// Clone.
-    ConstitutiveLaw::Pointer Clone() const override;
+    ConstitutiveLaw::Pointer Clone() const override
+    {
+      return ( VonMisesHyperElasticPlastic3DLaw::Pointer(new VonMisesHyperElasticPlastic3DLaw(*this)) );
+    }
     
     /// Destructor.
-    virtual ~HyperElasticPlastic3DLaw();
+    virtual ~VonMisesHyperElasticPlastic3DLaw() {}
 
     ///@}
     ///@name Operators
@@ -67,22 +79,6 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
-
-
-    /**
-     * Computes the material response:
-     * PK2 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues
-     * @see   Parameters
-     */
-    virtual void CalculateMaterialResponsePK2(Parameters & rValues) override;
-
-
-    /**
-     * This function is designed to be called once to check compatibility with element
-     * @param rFeatures
-     */
-    void GetLawFeatures(Features& rFeatures) override;
 
     
     ///@}
@@ -103,24 +99,21 @@ namespace Kratos
     virtual std::string Info() const override
     {
       std::stringstream buffer;
-      buffer << "HyperElasticPlastic3DLaw";
+      buffer << "VonMisesHyperElasticPlastic3DLaw";
       return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-      rOStream << "HyperElasticPlastic3DLaw";
+      rOStream << "VonMisesHyperElasticPlastic3DLaw";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "HyperElasticPlastic3DLaw Data";
-      rOStream << "InverseDeformationGradientF0 "<< mInverseDeformationGradientF0;
-      rOStream << "CauchyGreenVector "<< mCauchyGreenVector;
-      rOStream << "DeterminantF0 "<< mDeterminantF0;
-      mpModel->PrintData(rOStream);
+      rOStream << "VonMisesHyperElasticPlastic3DLaw Data";
+      BaseType::PrintData(rOStream);
     }
 
     ///@}
@@ -148,17 +141,6 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-
-    /**
-     * Initialize ModelData type:
-     */
-    virtual void InitializeModelData(Parameters& rValues, ModelDataType& rModelValues) override;	
-
-    /**
-     * Finalize ModelData type:
-     */
-    virtual void FinalizeModelData(Parameters& rValues, ModelDataType& rModelValues) override;
-    
     ///@}
     ///@name Protected  Access
     ///@{
@@ -175,7 +157,7 @@ namespace Kratos
 
 
     ///@}
-    
+
   private:
 
     ///@name Static Member Variables
@@ -204,12 +186,12 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const override
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElastic3DLaw )
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
     }
 
     virtual void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElastic3DLaw )    	
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )    	
     }
 
     ///@}
@@ -222,11 +204,11 @@ namespace Kratos
     ///@{
 
     /// Assignment operator.
-    HyperElasticPlastic3DLaw& operator=(HyperElasticPlastic3DLaw const& rOther){ return *this; }
+    VonMisesHyperElasticPlastic3DLaw& operator=(VonMisesHyperElasticPlastic3DLaw const& rOther){ return *this; }
 
 
     ///@}
-  }; // Class HyperElasticPlastic3DLaw
+  }; // Class VonMisesHyperElasticPlastic3DLaw
   ///@}
 
   ///@name Type Definitions
@@ -242,4 +224,4 @@ namespace Kratos
   ///@} addtogroup block
   
 }  // namespace Kratos.
-#endif // KRATOS_HYPERELASTIC_PLASTIC_3D_LAW_H_INCLUDED defined
+#endif // KRATOS_VON_MISES_HYPERELASTIC_PLASTIC_3D_LAW_H_INCLUDED defined

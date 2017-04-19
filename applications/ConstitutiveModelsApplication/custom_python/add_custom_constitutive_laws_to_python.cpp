@@ -70,7 +70,7 @@
 #include "custom_laws/hyperelastic_plastic_laws/hyperelastic_plastic_U_P_axisymmetric_2D_law.hpp"
 
 //specialized isotropic hyperelastic plastic laws
-#include "custom_laws/hyperelastic_plastic_laws/J2_isochoric_neo_hookean_3D_law.hpp"
+#include "custom_laws/hyperelastic_plastic_laws/von_mises_hyperelastic_plastic_3D_law.hpp"
 
 
 //isotropic linear elastic damage laws
@@ -88,8 +88,8 @@
 #include "custom_models/elasticity_models/hyperelastic_models/isochoric_neo_hookean_model.hpp"
 #include "custom_models/elasticity_models/hyperelastic_models/incompressible_neo_hookean_model.hpp"
 
-//plastic models
-#include "custom_models/plasticity_models/non_linear_associative_plastic_model.hpp"
+//plasticity models
+#include "custom_models/plasticity_models/von_mises_plasticity_model.hpp"
 
 //yield criteria
 #include "custom_models/plasticity_models/yield_criteria/mises_huber_yield_criterion.hpp"
@@ -130,10 +130,10 @@ namespace Kratos
     typedef PlasticityModel<ElasticModelBaseType,YieldCriterionBaseType>          PlasticityModelBaseType;  
     typedef typename PlasticityModelBaseType::Pointer                              PlasticityModelPointer;
 
-    typedef PlasticityModel<HyperElasticModelBaseType,YieldCriterionBaseType>   HyperPlasticModelBaseType;  
-    typedef typename HyperPlasticModelBaseType::Pointer                          HyperPlasticModelPointer;
+    typedef PlasticityModel<HyperElasticModelBaseType,YieldCriterionBaseType>   HyperElasticPlasticModelBaseType;  
+    typedef typename HyperElasticPlasticModelBaseType::Pointer                   HyperElasticPlasticModelPointer;
 
-      
+    
     void Push_Back_Constitutive_Laws( MaterialsContainer& ThisMaterialsContainer,
 				      ConstitutiveLawPointer ThisConstitutiveLaw )
     {
@@ -263,45 +263,45 @@ namespace Kratos
       class_<HyperElasticPlastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
       ( "HyperElasticPlastic3DLaw",
         init<>() )
-        .def( init<HyperPlasticModelPointer>() )
+        .def( init<HyperElasticPlasticModelPointer>() )
       ;
 
       class_<HyperElasticPlasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
       ( "HyperElasticPlasticPlaneStrain2DLaw",
         init<>() )
-        .def( init<HyperPlasticModelPointer>() )
+        .def( init<HyperElasticPlasticModelPointer>() )
       ;
 
       class_<HyperElasticPlasticAxisymmetric2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
       ( "HyperElasticPlasticAxisym2DLaw",
         init<>() )
-        .def( init<HyperPlasticModelPointer>() )
+        .def( init<HyperElasticPlasticModelPointer>() )
       ;
 
       class_<HyperElasticPlasticUP3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
       ( "HyperElasticPlasticUP3DLaw",
         init<>() )
-        .def( init<HyperPlasticModelPointer>() )
+        .def( init<HyperElasticPlasticModelPointer>() )
       ;
 
       class_<HyperElasticPlasticUPPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
       ( "HyperElasticPlasticUPPlaneStrain2DLaw",
         init<>() )
-        .def( init<HyperPlasticModelPointer>() )
+        .def( init<HyperElasticPlasticModelPointer>() )
       ;
 
       class_<HyperElasticPlasticUPAxisymmetric2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
       ( "HyperElasticPlasticAxisym2DLaw",
         init<>() )
-        .def( init<HyperPlasticModelPointer>() )
+        .def( init<HyperElasticPlasticModelPointer>() )
       ;      
 
+      
       //specialized isotropic hyperelastic plastic laws
-      class_<J2IsochoricNeoHookean3DLaw, bases< HyperElasticPlastic3DLaw >, boost::noncopyable >
-      ( "J2IsochoricNeoHookean3DLaw",
-	init<>() )
-      ;      
-
+      class_<VonMisesHyperElasticPlastic3DLaw, bases< HyperElasticPlastic3DLaw >, boost::noncopyable >
+      ( "VonMisesHyperElasticPlastic3DLaw",
+	 init<>())
+      ;
       
       //isotropic linear elastic damage specilization laws
       // class_< IsotropicDamageSimoJu3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >

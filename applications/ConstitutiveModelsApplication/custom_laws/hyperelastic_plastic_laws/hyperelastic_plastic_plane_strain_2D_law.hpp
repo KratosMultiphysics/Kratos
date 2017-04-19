@@ -7,15 +7,16 @@
 //
 //
 
-#if !defined(KRATOS_HYPERELASTIC_UP_3D_LAW_H_INCLUDED)
-#define  KRATOS_HYPERELASTIC_UP_3D_LAW_H_INCLUDED
+#if !defined(KRATOS_HYPERELASTIC_PLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED)
+#define  KRATOS_HYPERELASTIC_PLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED
+
 
 // System includes
 
 // External includes 
 
 // Project includes
-#include "custom_laws/hyperelastic_laws/hyperelastic_3D_law.hpp"
+#include "custom_laws/hyperelastic_plastic_laws/hyperelastic_plastic_3D_law.hpp"
 
 namespace Kratos
 {
@@ -25,7 +26,7 @@ namespace Kratos
   ///@name Kratos Globals
   ///@{ 
   
-  ///@} 
+  ///@}  
   ///@name Type Definitions
   ///@{ 
   
@@ -44,36 +45,36 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) HyperElasticUP3DLaw : public HyperElastic3DLaw
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) HyperElasticPlasticPlaneStrain2DLaw : public HyperElasticPlastic3DLaw
     {
     public:
       ///@name Type Definitions
       ///@{
       
-      /// Pointer definition of HyperElasticUP3DLaw
-      KRATOS_CLASS_POINTER_DEFINITION(HyperElasticUP3DLaw);
+      /// Pointer definition of HyperElasticPlasticPlaneStrain2DLaw
+      KRATOS_CLASS_POINTER_DEFINITION(HyperElasticPlasticPlaneStrain2DLaw);
   
       ///@}
       ///@name Life Cycle 
       ///@{ 
       
       /// Default constructor.
-      HyperElasticUP3DLaw() : HyperElastic3DLaw() {}
+      HyperElasticPlasticPlaneStrain2DLaw() : HyperElasticPlastic3DLaw() {}
 
       /// Constructor.
-      HyperElasticUP3DLaw(ModelType::Pointer pModel) : HyperElastic3DLaw(pModel) {} 
-
+      HyperElasticPlasticPlaneStrain2DLaw(ModelType::Pointer pModel) : HyperElasticPlastic3DLaw(pModel) {} 
+      
       /// Copy constructor.
-      HyperElasticUP3DLaw(const HyperElasticUP3DLaw& rOther) : HyperElastic3DLaw(rOther) {}
+      HyperElasticPlasticPlaneStrain2DLaw(const HyperElasticPlasticPlaneStrain2DLaw& rOther) : HyperElasticPlastic3DLaw(rOther) {}
 
       /// Clone.
       ConstitutiveLaw::Pointer Clone() const override
       {
-	return (HyperElasticUP3DLaw::Pointer(new HyperElasticUP3DLaw(*this)));
+	return (HyperElasticPlasticPlaneStrain2DLaw::Pointer(new HyperElasticPlasticPlaneStrain2DLaw(*this)));
       }
       
       /// Destructor.
-      virtual ~HyperElasticUP3DLaw(){}
+      virtual ~HyperElasticPlasticPlaneStrain2DLaw(){}
       
 
       ///@}
@@ -81,21 +82,20 @@ namespace Kratos
       ///@{
 
       /// Law Dimension
-      SizeType WorkingSpaceDimension() override { return 3; }
+      SizeType WorkingSpaceDimension() override { return 2; }
 
       /// Law Voigt Strain Size
-      SizeType GetStrainSize() override { return 6; }
+      SizeType GetStrainSize() override { return 3; }
 
       /// Law Features
       void GetLawFeatures(Features& rFeatures) override
       {
 	KRATOS_TRY
 	  
-    	//Set the type of law
-	rFeatures.mOptions.Set( THREE_DIMENSIONAL_LAW );
+	//Set the type of law
+	rFeatures.mOptions.Set( PLANE_STRAIN_LAW );
 	rFeatures.mOptions.Set( FINITE_STRAINS );
 	rFeatures.mOptions.Set( ISOTROPIC );
-	rFeatures.mOptions.Set( U_P_LAW );
 
 	//Set strain measure required by the consitutive law
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
@@ -132,12 +132,12 @@ namespace Kratos
       virtual std::string Info() const override
       {
 	std::stringstream buffer;
-        buffer << "HyperElasticUP3DLaw" ;
+        buffer << "HyperElasticPlasticPlaneStrain2DLaw" ;
         return buffer.str();
       }
       
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "HyperElasticUP3DLaw";}
+      virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "HyperElasticPlasticPlaneStrain2DLaw";}
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const override {}
@@ -164,18 +164,25 @@ namespace Kratos
       ///@} 
       ///@name Protected Operators
       ///@{ 
-           
+        
         
       ///@} 
       ///@name Protected Operations
       ///@{ 
-        
-        
+
+      
       ///@} 
       ///@name Protected  Access 
       ///@{ 
         
-        
+      /**
+       * Get voigt index tensor:
+       */
+      VoigtIndexType GetVoigtIndexTensor() override	
+      {
+	return this->msIndexVoigt2D3C;
+      }
+      
       ///@}      
       ///@name Protected Inquiry 
       ///@{ 
@@ -225,12 +232,12 @@ namespace Kratos
 
       virtual void save(Serializer& rSerializer) const override
       {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElastic3DLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticPlastic3DLaw )
       }
       
       virtual void load(Serializer& rSerializer) override
       {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElastic3DLaw )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticPlastic3DLaw )
       }
 
       
@@ -239,12 +246,12 @@ namespace Kratos
       ///@{ 
       
       /// Assignment operator.
-      HyperElasticUP3DLaw& operator=(HyperElasticUP3DLaw const& rOther){ return *this; }
+      HyperElasticPlasticPlaneStrain2DLaw& operator=(HyperElasticPlasticPlaneStrain2DLaw const& rOther){ return *this; }
 
         
       ///@}    
         
-    }; // Class HyperElasticUP3DLaw 
+    }; // Class HyperElasticPlasticPlaneStrain2DLaw 
 
   ///@} 
   
@@ -255,12 +262,12 @@ namespace Kratos
   ///@} 
   ///@name Input and output 
   ///@{ 
-        
 
+  
   ///@}
 
   ///@} addtogroup block
   
 }  // namespace Kratos.
 
-#endif // KRATOS_HYPERELASTIC_UP_3D_LAW_H_INCLUDED  defined
+#endif // KRATOS_HYPERELASTIC_PLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED  defined

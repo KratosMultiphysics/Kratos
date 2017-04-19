@@ -223,7 +223,6 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    // A private default constructor necessary for serialization
 
     virtual void save(Serializer& rSerializer) const
     {
