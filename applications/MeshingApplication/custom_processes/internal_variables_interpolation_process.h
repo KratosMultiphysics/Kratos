@@ -430,8 +430,8 @@ public:
         
         mPointListOrigin = CreateGaussPointList(mrOriginMainModelPart);
 
-        #pragma omp parallel
-        {
+//         #pragma omp parallel
+//         {
             // Create a tree
             // It will use a copy of mNodeList (a std::vector which contains pointers)
             // Copying the list is required because the tree will reorder it for efficiency
@@ -441,7 +441,7 @@ public:
             ElementsArrayType& pElements = mrDestinationMainModelPart.Elements();
             auto numElements = pElements.end() - pElements.begin();
             
-            #pragma omp for
+//             #pragma omp for
             for(unsigned int i = 0; i < numElements; i++) 
             {
                 auto itElem = pElements.begin() + i;
@@ -478,7 +478,7 @@ public:
                     }
                 }
             }
-        }
+//         }
     }
     
     /**
@@ -502,8 +502,8 @@ public:
         std::vector<double> PointsDistances(mAllocationSize);
         unsigned int NumberPointsFound = 0;
         
-        #pragma omp parallel
-        {
+//         #pragma omp parallel
+//         {
             // Create a tree
             // It will use a copy of mNodeList (a std::vector which contains pointers)
             // Copying the list is required because the tree will reorder it for efficiency
@@ -513,7 +513,7 @@ public:
             ElementsArrayType& pElements = mrDestinationMainModelPart.Elements();
             auto numElements = pElements.end() - pElements.begin();
             
-            #pragma omp for
+//             #pragma omp for
             for(unsigned int i = 0; i < numElements; i++) 
             {
                 auto itElem = pElements.begin() + i;
@@ -589,7 +589,7 @@ public:
                     }
                 }
             }
-        }
+//         }
     }
     
     /**
