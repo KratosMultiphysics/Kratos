@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
+from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.MeshingApplication import *
 
 import os
@@ -19,9 +20,12 @@ class Kratos_Execute_Test:
 
         self.Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString(): self.main_model_part}
 
-        ## Solver construction
-        import python_solvers_wrapper_fluid
-        self.solver = python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.ProjectParameters)
+        self.problem_type = self.ProjectParameters["problem_data"]["problem_type"].GetString() 
+    
+        if self.problem_type  == "fluid":
+            ## Solver construction
+            import python_solvers_wrapper_fluid
+            self.solver = python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.ProjectParameters)
 
         # Add variables (always before importing the model part) (it must be integrated in the ImportModelPart)
         # If we integrate it in the model part we cannot use combined solvers
@@ -57,21 +61,22 @@ class Kratos_Execute_Test:
         self.solver.Initialize()
         self.solver.SetEchoLevel(0) # Avoid to print anything 
         
-        # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
-        # #Get the list of the submodel part in the object Model
-        for i in range(self.ProjectParameters["solver_settings"]["skin_parts"].size()):
-            skin_part_name = self.ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
-            self.Model.update({skin_part_name: self.main_model_part.GetSubModelPart(skin_part_name)})
+        if self.problem_type  == "fluid":
+            # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
+            # #Get the list of the submodel part in the object Model
+            for i in range(self.ProjectParameters["solver_settings"]["skin_parts"].size()):
+                skin_part_name = self.ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
+                self.Model.update({skin_part_name: self.main_model_part.GetSubModelPart(skin_part_name)})
 
-        ## Get the list of the initial conditions submodel parts in the object Model
-        for i in range(self.ProjectParameters["initial_conditions_process_list"].size()):
-            initial_cond_part_name = self.ProjectParameters["initial_conditions_process_list"][i]["Parameters"]["model_part_name"].GetString()
-            self.Model.update({initial_cond_part_name: self.main_model_part.GetSubModelPart(initial_cond_part_name)})
+            ## Get the list of the initial conditions submodel parts in the object Model
+            for i in range(self.ProjectParameters["initial_conditions_process_list"].size()):
+                initial_cond_part_name = self.ProjectParameters["initial_conditions_process_list"][i]["Parameters"]["model_part_name"].GetString()
+                self.Model.update({initial_cond_part_name: self.main_model_part.GetSubModelPart(initial_cond_part_name)})
 
-        ## Get the gravity submodel part in the object Model
-        for i in range(self.ProjectParameters["gravity"].size()):
-            gravity_part_name = self.ProjectParameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
-            self.Model.update({gravity_part_name: self.main_model_part.GetSubModelPart(gravity_part_name)})
+            ## Get the gravity submodel part in the object Model
+            for i in range(self.ProjectParameters["gravity"].size()):
+                gravity_part_name = self.ProjectParameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
+                self.Model.update({gravity_part_name: self.main_model_part.GetSubModelPart(gravity_part_name)})
     
         ## Remeshing processes construction
         if (self.ProjectParameters.Has("initial_remeshing_process") == True):
@@ -91,9 +96,10 @@ class Kratos_Execute_Test:
                     process.ExecuteInitialize()
 
         # Obtain the list of the processes to be applied
-        self.list_of_processes = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["gravity"] )
-        self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["initial_conditions_process_list"] )
-        self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["boundary_conditions_process_list"] )
+        if self.problem_type  == "fluid":
+            self.list_of_processes = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["gravity"] )
+            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["initial_conditions_process_list"] )
+            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["boundary_conditions_process_list"] )
         if (self.ProjectParameters.Has("list_other_processes") == True):
             self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["list_other_processes"])
         if (self.ProjectParameters.Has("json_check_process") == True):
