@@ -61,3 +61,12 @@ class TwoDCavityTest(MeshingTestFactory):
 class CoarseSphereTest(MeshingTestFactory):
     file_name = "mmg_eulerian_test/coarse_sphere_test"
     
+class TwoDDynamicBeamTest(MeshingTestFactory):
+    file_name = "mmg_lagrangian_test/beam2D_test"
+    
+class ThreeDDynamicBeamTest(MeshingTestFactory):
+    file_name = "mmg_lagrangian_test/beam3D_test"
+    
+class TwoDDynamicPlasticBeamTest(MeshingTestFactory):
+    file_name = "mmg_lagrangian_test/beam2D_internal_variables_interpolation_test"
+    

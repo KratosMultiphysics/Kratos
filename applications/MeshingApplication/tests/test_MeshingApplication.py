@@ -14,6 +14,9 @@ from SmallTests import TwoDHessianTest as TTwoDHessianTest
 from SmallTests import ThreeDHessianTest as TThreeDHessianTest
 from SmallTests import TwoDCavityTest as TTwoDCavityTest
 from SmallTests import CoarseSphereTest as TCoarseSphereTest
+from SmallTests import TwoDDynamicBeamTest as TTwoDDynamicBeamTest
+from SmallTests import ThreeDDynamicBeamTest as TThreeDDynamicBeamTest
+from SmallTests import TwoDDynamicPlasticBeamTest as TTwoDDynamicPlasticBeamTest
 
 ## NIGHTLY TESTS
 from NightlyTests import StanfordBunnyTest as TStanfordBunnyTest
@@ -46,6 +49,9 @@ def AssambleTestSuites():
         smallSuite.addTest(TThreeDHessianTest('test_execution'))
         smallSuite.addTest(TTwoDCavityTest('test_execution'))
         smallSuite.addTest(TCoarseSphereTest('test_execution'))
+        smallSuite.addTest(TTwoDDynamicBeamTest('test_execution'))
+        smallSuite.addTest(TThreeDDynamicBeamTest('test_execution'))
+        smallSuite.addTest(TTwoDDynamicPlasticBeamTest('test_execution'))
     else:
         print("MMG utility is not compiled and the corresponding tests will not be executed")
 
@@ -80,6 +86,9 @@ def AssambleTestSuites():
                 TThreeDHessianTest,
                 TTwoDCavityTest,
                 TCoarseSphereTest,
+                #TTwoDDynamicBeamTest,
+                #TThreeDDynamicBeamTest,
+                #TTwoDDynamicPlasticBeamTest,
                 #TStanfordBunnyTest,
                 #TTwoDSphereRemeshedChannelTest,
                 #TThreeDSphereRemeshedChannelTest,

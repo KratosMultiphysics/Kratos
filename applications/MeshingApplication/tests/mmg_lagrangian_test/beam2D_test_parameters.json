@@ -1,6 +1,6 @@
 {
     "problem_data"             : {
-        "problem_name"    : "beam2D_internal_variables_interpolation_test",
+        "problem_name"    : "beam2D_test",
         "model_part_name" : "MainModelPart",
         "domain_size"     : 2,
         "problem_type"    : "solid",
@@ -18,7 +18,7 @@
         "scheme_type"                        : "Newmark",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "mmg_lagrangian_test/beam2D_internal_variables_interpolation_test",
+            "input_filename"   : "mmg_lagrangian_test/beam2D_test",
             "input_file_label" : 0
         },
         "line_search"                        : false,
@@ -63,7 +63,7 @@
             "interval"        : [0.0,"End"]
         }
     }],
-    "_output_configuration"     : {
+    "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -79,7 +79,7 @@
             "skin_output"         : false,
             "plane_output"        : [],
             "nodal_results"       : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION"],
-            "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","VON_MISES_STRESS","PLASTIC_STRAIN"]
+            "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","VON_MISES_STRESS"]
         },
         "point_data_configuration"  : []
     },
@@ -105,15 +105,6 @@
             "hessian_strategy_parameters"              :{
                 "metric_variable"                  : ["DISPLACEMENT"],
                 "interpolation_error"              : 0.004
-            },
-            "framework"                            : "Lagrangian",
-            "internal_variables_parameters"        :
-            {
-                "allocation_size"                      : 1000, 
-                "bucket_size"                          : 4, 
-                "search_factor"                        : 10, 
-                "interpolation_type"                   : "LST",
-                "internal_variable_interpolation_list" :["PLASTIC_STRAIN"]
             },
             "automatic_remesh"                 : true,
             "automatic_remesh_parameters"      :{
