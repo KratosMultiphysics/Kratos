@@ -82,15 +82,14 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             self.geometryTools.compute_unit_surface_normals()
             self.geometryTools.project_grad_on_unit_surface_normal( self.isConstraintGiven )
 
-            self.mapper.compute_mapping_matrix()
-            self.mapper.map_sensitivities_to_design_space( self.isConstraintGiven )
+            self.mapper.map_to_design_space( self.isConstraintGiven )
 
             self.optimizationTools.compute_search_direction_steepest_descent()
 
             self.optimizationTools.compute_design_update()
 
-            self.mapper.map_design_update_to_geometry_space()         
-            
+            self.mapper.map_to_geometry_space()  
+
             self.dataLogger.logCurrentData( optimizationIteration )
 
             # Take time needed for current optimization step

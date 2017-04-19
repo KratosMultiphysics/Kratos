@@ -115,7 +115,7 @@
         }],
         "constraints" : [],
         "design_variables" : {
-            "variable_type"             : "vertex_morphing", 
+            "design_variables_type"     : "vertex_morphing", 
             "input_model_part_name"     : "3D_Shell",
             "design_submodel_part_name" : "design_surface",
             "domain_size"               : 3,

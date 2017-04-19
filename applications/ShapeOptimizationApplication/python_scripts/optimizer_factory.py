@@ -20,16 +20,19 @@ CheckForPreviousImport()
 
 # Additional imports
 import timer_factory as timer_factory
+import mapper_factory as mapper_factory
 import communicator_factory as communicator_factory
 import algorithm_factory as algorithm_factory
 
 # ==============================================================================
 def CreateOptimizer( inputModelPart, optimizationSettings ):
-    if  optimizationSettings["design_variables"]["variable_type"].GetString() == "vertex_morphing":
-        optimizer = VertexMorphingMethod( inputModelPart, optimizationSettings )
-        return optimizer
+
+    design_variables_type = optimizationSettings["design_variables"]["design_variables_type"].GetString()
+    
+    if design_variables_type == "vertex_morphing":
+        return VertexMorphingMethod( inputModelPart, optimizationSettings )
     else:
-        raise NameError("Specified design control not implemented or misspelled: " + optimizationAlgorithm)
+        raise NameError("The following design variables type is not supported by the optimizer (name may be misspelled): " + design_variables_type)              
 
 # ==============================================================================
 class VertexMorphingMethod:
@@ -85,7 +88,7 @@ class VertexMorphingMethod:
         designSurface = self.__getDesignSurfaceFromInputModelPart()
         listOfDampingRegions = self.__getListOfDampingRegionsFromInputModelPart()
 
-        mapper = VertexMorphingMapper( designSurface, listOfDampingRegions, self.optimizationSettings ) 
+        mapper = mapper_factory.CreateMapper( designSurface, listOfDampingRegions, self.optimizationSettings ) 
         communicator = communicator_factory.CreateCommunicator( self.optimizationSettings )
             
         algorithm = algorithm_factory.CreateAlgorithm( designSurface, self.analyzer, mapper, communicator, self.optimizationSettings )

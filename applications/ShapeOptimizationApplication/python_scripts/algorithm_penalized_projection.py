@@ -85,14 +85,13 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
             self.geometryTools.compute_unit_surface_normals()
             self.geometryTools.project_grad_on_unit_surface_normal( constraintIsActive )
 
-            self.mapper.compute_mapping_matrix()
-            self.mapper.map_sensitivities_to_design_space( constraintIsActive )
+            self.mapper.map_to_design_space( constraintIsActive )
 
             self.__computeSearchDirection( constraintIsActive )
 
             self.optimizationTools.compute_design_update()
 
-            self.mapper.map_design_update_to_geometry_space()  
+            self.mapper.map_to_geometry_space()  
 
             self.__updateSpecificVariablesForLog()            
             self.dataLogger.logCurrentData( optimizationIteration )

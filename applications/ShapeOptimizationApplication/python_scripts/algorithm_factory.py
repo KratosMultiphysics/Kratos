@@ -31,6 +31,6 @@ def CreateAlgorithm( designSurface, analyzer, mapper, communicator, optimization
     elif optimizationAlgorithm == "penalized_projection":
         return AlgorithmPenalizedProjection( designSurface, analyzer, mapper, communicator, optimizationSettings )  
     else:
-        raise NameError("The following optimization algorithm not supported by the algorithm driver (name may be a misspelling): " + optimizationAlgorithm)              
+        raise NameError("The following optimization algorithm not supported by the algorithm driver (name may be misspelled): " + optimizationAlgorithm)              
 
 # # ==============================================================================
