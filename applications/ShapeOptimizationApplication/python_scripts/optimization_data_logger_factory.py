@@ -19,6 +19,9 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 # check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
+import shutil
+import os
+
 from design_logger_gid import DesignLoggerGID
 from design_logger_unv import DesignLoggerUNV
 
@@ -69,8 +72,9 @@ class optimizationDataLogger():
     # --------------------------------------------------------------------------
     def __createFolderToStoreOptimizationResults ( self ):
         resultsDirectory = self.optimizationSettings["output"]["output_directory"].GetString()
-        os.system( "rm -rf " + resultsDirectory )
-        os.system( "mkdir -p " + resultsDirectory )          
+        if os.path.exists(resultsDirectory):
+            shutil.rmtree(resultsDirectory)
+        os.makedirs(resultsDirectory)
 
     # --------------------------------------------------------------------------
     def __outputInformationAboutResponseFunctions( self ):
