@@ -2,7 +2,7 @@
 //   Project Name:        KratosConstitutiveModelsApplication $
 //   Created by:          $Author:                JMCarbonell $
 //   Last modified by:    $Co-Author:                         $
-//   Date:                $Date:                December 2016 $
+//   Date:                $Date:                   April 2017 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
@@ -197,7 +197,7 @@ namespace Kratos
     /**
      * Check
      */    
-    virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo);
+    virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override;
     
     ///@}
     ///@name Access

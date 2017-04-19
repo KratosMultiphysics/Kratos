@@ -2,7 +2,7 @@
 //   Project Name:        KratosConstitutiveModelsApplication $
 //   Created by:          $Author:                JMCarbonell $
 //   Last modified by:    $Co-Author:                         $
-//   Date:                $Date:                December 2016 $
+//   Date:                $Date:                   April 2017 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
@@ -59,39 +59,31 @@ namespace Kratos
     ///@{
 
     /// Default constructor.
-    YeohModel()
-      {
-      };
+    YeohModel() : HyperElasticModel() {}
     
     /// Copy constructor.
-    YeohModel(YeohModel const& rOther)
-      {
-      };
+    YeohModel(YeohModel const& rOther) : HyperElasticModel(rOther) {}
 
     /// Assignment operator.
     YeohModel& operator=(YeohModel const& rOther)
-      {
-	return *this;
-      };
-
+    {
+      HyperElasticModel::operator=(rOther);
+      return *this;
+    }
+    
+    /// Clone.
+    virtual ElasticityModel::Pointer Clone() const override
+    {
+      return ( YeohModel::Pointer(new YeohModel(*this)) );      
+    }
 
     /// Destructor.
-    virtual ~YeohModel() {};
+    virtual ~YeohModel() {}
 
 
     ///@}
     ///@name Operators
     ///@{
-
-    /**
-     * Clone function (has to be implemented by any derived class)
-     * @return a pointer to a new instance of this yield criterion
-     */
-    virtual YeohModel::Pointer Clone() const
-    {
-      YeohModel::Pointer p_clone(new YeohModel(*this));
-      return p_clone;
-    }
 
 
     ///@}
@@ -108,7 +100,7 @@ namespace Kratos
       rDensityFunction += rVariables.GetMaterialParameters()[0] * ( Variables.Strain.Invariants.I1 - 3.0) + rVariables.GetMaterialParameters()[1] * ( Variables.Strain.Invariants.I2 - 3.0) + rVariables.GetMaterialParameters()[2] * ( Variables.Strain.Invariants.I3 - 3.0);
 	
       KRATOS_CATCH(" ")
-    };
+    }
 
         
     
@@ -128,7 +120,7 @@ namespace Kratos
         KRATOS_THROW_ERROR( std::invalid_argument,"HYPERELASTIC_MODEL_PARAMETERS has an invalid value ", "" )
 	  
       KRATOS_CATCH(" ")	  
-    };
+    }
     
     
     ///@}
@@ -202,7 +194,7 @@ namespace Kratos
       return rDerivative;
 
       KRATOS_CATCH(" ")
-    };
+    }
 
     virtual double& GetFunction1stI2Derivative(HyperElasticDataType& rVariables, double& rDerivative) //dW/dI2
     {
@@ -213,7 +205,7 @@ namespace Kratos
       return rDerivative;
 
       KRATOS_CATCH(" ")
-    };
+    }
 
     virtual double& GetFunction1stI3Derivative(HyperElasticDataType& rVariables, double& rDerivative) //dW/dI3
     {
@@ -224,7 +216,7 @@ namespace Kratos
       return rDerivative;
 
       KRATOS_CATCH(" ")
-    };
+    }
 
 
     virtual double& GetFunction2ndI1Derivative(HyperElasticDataType& rVariables, double& rDerivative) //ddW/dI1dI1
@@ -236,7 +228,7 @@ namespace Kratos
       return rDerivative;
 
       KRATOS_CATCH(" ")
-    };
+    }
 
     virtual double& GetFunction2ndI2Derivative(HyperElasticDataType& rVariables, double& rDerivative) //ddW/dI2dI2
     {
@@ -247,8 +239,8 @@ namespace Kratos
       return rDerivative;
 
       KRATOS_CATCH(" ")
-    };
-
+    }
+    
     virtual double& GetFunction2ndI3Derivative(HyperElasticDataType& rVariables, double& rDerivative) //ddW/dI3dI3
     {
       KRATOS_TRY
@@ -258,7 +250,7 @@ namespace Kratos
       return rDerivative;
 
       KRATOS_CATCH(" ")
-    };
+    }
     
     
     ///@}

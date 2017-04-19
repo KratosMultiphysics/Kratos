@@ -2,7 +2,7 @@
 //   Project Name:        KratosConstitutiveModelsApplication $
 //   Created by:          $Author:                JMCarbonell $
 //   Last modified by:    $Co-Author:                         $
-//   Date:                $Date:                December 2016 $
+//   Date:                $Date:                   April 2017 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
@@ -65,7 +65,11 @@ namespace Kratos
     IsochoricNeoHookeanModel(IsochoricNeoHookeanModel const& rOther) : IsochoricHyperElasticModel(rOther) {}
 
     /// Assignment operator.
-    IsochoricNeoHookeanModel& operator=(IsochoricNeoHookeanModel const& rOther) { return *this; }
+    IsochoricNeoHookeanModel& operator=(IsochoricNeoHookeanModel const& rOther)
+    {
+      IsochoricHyperElasticModel::operator=(rOther);
+      return *this;
+    }
 
     /// Clone.
     virtual ElasticityModel::Pointer Clone() const override

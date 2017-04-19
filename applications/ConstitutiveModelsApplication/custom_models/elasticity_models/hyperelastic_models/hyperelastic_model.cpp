@@ -2,7 +2,7 @@
 //   Project Name:        KratosConstitutiveModelsApplication $
 //   Created by:          $Author:                JMCarbonell $
 //   Last modified by:    $Co-Author:                         $
-//   Date:                $Date:                December 2016 $
+//   Date:                $Date:                   April 2017 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
@@ -32,6 +32,7 @@ namespace Kratos
 
   HyperElasticModel::HyperElasticModel(const HyperElasticModel& rOther)
     : ElasticityModel(rOther)
+    , msIdentityMatrix(rOther.msIdentityMatrix)
   {
   }
 
@@ -47,6 +48,7 @@ namespace Kratos
   //************************************************************************************
   HyperElasticModel& HyperElasticModel::operator=(HyperElasticModel const& rOther)
   {
+    ElasticityModel::operator=(rOther);
     return *this;
   }
   

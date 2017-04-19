@@ -2,7 +2,7 @@
 //   Project Name:        KratosContactMechanicsApplication $
 //   Created by:          $Author:              JMCarbonell $
 //   Last modified by:    $Co-Author:                       $
-//   Date:                $Date:                  July 2016 $
+//   Date:                $Date:                  July 2017 $
 //   Revision:            $Revision:                    0.0 $
 //
 //

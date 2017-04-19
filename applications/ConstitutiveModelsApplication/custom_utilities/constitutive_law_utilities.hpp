@@ -2,7 +2,7 @@
 //   Project Name:        KratosConstitutiveModelsApplication $
 //   Created by:          $Author:                JMCarbonell $
 //   Last modified by:    $Co-Author:                         $
-//   Date:                $Date:                December 2016 $
+//   Date:                $Date:                   April 2017 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
@@ -320,6 +320,59 @@ namespace Kratos
       
     }
 
+
+    /**
+     * Transforms a given 3D Constitutive Tensor to VoigtSize Constitutive Matrix:
+     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (VoigtSize*VoightSize) Vector
+     * @param rTensor the given second order tensor in matrix form
+     * @param rMatrix the corresponding second order tensor in voigt size matrix form
+     */
+    
+    static inline Matrix& ConstitutiveTensorToMatrix(const bounded_matrix<double,6,6>& rTensor, Matrix& rMatrix)
+    {
+        KRATOS_TRY;
+	
+	if( rMatrix.size1() == 6 ){
+
+	  rMatrix = rTensor;
+	  
+	}
+	else if( rMatrix.size() == 4 ){
+
+	  for(unsigned int i=0; i<3; i++)
+	    {
+	      for(unsigned int i=0; i<3; i++)
+		{
+		  rMatrix(i,j) = rTensor(i,j);
+		}
+	    }
+	  
+	  rMatrix(3,3) = rTensor(3,3);
+	  
+	}
+	else if( rStrainVector.size() == 3){
+	  
+	  for(unsigned int i=0; i<2; i++)
+	    {
+	      for(unsigned int i=0; i<2; i++)
+		{
+		  rMatrix(i,j) = rTensor(i,j);
+		}
+	    }
+	  
+	  rMatrix(2,2) = rTensor(2,2);
+
+	}
+	else{
+	  KRATOS_THROW_ERROR( std::invalid_argument,"Constitutive Matrix dimensions are not correct ", "" )
+	}
+        
+	return rMatrix;
+	
+        KRATOS_CATCH("");
+     }
+
+    
     /**
      * Transforms a given 3D symmetric Tensor from Voigt notation to Matrix notation
      * in the 3D case: from a second order tensor (6*1) Vector to a corresponing (3*3) Matrix 
@@ -363,6 +416,56 @@ namespace Kratos
 	rVector[3]= rMatrix(0,1);
 	rVector[4]= rMatrix(1,2);
 	rVector[5]= rMatrix(0,2);
+
+        return rVector;
+        
+        KRATOS_CATCH("");
+     }
+
+
+    /**
+     * Transforms a given 3D symmetric Tensor from Voigt notation to Matrix notation
+     * in the 3D case: from a second order tensor (6*1) Vector to a corresponing (3*3) Matrix 
+     * @param rVector the given symmetric second order tensor in vector form
+     * @param rMatrix the corresponding second order tensor in matrix form
+     */   
+    static inline bounded_matrix<double,3,3>& StrainVectorToTensor(const array_1d<double,6>& rVector, bounded_matrix<double,3,3>& rMatrix)
+    {
+        KRATOS_TRY;
+       
+	rMatrix(0,0) = rVector[0];
+	rMatrix(0,1) = 0.5*rVector[3];
+	rMatrix(0,2) = 0.5*rVector[5];
+	rMatrix(1,0) = 0.5*rVector[3];
+	rMatrix(1,1) = rVector[1];
+	rMatrix(1,2) = 0.5*rVector[4];
+	rMatrix(2,0) = 0.5*rVector[5];
+	rMatrix(2,1) = 0.5*rVector[4];
+	rMatrix(2,2) = rVector[2];
+
+        return rMatrix;
+        
+        KRATOS_CATCH("");
+    }
+    
+
+    /**
+     * Transforms a given 3D symmetric Tensor to Voigt Notation:
+     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (6*1) Vector
+     * @param rMatrix the given symmetric second order tensor in matrix form
+     * @param rVector the corresponding second order tensor in vector form
+     */
+    
+    static inline array_1d<double,6>& StrainTensorToVector(const bounded_matrix<double,3,3>& rMatrix, array_1d<double,6>& rVector)
+    {
+        KRATOS_TRY;
+        
+	rVector[0]= rMatrix(0,0);
+	rVector[1]= rMatrix(1,1);
+	rVector[2]= rMatrix(2,2);
+	rVector[3]= 2.0*rMatrix(0,1);
+	rVector[4]= 2.0*rMatrix(1,2);
+	rVector[5]= 2.0*rMatrix(0,2);
 
         return rVector;
         

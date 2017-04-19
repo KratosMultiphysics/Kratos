@@ -2,7 +2,7 @@
 //   Project Name:        KratosConstitutiveModelsApplication $
 //   Created by:          $Author:                JMCarbonell $
 //   Last modified by:    $Co-Author:                         $
-//   Date:                $Date:                December 2016 $
+//   Date:                $Date:                   April 2017 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
@@ -61,13 +61,17 @@ namespace Kratos
     ///@{
 
     /// Default constructor.
-    IncompressibleNeoHookeanModel() {}
+    IncompressibleNeoHookeanModel() : IsochoricNeoHookeanModel() {}
     
     /// Copy constructor.
-    IncompressibleNeoHookeanModel(IncompressibleNeoHookeanModel const& rOther) {}
+    IncompressibleNeoHookeanModel(IncompressibleNeoHookeanModel const& rOther) : IsochoricNeoHookeanModel(rOther) {}
 
     /// Assignment operator.
-    IncompressibleNeoHookeanModel& operator=(IncompressibleNeoHookeanModel const& rOther) {return *this;}
+    IncompressibleNeoHookeanModel& operator=(IncompressibleNeoHookeanModel const& rOther)
+    {
+      IsochoricNeoHookeanModel::operator=(rOther);
+      return *this;
+    }
 
     /// Clone.
     virtual ElasticityModel::Pointer Clone() const

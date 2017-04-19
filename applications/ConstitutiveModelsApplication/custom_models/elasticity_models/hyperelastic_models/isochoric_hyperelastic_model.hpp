@@ -2,7 +2,7 @@
 //   Project Name:        KratosConstitutiveModelsApplication $
 //   Created by:          $Author:                JMCarbonell $
 //   Last modified by:    $Co-Author:                         $
-//   Date:                $Date:                December 2016 $
+//   Date:                $Date:                   April 2017 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
@@ -59,20 +59,17 @@ namespace Kratos
     ///@{
 
     /// Default constructor.
-    IsochoricHyperElasticModel()
-      {
-      }
+    IsochoricHyperElasticModel() : HyperElasticModel() {}
     
     /// Copy constructor.
-    IsochoricHyperElasticModel(IsochoricHyperElasticModel const& rOther)
-      {
-      }
+    IsochoricHyperElasticModel(IsochoricHyperElasticModel const& rOther) : HyperElasticModel(rOther) {}
 
     /// Assignment operator.
     IsochoricHyperElasticModel& operator=(IsochoricHyperElasticModel const& rOther)
-      {
+    {
+	HyperElasticModel::operator=(rOther);
 	return *this;
-      }
+    }
 
     /// Clone.
     virtual ElasticityModel::Pointer Clone() const override
