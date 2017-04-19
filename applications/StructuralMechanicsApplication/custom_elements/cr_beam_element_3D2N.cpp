@@ -267,6 +267,8 @@ namespace Kratos
 		}
 		LocalStiffnessMatrix(3, 4) = (-mz_A / 3.00) + (mz_B / 6.00);
 		LocalStiffnessMatrix(3, 5) = (my_A / 3.00) - (my_B / 6.00);
+		LocalStiffnessMatrix(3, 7) = -my_A / L;
+		LocalStiffnessMatrix(3, 8) = -mz_A / L;
 		LocalStiffnessMatrix(3, 10) = L*Qy / 6.00;
 		LocalStiffnessMatrix(3, 11) = L*Qz / 6.00;
 
@@ -274,9 +276,8 @@ namespace Kratos
 			LocalStiffnessMatrix(4, i) = LocalStiffnessMatrix(i, 4);
 		}
 		LocalStiffnessMatrix(4, 4) = 2.00 * L*N / 15.00;
-		LocalStiffnessMatrix(4, 6) = -1.00 * LocalStiffnessMatrix(3, 1);
-		LocalStiffnessMatrix(4, 7) = LocalStiffnessMatrix(2, 11);
-		LocalStiffnessMatrix(4, 8) = LocalStiffnessMatrix(2, 10);
+		LocalStiffnessMatrix(4, 7) = -Mt / L;
+		LocalStiffnessMatrix(4, 8) = N / 10.00;
 		LocalStiffnessMatrix(4, 9) = LocalStiffnessMatrix(3, 10);
 		LocalStiffnessMatrix(4, 10) = -L*N / 30.00;
 		LocalStiffnessMatrix(4, 11) = Mt / 2.00;
@@ -286,9 +287,8 @@ namespace Kratos
 			LocalStiffnessMatrix(5, i) = LocalStiffnessMatrix(i, 5);
 		}
 		LocalStiffnessMatrix(5, 5) = LocalStiffnessMatrix(4, 4);
-		LocalStiffnessMatrix(5, 6) = -1.00 * LocalStiffnessMatrix(2, 3);
-		LocalStiffnessMatrix(5, 7) = LocalStiffnessMatrix(1, 5);
-		LocalStiffnessMatrix(5, 8) = LocalStiffnessMatrix(4, 7);
+		LocalStiffnessMatrix(5, 7) = -N / 10.0;
+		LocalStiffnessMatrix(5, 8) = -Mt / L;
 		LocalStiffnessMatrix(5, 9) = LocalStiffnessMatrix(3, 11);
 		LocalStiffnessMatrix(5, 10) = -1.00 * LocalStiffnessMatrix(4, 11);
 		LocalStiffnessMatrix(5, 11) = LocalStiffnessMatrix(4, 10);
