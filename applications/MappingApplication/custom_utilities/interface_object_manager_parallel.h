@@ -27,565 +27,638 @@
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
+///@addtogroup ApplicationNameApplication
+///@{
 
-  ///@name Kratos Globals
-  ///@{
+///@name Kratos Globals
+///@{
 
-  ///@}
-  ///@name Type Definitions
-  ///@{
+///@}
+///@name Type Definitions
+///@{
 
-  ///@}
-  ///@name  Enum's
-  ///@{
+///@}
+///@name  Enum's
+///@{
 
-  ///@}
-  ///@name  Functions
-  ///@{
+///@}
+///@name  Functions
+///@{
 
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@}
+///@name Kratos Classes
+///@{
 
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class InterfaceObjectManagerParallel : public InterfaceObjectManagerBase
+/// Short class definition.
+/** Detail class definition.
+*/
+class InterfaceObjectManagerParallel : public InterfaceObjectManagerBase
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of InterfaceObjectManagerParallel
+    KRATOS_CLASS_POINTER_DEFINITION(InterfaceObjectManagerParallel);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    InterfaceObjectManagerParallel(ModelPart& rModelPart, int CommRank, int CommSize,
+                                   MapperUtilities::InterfaceObjectConstructionType InterfaceObjectType,
+                                   GeometryData::IntegrationMethod IntegrationMethod, const int EchoLevel,
+                                   const double ApproximationTolerance) :
+        InterfaceObjectManagerBase(rModelPart, CommRank, CommSize,
+                                   InterfaceObjectType, IntegrationMethod, EchoLevel, ApproximationTolerance) {}
+
+    /// Destructor.
+    virtual ~InterfaceObjectManagerParallel() { }
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    // **********************************************************************
+    // Side we want to find neighbors for aka destination *******************
+    // **********************************************************************
+    void ComputeCandidatePartitions(CandidateManager& rCandidateManager, int* pLocalCommList,
+                                    int* pLocalMemorySizeArray,
+                                    double* pGlobalBoundingBoxes,
+                                    const bool LastIteration) override
     {
-    public:
-      ///@name Type Definitions
-      ///@{
+        double* bounding_box[6];
+        std::vector<int> partition_list; // For debugging
+        for (auto& interface_obj : mInterfaceObjects)
+        {
+            for (int partition_index = 0; partition_index < mCommSize; ++partition_index)   // loop over partitions
+            {
+                for (int j = 0; j < 6; ++j)   // retrieve bounding box of partition
+                {
+                    bounding_box[j] = &pGlobalBoundingBoxes[(partition_index * 6) + j];
+                }
+                if (!interface_obj->NeighborOrApproximationFound())   // check if the interface object already found a neighbor
+                {
+                    if (interface_obj->IsInBoundingBox(bounding_box))
+                    {
+                        rCandidateManager.mCandidateSendObjects[partition_index].push_back(interface_obj);
+                        pLocalCommList[partition_index] = 1;
+                        ++pLocalMemorySizeArray[partition_index];
+                        interface_obj->SetIsBeingSent();
+                        partition_list.push_back(partition_index); // For debugging
+                    }
+                }
+            }
 
-      /// Pointer definition of InterfaceObjectManagerParallel
-      KRATOS_CLASS_POINTER_DEFINITION(InterfaceObjectManagerParallel);
+            if (mEchoLevel > 3)
+            {
+                PrintCandidatePartitions(interface_obj, partition_list); // For debugging
+            }
 
-      ///@}
-      ///@name Life Cycle
-      ///@{
+            if (LastIteration)
+            {
+                // Robustness check, if interface_obj has not found a neighbor, it is sent to every partition
+                if (!interface_obj->GetIsBeingSent())
+                {
+                    // Send interface_obj to all Partitions
+                    if (mEchoLevel > 1)
+                    {
+                        std::cout << "MAPPER WARNING, Rank " << mCommRank
+                                  << ", interface_obj [ "
+                                  << interface_obj->X() << " "
+                                  << interface_obj->Y() << " "
+                                  << interface_obj->Z() << " ] has not found "
+                                  << "a neighbor/approximation yet and "
+                                  << "is sent to all partitions!" << std::endl;
+                    }
 
-      InterfaceObjectManagerParallel(ModelPart& rModelPart, int CommRank, int CommSize,
-                                     MapperUtilities::InterfaceObjectConstructionType InterfaceObjectType,
-                                     GeometryData::IntegrationMethod IntegrationMethod, const int EchoLevel,
-                                     const double ApproximationTolerance) :
-                                     InterfaceObjectManagerBase(rModelPart, CommRank, CommSize,
-                                     InterfaceObjectType, IntegrationMethod, EchoLevel, ApproximationTolerance) {}
+                    for (int partition_index = 0; partition_index < mCommSize; ++partition_index)
+                    {
+                        rCandidateManager.mCandidateSendObjects[partition_index].push_back(interface_obj);
+                        pLocalCommList[partition_index] = 1;
+                        ++pLocalMemorySizeArray[partition_index];
+                    }
+                }
+            }
+        }
+    }
 
-      /// Destructor.
-      virtual ~InterfaceObjectManagerParallel() { }
+    // Function for debugging
+    void PrintCandidatePartitions(const InterfaceObject::Pointer pInterfaceObject,
+                                  std::vector<int>& rPartitionList) override
+    {
+        std::cout << "Rank " << mCommRank << ", interface_obj ["
+                  << pInterfaceObject->X() << " "
+                  << pInterfaceObject->Y() << " "
+                  << pInterfaceObject->Z() << "] "
+                  << " sent to ranks: [";
+        for (size_t i = 0; i < rPartitionList.size(); ++i)
+        {
+            std::cout << rPartitionList[i] << " ";
+        }
+        std::cout << "]" << std::endl;
+        rPartitionList.clear();
+    }
 
+    void PrepareMatching(CandidateManager& rCandidateManager, int* pLocalCommList,
+                         int* pLocalMemorySizeArray) override
+    {
+        for (int partition_index = 0; partition_index < mCommSize; ++partition_index)
+        {
+            if (rCandidateManager.mCandidateSendObjects.count(partition_index) > 0)
+            {
+                rCandidateManager.mMatchingInformation.reserve(rCandidateManager.mCandidateSendObjects.at(partition_index).size());
+                for (auto interface_obj : rCandidateManager.mCandidateSendObjects.at(partition_index))
+                {
+                    if (interface_obj->HasNeighborOrApproximationInPartition(partition_index))
+                    {
+                        mSendObjects[partition_index].push_back(interface_obj);
+                        rCandidateManager.mMatchingInformation[partition_index].push_back(1);
+                        pLocalCommList[partition_index] = 1;
+                        ++pLocalMemorySizeArray[partition_index];
+                    }
+                    else
+                    {
+                        rCandidateManager.mMatchingInformation[partition_index].push_back(0);
+                    }
+                }
+            }
+        }
+    }
 
-      ///@}
-      ///@name Operators
-      ///@{
+    void FillSendBufferWithMatchInformation(CandidateManager& rCandidateManager,
+                                            int* pSendBuffer, int& rSendBufferSize,
+                                            const int CommPartner) override
+    {
+        int i = 0;
+        if (rCandidateManager.mMatchingInformation.count(CommPartner) > 0)
+        {
+            for (auto info : rCandidateManager.mMatchingInformation.at(CommPartner))
+            {
+                pSendBuffer[i] = info;
+                ++i;
+            }
+        }
+        rSendBufferSize = i;
+    }
 
+    void FillBufferLocalSearch(CandidateManager& rCandidateManager,
+                               InterfaceObjectConfigure::ContainerType& rSendObjects,
+                               int& rNumObjects) override
+    {
+        int i = 0;
+        if (rCandidateManager.mCandidateSendObjects.count(mCommRank) > 0)
+        {
+            for (auto interface_obj : rCandidateManager.mCandidateSendObjects.at(mCommRank))
+            {
+                rSendObjects[i] = interface_obj;
+                ++i;
+            }
+        }
+        rNumObjects = i;
+    }
 
-      ///@}
-      ///@name Operations
-      ///@{
+    void FillSendBufferRemoteSearch(CandidateManager& rCandidateManager,
+                                    double* pSendBuffer, int& rSendBufferSize,
+                                    const int CommPartner) override
+    {
+        int i = 0;
+        if (rCandidateManager.mCandidateSendObjects.count(CommPartner) > 0)
+        {
+            for (auto interface_obj : rCandidateManager.mCandidateSendObjects.at(CommPartner))
+            {
+                pSendBuffer[(i * 3) + 0] = interface_obj->X();
+                pSendBuffer[(i * 3) + 1] = interface_obj->Y();
+                pSendBuffer[(i * 3) + 2] = interface_obj->Z();
+                ++i;
+            }
+        }
+        rSendBufferSize = 3 * i;
+    }
 
-      // **********************************************************************
-      // Side we want to find neighbors for aka destination *******************
-      // **********************************************************************
-      void ComputeCandidatePartitions(CandidateManager& rCandidateManager, int* pLocalCommList,
-                                      int* pLocalMemorySizeArray,
-                                      double* pGlobalBoundingBoxes,
-                                      const bool LastIteration) override {
-          double* bounding_box[6];
-          std::vector<int> partition_list; // For debugging
-          for (auto& interface_obj : mInterfaceObjects) {
-              for (int partition_index = 0; partition_index < mCommSize; ++partition_index) { // loop over partitions
-                  for (int j = 0; j < 6; ++j) { // retrieve bounding box of partition
-                      bounding_box[j] = &pGlobalBoundingBoxes[(partition_index * 6) + j];
-                  }
-                  if (!interface_obj->NeighborOrApproximationFound()) { // check if the interface object already found a neighbor
-                      if (interface_obj->IsInBoundingBox(bounding_box)) {
-                          rCandidateManager.mCandidateSendObjects[partition_index].push_back(interface_obj);
-                          pLocalCommList[partition_index] = 1;
-                          ++pLocalMemorySizeArray[partition_index];
-                          interface_obj->SetIsBeingSent();
-                          partition_list.push_back(partition_index); // For debugging
-                      }
-                  }
-              }
+    void PostProcessReceivedResults(CandidateManager& rCandidateManager,
+                                    const std::vector<double>& rDistances,
+                                    const std::vector<int>& rPairingIndices,
+                                    const int CommPartner) override
+    {
+        int i = 0;
+        if (rCandidateManager.mCandidateSendObjects.count(CommPartner) > 0)
+        {
+            for (auto interface_obj : rCandidateManager.mCandidateSendObjects.at(CommPartner))
+            {
+                if (rDistances[i] > -0.5f) // failed search has value "-1"
+                    interface_obj->ProcessSearchResult(rDistances[i], rPairingIndices[i], CommPartner);
+                ++i;
+            }
+        }
+    }
 
-              if (mEchoLevel > 3) {
-                  PrintCandidatePartitions(interface_obj, partition_list); // For debugging
-              }
+    void PostProcessReceivedResults(CandidateManager& rCandidateManager,
+                                    const double* pDistances,
+                                    const int* pPairingIndices,
+                                    const int CommPartner) override
+    {
+        int i = 0;
+        if (rCandidateManager.mCandidateSendObjects.count(CommPartner) > 0)
+        {
+            for (auto interface_obj : rCandidateManager.mCandidateSendObjects.at(CommPartner))
+            {
+                if (pDistances[i] > -0.5f) // failed search has value "-1"
+                    interface_obj->ProcessSearchResult(pDistances[i], pPairingIndices[i], CommPartner);
+                ++i;
+            }
+        }
+    }
 
-              if (LastIteration) {
-                  // Robustness check, if interface_obj has not found a neighbor, it is sent to every partition
-                  if (!interface_obj->GetIsBeingSent()) {
-                      // Send interface_obj to all Partitions
-                      if (mEchoLevel > 1) {
-                          std::cout << "MAPPER WARNING, Rank " << mCommRank
-                                    << ", interface_obj [ " 
-                                    << interface_obj->X() << " " 
-                                    << interface_obj->Y() << " "
-                                    << interface_obj->Z() << " ] has not found "
-                                    << "a neighbor/approximation yet and "
-                                    << "is sent to all partitions!" << std::endl;
-                      }
+    // **********************************************************************
+    // Side where we search neighbors aka origin ****************************
+    // **********************************************************************
+    void ProcessReceiveBuffer(InterfaceObjectConfigure::ContainerType& rRemotePointList,
+                              const double* pCoordinateList, const int CoordinateListSize,
+                              int& rNumObjects) override
+    {
+        rNumObjects = CoordinateListSize / 3;
 
-                      for (int partition_index = 0; partition_index < mCommSize; ++partition_index) {
-                          rCandidateManager.mCandidateSendObjects[partition_index].push_back(interface_obj);
-                          pLocalCommList[partition_index] = 1;
-                          ++pLocalMemorySizeArray[partition_index];
-                      }
-                  }
-              }
-          }
-      }
+        for (int i = 0; i < rNumObjects; ++i)   // create InterfaceObjects
+        {
+            rRemotePointList[i] = InterfaceObject::Pointer(new InterfaceObject(
+                                      pCoordinateList[(i * 3) + 0], pCoordinateList[(i * 3) + 1], pCoordinateList[(i * 3) + 2]));
+        }
+    }
 
-      // Function for debugging
-      void PrintCandidatePartitions(const InterfaceObject::Pointer pInterfaceObject,
-                                    std::vector<int>& rPartitionList) override {
-          std::cout << "Rank " << mCommRank << ", interface_obj [" 
-                    << pInterfaceObject->X() << " "
-                    << pInterfaceObject->Y() << " " 
-                    << pInterfaceObject->Z() << "] " 
-                    << " sent to ranks: [";
-          for (size_t i = 0; i < rPartitionList.size(); ++i) {
-              std::cout << rPartitionList[i] << " ";
-          }
-          std::cout << "]" << std::endl;
-          rPartitionList.clear();
-      }
+    void FillSendBufferWithResults(double* pSendBuffer, const int SendBufferSize,
+                                   const std::vector<double>& rMinDistances) override
+    {
+        for (int i = 0; i < SendBufferSize; ++i)
+            pSendBuffer[i] = rMinDistances[i];
+    }
 
-      void PrepareMatching(CandidateManager& rCandidateManager, int* pLocalCommList,
-                           int* pLocalMemorySizeArray) override {
-          for (int partition_index = 0; partition_index < mCommSize; ++partition_index) {
-              if (rCandidateManager.mCandidateSendObjects.count(partition_index) > 0) {
-                  rCandidateManager.mMatchingInformation.reserve(rCandidateManager.mCandidateSendObjects.at(partition_index).size());
-                  for (auto interface_obj : rCandidateManager.mCandidateSendObjects.at(partition_index)) {
-                      if (interface_obj->HasNeighborOrApproximationInPartition(partition_index)) {
-                          mSendObjects[partition_index].push_back(interface_obj);
-                          rCandidateManager.mMatchingInformation[partition_index].push_back(1);
-                          pLocalCommList[partition_index] = 1;
-                          ++pLocalMemorySizeArray[partition_index];
-                      } else {
-                          rCandidateManager.mMatchingInformation[partition_index].push_back(0);
-                      }
-                  }
-              }
-          }
-      }
+    void FillSendBufferWithResults(int* pSendBuffer, const int SendBufferSize,
+                                   const std::vector<int>& rPairingIndices) override
+    {
+        for (int i = 0; i < SendBufferSize; ++i)
+            pSendBuffer[i] = rPairingIndices[i];
+    }
 
-      void FillSendBufferWithMatchInformation(CandidateManager& rCandidateManager,
-                                              int* pSendBuffer, int& rSendBufferSize,
-                                              const int CommPartner) override {
-          int i = 0;
-          if (rCandidateManager.mMatchingInformation.count(CommPartner) > 0) {
-              for (auto info : rCandidateManager.mMatchingInformation.at(CommPartner)) {
-                  pSendBuffer[i] = info;
-                  ++i;
-              }
-          }
-          rSendBufferSize = i;
-      }
+    void StoreTempSearchResults(CandidateManager& rCandidateManager,
+                                std::vector<InterfaceObject::Pointer> TempClosestResults,
+                                std::vector<std::vector<double>> TempShapeFunctionValues,
+                                const int CommPartner) override
+    {
+        MapInsertElement(rCandidateManager.mCandidateReceiveObjects, CommPartner, TempClosestResults);
+        MapInsertElement(rCandidateManager.mCandidateShapeFunctionValues, CommPartner, TempShapeFunctionValues);
+    }
 
-      void FillBufferLocalSearch(CandidateManager& rCandidateManager,
-                                 InterfaceObjectConfigure::ContainerType& rSendObjects,
-                                 int& rNumObjects) override {
-          int i = 0;
-          if (rCandidateManager.mCandidateSendObjects.count(mCommRank) > 0) {
-              for (auto interface_obj : rCandidateManager.mCandidateSendObjects.at(mCommRank)) {
-                  rSendObjects[i] = interface_obj;
-                  ++i;
-              }
-          }
-          rNumObjects = i;
-      }
+    void ProcessMatchInformation(CandidateManager& rCandidateManager,
+                                 int* pBuffer, const int BufferSize,
+                                 const int CommPartner) override
+    {
+        for (int i = 0; i < BufferSize; ++i)
+        {
+            if (pBuffer[i] == 1)   // Match
+            {
+                // Debug Check
+                if (!rCandidateManager.mCandidateReceiveObjects.at(CommPartner)[i])
+                {
+                    KRATOS_ERROR << "interface_obj pointer mismatch"
+                                 << std::endl;
+                }
 
-      void FillSendBufferRemoteSearch(CandidateManager& rCandidateManager,
-                                      double* pSendBuffer, int& rSendBufferSize,
-                                      const int CommPartner) override {
-          int i = 0;
-          if (rCandidateManager.mCandidateSendObjects.count(CommPartner) > 0) {
-              for (auto interface_obj : rCandidateManager.mCandidateSendObjects.at(CommPartner)){
-                  pSendBuffer[(i*3) + 0] = interface_obj->X();
-                  pSendBuffer[(i*3) + 1] = interface_obj->Y();
-                  pSendBuffer[(i*3) + 2] = interface_obj->Z();
-                  ++i;
-              }
-          }
-          rSendBufferSize = 3 * i;
-      }
+                mReceiveObjects[CommPartner].push_back(rCandidateManager.mCandidateReceiveObjects.at(CommPartner)[i]);
+                mShapeFunctionValues[CommPartner].push_back(rCandidateManager.mCandidateShapeFunctionValues.at(CommPartner)[i]);
+            }
+        }
+    }
 
-      void PostProcessReceivedResults(CandidateManager& rCandidateManager,
-                                      const std::vector<double>& rDistances,
-                                      const std::vector<int>& rPairingIndices,
-                                      const int CommPartner) override {
-          int i = 0;
-          if (rCandidateManager.mCandidateSendObjects.count(CommPartner) > 0) {
-              for (auto interface_obj : rCandidateManager.mCandidateSendObjects.at(CommPartner)) {
-                  if (rDistances[i] > -0.5f) // failed search has value "-1"
-                      interface_obj->ProcessSearchResult(rDistances[i], rPairingIndices[i], CommPartner);
-                  ++i;
-              }
-          }
-      }
+    // **********************************************************************
+    // Functions for Mapping ************************************************
+    // **********************************************************************
+    void ComputeBufferSizesAndCommunicationGraph(int& rMaxSendBufferSize,
+            int& rMaxReceiveBufferSize,
+            GraphType& rColoredGraph,
+            int& rMaxColors) override
+    {
+        int* local_comm_list = new int[mCommSize]();
+        int* local_memory_size_array = new int[mCommSize]();
 
-      void PostProcessReceivedResults(CandidateManager& rCandidateManager,
-                                      const double* pDistances,
-                                      const int* pPairingIndices,
-                                      const int CommPartner) override {
-          int i = 0;
-          if (rCandidateManager.mCandidateSendObjects.count(CommPartner) > 0) {
-              for (auto interface_obj : rCandidateManager.mCandidateSendObjects.at(CommPartner)) {
-                  if (pDistances[i] > -0.5f) // failed search has value "-1"
-                      interface_obj->ProcessSearchResult(pDistances[i], pPairingIndices[i], CommPartner);
-                  ++i;
-              }
-          }
-      }
+        for (auto& interface_obj : mInterfaceObjects)
+        {
+            if (interface_obj->NeighborOrApproximationFound())   // check if the interface object already found a neighbor
+            {
+                int neighbor_rank = interface_obj->GetNeighborRank();
+                local_comm_list[neighbor_rank] = 1;
+                ++local_memory_size_array[neighbor_rank];
+            }
+        }
 
-      // **********************************************************************
-      // Side where we search neighbors aka origin ****************************
-      // **********************************************************************
-      void ProcessReceiveBuffer(InterfaceObjectConfigure::ContainerType& rRemotePointList,
-                                const double* pCoordinateList, const int CoordinateListSize,
-                                int& rNumObjects) override {
-          rNumObjects = CoordinateListSize / 3;
+        // sizes are switched bcs transfer direction is inverted from searching to mapping
+        MapperUtilitiesMPI::ComputeMaxBufferSizes(local_memory_size_array,
+                rMaxReceiveBufferSize,
+                rMaxSendBufferSize,
+                mCommRank,
+                mCommSize);
 
-          for (int i = 0; i < rNumObjects; ++i) { // create InterfaceObjects
-              rRemotePointList[i] = InterfaceObject::Pointer(new InterfaceObject(
-                  pCoordinateList[(i*3)+0], pCoordinateList[(i*3)+1], pCoordinateList[(i*3)+2]));
-          }
-      }
+        MapperUtilitiesMPI::ComputeColoringGraph(local_comm_list, mCommSize,
+                rColoredGraph, rMaxColors);
 
-      void FillSendBufferWithResults(double* pSendBuffer, const int SendBufferSize,
-                                     const std::vector<double>& rMinDistances) override {
-          for (int i = 0; i < SendBufferSize; ++i)
-              pSendBuffer[i] = rMinDistances[i];
-      }
+        delete [] local_comm_list;
+        delete [] local_memory_size_array;
+    }
+    void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
+                              const Variable<double>& rVariable, Kratos::Flags& rOptions) override
+    {
+        int i = 0;
+        std::vector<InterfaceObject::Pointer> interface_objects;
+        if (mReceiveObjects.count(CommPartner) > 0)
+        {
+            interface_objects = mReceiveObjects.at(CommPartner);
+        }
 
-      void FillSendBufferWithResults(int* pSendBuffer, const int SendBufferSize,
-                                     const std::vector<int>& rPairingIndices) override {
-          for (int i = 0; i < SendBufferSize; ++i)
-              pSendBuffer[i] = rPairingIndices[i];
-      }
+        for (auto interface_obj : interface_objects)
+        {
+            if (rOptions.Is(MapperFlags::INTERPOLATE_VALUES))
+            {
+                pBuffer[i] = interface_obj->GetObjectValueInterpolated(rVariable, mShapeFunctionValues.at(CommPartner)[i]);
+            }
+            else
+            {
+                pBuffer[i] = interface_obj->GetObjectValue(rVariable, rOptions);
+            }
+            ++i;
+        }
 
-      void StoreTempSearchResults(CandidateManager& rCandidateManager,
-                                  std::vector<InterfaceObject::Pointer> TempClosestResults,
-                                  std::vector<std::vector<double>> TempShapeFunctionValues,
-                                  const int CommPartner) override {
-          MapInsertElement(rCandidateManager.mCandidateReceiveObjects, CommPartner, TempClosestResults);
-          MapInsertElement(rCandidateManager.mCandidateShapeFunctionValues, CommPartner, TempShapeFunctionValues);
-      }
+        rBufferSize = static_cast<int>(interface_objects.size());
 
-      void ProcessMatchInformation(CandidateManager& rCandidateManager,
-                                   int* pBuffer, const int BufferSize,
-                                   const int CommPartner) override {
-          for (int i = 0; i < BufferSize; ++i) {
-              if (pBuffer[i] == 1) { // Match
-                  // Debug Check
-                  if (!rCandidateManager.mCandidateReceiveObjects.at(CommPartner)[i]) {
-                      KRATOS_ERROR << "interface_obj pointer mismatch"
-                                   << std::endl;
-                  }
-                  
-                  mReceiveObjects[CommPartner].push_back(rCandidateManager.mCandidateReceiveObjects.at(CommPartner)[i]);
-                  mShapeFunctionValues[CommPartner].push_back(rCandidateManager.mCandidateShapeFunctionValues.at(CommPartner)[i]);
-              }
-          }
-      }
+        // Debug Check
+        if (rBufferSize != i)
+        {
+            KRATOS_ERROR << "size mismatch" << std::endl;
+        }
+    }
 
-      // **********************************************************************
-      // Functions for Mapping ************************************************
-      // **********************************************************************
-      void ComputeBufferSizesAndCommunicationGraph(int& rMaxSendBufferSize,
-                                                   int& rMaxReceiveBufferSize,
-                                                   GraphType& rColoredGraph,
-                                                   int& rMaxColors) override {
-          int* local_comm_list = new int[mCommSize]();
-          int* local_memory_size_array = new int[mCommSize]();
+    void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
+                              const Variable< array_1d<double, 3> >& rVariable,
+                              Kratos::Flags& rOptions) override
+    {
+        int i = 0;
+        std::vector<InterfaceObject::Pointer> interface_objects;
+        if (mReceiveObjects.count(CommPartner) > 0)
+        {
+            interface_objects = mReceiveObjects.at(CommPartner);
+        }
 
-          for (auto& interface_obj : mInterfaceObjects) {
-              if (interface_obj->NeighborOrApproximationFound()) { // check if the interface object already found a neighbor
-                  int neighbor_rank = interface_obj->GetNeighborRank();
-                  local_comm_list[neighbor_rank] = 1;
-                  ++local_memory_size_array[neighbor_rank];
-              }
-          }
+        for (auto interface_obj : interface_objects)
+        {
+            if (rOptions.Is(MapperFlags::INTERPOLATE_VALUES))
+            {
+                pBuffer[(i * 3) + 0] = interface_obj->GetObjectValueInterpolated(rVariable, mShapeFunctionValues.at(CommPartner)[i])[0];
+                pBuffer[(i * 3) + 1] = interface_obj->GetObjectValueInterpolated(rVariable, mShapeFunctionValues.at(CommPartner)[i])[1];
+                pBuffer[(i * 3) + 2] = interface_obj->GetObjectValueInterpolated(rVariable, mShapeFunctionValues.at(CommPartner)[i])[2];
+            }
+            else
+            {
+                pBuffer[(i * 3) + 0] = interface_obj->GetObjectValue(rVariable, rOptions)[0];
+                pBuffer[(i * 3) + 1] = interface_obj->GetObjectValue(rVariable, rOptions)[1];
+                pBuffer[(i * 3) + 2] = interface_obj->GetObjectValue(rVariable, rOptions)[2];
+            }
+            ++i;
+        }
 
-          // sizes are switched bcs transfer direction is inverted from searching to mapping
-          MapperUtilitiesMPI::ComputeMaxBufferSizes(local_memory_size_array,
-                                                    rMaxReceiveBufferSize,
-                                                    rMaxSendBufferSize,
-                                                    mCommRank,
-                                                    mCommSize);
+        rBufferSize = static_cast<int>(interface_objects.size()) * 3;
 
-          MapperUtilitiesMPI::ComputeColoringGraph(local_comm_list, mCommSize,
-                                                   rColoredGraph, rMaxColors);
+        // Debug Check
+        if (rBufferSize != i * 3)
+        {
+            KRATOS_ERROR << "size mismatch" << std::endl;
+        }
+    }
 
-          delete [] local_comm_list;
-          delete [] local_memory_size_array;
-      }
-      void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
-                                const Variable<double>& rVariable, Kratos::Flags& rOptions) override {
-          int i = 0;
-          std::vector<InterfaceObject::Pointer> interface_objects;
-          if (mReceiveObjects.count(CommPartner) > 0) {
-              interface_objects = mReceiveObjects.at(CommPartner);
-          }
+    void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
+                       const Variable<double>& rVariable,
+                       Kratos::Flags& rOptions, const double Factor) override
+    {
+        std::vector<InterfaceObject::Pointer> interface_objects;
+        if (mSendObjects.count(CommPartner) > 0)
+        {
+            interface_objects = mSendObjects.at(CommPartner);
+        }
 
-          for (auto interface_obj : interface_objects) {
-              if (rOptions.Is(MapperFlags::INTERPOLATE_VALUES)) {
-                  pBuffer[i] = interface_obj->GetObjectValueInterpolated(rVariable, mShapeFunctionValues.at(CommPartner)[i]);
-              } else {
-                  pBuffer[i] = interface_obj->GetObjectValue(rVariable, rOptions);
-              }
-              ++i;
-          }
+        // Debug Check
+        if (static_cast<int>(interface_objects.size()) != BufferSize)
+        {
+            KRATOS_ERROR << "Wrong number of results received!; "
+                         << "interface_objects.size() = " << interface_objects.size()
+                         << ", BufferSize = " << BufferSize << std::endl;
+        }
 
-          rBufferSize = static_cast<int>(interface_objects.size());
+        for (int i = 0; i < BufferSize; ++i)
+        {
+            interface_objects[i]->SetObjectValue(rVariable, pBuffer[i],
+                                                 rOptions, Factor);
+        }
+    }
 
-          // Debug Check
-          if (rBufferSize != i) {
-              KRATOS_ERROR << "size mismatch" << std::endl;
-          }
-      }
+    void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
+                       const Variable< array_1d<double, 3> >& rVariable,
+                       Kratos::Flags& rOptions, const double Factor) override
+    {
 
-      void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
-                                const Variable< array_1d<double,3> >& rVariable,
-                                Kratos::Flags& rOptions) override {
-          int i = 0;
-          std::vector<InterfaceObject::Pointer> interface_objects;
-          if (mReceiveObjects.count(CommPartner) > 0) {
-              interface_objects = mReceiveObjects.at(CommPartner);
-          }
+        // Debug Check
+        if (BufferSize % 3 != 0)
+        {
+            KRATOS_ERROR << "Uneven number of results "
+                         << "received!; BufferSize modulo 3 = "
+                         << BufferSize % 3 << std::endl;
+        }
 
-          for (auto interface_obj : interface_objects) {
-              if (rOptions.Is(MapperFlags::INTERPOLATE_VALUES)) {
-                  pBuffer[(i*3) + 0] = interface_obj->GetObjectValueInterpolated(rVariable, mShapeFunctionValues.at(CommPartner)[i])[0];
-                  pBuffer[(i*3) + 1] = interface_obj->GetObjectValueInterpolated(rVariable, mShapeFunctionValues.at(CommPartner)[i])[1];
-                  pBuffer[(i*3) + 2] = interface_obj->GetObjectValueInterpolated(rVariable, mShapeFunctionValues.at(CommPartner)[i])[2];
-              } else {
-                  pBuffer[(i*3) + 0] = interface_obj->GetObjectValue(rVariable, rOptions)[0];
-                  pBuffer[(i*3) + 1] = interface_obj->GetObjectValue(rVariable, rOptions)[1];
-                  pBuffer[(i*3) + 2] = interface_obj->GetObjectValue(rVariable, rOptions)[2];
-              }
-              ++i;
-          }
+        const int num_values = BufferSize / 3;
 
-          rBufferSize = static_cast<int>(interface_objects.size()) * 3;
+        std::vector<InterfaceObject::Pointer> interface_objects;
+        if (mSendObjects.count(CommPartner) > 0)
+        {
+            interface_objects = mSendObjects.at(CommPartner);
+        }
 
-          // Debug Check
-          if (rBufferSize != i*3) {
-              KRATOS_ERROR << "size mismatch" << std::endl;
-          }
-      }
+        // Debug Check
+        if (static_cast<int>(interface_objects.size()) != num_values)
+        {
+            KRATOS_ERROR << "Wrong number of results received!; "
+                         << "interface_objects.size() = "
+                         << interface_objects.size() << ", num_values = "
+                         << num_values << std::endl;
+        }
 
-      void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
-                         const Variable<double>& rVariable,
-                         Kratos::Flags& rOptions, const double Factor) override {
-          std::vector<InterfaceObject::Pointer> interface_objects;
-          if (mSendObjects.count(CommPartner) > 0) {
-             interface_objects = mSendObjects.at(CommPartner);
-          }
+        array_1d<double, 3> value;
 
-          // Debug Check
-          if (static_cast<int>(interface_objects.size()) != BufferSize) {
-              KRATOS_ERROR << "Wrong number of results received!; "
-                           << "interface_objects.size() = " << interface_objects.size()
-                           << ", BufferSize = " << BufferSize << std::endl;
-          }
+        for (int i = 0; i < num_values; ++i)
+        {
+            value[0] = pBuffer[(i * 3) + 0];
+            value[1] = pBuffer[(i * 3) + 1];
+            value[2] = pBuffer[(i * 3) + 2];
 
-          for (int i = 0; i < BufferSize; ++i) {
-              interface_objects[i]->SetObjectValue(rVariable, pBuffer[i],
-                                                   rOptions, Factor);
-          }
-      }
+            interface_objects[i]->SetObjectValue(rVariable, value,
+                                                 rOptions, Factor);
+        }
+    }
 
-      void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
-                         const Variable< array_1d<double,3> >& rVariable,
-                         Kratos::Flags& rOptions, const double Factor) override {
-
-          // Debug Check
-          if (BufferSize % 3 != 0) {
-              KRATOS_ERROR << "Uneven number of results "
-                           << "received!; BufferSize modulo 3 = "
-                           << BufferSize % 3 << std::endl;
-          }
-
-          const int num_values = BufferSize / 3;
-
-          std::vector<InterfaceObject::Pointer> interface_objects;
-          if (mSendObjects.count(CommPartner) > 0) {
-             interface_objects = mSendObjects.at(CommPartner);
-          }
-
-          // Debug Check
-          if (static_cast<int>(interface_objects.size()) != num_values) {
-              KRATOS_ERROR << "Wrong number of results received!; "
-                           << "interface_objects.size() = "
-                           << interface_objects.size() << ", num_values = "
-                           << num_values << std::endl;
-          }
-
-          array_1d<double,3> value;
-
-          for (int i = 0; i < num_values; ++i) {
-              value[0] = pBuffer[(i*3) + 0];
-              value[1] = pBuffer[(i*3) + 1];
-              value[2] = pBuffer[(i*3) + 2];
-
-              interface_objects[i]->SetObjectValue(rVariable, value,
-                                                   rOptions, Factor);
-          }
-      }
-
-      ///@}
-      ///@name Access
-      ///@{
+    ///@}
+    ///@name Access
+    ///@{
 
 
-      ///@}
-      ///@name Inquiry
-      ///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-      ///@}
-      ///@name Input and output
-      ///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
-      /// Turn back information as a string.
-      virtual std::string Info() const
-      {
-	       std::stringstream buffer;
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
         buffer << "InterfaceObjectManagerParallel" ;
         return buffer.str();
-      }
+    }
 
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "InterfaceObjectManagerParallel";}
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "InterfaceObjectManagerParallel";
+    }
 
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const {}
-
-
-      ///@}
-      ///@name Friends
-      ///@{
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const {}
 
 
-      ///@}
-
-    protected:
-      ///@name Protected static Member Variables
-      ///@{
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-      ///@}
-      ///@name Protected member Variables
-      ///@{
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-      ///@}
-      ///@name Protected Operators
-      ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-      ///@}
-      ///@name Protected Operations
-      ///@{
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-      ///@}
-      ///@name Protected  Access
-      ///@{
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-      ///@}
-      ///@name Protected Inquiry
-      ///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-      ///@}
-      ///@name Protected LifeCycle
-      ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-      ///@}
-
-    private:
-      ///@name Static Member Variables
-      ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-      ///@}
-      ///@name Member Variables
-      ///@{
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
 
 
-      ///@}
-      ///@name Private Operators
-      ///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
 
 
-      ///@}
-      ///@name Private Operations
-      ///@{
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
-      ///@}
-      ///@name Private  Access
-      ///@{
+    ///@}
+    ///@name Private Operations
+    ///@{
 
 
-      ///@}
-      ///@name Private Inquiry
-      ///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-      ///@}
-      ///@name Un accessible methods
-      ///@{
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
-      /// Assignment operator.
-      InterfaceObjectManagerParallel& operator=(InterfaceObjectManagerParallel const& rOther);
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    InterfaceObjectManagerParallel& operator=(InterfaceObjectManagerParallel const& rOther);
 
     //   /// Copy constructor.
     //   InterfaceObjectManagerParallel(InterfaceObjectManagerParallel const& rOther){}
 
 
-      ///@}
+    ///@}
 
-    }; // Class InterfaceObjectManagerParallel
+}; // Class InterfaceObjectManagerParallel
 
-  ///@}
+///@}
 
-  ///@name Type Definitions
-  ///@{
-
-
-  ///@}
-  ///@name Input and output
-  ///@{
+///@name Type Definitions
+///@{
 
 
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream,
-				    InterfaceObjectManagerParallel& rThis)
-    {
-        return rIStream;
-    }
+///@}
+///@name Input and output
+///@{
 
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream,
-				    const InterfaceObjectManagerParallel& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
 
-      return rOStream;
-    }
-  ///@}
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  InterfaceObjectManagerParallel& rThis)
+{
+    return rIStream;
+}
 
-  ///@} addtogroup block
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const InterfaceObjectManagerParallel& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
+
+///@} addtogroup block
 
 }  // namespace Kratos.
 

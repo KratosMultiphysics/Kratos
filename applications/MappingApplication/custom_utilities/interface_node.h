@@ -26,309 +26,345 @@
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
+///@addtogroup ApplicationNameApplication
+///@{
 
-  ///@name Kratos Globals
-  ///@{
+///@name Kratos Globals
+///@{
 
-  ///@}
-  ///@name Type Definitions
-  ///@{
+///@}
+///@name Type Definitions
+///@{
 
-  ///@}
-  ///@name  Enum's
-  ///@{
+///@}
+///@name  Enum's
+///@{
 
-  ///@}
-  ///@name  Functions
-  ///@{
+///@}
+///@name  Functions
+///@{
 
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@}
+///@name Kratos Classes
+///@{
 
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class InterfaceNode : public InterfaceObject
+/// Short class definition.
+/** Detail class definition.
+*/
+class InterfaceNode : public InterfaceObject
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of InterfaceNode
+    KRATOS_CLASS_POINTER_DEFINITION(InterfaceNode);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    InterfaceNode(Node<3>& rNode) : InterfaceObject(rNode),  mpNode(&rNode) {  }
+
+    /// Destructor.
+    virtual ~InterfaceNode() { }
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    bool EvaluateResult(const array_1d<double, 3>& GlobalCooords,
+                        double& rMinDistance, const double Distance,
+                        std::vector<double>& rShapeFunctionValues) override   // I am an object in the bins
     {
-    public:
-      ///@name Type Definitions
-      ///@{
+        bool is_closer = false;
 
-      /// Pointer definition of InterfaceNode
-      KRATOS_CLASS_POINTER_DEFINITION(InterfaceNode);
+        if (Distance < rMinDistance)
+        {
+            rMinDistance = Distance;
+            is_closer = true;
+        }
 
-      ///@}
-      ///@name Life Cycle
-      ///@{
+        return is_closer;
+    }
 
-      /// Default constructor.
-      InterfaceNode(Node<3>& rNode) : InterfaceObject(rNode),  mpNode(&rNode) {  }
+    // Scalars
+    double GetObjectValue(const Variable<double>& rVariable,
+                          const Kratos::Flags& rOptions) override
+    {
+        if (rOptions.Is(MapperFlags::NON_HISTORICAL_DATA))
+        {
+            return mpNode->GetValue(rVariable);
+        }
+        else
+        {
+            return mpNode->FastGetSolutionStepValue(rVariable);
+        }
+    }
 
-      /// Destructor.
-      virtual ~InterfaceNode() { }
+    void SetObjectValue(const Variable<double>& rVariable,
+                        const double& rValue,
+                        const Kratos::Flags& rOptions,
+                        const double Factor) override
+    {
+        if (rOptions.Is(MapperFlags::NON_HISTORICAL_DATA))
+        {
+            if (rOptions.Is(MapperFlags::ADD_VALUES))
+            {
+                double old_value = mpNode->GetValue(rVariable);
+                mpNode->SetValue(rVariable, old_value + rValue * Factor);
+            }
+            else
+            {
+                mpNode->SetValue(rVariable, rValue * Factor);
+            }
+        }
+        else     // Variable with history
+        {
+            if (rOptions.Is(MapperFlags::ADD_VALUES))
+            {
+                mpNode->FastGetSolutionStepValue(rVariable) += rValue * Factor;
+            }
+            else
+            {
+                mpNode->FastGetSolutionStepValue(rVariable) = rValue * Factor;
+            }
+        }
+    }
 
+    // Vectors
+    array_1d<double, 3> GetObjectValue(const Variable< array_1d<double, 3> >& rVariable,
+                                       const Kratos::Flags& rOptions) override
+    {
+        if (rOptions.Is(MapperFlags::NON_HISTORICAL_DATA))
+        {
+            return mpNode->GetValue(rVariable);
+        }
+        else
+        {
+            return mpNode->FastGetSolutionStepValue(rVariable);
+        }
+    }
 
-      ///@}
-      ///@name Operators
-      ///@{
+    void SetObjectValue(const Variable< array_1d<double, 3> >& rVariable,
+                        const array_1d<double, 3>& rValue,
+                        const Kratos::Flags& rOptions,
+                        const double Factor) override
+    {
+        if (rOptions.Is(MapperFlags::NON_HISTORICAL_DATA))
+        {
+            if (rOptions.Is(MapperFlags::ADD_VALUES))
+            {
+                array_1d<double, 3> old_value = mpNode->GetValue(rVariable);
+                mpNode->SetValue(rVariable, old_value + rValue * Factor);
+            }
+            else
+            {
+                mpNode->SetValue(rVariable, rValue * Factor);
+            }
+        }
+        else
+        {
+            if (rOptions.Is(MapperFlags::ADD_VALUES))
+            {
+                mpNode->FastGetSolutionStepValue(rVariable) += rValue * Factor;
+            }
+            else
+            {
+                mpNode->FastGetSolutionStepValue(rVariable) = rValue * Factor;
+            }
+        }
+    }
 
+    // Functions used for Debugging
+    int GetObjectId() override
+    {
+        return mpNode->Id();
+    }
 
-      ///@}
-      ///@name Operations
-      ///@{
+    void PrintNeighbors(const int CommRank) override
+    {
+        array_1d<double, 3> neighbor_coordinates = mpNode->GetValue(NEIGHBOR_COORDINATES);
+        double neighbor_comm_rank = mpNode->GetValue(NEIGHBOR_RANK);
 
-      bool EvaluateResult(const array_1d<double, 3>& GlobalCooords, 
-                          double& rMinDistance, const double Distance, 
-                          std::vector<double>& rShapeFunctionValues) override { // I am an object in the bins
-          bool is_closer = false;
+        PrintMatchInfo("InterfaceNode", GetObjectId(), CommRank,
+                       neighbor_comm_rank, neighbor_coordinates);
+    }
 
-          if (Distance < rMinDistance){
-              rMinDistance = Distance;
-              is_closer = true;
-          }
+    void WriteRankAndCoordinatesToVariable(const int CommRank) override
+    {
+        // This function writes the coordinates and the rank of the
+        // InterfaceObject to the variables "NEIGHBOR_COORDINATES"
+        // and "NEIGHBOR_RANK", for debugging
+        array_1d<double, 3> neighbor_coordinates;
+        // TODO exchange with "Coordinates()"
+        neighbor_coordinates[0] = this->X();
+        neighbor_coordinates[1] = this->Y();
+        neighbor_coordinates[2] = this->Z();
+        mpNode->SetValue(NEIGHBOR_COORDINATES, neighbor_coordinates);
+        mpNode->SetValue(NEIGHBOR_RANK, CommRank);
+    }
 
-          return is_closer;
-      }
-
-      // Scalars
-      double GetObjectValue(const Variable<double>& rVariable,
-                            const Kratos::Flags& rOptions) override {
-          if (rOptions.Is(MapperFlags::NON_HISTORICAL_DATA)) {
-              return mpNode->GetValue(rVariable);
-          } else {
-              return mpNode->FastGetSolutionStepValue(rVariable);
-          }
-      }
-
-      void SetObjectValue(const Variable<double>& rVariable,
-                          const double& rValue,
-                          const Kratos::Flags& rOptions,
-                          const double Factor) override {
-          if (rOptions.Is(MapperFlags::NON_HISTORICAL_DATA)) {
-              if (rOptions.Is(MapperFlags::ADD_VALUES)) {
-                  double old_value = mpNode->GetValue(rVariable);
-                  mpNode->SetValue(rVariable, old_value + rValue * Factor);
-              } else {
-                  mpNode->SetValue(rVariable, rValue * Factor);
-              }
-          } else { // Variable with history
-              if (rOptions.Is(MapperFlags::ADD_VALUES)) {
-                  mpNode->FastGetSolutionStepValue(rVariable) += rValue * Factor;
-              } else {
-                  mpNode->FastGetSolutionStepValue(rVariable) = rValue * Factor;
-              }
-          }   
-      }
-
-      // Vectors
-      array_1d<double,3> GetObjectValue(const Variable< array_1d<double,3> >& rVariable,
-                                        const Kratos::Flags& rOptions) override {
-          if (rOptions.Is(MapperFlags::NON_HISTORICAL_DATA)) {
-              return mpNode->GetValue(rVariable);
-          } else {
-              return mpNode->FastGetSolutionStepValue(rVariable);
-          }
-      }
-
-      void SetObjectValue(const Variable< array_1d<double,3> >& rVariable,
-                          const array_1d<double,3>& rValue,
-                          const Kratos::Flags& rOptions,
-                          const double Factor) override {
-          if (rOptions.Is(MapperFlags::NON_HISTORICAL_DATA)) {
-              if (rOptions.Is(MapperFlags::ADD_VALUES)) {
-                  array_1d<double,3> old_value = mpNode->GetValue(rVariable);
-                  mpNode->SetValue(rVariable, old_value + rValue * Factor);
-              } else {
-                  mpNode->SetValue(rVariable, rValue * Factor);
-              }
-          } else {
-              if (rOptions.Is(MapperFlags::ADD_VALUES)) {
-                  mpNode->FastGetSolutionStepValue(rVariable) += rValue * Factor;
-              } else {
-                  mpNode->FastGetSolutionStepValue(rVariable) = rValue * Factor;
-              }
-          }
-      }
-
-      // Functions used for Debugging
-      int GetObjectId() override {
-          return mpNode->Id();
-      }
-
-      void PrintNeighbors(const int CommRank) override {
-          array_1d<double, 3> neighbor_coordinates = mpNode->GetValue(NEIGHBOR_COORDINATES);
-          double neighbor_comm_rank = mpNode->GetValue(NEIGHBOR_RANK);
-          
-          PrintMatchInfo("InterfaceNode", GetObjectId(), CommRank, 
-                         neighbor_comm_rank, neighbor_coordinates);
-      }
-
-      void WriteRankAndCoordinatesToVariable(const int CommRank) override {
-          // This function writes the coordinates and the rank of the 
-          // InterfaceObject to the variables "NEIGHBOR_COORDINATES" 
-          // and "NEIGHBOR_RANK", for debugging
-          array_1d<double,3> neighbor_coordinates;
-          // TODO exchange with "Coordinates()"
-          neighbor_coordinates[0] = this->X();
-          neighbor_coordinates[1] = this->Y();
-          neighbor_coordinates[2] = this->Z();
-          mpNode->SetValue(NEIGHBOR_COORDINATES, neighbor_coordinates);
-          mpNode->SetValue(NEIGHBOR_RANK, CommRank);
-      }
-
-      ///@}
-      ///@name Access
-      ///@{
-
-
-      ///@}
-      ///@name Inquiry
-      ///@{
+    ///@}
+    ///@name Access
+    ///@{
 
 
-      ///@}
-      ///@name Input and output
-      ///@{
-
-      /// Turn back information as a string.
-      virtual std::string Info() const
-      {
-	       std::stringstream buffer;
-         buffer << "InterfaceNode" ;
-         return buffer.str();
-      }
-
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "InterfaceNode";}
-
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const {}
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-      ///@}
-      ///@name Friends
-      ///@{
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "InterfaceNode" ;
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "InterfaceNode";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const {}
 
 
-      ///@}
-
-    protected:
-      ///@name Protected static Member Variables
-      ///@{
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-      ///@}
-      ///@name Protected member Variables
-      ///@{
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-      ///@}
-      ///@name Protected Operators
-      ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-      ///@}
-      ///@name Protected Operations
-      ///@{
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-      ///@}
-      ///@name Protected  Access
-      ///@{
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-      ///@}
-      ///@name Protected Inquiry
-      ///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-      ///@}
-      ///@name Protected LifeCycle
-      ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-      ///@}
-
-    private:
-      ///@name Static Member Variables
-      ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-      ///@}
-      ///@name Member Variables
-      ///@{
+    ///@}
 
-      Node<3>* mpNode;
-
-      ///@}
-      ///@name Private Operators
-      ///@{
+private:
+    ///@name Static Member Variables
+    ///@{
 
 
-      ///@}
-      ///@name Private Operations
-      ///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    Node<3>* mpNode;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
-      ///@}
-      ///@name Private  Access
-      ///@{
+    ///@}
+    ///@name Private Operations
+    ///@{
 
 
-      ///@}
-      ///@name Private Inquiry
-      ///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-      ///@}
-      ///@name Un accessible methods
-      ///@{
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
-      /// Assignment operator.
-      InterfaceNode& operator=(InterfaceNode const& rOther);
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    InterfaceNode& operator=(InterfaceNode const& rOther);
 
     //   /// Copy constructor.
     //   InterfaceNode(InterfaceNode const& rOther){}
 
 
-      ///@}
+    ///@}
 
-    }; // Class InterfaceNode
+}; // Class InterfaceNode
 
-  ///@}
+///@}
 
-  ///@name Type Definitions
-  ///@{
-
-
-  ///@}
-  ///@name Input and output
-  ///@{
+///@name Type Definitions
+///@{
 
 
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream,
-				    InterfaceNode& rThis)
-  {
-      return rIStream;
-  }
+///@}
+///@name Input and output
+///@{
 
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream,
-				    const InterfaceNode& rThis)
-  {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
 
-      return rOStream;
-  }
-  ///@}
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  InterfaceNode& rThis)
+{
+    return rIStream;
+}
 
-  ///@} addtogroup block
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const InterfaceNode& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
+
+///@} addtogroup block
 
 }  // namespace Kratos.
 

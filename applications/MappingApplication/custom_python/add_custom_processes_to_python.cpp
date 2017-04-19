@@ -56,17 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-// #include "processes/process.h"
-// #include "includes/node.h"
 #include "custom_python/add_custom_processes_to_python.h"
-// #include "custom_processes/custom_rbf_mapper_process.h"
-// #include "custom_processes/custom_mortar_mapper_process.h"
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
-
-// #ifdef KRATOS_USING_MPI
-// #include "custom_processes/mpi_bin_search_test.h"
-// #endif
 
 
 namespace Kratos
@@ -79,24 +69,7 @@ namespace Python
 void  AddCustomProcessesToPython()
 {
     using namespace boost::python;
-    // typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    // typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    // typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-    // class_<CustomRbfMapperProcess< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases<Process> >("CustomRbfMapperProcess", init< LinearSolverType::Pointer, ModelPart&,ModelPart&,double,int>())
-    // .def("Initialize", &CustomRbfMapperProcess< SparseSpaceType, LocalSpaceType, LinearSolverType >::Initialize)
-    // .def("MapFromMasterToSlave", &CustomRbfMapperProcess< SparseSpaceType, LocalSpaceType, LinearSolverType >::MapFromMasterToSlave)
-    // .def("MapFromSlaveToMaster", &CustomRbfMapperProcess< SparseSpaceType, LocalSpaceType, LinearSolverType >::MapFromSlaveToMaster)
-    // ;
-    //
-    // class_<  CustomMortarMapperProcess, bases<Process> >("CustomMortarMapperProcess", init<ModelPart&,ModelPart&>())
-	// .def("Initialize", &  CustomMortarMapperProcess::Initialize)
-	// .def("MapFromMasterToSlave", &  CustomMortarMapperProcess::MapFromMasterToSlave)
-	// .def("MapFromSlaveToMaster", &  CustomMortarMapperProcess::MapFromSlaveToMaster)
-	// ;
-
-  //   class_<  CustomMpiSearchTest, bases<Process> >("CustomMpiSearchTest", init<ModelPart&>())
-	// ;
 
 }
 

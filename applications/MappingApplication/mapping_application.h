@@ -33,7 +33,8 @@
 #include "includes/variables.h"
 
 
-namespace Kratos {
+namespace Kratos
+{
 
 ///@name Kratos Globals
 ///@{
@@ -57,174 +58,178 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosMappingApplication : public KratosApplication {
+class KratosMappingApplication : public KratosApplication
+{
 public:
-	///@name Type Definitions
-	///@{
+    ///@name Type Definitions
+    ///@{
 
 
-	/// Pointer definition of KratosMappingApplication
-	KRATOS_CLASS_POINTER_DEFINITION(KratosMappingApplication);
+    /// Pointer definition of KratosMappingApplication
+    KRATOS_CLASS_POINTER_DEFINITION(KratosMappingApplication);
 
-	///@}
-	///@name Life Cycle
-	///@{
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-	/// Default constructor.
-	KratosMappingApplication();
+    /// Default constructor.
+    KratosMappingApplication();
 
-	/// Destructor.
-	virtual ~KratosMappingApplication(){}
-
-
-	///@}
-	///@name Operators
-	///@{
+    /// Destructor.
+    virtual ~KratosMappingApplication() {}
 
 
-	///@}
-	///@name Operations
-	///@{
-
-	virtual void Register();
+    ///@}
+    ///@name Operators
+    ///@{
 
 
+    ///@}
+    ///@name Operations
+    ///@{
 
-	///@}
-	///@name Access
-	///@{
-
-
-	///@}
-	///@name Inquiry
-	///@{
+    virtual void Register();
 
 
-	///@}
-	///@name Input and output
-	///@{
 
-	/// Turn back information as a string.
-	virtual std::string Info() const {
-		return "KratosMappingApplication";
-	}
+    ///@}
+    ///@name Access
+    ///@{
 
-	/// Print information about this object.
-	virtual void PrintInfo(std::ostream& rOStream) const {
-		rOStream << Info();
-		PrintData(rOStream);
-	}
 
-	///// Print object's data.
-	virtual void PrintData(std::ostream& rOStream) const {
-  		KRATOS_WATCH("in my application");
-  		KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-		rOStream << "Variables:" << std::endl;
-		KratosComponents<VariableData>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Elements:" << std::endl;
-		KratosComponents<Element>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Conditions:" << std::endl;
-		KratosComponents<Condition>().PrintData(rOStream);
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "KratosMappingApplication";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+        PrintData(rOStream);
+    }
+
+    ///// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        KRATOS_WATCH("in my application");
+        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+
+        rOStream << "Variables:" << std::endl;
+        KratosComponents<VariableData>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Elements:" << std::endl;
+        KratosComponents<Element>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Conditions:" << std::endl;
+        KratosComponents<Condition>().PrintData(rOStream);
     }
 
 
-	///@}
-	///@name Friends
-	///@{
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-	///@}
+    ///@}
 
 protected:
-	///@name Protected static Member Variables
-	///@{
+    ///@name Protected static Member Variables
+    ///@{
 
 
-	///@}
-	///@name Protected member Variables
-	///@{
-  
-  // Needed for Volume Mapping
-  const Condition  mVolumeCondition3D4N;
-  const Condition  mVolumeCondition3D6N;
-  const Condition  mVolumeCondition3D8N; 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    // Needed for Volume Mapping
+    const Condition  mVolumeCondition3D4N;
+    const Condition  mVolumeCondition3D6N;
+    const Condition  mVolumeCondition3D8N;
 
 
-	///@}
-	///@name Protected Operators
-	///@{
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-	///@}
-	///@name Protected Operations
-	///@{
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-	///@}
-	///@name Protected  Access
-	///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-	///@}
-	///@name Protected Inquiry
-	///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-	///@}
-	///@name Protected LifeCycle
-	///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-	///@}
+    ///@}
 
 private:
-	///@name Static Member Variables
-	///@{
+    ///@name Static Member Variables
+    ///@{
 
-	// static const ApplicationCondition  msApplicationCondition;
+    // static const ApplicationCondition  msApplicationCondition;
 
-	///@}
-	///@name Member Variables
-	///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-	// const Elem2D   mElem2D;
-	// const Elem3D   mElem3D;
+    // const Elem2D   mElem2D;
+    // const Elem3D   mElem3D;
 
-	///@}
-	///@name Private Operators
-	///@{
-
-
-	///@}
-	///@name Private Operations
-	///@{
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
-	///@}
-	///@name Private  Access
-	///@{
+    ///@}
+    ///@name Private Operations
+    ///@{
 
 
-	///@}
-	///@name Private Inquiry
-	///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-	///@}
-	///@name Un accessible methods
-	///@{
-
-	/// Assignment operator.
-	KratosMappingApplication& operator=(KratosMappingApplication const& rOther);
-
-	/// Copy constructor.
-	KratosMappingApplication(KratosMappingApplication const& rOther);
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
 
-	///@}
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    KratosMappingApplication& operator=(KratosMappingApplication const& rOther);
+
+    /// Copy constructor.
+    KratosMappingApplication(KratosMappingApplication const& rOther);
+
+
+    ///@}
 
 }; // Class KratosMappingApplication
 
