@@ -19,10 +19,10 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 CheckForPreviousImport()
 
 # Additional imports
-import timer_factory as timer_factory
-import mapper_factory as mapper_factory
-import communicator_factory as communicator_factory
-import algorithm_factory as algorithm_factory
+import timer_factory
+import mapper_factory
+import communicator_factory
+import algorithm_factory
 
 # ==============================================================================
 def CreateOptimizer( inputModelPart, optimizationSettings ):

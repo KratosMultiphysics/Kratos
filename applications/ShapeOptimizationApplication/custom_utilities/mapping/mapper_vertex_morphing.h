@@ -8,8 +8,8 @@
 //
 // ==============================================================================
 
-#ifndef VERTEX_MORPHING_MAPPER_H
-#define VERTEX_MORPHING_MAPPER_H
+#ifndef MAPPER_VERTEX_MORPHING_H
+#define MAPPER_VERTEX_MORPHING_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -77,7 +77,7 @@ namespace Kratos
 
 */
 
-class VertexMorphingMapper
+class MapperVertexMorphing
 {
 public:
     ///@name Type Definitions
@@ -102,15 +102,15 @@ public:
     typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
     typedef Tree< KDTreePartition<BucketType> > KDTree;    
 
-    /// Pointer definition of VertexMorphingMapper
-    KRATOS_CLASS_POINTER_DEFINITION(VertexMorphingMapper);
+    /// Pointer definition of MapperVertexMorphing
+    KRATOS_CLASS_POINTER_DEFINITION(MapperVertexMorphing);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    VertexMorphingMapper( ModelPart& designSurface, boost::python::dict dampingRegions, Parameters& optimizationSettings )
+    MapperVertexMorphing( ModelPart& designSurface, boost::python::dict dampingRegions, Parameters& optimizationSettings )
         : mrDesignSurface( designSurface ),
           mNumberOfDesignVariables(designSurface.Nodes().size()),
           mFilterFunction( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() ),
@@ -125,7 +125,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~VertexMorphingMapper()
+    virtual ~MapperVertexMorphing()
     {
     }
 
@@ -352,8 +352,11 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void map_sensitivities_to_design_space( bool constraint_given )
+    void map_to_design_space( bool constraint_given )
     {
+        // First we compute the new mapping matrix assuming that with each map to design space, the geometry changed
+        compute_mapping_matrix();
+
         // Measure time
         boost::timer mapping_time;
         std::cout << "\n> Starting mapping of sensitivities to design space..." << std::endl;
@@ -453,7 +456,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void map_design_update_to_geometry_space()
+    void map_to_geometry_space()
     {
         // Measure time of mapping
         boost::timer mapping_time;
@@ -559,13 +562,13 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "VertexMorphingMapper";
+        return "MapperVertexMorphing";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "VertexMorphingMapper";
+        rOStream << "MapperVertexMorphing";
     }
 
     /// Print object's data.
@@ -666,15 +669,15 @@ private:
     ///@{
 
     /// Assignment operator.
-//      VertexMorphingMapper& operator=(VertexMorphingMapper const& rOther);
+//      MapperVertexMorphing& operator=(MapperVertexMorphing const& rOther);
 
     /// Copy constructor.
-//      VertexMorphingMapper(VertexMorphingMapper const& rOther);
+//      MapperVertexMorphing(MapperVertexMorphing const& rOther);
 
 
     ///@}
 
-}; // Class VertexMorphingMapper
+}; // Class MapperVertexMorphing
 
 ///@}
 
@@ -691,4 +694,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // VERTEX_MORPHING_MAPPER_H
+#endif // MAPPER_VERTEX_MORPHING_H

@@ -121,7 +121,8 @@
                 "step_size"     : 1e-8             
         }],
         "design_variables" : {
-            "variable_type"             : "vertex_morphing", 
+            "design_variables_type"     : "vertex_morphing", 
+            "iterative_mapping"         : false,
             "input_model_part_name"     : "3D_Hook",
             "design_submodel_part_name" : "design_surface",
             "domain_size"               : 3,

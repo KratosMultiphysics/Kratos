@@ -6,7 +6,8 @@
         }],
         "constraints" : [],
         "design_variables" : {
-            "variable_type"             : "vertex_morphing", 
+            "design_variables_type"     : "vertex_morphing", 
+            "iterative_mapping"         : false,
             "input_model_part_name"     : "vertex_morphing_tent",
             "design_submodel_part_name" : "design_surface",
             "domain_size"               : 3,

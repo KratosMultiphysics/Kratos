@@ -26,7 +26,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/optimization_utilities.h"
 #include "custom_utilities/geometry_utilities.h"
-#include "custom_utilities/mapping/vertex_morphing_mapper.h"
+#include "custom_utilities/mapping/mapper_vertex_morphing.h"
 #include "custom_utilities/response_functions/strain_energy_response_function.h"
 #include "custom_utilities/response_functions/mass_response_function.h"
 #include "custom_utilities/input_output/universal_file_io.h"
@@ -47,10 +47,9 @@ void  AddCustomUtilitiesToPython()
     // ================================================================
     // For perfoming the mapping according to Vertex Morphing
     // ================================================================
-    class_<VertexMorphingMapper, bases<Process> >("VertexMorphingMapper", init<ModelPart&, boost::python::dict, Parameters&>())
-        .def("compute_mapping_matrix", &VertexMorphingMapper::compute_mapping_matrix)
-        .def("map_sensitivities_to_design_space", &VertexMorphingMapper::map_sensitivities_to_design_space)
-        .def("map_design_update_to_geometry_space", &VertexMorphingMapper::map_design_update_to_geometry_space)
+    class_<MapperVertexMorphing, bases<Process> >("MapperVertexMorphing", init<ModelPart&, boost::python::dict, Parameters&>())
+        .def("map_to_design_space", &MapperVertexMorphing::map_to_design_space)
+        .def("map_to_geometry_space", &MapperVertexMorphing::map_to_geometry_space)
         ;
 
     // ========================================================================
