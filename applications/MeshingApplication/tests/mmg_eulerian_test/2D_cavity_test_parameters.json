@@ -1,12 +1,12 @@
 {
     "problem_data"                     : {
-        "problem_name"    : "2D_hessian_test",
+        "problem_name"    : "2D_cavity_test",
         "model_part_name" : "MainModelPart",
         "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0,
         "start_time"      : 0.0,
-        "end_time"        : 0.029,
+        "end_time"        : 0.03,
         "time_step"       : 0.01
     },
     "_output_configuration"             : {
@@ -24,7 +24,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["VELOCITY","PRESSURE","DISTANCE","ANISOTROPIC_RATIO"],
+            "nodal_results"       : ["VELOCITY","PRESSURE","DISTANCE","DISTANCE_GRADIENT","ANISOTROPIC_RATIO"],
             "gauss_point_results" : []
         },
         "point_data_configuration"  : []
@@ -39,7 +39,7 @@
         "solver_type"                  : "Embedded",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "mmg_test/2D_hessian_test"
+            "input_filename" : "mmg_eulerian_test/2D_cavity_test"
         },
         "maximum_iterations"           : 10,
         "echo_level"                   : 0,
@@ -56,7 +56,30 @@
         "skin_parts"                   : ["Inlet2D_Inlet_velocity_Auto1","NoSlip2D_No_Slip_Auto1"],
         "no_skin_parts"                : []
     },
-    "initial_conditions_process_list"  : [],
+    "initial_conditions_process_list"  : [{
+        "python_module" : "process_factory",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process ",
+        "process_name"  : "ApplyConstantVectorValueProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "VELOCITY_Velocity_Auto1",
+            "variable_name"   : "VELOCITY",
+            "modulus"         : 0.0,
+            "direction"       : [1.0,0.0,0.0]
+        }
+    },{
+        "python_module" : "process_factory",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process ",
+        "process_name"  : "ApplyConstantScalarValueProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "PRESSURE_Pressure_Auto1",
+            "variable_name"   : "PRESSURE",
+            "value"           : 0.0
+        }
+    }],
     "boundary_conditions_process_list" : [{
         "python_module" : "impose_vector_value_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
@@ -91,50 +114,25 @@
             "direction"       : [0.0,-1.0,0.0]
         }
     }],
-    "list_other_processes" :[
-    {
-        "python_module"   : "test_local_process",
-        "kratos_module" : "KratosMultiphysics.MeshingApplication",
-        "help"                  : "",
-        "process_name"          : "ApplyLocalProcess",
-        "Parameters"            : {
-            "model_part_name"  : "Parts_Parts_Auto1",
-            "test_name"        : "2D_hessian_test"
-        }
-    }
-    ],
-    "adaptative_loop"           : 6,
     "initial_remeshing_process" :[
     {
         "python_module"   : "mmg_process",
-        "kratos_module"   : "KratosMultiphysics.MeshingApplication",
+        "kratos_module"   : "KratosMultiphysics",
         "help"                  : "This process automatically remesh using MMG library",
         "process_name"          : "MmgProcess",
         "Parameters"            : {
-            "step_frequency"                    : 0,
-            "filename"                         : "mmg_test/2D_hessian_test",
-            "strategy"                         : "Hessian",
-            "hessian_strategy_parameters"              :{
-                "metric_variable"                  : ["DISTANCE"],
-                "interpolation_error"              : 0.004
-            },
-            "automatic_remesh"                 : true,
-            "automatic_remesh_parameters"      :{
-                "automatic_remesh_type"            : "Ratio",
-                "min_size_ratio"                   : 0.05,
-                "max_size_ratio"                   : 100.0,
-                "refer_type"                       : "Mean"
-            },
-            "enforce_current"                   : false,
-            "save_external_files"               : true,
-            "anisotropy_remeshing"              : true,
-            "anisotropy_parameters":{
-                "hmin_over_hmax_anisotropic_ratio" : 0.15,
-                "boundary_layer_max_distance"      : 1.0,
-                "boundary_layer_min_size_ratio"    : 1.0,
-                "interpolation"                    : "Linear"
-            },
-            "echo_level"                        : 0
+        "filename"                         : "mmg_eulerian_test/2D_cavity_test",
+        "step_frequency"                   : 0,
+        "automatic_remesh"                 : false,
+        "minimal_size"                     : 0.01,
+        "anisotropy_remeshing"             : true,
+        "anisotropy_parameters":{
+            "hmin_over_hmax_anisotropic_ratio" : 0.01,
+            "boundary_layer_max_distance"      : 0.1,
+            "interpolation"                    : "Linear"
+        },
+        "save_external_files"                : true,
+        "echo_level"                         : 0
         }
     }
     ],
@@ -145,11 +143,8 @@
         "help"                  : "This process compares two files and executes an Unittest Assert",
         "process_name"          : "CompareTwoFilesCheckProcess",
         "Parameters"            : {
-            "file_name_1"       : "mmg_test/2D_hessian_test.o.mesh",
-            "file_name_2"       : "mmg_test/2D_hessian_test_result.mesh",
-            "deterministic"     : false,
-            "error_assumed"     : 1.0e-6,
-            "dimension"         : 2
+            "file_name_1"       : "mmg_eulerian_test/2D_cavity_test.o.mesh",
+            "file_name_2"       : "mmg_eulerian_test/2D_cavity_test_result.mesh"
         }
     }
     ]

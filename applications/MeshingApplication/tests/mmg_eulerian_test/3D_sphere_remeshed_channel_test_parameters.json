@@ -1,12 +1,12 @@
 {
     "problem_data"                     : {
-        "problem_name"    : "2D_sphere_remeshed_channel_test",
+        "problem_name"    : "3D_sphere_remeshed_channel_test",
         "model_part_name" : "MainModelPart",
-        "domain_size"     : 2,
+        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0,
         "start_time"      : 0.0,
-        "end_time"        : 5.0,
+        "end_time"        : 1,
         "time_step"       : 0.01
     },
     "output_configuration"             : {
@@ -19,12 +19,11 @@
             },
             "file_label"          : "step",
             "output_control_type" : "step",
-            "output_frequency"    : 1,
+            "output_frequency"    : 1.0,
             "body_output"         : true,
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_flags_results" : [],
             "nodal_results"       : ["VELOCITY","PRESSURE","DISTANCE","ANISOTROPIC_RATIO"],
             "gauss_point_results" : []
         },
@@ -40,7 +39,7 @@
         "solver_type"                  : "FractionalStep",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "mmg_test/2D_sphere_remeshed_channel_test"
+            "input_filename" : "mmg_eulerian_test/3D_sphere_remeshed_channel_test"
         },
         "echo_level"                   : 0,
         "compute_reactions"            : false,
@@ -48,8 +47,13 @@
         "time_order"                   : 2,
         "divergence_clearance_steps"   : 0,
         "dynamic_tau"                  : 0.001,
+        "predictor_corrector"          : false,
+        "maximum_velocity_iterations"  : 4,
+        "maximum_pressure_iterations"  : 4,
+        "velocity_tolerance"           : 0.001,
+        "pressure_tolerance"           : 0.001,
         "volume_model_part_name"       : "Parts_Parts_Auto1",
-        "skin_parts"                   : ["AutomaticInlet2D_Automatic_inlet_velocity_Auto1","Outlet2D_Outlet_pressure_Auto1","NoSlip2D_No_Slip_Auto2","NoSlip2D_No_Slip_Auto3"],
+        "skin_parts"                   : ["AutomaticInlet3D_Automatic_inlet_velocity_Auto1","Outlet3D_Outlet_pressure_Auto1","NoSlip3D_No_Slip_Auto1","NoSlip3D_No_Slip_Auto2"],
         "no_skin_parts"                : []
     },
     "initial_conditions_process_list"  : [],
@@ -60,7 +64,7 @@
         "process_name"  : "AssignAutomaticDirectionVectorProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "AutomaticInlet2D_Automatic_inlet_velocity_Auto1",
+            "model_part_name" : "AutomaticInlet3D_Automatic_inlet_velocity_Auto1",
             "variable_name"   : "VELOCITY",
             "modulus"         : 1.0,
             "direction"       : "automatic_inwards_normal",
@@ -73,7 +77,7 @@
         "process_name"  : "AssignValueProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "Outlet2D_Outlet_pressure_Auto1",
+            "model_part_name" : "Outlet3D_Outlet_pressure_Auto1",
             "variable_name"   : "PRESSURE",
             "constrained"     : true,
             "value"           : 0.0
@@ -84,7 +88,7 @@
         "process_name"  : "ApplyNoSlipProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "NoSlip2D_No_Slip_Auto2"
+            "model_part_name" : "NoSlip3D_No_Slip_Auto1"
         }
     },{
         "python_module" : "apply_noslip_process",
@@ -92,7 +96,7 @@
         "process_name"  : "ApplyNoSlipProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "NoSlip2D_No_Slip_Auto3"
+            "model_part_name" : "NoSlip3D_No_Slip_Auto2"
         }
     }],
     "gravity"                          : [{
@@ -108,7 +112,7 @@
         }
     }],
     "auxiliar_process_list"            : [],
-    "recursive_remeshing_process" :[
+    "mmg" :[
     {
         "python_module"   : "mmg_process",
         "kratos_module"   : "KratosMultiphysics.MeshingApplication",
@@ -123,7 +127,7 @@
             "automatic_remesh"                 : true,
             "automatic_remesh_parameters"      :{
                 "automatic_remesh_type"            : "Ratio",
-                "min_size_ratio"                   : 0.05,
+                "min_size_ratio"                   : 0.10,
                 "max_size_ratio"                   : 100,
                 "refer_type"                       : "Mean"
             },
