@@ -3,6 +3,7 @@
         "problem_name"    : "beam3D_test",
         "model_part_name" : "MainModelPart",
         "domain_size"     : 3,
+        "solve_problem"   : true,
         "problem_type"    : "solid",
         "parallel_type"   : "OpenMP",
         "time_step"       : 0.01,

@@ -3,6 +3,8 @@
         "problem_name"    : "beam2D_test",
         "model_part_name" : "MainModelPart",
         "domain_size"     : 2,
+        "solve_problem"   : true,
+        "solve_problem"   : false,
         "problem_type"    : "solid",
         "parallel_type"   : "OpenMP",
         "time_step"       : 0.01,
@@ -12,7 +14,7 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "solid_mechanics_implicit_dynamic_solver",
-        "echo_level"                         : 0,
+        "echo_level"                         : 1,
         "solution_type"                      : "Dynamic",
         "time_integration_method"            : "Implicit",
         "scheme_type"                        : "Newmark",

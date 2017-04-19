@@ -22,6 +22,8 @@ class Kratos_Execute_Test:
 
         self.problem_type = self.ProjectParameters["problem_data"]["problem_type"].GetString() 
     
+        self.solve_problem = self.ProjectParameters["problem_data"]["solve_problem"].GetBool()
+    
         if self.problem_type  == "fluid":
             ## Solver construction
             import python_solvers_wrapper_fluid
@@ -36,6 +38,7 @@ class Kratos_Execute_Test:
         self.solver.AddVariables()
         
         self.main_model_part.AddNodalSolutionStepVariable(NODAL_H) 
+        self.main_model_part.AddNodalSolutionStepVariable(NODAL_AREA) 
         self.main_model_part.AddNodalSolutionStepVariable(AUXILIAR_GRADIENT) 
         self.main_model_part.AddNodalSolutionStepVariable(AUXILIAR_HESSIAN) 
         self.main_model_part.AddNodalSolutionStepVariable(ANISOTROPIC_RATIO) 
@@ -137,69 +140,75 @@ class Kratos_Execute_Test:
             self.gid_output.ExecuteBeforeSolutionLoop()
 
     def Solve(self):
-        for process in self.list_of_processes:
-            process.ExecuteBeforeSolutionLoop()
-
-        # #Stepping and time settings (get from process info or solving info)
-        # Delta time
-        delta_time = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
-        # Start step
-        self.main_model_part.ProcessInfo[TIME_STEPS] = 0
-        # Start time
-        time = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
-        # End time
-        end_time = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
-        step = 0
-
-        # Solving the problem (time integration)
-        while(time <= end_time):
-            time = time + delta_time
-            self.main_model_part.ProcessInfo[TIME_STEPS] += 1
-            self.main_model_part.CloneTimeStep(time)
-            step = step + 1
+        if self.solve_problem == True:
+            for process in self.list_of_processes:
+                process.ExecuteBeforeSolutionLoop()
             
-            if(step >= 3):
-                for process in self.list_of_processes:
-                    process.ExecuteInitializeSolutionStep()
-                    
-                if (self.main_model_part.Is(MODIFIED) == True):
-                    # WE INITIALIZE THE SOLVER
-                    self.solver.Initialize()
-                    # WE RECOMPUTE THE PROCESSES AGAIN
-                    ## Processes initialization
-                    for process in self.list_of_processes:
-                        process.ExecuteInitialize()
-                    ## Processes before the loop
-                    for process in self.list_of_processes:
-                        process.ExecuteBeforeSolutionLoop()
-                    ## Processes of initialize the solution step
+            # #Stepping and time settings (get from process info or solving info)
+            # Delta time
+            delta_time = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
+            # Start step
+            self.main_model_part.ProcessInfo[TIME_STEPS] = 0
+            # Start time
+            time = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
+            # End time
+            end_time = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
+            step = 0
+
+            if self.problem_type  == "fluid":
+                init_step = 3
+            elif self.problem_type  == "solid":
+                init_step = 1
+
+            # Solving the problem (time integration)
+            while(time <= end_time):
+                time = time + delta_time
+                self.main_model_part.ProcessInfo[TIME_STEPS] += 1
+                self.main_model_part.CloneTimeStep(time)
+                step = step + 1
+                
+                if(step >= init_step):
                     for process in self.list_of_processes:
                         process.ExecuteInitializeSolutionStep()
-                    
-                if (self.output_post == True):
-                    self.gid_output.ExecuteInitializeSolutionStep()
-                            
-                self.solver.Clear()
-                self.solver.Solve()
-                
-                if (self.output_post == True):
-                    self.gid_output.ExecuteFinalizeSolutionStep()
-
-                for process in self.list_of_processes:
-                    process.ExecuteFinalizeSolutionStep()
-
-                for process in self.list_of_processes:
-                    process.ExecuteBeforeOutputStep()
-
-                if (self.output_post == True):
-                    if self.gid_output.IsOutputStep():
-                        self.gid_output.PrintOutput()
                         
-                for process in self.list_of_processes:
-                    process.ExecuteAfterOutputStep()
+                    if (self.main_model_part.Is(MODIFIED) == True):
+                        # WE INITIALIZE THE SOLVER
+                        self.solver.Initialize()
+                        # WE RECOMPUTE THE PROCESSES AGAIN
+                        ## Processes initialization
+                        for process in self.list_of_processes:
+                            process.ExecuteInitialize()
+                        ## Processes before the loop
+                        for process in self.list_of_processes:
+                            process.ExecuteBeforeSolutionLoop()
+                        ## Processes of initialize the solution step
+                        for process in self.list_of_processes:
+                            process.ExecuteInitializeSolutionStep()
+                        
+                    if (self.output_post == True):
+                        self.gid_output.ExecuteInitializeSolutionStep()
+                                
+                    self.solver.Clear()
+                    self.solver.Solve()
+                    
+                    if (self.output_post == True):
+                        self.gid_output.ExecuteFinalizeSolutionStep()
 
-        if (self.output_post == True):
-            self.gid_output.ExecuteFinalize()
+                    for process in self.list_of_processes:
+                        process.ExecuteFinalizeSolutionStep()
 
-        for process in self.list_of_processes:
-            process.ExecuteFinalize()
+                    for process in self.list_of_processes:
+                        process.ExecuteBeforeOutputStep()
+
+                    if (self.output_post == True):
+                        if self.gid_output.IsOutputStep():
+                            self.gid_output.PrintOutput()
+                            
+                    for process in self.list_of_processes:
+                        process.ExecuteAfterOutputStep()
+
+            if (self.output_post == True):
+                self.gid_output.ExecuteFinalize()
+
+            for process in self.list_of_processes:
+                process.ExecuteFinalize()

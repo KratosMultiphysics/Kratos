@@ -3,6 +3,7 @@
         "problem_name"    : "beam2D_internal_variables_interpolation_test",
         "model_part_name" : "MainModelPart",
         "domain_size"     : 2,
+        "solve_problem"   : true,
         "problem_type"    : "solid",
         "parallel_type"   : "OpenMP",
         "time_step"       : 0.01,

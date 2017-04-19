@@ -3,6 +3,7 @@
         "problem_name"    : "2D_hessian_test",
         "model_part_name" : "MainModelPart",
         "domain_size"     : 2,
+        "solve_problem"   : false,
         "parallel_type"   : "OpenMP",
         "problem_type"    : "fluid",
         "echo_level"      : 0,

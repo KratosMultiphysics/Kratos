@@ -3,6 +3,7 @@
         "problem_name"    : "3D_sphere_remeshed_channel_test",
         "model_part_name" : "MainModelPart",
         "problem_type"    : "fluid",
+        "solve_problem"   : false,
         "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0,

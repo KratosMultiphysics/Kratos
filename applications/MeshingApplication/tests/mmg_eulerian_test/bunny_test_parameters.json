@@ -3,6 +3,7 @@
         "problem_name"    : "bunny_test",
         "model_part_name" : "MainModelPart",
         "problem_type"    : "fluid",
+        "solve_problem"   : false,
         "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
