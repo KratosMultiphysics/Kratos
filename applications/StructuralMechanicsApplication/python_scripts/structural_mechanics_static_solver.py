@@ -105,6 +105,7 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
         if self.settings["rotation_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.POINT_TORQUE)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.LOCAL_POINT_MOMENT)
         
         if self.settings["analysis_type"].GetString() == "Arc-Length":
             self.main_model_part.ProcessInfo[KratosMultiphysics.StructuralMechanicsApplication.LAMBDA] = 0.00;

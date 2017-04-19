@@ -95,7 +95,7 @@ void PointMoment3DCondition::CalculateRightHandSide(VectorType& rRightHandSideVe
     if(rRightHandSideVector.size() != 3)
         rRightHandSideVector.resize(3,false);
 
-    array_1d<double,3>& Moment = GetGeometry()[0].GetSolutionStepValue(POINT_MOMENT);
+    array_1d<double,3>& Moment = GetGeometry()[0].GetSolutionStepValue(LOCAL_POINT_MOMENT);
     rRightHandSideVector[0] = Moment[0];
     rRightHandSideVector[1] = Moment[1];
     rRightHandSideVector[2] = Moment[2];
@@ -122,7 +122,7 @@ void PointMoment3DCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
     if(rRightHandSideVector.size() != 3)
         rRightHandSideVector.resize(3,false);
 
-    array_1d<double,3>& Moment = GetGeometry()[0].GetSolutionStepValue(POINT_MOMENT);
+    array_1d<double,3>& Moment = GetGeometry()[0].GetSolutionStepValue(LOCAL_POINT_MOMENT);
     rRightHandSideVector[0] = Moment[0];
     rRightHandSideVector[1] = Moment[1];
     rRightHandSideVector[2] = Moment[2];

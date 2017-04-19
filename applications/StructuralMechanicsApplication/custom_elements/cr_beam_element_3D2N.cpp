@@ -133,8 +133,7 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	CrBeamElement3D2N::MatrixType
-		CrBeamElement3D2N::CreateElementStiffnessMatrix_Material() {
+	Matrix CrBeamElement3D2N::CreateElementStiffnessMatrix_Material() {
 
 		KRATOS_TRY
 			const int number_of_nodes = this->GetGeometry().PointsNumber();
@@ -153,7 +152,7 @@ namespace Kratos
 		const double Psi_y = this->mPsiY;
 		const double Psi_z = this->mPsiZ;
 
-		MatrixType LocalStiffnessMatrix = ZeroMatrix(local_size, local_size);
+		Matrix LocalStiffnessMatrix = ZeroMatrix(local_size, local_size);
 		const double L3 = L*L*L;
 		const double L2 = L*L;
 
@@ -211,9 +210,8 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	CrBeamElement3D2N::MatrixType
-		CrBeamElement3D2N::CreateElementStiffnessMatrix_Geometry(
-			const VectorType qe) {
+	Matrix CrBeamElement3D2N::CreateElementStiffnessMatrix_Geometry(
+			const Vector qe) {
 
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
@@ -231,7 +229,7 @@ namespace Kratos
 		const double Qy = -1.00 * (mz_A + mz_B) / L;
 		const double Qz = (my_A + my_B) / L;
 
-		MatrixType LocalStiffnessMatrix = ZeroMatrix(local_size, local_size);
+		Matrix LocalStiffnessMatrix = ZeroMatrix(local_size, local_size);
 
 		LocalStiffnessMatrix(0, 1) = -Qy / L;
 		LocalStiffnessMatrix(0, 2) = -Qz / L;
@@ -337,14 +335,14 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	CrBeamElement3D2N::MatrixType CrBeamElement3D2N::CalculateMaterialStiffness() {
+	Matrix CrBeamElement3D2N::CalculateMaterialStiffness() {
 
 		KRATOS_TRY
 			const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const int local_size = number_of_nodes * dimension;
 
-		MatrixType Kd = ZeroMatrix(local_size, local_size);
+		Matrix Kd = ZeroMatrix(local_size, local_size);
 		const double E = this->mYoungsModulus;
 		const double G = this->mShearModulus;
 		const double A = this->mArea;
@@ -430,7 +428,7 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	CrBeamElement3D2N::MatrixType CrBeamElement3D2N::CalculateTransformationS() {
+	Matrix CrBeamElement3D2N::CalculateTransformationS() {
 
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
@@ -439,7 +437,7 @@ namespace Kratos
 		const int MatSize = 2 * size;
 
 		const double L = this->mCurrentLength;
-		MatrixType S = ZeroMatrix(MatSize, size);
+		Matrix S = ZeroMatrix(MatSize, size);
 		S(0, 3) = -1.00;
 		S(1, 5) = 2.00 / L;
 		S(2, 4) = -2.00 / L;
@@ -461,7 +459,7 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	CrBeamElement3D2N::MatrixType CrBeamElement3D2N::UpdateRotationMatrixLocal() {
+	Matrix CrBeamElement3D2N::UpdateRotationMatrixLocal() {
 
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
@@ -469,8 +467,8 @@ namespace Kratos
 		const int size = number_of_nodes * dimension;
 		const int MatSize = 2 * size;
 
-		VectorType dPhiA = ZeroVector(dimension);
-		VectorType dPhiB = ZeroVector(dimension);
+		Vector dPhiA = ZeroVector(dimension);
+		Vector dPhiB = ZeroVector(dimension);
 		Vector IncrementDeformation = ZeroVector(MatSize);
 		IncrementDeformation = this->mIncrementDeformation;
 		
@@ -481,8 +479,8 @@ namespace Kratos
 		}
 
 		//calculating quaternions
-		VectorType drA_vec = ZeroVector(dimension);
-		VectorType drB_vec = ZeroVector(dimension);
+		Vector drA_vec = ZeroVector(dimension);
+		Vector drB_vec = ZeroVector(dimension);
 		double drA_sca, drB_sca;
 
 		drA_vec = 0.50 * dPhiA;
@@ -509,7 +507,7 @@ namespace Kratos
 			mQuaternionSCA_B = 1.00;
 		}
 
-		VectorType tempVec = ZeroVector(dimension);
+		Vector tempVec = ZeroVector(dimension);
 		double tempSca = 0.00;
 
 		//Node A
@@ -554,12 +552,12 @@ namespace Kratos
 		meanRotationScalar = (mQuaternionSCA_A + mQuaternionSCA_B) * 0.50;
 		meanRotationScalar = meanRotationScalar / scalar_diff;
 
-		VectorType meanRotationVector = ZeroVector(dimension);
+		Vector meanRotationVector = ZeroVector(dimension);
 		meanRotationVector = (mQuaternionVEC_A + mQuaternionVEC_B) * 0.50;
 		meanRotationVector = meanRotationVector / scalar_diff;
 
 		//vector part of difference quaternion
-		VectorType vector_diff = ZeroVector(dimension);
+		Vector vector_diff = ZeroVector(dimension);
 		vector_diff = mQuaternionSCA_A * mQuaternionVEC_B;
 		vector_diff -= mQuaternionSCA_B * mQuaternionVEC_A;
 		vector_diff += MathUtils<double>::CrossProduct(mQuaternionVEC_A,
@@ -574,14 +572,14 @@ namespace Kratos
 		const double r3 = meanRotationVector[2];
 
 		Quaternion<double> q(r0, r1, r2, r3);
-		VectorType rotatedNX0 = this->mNX0;
-		VectorType rotatedNY0 = this->mNY0;
-		VectorType rotatedNZ0 = this->mNZ0;
+		Vector rotatedNX0 = this->mNX0;
+		Vector rotatedNY0 = this->mNY0;
+		Vector rotatedNZ0 = this->mNZ0;
 		q.RotateVector3(rotatedNX0);
 		q.RotateVector3(rotatedNY0);
 		q.RotateVector3(rotatedNZ0);
 
-		MatrixType RotatedCS = ZeroMatrix(dimension, dimension);
+		Matrix RotatedCS = ZeroMatrix(dimension, dimension);
 		for (int i = 0; i < dimension; ++i) {
 			RotatedCS(i, 0) = rotatedNX0[i];
 			RotatedCS(i, 1) = rotatedNY0[i];
@@ -589,8 +587,8 @@ namespace Kratos
 		}
 
 		//rotate basis to element axis + redefine R
-		VectorType n_bisectrix = ZeroVector(dimension);
-		VectorType deltaX = ZeroVector(dimension);
+		Vector n_bisectrix = ZeroVector(dimension);
+		Vector deltaX = ZeroVector(dimension);
 		double VectorNorm;
 
 		deltaX[0] = this->mTotalNodalPosistion[3] - this->mTotalNodalPosistion[0];
@@ -604,14 +602,14 @@ namespace Kratos
 		VectorNorm = MathUtils<double>::Norm(n_bisectrix);
 		n_bisectrix /= VectorNorm;
 
-		MatrixType n_xyz = ZeroMatrix(dimension);
+		Matrix n_xyz = ZeroMatrix(dimension);
 		for (int i = 0; i < dimension; ++i) {
 			n_xyz(i, 0) = -1.0 * RotatedCS(i, 0);
 			n_xyz(i, 1) = 1.0 * RotatedCS(i, 1);
 			n_xyz(i, 2) = 1.0 * RotatedCS(i, 2);
 		}
 
-		MatrixType Identity = ZeroMatrix(dimension);
+		Matrix Identity = ZeroMatrix(dimension);
 		for (int i = 0; i < dimension; ++i) Identity(i, i) = 1.0;
 		Identity -= 2.0 * outer_prod(n_bisectrix, n_bisectrix);
 		n_xyz = prod(Identity, n_xyz);
@@ -783,12 +781,12 @@ namespace Kratos
 
 		rMassMatrix *= MassScaling;
 
-		MatrixType RotationMatrix = ZeroMatrix(MatSize);
+		Matrix RotationMatrix = ZeroMatrix(MatSize);
 		Matrix aux_matrix = ZeroMatrix(MatSize);
 
 		RotationMatrix = this->mRotationMatrix;
-		noalias(aux_matrix) = prod(RotationMatrix, rMassMatrix);
-		noalias(rMassMatrix) = prod(aux_matrix,
+		aux_matrix = prod(RotationMatrix, rMassMatrix);
+		rMassMatrix = prod(aux_matrix,
 			Matrix(trans(RotationMatrix)));
 
 		KRATOS_CATCH("")
@@ -807,13 +805,13 @@ namespace Kratos
 			rDampingMatrix.resize(MatSize, MatSize, false);
 		}
 
-		noalias(rDampingMatrix) = ZeroMatrix(MatSize, MatSize);
+		rDampingMatrix = ZeroMatrix(MatSize, MatSize);
 
-		MatrixType StiffnessMatrix = ZeroMatrix(MatSize, MatSize);
+		Matrix StiffnessMatrix = ZeroMatrix(MatSize, MatSize);
 
 		this->CalculateLeftHandSide(StiffnessMatrix, rCurrentProcessInfo);
 
-		MatrixType MassMatrix = ZeroMatrix(MatSize, MatSize);
+		Matrix MassMatrix = ZeroMatrix(MatSize, MatSize);
 
 		this->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
 
@@ -837,14 +835,14 @@ namespace Kratos
 			beta = rCurrentProcessInfo[RAYLEIGH_BETA];
 		}
 
-		noalias(rDampingMatrix) += alpha * MassMatrix;
-		noalias(rDampingMatrix) += beta  * StiffnessMatrix;
+		rDampingMatrix += alpha * MassMatrix;
+		rDampingMatrix += beta  * StiffnessMatrix;
 
 		KRATOS_CATCH("")
 	}
 
 
-	CrBeamElement3D2N::VectorType CrBeamElement3D2N::CalculateBodyForces() {
+	Vector CrBeamElement3D2N::CalculateBodyForces() {
 
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
@@ -857,8 +855,8 @@ namespace Kratos
 
 		//creating necessary values 
 		const double TotalMass = this->mArea * this->mLength * this->mDensity;
-		VectorType BodyForcesNode = ZeroVector(dimension);
-		VectorType BodyForcesGlobal = ZeroVector(MatSize);
+		Vector BodyForcesNode = ZeroVector(dimension);
+		Vector BodyForcesGlobal = ZeroVector(MatSize);
 
 		//assemble global Vector
 		for (int i = 0; i < number_of_nodes; ++i) {
@@ -895,11 +893,11 @@ namespace Kratos
 		this->mRotationMatrix = TransformationMatrix;
 
 		//deformation modes
-		VectorType elementForces_t = ZeroVector(size);
+		Vector elementForces_t = ZeroVector(size);
 		elementForces_t = this->CalculateElementForces();
 
 		//Nodal element forces local
-		VectorType nodalForcesLocal_qe = ZeroVector(LocalSize);
+		Vector nodalForcesLocal_qe = ZeroVector(LocalSize);
 		Matrix TransformationMatrixS = ZeroMatrix(LocalSize, size);
 		TransformationMatrixS = this->CalculateTransformationS();
 		nodalForcesLocal_qe = prod(TransformationMatrixS, elementForces_t);
@@ -907,25 +905,25 @@ namespace Kratos
 		//resizing the matrices + create memory for LHS
 		rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 		//creating LHS
-		noalias(rLeftHandSideMatrix) +=
+		rLeftHandSideMatrix +=
 			this->CreateElementStiffnessMatrix_Material();
-		noalias(rLeftHandSideMatrix) +=
+		rLeftHandSideMatrix +=
 			this->CreateElementStiffnessMatrix_Geometry(nodalForcesLocal_qe);
 
 		Matrix aux_matrix = ZeroMatrix(LocalSize);
-		noalias(aux_matrix) = prod(TransformationMatrix, rLeftHandSideMatrix);
-		noalias(rLeftHandSideMatrix) = prod(aux_matrix,
+		aux_matrix = prod(TransformationMatrix, rLeftHandSideMatrix);
+		rLeftHandSideMatrix = prod(aux_matrix,
 			Matrix(trans(TransformationMatrix)));
 
 		//Nodal element forces global
-		VectorType nodalForcesGlobal_q = ZeroVector(LocalSize);
-		noalias(nodalForcesGlobal_q) = prod(TransformationMatrix,
+		Vector nodalForcesGlobal_q = ZeroVector(LocalSize);
+		nodalForcesGlobal_q = prod(TransformationMatrix,
 			nodalForcesLocal_qe);
 
 		//create+compute RHS
 		//update Residual
 		rRightHandSideVector = ZeroVector(LocalSize);
-		noalias(rRightHandSideVector) -= nodalForcesGlobal_q;
+		rRightHandSideVector -= nodalForcesGlobal_q;
 
 
 		//assign global element variables
@@ -934,7 +932,7 @@ namespace Kratos
 		//add bodyforces 
 		this->mBodyForces = ZeroVector(LocalSize);
 		this->mBodyForces = this->CalculateBodyForces();
-		noalias(rRightHandSideVector) += this->mBodyForces;
+		rRightHandSideVector += this->mBodyForces;
 
 		this->mIterationCount++;
 		KRATOS_CATCH("")
@@ -955,19 +953,19 @@ namespace Kratos
 		this->UpdateIncrementDeformation();
 		Matrix TransformationMatrix = ZeroMatrix(LocalSize);
 		this->CalculateTransformationMatrix(TransformationMatrix);
-		VectorType elementForces_t = ZeroVector(size);
+		Vector elementForces_t = ZeroVector(size);
 		elementForces_t = this->CalculateElementForces();
-		VectorType nodalForcesLocal_qe = ZeroVector(LocalSize);
+		Vector nodalForcesLocal_qe = ZeroVector(LocalSize);
 		Matrix TransformationMatrixS = ZeroMatrix(LocalSize, size);
 		TransformationMatrixS = this->CalculateTransformationS();
-		noalias(nodalForcesLocal_qe) = prod(TransformationMatrixS,
+		nodalForcesLocal_qe = prod(TransformationMatrixS,
 			elementForces_t);
-		VectorType nodalForcesGlobal_q = ZeroVector(LocalSize);
+		Vector nodalForcesGlobal_q = ZeroVector(LocalSize);
 		nodalForcesGlobal_q = prod(TransformationMatrix, nodalForcesLocal_qe);
-		noalias(rRightHandSideVector) -= nodalForcesGlobal_q;
+		rRightHandSideVector -= nodalForcesGlobal_q;
 
 		//add bodyforces 
-		noalias(rRightHandSideVector) += mBodyForces;
+		rRightHandSideVector += mBodyForces;
 		KRATOS_CATCH("")
 
 	}
@@ -981,11 +979,11 @@ namespace Kratos
 		const int LocalSize = NumNodes * dimension * 2;
 
 		rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
-		noalias(rLeftHandSideMatrix) = this->mLHS;
+		rLeftHandSideMatrix = this->mLHS;
 		KRATOS_CATCH("")
 	}
 
-	CrBeamElement3D2N::VectorType CrBeamElement3D2N::CalculateElementForces() {
+	Vector CrBeamElement3D2N::CalculateElementForces() {
 
 		KRATOS_TRY
 		const int NumNodes = this->GetGeometry().PointsNumber();
@@ -997,11 +995,11 @@ namespace Kratos
 		for (int i = 0; i < 3; ++i) deformation_modes_total_V[i] = this->mPhiS[i];
 		for (int i = 0; i < 2; ++i) deformation_modes_total_V[i + 4] = this->mPhiA[i + 1];
 		//calculate element forces
-		VectorType element_forces_t = ZeroVector(LocalSize);
-		MatrixType material_stiffness_Kd = ZeroMatrix(LocalSize);
+		Vector element_forces_t = ZeroVector(LocalSize);
+		Matrix material_stiffness_Kd = ZeroMatrix(LocalSize);
 
 		material_stiffness_Kd = this->CalculateMaterialStiffness();
-		noalias(element_forces_t) = prod(material_stiffness_Kd,
+		element_forces_t = prod(material_stiffness_Kd,
 			deformation_modes_total_V);
 
 		return element_forces_t;
@@ -1072,9 +1070,9 @@ namespace Kratos
 		const int size = NumNodes * dimension;
 		const int LocalSize = NumNodes * dimension * 2;
 
-		VectorType actualDeformation = ZeroVector(LocalSize);
-		VectorType total_nodal_def = ZeroVector(LocalSize);
-		VectorType total_nodal_pos = ZeroVector(size);
+		Vector actualDeformation = ZeroVector(LocalSize);
+		Vector total_nodal_def = ZeroVector(LocalSize);
+		Vector total_nodal_pos = ZeroVector(size);
 		this->mIncrementDeformation = ZeroVector(LocalSize);
 
 		if (mIterationCount == 0) this->mTotalNodalDeformation = ZeroVector(LocalSize);
@@ -1126,9 +1124,9 @@ namespace Kratos
 		Matrix TransformationMatrix = ZeroMatrix(LocalSize);
 		this->CalculateTransformationMatrix(TransformationMatrix);
 		//deformation modes
-		VectorType elementForces_t = ZeroVector(size);
+		Vector elementForces_t = ZeroVector(size);
 		elementForces_t = this->CalculateElementForces();
-		VectorType Stress = ZeroVector(LocalSize);
+		Vector Stress = ZeroVector(LocalSize);
 		Matrix TransformationMatrixS = ZeroMatrix(LocalSize, size);
 		TransformationMatrixS = this->CalculateTransformationS();
 		Stress = prod(TransformationMatrixS, elementForces_t);

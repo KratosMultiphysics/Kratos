@@ -87,18 +87,19 @@ namespace Kratos
 
 		void Initialize();
 
-		MatrixType CreateElementStiffnessMatrix_Material();
-		MatrixType CreateElementStiffnessMatrix_Geometry(const VectorType qe);
-		MatrixType CalculateMaterialStiffness();
-		MatrixType CalculateTransformationS();
+		Matrix CreateElementStiffnessMatrix_Material();
+		Matrix CreateElementStiffnessMatrix_Geometry(const Vector qe);
+		Matrix CalculateMaterialStiffness();
+		Matrix CalculateTransformationS();
 
-		VectorType CalculateElementForces();
+		Vector CalculateElementForces();
 
 		void CalculateTransformationMatrix(
 			Matrix& rRotationMatrix);
 
 		void CalculateInitialLocalCS();
-		MatrixType UpdateRotationMatrixLocal();
+
+		Matrix UpdateRotationMatrixLocal();
 
 		void CalculateLocalSystem(
 			MatrixType& rLeftHandSideMatrix,
@@ -144,7 +145,7 @@ namespace Kratos
 		double CalculateReferenceLength();
 		void UpdateIncrementDeformation();
 
-		VectorType CalculateBodyForces();  
+		Vector CalculateBodyForces();  
 
 		void CalculateOnIntegrationPoints(
 			const Variable<array_1d<double, 3 > >& rVariable,
@@ -161,14 +162,14 @@ namespace Kratos
 		double mInertiaZ, mCurrentLength, mPsiY, mPsiZ;
 		double mEffAreaY, mEffAreaZ, mShearModulus, mPoisson, mtheta;
 		double mdPhi_x_a;
-		VectorType mNX, mNY, mNZ, mRHS, mTotalDef, mTotalPos;
-		VectorType mTotalNodalDeformation, mTotalNodalPosistion, mBodyForces;
-		VectorType mDeformationModes, mIncrementDeformation;
-		MatrixType mLHS, mRotationMatrix;
-		VectorType mNX0, mNY0, mNZ0;
-		VectorType mQuaternionVEC_A, mQuaternionVEC_B;
+		Vector mNX, mNY, mNZ, mRHS, mTotalDef, mTotalPos;
+		Vector mTotalNodalDeformation, mTotalNodalPosistion, mBodyForces;
+		Vector mDeformationModes, mIncrementDeformation;
+		Matrix mLHS, mRotationMatrix;
+		Vector mNX0, mNY0, mNZ0;
+		Vector mQuaternionVEC_A, mQuaternionVEC_B;
 		double mQuaternionSCA_A, mQuaternionSCA_B;
-		VectorType mPhiS, mPhiA;
+		Vector mPhiS, mPhiA;
 
 		int mIterationCount = 0;
 
