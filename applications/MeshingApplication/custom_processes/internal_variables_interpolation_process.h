@@ -497,7 +497,7 @@ public:
         
         GeometryData::IntegrationMethod ThisIntegrationMethod;
         
-        // Iterate in the conditions
+        // Iterate in the elements
         ElementsArrayType& pElements = ThisModelPart.Elements();
         auto numElements = pElements.end() - pElements.begin();
         
@@ -526,7 +526,7 @@ public:
                 
             for (unsigned int iGaussPoint = 0; iGaussPoint < IntegrationPointsNumber; iGaussPoint++ )
             {
-                array_1d<double, 3> LocalCoordinates = IntegrationPoints[iGaussPoint].Coordinates();
+                const array_1d<double, 3> LocalCoordinates = IntegrationPoints[iGaussPoint].Coordinates();
                 
                 // We compute the corresponding weight
                 const double Weight = VectorDetJ[iGaussPoint] * IntegrationPoints[iGaussPoint].Weight();
@@ -552,35 +552,62 @@ public:
     {
         // We Initialize the process info
         const ProcessInfo& CurrentProcessInfo = mrDestinationMainModelPart.GetProcessInfo();
+     
+        // We initialize the intergration method
+        GeometryData::IntegrationMethod ThisIntegrationMethod;
         
         // We update the list of points
         mPointListOrigin.clear();     
-        mPointListDestination.clear();
         
-        mPointListOrigin      = CreateGaussPointListPartial(mrOriginMainModelPart);
-        mPointListDestination = CreateGaussPointListPartial(mrDestinationMainModelPart);
-        
-        // Create a tree
-        // It will use a copy of mNodeList (a std::vector which contains pointers)
-        // Copying the list is required because the tree will reorder it for efficiency
-        KDTree TreePoints(mPointListOrigin.begin(), mPointListOrigin.end(), mBucketSize); 
-        
-        // Iterate over the destination GP
-        for(unsigned int iGaussPoint = 0; iGaussPoint < mPointListDestination.size(); iGaussPoint++) 
+        mPointListOrigin = CreateGaussPointListPartial(mrOriginMainModelPart);
+
+        #pragma omp parallel
         {
-            PointTypePointer pGPDestination = mPointListDestination[iGaussPoint];
+            // Create a tree
+            // It will use a copy of mNodeList (a std::vector which contains pointers)
+            // Copying the list is required because the tree will reorder it for efficiency
+            KDTree TreePoints(mPointListOrigin.begin(), mPointListOrigin.end(), mBucketSize); 
             
-            PointTypePointer pGPOrigin = TreePoints.SearchNearestPoint(pGPDestination->Coordinates());
+            // Iterate over the destination elements
+            ElementsArrayType& pElements = mrDestinationMainModelPart.Elements();
+            auto numElements = pElements.end() - pElements.begin();
             
-            for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
+            #pragma omp for
+            for(unsigned int i = 0; i < numElements; i++) 
             {
-                Variable<double> ThisVar = mInternalVariableList[iVar];
+                auto itElem = pElements.begin() + i;
                 
-                double OriginValue;
-        
-                OriginValue = (pGPOrigin->GetConstitutiveLaw())->GetValue(ThisVar, OriginValue);
+                // Getting the geometry
+                Element::GeometryType& rThisGeometry = itElem->GetGeometry();
                 
-                (pGPDestination->GetConstitutiveLaw())->SetValue(ThisVar, OriginValue, CurrentProcessInfo);
+                // Getting the integration points
+                ThisIntegrationMethod = itElem->GetIntegrationMethod();
+                const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rThisGeometry.IntegrationPoints(ThisIntegrationMethod);
+                const unsigned int IntegrationPointsNumber = IntegrationPoints.size();
+                
+                // Getting the CL
+                std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector(IntegrationPointsNumber);
+                itElem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,ConstitutiveLawVector,CurrentProcessInfo);
+            
+                for (unsigned int iGaussPoint = 0; iGaussPoint < IntegrationPointsNumber; iGaussPoint++ )
+                {
+                    // We compute the global coordinates
+                    const array_1d<double, 3> LocalCoordinates = IntegrationPoints[iGaussPoint].Coordinates();
+                    array_1d<double, 3> GlobalCoordinates;
+                    GlobalCoordinates = rThisGeometry.GlobalCoordinates( GlobalCoordinates, LocalCoordinates );
+                    
+                    PointTypePointer pGPOrigin = TreePoints.SearchNearestPoint(GlobalCoordinates);
+                    
+                    for (unsigned int iVar = 0; iVar < mInternalVariableList.size(); iVar++)
+                    {
+                        Variable<double> ThisVar = mInternalVariableList[iVar];
+                        
+                        double OriginValue;
+                        OriginValue = (pGPOrigin->GetConstitutiveLaw())->GetValue(ThisVar, OriginValue);
+                        
+                        (ConstitutiveLawVector[iGaussPoint])->SetValue(ThisVar, OriginValue, CurrentProcessInfo);
+                    }
+                }
             }
         }
     }
