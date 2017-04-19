@@ -27,7 +27,7 @@ endif(NOT DEFINED ${INCLUDE_TETGEN})
 # generate variables with the sources
 set( KRATOS_CONTACT_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/contact_mechanics_application.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/contact_mechanics_application_variables.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/contact_mechanics_application_variables.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/contact_mechanics_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
@@ -37,6 +37,7 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_SOURCES
 
 	##conditions
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_domain_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_domain_LM_3D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_domain_LM_2D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_domain_penalty_2D_condition.cpp
 
@@ -51,8 +52,8 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rigid_body_point_rigid_contact_condition.cpp
 
 	##elements
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_element.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/translatory_rigid_body_element.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_element.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/translatory_rigid_body_element.cpp
 
 	##friction laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_friction/friction_law.cpp
@@ -63,6 +64,7 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/contact_domain_utilities.cpp
 
 	##modelers
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/contact_domain_3D_modeler.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/contact_domain_2D_modeler.cpp
 
 )

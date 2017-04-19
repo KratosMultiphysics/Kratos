@@ -41,7 +41,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~NanoParticle(){};    
+    virtual ~NanoParticle(){};
 
 
     /// Turn back information as a string.
@@ -67,12 +67,14 @@ public:
     void MemberDeclarationFirstStep(const ProcessInfo& r_process_info) override;
     
     double CalculateVolume() override;
-    void SetInteractionRadius(double radius) override;
-    double GetInteractionRadius() override;
+
+    double GetInteractionRadius(const int radius_index);
+    void SetInteractionRadius(const double radius, const int radius_index  = 0);
 
 protected:
 
     double mThicknessOverRadius;
+    double mInteractionRadius;
     //double mInteractionRadius;
 
 private:

@@ -26,6 +26,7 @@ from NightlyTests import ShellT3IsotropicScordelisTests as TShellT3IsotropicScor
 
 ## VALIDATION TESTS
 from ValidationTests import SprismPanTests as TSprismPanTests
+from ValidationTests import Eigen3D3NThinCircleTests as TEigen3D3NThinCircleTests
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -63,6 +64,7 @@ def AssambleTestSuites():
     # For very long tests that should not be in nighly and you can use to validate 
     validationSuite = suites['validation']
     validationSuite.addTest(TSprismPanTests('test_execution'))
+    validationSuite.addTest(TEigen3D3NThinCircleTests('test_execution'))
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
@@ -86,7 +88,8 @@ def AssambleTestSuites():
         allSuite.addTests(
             KratosUnittest.TestLoader().loadTestsFromTestCases([
                 TEigenQ4Thick2x2PlateTests,
-                TEigenTL3D8NCubeTests
+                TEigenTL3D8NCubeTests,
+                TEigen3D3NThinCircleTests
             ])
         )
     else:

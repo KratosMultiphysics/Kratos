@@ -4,12 +4,11 @@ import math
 from KratosMultiphysics import *
 import chandelier_parameters as ch_pp
 import chandelier as ch
-#import quadrature as quad
-sim = ch.AnalyticSimulator(ch_pp)
-sim.CalculateNonDimensionalVars()
 
 class ResultsCandelier:
     def __init__(self, pp, path):
+        self.sim = ch.AnalyticSimulator(ch_pp)
+        self.sim.CalculateNonDimensionalVars()
         self.path = path + '/candelier_results.h5py'
         self.dt = pp.CFD_DEM.MaxTimeStep
         self.N_q = pp.CFD_DEM.time_steps_per_quadrature_step
@@ -18,6 +17,7 @@ class ResultsCandelier:
         self.times = []
         self.errors = []
         ch_pp.include_history_force = bool(pp.CFD_DEM.basset_force_type)
+
         if pp.CFD_DEM.basset_force_type == 2:
             self.method = 'Daitche'
         else:
@@ -41,7 +41,6 @@ class ResultsCandelier:
                 result.attrs['m'] = self.m
 
     def WriteToHDF5(self):
-        print(self.times)
         with h5py.File(self.path, 'r+') as f:
             times = np.array(self.times)
             errors = np.array(self.errors)
@@ -52,7 +51,7 @@ class ResultsCandelier:
     def CalculateError(self, time, coor_calculated):
         coor_theory = np.zeros(3)
         vel_theory = np.zeros(3)
-        sim.CalculatePosition(coor_theory, time * ch_pp.omega, vel_theory)
+        self.sim.CalculatePosition(coor_theory, time * ch_pp.omega, vel_theory)
         coor_theory *= ch_pp.R
         try:
             r_inv = 1.0 / sum([x ** 2 for x in coor_theory[:-1]])

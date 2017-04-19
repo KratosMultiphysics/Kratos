@@ -64,8 +64,7 @@ namespace Kratos {
     void DEM_Inlet::InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const bool using_strategy_for_continuum) {
         
         mStrategyForContinuum = using_strategy_for_continuum;
-        
-        unsigned int& max_Id=creator.mMaxNodeId;       
+        unsigned int& max_Id=creator.mMaxNodeId;
         CreatePropertiesProxies(mFastProperties, mInletModelPart);      
         VariablesList r_modelpart_nodal_variables_list = r_modelpart.GetNodalSolutionStepVariablesList();
         

@@ -114,7 +114,6 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeFl
     ModelPart& r_dem_model_part)
 {
     KRATOS_TRY
-
     r_flow.ImposeFieldOnNodes(r_dem_model_part, mDEMVariablesToBeImposed);
 
     KRATOS_CATCH("")
@@ -1583,6 +1582,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ResetDEM
         }
 
         for (ListIndexType i = 0; i != mDEMCouplingVariables.size(); ++i){
+
             if (*mDEMCouplingVariables[i] != FLUID_VEL_PROJECTED_RATE){
                 ClearVariable(node_it, mDEMCouplingVariables[i]);
             }
