@@ -50,23 +50,20 @@ namespace Kratos
   public:
     ///@name Type Definitions
     ///@{
-
-    
     /// Pointer definition of KratosNurbsTestcaseApplication
     //KRATOS_CLASS_POINTER_DEFINITION(KnotSpan1d);
-
     ///@}
     ///@name Life Cycle 
     ///@{ 
-    std::vector<array_1d<double, 3>> KnotSpan1d::getIntegrationPointsInFullGaussianDomain();
-    std::vector<array_1d<double, 3>> KnotSpan1d::getIntegrationPointsInParameterDomain();
+    std::vector<array_1d<double, 2>> KnotSpan1d::getIntegrationPointsInFullGaussianDomain();
+    std::vector<array_1d<double, 2>> KnotSpan1d::getIntegrationPointsInParameterDomain();
 
 
     //TODO: you need to give reading access to your internals through the Calculate function
     /// Constructor.
     KnotSpan1d(unsigned int knot_span_1d_id,
       int p,
-      Vector parameter_span_u);
+      Vector parameter_u);
 
     /// Destructor.
     virtual ~KnotSpan1d();
@@ -88,7 +85,7 @@ namespace Kratos
     ///@name Member Variables
     ///@{ 
     int m_p;
-    Vector m_parameter_span_u;
+    Vector m_parameter_u;
 
     ///@}    
 

@@ -53,7 +53,7 @@ namespace Kratos
     ///@name Life Cycle 
     ///@{ 
 
-    //TrimmingCurveVector& GetTrimmingCurves();
+    BrepTrimmingCurveVector GetTrimmingCurves();
     bool& IsOuterLoop();
     std::vector<array_1d<double, 2>> GetBoundaryPolygon();
 

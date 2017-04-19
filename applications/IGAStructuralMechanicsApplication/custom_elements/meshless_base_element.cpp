@@ -119,20 +119,18 @@ void MeshlessBaseElement::ComputeGlobalDerivatives(const Matrix& DN_De,
 	noalias(DN_DX) = prod(DN_De, Jacobian);
 	KRATOS_CATCH("")
 }
-//************************************************************************************
+
 /**
 * Jacobian gives the mapping for the given shape functions. This 
   function calculates the mapping from 3D in Geometry Space to 
   2D in Parameter Space.
 *
-* @param DN_De derivatives of shape functions in two directions.
-*
-* @param Jacobian calculated Jacobian. Is always of size 3x2, as
+* @param[in] DN_De derivatives of shape functions in two directions.
+* @param[out] Jacobian calculated Jacobian. Is always of size 3x2, as
   the function only allows mapping from from 3D in Geometry Space to 
   2D in Parameter Space.
 *
 */
-//************************************************************************************
 void MeshlessBaseElement::Jacobian(const Matrix& DN_De,
 	Matrix& Jacobian)
 {
@@ -145,7 +143,7 @@ void MeshlessBaseElement::Jacobian(const Matrix& DN_De,
 	Jacobian.clear();
 	for (unsigned int i = 0; i < number_of_points; i++)
 	{
-    std::cout << "Coords[" << i << "]" << (GetGeometry()[i]).Coordinates() << std::endl;
+    //std::cout << "Coords[" << i << "]" << (GetGeometry()[i]).Coordinates() << std::endl;
 
 		for (unsigned int k = 0; k<working_space_dimension; k++)
 		{
@@ -156,17 +154,15 @@ void MeshlessBaseElement::Jacobian(const Matrix& DN_De,
 		}
 	}
 }
-//************************************************************************************
+
 /**
 * Hessian calculates the Hessian for the given system with the 
   shape function derivatives DN_De.
 *
-* @param DN_De derivatives of shape functions.
-*
-* @param Hessian calculated Hessian. Is always of size 3x3.
+* @param[in] DN_De derivatives of shape functions.
+* @param[out] Hessian calculated Hessian. Is always of size 3x3.
 *
 */
-//************************************************************************************
 void MeshlessBaseElement::Hessian(Matrix& Hessian, const Matrix& DDN_DDe)
 {
 	const unsigned int number_of_points = GetGeometry().size();

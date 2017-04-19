@@ -18,6 +18,7 @@
 #include "nurbs_brep_application_variables.h"
 
 #include "../nurbs_utilities.h"
+#include "../knot_span/KnotSpan1d.h"
 
 
 namespace Kratos
@@ -54,9 +55,21 @@ namespace Kratos
     ///@}
     ///@name Life Cycle 
     ///@{ 
-    std::vector<array_1d<double, 2>> CreatePolygon(unsigned int& number_polygon_points);
+    std::vector<array_1d<double, 2>> CreatePolygon(unsigned int number_polygon_points);
+    std::vector<array_1d<double, 3>> CreatePolygonWithParameter(unsigned int number_polygon_points);
     void EvaluateCurvePoint(Point<3>& rCurvePoint, double parameter_u);
     unsigned int& GetIndex();
+    void PrintData();
+
+    std::vector<array_1d<double, 3>> GetQuadraturePoints(std::vector<double> span, double polynomial_order_p);
+    std::vector<double> FindIntersections(const int& p, const int& q, const Vector& knot_vector_u, const Vector& knot_vector_v);
+    std::vector<double> FindIntersectionsWithPoints(std::vector<Point<2>> intersection_points);
+    double EvaluateIntersection(double initial_u, int intersection_base, const double& coordinate_base);
+    array_1d<double, 2> GetBaseVector(const int& u);
+    void EvaluateCurveDerivatives(Matrix& DN_De, const int& order, const int& u);
+    void EvaluateLocalParameter(double& parameter, bool& converged, int baseVec,
+    double baseComp, double uinit, double itmax, double iteps);
+    void GetClosestPoint(const Point<2>& closest_point, double& parameter);
 
     //TODO: you need to give reading access to your internals through the Calculate function
     /// Constructor.

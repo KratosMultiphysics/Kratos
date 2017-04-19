@@ -34,9 +34,9 @@ namespace Kratos
   ///Constructor
   BrepModel::BrepModel(unsigned int& brep_id, FacesVector& faces, EdgesVector& edges)
     : m_brep_faces(faces),
-    m_brep_edges(edges),
-    IndexedObject(brep_id),
-    Flags()
+      m_brep_edges(edges),
+      IndexedObject(brep_id),
+      Flags()
   {
     //std::cout << "m_faces.size(): " << m_faces.size() << std::endl;
   }

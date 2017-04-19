@@ -18,9 +18,9 @@
 namespace Kratos
 {
   // --------------------------------------------------------------------------
-  std::vector<array_1d<double, 3>> KnotSpan1d::getIntegrationPointsInFullGaussianDomain()
+  std::vector<array_1d<double, 2>> KnotSpan1d::getIntegrationPointsInFullGaussianDomain()
   {
-    std::vector<array_1d<double, 3>> IntegrationPoints;
+    std::vector<array_1d<double, 2>> IntegrationPoints;
 
     int number_of_nodes_u = (m_p + 1);
 
@@ -39,14 +39,14 @@ namespace Kratos
         //KRATOS_WATCH(point)
 
         IntegrationPoints.push_back(point);// [i*number_of_nodes_v + j] = point;
-      }
+      
     }
     return IntegrationPoints;
   }
 
-  std::vector<array_1d<double, 3>> KnotSpan1d::getIntegrationPointsInParameterDomain()
+  std::vector<array_1d<double, 2>> KnotSpan1d::getIntegrationPointsInParameterDomain()
   {
-    std::vector<array_1d<double, 3>> IntegrationPoints, IntegrationPointsInGaussianDomain;
+    std::vector<array_1d<double, 2>> IntegrationPoints, IntegrationPointsInGaussianDomain;
 
     IntegrationPointsInGaussianDomain = this->getIntegrationPointsInFullGaussianDomain();
 
@@ -55,28 +55,19 @@ namespace Kratos
     double du = u2 - u1;
 
     //KRATOS_WATCH(u1)
-    //KRATOS_WATCH(u2)
-    //KRATOS_WATCH(v1)
-    //KRATOS_WATCH(v2)
-    //KRATOS_WATCH(du)
-    //KRATOS_WATCH(dv)
+    //  KRATOS_WATCH(u2)
+    //  KRATOS_WATCH(du)
 
-    double mapping = (u1 - u2)*(v1 - v2)*0.25;
+    double mapping = abs(u2 - u1)*0.5;
 
-    if (m_is_untrimmed)
+    for (unsigned int i = 0; i < IntegrationPointsInGaussianDomain.size(); i++)
     {
-      for (unsigned int i = 0; i < IntegrationPointsInGaussianDomain.size(); i++)
-      {
-        array_1d<double, 3> point;
+      array_1d<double, 3> point;
 
-        point[0] = (u2 + u1 + IntegrationPointsInGaussianDomain[i][0] * du)*0.5;
-        point[1] = (v2 + v1 + IntegrationPointsInGaussianDomain[i][1] * dv)*0.5;
-        point[2] = mapping*IntegrationPointsInGaussianDomain[i][2];
+      point[0] = u1 + du*(IntegrationPointsInGaussianDomain[i][0] + 1)*0.5; //Parameter
+      point[1] = mapping*IntegrationPointsInGaussianDomain[i][1];
 
-        //KRATOS_WATCH(point)
-
-        IntegrationPoints.push_back(point);// [i*number_of_nodes_v + j] = point;
-      }
+      IntegrationPoints.push_back(point);
     }
     return IntegrationPoints;
   }
@@ -86,9 +77,8 @@ namespace Kratos
   ///Constructor
   KnotSpan1d::KnotSpan1d(unsigned int knot_span_1d_id,
     int p,
-    Vector parameter_span_u)
-    : m_p(p),
-      m_parameter_span_u(parameter_span_u),
+    Vector parameter_u)
+    : m_p(p), m_parameter_u(parameter_u),
       IndexedObject(knot_span_1d_id),
       Flags()
   {

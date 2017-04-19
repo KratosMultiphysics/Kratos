@@ -58,8 +58,9 @@ namespace Kratos
     ///@}
     ///@name Life Cycle 
     ///@{ 
-
-
+    //std::vector<Node<3>::Pointer> GetQuadraturePoints(const int& shapefunction_order);
+    bool isCouplingEdge();
+    void GetEdgeInformation(const int& face_trim, int& face_id, int& trim_index);
 
     //TODO: you need to give reading access to your internals through the Calculate function
     /// Constructor.

@@ -46,6 +46,8 @@ namespace Kratos
     ///@}
     ///@name Life Cycle 
     ///@{ 
+    unsigned int& GetTrimIndex();
+    unsigned int& GetFaceId();
 
     /// Constructor.
     BrepFaceTrim(unsigned int face_id, 

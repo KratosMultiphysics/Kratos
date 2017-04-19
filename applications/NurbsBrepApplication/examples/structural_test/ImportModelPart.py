@@ -1,5 +1,5 @@
 # importing the Kratos Library
-import KratosMultiphysics
+from KratosMultiphysics import *
 import KratosMultiphysics.IGAStructuralMechanicsApplication
 import KratosMultiphysics.NURBSBRepApplication
 from KratosMultiphysics.SolidMechanicsApplication import *
@@ -8,128 +8,74 @@ import json
 import math
 #import KratosMultiphysics.model_part
 
-def Factory(model_part_elements, settings):
-	return ModelPartIOIGA(model_part_elements, settings)
+def Factory(model_part_elements, project_parameters):
+	return ModelPartIOIGA(model_part_elements, project_parameters)
 
 
 class ModelPartIOIGA(KratosMultiphysics.IO):
-	def __init__(self, model_part_elements, settings):
+	def __init__(self, model_part_elements, project_parameters):
 		KratosMultiphysics.IO.__init__(self)
 		self.model_part_elements = model_part_elements
-		self.settings = settings
+		self.project_parameters = project_parameters
 
 	def ReadModelPart(self, model_part):
 		dimension = 2
 
-		nodes_list = self.model_part_elements.Nodes
-		
-		self.ReadSubModelPart(model_part)
+		for element_id in range(0,self.project_parameters["element_list"].size()): #project_parameters["element_list"]:
+			element_type = self.project_parameters["element_list"][element_id]
+			element_name = element_type["element_name"].GetString()
+			iga_model_part = model_part.CreateSubModelPart(element_type["iga_model_part"].GetString())
+			#cad_model_part_names = element_type["cad_model_part"]
 
-		for property in model_part.Properties:
-			properties = property
+			for property in model_part.Properties:
+				if (property.Id == element_type["parameters"]["properties_id"].GetInt()):
+					properties = property
+					break
 
-		cplist = model_part.Nodes
-		for node in cplist:
-			print(node.Id)
-		
-		for node in nodes_list:
-			cps = node.GetValue(KratosMultiphysics.NURBSBRepApplication.CONTROL_POINT_IDS)
-			intcps = []
-			for cp in cps:
-				intcps.append(int(cp))
-			print(node.Id)
-			element = model_part.CreateNewElement("MeshlessShellElement", node.Id, intcps, properties)
-			element.SetValue(KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_VALUES, node.GetValue(KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_VALUES))
-			element.SetValue(KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_LOCAL_DERIVATIVES, node.GetValue(KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_DERIVATIVES))
-			element.SetValue(KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, node.GetValue(KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_SECOND_DERIVATIVES))
-			element.SetValue(KratosMultiphysics.IGAStructuralMechanicsApplication.INTEGRATION_WEIGHT, node.GetValue(KratosMultiphysics.NURBSBRepApplication.INTEGRATION_WEIGHT))
-		
+			for cad_model_part_name_id in range (0,element_type["cad_model_part"].size()):
+				cad_model_part_name = element_type["cad_model_part"][cad_model_part_name_id]
+				cad_model_part  = self.model_part_elements.GetSubModelPart(cad_model_part_name.GetString())
 
-	def ReadProperties(self, model_part):
-		with open(self.PatchFileName) as JsonFile:
-			properties_list = json.load(JsonFile)['materials']
-		for property in properties_list:
-			self.ReadPropertiesBlock(model_part, property)
+				for node in cad_model_part.Nodes:
+					control_points = node.GetValue(eval(element_type["parameters"]["control_points"].GetString()))
+					int_control_points = []
+					for cp in control_points:
+						int_control_points.append(int(cp))
+						iga_model_part.AddNode(model_part.GetNode(int(cp)),0)
 
-	def ReadPropertiesBlock(self, model_part, property):
-		property_id = property['material_id']
-		properties = model_part.Properties[property_id]
+					element = iga_model_part.CreateNewElement(element_name, node.Id, int_control_points, properties)
+					i = 1
+					for variable in range(0,element_type["parameters"]["variables"].size()):#element_type["parameters"]["variables"]:
+						element.SetValue(eval(element_type["parameters"]["variables"][variable]["iga_variable"].GetString()), node.GetValue(eval(element_type["parameters"]["variables"][variable]["cad_variable"].GetString())))
 
-		if 'youngs_modulus' in property:
-			properties.SetValue( KratosMultiphysics.YOUNG_MODULUS, property['youngs_modulus'] )
-		if 'nue' in property:
-			properties.SetValue( KratosMultiphysics.POISSON_RATIO, property['nue'] )
-		if 'thickness' in property:
-			properties.SetValue( KratosMultiphysics.THICKNESS, property['thickness'] )
-		
-		properties.SetValue( KratosMultiphysics.THICKNESS, 1 )
-		properties.SetValue( KratosMultiphysics.BODY_FORCE, [0.0, 0.0, 0.0] )
-		properties.SetValue( KratosMultiphysics.DENSITY, 1 )
+		for condition_id in range(0,self.project_parameters["condition_list"].size()): #project_parameters["condition_list"]:
+			condition_type = self.project_parameters["condition_list"][condition_id]
+			condition_name = condition_type["condition_name"].GetString()
+			iga_model_part = model_part.CreateSubModelPart(condition_type["iga_model_part"].GetString())
+			#cad_model_part_names = condition_type["cad_model_part"]
 
-		mat = LinearElasticPlaneStress2DLaw();
-		#mat.Initialize();
-		properties.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, mat.Clone());
+			for property in model_part.Properties:
+				if (property.Id == condition_type["parameters"]["properties_id"].GetInt()):
+					properties = property
+					break
 
-	def ReadSubModelPart(self, model_part):
-		for i in range(self.settings["processes_sub_model_part_list"].size()):
-			part_name = self.settings["processes_sub_model_part_list"][i].GetString()
-			model_part.CreateSubModelPart(part_name)
+			for cad_model_part_name_id in range (0,condition_type["cad_model_part"].size()):
+				cad_model_part_name = condition_type["cad_model_part"][cad_model_part_name_id]
+				if (condition_type["condition_name"].GetString() == "MeshlessPenaltyCouplingRotationCondition"):
+					cad_model_part  = self.model_part_elements.GetSubModelPart(cad_model_part_name.GetString())
+				else:
+					edges  = self.model_part_elements.GetSubModelPart("EDGES")
+					cad_model_part  = edges.GetSubModelPart(cad_model_part_name.GetString())
 
-	def ReadConditions(self, model_part, condition, property, IGAModeler, ElementNodeIds):
-		#if (property["description"] == "Edge"):
+				for node in cad_model_part.Nodes:
+					int_control_points = []
+					for i in range(0,condition_type["parameters"]["control_points"].size()):
+						control_points = node.GetValue(eval(condition_type["parameters"]["control_points"][i].GetString()))
+					
+						for cp in control_points:
+							int_control_points.append(int(cp))
+							iga_model_part.AddNode(model_part.GetNode(int(cp)),0)
 
-		for element in condition[1]:
-			if (property["description"] == "Surface"):
-				qpID = 5
-				elementID = int(element[0])
-			if (property["description"] == "Edge"):
-				qpID = 1
-
-			for quadrature_point_system in element[qpID]:
-				if (property["description"] == "Surface"):
-					quadrature_point = quadrature_point_system
-					cond_id = int(quadrature_point[0])
-				
-				if (property["description"] == "Edge"):
-					quadrature_point = quadrature_point_system[1]
-					elementID = quadrature_point_system[0][0]
-					cond_id = int(quadrature_point_system[1][0])
-
-				LocalCoordinatesOfQuadraturePointMaster = KratosMultiphysics.Vector(3)
-				LocalCoordinatesOfQuadraturePointMaster[0] = quadrature_point[2][0]
-				LocalCoordinatesOfQuadraturePointMaster[1] = quadrature_point[2][1]
-				LocalCoordinatesOfQuadraturePointMaster[2] = 0.0000000000
-
-				#local variable definition
-				ShapeFunctionValuesMaster = KratosMultiphysics.Vector()
-				ShapeFunctionLocalDerivativesMaster = KratosMultiphysics.Matrix()
-
-
-				IGAModeler[elementID].EvaluateShapeFunction(LocalCoordinatesOfQuadraturePointMaster, ShapeFunctionValuesMaster, ShapeFunctionLocalDerivativesMaster)
-
-				nodeIdsMaster = []
-				nodeIdsMaster = ElementNodeIds[elementID]
-
-				n = len(ShapeFunctionValuesMaster)
-
-				nodeIds = []
-				ShapeFunctionVector = KratosMultiphysics.Vector(n) 
-				for index in range (0, n):
-					nodeIds.append(nodeIdsMaster[index])
-					ShapeFunctionVector[index] = ShapeFunctionValuesMaster[index]
-				sub_model_part = model_part.GetSubModelPart(property["parameters"]["model_part_name"])
-
-				for nodeID in nodeIds:
-					sub_model_part.AddNode(model_part.GetNode(nodeID),0)
-
-				QuadratureWeighting = quadrature_point[1]
-				Master = sub_model_part.CreateNewCondition(property["condition_name"], cond_id, nodeIds, model_part.Properties[0])
-				Master.SetValue(KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_VALUES, ShapeFunctionVector)
-				Master.SetValue(KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_LOCAL_DERIVATIVES, ShapeFunctionLocalDerivativesMaster)
-				Master.SetValue(KratosMultiphysics.IGAStructuralMechanicsApplication.INTEGRATION_WEIGHT, QuadratureWeighting)
-				
-				if (property["description"] == "Edge"):
-					LocalTangents = KratosMultiphysics.Vector(2)
-					LocalTangents[0] = quadrature_point[3][0]
-					LocalTangents[1] = quadrature_point[3][1]
-					Master.SetValue(KratosMultiphysics.IGAStructuralMechanicsApplication.TANGENTS, LocalTangents)
+					condition = iga_model_part.CreateNewCondition(condition_name, node.Id, int_control_points, properties)
+					for variable in range(0,condition_type["parameters"]["variables"].size()):#condition_type["parameters"]["variables"]:
+						condition.SetValue(eval(condition_type["parameters"]["variables"][variable]["iga_variable"].GetString()), node.GetValue(eval(condition_type["parameters"]["variables"][variable]["cad_variable"].GetString())))

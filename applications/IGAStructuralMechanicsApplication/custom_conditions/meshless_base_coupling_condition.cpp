@@ -70,7 +70,7 @@ void MeshlessBaseCouplingCondition::Initialize()
 	const unsigned int local_space_dimension = 2;// GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES).size2();// GetGeometry().LocalSpaceDimension();
 
 												 //calculate basis vectors for MASTER Patch
-	Matrix DN_De_Master = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_MASTER);
+	Matrix DN_De_Master = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 	Matrix JMaster = ZeroMatrix(working_space_dimension, local_space_dimension);
 	JacobianElement(DN_De_Master, JMaster, true);
 
@@ -365,7 +365,7 @@ void MeshlessBaseCouplingCondition::CaculateRotationalShapeFunctions(
 {
 	Vector localTrimTangents = this->GetValue(TANGENTS);
 
-	Matrix ShapeFunctionDerivativesMaster = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_MASTER);
+	Matrix ShapeFunctionDerivativesMaster = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 	int number_of_points_master = ShapeFunctionDerivativesMaster.size1();
 	Vector Phi_r_Master = ZeroVector(number_of_points_master * 3);
 	Matrix Phi_rs_Master = ZeroMatrix(number_of_points_master * 3, number_of_points_master * 3);

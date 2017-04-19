@@ -7,7 +7,7 @@
 //  License:     BSD License
 //           Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Tobias Teschemacher
+//  Main authors:    Tobias Teschmemacher
 //                   Michael Breitenberger
 //
 
@@ -105,7 +105,7 @@ namespace Kratos
       m_is_untrimmed(is_untrimmed),
       m_parameter_span_u(parameter_span_u),
       m_parameter_span_v(parameter_span_v),
-      IndexedObject(knot_span_1d_id),
+      IndexedObject(knot_span_2d_id),
       Flags()
   {
   }

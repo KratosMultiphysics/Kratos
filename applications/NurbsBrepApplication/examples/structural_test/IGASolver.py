@@ -77,14 +77,15 @@ model_part_integration_domain = ModelPart("IntegrationDomain")
 
 modeler.CreateIntegrationDomain(2, model_part_integration_domain)
 
+print(model_part_integration_domain)
 
 import read_materials_process
 read_materials_process.Factory(ProjectParameters,Model)
 
-
-
-solver.ImportModelPartNurbsBrep(model_part_integration_domain)
+solver.ImportModelPartNurbsBrep(model_part_integration_domain, ProjectParameters)
 solver.AddDofs()
+
+print(Model)
 
 #build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
 ##TODO: replace MODEL for the Kratos one ASAP
@@ -94,7 +95,6 @@ for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_li
     Model.update({part_name: model_part.GetSubModelPart(part_name)})
 
 
-print(model_part_integration_domain)
 #print model_part and properties
 if(echo_level>0):
     print("")
@@ -111,31 +111,31 @@ list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfP
 list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
 
 #region hard coded boundary conditions
-for node in model_part.Nodes:
-	##node.Fix(DISPLACEMENT_X)
-	#node.SetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER_X, 0, 0)
-	#node.SetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER_Y, 0, 0)
-	#node.SetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER_Z, 0, 0)
-	#node.SetSolutionStepValue(DISPLACEMENT_Z, 0, 0)
-	#node.Fix(DISPLACEMENT_Z)
-	#node.SetSolutionStepValue(DISPLACEMENT_Y, 0, 0)
-	#node.SetSolutionStepValue(DISPLACEMENT_Z, 0, 0)
-	#node.Fix(DISPLACEMENT_Y)
-	#node.Fix(DISPLACEMENT_Z)
-	if (node.X < 0.01):
-		node.SetSolutionStepValue(DISPLACEMENT_X, 0, 0)
-		node.SetSolutionStepValue(DISPLACEMENT_Y, 0, 0)
-		node.SetSolutionStepValue(DISPLACEMENT_Z, 0, 0)
-		node.Fix(DISPLACEMENT_X)
-		node.Fix(DISPLACEMENT_Y)
-		node.Fix(DISPLACEMENT_Z)
-	if (node.X > 9.9):
-		node.SetSolutionStepValue(DISPLACEMENT_X, 0, 10)
-		node.SetSolutionStepValue(DISPLACEMENT_Y, 0, 0)
-		node.SetSolutionStepValue(DISPLACEMENT_Z, 0, 0)
-		node.Fix(DISPLACEMENT_X)
-		node.Fix(DISPLACEMENT_Y)
-		node.Fix(DISPLACEMENT_Z)
+#for node in model_part.Nodes:
+#	##node.Fix(DISPLACEMENT_X)
+#	#node.SetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER_X, 0, 0)
+#	#node.SetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER_Y, 0, 0)
+#	#node.SetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER_Z, 0, 0)
+#	#node.SetSolutionStepValue(DISPLACEMENT_Z, 0, 0)
+#	#node.Fix(DISPLACEMENT_Z)
+#	#node.SetSolutionStepValue(DISPLACEMENT_Y, 0, 0)
+#	#node.SetSolutionStepValue(DISPLACEMENT_Z, 0, 0)
+#	#node.Fix(DISPLACEMENT_Y)
+#	#node.Fix(DISPLACEMENT_Z)
+#	if (node.X < 0.01):
+#		node.SetSolutionStepValue(DISPLACEMENT_X, 0, 0)
+#		node.SetSolutionStepValue(DISPLACEMENT_Y, 0, 0)
+#		node.SetSolutionStepValue(DISPLACEMENT_Z, 0, 0)
+#		node.Fix(DISPLACEMENT_X)
+#		node.Fix(DISPLACEMENT_Y)
+#		node.Fix(DISPLACEMENT_Z)
+#	if (node.X > 7.9):
+#		node.SetSolutionStepValue(DISPLACEMENT_X, 0, 10)
+#		node.SetSolutionStepValue(DISPLACEMENT_Y, 0, 0)
+#		node.SetSolutionStepValue(DISPLACEMENT_Z, 0, 0)
+#		node.Fix(DISPLACEMENT_X)
+#		node.Fix(DISPLACEMENT_Y)
+#		node.Fix(DISPLACEMENT_Z)
 #endregion
 
 ##print list of constructed processes

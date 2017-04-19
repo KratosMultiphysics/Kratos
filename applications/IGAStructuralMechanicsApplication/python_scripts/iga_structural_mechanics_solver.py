@@ -116,12 +116,12 @@ class IGAStructuralMechanicsSolver:
 
 		print ("Model reading finished.")
 	
-	def ImportModelPartNurbsBrep(self, model_part_nurbs_brep):
+	def ImportModelPartNurbsBrep(self, model_part_nurbs_brep, project_paramaters):
 		#print ("\n------------------Import Elements--------------------")
 		
-		if(self.settings["model_import_settings"]["input_type"].GetString() == "txt"):
+		if(self.settings["model_import_settings"]["input_type"].GetString() == "NurbsBrepApplication"):
             #here it would be the place to import restart data if required
-			ModelPartIO = ImportModelPart.Factory(model_part_nurbs_brep, self.settings)
+			ModelPartIO = ImportModelPart.Factory(model_part_nurbs_brep, project_paramaters)
 			ModelPartIO.ReadModelPart(self.model_part)
 
 		else:

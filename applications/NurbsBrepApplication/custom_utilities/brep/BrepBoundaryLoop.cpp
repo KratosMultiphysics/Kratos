@@ -46,10 +46,11 @@ namespace Kratos
   }
 
 
-  //TrimmingCurveVector& BrepBoundaryLoop::GetTrimmingCurves()
-  //{
-  //  return m_trimming_curves;
-  //}
+  std::vector<BrepTrimmingCurve> BrepBoundaryLoop::GetTrimmingCurves()
+  {
+    return m_brep_trimming_curves;
+  }
+
   bool& BrepBoundaryLoop::IsOuterLoop()
   {
     return m_is_outer_loop;

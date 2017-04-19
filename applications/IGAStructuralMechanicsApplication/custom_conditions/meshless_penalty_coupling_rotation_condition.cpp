@@ -73,17 +73,35 @@ namespace Kratos
 
 		rRightHandSideVector = ZeroVector(number_of_points * 3); //resetting RHS
 
-		const Vector& H = this->GetValue(SHAPE_FUNCTION_VALUES);
+		const Vector& ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
+    KRATOS_WATCH(ShapeFunctionsN)
+    const Vector& NSlave = this->GetValue(SHAPE_FUNCTION_VALUES_SLAVE);
+    KRATOS_WATCH(NSlave)
+    Vector ShapeFunctions = ZeroVector(ShapeFunctionsN.size() + NSlave.size());
+    for (unsigned int i = 0; i < ShapeFunctionsN.size(); i++)
+    {
+      ShapeFunctions[i] = ShapeFunctionsN[i];
+    }
+    for (unsigned int i = 0; i < NSlave.size(); i++)
+    {
+      ShapeFunctions[i + ShapeFunctionsN.size()] = NSlave[i];
+    }
+    KRATOS_WATCH(ShapeFunctions)
 		const double Penalty = this->GetValue(PENALTY_FACTOR);
+    KRATOS_WATCH(Penalty)
 		const double Weighting = this->GetValue(INTEGRATION_WEIGHT);
+    KRATOS_WATCH(Weighting)
 		const Vector& localTrimTangents = this->GetValue(TANGENTS);
-		const Matrix& ShapeFunctionDerivativesMaster = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_MASTER);
+    KRATOS_WATCH(localTrimTangents)
+		const Matrix& ShapeFunctionDerivativesMaster = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+    KRATOS_WATCH(ShapeFunctionDerivativesMaster)
 
 		array_1d<double, 2> localTrimTangentsMaster;
 		localTrimTangentsMaster[0] = localTrimTangents[0];
 		localTrimTangentsMaster[1] = localTrimTangents[1];
 
 		const int displacement_rotation_fix = this->GetValue(DISPLACEMENT_ROTATION_FIX);
+    KRATOS_WATCH(displacement_rotation_fix)
 
 		// Read out information of which elements are fixed
 		// int cheaper to store than 4 bool
@@ -119,13 +137,13 @@ namespace Kratos
 		for (unsigned int i = 0; i < number_of_points; i++)
 		{
 			if (dispX == 1)
-				Hcomplete(0, 3 * i)     = H[i];
+				Hcomplete(0, 3 * i)     = ShapeFunctions[i];
 
 			if (dispY == 1)
-				Hcomplete(1, 3 * i + 1) = H[i];
+				Hcomplete(1, 3 * i + 1) = ShapeFunctions[i];
 
 			if (dispZ == 1)
-				Hcomplete(2, 3 * i + 2) = H[i];
+				Hcomplete(2, 3 * i + 2) = ShapeFunctions[i];
 		}
 
 		Vector TDisplacements(number_of_points * 3);

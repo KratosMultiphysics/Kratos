@@ -79,6 +79,16 @@ void MeshlessLagrangeCouplingCondition::CalculateLocalSystem(MatrixType& rLeftHa
 
 	//Shape functions: first master, second slave, third lambda of master, fourth 0
 	const Vector& ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
+  const Vector& NSlave = this->GetValue(SHAPE_FUNCTION_VALUES_SLAVE);
+  Vector ShapeFunctions = ZeroVector(ShapeFunctionsN.size() + NSlave.size());
+  for (unsigned int i = 0; i < ShapeFunctionsN.size(); i++)
+  {
+    ShapeFunctions[i] = ShapeFunctionsN[i];
+  }
+  for (unsigned int i = ShapeFunctionsN.size(); i < ShapeFunctionsN.size()+ NSlave.size(); i++)
+  {
+    ShapeFunctions[i] = NSlave[i - ShapeFunctionsN.size()];
+  }
 
 	//For ROTATIONAL SUPPORT
 	Vector Phi_r = ZeroVector(number_of_points * 3);
@@ -95,7 +105,7 @@ void MeshlessLagrangeCouplingCondition::CalculateLocalSystem(MatrixType& rLeftHa
 	{
 		for (unsigned int j = 0; j < number_of_points; j++) // lopp over shape functions of displacements
 		{
-			double NN = ShapeFunctionsN[j] * ShapeFunctionsN[i];
+			double NN = ShapeFunctions[j] * ShapeFunctions[i];
 			
 			// Matrix in following shape:
 			// |0 H^T|
@@ -143,7 +153,7 @@ void MeshlessLagrangeCouplingCondition::CalculateLocalSystem(MatrixType& rLeftHa
 	}
 
 	//MAPPING Geometry Space to Parameter Space
-	const Matrix& DN_DeMaster = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_MASTER);
+	const Matrix& DN_DeMaster = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 
 	array_1d<double, 2> localTrimTangentsMaster;
 	localTrimTangentsMaster[0] = localTrimTangents[0];

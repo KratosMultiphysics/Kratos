@@ -26,7 +26,14 @@
 namespace Kratos
 {
 // --------------------------------------------------------------------------
-
+  unsigned int& BrepFaceTrim::GetFaceId()
+  {
+    return m_face_id;
+  }
+  unsigned int& BrepFaceTrim::GetTrimIndex()
+  {
+    return m_trim_index;
+  }
 //Constructor
 BrepFaceTrim::BrepFaceTrim(unsigned int face_id, unsigned int trim_index, bool relative_direction)
   : m_face_id(face_id),

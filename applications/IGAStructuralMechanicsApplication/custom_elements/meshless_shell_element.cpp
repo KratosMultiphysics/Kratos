@@ -799,8 +799,8 @@ void MeshlessShellElement::CalculateAll(
 	CalculateMetricDeformed(DN_De, DDN_DDe, gab, curvature, g1, g2);
 	CalculateStrain(StrainVector, gab, mGab0);
 
-  KRATOS_WATCH(g1)
-  KRATOS_WATCH(g2)
+  //KRATOS_WATCH(g1)
+  //KRATOS_WATCH(g2)
 
 	Vector StrainVector_in_Q_coordinates = prod(Q, StrainVector);
 
@@ -886,21 +886,21 @@ void MeshlessShellElement::CalculateAll(
 		noalias(rRightHandSideVector) += IntToReferenceWeight * prod(trans(BCurvature), MomentVector_in_Q_coordinates);
 	}
 
-  if (this->Id() == 1) //TODO: remove this! it is just for debugging purposes
-  {
+  //if (this->Id() == 1) //TODO: remove this! it is just for debugging purposes
+  //{
 
-    KRATOS_WATCH(ShapeFunctionsN)
-    KRATOS_WATCH(DN_De)
-    KRATOS_WATCH(DDN_DDe)
+    //KRATOS_WATCH(ShapeFunctionsN)
+    //KRATOS_WATCH(DN_De)
+    //KRATOS_WATCH(DDN_DDe)
 
-    KRATOS_WATCH(IntToReferenceWeight)
+    //KRATOS_WATCH(IntToReferenceWeight)
 
-      KRATOS_WATCH(BMembrane)
-      KRATOS_WATCH(BCurvature)
+    //KRATOS_WATCH(BMembrane)
+    //KRATOS_WATCH(BCurvature)
 
-    KRATOS_WATCH(rLeftHandSideMatrix)
-    KRATOS_WATCH(rRightHandSideVector)
-  }
+    //KRATOS_WATCH(rLeftHandSideMatrix)
+    //KRATOS_WATCH(rRightHandSideVector)
+  //}
   //		Vector displacements;
 	//	this->GetValuesVector(displacements, 0);
 	//	KRATOS_WATCH(displacements);
