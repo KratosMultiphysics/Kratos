@@ -75,7 +75,7 @@ def Usage():
         '\t python kratos_run_tests [-l level] [-v vervosity]',
         'Options',
         '\t -h, --help: Shows this command',
-        '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\'',  # noqa
+        '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(allMPI)\' \'(nightly)\' \'(nightlyMPI)\' \'(small)\' \'(smallMPI)\'',  # noqa
         '\t -v, --verbose: Vervosty level: 0, 1 (Default), 2'
     ]
 
@@ -85,7 +85,7 @@ def Usage():
 
 def runTests(tests):
     verbose_values = [0, 1, 2]
-    level_values = ['all', 'small', 'nightly', 'validation']
+    level_values = ['all','allMPI','small','smallMPI','nightly','nightlyMPI','validation','validationMPI']
 
     verbosity = 1
     level = 'all'
@@ -134,7 +134,11 @@ def runTests(tests):
 
 KratosSuites = {
     'small': TestSuite(),
+    'smallMPI': TestSuite()
     'nightly': TestSuite(),
+    'nightlyMPI': TestSuite()
     'all': TestSuite(),
-    'validation': TestSuite()
+    'allMPI': TestSuite()
+    'validation': TestSuite(),
+    'validationMPI': TestSuite()
 }
