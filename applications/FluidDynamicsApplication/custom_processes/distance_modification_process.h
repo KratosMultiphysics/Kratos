@@ -118,11 +118,12 @@ public:
         while (bad_cuts > 0)
         {
             this->ModifyDistance(factor, bad_cuts);
-            // std::cout << "Distance modification iteration: " << counter << " Total bad cuts: " << bad_cuts << " Factor: " << factor << std::endl;
             factor /= mFactorCoeff;
             counter++;
         }
 
+        // Deactivate those elements that have all their nodes in the structure domain as well as
+        // those elements whose structure nodes and fixed nodes summation equals the number of nodes
         this->DeactivateFullNegativeElements();
 
         KRATOS_CATCH("");
@@ -215,19 +216,15 @@ protected:
                 double& d = itNode->FastGetSolutionStepValue(DISTANCE);
                 tol_d = factor*h;
 
-                if((d >= 0.0) && (d < tol_d))
-                {
-                    // Modify the distance to avoid almost empty fluid elements
-                    // std::cout << "Node: " << itNode->Id() << " distance " << d;
+                // Modify the distance to avoid almost empty fluid elements
+                if ((d >= 0.0) && (d < tol_d))
                     d = -0.001*tol_d;
-                    // std::cout << " modified to " << d << std::endl;
-                }
             }
 
             // Syncronize data between partitions (the modified distance has always a lower value)
             mrModelPart.GetCommunicator().SynchronizeCurrentDataToMin(DISTANCE);
         }
-        else // Case in where the original distance needs to be kept to track the interface (e.g. FSI)
+        else // Case in where the original distance needs to be kept to track the original interface (e.g. FSI)
         {
             for (auto itNode=mrModelPart.NodesBegin(); itNode!=mrModelPart.NodesEnd(); itNode++)
             {
@@ -242,9 +239,7 @@ protected:
                     mModifiedDistancesValues.push_back(d);
 
                     // Modify the distance to avoid almost empty fluid elements
-                    // std::cout << "Node: " << itNode->Id() << " distance " << d;
                     d = -0.001*tol_d;
-                    // std::cout << " modified to " << d << std::endl;
                 }
             }
 
@@ -262,16 +257,8 @@ protected:
 
             for (unsigned int itNode=0; itNode<rGeometry.size(); itNode++)
             {
-                double d = rGeometry[itNode].FastGetSolutionStepValue(DISTANCE);
-
-                if(d > 0.0)
-                {
-                    npos++;
-                }
-                else
-                {
-                    nneg++;
-                }
+                const double d = rGeometry[itNode].FastGetSolutionStepValue(DISTANCE);
+                (d > 0.0) ? npos++ : nneg++;
             }
 
             if((nneg > 0) && (npos > 0)) // The element is cut
@@ -279,7 +266,7 @@ protected:
                 for(unsigned int itNode=0; itNode<rGeometry.size(); itNode++)
                 {
                     const double h = rGeometry[itNode].GetValue(NODAL_H);
-                    double d = rGeometry[itNode].FastGetSolutionStepValue(DISTANCE);
+                    const double d = rGeometry[itNode].FastGetSolutionStepValue(DISTANCE);
                     tol_d = (factor*mFactorCoeff)*h;
 
                     if((d >= 0.0) && (d < tol_d))
@@ -297,7 +284,7 @@ protected:
     {
         for(unsigned int i=0; i<mModifiedDistancesIDs.size(); i++)
         {
-            unsigned int nodeId = mModifiedDistancesIDs[i];
+            const unsigned int nodeId = mModifiedDistancesIDs[i];
             mrModelPart.GetNode(nodeId).FastGetSolutionStepValue(DISTANCE) = mModifiedDistancesValues[i];
         }
 

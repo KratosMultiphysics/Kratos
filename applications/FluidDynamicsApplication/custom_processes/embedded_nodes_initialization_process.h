@@ -25,7 +25,6 @@
 #include "processes/process.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
-// #include "processes/find_nodal_h_process.h"
 
 // Application includes
 
@@ -104,9 +103,7 @@ public:
             const double& dn = itNode->FastGetSolutionStepValue(DISTANCE,1);    // Previous step distance value
 
             if ((d>0) && (dn<=0))
-            {
                 itNode->Set(SELECTED, true);
-            }
         }
 
         for (unsigned int it=0; it<mMaxIterations; ++it)
@@ -116,21 +113,18 @@ public:
             {
 
                 unsigned int NewNodes = 0;
-                GeometryType& rGeometry = itElement->GetGeometry();
+                const GeometryType& rGeometry = itElement->GetGeometry();
                 const unsigned int ElemNumNodes = rGeometry.PointsNumber();
 
-                // Get the number of nodes that have switch from structure to fluid in the current element
+                // Get the number of nodes that have switched from structure to fluid in the current element
                 for (unsigned int j=0; j<ElemNumNodes; ++j)
                 {
                     if (rGeometry[j].Is(SELECTED))
-                    {
                         NewNodes++;
-                    }
                 }
 
-                // std::cout << "Element number " << itElement->Id() << " has " << NewNodes << " nodes switching from structure to fluid." << std::endl;
-
-                // If there is only one unique "new" node in the element, initialize it
+                // If there is only one unique "new" node in the element, initialize it.
+                // Otherwise it remains to be initialized in a further iteration.
                 if (NewNodes == 1)
                 {
                     NodeType::Pointer pNode;
@@ -150,18 +144,19 @@ public:
                         }
                         else
                         {
+                            // Get a pointer to the unique SELECTED node
                             NodeType::Pointer pAux = rGeometry(j);
                             std::swap(pAux, pNode);
                         }
                     }
 
+                    // Compute the non-SELECTED nodes average values
                     p_avg /= (ElemNumNodes-1);
                     v_avg /= (ElemNumNodes-1);
 
-                    // std::cout << "Structure to fluid initialization of node " << NewId << " in iteration number " << it << "." << std::endl;
-                    // Once a node is initialized it is marked as non SELECTED,
-                    // disregarding the fact that it can be shared by other elements
+                    // Once a node is initialized it is marked as non SELECTED, disregarding the fact that it can be shared by other elements
                     pNode->Set(SELECTED, false);
+
                     // Historical values initialization
                     pNode->FastGetSolutionStepValue(PRESSURE, 0) = p_avg;
                     pNode->FastGetSolutionStepValue(PRESSURE, 1) = p_avg;
@@ -184,10 +179,10 @@ public:
         {
             if (itNode->Is(SELECTED))
             {
+                // Once a node is initialized it is marked as non SELECTED
                 itNode->Set(SELECTED, false);
 
-                // std::cout << "Node " << itNode->Id() << " remained without structure to fluid initialization. Initializing it to 0." << std::endl;
-
+                // Historical values initialization to 0.0
                 itNode->FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
                 itNode->FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
                 itNode->FastGetSolutionStepValue(PRESSURE, 2) = 0.0;
@@ -198,7 +193,7 @@ public:
         }
     }
 
-    // void ExecuteFinalize() override
+
     void ExecuteFinalizeSolutionStep() override
     {
         const array_1d<double, 3> aux_zero = ZeroVector(3);
