@@ -76,7 +76,6 @@ namespace Kratos
       CauchyGreen_None,            //no strain measure supplied
       CauchyGreen_Left,            //left cauchy-green tensor
       CauchyGreen_Right,           //right cauchy-green tensor
-      CauchyGreen_InverseRight     //inverse right cauchy-green tensor
     };
 
     

@@ -121,7 +121,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_THROW_ERROR( std::logic_error, "calling the YieldCriterion base class ... illegal operation!!", "" )	
+      KRATOS_ERROR << "calling the YieldCriterion base class ... illegal operation" << std::endl;	
 
       return rYieldCondition;
 	
@@ -136,7 +136,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_THROW_ERROR( std::logic_error, "calling the YieldCriterion base class ... illegal operation!!", "" )	
+      KRATOS_ERROR << "calling the YieldCriterion base class ... illegal operation" << std::endl;	
 
       return rDeltaYieldCondition;
 	
@@ -151,7 +151,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_THROW_ERROR( std::logic_error, "calling the YieldCriterion base class ... illegal operation!!", "" )	
+      KRATOS_ERROR << "calling the YieldCriterion base class ... illegal operation" << std::endl;	
 
       return rStateFunction;
 	
@@ -166,7 +166,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_THROW_ERROR( std::logic_error, "calling the YieldCriterion base class ... illegal operation!!", "" )	
+      KRATOS_ERROR << "calling the YieldCriterion base class ... illegal operation" << std::endl;	
 
       return rDeltaStateFunction;
 	
@@ -181,7 +181,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_THROW_ERROR( std::logic_error, "calling the YieldCriterion base class ... illegal operation!!", "" )	
+      KRATOS_ERROR << "calling the YieldCriterion base class ... illegal operation" << std::endl;	
 
       return rPlasticDissipation;
 	
@@ -196,7 +196,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_THROW_ERROR( std::logic_error, "calling the YieldCriterion base class ... illegal operation!!", "" )	
+      KRATOS_ERROR << "calling the YieldCriterion base class ... illegal operation" << std::endl;	
 
       return rDeltaPlasticDissipation;
 	
@@ -211,7 +211,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_THROW_ERROR( std::logic_error, "calling the YieldCriterion base class ... illegal operation!!", "" )	
+      KRATOS_ERROR << "calling the YieldCriterion base class ... illegal operation" << std::endl;	
 
       return rPlasticDissipation;
 	
@@ -226,7 +226,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_THROW_ERROR( std::logic_error, "calling the YieldCriterion base class ... illegal operation!!", "" )	
+      KRATOS_ERROR << "calling the YieldCriterion base class ... illegal operation" << std::endl;	
 
       return rDeltaPlasticDissipation;
 	

@@ -79,7 +79,7 @@ namespace Kratos
   {
     KRATOS_TRY
 	
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in LinearElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;
 	
     KRATOS_CATCH(" ")
   }
@@ -132,7 +132,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in LinearElasticModel ... illegal operation!!", "" )    
+    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;    
     
     KRATOS_CATCH(" ")
   }
@@ -144,7 +144,7 @@ namespace Kratos
   {
     KRATOS_TRY
      
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in LinearElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;
 	
     KRATOS_CATCH(" ")
   }
@@ -157,7 +157,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in LinearElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;
       
     KRATOS_CATCH(" ")
   }
@@ -170,7 +170,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in LinearElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;
 	
     KRATOS_CATCH(" ")
   }
@@ -279,7 +279,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in LinearElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;
 
     KRATOS_CATCH(" ")
   }
@@ -292,7 +292,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in LinearElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;
     
     KRATOS_CATCH(" ")
   }   
@@ -333,7 +333,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in LinearElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;
     
     KRATOS_CATCH(" ")
   }
@@ -373,7 +373,7 @@ namespace Kratos
   {
     KRATOS_TRY
               
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in LinearElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;
       
     KRATOS_CATCH(" ")
   }
@@ -386,13 +386,13 @@ namespace Kratos
     KRATOS_TRY
       
     if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
-      KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ", "" )
+      KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value" << std::endl;
 
     const double& nu = rMaterialProperties[POISSON_RATIO];
     const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
 
     if(POISSON_RATIO.Key() == 0 || check==true)
-      KRATOS_THROW_ERROR( std::invalid_argument,"POISSON_RATIO has Key zero invalid value ", "" )
+      KRATOS_ERROR << "POISSON_RATIO has Key zero invalid value" << std::endl;
 		
     return 0;
 

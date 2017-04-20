@@ -53,7 +53,8 @@ namespace Kratos
 
     ///@name Type Definitions
     ///@{
-  
+    typedef bounded_matrix<double,3,3>    MatrixType;
+	
     ///@}
     ///@name Life Cycle
     ///@{
@@ -76,7 +77,7 @@ namespace Kratos
      * @param rF : the DeformationGradientF in 2D / 3D
      * @param rF3D : the DeformationGradientF in 3D
      */
-    static inline bounded_matrix<double,3,3>& DeformationGradientTo3D(bounded_matrix<double,3,3>& rF3D, const Matrix& rF)
+    static inline MatrixType& DeformationGradientTo3D(MatrixType& rF3D, const MatrixType& rF)
     {
       KRATOS_TRY
 	
@@ -96,7 +97,7 @@ namespace Kratos
 	}
       else if(rF.size1() != 3 && rF.size2() != 3)
 	{
-	  KRATOS_THROW_ERROR( std::invalid_argument,"Matrix Dimensions are not correct ", "" )
+	  KRATOS_ERROR << "Matrix Dimensions are not correct" << std::endl;
 	}
 
       return rF3D;
@@ -139,12 +140,48 @@ namespace Kratos
     static inline void CalculateInverseLeftCauchyGreen( const Matrix & rDeformationGradientF,
 							Matrix& rInverseLeftCauchyGreen )
     {
-      Matrix LeftCauchyGreen(3,3);
+      Matrix LeftCauchyGreen;
       CalculateLeftCauchyGreen( rDeformationGradientF, LeftCauchyGreen );
 
       //calculating the inverse
       double det_b=0;
       MathUtils<double>::InvertMatrix( LeftCauchyGreen, rInverseLeftCauchyGreen, det_b);
+    }
+
+    /**
+     * Computes the GreenLagrangeStrain E= 0.5*(C-1) given the RightCauchyGreenTensor
+     * @param rRightCauchyGreen input matrix 3x3
+     * @param rStrainVector output vector
+     * correct dimensions for the input/output is needed
+     */
+    static inline void RightCauchyToGreenLagrangeStrain( const MatrixType& rRightCauchyGreen,
+							 MatrixType& rStrainMatrix )
+    {
+      rStrainMatrix(0,0) -= 1;
+      rStrainMatrix(1,1) -= 1;
+      rStrainMatrix(2,2) -= 1;
+
+      rStrainMatrix *= 0.5;
+    }
+
+    /**
+     * Computes the AlmansiStrain e = 0.5*(1-inv(b)) given the InverseCauchyGreenTensor
+     * @param rInverseLeftCauchyGreen input matrix 3x3
+     * @param rStrainVector output vector
+     * correct dimensions for the input/output is needed
+     */
+    static inline void LeftCauchyToAlmansiStrain( const MatrixType& rLeftCauchyGreen,
+						  MatrixType& rStrainMatrix )
+    {
+      double I3 = 0;
+
+      InvertMatrix3( rLeftCauchyGreen, rStrainMatrix, I3 );
+
+      rStrainMatrix(0,0) -= 1;
+      rStrainMatrix(1,1) -= 1;
+      rStrainMatrix(2,2) -= 1;
+
+      rStrainMatrix *= -0.5;      
     }
 
     
@@ -154,7 +191,7 @@ namespace Kratos
      * @param rStrainVector output vector
      * correct dimensions for the input/output is needed
      */
-    static inline void RightCauchyToGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
+    static inline void RightCauchyToGreenLagrangeStrain( const Matrix& rRightCauchyGreen,
 							 Vector& rStrainVector )
     {
       
@@ -182,7 +219,7 @@ namespace Kratos
 	
       }
       else{
-        KRATOS_THROW_ERROR( std::invalid_argument,"Strain Vector dimensions are not correct ", "" )
+        KRATOS_ERROR << "Strain Vector dimensions are not correct" << std::endl;
       }
       
     }
@@ -193,7 +230,7 @@ namespace Kratos
      * @param rStrainVector output vector
      * correct dimensions for the input/output is needed
      */
-    static inline void CalculateGreenLagrangeStrain( const Matrix & rDeformationGradientF,
+    static inline void CalculateGreenLagrangeStrain( const Matrix& rDeformationGradientF,
 						     Vector& rStrainVector )
     {
 
@@ -217,7 +254,7 @@ namespace Kratos
      * @param rDeformationGradientF input matrix 3x3
      * @param rStrainMatrix output matrix
      */
-    static inline void CalculateGreenLagrangeStrain( const Matrix & rDeformationGradientF,
+    static inline void CalculateGreenLagrangeStrain( const Matrix& rDeformationGradientF,
 						     Matrix& rStrainMatrix )
     {
 
@@ -231,7 +268,21 @@ namespace Kratos
       
     }
 
-
+    /**
+     * Computes the AlmansiStrain e = 0.5*(1-inv(b)) given the InverseCauchyGreenTensor
+     * @param rInverseLeftCauchyGreen input matrix 3x3
+     * @param rStrainVector output vector
+     * correct dimensions for the input/output is needed
+     */
+    static inline void LeftCauchyToAlmansiStrain( const Matrix& rLeftCauchyGreen,
+						  Vector& rStrainVector )
+    {
+      double I3 = 0;
+      Matrix InverseLeftCauchyGreen;
+      MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, I3 );
+      InverseLeftCauchyToAlmansiStrain( InverseLeftCauchyGreen, rStrainVector );             
+    }
+    
     /**
      * Computes the AlmansiStrain e = 0.5*(1-inv(b)) given the InverseCauchyGreenTensor
      * @param rInverseLeftCauchyGreen input matrix 3x3
@@ -268,7 +319,7 @@ namespace Kratos
 	
       }
       else{
-        KRATOS_THROW_ERROR( std::invalid_argument,"Strain Vector dimensions are not correct ", "" )
+        KRATOS_ERROR << "Strain Vector dimensions are not correct" << std::endl;
       }
       
       // Matrix StrainMatrix(3,3);
@@ -364,7 +415,7 @@ namespace Kratos
 
 	}
 	else{
-	  KRATOS_THROW_ERROR( std::invalid_argument,"Constitutive Matrix dimensions are not correct ", "" )
+	  KRATOS_ERROR << "Constitutive Matrix dimensions are not correct" << std::endl;
 	}
         
 	return rMatrix;
@@ -379,7 +430,7 @@ namespace Kratos
      * @param rVector the given symmetric second order tensor in vector form
      * @param rMatrix the corresponding second order tensor in matrix form
      */   
-    static inline bounded_matrix<double,3,3>& VectorToSymmetricTensor(const array_1d<double,6>& rVector, bounded_matrix<double,3,3>& rMatrix)
+    static inline MatrixType& VectorToSymmetricTensor(const array_1d<double,6>& rVector, MatrixType& rMatrix)
     {
         KRATOS_TRY;
        
@@ -406,7 +457,7 @@ namespace Kratos
      * @param rVector the corresponding second order tensor in vector form
      */
     
-    static inline array_1d<double,6>& SymmetricTensorToVector(const bounded_matrix<double,3,3>& rMatrix, array_1d<double,6>& rVector)
+    static inline array_1d<double,6>& SymmetricTensorToVector(const MatrixType& rMatrix, array_1d<double,6>& rVector)
     {
         KRATOS_TRY;
         
@@ -429,7 +480,7 @@ namespace Kratos
      * @param rVector the given symmetric second order tensor in vector form
      * @param rMatrix the corresponding second order tensor in matrix form
      */   
-    static inline bounded_matrix<double,3,3>& StrainVectorToTensor(const array_1d<double,6>& rVector, bounded_matrix<double,3,3>& rMatrix)
+    static inline MatrixType& StrainVectorToTensor(const array_1d<double,6>& rVector, MatrixType& rMatrix)
     {
         KRATOS_TRY;
        
@@ -456,7 +507,7 @@ namespace Kratos
      * @param rVector the corresponding second order tensor in vector form
      */
     
-    static inline array_1d<double,6>& StrainTensorToVector(const bounded_matrix<double,3,3>& rMatrix, array_1d<double,6>& rVector)
+    static inline array_1d<double,6>& StrainTensorToVector(const MatrixType& rMatrix, array_1d<double,6>& rVector)
     {
         KRATOS_TRY;
         
@@ -478,7 +529,7 @@ namespace Kratos
      * @param rStressMatrix input matrix 3x3
      * @param rStressNorm output double
      */
-    static inline double& CalculateStressNorm( const bounded_matrix<double,3,3>& rStressMatrix,
+    static inline double& CalculateStressNorm( const MatrixType& rStressMatrix,
 					       double& rStressNorm )
     {
 
@@ -641,8 +692,8 @@ namespace Kratos
      */
     
     static void InvertMatrix3(
-        const bounded_matrix<double,3,3>& InputMatrix,
-        bounded_matrix<double,3,3>& InvertedMatrix,
+        const MatrixType& InputMatrix,
+        MatrixType& InvertedMatrix,
         double& InputMatrixDet
         ) 
     {

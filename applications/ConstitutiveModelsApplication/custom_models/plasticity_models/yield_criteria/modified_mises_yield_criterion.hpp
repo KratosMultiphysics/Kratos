@@ -69,23 +69,29 @@ namespace Kratos
     ///@{
 
     /// Default constructor.
-    ModifiedMisesYieldCriterion();
+    ModifiedMisesYieldCriterion() : BaseType() {}
 
     /// Constructor.
-    ModifiedMisesYieldCriterion(HardeningLawPointer pHardeningLaw);
+    ModifiedMisesYieldCriterion(HardeningLawPointer pHardeningLaw) : BaseType(pHardeningLaw) {}
     
     /// Copy constructor.
-    ModifiedMisesYieldCriterion(ModifiedMisesYieldCriterion const& rOther);
+    ModifiedMisesYieldCriterion(ModifiedMisesYieldCriterion const& rOther) : BaseType(rOther) {}
 
     /// Assignment operator.
-    ModifiedMisesYieldCriterion& operator=(ModifiedMisesYieldCriterion const& rOther);
-
+    ModifiedMisesYieldCriterion& operator=(ModifiedMisesYieldCriterion const& rOther)
+    {
+      BaseType::operator=(rOther);
+      return *this;
+    }
+    
     /// Clone.
-    virtual BaseTypePointer Clone() const;
-
+    virtual BaseTypePointer Clone() const
+    {
+      return ( ModifiedMisesYieldCriterion::Pointer(new ModifiedMisesYieldCriterion(*this)) );
+    }
 
     /// Destructor.
-    virtual ~ModifiedMisesYieldCriterion();
+    virtual ~ModifiedMisesYieldCriterion() {}
 
 
     ///@}
@@ -101,20 +107,83 @@ namespace Kratos
      * Calculate Yield Condition
      */
 
-    double& CalculateYieldCondition(const PlasticDataType& rVariables, double & rYieldCondition) override;
+    double& CalculateYieldCondition(const PlasticDataType& rVariables, double & rYieldCondition) override
+    {
+      KRATOS_TRY
 
+      const ModelDataType& rModelData = rVariables.GetModelData();
+
+      // Compute I1
+      const MatrixType& rStrainMatrix = rModelData.GetStrainMatrix();
+      double I1 = 0.0;
+    
+      for(unsigned int i=0; i<3; i++)
+	{
+	  I1 += rStrainMatrix(i,i);
+	}
+    
+      // Compute J2
+      MatrixType DeviatoricStrain;
+      noalias(DeviatoricStrain) = rStrainMatrix;
+    
+      for(unsigned int i=0; i<3; i++)
+	{
+	  DeviatoricStrain(i,i) -= I1/3.0;
+	}
+    
+      MatrixType Auxiliar;
+      noalias(Auxiliar) = prod(DeviatoricStrain,DeviatoricStrain);
+      double J2 = 0.0;
+    
+      for(unsigned int i=0; i<3; i++)
+	{
+	  J2 += Auxiliar(i,i);
+	}
+    
+      J2 *= 0.5;
+    
+      // Compute Equivalent Strain (rYieldCondition)
+      const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
+      const double& StrengthRatio = rMaterialProperties[STRENGTH_RATIO];
+      const double& PoissonRatio  = rMaterialProperties[POISSON_RATIO];
+        
+      rYieldCondition  =  I1*(StrengthRatio-1.0)/(2.0*StrengthRatio*(1.0-2.0*PoissonRatio));
+      rYieldCondition +=  sqrt( I1*I1*(StrengthRatio-1.0)*(StrengthRatio-1.0)/((1.0-2.0*PoissonRatio)*(1.0-2.0*PoissonRatio)) + J2*12.0*StrengthRatio/((1.0+PoissonRatio)*(1.0+PoissonRatio)) )/(2.0*StrengthRatio);
+    
+      return rYieldCondition;
+
+      KRATOS_CATCH(" ")
+
+    }
     /**
      * Calculate State Function
      */
 
-    double& CalculateStateFunction(const PlasticDataType& rVariables, double & rStateFunction) override;
+    double& CalculateStateFunction(const PlasticDataType& rVariables, double & rStateFunction) override
+    {    
+      KRATOS_TRY
+      
+      rStateFunction = this->mpHardeningLaw->CalculateHardening(rVariables,rStateFunction);
+    
+      return rStateFunction;
 
+      KRATOS_CATCH(" ")
+    }
+    
     /**
      * Calculate State Function derivative
      */
 
-    double& CalculateDeltaStateFunction(const PlasticDataType& rVariables, double & rDeltaStateFunction) override;
-    
+    double& CalculateDeltaStateFunction(const PlasticDataType& rVariables, double & rDeltaStateFunction) override
+    {
+      KRATOS_TRY
+          
+      rDeltaStateFunction = this->mpHardeningLaw->CalculateDeltaHardening(rVariables,rDeltaStateFunction);
+      
+      return rDeltaStateFunction;
+      
+      KRATOS_CATCH(" ")
+    }
  
     ///@}
     ///@name Access
@@ -260,151 +329,6 @@ namespace Kratos
   ///@}
 
   ///@} addtogroup block
-
-  //****************************DEFAULT CONSTRUCTOR*************************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  ModifiedMisesYieldCriterion<THardeningLaw>::ModifiedMisesYieldCriterion()
-    :BaseType()
-  {
-   
-  }
-
-  //*******************************CONSTRUCTOR******************************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  ModifiedMisesYieldCriterion<THardeningLaw>::ModifiedMisesYieldCriterion(HardeningLawPointer pHardeningLaw)
-    :BaseType(pHardeningLaw)
-  {
-   
-  }
-  
-  //*******************************ASSIGMENT OPERATOR***********************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  ModifiedMisesYieldCriterion<THardeningLaw>& ModifiedMisesYieldCriterion<THardeningLaw>::operator=(ModifiedMisesYieldCriterion const& rOther)
-  {
-    BaseType::operator=(rOther);
-    return *this;
-  }
-
-  //*******************************COPY CONSTRUCTOR*************************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  ModifiedMisesYieldCriterion<THardeningLaw>::ModifiedMisesYieldCriterion(ModifiedMisesYieldCriterion const& rOther)
-    :BaseType(rOther)
-  {
-
-  }
-
-  //********************************CLONE***********************************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  typename YieldCriterion<THardeningLaw>::Pointer ModifiedMisesYieldCriterion<THardeningLaw>::Clone() const
-  {
-    return ( ModifiedMisesYieldCriterion::Pointer(new ModifiedMisesYieldCriterion(*this)) );
-  }
-
-  //********************************DESTRUCTOR******************************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  ModifiedMisesYieldCriterion<THardeningLaw>::~ModifiedMisesYieldCriterion()
-  {
-  }
-
-  /// Operations.
-
-
-  //************************** CALCULATE EQUIVALENT STRAIN *****************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  double& ModifiedMisesYieldCriterion<THardeningLaw>::CalculateYieldCondition(const PlasticDataType& rVariables, double& rYieldCondition)
-  {
-    KRATOS_TRY
-
-    const ModelDataType& rModelData = rVariables.GetModelData();
-
-    // Compute I1
-    const MatrixType& rStrainMatrix = rModelData.GetStrainMatrix();
-    double I1 = 0.0;
-    
-    for(unsigned int i=0; i<3; i++)
-      {
-        I1 += rStrainMatrix(i,i);
-      }
-    
-    // Compute J2
-    MatrixType DeviatoricStrain;
-    noalias(DeviatoricStrain) = rStrainMatrix;
-    
-    for(unsigned int i=0; i<3; i++)
-      {
-        DeviatoricStrain(i,i) -= I1/3.0;
-      }
-    
-    MatrixType Auxiliar;
-    noalias(Auxiliar) = prod(DeviatoricStrain,DeviatoricStrain);
-    double J2 = 0.0;
-    
-    for(unsigned int i=0; i<3; i++)
-      {
-        J2 += Auxiliar(i,i);
-      }
-    
-    J2 *= 0.5;
-    
-    // Compute Equivalent Strain (rYieldCondition)
-    const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
-    const double& StrengthRatio = rMaterialProperties[STRENGTH_RATIO];
-    const double& PoissonRatio  = rMaterialProperties[POISSON_RATIO];
-        
-    rYieldCondition  =  I1*(StrengthRatio-1.0)/(2.0*StrengthRatio*(1.0-2.0*PoissonRatio));
-    rYieldCondition +=  sqrt( I1*I1*(StrengthRatio-1.0)*(StrengthRatio-1.0)/((1.0-2.0*PoissonRatio)*(1.0-2.0*PoissonRatio)) + J2*12.0*StrengthRatio/((1.0+PoissonRatio)*(1.0+PoissonRatio)) )/(2.0*StrengthRatio);
-    
-    return rYieldCondition;
-
-    KRATOS_CATCH(" ")
-
-  }
-
-
-  //***************************CALCULATE DAMAGE PARAMETER ******************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  double& ModifiedMisesYieldCriterion<THardeningLaw>::CalculateStateFunction(const PlasticDataType& rVariables, double& rStateFunction)
-  {    
-    KRATOS_TRY
-      
-    rStateFunction = this->mpHardeningLaw->CalculateHardening(rVariables,rStateFunction);
-    
-    return rStateFunction;
-
-    KRATOS_CATCH(" ")
-  }
-
-
-  //***************************CALCULATE DAMAGE DERIVATIVE *****************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  double& ModifiedMisesYieldCriterion<THardeningLaw>::CalculateDeltaStateFunction(const PlasticDataType& rVariables, double& rDeltaStateFunction)
-  {
-    KRATOS_TRY
-          
-    rDeltaStateFunction = this->mpHardeningLaw->CalculateDeltaHardening(rVariables,rDeltaStateFunction);
-    
-    return rDeltaStateFunction;
-
-    KRATOS_CATCH(" ")
-  }
   
 }  // namespace Kratos.
 

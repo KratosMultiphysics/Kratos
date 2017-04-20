@@ -109,7 +109,7 @@ namespace Kratos
      */
     virtual void CalculateStrainEnergy(ModelDataType& rValues, double& rDensityFunction)
     {
-      KRATOS_THROW_ERROR( std::logic_error, "calling ElasticityModel base class ..", "" )
+      KRATOS_ERROR << "calling ElasticityModel base class " << std::endl;
     }
     
       
@@ -118,17 +118,17 @@ namespace Kratos
      */    
     virtual void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix)
     {
-      KRATOS_THROW_ERROR( std::logic_error, "calling ElasticityModel base class ..", "" )
+      KRATOS_ERROR << "calling ElasticityModel base class " << std::endl;
     }
 
     virtual void CalculateIsochoricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix)
     {
-      KRATOS_THROW_ERROR( std::logic_error, "calling ElasticityModel base class ..", "" )
+      KRATOS_ERROR << "calling ElasticityModel base class " << std::endl;
     }
     
     virtual void CalculateVolumetricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix)
     {
-      KRATOS_THROW_ERROR( std::logic_error, "calling ElasticityModel base class ..", "" )
+      KRATOS_ERROR << "calling ElasticityModel base class " << std::endl;
     }
 
     
@@ -137,17 +137,17 @@ namespace Kratos
      */
     virtual void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutive) 
     {
-      KRATOS_THROW_ERROR( std::logic_error, "calling ElasticityModel base class ..", "" )
+      KRATOS_ERROR << "calling ElasticityModel base class " << std::endl;
     }
     
     virtual void CalculateIsochoricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutive) 
     {
-      KRATOS_THROW_ERROR( std::logic_error, "calling ElasticityModel base class ..", "" )
+      KRATOS_ERROR << "calling ElasticityModel base class " << std::endl;
     }
     
     virtual void CalculateVolumetricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutive) 
     {
-      KRATOS_THROW_ERROR( std::logic_error, "calling ElasticityModel base class ..", "" )
+      KRATOS_ERROR << "calling ElasticityModel base class " << std::endl;
     }
 
     
@@ -156,17 +156,17 @@ namespace Kratos
      */
     virtual void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutive)
     {
-      KRATOS_THROW_ERROR( std::logic_error, "calling ElasticityModel base class ..", "" )
+      KRATOS_ERROR << "calling ElasticityModel base class " << std::endl;
     }
     
     virtual void CalculateIsochoricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutive)
     {
-      KRATOS_THROW_ERROR( std::logic_error, "calling ElasticityModel base class ..", "" )
+      KRATOS_ERROR << "calling ElasticityModel base class " << std::endl;
     }
     
     virtual void CalculateVolumetricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutive)
     {
-      KRATOS_THROW_ERROR( std::logic_error, "calling ElasticityModel base class ..", "" )
+      KRATOS_ERROR << "calling ElasticityModel base class " << std::endl;
     }
 
     
@@ -175,7 +175,7 @@ namespace Kratos
      */    
     virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo)
     {
-      KRATOS_THROW_ERROR( std::logic_error, "calling ElasticityModel base class ..", "" )
+      KRATOS_ERROR << "calling ElasticityModel base class " << std::endl;
       return 0;
     }
     

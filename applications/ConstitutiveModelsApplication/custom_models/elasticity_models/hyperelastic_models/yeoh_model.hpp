@@ -112,12 +112,12 @@ namespace Kratos
       HyperElasticModel::Check(rMaterialProperties,rCurrentProcessInfo);
 	
       if( rMaterialProperties[HYPERELASTIC_MODEL_PARAMETERS].size() != 3 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"HYPERELASTIC_MODEL_PARAMETERS has an invalid size ", "" )
+        KRATOS_ERROR << "HYPERELASTIC_MODEL_PARAMETERS has an invalid size" << std::endl;
 
       if(   rMaterialProperties[HYPERELASTIC_MODEL_PARAMETERS][0] <= 0.00
 	 || rMaterialProperties[HYPERELASTIC_MODEL_PARAMETERS][1] >= 0.00
 	 || rMaterialProperties[HYPERELASTIC_MODEL_PARAMETERS][2] <= 0.00 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"HYPERELASTIC_MODEL_PARAMETERS has an invalid value ", "" )
+        KRATOS_ERROR << "HYPERELASTIC_MODEL_PARAMETERS has an invalid value" << std::endl;
 	  
       KRATOS_CATCH(" ")	  
     }

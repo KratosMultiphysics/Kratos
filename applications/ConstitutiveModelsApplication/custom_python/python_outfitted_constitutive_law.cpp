@@ -378,7 +378,7 @@ Matrix& PythonOutfittedConstitutiveLaw::Transform2DTo3D (Matrix& rMatrix)
     else if(rMatrix.size1() != 3 && rMatrix.size2() != 3)
     {
 
-        KRATOS_THROW_ERROR( std::invalid_argument,"Matrix Dimensions are not correct ", "" )
+        KRATOS_ERROR << "Matrix Dimensions are not correct" << std::endl;
 
     }
 
