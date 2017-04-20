@@ -233,13 +233,13 @@ public:
     template<class TXVariableType, class TYVariableType>
     TableType& GetTable(const TXVariableType& XVariable, const TYVariableType& YVariable)
     {
-		return mTables[Key(XVariable, YVariable)];
+		return mTables[Key(XVariable.Key(), YVariable.Key())];
     }
 
     template<class TXVariableType, class TYVariableType>
     TableType const& GetTable(const TXVariableType& XVariable, const TYVariableType& YVariable) const
     {
-		return mTables[Key(XVariable.Key(), YVariable.Key())];
+                return mTables.at(Key(XVariable.Key(), YVariable.Key()));
     }
 
     template<class TXVariableType, class TYVariableType>
@@ -248,13 +248,13 @@ public:
 		mTables[Key(XVariable.Key(), YVariable.Key())] = rThisTable;
     }
 
-	int64_t Key(std::size_t XKey, std::size_t YKey) const
-	{
+    int64_t Key(std::size_t XKey, std::size_t YKey) const
+    {
 		int64_t result_key = XKey;
 		result_key = result_key << 32;
 		result_key |= YKey; // I know that the key is less than 2^32 so I don't need zeroing the upper part
 		return result_key;
-	}
+    }
 
     ///@}
     ///@name Access
