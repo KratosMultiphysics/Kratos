@@ -30,7 +30,7 @@
 #include "includes/define.h"
 #include "containers/array_1d.h"
 #include "includes/serializer.h"
-#include "includes/kratos_components.h"
+// #include "includes/kratos_components.h"
 
 
 namespace Kratos
@@ -463,7 +463,7 @@ private:
 
 ///@}
 
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Point<3,double> >;
+// template class KRATOS_API(KRATOS_CORE) KratosComponents<Point<3,double> >;
 
 ///@name Type Definitions
 ///@{

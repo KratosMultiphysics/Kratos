@@ -1212,6 +1212,7 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 ///@}
 
 template class KRATOS_API(KRATOS_CORE) KratosComponents<Element >;
+// static typename KratosComponents<Element>::ComponentsContainerType KratosComponents<Element>::msComponents;
 
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Element const& ThisComponent);
 

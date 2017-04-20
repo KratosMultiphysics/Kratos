@@ -22,6 +22,7 @@
 #include "containers/variable.h"
 #include "containers/variable_component.h"
 #include "containers/vector_component_adaptor.h"
+#include "includes/kratos_components.h"
 
 
 namespace Kratos

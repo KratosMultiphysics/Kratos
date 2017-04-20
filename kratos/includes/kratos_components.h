@@ -29,6 +29,7 @@
 #include "containers/vector_component_adaptor.h"
 #include "containers/flags.h"
 #include "utilities/quaternion.h"
+#include "geometries/point.h"
 
 namespace Kratos
 {
@@ -82,7 +83,7 @@ public:
 
     static void Add(std::string const& Name, TComponentType const& ThisComponent)
     {
-        msComponents.insert(typename ComponentsContainerType::value_type(Name , &ThisComponent));
+        KratosComponents<TComponentType>::msComponents.insert(typename ComponentsContainerType::value_type(Name , &ThisComponent));
     }
 
 
@@ -95,20 +96,20 @@ public:
 
     static TComponentType const& Get(std::string const& Name)
     {
-        typename ComponentsContainerType::iterator i =  msComponents.find(Name);
-        if(i == msComponents.end())
+        typename KratosComponents<TComponentType>::ComponentsContainerType::iterator i =  msComponents.find(Name);
+        if(i == KratosComponents<TComponentType>::msComponents.end())
           KRATOS_THROW_ERROR(std::invalid_argument, "The component is not registered!", Name); 
         return *(i->second);
     }
 
     static ComponentsContainerType & GetComponents()
     {
-        return msComponents;
+        return KratosComponents<TComponentType>::msComponents;
     }
 
     static ComponentsContainerType * pGetComponents()
     {
-        return &msComponents;
+        return &KratosComponents<TComponentType>::msComponents;
     }
 
     static void Register()
@@ -453,22 +454,84 @@ private:
 }; // Class KratosComponents
 
 
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<bool> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<int> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<unsigned int> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<double> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 3> > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Quaternion<double> > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Vector> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Matrix> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<std::string> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Flags> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Flags>;
+
 
 #ifdef KratosCore_EXPORTS
-template<class TComponentType>
-typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::msComponents;
+    template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<bool> >;
+    template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<int> >;
+    template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<unsigned int> >;
+    template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<double> >;
+    template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 3> > >;
+    template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Quaternion<double> > >;
+    template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Vector> >;
+    template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Matrix> >;
+    template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<std::string> >;
+    template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >;
+    template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Flags> >;
+    template class KRATOS_API(KRATOS_CORE) KratosComponents<Flags>;
+    template class KRATOS_API(KRATOS_CORE) KratosComponents<Point<3,double> >;
+
+    template<class TComponentType>
+    typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::msComponents;
+    
+//     template typename KratosComponents<Variable<bool> >::ComponentsContainerType KratosComponents<Variable<bool> >::msComponents;
+//     template typename KratosComponents<Variable<int> >::ComponentsContainerType KratosComponents<Variable<int> >::msComponents;
+//     template typename KratosComponents<Variable<unsigned int> >::ComponentsContainerType KratosComponents<Variable<unsigned int> >::msComponents;
+//     template typename KratosComponents<Variable<double> >::ComponentsContainerType KratosComponents<Variable<double> >::msComponents;
+//     template typename KratosComponents<Variable<array_1d<double, 3> > >::ComponentsContainerType KratosComponents<Variable<array_1d<double, 3> > >::msComponents;
+//     template typename KratosComponents<Variable<Quaternion<double> > >::ComponentsContainerType KratosComponents<Variable<Quaternion<double> > >::msComponents;
+//     template typenaKratosCore_EXPORTSme KratosComponents<Variable<Vector> >::ComponentsContainerType KratosComponents<Variable<Vector> >::msComponents;
+//     template typename KratosComponents<Variable<Matrix> >::ComponentsContainerType KratosComponents<Variable<Matrix> >::msComponents;
+//     template typename KratosComponents<Variable<std::string> >::ComponentsContainerType KratosComponents<Variable<std::string> >::msComponents;
+//     template typename KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::ComponentsContainerType  KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::msComponents;
+//     template typename KratosComponents<Variable<Flags> >::ComponentsContainerType KratosComponents<Variable<Flags> >::msComponents;
+//     template typename KratosComponents<Flags >::ComponentsContainerType KratosComponents<Flags >::msComponents;
+#else
+//     extern template< class TComponentType> typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::msComponents;
+    
+    extern template class  KratosComponents<Variable<bool> >;
+    extern template class  KratosComponents<Variable<int> >;
+    extern template class  KratosComponents<Variable<unsigned int> >;
+    extern template class  KratosComponents<Variable<double> >;
+    extern template class  KratosComponents<Variable<array_1d<double, 3> > >;
+    extern template class  KratosComponents<Variable<Quaternion<double> > >;
+    extern template class  KratosComponents<Variable<Vector> >;
+    extern template class  KratosComponents<Variable<Matrix> >;
+    extern template class  KratosComponents<Variable<std::string> >;
+    extern template class  KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >;
+    extern template class  KratosComponents<Variable<Flags> >;
+    extern template class  KratosComponents<Flags>;
+    extern template class  KratosComponents<Point<3,double> >;
+    
+    class Element;
+    extern template class  KratosComponents<Element>;
+    
+    class Condition;
+    extern template class  KratosComponents<Condition>;
+    
+    class ConstitutiveLaw;
+    extern template class  KratosComponents<ConstitutiveLaw>;
+    
+    class PeriodicCondition;
+    extern template class  KratosComponents<PeriodicCondition>;
+    
+//     
+//     template<std::size_t TDimension, class TDataType = double> class Point;
+//     extern template class  KratosComponents<Point<2,double> >;
+//     extern template class  KratosComponents<Point<3,double> >;
+    
+    //extern template typename KratosComponents<Variable<bool> >::ComponentsContainerType KratosComponents<Variable<bool> >::msComponents;
+//     extern KratosComponents<Variable<int> >::msComponents;
+//     extern KratosComponents<Variable<unsigned int> >::msComponents;
+//     extern KratosComponents<Variable<double> >::msComponents;
+//     extern KratosComponents<Variable<array_1d<double, 3> > >::msComponents;
+//     extern KratosComponents<Variable<Quaternion<double> > >::msComponents;
+//     extern KratosComponents<Variable<Vector> >::msComponents;
+//     extern KratosComponents<Variable<Matrix> >::msComponents;
+//     extern KratosComponents<Variable<std::string> >::msComponents;
+//     extern KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::msComponents;
+//     extern KratosComponents<Variable<Flags> >::msComponents;
+//     extern KratosComponents<Flags>::msComponents;
 #endif
 
 ///@name Input and output
