@@ -476,7 +476,7 @@ class Solution:
                     else:
                         self.alg.ApplyForwardCoupling((time_final_DEM_substepping - time_dem) / Dt)
 
-                        if self.alg.pp.CFD_DEM.IntegrationScheme == 'Hybrid_Bashforth':
+                        if self.alg.pp.CFD_DEM.IntegrationScheme in {'Hybrid_Bashforth', 'TerminalVelocityScheme'}:
                             self.alg.solver.Solve() # only advance in space
                             self.alg.ApplyForwardCouplingOfVelocityOnly(time_dem)
                         else:

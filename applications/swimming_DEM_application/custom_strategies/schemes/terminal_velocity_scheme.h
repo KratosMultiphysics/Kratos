@@ -12,7 +12,7 @@
 
 // Project includes
 
-#include "../DEM_application/custom_strategies/schemes/symplectic_euler_scheme.h"
+#include "hybrid_bashforth_scheme.h"
 
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
@@ -20,7 +20,7 @@
 
 namespace Kratos {
 
-    class TerminalVelocityScheme : public SymplecticEulerScheme
+    class TerminalVelocityScheme : public HybridBashforthScheme
     {
     public:
 
