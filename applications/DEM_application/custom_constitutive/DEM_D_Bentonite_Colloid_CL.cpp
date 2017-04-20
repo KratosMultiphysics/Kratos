@@ -91,16 +91,23 @@ namespace Kratos {
                                                   double& cohesive_force,
                                                   SphericParticle* element1,
                                                   SphericParticle* element2,
-                                                  bool& sliding, double LocalCoordSystem[3][3]){
+                                                  bool& sliding,
+                                                  double LocalCoordSystem[3][3]){
 
         //InitializeContact(element1, element2, indentation);
 //G
         //LocalElasticContactForce[2]  = CalculateNormalForce(indentation);
+        if (element2->Is(BLOCKED)){ // if contacting an injector, just take its injecting force as the contact force
+            const array_1d<double, 3>& global_force = element2->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, global_force, LocalElasticContactForce);
+        }
 
-        double distance = element1->GetInteractionRadius() + element2->GetInteractionRadius() - indentation;
-        double cation_concentration = element1->GetGeometry()[0].FastGetSolutionStepValue(CATION_CONCENTRATION);
-        double smoother = 1.0;//std::max(1.0, 9.0 * indentation / (element1->GetInteractionRadius() + element2->GetInteractionRadius()));
-        LocalElasticContactForce[2] = smoother * CalculateNormalForce(distance, cation_concentration);
+        else {
+            const double distance = element1->GetInteractionRadius() + element2->GetInteractionRadius() - indentation;
+            const double cation_concentration = element1->GetGeometry()[0].FastGetSolutionStepValue(CATION_CONCENTRATION);
+            const double smoother = 1.0;//std::max(1.0, 9.0 * indentation / (element1->GetInteractionRadius() + element2->GetInteractionRadius()));
+            LocalElasticContactForce[2] = smoother * CalculateNormalForce(distance, cation_concentration);
+        }
 //Z
         cohesive_force              = CalculateCohesiveNormalForce(element1, element2, indentation);
         CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, element1, element2);
@@ -118,9 +125,9 @@ namespace Kratos {
     }
 
     void DEM_D_Bentonite_Colloid::CalculateViscoDampingForce(double LocalRelVel[3],
-                                                                double ViscoDampingLocalContactForce[3],
-                                                                SphericParticle* const element1,
-                                                                SphericParticle* const element2) {
+                                                             double ViscoDampingLocalContactForce[3],
+                                                             SphericParticle* const element1,
+                                                             SphericParticle* const element2) {
 
 //        const double my_mass    = element1->GetMass();
 //        const double other_mass = element2->GetMass();
@@ -168,21 +175,23 @@ namespace Kratos {
     }
 
     void DEM_D_Bentonite_Colloid::CalculateForcesWithFEM(ProcessInfo& r_process_info,
-                                                              const double OldLocalContactForce[3],
-                                                              double LocalElasticContactForce[3],
-                                                              double LocalDeltDisp[3],
-                                                              double LocalRelVel[3],
-                                                              double indentation,
-                                                              double previous_indentation,
-                                                              double ViscoDampingLocalContactForce[3],
-                                                              double& cohesive_force,
-                                                              SphericParticle* const element,
-                                                              DEMWall* const wall,
-                                                              bool& sliding) {
+                                                         const double OldLocalContactForce[3],
+                                                         double LocalElasticContactForce[3],
+                                                         double LocalDeltDisp[3],
+                                                         double LocalRelVel[3],
+                                                         double indentation,
+                                                         double previous_indentation,
+                                                         double ViscoDampingLocalContactForce[3],
+                                                         double& cohesive_force,
+                                                         SphericParticle* const element,
+                                                         DEMWall* const wall,
+                                                         bool& sliding) {
+
         //InitializeContactWithFEM(element, wall, indentation);
-        double distance = element->GetInteractionRadius() - indentation;
-        double cation_concentration = element->GetGeometry()[0].FastGetSolutionStepValue(CATION_CONCENTRATION);
-        double smoother = 1.0;//std::max(1.0, 9.0 * indentation / (element1->GetInteractionRadius() + element2->GetInteractionRadius()));
+        const double distance = element->GetInteractionRadius() - indentation;
+        const double cation_concentration = element->GetGeometry()[0].FastGetSolutionStepValue(CATION_CONCENTRATION);
+
+        const double smoother = 1.0;//std::max(1.0, 9.0 * indentation / (element1->GetInteractionRadius() + element2->GetInteractionRadius()));
         LocalElasticContactForce[2] = smoother * CalculateNormalForce(distance, cation_concentration);
         //LocalElasticContactForce[2]  = smoother * (CalculateVanDerWaalsForce(distance) - 0.0000001 * CalculateVanDerWaalsForce(pow(distance, 1.2))) ;
 
@@ -191,15 +200,15 @@ namespace Kratos {
 
     template<class NeighbourClassType>
     void DEM_D_Bentonite_Colloid::CalculateTangentialForceWithNeighbour(const double normal_contact_force,
-                                                                      const double OldLocalContactForce[3],
-                                                                      double LocalElasticContactForce[3],
-                                                                      double ViscoDampingLocalContactForce[3],
-                                                                      const double LocalDeltDisp[3],
-                                                                      bool& sliding,
-                                                                      SphericParticle* const element,
-                                                                      NeighbourClassType* const neighbour,
-                                                                      double indentation,
-                                                                      double previous_indentation) {
+                                                                          const double OldLocalContactForce[3],
+                                                                          double LocalElasticContactForce[3],
+                                                                          double ViscoDampingLocalContactForce[3],
+                                                                          const double LocalDeltDisp[3],
+                                                                          bool& sliding,
+                                                                          SphericParticle* const element,
+                                                                          NeighbourClassType* const neighbour,
+                                                                          double indentation,
+                                                                          double previous_indentation) {
 
         LocalElasticContactForce[0] = 0.0;
         LocalElasticContactForce[1] = 0.0;
@@ -208,9 +217,9 @@ namespace Kratos {
     }
 
     void DEM_D_Bentonite_Colloid::CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
-                                                                double ViscoDampingLocalContactForce[3],
-                                                                SphericParticle* const element,
-                                                                DEMWall* const wall) {
+                                                                    double ViscoDampingLocalContactForce[3],
+                                                                    SphericParticle* const element,
+                                                                    DEMWall* const wall) {
 
         const double my_mass    = element->GetMass();
         const double gamma = element->GetProperties()[DAMPING_GAMMA];
@@ -225,16 +234,14 @@ namespace Kratos {
 
     double DEM_D_Bentonite_Colloid::CalculateNormalForce(const double distance, const double cation_concentration){
 
-        double F_vdW = CalculateVanDerWaalsForce(distance);
-        double F_DDL = CalculateDiffuseDoubleLayerForce(distance, cation_concentration);
-
+        const double F_vdW = CalculateVanDerWaalsForce(distance);
+        const double F_DDL = CalculateDiffuseDoubleLayerForce(distance, cation_concentration);
         return F_vdW + F_DDL;
     }
 
     double DEM_D_Bentonite_Colloid::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation){
         return 0.0;
     }
-
 
     double DEM_D_Bentonite_Colloid::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation){
         return 0.0;

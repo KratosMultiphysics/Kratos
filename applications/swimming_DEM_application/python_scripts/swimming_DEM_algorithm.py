@@ -232,6 +232,11 @@ class Algorithm(BaseAlgorithm):
 
             self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.creator_destructor)
 
+    def SetAnalyticFaceWatcher(self):
+        from analytic_tools import analytic_data_procedures
+        self.watcher = AnalyticFaceWatcher()
+        self.watcher_analyser = analytic_data_procedures.WatcherAnalyzer(analytic_face_watcher = self.watcher, path = self.main_path)
+
     def SetSolverStrategy(self):
         import swimming_sphere_strategy as SolverStrategy
         return SolverStrategy

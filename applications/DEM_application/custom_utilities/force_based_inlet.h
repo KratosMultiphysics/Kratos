@@ -25,6 +25,7 @@ namespace Kratos {
     private:
         array_1d<double, 3> mInjectionForce;
         void FixInjectionConditions(Element* p_element) override;
+        void FixInjectorConditions(Element* p_element) override;
         void RemoveInjectionConditions(Element &element) override;
         array_1d<double, 3> GetInjectionForce();
     };

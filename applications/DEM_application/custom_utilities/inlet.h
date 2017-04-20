@@ -54,6 +54,7 @@ namespace Kratos {
         virtual void CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator);
 
     private:
+        virtual void FixInjectorConditions(Element* p_element);
         virtual void FixInjectionConditions(Element* p_element);
         virtual void RemoveInjectionConditions(Element &element);
         Vector mPartialParticleToInsert; //array of doubles, must be resized in the constructor to the number of meshes

@@ -4,7 +4,7 @@ import numpy as np
 import os
 
 class WatcherAnalyzer:
-    def __init__(self, analytic_face_watcher, path, do_clear_data = True):
+    def __init__(self, analytic_face_watcher, path, do_clear_data = False):
         self.face_watcher = analytic_face_watcher
         self.dtype = np.float64
         self.do_clear_data = do_clear_data
@@ -91,4 +91,12 @@ class WatcherAnalyzer:
         plt.ylabel('accumulated mass throughput')
         plt.plot(times, mass_flux)
         plt.savefig(self.folder_path + '/mass_throughput.svg')
-        plt.show()
+
+    def MakeFluxOfNumberOfParticlesPlot(self):
+        self.MakeReading()
+        times = self.GetTimes()
+        flux = self.GetNumberOfParticlesFlux()
+        plt.xlabel('time')
+        plt.ylabel('accumulated number of particles through surface')
+        plt.plot(times, flux)
+        plt.savefig(self.folder_path + '/throughput.svg')

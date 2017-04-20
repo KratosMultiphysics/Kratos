@@ -759,8 +759,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
         DEMWall* wall = rNeighbours[i];
         if(wall == NULL) continue;
         if(wall->IsPhantom()){
-            int side_sign = wall->CheckSide(this);
-            (void)side_sign;
+            wall->CheckSide(this);
             continue;
         }
 

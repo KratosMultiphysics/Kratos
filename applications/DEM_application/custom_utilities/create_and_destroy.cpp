@@ -118,10 +118,10 @@ namespace Kratos {
             do {
                 x = 2.0 * rand() / RAND_MAX - 1;
                 y = 2.0 * rand() / RAND_MAX - 1;
-                r = x * x + y*y;
+                r = x*x + y*y;
             } while (r == 0.0 || r > 1.0);
 
-            double d = sqrt(-2.0 * log(r) / r);
+            double d = sqrt(- 2.0 * log(r) / r);
             return_value = x * d * stddev + mean;
 
         } while (return_value < min_radius || return_value > max_radius);

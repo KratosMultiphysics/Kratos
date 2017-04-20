@@ -126,7 +126,7 @@ namespace Kratos {
             Properties::Pointer p_properties = mInletModelPart.pGetProperties(mp[PROPERTIES_ID]);
             
             for (int i = 0; i < mesh_size; i++) {                
-                /*Element* p_element = */creator.ElementCreatorWithPhysicalParameters(r_modelpart,
+                Element* p_element = creator.ElementCreatorWithPhysicalParameters(r_modelpart,
                                                              max_Id+1,
                                                              all_nodes[i],
                                                              dummy_element_pointer,
@@ -138,6 +138,8 @@ namespace Kratos {
                                                              mBallsModelPartHasRotation,
                                                              true,
                                                              smp_it->Elements());
+
+                FixInjectorConditions(p_element);
                 max_Id++;
                 /*if(mStrategyForContinuum){
                     SphericContinuumParticle* p_continuum_spheric_particle = dynamic_cast<SphericContinuumParticle*>(p_element);
@@ -207,6 +209,8 @@ namespace Kratos {
         }         
         mFirstTime = false;        
     } //Dettach
+
+    void DEM_Inlet::FixInjectorConditions(Element* p_element){}
 
     void DEM_Inlet::FixInjectionConditions(Element* p_element)
     {
