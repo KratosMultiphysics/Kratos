@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
@@ -106,10 +106,4 @@ void AddKratosComponent(std::string const& Name, ConstitutiveLaw const& ThisComp
     KratosComponents<ConstitutiveLaw>::Add(Name, ThisComponent);
 }
 
-// Specialize array of compenents for VariableData
-KratosComponents<VariableData>::ComponentsContainerType KratosComponents<VariableData>::msComponents;
-
 }  // namespace Kratos.
-
-
-

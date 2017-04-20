@@ -63,7 +63,7 @@ public:
 
 //       KratosComponents(std::string const& Name, TComponentType const& ThisComponent)
 //       {
-//  	msComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
+//  	GetComponentsInstance().insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
 //       }
 
     /// Destructor.
@@ -83,33 +83,33 @@ public:
 
     static void Add(std::string const& Name, TComponentType const& ThisComponent)
     {
-        KratosComponents<TComponentType>::msComponents.insert(typename ComponentsContainerType::value_type(Name , &ThisComponent));
+        KratosComponents<TComponentType>::GetComponentsInstance().insert(typename ComponentsContainerType::value_type(Name , &ThisComponent));
     }
 
 
 //     static void Add(std::string const& Name, TComponentType const& ThisComponent, ComponentsContainerType& ThisComponents)
 //     {
     ////ThisComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
-    //msComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
+    //GetComponentsInstance().insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
 //     }
 
 
     static TComponentType const& Get(std::string const& Name)
     {
-        typename KratosComponents<TComponentType>::ComponentsContainerType::iterator i =  msComponents.find(Name);
-        if(i == KratosComponents<TComponentType>::msComponents.end())
-          KRATOS_THROW_ERROR(std::invalid_argument, "The component is not registered!", Name); 
+        typename KratosComponents<TComponentType>::ComponentsContainerType::iterator i =  GetComponentsInstance().find(Name);
+        if(i == KratosComponents<TComponentType>::GetComponentsInstance().end())
+          KRATOS_THROW_ERROR(std::invalid_argument, "The component is not registered!", Name);
         return *(i->second);
     }
 
     static ComponentsContainerType & GetComponents()
     {
-        return KratosComponents<TComponentType>::msComponents;
+        return KratosComponents<TComponentType>::GetComponentsInstance();
     }
 
     static ComponentsContainerType * pGetComponents()
     {
-        return &KratosComponents<TComponentType>::msComponents;
+        return &(KratosComponents<TComponentType>::GetComponentsInstance());
     }
 
     static void Register()
@@ -128,7 +128,7 @@ public:
 
     static bool Has(std::string const& Name)
     {
-        return (msComponents.find(Name) != msComponents.end());
+        return (GetComponentsInstance().find(Name) != GetComponentsInstance().end());
     }
 
     ///@}
@@ -150,7 +150,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        for(typename ComponentsContainerType::const_iterator i = msComponents.begin() ; i != msComponents.end() ; ++i)
+        for(typename ComponentsContainerType::const_iterator i = GetComponentsInstance().begin() ; i != GetComponentsInstance().end() ; ++i)
             rOStream << "    " << i->first << std::endl;
     }
 
@@ -203,8 +203,6 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static ComponentsContainerType msComponents;
-
     ///@}
     ///@name Member Variables
     ///@{
@@ -213,6 +211,13 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
+
+    static ComponentsContainerType& GetComponentsInstance()
+	  {
+		  static ComponentsContainerType instance;
+		  return instance;
+	  }
+
 
 
     ///@}
@@ -269,7 +274,7 @@ public:
 
 //       KratosComponents(std::string const& Name, TComponentType const& ThisComponent)
 //       {
-//  	msComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
+//  	GetComponentsInstance().insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
 //       }
 
     /// Destructor.
@@ -286,38 +291,38 @@ public:
 
     static void Add(std::string const& Name, VariableData& ThisComponent)
     {
-        msComponents.insert(ComponentsContainerType::value_type(Name ,&ThisComponent));
+        GetComponentsInstance().insert(ComponentsContainerType::value_type(Name ,&ThisComponent));
     }
 
     static std::size_t Size()
     {
-        return msComponents.size();
+        return GetComponentsInstance().size();
     }
 
 //     static void Add(std::string const& Name, VariableData& ThisComponent, ComponentsContainerType& ThisComponents)
 //     {
     ////ThisComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
-    //msComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::ref(ThisComponent)));
+    //GetComponentsInstance().insert(typename ComponentsContainerType::value_type(Name ,boost::ref(ThisComponent)));
 //     }
 
     static VariableData & Get(std::string const& Name)
     {
-        return *(msComponents.find(Name)->second);
+        return *(GetComponentsInstance().find(Name)->second);
     }
 
     static VariableData* pGet(std::string const& Name)
     {
-        return (msComponents.find(Name)->second);
+        return (GetComponentsInstance().find(Name)->second);
     }
 
     static ComponentsContainerType & GetComponents()
     {
-        return msComponents;
+        return GetComponentsInstance();
     }
 
     static ComponentsContainerType * pGetComponents()
     {
-        return &msComponents;
+        return &GetComponentsInstance();
     }
 
     static void Register()
@@ -336,7 +341,7 @@ public:
 
     static bool Has(std::string const& Name)
     {
-        return (msComponents.find(Name) != msComponents.end());
+        return (GetComponentsInstance().find(Name) != GetComponentsInstance().end());
     }
 
     ///@}
@@ -358,7 +363,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        for(ComponentsContainerType::const_iterator i = msComponents.begin() ; i != msComponents.end() ; ++i)
+        for(ComponentsContainerType::const_iterator i = GetComponentsInstance().begin() ; i != GetComponentsInstance().end() ; ++i)
             rOStream << "    " << *(i->second) << std::endl;
     }
 
@@ -412,8 +417,6 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static ComponentsContainerType msComponents;
-
     ///@}
     ///@name Member Variables
     ///@{
@@ -428,6 +431,12 @@ private:
     ///@name Private Operations
     ///@{
 
+
+        static ComponentsContainerType& GetComponentsInstance()
+    	  {
+    		  static ComponentsContainerType instance;
+    		  return instance;
+    	  }
 
     ///@}
     ///@name Private  Access
@@ -470,68 +479,52 @@ private:
     template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Flags> >;
     template class KRATOS_API(KRATOS_CORE) KratosComponents<Flags>;
     template class KRATOS_API(KRATOS_CORE) KratosComponents<Point<3,double> >;
-
-    template<class TComponentType>
-    typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::msComponents;
-    
-//     template typename KratosComponents<Variable<bool> >::ComponentsContainerType KratosComponents<Variable<bool> >::msComponents;
-//     template typename KratosComponents<Variable<int> >::ComponentsContainerType KratosComponents<Variable<int> >::msComponents;
-//     template typename KratosComponents<Variable<unsigned int> >::ComponentsContainerType KratosComponents<Variable<unsigned int> >::msComponents;
-//     template typename KratosComponents<Variable<double> >::ComponentsContainerType KratosComponents<Variable<double> >::msComponents;
-//     template typename KratosComponents<Variable<array_1d<double, 3> > >::ComponentsContainerType KratosComponents<Variable<array_1d<double, 3> > >::msComponents;
-//     template typename KratosComponents<Variable<Quaternion<double> > >::ComponentsContainerType KratosComponents<Variable<Quaternion<double> > >::msComponents;
-//     template typenaKratosCore_EXPORTSme KratosComponents<Variable<Vector> >::ComponentsContainerType KratosComponents<Variable<Vector> >::msComponents;
-//     template typename KratosComponents<Variable<Matrix> >::ComponentsContainerType KratosComponents<Variable<Matrix> >::msComponents;
-//     template typename KratosComponents<Variable<std::string> >::ComponentsContainerType KratosComponents<Variable<std::string> >::msComponents;
-//     template typename KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::ComponentsContainerType  KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::msComponents;
-//     template typename KratosComponents<Variable<Flags> >::ComponentsContainerType KratosComponents<Variable<Flags> >::msComponents;
-//     template typename KratosComponents<Flags >::ComponentsContainerType KratosComponents<Flags >::msComponents;
 #else
-//     extern template< class TComponentType> typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::msComponents;
-    
-    extern template class  KratosComponents<Variable<bool> >;
-    extern template class  KratosComponents<Variable<int> >;
-    extern template class  KratosComponents<Variable<unsigned int> >;
-    extern template class  KratosComponents<Variable<double> >;
-    extern template class  KratosComponents<Variable<array_1d<double, 3> > >;
-    extern template class  KratosComponents<Variable<Quaternion<double> > >;
-    extern template class  KratosComponents<Variable<Vector> >;
-    extern template class  KratosComponents<Variable<Matrix> >;
-    extern template class  KratosComponents<Variable<std::string> >;
-    extern template class  KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >;
-    extern template class  KratosComponents<Variable<Flags> >;
-    extern template class  KratosComponents<Flags>;
-    extern template class  KratosComponents<Point<3,double> >;
-    
-    class Element;
-    extern template class  KratosComponents<Element>;
-    
-    class Condition;
-    extern template class  KratosComponents<Condition>;
-    
-    class ConstitutiveLaw;
-    extern template class  KratosComponents<ConstitutiveLaw>;
-    
-    class PeriodicCondition;
-    extern template class  KratosComponents<PeriodicCondition>;
-    
-//     
+//     extern template< class TComponentType> typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::GetComponentsInstance();
+
+    // extern template class  KratosComponents<Variable<bool> >;
+    // extern template class  KratosComponents<Variable<int> >;
+    // extern template class  KratosComponents<Variable<unsigned int> >;
+    // extern template class  KratosComponents<Variable<double> >;
+    // extern template class  KratosComponents<Variable<array_1d<double, 3> > >;
+    // extern template class  KratosComponents<Variable<Quaternion<double> > >;
+    // extern template class  KratosComponents<Variable<Vector> >;
+    // extern template class  KratosComponents<Variable<Matrix> >;
+    // extern template class  KratosComponents<Variable<std::string> >;
+    // extern template class  KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >;
+    // extern template class  KratosComponents<Variable<Flags> >;
+    // extern template class  KratosComponents<Flags>;
+    // extern template class  KratosComponents<Point<3,double> >;
+    //
+    // class Element;
+    // extern template class  KratosComponents<Element>;
+    //
+    // class Condition;
+    // extern template class  KratosComponents<Condition>;
+    //
+    // class ConstitutiveLaw;
+    // extern template class  KratosComponents<ConstitutiveLaw>;
+    //
+    // class PeriodicCondition;
+    // extern template class  KratosComponents<PeriodicCondition>;
+
+//
 //     template<std::size_t TDimension, class TDataType = double> class Point;
 //     extern template class  KratosComponents<Point<2,double> >;
 //     extern template class  KratosComponents<Point<3,double> >;
-    
-    //extern template typename KratosComponents<Variable<bool> >::ComponentsContainerType KratosComponents<Variable<bool> >::msComponents;
-//     extern KratosComponents<Variable<int> >::msComponents;
-//     extern KratosComponents<Variable<unsigned int> >::msComponents;
-//     extern KratosComponents<Variable<double> >::msComponents;
-//     extern KratosComponents<Variable<array_1d<double, 3> > >::msComponents;
-//     extern KratosComponents<Variable<Quaternion<double> > >::msComponents;
-//     extern KratosComponents<Variable<Vector> >::msComponents;
-//     extern KratosComponents<Variable<Matrix> >::msComponents;
-//     extern KratosComponents<Variable<std::string> >::msComponents;
-//     extern KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::msComponents;
-//     extern KratosComponents<Variable<Flags> >::msComponents;
-//     extern KratosComponents<Flags>::msComponents;
+
+    //extern template typename KratosComponents<Variable<bool> >::ComponentsContainerType KratosComponents<Variable<bool> >::GetComponentsInstance();
+//     extern KratosComponents<Variable<int> >::GetComponentsInstance();
+//     extern KratosComponents<Variable<unsigned int> >::GetComponentsInstance();
+//     extern KratosComponents<Variable<double> >::GetComponentsInstance();
+//     extern KratosComponents<Variable<array_1d<double, 3> > >::GetComponentsInstance();
+//     extern KratosComponents<Variable<Quaternion<double> > >::GetComponentsInstance();
+//     extern KratosComponents<Variable<Vector> >::GetComponentsInstance();
+//     extern KratosComponents<Variable<Matrix> >::GetComponentsInstance();
+//     extern KratosComponents<Variable<std::string> >::GetComponentsInstance();
+//     extern KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::GetComponentsInstance();
+//     extern KratosComponents<Variable<Flags> >::GetComponentsInstance();
+//     extern KratosComponents<Flags>::GetComponentsInstance();
 #endif
 
 ///@name Input and output
