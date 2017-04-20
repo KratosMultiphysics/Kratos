@@ -194,10 +194,12 @@ namespace Kratos
   {
     KRATOS_TRY
 
+    rModelValues.SetOptions(rValues.GetOptions());
     rModelValues.SetMaterialProperties(rValues.GetMaterialProperties());
     rModelValues.SetProcessInfo(rValues.GetProcessInfo());
     rModelValues.SetVoigtSize(this->GetStrainSize());
     rModelValues.SetVoigtIndexTensor(this->GetVoigtIndexTensor());
+
 
     ConstitutiveLawDataType& rVariables = rModelValues.rConstitutiveLawData();
 
@@ -214,23 +216,15 @@ namespace Kratos
     rVariables.StrainMeasure = ConstitutiveModelData::CauchyGreen_Left;        //provided strain measure
    
     //a.- Calculate incremental deformation gradient determinant
-    rVariables.DeterminantF = rValues.GetDeterminantF();
-    
+    rVariables.DeterminantF = rValues.GetDeterminantF();    
     rVariables.DeterminantF /= mDeterminantF0; //determinant incremental F
         
     //b.- Calculate incremental deformation gradient
     const MatrixType& rDeformationGradientF = rValues.GetDeformationGradientF(); 
     rVariables.DeformationGradientF = ConstitutiveLawUtilities::DeformationGradientTo3D(rVariables.DeformationGradientF, rDeformationGradientF);
-
     rVariables.DeformationGradientF = prod(rVariables.DeformationGradientF, mInverseDeformationGradientF0); //incremental F
     
-    //c.- Calculate incremental left cauchy green tensor
-    rModelValues.StrainMatrix = ConstitutiveLawUtilities::VectorToSymmetricTensor(mCauchyGreenVector, rModelValues.StrainMatrix);
-    
-    rModelValues.StrainMatrix = prod(rModelValues.StrainMatrix,trans(rVariables.DeformationGradientF));
-    rModelValues.StrainMatrix = prod(rVariables.DeformationGradientF,rModelValues.StrainMatrix);
-
-    //d.- Set Total DeterminantF and DeformationGracientF
+    //c.- Set Total DeterminantF and DeformationGracientF
     rVariables.DeterminantF         = rValues.GetDeterminantF();
     rVariables.DeformationGradientF = rValues.GetDeformationGradientF();
 
@@ -277,13 +271,24 @@ namespace Kratos
  
     //0.- Check if the constitutive parameters are passed correctly to the law calculation
     CheckParameters(rValues);
-
+    
     const Flags& rOptions = rValues.GetOptions();
     
     //1.- Initialize hyperelastic model parameters    
     ModelDataType ModelValues;
     this->InitializeModelData(rValues, ModelValues);
 
+
+    // Calculate incremental right cauchy green tensor
+    ConstitutiveLawDataType& rVariables = ModelValues.rConstitutiveLawData();
+    rVariables.StressMeasure = ConstitutiveModelData::StressMeasure_PK2; //required stress measure
+    rVariables.StrainMeasure = ConstitutiveModelData::CauchyGreen_Right;  //provided strain measure
+
+    ModelValues.StrainMatrix = ConstitutiveLawUtilities::VectorToSymmetricTensor(mCauchyGreenVector, ModelValues.StrainMatrix);    
+    ModelValues.StrainMatrix = prod(ModelValues.StrainMatrix,rVariables.DeformationGradientF);
+    ModelValues.StrainMatrix = prod(trans(rVariables.DeformationGradientF),ModelValues.StrainMatrix);
+
+    
     //2.-Get problem variables (Temperature, Pressure, Size) and calculate material parameters
     this->CalculateDomainVariables(rValues, ModelValues);
 
@@ -308,7 +313,7 @@ namespace Kratos
 
       Vector& rStressVector       = rValues.GetStressVector();
       Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-
+      
       this->CalculateStressVectorAndConstitutiveMatrix(ModelValues, rStressVector, rConstitutiveMatrix);
 
     }
@@ -361,6 +366,15 @@ namespace Kratos
     ModelDataType ModelValues;
     this->InitializeModelData(rValues, ModelValues);
 
+    // Calculate incremental left cauchy green tensor
+    ConstitutiveLawDataType& rVariables = ModelValues.rConstitutiveLawData();
+    rVariables.StressMeasure = ConstitutiveModelData::StressMeasure_Kirchhoff; //required stress measure
+    rVariables.StrainMeasure = ConstitutiveModelData::CauchyGreen_Left;  //provided strain measure
+
+    ModelValues.StrainMatrix = ConstitutiveLawUtilities::VectorToSymmetricTensor(mCauchyGreenVector,ModelValues.StrainMatrix);    
+    ModelValues.StrainMatrix = prod(ModelValues.StrainMatrix,trans(rVariables.DeformationGradientF));
+    ModelValues.StrainMatrix = prod(rVariables.DeformationGradientF,ModelValues.StrainMatrix);
+    
     //2.-Calculate domain variables (Temperature, Pressure, Size) and calculate material parameters
     this->CalculateDomainVariables(rValues, ModelValues);
 
@@ -494,7 +508,7 @@ namespace Kratos
       mpModel->CalculateVolumetricStressAndConstitutiveTensors(rModelValues, StressMatrix, rConstitutiveMatrix);
     }
     else{
-
+    
       mpModel->CalculateStressAndConstitutiveTensors(rModelValues, StressMatrix, rConstitutiveMatrix);
     }
         

@@ -229,9 +229,9 @@ namespace Kratos
       KRATOS_TRY
 
       const MaterialDataType&  rMaterial = rVariables.GetMaterialParameters();
-      
+
       rDerivative  = rMaterial.GetLameLambda();
-      rDerivative  = 2.0 * rMaterial.GetLameMu();
+      rDerivative += 2.0 * rMaterial.GetLameMu();
       rDerivative /= -rVariables.Strain.Invariants.I3;
       rDerivative += rMaterial.GetLameLambda();
       rDerivative *= 0.25;

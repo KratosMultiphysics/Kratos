@@ -296,7 +296,7 @@ namespace Kratos
     /**
      * Get voigt index tensor:
      */
-    virtual VoigtIndexType GetVoigtIndexTensor()		
+    virtual VoigtIndexType GetVoigtIndexTensor()
     {
       return this->msIndexVoigt3D6C;
     }

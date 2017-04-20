@@ -74,8 +74,9 @@ namespace Kratos
     enum StrainMeasureType  //supplied cauchy green strain measure
     {
       CauchyGreen_None,            //no strain measure supplied
-      CauchyGreen_InverseRight,    //inverse right cauchy-green tensor
-      CauchyGreen_Left             //left  cauchy-green tensor
+      CauchyGreen_Left,            //left cauchy-green tensor
+      CauchyGreen_Right,           //right cauchy-green tensor
+      CauchyGreen_InverseRight     //inverse right cauchy-green tensor
     };
 
     
@@ -151,8 +152,8 @@ namespace Kratos
       const Properties*            mpMaterialProperties;
       const ProcessInfo*           mpProcessInfo;
 
-      const SizeType*              mpVoigtSize;
-      const VoigtIndexType*        mpIndexVoigtTensor;
+      SizeType                     mVoigtSize;
+      VoigtIndexType               mIndexVoigtTensor;
       
       ConstitutiveLawData          mConstitutiveLawData;
       
@@ -169,15 +170,15 @@ namespace Kratos
       void SetOptions                      (const Flags&  rOptions)                 {mpOptions = &rOptions;};
       void SetMaterialProperties           (const Properties&  rMaterialProperties) {mpMaterialProperties = &rMaterialProperties;};
       void SetProcessInfo                  (const ProcessInfo& rProcessInfo)        {mpProcessInfo = &rProcessInfo;};
-      void SetVoigtSize                    (const SizeType& rVoigtSize)             {mpVoigtSize = &rVoigtSize;};
-      void SetVoigtIndexTensor             (const VoigtIndexType& rIndexVoigtTensor)  {mpIndexVoigtTensor = &rIndexVoigtTensor;};
+      void SetVoigtSize                    (const SizeType& rVoigtSize)             {mVoigtSize = rVoigtSize;};
+      void SetVoigtIndexTensor             (VoigtIndexType rIndexVoigtTensor)      {mIndexVoigtTensor = rIndexVoigtTensor;};
       
       //Get Data Pointers
       const Flags&          GetOptions                     () const {return *mpOptions;};
       const Properties&     GetMaterialProperties          () const {return *mpMaterialProperties;};
       const ProcessInfo&    GetProcessInfo                 () const {return *mpProcessInfo;};
-      const SizeType&       GetVoigtSize                   () const {return *mpVoigtSize;};
-      const VoigtIndexType& GetVoigtIndexTensor            () const {return *mpIndexVoigtTensor;};
+      const SizeType&       GetVoigtSize                   () const {return  mVoigtSize;};
+      const VoigtIndexType& GetVoigtIndexTensor            () const {return  mIndexVoigtTensor;};
       
       //Acces non const Data
       ConstitutiveLawData& rConstitutiveLawData            () {return mConstitutiveLawData;};

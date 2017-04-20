@@ -472,7 +472,7 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    rTemperature = this->CalculateDomainVariable(rValues,TEMPERATURE,rTemperature);
+      //rTemperature = this->CalculateDomainVariable(rValues,TEMPERATURE,rTemperature);
 				  
     return rTemperature;
 
@@ -487,7 +487,7 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    rPressure = this->CalculateDomainVariable(rValues,PRESSURE,rPressure);
+      //rPressure = this->CalculateDomainVariable(rValues,PRESSURE,rPressure);
 				  
     return rPressure;
 

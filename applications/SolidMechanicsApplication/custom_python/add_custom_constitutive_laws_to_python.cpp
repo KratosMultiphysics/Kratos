@@ -128,199 +128,199 @@ void  AddCustomConstitutiveLawsToPython()
 
    //Linear Elastic laws
 
-    class_< LinearElastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "LinearElastic3DLaw",
-      init<>() )
-    ;
+    // class_< LinearElastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "LinearElastic3DLaw",
+    //   init<>() )
+    // ;
 
-    class_< LinearElasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "LinearElasticPlaneStrain2DLaw",
-      init<>() )
-    ;
+    // class_< LinearElasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "LinearElasticPlaneStrain2DLaw",
+    //   init<>() )
+    // ;
 
-    class_< LinearElasticPlaneStress2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "LinearElasticPlaneStress2DLaw",
-      init<>() )
-    ;
+    // class_< LinearElasticPlaneStress2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "LinearElasticPlaneStress2DLaw",
+    //   init<>() )
+    // ;
 
-    class_< LinearElasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "LinearElasticAxisym2DLaw",
-      init<>() )
-    ;
+    // class_< LinearElasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "LinearElasticAxisym2DLaw",
+    //   init<>() )
+    // ;
 
-    class_< LinearElasticOrthotropic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "LinearElasticOrthotropic3DLaw",
-      init<>() )
-    ;
+    // class_< LinearElasticOrthotropic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "LinearElasticOrthotropic3DLaw",
+    //   init<>() )
+    // ;
 
-    //Hyperelastic laws
+    // //Hyperelastic laws
 
-    class_< HyperElastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HyperElastic3DLaw",
-      init<>() )
-    ;
+    // class_< HyperElastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "HyperElastic3DLaw",
+    //   init<>() )
+    // ;
     
-    class_< HyperElasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HyperElasticPlaneStrain2DLaw",
-      init<>() )
-    ;
+    // class_< HyperElasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "HyperElasticPlaneStrain2DLaw",
+    //   init<>() )
+    // ;
 
-    class_< HyperElasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HyperElasticAxisym2DLaw",
-      init<>() )
-    ;
-
-
-    //Hyperelastic laws U-P
-
-    class_< HyperElasticUP3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HyperElasticUP3DLaw",
-      init<>() )
-    ;
+    // class_< HyperElasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "HyperElasticAxisym2DLaw",
+    //   init<>() )
+    // ;
 
 
-    class_< HyperElasticUPPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HyperElasticUPPlaneStrain2DLaw",
-      init<>() )
-    ;
+    // //Hyperelastic laws U-P
 
-    class_< HyperElasticUPAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HyperElasticUPAxisym2DLaw",
-      init<>() )
-    ;
+    // class_< HyperElasticUP3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "HyperElasticUP3DLaw",
+    //   init<>() )
+    // ;
 
 
-    class_< PythonOutfittedConstitutiveLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "PythonOutfittedConstitutiveLaw",
-      init<>() )
-      .def(init<PyObject* >())
-    ;
+    // class_< HyperElasticUPPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "HyperElasticUPPlaneStrain2DLaw",
+    //   init<>() )
+    // ;
+
+    // class_< HyperElasticUPAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "HyperElasticUPAxisym2DLaw",
+    //   init<>() )
+    // ;
+
+
+    // class_< PythonOutfittedConstitutiveLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "PythonOutfittedConstitutiveLaw",
+    //   init<>() )
+    //   .def(init<PyObject* >())
+    // ;
     
-    //Linear Elastic Plastic laws 
+    // //Linear Elastic Plastic laws 
 
-    // class_< LinearElasticPlastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    // ( "LinearElasticPlastic3DLaw",
+    // // class_< LinearElasticPlastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // // ( "LinearElasticPlastic3DLaw",
+    // //   init<>() )
+    // // ;
+
+    // // class_< LinearElasticPlasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // // ( "LinearElasticPlasticPlaneStrain2DLaw",
+    // //   init<>() )
+    // // ;
+
+    // // class_< LinearElasticPlasticPlaneStress2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // // ( "LinearElasticPlasticPlaneStress2DLaw",
+    // //   init<>() )
+    // // ;
+
+
+    // //Hyperelastic Plastic laws
+
+    // // class_<HyperElasticPlastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // // ( "HyperElasticPlastic3DLaw",
+    // //   init<>() )
+    // //   .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    // // ;
+
+    // // class_<HyperElasticPlasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // // ( "HyperElasticPlasticPlaneStrain2DLaw",
+    // //   init<>() )
+    // //   .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    // // ;
+
+    // // class_<HyperElasticPlasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // // ( "HyperElasticPlasticAxisym2DLaw",
+    // //   init<>() )
+    // //   .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    // // ;
+
+
+    // //Hyperelastic Plastic laws U-P
+
+    // // class_<HyperElasticPlasticUP3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // // ( "HyperElasticPlasticUP3DLaw",
+    // //   init<>() )
+    // //   .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    // // ;
+
+    // // class_<HyperElasticPlasticUPPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // // ( "HyperElasticPlasticUPPlaneStrain2DLaw",
+    // //   init<>() )
+    // //   .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    // // ;
+
+    // // class_<HyperElasticPlasticUPAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // // ( "HyperElasticPlasticUPAxisym2DLaw",
+    // //   init<>() )
+    // //   .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    // // ;
+
+    // //Hyperelastic Plastic J2 specilization laws 
+
+    // class_<HyperElasticPlasticJ23DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "HyperElasticPlasticJ23DLaw",
     //   init<>() )
     // ;
 
-    // class_< LinearElasticPlasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    // ( "LinearElasticPlasticPlaneStrain2DLaw",
+    // class_<HyperElasticPlasticJ2PlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "HyperElasticPlasticJ2PlaneStrain2DLaw",
     //   init<>() )
     // ;
 
-    // class_< LinearElasticPlasticPlaneStress2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    // ( "LinearElasticPlasticPlaneStress2DLaw",
+    // class_<HyperElasticPlasticJ2Axisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "HyperElasticPlasticJ2Axisym2DLaw",
+    //   init<>() )
+    // ;
+
+    // //Hyperelastic Plastic J2 specilization laws U-P
+
+    // class_<HyperElasticPlasticUPJ23DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "HyperElasticPlasticUPJ23DLaw",
+    //   init<>() )
+    // ;
+
+    // class_<HyperElasticPlasticUPJ2PlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "HyperElasticPlasticUPJ2PlaneStrain2DLaw",
+    //   init<>() )
+    // ;
+
+    // class_<HyperElasticPlasticUPJ2Axisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "HyperElasticPlasticUPJ2Axisym2DLaw",
     //   init<>() )
     // ;
 
 
-    //Hyperelastic Plastic laws
+    // //Isotropic Damage laws 
 
-    // class_<HyperElasticPlastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    // ( "HyperElasticPlastic3DLaw",
+    // class_< IsotropicDamageSimoJu3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "IsotropicDamageSimoJu3DLaw",
     //   init<>() )
-    //   .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     // ;
 
-    // class_<HyperElasticPlasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    // ( "HyperElasticPlasticPlaneStrain2DLaw",
+    // class_< IsotropicDamageSimoJuPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "IsotropicDamageSimoJuPlaneStrain2DLaw",
     //   init<>() )
-    //   .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     // ;
 
-    // class_<HyperElasticPlasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    // ( "HyperElasticPlasticAxisym2DLaw",
+    // class_< IsotropicDamageSimoJuPlaneStress2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "IsotropicDamageSimoJuPlaneStress2DLaw",
     //   init<>() )
-    //   .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     // ;
 
-
-    //Hyperelastic Plastic laws U-P
-
-    // class_<HyperElasticPlasticUP3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    // ( "HyperElasticPlasticUP3DLaw",
+    // class_< IsotropicDamageModifiedMises3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "IsotropicDamageModifiedMises3DLaw",
     //   init<>() )
-    //   .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     // ;
 
-    // class_<HyperElasticPlasticUPPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    // ( "HyperElasticPlasticUPPlaneStrain2DLaw",
+    // class_< IsotropicDamageModifiedMisesPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "IsotropicDamageModifiedMisesPlaneStrain2DLaw",
     //   init<>() )
-    //   .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     // ;
 
-    // class_<HyperElasticPlasticUPAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    // ( "HyperElasticPlasticUPAxisym2DLaw",
+    // class_< IsotropicDamageModifiedMisesPlaneStress2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "IsotropicDamageModifiedMisesPlaneStress2DLaw",
     //   init<>() )
-    //   .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     // ;
-
-    //Hyperelastic Plastic J2 specilization laws 
-
-    class_<HyperElasticPlasticJ23DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HyperElasticPlasticJ23DLaw",
-      init<>() )
-    ;
-
-    class_<HyperElasticPlasticJ2PlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HyperElasticPlasticJ2PlaneStrain2DLaw",
-      init<>() )
-    ;
-
-    class_<HyperElasticPlasticJ2Axisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HyperElasticPlasticJ2Axisym2DLaw",
-      init<>() )
-    ;
-
-    //Hyperelastic Plastic J2 specilization laws U-P
-
-    class_<HyperElasticPlasticUPJ23DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HyperElasticPlasticUPJ23DLaw",
-      init<>() )
-    ;
-
-    class_<HyperElasticPlasticUPJ2PlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HyperElasticPlasticUPJ2PlaneStrain2DLaw",
-      init<>() )
-    ;
-
-    class_<HyperElasticPlasticUPJ2Axisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HyperElasticPlasticUPJ2Axisym2DLaw",
-      init<>() )
-    ;
-
-
-    //Isotropic Damage laws 
-
-    class_< IsotropicDamageSimoJu3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "IsotropicDamageSimoJu3DLaw",
-      init<>() )
-    ;
-
-    class_< IsotropicDamageSimoJuPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "IsotropicDamageSimoJuPlaneStrain2DLaw",
-      init<>() )
-    ;
-
-    class_< IsotropicDamageSimoJuPlaneStress2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "IsotropicDamageSimoJuPlaneStress2DLaw",
-      init<>() )
-    ;
-
-    class_< IsotropicDamageModifiedMises3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "IsotropicDamageModifiedMises3DLaw",
-      init<>() )
-    ;
-
-    class_< IsotropicDamageModifiedMisesPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "IsotropicDamageModifiedMisesPlaneStrain2DLaw",
-      init<>() )
-    ;
-
-    class_< IsotropicDamageModifiedMisesPlaneStress2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "IsotropicDamageModifiedMisesPlaneStress2DLaw",
-      init<>() )
-    ;
 
 }
 

@@ -28,10 +28,8 @@
 #include "custom_python/python_outfitted_constitutive_law.hpp"
 
 //general constitutive laws
-#include "custom_laws/elastic_3D_law.hpp"
 
 //isotropic linear elastic laws
-#include "custom_laws/linear_elastic_laws/linear_elastic_3D_law.hpp"
 #include "custom_laws/linear_elastic_laws/linear_elastic_plane_strain_2D_law.hpp"
 #include "custom_laws/linear_elastic_laws/linear_elastic_plane_stress_2D_law.hpp"
 #include "custom_laws/linear_elastic_laws/linear_elastic_axisymmetric_2D_law.hpp"
@@ -43,8 +41,6 @@
 #include "custom_laws/hyperelastic_laws/hyperelastic_3D_law.hpp"
 #include "custom_laws/hyperelastic_laws/hyperelastic_plane_strain_2D_law.hpp"
 #include "custom_laws/hyperelastic_laws/hyperelastic_axisymmetric_2D_law.hpp"
-
-#include "custom_laws/hyperelastic_laws/hyperelastic_U_P_3D_law.hpp"
 #include "custom_laws/hyperelastic_laws/hyperelastic_U_P_plane_strain_2D_law.hpp"
 #include "custom_laws/hyperelastic_laws/hyperelastic_U_P_axisymmetric_2D_law.hpp"
 
@@ -97,7 +93,6 @@
 #include "custom_models/plasticity_models/yield_criteria/modified_mises_yield_criterion.hpp"
 
 //hardening laws
-#include "custom_models/plasticity_models/hardening_laws/non_linear_isotropic_kinematic_hardening_law.hpp"
 #include "custom_models/plasticity_models/hardening_laws/linear_isotropic_kinematic_hardening_law.hpp"
 #include "custom_models/plasticity_models/hardening_laws/exponential_damage_hardening_law.hpp"
 #include "custom_models/plasticity_models/hardening_laws/modified_exponential_damage_hardening_law.hpp"

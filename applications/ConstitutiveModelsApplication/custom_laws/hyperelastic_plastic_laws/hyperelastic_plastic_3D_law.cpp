@@ -72,8 +72,51 @@ namespace Kratos
   void  HyperElasticPlastic3DLaw::InitializeModelData(Parameters& rValues,ModelDataType& rModelValues)
   {
     KRATOS_TRY
+      
+    rModelValues.SetOptions(rValues.GetOptions());
+    rModelValues.SetMaterialProperties(rValues.GetMaterialProperties());
+    rModelValues.SetProcessInfo(rValues.GetProcessInfo());
+    rModelValues.SetVoigtSize(this->GetStrainSize());
+    rModelValues.SetVoigtIndexTensor(this->GetVoigtIndexTensor());
 
-    HyperElastic3DLaw::InitializeModelData(rValues,rModelValues);
+
+    ConstitutiveLawDataType& rVariables = rModelValues.rConstitutiveLawData();
+
+    // if there is no initial strain and no plasticity
+    // rVariables.StressMeasure = ConstitutiveModelData::StressMeasure_PK2;        //required stress measure
+    // rVariables.StrainMeasure = ConstitutiveModelData::CauchyGreen_None;         //provided strain measure
+
+    // const Matrix& rDeformationGradientF = rValues.GetDeformationGradientF();   //total deformation gradient    
+    // rVariables.DeformationGradientF = ConstitutiveLawUtilities::DeformationGradientTo3D(rVariables.DeformationGradientF, rDeformationGradientF);
+    // rVariables.DeterminantF  = rValues.GetDeterminantF();
+    
+
+    rVariables.StressMeasure = ConstitutiveModelData::StressMeasure_Kirchhoff; //required stress measure
+    rVariables.StrainMeasure = ConstitutiveModelData::CauchyGreen_Left;        //provided strain measure
+   
+    //a.- Calculate incremental deformation gradient determinant
+    rVariables.DeterminantF = rValues.GetDeterminantF();
+    
+    rVariables.DeterminantF /= mDeterminantF0; //determinant incremental F
+        
+    //b.- Calculate incremental deformation gradient
+    const MatrixType& rDeformationGradientF = rValues.GetDeformationGradientF(); 
+    rVariables.DeformationGradientF = ConstitutiveLawUtilities::DeformationGradientTo3D(rVariables.DeformationGradientF, rDeformationGradientF);
+    rVariables.DeformationGradientF = prod(rVariables.DeformationGradientF, mInverseDeformationGradientF0); //incremental F
+    
+    //c.- Calculate incremental left cauchy green tensor
+    rModelValues.StrainMatrix = ConstitutiveLawUtilities::VectorToSymmetricTensor(mCauchyGreenVector, rModelValues.StrainMatrix);
+    
+    rModelValues.StrainMatrix = prod(rModelValues.StrainMatrix,trans(rVariables.DeformationGradientF));
+    rModelValues.StrainMatrix = prod(rVariables.DeformationGradientF,rModelValues.StrainMatrix);
+
+    //d.- Set Total DeterminantF and DeformationGracientF
+    rVariables.DeterminantF         = rValues.GetDeterminantF();
+    rVariables.DeformationGradientF = rValues.GetDeformationGradientF();
+
+    
+    if( rValues.GetOptions().Is(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE) )
+      rModelValues.State.Set(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES);
       
     KRATOS_CATCH(" ")      
   }

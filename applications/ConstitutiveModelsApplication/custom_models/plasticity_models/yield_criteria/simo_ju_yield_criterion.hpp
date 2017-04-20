@@ -326,7 +326,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const ModelDataType& rModelData = rVariables->GetModelData();
+    const ModelDataType& rModelData = rVariables.GetModelData();
     
     // Compute Theta parameter
     double Theta;

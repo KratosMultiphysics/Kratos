@@ -329,7 +329,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const ModelDataType& rModelData = rVariables->GetModelData();
+    const ModelDataType& rModelData = rVariables.GetModelData();
 
     // Compute I1
     const MatrixType& rStrainMatrix = rModelData.GetStrainMatrix();
