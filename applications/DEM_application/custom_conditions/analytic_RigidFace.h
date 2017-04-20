@@ -43,15 +43,6 @@ public:
 
     void InitializeSolutionStep(ProcessInfo& r_process_info);
 
-    void ComputeConditionRelativeData(int rigid_neighbour_index,
-                                      SphericParticle* const particle,
-                                      double LocalCoordSystem[3][3],
-                                      double& DistPToB,
-                                      array_1d<double, 4>& Weight,
-                                      array_1d<double, 3>& wall_delta_disp_at_contact_point,
-                                      array_1d<double, 3>& wall_velocity_at_contact_point,
-                                      int& ContactType) override;
-
     int CheckSide(SphericParticle* p_particle) override;
     bool IsPhantom() override {return true;}
 

@@ -35,27 +35,6 @@ Condition::Pointer AnalyticRigidFace3D::Create(
 
 AnalyticRigidFace3D::~AnalyticRigidFace3D(){}
 
-
-void AnalyticRigidFace3D::ComputeConditionRelativeData(int rigid_neighbour_index,
-                                                       SphericParticle* const particle,
-                                                       double LocalCoordSystem[3][3],
-                                                       double& DistPToB,
-                                                       array_1d<double, 4>& Weight,
-                                                       array_1d<double, 3>& wall_delta_disp_at_contact_point,
-                                                       array_1d<double, 3>& wall_velocity_at_contact_point,
-                                                       int& ContactType)
-{
-    BaseType::ComputeConditionRelativeData(rigid_neighbour_index,
-                                           particle,
-                                           LocalCoordSystem,
-                                           DistPToB,
-                                           Weight,
-                                           wall_delta_disp_at_contact_point,
-                                           wall_velocity_at_contact_point,
-                                           ContactType);
-
-}
-
 int AnalyticRigidFace3D::CheckSide(SphericParticle* p_particle)
 {
     const int side_sign = BaseType::CheckSide(p_particle);

@@ -1,4 +1,5 @@
-// Author: Miquel Santasusana msantasusana@cimne.upc.edu
+// Authors: Miquel Santasusana msantasusana@cimne.upc.edu,
+//           Guillermo Casas (gcasas@cimne.upc.edu)
 
 #if !defined(KRATOS_RIGIDFACE3D_H_INCLUDED)
 #define  KRATOS_RIGIDFACE3D_H_INCLUDED
@@ -43,13 +44,13 @@ public:
     // Destructor
     virtual ~RigidFace3D();
 
-    class ParticleDataBuffer
+    class FaceDataBuffer
     {
     public:
-        ParticleDataBuffer(RigidFace3D* p_this_condition): mpThisCondition(p_this_condition)
+        FaceDataBuffer(RigidFace3D* p_this_condition): mpThisCondition(p_this_condition)
         {}
 
-        virtual ~ParticleDataBuffer(){}
+        virtual ~FaceDataBuffer(){}
 
     void SetCurrentNeighbour(SphericParticle* p_neighbour)
     {
