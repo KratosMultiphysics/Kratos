@@ -13,8 +13,8 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_INTERFACE_CONDITION_INCLUDED_H_INCLUDED )
-#define  KRATOS_INTERFACE_CONDITION_INCLUDED_H_INCLUDED
+#if !defined(KRATOS_INTERFACE_GEOMETRY_OBJECT_INCLUDED_H_INCLUDED )
+#define  KRATOS_INTERFACE_GEOMETRY_OBJECT_INCLUDED_H_INCLUDED
 
 // System includes
 
@@ -51,34 +51,36 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class InterfaceCondition : public InterfaceObject
+class InterfaceGeometryObject : public InterfaceObject
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of InterfaceCondition
-    KRATOS_CLASS_POINTER_DEFINITION(InterfaceCondition);
+    /// Pointer definition of InterfaceGeometryObject
+    KRATOS_CLASS_POINTER_DEFINITION(InterfaceGeometryObject);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    InterfaceCondition(Condition& rCondition, array_1d<double, 3> Coords, const double ApproximationTolerance) :
-        InterfaceObject(Coords), mpCondition(&rCondition), mApproximationTolerance(ApproximationTolerance)
+    InterfaceGeometryObject(Geometry<Node<3>>& rGeometry, const double ApproximationTolerance, const int ConstructionIndex,
+                            GeometryData::IntegrationMethod IntegrationMethod = GeometryData::NumberOfIntegrationMethods) :
+        mpGeometry(&rGeometry),
+        mApproximationTolerance(ApproximationTolerance),
+        mConstructionIndex(ConstructionIndex),
+        mIntegrationMethod(IntegrationMethod)
     {
-
-        // in case some calculations have to be done in order to construct the base element (e.g. element center),
-        // then first call the empty standard constructor, then do the calculations and populate
-        // the base class stuff, although populating the derived class (i.e. "this") should also be ok
-
-        mGeometryFamily = mpCondition->GetGeometry().GetGeometryFamily();
-        mNumPoints = mpCondition->GetGeometry().PointsNumber();
+        SetCoordinates();
+        mGeometryFamily = mpGeometry->GetGeometryFamily();
+        mNumPoints = mpGeometry->PointsNumber();
+        KRATOS_ERROR_IF(mNumPoints == 0) << "Number of Points cannot be zero" << std::endl;
+        mpPoint = &(mpGeometry->GetPoint(0));
     }
 
     /// Destructor.
-    virtual ~InterfaceCondition() { }
+    virtual ~InterfaceGeometryObject() { }
 
 
     ///@}
@@ -103,21 +105,21 @@ public:
         if (mGeometryFamily == GeometryData::Kratos_Linear
                 && mNumPoints == 2)   // I am a linear line condition
         {
-            is_inside = MapperUtilities::ProjectPointToLine(mpCondition, rGlobalCoords,
+            is_inside = MapperUtilities::ProjectPointToLine(mpGeometry, rGlobalCoords,
                         projection_local_coords,
                         projection_distance);
         }
         else if (mGeometryFamily == GeometryData::Kratos_Triangle
                  && mNumPoints == 3)   // I am a linear triangular condition
         {
-            is_inside = MapperUtilities::ProjectPointToTriangle(mpCondition, rGlobalCoords,
+            is_inside = MapperUtilities::ProjectPointToTriangle(mpGeometry, rGlobalCoords,
                         projection_local_coords,
                         projection_distance);
         }
         else if (mGeometryFamily == GeometryData::Kratos_Quadrilateral
                  && mNumPoints == 4)   // I am a linear quadrilateral condition
         {
-            is_inside = MapperUtilities::ProjectPointToQuadrilateral(mpCondition, rGlobalCoords,
+            is_inside = MapperUtilities::ProjectPointToQuadrilateral(mpGeometry, rGlobalCoords,
                         projection_local_coords,
                         projection_distance);
         }
@@ -125,7 +127,7 @@ public:
                  mGeometryFamily == GeometryData::Kratos_Prism ||
                  mGeometryFamily == GeometryData::Kratos_Hexahedra)   // Volume Mapping
         {
-            is_inside = MapperUtilities::PointLocalCoordinatesInVolume(mpCondition, rGlobalCoords,
+            is_inside = MapperUtilities::PointLocalCoordinatesInVolume(mpGeometry, rGlobalCoords,
                         projection_local_coords,
                         projection_distance);
         }
@@ -146,7 +148,7 @@ public:
                 rShapeFunctionValues.resize(mNumPoints);
                 for (int i = 0; i < mNumPoints; ++i)
                 {
-                    rShapeFunctionValues[i] = mpCondition->GetGeometry().ShapeFunctionValue(i, projection_local_coords);
+                    rShapeFunctionValues[i] = mpGeometry->ShapeFunctionValue(i, projection_local_coords);
                 }
                 is_closer = true;
             }
@@ -164,7 +166,7 @@ public:
         for (int i = 0; i < mNumPoints; ++i)
         {
             distance_point = MapperUtilities::ComputeDistance(rGlobalCoords,
-                             mpCondition->GetGeometry().GetPoint(i).Coordinates());
+                             mpGeometry->GetPoint(i).Coordinates());
 
             if (distance_point < rMinDistance && distance_point <= mApproximationTolerance)
             {
@@ -202,7 +204,7 @@ public:
         KRATOS_ERROR_IF_NOT(rOptions.Is(MapperFlags::NON_HISTORICAL_DATA))
                 << "Only Non-Historical Variables are accessible for Conditions" << std::endl;
 
-        return mpCondition->GetValue(rVariable);
+        return mpPoint->GetValue(rVariable);
     }
 
     void SetObjectValue(const Variable<double>& rVariable,
@@ -215,12 +217,12 @@ public:
 
         if (rOptions.Is(MapperFlags::ADD_VALUES))
         {
-            double old_value = mpCondition->GetValue(rVariable);
-            mpCondition->SetValue(rVariable, old_value + rValue * Factor);
+            double old_value = mpPoint->GetValue(rVariable);
+            mpPoint->SetValue(rVariable, old_value + rValue * Factor);
         }
         else
         {
-            mpCondition->SetValue(rVariable, rValue * Factor);
+            mpPoint->SetValue(rVariable, rValue * Factor);
         }
     }
 
@@ -231,7 +233,7 @@ public:
 
         for (int i = 0; i < mNumPoints; ++i)
         {
-            interpolated_value += mpCondition->GetGeometry().GetPoint(i).FastGetSolutionStepValue(rVariable) * rShapeFunctionValues[i];
+            interpolated_value += mpGeometry->GetPoint(i).FastGetSolutionStepValue(rVariable) * rShapeFunctionValues[i];
         }
         return interpolated_value;
     }
@@ -243,7 +245,7 @@ public:
         KRATOS_ERROR_IF_NOT(rOptions.Is(MapperFlags::NON_HISTORICAL_DATA))
                 << "Only Non-Historical Variables are accessible for Conditions" << std::endl;
 
-        return mpCondition->GetValue(rVariable);
+        return mpPoint->GetValue(rVariable);
     }
 
     void SetObjectValue(const Variable< array_1d<double, 3> >& rVariable,
@@ -256,12 +258,12 @@ public:
 
         if (rOptions.Is(MapperFlags::ADD_VALUES))
         {
-            array_1d<double, 3> old_value = mpCondition->GetValue(rVariable);
-            mpCondition->SetValue(rVariable, old_value + rValue * Factor);
+            array_1d<double, 3> old_value = mpPoint->GetValue(rVariable);
+            mpPoint->SetValue(rVariable, old_value + rValue * Factor);
         }
         else
         {
-            mpCondition->SetValue(rVariable, rValue * Factor);
+            mpPoint->SetValue(rVariable, rValue * Factor);
         }
     }
 
@@ -274,25 +276,20 @@ public:
         interpolated_value[2] = 0.0f;
         for (int i = 0; i < mNumPoints; ++i)
         {
-            interpolated_value[0] += mpCondition->GetGeometry().GetPoint(i).FastGetSolutionStepValue(rVariable)[0] * rShapeFunctionValues[i];
-            interpolated_value[1] += mpCondition->GetGeometry().GetPoint(i).FastGetSolutionStepValue(rVariable)[1] * rShapeFunctionValues[i];
-            interpolated_value[2] += mpCondition->GetGeometry().GetPoint(i).FastGetSolutionStepValue(rVariable)[2] * rShapeFunctionValues[i];
+            interpolated_value[0] += mpGeometry->GetPoint(i).FastGetSolutionStepValue(rVariable)[0] * rShapeFunctionValues[i];
+            interpolated_value[1] += mpGeometry->GetPoint(i).FastGetSolutionStepValue(rVariable)[1] * rShapeFunctionValues[i];
+            interpolated_value[2] += mpGeometry->GetPoint(i).FastGetSolutionStepValue(rVariable)[2] * rShapeFunctionValues[i];
         }
         return interpolated_value;
     }
 
     // Functions used for Debugging
-    int GetObjectId() override
-    {
-        return mpCondition->Id();
-    }
-
     void PrintNeighbors(const int CommRank) override
     {
-        array_1d<double, 3> neighbor_coordinates = mpCondition->GetValue(NEIGHBOR_COORDINATES);
-        double neighbor_comm_rank = mpCondition->GetValue(NEIGHBOR_RANK);
+        array_1d<double, 3> neighbor_coordinates = mpPoint->GetValue(NEIGHBOR_COORDINATES);
+        double neighbor_comm_rank = mpPoint->GetValue(NEIGHBOR_RANK);
 
-        PrintMatchInfo("InterfaceCondition", GetObjectId(), CommRank,
+        PrintMatchInfo("InterfaceGeometryObject", CommRank,
                        neighbor_comm_rank, neighbor_coordinates);
     }
 
@@ -306,8 +303,8 @@ public:
         neighbor_coordinates[0] = this->X();
         neighbor_coordinates[1] = this->Y();
         neighbor_coordinates[2] = this->Z();
-        mpCondition->SetValue(NEIGHBOR_COORDINATES, neighbor_coordinates);
-        mpCondition->SetValue(NEIGHBOR_RANK, CommRank);
+        mpPoint->SetValue(NEIGHBOR_COORDINATES, neighbor_coordinates);
+        mpPoint->SetValue(NEIGHBOR_RANK, CommRank);
     }
 
     ///@}
@@ -328,14 +325,14 @@ public:
     virtual std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "InterfaceCondition" ;
+        buffer << "InterfaceGeometryObject" ;
         return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "InterfaceCondition";
+        rOStream << "InterfaceGeometryObject";
     }
 
     /// Print object's data.
@@ -395,6 +392,14 @@ private:
     ///@name Member Variables
     ///@{
 
+    Geometry<Node<3>>* mpGeometry;
+    Node<3>* mpPoint;
+    GeometryData::KratosGeometryFamily mGeometryFamily;
+    int mNumPoints;
+    double mApproximationTolerance = 0.0f;
+    int mConstructionIndex;
+    GeometryData::IntegrationMethod mIntegrationMethod;
+
 
     ///@}
     ///@name Private Operators
@@ -405,10 +410,38 @@ private:
     ///@name Private Operations
     ///@{
 
-    Condition* mpCondition;
-    GeometryData::KratosGeometryFamily mGeometryFamily;
-    int mNumPoints;
-    double mApproximationTolerance = 0.0f;
+    void SetCoordinates() override
+    {
+        if (mConstructionIndex == 0)
+        {
+            this->Coordinates() = mpGeometry->Center();
+        }
+        else
+        {
+            Matrix shape_functions = mpGeometry->ShapeFunctionsValues(mIntegrationMethod); // TODO "ShapeFunctionsValues" seems to not be implemented for every geometry!!!
+
+            // const int num_gauss_points = shape_functions.size1();
+            const int num_nodes = shape_functions.size2();
+
+            array_1d<double, 3> gauss_point_global_coords;
+
+            gauss_point_global_coords[0] = 0.0f;
+            gauss_point_global_coords[1] = 0.0f;
+            gauss_point_global_coords[2] = 0.0f;
+
+            // TODO change to GlobalCoordinates()?
+            // here mConstructionIndex is the number of the GP to use for this Object
+            for (int n = 0; n < num_nodes; ++n)
+            {
+                gauss_point_global_coords[0] += shape_functions(mConstructionIndex - 1, n) * mpGeometry->GetPoint(n).X();
+                gauss_point_global_coords[1] += shape_functions(mConstructionIndex - 1, n) * mpGeometry->GetPoint(n).Y();
+                gauss_point_global_coords[2] += shape_functions(mConstructionIndex - 1, n) * mpGeometry->GetPoint(n).Z();
+            }
+            // TODO check again if this is whole computation of the GPs is correct
+
+            this->Coordinates() = gauss_point_global_coords;
+        }
+    }
 
 
     ///@}
@@ -426,15 +459,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    InterfaceCondition& operator=(InterfaceCondition const& rOther);
+    InterfaceGeometryObject& operator=(InterfaceGeometryObject const& rOther);
 
     //   /// Copy constructor.
-    //   InterfaceCondition(InterfaceCondition const& rOther){}
+    //   InterfaceGeometryObject(InterfaceGeometryObject const& rOther){}
 
 
     ///@}
 
-}; // Class InterfaceCondition
+}; // Class InterfaceGeometryObject
 
 ///@}
 
@@ -449,14 +482,14 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  InterfaceCondition& rThis)
+                                  InterfaceGeometryObject& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const InterfaceCondition& rThis)
+                                  const InterfaceGeometryObject& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -470,4 +503,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_INTERFACE_CONDITION_INCLUDED_H_INCLUDED  defined
+#endif // KRATOS_INTERFACE_GEOMETRY_OBJECT_INCLUDED_H_INCLUDED  defined

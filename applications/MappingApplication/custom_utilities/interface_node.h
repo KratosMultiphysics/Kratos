@@ -65,7 +65,10 @@ public:
     ///@{
 
     /// Default constructor.
-    InterfaceNode(Node<3>& rNode) : InterfaceObject(rNode),  mpNode(&rNode) {  }
+    InterfaceNode(Node<3>& rNode) : mpNode(&rNode)
+    {
+        SetCoordinates();
+    }
 
     /// Destructor.
     virtual ~InterfaceNode() { }
@@ -184,17 +187,12 @@ public:
     }
 
     // Functions used for Debugging
-    int GetObjectId() override
-    {
-        return mpNode->Id();
-    }
-
     void PrintNeighbors(const int CommRank) override
     {
         array_1d<double, 3> neighbor_coordinates = mpNode->GetValue(NEIGHBOR_COORDINATES);
         double neighbor_comm_rank = mpNode->GetValue(NEIGHBOR_RANK);
 
-        PrintMatchInfo("InterfaceNode", GetObjectId(), CommRank,
+        PrintMatchInfo("InterfaceNode", CommRank,
                        neighbor_comm_rank, neighbor_coordinates);
     }
 
@@ -307,6 +305,11 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void SetCoordinates() override
+    {
+        this->Coordinates() = mpNode->Coordinates();
+    }
 
 
     ///@}

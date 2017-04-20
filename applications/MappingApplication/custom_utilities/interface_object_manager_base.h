@@ -25,7 +25,7 @@
 #include "includes/define.h"
 
 #include "interface_node.h"
-#include "interface_condition.h"
+#include "interface_geometry_object.h"
 #include "custom_configures/interface_object_configure.h"
 
 
@@ -475,14 +475,14 @@ protected:
 
         mEchoLevel = EchoLevel;
 
-        if (InterfaceObjectType == MapperUtilities::Node)
+        if (InterfaceObjectType == MapperUtilities::Node_Coords)
         {
             InitializeInterfaceNodeManager(rModelPart);
         }
         else if (InterfaceObjectType == MapperUtilities::Condition_Center ||
                  InterfaceObjectType == MapperUtilities::Condition_Gauss_Point)
         {
-            InitializeInterfaceConditionManager(rModelPart, IntegrationMethod, ApproximationTolerance);
+            InitializeInterfaceGeometryObjectManager(rModelPart, IntegrationMethod, ApproximationTolerance);
         }
         else
         {
@@ -564,7 +564,7 @@ private:
         }
     }
 
-    void InitializeInterfaceConditionManager(ModelPart& rModelPart,
+    void InitializeInterfaceGeometryObjectManager(ModelPart& rModelPart,
             GeometryData::IntegrationMethod IntegrationMethod,
             const double ApproximationTolerance)
     {
@@ -582,6 +582,10 @@ private:
             {
                 size_factor = rModelPart.GetCommunicator().LocalMesh().ConditionsBegin()->GetGeometry().IntegrationPointsNumber(IntegrationMethod);
             }
+            else if (rModelPart.GetCommunicator().LocalMesh().NumberOfElements() > 0)
+            {
+                size_factor = rModelPart.GetCommunicator().LocalMesh().ElementsBegin()->GetGeometry().IntegrationPointsNumber(IntegrationMethod);
+            }
         }
 
         mInterfaceObjects.reserve(size_factor * rModelPart.GetCommunicator().LocalMesh().NumberOfConditions());
@@ -590,43 +594,38 @@ private:
         {
             for (auto& condition : rModelPart.GetCommunicator().LocalMesh().Conditions())
             {
-                mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceCondition(condition,
-                                            condition.GetGeometry().Center(),
-                                            ApproximationTolerance) ));
+                mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceGeometryObject(condition.GetGeometry(),
+                                            ApproximationTolerance,
+                                            0) ));
+            }
+            for (auto& element : rModelPart.GetCommunicator().LocalMesh().Elements())
+            {
+                mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceGeometryObject(element.GetGeometry(),
+                                            ApproximationTolerance,
+                                            0) ));
             }
         }
         else     // construct with condition gauss points
         {
             for (auto& condition : rModelPart.GetCommunicator().LocalMesh().Conditions())
             {
-                const Geometry< Node<3> >& condition_geometry = condition.GetGeometry();
-
-                Matrix shape_functions = condition_geometry.ShapeFunctionsValues(IntegrationMethod); // TODO "ShapeFunctionsValues" seems to not be implemented for every geometry!!!
-
-                const int num_gauss_points = shape_functions.size1();
-                const int num_nodes = shape_functions.size2();
-
-                array_1d<double, 3> gauss_point_global_coords;
-
-                for (int g = 0; g < num_gauss_points; ++g)
+                for (int g = 0; g < 111111; ++g) // TODO fix this, should be number of GPs
                 {
-                    gauss_point_global_coords[0] = 0.0f;
-                    gauss_point_global_coords[1] = 0.0f;
-                    gauss_point_global_coords[2] = 0.0f;
-
-                    for (int n = 0; n < num_nodes; ++n)
-                    {
-                        gauss_point_global_coords[0] += shape_functions(g, n) * condition_geometry[n].X();
-                        gauss_point_global_coords[1] += shape_functions(g, n) * condition_geometry[n].Y();
-                        gauss_point_global_coords[2] += shape_functions(g, n) * condition_geometry[n].Z();
-                    }
-                    // TODO check again if this is whole computation of the GPs is correct
-
-                    mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceCondition(condition,
-                                                gauss_point_global_coords,
-                                                ApproximationTolerance) ));
+                    mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceGeometryObject(condition.GetGeometry(),
+                                                ApproximationTolerance,
+                                                g, IntegrationMethod) ));
                 }
             }
+            for (auto& element : rModelPart.GetCommunicator().LocalMesh().Elements())
+            {
+                for (int g = 0; g < 111111; ++g) // TODO fix this, should be number of GPs
+                {
+                    mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceGeometryObject(element.GetGeometry(),
+                                                ApproximationTolerance,
+                                                g, IntegrationMethod) ));
+                }
+            }
+
         }
     }
 

@@ -76,18 +76,9 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
     // TODO hide constructors that are only called from the derived classes
-    InterfaceObject() : Point<3>(0.0f, 0.0f, 0.0f)    // Default Constructor
-    {
-        SetInitialValuesToMembers();
-    }
-
-    InterfaceObject(Node<3>& rNode) : Point<3>(rNode)  // constuct from node
-    {
-        SetInitialValuesToMembers();
-    }
-
-    InterfaceObject(array_1d<double, 3> Coords) : Point<3>(Coords)   // constuct from coordinate-array
+    InterfaceObject() : Point<3>(0.0f, 0.0f, 0.0f)    // Default Constructor /TODO maybe delete zeros
     {
         SetInitialValuesToMembers();
     }
@@ -113,6 +104,7 @@ public:
     void Reset()
     {
         SetInitialValuesToMembers();
+        SetCoordinates();
     }
 
     bool IsInBoundingBox(double* pBoundingBox[])
@@ -246,12 +238,6 @@ public:
     }
 
     // Functions used for Debugging
-    virtual int GetObjectId()
-    {
-        KRATOS_ERROR << "Base class function called!" << std::endl;
-        return -1;
-    }
-
     virtual void PrintNeighbors(const int CommRank)
     {
         KRATOS_ERROR << "Base class function called!" << std::endl;
@@ -320,7 +306,20 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void PrintMatchInfo(const std::string& rInterfaceObjectType, const int Id,
+    void SetInitialValuesToMembers()
+    {
+        mMinDistanceNeighbor = std::numeric_limits<double>::max();
+        mPairingStatus = PairingStatus::NoNeighbor;
+        mNeighborRank = 0;
+        mIsBeingSent = false;
+    }
+
+    virtual void SetCoordinates()
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
+
+    void PrintMatchInfo(const std::string& rInterfaceObjectType,
                         const int CommRank, const int NeighborCommRank,
                         array_1d<double, 3>& rNeighborCoordinates)
     {
@@ -330,7 +329,7 @@ protected:
                   << this->Y() << " "
                   << this->Z() << "], "
                   << "Rank " << CommRank
-                  << ", Id " << Id << " || Neighbor ["
+                  << " || Neighbor ["
                   << rNeighborCoordinates[0] << " "
                   << rNeighborCoordinates[1] << " "
                   << rNeighborCoordinates[2] << "], Rank "
@@ -378,13 +377,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    void SetInitialValuesToMembers()
-    {
-        mMinDistanceNeighbor = std::numeric_limits<double>::max();
-        mPairingStatus = PairingStatus::NoNeighbor;
-        mNeighborRank = 0;
-        mIsBeingSent = false;
-    }
 
     ///@}
     ///@name Private  Access

@@ -152,11 +152,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    // Needed for Volume Mapping
-    const Condition  mVolumeCondition3D4N;
-    const Condition  mVolumeCondition3D6N;
-    const Condition  mVolumeCondition3D8N;
-
 
     ///@}
     ///@name Protected Operators

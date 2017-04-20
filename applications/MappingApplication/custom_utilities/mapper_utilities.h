@@ -72,7 +72,7 @@ public:
 
     enum InterfaceObjectConstructionType
     {
-        Node,
+        Node_Coords,
         Condition_Center,
         Condition_Gauss_Point,
         // Point or Coordinates or sth => for Contact => create with list of points/coords,
@@ -128,6 +128,13 @@ public:
         int num_conditions = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
         rModelPart.GetCommunicator().SumAll(num_conditions); // Compute the sum among the partitions
         return num_conditions;
+    }
+
+    static int ComputeNumberOfElements(ModelPart& rModelPart)
+    {
+        int num_elements = rModelPart.GetCommunicator().LocalMesh().NumberOfElements();
+        rModelPart.GetCommunicator().SumAll(num_elements); // Compute the sum among the partitions
+        return num_elements;
     }
 
     static double ComputeDistance(const array_1d<double, 3>& rCoords1,
@@ -187,11 +194,16 @@ public:
         double max_element_size = 0.0;
 
         int num_conditions_global = ComputeNumberOfConditions(rModelPart);
+        int num_elements_global = ComputeNumberOfElements(rModelPart);
 
         if (num_conditions_global > 0)
         {
             max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Conditions());
 
+        }
+        else if (num_elements_global > 0)
+        {
+            max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Elements());
         }
         else
         {
@@ -216,7 +228,7 @@ public:
         return NumNodesOrigin / NumNodesDestination;
     }
 
-    static bool ProjectPointToLine(Condition* pCondition,
+    static bool ProjectPointToLine(const Geometry<Node<3>>* pGeometry,
                                    const array_1d<double, 3>& GlobalCoords,
                                    array_1d<double, 3>& rLocalCoords,
                                    double& rDistance)
@@ -234,14 +246,14 @@ public:
         array_1d<double, 2> RHS;
         array_1d<double, 2> result_vec;
 
-        RHS[0] = GlobalCoords[0] - 0.5 * (pCondition->GetGeometry()[0].X() + pCondition->GetGeometry()[1].X());
-        RHS[1] = GlobalCoords[1] - 0.5 * (pCondition->GetGeometry()[0].Y() + pCondition->GetGeometry()[1].Y());
+        RHS[0] = GlobalCoords[0] - 0.5 * (pGeometry->GetPoint(0).X() + pGeometry->GetPoint(1).X());
+        RHS[1] = GlobalCoords[1] - 0.5 * (pGeometry->GetPoint(0).Y() + pGeometry->GetPoint(1).Y());
 
-        transform_matrix(0, 0) = 0.5 * (pCondition->GetGeometry()[1].X() - pCondition->GetGeometry()[0].X());
-        transform_matrix(1, 0) = 0.5 * (pCondition->GetGeometry()[1].Y() - pCondition->GetGeometry()[0].Y());
+        transform_matrix(0, 0) = 0.5 * (pGeometry->GetPoint(1).X() - pGeometry->GetPoint(0).X());
+        transform_matrix(1, 0) = 0.5 * (pGeometry->GetPoint(1).Y() - pGeometry->GetPoint(0).Y());
 
         array_1d<double, 3> rNormal;
-        CalculateLineNormal(pCondition, rNormal);
+        CalculateLineNormal(pGeometry, rNormal);
         transform_matrix(0, 1) = rNormal[0];
         transform_matrix(1, 1) = rNormal[1];
 
@@ -263,7 +275,7 @@ public:
         return is_inside;
     }
 
-    static bool ProjectPointToTriangle(Condition* pCondition,
+    static bool ProjectPointToTriangle(Geometry<Node<3>>* pGeometry,
                                        const array_1d<double, 3>& GlobalCoords,
                                        array_1d<double, 3>& rLocalCoords,
                                        double& rDistance)
@@ -281,20 +293,20 @@ public:
         array_1d<double, 3> RHS;
         array_1d<double, 3> result_vec;
 
-        RHS[0] = GlobalCoords[0] - pCondition->GetGeometry()[0].X();
-        RHS[1] = GlobalCoords[1] - pCondition->GetGeometry()[0].Y();
-        RHS[2] = GlobalCoords[2] - pCondition->GetGeometry()[0].Z();
+        RHS[0] = GlobalCoords[0] - pGeometry->GetPoint(0).X();
+        RHS[1] = GlobalCoords[1] - pGeometry->GetPoint(0).Y();
+        RHS[2] = GlobalCoords[2] - pGeometry->GetPoint(0).Z();
 
-        transform_matrix(0, 0) = pCondition->GetGeometry()[1].X() - pCondition->GetGeometry()[0].X();
-        transform_matrix(1, 0) = pCondition->GetGeometry()[1].Y() - pCondition->GetGeometry()[0].Y();
-        transform_matrix(2, 0) = pCondition->GetGeometry()[1].Z() - pCondition->GetGeometry()[0].Z();
+        transform_matrix(0, 0) = pGeometry->GetPoint(1).X() - pGeometry->GetPoint(0).X();
+        transform_matrix(1, 0) = pGeometry->GetPoint(1).Y() - pGeometry->GetPoint(0).Y();
+        transform_matrix(2, 0) = pGeometry->GetPoint(1).Z() - pGeometry->GetPoint(0).Z();
 
-        transform_matrix(0, 1) = pCondition->GetGeometry()[2].X() - pCondition->GetGeometry()[0].X();
-        transform_matrix(1, 1) = pCondition->GetGeometry()[2].Y() - pCondition->GetGeometry()[0].Y();
-        transform_matrix(2, 1) = pCondition->GetGeometry()[2].Z() - pCondition->GetGeometry()[0].Z();
+        transform_matrix(0, 1) = pGeometry->GetPoint(2).X() - pGeometry->GetPoint(0).X();
+        transform_matrix(1, 1) = pGeometry->GetPoint(2).Y() - pGeometry->GetPoint(0).Y();
+        transform_matrix(2, 1) = pGeometry->GetPoint(2).Z() - pGeometry->GetPoint(0).Z();
 
         array_1d<double, 3> rNormal;
-        CalculateTriangleNormal(pCondition, rNormal);
+        CalculateTriangleNormal(pGeometry, rNormal);
         transform_matrix(0, 2) = rNormal[0];
         transform_matrix(1, 2) = rNormal[1];
         transform_matrix(2, 2) = rNormal[2];
@@ -323,27 +335,25 @@ public:
         return is_inside;
     }
 
-    static bool ProjectPointToQuadrilateral(Condition* pCondition,
+    static bool ProjectPointToQuadrilateral(Geometry<Node<3>>* pGeometry,
                                             const array_1d<double, 3>& GlobalCoords,
                                             array_1d<double, 3>& rLocalCoords,
                                             double& rDistance)
     {
-
-        Condition::GeometryType& r_condition_geometry = pCondition->GetGeometry();
-        bool is_inside = r_condition_geometry.IsInside(GlobalCoords, rLocalCoords);
+        bool is_inside = pGeometry->IsInside(GlobalCoords, rLocalCoords);
 
         if (is_inside)
         {
             // Calculate Distance
             array_1d<double, 3> projection_global_coords;
-            r_condition_geometry.GlobalCoordinates(projection_global_coords, rLocalCoords);
+            pGeometry->GlobalCoordinates(projection_global_coords, rLocalCoords);
             rDistance = ComputeDistance(GlobalCoords, projection_global_coords);
         }
 
         return is_inside;
     }
 
-    // static bool ProjectPointToTetrahedra(Condition* pCondition,
+    // static bool ProjectPointToTetrahedra(pGeometry,
     //                                      const array_1d<double, 3>& GlobalCoords,
     //                                      array_1d<double,3>& rLocalCoords,
     //                                      double& rDistance) {
@@ -358,21 +368,21 @@ public:
 
     //     array_1d<double, 3> RHS;
 
-    //     RHS[0] = GlobalCoords[0] - pCondition->GetGeometry()[0].X();
-    //     RHS[1] = GlobalCoords[1] - pCondition->GetGeometry()[0].Y();
-    //     RHS[2] = GlobalCoords[2] - pCondition->GetGeometry()[0].Z();
+    //     RHS[0] = GlobalCoords[0] - pGeometry->GetPoint(0).X();
+    //     RHS[1] = GlobalCoords[1] - pGeometry->GetPoint(0).Y();
+    //     RHS[2] = GlobalCoords[2] - pGeometry->GetPoint(0).Z();
 
-    //     transform_matrix(0, 0) = pCondition->GetGeometry()[1].X() - pCondition->GetGeometry()[0].X();
-    //     transform_matrix(1, 0) = pCondition->GetGeometry()[1].Y() - pCondition->GetGeometry()[0].Y();
-    //     transform_matrix(2, 0) = pCondition->GetGeometry()[1].Z() - pCondition->GetGeometry()[0].Z();
+    //     transform_matrix(0, 0) = pGeometry->GetPoint(1).X() - pGeometry->GetPoint(0).X();
+    //     transform_matrix(1, 0) = pGeometry->GetPoint(1).Y() - pGeometry->GetPoint(0).Y();
+    //     transform_matrix(2, 0) = pGeometry->GetPoint(1).Z() - pGeometry->GetPoint(0).Z();
 
-    //     transform_matrix(0, 1) = pCondition->GetGeometry()[2].X() - pCondition->GetGeometry()[0].X();
-    //     transform_matrix(1, 1) = pCondition->GetGeometry()[2].Y() - pCondition->GetGeometry()[0].Y();
-    //     transform_matrix(2, 1) = pCondition->GetGeometry()[2].Z() - pCondition->GetGeometry()[0].Z();
+    //     transform_matrix(0, 1) = pGeometry->GetPoint(2).X() - pGeometry->GetPoint(0).X();
+    //     transform_matrix(1, 1) = pGeometry->GetPoint(2).Y() - pGeometry->GetPoint(0).Y();
+    //     transform_matrix(2, 1) = pGeometry->GetPoint(2).Z() - pGeometry->GetPoint(0).Z();
 
-    //     transform_matrix(0, 2) = pCondition->GetGeometry()[3].X() - pCondition->GetGeometry()[0].X();
-    //     transform_matrix(1, 2) = pCondition->GetGeometry()[3].Y() - pCondition->GetGeometry()[0].Y();
-    //     transform_matrix(2, 2) = pCondition->GetGeometry()[3].Z() - pCondition->GetGeometry()[0].Z();
+    //     transform_matrix(0, 2) = pGeometry[3].X() - pGeometry->GetPoint(0).X();
+    //     transform_matrix(1, 2) = pGeometry[3].Y() - pGeometry->GetPoint(0).Y();
+    //     transform_matrix(2, 2) = pGeometry[3].Z() - pGeometry->GetPoint(0).Z();
 
     //     MathUtils<double>::InvertMatrix3(transform_matrix,inv_transform_matrix,det);
     //     noalias(rLocalCoords) = prod(inv_transform_matrix, RHS);
@@ -385,8 +395,8 @@ public:
     //                 if( (rLocalCoords[0] + rLocalCoords[1] + rLocalCoords[2]) <= (1.0+MapperUtilities::tol_local_coords)) {
     //                     is_inside = true;
 
-    //                     rDistance = ComputeDistance(GlobalCoords, pCondition->GetGeometry().Center());
-    //                     rDistance /= pCondition->GetGeometry().Volume(); // Normalize Distance by Volume
+    //                     rDistance = ComputeDistance(GlobalCoords, pGeometry.Center());
+    //                     rDistance /= pGeometry.Volume(); // Normalize Distance by Volume
     //                 }
     //             }
     //         }
@@ -395,12 +405,12 @@ public:
     //     return is_inside;
     // }
 
-    // static bool ProjectPointToCondition(Condition* pCondition,
+    // static bool ProjectPointToCondition(Geometry<Node<3>>* pGeometry,
     //                                     const array_1d<double, 3>& GlobalCoords,
     //                                     array_1d<double,3>& rLocalCoords,
     //                                     double& rDistance) {
 
-    //     Condition::GeometryType& r_condition_geometry = pCondition->GetGeometry();
+    //     Condition::GeometryType& r_condition_geometry = pGeometry;
     //     bool is_inside = r_condition_geometry.IsInside(GlobalCoords, rLocalCoords);
 
     //     if (is_inside) {
@@ -415,35 +425,33 @@ public:
     //     return is_inside;
     // }
 
-    static bool PointLocalCoordinatesInVolume(Condition* pCondition,
+    static bool PointLocalCoordinatesInVolume(Geometry<Node<3>>* pGeometry,
             const array_1d<double, 3>& GlobalCoords,
             array_1d<double, 3>& rLocalCoords,
             double& rDistance)
     {
-
-        Condition::GeometryType& r_condition_geometry = pCondition->GetGeometry();
-        bool is_inside = r_condition_geometry.IsInside(GlobalCoords, rLocalCoords);
+        bool is_inside = pGeometry->IsInside(GlobalCoords, rLocalCoords);
 
         if (is_inside)
         {
             // Calculate Distance
-            rDistance = ComputeDistance(GlobalCoords, r_condition_geometry.Center());
-            rDistance /= r_condition_geometry.Volume();  // Normalize Distance by Volume
+            rDistance = ComputeDistance(GlobalCoords, pGeometry->Center());
+            rDistance /= pGeometry->Volume();  // Normalize Distance by Volume
 
         }
 
         return is_inside;
     }
 
-    static void CalculateLineNormal(Condition* pCondition,
+    static void CalculateLineNormal(const Geometry<Node<3>>* pGeometry,
                                     array_1d<double, 3>& rNormal)
     {
         // TODO use the normal calculation in geometry.h once it is available
         rNormal.clear();
         array_1d<double, 3> v1, v2;
-        v1[0] = pCondition->GetGeometry()[1].X() - pCondition->GetGeometry()[0].X();
-        v1[1] = pCondition->GetGeometry()[1].Y() - pCondition->GetGeometry()[0].Y();
-        v1[2] = pCondition->GetGeometry()[1].Z() - pCondition->GetGeometry()[0].Z();
+        v1[0] = pGeometry->GetPoint(1).X() - pGeometry->GetPoint(0).X();
+        v1[1] = pGeometry->GetPoint(1).Y() - pGeometry->GetPoint(0).Y();
+        v1[2] = pGeometry->GetPoint(1).Z() - pGeometry->GetPoint(0).Z();
         // Assuming plane X-Y in the 2D-case
         v2[0] = 0.0f;
         v2[1] = 0.0f;
@@ -455,19 +463,19 @@ public:
         rNormal /= norm_2(rNormal); // normalize the nomal (i.e. length=1)
     }
 
-    static void CalculateTriangleNormal(Condition* pCondition,
+    static void CalculateTriangleNormal(const Geometry<Node<3>>* pGeometry,
                                         array_1d<double, 3>& rNormal)
     {
         // TODO use the normal calculation in geometry.h once it is available
         rNormal.clear();
         array_1d<double, 3> v1, v2;
-        v1[0] = pCondition->GetGeometry()[1].X() - pCondition->GetGeometry()[0].X();
-        v1[1] = pCondition->GetGeometry()[1].Y() - pCondition->GetGeometry()[0].Y();
-        v1[2] = pCondition->GetGeometry()[1].Z() - pCondition->GetGeometry()[0].Z();
+        v1[0] = pGeometry->GetPoint(1).X() - pGeometry->GetPoint(0).X();
+        v1[1] = pGeometry->GetPoint(1).Y() - pGeometry->GetPoint(0).Y();
+        v1[2] = pGeometry->GetPoint(1).Z() - pGeometry->GetPoint(0).Z();
 
-        v2[0] = pCondition->GetGeometry()[2].X() - pCondition->GetGeometry()[0].X();
-        v2[1] = pCondition->GetGeometry()[2].Y() - pCondition->GetGeometry()[0].Y();
-        v2[2] = pCondition->GetGeometry()[2].Z() - pCondition->GetGeometry()[0].Z();
+        v2[0] = pGeometry->GetPoint(2).X() - pGeometry->GetPoint(0).X();
+        v2[1] = pGeometry->GetPoint(2).Y() - pGeometry->GetPoint(0).Y();
+        v2[2] = pGeometry->GetPoint(2).Z() - pGeometry->GetPoint(0).Z();
 
 
         // Compute the condition normal

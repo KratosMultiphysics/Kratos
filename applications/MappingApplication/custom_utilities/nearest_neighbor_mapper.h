@@ -67,8 +67,8 @@ public:
                           Parameters& rJsonParameters) : Mapper(
                                   i_model_part_origin, i_model_part_destination, rJsonParameters)
     {
-        mpMapperCommunicator->InitializeOrigin(MapperUtilities::Node);
-        mpMapperCommunicator->InitializeDestination(MapperUtilities::Node);
+        mpMapperCommunicator->InitializeOrigin(MapperUtilities::Node_Coords);
+        mpMapperCommunicator->InitializeDestination(MapperUtilities::Node_Coords);
         mpMapperCommunicator->Initialize();
 
         mpInverseMapper.reset(); // explicitly specified to be safe

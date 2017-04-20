@@ -32,11 +32,7 @@
 namespace Kratos
 {
 
-KratosMappingApplication::KratosMappingApplication():
-    mVolumeCondition3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4  ) ) ) ),
-    mVolumeCondition3D6N( 0, Element::GeometryType::Pointer( new Prism3D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
-    mVolumeCondition3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8))))
-{ }
+KratosMappingApplication::KratosMappingApplication() { }
 
 void KratosMappingApplication::Register()
 {
@@ -55,11 +51,5 @@ void KratosMappingApplication::Register()
     // Needed to exchange Information abt the found neighbors (i.e. only for debugging)
     KRATOS_REGISTER_VARIABLE( NEIGHBOR_RANK )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NEIGHBOR_COORDINATES )
-
-    // Needed for Volume Mapping
-    KRATOS_REGISTER_CONDITION( "VolumeCondition3D4N", mVolumeCondition3D4N );
-    KRATOS_REGISTER_CONDITION( "VolumeCondition3D6N", mVolumeCondition3D6N );
-    KRATOS_REGISTER_CONDITION( "VolumeCondition3D8N", mVolumeCondition3D8N );
-
 }
 }  // namespace Kratos.
