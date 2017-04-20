@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -52,6 +52,7 @@ KRATOS_CREATE_VARIABLE( double, CFL_NUMBER )
 KRATOS_CREATE_VARIABLE( double, MOLECULAR_VISCOSITY )
 KRATOS_CREATE_VARIABLE( double, TURBULENT_VISCOSITY )
 KRATOS_CREATE_VARIABLE( double, Y_WALL)
+KRATOS_CREATE_VARIABLE( double, PRESSURE_COEFFICIENT)
 KRATOS_CREATE_VARIABLE( int, OSS_SWITCH )
 
 // Legacy variables
@@ -81,6 +82,7 @@ void KratosApplication::RegisterCFDVariables()
     KRATOS_REGISTER_VARIABLE( MOLECULAR_VISCOSITY )
     KRATOS_REGISTER_VARIABLE( TURBULENT_VISCOSITY )
     KRATOS_REGISTER_VARIABLE( Y_WALL)
+    KRATOS_REGISTER_VARIABLE( PRESSURE_COEFFICIENT)
     KRATOS_REGISTER_VARIABLE( OSS_SWITCH )
 
     // Legacy variables
@@ -91,7 +93,7 @@ void KratosApplication::RegisterCFDVariables()
     KRATOS_REGISTER_VARIABLE( THAWONE )
     KRATOS_REGISTER_VARIABLE( THAWTWO )
     KRATOS_REGISTER_VARIABLE( M )
-    
+
     KRATOS_REGISTER_VARIABLE( CROSS_WIND_STABILIZATION_FACTOR )
 }
 
@@ -100,7 +102,3 @@ void KratosApplication::RegisterCFDVariables()
 
 // This define must be HERE
 #undef DKRATOS_EXPORT_INTERFACE_2
-
-
-
-
