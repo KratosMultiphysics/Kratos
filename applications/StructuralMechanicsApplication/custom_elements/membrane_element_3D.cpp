@@ -967,8 +967,8 @@ void MembraneElement3D::CalculateAll(
         par_g1_1(0) = 0.0;
         par_g1_1(1) = 1.0;
 
-        if (this->GetId() == 42 && PointNumber == 1)
-            KRATOS_WATCH(pre_stress_tensor);
+        //if (this->GetId() == 42 && PointNumber == 1)
+        //    KRATOS_WATCH(pre_stress_tensor);
 
         CalculateTransMatrixToLocalCartesian(PointNumber, g1, g2, g3, gab, pre_stress_tensor, par_g1_1);
 
@@ -1274,18 +1274,18 @@ void MembraneElement3D::CalculateTransMatrixToLocalCartesian(
     array_1d<double, 3> prestress,
     array_1d<double, 2> par_g1_1)
 {
-    if (this->GetId() == 42 && PointNumber == 1)
-    {
-        KRATOS_WATCH(g1);
-        KRATOS_WATCH(g2);
-        KRATOS_WATCH(g3);
-        KRATOS_WATCH(gab);
-        
-    }
+    //if (this->GetId() == 42 && PointNumber == 1)
+    //{
+    //    KRATOS_WATCH(g1);
+    //    KRATOS_WATCH(g2);
+    //    KRATOS_WATCH(g3);
+    //    KRATOS_WATCH(gab);
+    //    
+    //}
 
     CrossProduct(g3, g1, g2);
-    if (this->GetId() == 42 && PointNumber == 1)
-        KRATOS_WATCH(g3);
+    //if (this->GetId() == 42 && PointNumber == 1)
+    //    KRATOS_WATCH(g3);
     
 
 
@@ -1338,8 +1338,8 @@ void MembraneElement3D::CalculateTransMatrixToLocalCartesian(
     // creation of T1 ==> Projection of A on the tangential plane
     CrossProduct(t1, b, g3);
 
-    if (this->GetId() == 42 && PointNumber == 1)
-        KRATOS_WATCH(t1);
+    //if (this->GetId() == 42 && PointNumber == 1)
+    //    KRATOS_WATCH(t1);
 
     
     // The frame must be orthogonal, so T3 == G3
@@ -1348,8 +1348,8 @@ void MembraneElement3D::CalculateTransMatrixToLocalCartesian(
     // Then T2 can only be the cross product between T1 and T3
     CrossProduct(t2, t3, t1);
 
-    if (this->GetId() == 42 && PointNumber == 1)
-        KRATOS_WATCH(t2);
+    //if (this->GetId() == 42 && PointNumber == 1)
+    //    KRATOS_WATCH(t2);
 
 
     // Normalization of the vectors
@@ -1363,13 +1363,13 @@ void MembraneElement3D::CalculateTransMatrixToLocalCartesian(
     double eG21 = inner_prod(e2, t1);
     double eG22 = inner_prod(e2, t2);
 
-    if (this->GetId() == 42 && PointNumber == 1)
-    {
-        KRATOS_WATCH(eG11);
-        KRATOS_WATCH(eG12);
-        KRATOS_WATCH(eG21);
-        KRATOS_WATCH(eG22);
-    }
+    //if (this->GetId() == 42 && PointNumber == 1)
+    //{
+    //    KRATOS_WATCH(eG11);
+    //    KRATOS_WATCH(eG12);
+    //    KRATOS_WATCH(eG21);
+    //    KRATOS_WATCH(eG22);
+    //}
 
     
     // finally, calculating the Transformation Matrix
@@ -1387,11 +1387,11 @@ void MembraneElement3D::CalculateTransMatrixToLocalCartesian(
 
     prestress = prod(Tm, prestress);
 
-    if (this->GetId() == 42 && PointNumber == 1)
-    {
-        KRATOS_WATCH(Tm);
-        KRATOS_WATCH(prestress);
-    }
+    //if (this->GetId() == 42 && PointNumber == 1)
+    //{
+    //    KRATOS_WATCH(Tm);
+    //    KRATOS_WATCH(prestress);
+    //}
 
 }
 
