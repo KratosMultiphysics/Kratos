@@ -79,10 +79,13 @@ class MeshTyingProcess(KratosMultiphysics.Process):
         #print(self.main_model_part) 
         
         # It should create the conditions automatically
+        interface_parameters = KratosMultiphysics.Parameters("""{"condition_name": "", "final_string": "", "simplify_geometry": false}""")
+        interface_parameters["condition_name"].SetString(condition_name)
+        interface_parameters["final_string"].SetString(self.geometry_element + self.type_variable)
         if (self.dimension == 2):
-            self.Preprocess.GenerateInterfacePart2D(computing_model_part, self.mesh_tying_model_part, condition_name, self.geometry_element + self.type_variable, False) 
+            self.Preprocess.GenerateInterfacePart2D(computing_model_part, self.mesh_tying_model_part, interface_parameters) 
         else:
-            self.Preprocess.GenerateInterfacePart3D(computing_model_part, self.mesh_tying_model_part, condition_name, self.geometry_element + self.type_variable, False) 
+            self.Preprocess.GenerateInterfacePart3D(computing_model_part, self.mesh_tying_model_part, interface_parameters) 
 
         # When all conditions are simultaneously master and slave
         if (self.params["assume_master_slave"].GetString() == ""):

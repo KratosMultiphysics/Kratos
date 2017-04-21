@@ -93,6 +93,7 @@ public:
         
         bool ConditionIsActive = false;
         
+//         #pragma omp for
         for (unsigned int iNode = 0; iNode < Geom1.size(); iNode++)
         {
             if (Geom1[iNode].Is(ACTIVE) == false)

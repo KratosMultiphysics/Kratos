@@ -112,10 +112,12 @@ class ALMContactProcess(KratosMultiphysics.Process):
         #print(computing_model_part) 
         
         # It should create the conditions automatically
+        interface_parameters = KratosMultiphysics.Parameters("""{"condition_name": "", "final_string": "", "simplify_geometry": false}""")
+        interface_parameters["condition_name"].SetString(condition_name)
         if (self.dimension == 2):
-            self.Preprocess.GenerateInterfacePart2D(computing_model_part, self.contact_model_part, condition_name, "", False) 
+            self.Preprocess.GenerateInterfacePart2D(computing_model_part, self.contact_model_part, interface_parameters) 
         else:
-            self.Preprocess.GenerateInterfacePart3D(computing_model_part, self.contact_model_part, condition_name, "", False) 
+            self.Preprocess.GenerateInterfacePart3D(computing_model_part, self.contact_model_part, interface_parameters) 
 
         # When all conditions are simultaneously master and slave
         if (self.params["assume_master_slave"].GetString() == ""):

@@ -87,12 +87,16 @@ class ContactProcess(KratosMultiphysics.Process):
         final_string = ""
         
         # It should create the conditions automatically
+        interface_parameters = KratosMultiphysics.Parameters("""{"condition_name": "", "final_string": "", "simplify_geometry": false}""")
+        interface_parameters["condition_name"].SetString(condition_name)
+        interface_parameters["final_string"].SetString(final_string)
+        interface_parameters["simplify_geometry"].SetBool(self.simplify_geometry)
         if (self.dimension == 2):
-            self.Preprocess.GenerateInterfacePart2D(self.o_model_part, self.o_interface, condition_name, final_string, self.simplify_geometry) 
-            self.Preprocess.GenerateInterfacePart2D(self.d_model_part, self.d_interface, condition_name, final_string, self.simplify_geometry) 
+            self.Preprocess.GenerateInterfacePart2D(self.o_model_part, self.o_interface, interface_parameters) 
+            self.Preprocess.GenerateInterfacePart2D(self.d_model_part, self.d_interface, interface_parameters) 
         else:
-            self.Preprocess.GenerateInterfacePart3D(self.o_model_part, self.o_interface, condition_name, final_string, self.simplify_geometry) 
-            self.Preprocess.GenerateInterfacePart3D(self.d_model_part, self.d_interface, condition_name, final_string, self.simplify_geometry) 
+            self.Preprocess.GenerateInterfacePart3D(self.o_model_part, self.o_interface, interface_parameters) 
+            self.Preprocess.GenerateInterfacePart3D(self.d_model_part, self.d_interface, interface_parameters) 
 
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(self.main_model_part)
