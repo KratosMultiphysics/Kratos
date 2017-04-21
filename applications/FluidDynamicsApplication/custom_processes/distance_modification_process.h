@@ -124,8 +124,6 @@ public:
             counter++;
         }
 
-        // Deactivate those elements that have all their nodes in the structure domain as well as
-        // those elements whose structure nodes and fixed nodes summation equals the number of nodes
         this->DeactivateFullNegativeElements();
 
         KRATOS_CATCH("");
@@ -227,7 +225,7 @@ protected:
                     d = -0.001*tol_d;
             }
         }
-        else // Case in where the original distance needs to be kept to track the original interface (e.g. FSI)
+        else // Case in where the original distance needs to be kept to track the interface (e.g. FSI)
         {
             const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
             std::vector<std::vector<unsigned int>> AuxModifiedDistancesIDs(NumThreads);
@@ -339,14 +337,12 @@ protected:
         #pragma omp parallel for
         for (int k = 0; k < static_cast<int>(rElements.size()); ++k)
         {
-            unsigned int fixed = 0;
             unsigned int inside = 0;
             ModelPart::ElementsContainerType::iterator itElement = rElements.begin() + k;
             GeometryType& rGeometry = itElement->GetGeometry();
-            const unsigned int NumNodes = rGeometry.size();
 
-            // Check the distance function sign and fixity at the element nodes
-            if (rGeometry.Dimension() == 2)
+            // Check the distance function sign at the element nodes
+            for (unsigned int itNode=0; itNode<rGeometry.size(); itNode++)
             {
                 if (rGeometry[itNode].GetSolutionStepValue(DISTANCE)<0.0)
                     inside++;
