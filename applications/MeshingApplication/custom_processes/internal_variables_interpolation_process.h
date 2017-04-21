@@ -557,8 +557,8 @@ private:
         mPointListOrigin.clear();     
         mPointListOrigin = CreateGaussPointList(mrOriginMainModelPart);
 
-        #pragma omp parallel firstprivate(mPointListOrigin)
-        {
+        //#pragma omp parallel firstprivate(mPointListOrigin)
+        //{
             // We initialize the intergration method
             GeometryData::IntegrationMethod ThisIntegrationMethod;
             
@@ -571,7 +571,7 @@ private:
             ElementsArrayType& pElements = mrDestinationMainModelPart.Elements();
             auto numElements = pElements.end() - pElements.begin();
             
-            #pragma omp for
+            //#pragma omp for
             for(unsigned int i = 0; i < numElements; i++) 
             {
                 auto itElem = pElements.begin() + i;
@@ -608,7 +608,7 @@ private:
                     }
                 }
             }
-        }
+        //}
     }
     
     /**
