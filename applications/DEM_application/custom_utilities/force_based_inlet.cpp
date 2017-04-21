@@ -27,7 +27,12 @@ void DEM_Force_Based_Inlet::FixInjectionConditions(Element* p_element)
 {
     Node<3>& node = p_element->GetGeometry()[0];
     node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = GetInjectionForce();
-    KRATOS_WATCH(GetInjectionForce())
+}
+
+void DEM_Force_Based_Inlet::FixInjectorConditions(Element* p_element)
+{
+    Node<3>& node = p_element->GetGeometry()[0];
+    node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = GetInjectionForce();
 }
 
 array_1d<double, 3> DEM_Force_Based_Inlet::GetInjectionForce()
