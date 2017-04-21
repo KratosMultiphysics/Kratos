@@ -40,7 +40,7 @@ namespace Kratos
 ///@{
     
 ///@}
-///@name  Enum's
+///@name  Enum"s
 ///@{
     
     #if !defined(INTERPOLATION_TYPES)
@@ -290,16 +290,28 @@ public:
     InternalVariablesInterpolationProcess(
         ModelPart& rOriginMainModelPart,
         ModelPart& rDestinationMainModelPart,
-        Parameters ThisParameters = Parameters("{'allocation_size': 1000, 'bucket_size': 4, 'search_factor': 2, 'interpolation_type': 'LST', 'internal_variable_interpolation_list':[]}")
+        Parameters ThisParameters =  Parameters(R"({})")
         )
     :mrOriginMainModelPart(rOriginMainModelPart),
      mrDestinationMainModelPart(rDestinationMainModelPart),
-     mDimension(rDestinationMainModelPart.GetProcessInfo()[DOMAIN_SIZE]),
-     mAllocationSize(ThisParameters["allocation_size"].GetInt()),
-     mBucketSize(ThisParameters["bucket_size"].GetInt()),
-     mSearchFactor(ThisParameters["search_factor"].GetDouble()),
-     mThisInterpolationType(ConvertInter(ThisParameters["interpolation_type"].GetString()))
-     {        
+     mDimension(rDestinationMainModelPart.GetProcessInfo()[DOMAIN_SIZE])
+     {
+        Parameters DefaultParameters = Parameters(R"(
+            {
+                "allocation_size": 1000, 
+                "bucket_size": 4, 
+                "search_factor": 2, 
+                "interpolation_type": "LST", 
+                "internal_variable_interpolation_list":[]
+            })" );
+        
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+         
+        mAllocationSize = ThisParameters["allocation_size"].GetInt();
+        mBucketSize = ThisParameters["bucket_size"].GetInt();
+        mSearchFactor = ThisParameters["search_factor"].GetDouble();
+        mThisInterpolationType = ConvertInter(ThisParameters["interpolation_type"].GetString());
+         
         if (ThisParameters["internal_variable_interpolation_list"].IsArray() == true)
         {
             auto VariableArrayList = ThisParameters["internal_variable_interpolation_list"];
@@ -340,7 +352,7 @@ public:
         /** NOTE: There are mainly two ways to interpolate the internal variables (there are three, but just two are behave correctly)
          * CPT: Closest point transfer. It transfer the values from the closest GP
          * LST: Least-square projection transfer. It transfers from the closest GP from the old mesh
-         * SFT: It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the sahpe functions all the time (NOTE: THIS DOESN'T WORK, AND REQUIRES EXTRA STORE)
+         * SFT: It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the sahpe functions all the time (NOTE: THIS DOESN"T WORK, AND REQUIRES EXTRA STORE)
          */ 
         
         if (mThisInterpolationType == CPT && mInternalVariableList.size() > 0)
@@ -437,11 +449,11 @@ private:
     const unsigned int mDimension;                       // Dimension size of the space
     
     // The allocation parameters
-    const unsigned int mAllocationSize;                  // Allocation size for the vectors and max number of potential results
-    const unsigned int mBucketSize;                      // Bucket size for kd-tree
+    unsigned int mAllocationSize;                  // Allocation size for the vectors and max number of potential results
+    unsigned int mBucketSize;                      // Bucket size for kd-tree
     
     // The seatch variables 
-    const double mSearchFactor;                          // The search factor to be considered
+    double mSearchFactor;                          // The search factor to be considered
     PointVector mPointListOrigin;                        // A list that contents the all the gauss points from the origin modelpart 
     
     // Variables to interpolate
