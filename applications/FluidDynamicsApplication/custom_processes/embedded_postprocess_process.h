@@ -94,6 +94,19 @@ public:
         const array_1d<double, 3> aux_zero = ZeroVector(3);
         ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
 
+        // Simple check
+        if( mrModelPart.NodesBegin()->SolutionStepsDataHas( DISTANCE ) == false )
+            KRATOS_ERROR << "Nodes do not have DISTANCE variable!";
+        if( mrModelPart.NodesBegin()->SolutionStepsDataHas( PRESSURE ) == false )
+            KRATOS_ERROR << "Nodes do not have PRESSURE variable!";
+        if( mrModelPart.NodesBegin()->SolutionStepsDataHas( VELOCITY ) == false )
+            KRATOS_ERROR << "Nodes do not have VELOCITY variable!";
+        if( mrModelPart.NodesBegin()->SolutionStepsDataHas( EMBEDDED_WET_PRESSURE ) == false )
+            KRATOS_ERROR << "Nodes do not have EMBEDDED_WET_PRESSURE variable!";
+        if( mrModelPart.NodesBegin()->SolutionStepsDataHas( EMBEDDED_WET_VELOCITY ) == false )
+            KRATOS_ERROR << "Nodes do not have EMBEDDED_WET_VELOCITY variable!";
+
+        // Embedded postprocess variables set
         #pragma omp parallel for
         for (int k = 0; k < static_cast<int>(rNodes.size()); ++k)
         {
