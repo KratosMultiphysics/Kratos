@@ -100,6 +100,14 @@ public:
         ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
         ModelPart::ElementsContainerType& rElements = mrModelPart.Elements();
 
+        // Simple check
+        if( mrModelPart.NodesBegin()->SolutionStepsDataHas( DISTANCE ) == false )
+            KRATOS_ERROR << "Nodes do not have DISTANCE variable!";
+        if( mrModelPart.NodesBegin()->SolutionStepsDataHas( PRESSURE ) == false )
+            KRATOS_ERROR << "Nodes do not have PRESSURE variable!";
+        if( mrModelPart.NodesBegin()->SolutionStepsDataHas( VELOCITY ) == false )
+            KRATOS_ERROR << "Nodes do not have VELOCITY variable!";
+
         // Mark the nodes that have switched from structure to fluid during the last step
         #pragma omp parallel for
         for (int k = 0; k < static_cast<int>(rNodes.size()); ++k)
