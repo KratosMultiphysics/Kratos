@@ -28,6 +28,7 @@
 #include "custom_processes/Boundary_Windkessel_model.h"
 #include "custom_processes/stokes_initialization_process.h"
 #include "custom_processes/distance_modification_process.h"
+#include "custom_processes/embedded_nodes_initialization_process.h"
 #include "custom_processes/embedded_postprocess_process.h"
 #include "custom_processes/move_rotor_process.h"
 #include "spaces/ublas_space.h"
@@ -69,6 +70,11 @@ void AddCustomProcessesToPython()
     class_< DistanceModificationProcess, bases<Process>, boost::noncopyable >
     ("DistanceModificationProcess",init < ModelPart&, const bool, const bool >())
     ;
+
+    class_< EmbeddedNodesInitializationProcess, bases<Process>, boost::noncopyable >
+    ("EmbeddedNodesInitializationProcess",init < ModelPart&, unsigned int >())
+    ;
+
 
     class_< EmbeddedPostprocessProcess, bases<Process>, boost::noncopyable >
     ("EmbeddedPostprocessProcess",init < ModelPart& >())
