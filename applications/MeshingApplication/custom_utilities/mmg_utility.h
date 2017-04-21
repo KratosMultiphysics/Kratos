@@ -313,7 +313,7 @@ protected:
     MMG5_pSol  mmgSol;
     
     // Where the sub model parts IDs are stored
-    std::map<int,std::vector<std::string>> mColors;
+    boost::unordered_map<int,std::vector<std::string>> mColors;
     
     // Reference element and condition
     std::vector<Element::Pointer>   mpRefElement;
@@ -336,7 +336,7 @@ protected:
     void InitializeMeshData()
     {                
         // First we compute the colors
-        std::map<int,int> NodeColors, CondColors, ElemColors;
+        boost::unordered_map<int,int> NodeColors, CondColors, ElemColors;
         ComputeColors(NodeColors, CondColors, ElemColors);
         
         /////////* MESH FILE */////////
@@ -1582,14 +1582,14 @@ protected:
      */
     
     void ComputeColors(
-        std::map<int,int>& NodeColors,
-        std::map<int,int>& CondColors,
-        std::map<int,int>& ElemColors
+        boost::unordered_map<int,int>& NodeColors,
+        boost::unordered_map<int,int>& CondColors,
+        boost::unordered_map<int,int>& ElemColors
         )
     {        
         // Initialize and create the auxiliar maps
         const std::vector<std::string> SubModelPartNames = mThisModelPart.GetSubModelPartNames();
-        std::map<int,std::set<int>> AuxNodeColors, AuxCondColors, AuxElemColors;
+        boost::unordered_map<int,std::set<int>> AuxNodeColors, AuxCondColors, AuxElemColors;
         
         std::vector<std::string> ModelPartNames;
         ModelPartNames.push_back(mThisModelPart.Name());
@@ -1649,13 +1649,13 @@ protected:
         }
         
         // The iterator for the auxiliar maps is created
-        typedef std::map<int,std::set<int>>::iterator it_type;
+        typedef boost::unordered_map<int,std::set<int>>::iterator itType;
         
         // Now detect all the cases in which a node or a cond belongs to more than one part simultaneously 
-        std::map<std::set<int>, int> Combinations;
+        boost::unordered_map<std::set<int>, int> Combinations;
         
         /* Nodes */
-        for(it_type iterator = AuxNodeColors.begin(); iterator != AuxNodeColors.end(); iterator++) 
+        for(itType iterator = AuxNodeColors.begin(); iterator != AuxNodeColors.end(); iterator++) 
         {
 //             const int key = iterator->first;
             const std::set<int> Value = iterator->second;
@@ -1667,7 +1667,7 @@ protected:
         }
         
         /* Conditions */
-        for(it_type iterator = AuxCondColors.begin(); iterator != AuxCondColors.end(); iterator++) 
+        for(itType iterator = AuxCondColors.begin(); iterator != AuxCondColors.end(); iterator++) 
         {
 //             const int key = iterator->first;
             const std::set<int> Value = iterator->second;
@@ -1679,7 +1679,7 @@ protected:
         }
 
         /* Elements */
-        for(it_type iterator = AuxElemColors.begin(); iterator != AuxElemColors.end(); iterator++) 
+        for(itType iterator = AuxElemColors.begin(); iterator != AuxElemColors.end(); iterator++) 
         {
 //             const int key = iterator->first;
             const std::set<int> Value = iterator->second;
@@ -1691,8 +1691,8 @@ protected:
         }
         
         /* Combinations */
-        typedef std::map<std::set<int>,int>::iterator comb_type;
-        for(comb_type iterator = Combinations.begin(); iterator != Combinations.end(); iterator++) 
+        typedef boost::unordered_map<std::set<int>,int>::iterator CombType;
+        for(CombType iterator = Combinations.begin(); iterator != Combinations.end(); iterator++) 
         {
             const std::set<int> key = iterator->first;
 //             const int Value = iterator->second;
@@ -1708,7 +1708,7 @@ protected:
         
         // The final maps are created
         /* Nodes */
-        for(it_type iterator = AuxNodeColors.begin(); iterator != AuxNodeColors.end(); iterator++) 
+        for(itType iterator = AuxNodeColors.begin(); iterator != AuxNodeColors.end(); iterator++) 
         {
             const int key = iterator->first;
             const std::set<int> Value = iterator->second;
@@ -1728,7 +1728,7 @@ protected:
         }
         
         /* Conditions */
-        for(it_type iterator = AuxCondColors.begin(); iterator != AuxCondColors.end(); iterator++) 
+        for(itType iterator = AuxCondColors.begin(); iterator != AuxCondColors.end(); iterator++) 
         {
             const int key = iterator->first;
             const std::set<int> Value = iterator->second;
@@ -1748,7 +1748,7 @@ protected:
         }
         
         /* Elements */
-        for(it_type iterator = AuxElemColors.begin(); iterator != AuxElemColors.end(); iterator++) 
+        for(itType iterator = AuxElemColors.begin(); iterator != AuxElemColors.end(); iterator++) 
         {
             const int key = iterator->first;
             const std::set<int> Value = iterator->second;
