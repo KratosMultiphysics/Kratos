@@ -176,35 +176,92 @@ public:
     
     /**
      * This is the default constructor, which is used to read the input files 
-     * @param filename: The input name of the output file
-     * @param echo_level: The level of verbosity
+     * @param rThisModelPart: The model part
+     * @param ThisParameters: The parameters
      */
     
     MmgUtility(
         ModelPart& rThisModelPart,
-        Parameters ThisParameters = Parameters("{'filename': 'output_remesh','echo_level': 3, 'framework': 'Eulerian'}")
+        Parameters ThisParameters = Parameters(R"({})")
         )
-        :mThisModelPart(rThisModelPart),
-        mThisParameters(ThisParameters),
-        mStdStringFilename(mThisParameters["filename"].GetString()),
-        mEchoLevel(mThisParameters["echo_level"].GetInt())
+        :mrThisModelPart(rThisModelPart),
+         mThisParameters(ThisParameters)
     {       
-       mFilename = new char [mStdStringFilename.length() + 1];
-       std::strcpy (mFilename, mStdStringFilename.c_str());
+        Parameters DefaultParameters = Parameters(R"(
+            {
+                "mesh_id"                          : 0,
+                "filename"                         : "out",
+                "model_part_name"                  : "MainModelPart",
+                "strategy"                         : "LevelSet",
+                "level_set_strategy_parameters"              :{
+                    "scalar_variable"                  : "DISTANCE",
+                    "gradient_variable"                : "DISTANCE_GRADIENT"
+                },
+                "framework"                            : "Eulerian",
+                "internal_variables_parameters"        :
+                {
+                    "allocation_size"                      : 1000, 
+                    "bucket_size"                          : 4, 
+                    "search_factor"                        : 2, 
+                    "interpolation_type"                   : "LST",
+                    "internal_variable_interpolation_list" :[]
+                },
+                "hessian_strategy_parameters"              :{
+                    "metric_variable"                  : ["DISTANCE"],
+                    "interpolation_error"              : 0.04,
+                    "mesh_dependent_constant"          : 0.0
+                },
+                "enforce_current"                  : true,
+                "initial_step"                     : 1,
+                "step_frequency"                   : 0,
+                "automatic_remesh"                 : true,
+                "automatic_remesh_parameters"      :{
+                    "automatic_remesh_type"            : "Ratio",
+                    "min_size_ratio"                   : 1.0,
+                    "max_size_ratio"                   : 3.0,
+                    "refer_type"                       : "Mean",
+                    "min_size_current_percentage"      : 50.0,
+                    "max_size_current_percentage"      : 98.0
+                },
+                "initial_remeshing"                : true,
+                "fix_contour_model_parts"          : [],
+                "minimal_size"                     : 0.1,
+                "maximal_size"                     : 10.0,
+                "anisotropy_remeshing"             : true,
+                "anisotropy_parameters":{
+                    "hmin_over_hmax_anisotropic_ratio" : 0.01,
+                    "boundary_layer_max_distance"      : 1.0,
+                    "boundary_layer_min_size_ratio"    : 2.0,
+                    "interpolation"                    : "Linear"
+                },
+                "save_external_files"              : false,
+                "max_number_of_searchs"            : 1000,
+                "echo_level"                       : 3,
+                "step_data_size"                   : 0,
+                "buffer_size"                      : 0
+            })" );
+        
+        mThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        
+        mStdStringFilename = mThisParameters["filename"].GetString();
+        mEchoLevel = mThisParameters["echo_level"].GetInt();
+        
+        mFilename = new char [mStdStringFilename.length() + 1];
+        std::strcpy (mFilename, mStdStringFilename.c_str());
        
-       mFramework = ConvertFramework(mThisParameters["framework"].GetString());
+        mFramework = ConvertFramework(mThisParameters["framework"].GetString());
        
-       mpRefElement.resize(TDim - 1);
-       mpRefCondition.resize(TDim - 1);
-       mInitRefCondition.resize(TDim - 1);
-       mInitRefElement.resize(TDim - 1);
-       for (unsigned int i_dim = 0; i_dim < TDim - 1; i_dim++)
-       {
-           mpRefElement[i_dim] = nullptr;   
-           mInitRefCondition[i_dim] = false;   
-           mpRefCondition[i_dim] = nullptr;   
-           mInitRefElement[i_dim] = false; 
-       }
+        mpRefElement.resize(TDim - 1);
+        mpRefCondition.resize(TDim - 1);
+        mInitRefCondition.resize(TDim - 1);
+        mInitRefElement.resize(TDim - 1);
+        for (unsigned int i_dim = 0; i_dim < TDim - 1; i_dim++)
+        {
+            mpRefElement[i_dim] = nullptr;   
+            mInitRefCondition[i_dim] = false;   
+            mpRefCondition[i_dim] = nullptr;   
+            mInitRefElement[i_dim] = false; 
+        }
     }
     
     /// Destructor.
@@ -239,7 +296,7 @@ public:
            std::cout << "//---------------------------------------------------//" << std::endl;
            std::cout << "//---------------------------------------------------//" << std::endl << std::endl;
             
-            KRATOS_WATCH(mThisModelPart);
+            KRATOS_WATCH(mrThisModelPart);
         }
         
         // We initialize the mesh and solution data
@@ -267,7 +324,7 @@ public:
            std::cout << "//---------------------------------------------------//" << std::endl;
            std::cout << "//---------------------------------------------------//" << std::endl << std::endl;
             
-            KRATOS_WATCH(mThisModelPart);
+            KRATOS_WATCH(mrThisModelPart);
         }
     }
        
@@ -294,7 +351,7 @@ protected:
     ///@{
     
     // The model part to compute
-    ModelPart& mThisModelPart;                      
+    ModelPart& mrThisModelPart;                      
     
     // The parameters (can be used for general pourposes)
     Parameters mThisParameters;
@@ -345,15 +402,15 @@ protected:
         // Build mesh in MMG5 format //
         
         // Iterate in the nodes
-        NodesArrayType& pNode = mThisModelPart.Nodes();
+        NodesArrayType& pNode = mrThisModelPart.Nodes();
         auto numNodes = pNode.end() - pNode.begin();
         
         // Iterate in the conditions
-        ConditionsArrayType& pConditions = mThisModelPart.Conditions();
+        ConditionsArrayType& pConditions = mrThisModelPart.Conditions();
         auto numConditions = pConditions.end() - pConditions.begin();
         
         // Iterate in the elements
-        ElementsArrayType& pElements = mThisModelPart.Elements();
+        ElementsArrayType& pElements = mrThisModelPart.Elements();
         auto numElements = pElements.end() - pElements.begin();
         
         /* Manually set of the mesh */
@@ -541,7 +598,7 @@ protected:
         ////////* SOLUTION FILE *////////
         
         // Iterate in the nodes
-        NodesArrayType& pNode = mThisModelPart.Nodes();
+        NodesArrayType& pNode = mrThisModelPart.Nodes();
         auto numNodes = pNode.end() - pNode.begin();
         
         SetSolSize(numNodes);
@@ -586,15 +643,11 @@ protected:
         const bool SaveToFile = mThisParameters["save_external_files"].GetBool();
         
         // We initialize some values
-        const unsigned int StepDataSize = mThisModelPart.GetNodalSolutionStepDataSize();
-        const unsigned int BufferSize   = mThisModelPart.NodesBegin()->GetBufferSize();
+        const unsigned int StepDataSize = mrThisModelPart.GetNodalSolutionStepDataSize();
+        const unsigned int BufferSize   = mrThisModelPart.NodesBegin()->GetBufferSize();
         
-        Parameters AuxParameters = Parameters(R"({"buffer_size": 0, "step_data_size": 0})");
-        AuxParameters["step_data_size"].SetInt(StepDataSize);
-        AuxParameters["buffer_size"].SetInt(BufferSize);
-        
-        mThisParameters.AddValue("step_data_size", AuxParameters["step_data_size"]);
-        mThisParameters.AddValue("buffer_size", AuxParameters["buffer_size"]);
+        mThisParameters["step_data_size"].SetInt(StepDataSize);
+        mThisParameters["buffer_size"].SetInt(BufferSize);
         
         if (mEchoLevel > 0)
         {        
@@ -653,25 +706,25 @@ protected:
         ModelPart rOldModelPart;
         
         // First we empty the model part
-        for (NodeConstantIterator itNode = mThisModelPart.NodesBegin(); itNode != mThisModelPart.NodesEnd(); itNode++)
+        for (NodeConstantIterator itNode = mrThisModelPart.NodesBegin(); itNode != mrThisModelPart.NodesEnd(); itNode++)
         {
             itNode->Set(TO_ERASE, true);
             rOldModelPart.AddNode(*(itNode.base()));
         }
-        mThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);  
+        mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);  
         
-        for (ConditionConstantIterator itCond = mThisModelPart.ConditionsBegin(); itCond != mThisModelPart.ConditionsEnd(); itCond++)
+        for (ConditionConstantIterator itCond = mrThisModelPart.ConditionsBegin(); itCond != mrThisModelPart.ConditionsEnd(); itCond++)
         {
             itCond->Set(TO_ERASE, true);
         }
-        mThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE); 
+        mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE); 
         
-        for (ElementConstantIterator itElem = mThisModelPart.ElementsBegin(); itElem != mThisModelPart.ElementsEnd(); itElem++)
+        for (ElementConstantIterator itElem = mrThisModelPart.ElementsBegin(); itElem != mrThisModelPart.ElementsEnd(); itElem++)
         {
             itElem->Set(TO_ERASE, true);
             rOldModelPart.AddElement(*(itElem.base()));
         }
-        mThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);  
+        mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);  
         
         // Create a new model part
         /* NODES */
@@ -692,7 +745,7 @@ protected:
                 for (unsigned int colors = 0; colors < ColorList.size(); colors++)
                 {
                     std::string SubModelPartName = ColorList[colors];
-                    ModelPart& SubModelPart = mThisModelPart.GetSubModelPart(SubModelPartName);
+                    ModelPart& SubModelPart = mrThisModelPart.GetSubModelPart(SubModelPartName);
                     SubModelPart.AddNode(pNode);
                 }
             }
@@ -720,7 +773,7 @@ protected:
                 
                 if (pCondition != nullptr)
                 {
-                    mThisModelPart.AddCondition(pCondition);
+                    mrThisModelPart.AddCondition(pCondition);
                                         
                     if (PropId != 0) // NOTE: PropId == 0 is the MainModelPart
                     {
@@ -728,7 +781,7 @@ protected:
                         for (unsigned int iColors = 0; iColors < ColorList.size(); iColors++)
                         {
                             std::string SubModelPartName = ColorList[iColors];
-                            ModelPart& SubModelPart = mThisModelPart.GetSubModelPart(SubModelPartName);
+                            ModelPart& SubModelPart = mrThisModelPart.GetSubModelPart(SubModelPartName);
                             SubModelPart.AddCondition(pCondition);
                         }
                     }
@@ -759,7 +812,7 @@ protected:
                     
                     if (pCondition != nullptr)
                     {
-                        mThisModelPart.AddCondition(pCondition);
+                        mrThisModelPart.AddCondition(pCondition);
                                             
                         if (PropId != 0) // NOTE: PropId == 0 is the MainModelPart
                         {
@@ -767,7 +820,7 @@ protected:
                             for (unsigned int iColors = 0; iColors < ColorList.size(); iColors++)
                             {
                                 std::string SubModelPartName = ColorList[iColors];
-                                ModelPart& SubModelPart = mThisModelPart.GetSubModelPart(SubModelPartName);
+                                ModelPart& SubModelPart = mrThisModelPart.GetSubModelPart(SubModelPartName);
                                 SubModelPart.AddCondition(pCondition);
                             }
                         }
@@ -800,7 +853,7 @@ protected:
                 
                 if (pElement != nullptr)
                 {
-                    mThisModelPart.AddElement(pElement);
+                    mrThisModelPart.AddElement(pElement);
                     
                     if (PropId != 0) // NOTE: PropId == 0 is the MainModelPart
                     {
@@ -808,7 +861,7 @@ protected:
                         for (unsigned int iColors = 0; iColors < ColorList.size(); iColors++)
                         {
                             std::string SubModelPartName = ColorList[iColors];
-                            ModelPart& SubModelPart = mThisModelPart.GetSubModelPart(SubModelPartName);
+                            ModelPart& SubModelPart = mrThisModelPart.GetSubModelPart(SubModelPartName);
                             SubModelPart.AddElement(pElement);
                         }
                     }
@@ -839,7 +892,7 @@ protected:
                     
                     if (pElement != nullptr)
                     {
-                        mThisModelPart.AddElement(pElement);
+                        mrThisModelPart.AddElement(pElement);
                         
                         if (PropId != 0) // NOTE: PropId == 0 is the MainModelPart
                         {
@@ -847,7 +900,7 @@ protected:
                             for (unsigned int iColors = 0; iColors < ColorList.size(); iColors++)
                             {
                                 std::string SubModelPartName = ColorList[iColors];
-                                ModelPart& SubModelPart = mThisModelPart.GetSubModelPart(SubModelPartName);
+                                ModelPart& SubModelPart = mrThisModelPart.GetSubModelPart(SubModelPartName);
                                 SubModelPart.AddElement(pElement);
                             }
                         }
@@ -859,12 +912,12 @@ protected:
         }
         
         //  Get the list of submodelparts names
-        const std::vector<std::string> SubModelPartNames = mThisModelPart.GetSubModelPartNames();
+        const std::vector<std::string> SubModelPartNames = mrThisModelPart.GetSubModelPartNames();
        
         // Add the nodes to the differents submodelparts
-        for (unsigned int iModelPart = 0; iModelPart < mThisModelPart.NumberOfSubModelParts(); iModelPart++)
+        for (unsigned int iModelPart = 0; iModelPart < mrThisModelPart.NumberOfSubModelParts(); iModelPart++)
         {
-            ModelPart& rSubModelPart = mThisModelPart.GetSubModelPart(SubModelPartNames[iModelPart]);
+            ModelPart& rSubModelPart = mrThisModelPart.GetSubModelPart(SubModelPartNames[iModelPart]);
            
             std::set<int> AuxSet;
            
@@ -907,7 +960,7 @@ protected:
         ReorderAllIds();
         
         /* We interpolate all the values */
-        NodalValuesInterpolationProcess<TDim> InterpolateNodalValues = NodalValuesInterpolationProcess<TDim>(rOldModelPart, mThisModelPart, mThisParameters);
+        NodalValuesInterpolationProcess<TDim> InterpolateNodalValues = NodalValuesInterpolationProcess<TDim>(rOldModelPart, mrThisModelPart, mThisParameters);
         InterpolateNodalValues.Execute();
         
         /* We initialize elements and conditions */
@@ -916,7 +969,7 @@ protected:
         /* We interpolate the internal variables */
         if (mFramework == Lagrangian) 
         {
-            InternalVariablesInterpolationProcess InternalVariablesInterpolation = InternalVariablesInterpolationProcess(rOldModelPart, mThisModelPart, mThisParameters["internal_variables_parameters"]);
+            InternalVariablesInterpolationProcess InternalVariablesInterpolation = InternalVariablesInterpolationProcess(rOldModelPart, mrThisModelPart, mThisParameters["internal_variables_parameters"]);
             InternalVariablesInterpolation.Execute();
         }
     }
@@ -927,7 +980,7 @@ protected:
     
     void ReorderAllIds()
     {
-        NodesArrayType& pNode = mThisModelPart.Nodes();
+        NodesArrayType& pNode = mrThisModelPart.Nodes();
         auto numNodes = pNode.end() - pNode.begin();
 
         for(unsigned int i = 0; i < numNodes; i++) 
@@ -936,7 +989,7 @@ protected:
             itNode->SetId(i + 1);
         }
 
-        ConditionsArrayType& pCondition = mThisModelPart.Conditions();
+        ConditionsArrayType& pCondition = mrThisModelPart.Conditions();
         auto numConditions = pCondition.end() - pCondition.begin();
         
         for(unsigned int i = 0; i < numConditions; i++) 
@@ -945,7 +998,7 @@ protected:
             itCondition->SetId(i + 1);
         }
 
-        ElementsArrayType& pElement = mThisModelPart.Elements();
+        ElementsArrayType& pElement = mrThisModelPart.Elements();
         auto numElements = pElement.end() - pElement.begin();
 
         for(unsigned int i = 0; i < numElements; i++) 
@@ -961,7 +1014,7 @@ protected:
     
     void InitializeElementsAndConditions()
     {
-        ConditionsArrayType& pCondition = mThisModelPart.Conditions();
+        ConditionsArrayType& pCondition = mrThisModelPart.Conditions();
         auto numConditions = pCondition.end() - pCondition.begin();
         
         for(unsigned int i = 0; i < numConditions; i++) 
@@ -970,7 +1023,7 @@ protected:
             itCondition->Initialize();
         }
 
-        ElementsArrayType& pElement = mThisModelPart.Elements();
+        ElementsArrayType& pElement = mrThisModelPart.Elements();
         auto numElements = pElement.end() - pElement.begin();
 
         for(unsigned int i = 0; i < numElements; i++) 
@@ -993,7 +1046,7 @@ protected:
         
         vector<double> Coords(TDim);
         
-        NodesArrayType& pNode = mThisModelPart.Nodes();
+        NodesArrayType& pNode = mrThisModelPart.Nodes();
         auto numNodes = pNode.end() - pNode.begin();
         
         for(unsigned int i = 0; i < numNodes; i++) 
@@ -1110,7 +1163,7 @@ protected:
     {
         /* GET RESULTS */
 
-        const unsigned int step = mThisModelPart.GetProcessInfo()[TIME_STEPS];
+        const unsigned int step = mrThisModelPart.GetProcessInfo()[TIME_STEPS];
         
         // Automatically save the mesh 
         OutputMesh(PostOutput, step);
@@ -1495,11 +1548,11 @@ protected:
         )
     {        
         // Initialize and create the auxiliar maps
-        const std::vector<std::string> SubModelPartNames = mThisModelPart.GetSubModelPartNames();
+        const std::vector<std::string> SubModelPartNames = mrThisModelPart.GetSubModelPartNames();
         boost::unordered_map<int,std::set<int>> AuxNodeColors, AuxCondColors, AuxElemColors;
         
         std::vector<std::string> ModelPartNames;
-        ModelPartNames.push_back(mThisModelPart.Name());
+        ModelPartNames.push_back(mrThisModelPart.Name());
         for (unsigned int i_sub = 0; i_sub < SubModelPartNames.size(); i_sub++)
         {
             ModelPartNames.push_back(SubModelPartNames[i_sub]);
@@ -1513,7 +1566,7 @@ protected:
             
             if (color > 0)
             {
-                ModelPart& rSubModelPart = mThisModelPart.GetSubModelPart(ModelPartNames[i_sub]);
+                ModelPart& rSubModelPart = mrThisModelPart.GetSubModelPart(ModelPartNames[i_sub]);
                 
                 // Iterate in the nodes
                 NodesArrayType& pNode = rSubModelPart.Nodes();
@@ -2012,7 +2065,7 @@ protected:
             exit(EXIT_FAILURE);
         }
         
-        NodeType::Pointer pNode = mThisModelPart.CreateNewNode(iNode, Coord0, Coord1, 0.0);
+        NodeType::Pointer pNode = mrThisModelPart.CreateNewNode(iNode, Coord0, Coord1, 0.0);
         
         return pNode;
     }
@@ -2035,7 +2088,7 @@ protected:
             exit(EXIT_FAILURE);
         }
         
-        NodeType::Pointer pNode = mThisModelPart.CreateNewNode(iNode, Coord0, Coord1, Coord2);
+        NodeType::Pointer pNode = mrThisModelPart.CreateNewNode(iNode, Coord0, Coord1, Coord2);
         
         return pNode;
     }
@@ -2069,8 +2122,8 @@ protected:
         if (SkipCreation == false)
         {
             std::vector<NodeType::Pointer> ConditionNodes (2);
-            ConditionNodes[0] = mThisModelPart.pGetNode(Edge0);
-            ConditionNodes[1] = mThisModelPart.pGetNode(Edge1);    
+            ConditionNodes[0] = mrThisModelPart.pGetNode(Edge0);
+            ConditionNodes[1] = mrThisModelPart.pGetNode(Edge1);    
             
             pCondition = mpRefCondition[IndexGeom]->Create(CondId, ConditionNodes, mpRefCondition[IndexGeom]->pGetProperties());
         }
@@ -2112,9 +2165,9 @@ protected:
         if (SkipCreation == false)
         {
             std::vector<NodeType::Pointer> ConditionNodes (3);
-            ConditionNodes[0] = mThisModelPart.pGetNode(Vertex0);
-            ConditionNodes[1] = mThisModelPart.pGetNode(Vertex1);
-            ConditionNodes[2] = mThisModelPart.pGetNode(Vertex2);
+            ConditionNodes[0] = mrThisModelPart.pGetNode(Vertex0);
+            ConditionNodes[1] = mrThisModelPart.pGetNode(Vertex1);
+            ConditionNodes[2] = mrThisModelPart.pGetNode(Vertex2);
         
             pCondition = mpRefCondition[IndexGeom]->Create(CondId, ConditionNodes, mpRefCondition[IndexGeom]->pGetProperties());
         }
@@ -2157,10 +2210,10 @@ protected:
         if (SkipCreation == false)
         {
             std::vector<NodeType::Pointer> ConditionNodes (4);
-            ConditionNodes[0] = mThisModelPart.pGetNode(Vertex0);
-            ConditionNodes[1] = mThisModelPart.pGetNode(Vertex1);
-            ConditionNodes[2] = mThisModelPart.pGetNode(Vertex2);
-            ConditionNodes[3] = mThisModelPart.pGetNode(Vertex3);
+            ConditionNodes[0] = mrThisModelPart.pGetNode(Vertex0);
+            ConditionNodes[1] = mrThisModelPart.pGetNode(Vertex1);
+            ConditionNodes[2] = mrThisModelPart.pGetNode(Vertex2);
+            ConditionNodes[3] = mrThisModelPart.pGetNode(Vertex3);
             
             pCondition = mpRefCondition[IndexGeom]->Create(CondId, ConditionNodes, mpRefCondition[IndexGeom]->pGetProperties());
         }
@@ -2202,9 +2255,9 @@ protected:
         if (SkipCreation == false)
         {
             std::vector<NodeType::Pointer> ElementNodes (3);
-            ElementNodes[0] = mThisModelPart.pGetNode(Vertex0);
-            ElementNodes[1] = mThisModelPart.pGetNode(Vertex1);
-            ElementNodes[2] = mThisModelPart.pGetNode(Vertex2);
+            ElementNodes[0] = mrThisModelPart.pGetNode(Vertex0);
+            ElementNodes[1] = mrThisModelPart.pGetNode(Vertex1);
+            ElementNodes[2] = mrThisModelPart.pGetNode(Vertex2);
             
             pElement = mpRefElement[IndexGeom]->Create(ElemId, ElementNodes, mpRefElement[IndexGeom]->pGetProperties());
         }
@@ -2247,10 +2300,10 @@ protected:
         if (SkipCreation == false)
         {
             std::vector<NodeType::Pointer> ElementNodes (4);
-            ElementNodes[0] = mThisModelPart.pGetNode(Vertex0);
-            ElementNodes[1] = mThisModelPart.pGetNode(Vertex1);
-            ElementNodes[2] = mThisModelPart.pGetNode(Vertex2);
-            ElementNodes[3] = mThisModelPart.pGetNode(Vertex3);
+            ElementNodes[0] = mrThisModelPart.pGetNode(Vertex0);
+            ElementNodes[1] = mrThisModelPart.pGetNode(Vertex1);
+            ElementNodes[2] = mrThisModelPart.pGetNode(Vertex2);
+            ElementNodes[3] = mrThisModelPart.pGetNode(Vertex3);
             
             pElement = mpRefElement[IndexGeom]->Create(ElemId, ElementNodes, mpRefElement[IndexGeom]->pGetProperties());
         }
@@ -2295,12 +2348,12 @@ protected:
         if (SkipCreation == false)
         {
             std::vector<NodeType::Pointer> ElementNodes (6);
-            ElementNodes[0] = mThisModelPart.pGetNode(Vertex0);
-            ElementNodes[1] = mThisModelPart.pGetNode(Vertex1);
-            ElementNodes[2] = mThisModelPart.pGetNode(Vertex2);
-            ElementNodes[3] = mThisModelPart.pGetNode(Vertex3);
-            ElementNodes[4] = mThisModelPart.pGetNode(Vertex4);
-            ElementNodes[5] = mThisModelPart.pGetNode(Vertex5);
+            ElementNodes[0] = mrThisModelPart.pGetNode(Vertex0);
+            ElementNodes[1] = mrThisModelPart.pGetNode(Vertex1);
+            ElementNodes[2] = mrThisModelPart.pGetNode(Vertex2);
+            ElementNodes[3] = mrThisModelPart.pGetNode(Vertex3);
+            ElementNodes[4] = mrThisModelPart.pGetNode(Vertex4);
+            ElementNodes[5] = mrThisModelPart.pGetNode(Vertex5);
         
             pElement = mpRefElement[IndexGeom]->Create(ElemId, ElementNodes, mpRefElement[IndexGeom]->pGetProperties());
         }
