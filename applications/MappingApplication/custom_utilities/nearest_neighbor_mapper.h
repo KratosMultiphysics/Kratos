@@ -7,8 +7,11 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher, Jordi Cotela
 //
+// See Master-Thesis P.Bucher
+// "Development and Implementation of a Parallel
+//  Framework for Non-Matching Grid Mapping"
 
 #if !defined(KRATOS_NEAREST_NEIGHBOR_MAPPER_H_INCLUDED )
 #define  KRATOS_NEAREST_NEIGHBOR_MAPPER_H_INCLUDED
@@ -18,14 +21,11 @@
 // External includes
 
 // Project includes
-
 #include "mapper.h"
 
-// #include <unordered_map>
 
-// External includes
-
-namespace Kratos {
+namespace Kratos
+{
 
 ///@name Kratos Globals
 ///@{
@@ -51,221 +51,230 @@ class NearestNeighborMapper : public Mapper
 {
 public:
 
-  ///@name Type Definitions
-  ///@{
+    ///@name Type Definitions
+    ///@{
 
-  ///@}
-  ///@name Pointer Definitions
-  /// Pointer definition of NearestNeighborMapper
-  KRATOS_CLASS_POINTER_DEFINITION(NearestNeighborMapper);
+    ///@}
+    ///@name Pointer Definitions
+    /// Pointer definition of NearestNeighborMapper
+    KRATOS_CLASS_POINTER_DEFINITION(NearestNeighborMapper);
 
-  ///@}
-  ///@name Life Cycle
-  ///@{
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-  NearestNeighborMapper(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination,
-                        Parameters& i_json_parameters) : Mapper(
-                        i_model_part_origin, i_model_part_destination, i_json_parameters) {
-      m_p_mapper_communicator->InitializeOrigin(MapperUtilities::Node);
-      m_p_mapper_communicator->InitializeDestination(MapperUtilities::Node);
-      m_p_mapper_communicator->Initialize();
+    NearestNeighborMapper(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination,
+                          Parameters& rJsonParameters) : Mapper(
+                                  i_model_part_origin, i_model_part_destination, rJsonParameters)
+    {
+        mpMapperCommunicator->InitializeOrigin(MapperUtilities::Node_Coords);
+        mpMapperCommunicator->InitializeDestination(MapperUtilities::Node_Coords);
+        mpMapperCommunicator->Initialize();
 
-      m_p_inverse_mapper.reset(); // explicitly specified to be safe
-
-      if (i_json_parameters["non_conforming_interface"].GetBool()) {
-          KRATOS_ERROR << "MappingApplication; NearestNeighborMapper; invalid "
-                       << "option specified for this mapper: "
-                       << "\"non_conforming_interface\"" << std::endl;
-      }
-  }
-
-  /// Destructor.
-  virtual ~NearestNeighborMapper() { }
-
-  ///@}
-  ///@name Operators
-  ///@{
-
-  ///@}
-  ///@name Operations
-  ///@{
-
-  void UpdateInterface(Kratos::Flags& options, double search_radius) override {
-      m_p_mapper_communicator->UpdateInterface(options, search_radius);
-      if (m_p_inverse_mapper) {
-          m_p_inverse_mapper->UpdateInterface(options, search_radius);
-      }
-
-      if (options.Is(MapperFlags::REMESHED)) {
-          ComputeNumberOfNodesAndConditions();
-      }
-  }
-
-  /* This function maps from Origin to Destination */
-  void Map(const Variable<double>& origin_variable,
-           const Variable<double>& destination_variable,
-           Kratos::Flags& options) override {
-      double factor = 1.0f;
-
-      if (options.Is(MapperFlags::CONSERVATIVE)) {
-          factor = MapperUtilities::ComputeConservativeFactor(
-              m_num_nodes_origin,
-              m_num_nodes_destination);
-      }
-
-      m_p_mapper_communicator->TransferNodalData(origin_variable,
-                                               destination_variable,
-                                               options,
-                                               factor);
-  }
-
-  /* This function maps from Origin to Destination */
-  void Map(const Variable< array_1d<double,3> >& origin_variable,
-           const Variable< array_1d<double,3> >& destination_variable,
-           Kratos::Flags& options) override {
-      double factor = 1.0f;
-
-      if (options.Is(MapperFlags::CONSERVATIVE)) {
-          factor = MapperUtilities::ComputeConservativeFactor(
-              m_num_nodes_origin,
-              m_num_nodes_destination);
-      }
-
-      m_p_mapper_communicator->TransferNodalData(origin_variable,
-                                               destination_variable,
-                                               options,
-                                               factor);
+        mpInverseMapper.reset(); // explicitly specified to be safe
     }
 
-  /* This function maps from Destination to Origin */
-  void InverseMap(const Variable<double>& origin_variable,
-                  const Variable<double>& destination_variable,
-                  Kratos::Flags& options) override {
-      // Construct the inverse mapper if it hasn't been done before
-      // It is constructed with the order of the model_parts changed!
-      if (!m_p_inverse_mapper) {
-          m_p_inverse_mapper = Mapper::Pointer( new NearestNeighborMapper(m_model_part_destination,
-                                                                        m_model_part_origin,
-                                                                        m_json_parameters) );
-      }
-      m_p_inverse_mapper->Map(destination_variable, origin_variable, options);
-  }
+    /// Destructor.
+    virtual ~NearestNeighborMapper() { }
 
-  /* This function maps from Destination to Origin */
-  void InverseMap(const Variable< array_1d<double,3> >& origin_variable,
-                  const Variable< array_1d<double,3> >& destination_variable,
-                  Kratos::Flags& options) override {
-      // Construct the inverse mapper if it hasn't been done before
-      // It is constructed with the order of the model_parts changed!
-      if (!m_p_inverse_mapper) {
-          m_p_inverse_mapper = Mapper::Pointer( new NearestNeighborMapper(m_model_part_destination,
-                                                                        m_model_part_origin,
-                                                                        m_json_parameters) );
-      }
-      m_p_inverse_mapper->Map(destination_variable, origin_variable, options);
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    void UpdateInterface(Kratos::Flags Options, double SearchRadius) override
+    {
+        mpMapperCommunicator->UpdateInterface(Options, SearchRadius);
+        if (mpInverseMapper)
+        {
+            mpInverseMapper->UpdateInterface(Options, SearchRadius);
+        }
+
+        if (Options.Is(MapperFlags::REMESHED))
+        {
+            ComputeNumberOfNodesAndConditions();
+        }
     }
 
-  ///@}
-  ///@name Access
-  ///@{
+    /* This function maps from Origin to Destination */
+    void Map(const Variable<double>& rOriginVariable,
+             const Variable<double>& rDestinationVariable,
+             Kratos::Flags Options) override
+    {
+        double factor = 1.0f;
 
-  ///@}
-  ///@name Inquiry
-  ///@{
+        if (Options.Is(MapperFlags::CONSERVATIVE))
+        {
+            factor = MapperUtilities::ComputeConservativeFactor(
+                         mNumNodesOrigin,
+                         mNumNodesDestination);
+        }
 
-  ///@}
-  ///@name Input and output
-  ///@{
+        mpMapperCommunicator->TransferNodalData(rOriginVariable,
+                                                rDestinationVariable,
+                                                Options,
+                                                factor);
+    }
 
-  /// Turn back information as a string.
-  virtual std::string Info() const {
-      return "NearestNeighborMapper";
-  }
+    /* This function maps from Origin to Destination */
+    void Map(const Variable< array_1d<double, 3> >& rOriginVariable,
+             const Variable< array_1d<double, 3> >& rDestinationVariable,
+             Kratos::Flags Options) override
+    {
+        double factor = 1.0f;
 
-  /// Print information about this object.
-  virtual void PrintInfo(std::ostream& rOStream) const {
-    rOStream << "NearestNeighborMapper";
-  }
+        if (Options.Is(MapperFlags::CONSERVATIVE))
+        {
+            factor = MapperUtilities::ComputeConservativeFactor(
+                         mNumNodesOrigin,
+                         mNumNodesDestination);
+        }
 
-  /// Print object's data.
-  virtual void PrintData(std::ostream& rOStream) const {
-  }
+        mpMapperCommunicator->TransferNodalData(rOriginVariable,
+                                                rDestinationVariable,
+                                                Options,
+                                                factor);
+    }
 
-  ///@}
-  ///@name Friends
-  ///@{
+    /* This function maps from Destination to Origin */
+    void InverseMap(const Variable<double>& rOriginVariable,
+                    const Variable<double>& rDestinationVariable,
+                    Kratos::Flags Options) override
+    {
+        // Construct the inverse mapper if it hasn't been done before
+        // It is constructed with the order of the model_parts changed!
+        if (!mpInverseMapper)
+        {
+            mpInverseMapper = Mapper::Pointer( new NearestNeighborMapper(mModelPartDestination,
+                                               mModelPartOrigin,
+                                               mJsonParameters) );
+        }
+        mpInverseMapper->Map(rDestinationVariable, rOriginVariable, Options);
+    }
 
-  ///@}
+    /* This function maps from Destination to Origin */
+    void InverseMap(const Variable< array_1d<double, 3> >& rOriginVariable,
+                    const Variable< array_1d<double, 3> >& rDestinationVariable,
+                    Kratos::Flags Options) override
+    {
+        // Construct the inverse mapper if it hasn't been done before
+        // It is constructed with the order of the model_parts changed!
+        if (!mpInverseMapper)
+        {
+            mpInverseMapper = Mapper::Pointer( new NearestNeighborMapper(mModelPartDestination,
+                                               mModelPartOrigin,
+                                               mJsonParameters) );
+        }
+        mpInverseMapper->Map(rDestinationVariable, rOriginVariable, Options);
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "NearestNeighborMapper";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "NearestNeighborMapper";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
 
 protected:
 
-  ///@name Protected static Member Variables
-  ///@{
+    ///@name Protected static Member Variables
+    ///@{
 
-  ///@}
-  ///@name Protected member Variables
-  ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
-  ///@}
-  ///@name Protected Operators
-  ///@{
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
-  ///@}
-  ///@name Protected Operations
-  ///@{
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
-  ///@}
-  ///@name Protected  Access
-  ///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
-  ///@}
-  ///@name Protected Inquiry
-  ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
-  ///@}
-  ///@name Protected LifeCycle
-  ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
-  ///@}
+    ///@}
 
- private:
+private:
 
-  ///@name Static Member Variables
-  ///@{
+    ///@name Static Member Variables
+    ///@{
 
-  ///@}
-  ///@name Member Variables
-  ///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-  Mapper::Pointer m_p_inverse_mapper;
+    Mapper::Pointer mpInverseMapper;
 
-  ///@}
-  ///@name Private Operators
-  ///@{
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-  ///@}
-  ///@name Private Operations
-  ///@{
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-  ///@}
-  ///@name Private  Access
-  ///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
 
-  ///@}
-  ///@name Private Inquiry
-  ///@{
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
-  ///@}
-  ///@name Un accessible methods
-  ///@{
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-  /// Assignment operator.
-  NearestNeighborMapper& operator=(NearestNeighborMapper const& rOther);
+    /// Assignment operator.
+    NearestNeighborMapper& operator=(NearestNeighborMapper const& rOther);
 
-  /// Copy constructor.
-  //NearestNeighborMapper(NearestNeighborMapper const& rOther);
+    /// Copy constructor.
+    //NearestNeighborMapper(NearestNeighborMapper const& rOther);
 
-  ///@}
+    ///@}
 
 }; // Class NearestNeighborMapper
 
@@ -282,7 +291,7 @@ protected:
 
 
 inline std::istream & operator >>(std::istream& rIStream,
-		NearestNeighborMapper& rThis)
+                                  NearestNeighborMapper& rThis)
 {
     return rIStream;
 }
