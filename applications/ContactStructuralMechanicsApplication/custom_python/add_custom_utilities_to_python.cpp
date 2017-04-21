@@ -48,9 +48,7 @@ void  AddCustomUtilitiesToPython()
     ;
     
     class_<TreeContactSearch>("TreeContactSearch", init<ModelPart&>())
-    .def(init<ModelPart&, const unsigned int>())
-    .def(init<ModelPart&, const unsigned int, const double>())
-    .def(init<ModelPart&, const unsigned int, const double, const std::string>())
+    .def(init<ModelPart&, Parameters>())
     .def("InitializeMortarConditions",&TreeContactSearch::InitializeMortarConditions)
     .def("TotalClearScalarMortarConditions",&TreeContactSearch::TotalClearScalarMortarConditions)
     .def("TotalClearComponentsMortarConditions",&TreeContactSearch::TotalClearComponentsMortarConditions)

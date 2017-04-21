@@ -26,9 +26,10 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "assume_master_slave"         : "",
             "contact_type"                : "Frictionless",
             "frictional_law"              : "Coulomb",
-            "search_factor"               : 1.5,
+            "search_factor"               : 2.0,
             "active_check_factor"         : 0.01,
             "max_number_results"          : 1000,
+            "bucket_size"                 : 4,
             "normal_variation"            : false,
             "manual_ALM"                  : false,
             "penalty"                     : 0.0,
@@ -54,12 +55,8 @@ class ALMContactProcess(KratosMultiphysics.Process):
             for node in model_part[self.params["assume_master_slave"].GetString()].Nodes:
                 node.Set(KratosMultiphysics.SLAVE, True)
         
-        self.search_factor            = self.params["search_factor"].GetDouble() 
-        self.active_check_factor      = self.params["active_check_factor"].GetDouble() 
-        self.max_number_results       = self.params["max_number_results"].GetInt() 
         self.normal_variation         = self.params["normal_variation"].GetBool()
         self.integration_order        = self.params["integration_order"].GetInt() 
-        self.type_search = self.params["type_search"].GetString()
         self.frictional_law = self.params["frictional_law"].GetString()
         self.debug_mode = self.params["debug_mode"].GetBool()
         
@@ -153,7 +150,14 @@ class ALMContactProcess(KratosMultiphysics.Process):
             interface_model_part.AddNode(node, 0)    
         del(node)
 
-        self.contact_search = ContactStructuralMechanicsApplication.TreeContactSearch(computing_model_part, self.max_number_results, self.active_check_factor, self.type_search)
+        # Creating the search
+        search_parameters = KratosMultiphysics.Parameters("""{}""")
+        search_parameters.AddValue("type_search",self.params["type_search"])
+        search_parameters.AddValue("allocation_size",self.params["max_number_results"])
+        search_parameters.AddValue("bucket_size",self.params["bucket_size"])
+        search_parameters.AddValue("search_factor",self.params["search_factor"])
+        search_parameters.AddValue("active_check_factor",self.params["active_check_factor"])
+        self.contact_search = ContactStructuralMechanicsApplication.TreeContactSearch(computing_model_part, search_parameters)
         
         # We initialize the conditions    
         self.alm_init_var = ContactStructuralMechanicsApplication.ALMFastInit(self.contact_model_part) 
@@ -169,7 +173,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             self.contact_search.TotalClearComponentsMortarConditions()
     
     def ExecuteInitializeSolutionStep(self):
-        self.contact_search.UpdateMortarConditions(self.search_factor)
+        self.contact_search.UpdateMortarConditions()
         #self.contact_search.CheckMortarConditions()
             
         # Debug

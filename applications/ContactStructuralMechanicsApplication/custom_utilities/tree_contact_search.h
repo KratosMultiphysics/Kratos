@@ -20,6 +20,7 @@
 #include "contact_structural_mechanics_application_variables.h"
 #include "contact_structural_mechanics_application.h"
 #include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
 // #include "spatial_containers/bounding_volume_tree.h" // k-DOP
 #include "spatial_containers/spatial_containers.h" // kd-tree 
 #include "utilities/math_utils.h"                  // Cross Product
@@ -104,18 +105,28 @@ public:
     
     TreeContactSearch(
         ModelPart & rMainModelPart,
-        const unsigned int AllocationSize = 1000,
-        const double ActiveCheckFactor = 0.01,
-        const std::string SearchTreeType = "InRadius", 
-        const unsigned int BucketSize = 4
+        Parameters ThisParameters =  Parameters(R"({})")
         )
     :mrMainModelPart(rMainModelPart.GetSubModelPart("Contact")),
-     mDimension(rMainModelPart.GetProcessInfo()[DOMAIN_SIZE]),
-     mAllocationSize(AllocationSize),
-     mActiveCheckFactor(ActiveCheckFactor),
-     mSearchTreeType(ConvertSearchTree(SearchTreeType)),
-     mBucketSize(BucketSize)
+     mDimension(rMainModelPart.GetProcessInfo()[DOMAIN_SIZE])
     {        
+        Parameters DefaultParameters = Parameters(R"(
+        {
+            "allocation_size"                      : 1000, 
+            "bucket_size"                          : 4, 
+            "search_factor"                        : 2.0, 
+            "type_search"                          : "InRadius", 
+            "active_check_factor"                  : 0.01
+        })" );
+        
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+
+        mAllocationSize = ThisParameters["allocation_size"].GetInt();
+        mSearchFactor = ThisParameters["search_factor"].GetDouble();
+        mActiveCheckFactor = ThisParameters["active_check_factor"].GetDouble();
+        mSearchTreeType = ConvertSearchTree(ThisParameters["type_search"].GetString());
+        mBucketSize = ThisParameters["bucket_size"].GetInt();
+        
         NodesArrayType& pNode = mrMainModelPart.Nodes();
         auto numNodes = pNode.end() - pNode.begin();
         
@@ -341,79 +352,80 @@ public:
      * @return The mortar conditions alreay created
      */
     
-    void UpdateMortarConditions(const double SearchFactor)
+    void UpdateMortarConditions()
     {        
         // We update the list of points
         UpdatePointListMortar();
         
-        // Initialize values
-        PointVector PointsFound(mAllocationSize);
-        unsigned int NumberPointsFound = 0;    
-        
-        // Create a tree
-        // It will use a copy of mNodeList (a std::vector which contains pointers)
-        // Copying the list is required because the tree will reorder it for efficiency
-        KDTree TreePoints(mPointListDestination.begin(), mPointListDestination.end(), mBucketSize);
-
         // Calculate the mean of the normal in all the nodes
         ContactUtilities::ComputeNodesMeanNormalModelPart(mrMainModelPart); 
         
-        // Iterate in the conditions
-        ConditionsArrayType& pConditions = mrMainModelPart.Conditions();
-        auto numConditions = pConditions.end() - pConditions.begin();
-
-//         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numConditions; i++) 
-        {
-            auto itCond = pConditions.begin() + i;
+//         #pragma omp parallel 
+//         {
+            // Initialize values
+            PointVector PointsFound(mAllocationSize);
+            unsigned int NumberPointsFound = 0;    
             
-            if (itCond->Is(SLAVE) == true)
-            {
-                if (mSearchTreeType == KdtreeInRadius)
-                {
-                    Point<3> Center;
-                    const double SearchRadius = SearchFactor * ContactUtilities::CenterAndRadius((*itCond.base()), Center);
+            // Create a tree
+            // It will use a copy of mNodeList (a std::vector which contains pointers)
+            // Copying the list is required because the tree will reorder it for efficiency
+            KDTree TreePoints(mPointListDestination.begin(), mPointListDestination.end(), mBucketSize);
+            
+            // Iterate in the conditions
+            ConditionsArrayType& pConditions = mrMainModelPart.Conditions();
+            auto numConditions = pConditions.end() - pConditions.begin();
 
-                    NumberPointsFound = TreePoints.SearchInRadius(Center, SearchRadius, PointsFound.begin(), mAllocationSize);
-                }
-                else if (mSearchTreeType == KdtreeInBox)
-                {
-                    const Point<3> Center = itCond->GetGeometry().Center();
-                    Node<3> MinPoint, MaxPoint;
-                    itCond->GetGeometry().BoundingBox(MinPoint, MaxPoint);
-                    ContactUtilities::ScaleNode<Node<3>>(MinPoint, Center, SearchFactor);
-                    ContactUtilities::ScaleNode<Node<3>>(MaxPoint, Center, SearchFactor);
-                    NumberPointsFound = TreePoints.SearchInBox(MinPoint, MaxPoint, PointsFound.begin(), mAllocationSize);
-                }
-                else
-                {
-                    KRATOS_ERROR << " The type search is not implemented yet does not exist!!!!. SearchTreeType = " << mSearchTreeType << std::endl;
-                }
+//             #pragma omp for 
+            for(unsigned int i = 0; i < numConditions; i++) 
+            {
+                auto itCond = pConditions.begin() + i;
                 
-                if (NumberPointsFound > 0)
-                {   
-//                     KRATOS_WATCH(NumberPointsFound); 
+                if (itCond->Is(SLAVE) == true)
+                {
+                    if (mSearchTreeType == KdtreeInRadius)
+                    {
+                        Point<3> Center;
+                        const double SearchRadius = mSearchFactor * ContactUtilities::CenterAndRadius((*itCond.base()), Center);
+
+                        NumberPointsFound = TreePoints.SearchInRadius(Center, SearchRadius, PointsFound.begin(), mAllocationSize);
+                    }
+                    else if (mSearchTreeType == KdtreeInBox)
+                    {
+                        const Point<3> Center = itCond->GetGeometry().Center();
+                        Node<3> MinPoint, MaxPoint;
+                        itCond->GetGeometry().BoundingBox(MinPoint, MaxPoint);
+                        ContactUtilities::ScaleNode<Node<3>>(MinPoint, Center, mSearchFactor);
+                        ContactUtilities::ScaleNode<Node<3>>(MaxPoint, Center, mSearchFactor);
+                        NumberPointsFound = TreePoints.SearchInBox(MinPoint, MaxPoint, PointsFound.begin(), mAllocationSize);
+                    }
+                    else
+                    {
+                        KRATOS_ERROR << " The type search is not implemented yet does not exist!!!!. SearchTreeType = " << mSearchTreeType << std::endl;
+                    }
                     
-                    boost::shared_ptr<ConditionMap>& ConditionPointersDestination = itCond->GetValue(CONTACT_SETS);
-                    
-                    for(unsigned int i = 0; i < NumberPointsFound; i++)
-                    {   
-                        Condition::Pointer pCondOrigin = PointsFound[i]->GetCondition();
+                    if (NumberPointsFound > 0)
+                    {                           
+                        boost::shared_ptr<ConditionMap>& ConditionPointersDestination = itCond->GetValue(CONTACT_SETS);
                         
-                        if (CheckCondition(ConditionPointersDestination, (*itCond.base()), pCondOrigin) == true) 
-                        {    
-                            // If not active we check if can be potentially in contact
-                            SearchUtilities::ContactContainerFiller(ConditionPointersDestination, (*itCond.base()), pCondOrigin, itCond->GetValue(NORMAL), pCondOrigin->GetValue(NORMAL), mActiveCheckFactor); 
-                        }
-                        
-                        if (ConditionPointersDestination->size() > 0)
-                        {                        
-                            itCond->Set(ACTIVE, true);
+                        for(unsigned int i = 0; i < NumberPointsFound; i++)
+                        {   
+                            Condition::Pointer pCondOrigin = PointsFound[i]->GetCondition();
+                            
+                            if (CheckCondition(ConditionPointersDestination, (*itCond.base()), pCondOrigin) == true) 
+                            {    
+                                // If not active we check if can be potentially in contact
+                                SearchUtilities::ContactContainerFiller(ConditionPointersDestination, (*itCond.base()), pCondOrigin, itCond->GetValue(NORMAL), pCondOrigin->GetValue(NORMAL), mActiveCheckFactor); 
+                            }
+                            
+                            if (ConditionPointersDestination->size() > 0)
+                            {                        
+                                itCond->Set(ACTIVE, true);
+                            }
                         }
                     }
                 }
             }
-        }
+//         }
         
         // Here we remove all the inactive pairs
         ClearAllInactivePairs(); 
@@ -690,11 +702,12 @@ private:
     ///@{
   
     ModelPart& mrMainModelPart;               // The main model part
-    const unsigned int mDimension;            // Dimension size of the space
-    const unsigned int mAllocationSize;       // Allocation size for the vectors and max number of potential results
-    const double mActiveCheckFactor;          // The check factor to be considered
-    const SearchTreeType mSearchTreeType;     // The search tree considered
-    const unsigned int mBucketSize;           // Bucket size for kd-tree
+    unsigned int mDimension;                  // Dimension size of the space
+    unsigned int mAllocationSize;             // Allocation size for the vectors and max number of potential results
+    double mSearchFactor;                     // The search factor to be considered
+    double mActiveCheckFactor;                // The check factor to be considered
+    SearchTreeType mSearchTreeType;           // The search tree considered
+    unsigned int mBucketSize;                 // Bucket size for kd-tree
     PointVector mPointListDestination;        // A list that contents the all the points (from nodes) from the modelpart 
 
     ///@}
