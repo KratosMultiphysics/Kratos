@@ -92,18 +92,16 @@ public:
         Parameters ThisParameters = Parameters("{'echo_level': 1, 'framework': 'Eulerian', 'max_number_of_searchs': 1000, 'step_data_size': 0, 'buffer_size': 0}")
         )
     :mrOriginMainModelPart(rOriginMainModelPart),
-     mrDestinationMainModelPart(rDestinationMainModelPart),
-     mEchoLevel(ThisParameters["echo_level"].GetInt())
+     mrDestinationMainModelPart(rDestinationMainModelPart)
      {
+         Parameters DefaultParameters = Parameters(R"({"echo_level": 1, "framework": "Eulerian", "max_number_of_searchs": 1000, "step_data_size": 0, "buffer_size": 0})" );
+         ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+         
+         mEchoLevel = ThisParameters["echo_level"].GetInt();
          mFramework = ConvertFramework(ThisParameters["framework"].GetString());
-         
          mMaxNumberOfResults = ThisParameters["max_number_of_searchs"].GetInt();
-         
-         // We initialize some values
          mStepDataSize = ThisParameters["step_data_size"].GetInt();
          mBufferSize   = ThisParameters["buffer_size"].GetInt();
-//          mStepDataSize = rOriginMainModelPart.GetNodalSolutionStepDataSize();
-//          mBufferSize   = rOriginMainModelPart.NodesBegin()->GetBufferSize();
         
          if (mEchoLevel > 0)
          {

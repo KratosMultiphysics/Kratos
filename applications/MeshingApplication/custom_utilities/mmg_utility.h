@@ -960,7 +960,13 @@ protected:
         ReorderAllIds();
         
         /* We interpolate all the values */
-        NodalValuesInterpolationProcess<TDim> InterpolateNodalValues = NodalValuesInterpolationProcess<TDim>(rOldModelPart, mrThisModelPart, mThisParameters);
+        Parameters InterpolateParameters = Parameters(R"({"echo_level": 1, "framework": "Eulerian", "max_number_of_searchs": 1000, "step_data_size": 0, "buffer_size": 0})" );
+        InterpolateParameters["echo_level"].SetInt(mThisParameters["echo_level"].GetInt());
+        InterpolateParameters["framework"].SetString(mThisParameters["framework"].GetString());
+        InterpolateParameters["max_number_of_searchs"].SetInt(mThisParameters["max_number_of_searchs"].GetInt());
+        InterpolateParameters["step_data_size"].SetInt(mThisParameters["step_data_size"].GetInt());
+        InterpolateParameters["buffer_size"].SetInt(mThisParameters["buffer_size"].GetInt());
+        NodalValuesInterpolationProcess<TDim> InterpolateNodalValues = NodalValuesInterpolationProcess<TDim>(rOldModelPart, mrThisModelPart, InterpolateParameters);
         InterpolateNodalValues.Execute();
         
         /* We initialize elements and conditions */
