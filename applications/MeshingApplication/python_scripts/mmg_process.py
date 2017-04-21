@@ -135,8 +135,6 @@ class MmgProcess(KratosMultiphysics.Process):
 
         self.initial_step = self.params["initial_step"].GetInt()
         self.step_frequency = self.params["step_frequency"].GetInt()
-        self.save_external_files = self.params["save_external_files"].GetBool()
-        self.max_number_of_searchs = self.params["max_number_of_searchs"].GetInt()
 
     def ExecuteInitialize(self):
 
@@ -259,7 +257,7 @@ class MmgProcess(KratosMultiphysics.Process):
             metric_process.Execute()
 
         print("Remeshing")
-        self.MmgUtility.RemeshModelPart(self.save_external_files, self.max_number_of_searchs)
+        self.MmgUtility.RemeshModelPart()
 
         if (self.strategy == "LevelSet"):
             self.local_gradient.Execute() # Recalculate gradient after remeshing
