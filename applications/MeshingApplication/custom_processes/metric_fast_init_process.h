@@ -118,13 +118,13 @@ public:
         NodesArrayType& pNodes = mrThisModelPart.Nodes();
         auto numNodes = pNodes.end() - pNodes.begin();
         
-//         #pragma omp parallel for 
+        #pragma omp parallel for firstprivate(zerovector)
         for(unsigned int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNodes.begin() + i;
             
             // The metric
-            itNode->GetValue(MMG_METRIC) = zerovector;
+            itNode->SetValue(MMG_METRIC, zerovector);
         }
 
         KRATOS_CATCH("");

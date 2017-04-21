@@ -1,3 +1,4 @@
+#include <omp.h>
 // KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
 //        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
 //        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
@@ -16,6 +17,7 @@
 // System includes
 
 // External includes
+#include <omp.h>
 
 // Project includes
 #include "meshing_application.h"
@@ -471,43 +473,61 @@ private:
         
         const ProcessInfo& CurrentProcessInfo = ThisModelPart.GetProcessInfo();
 
-        #pragma omp for private(ThisIntegrationMethod)
-        for(unsigned int i = 0; i < numElements; i++) 
-        {
-            auto itElem = pElements.begin() + i;
+//         // Creating a buffer for parallel vector fill
+//         const unsigned int NumThreads = omp_get_num_threads();
+//         std::vector<PointVector> PointsBuffers(NumThreads);
+//         
+//         #pragma omp parallel
+//         {
+//             const unsigned int Id = omp_get_thread_num();
             
-            // Getting the geometry
-            Element::GeometryType& rThisGeometry = itElem->GetGeometry();
-            
-            // Getting the integration points
-            ThisIntegrationMethod = itElem->GetIntegrationMethod();
-            const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rThisGeometry.IntegrationPoints(ThisIntegrationMethod);
-            const unsigned int IntegrationPointsNumber = IntegrationPoints.size();
-            
-            // Computing the Jacobian
-            Vector VectorDetJ(IntegrationPointsNumber);
-            rThisGeometry.DeterminantOfJacobian(VectorDetJ,ThisIntegrationMethod);
-            
-            // Getting the CL
-            std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector(IntegrationPointsNumber);
-            itElem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,ConstitutiveLawVector,CurrentProcessInfo);
-                
-            for (unsigned int iGaussPoint = 0; iGaussPoint < IntegrationPointsNumber; iGaussPoint++ )
+            for(unsigned int i = 0; i < numElements; i++) 
             {
-                const array_1d<double, 3> LocalCoordinates = IntegrationPoints[iGaussPoint].Coordinates();
+                auto itElem = pElements.begin() + i;
                 
-                // We compute the corresponding weight
-                const double Weight = VectorDetJ[iGaussPoint] * IntegrationPoints[iGaussPoint].Weight();
+                // Getting the geometry
+                Element::GeometryType& rThisGeometry = itElem->GetGeometry();
                 
-                // We compute the global coordinates
-                array_1d<double, 3> GlobalCoordinates;
-                GlobalCoordinates = rThisGeometry.GlobalCoordinates( GlobalCoordinates, LocalCoordinates );
+                // Getting the integration points
+                ThisIntegrationMethod = itElem->GetIntegrationMethod();
+                const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rThisGeometry.IntegrationPoints(ThisIntegrationMethod);
+                const unsigned int IntegrationPointsNumber = IntegrationPoints.size();
                 
-                // We create the respective GP
-                PointTypePointer pPoint = PointTypePointer(new PointType(GlobalCoordinates, ConstitutiveLawVector[iGaussPoint], Weight));
-                (ThisPointVector).push_back(pPoint);
+                // Computing the Jacobian
+                Vector VectorDetJ(IntegrationPointsNumber);
+                rThisGeometry.DeterminantOfJacobian(VectorDetJ,ThisIntegrationMethod);
+                
+                // Getting the CL
+                std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector(IntegrationPointsNumber);
+                itElem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,ConstitutiveLawVector,CurrentProcessInfo);
+                    
+                for (unsigned int iGaussPoint = 0; iGaussPoint < IntegrationPointsNumber; iGaussPoint++ )
+                {
+                    const array_1d<double, 3> LocalCoordinates = IntegrationPoints[iGaussPoint].Coordinates();
+                    
+                    // We compute the corresponding weight
+                    const double Weight = VectorDetJ[iGaussPoint] * IntegrationPoints[iGaussPoint].Weight();
+                    
+                    // We compute the global coordinates
+                    array_1d<double, 3> GlobalCoordinates;
+                    GlobalCoordinates = rThisGeometry.GlobalCoordinates( GlobalCoordinates, LocalCoordinates );
+                    
+                    // We create the respective GP
+                    PointTypePointer pPoint = PointTypePointer(new PointType(GlobalCoordinates, ConstitutiveLawVector[iGaussPoint], Weight));
+//                     (PointsBuffers[Id]).push_back(pPoint);
+                    (ThisPointVector).push_back(pPoint);
+                }
             }
-        }
+            
+//             // Combine buffers together
+//             #pragma omp single
+//             {
+//                 for( auto& PointsBuffer : PointsBuffers) 
+//                 {
+//                     std::move(PointsBuffer.begin(),PointsBuffer.end(),back_inserter(ThisPointVector));
+//                 }
+//             }
+//         }
         
         return ThisPointVector;
     }
@@ -540,7 +560,7 @@ private:
             ElementsArrayType& pElements = mrDestinationMainModelPart.Elements();
             auto numElements = pElements.end() - pElements.begin();
             
-//             #pragma omp for
+//             #pragma omp parallel for
             for(unsigned int i = 0; i < numElements; i++) 
             {
                 auto itElem = pElements.begin() + i;
@@ -612,7 +632,7 @@ private:
             ElementsArrayType& pElements = mrDestinationMainModelPart.Elements();
             auto numElements = pElements.end() - pElements.begin();
             
-//             #pragma omp for
+//             #pragma omp parallel for
             for(unsigned int i = 0; i < numElements; i++) 
             {
                 auto itElem = pElements.begin() + i;
@@ -636,6 +656,11 @@ private:
                 Vector NodalHVector(rThisGeometry.size());
                 for (unsigned int iNode = 0; iNode < rThisGeometry.size(); iNode++)
                 {
+                    if ( rThisGeometry[iNode].SolutionStepsDataHas( NODAL_H ) == false )
+                    {
+                        KRATOS_ERROR << "NODAL_H is not defined in the node ID: " << rThisGeometry[iNode].Id() << std::endl;
+                    }
+                    
                     NodalHVector[iNode] = rThisGeometry[iNode].FastGetSolutionStepValue(NODAL_H);
                 }
                 
