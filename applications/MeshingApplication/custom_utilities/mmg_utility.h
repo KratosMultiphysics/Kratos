@@ -17,6 +17,7 @@
 #include "utilities/math_utils.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "containers/variables_list.h"
 #include "utilities/openmp_utils.h"
 #include "input_output/logger.h"
 #include <set>
@@ -27,6 +28,7 @@
 #include "mmg/mmg3d/libmmg3d.h"
 #include "mmg/mmgs/libmmgs.h"
 // We indlude the internal variable interpolation process
+#include "custom_processes/nodal_values_interpolation_process.h"
 #include "custom_processes/internal_variables_interpolation_process.h"
 // Include the point locator
 #include "utilities/binbased_fast_point_locator.h"
@@ -582,11 +584,17 @@ protected:
     {
         // Getting the parameters
         const bool SaveToFile = mThisParameters["save_external_files"].GetBool();
-        const unsigned int MaxNumberOfResults = mThisParameters["max_number_of_searchs"].GetInt();
         
         // We initialize some values
-        unsigned int StepDataSize = mThisModelPart.GetNodalSolutionStepDataSize();
-        unsigned int BufferSize   = mThisModelPart.NodesBegin()->GetBufferSize();
+        const unsigned int StepDataSize = mThisModelPart.GetNodalSolutionStepDataSize();
+        const unsigned int BufferSize   = mThisModelPart.NodesBegin()->GetBufferSize();
+        
+        Parameters AuxParameters = Parameters(R"({"buffer_size": 0, "step_data_size": 0})");
+        AuxParameters["step_data_size"].SetInt(StepDataSize);
+        AuxParameters["buffer_size"].SetInt(BufferSize);
+        
+        mThisParameters.AddValue("step_data_size", AuxParameters["step_data_size"]);
+        mThisParameters.AddValue("buffer_size", AuxParameters["buffer_size"]);
         
         if (mEchoLevel > 0)
         {        
@@ -899,13 +907,18 @@ protected:
         ReorderAllIds();
         
         /* We interpolate all the values */
-        InterpolateValues(rOldModelPart, MaxNumberOfResults, StepDataSize, BufferSize);
+        NodalValuesInterpolationProcess<TDim> InterpolateNodalValues = NodalValuesInterpolationProcess<TDim>(rOldModelPart, mThisModelPart, mThisParameters);
+        InterpolateNodalValues.Execute();
         
         /* We initialize elements and conditions */
         InitializeElementsAndConditions();
         
         /* We interpolate the internal variables */
-        InterpolateIntervalVariables(rOldModelPart);
+        if (mFramework == Lagrangian) 
+        {
+            InternalVariablesInterpolationProcess InternalVariablesInterpolation = InternalVariablesInterpolationProcess(rOldModelPart, mThisModelPart, mThisParameters["internal_variables_parameters"]);
+            InternalVariablesInterpolation.Execute();
+        }
     }
     
     /**
@@ -1086,112 +1099,6 @@ protected:
         int& PropId, 
         int& isRequired,
         bool SkipCreation
-        );
-    
-    /**
-     * It interpolates the values in the new model part using the old model part
-     * @param rOldModelPart: The old model part
-     * @param MaxNumberOfResults: The maxim number of results to consider in the search
-     * @param StepDataSize: The size of the database
-     * @param BufferSize: The size of the buffer
-     */
-    
-    void InterpolateValues(
-        ModelPart& rOldModelPart,
-        const unsigned int MaxNumberOfResults,
-        unsigned int StepDataSize,
-        unsigned int BufferSize  
-        )
-    {
-        // We create the locator
-        BinBasedFastPointLocator<TDim> PointLocator = BinBasedFastPointLocator<TDim>(rOldModelPart);
-        PointLocator.UpdateSearchDatabase();
-        
-        // Iterate in the nodes
-        NodesArrayType& pNode = mThisModelPart.Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
-        
-        /* Nodes */
-//         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
-        {
-            auto itNode = pNode.begin() + i;
-            
-            Vector ShapeFunctions;
-            ElementType::Pointer pElement;
-            
-            const bool found = PointLocator.FindPointOnMeshSimplified(itNode->Coordinates(), ShapeFunctions, pElement, MaxNumberOfResults);
-            
-            if (found == false)
-            {
-                if (mEchoLevel > 0 || mFramework == Lagrangian) // NOTE: In the case we are in a Lagrangian framework this is serious and should print a message
-                {
-                   std::cout << "WARNING: Node "<< itNode->Id() << " not found (interpolation not posible)" << std::endl;
-                   std::cout << "\t X:"<< itNode->X() << "\t Y:"<< itNode->Y() << "\t Z:"<< itNode->Z() << std::endl;
-                   if (mFramework == Lagrangian)
-                   {
-                       std::cout << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
-                   }
-                }
-            }
-            else
-            {
-                for(unsigned int step = 0; step < BufferSize; step++)
-                {
-                    CalculateStepData(*(itNode.base()), pElement, ShapeFunctions, step, StepDataSize);
-                }
-                
-                // After we interpolate the DISPLACEMENT we interpolate the initial coordinates to ensure a functioning of the simulation
-                if (mFramework == Lagrangian)
-                {
-                    if ( itNode->SolutionStepsDataHas( DISPLACEMENT ) == false ) // Fisrt we check if we have the displacement variable
-                    {
-                        KRATOS_ERROR << "Missing DISPLACEMENT on node " << itNode->Id() << std::endl;
-                    }
-                    
-                    CalculateInitialCoordinates(*(itNode.base()));
-                }
-            }
-        }
-    }
-    
-    /**
-     * It interpolates the internal variables in the new model part using the old model part
-     * @param rOldModelPart: The old model part
-     */
-    
-    void InterpolateIntervalVariables(ModelPart& rOldModelPart)
-    {
-        /* We interpolate the internal variables */
-        if (mFramework == Lagrangian) 
-        {
-            InternalVariablesInterpolationProcess InternalVariablesInterpolation = InternalVariablesInterpolationProcess(rOldModelPart, mThisModelPart, mThisParameters["internal_variables_parameters"]);
-            InternalVariablesInterpolation.Execute();
-        }
-    }
-    
-    /**
-     * It calculates the initial coordinates interpolated to the node
-     * @return itNode: The node pointer
-     */
-    
-    void CalculateInitialCoordinates(NodeType::Pointer& pNode);
-    
-    /**
-     * It calculates the step data interpolated to the node
-     * @return itNode: The node pointer
-     * @param pElement: The element pointer
-     * @param ShapeFunctions: The shape functions in the node
-     * @param step: The time step
-     * @param StepDataSize: The size of the database
-     */
-    
-    void CalculateStepData(
-        NodeType::Pointer& pNode,
-        const ElementType::Pointer& pElement,
-        const Vector ShapeFunctions,
-        unsigned int step,
-        unsigned int StepDataSize
         );
     
     /**
@@ -2167,7 +2074,7 @@ protected:
             
             pCondition = mpRefCondition[IndexGeom]->Create(CondId, ConditionNodes, mpRefCondition[IndexGeom]->pGetProperties());
         }
-        else
+        else if (mEchoLevel > 0)
         {
             std::cout << "Condition creation avoided" << std::endl;
         }
@@ -2211,7 +2118,7 @@ protected:
         
             pCondition = mpRefCondition[IndexGeom]->Create(CondId, ConditionNodes, mpRefCondition[IndexGeom]->pGetProperties());
         }
-        else
+        else if (mEchoLevel > 0)
         {
             std::cout << "Condition creation avoided" << std::endl;
         }
@@ -2257,7 +2164,7 @@ protected:
             
             pCondition = mpRefCondition[IndexGeom]->Create(CondId, ConditionNodes, mpRefCondition[IndexGeom]->pGetProperties());
         }
-        else
+        else if (mEchoLevel > 0)
         {
             std::cout << "Condition creation avoided" << std::endl;
         }
@@ -2301,7 +2208,7 @@ protected:
             
             pElement = mpRefElement[IndexGeom]->Create(ElemId, ElementNodes, mpRefElement[IndexGeom]->pGetProperties());
         }
-        else
+        else if (mEchoLevel > 0)
         {
             std::cout << "Element creation avoided" << std::endl;
         }
@@ -2347,7 +2254,7 @@ protected:
             
             pElement = mpRefElement[IndexGeom]->Create(ElemId, ElementNodes, mpRefElement[IndexGeom]->pGetProperties());
         }
-        else
+        else if (mEchoLevel > 0)
         {
             std::cout << "Element creation avoided" << std::endl;
         }
@@ -2397,90 +2304,12 @@ protected:
         
             pElement = mpRefElement[IndexGeom]->Create(ElemId, ElementNodes, mpRefElement[IndexGeom]->pGetProperties());
         }
-        else
+        else if (mEchoLevel > 0)
         {
             std::cout << "Element creation avoided" << std::endl;
         }
         
         return pElement;
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    template<>  
-    void MmgUtility<2>::CalculateInitialCoordinates(NodeType::Pointer& pNode)
-    {
-        // We interpolate the initial coordinates (X = X0 + DISPLACEMENT), then X0 = X - DISPLACEMENT        
-        pNode->X0() = pNode->X() - pNode->FastGetSolutionStepValue(DISPLACEMENT_X);
-        pNode->Y0() = pNode->Y() - pNode->FastGetSolutionStepValue(DISPLACEMENT_Y);
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    template<>  
-    void MmgUtility<3>::CalculateInitialCoordinates(NodeType::Pointer& pNode)
-    {        
-        // We interpolate the initial coordinates (X = X0 + DISPLACEMENT), then X0 = X - DISPLACEMENT        
-        pNode->X0() = pNode->X() - pNode->FastGetSolutionStepValue(DISPLACEMENT_X);
-        pNode->Y0() = pNode->Y() - pNode->FastGetSolutionStepValue(DISPLACEMENT_Y);
-        pNode->Z0() = pNode->Z() - pNode->FastGetSolutionStepValue(DISPLACEMENT_Z);
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    template<>  
-    void MmgUtility<2>::CalculateStepData(
-        NodeType::Pointer& pNode,
-        const ElementType::Pointer& pElement,
-        const Vector ShapeFunctions,
-        unsigned int step,
-        unsigned int StepDataSize
-        )
-    {
-        double* StepData = pNode->SolutionStepData().Data(step);
-        
-        double* NodeData0 = pElement->GetGeometry()[0].SolutionStepData().Data(step);
-        double* NodeData1 = pElement->GetGeometry()[1].SolutionStepData().Data(step);
-        double* NodeData2 = pElement->GetGeometry()[2].SolutionStepData().Data(step);
-        
-        for (unsigned int j = 0; j < StepDataSize; j++)
-        {
-            StepData[j] = ShapeFunctions[0] * NodeData0[j]
-                        + ShapeFunctions[1] * NodeData1[j]
-                        + ShapeFunctions[2] * NodeData2[j];
-        }
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    template<>  
-    void MmgUtility<3>::CalculateStepData(
-        NodeType::Pointer& pNode,
-        const ElementType::Pointer& pElement,
-        const Vector ShapeFunctions,
-        unsigned int step,
-        unsigned int StepDataSize
-        )
-    {
-        double* StepData = pNode->SolutionStepData().Data(step);
-        
-        // NOTE: This just works with tetrahedron (you are going to have problems with anything else)
-        double* NodeData0 = pElement->GetGeometry()[0].SolutionStepData().Data(step);
-        double* NodeData1 = pElement->GetGeometry()[1].SolutionStepData().Data(step);
-        double* NodeData2 = pElement->GetGeometry()[2].SolutionStepData().Data(step);
-        double* NodeData3 = pElement->GetGeometry()[3].SolutionStepData().Data(step);
-        
-        for (unsigned int j = 0; j < StepDataSize; j++)
-        {
-            StepData[j] = ShapeFunctions[0] * NodeData0[j]
-                         + ShapeFunctions[1] * NodeData1[j]
-                         + ShapeFunctions[2] * NodeData2[j]
-                         + ShapeFunctions[3] * NodeData3[j];
-        }
     }
     
     /***********************************************************************************/
