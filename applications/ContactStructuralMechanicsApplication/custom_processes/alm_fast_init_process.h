@@ -118,6 +118,7 @@ public:
         NodesArrayType& pNodes = mrThisModelPart.Nodes();
         auto numNodes = pNodes.end() - pNodes.begin();
         
+        #pragma omp parallel for firstprivate(zerovector)
         for(unsigned int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNodes.begin() + i;
@@ -146,6 +147,7 @@ public:
         ConditionsArrayType& pConditions = mrThisModelPart.Conditions();
         auto numConditions = pConditions.end() - pConditions.begin();
         
+        #pragma omp parallel for firstprivate(zerovector)
         for(unsigned int i = 0; i < numConditions; i++) 
         {
             auto itCond = pConditions.begin() + i;
