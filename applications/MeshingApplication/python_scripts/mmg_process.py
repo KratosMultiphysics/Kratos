@@ -196,42 +196,54 @@ class MmgProcess(KratosMultiphysics.Process):
     def _CreateMetricsProcess(self):
         self.MetricsProcess = []
         if (self.strategy == "LevelSet"):
+            level_set_parameters = KratosMultiphysics.Parameters("""{}""")
+            level_set_parameters.AddValue("minimal_size",self.params["minimal_size"])
+            level_set_parameters.AddValue("enforce_current",self.params["enforce_current"])
+            level_set_parameters.AddValue("anisotropy_remeshing",self.params["anisotropy_remeshing"])
+            level_set_parameters.AddValue("anisotropy_parameters",self.params["anisotropy_parameters"])
             if (self.dim == 2):
                 self.MetricsProcess.append(MeshingApplication.ComputeLevelSetSolMetricProcess2D(
                     self.Model[self.model_part_name],
                     self.gradient_variable,
-                    self.params))
+                    level_set_parameters))
 
             else:
                 self.MetricsProcess.append(MeshingApplication.ComputeLevelSetSolMetricProcess3D(
                     self.Model[self.model_part_name],
                     self.gradient_variable,
-                    self.params))
+                    level_set_parameters))
 
         elif (self.strategy == "Hessian"):
+            hessian_parameters = KratosMultiphysics.Parameters("""{}""")
+            hessian_parameters.AddValue("minimal_size",self.params["minimal_size"])
+            hessian_parameters.AddValue("maximal_size",self.params["maximal_size"])
+            hessian_parameters.AddValue("enforce_current",self.params["enforce_current"])
+            hessian_parameters.AddValue("hessian_strategy_parameters",self.params["hessian_strategy_parameters"])
+            hessian_parameters.AddValue("anisotropy_remeshing",self.params["anisotropy_remeshing"])
+            hessian_parameters.AddValue("anisotropy_parameters",self.params["anisotropy_parameters"])
             for current_metric_variable in self.metric_variable:
                 if (type(current_metric_variable) is KratosMultiphysics.Array1DComponentVariable):
                     if (self.dim == 2):
                         self.MetricsProcess.append(MeshingApplication.ComputeHessianSolMetricProcessComp2D(
                             self.Model[self.model_part_name],
                             current_metric_variable,
-                            self.params))
+                            hessian_parameters))
                     else:
                         self.MetricsProcess.append(MeshingApplication.ComputeHessianSolMetricProcessComp3D(
                             self.Model[self.model_part_name],
                             current_metric_variable,
-                            self.params))
+                            hessian_parameters))
                 else:
                     if (self.dim == 2):
                         self.MetricsProcess.append(MeshingApplication.ComputeHessianSolMetricProcess2D(
                             self.Model[self.model_part_name],
                             current_metric_variable,
-                            self.params))
+                            hessian_parameters))
                     else:
                         self.MetricsProcess.append(MeshingApplication.ComputeHessianSolMetricProcess3D(
                             self.Model[self.model_part_name],
                             current_metric_variable,
-                            self.params))
+                            hessian_parameters))
 
     def _CreateGradientProcess(self):
         # We compute the scalar value gradient

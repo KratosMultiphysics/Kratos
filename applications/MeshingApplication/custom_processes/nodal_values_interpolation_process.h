@@ -89,12 +89,19 @@ public:
     NodalValuesInterpolationProcess(
         ModelPart& rOriginMainModelPart,
         ModelPart& rDestinationMainModelPart,
-        Parameters ThisParameters = Parameters("{'echo_level': 1, 'framework': 'Eulerian', 'max_number_of_searchs': 1000, 'step_data_size': 0, 'buffer_size': 0}")
+        Parameters ThisParameters = Parameters(R"({})")
         )
     :mrOriginMainModelPart(rOriginMainModelPart),
      mrDestinationMainModelPart(rDestinationMainModelPart)
      {
-         Parameters DefaultParameters = Parameters(R"({"echo_level": 1, "framework": "Eulerian", "max_number_of_searchs": 1000, "step_data_size": 0, "buffer_size": 0})" );
+         Parameters DefaultParameters = Parameters(R"(
+         {
+            "echo_level"            : 1, 
+            "framework"             : "Eulerian", 
+            "max_number_of_searchs" : 1000, 
+            "step_data_size"        : 0, 
+            "buffer_size"           : 0
+         })");
          ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
          
          mEchoLevel = ThisParameters["echo_level"].GetInt();

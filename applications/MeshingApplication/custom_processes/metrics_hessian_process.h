@@ -37,7 +37,7 @@ namespace Kratos
     typedef Node <3>                                                                NodeType;
     
 ///@}
-///@name  Enum's
+///@name  Enum"s
 ///@{
     
     #if !defined(INTERPOLATION_METRIC)
@@ -89,22 +89,43 @@ public:
     ComputeHessianSolMetricProcess(
         ModelPart& rThisModelPart,
         TVarType& rVariable,
-        Parameters ThisParameters = Parameters("{'minimal_size': 0.1,'maximal_size': 10.0, 'enforce_current': true, 'hessian_strategy_parameters': { 'interpolation_error': 1.0e-6, 'mesh_dependent_constant': 0.28125}, 'anisotropy_remeshing': true, 'anisotropy_parameters': {'hmin_over_hmax_anisotropic_ratio': 1.0, 'boundary_layer_max_distance': 1.0, 'interpolation': 'Linear'}}")
+        Parameters ThisParameters = Parameters(R"({})")
         )
         :mThisModelPart(rThisModelPart),
-        mVariable(rVariable),
-        mMinSize(ThisParameters["minimal_size"].GetDouble()),
-        mMaxSize(ThisParameters["maximal_size"].GetDouble()),
-        mEnforceCurrent(ThisParameters["enforce_current"].GetBool())
+        mVariable(rVariable)
     {               
+        Parameters DefaultParameters = Parameters(R"(
+        {
+            "minimal_size"                        : 0.1,
+            "maximal_size"                        : 10.0, 
+            "enforce_current"                     : true, 
+            "hessian_strategy_parameters": 
+            { 
+                "interpolation_error"                  : 1.0e-6, 
+                "mesh_dependent_constant"              : 0.28125
+            }, 
+            "anisotropy_remeshing"                : true, 
+            "anisotropy_parameters":
+            {
+                "hmin_over_hmax_anisotropic_ratio"     : 1.0, 
+                "boundary_layer_max_distance"          : 1.0, 
+                "interpolation"                        : "Linear"
+            }
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+         
+        mMinSize = ThisParameters["minimal_size"].GetDouble();
+        mMaxSize = ThisParameters["maximal_size"].GetDouble();
+        mEnforceCurrent = ThisParameters["enforce_current"].GetBool();
+        
         // In case we have isotropic remeshing (default values)
         if (ThisParameters["anisotropy_remeshing"].GetBool() == false)
         {
-            mInterpError = 1.0e-6;
-            mMeshConstant = 0.28125;
-            mAnisRatio = 1.0;
-            mBoundLayer = 1.0;
-            mInterpolation = ConvertInter("Linear");
+            mInterpError = DefaultParameters["hessian_strategy_parameters"]["interpolation_error"].GetDouble();
+            mMeshConstant = DefaultParameters["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble();
+            mAnisRatio = DefaultParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
+            mBoundLayer = DefaultParameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
+            mInterpolation = ConvertInter(DefaultParameters["anisotropy_parameters"]["interpolation"].GetString());
         }
         else
         {
@@ -233,7 +254,7 @@ public:
         rOStream << "ComputeHessianSolMetricProcess";
     }
 
-    /// Print object's data.
+    /// Print object"s data.
     virtual void PrintData(std::ostream& rOStream) const
     {
     }

@@ -36,7 +36,7 @@ namespace Kratos
     typedef Node <3>                                                   NodeType;
     
 ///@}
-///@name  Enum's
+///@name  Enum"s
 ///@{
     
     #if !defined(INTERPOLATION_METRIC)
@@ -85,19 +85,33 @@ public:
     ComputeLevelSetSolMetricProcess(
         ModelPart& rThisModelPart,
         const Variable<array_1d<double,3>> rVariableGradient = DISTANCE_GRADIENT,
-        Parameters ThisParameters = Parameters("{'minimal_size': 0.1, 'enforce_current': true, 'anisotropy_remeshing': true, 'anisotropy_parameters': {'hmin_over_hmax_anisotropic_ratio': 1.0, 'boundary_layer_max_distance': 1.0, 'interpolation': 'Linear'}}")
+        Parameters ThisParameters = Parameters(R"({})")
         )
         :mThisModelPart(rThisModelPart),
         mVariableGradient(rVariableGradient),
         mMinSize(ThisParameters["minimal_size"].GetDouble()),
         mEnforceCurrent(ThisParameters["enforce_current"].GetBool())
     {   
+        Parameters DefaultParameters = Parameters(R"(
+        {
+            "minimal_size"                         : 0.1, 
+            "enforce_current"                      : true, 
+            "anisotropy_remeshing"                 : true, 
+            "anisotropy_parameters": 
+            {
+                "hmin_over_hmax_anisotropic_ratio"      : 1.0, 
+                "boundary_layer_max_distance"           : 1.0, 
+                "interpolation"                         : "Linear"
+            }
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        
         // In case we have isotropic remeshing (default values)
         if (ThisParameters["anisotropy_remeshing"].GetBool() == false)
         {
-            mAnisRatio = 1.0;
-            mBoundLayer = 1.0;
-            mInterpolation = ConvertInter("Linear");
+            mAnisRatio = DefaultParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
+            mBoundLayer = DefaultParameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
+            mInterpolation = ConvertInter(DefaultParameters["anisotropy_parameters"]["interpolation"].GetString());
         }
         else
         {
@@ -224,7 +238,7 @@ public:
         rOStream << "ComputeLevelSetSolMetricProcess";
     }
 
-    /// Print object's data.
+    /// Print object"s data.
     virtual void PrintData(std::ostream& rOStream) const
     {
     }

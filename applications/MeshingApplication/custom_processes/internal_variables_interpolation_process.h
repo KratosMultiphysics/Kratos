@@ -298,11 +298,11 @@ public:
      {
         Parameters DefaultParameters = Parameters(R"(
             {
-                "allocation_size": 1000, 
-                "bucket_size": 4, 
-                "search_factor": 2, 
-                "interpolation_type": "LST", 
-                "internal_variable_interpolation_list":[]
+                "allocation_size"                      : 1000, 
+                "bucket_size"                          : 4, 
+                "search_factor"                        : 2, 
+                "interpolation_type"                   : "LST", 
+                "internal_variable_interpolation_list" :[]
             })" );
         
         ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
