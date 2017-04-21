@@ -122,8 +122,6 @@ public:
 
         for (unsigned int it=0; it<mMaxIterations; ++it)
         {
-            // Wait for all threads to start the iteration
-            #pragma omp barrier
             // Loop along the elements to find which ones have a unique selected node
             #pragma omp parallel for
             for (int k = 0; k < static_cast<int>(rNodes.size()); ++k)
@@ -191,7 +189,7 @@ public:
         v_null[2] = 0.0;
 
         // If there still exist some remaining nodes, initialize their values to zero
-        #pragma omp parallel for
+        #pragma omp parallel for firstprivate(v_null)
         for (int k = 0; k < static_cast<int>(rNodes.size()); ++k)
         {
             ModelPart::NodesContainerType::iterator itNode = rNodes.begin() + k;
