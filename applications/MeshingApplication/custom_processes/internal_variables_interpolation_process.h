@@ -354,6 +354,105 @@ public:
             InterpolateGaussPointsSFT();
         }
     }
+    
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /************************************ GET INFO *************************************/
+    /***********************************************************************************/
+    
+    virtual std::string Info() const
+    {
+        return "InternalVariablesInterpolationProcess";
+    }
+
+    /************************************ PRINT INFO ***********************************/
+    /***********************************************************************************/
+    
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+
+protected:
+    
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+    
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+    
+    // The model parts
+    ModelPart& mrOriginMainModelPart;                    // The origin model part
+    ModelPart& mrDestinationMainModelPart;               // The destination model part
+    const unsigned int mDimension;                       // Dimension size of the space
+    
+    // The allocation parameters
+    const unsigned int mAllocationSize;                  // Allocation size for the vectors and max number of potential results
+    const unsigned int mBucketSize;                      // Bucket size for kd-tree
+    
+    // The seatch variables 
+    const double mSearchFactor;                          // The search factor to be considered
+    PointVector mPointListOrigin;                        // A list that contents the all the gauss points from the origin modelpart 
+    
+    // Variables to interpolate
+    std::vector<Variable<double>> mInternalVariableList; // The list of variables to interpolate
+    InterpolationTypes mThisInterpolationType;           // The interpolation type considered
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
 
     /**
      * This function creates a lists of gauss points ready for the search
@@ -839,105 +938,6 @@ public:
             }
         }
     }
-    
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /************************************ GET INFO *************************************/
-    /***********************************************************************************/
-    
-    virtual std::string Info() const
-    {
-        return "InternalVariablesInterpolationProcess";
-    }
-
-    /************************************ PRINT INFO ***********************************/
-    /***********************************************************************************/
-    
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << Info();
-    }
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-    
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-    
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-    
-    // The model parts
-    ModelPart& mrOriginMainModelPart;                    // The origin model part
-    ModelPart& mrDestinationMainModelPart;               // The destination model part
-    const unsigned int mDimension;                       // Dimension size of the space
-    
-    // The allocation parameters
-    const unsigned int mAllocationSize;                  // Allocation size for the vectors and max number of potential results
-    const unsigned int mBucketSize;                      // Bucket size for kd-tree
-    
-    // The seatch variables 
-    const double mSearchFactor;                          // The search factor to be considered
-    PointVector mPointListOrigin;                        // A list that contents the all the gauss points from the origin modelpart 
-    
-    // Variables to interpolate
-    std::vector<Variable<double>> mInternalVariableList; // The list of variables to interpolate
-    InterpolationTypes mThisInterpolationType;           // The interpolation type considered
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
     
     /**
      * This converts the interpolation string to an enum

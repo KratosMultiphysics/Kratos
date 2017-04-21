@@ -586,7 +586,7 @@ protected:
         
         // We initialize some values
         unsigned int StepDataSize = mThisModelPart.GetNodalSolutionStepDataSize();
-        unsigned int BufferSize    = mThisModelPart.NodesBegin()->GetBufferSize();
+        unsigned int BufferSize   = mThisModelPart.NodesBegin()->GetBufferSize();
         
         if (mEchoLevel > 0)
         {        
