@@ -333,10 +333,11 @@ protected:
     {
         ModelPart::ElementsContainerType& rElements = mrModelPart.Elements();
 
-        // Deactivate the full negative distance elements
+        // Deactivate those elements whose fixed nodes and negative distance nodes summation is equal (or larger) to their number of nodes
         #pragma omp parallel for
         for (int k = 0; k < static_cast<int>(rElements.size()); ++k)
         {
+            unsigned int fixed = 0;
             unsigned int inside = 0;
             ModelPart::ElementsContainerType::iterator itElement = rElements.begin() + k;
             GeometryType& rGeometry = itElement->GetGeometry();
@@ -346,10 +347,11 @@ protected:
             {
                 if (rGeometry[itNode].GetSolutionStepValue(DISTANCE)<0.0)
                     inside++;
+                if (rGeometry[itNode].IsFixed(VELOCITY))
+                    fixed++;
             }
 
-            // If all the nodes have negative distance value (non-fluid domain) deactivate the element. Otherwise activate it.
-            (inside == rGeometry.size()) ? itElement->Set(ACTIVE, false) : itElement->Set(ACTIVE, true);
+            (inside+fixed >= rGeometry.size()) ? itElement->Set(ACTIVE, false) : itElement->Set(ACTIVE, true);
         }
     }
 
