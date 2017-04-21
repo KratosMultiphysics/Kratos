@@ -242,10 +242,7 @@ namespace Kratos
 
       const Matrix& rDeformationGradientF  = rValues.GetDeformationGradientF();
       const double& rDeterminantF          = rValues.GetDeterminantF();
-      
-      const Matrix& rDeformationGradientF  = rValues.GetDeformationGradientF();
-      const double& rDeterminantF          = rValues.GetDeterminantF();
-      
+            
       //update total deformation gradient
       MatrixType DeformationGradientF0;
       noalias(DeformationGradientF0) = ConstitutiveLawUtilities::DeformationGradientTo3D(rDeformationGradientF,DeformationGradientF0);

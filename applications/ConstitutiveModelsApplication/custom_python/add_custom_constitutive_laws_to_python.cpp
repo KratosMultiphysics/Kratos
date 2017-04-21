@@ -94,6 +94,7 @@
 
 //plasticity models
 #include "custom_models/plasticity_models/von_mises_plasticity_model.hpp"
+#include "custom_models/plasticity_models/von_mises_neo_hookean_plasticity_model.hpp"
 
 //yield criteria
 #include "custom_models/plasticity_models/yield_criteria/mises_huber_yield_criterion.hpp"
@@ -417,6 +418,11 @@ namespace Kratos
       
       //export_von_mises_plasticity_model<NeoHookeanModel>("VonMisesNeoHookeanModel");
 
+      class_< VonMisesNeoHookeanPlasticityModel, bases< HyperElasticPlasticModelBaseType >, boost::noncopyable >
+       	( "VonMisesNeoHookeanPlasticityModel",
+       	  init<>() )
+       	;
+      
       
     }
 

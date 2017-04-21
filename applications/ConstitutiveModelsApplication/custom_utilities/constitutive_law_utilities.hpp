@@ -148,7 +148,42 @@ namespace Kratos
       MathUtils<double>::InvertMatrix( LeftCauchyGreen, rInverseLeftCauchyGreen, det_b);
     }
 
-    
+        /** 
+     * Computes the GreenLagrangeStrain E= 0.5*(C-1) given the RightCauchyGreenTensor 
+     * @param rRightCauchyGreen input matrix 3x3 
+     * @param rStrainVector output vector 
+     * correct dimensions for the input/output is needed 
+     */ 
+    static inline void RightCauchyToGreenLagrangeStrain( const MatrixType& rRightCauchyGreen, 
+							 MatrixType& rStrainMatrix ) 
+    { 
+      rStrainMatrix(0,0) -= 1; 
+      rStrainMatrix(1,1) -= 1; 
+      rStrainMatrix(2,2) -= 1; 
+ 
+      rStrainMatrix *= 0.5; 
+    } 
+ 
+    /** 
+     * Computes the AlmansiStrain e = 0.5*(1-inv(b)) given the InverseCauchyGreenTensor 
+     * @param rInverseLeftCauchyGreen input matrix 3x3 
+     * @param rStrainVector output vector 
+     * correct dimensions for the input/output is needed 
+     */ 
+    static inline void LeftCauchyToAlmansiStrain( const MatrixType& rLeftCauchyGreen, 
+              MatrixType& rStrainMatrix ) 
+    { 
+      double I3 = 0; 
+ 
+      InvertMatrix3( rLeftCauchyGreen, rStrainMatrix, I3 ); 
+ 
+      rStrainMatrix *= (-0.5); 
+ 
+      rStrainMatrix(0,0) += 0.5; 
+      rStrainMatrix(1,1) += 0.5; 
+      rStrainMatrix(2,2) += 0.5;     
+   } 
+ 
     /**
      * Computes the GreenLagrangeStrain E= 0.5*(C-1) given the RightCauchyGreenTensor
      * @param rRightCauchyGreen input matrix 3x3
@@ -219,8 +254,8 @@ namespace Kratos
      * @param rDeformationGradientF input matrix 3x3
      * @param rStrainMatrix output matrix
      */
-    static inline void CalculateGreenLagrangeStrain( const Matrix & rDeformationGradientF,
-						     Matrix& rStrainMatrix )
+    static inline void CalculateGreenLagrangeStrain( const MatrixType & rDeformationGradientF,
+						     MatrixType& rStrainMatrix )
     {
 
       CalculateRightCauchyGreen( rDeformationGradientF, rStrainMatrix );

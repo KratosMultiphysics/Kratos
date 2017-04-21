@@ -3,7 +3,7 @@ import KratosMultiphysics.ConstitutiveModelsApplication as KratosMaterialModels
 
 ######################### general parameters
 nnodes = 3
-dim = 2
+dim = 3
 
 #define a model part and create new nodes
 model_part = ModelPart("test")
@@ -35,7 +35,9 @@ DN_DX = Matrix(3,2)
 ######################################## here we choose the constitutive law #########################
 #construct a constitutive law
 #elasticity_model = KratosMaterialModels.NeoHookeanModel()
-cl  = KratosMaterialModels.VonMisesHyperElasticPlastic3DLaw()
+plasticity_model = KratosMaterialModels.VonMisesNeoHookeanPlasticityModel()
+cl  = KratosMaterialModels.HyperElasticPlastic3DLaw(plasticity_model)
+#cl  = KratosMaterialModels.VonMisesHyperElasticPlastic3DLaw()
 
 cl.Check( properties, geom, model_part.ProcessInfo )
 
@@ -104,7 +106,7 @@ print( "strain = ", cl_params.GetStrainVector() )
 print( "C      = ", cl_params.GetConstitutiveMatrix() )
 
 #cl.FinalizeMaterialResponsePK2( cl_params )
-#cl.FinalizeSolutionStep( properties, geom, N, model_part.ProcessInfo )
+cl.FinalizeSolutionStep( properties, geom, N, model_part.ProcessInfo )
 
 
 print("\n The Material Response Kirchhoff")
@@ -113,7 +115,7 @@ print( "stress = ", cl_params.GetStressVector() )
 print( "strain = ", cl_params.GetStrainVector() )
 print( "C      = ", cl_params.GetConstitutiveMatrix() )
 
-#cl.FinalizeMaterialResponseKirchhoff( cl_params )
+cl.FinalizeMaterialResponseKirchhoff( cl_params )
 cl.FinalizeSolutionStep( properties, geom, N, model_part.ProcessInfo )
 
 print("\n The Material Response Cauchy")

@@ -192,7 +192,18 @@ namespace Kratos
     }
 
 
+    /**
+     * Check
+     */    
+    virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override
+    {
+      KRATOS_TRY
+	
+      return 0;
 
+      KRATOS_CATCH(" ")
+    }
+    
     ///@}
     ///@name Access
     ///@{
