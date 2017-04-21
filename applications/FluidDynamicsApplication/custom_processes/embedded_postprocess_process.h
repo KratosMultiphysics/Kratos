@@ -21,9 +21,11 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "processes/process.h"
+#include "includes/define.h"
+#include "includes/model_part.h"
 #include "includes/cfd_variables.h"
+#include "utilities/openmp_utils.h"
 
 // Application includes
 
@@ -62,9 +64,6 @@ public:
     /// Pointer definition of EmbeddedPostprocessProcess
     KRATOS_CLASS_POINTER_DEFINITION(EmbeddedPostprocessProcess);
 
-    typedef Node<3>                     NodeType;
-    typedef Geometry<NodeType>      GeometryType;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -93,25 +92,25 @@ public:
     void ExecuteFinalizeSolutionStep() override
     {
         const array_1d<double, 3> aux_zero = ZeroVector(3);
+        ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
 
-        // Store the positive distance nodes VELOCITY in EMBEDDED_WET_VELOCITY variable. The negative distance
-        // nodes EMBEDDED_WET_VELOCITY is set to zero for visualization purposes
-        // The same is done for the PRESSURE using the EMBEDDED_WET_PRESSURE variable
-        for (ModelPart::NodeIterator itNode=mrModelPart.NodesBegin(); itNode!=mrModelPart.NodesEnd(); ++itNode)
+        #pragma omp parallel for
+        for (int k = 0; k < static_cast<int>(rNodes.size()); ++k)
         {
+            ModelPart::NodesContainerType::iterator itNode = rNodes.begin() + k;
             const double dist = itNode->FastGetSolutionStepValue(DISTANCE);
             double& emb_wet_pres = itNode->FastGetSolutionStepValue(EMBEDDED_WET_PRESSURE);
             array_1d<double, 3>& emb_wet_vel = itNode->FastGetSolutionStepValue(EMBEDDED_WET_VELOCITY);
 
             if (dist >= 0.0)
             {
-                emb_wet_pres = itNode->FastGetSolutionStepValue(PRESSURE);
-                emb_wet_vel = itNode->FastGetSolutionStepValue(VELOCITY);
+                emb_wet_pres = itNode->FastGetSolutionStepValue(PRESSURE);      // Store the positive distance nodes PRESSURE in EMBEDDED_WET_PRESSURE variable
+                emb_wet_vel = itNode->FastGetSolutionStepValue(VELOCITY);       // Store the positive distance nodes VELOCITY in EMBEDDED_WET_VELOCITY variable
             }
             else
             {
-                emb_wet_pres = 0.0;
-                emb_wet_vel = aux_zero;
+                emb_wet_pres = 0.0;         // The negative distance nodes EMBEDDED_WET_PRESSURE is set to zero for visualization purposes
+                emb_wet_vel = aux_zero;     // The negative distance nodes EMBEDDED_WET_VELOCITY is set to zero for visualization purposes
             }
         }
     }
