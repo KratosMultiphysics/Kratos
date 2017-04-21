@@ -11,8 +11,8 @@
 //
 //
 
-#ifndef KRATOS_DISTANCE_MODIFICATION_PROCESS_H
-#define KRATOS_DISTANCE_MODIFICATION_PROCESS_H
+#ifndef KRATOS_EMBEDDED_POSTPROCESS_PROCESS_H
+#define KRATOS_EMBEDDED_POSTPROCESS_PROCESS_H
 
 // System includes
 #include <string>
@@ -24,7 +24,6 @@
 #include "includes/define.h"
 #include "processes/process.h"
 #include "includes/cfd_variables.h"
-#include "processes/find_nodal_h_process.h"
 
 // Application includes
 
@@ -246,4 +245,4 @@ private:
 
 };  // namespace Kratos.
 
-#endif // KRATOS_DISTANCE_MODIFICATION_PROCESS_H
+#endif // KRATOS_EMBEDDED_POSTPROCESS_PROCESS_H
