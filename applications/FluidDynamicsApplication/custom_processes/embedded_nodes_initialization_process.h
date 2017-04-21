@@ -96,9 +96,15 @@ public:
 
     void ExecuteInitializeSolutionStep() override
     {
+        const unsigned int BufferSize = mrModelPart.GetBufferSize();
+        ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
+        ModelPart::ElementsContainerType& rElements = mrModelPart.Elements();
+
         // Mark the nodes that have switched from structure to fluid during the last step
-        for (ModelPart::NodeIterator itNode=mrModelPart.NodesBegin(); itNode!=mrModelPart.NodesEnd(); ++itNode)
+        #pragma omp parallel for
+        for (int k = 0; k < static_cast<int>(rNodes.size()); ++k)
         {
+            ModelPart::NodesContainerType::iterator itNode = rNodes.begin() + k;
             const double& d  = itNode->FastGetSolutionStepValue(DISTANCE);      // Current step distance value
             const double& dn = itNode->FastGetSolutionStepValue(DISTANCE,1);    // Previous step distance value
 
@@ -108,11 +114,14 @@ public:
 
         for (unsigned int it=0; it<mMaxIterations; ++it)
         {
+            // Wait for all threads to start the iteration
+            #pragma omp barrier
             // Loop along the elements to find which ones have a unique selected node
-            for (ModelPart::ElementIterator itElement=mrModelPart.ElementsBegin(); itElement<mrModelPart.ElementsEnd(); ++itElement)
+            #pragma omp parallel for
+            for (int k = 0; k < static_cast<int>(rNodes.size()); ++k)
             {
-
                 unsigned int NewNodes = 0;
+                ModelPart::ElementsContainerType::iterator itElement = rElements.begin() + k;
                 const GeometryType& rGeometry = itElement->GetGeometry();
                 const unsigned int ElemNumNodes = rGeometry.PointsNumber();
 
@@ -154,17 +163,16 @@ public:
                     p_avg /= (ElemNumNodes-1);
                     v_avg /= (ElemNumNodes-1);
 
-                    // Once a node is initialized it is marked as non SELECTED, disregarding the fact that it can be shared by other elements
-                    pNode->Set(SELECTED, false);
-
                     // Historical values initialization
-                    pNode->FastGetSolutionStepValue(PRESSURE, 0) = p_avg;
-                    pNode->FastGetSolutionStepValue(PRESSURE, 1) = p_avg;
-                    pNode->FastGetSolutionStepValue(PRESSURE, 2) = p_avg;
-                    pNode->FastGetSolutionStepValue(VELOCITY, 0) = v_avg;
-                    pNode->FastGetSolutionStepValue(VELOCITY, 1) = v_avg;
-                    pNode->FastGetSolutionStepValue(VELOCITY, 2) = v_avg;
+                    pNode->SetLock();                                               // Avoid another thread to acces the node while the value set
+                    pNode->Set(SELECTED, false);                                    // Once a node has been initialized it is marked as non SELECTED
+                    for (unsigned int step=0; step<BufferSize; ++step)              // Fill the velocity and pressure buffer
+                    {
+                        pNode->FastGetSolutionStepValue(PRESSURE, step) = p_avg;
+                        pNode->FastGetSolutionStepValue(VELOCITY, step) = v_avg;
 
+                    }
+                    pNode->UnSetLock();                                             // Free the node thread access
                 }
             }
         }
@@ -175,47 +183,19 @@ public:
         v_null[2] = 0.0;
 
         // If there still exist some remaining nodes, initialize their values to zero
-        for (ModelPart::NodeIterator itNode=mrModelPart.NodesBegin(); itNode!=mrModelPart.NodesEnd(); ++itNode)
+        #pragma omp parallel for
+        for (int k = 0; k < static_cast<int>(rNodes.size()); ++k)
         {
+            ModelPart::NodesContainerType::iterator itNode = rNodes.begin() + k;
+
             if (itNode->Is(SELECTED))
             {
-                // Once a node is initialized it is marked as non SELECTED
-                itNode->Set(SELECTED, false);
-
-                // Historical values initialization to 0.0
-                itNode->FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
-                itNode->FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
-                itNode->FastGetSolutionStepValue(PRESSURE, 2) = 0.0;
-                itNode->FastGetSolutionStepValue(VELOCITY, 0) = v_null;
-                itNode->FastGetSolutionStepValue(VELOCITY, 1) = v_null;
-                itNode->FastGetSolutionStepValue(VELOCITY, 2) = v_null;
-            }
-        }
-    }
-
-
-    void ExecuteFinalizeSolutionStep() override
-    {
-        const array_1d<double, 3> aux_zero = ZeroVector(3);
-
-        // Store the positive distance nodes VELOCITY in EMBEDDED_WET_VELOCITY variable. The negative distance
-        // nodes EMBEDDED_WET_VELOCITY is set to zero for visualization purposes
-        // The same is done for the PRESSURE using the EMBEDDED_WET_PRESSURE variable
-        for (ModelPart::NodeIterator itNode=mrModelPart.NodesBegin(); itNode!=mrModelPart.NodesEnd(); ++itNode)
-        {
-            const double dist = itNode->FastGetSolutionStepValue(DISTANCE);
-            double& emb_wet_pres = itNode->FastGetSolutionStepValue(EMBEDDED_WET_PRESSURE);
-            array_1d<double, 3>& emb_wet_vel = itNode->FastGetSolutionStepValue(EMBEDDED_WET_VELOCITY);
-
-            if (dist >= 0.0)
-            {
-                emb_wet_pres = itNode->FastGetSolutionStepValue(PRESSURE);
-                emb_wet_vel = itNode->FastGetSolutionStepValue(VELOCITY);
-            }
-            else
-            {
-                emb_wet_pres = 0.0;
-                emb_wet_vel = aux_zero;
+                itNode->Set(SELECTED, false);                                   // Once a node has been initialized it is marked as non SELECTED
+                for (unsigned int step=0; step<BufferSize; ++step)              // Fill the velocity and pressure buffer
+                {
+                    itNode->FastGetSolutionStepValue(PRESSURE, step) = 0.0;
+                    itNode->FastGetSolutionStepValue(VELOCITY, step) = v_null;
+                }
             }
         }
     }

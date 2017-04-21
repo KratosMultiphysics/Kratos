@@ -30,11 +30,3 @@ class ApplyEmbeddedNodesInitializationProcess(KratosMultiphysics.Process):
 
     def ExecuteInitializeSolutionStep(self):
         self.EmbeddedNodesInitializationProcess.ExecuteInitializeSolutionStep()
-
-
-    def ExecuteFinalizeSolutionStep(self):
-        self.EmbeddedNodesInitializationProcess.ExecuteFinalizeSolutionStep()
-
-
-    def ExecuteFinalize(self):
-        self.EmbeddedNodesInitializationProcess.ExecuteFinalize()
