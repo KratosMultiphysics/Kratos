@@ -485,14 +485,15 @@ private:
         
         const ProcessInfo& CurrentProcessInfo = ThisModelPart.GetProcessInfo();
 
-//         // Creating a buffer for parallel vector fill
-//         const unsigned int NumThreads = omp_get_num_threads();
-//         std::vector<PointVector> PointsBuffers(NumThreads);
-//         
-//         #pragma omp parallel
-//         {
-//             const unsigned int Id = omp_get_thread_num();
+        // Creating a buffer for parallel vector fill
+        const unsigned int NumThreads = omp_get_max_threads();
+        std::vector<PointVector> PointsBuffers(NumThreads);
+        
+        #pragma omp parallel
+        {
+            const unsigned int Id = omp_get_thread_num();
             
+            #pragma omp for
             for(unsigned int i = 0; i < numElements; i++) 
             {
                 auto itElem = pElements.begin() + i;
@@ -526,20 +527,19 @@ private:
                     
                     // We create the respective GP
                     PointTypePointer pPoint = PointTypePointer(new PointType(GlobalCoordinates, ConstitutiveLawVector[iGaussPoint], Weight));
-//                     (PointsBuffers[Id]).push_back(pPoint);
-                    (ThisPointVector).push_back(pPoint);
+                    (PointsBuffers[Id]).push_back(pPoint);
                 }
             }
             
-//             // Combine buffers together
-//             #pragma omp single
-//             {
-//                 for( auto& PointsBuffer : PointsBuffers) 
-//                 {
-//                     std::move(PointsBuffer.begin(),PointsBuffer.end(),back_inserter(ThisPointVector));
-//                 }
-//             }
-//         }
+            // Combine buffers together
+            #pragma omp single
+            {
+                for( auto& PointsBuffer : PointsBuffers) 
+                {
+                    std::move(PointsBuffer.begin(),PointsBuffer.end(),back_inserter(ThisPointVector));
+                }
+            }
+        }
         
         return ThisPointVector;
     }
@@ -552,17 +552,16 @@ private:
     {
         // We Initialize the process info
         const ProcessInfo& CurrentProcessInfo = mrDestinationMainModelPart.GetProcessInfo();
-     
-        // We initialize the intergration method
-        GeometryData::IntegrationMethod ThisIntegrationMethod;
         
         // We update the list of points
         mPointListOrigin.clear();     
-        
         mPointListOrigin = CreateGaussPointList(mrOriginMainModelPart);
 
-//         #pragma omp parallel
-//         {
+        #pragma omp parallel firstprivate(mPointListOrigin)
+        {
+            // We initialize the intergration method
+            GeometryData::IntegrationMethod ThisIntegrationMethod;
+            
             // Create a tree
             // It will use a copy of mNodeList (a std::vector which contains pointers)
             // Copying the list is required because the tree will reorder it for efficiency
@@ -572,7 +571,7 @@ private:
             ElementsArrayType& pElements = mrDestinationMainModelPart.Elements();
             auto numElements = pElements.end() - pElements.begin();
             
-//             #pragma omp parallel for
+            #pragma omp for
             for(unsigned int i = 0; i < numElements; i++) 
             {
                 auto itElem = pElements.begin() + i;
@@ -609,7 +608,7 @@ private:
                     }
                 }
             }
-//         }
+        }
     }
     
     /**
@@ -621,20 +620,20 @@ private:
         // We Initialize the process info
         const ProcessInfo& CurrentProcessInfo = mrDestinationMainModelPart.GetProcessInfo();
         
-        // We initialize the intergration method
-        GeometryData::IntegrationMethod ThisIntegrationMethod;
-        
         // We update the list of points
         mPointListOrigin.clear();     
         mPointListOrigin = CreateGaussPointList(mrOriginMainModelPart);
         
-        // Initialize values
-        PointVector PointsFound(mAllocationSize);
-        std::vector<double> PointsDistances(mAllocationSize);
-        unsigned int NumberPointsFound = 0;
-        
-//         #pragma omp parallel
-//         {
+        #pragma omp parallel firstprivate(mPointListOrigin)
+        {
+            // We initialize the intergration method
+            GeometryData::IntegrationMethod ThisIntegrationMethod;
+            
+            // Initialize values
+            PointVector PointsFound(mAllocationSize);
+            std::vector<double> PointsDistances(mAllocationSize);
+            unsigned int NumberPointsFound = 0;
+            
             // Create a tree
             // It will use a copy of mNodeList (a std::vector which contains pointers)
             // Copying the list is required because the tree will reorder it for efficiency
@@ -644,7 +643,7 @@ private:
             ElementsArrayType& pElements = mrDestinationMainModelPart.Elements();
             auto numElements = pElements.end() - pElements.begin();
             
-//             #pragma omp parallel for
+            #pragma omp for
             for(unsigned int i = 0; i < numElements; i++) 
             {
                 auto itElem = pElements.begin() + i;
@@ -725,7 +724,7 @@ private:
                     }
                 }
             }
-//         }
+        }
     }
     
     /**
