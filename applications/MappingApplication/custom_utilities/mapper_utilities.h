@@ -340,7 +340,7 @@ public:
                                             array_1d<double, 3>& rLocalCoords,
                                             double& rDistance)
     {
-        bool is_inside = pGeometry->IsInside(GlobalCoords, rLocalCoords);
+        bool is_inside = pGeometry->IsInside(GlobalCoords, rLocalCoords, tol_local_coords);
 
         if (is_inside)
         {
@@ -430,7 +430,7 @@ public:
             array_1d<double, 3>& rLocalCoords,
             double& rDistance)
     {
-        bool is_inside = pGeometry->IsInside(GlobalCoords, rLocalCoords);
+        bool is_inside = pGeometry->IsInside(GlobalCoords, rLocalCoords, tol_local_coords);
 
         if (is_inside)
         {
