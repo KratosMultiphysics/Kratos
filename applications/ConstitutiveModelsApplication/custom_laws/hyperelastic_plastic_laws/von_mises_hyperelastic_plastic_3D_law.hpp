@@ -52,7 +52,10 @@ namespace Kratos
      KRATOS_TRY
 
      mpModel = ModelTypePointer( new ModelType() );
-       
+
+     std::cout<<" Von Mises Law "<<std::endl;
+     mpModel->PrintInfo(std::cout);
+     
      KRATOS_CATCH(" ")	  
     }
 

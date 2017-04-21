@@ -47,6 +47,8 @@
 
 //general constitutive laws
 
+//elasticity laws
+
 //isotropic linear elastic laws
 #include "custom_laws/linear_elastic_laws/linear_elastic_plane_strain_2D_law.hpp"
 #include "custom_laws/linear_elastic_laws/linear_elastic_plane_stress_2D_law.hpp"
@@ -65,7 +67,7 @@
 #include "custom_laws/hyperelastic_laws/neo_hookean_3D_law.hpp"
 #include "custom_laws/hyperelastic_laws/isochoric_neo_hookean_3D_law.hpp"
 
-//plasticity models
+//plasticity laws
 
 //isotropic linear elastic plasticity laws
 //#include "custom_laws/linear_elastic_plastic_laws/linear_elastic_plastic_3D_law.hpp"
@@ -95,9 +97,13 @@
 //#include "custom_laws/linear_elastic_damage_laws/isotropic_damage_modified_mises_plane_strain_2D_law.hpp"
 //#include "custom_laws/linear_elastic_damage_laws/isotropic_damage_modified_mises_plane_stress_2D_law.hpp"
 
+//elasticity models
+#include "custom_models/elasticity_models/linear_elastic_model.hpp"
 
 //hyperelastic models
+#include "custom_models/elasticity_models/hyperelastic_models/saint_venant_kirchhoff_model.hpp"
 #include "custom_models/elasticity_models/hyperelastic_models/neo_hookean_model.hpp"
+#include "custom_models/elasticity_models/hyperelastic_models/compressible_neo_hookean_model.hpp"
 #include "custom_models/elasticity_models/hyperelastic_models/isochoric_neo_hookean_model.hpp"
 #include "custom_models/elasticity_models/hyperelastic_models/incompressible_neo_hookean_model.hpp"
 
@@ -316,8 +322,13 @@ namespace Kratos {
     //const IsotropicDamageModifiedMisesPlaneStrain2DLaw mIsotropicDamageModifiedMisesPlaneStrain2DLaw;
     //const IsotropicDamageModifiedMisesPlaneStress2DLaw mIsotropicDamageModifiedMisesPlaneStress2DLaw;
 
-    //hyperelastic models 
+    //linear elastic models
+    const LinearElasticModel                       mLinearElasticModel;
+    
+    //hyperelastic models
+    const SaintVenantKirchhoffModel                mSaintVenantKirchhoffModel;
     const NeoHookeanModel                          mNeoHookeanModel;
+    const NeoHookeanModel                          mCompressibleNeoHookeanModel;
     const IsochoricNeoHookeanModel                 mIsochoricNeoHookeanModel;
     const IncompressibleNeoHookeanModel            mIncompressibleNeoHookeanModel;
 

@@ -451,7 +451,7 @@ namespace Kratos
     rVariable = 0;    
 
     if( DomainGeometry[0].SolutionStepsDataHas(rThisVariable) )
-      KRATOS_THROW_ERROR( std::logic_error, "Elastic3DLaw : Asking a variable that is not in the SolutionStepsData ..", rThisVariable )
+      KRATOS_ERROR << "Elastic3DLaw : Asking a variable that is not in the SolutionStepsData .." << rThisVariable << std::endl;
     
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
       {
@@ -540,13 +540,13 @@ namespace Kratos
     KRATOS_TRY
       
     if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
-      KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ", "" )
+      KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value" << std::endl;
 
     const double& nu = rMaterialProperties[POISSON_RATIO];
     const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
 
     if(POISSON_RATIO.Key() == 0 || check==true)
-      KRATOS_THROW_ERROR( std::invalid_argument,"POISSON_RATIO has Key zero invalid value ", "" )
+      KRATOS_ERROR << "POISSON_RATIO has Key zero invalid value" << std::endl;
 		
     return 0;
     

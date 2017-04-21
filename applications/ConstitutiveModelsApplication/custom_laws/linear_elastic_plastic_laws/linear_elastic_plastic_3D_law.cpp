@@ -344,7 +344,7 @@ void LinearElasticPlastic3DLaw::CalculateReturnMapping( FlowRule::RadialReturnVa
     
     mpFlowRule->CalculateReturnMapping( rReturnMappingVariables, rStressMatrix );
     
-    noalias(rStressVector) = MathUtils<double>::StressTensorToVector( rStressMatrix, StrainVector.size() );
+    noalias(rStressVector) = ConstitutiveLawUtilities::StressTensorToVector( rStressMatrix, StressVector );
 }
 
 

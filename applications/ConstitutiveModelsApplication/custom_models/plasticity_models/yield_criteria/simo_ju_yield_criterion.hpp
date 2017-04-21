@@ -70,22 +70,29 @@ namespace Kratos
     ///@{
 
     /// Default constructor.
-    SimoJuYieldCriterion();
+    SimoJuYieldCriterion() : BaseType() {}
     
     /// Constructor.
-    SimoJuYieldCriterion(HardeningLawPointer pHardeningLaw);
+    SimoJuYieldCriterion(HardeningLawPointer pHardeningLaw) : BaseType(pHardeningLaw) {}
 
     /// Copy constructor.
-    SimoJuYieldCriterion(SimoJuYieldCriterion const& rOther);
+    SimoJuYieldCriterion(SimoJuYieldCriterion const& rOther) : BaseType(rOther) {}
 
     /// Assignment operator.
-    SimoJuYieldCriterion& operator=(SimoJuYieldCriterion const& rOther);
-
+    SimoJuYieldCriterion& operator=(SimoJuYieldCriterion const& rOther)
+    {
+      BaseType::operator=(rOther);
+      return *this;
+    }
+    
     /// Clone.
-    virtual BaseTypePointer Clone() const override;     
-
+    virtual BaseTypePointer Clone() const override
+    {
+      return ( SimoJuYieldCriterion::Pointer(new SimoJuYieldCriterion(*this)) );
+    }
+    
     /// Destructor.
-    virtual ~SimoJuYieldCriterion();
+    virtual ~SimoJuYieldCriterion() {}
 
 
     ///@}
@@ -101,19 +108,96 @@ namespace Kratos
      * Calculate Yield Condition
      */
 
-    double& CalculateYieldCondition(const PlasticDataType& rVariables, double & rYieldCondition) override;
+    double& CalculateYieldCondition(const PlasticDataType& rVariables, double & rYieldCondition) override
+    {
+      KRATOS_TRY
 
+      const ModelDataType& rModelData = rVariables.GetModelData();
+    
+      // Compute Theta parameter
+      double Theta;
+    
+      const Matrix& rStressMatrix = rModelData.GetStressMatrix();
+    
+      VectorType PrincipalStresses;
+      noalias(PrincipalStresses) = ConstitutiveLawUtilities::EigenValuesDirectMethod(rStressMatrix);
+
+
+      double Macaulay_PrincipalStress = 0.0, Absolute_PrincipalStress = 0.0;
+    
+      for(unsigned int i=0; i<3; i++)
+	{ 
+	  if(PrincipalStresses[i] > 0.0)
+	    {
+	      Macaulay_PrincipalStress += PrincipalStresses[i];
+	      Absolute_PrincipalStress += PrincipalStresses[i];
+	    }
+	  else
+	    {
+	      Absolute_PrincipalStress -= PrincipalStresses[i];
+	    }
+	}
+
+      if(Absolute_PrincipalStress > 1.0e-20)
+	{
+	  Theta = Macaulay_PrincipalStress/Absolute_PrincipalStress;
+	}
+      else
+	{
+	  Theta = 0.5;
+	}
+    
+      // Compute Equivalent Strain (rYieldCondition)
+      const Matrix& rStrainMatrix = rModelData.GetStrainMatrix();
+      MatrixType Auxiliar;
+      noalias(Auxiliar) = prod(rStrainMatrix,rStressMatrix);
+    
+      double StressNorm = 0.0;
+    
+      for(unsigned int i=0; i<3; i++) 
+	{
+	  StressNorm += Auxiliar(i,i);
+	}
+    
+      const double& StrengthRatio = rModelData.GetMaterialProperties()[STRENGTH_RATIO];
+    
+      rYieldCondition = (Theta+(1.0-Theta)/StrengthRatio)*sqrt(StressNorm);
+    
+      return rYieldCondition;
+
+      KRATOS_CATCH(" ")    
+    }
+    
     /**
      * Calculate State Function
      */
 
-    double& CalculateStateFunction(const PlasticDataType& rVariables, double & rStateFunction) override;
+    double& CalculateStateFunction(const PlasticDataType& rVariables, double & rStateFunction) override
+    {
+      KRATOS_TRY
+        
+      rStateFunction = this->mpHardeningLaw->CalculateHardening(rVariables,rStateFunction);
+    
+      return rStateFunction;
+    
+      KRATOS_CATCH(" ")    
+    }
 
+    
     /**
      * Calculate State Function derivative
      */
 
-    double& CalculateDeltaStateFunction(const PlasticDataType& rVariables, double & rDeltaStateFunction) override;
+    double& CalculateDeltaStateFunction(const PlasticDataType& rVariables, double & rDeltaStateFunction) override
+    {
+      KRATOS_TRY
+    
+      rDeltaStateFunction = this->mpHardeningLaw->CalculateDeltaHardening(rVariables,rDeltaStateFunction);
+    
+      return rDeltaStateFunction;
+
+      KRATOS_CATCH(" ")        
+    }
     
 
     ///@}
@@ -259,161 +343,6 @@ namespace Kratos
   ///@}
 
   ///@} addtogroup block
-
-
-  //****************************DEFAULT CONSTRUCTOR*************************************
-  //************************************************************************************
-  template<class THardeningLaw>
-  SimoJuYieldCriterion<THardeningLaw>::SimoJuYieldCriterion()
-    :BaseType()
-  {
-   
-  }
-
-  //*******************************CONSTRUCTOR******************************************
-  //************************************************************************************
-  template<class THardeningLaw>
-  SimoJuYieldCriterion<THardeningLaw>::SimoJuYieldCriterion(HardeningLawPointer pHardeningLaw)
-    :BaseType(pHardeningLaw)
-  {
-   
-  }
-  
-  //*******************************ASSIGMENT OPERATOR***********************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  SimoJuYieldCriterion<THardeningLaw>& SimoJuYieldCriterion<THardeningLaw>::operator=(SimoJuYieldCriterion const& rOther)
-  {
-    BaseType::operator=(rOther);
-    return *this;
-  }
-
-  //*******************************COPY CONSTRUCTOR*************************************
-  //************************************************************************************
-  template<class THardeningLaw>
-  SimoJuYieldCriterion<THardeningLaw>::SimoJuYieldCriterion(SimoJuYieldCriterion const& rOther)
-    :BaseType(rOther)
-  {
-
-  }
-
-  //********************************CLONE***********************************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  typename YieldCriterion<THardeningLaw>::Pointer SimoJuYieldCriterion<THardeningLaw>::Clone() const
-  {
-    return ( SimoJuYieldCriterion::Pointer(new SimoJuYieldCriterion(*this)) );
-  }
-
-  //********************************DESTRUCTOR******************************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  SimoJuYieldCriterion<THardeningLaw>::~SimoJuYieldCriterion()
-  {
-  }
-
-  /// Operations.
-
-
-  //************************** CALCULATE EQUIVALENT STRAIN *****************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  double& SimoJuYieldCriterion<THardeningLaw>::CalculateYieldCondition(const PlasticDataType& rVariables, double & rYieldCondition)
-  {
-    KRATOS_TRY
-
-    const ModelDataType& rModelData = rVariables.GetModelData();
-    
-    // Compute Theta parameter
-    double Theta;
-    
-    const Matrix& rStressMatrix = rModelData.GetStressMatrix();
-    
-    VectorType PrincipalStresses;
-    noalias(PrincipalStresses) = ConstitutiveLawUtilities::EigenValuesDirectMethod(rStressMatrix);
-
-
-    double Macaulay_PrincipalStress = 0.0, Absolute_PrincipalStress = 0.0;
-    
-    for(unsigned int i=0; i<3; i++)
-      { 
-        if(PrincipalStresses[i] > 0.0)
-	  {
-            Macaulay_PrincipalStress += PrincipalStresses[i];
-            Absolute_PrincipalStress += PrincipalStresses[i];
-	  }
-        else
-	  {
-            Absolute_PrincipalStress -= PrincipalStresses[i];
-	  }
-      }
-
-    if(Absolute_PrincipalStress > 1.0e-20)
-      {
-        Theta = Macaulay_PrincipalStress/Absolute_PrincipalStress;
-      }
-    else
-      {
-        Theta = 0.5;
-      }
-    
-    // Compute Equivalent Strain (rYieldCondition)
-    const Matrix& rStrainMatrix = rModelData.GetStrainMatrix();
-    MatrixType Auxiliar;
-    noalias(Auxiliar) = prod(rStrainMatrix,rStressMatrix);
-    
-    double StressNorm = 0.0;
-    
-    for(unsigned int i=0; i<3; i++) 
-      {
-        StressNorm += Auxiliar(i,i);
-      }
-    
-    const double& StrengthRatio = rModelData.GetMaterialProperties()[STRENGTH_RATIO];
-    
-    rYieldCondition = (Theta+(1.0-Theta)/StrengthRatio)*sqrt(StressNorm);
-    
-    return rYieldCondition;
-
-    KRATOS_CATCH(" ")    
-  }
-
-
-  //***************************CALCULATE DAMAGE PARAMETER ******************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  double& SimoJuYieldCriterion<THardeningLaw>::CalculateStateFunction(const PlasticDataType& rVariables, double& rStateFunction)
-  {
-    KRATOS_TRY
-        
-    rStateFunction = this->mpHardeningLaw->CalculateHardening(rVariables,rStateFunction);
-    
-    return rStateFunction;
-    
-    KRATOS_CATCH(" ")    
-  }
-
-
-  //***************************CALCULATE DAMAGE DERIVATIVE *****************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  double& SimoJuYieldCriterion<THardeningLaw>::CalculateDeltaStateFunction(const PlasticDataType& rVariables, double& rDeltaStateFunction)
-  {
-    KRATOS_TRY
-    
-    rDeltaStateFunction = this->mpHardeningLaw->CalculateDeltaHardening(rVariables,rDeltaStateFunction);
-    
-    return rDeltaStateFunction;
-
-    KRATOS_CATCH(" ")        
-  }
-
   
 }  // namespace Kratos.
 

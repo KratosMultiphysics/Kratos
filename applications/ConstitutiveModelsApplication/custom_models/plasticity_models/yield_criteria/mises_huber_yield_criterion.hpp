@@ -71,22 +71,29 @@ namespace Kratos
     ///@{
 
     /// Default constructor.
-    MisesHuberYieldCriterion();
+    MisesHuberYieldCriterion() : BaseType() {}
 
     /// Constructor.
-    MisesHuberYieldCriterion(HardeningLawPointer pHardeningLaw);
+    MisesHuberYieldCriterion(HardeningLawPointer pHardeningLaw) : BaseType(pHardeningLaw) {}
     
     /// Copy constructor.
-    MisesHuberYieldCriterion(MisesHuberYieldCriterion const& rOther);
+    MisesHuberYieldCriterion(MisesHuberYieldCriterion const& rOther) : BaseType(rOther) {}
 
     /// Assignment operator.
-    MisesHuberYieldCriterion& operator=(MisesHuberYieldCriterion const& rOther);
-
+    MisesHuberYieldCriterion& operator=(MisesHuberYieldCriterion const& rOther)
+    {
+      BaseType::operator=(rOther);
+      return *this;
+    }
+    
     /// Clone.
-    virtual BaseTypePointer Clone() const override;     
-
+    virtual BaseTypePointer Clone() const override
+    {
+      return ( MisesHuberYieldCriterion::Pointer(new MisesHuberYieldCriterion(*this)) );
+    }
+    
     /// Destructor.
-    virtual ~MisesHuberYieldCriterion();
+    virtual ~MisesHuberYieldCriterion() {}
 
 
     ///@}
@@ -102,44 +109,125 @@ namespace Kratos
      * Calculate Yield Condition
      */
 
-    double& CalculateYieldCondition(const PlasticDataType& rVariables, double & rYieldCondition) override;
+    double& CalculateYieldCondition(const PlasticDataType& rVariables, double & rYieldCondition) override
+    {
+      KRATOS_TRY
 
+      double Hardening = 0;
+
+      const double& rStressNorm = rVariables.GetStressNorm();
+
+      Hardening = this->mpHardeningLaw->CalculateHardening(rVariables,Hardening);
+		
+      rYieldCondition = rStressNorm - sqrt(2.0/3.0) * Hardening;
+		
+      return rYieldCondition;
+
+      KRATOS_CATCH(" ")
+    }
+    
     /**
      * Calculate State Function
      */
 
-    double& CalculateStateFunction(const PlasticDataType& rVariables, double & rStateFunction) override;
+    double& CalculateStateFunction(const PlasticDataType& rVariables, double & rStateFunction) override
+    {
+      KRATOS_TRY
 
+      const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
+    
+      const double& rStressNorm = rVariables.GetStressNorm();
+    
+      const double& rDeltaGamma = rVariables.GetDeltaInternalVariables()[0];
+    
+      double Hardening = 0;
+		
+      Hardening = this->mpHardeningLaw->CalculateHardening( rVariables, Hardening );
+
+      rStateFunction = rStressNorm - 2.0 * rMaterial.GetLameMuBar() * rDeltaGamma - sqrt(2.0/3.0) * ( Hardening );
+		
+      return rStateFunction;
+
+      KRATOS_CATCH(" ")
+    }
+    
     /**
      * Calculate State Function derivative
      */
 
-    double& CalculateDeltaStateFunction(const PlasticDataType& rVariables, double & rDeltaStateFunction) override;
+    double& CalculateDeltaStateFunction(const PlasticDataType& rVariables, double & rDeltaStateFunction) override
+    {
+      KRATOS_TRY
 
+      const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
+
+      double DeltaHardening = 0;
+
+      DeltaHardening = this->mpHardeningLaw->CalculateDeltaHardening( rVariables, DeltaHardening );
+
+      //std::cout<<" DeltaHardening "<<DeltaHardening<<std::endl;
+
+      rDeltaStateFunction = 2.0 * rMaterial.GetLameMuBar() + (2.0/3.0) * DeltaHardening;
+		
+      return rDeltaStateFunction;
+
+      KRATOS_CATCH(" ")
+    }
+    
     /**
      * Calculate Plastic Dissipation
      */
 
-    double& CalculatePlasticDissipation(const PlasticDataType& rVariables, double & rPlasticDissipation) override;
+    double& CalculatePlasticDissipation(const PlasticDataType& rVariables, double & rPlasticDissipation) override
+    {
+      KRATOS_TRY
 
+      rPlasticDissipation = 0;
+      return rPlasticDissipation;
+
+      KRATOS_CATCH(" ")
+    }
+    
     /**
      * Calculate Plastic Dissipation derivative
      */
     
-    double& CalculateDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation) override;
+    double& CalculateDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation) override
+    {
+      KRATOS_TRY
 
+      rDeltaPlasticDissipation = 0;
+      return rDeltaPlasticDissipation;
+
+      KRATOS_CATCH(" ")
+    }
     /**
      * Calculate Implex Plastic Dissipation
      */
 
-    double& CalculateImplexPlasticDissipation(const PlasticDataType& rVariables, double & rPlasticDissipation) override;
+    double& CalculateImplexPlasticDissipation(const PlasticDataType& rVariables, double & rPlasticDissipation) override
+    {
+      KRATOS_TRY
 
+      rPlasticDissipation = 0;
+      return rPlasticDissipation;
+    
+      KRATOS_CATCH(" ")
+    }      
+    
     /**
      * Calculate Implex Plastic Dissipation derivative
      */
     
-    double& CalculateImplexDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation) override;
+    double& CalculateImplexDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation) override
+    {
+      KRATOS_TRY
+      
+      rDeltaPlasticDissipation = 0;
+      return rDeltaPlasticDissipation;
 
+      KRATOS_CATCH(" ")
+    }
           
     ///@}
     ///@name Access
@@ -287,197 +375,6 @@ namespace Kratos
   ///@}
 
   ///@} addtogroup block
-  
-  //****************************DEFAULT CONSTRUCTOR*************************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  MisesHuberYieldCriterion<THardeningLaw>::MisesHuberYieldCriterion()
-    :BaseType()
-  {
-   
-  }
-
-  //*******************************CONSTRUCTOR******************************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  MisesHuberYieldCriterion<THardeningLaw>::MisesHuberYieldCriterion(HardeningLawPointer pHardeningLaw)
-    :BaseType(pHardeningLaw)
-  {
-   
-  }
-  
-  //*******************************ASSIGMENT OPERATOR***********************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  MisesHuberYieldCriterion<THardeningLaw>& MisesHuberYieldCriterion<THardeningLaw>::operator=(MisesHuberYieldCriterion const& rOther)
-  {
-    BaseType::operator=(rOther);
-    return *this;
-  }
-
-  //*******************************COPY CONSTRUCTOR*************************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  MisesHuberYieldCriterion<THardeningLaw>::MisesHuberYieldCriterion(MisesHuberYieldCriterion const& rOther)
-    :BaseType(rOther)
-  {
-
-  }
-
-  //********************************CLONE***********************************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  typename YieldCriterion<THardeningLaw>::Pointer MisesHuberYieldCriterion<THardeningLaw>::Clone() const
-  {
-    return ( MisesHuberYieldCriterion::Pointer(new MisesHuberYieldCriterion(*this)) );
-  }
-
-  //********************************DESTRUCTOR******************************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  MisesHuberYieldCriterion<THardeningLaw>::~MisesHuberYieldCriterion()
-  {
-  }
-
-  /// Operations.
-
-
-  //***************************CALCULATE YIELD CONDITION********************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  double& MisesHuberYieldCriterion<THardeningLaw>::CalculateYieldCondition(const PlasticDataType& rVariables, double & rYieldCondition)
-  {
-    KRATOS_TRY
-
-    double Hardening = 0;
-
-    const double& rStressNorm = rVariables.GetStressNorm();
-
-    Hardening = this->mpHardeningLaw->CalculateHardening(rVariables,Hardening);
-		
-    rYieldCondition = rStressNorm - sqrt(2.0/3.0) * Hardening;
-		
-    return rYieldCondition;
-
-    KRATOS_CATCH(" ")
-  }
-
-
-  //***************************CALCULATE STATE FUNCTION ********************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  double& MisesHuberYieldCriterion<THardeningLaw>::CalculateStateFunction(const PlasticDataType& rVariables, double & rStateFunction)
-  {
-    KRATOS_TRY
-
-    const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
-    
-    const double& rStressNorm = rVariables.GetStressNorm();
-    
-    const double& rDeltaGamma = rVariables.GetDeltaInternalVariables()[0];
-    
-    double Hardening = 0;
-		
-    Hardening = this->mpHardeningLaw->CalculateHardening( rVariables, Hardening );
-
-    rStateFunction = rStressNorm - 2.0 * rMaterial.GetLameMuBar() * rDeltaGamma - sqrt(2.0/3.0) * ( Hardening );
-		
-    return rStateFunction;
-
-    KRATOS_CATCH(" ")
-  }
-
-
-  //***************************CALCULATE STATE FUNCTION ********************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  double& MisesHuberYieldCriterion<THardeningLaw>::CalculateDeltaStateFunction(const PlasticDataType& rVariables, double & rDeltaStateFunction)
-  {
-    KRATOS_TRY
-
-    const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
-
-    double DeltaHardening = 0;
-
-    DeltaHardening = this->mpHardeningLaw->CalculateDeltaHardening( rVariables, DeltaHardening );
-
-    //std::cout<<" DeltaHardening "<<DeltaHardening<<std::endl;
-
-    rDeltaStateFunction = 2.0 * rMaterial.GetLameMuBar() + (2.0/3.0) * DeltaHardening;
-		
-    return rDeltaStateFunction;
-
-    KRATOS_CATCH(" ")
-  }
-
-
-  //***************************CALCULATE PLASTIC DISSIPATION****************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  double& MisesHuberYieldCriterion<THardeningLaw>::CalculatePlasticDissipation(const PlasticDataType& rVariables, double & rPlasticDissipation)
-  {
-    KRATOS_TRY
-
-    rPlasticDissipation = 0;
-    return rPlasticDissipation;
-
-    KRATOS_CATCH(" ")
-  }
-
-
-  //**********************CALCULATE DELTA PLASTIC DISSIPATION***************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  double& MisesHuberYieldCriterion<THardeningLaw>::CalculateDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation)
-  {
-    KRATOS_TRY
-
-    rDeltaPlasticDissipation = 0;
-    return rDeltaPlasticDissipation;
-
-    KRATOS_CATCH(" ")
-  }
-
-
-  //***************************CALCULATE PLASTIC DISSIPATION****************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  double& MisesHuberYieldCriterion<THardeningLaw>::CalculateImplexPlasticDissipation(const PlasticDataType& rVariables, double & rPlasticDissipation)
-  {
-    KRATOS_TRY
-
-    rPlasticDissipation = 0;
-    return rPlasticDissipation;
-    
-    KRATOS_CATCH(" ")
-  }
-
-
-  //**********************CALCULATE DELTA PLASTIC DISSIPATION***************************
-  //************************************************************************************
-
-  template<class THardeningLaw>
-  double& MisesHuberYieldCriterion<THardeningLaw>::CalculateImplexDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation)
-  {
-    KRATOS_TRY
-      
-    rDeltaPlasticDissipation = 0;
-    return rDeltaPlasticDissipation;
-
-    KRATOS_CATCH(" ")
-  }
 
 }  // namespace Kratos.
 

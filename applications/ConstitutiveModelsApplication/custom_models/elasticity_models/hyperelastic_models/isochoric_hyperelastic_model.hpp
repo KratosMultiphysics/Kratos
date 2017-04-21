@@ -91,7 +91,7 @@ namespace Kratos
     ///@{
   
 
-    virtual void CalculateStrainEnergy(ModelDataType& rValues, double& rDensityFunction)
+    virtual void CalculateStrainEnergy(ModelDataType& rValues, double& rDensityFunction) override
     {
       KRATOS_TRY
 
@@ -106,47 +106,44 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
 
-        
-    virtual void CalculateStress(ModelDataType& rValues, MatrixType& rStressMatrix)
+
+    virtual void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
-	
+
       HyperElasticDataType Variables;
       this->CalculateStrainData(rValues,Variables);
 
-      this->CalculateAndAddIsochoricStress(Variables, rStressMatrix);
+      this->CalculateAndAddIsochoricStressTensor(Variables, rStressMatrix);
       
       rValues.StressMatrix = rStressMatrix; //store isochoric stress matrix as StressMatrix
 
-      this->CalculateAndAddVolumetricStress(Variables, rStressMatrix);
-            
+      this->CalculateAndAddVolumetricStressTensor(Variables, rStressMatrix);
+      
       KRATOS_CATCH(" ")
     }
-
-
-    virtual double& ConstitutiveComponent(ModelDataType& rValues, double &rCabcd,
-					  const unsigned int& a, const unsigned int& b,
-					  const unsigned int& c, const unsigned int& d)
+    
+    
+    virtual void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
     {
       KRATOS_TRY
-
+     
       HyperElasticDataType Variables;
       this->CalculateStrainData(rValues,Variables);
-      this->CalculateScalingFactors(Variables);
 
-      rValues.StressMatrix.clear();
-      this->CalculateAndAddIsochoricStress(Variables, rValues.StressMatrix); //store isochoric stress in StressMatrix
+      //Calculate Stress Matrix
+      this->CalculateAndAddIsochoricStressTensor(Variables, rStressMatrix);
       
-      rCabcd = this->AddIsochoricConstitutiveComponent(Variables,rCabcd,a,b,c,d);
-      rCabcd = this->AddVolumetricConstitutiveComponent(Variables,rCabcd,a,b,c,d);
+      rValues.StressMatrix = rStressMatrix; //store isochoric stress matrix as StressMatrix
 
-      return rCabcd;
-	
+      this->CalculateAndAddVolumetricStressTensor(Variables, rStressMatrix);
+
+      //Calculate Constitutive Matrix
+      this->CalculateAndAddConstitutiveTensor(Variables,rConstitutiveMatrix);
+    
       KRATOS_CATCH(" ")
     }
-
-
-    
+  
     ///@}
     ///@name Access
     ///@{
@@ -208,8 +205,8 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-	
-    virtual void CalculateAndAddIsochoricStress(HyperElasticDataType& rVariables, MatrixType& rStressMatrix)
+    
+    virtual void CalculateAndAddIsochoricStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
 
@@ -263,7 +260,7 @@ namespace Kratos
     }
 
 
-    virtual void CalculateAndAddVolumetricStress(HyperElasticDataType& rVariables, MatrixType& rStressMatrix)
+    virtual void CalculateAndAddVolumetricStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
 
@@ -295,10 +292,25 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
 
+    virtual double& AddConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
+					     const unsigned int& a, const unsigned int& b,
+					     const unsigned int& c, const unsigned int& d) override
+    { 
+      KRATOS_TRY
+     
+      rCabcd = this->AddIsochoricConstitutiveComponent(rVariables,rCabcd,a,b,c,d);
+      rCabcd = this->AddVolumetricConstitutiveComponent(rVariables,rCabcd,a,b,c,d);
 
+      return rCabcd;
+	
+      KRATOS_CATCH(" ")
+    }
+
+
+    
     virtual double& AddIsochoricConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
 						      const unsigned int& a, const unsigned int& b,
-						      const unsigned int& c, const unsigned int& d)
+						      const unsigned int& c, const unsigned int& d) override
     {
       KRATOS_TRY
 
@@ -311,7 +323,6 @@ namespace Kratos
       double Cefmn = 0;
       
       if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Variables.Strain.CauchyGreenMatrix = RightCauchyGreen (C)
-
 	
 	for(unsigned int e=0; e<3; e++)
 	  {
@@ -346,15 +357,15 @@ namespace Kratos
 			
 			Cabcd = GetI3RightCauchyGreenSquare1stDerivative(rVariables.Strain,Cabcd,e,f,m,n);
 			Cefmn += rVariables.Factors.Beta3 * Cabcd;
-			
-			Cefmn *= 4.0;
+						
 		      }
 		  }
-
-		rCabcd += Cabef * Cefmn * Ccdef; 
+		
 	      }
 	  }
-		
+
+	rCabcd += Cefmn * 4;
+	
       }
       else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.CauchyGreenMatrix = LeftCauchyGreen (b)
 	
@@ -392,14 +403,14 @@ namespace Kratos
 			Cabcd = GetI3LeftCauchyGreenSquare1stDerivative(rVariables.Strain,Cabcd,e,f,m,n);
 			Cefmn += rVariables.Factors.Beta3 * Cabcd;
 			
-			Cefmn *= 4.0;
 		      }
 		  }
 
-		rCabcd += Cabef * Cefmn * Ccdef; 
 	      }
 	  }
-		
+	     
+	rCabcd += Cefmn * 4;
+	
       }
 
       return rCabcd;
@@ -410,7 +421,7 @@ namespace Kratos
 
     virtual double& AddVolumetricConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
 						       const unsigned int& a, const unsigned int& b,
-						       const unsigned int& c, const unsigned int& d)
+						       const unsigned int& c, const unsigned int& d) override
     {
       KRATOS_TRY
 
@@ -467,10 +478,14 @@ namespace Kratos
     }
     
 
-    virtual void CalculateInvariants(HyperElasticDataType& rVariables)
+    virtual void CalculateInvariants(HyperElasticDataType& rVariables) override
     {
       KRATOS_TRY
 
+      //jacobian
+      rVariables.Strain.Invariants.J    = rVariables.GetModelData().GetDeterminantF();
+      rVariables.Strain.Invariants.J_13 = pow(rVariables.Strain.Invariants.J,(-1.0/3.0));
+	
       //isochoric-volumetric splitted law
       rVariables.Strain.CauchyGreenMatrix *=  rVariables.Strain.Invariants.J_13 * rVariables.Strain.Invariants.J_13;
       
@@ -484,7 +499,7 @@ namespace Kratos
     }
 
     
-    virtual void CalculateScalingFactors(HyperElasticDataType& rVariables)
+    virtual void CalculateScalingFactors(HyperElasticDataType& rVariables) override
     {
       KRATOS_TRY
 

@@ -19,12 +19,16 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_SOURCES
 	#general constitutive laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/elastic_3D_law.cpp
 
+	#elasticicy laws
+	
 	#isotropic linear elastic laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/linear_elastic_laws/linear_elastic_3D_law.cpp
 
 	#isotropic hyperelastic laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/hyperelastic_laws/hyperelastic_3D_law.cpp
-		
+
+	#plasticity laws
+	
 	#isotropic linear elastic plasticity laws
 	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/linear_elastic_plastic_laws/linear_elastic_plastic_3D_law.cpp
 	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/linear_elastic_plastic_laws/linear_elastic_plastic_plane_strain_2D_law.cpp
@@ -49,6 +53,7 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/constitutive_model_data.cpp
 
 	#elasticity models
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/linear_elastic_model.cpp
 		
 	#hyperelastic models
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/hyperelastic_models/hyperelastic_model.cpp

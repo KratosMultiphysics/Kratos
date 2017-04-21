@@ -2,8 +2,8 @@ from KratosMultiphysics import *
 import KratosMultiphysics.ConstitutiveModelsApplication as KratosMaterialModels
 
 ######################### general parameters
-nnodes = 4
-dim = 3
+nnodes = 3
+dim = 2
 
 #define a model part and create new nodes
 model_part = ModelPart("test")
@@ -18,7 +18,7 @@ properties.SetValue(YOUNG_MODULUS, 200e9)
 properties.SetValue(POISSON_RATIO, 0.3)
 
 HyperElasticParameters = Vector(1)
-HyperElasticParameters[0] = 150e9
+HyperElasticParameters[0] = 200e9/(4*(1+0.3))
 properties.SetValue(KratosMaterialModels.HYPERELASTIC_MODEL_PARAMETERS, HyperElasticParameters)
 
 #allocate a geometry
@@ -34,7 +34,9 @@ DN_DX = Matrix(3,2)
 
 ######################################## here we choose the constitutive law #########################
 #construct a constitutive law
-cl = KratosMaterialModels.NeoHookean3DLaw()
+#elasticity_model = KratosMaterialModels.NeoHookeanModel()
+cl  = KratosMaterialModels.VonMisesHyperElasticPlastic3DLaw()
+
 cl.Check( properties, geom, model_part.ProcessInfo )
 
 if(cl.WorkingSpaceDimension() != dim):
@@ -101,8 +103,8 @@ print( "stress = ", cl_params.GetStressVector() )
 print( "strain = ", cl_params.GetStrainVector() )
 print( "C      = ", cl_params.GetConstitutiveMatrix() )
 
-cl.FinalizeMaterialResponsePK2( cl_params )
-cl.FinalizeSolutionStep( properties, geom, N, model_part.ProcessInfo )
+#cl.FinalizeMaterialResponsePK2( cl_params )
+#cl.FinalizeSolutionStep( properties, geom, N, model_part.ProcessInfo )
 
 
 print("\n The Material Response Kirchhoff")

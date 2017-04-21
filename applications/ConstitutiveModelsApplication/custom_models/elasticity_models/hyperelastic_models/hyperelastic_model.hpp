@@ -304,9 +304,9 @@ namespace Kratos
 
     void CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables);    
         
-    void CalculateInvariants(HyperElasticDataType& rVariables);
+    virtual void CalculateInvariants(HyperElasticDataType& rVariables);
         
-    void CalculateScalingFactors(HyperElasticDataType& rVariables);
+    virtual void CalculateScalingFactors(HyperElasticDataType& rVariables);
 
     void CalculateStrainInvariants(const MatrixType& rCauchyGreenMatrix, double& rI1, double& rI2, double& rI3);
     

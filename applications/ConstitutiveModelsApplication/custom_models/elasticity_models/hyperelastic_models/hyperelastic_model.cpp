@@ -71,71 +71,52 @@ namespace Kratos
     rVariables.SetState(rValues.State);
     
     //cauchy green tensor
-    const MatrixType& DeformationGradientF = rValues.GetDeformationGradientF();
+    const MatrixType& rStrainMatrix         = rValues.GetStrainMatrix();
+    const MatrixType& rDeformationGradientF = rValues.GetDeformationGradientF();
 
     const StrainMeasureType& rStrainMeasure = rValues.GetStrainMeasure();
     const StressMeasureType& rStressMeasure = rValues.GetStressMeasure();
     
     if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mCauchyGreenMatrix = RightCauchyGreen (C=FT*F)  C^-1=(FT*F)^-1=F^-1*FT^-1
-
-      if( rValues.State.IsNot(ConstitutiveModelData::COMPUTED_STRAIN) ){
       
-	if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_InverseRight ){
-	  noalias(rVariables.Strain.CauchyGreenMatrix) = prod(trans(DeformationGradientF), DeformationGradientF);
-	  noalias(rVariables.Strain.InverseCauchyGreenMatrix) = rValues.GetStrainMatrix();
-	  rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
-	}
-	else if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Right ){
-	  noalias(rVariables.Strain.CauchyGreenMatrix) = rValues.GetStrainMatrix();
-	  ConstitutiveLawUtilities::InvertMatrix3( rVariables.Strain.CauchyGreenMatrix, rVariables.Strain.InverseCauchyGreenMatrix, rVariables.Strain.Invariants.I3 );
-	  rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
-	}
-	else if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_None ){
-	  noalias(rVariables.Strain.CauchyGreenMatrix) = prod(trans(DeformationGradientF), DeformationGradientF);
-	  ConstitutiveLawUtilities::InvertMatrix3( rVariables.Strain.CauchyGreenMatrix, rVariables.Strain.InverseCauchyGreenMatrix, rVariables.Strain.Invariants.I3 );
-	  
-	  rValues.StrainMatrix = rVariables.Strain.InverseCauchyGreenMatrix;
-	  rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
-	}
-	else{
-	  KRATOS_THROW_ERROR( std::logic_error, "calling initialize HyperElasticModel ..", "StrainMeasure provided is inconsistent" )
-	}
-	
+      if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Right ){
+	noalias(rVariables.Strain.CauchyGreenMatrix) = rStrainMatrix;
+	ConstitutiveLawUtilities::InvertMatrix3( rVariables.Strain.CauchyGreenMatrix, rVariables.Strain.InverseCauchyGreenMatrix, rVariables.Strain.Invariants.I3 );
+	rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
+      }
+      else if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_None ){
+	noalias(rVariables.Strain.CauchyGreenMatrix) = prod(trans(rDeformationGradientF), rDeformationGradientF);
+	ConstitutiveLawUtilities::InvertMatrix3( rVariables.Strain.CauchyGreenMatrix, rVariables.Strain.InverseCauchyGreenMatrix, rVariables.Strain.Invariants.I3 );
+
+	rValues.StrainMatrix = rVariables.Strain.CauchyGreenMatrix;
+	rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
       }
       else{
-	noalias(rVariables.Strain.CauchyGreenMatrix) = prod(trans(DeformationGradientF), DeformationGradientF);
-	noalias(rVariables.Strain.InverseCauchyGreenMatrix) = rValues.GetStrainMatrix();
+	KRATOS_ERROR << "calling initialize HyperElasticModel .. StrainMeasure provided is inconsistent" << std::endl;
       }
-	
+      
     }
     else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mCauchyGreenMatrix = LeftCauchyGreen (b=F*FT)
 
-      if( rValues.State.IsNot(ConstitutiveModelData::COMPUTED_STRAIN) ){
+      if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Left ){
+	noalias(rVariables.Strain.CauchyGreenMatrix) = rStrainMatrix;
+	rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
+      }
+      else if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_None ){
+	noalias(rVariables.Strain.CauchyGreenMatrix) = prod(rDeformationGradientF,trans(rDeformationGradientF));
 
-	if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Left ){
-	  noalias(rVariables.Strain.CauchyGreenMatrix) = rValues.GetStrainMatrix();
-	  rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
-	}
-	else if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_None ){
-	  noalias(rVariables.Strain.CauchyGreenMatrix) = prod(DeformationGradientF,trans(DeformationGradientF));
-
-	  rValues.StrainMatrix = rVariables.Strain.CauchyGreenMatrix;
-	  rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
-	}
-	else{
-	  KRATOS_THROW_ERROR( std::logic_error, "calling initialize HyperElasticModel ..", "StrainMeasure provided is inconsistent" )
-        }
-
-	rValues.MaterialParameters.LameMuBar =  rValues.MaterialParameters.LameMu * ( rVariables.Strain.CauchyGreenMatrix(0,0) + rVariables.Strain.CauchyGreenMatrix(1,1) + rVariables.Strain.CauchyGreenMatrix(2,2) ) * 1.0/3.0 * pow(rValues.GetDeterminantF(),(-2.0/3.0));
-	
+	rValues.StrainMatrix = rVariables.Strain.CauchyGreenMatrix;
+	rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
       }
       else{
-	noalias(rVariables.Strain.CauchyGreenMatrix) = rValues.GetStrainMatrix();
+	KRATOS_ERROR << "calling initialize HyperElasticModel .. StrainMeasure provided is inconsistent" << std::endl;
       }
+
+      rValues.MaterialParameters.LameMuBar =  rValues.MaterialParameters.LameMu * ( rVariables.Strain.CauchyGreenMatrix(0,0) + rVariables.Strain.CauchyGreenMatrix(1,1) + rVariables.Strain.CauchyGreenMatrix(2,2) ) * 1.0/3.0 * pow(rValues.GetDeterminantF(),(-2.0/3.0));
       
     }
     else{
-      KRATOS_THROW_ERROR( std::logic_error, "calling initialize HyperElasticModel ..", "StressMeasure required is inconsistent" )
+      KRATOS_ERROR << "calling initialize HyperElasticModel .. StressMeasure required is inconsistent"  << std::endl;
     }
 
     
@@ -157,7 +138,7 @@ namespace Kratos
   {
     KRATOS_TRY
 	
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in HyperElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in HyperElasticModel ... illegal operation" << std::endl;
 	
     KRATOS_CATCH(" ")
   }
@@ -169,7 +150,7 @@ namespace Kratos
   {
     KRATOS_TRY
 	
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in HyperElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in HyperElasticModel ... illegal operation" << std::endl;
 	
     KRATOS_CATCH(" ")
   }
@@ -181,7 +162,7 @@ namespace Kratos
   {
     KRATOS_TRY
 	
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in HyperElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in HyperElasticModel ... illegal operation" << std::endl;
 	
     KRATOS_CATCH(" ")
   }
@@ -236,18 +217,19 @@ namespace Kratos
      
       StressPartMatrix = GetI1LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
       noalias(StressMatrix)  = rVariables.Factors.Alpha1 * StressPartMatrix;
-      
+     
       StressPartMatrix = GetI2LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
       noalias(StressMatrix) += rVariables.Factors.Alpha2 * StressPartMatrix;
       
-      StressPartMatrix = GetI3LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
+      StressPartMatrix = GetI3LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);      
       noalias(StressMatrix) += rVariables.Factors.Alpha3 * StressPartMatrix;
 
-      StressMatrix *= 2.0 * rVariables.Strain.Invariants.J;
+      StressMatrix *= 2.0;
 
-      rStressMatrix += StressMatrix;      
+      rStressMatrix += StressMatrix;
     }
 
+    
     rVariables.State().Set(ConstitutiveModelData::COMPUTED_STRESS);
     
     KRATOS_CATCH(" ")
@@ -275,7 +257,7 @@ namespace Kratos
   {
     KRATOS_TRY
 	
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in HyperElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in HyperElasticModel ... illegal operation" << std::endl;
 	
     KRATOS_CATCH(" ")
   }
@@ -303,7 +285,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in HyperElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in HyperElasticModel ... illegal operation" << std::endl;
 	
     KRATOS_CATCH(" ")
   }
@@ -526,14 +508,16 @@ namespace Kratos
 						      const unsigned int& c, const unsigned int& d)
   {
     KRATOS_TRY
-	
+
+    //this is a simplified version, more terms of the derivatives are needed to be general:
+      
     const ModelDataType&  rModelData        = rVariables.GetModelData();
     const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
     
     double Cabcd = 0;
     double Dabcd = 0;
 
-    if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mCauchyGreenMatrix = RightCauchyGrereenSquare1stDerivative(Variables.Strain,Cabcd,a,b,c,d);
+    if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mCauchyGreenMatrix = LeftCauchyGreen (C)
 
       //2nd derivatives
       Dabcd = GetI1RightCauchyGreen2ndDerivative(rVariables.Strain,Dabcd,a,b,c,d);
@@ -570,21 +554,22 @@ namespace Kratos
 
       Dabcd = GetI3LeftCauchyGreen2ndDerivative(rVariables.Strain,Dabcd,a,b,c,d);
       Cabcd += rVariables.Factors.Alpha3 * Dabcd;
-
+            
       //1st derivatives
       Dabcd = GetI1LeftCauchyGreenSquare1stDerivative(rVariables.Strain,Dabcd,a,b,c,d);
       Cabcd += rVariables.Factors.Beta1 * Dabcd;
-	
+
       Dabcd = GetI2LeftCauchyGreenSquare1stDerivative(rVariables.Strain,Dabcd,a,b,c,d);
       Cabcd += rVariables.Factors.Beta2 * Dabcd;
 
       Dabcd = GetI3LeftCauchyGreenSquare1stDerivative(rVariables.Strain,Dabcd,a,b,c,d);
       Cabcd += rVariables.Factors.Beta3 * Dabcd;
 
-      Cabcd *= 4.0 * rVariables.Strain.Invariants.J;
+      
+      Cabcd *= 4.0;
 
     }
-    
+
     rCabcd += Cabcd;
     
     rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX);
@@ -604,7 +589,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in HyperElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in HyperElasticModel ... illegal operation" << std::endl;
 	
     KRATOS_CATCH(" ")
   }
@@ -620,7 +605,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in HyperElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in HyperElasticModel ... illegal operation" << std::endl;
 	
     KRATOS_CATCH(" ")
   }
@@ -694,8 +679,8 @@ namespace Kratos
     rVariables.Factors.Beta2  = this->GetFunction2ndI2Derivative(rVariables, rVariables.Factors.Beta2);
     rVariables.Factors.Beta3  = this->GetFunction2ndI3Derivative(rVariables, rVariables.Factors.Beta3);
 
-    //std::cout<<" Alpha["<<rVariables.Factors.Alpha1<<" "<<rVariables.Factors.Alpha2<<" "<<rVariables.Factors.Alpha3<<"]"<<std::endl;
-    //std::cout<<" Beta ["<<rVariables.Factors.Beta1<<" "<<rVariables.Factors.Beta2<<" "<<rVariables.Factors.Beta3<<"]"<<std::endl;
+    // std::cout<<" Alpha["<<rVariables.Factors.Alpha1<<" "<<rVariables.Factors.Alpha2<<" "<<rVariables.Factors.Alpha3<<"]"<<std::endl;
+    // std::cout<<" Beta ["<<rVariables.Factors.Beta1<<" "<<rVariables.Factors.Beta2<<" "<<rVariables.Factors.Beta3<<"]"<<std::endl;
     
     KRATOS_CATCH(" ")
   }
@@ -707,7 +692,7 @@ namespace Kratos
   {
     KRATOS_TRY
 	
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in HyperElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in HyperElasticModel ... illegal operation" << std::endl;
 
     return rDerivative;
 
@@ -719,7 +704,7 @@ namespace Kratos
   {
     KRATOS_TRY
 	
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in HyperElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in HyperElasticModel ... illegal operation" << std::endl;
 
     return rDerivative;
 
@@ -730,7 +715,7 @@ namespace Kratos
   {
     KRATOS_TRY
 	
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in HyperElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in HyperElasticModel ... illegal operation" << std::endl;
 
     return rDerivative;
     
@@ -742,7 +727,7 @@ namespace Kratos
   {
     KRATOS_TRY
 	
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in HyperElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in HyperElasticModel ... illegal operation" << std::endl;
 
     return rDerivative;
 
@@ -757,7 +742,7 @@ namespace Kratos
   {
     KRATOS_TRY
 	
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in HyperElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in HyperElasticModel ... illegal operation" << std::endl;
 
     return rDerivative;
 
@@ -768,7 +753,7 @@ namespace Kratos
   {
     KRATOS_TRY
 	
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in HyperElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in HyperElasticModel ... illegal operation" << std::endl;
 
     return rDerivative;
 
@@ -779,7 +764,7 @@ namespace Kratos
   {
     KRATOS_TRY
 	
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in HyperElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in HyperElasticModel ... illegal operation" << std::endl;
 
     return rDerivative;
 
@@ -814,7 +799,7 @@ namespace Kratos
   {
     KRATOS_TRY
 	
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in HyperElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in HyperElasticModel ... illegal operation" << std::endl;
 
     return rDerivative;
 
@@ -1044,7 +1029,7 @@ namespace Kratos
 								      const double& a,
 								      const double& b,
 								      const double& c,
-								      const double& d) //dI1/dC * dI2/dC
+								      const double& d) //dI1/dC * dI1/dC
   {
     KRATOS_TRY
 
@@ -1061,7 +1046,7 @@ namespace Kratos
 								      const double& a,
 								      const double& b,
 								      const double& c,
-								      const double& d) //dI2/dC * dI3/dC
+								      const double& d) //dI2/dC * dI2/dC
   {
     KRATOS_TRY
 
@@ -1311,7 +1296,7 @@ namespace Kratos
     KRATOS_TRY
 
     rDerivative  = rData.Invariants.I1 * rData.CauchyGreenMatrix(a,b) + rData.CauchyGreenMatrix(a,1)*rData.CauchyGreenMatrix(1,b) + rData.CauchyGreenMatrix(a,2)*rData.CauchyGreenMatrix(2,b) + rData.CauchyGreenMatrix(a,3)*rData.CauchyGreenMatrix(3,b);
-    rDerivative *= (rData.Invariants.I1 * rData.CauchyGreenMatrix(c,b) + rData.CauchyGreenMatrix(c,1)*rData.CauchyGreenMatrix(1,d) + rData.CauchyGreenMatrix(c,2)*rData.CauchyGreenMatrix(2,d) + rData.CauchyGreenMatrix(c,3)*rData.CauchyGreenMatrix(3,d));
+    rDerivative *= (rData.Invariants.I1 * rData.CauchyGreenMatrix(c,d) + rData.CauchyGreenMatrix(c,1)*rData.CauchyGreenMatrix(1,d) + rData.CauchyGreenMatrix(c,2)*rData.CauchyGreenMatrix(2,d) + rData.CauchyGreenMatrix(c,3)*rData.CauchyGreenMatrix(3,d));
       
     return rDerivative;
 
@@ -1367,7 +1352,7 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    rDerivative  = GetFourthOrderUnitTensor(rDerivative,a,b,c,d);
+    rDerivative = GetFourthOrderUnitTensor(rDerivative,a,b,c,d);
     
     return rDerivative;
 
@@ -1403,7 +1388,7 @@ namespace Kratos
 
     rDerivative  = msIdentityMatrix(a,b)*msIdentityMatrix(c,d);
     rDerivative *= rData.Invariants.I3;
-	
+      
     return rDerivative;
 
     KRATOS_CATCH(" ")
@@ -1436,16 +1421,16 @@ namespace Kratos
     KRATOS_TRY
       
     if(HYPERELASTIC_MODEL_PARAMETERS.Key() == 0 || rMaterialProperties[HYPERELASTIC_MODEL_PARAMETERS].size() == 0)
-      KRATOS_THROW_ERROR( std::invalid_argument,"HYPERELASTIC_MODEL_PARAMETERS has Key zero or invalid value ", "" )
+      KRATOS_ERROR << "HYPERELASTIC_MODEL_PARAMETERS has Key zero or invalid value" << std::endl;
 
     // if(BULK_MODULUS.Key() == 0 || rMaterialProperties[BULK_MODULUS] <= 0.0)
-    //   KRATOS_THROW_ERROR( std::invalid_argument,"BULK_MODULUS has Key zero or invalid value ", "" )
+    //   KRATOS_ERROR << "BULK_MODULUS has Key zero or invalid value" << std::endl;
 
     // if(LAME_LAMBDA.Key() == 0 || rMaterialProperties[LAME_LAMBDA] <= 0.0)
-    //   KRATOS_THROW_ERROR( std::invalid_argument,"LAME_LAMBDA has Key zero or invalid value ", "" )
+    //   KRATOS_ERROR << "LAME_LAMBDA has Key zero or invalid value" << std::endl;
 
     // if(LAME_MU.Key() == 0 || rMaterialProperties[LAME_MU] <= 0.0)
-    //   KRATOS_THROW_ERROR( std::invalid_argument,"LAME_MU has Key zero or invalid value ", "" )
+    //   KRATOS_ERROR << "LAME_MU has Key zero or invalid value" << std::endl;
 
     return 0;
 

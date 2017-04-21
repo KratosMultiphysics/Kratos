@@ -212,7 +212,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_THROW_ERROR( std::logic_error, "calling the HardeningLaw base class ... illegal operation!!", "" )	
+      KRATOS_ERROR << "calling the HardeningLaw base class ... illegal operation" << std::endl;	
 
       return rHardening;
 	
@@ -228,7 +228,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_THROW_ERROR( std::logic_error, "calling the HardeningLaw base class ... illegal operation!!", "" )	
+      KRATOS_ERROR << "calling the HardeningLaw base class ... illegal operation" << std::endl;	
 
       return rDeltaHardening;
 	
@@ -240,7 +240,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_THROW_ERROR( std::logic_error, "calling the HardeningLaw base class ... illegal operation!!", "" )	
+      KRATOS_ERROR << "calling the HardeningLaw base class ... illegal operation" << std::endl;	
 
       return rDeltaThermalHardening;
 	

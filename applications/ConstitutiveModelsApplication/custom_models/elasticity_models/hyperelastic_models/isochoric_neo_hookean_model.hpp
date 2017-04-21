@@ -109,18 +109,19 @@ namespace Kratos
      * Check
      */    
 
-    virtual int Check(const Properties& rMaterialProperties,
-		      const ProcessInfo& rCurrentProcessInfo)
+    virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override
     {
       KRATOS_TRY
 
+      std::cout<<" Isochoric NeoHookean Check "<<std::endl;
+	
       HyperElasticModel::Check(rMaterialProperties,rCurrentProcessInfo);
 	
       if( rMaterialProperties[HYPERELASTIC_MODEL_PARAMETERS].size() != 1 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"HYPERELASTIC_MODEL_PARAMETERS has an invalid size ", "" )
+        KRATOS_ERROR << "HYPERELASTIC_MODEL_PARAMETERS has an invalid size" << std::endl;
 
       if( rMaterialProperties[HYPERELASTIC_MODEL_PARAMETERS][0] <= 0.00 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"HYPERELASTIC_MODEL_PARAMETERS has an invalid value ", "" )
+        KRATOS_ERROR << "HYPERELASTIC_MODEL_PARAMETERS has an invalid value" << std::endl;
 
       return 0;
 	  

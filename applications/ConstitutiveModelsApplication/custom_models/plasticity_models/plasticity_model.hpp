@@ -126,7 +126,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_THROW_ERROR( std::logic_error, "calling the PlasticityModel base class ... illegal operation!!", "" )
+      KRATOS_ERROR << "calling the PlasticityModel base class ... illegal operation" << std::endl;
 	
       KRATOS_CATCH(" ")
     }
@@ -135,7 +135,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_THROW_ERROR( std::logic_error, "calling the PlasticityModel base class ... illegal operation!!", "" )
+      KRATOS_ERROR << "calling the PlasticityModel base class ... illegal operation" << std::endl;
 	
       KRATOS_CATCH(" ")
     }
@@ -155,12 +155,12 @@ namespace Kratos
      */
     virtual void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override
     {
-      KRATOS_THROW_ERROR( std::logic_error, "calling PlasticityModel base class ..", "" )
+      KRATOS_ERROR << "calling PlasticityModel base class " << std::endl;
     }
     
     virtual void CalculateIsochoricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override
     {
-      KRATOS_THROW_ERROR( std::logic_error, "calling PlasticityModel base class ..", "" )
+      KRATOS_ERROR << "calling PlasticityModel base class " << std::endl;
     }
     
     virtual void CalculateVolumetricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override
@@ -178,17 +178,17 @@ namespace Kratos
      */
     virtual void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
     {
-      KRATOS_THROW_ERROR( std::logic_error, "calling PlasticityModel base class ..", "" )
+      KRATOS_ERROR << "calling PlasticityModel base class " << std::endl;
     }
     
     virtual void CalculateIsochoricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
     {
-      KRATOS_THROW_ERROR( std::logic_error, "calling PlasticityModel base class ..", "" )
+      KRATOS_ERROR << "calling PlasticityModel base class " << std::endl;
     }
     
     virtual void CalculateVolumetricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
     {
-      KRATOS_THROW_ERROR( std::logic_error, "calling PlasticityModel base class ..", "" )
+      KRATOS_ERROR << "calling PlasticityModel base class " << std::endl;
     }
 
 

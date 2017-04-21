@@ -79,7 +79,7 @@ namespace Kratos
   {
     KRATOS_TRY
 	
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in LinearElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;
 	
     KRATOS_CATCH(" ")
   }
@@ -93,13 +93,13 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    ElasticModelDataType Variables;
+    ElasticDataType Variables;
     this->InitializeElasticData(rValues,Variables);
     
     VectorType StrainVector;
     StrainVector = ConstitutiveLawUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
 
-    this->CalculateAndAddConstiutiveTensor(Variables);
+    this->CalculateAndAddConstitutiveTensor(Variables);
     
     VectorType StressVector;
     this->CalculateAndAddStressTensor(Variables,StrainVector,StressVector);
@@ -113,11 +113,11 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LinearElasticModel::CalculateAndAddStressTensor(ElasticVariablesType& rVariables, VectorType& rStrainVector, VectorType& rStressVector)
+  void LinearElasticModel::CalculateAndAddStressTensor(ElasticDataType& rVariables, VectorType& rStrainVector, VectorType& rStressVector)
   {
     KRATOS_TRY
 
-    noalias(rStressVector) = prod(rVariables.ConstitutiveMatrix,rStrainVector);
+    noalias(rStressVector) = prod(rVariables.ConstitutiveTensor,rStrainVector);
       
     rVariables.State().Set(ConstitutiveModelData::COMPUTED_STRESS);
     
@@ -132,7 +132,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in LinearElasticModel ... illegal operation!!", "" )    
+    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;    
     
     KRATOS_CATCH(" ")
   }
@@ -140,11 +140,11 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LinearElasticModel::CalculateAndAddIsochoricStressTensor(ElasticVariablesType& rVariables, VectorType& rStrainVector, VectorType& rStressVector)
+  void LinearElasticModel::CalculateAndAddIsochoricStressTensor(ElasticDataType& rVariables, VectorType& rStrainVector, VectorType& rStressVector)
   {
     KRATOS_TRY
      
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in LinearElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;
 	
     KRATOS_CATCH(" ")
   }
@@ -157,7 +157,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in LinearElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;
       
     KRATOS_CATCH(" ")
   }
@@ -166,11 +166,11 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LinearElasticModel::CalculateAndAddVolumetricStressTensor(ElasticVariablesType& rVariables, VectorType& rStrainVector, VectorType& rStressVector)
+  void LinearElasticModel::CalculateAndAddVolumetricStressTensor(ElasticDataType& rVariables, VectorType& rStrainVector, VectorType& rStressVector)
   {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in LinearElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;
 	
     KRATOS_CATCH(" ")
   }
@@ -183,9 +183,9 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    ElasticModelDataType Variables;
+    ElasticDataType Variables;
     this->InitializeElasticData(rValues,Variables);    
-    this->CalculateAndAddConstiutiveTensor(Variables,rConstitutiveMatrix);
+    this->CalculateAndAddConstitutiveTensor(Variables,rConstitutiveMatrix);
     	
     KRATOS_CATCH(" ")
   }
@@ -200,7 +200,7 @@ namespace Kratos
               
     this->CalculateAndAddConstitutiveTensor(rVariables);
     
-    rConstitutiveMatrix = ConstitutiveLawUtilities::ConstitutiveTensorToMatrix(rValues.ConstitutiveTensor, ConstitutiveMatrix);
+    rConstitutiveMatrix = ConstitutiveLawUtilities::ConstitutiveTensorToMatrix(rVariables.ConstitutiveTensor,rConstitutiveMatrix);
       
     KRATOS_CATCH(" ")
   }
@@ -212,7 +212,7 @@ namespace Kratos
   {
     KRATOS_TRY
               
-    //Calculate HyperElastic ConstitutiveMatrix
+    //Calculate Elastic ConstitutiveMatrix
     const ModelDataType&  rModelData  = rVariables.GetModelData();
     const MaterialDataType& rMaterial = rModelData.GetMaterialParameters();
 
@@ -254,13 +254,13 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    ElasticModelDataType Variables;
+    ElasticDataType Variables;
     this->InitializeElasticData(rValues,Variables);
     
     VectorType StrainVector;
     StrainVector = ConstitutiveLawUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
 
-    this->CalculateAndAddConstiutiveTensor(Variables, rConstitutiveMatrix);
+    this->CalculateAndAddConstitutiveTensor(Variables, rConstitutiveMatrix);
     
     VectorType StressVector;
     this->CalculateAndAddStressTensor(Variables,StrainVector,StressVector);
@@ -279,7 +279,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in LinearElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;
 
     KRATOS_CATCH(" ")
   }
@@ -292,7 +292,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in LinearElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;
     
     KRATOS_CATCH(" ")
   }   
@@ -304,9 +304,9 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    ElasticModelDataType Variables;
+    ElasticDataType Variables;
     this->InitializeElasticData(rValues,Variables);    
-    this->CalculateAndAddIsochoricConstiutiveTensor(Variables,rConstitutiveMatrix);
+    this->CalculateAndAddIsochoricConstitutiveTensor(Variables,rConstitutiveMatrix);
 
     KRATOS_CATCH(" ")
   }
@@ -321,7 +321,7 @@ namespace Kratos
 
     this->CalculateAndAddIsochoricConstitutiveTensor(rVariables);
     
-    rConstitutiveMatrix = ConstitutiveLawUtilities::ConstitutiveTensorToMatrix(rValues.ConstitutiveTensor, ConstitutiveMatrix);
+    rConstitutiveMatrix = ConstitutiveLawUtilities::ConstitutiveTensorToMatrix(rVariables.ConstitutiveTensor, rConstitutiveMatrix);
           
     KRATOS_CATCH(" ")
   }
@@ -333,7 +333,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in LinearElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;
     
     KRATOS_CATCH(" ")
   }
@@ -345,9 +345,9 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    ElasticModelDataType Variables;
+    ElasticDataType Variables;
     this->InitializeElasticData(rValues,Variables);    
-    this->CalculateAndAddVolumetricConstiutiveTensor(Variables,rConstitutiveMatrix);
+    this->CalculateAndAddVolumetricConstitutiveTensor(Variables,rConstitutiveMatrix);
   	
     KRATOS_CATCH(" ")
   }
@@ -361,7 +361,7 @@ namespace Kratos
               
     this->CalculateAndAddVolumetricConstitutiveTensor(rVariables);
     
-    rConstitutiveMatrix = ConstitutiveLawUtilities::ConstitutiveTensorToMatrix(rValues.ConstitutiveTensor, ConstitutiveMatrix);
+    rConstitutiveMatrix = ConstitutiveLawUtilities::ConstitutiveTensorToMatrix(rVariables.ConstitutiveTensor, rConstitutiveMatrix);
       
     KRATOS_CATCH(" ")
   }
@@ -373,7 +373,7 @@ namespace Kratos
   {
     KRATOS_TRY
               
-    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in LinearElasticModel ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the base class function in LinearElasticModel ... illegal operation" << std::endl;
       
     KRATOS_CATCH(" ")
   }
@@ -386,13 +386,13 @@ namespace Kratos
     KRATOS_TRY
       
     if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
-      KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ", "" )
+      KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value" << std::endl;
 
     const double& nu = rMaterialProperties[POISSON_RATIO];
     const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
 
     if(POISSON_RATIO.Key() == 0 || check==true)
-      KRATOS_THROW_ERROR( std::invalid_argument,"POISSON_RATIO has Key zero invalid value ", "" )
+      KRATOS_ERROR << "POISSON_RATIO has Key zero invalid value" << std::endl;
 		
     return 0;
 

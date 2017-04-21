@@ -17,9 +17,7 @@
 // External includes
 
 // Project includes
-#include "custom_utilities/constitutive_law_utilities.hpp"
-
-#include "custom_models/constitutive_model_data.hpp"
+#include "custom_models/elasticity_models/elasticity_model.hpp"
 
 namespace Kratos
 {
@@ -48,10 +46,10 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) LinearElasticModel
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) LinearElasticModel : public ElasticityModel
   {
   protected:
-
+ 
     struct ElasticModelData
     {
     private:
@@ -95,23 +93,19 @@ namespace Kratos
     ///@{
 
     /// Default constructor.    
-    LinearElasticModel() {}
+    LinearElasticModel();
 
     /// Copy constructor.
-    LinearElasticModel(LinearElasticModel const& rOther) {}
+    LinearElasticModel(LinearElasticModel const& rOther);
 
     /// Clone.
-    virtual LinearElasticModel::Pointer Clone() const
-    {
-      return ( LinearElasticModel::Pointer(new LinearElasticModel(*this)) );
-    }
+    virtual ElasticityModel::Pointer Clone() const override;
 
     /// Assignment operator.
-    LinearElasticModel& operator=(LinearElasticModel const& rOther) {return *this;}
-
+    LinearElasticModel& operator=(LinearElasticModel const& rOther);
 
     /// Destructor.
-    virtual ~LinearElasticModel(){}
+    virtual ~LinearElasticModel();
 
 
     ///@}
@@ -225,14 +219,15 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
+    
     /**
      * Calculate Stresses
      */
-    virtual void CalculateAndAddStressTensor(ElasticVariablesType& rVariables, VectorType& rStrainVector, VectorType& rStressVector);
+    virtual void CalculateAndAddStressTensor(ElasticDataType& rVariables, VectorType& rStrainVector, VectorType& rStressVector);
 
-    virtual void CalculateAndAddIsochoricStressTensor(ElasticVariablesType& rVariables, VectorType& rStrainVector, VectorType& rStressVector);
+    virtual void CalculateAndAddIsochoricStressTensor(ElasticDataType& rVariables, VectorType& rStrainVector, VectorType& rStressVector);
 
-    virtual void CalculateAndAddVolumetricStressTensor(ElasticVariablesType& rVariables, VectorType& rStrainVector, VectorType& rStressVector);
+    virtual void CalculateAndAddVolumetricStressTensor(ElasticDataType& rVariables, VectorType& rStrainVector, VectorType& rStressVector);
 
     /**
      * Calculate Constitutive Tensor
@@ -243,11 +238,16 @@ namespace Kratos
 
     virtual void CalculateAndAddIsochoricConstitutiveTensor(ElasticDataType& rVariables, Matrix& rConstitutiveMatrix);
 
+    virtual void CalculateAndAddIsochoricConstitutiveTensor(ElasticDataType& rVariables);
+
+    
     virtual void CalculateAndAddVolumetricConstitutiveTensor(ElasticDataType& rVariables, Matrix& rConstitutiveMatrix);
+
+    virtual void CalculateAndAddVolumetricConstitutiveTensor(ElasticDataType& rVariables);
 
     //************//
 
-    void InitializeElasticData(ModelDataType& rValues, HyperElasticDataType& rVariables);    
+    void InitializeElasticData(ModelDataType& rValues, ElasticDataType& rVariables);    
 
     ///@}
     ///@name Protected  Access

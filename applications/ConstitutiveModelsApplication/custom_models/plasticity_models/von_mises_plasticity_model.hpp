@@ -89,8 +89,19 @@ namespace Kratos
     VonMisesPlasticityModel() : BaseType() {}
 
     /// Constructor.
-    VonMisesPlasticityModel(ElasticityModelPointer pElasticityModel, YieldCriterionPointer pYieldCriterion) : BaseType( pElasticityModel, pYieldCriterion) {}
+    VonMisesPlasticityModel(ElasticityModelPointer pElasticityModel)
+      :BaseType()
+    {
+      KRATOS_TRY
 
+      this->mpElasticityModel = ElasticityModelPointer( new ElasticityModelType() );
+      this->mpYieldCriterion  = YieldCriterionPointer( new YieldCriterionType() );
+
+      std::cout<<" Von Mises Model "<<std::endl;
+      this->mpElasticityModel->PrintInfo(std::cout);
+     
+      KRATOS_CATCH(" ")
+    }
     
     /// Copy constructor.
     VonMisesPlasticityModel(VonMisesPlasticityModel const& rOther) : BaseType(rOther) {}

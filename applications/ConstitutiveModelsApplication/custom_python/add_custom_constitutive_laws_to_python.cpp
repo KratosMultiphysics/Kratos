@@ -29,6 +29,8 @@
 
 //general constitutive laws
 
+//elasticity laws
+
 //isotropic linear elastic laws
 #include "custom_laws/linear_elastic_laws/linear_elastic_plane_strain_2D_law.hpp"
 #include "custom_laws/linear_elastic_laws/linear_elastic_plane_stress_2D_law.hpp"
@@ -46,9 +48,11 @@
 
 //specialized isotropic hyperelastic laws
 #include "custom_laws/hyperelastic_laws/neo_hookean_3D_law.hpp"
+#include "custom_laws/hyperelastic_laws/compressible_neo_hookean_3D_law.hpp"
 #include "custom_laws/hyperelastic_laws/isochoric_neo_hookean_3D_law.hpp"
+#include "custom_laws/hyperelastic_laws/saint_venant_kirchhoff_3D_law.hpp"
 
-//plasticity models
+//plasticity laws
 
 //isotropic linear elastic plasticity laws
 //#include "custom_laws/linear_elastic_plastic_laws/linear_elastic_plastic_3D_law.hpp"
@@ -78,9 +82,13 @@
 //#include "custom_laws/linear_elastic_damage_laws/isotropic_damage_modified_mises_plane_strain_2D_law.hpp"
 //#include "custom_laws/linear_elastic_damage_laws/isotropic_damage_modified_mises_plane_stress_2D_law.hpp"
 
+//elasticity models
+#include "custom_models/elasticity_models/linear_elastic_model.hpp"
 
 //hyperelastic models
+#include "custom_models/elasticity_models/hyperelastic_models/saint_venant_kirchhoff_model.hpp"
 #include "custom_models/elasticity_models/hyperelastic_models/neo_hookean_model.hpp"
+#include "custom_models/elasticity_models/hyperelastic_models/compressible_neo_hookean_model.hpp"
 #include "custom_models/elasticity_models/hyperelastic_models/isochoric_neo_hookean_model.hpp"
 #include "custom_models/elasticity_models/hyperelastic_models/incompressible_neo_hookean_model.hpp"
 
@@ -128,6 +136,20 @@ namespace Kratos
     typedef PlasticityModel<HyperElasticModelBaseType,YieldCriterionBaseType>   HyperElasticPlasticModelBaseType;  
     typedef typename HyperElasticPlasticModelBaseType::Pointer                   HyperElasticPlasticModelPointer;
 
+    
+    // template<class THyperElasticModel>
+    // void export_von_mises_plasticity_model(std::string name) {
+      
+    //   typedef typename THyperElasticModel::Pointer               THyperElasticModelPointer;
+    //   typedef VonMisesPlasticityModel<THyperElasticModel>      VonMisesPlasticityModelType;
+    //   typedef typename VonMisesPlasticityModelType::Pointer VonMisesPlasticityModelPointer;
+			      
+    //   class_< VonMisesPlasticityModel<THyperElasticModel>, VonMisesPlasticityModelPointer, boost::noncopyable >
+    // 	(  name.c_str(),
+    // 	   init<THyperElasticModelPointer>() )
+    // 	;
+    // }
+    
     
     void Push_Back_Constitutive_Laws( MaterialsContainer& ThisMaterialsContainer,
 				      ConstitutiveLawPointer ThisConstitutiveLaw )
@@ -220,12 +242,22 @@ namespace Kratos
       	( "NeoHookean3DLaw",
       	  init<>() )
       	;
+
+      class_< CompressibleNeoHookean3DLaw, bases< HyperElastic3DLaw >, boost::noncopyable >
+      	( "CompressibleNeoHookean3DLaw",
+      	  init<>() )
+      	;
       
       class_< IsochoricNeoHookean3DLaw, bases< HyperElastic3DLaw >, boost::noncopyable >
       	( "IsochoricNeoHookean3DLaw",
       	  init<>() )
       	;      
 
+      class_< SaintVenantKirchhoff3DLaw, bases< HyperElastic3DLaw >, boost::noncopyable >
+      	( "SaintVenantKirchhoff3DLaw",
+      	  init<>() )
+      	;
+      
       //plasticity laws
      
 
@@ -335,13 +367,28 @@ namespace Kratos
        	( "HyperElasticModel",
        	  init<>() )
        	;
+
+      class_< SaintVenantKirchhoffModel, bases< HyperElasticModelBaseType >, boost::noncopyable >
+      	( "SaintVenantKirchhoffModel",
+	  init<>() )
+       	;
       
       class_< NeoHookeanModel, bases< HyperElasticModelBaseType >, boost::noncopyable >
       	( "NeoHookeanModel",
 	  init<>() )
        	;
+      
+      class_< CompressibleNeoHookeanModel, bases< HyperElasticModelBaseType >, boost::noncopyable >
+      	( "CompressibleNeoHookeanModel",
+	  init<>() )
+       	;
 
-            
+      class_< IncompressibleNeoHookeanModel, bases< HyperElasticModelBaseType >, boost::noncopyable >
+      	( "IncompressibleNeoHookeanModel",
+	  init<>() )
+       	;
+
+      
       //hardening laws
       class_< HardeningLawBaseType, HardeningLawPointer, boost::noncopyable >
        	( "HardeningLaw",
@@ -361,6 +408,14 @@ namespace Kratos
        	  init<>() )
       	.def( init<ElasticModelPointer,YieldCriterionPointer>() )
        	;
+
+      class_< HyperElasticPlasticModelBaseType, HyperElasticPlasticModelPointer, boost::noncopyable >
+       	( "HyperElasticPlasticModel",
+       	  init<>() )
+      	.def( init<HyperElasticModelPointer,YieldCriterionPointer>() )
+       	;
+      
+      //export_von_mises_plasticity_model<NeoHookeanModel>("VonMisesNeoHookeanModel");
 
       
     }

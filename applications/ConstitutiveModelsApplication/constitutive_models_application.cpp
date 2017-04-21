@@ -91,8 +91,10 @@ namespace Kratos {
 
       //outfitted python laws
       Serializer::Register( "PythonOutfittedConstitutiveLaw", mPythonOutfittedConstitutiveLaw );
+
+      //general constitutive laws
       
-      //elasticity models
+      //elasticity laws
       
       //isotropic linear elastic laws
       Serializer::Register( "LinearElastic3DLaw", mLinearElastic3DLaw );
@@ -113,7 +115,7 @@ namespace Kratos {
       Serializer::Register( "HyperElasticUPAxisymmetric2DLaw", mHyperElasticUPAxisymmetric2DLaw );
 
             
-      //plasticity models
+      //plasticity laws
 
       //isotropic linear elastic plasticity laws
       //Serializer::Register( "LinearElasticPlastic3DLaw", mLinearElasticPlastic3DLaw );
@@ -138,9 +140,14 @@ namespace Kratos {
       // Serializer::Register( "IsotropicDamageModifiedMises3DLaw", mIsotropicDamageModifiedMises3DLaw );
       // Serializer::Register( "IsotropicDamageModifiedMisesPlaneStrain2DLaw", mIsotropicDamageModifiedMisesPlaneStrain2DLaw );
       // Serializer::Register( "IsotropicDamageModifiedMisesPlaneStress2DLaw", mIsotropicDamageModifiedMisesPlaneStress2DLaw );
-	
+
+      //elasticity models
+      Serializer::Register( "LinearElasticModel", mLinearElasticModel );
+      
       //hyperelastic models
+      Serializer::Register( "SaintVenantKirchhoffModel", mSaintVenantKirchhoffModel );
       Serializer::Register( "NeoHookeanModel", mNeoHookeanModel );
+      Serializer::Register( "CompressibleNeoHookeanModel", mCompressibleNeoHookeanModel );
       Serializer::Register( "IsochoricNeoHookeanModel", mIsochoricNeoHookeanModel );
       Serializer::Register( "IncompressibleNeoHookeanModel", mIncompressibleNeoHookeanModel );
       

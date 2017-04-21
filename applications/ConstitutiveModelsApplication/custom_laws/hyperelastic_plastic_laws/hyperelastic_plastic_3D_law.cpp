@@ -87,7 +87,7 @@ namespace Kratos
     // rVariables.StrainMeasure = ConstitutiveModelData::CauchyGreen_None;         //provided strain measure
 
     // const Matrix& rDeformationGradientF = rValues.GetDeformationGradientF();   //total deformation gradient    
-    // rVariables.DeformationGradientF = ConstitutiveLawUtilities::DeformationGradientTo3D(rVariables.DeformationGradientF, rDeformationGradientF);
+    // noalias(rVariables.DeformationGradientF) = ConstitutiveLawUtilities::DeformationGradientTo3D(rDeformationGradientF,rVariables.DeformationGradientF);
     // rVariables.DeterminantF  = rValues.GetDeterminantF();
     
 
@@ -101,7 +101,7 @@ namespace Kratos
         
     //b.- Calculate incremental deformation gradient
     const MatrixType& rDeformationGradientF = rValues.GetDeformationGradientF(); 
-    rVariables.DeformationGradientF = ConstitutiveLawUtilities::DeformationGradientTo3D(rVariables.DeformationGradientF, rDeformationGradientF);
+    noalias(rVariables.DeformationGradientF) = ConstitutiveLawUtilities::DeformationGradientTo3D(rDeformationGradientF,rVariables.DeformationGradientF);
     rVariables.DeformationGradientF = prod(rVariables.DeformationGradientF, mInverseDeformationGradientF0); //incremental F
     
     //c.- Calculate incremental left cauchy green tensor
@@ -136,7 +136,7 @@ namespace Kratos
       
       //update total deformation gradient
       MatrixType DeformationGradientF0;
-      noalias(DeformationGradientF0) = ConstitutiveLawUtilities::DeformationGradientTo3D(DeformationGradientF0,rDeformationGradientF);
+      noalias(DeformationGradientF0) = ConstitutiveLawUtilities::DeformationGradientTo3D(rDeformationGradientF,DeformationGradientF0);
       ConstitutiveLawUtilities::InvertMatrix3( DeformationGradientF0, mInverseDeformationGradientF0, mDeterminantF0);
       mDeterminantF0 = rDeterminantF; //special treatment of the determinant
       
