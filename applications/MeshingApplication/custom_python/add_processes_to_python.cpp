@@ -23,6 +23,7 @@
 #include "custom_processes/metric_fast_init_process.h"
 #include "custom_processes/metrics_levelset_process.h"
 #include "custom_processes/metrics_hessian_process.h"
+// #include "custom_processes/nodal_values_interpolation_process.h"
 #include "custom_processes/internal_variables_interpolation_process.h"
 // #include "custom_processes/set_h_map_process.h"
 //#include "custom_processes/find_nodal_h_process.h"
@@ -51,6 +52,17 @@ void  AddProcessesToPython()
 //	class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",init<ModelPart&>())
 //		   .def("Execute",&FindNodalHProcess::Execute)
 //		 ;
+    
+//         // The process to interpolate nodal values
+//         class_<NodalValuesInterpolationProcess<2>, bases<Process> >("NodalValuesInterpolationProcess2D",init<ModelPart&, ModelPart&>())
+//         .def(init<ModelPart&, ModelPart&, Parameters>())
+//         .def("Execute",&NodalValuesInterpolationProcess<2>::Execute)
+//         ;
+//         
+//         class_<NodalValuesInterpolationProcess<3>, bases<Process> >("NodalValuesInterpolationProcess3D",init<ModelPart&, ModelPart&>())
+//         .def(init<ModelPart&, ModelPart&, Parameters>())
+//         .def("Execute",&NodalValuesInterpolationProcess<3>::Execute)
+//         ;
     
         // The process to interpolate internal variables 
         class_<InternalVariablesInterpolationProcess, bases<Process> >("InternalVariablesInterpolationProcess",init<ModelPart&, ModelPart&>())
