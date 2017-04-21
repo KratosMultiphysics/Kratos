@@ -144,10 +144,7 @@ public:
                 {
                     NodeType::Pointer pNode;
                     double p_avg = 0.0;
-                    array_1d<double, 3> v_avg;
-                    v_avg[0] = 0.0;
-                    v_avg[1] = 0.0;
-                    v_avg[2] = 0.0;
+                    array_1d<double, 3> v_avg = ZeroVector(3);
 
                     for (unsigned int j=0; j<ElemNumNodes; ++j)
                     {
@@ -176,20 +173,14 @@ public:
                     {
                         pNode->FastGetSolutionStepValue(PRESSURE, step) = p_avg;
                         pNode->FastGetSolutionStepValue(VELOCITY, step) = v_avg;
-
                     }
                     pNode->UnSetLock();                                             // Free the node thread access
                 }
             }
         }
 
-        array_1d<double, 3> v_null;
-        v_null[0] = 0.0;
-        v_null[1] = 0.0;
-        v_null[2] = 0.0;
-
         // If there still exist some remaining nodes, initialize their values to zero
-        #pragma omp parallel for firstprivate(v_null)
+        #pragma omp parallel for
         for (int k = 0; k < static_cast<int>(rNodes.size()); ++k)
         {
             ModelPart::NodesContainerType::iterator itNode = rNodes.begin() + k;
@@ -200,7 +191,7 @@ public:
                 for (unsigned int step=0; step<BufferSize; ++step)              // Fill the velocity and pressure buffer
                 {
                     itNode->FastGetSolutionStepValue(PRESSURE, step) = 0.0;
-                    itNode->FastGetSolutionStepValue(VELOCITY, step) = v_null;
+                    itNode->FastGetSolutionStepValue(VELOCITY, step) = ZeroVector(3);
                 }
             }
         }
