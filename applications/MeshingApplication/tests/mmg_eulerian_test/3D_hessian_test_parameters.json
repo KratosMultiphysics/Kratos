@@ -1,7 +1,9 @@
 {
     "problem_data"                     : {
-        "problem_name"    : "coarse_sphere_test",
+        "problem_name"    : "3D_hessian_test",
         "model_part_name" : "MainModelPart",
+        "problem_type"    : "fluid",
+        "solve_problem"   : false,
         "domain_size"     : 3,
         "echo_level"      : 0,
         "parallel_type"   : "OpenMP",
@@ -24,7 +26,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISTANCE","DISTANCE_GRADIENT","ANISOTROPIC_RATIO"],
+            "nodal_results"       : ["DISTANCE","ANISOTROPIC_RATIO"],
             "gauss_point_results" : []
         },
         "point_data_configuration"  : []
@@ -39,7 +41,7 @@
         "solver_type"                  : "Embedded",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "mmg_test/coarse_sphere_test"
+            "input_filename" : "mmg_eulerian_test/3D_hessian_test"
         },
         "maximum_iterations"           : 10,
         "echo_level"                   : 0,
@@ -54,59 +56,54 @@
         "absolute_pressure_tolerance"  : 1e-5,
         "volume_model_part_name"          : "Parts_Parts_Auto1",
         "skin_parts"                      : [],
-        "no_skin_parts"                   : [],
-        "linear_solver_settings"       : {
-            "solver_type"         : "AMGCL",
-            "max_iteration"       : 200,
-            "tolerance"           : 1e-7,
-            "provide_coordinates" : false,
-            "smoother_type"       : "ilu0",
-            "krylov_type"         : "gmres",
-            "coarsening_type"     : "aggregation",
-            "scaling"             : false
-        },
-        "distance_reading_settings"    : {
-            "import_mode" : "from_mdpa"
-        }
+        "no_skin_parts"                   : []
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [],
-    "gravity"                          : [{
-        "python_module" : "process_factory",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "ApplyConstantVectorValueProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Parts_Parts_Auto1",
-            "variable_name"   : "BODY_FORCE",
-            "modulus"          : 0.0,
-            "direction"       : [0.0,-1.0,0.0]
+    "gravity"                          : [],
+    "list_other_processes" :[
+    {
+        "python_module"   : "test_local_process",
+        "kratos_module" : "KratosMultiphysics.MeshingApplication",
+        "help"                  : "",
+        "process_name"          : "ApplyLocalProcess",
+        "Parameters"            : {
+            "model_part_name"  : "MainModelPart",
+            "test_name"        : "3D_hessian_test"
         }
-    }],
+    }
+    ],
+    "adaptative_loop"           : 5,
     "initial_remeshing_process" :[
     {
         "python_module"   : "mmg_process",
-        "kratos_module"   : "KratosMultiphysics",
+        "kratos_module"   : "KratosMultiphysics.MeshingApplication",
         "help"                  : "This process automatically remesh using MMG library",
         "process_name"          : "MmgProcess",
         "Parameters"            : {
-            "model_part_name"                   : "MainModelPart",
-            "output_file_name"                  : "mmg_test/coarse_sphere_test",
-            "minimal_size"                      : 1.0e-2,
-            "anisotropy_remeshing"              : true,
-            "anisotropy_parameters"             :{
-                "hmin_over_hmax_anisotropic_ratio"  : 0.15,
-                "boundary_layer_max_distance"       : 1.0e-4,
-                "interpolation"                     : "Linear"
+            "step_frequency"                    : 0,
+            "filename"                         : "mmg_eulerian_test/3D_hessian_test",
+            "strategy"                         : "Hessian",
+            "hessian_strategy_parameters"              :{
+                "metric_variable"                  : ["DISTANCE"],
+                "interpolation_error"              : 0.004
             },
             "automatic_remesh"                 : true,
             "automatic_remesh_parameters"      :{
-                "automatic_remesh_type"            : "Percentage",
-                "min_size_ratio"                   : 0.25,
-                "min_size_current_percentage"      : 0.5,
+                "automatic_remesh_type"            : "Ratio",
+                "min_size_ratio"                   : 0.05,
+                "max_size_ratio"                   : 100.0,
                 "refer_type"                       : "Mean"
             },
+            "enforce_current"                   : false,
             "save_external_files"               : true,
+            "anisotropy_remeshing"              : true,
+            "anisotropy_parameters":{
+                "hmin_over_hmax_anisotropic_ratio" : 0.15,
+                "boundary_layer_max_distance"      : 1.0,
+                "boundary_layer_min_size_ratio"    : 1.0,
+                "interpolation"                    : "Linear"
+            },
             "echo_level"                        : 0
         }
     }
@@ -118,8 +115,8 @@
         "help"                  : "This process compares two files and executes an Unittest Assert",
         "process_name"          : "CompareTwoFilesCheckProcess",
         "Parameters"            : {
-            "file_name_1"       : "mmg_test/coarse_sphere_test.o.mesh",
-            "file_name_2"       : "mmg_test/coarse_sphere_test_result.mesh",
+            "file_name_1"       : "mmg_eulerian_test/3D_hessian_test.o.mesh",
+            "file_name_2"       : "mmg_eulerian_test/3D_hessian_test_result.mesh",
             "deterministic"     : false
         }
     }

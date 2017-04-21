@@ -2,6 +2,8 @@
     "problem_data"                     : {
         "problem_name"    : "2D_sphere_remeshed_channel_test",
         "model_part_name" : "MainModelPart",
+        "problem_type"    : "fluid",
+        "solve_problem"   : false,
         "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0,
@@ -40,7 +42,7 @@
         "solver_type"                  : "FractionalStep",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "mmg_test/2D_sphere_remeshed_channel_test"
+            "input_filename" : "mmg_eulerian_test/2D_sphere_remeshed_channel_test"
         },
         "echo_level"                   : 0,
         "compute_reactions"            : false,
