@@ -61,7 +61,7 @@ for num_processors in list_processors:
 tests_success = True
 
 keyword_array = ["FAIL", "mpiexec", "mpirun", "Segmentation", "signal", "not"]
-keyword_array.extend(["Traceback", "RuntimeError", "ERROR", "Error", "WARNING"])
+keyword_array.extend(["Traceback", "RuntimeError", "ERROR", "Error", "WARNING", "Errno"])
 
 tests_success = CheckOutputFile(tests_output_file, keyword_array, tests_success)
 tests_success = CheckOutputFile(kratos_output_file, keyword_array, tests_success)
