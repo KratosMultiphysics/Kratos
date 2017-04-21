@@ -36,7 +36,7 @@ namespace Kratos
     typedef Node <3>                                                   NodeType;
     
 ///@}
-///@name  Enum"s
+///@name  Enum's
 ///@{
     
     #if !defined(INTERPOLATION_METRIC)

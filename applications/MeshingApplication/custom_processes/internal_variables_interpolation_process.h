@@ -40,7 +40,7 @@ namespace Kratos
 ///@{
     
 ///@}
-///@name  Enum"s
+///@name  Enum's
 ///@{
     
     #if !defined(INTERPOLATION_TYPES)
