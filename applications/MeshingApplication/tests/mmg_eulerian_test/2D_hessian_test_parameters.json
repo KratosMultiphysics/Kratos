@@ -1,13 +1,15 @@
 {
     "problem_data"                     : {
-        "problem_name"    : "3D_hessian_test",
+        "problem_name"    : "2D_hessian_test",
         "model_part_name" : "MainModelPart",
-        "domain_size"     : 3,
-        "echo_level"      : 0,
+        "domain_size"     : 2,
+        "solve_problem"   : false,
         "parallel_type"   : "OpenMP",
+        "problem_type"    : "fluid",
+        "echo_level"      : 0,
         "start_time"      : 0.0,
-        "end_time"        : 0.03,
-        "time_step"       : 0.011
+        "end_time"        : 0.029,
+        "time_step"       : 0.01
     },
     "_output_configuration"             : {
         "result_file_configuration" : {
@@ -17,14 +19,14 @@
                 "WriteConditionsFlag"   : "WriteConditions",
                 "MultiFileFlag"         : "SingleFile"
             },
-            "file_label"          : "step",
+            "file_label"          : "time",
             "output_control_type" : "step",
-            "output_frequency"    : 1.0,
+            "output_frequency"    : 1,
             "body_output"         : true,
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISTANCE","ANISOTROPIC_RATIO"],
+            "nodal_results"       : ["VELOCITY","PRESSURE","DISTANCE","ANISOTROPIC_RATIO"],
             "gauss_point_results" : []
         },
         "point_data_configuration"  : []
@@ -39,7 +41,7 @@
         "solver_type"                  : "Embedded",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "mmg_test/3D_hessian_test"
+            "input_filename" : "mmg_eulerian_test/2D_hessian_test"
         },
         "maximum_iterations"           : 10,
         "echo_level"                   : 0,
@@ -52,13 +54,45 @@
         "absolute_velocity_tolerance"  : 1e-5,
         "relative_pressure_tolerance"  : 0.001,
         "absolute_pressure_tolerance"  : 1e-5,
-        "volume_model_part_name"          : "Parts_Parts_Auto1",
-        "skin_parts"                      : [],
-        "no_skin_parts"                   : []
+        "volume_model_part_name"       : "Parts_Parts_Auto1",
+        "skin_parts"                   : ["Inlet2D_Inlet_velocity_Auto1","NoSlip2D_No_Slip_Auto1"],
+        "no_skin_parts"                : []
     },
     "initial_conditions_process_list"  : [],
-    "boundary_conditions_process_list" : [],
-    "gravity"                          : [],
+    "boundary_conditions_process_list" : [{
+        "python_module" : "impose_vector_value_by_direction_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes all the components of a given vector variable",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "ImposeVectorValueByDirectionProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Inlet2D_Inlet_velocity_Auto1",
+            "variable_name"   : "VELOCITY",
+            "modulus"         : 1.0,
+            "direction"       : [1,0.0,0.0]
+        }
+    },{
+        "python_module" : "apply_noslip_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"  : "ApplyNoSlipProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "NoSlip2D_No_Slip_Auto1"
+        }
+    }],
+    "gravity"                          : [{
+        "python_module" : "process_factory",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "ApplyConstantVectorValueProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Parts_Parts_Auto1",
+            "variable_name"   : "BODY_FORCE",
+            "modulus"         : 0.0,
+            "direction"       : [0.0,-1.0,0.0]
+        }
+    }],
     "list_other_processes" :[
     {
         "python_module"   : "test_local_process",
@@ -66,12 +100,12 @@
         "help"                  : "",
         "process_name"          : "ApplyLocalProcess",
         "Parameters"            : {
-            "model_part_name"  : "MainModelPart",
-            "test_name"        : "3D_hessian_test"
+            "model_part_name"  : "Parts_Parts_Auto1",
+            "test_name"        : "2D_hessian_test"
         }
     }
     ],
-    "adaptative_loop"           : 5,
+    "adaptative_loop"           : 6,
     "initial_remeshing_process" :[
     {
         "python_module"   : "mmg_process",
@@ -80,7 +114,7 @@
         "process_name"          : "MmgProcess",
         "Parameters"            : {
             "step_frequency"                    : 0,
-            "output_file_name"                 : "mmg_test/3D_hessian_test",
+            "filename"                         : "mmg_eulerian_test/2D_hessian_test",
             "strategy"                         : "Hessian",
             "hessian_strategy_parameters"              :{
                 "metric_variable"                  : ["DISTANCE"],
@@ -113,9 +147,11 @@
         "help"                  : "This process compares two files and executes an Unittest Assert",
         "process_name"          : "CompareTwoFilesCheckProcess",
         "Parameters"            : {
-            "file_name_1"       : "mmg_test/3D_hessian_test.o.mesh",
-            "file_name_2"       : "mmg_test/3D_hessian_test_result.mesh",
-            "deterministic"     : false
+            "file_name_1"       : "mmg_eulerian_test/2D_hessian_test.o.mesh",
+            "file_name_2"       : "mmg_eulerian_test/2D_hessian_test_result.mesh",
+            "deterministic"     : false,
+            "error_assumed"     : 1.0e-6,
+            "dimension"         : 2
         }
     }
     ]
