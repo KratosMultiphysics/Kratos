@@ -19,7 +19,7 @@
 
 // System includes
 #ifdef _OPENMP
-#  include <omp.h>
+  #include <omp.h>
 #endif
 #include <complex>
 #include <vector>
@@ -63,9 +63,21 @@ public:
     ///@name Life Cycle
     ///@{
 
-    PastixComplexSolver(Parameters& rSettings)
+    PastixComplexSolver(Parameters& r_settings)
     {
 		mp_pastix_data = NULL;
+
+		Parameters default_settings(R"(
+            {
+                "solver_type" : "pastix",
+                "echo_level" : 0
+            })");
+
+        r_settings.ValidateAndAssignDefaults(default_settings);
+
+		m_echo_level = r_settings["echo_level"].GetInt();
+		if (m_echo_level > 4 || m_echo_level < 0)
+			KRATOS_ERROR << "invalid echo_level: " << m_echo_level << std::endl;
     }
 
     PastixComplexSolver(const PastixComplexSolver& Other) = delete;
@@ -125,7 +137,7 @@ public:
 			++i;
 
 		// factorize system matrix
-	    m_iparm[IPARM_VERBOSE        ] = API_VERBOSE_NOT; // no pastix printout
+	    m_iparm[IPARM_VERBOSE        ] = static_cast<API_VERBOSE>(m_echo_level);
       	m_iparm[IPARM_RHS_MAKING     ] = API_RHS_B; // user-provided rhs
         m_iparm[IPARM_SYM            ] = API_SYM_NO; // non-symmetric
         m_iparm[IPARM_FACTORIZATION  ] = API_FACT_LU; // LU factorization
@@ -220,8 +232,9 @@ private:
 	std::vector<pastix_int_t> m_invp;
 	pastix_int_t m_iparm[IPARM_SIZE];
 	double m_dparm[DPARM_SIZE];
+	int m_echo_level;
 
-	 ///@}
+    ///@}
 }; // Class PastixComplexSolver
 
 ///@}
