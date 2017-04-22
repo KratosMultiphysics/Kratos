@@ -139,7 +139,7 @@ public:
     }
 
 
-    void ExecuteFinalize() override
+    void ExecuteFinalizeSolutionStep() override
     {
         if(mrRecoverOriginalDistance == true)
         {
