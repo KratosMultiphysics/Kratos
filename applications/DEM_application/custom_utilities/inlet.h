@@ -48,12 +48,14 @@ namespace Kratos {
         /// Destructor.
         virtual ~DEM_Inlet();
         
-        void InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const bool using_strategy_for_continuum);
+        virtual void InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const bool using_strategy_for_continuum = false);
         void DettachElements(ModelPart& r_modelpart, unsigned int& max_Id); 
         void DettachClusters(ModelPart& r_clusters_modelpart, unsigned int& max_Id);
-        void CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator);
+        virtual void CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator);
 
     private:
+        virtual void FixInjectionConditions(Element* p_element);
+        virtual void RemoveInjectionConditions(Element &element);
         Vector mPartialParticleToInsert; //array of doubles, must be resized in the constructor to the number of meshes
         Vector mLastInjectionTimes; //array of doubles, must be resized in the constructor to the number of meshes
         std::vector<int> mTotalNumberOfDetachedParticles;

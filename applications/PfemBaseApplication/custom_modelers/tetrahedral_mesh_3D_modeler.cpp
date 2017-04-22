@@ -269,7 +269,7 @@ namespace Kratos
      }
  
 
-    //PART 2: faced list (we can have holes in facets != volume holes)
+    //PART 2: facet list (we can have holes in facets != volume holes)
     
     in.numberoffacets           = rModelPart.NumberOfConditions(MeshId);
     in.facetmarkerlist          = new int[in.numberoffacets];

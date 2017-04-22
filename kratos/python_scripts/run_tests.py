@@ -21,8 +21,10 @@ def Usage():
         'Options',
         '\t -h, --help: Shows this command',
         '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\'',  # noqa
+        '\t              For MPI tests, use the equivalent distributed test suites: \'(mpi_all)\', \'(mpi_nightly)\' \'(mpi_small)\'',
         '\t -a, --applications: List of applications to run separated by \':\'. All compiled applications will be run by default',  # noqa
-        '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2'
+        '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2',
+        '\t -c, --command: Use the provided command to launch test cases. If not provided, the default \'runkratos\' executable is used'
     ]
 
     for l in lines:
@@ -174,12 +176,11 @@ class Commander(object):
 
 def main():
 
-    # We need to fetch the command who called us to avoid problems with
-    # python versions such as running python3 while default is python2
-    command = sys.executable
+    # Define the command
+    cmd = os.path.dirname(GetModulePath('KratosMultiphysics'))+'/'+'runkratos'
 
     verbose_values = [0, 1, 2]
-    level_values = ['all', 'nightly', 'small', 'validation']
+    level_values = ['all', 'nightly', 'small', 'validation', 'mpi_all', 'mpi_small', 'mpi_nightly', 'mpi_validation']
 
     # Set default values
     applications = GetAvailableApplication()
@@ -190,11 +191,12 @@ def main():
     try:
         opts, args = getopt.getopt(
             sys.argv[1:],
-            'ha:v:l:', [
+            'ha:v:l:c:', [
                 'help',
                 'applications=',
                 'verbose=',
-                'level='
+                'level=',
+                'command='
             ])
     except getopt.GetoptError as err:
         print(str(err))
@@ -229,13 +231,21 @@ def main():
 
             for a in parsedApps:
                 if a not in applications + ['KratosCore']:
-                    print('Warning: Application {} does not exists'.format(a))
+                    print('Warning: Application {} does not exist'.format(a))
                     sys.exit()
 
             applications = parsedApps
 
             if 'KratosCore' in applications:
                 applications.remove('KratosCore')
+
+        elif o in ('-c', '--command'):
+            try:
+                cmd = str(a)
+            except:
+                print('Error: Cannot parse command name {0}.'.format(a))
+                Usage()
+                sys.exit()
 
         else:
             assert False, 'unhandled option'
@@ -249,9 +259,6 @@ def main():
         signalTime = int(60)
     elif level == 'nightly':
         signalTime = int(900)
-
-    # Define the command
-    cmd = os.path.dirname(GetModulePath('KratosMultiphysics'))+'/'+'runkratos'
 
     # Create the commands
     commander = Commander()
