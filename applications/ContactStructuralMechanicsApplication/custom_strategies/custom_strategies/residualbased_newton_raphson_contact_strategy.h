@@ -199,167 +199,12 @@ public:
     {
         bool is_converged = BaseType::SolveSolutionStep();
         
-//         // Pointers needed in the solution
-//         typename TSchemeType::Pointer pScheme = BaseType::GetScheme();
-//         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = BaseType::GetBuilderAndSolver();
-// 
-//         TSystemMatrixType& A  = *BaseType::mpA;
-//         TSystemVectorType& Dx = *BaseType::mpDx;
-//         TSystemVectorType& b  = *BaseType::mpb;
-// 
-//         //initializing the parameters of the Newton-Raphson cicle
-//         unsigned int iteration_number = 1;
-//         BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
-// //         BaseType::GetModelPart().GetProcessInfo().SetNonLinearIterationNumber(iteration_number);
-//         bool is_converged = false;
-//         bool ResidualIsUpdated = false;
-//         pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), A, Dx, b);
-//         is_converged = BaseType::mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
-// 
-//         //function to perform the building and the solving phase.
-//         if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false)
+//         // TODO: Finish this!!!
+//         Plots a warning if the maximum number of iterations is exceeded
+//         if (is_converged == false)
 //         {
-//             TSparseSpace::SetToZero(A);
-//             TSparseSpace::SetToZero(Dx);
-//             TSparseSpace::SetToZero(b);
-// 
-//             pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), A, Dx, b);
-//         }
-//         else
-//         {
-//             TSparseSpace::SetToZero(Dx); //Dx=0.00;
-//             TSparseSpace::SetToZero(b);
-// 
-//             pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), A, Dx, b);
-//         }
-//         
-//         // Debugging info
-//         BaseType::EchoInfo(iteration_number);
-//         
-//         // Updating the results stored in the database
-//         BaseType::UpdateDatabase(A, Dx, b, BaseType::MoveMeshFlag());
-// 
-//         // Calculate reactions
-//         CalculateContactReactions(pBuilderAndSolver,pScheme, b);
-//         
-//         pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), A, Dx, b);
-// 
-//         if (is_converged == true)
-//         {
-//             //initialisation of the convergence criteria
-//             BaseType::mpConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
-// 
-//             if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag() == true)
-//             {
-//                 TSparseSpace::SetToZero(b);
-// 
-//                 pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b);
-//             }
-// 
-//             is_converged = BaseType::mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
-//         }
-// 
-//         //Iteration Cicle... performed only for NonLinearProblems
-//         while (is_converged == false && iteration_number++ < BaseType::mMaxIterationNumber)
-//         {
-//             // Setting the number of iteration
-//             BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
-// 
-//             pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), A, Dx, b);
-// 
-//             is_converged = BaseType::mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
-// 
-//             //call the linear system solver to find the correction mDx for the
-//             //it is not called if there is no system to solve
-//             if (SparseSpaceType::Size(Dx) != 0)
-//             {
-//                 if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false )
-//                 {
-//                     if( BaseType::GetKeepSystemConstantDuringIterations() == false)
-//                     {
-//                         //A = 0.00;
-//                         TSparseSpace::SetToZero(A);
-//                         TSparseSpace::SetToZero(Dx);
-//                         TSparseSpace::SetToZero(b);
-// 
-//                         pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), A, Dx, b);
-//                     }
-//                     else
-//                     {
-//                         TSparseSpace::SetToZero(Dx);
-//                         TSparseSpace::SetToZero(b);
-// 
-//                         pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), A, Dx, b);
-//                     }
-//                 }
-//                 else
-//                 {
-//                     TSparseSpace::SetToZero(Dx);
-//                     TSparseSpace::SetToZero(b);
-// 
-//                     pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), A, Dx, b);
-//                 }
-//             }
-//             else
-//             {
-//                 std::cout << "ATTENTION: no free DOFs!! " << std::endl;
-//             }
+//             double original_delta_time = StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]; // We save the delta time to restore later
 //             
-//             // Debugging info
-//             BaseType::EchoInfo(iteration_number);
-//         
-//             // Updating the results stored in the database
-//             BaseType::UpdateDatabase(A, Dx, b, BaseType::MoveMeshFlag());
-// 
-//             // Calculate reactions
-//             CalculateContactReactions(pBuilderAndSolver,pScheme, b);
-//             
-//             pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), A, Dx, b);
-//             
-//             ResidualIsUpdated = false;
-// 
-//             if (is_converged == true)
-//             {
-//                 if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag() == true)
-//                 {
-//                     TSparseSpace::SetToZero(b);
-// 
-//                     pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b);
-//                     ResidualIsUpdated = true;
-//                     //std::cout << "mb is calculated" << std::endl;
-//                 }
-// 
-//                 is_converged = BaseType::mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
-//             }
-//         }
-// 
-// 
-//         // Plots a warning if the maximum number of iterations is exceeded
-//         if (iteration_number >= BaseType::mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
-//         {
-//             MaxIterationsExceeded();
-//         }
-// 
-//         // Recalculate residual if needed (note that some convergence criteria need it to be recalculated)
-//         if (ResidualIsUpdated == false)
-//         {
-// //             TSparseSpace::SetToZero(mb);
-// //             pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb);
-//         }
-// 
-//         // Calculate reactions if required
-//         CalculateContactReactions(pBuilderAndSolver,pScheme, b);
-//         if (BaseType::mCalculateReactionsFlag == true)
-//         {
-//             pBuilderAndSolver->CalculateReactions(pScheme, BaseType::GetModelPart(), A, Dx, b);
-//         }
-
-        // TODO: Finish this!!!
-        // Plots a warning if the maximum number of iterations is exceeded
-        if (is_converged == false)
-        {
-//             double original_delta_time = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]; // We save the delta time to restore later
-            
 //             // We iterate until we reach the convergence or we split more than desired
 //             while (is_converged == false && split_number <= mMaxNumberSplits)
 //             {   
@@ -367,18 +212,18 @@ public:
 //                 split_number += 1;
 //                 iteration_number = 1;
 //                 
-//                 double aux_time       = BaseType::GetModelPart().GetProcessInfo()[TIME];
-//                 double aux_delta_time = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]; // FIXME: The DELTA_TIME is set to 0 for some reason!!!!
+//                 double aux_time       = StrategyBaseType::GetModelPart().GetProcessInfo()[TIME];
+//                 double aux_delta_time = StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]; // FIXME: The DELTA_TIME is set to 0 for some reason!!!!
 //                 double current_time   = aux_time - aux_delta_time;
 //                 
-//                 BaseType::GetModelPart().GetProcessInfo()[TIME]       =   current_time; // Restore time to the previous one
+//                 StrategyBaseType::GetModelPart().GetProcessInfo()[TIME]       =   current_time; // Restore time to the previous one
 //                 aux_delta_time /= mSplitFactor;
-//                 BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME] = aux_delta_time; // Change delta time
+//                 StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME] = aux_delta_time; // Change delta time
 //                 
 //                 CoutSplittingTime(aux_delta_time);
 //                 
 //                 unsigned int aux_cout = 0;
-//                 while (is_converged == false && BaseType::GetModelPart().GetProcessInfo()[TIME] <= aux_time && iteration_number < BaseType::mMaxIterationNumber)
+//                 while (is_converged == false && StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] <= aux_time && iteration_number < BaseType::mMaxIterationNumber)
 //                 {      
 //                     iteration_number = 1;
 //                     current_time += aux_delta_time;
@@ -386,11 +231,11 @@ public:
 //                     aux_cout += 1;
 //                     if (aux_cout > 1) // We avoid to restore the database if we create the new step just after the first iteration
 //                     {
-//                         BaseType::GetModelPart().GetProcessInfo()[TIME_STEPS] += 1;
+//                         StrategyBaseType::GetModelPart().GetProcessInfo()[TIME_STEPS] += 1;
 //                     }
 // 
-//                     BaseType::GetModelPart().GetProcessInfo()[TIME] = current_time; // Increase the time in the new delta time        
-//                     BaseType::GetModelPart().CloneTimeStep(current_time);
+//                     StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] = current_time; // Increase the time in the new delta time        
+//                     StrategyBaseType::GetModelPart().CloneTimeStep(current_time);
 //                     
 //                     // We repeat the predict with the new DELTA_TIME
 //                     Predict();
@@ -399,7 +244,7 @@ public:
 //                     BaseType::IterationCycle(is_converged, ResidualIsUpdated, iteration_number, pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb); 
 //                 
 //                     // Plots a warning if the maximum number of iterations is exceeded
-//                     if (is_converged == false  && iteration_number >= BaseType::mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+//                     if (is_converged == false  && iteration_number >= BaseType::mMaxIterationNumber && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0)
 //                     {
 //                         MaxIterationsExceeded();
 //                     }
@@ -408,16 +253,16 @@ public:
 //                 if (is_converged == true)
 //                 {
 //                     // Restoring original DELTA_TIME
-//                     BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME] = original_delta_time;
+//                     StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME] = original_delta_time;
 //                 }
 //             }
-            
-            // Plots a warning if the maximum number of iterations and splits are exceeded
-            if (is_converged == false  && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
-            {
-                MaxIterationsAndSplitsExceeded();
-            }
-        }
+//             
+//             // Plots a warning if the maximum number of iterations and splits are exceeded
+//             if (is_converged == false  && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+//             {
+//                 MaxIterationsAndSplitsExceeded();
+//             }
+//         }
 
         return is_converged;
     }
@@ -455,21 +300,37 @@ protected:
     ///@{
 
     /**
+     * Here the database is updated
+     */
+     
+    void UpdateDatabase(
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b,
+        const bool MoveMesh
+    ) override
+    {
+        BaseType::UpdateDatabase(A,Dx,b,MoveMesh);
+        
+//         CalculateContactReactions(b);
+    }
+    
+    /**
      * This method calculates the reactions concerning the contact (residual of the contact)
      */
     
-    void CalculateContactReactions(
-        typename TBuilderAndSolverType::Pointer pBuilderAndSolver,
-        typename TSchemeType::Pointer pScheme,
-        TSystemVectorType& b
-        )
+    void CalculateContactReactions(TSystemVectorType& b)
     {
+        // Pointers needed in the solution
+        typename TSchemeType::Pointer pScheme = BaseType::GetScheme();
+        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = BaseType::GetBuilderAndSolver();
+        
         // We recalulate the RHS (NOTE: EXPENSIVE)
         TSparseSpace::SetToZero(b);
-        pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b);
+        pBuilderAndSolver->BuildRHS(pScheme, StrategyBaseType::GetModelPart(), b);
         
         // Now we iterate over all the nodes
-        NodesArrayType& pNode = BaseType::GetModelPart().GetSubModelPart("Contact").Nodes();
+        NodesArrayType& pNode = StrategyBaseType::GetModelPart().GetSubModelPart("Contact").Nodes();
         auto numNodes = pNode.end() - pNode.begin();
         
         #pragma omp parallel for
@@ -482,7 +343,10 @@ protected:
                 for(auto itDoF = itNode->GetDofs().begin() ; itDoF != itNode->GetDofs().end() ; itDoF++)
                 {
                     const int j = (itDoF)->EquationId();
-                    (itDoF)->GetSolutionStepReactionValue() = -b[j];
+                    if ((itDoF)->GetReaction().Name() != "NONE")
+                    {
+                        (itDoF)->GetSolutionStepReactionValue() = -b[j];
+                    }
                 }
             }
         }
@@ -496,7 +360,7 @@ protected:
     {
         if (this->GetEchoLevel() != 0)
         {
-            std::cout << "STEP: " << BaseType::GetModelPart().GetProcessInfo()[TIME_STEPS] << "\t NON LINEAR ITERATION: " << BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] << "\t TIME: " << BaseType::GetModelPart().GetProcessInfo()[TIME] << "\t DELTA TIME: " << BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]  << std::endl;
+            std::cout << "STEP: " << StrategyBaseType::GetModelPart().GetProcessInfo()[TIME_STEPS] << "\t NON LINEAR ITERATION: " << StrategyBaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] << "\t TIME: " << StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] << "\t DELTA TIME: " << StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]  << std::endl;
         }
     }
     
@@ -510,7 +374,7 @@ protected:
         {
             std::cout << "***************************************************" << std::endl;
             std::cout << "**** Max. iter. exceeded: SPLITTING TIME STEP *****" << std::endl;
-            std::cout << "***\t\t COMING BACK TO TIME: " << BaseType::GetModelPart().GetProcessInfo()[TIME] << "\t\t ***" << std::endl;
+            std::cout << "***\t\t COMING BACK TO TIME: " << StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] << "\t\t ***" << std::endl;
             std::cout << "***\t\t NEW TIME STEP: "<< aux_delta_time << "\t\t ***" << std::endl;
             std::cout << "***************************************************" << std::endl;
         }
@@ -522,7 +386,7 @@ protected:
     
     void MaxIterationsExceeded()
     {
-        if (this->GetEchoLevel() != 0 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
+        if (this->GetEchoLevel() != 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
             std::cout << "***************************************************" << std::endl;
             std::cout << "******* ATTENTION: max iterations exceeded ********" << std::endl;
@@ -536,7 +400,7 @@ protected:
         
     void MaxIterationsAndSplitsExceeded()
     {
-        if (this->GetEchoLevel() != 0 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
+        if (this->GetEchoLevel() != 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
             std::cout << "***************************************************" << std::endl;
             std::cout << "******* ATTENTION: max iterations exceeded ********" << std::endl;
@@ -581,7 +445,7 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-
+    
     ///@}
     ///@name Private Operations
     ///@{

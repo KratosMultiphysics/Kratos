@@ -121,6 +121,9 @@ class ALMContactProcess(KratosMultiphysics.Process):
 
         # When all conditions are simultaneously master and slave
         if (self.params["assume_master_slave"].GetString() == ""):
+            for node in self.contact_model_part.Conditions:
+                node.Set(KratosMultiphysics.SLAVE, True)
+            del(node)
             for cond in self.contact_model_part.Conditions:
                 cond.Set(KratosMultiphysics.SLAVE, True)
             del(cond)
