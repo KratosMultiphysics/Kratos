@@ -80,11 +80,14 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         }
         """)
         
-        ##overwrite the default settings with user-provided parameters
+        ## Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
         
-        #construct the linear solver
+        # Setting reactions true by default
+        self.settings["compute_reactions"].SetBool(True)
+        
+        # Construct the linear solver
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
         
