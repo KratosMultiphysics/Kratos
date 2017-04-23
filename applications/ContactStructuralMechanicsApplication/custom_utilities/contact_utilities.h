@@ -913,7 +913,7 @@ public:
                     if (CondGeometry[itNode].Is(VISITED) == false)
                     {
                         const double mu = itCond->GetProperties().GetValue(FRICTION_COEFFICIENT); 
-                        const double gn = CondGeometry[itNode].GetValue(WEIGHTED_GAP);
+                        const double gn = CondGeometry[itNode].FastGetSolutionStepValue(WEIGHTED_GAP);
                         const array_1d<double,3> LagrangeMultiplier = CondGeometry[itNode].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
                         const array_1d<double,3> NodalNormal = CondGeometry[itNode].GetValue(NORMAL); 
                         
@@ -942,7 +942,7 @@ public:
                         const double TangentEtaLM = inner_prod(NodalTangentEta, LagrangeMultiplier);
                         const double LambdaTangent = std::sqrt(TangentXiLM * TangentXiLM + TangentEtaLM * TangentEtaLM); 
                         
-                        const double AugmentedTangentPressure = std::abs(LambdaTangent + ct * CondGeometry[itNode].GetValue(WEIGHTED_SLIP)) + mu * AugmentedNormalPressure;
+                        const double AugmentedTangentPressure = std::abs(LambdaTangent + ct * CondGeometry[itNode].FastGetSolutionStepValue(WEIGHTED_SLIP)) + mu * AugmentedNormalPressure;
                         
                         if (AugmentedTangentPressure < 0.0) // TODO: Check if it is minor equal or just minor
                         {
@@ -1006,7 +1006,7 @@ public:
                 {
                     if (CondGeometry[itNode].Is(VISITED) == false)
                     {
-                        const double gn = CondGeometry[itNode].GetValue(WEIGHTED_GAP);
+                        const double gn = CondGeometry[itNode].FastGetSolutionStepValue(WEIGHTED_GAP);
                         const double AugmentedNormalPressure = k * CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + epsilon * gn;     
                         
                         if (AugmentedNormalPressure < 0.0) // NOTE: This could be conflictive (< or <=)
@@ -1085,7 +1085,7 @@ public:
                         const array_1d<double,3> LagrangeMultiplier = CondGeometry[itNode].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
                         const array_1d<double,3> NodalNormal = CondGeometry[itNode].GetValue(NORMAL);
                         
-                        const double gn = CondGeometry[itNode].GetValue(WEIGHTED_GAP);
+                        const double gn = CondGeometry[itNode].FastGetSolutionStepValue(WEIGHTED_GAP);
                         const double AugmentedNormalPressure = k * inner_prod(NodalNormal, LagrangeMultiplier) + epsilon * gn;  
                         
 //                         // Debug 
@@ -1107,7 +1107,7 @@ public:
                             const double mu = itCond->GetProperties().GetValue(FRICTION_COEFFICIENT); // TODO: Change by a friction law
                             
                             // Finally we compute the augmented tangent pressure
-                            const double gt = CondGeometry[itNode].GetValue(WEIGHTED_SLIP);
+                            const double gt = CondGeometry[itNode].FastGetSolutionStepValue(WEIGHTED_SLIP);
                             const double AugmentedTangentPressure = std::abs(k * LambdaTangent + epsilon * gt) + mu * AugmentedNormalPressure;
                             
 //                             // Debug 
@@ -1184,7 +1184,7 @@ public:
                 itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector(3);
             }
             
-            itNode->GetValue(WEIGHTED_GAP) = 0.0;
+            itNode->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
         }
     }
     
@@ -1210,7 +1210,7 @@ public:
                 itNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
             }
             
-            itNode->GetValue(WEIGHTED_GAP) = 0.0;
+            itNode->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
         }
     }
     
@@ -1236,8 +1236,8 @@ public:
                 itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector(3);
             }
             
-            itNode->GetValue(WEIGHTED_GAP)  = 0.0;
-            itNode->GetValue(WEIGHTED_SLIP) = 0.0;
+            itNode->FastGetSolutionStepValue(WEIGHTED_GAP)  = 0.0;
+            itNode->FastGetSolutionStepValue(WEIGHTED_SLIP) = 0.0;
         }
     }
     

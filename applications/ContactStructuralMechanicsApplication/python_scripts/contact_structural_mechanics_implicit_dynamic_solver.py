@@ -101,13 +101,18 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)                                                             # Add normal
             if  self.settings["compute_mortar_contact"].GetInt() == 1:
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)                                     # Add lagrange multiplier
+                self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_GAP)                                          # Add normal contact gap
+                self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_SLIP)                                          # Add tangent slip
             elif  self.settings["compute_mortar_contact"].GetInt() == 2:
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_CONTACT_STRESS)                                          # Add normal contact stress
+                self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_GAP)                                          # Add normal contact gap
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)                                                        # Add nodal size variable
             elif  self.settings["compute_mortar_contact"].GetInt() == 3:
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER)                                     # Add scalar LM
+                self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_SCALAR_RESIDUAL)                                          # Add scalar LM residual
             elif  self.settings["compute_mortar_contact"].GetInt() == 4:
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)                                     # Add vector LM
+                self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_VECTOR_RESIDUAL)                                          # Add vector LM residual
    
         print("::[Mechanical Solver]:: Variables ADDED")
         
@@ -115,17 +120,22 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
 
         structural_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver.AddDofs(self)
         
-        if  self.settings["compute_mortar_contact"].GetInt() == 1 or self.settings["compute_mortar_contact"].GetInt() == 4:
+        if  self.settings["compute_mortar_contact"].GetInt() == 1:
             for node in self.main_model_part.Nodes:
                 node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_X)
                 node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Y)
                 node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Z)
         elif  self.settings["compute_mortar_contact"].GetInt() == 2:
             for node in self.main_model_part.Nodes:
-                node.AddDof(KratosMultiphysics.NORMAL_CONTACT_STRESS)
+                node.AddDof(KratosMultiphysics.NORMAL_CONTACT_STRESS, ContactStructuralMechanicsApplication.WEIGHTED_GAP)
         elif  self.settings["compute_mortar_contact"].GetInt() == 3:
             for node in self.main_model_part.Nodes:
-                node.AddDof(KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER)
+                node.AddDof(KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER,ContactStructuralMechanicsApplication.WEIGHTED_SCALAR_RESIDUAL)
+        elif self.settings["compute_mortar_contact"].GetInt() == 4:
+            for node in self.main_model_part.Nodes:
+                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_X, ContactStructuralMechanicsApplication.WEIGHTED_VECTOR_RESIDUAL_X)
+                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Y, ContactStructuralMechanicsApplication.WEIGHTED_VECTOR_RESIDUAL_Y)
+                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Z, ContactStructuralMechanicsApplication.WEIGHTED_VECTOR_RESIDUAL_Z)
                     
         print("::[Mechanical Solver]:: DOF's ADDED")
     

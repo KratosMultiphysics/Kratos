@@ -246,7 +246,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                 const array_1d<double, TDim> aux_array = row(Dx1Mx2, iNode);
                                 
                 #pragma omp atomic 
-                GetGeometry()[iNode].GetValue(WEIGHTED_GAP) += inner_prod(aux_array, - normal); 
+                GetGeometry()[iNode].FastGetSolutionStepValue(WEIGHTED_GAP) += inner_prod(aux_array, - normal); 
             }
             
             if (TFrictional == true) // TODO: Check this!!!
@@ -266,7 +266,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                     const array_1d<double, TDim> aux_array = row(Dx1OldMx2Old, iNode);
                                     
                     #pragma omp atomic 
-                    GetGeometry()[iNode].GetValue(WEIGHTED_SLIP) += std::sqrt(std::pow(inner_prod(aux_array, TangentXi), 2) + std::pow(inner_prod(aux_array, TangentEta), 2)); 
+                    GetGeometry()[iNode].FastGetSolutionStepValue(WEIGHTED_SLIP) += std::sqrt(std::pow(inner_prod(aux_array, TangentXi), 2) + std::pow(inner_prod(aux_array, TangentEta), 2)); 
                 }
             }
         }

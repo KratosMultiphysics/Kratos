@@ -120,9 +120,9 @@ class MeshTyingProcess(KratosMultiphysics.Process):
         # Initilialize weighted variables and LM
         for node in self.mesh_tying_model_part.Nodes:
             if (self.type_variable == "Scalar"):
-                node.SetValue(ContactStructuralMechanicsApplication.WEIGHTED_SCALAR_RESIDUAL, 0.0)
+                node.SetSolutionStepValue(ContactStructuralMechanicsApplication.WEIGHTED_SCALAR_RESIDUAL, 0.0)
             else:
-                node.SetValue(ContactStructuralMechanicsApplication.WEIGHTED_VECTOR_RESIDUAL, ZeroVector)
+                node.SetSolutionStepValue(ContactStructuralMechanicsApplication.WEIGHTED_VECTOR_RESIDUAL, ZeroVector)
             node.SetValue(KratosMultiphysics.NODAL_AREA, 0.0)
             node.SetValue(KratosMultiphysics.NORMAL,      ZeroVector)
             node.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector)

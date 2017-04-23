@@ -119,8 +119,8 @@ class ContactProcess(KratosMultiphysics.Process):
             
             # Initilialize weighted variables and LM
             for node in self.d_interface.Nodes:
-                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_GAP, 0.0)
-                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_SLIP, 0.0)
+                node.SetSolutionStepValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_GAP, 0.0)
+                node.SetSolutionStepValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_SLIP, 0.0)
                 node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_ACTIVE, False)
                 node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_SLIP, False)
                 node.SetValue(KratosMultiphysics.NODAL_AREA, 0.0)

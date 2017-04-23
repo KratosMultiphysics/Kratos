@@ -257,9 +257,9 @@ void MortarContactCondition<TDim,TNumNodes>::FinalizeNonLinearIteration( Process
             for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
             {
                 #pragma omp atomic 
-                GetGeometry()[iNode].GetValue(WEIGHTED_GAP)      += aux_int_gap[iNode]; 
+                GetGeometry()[iNode].FastGetSolutionStepValue(WEIGHTED_GAP)      += aux_int_gap[iNode]; 
                 #pragma omp atomic 
-                GetGeometry()[iNode].GetValue(WEIGHTED_SLIP)     += aux_int_slip[iNode]; 
+                GetGeometry()[iNode].FastGetSolutionStepValue(WEIGHTED_SLIP)     += aux_int_slip[iNode]; 
             }
         }
         else

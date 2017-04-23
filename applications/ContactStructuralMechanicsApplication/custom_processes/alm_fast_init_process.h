@@ -124,10 +124,10 @@ public:
             auto itNode = pNodes.begin() + i;
             
             // Weighted values
-            itNode->GetValue(WEIGHTED_GAP) = 0.0;
+            itNode->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
             if (frictional == true)
             {
-                itNode->GetValue(WEIGHTED_SLIP) = 0.0;
+                itNode->FastGetSolutionStepValue(WEIGHTED_SLIP) = 0.0;
             }
             
             // Nodal area

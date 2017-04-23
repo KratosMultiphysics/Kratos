@@ -200,7 +200,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::InitializeNonLinearIt
         for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
         {
             #pragma omp critical 
-            GetGeometry()[iNode].GetValue(WEIGHTED_SCALAR_RESIDUAL) = 0.0; 
+            GetGeometry()[iNode].FastGetSolutionStepValue(WEIGHTED_SCALAR_RESIDUAL) = 0.0; 
         } 
     }
     else
@@ -208,7 +208,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::InitializeNonLinearIt
         for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
         {
             #pragma omp critical 
-            GetGeometry()[iNode].GetValue(WEIGHTED_VECTOR_RESIDUAL) = ZeroVector(3); 
+            GetGeometry()[iNode].FastGetSolutionStepValue(WEIGHTED_VECTOR_RESIDUAL) = ZeroVector(3); 
         } 
     }
         
@@ -335,7 +335,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::FinalizeNonLinearIter
                     for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
                     {
                         #pragma omp atomic 
-                        GetGeometry()[iNode].GetValue(WEIGHTED_SCALAR_RESIDUAL) += Du1Mu2[iNode]; 
+                        GetGeometry()[iNode].FastGetSolutionStepValue(WEIGHTED_SCALAR_RESIDUAL) += Du1Mu2[iNode]; 
                     }
                 }
                 else
@@ -356,7 +356,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::FinalizeNonLinearIter
                         }
                         
                         #pragma omp critical 
-                        GetGeometry()[iNode].GetValue(WEIGHTED_VECTOR_RESIDUAL) += auxvector; 
+                        GetGeometry()[iNode].FastGetSolutionStepValue(WEIGHTED_VECTOR_RESIDUAL) += auxvector; 
                     } 
                 }
             }
