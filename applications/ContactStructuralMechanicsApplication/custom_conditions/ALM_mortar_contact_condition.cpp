@@ -645,18 +645,26 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                         
                         // Calculate the kinematic variables
                         this->CalculateKinematics( rVariables, rDerivativeData, MasterNormal, LocalPointDecomp, LocalPointParent, DecompGeom);
-                    
-                        /* Update the derivatives */
-                        // Update the derivative of DetJ
-                        this->CalculateDeltaDetJSlave(rVariables, rDerivativeData);
-                        // Update the derivatives of the shape functions and the gap
-    //                     this->CalculateDeltaN(rVariables, rDerivativeData); // FIXME: This is the old version!!!!
-                        // The derivatives of the dual shape function 
-                        this->CalculateDeltaPhi(rVariables, rDerivativeData);
                         
                         const double IntegrationWeight = IntegrationPointsSlave[PointNumber].Weight();
-                        
-                        this->CalculateMortarOperators(rThisMortarConditionMatrices, rVariables, rDerivativeData, IntegrationWeight);       
+                    
+                        if ( rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX ) ||
+                                rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+                        {
+                            /* Update the derivatives */
+                            // Update the derivative of DetJ
+                            this->CalculateDeltaDetJSlave(rVariables, rDerivativeData);
+                            // Update the derivatives of the shape functions and the gap
+        //                     this->CalculateDeltaN(rVariables, rDerivativeData); // FIXME: This is the old version!!!!
+                            // The derivatives of the dual shape function 
+                            this->CalculateDeltaPhi(rVariables, rDerivativeData);
+                            
+                            this->CalculateMortarOperators(rThisMortarConditionMatrices, rVariables, rDerivativeData, IntegrationWeight);    
+                        }
+                        else // In case we are computing RHS we don't compute derivatives (not necessary)
+                        {
+                            this->CalculateMortarOperators(rThisMortarConditionMatrices, rVariables, IntegrationWeight);   
+                        }
                     }
                 }
             }
