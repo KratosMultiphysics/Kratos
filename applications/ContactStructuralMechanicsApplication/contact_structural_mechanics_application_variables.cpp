@@ -33,7 +33,7 @@ KRATOS_CREATE_VARIABLE( double, TANGENT_AUGMENTATION_FACTOR )                   
 KRATOS_CREATE_VARIABLE( double, WEIGHTED_GAP )                                    // The integrated gap employed in mortar formulation
 KRATOS_CREATE_VARIABLE( double, WEIGHTED_SLIP )                                   // The integrated slip employed in mortar formulation
 KRATOS_CREATE_VARIABLE( double, WEIGHTED_SCALAR_RESIDUAL )                        // The integrated scalar residual  
-KRATOS_CREATE_VARIABLE( Vector3, WEIGHTED_VECTOR_RESIDUAL )                       // The integrated vector residual    
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( WEIGHTED_VECTOR_RESIDUAL )             // The integrated vector residual    
 
 /* Matrix to store the derivatives of the normal */
 KRATOS_CREATE_VARIABLE( Matrix, DELTA_NORMAL )                                    // Directional derivative of the normal
