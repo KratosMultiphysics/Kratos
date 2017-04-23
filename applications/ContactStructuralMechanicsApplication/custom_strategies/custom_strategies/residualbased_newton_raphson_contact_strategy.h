@@ -338,13 +338,20 @@ protected:
         {
             auto itNode = pNode.begin() + i;
             
-            if (itNode->Is(SLAVE) == true)
+//             if (itNode->Is(ACTIVE) == true) 
+            if (itNode->Is(SLAVE) == true) // NOTE: Check why 1000 times bigger residual that the weighted gap->SCALAR_FACTOR. Consider SCALAR_FACTOR and PENALTY as ProcessInfo instead of property and set all the nodes as ACTIVE (proper way to compute)
             {                
                 for(auto itDoF = itNode->GetDofs().begin() ; itDoF != itNode->GetDofs().end() ; itDoF++)
                 {
                     const int j = (itDoF)->EquationId();
-                    if ((itDoF)->GetReaction().Name() != "NONE")
-                    {
+                    
+//                     if ((itDoF)->GetReaction().Name() == "WEIGHTED_SCALAR_RESIDUAL")
+                    if ((itDoF)->GetReaction().Name() == "WEIGHTED_GAP")
+                    {                        
+                        (itDoF)->GetSolutionStepReactionValue() = b[j];
+                    }
+                    else if ((itDoF)->GetReaction().Name() != "NONE")
+                    {                        
                         (itDoF)->GetSolutionStepReactionValue() = -b[j];
                     }
                 }

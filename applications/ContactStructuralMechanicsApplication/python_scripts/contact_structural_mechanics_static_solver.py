@@ -112,6 +112,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                 self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_SLIP)                                          # Add tangent slip
             elif  self.settings["compute_mortar_contact"].GetInt() == 2:
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_CONTACT_STRESS)                                          # Add normal contact stress
+                self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_SCALAR_RESIDUAL)                                          # Add normal contact gap
                 self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_GAP)                                          # Add normal contact gap
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)                                                        # Add nodal size variable
             elif  self.settings["compute_mortar_contact"].GetInt() == 3:
@@ -137,7 +138,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                 node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Z)
         elif  self.settings["compute_mortar_contact"].GetInt() == 2:
             for node in self.main_model_part.Nodes:
-                node.AddDof(KratosMultiphysics.NORMAL_CONTACT_STRESS, ContactStructuralMechanicsApplication.WEIGHTED_GAP)
+                node.AddDof(KratosMultiphysics.NORMAL_CONTACT_STRESS, ContactStructuralMechanicsApplication.WEIGHTED_SCALAR_RESIDUAL)
         elif  self.settings["compute_mortar_contact"].GetInt() == 3:
             for node in self.main_model_part.Nodes:
                 node.AddDof(KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER,ContactStructuralMechanicsApplication.WEIGHTED_SCALAR_RESIDUAL)

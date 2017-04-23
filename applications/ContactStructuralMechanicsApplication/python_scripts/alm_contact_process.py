@@ -52,8 +52,10 @@ class ALMContactProcess(KratosMultiphysics.Process):
         self.contact_model_part = model_part[self.params["contact_model_part"].GetString()]
         
         if (self.params["assume_master_slave"].GetString() != ""):
-            for node in model_part[self.params["assume_master_slave"].GetString()].Nodes:
+            model_part_slave = self.main_model_part.GetSubModelPart(self.params["assume_master_slave"].GetString())
+            for node in model_part_slave.Nodes:
                 node.Set(KratosMultiphysics.SLAVE, True)
+            del(node)
         
         self.normal_variation         = self.params["normal_variation"].GetBool()
         self.integration_order        = self.params["integration_order"].GetInt() 
