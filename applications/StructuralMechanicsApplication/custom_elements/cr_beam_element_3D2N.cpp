@@ -398,7 +398,6 @@ namespace Kratos
 		this->mNX0 = DirectionVectorX;
 		this->mNY0 = DirectionVectorY;
 		this->mNZ0 = DirectionVectorZ;
-
 		KRATOS_CATCH("")
 	}
 
@@ -471,7 +470,6 @@ namespace Kratos
 		Vector dPhiB = ZeroVector(dimension);
 		Vector IncrementDeformation = ZeroVector(MatSize);
 		IncrementDeformation = this->mIncrementDeformation;
-		
 
 		for (int i = 0; i < dimension; ++i) {
 			dPhiA[i] = IncrementDeformation[i + 3];
@@ -614,6 +612,7 @@ namespace Kratos
 		Identity -= 2.0 * outer_prod(n_bisectrix, n_bisectrix);
 		n_xyz = prod(Identity, n_xyz);
 
+
 		//calculating deformation modes
 		this->mPhiS = ZeroVector(dimension);
 		this->mPhiA = ZeroVector(dimension);
@@ -627,6 +626,11 @@ namespace Kratos
 		this->mPhiA = prod(Matrix(trans(n_xyz)), tempVec);
 		this->mPhiA *= 4.00;
 
+		if (this->mIterationCount == 0)
+		{
+			this->mPhiS = ZeroVector(dimension);
+			this->mPhiA = ZeroVector(dimension);
+		}
 		return n_xyz;
 		KRATOS_CATCH("")
 	}
@@ -634,7 +638,7 @@ namespace Kratos
 	void CrBeamElement3D2N::GetValuesVector(Vector& rValues, int Step) {
 
 		KRATOS_TRY
-			const int number_of_nodes = this->GetGeometry().PointsNumber();
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const int element_size = number_of_nodes * dimension * 2;
 
@@ -660,7 +664,8 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	void CrBeamElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step) {
+	void CrBeamElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step) 
+	{
 
 		KRATOS_TRY
 			const int number_of_nodes = this->GetGeometry().PointsNumber();
@@ -690,7 +695,8 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	void CrBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step) {
+	void CrBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step) 
+	{
 
 		KRATOS_TRY
 			const int number_of_nodes = this->GetGeometry().PointsNumber();
@@ -922,6 +928,8 @@ namespace Kratos
 		rLeftHandSideMatrix +=
 			this->CreateElementStiffnessMatrix_Geometry(nodalForcesLocal_qe);
 
+
+
 		Matrix aux_matrix = ZeroMatrix(LocalSize);
 		aux_matrix = prod(TransformationMatrix, rLeftHandSideMatrix);
 		rLeftHandSideMatrix = prod(aux_matrix,
@@ -965,6 +973,7 @@ namespace Kratos
 		this->UpdateIncrementDeformation();
 		Matrix TransformationMatrix = ZeroMatrix(LocalSize);
 		this->CalculateTransformationMatrix(TransformationMatrix);
+
 		Vector elementForces_t = ZeroVector(size);
 		elementForces_t = this->CalculateElementForces();
 		Vector nodalForcesLocal_qe = ZeroVector(LocalSize);
