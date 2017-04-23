@@ -347,7 +347,7 @@ protected:
             {
                 if (rGeometry[itNode].GetSolutionStepValue(DISTANCE)<0.0)
                     inside++;
-                if (rGeometry[itNode].IsFixed(VELOCITY))
+                if (rGeometry[itNode].IsFixed(VELOCITY_X) && rGeometry[itNode].IsFixed(VELOCITY_Y) && rGeometry[itNode].IsFixed(VELOCITY_Z))
                     fixed++;
             }
 
