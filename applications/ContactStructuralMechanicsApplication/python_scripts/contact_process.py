@@ -8,13 +8,6 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication
 
 KratosMultiphysics.CheckForPreviousImport()
 
-def CalculateLastIdCondition(model_part):
-    cond_id = 0
-    for condition in model_part.Conditions:
-        cond_id += 1
-
-    return cond_id
-
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
@@ -36,8 +29,6 @@ class ContactProcess(KratosMultiphysics.Process):
             "max_number_results"          : 1000,
             "augmentation_normal"         : 0.0e0,
             "augmentation_tangent"        : 0.0e0,
-            "epsilon_DLM"                 : 1.0e3,
-            "double_LM"                   : false,  
             "simplify_geometry"           : false,
             "type_search"                 : "InRadius",
             "integration_order"           : 5
@@ -50,6 +41,8 @@ class ContactProcess(KratosMultiphysics.Process):
    
         self.main_model_part = model_part[self.params["model_part_name"].GetString()]
 
+        self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+
         self.o_model_part = model_part[self.params["origin_model_part_name"].GetString()]
         self.d_model_part = model_part[self.params["destination_model_part_name"].GetString()]
         
@@ -61,8 +54,6 @@ class ContactProcess(KratosMultiphysics.Process):
         self.max_number_results       = self.params["max_number_results"].GetInt() 
         self.augmentation_normal      = self.params["augmentation_normal"].GetDouble()
         self.augmentation_tangent     = self.params["augmentation_tangent"].GetDouble()
-        self.epsilon_DLM              = self.params["epsilon_DLM"].GetDouble()
-        self.consider_double_lm       = self.params["double_LM"].GetBool()
         self.simplify_geometry        = self.params["simplify_geometry"].GetBool()
         self.integration_order        = self.params["integration_order"].GetInt() 
         if self.params["type_search"].GetString() == "InRadius":
@@ -74,8 +65,6 @@ class ContactProcess(KratosMultiphysics.Process):
         computing_model_part = self.main_model_part.GetSubModelPart("computing_domain")
         computing_model_part.CreateSubModelPart("Contact")
         interface_computing_model_part = computing_model_part.GetSubModelPart("Contact")
-        if (self.consider_double_lm == True):
-            interface_computing_model_part.Set(KratosMultiphysics.MODIFIED, True)
             
         for node in self.o_interface.Nodes:
             interface_computing_model_part.AddNode(node, 0)  
@@ -87,28 +76,23 @@ class ContactProcess(KratosMultiphysics.Process):
             node.Set(KratosMultiphysics.INTERFACE,True)
         del(node)
         
-        self.Preprocess  = KratosMultiphysics.ContactStructuralMechanicsApplication.InterfacePreprocessCondition()
+        self.Preprocess  = KratosMultiphysics.ContactStructuralMechanicsApplication.InterfacePreprocessCondition(self.main_model_part)
         
         if self.params["contact_type"].GetString() == "MortarMethod":
             condition_name = "MortarContact"
-        elif self.params["contact_type"].GetString() == "NTN":
-            condition_name = "NTNContact"
-        elif self.params["contact_type"].GetString() == "NTS":
-            condition_name = "NTSContact"
         
         #print("MODEL PART BEFORE CREATING INTERFACE")
         #print(self.main_model_part) 
         
-        if (self.consider_double_lm  == True):
-            final_string = "DLM"
-        else:
-            final_string = ""
+        final_string = ""
         
         # It should create the conditions automatically
-        initial_id = CalculateLastIdCondition(self.main_model_part)
-        self.Preprocess.GenerateInterfacePart(self.o_model_part, self.o_interface, condition_name, initial_id, final_string, self.simplify_geometry) 
-        initial_id = CalculateLastIdCondition(self.main_model_part)
-        self.Preprocess.GenerateInterfacePart(self.d_model_part, self.d_interface, condition_name, initial_id, final_string, self.simplify_geometry) 
+        if (self.dimension == 2):
+            self.Preprocess.GenerateInterfacePart2D(self.o_model_part, self.o_interface, condition_name, final_string, self.simplify_geometry) 
+            self.Preprocess.GenerateInterfacePart2D(self.d_model_part, self.d_interface, condition_name, final_string, self.simplify_geometry) 
+        else:
+            self.Preprocess.GenerateInterfacePart3D(self.o_model_part, self.o_interface, condition_name, final_string, self.simplify_geometry) 
+            self.Preprocess.GenerateInterfacePart3D(self.d_model_part, self.d_interface, condition_name, final_string, self.simplify_geometry) 
 
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(self.main_model_part)
@@ -121,7 +105,7 @@ class ContactProcess(KratosMultiphysics.Process):
             interface_computing_model_part.AddCondition(cond)  
         del(cond)
 
-        self.contact_search = KratosMultiphysics.ContactStructuralMechanicsApplication.TreeContactSearch(self.o_interface, self.d_interface, self.max_number_results)
+        self.contact_search = KratosMultiphysics.ContactStructuralMechanicsApplication.DeprecatedTreeContactSearch(self.o_interface, self.d_interface, self.max_number_results)
         
         if self.params["contact_type"].GetString() == "MortarMethod":
             ZeroVector = KratosMultiphysics.Vector(3) 
@@ -133,7 +117,6 @@ class ContactProcess(KratosMultiphysics.Process):
             for node in self.d_interface.Nodes:
                 node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_GAP, 0.0)
                 node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_SLIP, 0.0)
-                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_FRICTION, 0.0)
                 node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_ACTIVE, False)
                 node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_SLIP, False)
                 node.SetValue(KratosMultiphysics.NODAL_AREA, 0.0)
@@ -144,7 +127,7 @@ class ContactProcess(KratosMultiphysics.Process):
             del node
             
             # Setting the master conditions 
-            for cond in self.o_interface.Nodes:
+            for cond in self.o_interface.Conditions:
                 cond.SetValue(KratosMultiphysics.NORMAL, ZeroVector) 
                 cond.SetValue(KratosMultiphysics.TANGENT_XI, ZeroVector) 
                 cond.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector) 
@@ -152,23 +135,14 @@ class ContactProcess(KratosMultiphysics.Process):
             del cond
             
             # Setting the slave conditions 
-            for cond in self.d_interface.Nodes:
+            for cond in self.d_interface.Conditions:
                 cond.SetValue(KratosMultiphysics.NORMAL, ZeroVector) 
                 cond.SetValue(KratosMultiphysics.TANGENT_XI, ZeroVector) 
                 cond.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector) 
             del cond
             
             self.contact_search.CreatePointListMortar()
-            if (self.consider_double_lm  == True):
-                self.contact_search.InitializeMortarConditionsDLM(self.active_check_factor, self.epsilon_DLM, self.integration_order)
-            else:
-                self.contact_search.InitializeMortarConditions(self.active_check_factor, self.augmentation_normal, self.augmentation_tangent, self.integration_order)
-        elif self.params["contact_type"].GetString() == "NTN":
-            self.contact_search.CreatePointListNTN()
-            self.contact_search.InitializeNTNConditions()
-        elif self.params["contact_type"].GetString() == "NTS":
-            self.contact_search.CreatePointListNTS()
-            self.contact_search.InitializeNTSConditions()
+            self.contact_search.InitializeMortarConditions(self.active_check_factor, self.augmentation_normal, self.augmentation_tangent, self.integration_order)
         
     def ExecuteBeforeSolutionLoop(self):
         self.contact_search.TotalClearMortarConditions();
@@ -180,10 +154,6 @@ class ContactProcess(KratosMultiphysics.Process):
         if self.params["contact_type"].GetString() == "MortarMethod":    
             self.contact_search.UpdateMortarConditions(self.search_factor, self.type_search)
             #self.contact_search.CheckMortarConditions()
-        elif self.params["contact_type"].GetString() == "NTN":
-            self.contact_search.CreateNTNConditions(self.search_factor, self.type_search)
-        elif self.params["contact_type"].GetString() == "NTS":
-            self.contact_search.CreateNTSConditions(self.search_factor, self.type_search)
             
         #for cond in self.d_interface.Conditions:
             #print(cond.Is(KratosMultiphysics.ACTIVE))

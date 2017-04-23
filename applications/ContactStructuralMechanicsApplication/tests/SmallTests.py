@@ -42,14 +42,14 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
     def tearDown(self):
         pass
     
-#class BasicCATest(StructuralMechanichsTestFactory):
-    #file_name = "CA_test/basic_CA_test"
+class SimplePatchTestTwoDMeshTying(StructuralMechanichsTestFactory):
+    file_name = "mesh_tying_test/simple_patch_test_2D"
     
-#class SolidCATest(StructuralMechanichsTestFactory):
-    #file_name = "CA_test/solid_CA_test"
+class SimplestPatchTestThreeDMeshTying(StructuralMechanichsTestFactory):
+    file_name = "mesh_tying_test/3D_contact_simplest_patch_matching_test"
     
-class HyperSimplePatchTestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test_2D/hyper_simple_patch_test"
+class SimplePatchTestThreeDMeshTying(StructuralMechanichsTestFactory):
+    file_name = "mesh_tying_test/simple_patch_test_3D"
     
 class SimplePatchTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test_2D/simple_patch_test"
@@ -92,4 +92,15 @@ class ThreeDPatchMatchingTestContact(StructuralMechanichsTestFactory):
 
 class ThreeDPatchNotMatchingTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test_3D/3D_contact_patch_nonmatching_test"
+
+class ALMSimplePatchTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/simple_patch_test"
     
+class ALMHyperSimplePatchTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test"
+    
+class ALMSimplestPatchTestThreeDContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test"
+    
+class ALMSimplePatchTestThreeDContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/simple_patch_test_3D"

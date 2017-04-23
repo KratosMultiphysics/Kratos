@@ -4,7 +4,6 @@ import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.ContactStructuralMechanicsApplication
-import KratosMultiphysics.FSIApplication
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -80,13 +79,6 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                 "etmxa": 5,
                 "etmna": 0.1
             },
-            "accelerate_convergence": false,
-            "convergence_accelerator":{
-                    "solver_type"       : "Relaxation",
-                    "acceleration_type" : "Aitken",
-                    "w_0"               :  0.01,
-                    "buffer_size"       :  10
-            },
             "problem_domain_sub_model_part_list": ["solid_model_part"],
             "processes_sub_model_part_list": [""]
         }
@@ -109,32 +101,18 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         
         structural_mechanics_static_solver.StaticMechanicalSolver.AddVariables(self)
             
-        if  self.settings["compute_mortar_contact"].GetInt() > 0:
-            # Add normal
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-            # Add nodal area
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-            # Add lagrange multiplier
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)
-            # Add weighted gap
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_GAP)
-            # Add weighted slip
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_SLIP)
-            # Add weighted friction
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_FRICTION)
-            # Add normal augmentation factor
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.NORMAL_AUGMENTATION_FACTOR)
-            # Add tangent augmentation factor
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.TANGENT_AUGMENTATION_FACTOR)
-            # Auxiliar active
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_ACTIVE)
-            # Auxiliar slip
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_SLIP)
-            # Active check factor
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.ACTIVE_CHECK_FACTOR)
-            if  self.settings["compute_mortar_contact"].GetInt() == 2:
-                # Add the double LM 
-                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.DOUBLE_LM)
+        if  self.settings["compute_mortar_contact"].GetInt() > 0: # FIXME: Change this for strings!!!!
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)                                                             # Add normal
+            if  self.settings["compute_mortar_contact"].GetInt() == 1:
+                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)                                     # Add lagrange multiplier
+            elif  self.settings["compute_mortar_contact"].GetInt() == 2:
+                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_CONTACT_STRESS)                                          # Add normal contact stress
+                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)                                                        # Add nodal size variable
+            elif  self.settings["compute_mortar_contact"].GetInt() == 3:
+                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER)                                     # Add scalar LM
+            elif  self.settings["compute_mortar_contact"].GetInt() == 4:
+                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)                                     # Add vector LM
+                
         if self.settings["analysis_type"].GetString() == "Arc-Length":
             self.main_model_part.ProcessInfo[KratosMultiphysics.StructuralMechanicsApplication.LAMBDA] = 0.00;
    
@@ -144,25 +122,27 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
 
         structural_mechanics_static_solver.StaticMechanicalSolver.AddDofs(self)
         
-        if  self.settings["compute_mortar_contact"].GetInt() > 0:
+        if  self.settings["compute_mortar_contact"].GetInt() == 1:
             for node in self.main_model_part.Nodes:
-                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_X);
-                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Y);
-                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Z);
-            if  self.settings["compute_mortar_contact"].GetInt() == 2:
-                for node in self.main_model_part.Nodes:
-                    node.AddDof(KratosMultiphysics.ContactStructuralMechanicsApplication.DOUBLE_LM_X);
-                    node.AddDof(KratosMultiphysics.ContactStructuralMechanicsApplication.DOUBLE_LM_Y);
-                    node.AddDof(KratosMultiphysics.ContactStructuralMechanicsApplication.DOUBLE_LM_Z);
+                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_X)
+                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Y)
+                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Z)
+        elif  self.settings["compute_mortar_contact"].GetInt() == 2:
+            for node in self.main_model_part.Nodes:
+                node.AddDof(KratosMultiphysics.NORMAL_CONTACT_STRESS)
+        elif  self.settings["compute_mortar_contact"].GetInt() == 3:
+            for node in self.main_model_part.Nodes:
+                node.AddDof(KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER)
+        elif  self.settings["compute_mortar_contact"].GetInt() == 4:
+            for node in self.main_model_part.Nodes:
+                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_X)
+                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Y)
+                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Z)
 
         print("::[Mechanical Solver]:: DOF's ADDED")
     
     def Initialize(self):
         structural_mechanics_static_solver.StaticMechanicalSolver.Initialize(self)
-        #if  self.settings["compute_mortar_contact"].GetInt() > 0:
-            #self.computing_model_part.CreateSubModelPart("Contact")
-            #if  self.settings["compute_mortar_contact"].GetInt() == 2:
-                #self.computing_model_part.Set(KratosMultiphysics.MODIFIED, True)
     
     def _GetSolutionScheme(self, analysis_type, component_wise, compute_contact_forces):
         if(analysis_type == "Linear"):
@@ -186,8 +166,10 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                     raise Exception("TODO: change for one that works with contact change")
                     #mechanical_scheme = ResidualBasedContactBossakScheme(self.settings["damp_factor_m"].GetDouble(), 
                                                                          #self.settings["dynamic_factor"].GetDouble())
-                elif  self.settings["compute_mortar_contact"].GetInt() > 0:
+                elif  self.settings["compute_mortar_contact"].GetInt() == 1:
                     mechanical_scheme = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedIncrementalUpdateStaticContactScheme()
+                elif  self.settings["compute_mortar_contact"].GetInt() == 2:
+                    mechanical_scheme = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedIncrementalUpdateStaticALMContactScheme()
                 else:
                     mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
                                 
@@ -209,7 +191,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         import convergence_criteria_factory
         convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params)
         
-        if  self.settings["compute_mortar_contact"].GetInt() > 0:
+        if  (self.settings["compute_mortar_contact"].GetInt() == 0 or self.settings["compute_mortar_contact"].GetInt() == 1):
             Mortar = KratosMultiphysics.ContactStructuralMechanicsApplication.MortarConvergenceCriteria()
             Mortar.SetEchoLevel(self.echo_level)
 
@@ -284,23 +266,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                                                                             reform_step_dofs, 
                                                                             move_mesh_flag)
                 else:
-                    if  self.settings["accelerate_convergence"].GetBool():
-                        params = self.settings["convergence_accelerator"]
-                        import convergence_accelerator_factory     
-                        self.coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(params)
-                        self.mechanical_solver = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactAcceleratedStrategy(
-                                                                                self.computing_model_part, 
-                                                                                mechanical_scheme, 
-                                                                                self.linear_solver, 
-                                                                                mechanical_convergence_criterion, 
-                                                                                builder_and_solver, 
-                                                                                max_iters, 
-                                                                                compute_reactions, 
-                                                                                reform_step_dofs, 
-                                                                                move_mesh_flag,
-                                                                                self.coupling_utility
-                                                                                )
-                    elif  self.settings["compute_mortar_contact"].GetInt() > 0:
+                    if  self.settings["compute_mortar_contact"].GetInt() > 0:
                         split_factor   = self.settings["split_factor"].GetDouble()
                         max_number_splits = self.settings["max_number_splits"].GetInt()
                         self.mechanical_solver = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactStrategy(

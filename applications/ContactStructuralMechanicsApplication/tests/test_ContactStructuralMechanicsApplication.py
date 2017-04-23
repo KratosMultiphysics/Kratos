@@ -10,9 +10,16 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
-#from SmallTests import BasicCATest as TBasicCATest
-#from SmallTests import SolidCATest as TSolidCATest
-from SmallTests import HyperSimplePatchTestContact as THyperSimplePatchTestContact
+from TestExactIntegration import TestLineExactIntegration1 as TTestLineExactIntegration1
+from TestExactIntegration import TestLineExactIntegration2 as TTestLineExactIntegration2
+from TestExactIntegration import TestTriangleExactIntegration1 as TTestTriangleExactIntegration1
+from TestExactIntegration import TestTriangleExactIntegration2 as TTestTriangleExactIntegration2
+from TestExactIntegration import TestTriangleExactIntegration3 as TTestTriangleExactIntegration3
+from TestExactIntegration import TestQuadrilateralExactIntegration1 as TTestQuadrilateralExactIntegration1
+from TestExactIntegration import TestQuadrilateralExactIntegration2 as TTestQuadrilateralExactIntegration2
+from SmallTests import SimplePatchTestTwoDMeshTying as TSimplePatchTestTwoDMeshTying
+from SmallTests import SimplestPatchTestThreeDMeshTying as TSimplestPatchTestThreeDMeshTying
+from SmallTests import SimplePatchTestThreeDMeshTying as TSimplePatchTestThreeDMeshTying
 from SmallTests import SimplePatchTestContact as TSimplePatchTestContact
 from SmallTests import SimpleSlopePatchTestContact as TSimpleSlopePatchTestContact
 from SmallTests import SimplePatchNotMatchingATestContact as TSimplePatchNotMatchingATestContact
@@ -27,6 +34,10 @@ from SmallTests import ThreeDSimplestPatchMatchingTestContact as TThreeDSimplest
 from SmallTests import ThreeDSimplestTrianglePatchMatchingTestContact as TThreeDSimplestTrianglePatchMatchingTestContact
 from SmallTests import ThreeDPatchMatchingTestContact as TThreeDPatchMatchingTestContact
 from SmallTests import ThreeDPatchNotMatchingTestContact as TThreeDPatchNonMatchingTestContact
+from SmallTests import ALMHyperSimplePatchTestContact as TALMHyperSimplePatchTestContact
+from SmallTests import ALMSimplePatchTestContact as TALMSimplePatchTestContact
+from SmallTests import ALMSimplestPatchTestThreeDContact as TALMSimplestPatchTestThreeDContact
+from SmallTests import ALMSimplePatchTestThreeDContact as TALMSimplePatchTestThreeDContact
 
 ## NIGTHLY TESTS
 from NightlyTests import IroningTestContact as TIroningTestContact
@@ -50,9 +61,16 @@ def AssambleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
-    #smallSuite.addTest(TBasicCATest('test_execution'))
-    #smallSuite.addTest(TSolidCATest('test_execution'))
-    smallSuite.addTest(THyperSimplePatchTestContact('test_execution'))
+    smallSuite.addTest(TTestLineExactIntegration1('test_execution'))
+    smallSuite.addTest(TTestLineExactIntegration2('test_execution'))
+    smallSuite.addTest(TTestTriangleExactIntegration1('test_execution'))
+    smallSuite.addTest(TTestTriangleExactIntegration2('test_execution'))
+    smallSuite.addTest(TTestTriangleExactIntegration3('test_execution'))
+    smallSuite.addTest(TTestQuadrilateralExactIntegration1('test_execution'))
+    smallSuite.addTest(TTestQuadrilateralExactIntegration2('test_execution'))
+    smallSuite.addTest(TSimplePatchTestTwoDMeshTying('test_execution'))
+    smallSuite.addTest(TSimplestPatchTestThreeDMeshTying('test_execution'))
+    smallSuite.addTest(TSimplePatchTestThreeDMeshTying('test_execution'))
     smallSuite.addTest(TSimplePatchTestContact('test_execution'))
     smallSuite.addTest(TSimpleSlopePatchTestContact('test_execution'))
     smallSuite.addTest(TSimplePatchNotMatchingATestContact('test_execution'))
@@ -67,6 +85,10 @@ def AssambleTestSuites():
     smallSuite.addTest(TThreeDSimplestTrianglePatchMatchingTestContact('test_execution'))
     smallSuite.addTest(TThreeDPatchMatchingTestContact('test_execution'))
     smallSuite.addTest(TThreeDPatchNonMatchingTestContact('test_execution'))
+    smallSuite.addTest(TALMHyperSimplePatchTestContact('test_execution'))
+    smallSuite.addTest(TALMSimplePatchTestContact('test_execution'))
+    smallSuite.addTest(TALMSimplestPatchTestThreeDContact('test_execution'))
+    smallSuite.addTest(TALMSimplePatchTestThreeDContact('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -81,9 +103,16 @@ def AssambleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            #TBasicCATest,
-            #TSolidCATest,
-            THyperSimplePatchTestContact,
+            TTestLineExactIntegration1,
+            TTestLineExactIntegration2,
+            TTestTriangleExactIntegration1,
+            TTestTriangleExactIntegration2,
+            TTestTriangleExactIntegration3,
+            TTestQuadrilateralExactIntegration1,
+            TTestQuadrilateralExactIntegration2,
+            TSimplePatchTestTwoDMeshTying,
+            TSimplestPatchTestThreeDMeshTying,
+            #TSimplePatchTestThreeDMeshTying,
             TSimplePatchTestContact,
             TSimpleSlopePatchTestContact,
             TSimplePatchNotMatchingATestContact,
@@ -97,6 +126,10 @@ def AssambleTestSuites():
             TThreeDSimplestTrianglePatchMatchingTestContact,
             TThreeDPatchMatchingTestContact,
             TThreeDPatchNonMatchingTestContact,
+            TALMHyperSimplePatchTestContact,
+            TALMSimplePatchTestContact,
+            TALMSimplestPatchTestThreeDContact,
+            TALMSimplePatchTestThreeDContact,
             ############# JUST TESTING ###########
             ##THertzCompleteTestContact,
             ##TIroningTestContact,

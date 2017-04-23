@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//					 license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix
 //
@@ -24,15 +24,13 @@
 
 #include "includes/variables.h"
 
-/* ELEMENTS */
-// Test element
-#include "custom_elements/test_element.hpp"
-
 /* CONDITIONS */
 // Mortar conditions
+#include "custom_conditions/mesh_tying_mortar_condition.h"
+#include "custom_conditions/ALM_frictionless_mortar_contact_condition.h"
+
+// OLD Mortar conditions 
 #include "custom_conditions/mortar_contact_condition.h"
-#include "custom_conditions/mortar_contact_2D_condition.hpp"
-#include "custom_conditions/mortar_contact_3D_condition.hpp"
 
 namespace Kratos
 {
@@ -48,6 +46,11 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
+#if !defined(TENSOR_VALUE)
+#define TENSOR_VALUE
+    enum TensorValue {ScalarValue = 1, Vector2DValue = 2, Vector2DPScalarValue = 3, Vector3DValue = 3, Vector3DPScalarValue = 4 };
+#endif
+    
 ///@}
 ///@name  Functions
 ///@{
@@ -193,34 +196,29 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    /* ELEMENTS */
-    const TestElement mTestElement2D1N;
     
     /* CONDITIONS*/
-    // Mortar conditions
-//     const MortarContact2DCondition mMortarContactCondition2D2N;
-    const MortarContactCondition<2, 2, false> mMortarContactCondition2D2N;
-//     const MortarContact2DCondition mMortarContactCondition2D3N;
-    const MortarContactCondition<2, 3, false> mMortarContactCondition2D3N;
-//     const MortarContact3DCondition mMortarContactCondition3D3N;
-    const MortarContactCondition<3, 3, false> mMortarContactCondition3D3N;
-    const MortarContact3DCondition mMortarContactCondition3D6N;
-//     const MortarContactCondition<3, 6, false> mMortarContactCondition3D6N;
-//     const MortarContact3DCondition mMortarContactCondition3D4N;
-    const MortarContactCondition<3, 4, false> mMortarContactCondition3D4N;
-    const MortarContact3DCondition mMortarContactCondition3D8N;
-//     const MortarContactCondition<3, 8, false> mMortarContactCondition3D8N;
-    const MortarContact3DCondition mMortarContactCondition3D9N;
-//     const MortarContactCondition<3, 9, false> mMortarContactCondition3D9N;
-    const MortarContactCondition<2, 2, true> mMortarContactCondition2D2NDLM;
-    const MortarContactCondition<2, 3, true> mMortarContactCondition2D3NDLM;
-//     const MortarContactCondition<3, 3, true> mMortarContactCondition3D3NDLM;
-//     const MortarContactCondition<3, 6, true> mMortarContactCondition3D6NDLM;
-//     const MortarContactCondition<3, 4, true> mMortarContactCondition3D4NDLM;
-//     const MortarContactCondition<3, 8, true> mMortarContactCondition3D8NDLM;
-//     const MortarContactCondition<3, 9, true> mMortarContactCondition3D9NDLM;
-
+    // Mesh tying mortar condition    
+    const MeshTyingMortarCondition<2, 3, ScalarValue> mMeshTyingMortarCondition2D2NTriangleScalar;            // 2DLine/Triangle for scalar variables
+    const MeshTyingMortarCondition<2, 4, ScalarValue> mMeshTyingMortarCondition2D2NQuadrilateralScalar;       // 2DLine/Quadrilateral for scalar variables
+    const MeshTyingMortarCondition<2, 3, Vector2DValue> mMeshTyingMortarCondition2D2NTriangleComponents;      // 2DLine/Triangle for components variables
+    const MeshTyingMortarCondition<2, 4, Vector2DValue> mMeshTyingMortarCondition2D2NQuadrilateralComponents; // 2DLine/Quadrilateral for scalar variables
+    const MeshTyingMortarCondition<3, 4, ScalarValue> mMeshTyingMortarCondition3D3NTetrahedronScalar;         // 3D Triangle/Tetrahedron for scalar variables
+    const MeshTyingMortarCondition<3, 8, ScalarValue> mMeshTyingMortarCondition3D4NHexahedronScalar;          // 3D Quadrilateral/Hexahedra for scalar variables
+    const MeshTyingMortarCondition<3, 4, Vector3DValue> mMeshTyingMortarCondition3D3NTetrahedronComponents;   // 3D Triangle/Tetrahedron for components variables
+    const MeshTyingMortarCondition<3, 8, Vector3DValue> mMeshTyingMortarCondition3D4NHexahedronComponents;    // 3D Quadrilateral/Hexahedra for components variables
+    
+    // ALM Mortar contact conditions
+    const AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2> mALMFrictionlessMortarContactCondition2D2N;
+    const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3> mALMFrictionlessMortarContactCondition3D3N;
+    const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4> mALMFrictionlessMortarContactCondition3D4N;
+    
+    // OLD Mortar contact conditions
+    const MortarContactCondition<2, 2> mMortarContactCondition2D2N;
+    const MortarContactCondition<2, 3> mMortarContactCondition2D3N;
+    const MortarContactCondition<3, 3> mMortarContactCondition3D3N;
+    const MortarContactCondition<3, 4> mMortarContactCondition3D4N;
+    
     ///@}
     ///@name Private Operators
     ///@{
