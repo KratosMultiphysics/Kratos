@@ -44,5 +44,5 @@ class ApplyDistanceModificationProcess(KratosMultiphysics.Process):
         self.DistanceModificationProcess.ExecuteInitializeSolutionStep()
 
 
-    def ExecuteFinalize(self):
-        self.DistanceModificationProcess.ExecuteFinalize()
+    def ExecuteFinalizeSolutionStep(self):
+        self.DistanceModificationProcess.ExecuteFinalizeSolutionStep()
