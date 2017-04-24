@@ -160,10 +160,8 @@ public:
         writeElementTypes();
 
         // write nodal results
-        writeNodalResultsAsPointData(); // write the first nodal results variable as PointData
-        writeNodalResultsAsFieldData(); // write the remaining variables as FieldData
-
-        // writeNodalResults(); // write all as FieldData
+        writeFirstNodalResultsAsPointData();
+        writeOtherNodalResultsAsFieldData();
 
         outputFile.close(); 
     }
@@ -260,7 +258,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void writeNodalResultsAsPointData()
+    void writeFirstNodalResultsAsPointData()
     {
         ofstream outputFile;
         outputFile.open(mOutputFilename, ios::out | ios::app );
@@ -306,7 +304,7 @@ public:
     }
     
     // --------------------------------------------------------------------------
-    void writeNodalResultsAsFieldData()
+    void writeOtherNodalResultsAsFieldData()
     {
         ofstream outputFile;
         outputFile.open(mOutputFilename, ios::out | ios::app );
@@ -320,59 +318,6 @@ public:
         {
             // write nodal results variable header            
             string nodalResultName = nodalResults[entry].GetString();
-
-            unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
-            if( KratosComponents<Variable<double>>::Has(nodalResultName))
-            {
-                dataCharacteristic = 1;
-                outputFile << nodalResultName << " 1 " << mrDesignSurface.NumberOfNodes() << " float" << "\n";
-            }
-            else if( KratosComponents<Variable< array_1d<double,3>>>::Has(nodalResultName))
-            {
-                dataCharacteristic = 2;
-                outputFile << nodalResultName << " 3 " << mrDesignSurface.NumberOfNodes() << " float" << "\n";
-            }
-
-            // write nodal results
-            outputFile << scientific;
-            outputFile << setprecision(16);
-            for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
-            {
-                if(dataCharacteristic==1)
-                {
-                    Variable<double> nodalResultVariable = KratosComponents<Variable<double>>::Get(nodalResultName);
-                    double& nodalResult = node_i->FastGetSolutionStepValue(nodalResultVariable);
-                    outputFile << nodalResult << "\n"; 
-                }
-                else if(dataCharacteristic==2)
-                {
-                    Variable< array_1d<double,3>> nodalResultVariable = KratosComponents<Variable< array_1d<double,3>>>::Get(nodalResultName);
-                    array_1d<double,3>& nodalResult = node_i->FastGetSolutionStepValue(nodalResultVariable);
-                    outputFile << nodalResult[0] << " ";
-                    outputFile << nodalResult[1] << " ";
-                    outputFile << nodalResult[2] << "\n"; 
-                }
-            }
-        }
-        outputFile.close();     
-    }
-
-    // --------------------------------------------------------------------------
-    void writeNodalResults()
-    {
-        ofstream outputFile;
-        outputFile.open(mOutputFilename, ios::out | ios::app );
-        
-        // write nodal results header
-        Parameters nodalResults = mrOptimizationSettings["output"]["nodal_results"];
-        outputFile << "FIELD FieldData " << nodalResults.size() << "\n";
-
-        // Loop over all nodal result variables
-        for(unsigned int entry = 0; entry < nodalResults.size(); entry++)
-        {
-            // write nodal results variable header            
-            string nodalResultName = nodalResults[entry].GetString();
-
             unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
             if( KratosComponents<Variable<double>>::Has(nodalResultName))
             {
