@@ -360,19 +360,6 @@ public:
         return sqrt( length );
     }
 
-    /**
-     * Returns whether given arbitrary point is inside the Geometry
-     */
-    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() ) override
-    {
-        this->PointLocalCoordinates( rResult, rPoint );
-
-        if ( fabs( rResult[0] ) <= (1.0 + Tolerance) )
-            return true;
-
-        return false;
-    }
-
 
     ///@}
     ///@name Jacobian
@@ -646,19 +633,6 @@ public:
     ///@}
     ///@name Shape Function
     ///@{
-
-    virtual Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
-    {
-        if(rResult.size() != 2)
-        {
-            rResult.resize(2, false);
-        }
-
-        rResult[0] =  0.5 * ( 1.0 - rCoordinates[0]);
-        rResult[1] =  0.5 * ( 1.0 + rCoordinates[0]);
-
-        return rResult;
-    }
 
     virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint ) const override
