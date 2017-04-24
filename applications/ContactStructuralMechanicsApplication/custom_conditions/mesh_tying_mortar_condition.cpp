@@ -194,23 +194,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::InitializeNonLinearIt
 {
     KRATOS_TRY;
     
-    // Debug
-    if (TTensor == 1)
-    {
-        for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
-        {
-            #pragma omp critical 
-            GetGeometry()[iNode].FastGetSolutionStepValue(WEIGHTED_SCALAR_RESIDUAL) = 0.0; 
-        } 
-    }
-    else
-    {
-        for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
-        {
-            #pragma omp critical 
-            GetGeometry()[iNode].FastGetSolutionStepValue(WEIGHTED_VECTOR_RESIDUAL) = ZeroVector(3); 
-        } 
-    }
+    // NOTE: Add things if necessary
         
     KRATOS_CATCH( "" );
 }
@@ -269,99 +253,6 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::FinalizeNonLinearIter
 //     {
 //         
 //     }
-    
-    // Debug
-    // Create and initialize condition variables:
-    GeneralVariables rVariables;
-    
-    // Create the current DoF data
-    DofData rDofData;
-    
-    // Create the mortar operators
-    MortarConditionMatrices rThisMortarConditionMatrices;
-                                            
-    // Initialize the DoF data
-    this->InitializeDofData(rDofData, rCurrentProcessInfo);
-    
-    // Compute Ae and its derivative
-    this->CalculateAe(rDofData, rVariables, rCurrentProcessInfo); 
-    
-    // Iterate over the master segments
-    for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
-    {
-        // The normal of the master condition
-        const array_1d<double, 3> MasterNormal = mThisMasterConditions[PairIndex]->GetValue(NORMAL);
-        
-        // Initialize general variables for the current master element
-        this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
-        
-        // Update master pair info
-        rDofData.UpdateMasterPair(mThisMasterConditions[PairIndex]);
-        
-        // Initialize the mortar operators
-        rThisMortarConditionMatrices.Initialize();
-        
-        // Get the integration points
-        const IntegrationPointsType IntegrationPointsSlave = mIntegrationPointsVector[PairIndex];
-        
-        const unsigned int NumberOfIntegrationPoints = IntegrationPointsSlave.size();
-        
-        // Integrating the mortar operators
-        for ( unsigned int PointNumber = 0; PointNumber < NumberOfIntegrationPoints; PointNumber++ )
-        {            
-            // Calculate the kinematic variables
-            this->CalculateKinematics( rVariables, rDofData, MasterNormal, PointNumber, IntegrationPointsSlave );
-            
-            this->CalculateMortarOperators(rThisMortarConditionMatrices, rVariables, IntegrationPointsSlave[PointNumber].Weight());
-        }
-                
-        if (NumberOfIntegrationPoints > 0)
-        {
-            // Setting the weighted residual
-            // Mortar condition matrices - DOperator and MOperator
-            const bounded_matrix<double, NumNodes, NumNodes>& DOperator = rThisMortarConditionMatrices.DOperator;
-            const bounded_matrix<double, NumNodes, NumNodes>& MOperator = rThisMortarConditionMatrices.MOperator;
-    
-            for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
-            {            
-                if (TTensor == 1)
-                {
-                    // Initialize values
-                    const array_1d<double, NumNodes> u1 = ContactUtilities::GetVariableVector<NumNodes>(this->GetGeometry(), TEMPERATURE, 0);
-                    const array_1d<double, NumNodes> u2 = ContactUtilities::GetVariableVector<NumNodes>(mThisMasterConditions[PairIndex]->GetGeometry(), TEMPERATURE, 0);
-                    
-                    const array_1d<double, NumNodes> Du1Mu2 = prod(DOperator, u1) - prod(MOperator, u2); 
-                    
-                    for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
-                    {
-                        #pragma omp atomic 
-                        GetGeometry()[iNode].FastGetSolutionStepValue(WEIGHTED_SCALAR_RESIDUAL) += Du1Mu2[iNode]; 
-                    }
-                }
-                else
-                {
-                    // Initialize values
-                    const bounded_matrix<double, NumNodes, TDim> u1 = ContactUtilities::GetVariableMatrix<TDim,NumNodes>(this->GetGeometry(), DISPLACEMENT, 0);
-                    const bounded_matrix<double, NumNodes, TDim> u2 = ContactUtilities::GetVariableMatrix<TDim,NumNodes>(mThisMasterConditions[PairIndex]->GetGeometry(), DISPLACEMENT, 0);
-                    
-                    const bounded_matrix<double, NumNodes, TDim> Du1Mu2 = prod(DOperator, u1) - prod(MOperator, u2); 
-            
-                    for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
-                    {
-                        array_1d<double, 3> auxvector = ZeroVector(3);
-                        
-                        for (unsigned int iDim = 0; iDim < TDim; iDim++)
-                        {
-                            auxvector[iDim] = Du1Mu2(iNode, iDim);
-                        }
-                        
-                        #pragma omp critical 
-                        GetGeometry()[iNode].FastGetSolutionStepValue(WEIGHTED_VECTOR_RESIDUAL) += auxvector; 
-                    } 
-                }
-            }
-        }
-    }
     
     KRATOS_CATCH( "" );
 }
