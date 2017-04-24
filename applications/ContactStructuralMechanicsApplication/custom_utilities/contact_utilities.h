@@ -966,120 +966,51 @@ public:
      * @return The modelparts with the conditions changed
      */
     
-//     static inline void ReComputeActiveInactiveFrictionlessALM(ModelPart & rModelPart)
-//     {
-//         // TODO: If works make it parallell (it is difficult, be careful with the repeated nodes) 
-//         
-//         const double epsilon = rModelPart.GetProcessInfo()[PENALTY_FACTOR]; 
-//         const double k = rModelPart.GetProcessInfo()[SCALE_FACTOR]; 
-//         
-//         NodesArrayType& pNodes = rModelPart.GetSubModelPart("Contact").Nodes();
-//         auto numNodes = pNodes.end() - pNodes.begin();
-// 
-//         #pragma omp parallel for 
-//         for(unsigned int i = 0; i < numNodes; i++) 
-//         {
-//             auto itNode = pNodes.begin() + i;
-//             
-//             if ((itNode)->Is(ACTIVE) == true )
-//             {
-//                 const double gn = (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);
-//                 const double AugmentedNormalPressure = k * (itNode)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + epsilon * gn;     
-//                 
-//                 if (AugmentedNormalPressure < 0.0) // NOTE: This could be conflictive (< or <=)
-//                 {
-//                     (itNode)->Set(ACTIVE, true);
-//                 }
-//                 else
-//                 {
-//                     (itNode)->Set(ACTIVE, false);
-// //                     (itNode)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) = 0.0;
-//                 }
-//                 
-// //                 // Debug 
-// //                 std::cout << (itNode)->Id() << " Gap: " << gn  << " Pressure: " << AugmentedNormalPressure << " Active: " << (itNode)->Is(ACTIVE) << std::endl;
-//             }
-//         }
-//         
-//         ConditionsArrayType& pConditions = rModelPart.GetSubModelPart("Contact").Conditions();
-//         auto numConditions = pConditions.end() - pConditions.begin();
-// 
-//         #pragma omp parallel for 
-//         for(unsigned int i = 0; i < numConditions; i++) 
-//         {
-//             auto itCond = pConditions.begin() + i;
-//             if ( (itCond)->Is(ACTIVE) == true )
-//             {
-//                 bool DeactivateCondition = true;
-//                 
-//                 for(unsigned int iNode = 0; iNode < itCond->GetGeometry().size(); iNode++)
-//                 {
-//                     if (itCond->GetGeometry()[iNode].Is(ACTIVE) == false)
-//                     {
-//                         DeactivateCondition = false;
-//                         break;
-//                     }
-//                 }
-//                 
-//                 // We deactivate the condition if necessary
-//                 if (DeactivateCondition == true)
-//                 {
-//                     itCond->Set(ACTIVE, false);
-//                 }
-//             }
-//         }
-//     }
-    
     static inline void ReComputeActiveInactiveFrictionlessALM(ModelPart & rModelPart)
-    {
-        // TODO: If works make it parallell (it is difficult, be careful with the repeated nodes) 
-       
+    {        
         const double epsilon = rModelPart.GetProcessInfo()[PENALTY_FACTOR]; 
         const double k = rModelPart.GetProcessInfo()[SCALE_FACTOR]; 
+        
+        NodesArrayType& pNodes = rModelPart.GetSubModelPart("Contact").Nodes();
+        auto numNodes = pNodes.end() - pNodes.begin();
+
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNodes.begin() + i;
+            
+            if ((itNode)->Is(ACTIVE) == true )
+            {
+                const double AugmentedNormalPressure = k * (itNode)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + epsilon * (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);     
+                
+                if (AugmentedNormalPressure < 0.0) // NOTE: This could be conflictive (< or <=)
+                {
+                    (itNode)->Set(ACTIVE, true);
+                }
+                else
+                {
+                    (itNode)->Set(ACTIVE, false);
+                }
+            }
+        }
         
         ConditionsArrayType& pConditions = rModelPart.GetSubModelPart("Contact").Conditions();
         auto numConditions = pConditions.end() - pConditions.begin();
 
-//         #pragma omp parallel for 
+        #pragma omp parallel for 
         for(unsigned int i = 0; i < numConditions; i++) 
         {
             auto itCond = pConditions.begin() + i;
-            
-            bool ConditionIsActive = false; // It is supposed to be always defined, and with this only the slave conditions will be taken into account
-            if( (itCond)->IsDefined(ACTIVE) == true)
+            if ( (itCond)->Is(ACTIVE) == true )
             {
-                ConditionIsActive = (itCond)->Is(ACTIVE);
-            }
-            
-            if ( ConditionIsActive == true )
-            {
-                // Recompute Active/Inactive nodes
-
-                bool DeactivateCondition = true; // If all nodes are inactive we deactivate the condition
-                GeometryType & CondGeometry = itCond->GetGeometry();
+                bool DeactivateCondition = true;
                 
-                for(unsigned int itNode = 0; itNode!=CondGeometry.PointsNumber(); itNode++)
+                for(unsigned int iNode = 0; iNode < itCond->GetGeometry().size(); iNode++)
                 {
-                    if (CondGeometry[itNode].Is(VISITED) == false)
+                    if (itCond->GetGeometry()[iNode].Is(ACTIVE) == true)
                     {
-                        const double gn = CondGeometry[itNode].FastGetSolutionStepValue(WEIGHTED_GAP);
-                        const double AugmentedNormalPressure = k * CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + epsilon * gn;     
-                        
-                        if (AugmentedNormalPressure < 0.0) // NOTE: This could be conflictive (< or <=)
-                        {
-                            CondGeometry[itNode].Set(ACTIVE, true);
-                            DeactivateCondition = false; // The condition is active
-                        }
-                        else
-                        {
-                            CondGeometry[itNode].Set(ACTIVE, false);
-//                             CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) = 0.0;
-                        }
-                        
-//                         // Debug 
-//                         std::cout << CondGeometry[itNode].Id() << " Gap: " << gn  << " Pressure: " << AugmentedNormalPressure << " Active: " << CondGeometry[itNode].Is(ACTIVE) << std::endl;
-                        
-                        CondGeometry[itNode].Set(VISITED, true);
+                        DeactivateCondition = false;
+                        break;
                     }
                 }
                 
@@ -1100,91 +1031,75 @@ public:
 
     static inline void ReComputeActiveInactiveFrictionalALM(ModelPart & rModelPart)
     {
-        // TODO: If works make it parallell (it is difficult, be careful with the repeated nodes) 
-       
+        const double epsilon = rModelPart.GetProcessInfo()[PENALTY_FACTOR]; 
+        const double k = rModelPart.GetProcessInfo()[SCALE_FACTOR]; 
+        
+        NodesArrayType& pNodes = rModelPart.GetSubModelPart("Contact").Nodes();
+        auto numNodes = pNodes.end() - pNodes.begin();
+
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNodes.begin() + i;
+            
+            if ((itNode)->Is(ACTIVE) == true )
+            {
+                const array_1d<double,3> LagrangeMultiplier = (itNode)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                const array_1d<double,3> NodalNormal = (itNode)->GetValue(NORMAL);
+                
+                const double AugmentedNormalPressure = k * inner_prod(NodalNormal, LagrangeMultiplier) + epsilon * (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);     
+                
+                if (AugmentedNormalPressure < 0.0) // NOTE: This could be conflictive (< or <=)
+                {
+                    (itNode)->Set(ACTIVE, true);
+                    
+                    // Computing the augmented tangent pressure
+                    const array_1d<double, 3> NodalTangentXi  = (itNode)->GetValue(TANGENT_XI); 
+                    const array_1d<double, 3> NodalTangentEta = (itNode)->GetValue(TANGENT_ETA);
+                    const double TangentXiLM  = inner_prod(NodalTangentXi,  LagrangeMultiplier);
+                    const double TangentEtaLM = inner_prod(NodalTangentEta, LagrangeMultiplier);
+                    const double LambdaTangent = std::sqrt(TangentXiLM * TangentXiLM + TangentEtaLM * TangentEtaLM); 
+                    
+                    // The friction coefficient
+                    const double mu = (itNode)->GetValue(WEIGHTED_FRICTION);
+                    
+                    // Finally we compute the augmented tangent pressure
+                    const double gt = (itNode)->FastGetSolutionStepValue(WEIGHTED_SLIP);
+                    const double AugmentedTangentPressure = std::abs(k * LambdaTangent + epsilon * gt) + mu * AugmentedNormalPressure;
+                    
+                    if (AugmentedTangentPressure <= 0.0) // TODO: Check if it is minor equal or just minor
+                    {
+                        (itNode)->Set(SLIP, false);
+                    }
+                    else
+                    {
+                        (itNode)->Set(SLIP, true);
+                    }   
+                }
+                else
+                {
+                    (itNode)->Set(ACTIVE, false);
+                }
+            }
+        }
+        
         ConditionsArrayType& pConditions = rModelPart.GetSubModelPart("Contact").Conditions();
         auto numConditions = pConditions.end() - pConditions.begin();
 
-//         #pragma omp parallel for 
+        #pragma omp parallel for 
         for(unsigned int i = 0; i < numConditions; i++) 
         {
             auto itCond = pConditions.begin() + i;
-            
-            bool ConditionIsActive = false; // It is supposed to be always defined, and with this only the slave conditions will be taken into account
-            if( (itCond)->IsDefined(ACTIVE) == true)
+            if ( (itCond)->Is(ACTIVE) == true )
             {
-                ConditionIsActive = (itCond)->Is(ACTIVE);
-            }
-            
-            if ( ConditionIsActive == true )
-            {
-                // Recompute Active/Inactive nodes
-                double epsilon = 0.0;
-                if (itCond->GetProperties().Has(PENALTY_FACTOR) == true)
-                {
-                    epsilon = itCond->GetProperties().GetValue(PENALTY_FACTOR); 
-                }
+                bool DeactivateCondition = true;
                 
-                double k = 1.0;
-                if (itCond->GetProperties().Has(SCALE_FACTOR) == true)
+                for(unsigned int iNode = 0; iNode < itCond->GetGeometry().size(); iNode++)
                 {
-                    k = itCond->GetProperties().GetValue(SCALE_FACTOR); 
-                }
-
-                bool DeactivateCondition = true; // If all nodes are inactive we deactivate the condition
-                GeometryType & CondGeometry = itCond->GetGeometry();
-                
-                for(unsigned int itNode = 0; itNode!=CondGeometry.PointsNumber(); itNode++)
-                {
-                    if (CondGeometry[itNode].Is(VISITED) == false)
+                    if (itCond->GetGeometry()[iNode].Is(ACTIVE) == true)
                     {
-                        const array_1d<double,3> LagrangeMultiplier = CondGeometry[itNode].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-                        const array_1d<double,3> NodalNormal = CondGeometry[itNode].GetValue(NORMAL);
-                        
-                        const double gn = CondGeometry[itNode].FastGetSolutionStepValue(WEIGHTED_GAP);
-                        const double AugmentedNormalPressure = k * inner_prod(NodalNormal, LagrangeMultiplier) + epsilon * gn;  
-                        
-//                         // Debug 
-//                         std::cout << CondGeometry[itNode].Id() << " Gap: " << gn  << " Pressure: " << AugmentedNormalPressure << " Active: " << CondGeometry[itNode].Is(ACTIVE) << std::endl;
-                        
-                        if (AugmentedNormalPressure < 0.0) // NOTE: This could be conflictive (< or <=)
-                        {
-                            CondGeometry[itNode].Set(ACTIVE, true);
-                            DeactivateCondition = false; // The condition is active
-                            
-                            // Computing the augmented tangent pressure
-                            const array_1d<double, 3> NodalTangentXi  = CondGeometry[itNode].GetValue(TANGENT_XI); 
-                            const array_1d<double, 3> NodalTangentEta = CondGeometry[itNode].GetValue(TANGENT_ETA);
-                            const double TangentXiLM  = inner_prod(NodalTangentXi,  LagrangeMultiplier);
-                            const double TangentEtaLM = inner_prod(NodalTangentEta, LagrangeMultiplier);
-                            const double LambdaTangent = std::sqrt(TangentXiLM * TangentXiLM + TangentEtaLM * TangentEtaLM); 
-                            
-                            // The friction coefficient
-                            const double mu = itCond->GetProperties().GetValue(FRICTION_COEFFICIENT); // TODO: Change by a friction law
-                            
-                            // Finally we compute the augmented tangent pressure
-                            const double gt = CondGeometry[itNode].FastGetSolutionStepValue(WEIGHTED_SLIP);
-                            const double AugmentedTangentPressure = std::abs(k * LambdaTangent + epsilon * gt) + mu * AugmentedNormalPressure;
-                            
-//                             // Debug 
-//                         std::cout << CondGeometry[itNode].Id() << " Slip: " << gt  << " Tangent Pressure: " << AugmentedTangentPressure << " Slip: " << CondGeometry[itNode].Is(SLIP) << std::endl;
-                            
-                            if (AugmentedTangentPressure <= 0.0) // TODO: Check if it is minor equal or just minor
-                            {
-                                CondGeometry[itNode].Set(SLIP, false);
-                            }
-                            else
-                            {
-                                CondGeometry[itNode].Set(SLIP, true);
-                            }   
-                        }
-                        else
-                        {
-                            CondGeometry[itNode].Set(ACTIVE, false);
-//                             CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) = 0.0;
-                        }
-                        
-                        CondGeometry[itNode].Set(VISITED, true);
+                        DeactivateCondition = false;
+                        break;
                     }
                 }
                 
@@ -1241,59 +1156,6 @@ public:
             }
             
             itNode->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
-        }
-    }
-    
-    /**
-     * It resets the value of the weighted gap in the frictionless case
-     * @param ModelPart: The model part to compute
-     * @return The modelparts with the nodes changed
-     */
-    
-    static inline void ResetWeightedFrictionlessALMValues(ModelPart & rModelPart) // NOTE: Deprecated
-    {
-        NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
-        
-        auto numNodes = pNode.end() - pNode.begin();
-        
-        #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
-        {
-            auto itNode = pNode.begin() + i;
-
-            if (itNode->Is(ACTIVE) == false)
-            {
-                itNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
-            }
-            
-            itNode->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
-        }
-    }
-    
-    /**
-     * It resets the value of the weighted gap and weighted slip in the frictional case
-     * @param ModelPart: The model part to compute
-     * @return The modelparts with the nodes changed
-     */
-    
-    static inline void ResetWeightedFrictionalALMValues(ModelPart & rModelPart) // NOTE: Deprecated
-    {
-        NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
-        
-        auto numNodes = pNode.end() - pNode.begin();
-        
-        #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
-        {
-            auto itNode = pNode.begin() + i;
-
-            if (itNode->Is(ACTIVE) == false)
-            {
-                itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector(3);
-            }
-            
-            itNode->FastGetSolutionStepValue(WEIGHTED_GAP)  = 0.0;
-            itNode->FastGetSolutionStepValue(WEIGHTED_SLIP) = 0.0;
         }
     }
     

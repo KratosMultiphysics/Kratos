@@ -204,16 +204,6 @@ public:
             ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart.GetSubModelPart("Contact") ); 
         }
         
-        // Reset the weighted variables
-        if (rModelPart.Is(SLIP) == true)
-        {
-            ContactUtilities::ResetWeightedFrictionalALMValues( rModelPart );
-        }
-        else
-        {
-            ContactUtilities::ResetWeightedFrictionlessALMValues( rModelPart );
-        }
-        
         // Initializes the non-linear iteration for all the conditions
         ConditionsArrayType& rConditions = rModelPart.Conditions();
         
@@ -308,9 +298,6 @@ public:
                 itCond->FinalizeSolutionStep(CurrentProcessInfo);
             }
         }
-       
-//         // It resets the visited flag
-//         ContactUtilities::ResetVisited(rModelPart);
         
 //         // It recomputes the active/inactive pair
 //         if (rModelPart.Is(SLIP) == true)
@@ -392,9 +379,6 @@ public:
                 itCond->FinalizeNonLinearIteration(CurrentProcessInfo);
             }
         }
-        
-        // It resets the visited flag
-        ContactUtilities::ResetVisited(rModelPart);
         
         // It recomputes the active/inactive pair
         if (rModelPart.Is(SLIP) == true)

@@ -90,6 +90,7 @@ void KratosContactStructuralMechanicsApplication::Register()
     /* Weighted values */
     KRATOS_REGISTER_VARIABLE( WEIGHTED_GAP )                                    // The integrated gap employed in mortar formulation
     KRATOS_REGISTER_VARIABLE( WEIGHTED_SLIP )                                   // The integrated slip employed in mortar formulation
+    KRATOS_REGISTER_VARIABLE( WEIGHTED_FRICTION )                               // The integrated friction coefficient
     KRATOS_REGISTER_VARIABLE( WEIGHTED_SCALAR_RESIDUAL )                        // The integrated scalar residual  
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WEIGHTED_VECTOR_RESIDUAL )     // The integrated vector residual    
     
