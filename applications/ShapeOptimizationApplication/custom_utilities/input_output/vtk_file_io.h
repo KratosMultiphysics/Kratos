@@ -216,7 +216,8 @@ public:
                 outputFile << numberOfNodes;
                 outputFile << " " << KratosIdToVtkId[condition_geometry[0].Id()]; 
                 outputFile << " " << KratosIdToVtkId[condition_geometry[1].Id()]; 
-                outputFile << " " << KratosIdToVtkId[condition_geometry[2].Id()] << "\n";                
+                outputFile << " " << KratosIdToVtkId[condition_geometry[2].Id()]; 
+                outputFile << " " << KratosIdToVtkId[condition_geometry[3].Id()] << "\n";                
             } 
             else 
                 KRATOS_THROW_ERROR(std::runtime_error,"Design surface contains conditions with geometries for which no VTK-output is implemented!","" )
