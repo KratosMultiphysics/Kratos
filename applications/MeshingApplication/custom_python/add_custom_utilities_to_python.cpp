@@ -144,18 +144,14 @@ void AddCustomUtilitiesToPython()
     // 2D
     class_<MmgUtility<2>, boost::noncopyable >
     ("MmgUtility2D", init<ModelPart&>())
-    .def(init<ModelPart&, const std::string>())
-    .def(init<ModelPart&, const std::string, const unsigned int>())
-    .def(init<ModelPart&, const std::string, const unsigned int, const std::string>())
+    .def(init<ModelPart&, Parameters>())
     .def("RemeshModelPart", &MmgUtility<2>::RemeshModelPart)
     ;
     
     // 3D
     class_<MmgUtility<3>, boost::noncopyable >
     ("MmgUtility3D", init<ModelPart&>())
-    .def(init<ModelPart&, const std::string>())
-    .def(init<ModelPart&, const std::string, const unsigned int>())
-    .def(init<ModelPart&, const std::string, const unsigned int, const std::string>())
+    .def(init<ModelPart&, Parameters>())
     .def("RemeshModelPart", &MmgUtility<3>::RemeshModelPart)
     ;
 #endif  

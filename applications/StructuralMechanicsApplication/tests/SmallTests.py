@@ -85,6 +85,4 @@ class EigenQ4Thick2x2PlateTests(StructuralMechanichsTestFactory):
 
 class EigenTL3D8NCubeTests(StructuralMechanichsTestFactory):
     file_name = "eigen_test/Eigen_TL_3D8N_Cube_test"
-
-class MPCSmallDisplacementElementTests(StructuralMechanichsTestFactory):
-    file_name = "mpc_test/Mpc_Small_Disp_Elem_test"
+    
