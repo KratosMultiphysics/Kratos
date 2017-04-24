@@ -199,7 +199,6 @@ protected:
     void ModifyDistance(const double& factor,
                         unsigned int& bad_cuts)
     {
-        bad_cuts = 0;
         ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
         ModelPart::ElementsContainerType& rElements = mrModelPart.Elements();
 
@@ -268,7 +267,13 @@ protected:
         mrModelPart.GetCommunicator().SynchronizeCurrentDataToMin(DISTANCE);
 
         // Check if there still exist bad cuts
-        #pragma omp parallel for reduction(+ : bad_cuts)
+        unsigned int num_bad_cuts = 0;
+        /* Note: I'm defining a temporary variable because 'num_bad_cuts'
+        *  instead of writing directly into input argument 'bad_cuts'
+        *  because using a reference variable in a reduction pragma does
+        *  not compile in MSVC 2015 nor in clang-3.8 (Is it even allowed by omp?)
+        */
+        #pragma omp parallel for reduction(+ : num_bad_cuts)
         for (int k = 0; k < static_cast<int>(rElements.size()); ++k)
         {
             unsigned int npos = 0;
@@ -287,18 +292,21 @@ protected:
             {
                 for(unsigned int iNode=0; iNode<rGeometry.size(); iNode++)
                 {
-                    const double h = rGeometry[iNode].GetValue(NODAL_H);
+                    const Node<3> &rConstNode = rGeometry[iNode];
+                    const double h = rConstNode.GetValue(NODAL_H);
                     const double tol_d = (factor*mFactorCoeff)*h;
-                    const double d = rGeometry[iNode].FastGetSolutionStepValue(DISTANCE);
+                    const double d = rConstNode.FastGetSolutionStepValue(DISTANCE);
 
                     if((d >= 0.0) && (d < tol_d))
                     {
-                        bad_cuts++;
+                        num_bad_cuts++;
                         break;
                     }
                 }
             }
         }
+
+        bad_cuts = num_bad_cuts;
     }
 
 
