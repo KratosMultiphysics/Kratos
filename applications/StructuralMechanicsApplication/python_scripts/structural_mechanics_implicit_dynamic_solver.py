@@ -91,11 +91,7 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             
         if self.settings["rotation_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.POINT_TORQUE)
-        '''elif self.settings["multi_point_constraints_used"].GetBool():
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.IS_SLAVE)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.SLAVES)'''
-            
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.POINT_TORQUE)            
    
         print("::[Mechanical Solver]:: Variables ADDED")
 

@@ -26,7 +26,10 @@
 //Utilities
 #include "custom_utilities/sprism_neighbours.hpp"
 #include "custom_utilities/eigenvector_to_solution_step_variable_transfer_utility.hpp"
-#include "custom_utilities/formulate_constraint_utility.hpp"
+
+//Processes
+#include "custom_processes/apply_multi_point_constraints_process.h"
+
 
 namespace Kratos
 {
@@ -71,16 +74,12 @@ void  AddCustomUtilitiesToPython()
     .def("Transfer",TransferEigenvector2)
     ;
 
-    class_<MpcData, boost::noncopyable>( "MpcData", init<>() )
-	.def("AddSlave",&MpcData::AddSlave)
-	.def("AddMaster",&MpcData::AddMaster)
-    .def(self_ns::str(self))
-    ;
-    class_<Variable<MpcData> , bases<Flags>, boost::noncopyable >("MpcData", no_init)
-    ;
+    /// Processes
+    class_<ApplyMultipointConstraintsProcess, boost::noncopyable, bases<Process>>("ApplyMultipointConstraintsProcess", init<ModelPart&>())
+    .def(init< ModelPart&, Parameters& >())
+	.def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelation)
+    .def("PrintData", &ApplyMultipointConstraintsProcess::PrintData);
 
-    class_<AddMultiPointConstraint>("AddMultiPointConstraint")
-	.def("ApplyConstraint", &AddMultiPointConstraint::ApplyConstraint);
 
 }
 
