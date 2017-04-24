@@ -75,6 +75,8 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
         ## Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
+        
+        self.compute_reactions = self.settings["compute_reactions"].GetBool()
 
         ## Construct the linear solvers
         import trilinos_linear_solver_factory
@@ -197,3 +199,6 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
 
     def Solve(self):
         (self.solver).Solve()
+        
+        if self.compute_reactions:
+            self.solver.CalculateReactions()
