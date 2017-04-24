@@ -573,6 +573,10 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
 {
     KRATOS_TRY;
     
+    // We get the ALM variables
+    const double PenaltyFactor = rCurrentProcessInfo[PENALTY_FACTOR];
+    const double ScaleFactor = rCurrentProcessInfo[SCALE_FACTOR];
+    
     // Create and initialize condition variables:#pragma omp critical
     GeneralVariables rVariables;
     
@@ -683,7 +687,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                     rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
             {
                 // Calculate the local contribution
-                bounded_matrix<double, MatrixSize, MatrixSize> LHS_contact_pair = this->CalculateLocalLHS( rThisMortarConditionMatrices, PairIndex, ActiveInactive);
+                const bounded_matrix<double, MatrixSize, MatrixSize> LHS_contact_pair = this->CalculateLocalLHS( rThisMortarConditionMatrices, PairIndex, PenaltyFactor, ScaleFactor, ActiveInactive);
                 
                 // Contributions to stiffness matrix calculated on the reference config
                 this->CalculateAndAddLHS( rLocalSystem, LHS_contact_pair, PairIndex );
@@ -698,7 +702,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                     rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
             {
                 // Calculate the local contribution
-                const array_1d<double, MatrixSize> RHS_contact_pair = this->CalculateLocalRHS( rThisMortarConditionMatrices, PairIndex, ActiveInactive);
+                const array_1d<double, MatrixSize> RHS_contact_pair = this->CalculateLocalRHS( rThisMortarConditionMatrices, PairIndex, PenaltyFactor, ScaleFactor, ActiveInactive);
                 
                 // Contribution to previous step contact force and residuals vector
                 this->CalculateAndAddRHS( rLocalSystem, RHS_contact_pair, PairIndex );
@@ -1223,6 +1227,8 @@ template<>
 bounded_matrix<double, 10, 10> AugmentedLagrangianMethodMortarContactCondition<2,2, false>::CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const unsigned int& rMasterElementIndex,
+        const double& rPenaltyFactor,
+        const double& rScaleFactor,
         const unsigned int& rActiveInactive
         )
 {
@@ -1238,6 +1244,8 @@ template<>
 bounded_matrix<double, 21, 21> AugmentedLagrangianMethodMortarContactCondition<3,3, false>::CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const unsigned int& rMasterElementIndex,
+        const double& rPenaltyFactor,
+        const double& rScaleFactor,
         const unsigned int& rActiveInactive
         )
 {
@@ -1253,6 +1261,8 @@ template<>
 bounded_matrix<double, 28, 28> AugmentedLagrangianMethodMortarContactCondition<3,4, false>::CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const unsigned int& rMasterElementIndex,
+        const double& rPenaltyFactor,
+        const double& rScaleFactor,
         const unsigned int& rActiveInactive
         )
 {
@@ -1268,6 +1278,8 @@ template<>
 bounded_matrix<double, 12, 12> AugmentedLagrangianMethodMortarContactCondition<2,2, true>::CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const unsigned int& rMasterElementIndex,
+        const double& rPenaltyFactor,
+        const double& rScaleFactor,
         const unsigned int& rActiveInactive
         )
 {
@@ -1376,6 +1388,8 @@ template<>
 array_1d<double,10> AugmentedLagrangianMethodMortarContactCondition<2,2, false>::CalculateLocalRHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const unsigned int& rMasterElementIndex,
+        const double& rPenaltyFactor,
+        const double& rScaleFactor,
         const unsigned int& rActiveInactive
         )
 {
@@ -1391,6 +1405,8 @@ template<>
 array_1d<double,21> AugmentedLagrangianMethodMortarContactCondition<3,3, false>::CalculateLocalRHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const unsigned int& rMasterElementIndex,
+        const double& rPenaltyFactor,
+        const double& rScaleFactor,
         const unsigned int& rActiveInactive
         )
 {
@@ -1406,6 +1422,8 @@ template<>
 array_1d<double,28> AugmentedLagrangianMethodMortarContactCondition<3,4, false>::CalculateLocalRHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const unsigned int& rMasterElementIndex,
+        const double& rPenaltyFactor,
+        const double& rScaleFactor,
         const unsigned int& rActiveInactive
         )
 {
@@ -1421,6 +1439,8 @@ template<>
 array_1d<double,12> AugmentedLagrangianMethodMortarContactCondition<2,2, true>::CalculateLocalRHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const unsigned int& rMasterElementIndex,
+        const double& rPenaltyFactor,
+        const double& rScaleFactor,
         const unsigned int& rActiveInactive
         )
 {

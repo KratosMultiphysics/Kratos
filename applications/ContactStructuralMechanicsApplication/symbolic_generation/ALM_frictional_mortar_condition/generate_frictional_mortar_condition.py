@@ -37,12 +37,12 @@ def real_norm(input):
     return output
 
 lhs_string = ""
-lhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\nbounded_matrix<double, MatrixSize, MatrixSize> AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes>::CalculateLocalLHS(\n        const MortarConditionMatrices& rMortarConditionMatrices,\n        const unsigned int& rMasterElementIndex,\n        const unsigned int& rActiveInactive\n        )\n{\n    bounded_matrix<double,MatrixSize,MatrixSize> lhs(0.0,MatrixSize,MatrixSize);\n    \n    // Master segment info\n    GeometryType& CurrentMasterElement = mThisMasterElements[rMasterElementIndex]->GetGeometry();\n\n    // Initialize values\n    const bounded_matrix<double, TNumNodes, TDim> u1 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), DISPLACEMENT, 0);\n    const bounded_matrix<double, TNumNodes, TDim> u1old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), DISPLACEMENT, 1);\n    const bounded_matrix<double, TNumNodes, TDim> u2 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(CurrentMasterElement, DISPLACEMENT, 0);\n    const bounded_matrix<double, TNumNodes, TDim> u2old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(CurrentMasterElement, DISPLACEMENT, 1);\n    const bounded_matrix<double, TNumNodes, TDim> X1 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(this->GetGeometry(), false);\n    const bounded_matrix<double, TNumNodes, TDim> X2 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(CurrentMasterElement, false);\n    \n    const bounded_matrix<double, TNumNodes, TDim> lm = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); \n    \n    const bounded_matrix<double, TNumNodes, TDim> normalslave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(),  NORMAL);\n    const bounded_matrix<double, TNumNodes, TDim> tangentxislave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(),  TANGENT_XI);\n    const bounded_matrix<double, TNumNodes, TDim> tangentetaslave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(),  TANGENT_ETA);\n    \n    // Augmentation parameters\n    double scale_factor = 1.0;\n    double penalty_parameter = 0.0;\n    if (GetProperties().Has(SCALE_FACTOR) == true)\n    {\n        scale_factor  = GetProperties().GetValue(SCALE_FACTOR);\n    }\n    if (GetProperties().Has(PENALTY_FACTOR) == true)\n    {\n        penalty_parameter = GetProperties().GetValue(PENALTY_FACTOR);\n    }\n    \n    // Mortar operators\n    const bounded_matrix<double, TNumNodes, TNumNodes> MOperator = rMortarConditionMatrices.MOperator;\n    const bounded_matrix<double, TNumNodes, TNumNodes> DOperator = rMortarConditionMatrices.DOperator;\n    // Mortar operators derivatives\n    const array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2> DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;\n    const array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2> DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;\n\n    // We get the friction coefficient\n    const array_1d<double, TNumNodes> mu = GetFrictionCoefficient();\n\n"
+lhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\nbounded_matrix<double, MatrixSize, MatrixSize> AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes>::CalculateLocalLHS(\n        const MortarConditionMatrices& rMortarConditionMatrices,\n        const unsigned int& rMasterElementIndex,\n        const double& rPenaltyFactor,\n        const double& rScaleFactor,\n        const unsigned int& rActiveInactive\n        )\n{\n    bounded_matrix<double,MatrixSize,MatrixSize> lhs = ZeroMatrix(MatrixSize,MatrixSize);\n    \n    // Master segment info\n    GeometryType& CurrentMasterElement = mThisMasterElements[rMasterElementIndex]->GetGeometry();\n\n    // Initialize values\n    const bounded_matrix<double, TNumNodes, TDim> u1 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), DISPLACEMENT, 0);\n    const bounded_matrix<double, TNumNodes, TDim> u1old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), DISPLACEMENT, 1);\n    const bounded_matrix<double, TNumNodes, TDim> u2 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(CurrentMasterElement, DISPLACEMENT, 0);\n    const bounded_matrix<double, TNumNodes, TDim> u2old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(CurrentMasterElement, DISPLACEMENT, 1);\n    const bounded_matrix<double, TNumNodes, TDim> X1 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(this->GetGeometry(), false);\n    const bounded_matrix<double, TNumNodes, TDim> X2 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(CurrentMasterElement, false);\n    \n    const bounded_matrix<double, TNumNodes, TDim> lm = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); \n    \n    const bounded_matrix<double, TNumNodes, TDim> normalslave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(),  NORMAL);\n    const bounded_matrix<double, TNumNodes, TDim> tangentxislave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(),  TANGENT_XI);\n    const bounded_matrix<double, TNumNodes, TDim> tangentetaslave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(),  TANGENT_ETA);\n    \n    // Mortar operators\n    const bounded_matrix<double, TNumNodes, TNumNodes> MOperator = rMortarConditionMatrices.MOperator;\n    const bounded_matrix<double, TNumNodes, TNumNodes> DOperator = rMortarConditionMatrices.DOperator;\n    // Mortar operators derivatives\n    const array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2> DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;\n    const array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2> DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;\n\n    // We get the friction coefficient\n    const array_1d<double, TNumNodes> mu = GetFrictionCoefficient();\n\n"
 
 lhs_template_end_string = "\n\n    return lhs;\n}\n"
 
 rhs_string = ""
-rhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\narray_1d<double, MatrixSize> AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes>::CalculateLocalRHS(\n        const MortarConditionMatrices& rMortarConditionMatrices,\n        const unsigned int& rMasterElementIndex,\n        const unsigned int& rActiveInactive\n        )\n{\n    array_1d<double,MatrixSize> rhs(0.0,MatrixSize);\n\n    // Master segment info\n    GeometryType& CurrentMasterElement = mThisMasterElements[rMasterElementIndex]->GetGeometry();\n\n    // Initialize values\n    const bounded_matrix<double, TNumNodes, TDim> u1 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), DISPLACEMENT, 0);\n    const bounded_matrix<double, TNumNodes, TDim> u1old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), DISPLACEMENT, 1);\n    const bounded_matrix<double, TNumNodes, TDim> u2 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(CurrentMasterElement, DISPLACEMENT, 0);\n    const bounded_matrix<double, TNumNodes, TDim> u2old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(CurrentMasterElement, DISPLACEMENT, 1);\n    const bounded_matrix<double, TNumNodes, TDim> X1 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(this->GetGeometry(), false);\n    const bounded_matrix<double, TNumNodes, TDim> X2 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(CurrentMasterElement, false);\n    \n    const bounded_matrix<double, TNumNodes, TDim> lm = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); \n    \n    const bounded_matrix<double, TNumNodes, TDim> normalslave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(),  NORMAL);\n    const bounded_matrix<double, TNumNodes, TDim> tangentxislave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(),  TANGENT_XI);\n    const bounded_matrix<double, TNumNodes, TDim> tangentetaslave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(),  TANGENT_ETA);\n    \n    // Augmentation parameters\n    double scale_factor = 1.0;\n    double penalty_parameter = 0.0;\n    if (GetProperties().Has(SCALE_FACTOR) == true)\n    {\n        scale_factor  = GetProperties().GetValue(SCALE_FACTOR);\n    }\n    if (GetProperties().Has(PENALTY_FACTOR) == true)\n    {\n        penalty_parameter = GetProperties().GetValue(PENALTY_FACTOR);\n    }\n    \n    // Mortar operators\n    const bounded_matrix<double, TNumNodes, TNumNodes> MOperator = rMortarConditionMatrices.MOperator;\n    const bounded_matrix<double, TNumNodes, TNumNodes> DOperator = rMortarConditionMatrices.DOperator;\n    // We get the friction coefficient\n\n    const array_1d<double, TNumNodes> mu = GetFrictionCoefficient();\n\n"
+rhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\narray_1d<double, MatrixSize> AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes>::CalculateLocalRHS(\n        const MortarConditionMatrices& rMortarConditionMatrices,\n        const unsigned int& rMasterElementIndex,\n        const double& rPenaltyFactor,\n        const double& rScaleFactor,\n        const unsigned int& rActiveInactive\n        )\n{\n    array_1d<double,MatrixSize> rhs(0.0,MatrixSize);\n\n    // Master segment info\n    GeometryType& CurrentMasterElement = mThisMasterElements[rMasterElementIndex]->GetGeometry();\n\n    // Initialize values\n    const bounded_matrix<double, TNumNodes, TDim> u1 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), DISPLACEMENT, 0);\n    const bounded_matrix<double, TNumNodes, TDim> u1old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), DISPLACEMENT, 1);\n    const bounded_matrix<double, TNumNodes, TDim> u2 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(CurrentMasterElement, DISPLACEMENT, 0);\n    const bounded_matrix<double, TNumNodes, TDim> u2old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(CurrentMasterElement, DISPLACEMENT, 1);\n    const bounded_matrix<double, TNumNodes, TDim> X1 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(this->GetGeometry(), false);\n    const bounded_matrix<double, TNumNodes, TDim> X2 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(CurrentMasterElement, false);\n    \n    const bounded_matrix<double, TNumNodes, TDim> lm = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); \n    \n    const bounded_matrix<double, TNumNodes, TDim> normalslave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(),  NORMAL);\n    const bounded_matrix<double, TNumNodes, TDim> tangentxislave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(),  TANGENT_XI);\n    const bounded_matrix<double, TNumNodes, TDim> tangentetaslave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(),  TANGENT_ETA);\n    \n    // Mortar operators\n    const bounded_matrix<double, TNumNodes, TNumNodes> MOperator = rMortarConditionMatrices.MOperator;\n    const bounded_matrix<double, TNumNodes, TNumNodes> DOperator = rMortarConditionMatrices.DOperator;\n    // We get the friction coefficient\n\n    const array_1d<double, TNumNodes> mu = GetFrictionCoefficient();\n\n"
 
 rhs_template_end_string = "\n\n    return rhs;\n}\n"
 
@@ -113,7 +113,7 @@ for dim, nnodes in zip(dim_combinations, nnodes_combinations):
 
     #Define other symbols
     mu  = DefineVector('mu',nnodes) 
-    penalty_parameter  = Symbol('penalty_parameter',  positive=True)
+    penalty_factor  = Symbol('penalty_factor',  positive=True)
     scale_factor = Symbol('scale_factor', positive=True)
 
     # Define variables list for later derivation
@@ -178,7 +178,7 @@ for dim, nnodes in zip(dim_combinations, nnodes_combinations):
     hatlmtangent = DefineMatrix('hatlmtangent',nnodes,dim)
     for node in range(nnodes):
         for idim in range(dim):
-            hatlmtangent[node,idim] = scale_factor * lmtangent[node,idim] + slipxi[node] * penalty_parameter + slipeta[node] * penalty_parameter
+            hatlmtangent[node,idim] = scale_factor * lmtangent[node,idim] + slipxi[node] * penalty_factor + slipeta[node] * penalty_factor
     
     # Now we can compute the resultant tangent
     tangentslave = hatlmtangent.copy()
@@ -192,20 +192,20 @@ for dim, nnodes in zip(dim_combinations, nnodes_combinations):
         for slip in range(3):
             rv_galerkin = 0
             if (slip == 0):  
-                rv_galerkin -= 0.5/penalty_parameter * scale_factor**2.0 * lmnormal[node] * wlmnormal[node]
-                rv_galerkin -= 0.5/penalty_parameter * scale_factor**2.0 * lmtangentxi[node] * wlmtangentxi[node]
-                rv_galerkin -= 0.5/penalty_parameter * scale_factor**2.0 * lmtangenteta[node] * wlmtangenteta[node]
+                rv_galerkin -= 0.5/penalty_factor * scale_factor**2.0 * lmnormal[node] * wlmnormal[node]
+                rv_galerkin -= 0.5/penalty_factor * scale_factor**2.0 * lmtangentxi[node] * wlmtangentxi[node]
+                rv_galerkin -= 0.5/penalty_factor * scale_factor**2.0 * lmtangenteta[node] * wlmtangenteta[node]
             else:
-                rv_galerkin += ((((scale_factor * lmnormal[node] + penalty_parameter * gap[node]) * normalslave.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
+                rv_galerkin += ((((scale_factor * lmnormal[node] + penalty_factor * gap[node]) * normalslave.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
                 rv_galerkin +=  scale_factor * gap[node] * wlmnormal[node]
                 
                 if (slip == 1): # Slip 
-                    rv_galerkin -= (((mu[node] * (scale_factor * lmnormal[node] + penalty_parameter * gap[node]) * tangentslave.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
-                    rv_galerkin -=  (0.5/penalty_parameter * scale_factor * (scale_factor * lmtangent.row(node) + mu[node] * (scale_factor * lmnormal[node] + penalty_parameter * gap[node]) * tangentslave.row(node)) * wlmtangent.row(node).transpose())[0,0] 
+                    rv_galerkin -= (((mu[node] * (scale_factor * lmnormal[node] + penalty_factor * gap[node]) * tangentslave.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
+                    rv_galerkin -=  (0.5/penalty_factor * scale_factor * (scale_factor * lmtangent.row(node) + mu[node] * (scale_factor * lmnormal[node] + penalty_factor * gap[node]) * tangentslave.row(node)) * wlmtangent.row(node).transpose())[0,0] 
                 else: # Stick 
-                    rv_galerkin += ((((scale_factor * lmtangentxi[node] + penalty_parameter * slipxi[node]) * tangentxislave.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
+                    rv_galerkin += ((((scale_factor * lmtangentxi[node] + penalty_factor * slipxi[node]) * tangentxislave.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
                     rv_galerkin +=  scale_factor * slipxi[node] * wlmtangentxi[node]
-                    rv_galerkin += ((((scale_factor * lmtangenteta[node] + penalty_parameter * slipeta[node]) * tangentetaslave.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
+                    rv_galerkin += ((((scale_factor * lmtangenteta[node] + penalty_factor * slipeta[node]) * tangentetaslave.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
                     rv_galerkin +=  scale_factor * slipeta[node] * wlmtangenteta[node]
 
             if(do_simplifications):
@@ -226,7 +226,7 @@ for dim, nnodes in zip(dim_combinations, nnodes_combinations):
             print("Substitution strings are ready....")
 
             if (slip == 0):
-                lhs_string += "    \n\n// NODE " + str(node) + "\n"
+                lhs_string += "    \n    // NODE " + str(node) + "\n"
                 lhs_string += "    if (this->GetGeometry()["+str(node)+"].Is(ACTIVE) == false ) // INACTIVE\n    {\n    "
             elif (slip == 1):
                 lhs_string += "    else if (this->GetGeometry()["+str(node)+"].Is(SLIP) == true ) // ACTIVE-SLIP\n    {\n    "
@@ -237,6 +237,7 @@ for dim, nnodes in zip(dim_combinations, nnodes_combinations):
             lhs_string += "}\n"    
         
             if (slip == 0):
+                rhs_string += "    \n    // NODE " + str(node) + "\n"
                 rhs_string += "    if (this->GetGeometry()["+str(node)+"].Is(ACTIVE) == false ) // INACTIVE\n    {\n    "
             elif (slip == 1):
                 rhs_string += "    else if (this->GetGeometry()["+str(node)+"].Is(SLIP) == true ) // ACTIVE-SLIP\n    {\n    "
@@ -310,8 +311,12 @@ for dim, nnodes in zip(dim_combinations, nnodes_combinations):
 ############################### SIMPLIFICATION ##############################
 #############################################################################
 
+lhs_string = lhs_string.replace("penalty_factor", "rPenaltyFactor")
+lhs_string = lhs_string.replace("scale_factor", "rScaleFactor")
 lhs_string = lhs_string.replace("pow(", "std::pow(")
 lhs_string = lhs_string.replace("sqrt(", "std::sqrt(")
+rhs_string = rhs_string.replace("penalty_factor", "rPenaltyFactor")
+rhs_string = rhs_string.replace("scale_factor", "rScaleFactor")
 rhs_string = rhs_string.replace("pow(", "std::pow(")
 rhs_string = rhs_string.replace("sqrt(", "std::sqrt(")
 

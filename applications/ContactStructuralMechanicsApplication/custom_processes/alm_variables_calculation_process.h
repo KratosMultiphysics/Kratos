@@ -182,21 +182,8 @@ public:
         const double PenaltyFactor = 10.0 * MeanYoungModulus/MeanNodalH;
         const double ScaleFactor   = 10.0 * MeanYoungModulus/MeanNodalH; // NOTE: We use the same value
         
-        /* We set the scale factor */
-        for (unsigned int iProp = 0; iProp < mrThisModelPart.NumberOfProperties(); iProp++)
-        {
-            Properties::Pointer pProperties = mrThisModelPart.pGetProperties(iProp);
-            
-            pProperties->GetValue(PENALTY_FACTOR) = PenaltyFactor;
-        }
-        
-        /* We set the scale factor */
-        for (unsigned int iProp = 0; iProp < mrThisModelPart.NumberOfProperties(); iProp++)
-        {
-            Properties::Pointer pProperties = mrThisModelPart.pGetProperties(iProp);
-            
-            pProperties->GetValue(SCALE_FACTOR) = ScaleFactor;
-        }
+        mrThisModelPart.GetProcessInfo()[PENALTY_FACTOR] = PenaltyFactor;
+        mrThisModelPart.GetProcessInfo()[SCALE_FACTOR]   = ScaleFactor;
         
         KRATOS_CATCH("");
     }

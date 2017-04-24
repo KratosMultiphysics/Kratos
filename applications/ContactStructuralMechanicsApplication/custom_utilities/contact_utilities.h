@@ -966,10 +966,77 @@ public:
      * @return The modelparts with the conditions changed
      */
     
+//     static inline void ReComputeActiveInactiveFrictionlessALM(ModelPart & rModelPart)
+//     {
+//         // TODO: If works make it parallell (it is difficult, be careful with the repeated nodes) 
+//         
+//         const double epsilon = rModelPart.GetProcessInfo()[PENALTY_FACTOR]; 
+//         const double k = rModelPart.GetProcessInfo()[SCALE_FACTOR]; 
+//         
+//         NodesArrayType& pNodes = rModelPart.GetSubModelPart("Contact").Nodes();
+//         auto numNodes = pNodes.end() - pNodes.begin();
+// 
+//         #pragma omp parallel for 
+//         for(unsigned int i = 0; i < numNodes; i++) 
+//         {
+//             auto itNode = pNodes.begin() + i;
+//             
+//             if ((itNode)->Is(ACTIVE) == true )
+//             {
+//                 const double gn = (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);
+//                 const double AugmentedNormalPressure = k * (itNode)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + epsilon * gn;     
+//                 
+//                 if (AugmentedNormalPressure < 0.0) // NOTE: This could be conflictive (< or <=)
+//                 {
+//                     (itNode)->Set(ACTIVE, true);
+//                 }
+//                 else
+//                 {
+//                     (itNode)->Set(ACTIVE, false);
+// //                     (itNode)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) = 0.0;
+//                 }
+//                 
+// //                 // Debug 
+// //                 std::cout << (itNode)->Id() << " Gap: " << gn  << " Pressure: " << AugmentedNormalPressure << " Active: " << (itNode)->Is(ACTIVE) << std::endl;
+//             }
+//         }
+//         
+//         ConditionsArrayType& pConditions = rModelPart.GetSubModelPart("Contact").Conditions();
+//         auto numConditions = pConditions.end() - pConditions.begin();
+// 
+//         #pragma omp parallel for 
+//         for(unsigned int i = 0; i < numConditions; i++) 
+//         {
+//             auto itCond = pConditions.begin() + i;
+//             if ( (itCond)->Is(ACTIVE) == true )
+//             {
+//                 bool DeactivateCondition = true;
+//                 
+//                 for(unsigned int iNode = 0; iNode < itCond->GetGeometry().size(); iNode++)
+//                 {
+//                     if (itCond->GetGeometry()[iNode].Is(ACTIVE) == false)
+//                     {
+//                         DeactivateCondition = false;
+//                         break;
+//                     }
+//                 }
+//                 
+//                 // We deactivate the condition if necessary
+//                 if (DeactivateCondition == true)
+//                 {
+//                     itCond->Set(ACTIVE, false);
+//                 }
+//             }
+//         }
+//     }
+    
     static inline void ReComputeActiveInactiveFrictionlessALM(ModelPart & rModelPart)
     {
         // TODO: If works make it parallell (it is difficult, be careful with the repeated nodes) 
        
+        const double epsilon = rModelPart.GetProcessInfo()[PENALTY_FACTOR]; 
+        const double k = rModelPart.GetProcessInfo()[SCALE_FACTOR]; 
+        
         ConditionsArrayType& pConditions = rModelPart.GetSubModelPart("Contact").Conditions();
         auto numConditions = pConditions.end() - pConditions.begin();
 
@@ -987,17 +1054,6 @@ public:
             if ( ConditionIsActive == true )
             {
                 // Recompute Active/Inactive nodes
-                double epsilon = 0.0;
-                if (itCond->GetProperties().Has(PENALTY_FACTOR) == true)
-                {
-                    epsilon = itCond->GetProperties().GetValue(PENALTY_FACTOR); 
-                }
-                
-                double k = 1.0;
-                if (itCond->GetProperties().Has(SCALE_FACTOR) == true)
-                {
-                    k = itCond->GetProperties().GetValue(SCALE_FACTOR); 
-                }
 
                 bool DeactivateCondition = true; // If all nodes are inactive we deactivate the condition
                 GeometryType & CondGeometry = itCond->GetGeometry();
@@ -1041,7 +1097,7 @@ public:
      * @param ModelPart: The model part to compute
      * @return The modelparts with the conditions changed
      */
-    
+
     static inline void ReComputeActiveInactiveFrictionalALM(ModelPart & rModelPart)
     {
         // TODO: If works make it parallell (it is difficult, be careful with the repeated nodes) 
@@ -1147,7 +1203,7 @@ public:
      * @return The modelparts with the nodes changed
      */
     
-    static inline void ResetVisited(ModelPart & rModelPart)
+    static inline void ResetVisited(ModelPart & rModelPart) // NOTE: Deprecated in the case of ALM
     {
         NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
         
@@ -1194,7 +1250,7 @@ public:
      * @return The modelparts with the nodes changed
      */
     
-    static inline void ResetWeightedFrictionlessALMValues(ModelPart & rModelPart)
+    static inline void ResetWeightedFrictionlessALMValues(ModelPart & rModelPart) // NOTE: Deprecated
     {
         NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
         
@@ -1220,7 +1276,7 @@ public:
      * @return The modelparts with the nodes changed
      */
     
-    static inline void ResetWeightedFrictionalALMValues(ModelPart & rModelPart)
+    static inline void ResetWeightedFrictionalALMValues(ModelPart & rModelPart) // NOTE: Deprecated
     {
         NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
         

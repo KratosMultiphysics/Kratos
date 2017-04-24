@@ -142,9 +142,9 @@ class ALMContactProcess(KratosMultiphysics.Process):
             penalty = self.params["penalty"].GetDouble()
             scale_factor = self.params["scale_factor"].GetDouble()
             
-            for prop in computing_model_part.GetProperties():
-                prop[ContactStructuralMechanicsApplication.PENALTY_FACTOR] = penalty
-                prop[ContactStructuralMechanicsApplication.SCALE_FACTOR]   = scale_factor
+            # We set the values in the process info
+            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.PENALTY_FACTOR] = penalty
+            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.SCALE_FACTOR]   = scale_factor
             
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(computing_model_part)

@@ -898,6 +898,8 @@ protected:
     virtual bounded_matrix<double, MatrixSize, MatrixSize> CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const unsigned int& rMasterElementIndex,
+        const double& rPenaltyFactor,
+        const double& rScaleFactor,
         const unsigned int& rActiveInactive
         );
     
@@ -928,6 +930,8 @@ protected:
     virtual array_1d<double, MatrixSize> CalculateLocalRHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const unsigned int& rMasterElementIndex,
+        const double& rPenaltyFactor,
+        const double& rScaleFactor,
         const unsigned int& rActiveInactive
         );
     

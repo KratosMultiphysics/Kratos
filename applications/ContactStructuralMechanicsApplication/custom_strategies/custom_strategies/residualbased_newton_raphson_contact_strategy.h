@@ -321,6 +321,25 @@ protected:
     
     void CalculateContactReactions(TSystemVectorType& b)
     {
+        // Now we iterate over all the conditions and we set all the nodes as ACTIVE in the active conditions 
+        ConditionsArrayType& pCond = StrategyBaseType::GetModelPart().GetSubModelPart("Contact").Conditions();
+        auto numConditions = pCond.end() - pCond.begin();
+        
+        #pragma omp parallel for
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCond = pCond.begin() + i;
+            
+            if (itCond->Is(ACTIVE) == true)
+            {
+                for (unsigned int iNode = 0; iNode < itCond->GetGeometry().size(); iNode++)
+                {
+                    #pragma omp critical
+                    itCond->GetGeometry()[iNode].Set(ACTIVE, true);
+                }
+            }
+        }
+        
         // Pointers needed in the solution
         typename TSchemeType::Pointer pScheme = BaseType::GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = BaseType::GetBuilderAndSolver();
@@ -328,7 +347,7 @@ protected:
         // We recalulate the RHS (NOTE: EXPENSIVE)
         TSparseSpace::SetToZero(b);
         pBuilderAndSolver->BuildRHS(pScheme, StrategyBaseType::GetModelPart(), b);
-        
+            
         // Now we iterate over all the nodes
         NodesArrayType& pNode = StrategyBaseType::GetModelPart().GetSubModelPart("Contact").Nodes();
         auto numNodes = pNode.end() - pNode.begin();
@@ -338,8 +357,7 @@ protected:
         {
             auto itNode = pNode.begin() + i;
             
-//             if (itNode->Is(ACTIVE) == true) 
-            if (itNode->Is(SLAVE) == true) // NOTE: Check why 1000 times bigger residual that the weighted gap->SCALAR_FACTOR. Consider SCALAR_FACTOR and PENALTY as ProcessInfo instead of property and set all the nodes as ACTIVE (proper way to compute)
+            if (itNode->Is(ACTIVE) == true)
             {                
                 for(auto itDoF = itNode->GetDofs().begin() ; itDoF != itNode->GetDofs().end() ; itDoF++)
                 {
