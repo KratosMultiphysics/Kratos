@@ -94,6 +94,7 @@
 
 //#include "custom_elements/explicit_hydro_2d.h"
 
+#include "includes/cfd_variables.h" //TODO: must be removed eventually
 #include "includes/c2c_variables.h" //TODO: must be removed eventually
 #include "includes/dem_variables.h" //TODO: must be removed eventually
 
@@ -111,7 +112,6 @@ namespace Kratos
 //	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONV_PROJ)
 
 KRATOS_DEFINE_VARIABLE(double, MACH_NUMBER)
-KRATOS_DEFINE_VARIABLE(double, PRESSURE_COEFFICIENT)
 //	KRATOS_DEFINE_VARIABLE( double, PRESSURE_OLD_IT )
 //	KRATOS_DEFINE_VARIABLE( Vector, BDF_COEFFICIENTS )
 //	KRATOS_DEFINE_VARIABLE(double, NODAL_MASS)
@@ -428,6 +428,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_KRATOS_RICCARDOS_APPLICATION_H_INCLUDED  defined 
-
-
+#endif // KRATOS_KRATOS_RICCARDOS_APPLICATION_H_INCLUDED  defined
