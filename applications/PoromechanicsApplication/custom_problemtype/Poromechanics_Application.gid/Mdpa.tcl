@@ -556,7 +556,7 @@ proc WriteMdpa { basename dir problemtypedir } {
                 # UPwSmallStrainInterfaceElement3D8N
                 WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainInterfaceElement3D8N $InterfaceElemsProp HexahedronInterface3D8Connectivities
 
-                proc WriteElements {FileVar Group ElemType ElemName PropertyId ConnectivityType} {
+                proc SaveBarsFromIE2D4N {FileVar Group ElemType ElemName PropertyId ConnectivityType} {
                     set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type $ElemType]
                     if {[llength $Entities] > 0} {
                         upvar $FileVar MyFileVar
@@ -605,45 +605,6 @@ proc WriteMdpa { basename dir problemtypedir } {
     # Body_Acceleration
     WriteConstraintSubmodelPart FileVar Body_Acceleration $TableDict
     
-    ### TODO: provisional
-    if {[GiD_Groups exists Mouth_Left_Node] eq 1} {
-        puts $FileVar "Begin SubModelPart Mouth_Left_Node"
-        # Nodes
-        set Entities [GiD_EntitiesGroups get "Mouth_Left_Node" nodes]
-        puts $FileVar "  Begin SubModelPartNodes"
-        for {set i 0} {$i < [llength $Entities]} {incr i} {
-            puts $FileVar "    [lindex $Entities $i]"
-        }
-        puts $FileVar "  End SubModelPartNodes"
-        puts $FileVar "End SubModelPart"
-        puts $FileVar ""
-    }
-    if {[GiD_Groups exists Mouth_Right_Node] eq 1} {
-        puts $FileVar "Begin SubModelPart Mouth_Right_Node"
-        # Nodes
-        set Entities [GiD_EntitiesGroups get "Mouth_Right_Node" nodes]
-        puts $FileVar "  Begin SubModelPartNodes"
-        for {set i 0} {$i < [llength $Entities]} {incr i} {
-            puts $FileVar "    [lindex $Entities $i]"
-        }
-        puts $FileVar "  End SubModelPartNodes"
-        puts $FileVar "End SubModelPart"
-        puts $FileVar ""
-    }
-    if {[GiD_Groups exists Tip_Node] eq 1} {
-        puts $FileVar "Begin SubModelPart Tip_Node"
-        # Nodes
-        set Entities [GiD_EntitiesGroups get "Tip_Node" nodes]
-        puts $FileVar "  Begin SubModelPartNodes"
-        for {set i 0} {$i < [llength $Entities]} {incr i} {
-            puts $FileVar "    [lindex $Entities $i]"
-        }
-        puts $FileVar "  End SubModelPartNodes"
-        puts $FileVar "End SubModelPart"
-        puts $FileVar ""
-    }
-    ### TODO
-
     close $FileVar
     
     return $TableDict
