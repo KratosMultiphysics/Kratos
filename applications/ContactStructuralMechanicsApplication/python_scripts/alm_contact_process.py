@@ -194,7 +194,9 @@ class ALMContactProcess(KratosMultiphysics.Process):
             gid_io.FinalizeMesh()
             gid_io.InitializeResults(self.label, self.main_model_part.GetMesh())
             
+            gid_io.WriteNodalFlags(KratosMultiphysics.INTERFACE, "INTERFACE", self.main_model_part.Nodes, self.label)
             gid_io.WriteNodalFlags(KratosMultiphysics.ACTIVE, "ACTIVE", self.main_model_part.Nodes, self.label)
+            gid_io.WriteNodalResultsNonHistorical(KratosMultiphysics.NORMAL, self.main_model_part.Nodes, self.label)
             gid_io.WriteNodalResults(KratosMultiphysics.DISPLACEMENT, self.main_model_part.Nodes, self.label, 0)
             
             gid_io.FinalizeResults()
