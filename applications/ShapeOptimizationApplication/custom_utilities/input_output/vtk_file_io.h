@@ -144,8 +144,6 @@ public:
         ofstream outputFile;
         updateOutputFilename();
         outputFile.open(mOutputFilename, ios::out | ios::trunc );
-        outputFile << scientific;
-        outputFile << setprecision(5);
 
         // write header
         outputFile << "# vtk DataFile Version 4.0" << "\n";        
