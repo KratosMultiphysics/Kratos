@@ -1,11 +1,11 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2009-01-15 11:11:35 $
-//   Revision:            $Revision: 1.16 $
-//
-//
-
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 
 #if !defined(KRATOS_KRATOS_RICCARDOS_APPLICATION_H_INCLUDED )
 #define  KRATOS_KRATOS_RICCARDOS_APPLICATION_H_INCLUDED
