@@ -292,9 +292,10 @@ protected:
             {
                 for(unsigned int iNode=0; iNode<rGeometry.size(); iNode++)
                 {
-                    const double h = rGeometry[iNode].GetValue(NODAL_H);
+                    const Node<3> &rConstNode = rGeometry[iNode];
+                    const double h = rConstNode.GetValue(NODAL_H);
                     const double tol_d = (factor*mFactorCoeff)*h;
-                    const double d = rGeometry[iNode].FastGetSolutionStepValue(DISTANCE);
+                    const double d = rConstNode.FastGetSolutionStepValue(DISTANCE);
 
                     if((d >= 0.0) && (d < tol_d))
                     {
