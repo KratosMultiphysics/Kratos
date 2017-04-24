@@ -24,6 +24,7 @@ import os
 
 from design_logger_gid import DesignLoggerGID
 from design_logger_unv import DesignLoggerUNV
+from design_logger_vtk import DesignLoggerVTK
 
 from response_logger_steepest_descent import ResponseLoggerSteepestDescent
 from response_logger_penalized_projection import ResponseLoggerPenalizedProjection
