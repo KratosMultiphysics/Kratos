@@ -114,9 +114,6 @@ BOOST_PYTHON_MODULE(KratosStructuralMechanicsApplication)
 
     // Adding the LAMBDA load factor considered in the arclength
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(LAMBDA);
-
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(IS_SLAVE);
-
 }
 
 

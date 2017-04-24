@@ -175,7 +175,6 @@ void KratosStructuralMechanicsApplication::Register()
 
 
     // For MPC implementations
-    KRATOS_REGISTER_VARIABLE(IS_SLAVE);
     KRATOS_REGISTER_VARIABLE(MPC_POINTER)
 }
 
