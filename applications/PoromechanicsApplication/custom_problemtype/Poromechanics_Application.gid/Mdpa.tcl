@@ -536,6 +536,45 @@ proc WriteMdpa { basename dir problemtypedir } {
         WriteInterfaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] quadrilateral UPwNormalFluxInterfaceCondition3D4N $InterfaceElemsProp QuadrilateralInterface3D4Connectivities
         dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
     }
+
+    ###  TODO
+    # Periodic_Bars
+    set IsPeriodic [GiD_AccessValue get gendata Periodic_Interface_Conditions]
+    if {IsPeriodic eq true} {
+        set PeriodicBarsDict [dict create]
+        set Groups [GiD_Info conditions Interface_Part groups]
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            if {[lindex [lindex $Groups $i] 3] eq false} {
+                # Elements Property
+                set InterfaceElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+                
+
+                # UPwSmallStrainInterfaceElement2D4N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainInterfaceElement2D4N $InterfaceElemsProp Quadrilateral2D4Connectivities
+                # UPwSmallStrainInterfaceElement3D6N
+                WriteElements FileVar [lindex $Groups $i] prism UPwSmallStrainInterfaceElement3D6N $InterfaceElemsProp PrismInterface3D6Connectivities
+                # UPwSmallStrainInterfaceElement3D8N
+                WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainInterfaceElement3D8N $InterfaceElemsProp HexahedronInterface3D8Connectivities
+
+                proc WriteElements {FileVar Group ElemType ElemName PropertyId ConnectivityType} {
+                    set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type $ElemType]
+                    if {[llength $Entities] > 0} {
+                        upvar $FileVar MyFileVar
+                        
+                        puts $MyFileVar "Begin Elements $ElemName"
+                        for {set j 0} {$j < [llength $Entities]} {incr j} {
+                            puts $MyFileVar "  [lindex $Entities $j]  $PropertyId  [$ConnectivityType [lindex $Entities $j]]"
+                        }
+                        puts $MyFileVar "End Elements"
+                        puts $MyFileVar ""
+                    }
+                }
+                
+            }
+        }
+    }
+    ### TODO
+
     puts $FileVar ""
 
     ## SubModelParts
@@ -566,6 +605,45 @@ proc WriteMdpa { basename dir problemtypedir } {
     # Body_Acceleration
     WriteConstraintSubmodelPart FileVar Body_Acceleration $TableDict
     
+    ### TODO: provisional
+    if {[GiD_Groups exists Mouth_Left_Node] eq 1} {
+        puts $FileVar "Begin SubModelPart Mouth_Left_Node"
+        # Nodes
+        set Entities [GiD_EntitiesGroups get "Mouth_Left_Node" nodes]
+        puts $FileVar "  Begin SubModelPartNodes"
+        for {set i 0} {$i < [llength $Entities]} {incr i} {
+            puts $FileVar "    [lindex $Entities $i]"
+        }
+        puts $FileVar "  End SubModelPartNodes"
+        puts $FileVar "End SubModelPart"
+        puts $FileVar ""
+    }
+    if {[GiD_Groups exists Mouth_Right_Node] eq 1} {
+        puts $FileVar "Begin SubModelPart Mouth_Right_Node"
+        # Nodes
+        set Entities [GiD_EntitiesGroups get "Mouth_Right_Node" nodes]
+        puts $FileVar "  Begin SubModelPartNodes"
+        for {set i 0} {$i < [llength $Entities]} {incr i} {
+            puts $FileVar "    [lindex $Entities $i]"
+        }
+        puts $FileVar "  End SubModelPartNodes"
+        puts $FileVar "End SubModelPart"
+        puts $FileVar ""
+    }
+    if {[GiD_Groups exists Tip_Node] eq 1} {
+        puts $FileVar "Begin SubModelPart Tip_Node"
+        # Nodes
+        set Entities [GiD_EntitiesGroups get "Tip_Node" nodes]
+        puts $FileVar "  Begin SubModelPartNodes"
+        for {set i 0} {$i < [llength $Entities]} {incr i} {
+            puts $FileVar "    [lindex $Entities $i]"
+        }
+        puts $FileVar "  End SubModelPartNodes"
+        puts $FileVar "End SubModelPart"
+        puts $FileVar ""
+    }
+    ### TODO
+
     close $FileVar
     
     return $TableDict
