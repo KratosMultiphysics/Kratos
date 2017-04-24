@@ -417,7 +417,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
         // For each node check if it is a slave or not If it is .. we change the Transformation matrix
         for (unsigned int j = 0; j < number_of_nodes; j++)
         {
-            if (rCurrentElement->GetGeometry()[j].GetValue(IS_SLAVE))
+            if (rCurrentElement->GetGeometry()[j].Is(SLAVE))
             { //temporary, will be checked once at the beginning only
                 // Necessary data for iterating and modifying the matrix
                 Node<3>::DofsContainerType nodeDofs = rCurrentElement->GetGeometry()[j].GetDofs();
@@ -449,7 +449,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
         // For each node check if it is a slave or not If it is .. we change the Transformation matrix
         for (unsigned int j = 0; j < number_of_nodes; j++)
         {
-            if (rCurrentCondition->GetGeometry()[j].GetValue(IS_SLAVE))
+            if (rCurrentCondition->GetGeometry()[j].Is(SLAVE))
             { //temporary, will be checked once at the beginning only
                 // Necessary data for iterating and modifying the matrix
                 Node<3>::DofsContainerType nodeDofs = rCurrentCondition->GetGeometry()[j].GetDofs();
@@ -484,7 +484,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
         const unsigned int number_of_nodes = rCurrentElement->GetGeometry().PointsNumber();
         for (unsigned int j = 0; j < number_of_nodes; j++)
         {
-            if (rCurrentElement->GetGeometry()[j].GetValue(IS_SLAVE))
+            if (rCurrentElement->GetGeometry()[j].Is(SLAVE))
             { //temporary, will be checked once at the beginning only
                 slaveFound = true;
                 break;
@@ -515,7 +515,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
             std::vector<int> slaveEquationIds;
             int totalNumberOfSlaves = 0;
             int totalNumberOfMasters = 0;
-            if (rCurrentElement->GetGeometry()[j].GetValue(IS_SLAVE))
+            if (rCurrentElement->GetGeometry()[j].Is(SLAVE))
             { // If the node has a slave DOF
 
                 Node<3>::DofsContainerType nodeDofs = rCurrentElement->GetGeometry()[j].GetDofs();
@@ -633,7 +633,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
         const unsigned int number_of_nodes = rCurrentElement->GetGeometry().PointsNumber();
         for (unsigned int j = 0; j < number_of_nodes; j++)
         {
-            if (rCurrentElement->GetGeometry()[j].GetValue(IS_SLAVE))
+            if (rCurrentElement->GetGeometry()[j].Is(SLAVE))
             { //temporary, will be checked once at the beginning only
                 slaveFound = true;
                 break;
@@ -664,7 +664,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
             std::vector<int> slaveEquationIds;
             int totalNumberOfSlaves = 0;
             int totalNumberOfMasters = 0;
-            if (rCurrentElement->GetGeometry()[j].GetValue(IS_SLAVE))
+            if (rCurrentElement->GetGeometry()[j].Is(SLAVE))
             { // If the node has a slave DOF
 
                 Node<3>::DofsContainerType nodeDofs = rCurrentElement->GetGeometry()[j].GetDofs();
