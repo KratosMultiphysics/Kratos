@@ -212,7 +212,7 @@
             "plane_output"        : [],
             "nodal_results"       : ["DISPLACEMENT","REACTION","VECTOR_LAGRANGE_MULTIPLIER"],
             "nodal_flags_results": ["ACTIVE"],
-            "gauss_point_results" : ["NORMAL_CONTACT_STRESS_GP","TANGENTIAL_CONTACT_STRESS_GP", "GAP_GP", "SLIP_GP"]
+            "gauss_point_results" : []
         },
         "point_data_configuration"  : []
     },

@@ -199,6 +199,10 @@ public:
     {
         bool is_converged = BaseType::SolveSolutionStep();
         
+//         // We update the contact reactions
+//         TSystemVectorType& b = *BaseType::mpb;
+//         CalculateContactReactions(b);
+        
 //         // TODO: Finish this!!!
 //         Plots a warning if the maximum number of iterations is exceeded
 //         if (is_converged == false)
@@ -312,7 +316,7 @@ protected:
     {
         BaseType::UpdateDatabase(A,Dx,b,MoveMesh);
         
-//         CalculateContactReactions(b);
+        CalculateContactReactions(b);
     }
     
     /**
@@ -348,6 +352,8 @@ protected:
         TSparseSpace::SetToZero(b);
         pBuilderAndSolver->BuildRHS(pScheme, StrategyBaseType::GetModelPart(), b);
             
+        const double ScaleFactor = (StrategyBaseType::GetModelPart().GetProcessInfo()[SCALE_FACTOR] > 0.0) ? StrategyBaseType::GetModelPart().GetProcessInfo()[SCALE_FACTOR] : 1.0;
+        
         // Now we iterate over all the nodes
         NodesArrayType& pNode = StrategyBaseType::GetModelPart().GetSubModelPart("Contact").Nodes();
         auto numNodes = pNode.end() - pNode.begin();
@@ -363,12 +369,11 @@ protected:
                 {
                     const int j = (itDoF)->EquationId();
                     
-//                     if ((itDoF)->GetReaction().Name() == "WEIGHTED_SCALAR_RESIDUAL")
-                    if ((itDoF)->GetReaction().Name() == "WEIGHTED_GAP")
+                    if (((itDoF)->GetReaction().Name()).find("WEIGHTED") != std::string::npos) // Corresponding with contact
                     {                        
-                        (itDoF)->GetSolutionStepReactionValue() = b[j];
+                        (itDoF)->GetSolutionStepReactionValue() = b[j]/ScaleFactor;
                     }
-                    else if ((itDoF)->GetReaction().Name() != "NONE")
+                    else if ((itDoF)->GetReaction().Name() != "NONE") // The others
                     {                        
                         (itDoF)->GetSolutionStepReactionValue() = -b[j];
                     }
