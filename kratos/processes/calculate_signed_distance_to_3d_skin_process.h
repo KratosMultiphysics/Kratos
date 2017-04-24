@@ -2060,9 +2060,9 @@ public:
         double& node_distance =  rNode.GetSolutionStepValue(DISTANCE);
 
         //const double epsilon = 1.00e-12;
-        //if(fabs(node_distance) > fabs(distance))
-        //    node_distance = distance;
-        /*else*/ if (distance*node_distance < 0.00) // assigning the correct sign
+        if(fabs(node_distance) > fabs(distance))
+            node_distance = distance;
+        else if (distance*node_distance < 0.00) // assigning the correct sign
             node_distance = -node_distance;
     }
 

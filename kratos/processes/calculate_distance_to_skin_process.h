@@ -198,8 +198,12 @@ namespace Kratos
 
 				MathUtils<double>::CrossProduct(n, u, v);             // cross product
 
-				if (norm_2(n) == 0)            // triangle is degenerate
+				double normal_length = norm_2(n);
+
+				if (normal_length == 0)            // triangle is degenerate
 					return -1;                 // do not deal with this case
+
+				n /= normal_length;
 
 				for (int i = 0; i < 3; i++)
 				{
@@ -218,9 +222,9 @@ namespace Kratos
 
 				// get intersect point of ray with triangle plane
 				r = a / b;
-				if (r < 0.0)                   // ray goes away from triangle
+				if (r < -epsilon)                   // ray goes away from triangle
 					return 0;                  // => no intersect
-				if (r > 1.0) // for a segment, also test if (r > 1.0) => no intersect
+				if (r > 1.0 + epsilon) // for a segment, also test if (r > 1.0) => no intersect
 					return 0; 
 
 				for (int i = 0; i < 3; i++)

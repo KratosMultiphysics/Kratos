@@ -151,7 +151,6 @@ namespace Kratos
 				if (HasIntersection(rElement1.GetGeometry(), p_element_2->GetGeometry())) {
 					rElement1.Set(SELECTED);
 					rResults.push_back(p_element_2);
-					return;
 				}
 			}
 		}
