@@ -494,7 +494,7 @@ private:
             const unsigned int Id = omp_get_thread_num();
             
             #pragma omp for
-            for(unsigned int i = 0; i < numElements; i++) 
+            for(int i = 0; i < numElements; i++) 
             {
                 auto itElem = pElements.begin() + i;
                 
@@ -572,7 +572,7 @@ private:
             auto numElements = pElements.end() - pElements.begin();
             
             //#pragma omp for
-            for(unsigned int i = 0; i < numElements; i++) 
+            for(int i = 0; i < numElements; i++) 
             {
                 auto itElem = pElements.begin() + i;
                 
@@ -644,7 +644,7 @@ private:
             auto numElements = pElements.end() - pElements.begin();
             
             //#pragma omp for
-            for(unsigned int i = 0; i < numElements; i++) 
+            for(int i = 0; i < numElements; i++) 
             {
                 auto itElem = pElements.begin() + i;
                 
@@ -742,7 +742,7 @@ private:
         
         /* Nodes */
         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
             
@@ -762,7 +762,7 @@ private:
         
         /* Elements */
         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numElements; i++) 
+        for(int i = 0; i < numElements; i++) 
         {
             auto itElem = pElementsOrigin.begin() + i;
             
@@ -843,7 +843,7 @@ private:
             
             /* Nodes */
             #pragma omp parallel for 
-            for(unsigned int i = 0; i < numNodes; i++) 
+            for(int i = 0; i < numNodes; i++) 
             {
                 auto itNode = pNode.begin() + i;
                 
@@ -887,7 +887,7 @@ private:
             
             /* Nodes */
             #pragma omp parallel for 
-            for(unsigned int i = 0; i < numNodes; i++) 
+            for(int i = 0; i < numNodes; i++) 
             {
                 auto itNode = pNode.begin() + i;
                 
@@ -928,7 +928,7 @@ private:
         
         /* Elements */
         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numElements; i++) 
+        for(int i = 0; i < numElements; i++) 
         {
             auto itElem = pElementsDestination.begin() + i;
             
