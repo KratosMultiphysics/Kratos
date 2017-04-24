@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//					 license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrándiz
 // 
@@ -13,9 +13,6 @@
 #define  KRATOS_TREE_CONTACT_SEARCH_H_INCLUDED
 
 // System includes
-#include <iostream>
-#include <vector>
-#include "boost/smart_ptr.hpp"
 
 // External includes
 
@@ -23,13 +20,12 @@
 #include "contact_structural_mechanics_application_variables.h"
 #include "contact_structural_mechanics_application.h"
 #include "includes/model_part.h"
-#include "containers/array_1d.h"
 // #include "spatial_containers/bounding_volume_tree.h" // k-DOP
 #include "spatial_containers/spatial_containers.h" // kd-tree 
 #include "utilities/math_utils.h"                  // Cross Product
 #include "custom_utilities/contact_utilities.h"
-
-// TODO: Add parallelization
+#include "custom_utilities/search_utilities.h"
+#include "custom_utilities/point_item.h"
 
 namespace Kratos
 {
@@ -39,11 +35,13 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-
+    
 ///@}
 ///@name  Enum's
 ///@{
-
+    
+    enum SearchTreeType {KdtreeInRadius = 0, KdtreeInBox = 1, Kdop = 2};
+    
 ///@}
 ///@name  Functions
 ///@{
@@ -51,223 +49,11 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-
-/** @brief Custom Point container to be used by the mapper
- */
-class PointItem: public Point<3>
-{
-public:
-
-    ///@name Type Definitions
-    ///@{
-    /// Counted pointer of PointItem
-    KRATOS_CLASS_POINTER_DEFINITION( PointItem );
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /// Default constructors
-    PointItem():
-        Point<3>()
-    {
-    }
-
-    PointItem(array_1d<double, 3> Coords):
-        Point<3>(Coords)
-    {}
-    
-    PointItem(
-        array_1d<double, 3> Coords,
-        Condition::Pointer Cond,
-        double Radius
-    ):
-        Point<3>(Coords),
-        mpOriginCond(Cond),
-        mRadius(Radius)
-    {}
-    
-    PointItem(
-        array_1d<double, 3> Coords,
-        Node<3>::Pointer Node
-    ):
-        Point<3>(Coords),
-        mpOriginNode(Node)
-    {}
-
-    ///Copy constructor  (not really required)
-    PointItem(const PointItem& rhs):
-        Point<3>(rhs),
-        mpOriginCond(rhs.mpOriginCond),
-        mpOriginNode(rhs.mpOriginNode),
-        mRadius(rhs.mRadius)
-    {
-    }
-
-    /// Destructor.
-    // ~PointItem();
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    /**
-     * Returns the point
-     * @return The point
-     */
-    Point<3> GetPoint()
-    {
-        Point<3> Point(this->Coordinates());
-        
-        return Point;
-    }
-    
-    /**
-     * Set the point
-     * @param The point
-     */
-    void SetPoint(Point<3> Point)
-    {
-        this->Coordinates() = Point.Coordinates();
-    }
-    
-    /**
-     * Returns the radius of the condition
-     * @return mRadius: The radius of the condition
-     */
-    double GetRadius()
-    {
-        return mRadius;
-    }
-    
-    /**
-     * Sets the radius of the condition
-     * @param Radius: The radius of the condition
-     */
-    void SetRadius(const double& Radius)
-    {
-        mRadius = Radius;
-    }
-
-    /**
-     * Sets the condition associated to the point
-     * @param Cond: The pointer to the condition
-     */
-
-    void SetCondition(Condition::Pointer Cond)
-    {
-        mpOriginCond = Cond;
-    }
-    
-    /**
-     * Returns the condition associated to the point
-     * @return mpOriginCond: The pointer to the condition associated to the point
-     */
-
-    Condition::Pointer GetCondition()
-    {
-        return mpOriginCond;
-    }
-    
-    /**
-     * Sets the node associated to the point
-     * @param Node: The pointer to the node associated to the point
-     */
-
-    void SetNode(Node<3>::Pointer Node)
-    {
-        mpOriginNode = Node;
-    }
-    
-    /**
-     * Returns the condition associated to the point
-     * @return mpOriginNode: The pointer to the node associated to the point
-     */
-
-    Node<3>::Pointer GetNode()
-    {
-        return mpOriginNode;
-    }
-
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    Condition::Pointer mpOriginCond; // Condition pointer
-    Node<3>::Pointer   mpOriginNode; // Node pointer
-    double                  mRadius; // Radius         
-    array_1d<double, 3>     mNormal; // Normal vector      
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-
-    ///@name Unaccessible methods
-    ///@{
-    ///@}
-}; // Class PointItem
     
 /** \brief TreeContactSearch
- * This utilitiy has as objective to create the contact conditions. The conditions that can be created are:
- * * TODO: NTN conditions: The created conditions will be between two nodes 
- * * TODO: NTS conditions: The created conditions will be between a node and a segment (or face)
- * * Mortar conditions (or segment to segment) conditions: The created conditions will be between two segments (En principio)
- * The utility employs the projection.h from MeshingApplication, which works internally using a kd-tree (En principio no)
- * To consider autocontact use the same model_part as origin and destination (En principio, preguntar a Riccardo)
+ * This utilitiy has as objective to create the contact conditions.
+ * The conditions that can be created are Mortar conditions (or segment to segment) conditions: The created conditions will be between two segments
+ * The utility employs the projection.h from MeshingApplication, which works internally using a kd-tree 
  */
 
 class TreeContactSearch
@@ -278,50 +64,83 @@ public:
     ///@{
     
     // General type definitions
-    typedef ModelPart::NodesContainerType               NodesArrayType;
+    typedef ModelPart::NodesContainerType                    NodesArrayType;
     typedef ModelPart::ConditionsContainerType          ConditionsArrayType;
-    typedef GeometryData::IntegrationMethod             IntegrationMethod;
-    typedef Node<3>                                     NodeType;
-    typedef Geometry<NodeType>                          GeometryType;
+    typedef GeometryData::IntegrationMethod               IntegrationMethod;
+    typedef Node<3>                                                NodeType;
+    typedef Geometry<NodeType>                                 GeometryType;
     
     // Type definitions for the tree
-    typedef PointItem                                    PointType;
-    typedef PointItem::Pointer                           PointTypePointer;
-    typedef std::vector<PointType::Pointer>              PointVector;
-    typedef std::vector<PointType::Pointer>::iterator    PointIterator;
-    typedef std::vector<double>                          DistanceVector;
-    typedef std::vector<double>::iterator                DistanceIterator;
+    typedef PointItem                                             PointType;
+    typedef PointItem::Pointer                             PointTypePointer;
+    typedef std::vector<PointType::Pointer>                     PointVector;
+    typedef std::vector<PointType::Pointer>::iterator         PointIterator;
+    typedef std::vector<double>                              DistanceVector;
+    typedef std::vector<double>::iterator                  DistanceIterator;
     
     // KDtree definitions
     typedef Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
-    typedef Tree< KDTreePartition<BucketType> > tree;
+    typedef Tree< KDTreePartition<BucketType> > KDTree;
 
     /// Pointer definition of TreeContactSearch
-    // KRATOS_CLASS_POINTER_DEFINITION( TreeContactSearch );
+    KRATOS_CLASS_POINTER_DEFINITION( TreeContactSearch );
       
     ///@}
     ///@name Life Cycle
     ///@{
-    
+
     // Class Constructor
-    // WARNING: Input ModelParts are expected to contain interface nodes and conditions ONLY
-    // Use an InterfacePreprocess object to create such a model part from a regular one:
-    // InterfaceMapper = InterfacePreprocess()
-    // InterfacePart = InterfaceMapper.GenerateInterfacePart(Complete_Model_Part)
+    
+    /**
+     * The constructor of the search utility uses the following inputs:
+     * @param rMainModelPart: The model part to be considered
+     * @param AllocationSize: The allocation considered in the search
+     * @param ActiveCheckFactor: The factor considered to check if active or not
+     * @param IntegrationOrder: The integration order considered
+     * @param BucketSize: The size of the bucket
+     * NOTE: Use an InterfacePreprocess object to create such a model part from a regular one:
+     * InterfaceMapper = InterfacePreprocess()
+     * InterfacePart = InterfaceMapper.GenerateInterfacePart(Complete_Model_Part)
+     */
+    
     TreeContactSearch(
-        ModelPart & rOriginModelPart,
-        ModelPart & rDestinationModelPart,
-        const unsigned int allocation_size
-        );
+        ModelPart & rMainModelPart,
+        const unsigned int AllocationSize = 1000,
+        const double ActiveCheckFactor = 0.01,
+        const std::string SearchTreeType = "InRadius", 
+        const unsigned int BucketSize = 4
+        )
+    :mrMainModelPart(rMainModelPart.GetSubModelPart("Contact")),
+     mDimension(rMainModelPart.GetProcessInfo()[DOMAIN_SIZE]),
+     mAllocationSize(AllocationSize),
+     mActiveCheckFactor(ActiveCheckFactor),
+     mSearchTreeType(ConvertSearchTree(SearchTreeType)),
+     mBucketSize(BucketSize)
+    {        
+        NodesArrayType& pNode = mrMainModelPart.Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+            itNode->Set(ACTIVE, false);
+        }
+        
+        // Iterate in the conditions
+        ConditionsArrayType& pConditions = mrMainModelPart.Conditions();
+        auto numConditions = pConditions.end() - pConditions.begin();
+
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCond = pConditions.begin() + i;
+            
+            itCond->Set(ACTIVE, false);
+        }
+    }
     
-    void ModelPartSetter(
-        ModelPart & rModelPart,
-        const bool rActive,
-        const bool rSlave,
-        const bool rMaster
-        ); 
-    
-    virtual ~TreeContactSearch();
+    virtual ~TreeContactSearch(){};
 
     ///@}
     ///@name Operators
@@ -332,273 +151,421 @@ public:
     ///@{
 
     /**
-     * This function initializes the NTN conditions already created 
-     */
-        
-    void InitializeNTNConditions();
-    
-    /**
-     * This function initializes the NTS conditions already created 
+     * This function initializes the ALM frictionless mortar conditions already created 
      */
     
-    void InitializeNTSConditions();
-    
-    /**
-     * This function initializes the mortar conditions already created 
-     */
-    
-    void InitializeMortarConditions(
-        const double rActiveCheckFactor,
-        const double rAugmentationNormal,
-        const double rAugmentationTangent,
-        const int rIntegrationOrder
-        );
-    
-    /**
-     * This function initializes the mortar conditions already created (with double LM)
-     */
-    
-    void InitializeMortarConditionsDLM(
-        const double rActiveCheckFactor,
-        const double rEpsilon,
-        const int rIntegrationOrder
-        );
+    void InitializeMortarConditions()
+    {
+        // Iterate in the conditions
+        ConditionsArrayType& pConditions = mrMainModelPart.Conditions();
+        auto numConditions = pConditions.end() - pConditions.begin();
 
-    /**
-     * This function initializes nodes 
-     */
-    
-    void InitializeNodes(ModelPart & rModelPart);
+//         #pragma omp parallel for 
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCond = pConditions.begin() + i;
 
-    /**
-     * This function initializes conditions
-     */
-    
-    void InitializeConditions(
-        ModelPart & rModelPart, 
-        const double rActiveCheckFactor,
-        const double rAugmentationNormal,
-        const double rAugmentationTangent,
-        const int rIntegrationOrder
-        );
-    
-    /**
-     * This function initializes conditions (with double LM)
-     */
-    
-    void InitializeConditionsDLM(
-        ModelPart & rModelPart, 
-        const double rActiveCheckFactor,
-        const double rEpsilon,
-        const int rIntegrationOrder
-        );
-
-    /**
-     * This function clears the NTN conditions already created 
-     */
-        
-    void TotalClearNTNConditions();
-    
-    /**
-     * This function clears the NTN conditions already created 
-     */
-        
-    void PartialClearNTNConditions();
-    
-    /**
-     * This function clears the NTS conditions already created 
-     */
-    
-    void TotalClearNTSConditions();
-    
-    /**
-     * This function clears the NTS conditions already created 
-     */
-    
-    void PartialClearNTSConditions();
+            itCond->GetValue(CONTACT_SETS) = new ConditionMap;
+//             itCond->GetValue(CONTACT_SETS)->reserve(mAllocationSize); 
+        }
+    }
     
     /**
      * This function clears the mortar conditions already created 
      */
     
-    void TotalClearMortarConditions();
+    void TotalClearScalarMortarConditions()
+    {
+        ResetContactOperators(mrMainModelPart);
+        
+        NodesArrayType& pNode = mrMainModelPart.Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+            
+            if (itNode->Is(ACTIVE) == true)
+            {
+                itNode->Set( ACTIVE, false );
+                itNode->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
+            }
+        }  
+    }
+    
+    void TotalClearComponentsMortarConditions()
+    {
+        ResetContactOperators(mrMainModelPart);
+        
+        NodesArrayType& pNode = mrMainModelPart.Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+            
+            if (itNode->Is(ACTIVE) == true)
+            {
+                itNode->Set( ACTIVE, false );
+                itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector(3);
+            }
+        }  
+    }
+    
+    /**
+     * This function clears the ALM frictionless mortar conditions already created 
+     */
+    
+    void TotalClearALMFrictionlessMortarConditions()
+    {
+        ResetContactOperators(mrMainModelPart);
+        
+        NodesArrayType& pNode = mrMainModelPart.Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+            
+            if (itNode->Is(ACTIVE) == true)
+            {
+                itNode->Set( ACTIVE, false );
+                itNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
+            }
+        }  
+    }
     
     /**
      * This function clears the mortar conditions already created 
      */
     
-    void PartialClearMortarConditions();
+    void PartialClearScalarMortarConditions()
+    {
+        NodesArrayType& pNode = mrMainModelPart.Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+            if (itNode->Is(ACTIVE) == false)
+            {
+                itNode->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
+            }
+        } 
+    }
+    
+    void PartialClearComponentsMortarConditions()
+    {
+        NodesArrayType& pNode = mrMainModelPart.Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+            if (itNode->Is(ACTIVE) == false)
+            {
+                itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector(3);
+            }
+        } 
+    }
     
     /**
-     * This function clears conditions already created 
+     * This function clears the ALM frictionless mortar conditions already created 
      */
     
-    void TotalClearConditions(ModelPart & rModelPart);
-    
-    /**
-     * This function clears partially the conditions already created 
-     */
-    
-    void PartialClearConditions(ModelPart & rModelPart);
-    
-    /**
-     * This function creates a lists  points ready for the NTN method
-     */
-    
-    void CreatePointListNTN();
-    
-    /**
-     * This function creates a lists  points ready for the NTS method
-     */
-    
-    void CreatePointListNTS();
+    void PartialClearALMFrictionlessMortarConditions()
+    {
+        NodesArrayType& pNode = mrMainModelPart.Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+            if (itNode->Is(ACTIVE) == false)
+            {
+                itNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
+            }
+        } 
+    }
       
     /**
      * This function creates a lists  points ready for the Mortar method
      */
     
-    void CreatePointListMortar();
-    
-    /**
-     * This function creates a node list
-     */
-    
-    void CreatePointListNodes(
-        ModelPart & rModelPart, 
-        PointVector & PoinList
-        );
+    void CreatePointListMortar()
+    {
+        // Iterate in the conditions
+        ConditionsArrayType& pConditions = mrMainModelPart.Conditions();
+        auto numConditions = pConditions.end() - pConditions.begin();
 
-    /**
-     * This function creates a condition list
-     */
-    
-    void CreatePointListConditions(
-        ModelPart & rModelPart, 
-        PointVector & PoinList
-        );
-    
+//         #pragma omp parallel for 
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCond = pConditions.begin() + i;
+            
+            if (itCond->Is(MASTER) == true)
+            {
+                Point<3> Center;
+                const double Radius = ContactUtilities::CenterAndRadius((*itCond.base()), Center); 
+                PointItem::Pointer pPoint = PointItem::Pointer(new PointItem(Center, (*itCond.base()), Radius));
+                (mPointListDestination).push_back(pPoint);
+            }
+        }
+    }
+
     /**
      * This function updates a lists  points ready for the Mortar method
      */
     
-    void UpdatePointListMortar(); // TODO: Add the other updates
-    
+    void UpdatePointListMortar()
+    {
+        // Iterate in the conditions
+        ConditionsArrayType& pConditions = mrMainModelPart.Conditions();
+        auto numConditions = pConditions.end() - pConditions.begin();
 
-    /**
-     * This function updates a node list
-     */
-    
-    void UpdatePointListNodes(
-        ModelPart & rModelPart, 
-        PointVector & PoinList
-        );
+//         #pragma omp parallel for 
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCond = pConditions.begin() + i;
+            
+            if (itCond->Is(MASTER) == true)
+            {
+                Point<3> Center;
+                const double Radius = ContactUtilities::CenterAndRadius((*itCond.base()), Center); 
+                PointItem::Pointer & pPoint = mPointListDestination[i];
+                pPoint->SetCondition((*itCond.base()));
+                pPoint->SetRadius(Radius);
+                pPoint->SetPoint(Center);
+            }
+        }
+    }
 
-    /**
-     * This function updates a condition list
-     */
-    
-    void UpdatePointListConditions(
-        ModelPart & rModelPart, 
-        PointVector & PoinList
-        );
-    
-    /**
-     * This function 
-     * @param 
-     * @return 
-     */
-        
-    void CreateNTNConditions(
-        const double SearchFactor,
-        const int type_search
-    );
-    
-    void UpdateNTNConditions(
-        const double SearchFactor,
-        const int type_search
-    );
-    
-    /**
-     * This function 
-     * @param 
-     * @return 
-     */
-        
-    void CreateNTSConditions(
-        const double SearchFactor,
-        const int type_search
-    );
-    
-    void UpdateNTSConditions(
-        const double SearchFactor,
-        const int type_search
-    );
-    
     /**
      * This function has as pourpose to find potential contact conditions and fill the mortar conditions with the necessary pointers
      * @param Searchfactor: The proportion increased of the Radius/Bounding-box volume for the search
-     * @param type_search: 0 means search in radius, 1 means search in box // TODO: Add more types of bounding boxes, as kdops, look bounding_volume_tree.h
+     * @param TypeSearch: 0 means search in radius, 1 means search in box // TODO: Add more types of bounding boxes, as kdops, look bounding_volume_tree.h
      * @return The mortar conditions alreay created
      */
+    
+    void UpdateMortarConditions(const double SearchFactor)
+    {        
+        // Initialize values
+        PointVector PointsFound(mAllocationSize);
+        unsigned int NumberPointsFound = 0;    
         
-    void CreateMortarConditions(
-        const double SearchFactor,
-        const int type_search
-    );
-    
-    void UpdateMortarConditions(
-        const double SearchFactor,
-        const int type_search
-    );
+        // Create a tree
+        // It will use a copy of mNodeList (a std::vector which contains pointers)
+        // Copying the list is required because the tree will reorder it for efficiency
+        KDTree TreePoints(mPointListDestination.begin(), mPointListDestination.end(), mBucketSize);
+
+        // Calculate the mean of the normal in all the nodes
+        ContactUtilities::ComputeNodesMeanNormalModelPart(mrMainModelPart); 
+        
+        // Iterate in the conditions
+        ConditionsArrayType& pConditions = mrMainModelPart.Conditions();
+        auto numConditions = pConditions.end() - pConditions.begin();
+
+//         #pragma omp parallel for 
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCond = pConditions.begin() + i;
+            
+            if (itCond->Is(SLAVE) == true)
+            {
+                if (mSearchTreeType == KdtreeInRadius)
+                {
+                    Point<3> Center;
+                    const double SearchRadius = SearchFactor * ContactUtilities::CenterAndRadius((*itCond.base()), Center);
+
+                    NumberPointsFound = TreePoints.SearchInRadius(Center, SearchRadius, PointsFound.begin(), mAllocationSize);
+                }
+                else if (mSearchTreeType == KdtreeInBox)
+                {
+                    const Point<3> Center = itCond->GetGeometry().Center();
+                    Node<3> MinPoint, MaxPoint;
+                    itCond->GetGeometry().BoundingBox(MinPoint, MaxPoint);
+                    ContactUtilities::ScaleNode<Node<3>>(MinPoint, Center, SearchFactor);
+                    ContactUtilities::ScaleNode<Node<3>>(MaxPoint, Center, SearchFactor);
+                    NumberPointsFound = TreePoints.SearchInBox(MinPoint, MaxPoint, PointsFound.begin(), mAllocationSize);
+                }
+                else
+                {
+                    KRATOS_ERROR << " The type search is not implemented yet does not exist!!!!. SearchTreeType = " << mSearchTreeType << std::endl;
+                }
+                
+                if (NumberPointsFound > 0)
+                {   
+//                     KRATOS_WATCH(NumberPointsFound); 
+                    
+                    ConditionMap *& ConditionPointersDestination = itCond->GetValue(CONTACT_SETS);
+                    
+                    for(unsigned int i = 0; i < NumberPointsFound; i++)
+                    {   
+                        Condition::Pointer pCondOrigin = PointsFound[i]->GetCondition();
+                        
+                        if (CheckCondition(ConditionPointersDestination, (*itCond.base()), pCondOrigin) == true) 
+                        {    
+                            // If not active we check if can be potentially in contact
+                            SearchUtilities::ContactContainerFiller(ConditionPointersDestination, (*itCond.base()), pCondOrigin, itCond->GetValue(NORMAL), pCondOrigin->GetValue(NORMAL), mActiveCheckFactor); 
+                        }
+                        
+                        if (ConditionPointersDestination->size() > 0)
+                        {                        
+                            itCond->Set(ACTIVE, true);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Here we remove all the inactive pairs
+        ClearAllInactivePairs(); 
+    }
     
     /**
-     * 
-     * @param 
-     * @return 
+     * It checks the current mortar conditions
      */
     
-    void CheckMortarConditions();
+    void CheckMortarConditions()
+    {
+        // Iterate in the conditions
+        ConditionsArrayType& pConditions = mrMainModelPart.Conditions();
+        auto numConditions = pConditions.end() - pConditions.begin();
+
+//         #pragma omp parallel for 
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCond = pConditions.begin() + i;
+            
+            if (itCond->Is(MASTER) == true && itCond->Is(ACTIVE) == true)
+            {
+                KRATOS_WATCH(itCond->Id());
+                KRATOS_ERROR << "THIS IS NOT SUPPOSED TO HAPPEN" << std::endl; 
+            }
+            
+            if (itCond->Is(SLAVE) == true && itCond->Is(ACTIVE) == true)
+            {
+                KRATOS_WATCH(itCond->GetGeometry());
+                
+                ConditionMap *& ConditionPointersDestination = itCond->GetValue(CONTACT_SETS);
+                KRATOS_WATCH(ConditionPointersDestination->size());
+                ConditionPointersDestination->print();
+            }
+        }
+        
+        NodesArrayType& pNode = mrMainModelPart.Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+//         #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+            
+            if (itNode->Is(ACTIVE) == true)
+            {
+                std::cout << "Node: " << itNode->Id() << " is active" << std::endl;
+            }
+        }
+    }
     
     /**
-     * 
-     * @param 
-     * @return 
+     * It clears all the inactive pairs
      */
     
-    void ClearAllInactivePairs(ModelPart & rModelPart);
+    void ClearAllInactivePairs()
+    {
+        ConditionsArrayType& pCond = mrMainModelPart.Conditions();
+        
+        auto numConditions = pCond.end() - pCond.begin();
+        
+//         #pragma omp parallel for // NOTE: Be careful, if you change something with get value over the nodes iteraring in the conditions this will not work in OpenMP 
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCond = pCond.begin() + i;
+            
+            if (itCond->Is(SLAVE) == true && itCond->Is(ACTIVE) == true)
+            {            
+                ConditionMap *& ConditionPointers = itCond->GetValue(CONTACT_SETS);
+                                
+                if (ConditionPointers != NULL)
+                {
+                    for ( auto ipair = ConditionPointers->begin(); ipair != ConditionPointers->end(); ++ipair )
+                    {                        
+                        if (ipair->second == false)
+                        {
+                            // Last oportunity for the condition pair
+                            const bool CondActive = SearchUtilities::ContactChecker(itCond->GetGeometry(),   (ipair->first)->GetGeometry(), 
+                                                                                            itCond->GetValue(NORMAL), (ipair->first)->GetValue(NORMAL), 
+                                                                                            mActiveCheckFactor);
+                            if (CondActive == false) // Not paired anymore paired
+                            {
+                                ConditionPointers->erase(ipair);
+                            }
+                        }
+                    } 
+                    
+                    // All the pairs has been removed
+                    if ((*ConditionPointers).size() == 0)
+                    {
+                        itCond->Set(ACTIVE, false);
+                    }
+                }
+                else
+                {
+                    itCond->Set(ACTIVE, false);
+                }
+            }
+        }
+    }
     
     /**
-     * 
-     * @param 
-     * @param 
-     * @return 
+     * It check the conditions if they are correctly detected
+     * @return ConditionPointers1: A vector containing the pointers to the conditions 
+     * @param pCond1: The pointer to the condition in the destination model part
+     * @param pCond2: The pointer to the condition in the destination model part  
      */
     
     bool CheckCondition(
-        std::vector<contact_container> *& ConditionPointers,
-        const Condition::Pointer & pCondDestination,
-        const Condition::Pointer & pCondOrigin
-        );
-    
-    /**
-     * Fills
-     * @param 
-     * @param ActiveCheckFactor: The proportion of the length of the geometry that is going to be taking into account to chechk if the node is active or inactive
-     * @return 
-     */
-    
-    void MortarContainerFiller(
-        Condition::Pointer & pCond_1,
-        const Condition::Pointer & pCond_2,
-        std::vector<contact_container> *& ConditionPointers,
-        const double ActiveCheckFactor
-        );
-    
-    /**
-     * It computes the mean of the normal in the condition in all the nodes
-     */
-    
-    void ComputeNodesMeanNormal();
+        ConditionMap *& ConditionPointers1,
+        const Condition::Pointer & pCond1,
+        const Condition::Pointer & pCond2
+        )
+    {
+        if (((pCond1 != pCond2) && (pCond1->GetValue(ELEMENT_POINTER) != pCond2->GetValue(ELEMENT_POINTER))) == false) // Avoiding "auto self-contact" and "auto element contact"
+        {
+            return false;
+        }
+        
+        // Avoid conditions oriented in the same direction
+        const double Tolerance = 1.0e-16;
+        if (norm_2(pCond1->GetValue(NORMAL) - pCond2->GetValue(NORMAL)) < Tolerance)
+        {
+            return false;
+        }
+        
+        if (ConditionPointers1->find(pCond2) != ConditionPointers1->end())
+        {
+            return false;
+        }
+        
+        if (pCond2->Is(SLAVE) == true) // Otherwise will not be necessary to check
+        {
+            ConditionMap *& ConditionPointers2 = pCond2->GetValue(CONTACT_SETS);
+            
+            if (ConditionPointers2->find(pCond1) != ConditionPointers2->end())
+            {
+                return false;
+            }
+        }
+        
+        return true;
+    }
     
     ///@}
     ///@name Access
@@ -648,6 +615,63 @@ protected:
     ///@name Protected Operators
     ///@{
 
+    /**
+     * This resets the contact operators
+     * @param rModelPart: The model part where the contact operators are reset
+     */
+        
+    void ResetContactOperators(ModelPart & rModelPart)
+    {
+        ConditionsArrayType& pCond = rModelPart.Conditions();
+    
+        auto numConditions = pCond.end() - pCond.begin();
+        
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCond = pCond.begin() + i;
+            if (itCond->Is(SLAVE) == true && itCond->Is(ACTIVE) == true)
+            {
+                itCond->Set(ACTIVE, false);
+                
+                ConditionMap *& ConditionPointers = itCond->GetValue(CONTACT_SETS);
+                
+                if (ConditionPointers != NULL)
+                {
+                    ConditionPointers->clear();
+//                     ConditionPointers->reserve(mAllocationSize); 
+                }
+            }
+        }   
+    }
+    
+    /**
+     * This converts the framework string to an enum
+     * @param str: The string
+     * @return SearchTreeType: The equivalent enum
+     */
+    
+    SearchTreeType ConvertSearchTree(const std::string& str)
+    {
+        if(str == "InRadius") 
+        {
+            return KdtreeInRadius;
+        }
+        else if(str == "InBox") 
+        {
+            return KdtreeInBox;
+        }
+        else if (str == "KDOP")
+        {
+            KRATOS_ERROR << "KDOP contact search: Not yet implemented" << std::endl;
+            return Kdop;
+        }
+        else
+        {
+            return KdtreeInRadius;
+        }
+    }
+    
     ///@}
     ///@name Protected Operations
     ///@{
@@ -674,13 +698,14 @@ private:
     ///@name Member Variables
     ///@{
   
-    ModelPart& mrOriginModelPart;             // The original model part
-    ModelPart& mrDestinationModelPart;        // The destination model part
-    unsigned int mBucketSize;                 // Bucket size for kd-tree
+    ModelPart& mrMainModelPart;               // The main model part
+    const unsigned int mDimension;            // Dimension size of the space
+    const unsigned int mAllocationSize;       // Allocation size for the vectors and max number of potential results
+    const double mActiveCheckFactor;          // The check factor to be considered
+    const SearchTreeType mSearchTreeType;     // The search tree considered
+    const unsigned int mBucketSize;           // Bucket size for kd-tree
     PointVector mPointListDestination;        // A list that contents the all the points (from nodes) from the modelpart 
-    const unsigned int mdimension;            // Dimension size of the space
-    const unsigned int mallocation;           // Allocation size for the vectors and max number of potential results
-    
+
     ///@}
     ///@name Private Operators
     ///@{

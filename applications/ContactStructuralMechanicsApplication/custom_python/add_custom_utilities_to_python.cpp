@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//					 license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix
 //
@@ -24,6 +24,8 @@
 
 //Utilities
 #include "custom_utilities/tree_contact_search.h"
+#include "custom_utilities/deprecated_tree_contact_search.h"
+#include "custom_utilities/exact_mortar_segmentation_utility.h"
 
 namespace Kratos
 {
@@ -33,33 +35,47 @@ void  AddCustomUtilitiesToPython()
 {
     using namespace boost::python;
 
-//     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-//     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-//     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    class_<DeprecatedTreeContactSearch>("DeprecatedTreeContactSearch", init<ModelPart&, ModelPart&, const unsigned int>())
+    .def("ModelPartSetter",&DeprecatedTreeContactSearch::ModelPartSetter)
+    .def("InitializeMortarConditions",&DeprecatedTreeContactSearch::InitializeMortarConditions)
+    .def("TotalClearMortarConditions",&DeprecatedTreeContactSearch::TotalClearMortarConditions)
+    .def("PartialClearMortarConditions",&DeprecatedTreeContactSearch::PartialClearMortarConditions)
+    .def("CreatePointListMortar",&DeprecatedTreeContactSearch::CreatePointListMortar)
+    .def("UpdatePointListMortar",&DeprecatedTreeContactSearch::UpdatePointListMortar)
+    .def("CreateMortarConditions",&DeprecatedTreeContactSearch::CreateMortarConditions)
+    .def("UpdateMortarConditions",&DeprecatedTreeContactSearch::UpdateMortarConditions)
+    .def("CheckMortarConditions",&DeprecatedTreeContactSearch::CheckMortarConditions)
+    ;
     
-    class_<TreeContactSearch>("TreeContactSearch", init<ModelPart&, ModelPart&, const unsigned int>())
-    .def("ModelPartSetter",&TreeContactSearch::ModelPartSetter)
-    .def("InitializeNTNConditions",&TreeContactSearch::InitializeNTNConditions)
-    .def("InitializeNTSConditions",&TreeContactSearch::InitializeNTSConditions)
+    class_<TreeContactSearch>("TreeContactSearch", init<ModelPart&>())
+    .def(init<ModelPart&, const unsigned int>())
+    .def(init<ModelPart&, const unsigned int, const double>())
+    .def(init<ModelPart&, const unsigned int, const double, const std::string>())
     .def("InitializeMortarConditions",&TreeContactSearch::InitializeMortarConditions)
-    .def("InitializeMortarConditionsDLM",&TreeContactSearch::InitializeMortarConditionsDLM)
-    .def("TotalClearNTNConditions",&TreeContactSearch::TotalClearNTNConditions)
-    .def("TotalClearNTSConditions",&TreeContactSearch::TotalClearNTSConditions)
-    .def("TotalClearMortarConditions",&TreeContactSearch::TotalClearMortarConditions)
-    .def("PartialClearNTNConditions",&TreeContactSearch::PartialClearNTNConditions)
-    .def("PartialClearNTSConditions",&TreeContactSearch::PartialClearNTSConditions)
-    .def("PartialClearMortarConditions",&TreeContactSearch::PartialClearMortarConditions)
-    .def("CreatePointListNTN",&TreeContactSearch::CreatePointListNTN)
-    .def("CreatePointListNTS",&TreeContactSearch::CreatePointListNTS)
+    .def("TotalClearScalarMortarConditions",&TreeContactSearch::TotalClearScalarMortarConditions)
+    .def("TotalClearComponentsMortarConditions",&TreeContactSearch::TotalClearComponentsMortarConditions)
+    .def("TotalClearALMFrictionlessMortarConditions",&TreeContactSearch::TotalClearALMFrictionlessMortarConditions)
+    .def("PartialClearScalarMortarConditions",&TreeContactSearch::PartialClearScalarMortarConditions)
+    .def("PartialClearComponentsMortarConditions",&TreeContactSearch::PartialClearComponentsMortarConditions)
+    .def("PartialClearALMFrictionlessMortarConditions",&TreeContactSearch::PartialClearALMFrictionlessMortarConditions)
     .def("CreatePointListMortar",&TreeContactSearch::CreatePointListMortar)
     .def("UpdatePointListMortar",&TreeContactSearch::UpdatePointListMortar)
-    .def("CreateNTNConditions",&TreeContactSearch::CreateNTNConditions)
-    .def("CreateNTSConditions",&TreeContactSearch::CreateNTSConditions)
-    .def("CreateMortarConditions",&TreeContactSearch::CreateMortarConditions)
-    .def("UpdateNTNConditions",&TreeContactSearch::UpdateNTNConditions)
-    .def("UpdateNTSConditions",&TreeContactSearch::UpdateNTSConditions)
     .def("UpdateMortarConditions",&TreeContactSearch::UpdateMortarConditions)
     .def("CheckMortarConditions",&TreeContactSearch::CheckMortarConditions)
+    ;
+    
+    // Exact integration (for testing)
+    class_<ExactMortarIntegrationUtility<2,2>>("ExactMortarIntegrationUtility2D2N", init<const unsigned int>())
+    .def(init< >())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactIntegration)
+    ;
+    class_<ExactMortarIntegrationUtility<3,3>>("ExactMortarIntegrationUtility3D3N", init<const unsigned int>())
+    .def(init< >())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
+    ;
+    class_<ExactMortarIntegrationUtility<3,4>>("ExactMortarIntegrationUtility3D4N", init<const unsigned int>())
+    .def(init< >())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
     ;
   
 }

@@ -87,7 +87,6 @@
             "type_search"                 : "InRadius",
             "augmentation_normal"	  : 200,
             "augmentation_tangent"	  : 200,
-            "double_LM"                   : false,  
             "integration_order"           : 100
         }
     }],

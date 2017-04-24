@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:             BSD License
-//                                       license: structural_mechanics_application/license.txt
+//                                       license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:  Vicente Mataix Ferrándiz
 //                 Mohamed Khalil
@@ -55,6 +55,8 @@ namespace Kratos
     /***********************************************************************************/
     /***********************************************************************************/
     
+    #if !defined(GETCOORDINATES)
+    #define GETCOORDINATES
     static inline Matrix GetCoordinates(
         const GeometryType& nodes,
         const bool current
@@ -83,10 +85,13 @@ namespace Kratos
         
         return Coordinates;
     }
+    #endif
 
     /***********************************************************************************/
     /***********************************************************************************/
 
+    #if !defined(GETVARIABLESMATRIX)
+    #define GETVARIABLESMATRIX
     static inline Matrix GetVariableMatrix(
         const GeometryType& nodes,
         const Variable<array_1d<double,3> >& rVarName,
@@ -136,6 +141,7 @@ namespace Kratos
         
         return VarMatrix;
     }
+    #endif
     
 ///@}
 ///@name Kratos Classes
@@ -346,7 +352,7 @@ public:
  * The method has been taken from the Alexander Popps thesis:
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
  */
-template< unsigned int TDim, unsigned int TNumNodes, bool TDoubleLM>
+template< unsigned int TDim, unsigned int TNumNodes >
 class MortarContactCondition:
                 public Condition 
 {
@@ -825,7 +831,7 @@ protected:
                 }
                 else
                 {
-                     KRATOS_THROW_ERROR( std::logic_error,  " Collocation not defined. TNumNodes: ", TNumNodes );
+                     KRATOS_ERROR <<  " Collocation not defined. TNumNodes: " << TNumNodes  << std::endl;
                 }
             }
         }

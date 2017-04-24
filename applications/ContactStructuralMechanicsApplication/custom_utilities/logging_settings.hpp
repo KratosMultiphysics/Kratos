@@ -1,10 +1,13 @@
-/*
- * logging_colors.hpp
- *
- *  Created on: Aug 4, 2016
- *      Author: mohamedkhalil
- */
-
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//
+//  License:             BSD License
+//                                       license: StructuralMechanicsApplication/license.txt
+//
+//  Main authors:    Mohamed Khalil
+// 
 #ifndef LOGGING_SETTINGS_HPP_
 #define LOGGING_SETTINGS_HPP_
 

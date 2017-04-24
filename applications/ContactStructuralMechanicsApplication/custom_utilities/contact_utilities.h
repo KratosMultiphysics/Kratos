@@ -1,11 +1,10 @@
- 
 // KRATOS  ___|  |                   |                   |
 //       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:             BSD License
-//                                       license: structural_mechanics_application/license.txt
+//                                       license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrándiz
 //
@@ -14,23 +13,33 @@
 #define KRATOS_CONTACT_UTILITIES
 
 #include "utilities/math_utils.h"
-#include "custom_utilities/structural_mechanics_math_utilities.hpp"
 #include "contact_structural_mechanics_application_variables.h"
 #include "includes/model_part.h"
 #include "geometries/point.h"
-#include "geometries/line_2d_2.h"
-#include "geometries/line_2d_3.h"
 #include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+    
+///@}
+///@name  Enum's
+///@{
+    
+///@}
+///@name  Functions
+///@{
+    
 class ContactUtilities
 {
 public:
-    /**
-     * @name Type definitions
-     * @{
-     */
+    ///@name Type Definitions
+    ///@{
     
     // General type definitions
     typedef Node<3>                                          NodeType;
@@ -38,92 +47,78 @@ public:
     typedef GeometryData::IntegrationMethod         IntegrationMethod;
     typedef ModelPart::NodesContainerType              NodesArrayType;
     typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
+    
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-    /***********************************************************************************/
-    /***********************************************************************************/
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    ///@}
+    ///@name Friends
+    ///@{
+    
+    ///@}
+    ///@name Operations
+    ///@{
 
     /**
-     * This function fills the contact_container for the Mortar condition
-     * @param ContactPoint: The destination point
-     * @param Geom1 and Geom2: The geometries of the slave and master respectively
-     * @param contact_normal1 and contact_normal2: The normals of the slave and master respectively
-     * @param IntegrationOrder: The integration order   
-     * @return contact_container: Once has been filled
+     * Project a point over a line/plane following an arbitrary direction
+     * @param Geom: The geometry where to be projected
+     * @param PointDestiny: The point to be projected
+     * @param Normal: The normal of the geometry
+     * @param Vector: The direction to project
+     * @return PointProjected: The point pojected over the plane
+     * @return Distance: The distnace between surfaces
      */
 
-    static inline bool ContactContainerFiller(
-            Geometry<Node<3> > & Geom1, // SLAVE
-            Geometry<Node<3> > & Geom2, // MASTER
-            const array_1d<double, 3> & contact_normal1, // SLAVE
-            const array_1d<double, 3> & contact_normal2, // MASTER
-            const double ActiveCheckFactor
-            )
-    {
-        // Define the basic information
-        const unsigned int number_nodes = Geom1.PointsNumber();
+    static inline double FastProjectDirection(
+        const GeometryType& Geom,
+        const Point<3>& PointDestiny,
+        Point<3>& PointProjected,
+        const array_1d<double,3>& Normal,
+        const array_1d<double,3>& Vector
+        )
+    {    
+        // We define the tolerance
+        const double Tolerance = std::numeric_limits<double>::epsilon();
         
-        bool cond_active = false;
+        // We define the distance
+        double Distance = 0.0;
         
-        for (unsigned int index = 0; index < number_nodes; index++)
+        const array_1d<double,3> VectorPoints = Geom[0].Coordinates() - PointDestiny.Coordinates();
+
+        if( norm_2( Vector ) < Tolerance && norm_2( Normal ) > Tolerance )
         {
-            if (Geom1[index].Is(ACTIVE) == false)
-            {
-                Point<3> ProjectedPoint;
-                double aux_dist = 0.0;
-                if (norm_2(Geom1[index].FastGetSolutionStepValue(NORMAL, 0)) < 1.0e-12)
-                {
-                    ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, contact_normal1);
-                }
-                else
-                {
-                    ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, Geom1[index].FastGetSolutionStepValue(NORMAL, 0));
-                }  
-              
-                // TODO: Think about this
-                double dist_tol = ActiveCheckFactor;    // The actual gap tolerance is user-define instead of being a factor of the length
-//                 double dist_tol = ActiveCheckFactor * Geom1.Length();
-//                 dist_tol = (dist_tol <= ActiveCheckFactor * Geom2.Length()) ? (ActiveCheckFactor * Geom2.Length()):dist_tol;
-                
-                array_1d<double, 3> result;
-                // NOTE: We don't use std::abs() because if the aux_dist is negative is penetrating, in fact we just consider dist_tol > 0 to have some tolerance and for the static schemes
-                if (aux_dist <= dist_tol && Geom2.IsInside(ProjectedPoint, result))
-                { 
-                    Geom1[index].Set(ACTIVE, true);
-                    cond_active = true;
-                }
-             }
-             else
-             {
-                 cond_active = true;
-             }
-         }
-         
-         return cond_active;
-    }
-    
-    static inline void ContactContainerFiller(
-            std::vector<contact_container> *& ConditionPointers,
-            Condition::Pointer & pCond_1,       // SLAVE
-            const Condition::Pointer & pCond_2, // MASTER
-            const array_1d<double, 3> & contact_normal1, // SLAVE
-            const array_1d<double, 3> & contact_normal2, // MASTER
-            const double ActiveCheckFactor
-            )
-    {
-        const bool cond_active = ContactContainerFiller(pCond_1->GetGeometry(), pCond_2->GetGeometry(), contact_normal1, contact_normal2, ActiveCheckFactor);
-        
-        if (cond_active == true)
-        {
-            pCond_1->Set(ACTIVE, true);
-            contact_container aux_contact_container;
-            aux_contact_container.condition   = pCond_2;
-            aux_contact_container.active_pair = true;
-            ConditionPointers->push_back(aux_contact_container);
+            Distance = inner_prod(VectorPoints, Normal)/norm_2(Normal);
+
+            PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * Distance;
+            std::cout << " :: Warning: Zero projection vector. Projection using the condition vector instead." << std::endl;
         }
+        else if (std::abs(inner_prod(Vector, Normal) ) > Tolerance)
+        {
+            Distance = inner_prod(VectorPoints, Normal)/inner_prod(Vector, Normal); 
+
+            PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * Distance;
+        }
+        else
+        {
+            PointProjected.Coordinates() = PointDestiny.Coordinates();
+            std::cout << " The line and the plane are coplanar, something wrong happened " << std::endl;
+        }
+        
+        return Distance;
     }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
     
     /**
      * Project a point over a line/plane following an arbitrary direction
@@ -131,86 +126,150 @@ public:
      * @param PointDestiny: The point to be projected
      * @param Vector: The direction to project
      * @return PointProjected: The point pojected over the plane
-     * @return dist: The distance between the point and the plane
+     * @return Distance: The distance between the point and the plane
      */
 
     static inline void ProjectDirection(
-            const Geometry<Node<3> > & Geom,
-            const Point<3>& PointDestiny,
-            Point<3>& PointProjected,
-            double& dist,
-            const array_1d<double,3>& Vector
-            )
+        const GeometryType& Geom,
+        const Point<3>& PointDestiny,
+        Point<3>& PointProjected,
+        double& Distance,
+        const array_1d<double,3>& Vector
+        )
     {        
-        const double tol = 1.0e-15;
-        
         array_1d<double,3> Normal;
         
         GeometryNormal(Normal, Geom);
         
-//         const array_1d<double,3> vector_points = Geom.Center() - PointDestiny.Coordinates();
-        const array_1d<double,3> vector_points = Geom[0].Coordinates() - PointDestiny.Coordinates();
-
-        if( norm_2( Vector ) <= tol && norm_2( Normal ) >= tol )
-        {
-            dist = inner_prod(vector_points, Normal)/norm_2(Normal);
-
-            PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * dist;
-            std::cout << " :: Warning: Zero projection vector. Projection using the condition vector instead." << std::endl;
-        }
-        else if (std::abs(inner_prod(Vector, Normal) ) >= tol)
-        {
-            dist = inner_prod(vector_points, Normal)/inner_prod(Vector, Normal); 
-
-            PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * dist;
-        }
-        else
-        {
-            PointProjected.Coordinates() = PointDestiny.Coordinates();
-            dist = 0.0;
-            std::cout << " The line and the plane are coplanar, something wrong happened " << std::endl;
-        }
+        Distance = FastProjectDirection(Geom, PointDestiny, PointProjected, Normal,Vector);
     }
     
     static inline void ProjectCoordDirection(
-            const Geometry<Node<3> > & Geom,
-            const GeometryType::CoordinatesArrayType& CoordDestiny,
-            GeometryType::CoordinatesArrayType& CoordProjected,
-            double& dist,
-            const array_1d<double,3>& Vector
-            )
+        const GeometryType& Geom,
+        const GeometryType::CoordinatesArrayType& CoordDestiny,
+        GeometryType::CoordinatesArrayType& CoordProjected,
+        double& Distance,
+        const array_1d<double,3>& Vector
+        )
     {        
-        const double tol = 1.0e-15;
-        
         array_1d<double,3> Normal;
         
         GeometryNormal(Normal, Geom);
         
-        array_1d<double,3> vector_points = Geom.Center() - CoordDestiny;
-
-        if( norm_2( Vector ) <= tol && norm_2( Normal ) >= tol )
-        {
-            dist = inner_prod(vector_points, Normal)/norm_2(Normal);
-
-            CoordProjected = CoordDestiny + Vector * dist;
-            std::cout << " :: Warning: Zero projection vector. Projection using the condition normal vector instead." << std::endl;
-        }
-        else if (std::abs(inner_prod(Vector, Normal) ) >= tol)
-        {
-            dist = inner_prod(vector_points, Normal)/inner_prod(Vector, Normal); 
-
-            CoordProjected = CoordDestiny + Vector * dist;
-        }
-        else
-        {
-            CoordProjected = CoordDestiny;
-            dist = 0.0;
-            std::cout << " The line and the plane are coplanar, something wrong happened " << std::endl;
-        }
+        Point<3> PointDestiny;
+        PointDestiny.Coordinates() = CoordDestiny;
+        
+        Point<3> PointProjected;
+        
+        Distance = FastProjectDirection(Geom, PointDestiny, PointProjected, Normal,Vector);
+        
+        CoordProjected = PointProjected.Coordinates();
     }
     
-    /***********************************************************************************/
-    /***********************************************************************************/
+    /**
+     * Projects iteratively to get the coordinate
+     * @param GeomOrigin: The origin geometry
+     * @param PointDestiny: The destination point
+     * @return ResultingPoint: The distance between the point and the plane
+     * @return Inside: True is inside, false not
+     */
+    
+    static inline bool ProjectIterativeLine2D(
+        GeometryType& GeomOrigin,
+        const GeometryType::CoordinatesArrayType& PointDestiny,
+        GeometryType::CoordinatesArrayType& ResultingPoint,
+        const array_1d<double, 3> Normal,
+        const double Tolerance = 1.0e-8
+        )
+    {
+        ResultingPoint.clear();
+        
+        double OldDeltaXi = 0.0;
+        double DeltaXi    = 0.5;
+
+        array_1d<double, 3> CurrentGlobalCoords;
+
+        array_1d<array_1d<double, 3>, 2> normals;
+        normals[0] = GeomOrigin[0].GetValue(NORMAL);
+        normals[1] = GeomOrigin[1].GetValue(NORMAL);
+        
+        boost::numeric::ublas::bounded_matrix<double,2,2> X;
+        boost::numeric::ublas::bounded_matrix<double,2,1> DN;
+        for(unsigned int i=0; i<2;i++)
+        {
+            X(0,i) = GeomOrigin[i].X();
+            X(1,i) = GeomOrigin[i].Y();
+        }
+
+        Matrix J = ZeroMatrix( 1, 1 );
+        
+        //Newton iteration:
+
+        unsigned int maxiter = 10;
+
+        for ( unsigned int k = 0; k < maxiter; k++ )
+        {
+            array_1d<double, 2> NOrigin;
+            NOrigin[0] = 0.5 * ( 1.0 - ResultingPoint[0]);
+            NOrigin[1] = 0.5 * ( 1.0 + ResultingPoint[0]);
+            
+            array_1d<double,3> normal_xi = ZeroVector(3);
+            for( unsigned int iNode = 0; iNode < 2; ++iNode )
+            {
+                normal_xi += NOrigin[iNode] * normals[iNode]; 
+            }
+            
+            normal_xi = normal_xi/norm_2(normal_xi); 
+            
+            CurrentGlobalCoords = ZeroVector( 3 );
+            for( unsigned int iNode = 0; iNode < 2; ++iNode )
+            {
+                CurrentGlobalCoords += NOrigin[iNode] * GeomOrigin[iNode].Coordinates(); 
+            }
+            
+            const array_1d<double,3> VectorPoints = GeomOrigin.Center() - PointDestiny;
+            const double dist = inner_prod(VectorPoints, Normal)/inner_prod(-normal_xi, Normal); 
+            const array_1d<double, 3> CurrentDestinyGlobalCoords = PointDestiny - normal_xi * dist;
+            
+//             // Debug
+//             KRATOS_WATCH(CurrentGlobalCoords)
+//             KRATOS_WATCH(CurrentDestinyGlobalCoords)
+            
+            // Derivatives of shape functions
+            Matrix shape_functions_gradients;
+            shape_functions_gradients = GeomOrigin.ShapeFunctionsLocalGradients(shape_functions_gradients, ResultingPoint );
+            noalias(DN) = prod(X,shape_functions_gradients);
+
+            noalias(J) = prod(trans(DN),DN); // TODO: Add the non linearity concerning the normal
+            Vector RHS = prod(trans(DN),subrange(CurrentDestinyGlobalCoords - CurrentGlobalCoords,0,2));
+            
+            OldDeltaXi = DeltaXi;
+            DeltaXi = RHS[0]/J(0, 0);
+            
+            ResultingPoint[0] += DeltaXi;
+            
+            if (ResultingPoint[0] < -1.0)
+            {
+                ResultingPoint[0] = -1.0;
+            }
+            else if (ResultingPoint[0] > 1.0)
+            {
+                ResultingPoint[0] = 1.0;
+            }
+            
+//             // Debug
+//             KRATOS_WATCH(ResultingPoint[0])
+//             KRATOS_WATCH(DeltaXi)
+//             KRATOS_WATCH(OldDeltaXi)
+            
+            if ( std::abs(DeltaXi - OldDeltaXi) < Tolerance )
+            {
+                return true;
+            }
+        }
+        
+        return false;
+    }
     
     /**
      * Project a point over a plane
@@ -218,47 +277,80 @@ public:
      * @param PointDestiny: The point to be projected
      * @param Normal: The normal of the plane
      * @return PointProjected: The point pojected over the plane
-     * @return dist: The distance between the point and the plane
+     * @return Distance: The distance between the point and the plane
      */
     
     static inline void Project(
-            const Point<3>& PointOrigin,
-            const Point<3>& PointDestiny,
-            Point<3>& PointProjected,
-            double& dist,
-            const array_1d<double,3>& Normal
-            )
+        const Point<3>& PointOrigin,
+        const Point<3>& PointDestiny,
+        Point<3>& PointProjected,
+        double& Distance,
+        const array_1d<double,3>& Normal
+        )
     {
-         array_1d<double,3> vector_points = PointDestiny.Coordinates() - PointOrigin.Coordinates();
+        array_1d<double,3> VectorPoints = PointDestiny.Coordinates() - PointOrigin.Coordinates();
 
-         dist = inner_prod(vector_points, Normal); 
+        Distance = inner_prod(VectorPoints, Normal); 
 
-         PointProjected.Coordinates() = PointDestiny.Coordinates() - Normal * dist;
+        PointProjected.Coordinates() = PointDestiny.Coordinates() - Normal * Distance;
     }
     
-    /***********************************************************************************/
-    /***********************************************************************************/
+    static inline Point<3> FastProject(
+        const Point<3>& PointOrigin,
+        const Point<3>& PointDestiny,
+        const array_1d<double,3>& Normal
+        )
+    {
+        array_1d<double,3> VectorPoints = PointDestiny.Coordinates() - PointOrigin.Coordinates();
+
+        const double Distance = inner_prod(VectorPoints, Normal); 
+        
+        Point<3> PointProjected;
+        PointProjected.Coordinates() = PointDestiny.Coordinates() - Normal * Distance;
+        
+        return PointProjected;
+    }
+    
+    /**
+     * This function scales the points according to a factor (to increase the bounding box)
+     * @param PointToScale: The point to scale
+     * @param Center: The reference point
+     * @param ScaleFactor: The factor considered to "grow" the node
+     */
+    
+    template<class TPointType>
+    static inline void ScaleNode(
+        TPointType& PointToScale,
+        const Point<3>& Center,
+        const double ScaleFactor
+        )
+    {
+        // We calculate the new distance
+        const double Distance = ScaleFactor * DistancePoints(PointToScale.Coordinates(), Center.Coordinates());
+        
+        // Now the vector between nodes
+        array_1d<double, 3> VectorPoints = PointToScale.Coordinates() - Center.Coordinates();
+        VectorPoints /= norm_2(VectorPoints);
+        
+        // Finally we rescale
+        PointToScale.Coordinates() = Center.Coordinates() + VectorPoints * Distance;
+    }
     
     /**
      * Calculates the distance between nodes
-     * @param PointOrigin: A point in the plane
-     * @param PointDestiny: The point to be projected
+     * @param PointOrigin: The first node
+     * @param PointDestiny: The second node
      */
     
     static inline double DistancePoints(
-            const Point<3>& PointOrigin,
-            const Point<3>& PointDestiny
-            )
+        const GeometryType::CoordinatesArrayType& PointOrigin,
+        const GeometryType::CoordinatesArrayType& PointDestiny
+        )
     {
-        const double dist = std::sqrt((PointOrigin.Coordinate(1) - PointDestiny.Coordinate(1)) * (PointOrigin.Coordinate(1) - PointDestiny.Coordinate(1))
-                                    + (PointOrigin.Coordinate(2) - PointDestiny.Coordinate(2)) * (PointOrigin.Coordinate(2) - PointDestiny.Coordinate(2))
-                                    + (PointOrigin.Coordinate(3) - PointDestiny.Coordinate(3)) * (PointOrigin.Coordinate(3) - PointDestiny.Coordinate(3)));
-        
-        return dist;
+        return std::sqrt((PointOrigin[0] - PointDestiny[0]) * (PointOrigin[0] - PointDestiny[0])
+                       + (PointOrigin[1] - PointDestiny[1]) * (PointOrigin[1] - PointDestiny[1])
+                       + (PointOrigin[2] - PointDestiny[2]) * (PointOrigin[2] - PointDestiny[2]));
     }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
 
     /**
      * This function calculates the center and radius of the geometry of a condition
@@ -267,37 +359,32 @@ public:
      * @return Radius: The radius of the condition
      */
 
-    static inline void CenterAndRadius(
-            Condition::Pointer pCond,
-            Point<3>& Center,
-            double& Radius,
-            const unsigned int dimension
-            )
+    static inline double CenterAndRadius(
+        Condition::Pointer pCond,
+        Point<3>& Center
+        )
     {
-        Radius = 0.0;
+        double Radius = 0.0;
         Center = pCond->GetGeometry().Center();
         
         // TODO: Add calculation of radius to geometry.h 
-        array_1d<double, 3> aux_vector;
+        array_1d<double, 3> AuxVector;
         for(unsigned int i = 0; i < pCond->GetGeometry().PointsNumber(); i++)
         {
-            noalias(aux_vector) = Center.Coordinates() - pCond->GetGeometry()[i].Coordinates();;
+            noalias(AuxVector) = Center.Coordinates() - pCond->GetGeometry()[i].Coordinates();;
             
-            const double tmp = inner_prod(aux_vector, aux_vector);
+            const double AuxRadius = inner_prod(AuxVector, AuxVector);
 
-            if(tmp > Radius)
+            if(AuxRadius > Radius)
             {
-                Radius = tmp;
+                Radius = AuxRadius;
             }
         }
 
         Radius = std::sqrt(Radius);
         
-        ConditionNormal(pCond);
+        return Radius;
     }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
 
     /**
      * This function calculates the normal of a condition
@@ -313,9 +400,6 @@ public:
         
         GeometryNormal(Normal, TangentXi, TangentEta, pCond->GetGeometry());
     }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
 
     /**
      * This function calculates the normal of a condition
@@ -324,34 +408,39 @@ public:
 
     static inline array_1d<double,3> GaussPointNormal(
         const Vector N,
-        const Geometry<Node<3> > & Geom
+        const GeometryType & Geom
         )
     {
-        array_1d<double,3> normal = ZeroVector(3);
+        array_1d<double,3> Normal = ZeroVector(3);
         for( unsigned int iNode = 0; iNode < Geom.PointsNumber(); ++iNode )
         {
-            normal += N[iNode] * Geom[iNode].GetValue(NORMAL); 
+            Normal += N[iNode] * Geom[iNode].GetValue(NORMAL); 
         }
         
-        normal = normal/norm_2(normal); // It is suppossed to be already unitary (just in case)
+        const double Tolerance = std::numeric_limits<double>::epsilon();
         
-        return normal;
+        if (norm_2(Normal) > Tolerance)
+        {
+            Normal = Normal/norm_2(Normal); // It is suppossed to be already unitary (just in case)
+        }
+        
+        return Normal;
     }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
     
     /**
      * This function calculates the normal of a geometry
-     * @param Cond: The pointer to the condition of interest
+     * @return Normal: The normal of the geometry
+     * @param TangentXi: The first tangent of the geometry
+     * @param TangentEta: The second tangent of the geometry
+     * @param Geom: The geometry of interest
      */
 
     static inline void GeometryNormal(
-            array_1d<double,3> & Normal,
-            array_1d<double,3> & TangentXi,
-            array_1d<double,3> & TangentEta,
-            const Geometry<Node<3> > & Geom
-            )
+        array_1d<double,3> & Normal,
+        array_1d<double,3> & TangentXi,
+        array_1d<double,3> & TangentEta,
+        const GeometryType & Geom
+        )
     {
         noalias(Normal) = ZeroVector(3);
         
@@ -363,34 +452,36 @@ public:
             Normal += MathUtils<double>::CrossProduct( TangentEta, TangentXi );
         }
         
-        Normal     /= norm_2( Normal );
-        TangentXi  /= norm_2( TangentXi );
-        TangentEta /= norm_2( TangentEta );
+        const double Tolerance = std::numeric_limits<double>::epsilon();
+        
+        if ( norm_2( Normal ) > Tolerance )
+        {
+            Normal     /= norm_2( Normal );
+            TangentXi  /= norm_2( TangentXi );
+            TangentEta /= norm_2( TangentEta );
+        }
     }
         
     static inline void GeometryNormal(
-            array_1d<double,3> & Normal,
-            const Geometry<Node<3> > & Geom
-            )
+        array_1d<double,3> & Normal,
+        const GeometryType & Geom
+        )
     {
         array_1d<double,3> TangentXi, TangentEta;
         
         GeometryNormal(Normal, TangentXi, TangentEta, Geom);
     }
     
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
     /**
      * This function calculates the tangents at a given node
      */
 
     static inline void NodalTangents(
-            array_1d<double,3> & t1,    // tangent in xi direction
-            array_1d<double,3> & t2,    // tangent in eta direction in 3D or simply e3 cartesian vector in 2D
-            const Geometry<Node<3> > & Geom,
-            const unsigned int i_node
-            )
+        array_1d<double,3> & t1,    // tangent in xi direction
+        array_1d<double,3> & t2,    // tangent in eta direction in 3D or simply e3 cartesian vector in 2D
+        const GeometryType & Geom,
+        const unsigned int i_node
+        )
     {
         const unsigned int dimension = Geom.WorkingSpaceDimension( );
         const unsigned int local_dim = Geom.LocalSpaceDimension( );
@@ -420,9 +511,6 @@ public:
         
     }
     
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
     /**
      * It computes the mean of the normal in the condition in all the nodes
      * @param ModelPart: The model part to compute
@@ -432,7 +520,7 @@ public:
     static inline void ComputeNodesMeanNormalModelPart(ModelPart & rModelPart) 
     {
         // Tolerance
-        const double tol = 1.0e-14;
+        const double Tolerance = std::numeric_limits<double>::epsilon();
 
         // Initialize normal vectors
         const array_1d<double,3> ZeroVect = ZeroVector(3);
@@ -440,7 +528,7 @@ public:
         NodesArrayType& pNode = rModelPart.Nodes();
         auto numNodes = pNode.end() - pNode.begin();
         
-//         #pragma omp parallel for // NOTE: Giving problems!!
+        #pragma omp parallel for
         for(unsigned int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
@@ -454,25 +542,31 @@ public:
         ConditionsArrayType& pCond = rModelPart.Conditions();
         auto numConditions = pCond.end() - pCond.begin();
         
-//         #pragma omp parallel for // NOTE: Don't parallelize, you are accesing to the nodes (try with atomic)
+        #pragma omp parallel for
         for(unsigned int i = 0; i < numConditions; i++) 
         {
             auto itCond = pCond.begin() + i;
-            if (itCond->Is(ACTIVE) || itCond->Is(MASTER))
+            
+            if (itCond->Is(SLAVE) || itCond->Is(MASTER) || itCond->Is(ACTIVE))
+//             if (itCond->Is(ACTIVE) || itCond->Is(MASTER)) // NOTE: This can produce troubles, nodal normals are affected by the neighbour conditions (which can be innactive, think about search for neightbour conditions first)
             {
                 ConditionNormal(*(itCond.base()));
                 
-                const unsigned int number_nodes = itCond->GetGeometry().PointsNumber();
-                const double & rArea = itCond->GetGeometry().Area()/number_nodes;
+                const unsigned int NumberNodes = itCond->GetGeometry().PointsNumber();
+                const double & rArea = itCond->GetGeometry().Area()/NumberNodes;
                 const array_1d<double, 3> & rNormal     = itCond->GetValue(NORMAL);
                 const array_1d<double, 3> & rTangentXi  = itCond->GetValue(TANGENT_XI);
                 const array_1d<double, 3> & rTangentEta = itCond->GetValue(TANGENT_ETA);
                 
-                for (unsigned int i = 0; i < number_nodes; i++)
+                for (unsigned int i = 0; i < NumberNodes; i++)
                 {
+                    #pragma omp atomic
                     itCond->GetGeometry()[i].GetValue(NODAL_AREA)             += rArea;
+                    #pragma omp critical
                     noalias( itCond->GetGeometry()[i].GetValue(NORMAL) )      += rArea * rNormal;
+                    #pragma omp critical
                     noalias( itCond->GetGeometry()[i].GetValue(TANGENT_XI) )  += rArea * rTangentXi;
+                    #pragma omp critical
                     noalias( itCond->GetGeometry()[i].GetValue(TANGENT_ETA) ) += rArea * rTangentEta;
                 }
             }
@@ -483,10 +577,13 @@ public:
         {
             auto itNode = pNode.begin() + i;
 
-            const double total_area        = itNode->GetValue(NODAL_AREA);
-            itNode->GetValue(NORMAL)      /= total_area;
-            itNode->GetValue(TANGENT_XI)  /= total_area;
-            itNode->GetValue(TANGENT_ETA) /= total_area;
+            const double TotalArea = itNode->GetValue(NODAL_AREA);
+            if (TotalArea > Tolerance)
+            {
+                itNode->GetValue(NORMAL)      /= TotalArea;
+                itNode->GetValue(TANGENT_XI)  /= TotalArea;
+                itNode->GetValue(TANGENT_ETA) /= TotalArea;
+            }
         }
         
 //         // Applied laziness - MUST be calculated BEFORE normalizing the normals
@@ -497,26 +594,18 @@ public:
         {
             auto itNode = pNode.begin() + i;
 
-//             const double total_area        = itNode->GetValue(NODAL_AREA);
-//             itNode->GetValue(NORMAL)      /= total_area;
-//             itNode->GetValue(TANGENT_XI)  /= total_area;
-//             itNode->GetValue(TANGENT_ETA) /= total_area;
-
-            const double norm_normal     = norm_2(itNode->GetValue(NORMAL));
-            const double norm_tangentxi  = norm_2(itNode->GetValue(TANGENT_XI));
-            const double norm_tangenteta = norm_2(itNode->GetValue(TANGENT_ETA));
+            const double NormNormal     = norm_2(itNode->GetValue(NORMAL));
+            const double NormTangentXi  = norm_2(itNode->GetValue(TANGENT_XI));
+            const double NormTangentEta = norm_2(itNode->GetValue(TANGENT_ETA));
             
-            if (norm_normal > tol)
+            if (NormNormal > Tolerance)
             {
-                itNode->GetValue(NORMAL)      /= norm_normal;
-                itNode->GetValue(TANGENT_XI)  /= norm_tangentxi;
-                itNode->GetValue(TANGENT_ETA) /= norm_tangenteta;
+                itNode->GetValue(NORMAL)      /= NormNormal;
+                itNode->GetValue(TANGENT_XI)  /= NormTangentXi;
+                itNode->GetValue(TANGENT_ETA) /= NormTangentEta;
             }
         }
     }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
 
     /**
      * It computes the directional derivative of the normal in the condition in all the nodes
@@ -534,7 +623,7 @@ public:
         ConditionsArrayType::iterator it_cond_end   = pCond.ptr_end();
 
         // Tolerance
-        const double tol = 1.0e-14;
+        const double Tolerance = std::numeric_limits<double>::epsilon();
 
         // Initialize directional derivative
         const unsigned int dimension = it_cond_begin->WorkingSpaceDimension( ); 
@@ -596,7 +685,7 @@ public:
                     }
                     else
                     {
-                        KRATOS_THROW_ERROR( std::logic_error, "DELTA_NORMAL is not yet defined for higher order 1D elements. Number of nodes: ", num_nodes );
+                        KRATOS_ERROR << "DELTA_NORMAL is not yet defined for higher order 1D elements. Number of nodes: " << num_nodes << std::endl;
                     }
                 }
                 else if ( dimension == 3 )
@@ -668,7 +757,7 @@ public:
                         }
                         else
                         {
-                            KRATOS_THROW_ERROR( std::logic_error, "DELTA_NORMAL is not yet defined for higher order 2D elements. Number of nodes: ", itCond->GetGeometry( ).PointsNumber() );
+                            KRATOS_ERROR << "DELTA_NORMAL is not yet defined for higher order 2D elements. Number of nodes: " << itCond->GetGeometry( ).PointsNumber() << std::endl;
                         }
                         
                         itCond->GetGeometry( ).Jacobian( J, local_coords_j );
@@ -708,7 +797,7 @@ public:
                 }
                 else
                 {
-                    KRATOS_THROW_ERROR( std::logic_error, "Bad dimension provided to calculate DELTA_NORMAL. Dimension = ", dimension );
+                    KRATOS_ERROR << "Bad dimension provided to calculate DELTA_NORMAL. Dimension = " << dimension << std::endl;
                 }
             }
         }
@@ -723,41 +812,13 @@ public:
             const double nj_norm = norm_2( nj );
             const double nj_norm_3 = nj_norm * nj_norm * nj_norm;
             
-            if ( nj_norm_3 > tol )
+            if ( nj_norm_3 > Tolerance )
             {
                 const Matrix Cj = I / nj_norm - nj_o_nj / nj_norm_3;
                 itNode->GetValue(DELTA_NORMAL) = prod( Cj, itNode->GetValue(DELTA_NORMAL) );
             }
         }
     }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    /**
-     * Calculates the determinant of the jacobian of the contact element  
-     * @param Jacobian: The element's jacobian
-     * @return The determinant of the provided jacobian
-     */
-    static inline const double ContactElementDetJacobian( const Matrix& J )
-    {
-        Matrix JTJ = prod( trans(J), J );
-        if( J.size2( ) == 1 )
-        {
-            return std::sqrt( JTJ(0,0) );
-        }
-        else if( J.size2( ) == 2 )
-        {
-            return std::sqrt( JTJ(0,0) * JTJ(1,1) - JTJ(1,0) * JTJ(0,1) );
-        }
-        else
-        {
-            KRATOS_THROW_ERROR( std::logic_error, "Illegal local dimension for contact element. Dimension = ", J.size2( ) );
-        }
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
     
     /**
      * It changes from active to inactive and viceversa the nodes 
@@ -769,19 +830,21 @@ public:
     {
         // TODO: If works make it parallell (it is difficult, be careful with the repeated nodes) 
        
-        ConditionsArrayType& pCond = rModelPart.GetSubModelPart("Contact").Conditions();
-        ConditionsArrayType::iterator it_cond_begin = pCond.ptr_begin();
-        ConditionsArrayType::iterator it_cond_end   = pCond.ptr_end();
-        
-        for(ConditionsArrayType::iterator itCond = it_cond_begin; itCond!=it_cond_end; itCond++)
+        ConditionsArrayType& pConditions = rModelPart.GetSubModelPart("Contact").Conditions();
+        auto numConditions = pConditions.end() - pConditions.begin();
+
+//         #pragma omp parallel for 
+        for(unsigned int i = 0; i < numConditions; i++) 
         {
-            bool condition_is_active = false; // It is supposed to be always defined, and with this only the slave conditions will be taken into account
+            auto itCond = pConditions.begin() + i;
+            
+            bool ConditionIsActive = false; // It is supposed to be always defined, and with this only the slave conditions will be taken into account
             if( (itCond)->IsDefined(ACTIVE) == true)
             {
-                condition_is_active = (itCond)->Is(ACTIVE);
+                ConditionIsActive = (itCond)->Is(ACTIVE);
             }
             
-            if ( condition_is_active == true )
+            if ( ConditionIsActive == true )
             {
                 // Recompute Active/Inactive nodes
                 double cn = 0.0;
@@ -796,27 +859,27 @@ public:
                     ct = itCond->GetProperties().GetValue(TANGENT_AUGMENTATION_FACTOR); 
                 }
 
-                Geometry<Node<3> > & CondGeometry = itCond->GetGeometry();
+                GeometryType & CondGeometry = itCond->GetGeometry();
                 
                 for(unsigned int itNode = 0; itNode!=CondGeometry.PointsNumber(); itNode++)
                 {
                     if (CondGeometry[itNode].Is(VISITED) == false)
                     {
-                        const double mu = CondGeometry[itNode].GetValue(WEIGHTED_FRICTION);
+                        const double mu = itCond->GetProperties().GetValue(FRICTION_COEFFICIENT); 
                         const double gn = CondGeometry[itNode].GetValue(WEIGHTED_GAP);
-                        const array_1d<double,3> lagrange_multiplier = CondGeometry[itNode].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0);
-                        const array_1d<double,3>        nodal_normal = CondGeometry[itNode].GetValue(NORMAL); 
+                        const array_1d<double,3> LagrangeMultiplier = CondGeometry[itNode].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                        const array_1d<double,3> NodalNormal = CondGeometry[itNode].GetValue(NORMAL); 
                         
-//                         const double lambda_n = inner_prod(lagrange_multiplier, nodal_normal);
-//                         const double augmented_normal_presssure = lambda_n + cn * gn;           
+//                         const double LambdaNormal = inner_prod(LagrangeMultiplier, NodalNormal);
+//                         const double AugmentedNormalPressure = LambdaNormal + cn * gn;           
                         
-                        double augmented_normal_presssure = inner_prod(lagrange_multiplier, nodal_normal);
+                        double AugmentedNormalPressure = inner_prod(LagrangeMultiplier, NodalNormal);
                         if (gn < 0.0) // NOTE: Penetration
                         {
-                            augmented_normal_presssure += cn * gn;     
+                            AugmentedNormalPressure += cn * gn;     
                         }
                         
-                        if (augmented_normal_presssure < 0.0) // NOTE: This could be conflictive (< or <=)
+                        if (AugmentedNormalPressure < 0.0) // NOTE: This could be conflictive (< or <=)
                         {
                             CondGeometry[itNode].Set(ACTIVE, true);
                         }
@@ -826,15 +889,15 @@ public:
 //                             CondGeometry[itNode].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
                         }
                         
-                        const array_1d<double, 3> nodal_tangent_xi  = CondGeometry[itNode].GetValue(TANGENT_XI); 
-                        const array_1d<double, 3> nodal_tangent_eta = CondGeometry[itNode].GetValue(TANGENT_ETA);
-                        const double tangent_xi_lm  = inner_prod(nodal_tangent_xi,  lagrange_multiplier);
-                        const double tangent_eta_lm = inner_prod(nodal_tangent_eta, lagrange_multiplier);
-                        const double lambda_t = std::sqrt(tangent_xi_lm * tangent_xi_lm + tangent_eta_lm * tangent_eta_lm); 
+                        const array_1d<double, 3> NodalTangentXi  = CondGeometry[itNode].GetValue(TANGENT_XI); 
+                        const array_1d<double, 3> NodalTangentEta = CondGeometry[itNode].GetValue(TANGENT_ETA);
+                        const double TangentXiLM  = inner_prod(NodalTangentXi,  LagrangeMultiplier);
+                        const double TangentEtaLM = inner_prod(NodalTangentEta, LagrangeMultiplier);
+                        const double LambdaTangent = std::sqrt(TangentXiLM * TangentXiLM + TangentEtaLM * TangentEtaLM); 
                         
-                        const double augmented_tangent_presssure = std::abs(lambda_t + ct * CondGeometry[itNode].GetValue(WEIGHTED_SLIP)) + mu * augmented_normal_presssure;
+                        const double AugmentedTangentPressure = std::abs(LambdaTangent + ct * CondGeometry[itNode].GetValue(WEIGHTED_SLIP)) + mu * AugmentedNormalPressure;
                         
-                        if (augmented_tangent_presssure < 0.0) // TODO: Check if it is minor equal or just minor
+                        if (AugmentedTangentPressure < 0.0) // TODO: Check if it is minor equal or just minor
                         {
                             CondGeometry[itNode].Set(SLIP, false);
                         }
@@ -850,8 +913,81 @@ public:
         }
     }
     
-    /***********************************************************************************/
-    /***********************************************************************************/
+    /**
+     * It changes from active to inactive and viceversa the nodes 
+     * @param ModelPart: The model part to compute
+     * @return The modelparts with the conditions changed
+     */
+    
+    static inline void ReComputeActiveInactiveALMFrictionless(ModelPart & rModelPart)
+    {
+        // TODO: If works make it parallell (it is difficult, be careful with the repeated nodes) 
+       
+        ConditionsArrayType& pConditions = rModelPart.GetSubModelPart("Contact").Conditions();
+        auto numConditions = pConditions.end() - pConditions.begin();
+
+//         #pragma omp parallel for 
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCond = pConditions.begin() + i;
+            
+            bool ConditionIsActive = false; // It is supposed to be always defined, and with this only the slave conditions will be taken into account
+            if( (itCond)->IsDefined(ACTIVE) == true)
+            {
+                ConditionIsActive = (itCond)->Is(ACTIVE);
+            }
+            
+            if ( ConditionIsActive == true )
+            {
+                // Recompute Active/Inactive nodes
+                double epsilon = 0.0;
+                if (itCond->GetProperties().Has(PENALTY_FACTOR) == true)
+                {
+                    epsilon = itCond->GetProperties().GetValue(PENALTY_FACTOR); 
+                }
+                
+                double k = 1.0;
+                if (itCond->GetProperties().Has(SCALE_FACTOR) == true)
+                {
+                    k = itCond->GetProperties().GetValue(SCALE_FACTOR); 
+                }
+
+                bool DeactivateCondition = true; // If all nodes are inactive we deactivate the condition
+                GeometryType & CondGeometry = itCond->GetGeometry();
+                
+                for(unsigned int itNode = 0; itNode!=CondGeometry.PointsNumber(); itNode++)
+                {
+                    if (CondGeometry[itNode].Is(VISITED) == false)
+                    {
+                        const double gn = CondGeometry[itNode].GetValue(WEIGHTED_GAP);
+                        const double AugmentedNormalPressure = k * CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + epsilon * gn;     
+                        
+                        if (AugmentedNormalPressure < 0.0) // NOTE: This could be conflictive (< or <=)
+                        {
+                            CondGeometry[itNode].Set(ACTIVE, true);
+                            DeactivateCondition = false; // The condition is active
+                        }
+                        else
+                        {
+                            CondGeometry[itNode].Set(ACTIVE, false);
+//                             CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) = 0.0;
+                        }
+                        
+//                         // Debug 
+//                         std::cout << CondGeometry[itNode].Id() << " Gap: " << gn  << " Pressure: " << AugmentedNormalPressure << " Active: " << CondGeometry[itNode].Is(ACTIVE) << std::endl;
+                        
+                        CondGeometry[itNode].Set(VISITED, true);
+                    }
+                }
+                
+                // We deactivate the condition if necessary
+                if (DeactivateCondition == true)
+                {
+                    itCond->Set(ACTIVE, false);
+                }
+            }
+        }
+    }
     
     /**
      * It resets the visited status in all the nodes
@@ -869,16 +1005,10 @@ public:
         for(unsigned int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
-
-            if (itNode->Is(SLAVE))
-            {   
-                itNode->Set(VISITED, false);
-            }
+            
+            itNode->Set(VISITED, false);
         }
     }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
     
     /**
      * It resets the value of the weighted gap and slip 
@@ -890,7 +1020,30 @@ public:
     {
         NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
         
-        const bool DLM = rModelPart.GetSubModelPart("Contact").Is(MODIFIED);
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+
+            if (itNode->Is(ACTIVE) == false)
+            {
+                itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
+            }
+            itNode->GetValue(WEIGHTED_GAP)      = 0.0;
+        }
+    }
+    
+    /**
+     * It resets the value of the weighted gap 
+     * @param ModelPart: The model part to compute
+     * @return The modelparts with the nodes changed
+     */
+    
+    static inline void ResetWeightedALMFrictionlessValues(ModelPart & rModelPart)
+    {
+        NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
         
         auto numNodes = pNode.end() - pNode.begin();
         
@@ -899,25 +1052,179 @@ public:
         {
             auto itNode = pNode.begin() + i;
 
-            if (itNode->Is(SLAVE))
-            {   
-                if (itNode->Is(ACTIVE) == false)
-                {
-                    itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
-                    if (DLM == true)
-                    {
-                        itNode->FastGetSolutionStepValue(DOUBLE_LM, 0) = ZeroVector(3);
-                    }
-                }
-                itNode->GetValue(WEIGHTED_GAP)      = 0.0;
-                itNode->GetValue(WEIGHTED_SLIP)     = 0.0;
-                itNode->GetValue(WEIGHTED_FRICTION) = 0.0;
+            if (itNode->Is(ACTIVE) == false)
+            {
+                itNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) = 0.0;
+            }
+            
+            itNode->GetValue(WEIGHTED_GAP) = 0.0;
+        }
+    }
+    
+    /**
+     * It calculates the matrix of coordinates of a geometry
+     * @param nodes: The geometry to calculate
+     * @param current: If we calculate the current coordinates or the initial ones
+     * @return Coordinates: The matrix containing the coordinates of the geometry
+     */
+    
+    template< unsigned int TDim, unsigned int TNumNodes>
+    static inline boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> GetCoordinates(
+        const GeometryType& nodes,
+        const bool current = true
+        )
+    {
+        /* DEFINITIONS */            
+        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> Coordinates;
+        
+        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        {
+            array_1d<double, 3> coord = nodes[iNode].Coordinates();
+            
+            if (current == false)
+            {
+                coord -= nodes[iNode].FastGetSolutionStepValue(DISPLACEMENT, 0);
+            }
+
+            for (unsigned int iDof = 0; iDof < TDim; iDof++)
+            {
+                Coordinates(iNode, iDof) = coord[iDof];
             }
         }
+        
+        return Coordinates;
+    }
+
+    /**
+     * It calculates the vector of a variable of a geometry
+     * @param nodes: The geometry to calculate
+     * @param rVarName: The name of the variable to calculate
+     * @param step: The step where calculate
+     * @return VarVector: The vector containing the variables of the geometry
+     */
+    
+    template< unsigned int TNumNodes >
+    static inline array_1d<double, TNumNodes> GetVariableVector(
+        const GeometryType& nodes,
+        const Variable<double>& rVarName,
+        unsigned int step
+        )
+    {
+        /* DEFINITIONS */        
+        array_1d<double, TNumNodes> VarVector;
+        
+        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        {
+            VarVector[iNode] = nodes[iNode].FastGetSolutionStepValue(rVarName, step);
+        }
+        
+        return VarVector;
+    }
+    
+    template< unsigned int TNumNodes >
+    static inline boost::numeric::ublas::bounded_matrix<double, TNumNodes, 1> GetVariableVectorMatrix(
+        const GeometryType& nodes,
+        const Variable<double>& rVarName,
+        unsigned int step
+        )
+    {
+        /* DEFINITIONS */        
+        boost::numeric::ublas::bounded_matrix<double, TNumNodes, 1> VarVector;
+        
+        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        {
+            VarVector(iNode, 0) = nodes[iNode].FastGetSolutionStepValue(rVarName, step);
+        }
+        
+        return VarVector;
+    }
+
+    template< unsigned int TNumNodes >
+    static inline array_1d<double, TNumNodes> GetVariableVector(
+        const GeometryType& nodes,
+        const Variable<double>& rVarName
+        )
+    {
+        /* DEFINITIONS */        
+        array_1d<double, TNumNodes> VarVector;
+        
+        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        {
+            VarVector[iNode] = nodes[iNode].GetValue(rVarName);
+        }
+        
+        return VarVector;
+    }
+    
+    template< unsigned int TNumNodes >
+    static inline boost::numeric::ublas::bounded_matrix<double, TNumNodes, 1> GetVariableVectorMatrix(
+        const GeometryType& nodes,
+        const Variable<double>& rVarName
+        )
+    {
+        /* DEFINITIONS */        
+        boost::numeric::ublas::bounded_matrix<double, TNumNodes, 1> VarVector;
+        
+        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        {
+            VarVector(iNode, 0) = nodes[iNode].GetValue(rVarName);
+        }
+        
+        return VarVector;
+    }
+    
+    /**
+     * It calculates the matrix of a variable of a geometry
+     * @param nodes: The geometry to calculate
+     * @param rVarName: The name of the variable to calculate
+     * @param step: The step where calculate
+     * @return VarMatrix: The matrix containing the variables of the geometry
+     */
+    
+    template< unsigned int TDim, unsigned int TNumNodes>
+    static inline Matrix GetVariableMatrix(
+        const GeometryType& nodes,
+        const Variable<array_1d<double,3> >& rVarName,
+        unsigned int step
+        )
+    {
+        /* DEFINITIONS */        
+        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> VarMatrix;
+        
+        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        {
+            const array_1d<double, 3> Value = nodes[iNode].FastGetSolutionStepValue(rVarName, step);
+            for (unsigned int iDof = 0; iDof < TDim; iDof++)
+            {
+                VarMatrix(iNode, iDof) = Value[iDof];
+            }
+        }
+        
+        return VarMatrix;
+    }
+
+    template< unsigned int TDim, unsigned int TNumNodes>
+    static inline Matrix GetVariableMatrix(
+        const GeometryType& nodes,
+        const Variable<array_1d<double,3> >& rVarName
+        )
+    {
+        /* DEFINITIONS */        
+        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> VarMatrix;
+        
+        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        {
+            const array_1d<double, 3> Value = nodes[iNode].GetValue(rVarName);
+            for (unsigned int iDof = 0; iDof < TDim; iDof++)
+            {
+                VarMatrix(iNode, iDof) = Value[iDof];
+            }
+        }
+        
+        return VarMatrix;
     }
     
 private:
 };// class ContactUtilities
 }
 #endif /* KRATOS_CONTACT_UTILITIES defined */
- 

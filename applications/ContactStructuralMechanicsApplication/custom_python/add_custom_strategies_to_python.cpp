@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//					 license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix
 //
@@ -26,12 +26,13 @@
 // Strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/custom_strategies/residualbased_newton_raphson_contact_strategy.h"
-// #include "custom_strategies/custom_strategies/residualbased_newton_raphson_contact_accelerated_strategy.h"
 
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/custom_schemes/residual_based_incremental_update_static_contact_scheme.hpp"
+#include "custom_strategies/custom_schemes/residual_based_incremental_update_static_ALM_contact_scheme.hpp"
 #include "custom_strategies/custom_schemes/residual_based_bossak_displacement_contact_scheme.hpp"
+#include "custom_strategies/custom_schemes/residual_based_bossak_displacement_ALM_contact_scheme.hpp"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -41,9 +42,6 @@
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
-
-// Convergence accelerators
-// #include "../FSIapplication/custom_utilities/convergence_accelerator.hpp"
 
 namespace Kratos
 {
@@ -63,15 +61,15 @@ void  AddCustomStrategiesToPython()
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-//     typedef ConvergenceAccelerator< LocalSpaceType > ConvergenceAcceleratorType;
         
     // Custom strategy types
     typedef ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedNewtonRaphsonContactStrategyType;
-//     typedef ResidualBasedNewtonRaphsonContactAcceleratedStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedNewtonRaphsonContactAcceleratedStrategyType;
     
     // Custom scheme types
     typedef ResidualBasedIncrementalUpdateStaticContactScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedIncrementalUpdateStaticContactSchemeType;
+    typedef ResidualBasedIncrementalUpdateStaticALMContactScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedIncrementalUpdateStaticALMContactSchemeType;
     typedef ResidualBasedBossakDisplacementContactScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementContactSchemeType;
+    typedef ResidualBasedBossakDisplacementALMContactScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementALMContactSchemeType;
 
     // Custom convergence criterion types
     typedef MortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > MortarConvergenceCriteriaType;
@@ -92,16 +90,6 @@ void  AddCustomStrategiesToPython()
             .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetKeepSystemConstantDuringIterations)
             ;
             
-//     // Residual Based Newton Raphson Contact Accelerated Strategy      
-//     class_< ResidualBasedNewtonRaphsonContactAcceleratedStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
-//             ("ResidualBasedNewtonRaphsonContactAcceleratedStrategy", init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, ConvergenceAcceleratorType::Pointer >())
-//             .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, ConvergenceAcceleratorType::Pointer>())
-//             .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonContactAcceleratedStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetMaxIterationNumber)
-//             .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonContactAcceleratedStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetMaxIterationNumber)
-//             .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonContactAcceleratedStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetKeepSystemConstantDuringIterations)
-//             .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonContactAcceleratedStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetKeepSystemConstantDuringIterations)
-//             ;
-             
     //********************************************************************
     //*************************SCHEME CLASSES*****************************
     //********************************************************************
@@ -113,12 +101,27 @@ void  AddCustomStrategiesToPython()
             "ResidualBasedIncrementalUpdateStaticContactScheme", init< >()
             );
             
+    // Residual Based Incremental Update Static Contact Scheme Type
+    class_< ResidualBasedIncrementalUpdateStaticALMContactSchemeType,
+            bases< BaseSchemeType >, boost::noncopyable >
+            (
+            "ResidualBasedIncrementalUpdateStaticALMContactScheme", init< >()
+            );
+            
     // Residual Based Bossak Scheme Type
     class_< ResidualBasedBossakDisplacementContactSchemeType,
     bases< BaseSchemeType >,  boost::noncopyable >
     (
         "ResidualBasedBossakDisplacementContactScheme", init< double >() )
         .def("Initialize", &ResidualBasedBossakDisplacementContactScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+    ;
+    
+    // Residual Based Bossak Scheme Type
+    class_< ResidualBasedBossakDisplacementALMContactSchemeType,
+    bases< BaseSchemeType >,  boost::noncopyable >
+    (
+        "ResidualBasedBossakDisplacementALMContactScheme", init< double >() )
+        .def("Initialize", &ResidualBasedBossakDisplacementALMContactScheme<SparseSpaceType, LocalSpaceType>::Initialize)
     ;
      
     //********************************************************************
