@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -26,6 +26,7 @@
 #include "includes/dem_variables.h"
 #include "includes/kernel.h"
 #include "includes/node.h"
+#include "includes/kratos_components.h"
 // #include "includes/element.h"
 // #include "includes/condition.h"
 // #include "includes/constitutive_law.h"
@@ -67,8 +68,8 @@
 
 namespace Kratos
 {
-    
-  //KRATOS_CREATE_VARIABLE( double, MOULD_AVERAGE_TEMPERATURE ) 
+
+  //KRATOS_CREATE_VARIABLE( double, MOULD_AVERAGE_TEMPERATURE )
     KRATOS_CREATE_VARIABLE( int, PARTICLE_MATERIAL )
     KRATOS_CREATE_VARIABLE(int, NUMBER_OF_INIT_BASSET_STEPS)
     KRATOS_CREATE_VARIABLE( double, PARTICLE_MASS )
@@ -90,8 +91,8 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( vector<int>, CONTINUUM_INI_NEIGHBOURS_IDS )
     KRATOS_CREATE_VARIABLE( vector<int>, NEIGHBOURS_IDS )
     KRATOS_CREATE_VARIABLE( vector<int>, PARTICLE_INITIAL_FAILURE_ID )
-    KRATOS_CREATE_VARIABLE( vector<int>, CONTINUUM_PARTICLE_INITIAL_FAILURE_ID )              
-    KRATOS_CREATE_VARIABLE( std::string, ELEMENT_TYPE)   
+    KRATOS_CREATE_VARIABLE( vector<int>, CONTINUUM_PARTICLE_INITIAL_FAILURE_ID )
+    KRATOS_CREATE_VARIABLE( std::string, ELEMENT_TYPE)
     KRATOS_CREATE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
     KRATOS_CREATE_VARIABLE( int, COUPLING_TYPE)
     KRATOS_CREATE_VARIABLE( int, NON_NEWTONIAN_OPTION )
@@ -102,7 +103,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( int, VIRTUAL_MASS_FORCE_TYPE )
     KRATOS_CREATE_VARIABLE( int, BASSET_FORCE_TYPE )
     KRATOS_CREATE_VARIABLE( int, LIFT_FORCE_TYPE )
-    KRATOS_CREATE_VARIABLE( int, MAGNUS_FORCE_TYPE )  
+    KRATOS_CREATE_VARIABLE( int, MAGNUS_FORCE_TYPE )
     KRATOS_CREATE_VARIABLE( int, HYDRO_TORQUE_TYPE )
     KRATOS_CREATE_VARIABLE( int, FLUID_MODEL_TYPE )
     KRATOS_CREATE_VARIABLE( int, DRAG_POROSITY_CORRECTION_TYPE )
@@ -197,7 +198,7 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( ELEMENT_TYPE )
     KRATOS_REGISTER_VARIABLE( PARTICLE_ROTATE_SPRING_MOMENT )
 
-    // Swimming DEM Application BEGINNING      
+    // Swimming DEM Application BEGINNING
     KRATOS_REGISTER_VARIABLE( NUMBER_OF_INIT_BASSET_STEPS )
     KRATOS_REGISTER_VARIABLE( COUPLING_TYPE)
     KRATOS_REGISTER_VARIABLE( NON_NEWTONIAN_OPTION )
@@ -286,4 +287,3 @@ namespace Kratos
 
 // This define must be HERE
 #undef DKRATOS_EXPORT_INTERFACE_2
-
