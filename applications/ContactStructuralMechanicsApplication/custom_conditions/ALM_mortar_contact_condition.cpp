@@ -21,7 +21,6 @@
 #include <algorithm>
 
 /* Utilities */
-#include "custom_utilities/contact_utilities.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/exact_mortar_segmentation_utility.h"
 
@@ -459,11 +458,10 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
     
     // Create the current contact data
     DerivativeDataType rDerivativeData;
+    rDerivativeData.Initialize(this->GetGeometry());
     
     // Create the mortar operators
     MortarConditionMatrices rThisMortarConditionMatrices;
-                                                                                  
-    this->InitializeDerivativeData(rDerivativeData, rCurrentProcessInfo);
     
     // Compute Ae and its derivative
     this->CalculateAeAndDeltaAe(rDerivativeData, rVariables, rCurrentProcessInfo); 
@@ -488,8 +486,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
             // Initialize general variables for the current master element
             this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
             
-            // Update the contact data
-            this->UpdateDerivativeData(rDerivativeData, PairIndex);
+            // Update slave element info
+            rDerivativeData.UpdateMasterPair(mThisMasterElements[PairIndex] );
             
             // Initialize the mortar operators
             rThisMortarConditionMatrices.Initialize();
@@ -653,8 +651,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
             // Initialize general variables for the current master element
             this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
             
-            // Update the contact data
-            this->UpdateDerivativeData(rDerivativeData, PairIndex);
+            // Update slave element info
+            rDerivativeData.UpdateMasterPair(mThisMasterElements[PairIndex]);
             
             for (unsigned int i_geom = 0; i_geom < ConditionsPointsSlave.size(); i_geom++)
             {
@@ -702,41 +700,6 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     if (IsIntegrated == true)
     {
         this->CalculateDeltaAe(rDerivativeData, rAeData);
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
-void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::InitializeDerivativeData(
-    DerivativeDataType& rDerivativeData,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    // Slave element info
-    rDerivativeData.Initialize(GetGeometry());
-    
-    /* NORMALS */
-    rDerivativeData.NormalSlave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(GetGeometry(),  NORMAL); 
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
-void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::UpdateDerivativeData(
-    DerivativeDataType& rDerivativeData,
-    const unsigned int& rMasterElementIndex
-    )
-{    
-    // Slave element info
-    rDerivativeData.UpdateMasterPair(mThisMasterElements[rMasterElementIndex] );
-    
-    /* NORMALS */
-    for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
-    {
-        array_1d<double,3> normal = GetGeometry()[iNode].GetValue(NORMAL);
     }
 }
 

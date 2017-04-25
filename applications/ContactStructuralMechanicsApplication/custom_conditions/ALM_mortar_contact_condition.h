@@ -28,6 +28,7 @@
 #include "includes/kratos_flags.h"
 
 /* Utilities */
+#include "custom_utilities/contact_utilities.h"
 #include "custom_utilities/logging_settings.hpp"
 
 /* Geometries */
@@ -121,7 +122,7 @@ public:
         SlaveGeometry  = GeometryInput;
         
         // The normals of the nodes
-        NormalSlave = ZeroMatrix(TNumNodes, TDim);
+        NormalSlave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry,  NORMAL);
         
         // Displacements and velocities of the slave            
         for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
@@ -828,15 +829,6 @@ protected:
         );
     
     /**
-     * Initialize Contact data
-     */
-    
-    void InitializeDerivativeData( 
-        DerivativeDataType& rDerivativeData,
-        const ProcessInfo& rCurrentProcessInfo
-        );
-    
-    /**
      * Calculate Ae and DeltaAe matrices
      */
     
@@ -844,15 +836,6 @@ protected:
         DerivativeDataType& rDerivativeData,
         GeneralVariables& rVariables,
         const ProcessInfo& rCurrentProcessInfo
-        );
-    
-    /**
-     * Initialize General Variables
-     */
-    
-    void UpdateDerivativeData( 
-        DerivativeDataType& rDerivativeData,
-        const unsigned int& rMasterElementIndex
         );
     
     /**
