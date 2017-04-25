@@ -19,12 +19,12 @@
 #include "processes/calculate_signed_distance_to_3d_skin_process.h" // TODO: Change the tested process as soon as the new distance process is available
 #include "processes/structured_mesh_generator_process.h"
 #include "geometries/hexahedra_3d_8.h"
-#include "processes/calculate_distance_to_skin_process.h"
+#include "processes/calculate_discontinuous_distance_to_skin_process.h"
 
 namespace Kratos {
   namespace Testing {
 
-    KRATOS_TEST_CASE_IN_SUITE(CalculateDistanceToSkinProcess, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(CalculateDiscontinuousDistanceToSkinProcess, KratosCoreFastSuite)
     {
 
       // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
@@ -67,7 +67,7 @@ namespace Kratos {
 
       // Compute distance
       // TODO: Change the tested process as soon as the new distance process is available
-	  CalculateDistanceToSkinProcess process(volume_part, skin_part);
+	  CalculateDiscontinuousDistanceToSkinProcess process(volume_part, skin_part);
 	  process.Execute();
 	  ModelPart& skin_rpresentation_part = process.GetSkinRepresentation();
 	  KRATOS_WATCH(skin_rpresentation_part);
@@ -109,7 +109,7 @@ namespace Kratos {
 		skin_part.CreateNewNode(13, 0.0, 12.0, 2.0);
 		skin_part.CreateNewElement("Element3D3N", 1, { 11,12,13 }, p_properties);
 
-		CalculateDistanceToSkinProcess(volume_part,skin_part).Execute();
+		CalculateDiscontinuousDistanceToSkinProcess(volume_part,skin_part).Execute();
 
 		GidIO<> gid_io_fluid("C:/Temp/Tests/tetrahedra_3_intersection_distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
 		gid_io_fluid.InitializeMesh(0.00);
@@ -154,7 +154,7 @@ namespace Kratos {
 		skin_part.CreateNewElement("Element3D3N", 903, { 902,903,904 }, p_properties);
 		skin_part.CreateNewElement("Element3D3N", 904, { 901,902,904 }, p_properties);
 
-		CalculateDistanceToSkinProcess(volume_part, skin_part).Execute();
+		CalculateDiscontinuousDistanceToSkinProcess(volume_part, skin_part).Execute();
 
 		volume_part.GetNode(1).GetSolutionStepValue(DISTANCE) = -(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE));
 

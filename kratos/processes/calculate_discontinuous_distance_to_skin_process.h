@@ -10,8 +10,8 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-#if !defined(KRATOS_CALCULATE_DISTANCE_TO_SKIN_PROCESS_H_INCLUDED )
-#define  KRATOS_CALCULATE_DISTANCE_TO_SKIN_PROCESS_H_INCLUDED
+#if !defined(KRATOS_CALCULATE_DISCONTINUOUS_DISTANCE_TO_SKIN_PROCESS_H_INCLUDED )
+#define  KRATOS_CALCULATE_DISCONTINUOUS_DISTANCE_TO_SKIN_PROCESS_H_INCLUDED
 
 
 
@@ -55,30 +55,30 @@ namespace Kratos
   /** This process takes a volume model part (with tetrahedra mesh) and a skin model part (with triangle mesh) and
       and calcualtes the distance to the skin for all the elements and nodes of the volume model part.
   */
-  class KRATOS_API(KRATOS_CORE) CalculateDistanceToSkinProcess : public FindIntersectedGeometricalObjectsProcess
+  class KRATOS_API(KRATOS_CORE) CalculateDiscontinuousDistanceToSkinProcess : public FindIntersectedGeometricalObjectsProcess
     {
     public:
       ///@name Type Definitions
       ///@{
 
-      /// Pointer definition of CalculateDistanceToSkinProcess
-      KRATOS_CLASS_POINTER_DEFINITION(CalculateDistanceToSkinProcess);
+      /// Pointer definition of CalculateDiscontinuousDistanceToSkinProcess
+      KRATOS_CLASS_POINTER_DEFINITION(CalculateDiscontinuousDistanceToSkinProcess);
 
       ///@}
       ///@name Life Cycle
       ///@{
 
       /// Default constructor.
-      CalculateDistanceToSkinProcess() = delete;
+      CalculateDiscontinuousDistanceToSkinProcess() = delete;
 
 	  /// Copy constructor.
-	  CalculateDistanceToSkinProcess(FindIntersectedGeometricalObjectsProcess const& rOther) = delete;
+	  CalculateDiscontinuousDistanceToSkinProcess(FindIntersectedGeometricalObjectsProcess const& rOther) = delete;
 
 	  /// Constructor to be used.
-	  CalculateDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart);
+	  CalculateDiscontinuousDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart);
 
 	  /// Destructor.
-      virtual ~CalculateDistanceToSkinProcess();
+      virtual ~CalculateDiscontinuousDistanceToSkinProcess();
 
 
       ///@}
@@ -297,15 +297,15 @@ namespace Kratos
       ///@{
 
       /// Assignment operator.
-      CalculateDistanceToSkinProcess& operator=(CalculateDistanceToSkinProcess const& rOther);
+      CalculateDiscontinuousDistanceToSkinProcess& operator=(CalculateDiscontinuousDistanceToSkinProcess const& rOther);
 
       /// Copy constructor.
-      CalculateDistanceToSkinProcess(CalculateDistanceToSkinProcess const& rOther);
+      CalculateDiscontinuousDistanceToSkinProcess(CalculateDiscontinuousDistanceToSkinProcess const& rOther);
 
 
       ///@}
 
-    }; // Class CalculateDistanceToSkinProcess
+    }; // Class CalculateDiscontinuousDistanceToSkinProcess
 
   ///@}
 
@@ -320,11 +320,11 @@ namespace Kratos
 
   /// input stream function
   inline std::istream& operator >> (std::istream& rIStream,
-				    CalculateDistanceToSkinProcess& rThis);
+				    CalculateDiscontinuousDistanceToSkinProcess& rThis);
 
   /// output stream function
   inline std::ostream& operator << (std::ostream& rOStream,
-				    const CalculateDistanceToSkinProcess& rThis)
+				    const CalculateDiscontinuousDistanceToSkinProcess& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -338,4 +338,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CALCULATE_DISTANCE_TO_SKIN_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_CALCULATE_DISCONTINUOUS_DISTANCE_TO_SKIN_PROCESS_H_INCLUDED  defined

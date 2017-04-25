@@ -45,7 +45,7 @@
 #include "processes/check_skin_process.h"
 #include "processes/replace_elements_and_condition_process.h"
 #include "processes/compute_nodal_gradient_process.h"
-#include "processes/calculate_distance_to_skin_process.h"
+#include "processes/calculate_discontinuous_distance_to_skin_process.h"
 
 #include "includes/node.h"
 
@@ -211,7 +211,7 @@ void  AddProcessesToPython()
             init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
 
-	class_<CalculateDistanceToSkinProcess, bases<Process>, boost::noncopyable >("CalculateDistanceToSkinProcess",
+	class_<CalculateDiscontinuousDistanceToSkinProcess, bases<Process>, boost::noncopyable >("CalculateDiscontinuousDistanceToSkinProcess",
 		init<ModelPart&, ModelPart&>())
 		;
 
