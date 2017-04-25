@@ -130,6 +130,40 @@ namespace Kratos
     ///@name Access
     ///@{
 
+    /**
+     * Has Values
+     */   
+    virtual bool Has(const Variable<double>& rThisVariable) override
+    {
+      if(rThisVariable == PLASTIC_STRAIN || rThisVariable == DELTA_PLASTIC_STRAIN )
+	return true;
+
+      return false;
+    }
+    
+
+    /**
+     * Get Values
+     */
+    virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) override
+    {
+      
+      rValue=0;
+      
+      if (rThisVariable==PLASTIC_STRAIN)
+	{
+	  rValue = this->mInternal.Variables[0];
+	}
+
+
+      if (rThisVariable==DELTA_PLASTIC_STRAIN)
+	{
+	  rValue = this->mInternal.Variables[0]-mPreviousInternal.Variables[0];
+	}
+
+      
+      return rValue;
+    }
     
     ///@}
     ///@name Inquiry

@@ -192,51 +192,51 @@ namespace Kratos
     /**
      * Has Values
      */   
-    bool Has(const Variable<double>& rThisVariable) override;
+    virtual bool Has(const Variable<double>& rThisVariable) override;
     
-    bool Has(const Variable<Vector>& rThisVariable) override;
+    virtual bool Has(const Variable<Vector>& rThisVariable) override;
     
-    bool Has(const Variable<Matrix>& rThisVariable) override;
+    virtual bool Has(const Variable<Matrix>& rThisVariable) override;
 
-    bool Has(const Variable<array_1d<double,3> >& rThisVariable) override;
+    virtual bool Has(const Variable<array_1d<double,3> >& rThisVariable) override;
 
-    bool Has(const Variable<array_1d<double,6> >& rThisVariable) override;
+    virtual bool Has(const Variable<array_1d<double,6> >& rThisVariable) override;
     
     /**
      * Set Values
      */
-    void SetValue(const Variable<double>& rVariable,
+    virtual void SetValue(const Variable<double>& rVariable,
                   const double& rValue,
                   const ProcessInfo& rCurrentProcessInfo) override;
     
-    void SetValue(const Variable<Vector>& rThisVariable,
+    virtual void SetValue(const Variable<Vector>& rThisVariable,
                   const Vector& rValue,
                   const ProcessInfo& rCurrentProcessInfo) override;
     
-    void SetValue(const Variable<Matrix>& rThisVariable,
+    virtual void SetValue(const Variable<Matrix>& rThisVariable,
                   const Matrix& rValue,
                   const ProcessInfo& rCurrentProcessInfo) override;
     
-    void SetValue(const Variable<array_1d<double,3> >& rThisVariable,
+    virtual void SetValue(const Variable<array_1d<double,3> >& rThisVariable,
                   const array_1d<double,3>& rValue,
                   const ProcessInfo& rCurrentProcessInfo) override;
     
-    void SetValue(const Variable<array_1d<double,6> >& rThisVariable,
+    virtual void SetValue(const Variable<array_1d<double,6> >& rThisVariable,
                   const array_1d<double,6>& rValue,
                   const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Get Values
      */
-    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
+    virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
     
-    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    virtual Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
 
-    Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
+    virtual Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
 
-    array_1d<double,3>& GetValue(const Variable<array_1d<double,3> >& rThisVariable, array_1d<double,3>& rValue) override;
+    virtual array_1d<double,3>& GetValue(const Variable<array_1d<double,3> >& rThisVariable, array_1d<double,3>& rValue) override;
 
-    array_1d<double,6>& GetValue(const Variable<array_1d<double,6> >& rThisVariable, array_1d<double,6>& rValue) override;
+    virtual array_1d<double,6>& GetValue(const Variable<array_1d<double,6> >& rThisVariable, array_1d<double,6>& rValue) override;
 
     ///@}
     ///@name Inquiry

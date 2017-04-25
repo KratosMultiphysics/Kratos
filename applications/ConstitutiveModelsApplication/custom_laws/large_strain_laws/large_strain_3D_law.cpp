@@ -94,14 +94,15 @@ namespace Kratos
   //***********************HAS : DOUBLE - VECTOR - MATRIX*******************************
   //************************************************************************************
   
-    bool LargeStrain3DLaw::Has( const Variable<double>& rThisVariable )
+  bool LargeStrain3DLaw::Has( const Variable<double>& rThisVariable )
   {
     KRATOS_TRY
-      
+         
     if(rThisVariable == DETERMINANT_F)
       return true;
-    
-    return false;
+
+    return mpModel->Has(rThisVariable);
+   
     
     KRATOS_CATCH(" ")
   }
@@ -113,7 +114,7 @@ namespace Kratos
   void LargeStrain3DLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
 				    const ProcessInfo& rCurrentProcessInfo )
   {
-    KRATOS_TRY
+    KRATOS_TRY      
 
     if(rThisVariable == DETERMINANT_F){
       mDeterminantF0 = rValue;
@@ -165,18 +166,14 @@ namespace Kratos
   double& LargeStrain3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
   {
     KRATOS_TRY
+
+    rValue = mpModel->GetValue(rThisVariable,rValue);
       
     if(rThisVariable == DETERMINANT_F){
       rValue = mDeterminantF0;
     }
-      
-    if (rThisVariable==PLASTIC_STRAIN){
-    }
-  
-    if (rThisVariable==DELTA_PLASTIC_STRAIN){
-    }
 
-    return( rValue );
+    return rValue;
     
     KRATOS_CATCH(" ")   
   }

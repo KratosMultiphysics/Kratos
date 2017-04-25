@@ -207,6 +207,23 @@ namespace Kratos
     ///@}
     ///@name Access
     ///@{
+
+    /**
+     * Has Values
+     */   
+    virtual bool Has(const Variable<double>& rThisVariable) override {return false;}
+    
+    /**
+     * Set Values
+     */
+    virtual void SetValue(const Variable<double>& rVariable,
+                  const double& rValue,
+                  const ProcessInfo& rCurrentProcessInfo) override {}   
+    /**
+     * Get Values
+     */
+    virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) override { rValue=0; return rValue;}
+
     
     /**
      * method to ask the plasticity model the list of variables (dofs) needed from the domain
