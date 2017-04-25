@@ -458,7 +458,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
     GeneralVariables rVariables;
     
     // Create the current contact data
-    DerivativeData rDerivativeData;
+    DerivativeDataType rDerivativeData;
     
     // Create the mortar operators
     MortarConditionMatrices rThisMortarConditionMatrices;
@@ -536,7 +536,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                             // Update the derivative of DetJ
                             this->CalculateDeltaDetJSlave(rVariables, rDerivativeData);
                             // Update the derivatives of the shape functions and the gap
-        //                     this->CalculateDeltaN(rVariables, rDerivativeData); // FIXME: This is the old version!!!!
+//                             this->CalculateDeltaN(rVariables, rDerivativeData); // FIXME: This is the old version!!!!
                             // The derivatives of the dual shape function 
                             this->CalculateDeltaPhi(rVariables, rDerivativeData);
                             
@@ -619,7 +619,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateAeAndDeltaAe(
-    DerivativeData& rDerivativeData,
+    DerivativeDataType& rDerivativeData,
     GeneralVariables& rVariables,
     const ProcessInfo& rCurrentProcessInfo
     )
@@ -710,7 +710,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::InitializeDerivativeData(
-    DerivativeData& rDerivativeData,
+    DerivativeDataType& rDerivativeData,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -726,7 +726,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::UpdateDerivativeData(
-    DerivativeData& rDerivativeData,
+    DerivativeDataType& rDerivativeData,
     const unsigned int& rMasterElementIndex
     )
 {    
@@ -746,7 +746,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateKinematics( 
     GeneralVariables& rVariables,
-    const DerivativeData rDerivativeData,
+    const DerivativeDataType rDerivativeData,
     const array_1d<double, 3> MasterNormal,
     const PointType& LocalPointDecomp,
     const PointType& LocalPointParent,
@@ -808,7 +808,7 @@ template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateMortarOperators(
     MortarConditionMatrices& rThisMortarConditionMatrices,
     GeneralVariables& rVariables,
-    DerivativeData& rDerivativeData,
+    DerivativeDataType& rDerivativeData,
     const double& rIntegrationWeight
     )
 {
@@ -905,7 +905,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaAeComponents(
     GeneralVariables& rVariables,
-    DerivativeData& rDerivativeData,
+    DerivativeDataType& rDerivativeData,
     AeData& rAeData,
     const double& rIntegrationWeight
     )
@@ -1001,7 +1001,7 @@ bounded_matrix<double, TNumNodes, TNumNodes> AugmentedLagrangianMethodMortarCont
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaAe(
-    DerivativeData& rDerivativeData,
+    DerivativeDataType& rDerivativeData,
     AeData& rAeData
     )
 {        
@@ -1362,7 +1362,7 @@ array_1d<double,12> AugmentedLagrangianMethodMortarContactCondition<2,2, true>::
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaDetJSlave(
    GeneralVariables& rVariables,
-   DerivativeData& rDerivativeData
+   DerivativeDataType& rDerivativeData
    ) // TODO: Do an explicit specialization!!!!
 {
     if (TDim == 2)
@@ -1547,7 +1547,7 @@ bounded_matrix<double, TDim, TDim> AugmentedLagrangianMethodMortarContactConditi
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional> // NOTE: Formulation taken from Mohamed Khalil work
-void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaNormalSlave(DerivativeData& rDerivativeData)
+void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaNormalSlave(DerivativeDataType& rDerivativeData)
 {
     if (TDim == 2) // TODO: Use explicit 
     {
@@ -1633,7 +1633,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional> // NOTE: Formulation taken from Mohamed Khalil work
-void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaNormalMaster(DerivativeData& rDerivativeData)
+void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaNormalMaster(DerivativeDataType& rDerivativeData)
 {
     if (TDim == 2)
     {
@@ -1673,7 +1673,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaN(
    GeneralVariables& rVariables,
-   DerivativeData& rDerivativeData
+   DerivativeDataType& rDerivativeData
    )
 {
     static const unsigned int Size1 = (TNumNodes * TDim);
@@ -1978,7 +1978,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaPhi(
    GeneralVariables& rVariables,
-   DerivativeData& rDerivativeData
+   DerivativeDataType& rDerivativeData
    )
 {
     // Shape functions

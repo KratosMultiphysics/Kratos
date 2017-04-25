@@ -62,6 +62,140 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+  
+/** \brief DerivativeData
+ * This data will be used to compute the derivatives
+ */
+template< unsigned int TDim, unsigned int TNumNodes>
+class DerivativeData
+{
+public:
+    
+    // Auxiliar types
+    typedef array_1d<double, TNumNodes> Type1;
+    typedef bounded_matrix<double, TNumNodes, TDim> Type2;
+    typedef bounded_matrix<double, TNumNodes, TNumNodes> Type3;
+    
+    // Auxiliar sizes
+    static const unsigned int Size1 =     (TNumNodes * TDim);
+    static const unsigned int Size2 = 2 * (TNumNodes * TDim);
+    
+    // Master and element geometries
+    GeometryType SlaveGeometry;
+    GeometryType MasterGeometry;
+    
+    // The normals of the nodes
+    Type2 NormalMaster;
+    Type2 NormalSlave;
+    
+    // Displacements and velocities
+    Type2 X1;
+    Type2 X2;
+    Type2 u1;
+    Type2 u2;
+    
+    // Derivatives    
+    array_1d<double, Size1> DeltaJSlave;
+    array_1d<Type1,  Size1> DeltaPhi;
+    array_1d<Type1,  Size2> DeltaN1;
+    array_1d<Type1,  Size2> DeltaN2;
+    array_1d<Type2,  Size1> DeltaNormalSlave;
+    array_1d<Type2,  Size1> DeltaNormalMaster;
+    
+    // Ae
+    Type3 Ae;
+    
+    // Derivatives Ae
+    array_1d<Type3, Size1> DeltaAe;
+    
+    // Default destructor
+    ~DerivativeData(){}
+    
+    /**
+     * Initializer method 
+     * @param  GeometryInput: The geometry of the slave 
+     */
+    
+    void Initialize(const GeometryType& GeometryInput)
+    {
+        SlaveGeometry  = GeometryInput;
+        
+        // The normals of the nodes
+        NormalSlave = ZeroMatrix(TNumNodes, TDim);
+        
+        // Displacements and velocities of the slave            
+        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        {
+            const array_1d<double, 3> Coordinates  = SlaveGeometry[iNode].GetInitialPosition();
+            const array_1d<double, 3> Displacement = SlaveGeometry[iNode].FastGetSolutionStepValue(DISPLACEMENT);
+
+            for (unsigned int iDof = 0; iDof < TDim; iDof++)
+            {
+                X1(iNode, iDof) = Coordinates[iDof];
+                u1(iNode, iDof) = Displacement[iDof];
+            }
+        }
+        
+        // Derivatives 
+        for (unsigned int i = 0; i < TNumNodes * TDim; i++)
+        {
+            DeltaPhi[i] = ZeroVector(TNumNodes);
+            DeltaN1[i] = ZeroVector(TNumNodes);
+            DeltaN1[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
+            DeltaN2[i] = ZeroVector(TNumNodes);
+            DeltaN2[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
+            DeltaNormalSlave[i]      = ZeroMatrix(TNumNodes, TDim);
+        }
+    }
+    
+    /**
+     * Initialize the DeltaAe components
+     */
+    
+    void InitializeDeltaAeComponents()
+    {
+        // Ae
+        Ae = ZeroMatrix(TNumNodes, TNumNodes);
+        
+        // Derivatives Ae
+        for (unsigned int i = 0; i < TNumNodes * TDim; i++)
+        {
+            DeltaAe[i] = ZeroMatrix(TNumNodes, TNumNodes);
+        }
+    }
+
+    /**
+     * Updating the Master pair
+     * @param  pCond: The pointer of the current master
+     */
+    
+    void UpdateMasterPair(const Condition::Pointer& pCond)
+    {
+        const GeometryType GeometryInput =  pCond->GetGeometry();
+        MasterGeometry = GeometryInput; // Updating the geometry
+        
+        // Displacements, coordinates and normals of the master
+        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        {
+            const array_1d<double, 3> Coordinates  = MasterGeometry[iNode].GetInitialPosition();
+            const array_1d<double, 3> Displacement = MasterGeometry[iNode].FastGetSolutionStepValue(DISPLACEMENT);
+
+            const array_1d<double,3> Normal = MasterGeometry[iNode].GetValue(NORMAL);
+            
+            for (unsigned int iDof = 0; iDof < TDim; iDof++)
+            {
+                X2(iNode, iDof) = Coordinates[iDof];
+                u2(iNode, iDof) = Displacement[iDof];
+                NormalMaster(iNode, iDof) = Normal[iDof]; 
+            }
+        }
+        // Derivative of master's normal
+        for (unsigned int i = 0; i < TNumNodes * TDim; i++)
+        {
+            DeltaNormalMaster[i] = ZeroMatrix(TNumNodes, TDim);
+        }
+    }
+};  // Class DerivativeData
     
 /** \brief AugmentedLagrangianMethodMortarContactCondition
  * This is a contact condition which employes the mortar method with dual lagrange multiplier 
@@ -99,6 +233,8 @@ public:
     typedef Triangle3D3<Point<3>>                                                    TriangleType;
     
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
+    
+    typedef DerivativeData<TDim, TNumNodes>                                    DerivativeDataType;
     
     static constexpr unsigned int MatrixSize = TFrictional == true ? TDim * (TNumNodes + TNumNodes + TNumNodes) : TDim * (TNumNodes + TNumNodes) + TNumNodes;
     
@@ -468,134 +604,6 @@ protected:
     };
 
     /** 
-     * This data will be used to compute teh derivatives
-     */ 
-    struct DerivativeData
-    {
-    public:
-        
-        // Auxiliar types
-        typedef array_1d<double, TNumNodes> Type1;
-        typedef bounded_matrix<double, TNumNodes, TDim> Type2;
-        typedef bounded_matrix<double, TNumNodes, TNumNodes> Type3;
-        
-        // Auxiliar sizes
-        static const unsigned int Size1 =     (TNumNodes * TDim);
-        static const unsigned int Size2 = 2 * (TNumNodes * TDim);
-        
-        // Master and element geometries
-        GeometryType SlaveGeometry;
-        GeometryType MasterGeometry;
-        
-        // The normals of the nodes
-        Type2 NormalMaster;
-        Type2 NormalSlave;
-        
-        // Displacements and velocities
-        Type2 X1;
-        Type2 X2;
-        Type2 u1;
-        Type2 u2;
-        
-        // Derivatives    
-        array_1d<double, Size1> DeltaJSlave;
-        array_1d<Type1,  Size1> DeltaPhi;
-        array_1d<Type1,  Size2> DeltaN1;
-        array_1d<Type1,  Size2> DeltaN2;
-        array_1d<Type2,  Size1> DeltaNormalSlave;
-        array_1d<Type2,  Size1> DeltaNormalMaster;
-        
-        // Ae
-        Type3 Ae;
-        
-        // Derivatives Ae
-        array_1d<Type3, Size1> DeltaAe;
-        
-        // Default destructor
-        ~DerivativeData(){}
-        
-        // Initializer method 
-        void Initialize(      
-                const GeometryType& GeometryInput  // The geometry of the slave 
-                )
-        {
-            SlaveGeometry  = GeometryInput;
-            
-            // The normals of the nodes
-            NormalSlave = ZeroMatrix(TNumNodes, TDim);
-            
-            // Displacements and velocities of the slave            
-            for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
-            {
-                const array_1d<double, 3> coord = SlaveGeometry[iNode].Coordinates() - SlaveGeometry[iNode].FastGetSolutionStepValue(DISPLACEMENT);
-                const array_1d<double, 3> disp  = SlaveGeometry[iNode].FastGetSolutionStepValue(DISPLACEMENT);
-
-                for (unsigned int iDof = 0; iDof < TDim; iDof++)
-                {
-                    X1(iNode, iDof) = coord[iDof];
-                    u1(iNode, iDof) = disp[iDof];
-                }
-            }
-            
-            // Derivatives 
-            for (unsigned int i = 0; i < TNumNodes * TDim; i++)
-            {
-                DeltaPhi[i] = ZeroVector(TNumNodes);
-                DeltaN1[i] = ZeroVector(TNumNodes);
-                DeltaN1[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
-                DeltaN2[i] = ZeroVector(TNumNodes);
-                DeltaN2[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
-                DeltaNormalSlave[i]      = ZeroMatrix(TNumNodes, TDim);
-            }
-        }
-        
-        // Initialize the DeltaAe components
-        void InitializeDeltaAeComponents()
-        {
-            // Ae
-            Ae = ZeroMatrix(TNumNodes, TNumNodes);
-            // Derivatives Ae
-            for (unsigned int i = 0; i < TNumNodes * TDim; i++)
-            {
-                DeltaAe[i] = ZeroMatrix(TNumNodes, TNumNodes);
-            }
-        }
-    
-        // Updating the Master pair
-        void UpdateMasterPair(
-    //         const GeometryType& GeometryInput,          // The geometry of the current master
-            const Condition::Pointer& pCond          // The pointer of the current master
-        )
-        {
-            const GeometryType GeometryInput =  pCond->GetGeometry();
-            MasterGeometry = GeometryInput; // Updating the geometry
-            
-            // Displacements, coordinates and normals of the master
-            for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
-            {
-                const array_1d<double, 3> coord = MasterGeometry[iNode].Coordinates() - MasterGeometry[iNode].FastGetSolutionStepValue(DISPLACEMENT);
-                const array_1d<double, 3> disp  = MasterGeometry[iNode].FastGetSolutionStepValue(DISPLACEMENT);
-
-//                 const array_1d<double,3> normal = pCond->GetValue(NORMAL); // TODO: To consider an interpolation it is necessary to smooth the surface
-                const array_1d<double,3> normal = MasterGeometry[iNode].GetValue(NORMAL);
-                
-                for (unsigned int iDof = 0; iDof < TDim; iDof++)
-                {
-                    X2(iNode, iDof) = coord[iDof];
-                    u2(iNode, iDof) = disp[iDof];
-                    NormalMaster(iNode, iDof) = normal[iDof]; 
-                }
-            }
-            
-            // Derivative of master's normal
-            for (unsigned int i = 0; i < TNumNodes * TDim; i++)
-            {
-                DeltaNormalMaster[i] = ZeroMatrix(TNumNodes, TDim);
-            }
-        }
-    };
-    
-    /** 
      * This data will be used to compute the Ae and DeltaAe matrices
      */ 
     struct AeData
@@ -824,7 +832,7 @@ protected:
      */
     
     void InitializeDerivativeData( 
-        DerivativeData& rDerivativeData,
+        DerivativeDataType& rDerivativeData,
         const ProcessInfo& rCurrentProcessInfo
         );
     
@@ -833,7 +841,7 @@ protected:
      */
     
     void CalculateAeAndDeltaAe( 
-        DerivativeData& rDerivativeData,
+        DerivativeDataType& rDerivativeData,
         GeneralVariables& rVariables,
         const ProcessInfo& rCurrentProcessInfo
         );
@@ -843,7 +851,7 @@ protected:
      */
     
     void UpdateDerivativeData( 
-        DerivativeData& rDerivativeData,
+        DerivativeDataType& rDerivativeData,
         const unsigned int& rMasterElementIndex
         );
     
@@ -860,7 +868,7 @@ protected:
     
     void CalculateKinematics( 
         GeneralVariables& rVariables,
-        const DerivativeData rDerivativeData,
+        const DerivativeDataType rDerivativeData,
         const array_1d<double, 3> MasterNormal,
         const PointType& LocalPointDecomp,
         const PointType& LocalPointParent,
@@ -941,7 +949,7 @@ protected:
     
     void CalculateDeltaDetJSlave(
         GeneralVariables& rVariables,
-        DerivativeData& rDerivativeData
+        DerivativeDataType& rDerivativeData
         );
     
     bounded_matrix<double, TDim, TDim> LocalDeltaNormal(
@@ -953,13 +961,13 @@ protected:
      * Calculates the increment of the normal in the slave condition
      */
     
-    void CalculateDeltaNormalSlave(DerivativeData& rDerivativeData);
+    void CalculateDeltaNormalSlave(DerivativeDataType& rDerivativeData);
     
     /*
      * Calculates the increment of the normal and in the master condition
      */
     
-    void CalculateDeltaNormalMaster(DerivativeData& rDerivativeData);
+    void CalculateDeltaNormalMaster(DerivativeDataType& rDerivativeData);
     
     /*
      * Calculates the increment of the shape functions and the gap
@@ -967,7 +975,7 @@ protected:
     
     void CalculateDeltaN(
         GeneralVariables& rVariables,
-        DerivativeData& rDerivativeData
+        DerivativeDataType& rDerivativeData
         );
     
     /*
@@ -976,7 +984,7 @@ protected:
     
     void CalculateDeltaPhi(
         GeneralVariables& rVariables,
-        DerivativeData& rDerivativeData
+        DerivativeDataType& rDerivativeData
         );
     
     /***********************************************************************************/
@@ -1000,7 +1008,7 @@ protected:
     void CalculateMortarOperators(
         MortarConditionMatrices& rThisMortarConditionMatrices,
         GeneralVariables& rVariables,
-        DerivativeData& rDerivativeData,
+        DerivativeDataType& rDerivativeData,
         const double& rIntegrationWeight
     );
 
@@ -1016,7 +1024,7 @@ protected:
     
     void CalculateDeltaAeComponents(
         GeneralVariables& rVariables,
-        DerivativeData& rDerivativeData,
+        DerivativeDataType& rDerivativeData,
         AeData& rAeData,
         const double& rIntegrationWeight
     );
@@ -1044,7 +1052,7 @@ protected:
      */
     
     void CalculateDeltaAe(
-        DerivativeData& rDerivativeData,
+        DerivativeDataType& rDerivativeData,
         AeData& rAeData
         );
     
