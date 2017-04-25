@@ -192,7 +192,7 @@ void VelocityField::ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesL
     }
 }
 
-void VelocityField::ImposeVelocityOnNodes(ModelPart& r_model_part, const VariableData& container_variable)
+void VelocityField::ImposeVelocityOnNodes(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& container_variable)
 {
     const double time = r_model_part.GetProcessInfo()[TIME];
     int thread_number = omp_get_thread_num();
@@ -203,7 +203,7 @@ void VelocityField::ImposeVelocityOnNodes(ModelPart& r_model_part, const Variabl
         const array_1d<double, 3>& coor = p_node->Coordinates();
         array_1d<double, 3> fluid_vel;
         Evaluate(time, coor, fluid_vel, thread_number);
-        array_1d<double, 3>& slip_vel = p_node->FastGetSolutionStepValue(SLIP_VELOCITY);
+        array_1d<double, 3>& slip_vel = p_node->FastGetSolutionStepValue(container_variable);
         noalias(slip_vel) = fluid_vel;
     }
 }
