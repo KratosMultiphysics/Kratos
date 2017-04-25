@@ -195,8 +195,8 @@ public:
         normals[0] = GeomOrigin[0].GetValue(NORMAL);
         normals[1] = GeomOrigin[1].GetValue(NORMAL);
         
-        boost::numeric::ublas::bounded_matrix<double,2,2> X;
-        boost::numeric::ublas::bounded_matrix<double,2,1> DN;
+        bounded_matrix<double,2,2> X;
+        bounded_matrix<double,2,1> DN;
         for(unsigned int i=0; i<2;i++)
         {
             X(0,i) = GeomOrigin[i].X();
@@ -1167,22 +1167,27 @@ public:
      */
     
     template< unsigned int TDim, unsigned int TNumNodes>
-    static inline boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> GetCoordinates(
+    static inline bounded_matrix<double, TNumNodes, TDim> GetCoordinates(
         const GeometryType& nodes,
         const bool current = true,
         const unsigned int step = 0
         )
     {
         /* DEFINITIONS */            
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> Coordinates;
+        bounded_matrix<double, TNumNodes, TDim> Coordinates;
         
         for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
         {
-            array_1d<double, 3> coord = nodes[iNode].Coordinates();
             
-            if (current == false)
+            array_1d<double, 3> coord;
+            
+            if (current == true)
             {
-                coord -= nodes[iNode].FastGetSolutionStepValue(DISPLACEMENT);
+                coord = nodes[iNode].Coordinates();
+            }
+            else
+            {
+                coord = nodes[iNode].GetInitialPosition();
                 
                 if (step > 0)
                 {
@@ -1226,14 +1231,14 @@ public:
     }
     
     template< unsigned int TNumNodes >
-    static inline boost::numeric::ublas::bounded_matrix<double, TNumNodes, 1> GetVariableVectorMatrix(
+    static inline bounded_matrix<double, TNumNodes, 1> GetVariableVectorMatrix(
         const GeometryType& nodes,
         const Variable<double>& rVarName,
         unsigned int step
         )
     {
         /* DEFINITIONS */        
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, 1> VarVector;
+        bounded_matrix<double, TNumNodes, 1> VarVector;
         
         for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
         {
@@ -1261,13 +1266,13 @@ public:
     }
     
     template< unsigned int TNumNodes >
-    static inline boost::numeric::ublas::bounded_matrix<double, TNumNodes, 1> GetVariableVectorMatrix(
+    static inline bounded_matrix<double, TNumNodes, 1> GetVariableVectorMatrix(
         const GeometryType& nodes,
         const Variable<double>& rVarName
         )
     {
         /* DEFINITIONS */        
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, 1> VarVector;
+        bounded_matrix<double, TNumNodes, 1> VarVector;
         
         for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
         {
@@ -1293,7 +1298,7 @@ public:
         )
     {
         /* DEFINITIONS */        
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> VarMatrix;
+        bounded_matrix<double, TNumNodes, TDim> VarMatrix;
         
         for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
         {
@@ -1314,7 +1319,7 @@ public:
         )
     {
         /* DEFINITIONS */        
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> VarMatrix;
+        bounded_matrix<double, TNumNodes, TDim> VarMatrix;
         
         for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
         {
