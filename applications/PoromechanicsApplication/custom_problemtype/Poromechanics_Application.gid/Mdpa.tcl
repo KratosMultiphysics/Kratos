@@ -537,7 +537,6 @@ proc WriteMdpa { basename dir problemtypedir } {
         dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
     }
 
-    ###  TODO
     # Periodic_Bars
     set IsPeriodic [GiD_AccessValue get gendata Periodic_Interface_Conditions]
     if {IsPeriodic eq true} {
@@ -547,33 +546,20 @@ proc WriteMdpa { basename dir problemtypedir } {
             if {[lindex [lindex $Groups $i] 3] eq false} {
                 # Elements Property
                 set InterfaceElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-                
+                set ConditionList [list]
+                # InterfaceElement2D4N
+                SavePeriodicBarsFromIE2D4N PeriodicBarsDict ConditionId ConditionList [lindex $Groups $i] $InterfaceElemsProp
+                # InterfaceElement3D6N
+                SavePeriodicBarsFromIE3D6N PeriodicBarsDict ConditionId ConditionList [lindex $Groups $i] $InterfaceElemsProp
+                # InterfaceElement3D8N
+                SavePeriodicBarsFromIE3D8N PeriodicBarsDict ConditionId ConditionList [lindex $Groups $i] $InterfaceElemsProp
 
-                # UPwSmallStrainInterfaceElement2D4N
-                WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainInterfaceElement2D4N $InterfaceElemsProp Quadrilateral2D4Connectivities
-                # UPwSmallStrainInterfaceElement3D6N
-                WriteElements FileVar [lindex $Groups $i] prism UPwSmallStrainInterfaceElement3D6N $InterfaceElemsProp PrismInterface3D6Connectivities
-                # UPwSmallStrainInterfaceElement3D8N
-                WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainInterfaceElement3D8N $InterfaceElemsProp HexahedronInterface3D8Connectivities
+                #TODO: write conditions in file. El conditionlist esta be??
 
-                proc SaveBarsFromIE2D4N {FileVar Group ElemType ElemName PropertyId ConnectivityType} {
-                    set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type $ElemType]
-                    if {[llength $Entities] > 0} {
-                        upvar $FileVar MyFileVar
-                        
-                        puts $MyFileVar "Begin Elements $ElemName"
-                        for {set j 0} {$j < [llength $Entities]} {incr j} {
-                            puts $MyFileVar "  [lindex $Entities $j]  $PropertyId  [$ConnectivityType [lindex $Entities $j]]"
-                        }
-                        puts $MyFileVar "End Elements"
-                        puts $MyFileVar ""
-                    }
-                }
-                
+                dict set ConditionDict PeriodicBars[lindex [lindex $Groups $i] 1] $ConditionList
             }
         }
     }
-    ### TODO
 
     puts $FileVar ""
 
