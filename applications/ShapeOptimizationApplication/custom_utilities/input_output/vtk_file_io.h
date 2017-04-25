@@ -17,10 +17,8 @@
 // ------------------------------------------------------------------------------
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <algorithm>
 #include <iomanip>      // for setprecision
-#include <map>
 
 // ------------------------------------------------------------------------------
 // Project includes
@@ -80,8 +78,8 @@ public:
         : mrDesignSurface( designSurface ),
           mrOptimizationSettings( optimizationSettings )
     {
-        partialOutputFilename = initializeOutputFilenameWithPath( optimizationSettings );
-        outputId = 0;
+        mOutputFilenamePrefix = initializeOutputFilenameWithPath( optimizationSettings );
+        mDefaultPrecision = 15;
     }
 
     /// Destructor.
@@ -106,63 +104,82 @@ public:
         string outputFilename = outputDirectory + "/" + optimizationSettings["output"]["design_history_filename"].GetString() + "_";
         return outputFilename;
     }
-
-    // --------------------------------------------------------------------------
-    void updateOutputFilename()
-    {
-        string outputFilename = partialOutputFilename + to_string(outputId) + ".vtk";
-        outputId++;
-        mOutputFilename = outputFilename;
-    }
     
     // -------------------------------------------------------------------------- 
     void initializeLogging()
     {
-        // fill the dictionary KratosIdToVtkId
-        int VtkId = 0;
+        mKratosIdToVtkId = createMapFromKratosIdToVTKId();
+        mVtkCellListSize = determineVtkCellListSize();
+    }    
+
+    // -------------------------------------------------------------------------- 
+    map<int,int> createMapFromKratosIdToVTKId()
+    {
+        map<int,int> kratos_id_to_vtk;
+        int vtk_id = 0;
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
             int KratosId = node_i->Id();
-            KratosIdToVtkId[KratosId] = VtkId;
-            VtkId++;
+            kratos_id_to_vtk[KratosId] = vtk_id;
+            vtk_id++;
         }
+        return kratos_id_to_vtk;
+    }    
 
-        // determine VtkCellListSize
-        VtkCellListSize = 0;
+    // -------------------------------------------------------------------------- 
+    unsigned int determineVtkCellListSize()
+    {
+         unsigned int vtk_cell_list_size = 0;
         for (ModelPart::ConditionIterator condition_i = mrDesignSurface.ConditionsBegin(); condition_i != mrDesignSurface.ConditionsEnd(); ++condition_i)
         {
-            VtkCellListSize++;
-            
-            VtkCellListSize += condition_i->GetGeometry().size(); 
+            vtk_cell_list_size++;
+            vtk_cell_list_size += condition_i->GetGeometry().size(); 
         }
-    }    
+        return vtk_cell_list_size;
+    }
 
     // -------------------------------------------------------------------------- 
     void logNodalResults( const int optimizationIteration )
     {
-        // initialize output file
-        ofstream outputFile;
-        updateOutputFilename();
-        outputFile.open(mOutputFilename, ios::out | ios::trunc );
+        updateOutputFilename( optimizationIteration );
+        writeHeader();
+        writeMesh();
+        writeNodalResults();
+    }
 
-        // write header
+    // --------------------------------------------------------------------------
+    void updateOutputFilename( const int optimizationIteration )
+    {
+        string outputFilename = mOutputFilenamePrefix + to_string(optimizationIteration) + ".vtk";
+        mOutputFilename = outputFilename;
+    }
+
+    // -------------------------------------------------------------------------- 
+    void writeHeader() 
+    {
+        ofstream outputFile;
+        outputFile.open(mOutputFilename, ios::out | ios::trunc );
         outputFile << "# vtk DataFile Version 4.0" << "\n";        
         outputFile << "vtk output" << "\n";        
         outputFile << "ASCII" << "\n";        
         outputFile << "DATASET UNSTRUCTURED_GRID" << "\n";                
         outputFile.close();     
+    }
 
-        // write mesh to file
+    // -------------------------------------------------------------------------- 
+    void writeMesh()
+    {
         writeNodes();
         writeElements();
         writeElementTypes();
+    }
 
-        // write nodal results
+    // -------------------------------------------------------------------------- 
+    void writeNodalResults()
+    {
         writeFirstNodalResultsAsPointData();
         writeOtherNodalResultsAsFieldData();
-
-        outputFile.close(); 
-    }
+    }     
 
     // --------------------------------------------------------------------------
     void writeNodes()
@@ -170,7 +187,7 @@ public:
         ofstream outputFile;
         outputFile.open(mOutputFilename, ios::out | ios::app );
         outputFile << scientific;
-        outputFile << setprecision(16);
+        outputFile << setprecision(mDefaultPrecision);
 
         // write nodes header
         outputFile << "POINTS " << mrDesignSurface.NumberOfNodes() << " float" << "\n";
@@ -196,28 +213,28 @@ public:
         outputFile.open(mOutputFilename, ios::out | ios::app );
 
         // write elements header
-        outputFile << "CELLS " << mrDesignSurface.NumberOfConditions() << " " << VtkCellListSize << "\n";
+        outputFile << "CELLS " << mrDesignSurface.NumberOfConditions() << " " << mVtkCellListSize << "\n";
         
         // write elements
         for (ModelPart::ConditionIterator condition_i = mrDesignSurface.ConditionsBegin(); condition_i != mrDesignSurface.ConditionsEnd(); ++condition_i)
         {
-            ModelPart::ConditionType::GeometryType condition_geometry = condition_i->GetGeometry();
+            ModelPart::ConditionType::GeometryType& condition_geometry = condition_i->GetGeometry();
             const int numberOfNodes = condition_geometry.size(); 
 
             if( numberOfNodes == 3 )
             {
                 outputFile << numberOfNodes;
-                outputFile << " " << KratosIdToVtkId[condition_geometry[0].Id()]; 
-                outputFile << " " << KratosIdToVtkId[condition_geometry[1].Id()]; 
-                outputFile << " " << KratosIdToVtkId[condition_geometry[2].Id()] << "\n";                
+                outputFile << " " << mKratosIdToVtkId[condition_geometry[0].Id()]; 
+                outputFile << " " << mKratosIdToVtkId[condition_geometry[1].Id()]; 
+                outputFile << " " << mKratosIdToVtkId[condition_geometry[2].Id()] << "\n";                
             }
             else if( numberOfNodes == 4 )
             {
                 outputFile << numberOfNodes;
-                outputFile << " " << KratosIdToVtkId[condition_geometry[0].Id()]; 
-                outputFile << " " << KratosIdToVtkId[condition_geometry[1].Id()]; 
-                outputFile << " " << KratosIdToVtkId[condition_geometry[2].Id()]; 
-                outputFile << " " << KratosIdToVtkId[condition_geometry[3].Id()] << "\n";                
+                outputFile << " " << mKratosIdToVtkId[condition_geometry[0].Id()]; 
+                outputFile << " " << mKratosIdToVtkId[condition_geometry[1].Id()]; 
+                outputFile << " " << mKratosIdToVtkId[condition_geometry[2].Id()]; 
+                outputFile << " " << mKratosIdToVtkId[condition_geometry[3].Id()] << "\n";                
             } 
             else 
                 KRATOS_THROW_ERROR(std::runtime_error,"Design surface contains conditions with geometries for which no VTK-output is implemented!","" )
@@ -238,19 +255,17 @@ public:
         // write elements types
         for (ModelPart::ConditionIterator condition_i = mrDesignSurface.ConditionsBegin(); condition_i != mrDesignSurface.ConditionsEnd(); ++condition_i)
         {
-            ModelPart::ConditionType::GeometryType condition_geometry = condition_i->GetGeometry();
-            const int numberOfNodes = condition_geometry.size(); 
+            const int numberOfNodes =  condition_i->GetGeometry().size(); 
+            unsigned int element_type;
 
             if( numberOfNodes == 3 )
-            {
-                outputFile << 5 << "\n";                
-            }
+                element_type = 5;
             else if( numberOfNodes == 4 )
-            {
-                outputFile << 9 << "\n";                
-            } 
+                element_type = 9;                
             else 
                 KRATOS_THROW_ERROR(std::runtime_error,"Design surface contains conditions with geometries for which no VTK-output is implemented!","" )
+
+            outputFile << element_type << "\n";       
         }
 
         outputFile.close();     
@@ -279,9 +294,10 @@ public:
             dataCharacteristic = 2;
             outputFile << "VECTORS " << nodalResultName << " float" << "\n";
         }
+        
         // write nodal results
         outputFile << scientific;
-        outputFile << setprecision(16);
+        outputFile << setprecision(mDefaultPrecision);
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
             if(dataCharacteristic==1)
@@ -299,6 +315,7 @@ public:
                 outputFile << nodalResult[2] << "\n"; 
             }
         }
+
         outputFile.close();     
     }
     
@@ -312,7 +329,6 @@ public:
         Parameters nodalResults = mrOptimizationSettings["output"]["nodal_results"];
         outputFile << "FIELD FieldData " << nodalResults.size()-1 << "\n";
 
-        // Loop over all nodal result variables
         for(unsigned int entry = 1; entry < nodalResults.size(); entry++)
         {
             // write nodal results variable header            
@@ -331,7 +347,7 @@ public:
 
             // write nodal results
             outputFile << scientific;
-            outputFile << setprecision(16);
+            outputFile << setprecision(mDefaultPrecision);
             for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
             {
                 if(dataCharacteristic==1)
@@ -350,6 +366,7 @@ public:
                 }
             }
         }
+
         outputFile.close();     
     }
 
@@ -446,10 +463,10 @@ private:
     ModelPart& mrDesignSurface;
     Parameters& mrOptimizationSettings;
     string mOutputFilename;
-    string partialOutputFilename;
-    int outputId;
-    map<int,int> KratosIdToVtkId;
-    int VtkCellListSize;
+    string mOutputFilenamePrefix;
+    unsigned int mDefaultPrecision;
+    map<int,int> mKratosIdToVtkId;
+    unsigned int mVtkCellListSize;
 
     ///@}
     ///@name Private Operators
