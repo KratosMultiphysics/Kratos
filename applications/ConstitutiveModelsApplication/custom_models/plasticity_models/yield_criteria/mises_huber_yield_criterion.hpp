@@ -109,7 +109,7 @@ namespace Kratos
      * Calculate Yield Condition
      */
 
-    double& CalculateYieldCondition(const PlasticDataType& rVariables, double & rYieldCondition) override
+    virtual double& CalculateYieldCondition(const PlasticDataType& rVariables, double & rYieldCondition) override
     {
       KRATOS_TRY
 
@@ -130,7 +130,7 @@ namespace Kratos
      * Calculate State Function
      */
 
-    double& CalculateStateFunction(const PlasticDataType& rVariables, double & rStateFunction) override
+    virtual double& CalculateStateFunction(const PlasticDataType& rVariables, double & rStateFunction) override
     {
       KRATOS_TRY
 
@@ -155,7 +155,7 @@ namespace Kratos
      * Calculate State Function derivative
      */
 
-    double& CalculateDeltaStateFunction(const PlasticDataType& rVariables, double & rDeltaStateFunction) override
+    virtual double& CalculateDeltaStateFunction(const PlasticDataType& rVariables, double & rDeltaStateFunction) override
     {
       KRATOS_TRY
 
@@ -178,7 +178,7 @@ namespace Kratos
      * Calculate Plastic Dissipation
      */
 
-    double& CalculatePlasticDissipation(const PlasticDataType& rVariables, double & rPlasticDissipation) override
+    virtual double& CalculatePlasticDissipation(const PlasticDataType& rVariables, double & rPlasticDissipation) override
     {
       KRATOS_TRY
 
@@ -192,7 +192,7 @@ namespace Kratos
      * Calculate Plastic Dissipation derivative
      */
     
-    double& CalculateDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation) override
+    virtual double& CalculateDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation) override
     {
       KRATOS_TRY
 
@@ -205,7 +205,7 @@ namespace Kratos
      * Calculate Implex Plastic Dissipation
      */
 
-    double& CalculateImplexPlasticDissipation(const PlasticDataType& rVariables, double & rPlasticDissipation) override
+    virtual double& CalculateImplexPlasticDissipation(const PlasticDataType& rVariables, double & rPlasticDissipation) override
     {
       KRATOS_TRY
 
@@ -219,7 +219,7 @@ namespace Kratos
      * Calculate Implex Plastic Dissipation derivative
      */
     
-    double& CalculateImplexDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation) override
+    virtual double& CalculateImplexDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation) override
     {
       KRATOS_TRY
       

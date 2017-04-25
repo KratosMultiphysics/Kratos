@@ -7,18 +7,18 @@
 //
 //
 
-#if !defined(KRATOS_VON_MISES_PLASTICITY_MODEL_H_INCLUDED )
-#define  KRATOS_VON_MISES_PLASTICITY_MODEL_H_INCLUDED
+#if !defined(KRATOS_JOHNSON_COOK_J2_THERMO_PLASTICITY_MODEL_H_INCLUDED )
+#define  KRATOS_JOHNSON_COOK_J2_THERMO_PLASTICITY_MODEL_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_models/plasticity_models/non_linear_associative_plasticity_model.hpp"
-#include "custom_models/plasticity_models/yield_criteria/mises_huber_yield_criterion.hpp"
-#include "custom_models/plasticity_models/hardening_laws/non_linear_isotropic_kinematic_hardening_law.hpp"
-
+#include "custom_models/plasticity_models/non_linear_rate_dependent_plasticity_model.hpp"
+#include "custom_models/plasticity_models/yield_criteria/mises_huber_thermal_yield_criterion.hpp"
+#include "custom_models/plasticity_models/hardening_laws/johnson_cook_thermal_hardening_law.hpp"
+#include "custom_models/elasticity_models/incompressible_neo_hookean_model.hpp"
 
 namespace Kratos
 {
@@ -47,8 +47,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  template<class TElasticityModel>
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) VonMisesPlasticityModel : public NonLinearAssociativePlasticityModel<TElasticityModel, MisesHuberYieldCriterion<NonLinearIsotropicKinematicHardeningLaw> >
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) JohnsonCookJ2ThermoPlasticityModel : public NonLinearRateDependentPlasticityModel<IncompressibleNeoHookeanModel, MisesHuberThermalYieldCriterion<JohnsonCookThermalHardeningLaw> >
   {
   public:
     
@@ -56,16 +55,16 @@ namespace Kratos
     ///@{
 
     //elasticity model
-    typedef TElasticityModel                               ElasticityModelType;
+    typedef IncompressibleNeoHookeanModel                  ElasticityModelType;
     typedef typename ElasticityModelType::Pointer       ElasticityModelPointer;
 
     //yield criterion
-    typedef NonLinearIsotropicKinematicHardeningLaw                    HardeningLawType;
-    typedef MisesHuberYieldCriterion<HardeningLawType>               YieldCriterionType;
-    typedef typename YieldCriterionType::Pointer                  YieldCriterionPointer;
+    typedef JohnsonCookThermalHardeningLaw                       HardeningLawType;
+    typedef MisesHuberThermalYieldCriterion<HardeningLawType>  YieldCriterionType;
+    typedef typename YieldCriterionType::Pointer            YieldCriterionPointer;
 
     //base type
-    typedef NonLinearAssociativePlasticityModel<TElasticityModel,YieldCriterionType>  BaseType;
+    typedef NonLinearRateDependentPlasticityModel<ElasticityModelType,YieldCriterionType>  BaseType;
 
     //common types
     typedef typename BaseType::Pointer                         BaseTypePointer;
@@ -78,36 +77,30 @@ namespace Kratos
     typedef typename BaseType::InternalVariablesType     InternalVariablesType;
 
 
-    /// Pointer definition of VonMisesPlasticityModel
-    KRATOS_CLASS_POINTER_DEFINITION( VonMisesPlasticityModel );
+    /// Pointer definition of JohnsonCookJ2ThermoPlasticityModel
+    KRATOS_CLASS_POINTER_DEFINITION( JohnsonCookJ2ThermoPlasticityModel );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    VonMisesPlasticityModel() : BaseType() {}
-
-    /// Constructor.
-    VonMisesPlasticityModel(ElasticityModelPointer pElasticityModel)
+    JohnsonCookJ2ThermoPlasticityModel()
       :BaseType()
     {
       KRATOS_TRY
 
       this->mpElasticityModel = ElasticityModelPointer( new ElasticityModelType() );
       this->mpYieldCriterion  = YieldCriterionPointer( new YieldCriterionType() );
-
-      std::cout<<" Von Mises Model "<<std::endl;
-      this->mpElasticityModel->PrintInfo(std::cout);
      
       KRATOS_CATCH(" ")
     }
     
     /// Copy constructor.
-    VonMisesPlasticityModel(VonMisesPlasticityModel const& rOther) : BaseType(rOther) {}
+    JohnsonCookJ2ThermoPlasticityModel(JohnsonCookJ2ThermoPlasticityModel const& rOther) : BaseType(rOther) {}
 
     /// Assignment operator.
-    VonMisesPlasticityModel& operator=(VonMisesPlasticityModel const& rOther)
+    JohnsonCookJ2ThermoPlasticityModel& operator=(JohnsonCookJ2ThermoPlasticityModel const& rOther)
     {
       BaseType::operator=(rOther);
       return *this;
@@ -116,11 +109,11 @@ namespace Kratos
     /// Clone.
     ConstitutiveModel::Pointer Clone() const override
     {
-      return ( VonMisesPlasticityModel::Pointer(new VonMisesPlasticityModel(*this)) );
+      return ( JohnsonCookJ2ThermoPlasticityModel::Pointer(new JohnsonCookJ2ThermoPlasticityModel(*this)) );
     }
     
     /// Destructor.
-    virtual ~VonMisesPlasticityModel() {}
+    virtual ~JohnsonCookJ2ThermoPlasticityModel() {}
 
 
     ///@}
@@ -151,20 +144,20 @@ namespace Kratos
     virtual std::string Info() const override
     {
       std::stringstream buffer;
-      buffer << "VonMisesPlasticityModel" ;
+      buffer << "JohnsonCookJ2ThermoPlasticityModel" ;
       return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-      rOStream << "VonMisesPlasticityModel";
+      rOStream << "JohnsonCookJ2ThermoPlasticityModel";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "VonMisesPlasticityModel Data";
+      rOStream << "JohnsonCookJ2ThermoPlasticityModel Data";
     }
 
     ///@}
@@ -263,7 +256,7 @@ namespace Kratos
 
     ///@}
 
-  }; // Class VonMisesPlasticityModel
+  }; // Class JohnsonCookJ2ThermoPlasticityModel
 
   ///@}
 
@@ -288,6 +281,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_VON_MISES_PLASTICITY_MODEL_H_INCLUDED  defined 
+#endif // KRATOS_JOHNSON_COOK_J2_THERMO_PLASTICITY_MODEL_H_INCLUDED  defined 
 
 

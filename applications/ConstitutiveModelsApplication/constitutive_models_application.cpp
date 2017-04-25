@@ -66,7 +66,17 @@ namespace Kratos {
       KRATOS_REGISTER_VARIABLE( REFERENCE_TEMPERATURE )
       KRATOS_REGISTER_VARIABLE( PLASTIC_DISSIPATION )
       KRATOS_REGISTER_VARIABLE( DELTA_PLASTIC_DISSIPATION )
-
+      KRATOS_REGISTER_VARIABLE( REFERENCE_CONDUCTIVITY )
+      KRATOS_REGISTER_VARIABLE( HARDNESS_CONDUCTIVITY )
+      KRATOS_REGISTER_VARIABLE( MELD_TEMPERATURE )
+      KRATOS_REGISTER_VARIABLE( PLASTIC_STRAIN_RATE )
+      KRATOS_REGISTER_VARIABLE( JC_PARAMETER_A )
+      KRATOS_REGISTER_VARIABLE( JC_PARAMETER_B )
+      KRATOS_REGISTER_VARIABLE( JC_PARAMETER_C )
+      KRATOS_REGISTER_VARIABLE( JC_PARAMETER_m )
+      KRATOS_REGISTER_VARIABLE( JC_PARAMETER_n )
+      KRATOS_REGISTER_VARIABLE( JC_PARAMETER_K )
+	
       //othotropic/anisotropic constants
       KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_X )
       KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_Y )
@@ -120,15 +130,19 @@ namespace Kratos {
       
       //plasticity models
       Serializer::Register( "VonMisesNeoHookeanPlasticityModel", mVonMisesNeoHookeanPlasticityModel );
-          
+      
       //yield criteria
       Serializer::Register( "MisesHuberYieldCriterion", mMisesHuberYieldCriterion );
+      Serializer::Register( "MisesHuberThermalYieldCriterion", mMisesHuberThermalYieldCriterion );      
       Serializer::Register( "SimoJuYieldCriterion", mSimoJuYieldCriterion );
       Serializer::Register( "ModifiedMisesYieldCriterion", mModifiedMisesYieldCriterion );
     
       //hardening laws
-      Serializer::Register( "NonLinearIsotropicKinematicHardeningLaw", mNonLinearIsotropicKinematicHardeningLaw );
-      Serializer::Register( "LinearIsotropicKinematicHardeningLaw", mLinearIsotropicKinematicHardeningLaw );
+      Serializer::Register( "SimoExponentialHardeningLaw", mSimoExponentialHardeningLaw );
+      Serializer::Register( "SimoLinearHardeningLaw", mSimoLinearHardeningLaw );
+      Serializer::Register( "SimoExponentialThermalHardeningLaw", mSimoExponentialThermalHardeningLaw );
+      Serializer::Register( "JohnsonCookThermalHardeningLaw", mJohnsonCookThermalHardeningLaw );
+      Serializer::Register( "BakerJohnsonCookThermalHardeningLaw", mBakerJohnsonCookThermalHardeningLaw );
       Serializer::Register( "ExponentialDamageHardeningLaw", mExponentialDamageHardeningLaw );
       Serializer::Register( "ModifiedExponentialDamageHardeningLaw", mModifiedExponentialDamageHardeningLaw );
 

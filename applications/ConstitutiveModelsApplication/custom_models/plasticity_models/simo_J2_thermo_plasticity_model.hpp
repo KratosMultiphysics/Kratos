@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_VON_MISES_NEO_HOOKEAN_PLASTICITY_MODEL_H_INCLUDED )
-#define  KRATOS_VON_MISES_NEO_HOOKEAN_PLASTICITY_MODEL_H_INCLUDED
+#if !defined(KRATOS_SIMO_J2_THERMO_PLASTICITY_MODEL_H_INCLUDED )
+#define  KRATOS_SIMO_J2_THERMO_PLASTICITY_MODEL_H_INCLUDED
 
 // System includes
 
@@ -16,9 +16,9 @@
 
 // Project includes
 #include "custom_models/plasticity_models/non_linear_associative_plasticity_model.hpp"
-#include "custom_models/plasticity_models/yield_criteria/mises_huber_yield_criterion.hpp"
-#include "custom_models/plasticity_models/hardening_laws/simo_exponential_hardening_law.hpp"
-#include "custom_models/elasticity_models/isochoric_neo_hookean_model.hpp"
+#include "custom_models/plasticity_models/yield_criteria/mises_huber_thermal_yield_criterion.hpp"
+#include "custom_models/plasticity_models/hardening_laws/simo_exponential_thermal_hardening_law.hpp"
+#include "custom_models/elasticity_models/incompressible_neo_hookean_model.hpp"
 
 namespace Kratos
 {
@@ -47,7 +47,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) VonMisesNeoHookeanPlasticityModel : public NonLinearAssociativePlasticityModel<IsochoricNeoHookeanModel, MisesHuberYieldCriterion<SimoExponentialHardeningLaw> >
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) SimoJ2ThermoPlasticityModel : public NonLinearAssociativePlasticityModel<IncompressibleNeoHookeanModel, MisesHuberThermalYieldCriterion<SimoExponentialThermalHardeningLaw> >
   {
   public:
     
@@ -55,13 +55,13 @@ namespace Kratos
     ///@{
 
     //elasticity model
-    typedef IsochoricNeoHookeanModel                       ElasticityModelType;
+    typedef IncompressibleNeoHookeanModel                  ElasticityModelType;
     typedef typename ElasticityModelType::Pointer       ElasticityModelPointer;
 
     //yield criterion
-    typedef SimoExponentialHardeningLaw                       HardeningLawType;
-    typedef MisesHuberYieldCriterion<HardeningLawType>      YieldCriterionType;
-    typedef typename YieldCriterionType::Pointer         YieldCriterionPointer;
+    typedef SimoExponentialThermalHardeningLaw                   HardeningLawType;
+    typedef MisesHuberThermalYieldCriterion<HardeningLawType>  YieldCriterionType;
+    typedef typename YieldCriterionType::Pointer            YieldCriterionPointer;
 
     //base type
     typedef NonLinearAssociativePlasticityModel<ElasticityModelType,YieldCriterionType>  BaseType;
@@ -77,15 +77,15 @@ namespace Kratos
     typedef typename BaseType::InternalVariablesType     InternalVariablesType;
 
 
-    /// Pointer definition of VonMisesNeoHookeanPlasticityModel
-    KRATOS_CLASS_POINTER_DEFINITION( VonMisesNeoHookeanPlasticityModel );
+    /// Pointer definition of SimoJ2ThermoPlasticityModel
+    KRATOS_CLASS_POINTER_DEFINITION( SimoJ2ThermoPlasticityModel );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    VonMisesNeoHookeanPlasticityModel()
+    SimoJ2ThermoPlasticityModel()
       :BaseType()
     {
       KRATOS_TRY
@@ -97,10 +97,10 @@ namespace Kratos
     }
     
     /// Copy constructor.
-    VonMisesNeoHookeanPlasticityModel(VonMisesNeoHookeanPlasticityModel const& rOther) : BaseType(rOther) {}
+    SimoJ2ThermoPlasticityModel(SimoJ2ThermoPlasticityModel const& rOther) : BaseType(rOther) {}
 
     /// Assignment operator.
-    VonMisesNeoHookeanPlasticityModel& operator=(VonMisesNeoHookeanPlasticityModel const& rOther)
+    SimoJ2ThermoPlasticityModel& operator=(SimoJ2ThermoPlasticityModel const& rOther)
     {
       BaseType::operator=(rOther);
       return *this;
@@ -109,11 +109,11 @@ namespace Kratos
     /// Clone.
     ConstitutiveModel::Pointer Clone() const override
     {
-      return ( VonMisesNeoHookeanPlasticityModel::Pointer(new VonMisesNeoHookeanPlasticityModel(*this)) );
+      return ( SimoJ2ThermoPlasticityModel::Pointer(new SimoJ2ThermoPlasticityModel(*this)) );
     }
     
     /// Destructor.
-    virtual ~VonMisesNeoHookeanPlasticityModel() {}
+    virtual ~SimoJ2ThermoPlasticityModel() {}
 
 
     ///@}
@@ -144,20 +144,20 @@ namespace Kratos
     virtual std::string Info() const override
     {
       std::stringstream buffer;
-      buffer << "VonMisesNeoHookeanPlasticityModel" ;
+      buffer << "SimoJ2ThermoPlasticityModel" ;
       return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-      rOStream << "VonMisesNeoHookeanPlasticityModel";
+      rOStream << "SimoJ2ThermoPlasticityModel";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "VonMisesNeoHookeanPlasticityModel Data";
+      rOStream << "SimoJ2ThermoPlasticityModel Data";
     }
 
     ///@}
@@ -256,7 +256,7 @@ namespace Kratos
 
     ///@}
 
-  }; // Class VonMisesNeoHookeanPlasticityModel
+  }; // Class SimoJ2ThermoPlasticityModel
 
   ///@}
 
@@ -281,6 +281,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_VON_MISES_NEO_HOOKEAN_PLASTICITY_MODEL_H_INCLUDED  defined 
+#endif // KRATOS_SIMO_J2_THERMO_PLASTICITY_MODEL_H_INCLUDED  defined 
 
 

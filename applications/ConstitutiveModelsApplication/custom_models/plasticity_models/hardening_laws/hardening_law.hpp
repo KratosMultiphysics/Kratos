@@ -90,31 +90,6 @@ namespace Kratos
       };
       
     };
-
-
-    template<std::size_t TVarSize>
-    struct DeltaInternalVariables
-    {
-      //internal variables
-      array_1d<double, TVarSize> Variables;
-
-      const array_1d<double, TVarSize>& GetVariables() {return Variables;};
-
-    private:
-
-      friend class Serializer;
-      
-      void save(Serializer& rSerializer) const
-      {
-	rSerializer.save("Variables",Variables);
-      };
-
-      void load(Serializer& rSerializer)
-      {
-	rSerializer.load("Variables",Variables);
-      };
-      
-    };
     
 
     template<std::size_t TVarSize>
@@ -136,7 +111,7 @@ namespace Kratos
 
       //internal variables
       InternalVariables<TVarSize>      Internal;
-      DeltaInternalVariables<TVarSize> DeltaInternal;
+      InternalVariables<TVarSize> DeltaInternal;
       
       //Set Data Pointers
       void SetState           (Flags& rState)                    {mpState = &rState;};
@@ -155,8 +130,8 @@ namespace Kratos
       const double& GetStressNorm         () const {return StressNorm;};     
       const double& GetRateFactor         () const {return RateFactor;};
       
-      const InternalVariables<TVarSize>&      GetInternal         () const {return Internal;};
-      const DeltaInternalVariables<TVarSize>& GetDeltaInternal    () const {return DeltaInternal;};
+      const InternalVariables<TVarSize>&      GetInternal () const {return Internal;};
+      const InternalVariables<TVarSize>& GetDeltaInternal () const {return DeltaInternal;};
 
       const array_1d<double,TVarSize>& GetInternalVariables       () const {return Internal.Variables;};
       const array_1d<double,TVarSize>& GetDeltaInternalVariables  () const {return DeltaInternal.Variables;};
@@ -208,7 +183,7 @@ namespace Kratos
      * Calculate Hardening functions
      */
     
-    virtual double& CalculateHardening(const PlasticDataType& rVariables, double &rHardening)
+    virtual double& CalculateHardening(const PlasticDataType& rVariables, double& rHardening)
     {
       KRATOS_TRY
 	
@@ -224,7 +199,7 @@ namespace Kratos
      * Calculate Hardening function derivatives
      */
     
-    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double &rDeltaHardening)
+    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening)
     {
       KRATOS_TRY
 	
@@ -236,7 +211,7 @@ namespace Kratos
     }
 
     
-    virtual double& CalculateDeltaThermalHardening(const PlasticDataType& rVariables, double &rDeltaThermalHardening)
+    virtual double& CalculateDeltaThermalHardening(const PlasticDataType& rVariables, double& rDeltaThermalHardening)
     {
       KRATOS_TRY
 	

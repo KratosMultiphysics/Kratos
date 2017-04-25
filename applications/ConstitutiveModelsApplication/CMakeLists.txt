@@ -38,8 +38,11 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_SOURCES
 	#yield criteria (template, all in headers)
 
 	#hardening laws
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_laws/non_linear_isotropic_kinematic_hardening_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_laws/linear_isotropic_kinematic_hardening_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_laws/simo_linear_hardening_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_laws/simo_exponential_hardening_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_laws/simo_exponential_thermal_hardening_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_laws/johnson_cook_thermal_hardening_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_laws/baker_johnson_cook_thermal_hardening_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_laws/exponential_damage_hardening_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_laws/modified_exponential_damage_hardening_law.cpp
 

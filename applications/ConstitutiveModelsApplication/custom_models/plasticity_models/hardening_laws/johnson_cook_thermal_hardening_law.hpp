@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_NON_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED )
-#define  KRATOS_NON_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED
+#if !defined(KRATOS_JOHNSON_COOK_THERMAL_HARDENING_LAW_H_INCLUDED )
+#define  KRATOS_JOHNSON_COOK_THERMAL_HARDENING_LAW_H_INCLUDED
 
 // System includes
 
@@ -44,34 +44,34 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) NonLinearIsotropicKinematicHardeningLaw 
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) JohnsonCookThermalHardeningLaw 
     : public HardeningLaw
   {
   public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of NonLinearIsotropicKinematicHardeningLaw
-    KRATOS_CLASS_POINTER_DEFINITION( NonLinearIsotropicKinematicHardeningLaw );
+    /// Pointer definition of JohnsonCookThermalHardeningLaw
+    KRATOS_CLASS_POINTER_DEFINITION( JohnsonCookThermalHardeningLaw );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    NonLinearIsotropicKinematicHardeningLaw();
+    JohnsonCookThermalHardeningLaw();
 
     /// Copy constructor.
-    NonLinearIsotropicKinematicHardeningLaw(NonLinearIsotropicKinematicHardeningLaw const& rOther);
+    JohnsonCookThermalHardeningLaw(JohnsonCookThermalHardeningLaw const& rOther);
 
     /// Assignment operator.
-    NonLinearIsotropicKinematicHardeningLaw& operator=(NonLinearIsotropicKinematicHardeningLaw const& rOther);
+    JohnsonCookThermalHardeningLaw& operator=(JohnsonCookThermalHardeningLaw const& rOther);
 
     /// Clone.
     virtual HardeningLaw::Pointer Clone() const override;
     
     /// Destructor.
-    ~NonLinearIsotropicKinematicHardeningLaw();
+    ~JohnsonCookThermalHardeningLaw();
 
     ///@}
     ///@name Operators
@@ -87,15 +87,16 @@ namespace Kratos
      * Calculate Hardening functions
      */
 
-    virtual double& CalculateHardening(const PlasticDataType& rVariables, double &rHardening) override;
+    virtual double& CalculateHardening(const PlasticDataType& rVariables, double& rHardening) override;
       
     /**
      * Calculate Hardening function derivatives
      */
 
-    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double &rDeltaHardening) override;
+    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening) override;
 
-
+    virtual double& CalculateDeltaThermalHardening(const PlasticDataType& rVariables, double& rDeltaThermalHardening) override;
+    
     ///@}
     ///@name Access
     ///@{
@@ -114,20 +115,20 @@ namespace Kratos
     virtual std::string Info() const override
     {
       std::stringstream buffer;
-      buffer << "NonLinearIsotropicKinematicHardeningLaw" ;
+      buffer << "JohnsonCookThermalHardeningLaw" ;
       return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-      rOStream << "NonLinearIsotropicKinematicHardeningLaw";
+      rOStream << "JohnsonCookThermalHardeningLaw";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "NonLinearIsotropicKinematicHardeningLaw Data";
+      rOStream << "JohnsonCookThermalHardeningLaw Data";
     }    
 
 
@@ -146,42 +147,17 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-
-
-    /**
-     * Pure isotropic hardening Theta=1;  pure kinematic hardening Theta= 0; combined isotropic-kinematic 0<Theta<1
-     */
-    static constexpr double mTheta = 1.0;
 	
      
     ///@}
     ///@name Protected Operators
     ///@{
 
+    
     ///@}
     ///@name Protected Operations
     ///@{
-
-    /**
-     * Calculate Hardening functions
-     */
-    virtual double& CalculateAndAddIsotropicHardening(const PlasticDataType& rVariables, double &rIsotropicHardening);
-
-    virtual double& CalculateAndAddKinematicHardening(const PlasticDataType& rVariables, double &rKinematicHardening);
-
-    /**
-     * Calculate Hardening function derivatives
-     */
-    virtual double& CalculateAndAddDeltaIsotropicHardening(const PlasticDataType& rVariables, double &rDeltaIsotropicHardening);
-
-    virtual double& CalculateAndAddDeltaKinematicHardening(const PlasticDataType& rVariables, double &rDeltaKinematicHardening);
-
-
     
-    virtual double& CalculateThermalReferenceEffect(const PlasticDataType& rVariables, const double &rTemperature, double& rThermalFactor);
-
-    virtual double& CalculateThermalCurrentEffect(const PlasticDataType& rVariables, const double &rTemperature, double& rThermalFactor);
-
     
     ///@}
     ///@name Protected  Access
@@ -251,7 +227,7 @@ namespace Kratos
 
     ///@}
 
-  }; // Class NonLinearIsotropicKinematicHardeningLaw
+  }; // Class JohnsonCookThermalHardeningLaw
 
   ///@}
 
@@ -270,6 +246,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NON_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED  defined 
+#endif // KRATOS_JOHNSON_COOK_THERMAL_HARDENING_LAW_H_INCLUDED  defined 
 
 

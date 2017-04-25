@@ -67,7 +67,7 @@ namespace Kratos
   //****************************** CALCULATE DAMAGE PARAMETER **************************
   //************************************************************************************
 
-  double& ModifiedExponentialDamageHardeningLaw::CalculateHardening(const PlasticDataType& rVariables, double &rHardening)
+  double& ModifiedExponentialDamageHardeningLaw::CalculateHardening(const PlasticDataType& rVariables, double& rHardening)
   {
     KRATOS_TRY
       
@@ -101,7 +101,7 @@ namespace Kratos
   //***************************** CALCULATE DAMAGE DERIVATIVE **************************
   //************************************************************************************
 
-  double& ModifiedExponentialDamageHardeningLaw::CalculateDeltaHardening(const PlasticDataType& rVariables, double &rDeltaHardening)
+  double& ModifiedExponentialDamageHardeningLaw::CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening)
   {
     KRATOS_TRY
       

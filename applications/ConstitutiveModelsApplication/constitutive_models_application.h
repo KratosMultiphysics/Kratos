@@ -69,14 +69,20 @@
 
 //plasticity models
 #include "custom_models/plasticity_models/von_mises_neo_hookean_plasticity_model.hpp"
+#include "custom_models/plasticity_models/simo_J2_thermo_plasticity_model.hpp"
+#include "custom_models/plasticity_models/johnson_cook_J2_thermo_plasticity_model.hpp"
+#include "custom_models/plasticity_models/baker_johnson_cook_J2_thermo_plasticity_model.hpp"
 
 //yield criteria
-#include "custom_models/plasticity_models/yield_criteria/mises_huber_yield_criterion.hpp"
+#include "custom_models/plasticity_models/yield_criteria/mises_huber_thermal_yield_criterion.hpp"
 #include "custom_models/plasticity_models/yield_criteria/simo_ju_yield_criterion.hpp"
 #include "custom_models/plasticity_models/yield_criteria/modified_mises_yield_criterion.hpp"
 
 //hardening laws
-#include "custom_models/plasticity_models/hardening_laws/linear_isotropic_kinematic_hardening_law.hpp"
+#include "custom_models/plasticity_models/hardening_laws/simo_linear_hardening_law.hpp"
+#include "custom_models/plasticity_models/hardening_laws/simo_exponential_thermal_hardening_law.hpp"
+#include "custom_models/plasticity_models/hardening_laws/johnson_cook_thermal_hardening_law.hpp"
+#include "custom_models/plasticity_models/hardening_laws/baker_johnson_cook_thermal_hardening_law.hpp"
 #include "custom_models/plasticity_models/hardening_laws/exponential_damage_hardening_law.hpp"
 #include "custom_models/plasticity_models/hardening_laws/modified_exponential_damage_hardening_law.hpp"
 
@@ -260,22 +266,27 @@ namespace Kratos {
 
     //plasticity models
     const VonMisesNeoHookeanPlasticityModel        mVonMisesNeoHookeanPlasticityModel;
-       
+    const SimoJ2ThermoPlasticityModel              mSimoJ2ThermoPlasticityModel;
+    const JohnsonCookJ2ThermoPlasticityModel       mJohnsonCookJ2ThermoPlasticityModel;
+    const BakerJohnsonCookJ2ThermoPlasticityModel  mBakerJohnsonCookJ2ThermoPlasticityModel;
+    
     //yield criteria
-    const MisesHuberYieldCriterion<HardeningLawType>     mMisesHuberYieldCriterion;
-    const SimoJuYieldCriterion<HardeningLawType>         mSimoJuYieldCriterion;
-    const ModifiedMisesYieldCriterion <HardeningLawType> mModifiedMisesYieldCriterion;
+    const MisesHuberYieldCriterion<HardeningLawType>         mMisesHuberYieldCriterion;
+    const MisesHuberThermalYieldCriterion<HardeningLawType>  mMisesHuberThermalYieldCriterion;
+    const SimoJuYieldCriterion<HardeningLawType>             mSimoJuYieldCriterion;
+    const ModifiedMisesYieldCriterion <HardeningLawType>     mModifiedMisesYieldCriterion;
     
     //hardening laws
-    const NonLinearIsotropicKinematicHardeningLaw  mNonLinearIsotropicKinematicHardeningLaw;
-    const LinearIsotropicKinematicHardeningLaw     mLinearIsotropicKinematicHardeningLaw;
+    const SimoExponentialHardeningLaw              mSimoExponentialHardeningLaw;
+    const SimoLinearHardeningLaw                   mSimoLinearHardeningLaw;
+    const SimoExponentialThermalHardeningLaw       mSimoExponentialThermalHardeningLaw;
+    const JohnsonCookThermalHardeningLaw           mJohnsonCookThermalHardeningLaw;
+    const BakerJohnsonCookThermalHardeningLaw      mBakerJohnsonCookThermalHardeningLaw;
     const ExponentialDamageHardeningLaw            mExponentialDamageHardeningLaw;
     const ModifiedExponentialDamageHardeningLaw    mModifiedExponentialDamageHardeningLaw;
     
     
-    
-
-    
+       
     ///@}
     ///@name Private Operators
     ///@{

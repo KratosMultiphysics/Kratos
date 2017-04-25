@@ -50,8 +50,11 @@
 #include "custom_models/elasticity_models/incompressible_neo_hookean_model.hpp"
 
 //plasticity models
-#include "custom_models/plasticity_models/von_mises_plasticity_model.hpp"
 #include "custom_models/plasticity_models/von_mises_neo_hookean_plasticity_model.hpp"
+#include "custom_models/plasticity_models/simo_J2_thermo_plasticity_model.hpp"
+#include "custom_models/plasticity_models/johnson_cook_J2_thermo_plasticity_model.hpp"
+#include "custom_models/plasticity_models/baker_johnson_cook_J2_thermo_plasticity_model.hpp"
+
 
 
 namespace Kratos
@@ -180,6 +183,22 @@ namespace Kratos
        	  init<>() )
        	;
       
+      class_< SimoJ2ThermoPlasticityModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
+       	( "SimoJ2ThermoPlasticityModel",
+       	  init<>() )
+       	;
+
+      class_< JohnsonCookJ2ThermoPlasticityModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
+       	( "JohnsonCookJ2ThermoPlasticityModel",
+       	  init<>() )
+       	;
+
+      class_< BakerJohnsonCookJ2ThermoPlasticityModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
+       	( "BakerJohnsonCookJ2ThermoPlasticityModel",
+       	  init<>() )
+       	;
+
+
       
     }
 

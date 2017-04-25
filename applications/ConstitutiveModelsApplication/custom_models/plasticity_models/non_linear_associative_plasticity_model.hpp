@@ -489,12 +489,12 @@ namespace Kratos
       double DeltaStateFunction = 0;
       double DeltaPlasticStrain = 0;
     
-      double& EquivalentPlasticStrainOld  = mPreviousInternal.Variables[0];
-      double& EquivalentPlasticStrain     = rVariables.Internal.Variables[0];
-      double& DeltaGamma                  = rVariables.DeltaInternal.Variables[0];
+      double& rEquivalentPlasticStrainOld  = mPreviousInternal.Variables[0];
+      double& rEquivalentPlasticStrain     = rVariables.Internal.Variables[0];
+      double& rDeltaGamma                  = rVariables.DeltaInternal.Variables[0];
 
-      EquivalentPlasticStrain = 0;
-      DeltaGamma = 0;
+      rEquivalentPlasticStrain = 0;
+      rDeltaGamma = 0;
 
       double StateFunction                = rVariables.TrialStateFunction;
     
@@ -505,11 +505,11 @@ namespace Kratos
 
 	  //Calculate DeltaGamma:
 	  DeltaDeltaGamma  = StateFunction/DeltaStateFunction;
-	  DeltaGamma += DeltaDeltaGamma;
+	  rDeltaGamma += DeltaDeltaGamma;
 	       
 	  //Update Equivalent Plastic Strain:
-	  DeltaPlasticStrain      = sqrt(2.0/3.0) * DeltaGamma;
-	  EquivalentPlasticStrain = EquivalentPlasticStrainOld + DeltaPlasticStrain;
+	  DeltaPlasticStrain       = sqrt(2.0/3.0) * rDeltaGamma;
+	  rEquivalentPlasticStrain = rEquivalentPlasticStrainOld + DeltaPlasticStrain;
 	       	
 	  //Calculate State Function:
 	  StateFunction = this->mpYieldCriterion->CalculateStateFunction( rVariables, StateFunction );
@@ -532,18 +532,18 @@ namespace Kratos
     {
       KRATOS_TRY
       
-      double& EquivalentPlasticStrainOld  = mPreviousInternal.Variables[0];
-      double& EquivalentPlasticStrain     = rVariables.Internal.Variables[0];
-      double& DeltaGamma                  = rVariables.DeltaInternal.Variables[0];
+      double& rEquivalentPlasticStrainOld  = mPreviousInternal.Variables[0];
+      double& rEquivalentPlasticStrain     = rVariables.Internal.Variables[0];
+      double& rDeltaGamma                  = rVariables.DeltaInternal.Variables[0];
    
       //1.-Computation of the plastic Multiplier
-      DeltaGamma = sqrt(3.0/2.0) * ( EquivalentPlasticStrain - EquivalentPlasticStrainOld );
+      rDeltaGamma = sqrt(3.0*0.5) * ( rEquivalentPlasticStrain - rEquivalentPlasticStrainOld );
 	
       //2.- Update back stress, plastic strain and stress
       this->UpdateStressConfiguration(rVariables,rStressMatrix);
 
       //3.- Calculate thermal dissipation and delta thermal dissipation
-      if( DeltaGamma > 0 ){
+      if( rDeltaGamma > 0 ){
 	  
 	this->CalculateImplexThermalDissipation( rVariables );
 	rVariables.State().Set(ConstitutiveModelData::PLASTIC_REGION,true);
@@ -613,13 +613,13 @@ namespace Kratos
     {
       KRATOS_TRY
     
-      double& EquivalentPlasticStrainOld  = mPreviousInternal.Variables[0];
-      double& EquivalentPlasticStrain     = rVariables.Internal.Variables[0];
-      double& DeltaGamma                  = rVariables.DeltaInternal.Variables[0];
+      double& rEquivalentPlasticStrainOld  = mPreviousInternal.Variables[0];
+      double& rEquivalentPlasticStrain     = rVariables.Internal.Variables[0];
+      double& rDeltaGamma                  = rVariables.DeltaInternal.Variables[0];
 
       //update mechanical variables
-      EquivalentPlasticStrainOld  = EquivalentPlasticStrain;
-      EquivalentPlasticStrain    += sqrt(2.0/3.0) * DeltaGamma;
+      rEquivalentPlasticStrainOld  = rEquivalentPlasticStrain;
+      rEquivalentPlasticStrain    += sqrt(2.0/3.0) * rDeltaGamma;
 	
       //update thermal variables
       //mThermalVariables = rVariables.Thermal;
