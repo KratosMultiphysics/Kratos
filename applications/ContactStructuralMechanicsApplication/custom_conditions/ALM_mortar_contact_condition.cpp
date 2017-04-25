@@ -602,14 +602,9 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     const unsigned int& rMasterElementIndex
     )
 {
-    // Master segment info
-    GeometryType& CurrentMasterElement = mThisMasterElements[rMasterElementIndex]->GetGeometry();
-    
     // Slave element info
     rVariables.Initialize();
-
-    rVariables.SetMasterElement( CurrentMasterElement );
-    rVariables.SetMasterElementIndex( rMasterElementIndex );
+    rVariables.SetMasterElement( mThisMasterElements[rMasterElementIndex] );
 }
 
 /***********************************************************************************/
@@ -746,7 +741,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     const PointType& LocalPoint 
     )
 {    
-    GeometryType& MasterSegment = rVariables.GetMasterElement( );
+    GeometryType& MasterSegment = (rVariables.GetMasterElement())->GetGeometry();
 
     PointType ProjectedGPGlobal;
     const array_1d<double,3> GPNormal = ContactUtilities::GaussPointNormal(rVariables.NSlave, GetGeometry());
@@ -760,7 +755,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     MasterSegment.PointLocalCoordinates( ProjectedGPLocal, ProjectedGPGlobal.Coordinates( ) ) ;
 
     // SHAPE FUNCTIONS 
-    MasterSegment.ShapeFunctionsValues(         rVariables.NMaster,     ProjectedGPLocal );         
+    MasterSegment.ShapeFunctionsValues(         rVariables.NMaster,    ProjectedGPLocal );         
     MasterSegment.ShapeFunctionsLocalGradients( rVariables.DNDeMaster, ProjectedGPLocal );
 }
 

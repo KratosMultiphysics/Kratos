@@ -246,8 +246,7 @@ public:
     {
     private:
         // Contact pair information
-        GeometryType* pMasterElement;   // Pointer to the master contact segment only
-        unsigned int mMasterElementIndex;
+        Condition::Pointer pMasterElement;   // Pointer to the master contact segment only
 
     public:
         // Shape functions for contact pair
@@ -277,8 +276,7 @@ public:
         // Initializer method 
         void Initialize()
         {
-            pMasterElement = NULL;
-            mMasterElementIndex = 0;
+            pMasterElement = nullptr;
 
             // Shape functions
             NMaster                = ZeroVector(TNumNodes);
@@ -298,25 +296,14 @@ public:
         }
 
         /* Setters and getters for the master element */
-        void SetMasterElement( GeometryType& rMasterElement ) 
+        void SetMasterElement( Condition::Pointer rMasterElement ) 
         { 
-            pMasterElement = &rMasterElement;
+            pMasterElement = rMasterElement;
         }
         
-        GeometryType& GetMasterElement( ) 
+        Condition::Pointer GetMasterElement( ) 
         { 
-            return *pMasterElement;
-        }
-
-        /* Setters and getters for the master element index */
-        void SetMasterElementIndex( const unsigned int& index ) 
-        { 
-            mMasterElementIndex = index; 
-        }
-        
-        const unsigned int& GetMasterElementIndex( ) 
-        { 
-            return mMasterElementIndex; 
+            return pMasterElement;
         }
         
         void print( )
