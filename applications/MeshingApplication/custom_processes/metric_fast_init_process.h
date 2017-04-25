@@ -1,6 +1,6 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
 //        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
@@ -30,20 +30,20 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
-    
+
 /// Short class definition.
-// This process initializes the variables related with the ALM 
+// This process initializes the variables related with the ALM
 /** Detail class definition.
 */
-template<unsigned int TDim>  
+template<unsigned int TDim>
 class MetricFastInit
     : public Process
 {
@@ -53,7 +53,7 @@ public:
 
     /// Pointer definition of MetricFastInit
     KRATOS_CLASS_POINTER_DEFINITION(MetricFastInit);
-    
+
     // General type definitions
     typedef Node<3>                                          NodeType;
     typedef Geometry<NodeType>                           GeometryType;
@@ -68,8 +68,8 @@ public:
     MetricFastInit( ModelPart& rThisModelPart):mrThisModelPart(rThisModelPart)
     {
         KRATOS_TRY;
-        
-        KRATOS_CATCH(""); 
+
+        KRATOS_CATCH("");
     }
 
     /// Destructor.
@@ -92,7 +92,7 @@ public:
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
     ///@name Operators
     ///@{
@@ -101,35 +101,35 @@ public:
     {
         Execute();
     }
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
+
     virtual void Execute() override
     {
         KRATOS_TRY;
-        
+
         constexpr unsigned int size = TDim == 2  ? 3: 6;
-        
+
         const array_1d<double, size> zerovector(size, 0.0);
-        
+
         // We iterate over the node
         NodesArrayType& pNodes = mrThisModelPart.Nodes();
-        auto numNodes = pNodes.end() - pNodes.begin();
-        
+        int numNodes = mrThisModelPart.NumberOfNodes();
+
         #pragma omp parallel for firstprivate(zerovector)
-        for(unsigned int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNodes.begin() + i;
-            
+
             // The metric
             itNode->SetValue(MMG_METRIC, zerovector);
         }
 
         KRATOS_CATCH("");
     }
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -262,7 +262,7 @@ private:
 /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
 //                                   MetricFastInit& rThis);
-// 
+//
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
 //                                   const MetricFastInit& rThis)
@@ -270,7 +270,7 @@ private:
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
 //     rThis.PrintData(rOStream);
-// 
+//
 //     return rOStream;
 // }
 
