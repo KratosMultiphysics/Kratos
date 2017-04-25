@@ -14,9 +14,7 @@ Bentonite_Force_Based_Inlet::Bentonite_Force_Based_Inlet(ModelPart& inlet_modelp
     mCationConcentration = inlet_modelpart[CATION_CONCENTRATION];
     const double mod_force = DEM_MODULUS_3(injection_force);
     assert(mod_force > 0.0);
-    KRATOS_WATCH(injection_force)
     injection_force = injection_force / mod_force;
-    KRATOS_WATCH(injection_force)
     noalias(mInjectionForce) = injection_force;
 }
 
@@ -39,8 +37,6 @@ void Bentonite_Force_Based_Inlet::InitializeStep(ModelPart& r_receiver_model_par
 void Bentonite_Force_Based_Inlet::FixInjectionConditions(Element* p_element)
 {
     UpdateInjectionForce(p_element);
-    SphericParticle* p_spheric_particle = dynamic_cast<SphericParticle*>(p_element);
-    //p_spheric_particle->SetInteractionRadius(p_spheric_particle->GetRadius());
 }
 
 void Bentonite_Force_Based_Inlet::UpdateInjectionForce(Element* p_element)
