@@ -117,12 +117,14 @@ public:
     {
         map<int,int> kratos_id_to_vtk;
         int vtk_id = 0;
+
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
             int KratosId = node_i->Id();
             kratos_id_to_vtk[KratosId] = vtk_id;
             vtk_id++;
         }
+
         return kratos_id_to_vtk;
     }    
 
@@ -130,11 +132,13 @@ public:
     unsigned int determineVtkCellListSize()
     {
          unsigned int vtk_cell_list_size = 0;
+
         for (ModelPart::ConditionIterator condition_i = mrDesignSurface.ConditionsBegin(); condition_i != mrDesignSurface.ConditionsEnd(); ++condition_i)
         {
             vtk_cell_list_size++;
             vtk_cell_list_size += condition_i->GetGeometry().size(); 
         }
+        
         return vtk_cell_list_size;
     }
 
@@ -219,25 +223,12 @@ public:
         for (ModelPart::ConditionIterator condition_i = mrDesignSurface.ConditionsBegin(); condition_i != mrDesignSurface.ConditionsEnd(); ++condition_i)
         {
             ModelPart::ConditionType::GeometryType& condition_geometry = condition_i->GetGeometry();
-            const int numberOfNodes = condition_geometry.size(); 
+            const unsigned int numberOfNodes = condition_geometry.size(); 
 
-            if( numberOfNodes == 3 )
-            {
-                outputFile << numberOfNodes;
-                outputFile << " " << mKratosIdToVtkId[condition_geometry[0].Id()]; 
-                outputFile << " " << mKratosIdToVtkId[condition_geometry[1].Id()]; 
-                outputFile << " " << mKratosIdToVtkId[condition_geometry[2].Id()] << "\n";                
-            }
-            else if( numberOfNodes == 4 )
-            {
-                outputFile << numberOfNodes;
-                outputFile << " " << mKratosIdToVtkId[condition_geometry[0].Id()]; 
-                outputFile << " " << mKratosIdToVtkId[condition_geometry[1].Id()]; 
-                outputFile << " " << mKratosIdToVtkId[condition_geometry[2].Id()]; 
-                outputFile << " " << mKratosIdToVtkId[condition_geometry[3].Id()] << "\n";                
-            } 
-            else 
-                KRATOS_THROW_ERROR(std::runtime_error,"Design surface contains conditions with geometries for which no VTK-output is implemented!","" )
+            outputFile << numberOfNodes;
+            for (unsigned int i=0; i<numberOfNodes; i++)
+                outputFile << " " << mKratosIdToVtkId[condition_geometry[i].Id()]; 
+            outputFile << "\n";
         }
 
         outputFile.close();     
@@ -255,7 +246,7 @@ public:
         // write elements types
         for (ModelPart::ConditionIterator condition_i = mrDesignSurface.ConditionsBegin(); condition_i != mrDesignSurface.ConditionsEnd(); ++condition_i)
         {
-            const int numberOfNodes =  condition_i->GetGeometry().size(); 
+            const unsigned int numberOfNodes =  condition_i->GetGeometry().size(); 
             unsigned int element_type;
 
             if( numberOfNodes == 3 )
