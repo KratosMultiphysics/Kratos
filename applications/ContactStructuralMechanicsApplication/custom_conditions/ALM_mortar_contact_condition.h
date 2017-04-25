@@ -251,13 +251,13 @@ public:
 
     public:
         // Shape functions for contact pair
-        VectorType N_Master;
-        VectorType N_Slave;
-        VectorType Phi_LagrangeMultipliers;
+        VectorType NMaster;
+        VectorType NSlave;
+        VectorType PhiLagrangeMultipliers;
 
         // Shape functions local derivatives for contact pair
-        MatrixType DN_De_Master;
-        MatrixType DN_De_Slave;
+        MatrixType DNDeMaster;
+        MatrixType DNDeSlave;
 //         MatrixType DPhi_De_LagrangeMultipliers;
 
         // Determinant of slave cell's jacobian
@@ -268,7 +268,7 @@ public:
          * Only those two variables contain info on all GP
          * other variables contain info only on the currently-calculated GP
          */
-        MatrixType j_Slave;
+        MatrixType jSlave;
         
         /********************************************************/
         /******************** STRUCT METHODS ********************/
@@ -281,20 +281,20 @@ public:
             mMasterElementIndex = 0;
 
             // Shape functions
-            N_Master                = ZeroVector(TNumNodes);
-            N_Slave                 = ZeroVector(TNumNodes);
-            Phi_LagrangeMultipliers = ZeroVector(TNumNodes);
+            NMaster                = ZeroVector(TNumNodes);
+            NSlave                 = ZeroVector(TNumNodes);
+            PhiLagrangeMultipliers = ZeroVector(TNumNodes);
 
             // Shape functions local derivatives
-            DN_De_Master                 = ZeroMatrix(TNumNodes, TDim - 1);
-            DN_De_Slave                  = ZeroMatrix(TNumNodes, TDim - 1);
+            DNDeMaster                 = ZeroMatrix(TNumNodes, TDim - 1);
+            DNDeSlave                  = ZeroMatrix(TNumNodes, TDim - 1);
 //             DPhi_De_LagrangeMultipliers  = ZeroMatrix(TNumNodes, TDim - 1);
             
             // Jacobian of slave
             DetJSlave = 0.0;
            
             // Jacobians on all integration points
-            j_Slave = ZeroMatrix(TDim, TDim - 1);
+            jSlave = ZeroMatrix(TDim, TDim - 1);
         }
 
         /* Setters and getters for the master element */
@@ -321,14 +321,14 @@ public:
         
         void print( )
         {
-            KRATOS_WATCH( N_Slave );
-//             LOG_VECTOR_PRETTY( N_Slave );
-            KRATOS_WATCH( N_Master );
-//             LOG_VECTOR_PRETTY( N_Master );
-            KRATOS_WATCH( Phi_LagrangeMultipliers );
-//             LOG_VECTOR_PRETTY( Phi_LagrangeMultipliers );
-            KRATOS_WATCH( j_Slave );
-//             LOG_MATRIX_PRETTY( j_Slave );
+            KRATOS_WATCH( NSlave );
+//             LOG_VECTOR_PRETTY( NSlave );
+            KRATOS_WATCH( NMaster );
+//             LOG_VECTOR_PRETTY( NMaster );
+            KRATOS_WATCH( PhiLagrangeMultipliers );
+//             LOG_VECTOR_PRETTY( PhiLagrangeMultipliers );
+            KRATOS_WATCH( jSlave );
+//             LOG_MATRIX_PRETTY( jSlave );
             KRATOS_WATCH( DetJSlave );
         }
     };
