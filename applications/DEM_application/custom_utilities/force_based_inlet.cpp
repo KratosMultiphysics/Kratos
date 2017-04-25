@@ -1,12 +1,13 @@
 // Author: Guillermo Casas (gcasas@cimne.upc.edu)
 
 #include "force_based_inlet.h"
+#include "custom_elements/spheric_particle.h"
 
 
 namespace Kratos {
 
-DEM_Force_Based_Inlet::DEM_Force_Based_Inlet(ModelPart& inlet_modelpart, array_1d<double, 3> injection_force) :
-                                            DEM_Inlet(inlet_modelpart), mInjectionForce(injection_force)
+DEM_Force_Based_Inlet::DEM_Force_Based_Inlet(ModelPart& inlet_modelpart, array_1d<double, 3> injection_force):
+               DEM_Inlet(inlet_modelpart), mInjectionForce(injection_force)
 {}
 
 void DEM_Force_Based_Inlet::RemoveInjectionConditions(Element &element)
@@ -26,17 +27,22 @@ void DEM_Force_Based_Inlet::RemoveInjectionConditions(Element &element)
 void DEM_Force_Based_Inlet::FixInjectionConditions(Element* p_element)
 {
     Node<3>& node = p_element->GetGeometry()[0];
-    node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = GetInjectionForce();
+    node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = GetInjectionForce(p_element);
+
+//    SphericParticle* p_spheric_particle = dynamic_cast<SphericParticle*>(p_element);
+//    p_spheric_particle->SetInteractionRadius(p_spheric_particle->GetRadius());
 }
 
 void DEM_Force_Based_Inlet::FixInjectorConditions(Element* p_element)
 {
     Node<3>& node = p_element->GetGeometry()[0];
-    node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = GetInjectionForce();
+    node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = GetInjectionForce(p_element);
 }
 
-array_1d<double, 3> DEM_Force_Based_Inlet::GetInjectionForce()
+array_1d<double, 3> DEM_Force_Based_Inlet::GetInjectionForce(Element* p_element)
 {
+    KRATOS_WATCH(mInjectionForce)
+
     return mInjectionForce;
 }
 

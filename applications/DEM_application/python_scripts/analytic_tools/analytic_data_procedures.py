@@ -4,7 +4,7 @@ import numpy as np
 import os
 
 class WatcherAnalyzer:
-    def __init__(self, analytic_face_watcher, path, do_clear_data = False):
+    def __init__(self, analytic_face_watcher, path, do_clear_data = True):
         self.face_watcher = analytic_face_watcher
         self.dtype = np.float64
         self.do_clear_data = do_clear_data
@@ -53,16 +53,15 @@ class WatcherAnalyzer:
         return joint_list
 
     def CalculateAccumulatedAndRememberForNextTime(self, length, number_flux, mass_flux):
-        number_flux = self.CalculateAccumulated(list_to_accumulate = number_flux, original_list = number_flux, old_accumulated = self.n_particles_accumulated)
-        mass_flux = self.CalculateAccumulated(list_to_accumulate = mass_flux, original_list = mass_flux, old_accumulated = self.mass_accumulated)
-
+        number_flux = self.CalculateAccumulated(original_list = number_flux, old_accumulated = self.n_particles_accumulated)
+        mass_flux = self.CalculateAccumulated(original_list = mass_flux, old_accumulated = self.mass_accumulated)
         if length and self.do_clear_data:
             self.n_particles_accumulated = number_flux[-1]
             self.mass_accumulated = mass_flux[-1]
 
         return number_flux, mass_flux
 
-    def CalculateAccumulated(self, list_to_accumulate, original_list, old_accumulated = 0):
+    def CalculateAccumulated(self, original_list, old_accumulated = 0):
         return np.cumsum(np.array(original_list)) + old_accumulated
 
     def UpdateDataFile(self, time):

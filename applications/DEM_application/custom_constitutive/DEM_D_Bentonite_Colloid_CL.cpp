@@ -23,7 +23,7 @@ double GetDebyeLength(double cation_concentration)
 }
 
 namespace Kratos {
-//G Hard-coded values for the moment, some should probably be nodal
+    // Hard-coded values for the moment; some should probably be nodal
     DEM_D_Bentonite_Colloid::DEM_D_Bentonite_Colloid(){
         mA_H = 10e-19;
         mD_p = 2.0e-7; // particle diameter; it whould be equal for both particles or the third law of Newton will be violated
@@ -32,11 +32,11 @@ namespace Kratos {
         mDDLCoefficient = 1.5e5;
         mEquivRadius = mD_p / KRATOS_M_PI; // this is the "coin" equivalent radius
     }
-//Z
 
     void DEM_D_Bentonite_Colloid::Initialize(const ProcessInfo& r_process_info) {}
 
-    DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_Bentonite_Colloid::Clone() const {
+    DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_Bentonite_Colloid::Clone() const
+    {
         DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_Bentonite_Colloid(*this));
         return p_clone;
     }
@@ -55,30 +55,8 @@ namespace Kratos {
     // DEM-DEM INTERACTION //
     /////////////////////////
 
-    void DEM_D_Bentonite_Colloid::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
-        //Get equivalent Radius
-        const double my_radius     = element1->GetRadius();
-        const double other_radius  = element2->GetRadius();
-        const double radius_sum    = my_radius + other_radius;
-        const double radius_sum_inv  = 1.0 / radius_sum;
-        const double equiv_radius    = my_radius * other_radius * radius_sum_inv;
-
-        //Get equivalent Young's Modulus
-        const double my_young        = element1->GetYoung();
-        const double other_young     = element2->GetYoung();
-        const double my_poisson      = element1->GetPoisson();
-        const double other_poisson   = element2->GetPoisson();
-        const double equiv_young     = my_young * other_young / (other_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - other_poisson * other_poisson));
-
-        const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
-        const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
-        const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
-
-        //Normal and Tangent elastic constants
-        const double sqrt_equiv_radius = sqrt(equiv_radius);
-        mKn = 2.0 * equiv_young * sqrt_equiv_radius;
-        mKt = 4.0 * equiv_shear * mKn / equiv_young;
-    }
+    void DEM_D_Bentonite_Colloid::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation)
+    {}
 
     void DEM_D_Bentonite_Colloid::CalculateForces(const ProcessInfo& r_process_info,
                                                   const double OldLocalContactForce[3],
@@ -97,15 +75,36 @@ namespace Kratos {
         //InitializeContact(element1, element2, indentation);
 //G
         //LocalElasticContactForce[2]  = CalculateNormalForce(indentation);
-        if (element2->Is(BLOCKED)){ // if contacting an injector, just take its injecting force as the contact force
-            const array_1d<double, 3>& global_force = element2->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
-            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, global_force, LocalElasticContactForce);
+//        KRATOS_WATCH(element1->Is(ACTIVE))
+//        KRATOS_WATCH(element2->Is(ACTIVE))
+//        KRATOS_WATCH(element1->Is(NEW_ENTITY))
+//        KRATOS_WATCH(element2->Is(NEW_ENTITY))
+        if ((element2->Is(BLOCKED) && element1->Is(NEW_ENTITY)) || (element2->Is(NEW_ENTITY) && element1->Is(BLOCKED))){ // you are contacting an injector
+//            const array_1d<double, 3>& global_force = element2->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
+//            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, global_force, LocalElasticContactForce);
+//            if (element2->Is(ACTIVE) && element1->IsNot(NEW_ENTITY)){ // it has a particle inside, which should already be doing the pushing, or else it is an injected particle, which already has had its force imposed
+//                LocalElasticContactForce[2] = 0.0;
+//                KRATOS_WATCH(element1->Id())
+//            }
+
+//            else if (element2->Is(ACTIVE) && element1->Is(NEW_ENTITY)){
+//                const array_1d<double, 3>& global_force = element2->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
+//                //GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, global_force, LocalElasticContactForce);
+//            }
+
+//            else { // it must push to keep neighbours away and allow a new particle to be inserted inside
+//                const double cation_concentration = element1->GetGeometry()[0].FastGetSolutionStepValue(CATION_CONCENTRATION);
+//                LocalElasticContactForce[2] = CalculateNormalForce(5e-8, cation_concentration);
+//            }
+
         }
 
-        else {
+        else { // you are contacting a regular ball, do normal ball-to-ball force evaluation
             const double distance = element1->GetInteractionRadius() + element2->GetInteractionRadius() - indentation;
             const double cation_concentration = element1->GetGeometry()[0].FastGetSolutionStepValue(CATION_CONCENTRATION);
             const double smoother = 1.0;//std::max(1.0, 9.0 * indentation / (element1->GetInteractionRadius() + element2->GetInteractionRadius()));
+            LocalElasticContactForce[0] = 0.0;
+            LocalElasticContactForce[1] = 0.0;
             LocalElasticContactForce[2] = smoother * CalculateNormalForce(distance, cation_concentration);
         }
 //Z
@@ -153,26 +152,8 @@ namespace Kratos {
     // DEM-FEM INTERACTION //
     /////////////////////////
 
-    void DEM_D_Bentonite_Colloid::InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta) {
-
-        const double my_radius        = element->GetInteractionRadius(); // Get equivalent Radius
-        const double effective_radius = my_radius - ini_delta;
-        const double my_young         = element->GetYoung(); // Get equivalent Young's Modulus
-        const double walls_young      = wall->GetYoung();
-        const double my_poisson       = element->GetPoisson();
-        const double walls_poisson    = wall->GetPoisson();
-
-        const double equiv_young      = my_young * walls_young / (walls_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - walls_poisson * walls_poisson));
-
-        const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
-        const double walls_shear_modulus = 0.5 * walls_young / (1.0 + walls_poisson);
-        const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - walls_poisson)/walls_shear_modulus);
-
-        //Normal and Tangent elastic constants
-        const double sqrt_equiv_radius = sqrt(effective_radius);
-        mKn = 2.0 * equiv_young * sqrt_equiv_radius;
-        mKt = 4.0 * equiv_shear * mKn / equiv_young;
-    }
+    void DEM_D_Bentonite_Colloid::InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta)
+    {}
 
     void DEM_D_Bentonite_Colloid::CalculateForcesWithFEM(ProcessInfo& r_process_info,
                                                          const double OldLocalContactForce[3],
@@ -210,10 +191,10 @@ namespace Kratos {
                                                                           double indentation,
                                                                           double previous_indentation) {
 
-        LocalElasticContactForce[0] = 0.0;
-        LocalElasticContactForce[1] = 0.0;
-        ViscoDampingLocalContactForce[0] = 0.0;
-        ViscoDampingLocalContactForce[1] = 0.0;
+//        LocalElasticContactForce[0] = 0.0;
+//        LocalElasticContactForce[1] = 0.0;
+//        ViscoDampingLocalContactForce[0] = 0.0;
+//        ViscoDampingLocalContactForce[1] = 0.0;
     }
 
     void DEM_D_Bentonite_Colloid::CalculateViscoDampingForceWithFEM(double LocalRelVel[3],

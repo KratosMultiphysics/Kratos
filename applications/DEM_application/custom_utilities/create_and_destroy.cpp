@@ -385,8 +385,7 @@ namespace Kratos {
 
         NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node, radius, *r_params, r_sub_model_part_with_parameters, has_sphericity, has_rotation, initial);
 
-        Geometry<Node<3> >::PointsArrayType nodelist;
-        
+        Geometry<Node<3> >::PointsArrayType nodelist;       
         nodelist.push_back(pnew_node);
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
         SphericParticle* spheric_p_particle = dynamic_cast<SphericParticle*> (p_particle.get());
@@ -417,9 +416,7 @@ namespace Kratos {
         spheric_p_particle->SetFastProperties(p_fast_properties);
 
         double density = spheric_p_particle->GetDensity();
-        spheric_p_particle->SetRadius(radius);
-        spheric_p_particle->SetSearchRadius(radius);
-        spheric_p_particle->SetSearchRadiusWithFem(radius);
+        spheric_p_particle->SetDefaultRadiiHierarchy(radius);
         double mass = 4.0 / 3.0 * KRATOS_M_PI * density * radius * radius * radius;
         spheric_p_particle->SetMass(mass);
 
@@ -548,7 +545,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*> (p_particle.get());
 
         spheric_p_particle->SetFastProperties(p_fast_properties);
-        spheric_p_particle->Initialize(r_modelpart.GetProcessInfo()); 
+        spheric_p_particle->Initialize(r_modelpart.GetProcessInfo());
         spheric_p_particle->SetRadius(radius);
         spheric_p_particle->SetSearchRadius(radius);
         spheric_p_particle->SetSearchRadiusWithFem(radius);        
@@ -1148,9 +1145,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         SphericParticle* regular_sample_element = dynamic_cast<SphericParticle*>(p_elem_to_be_replaced.get());
 
         analytic_sample_element->SetFastProperties(regular_sample_element->GetFastProperties());
-        analytic_sample_element->SetRadius(nodelist[0].FastGetSolutionStepValue(RADIUS));
-        analytic_sample_element->SetSearchRadius(nodelist[0].FastGetSolutionStepValue(RADIUS));
-        analytic_sample_element->SetSearchRadiusWithFem(nodelist[0].FastGetSolutionStepValue(RADIUS));
+        analytic_sample_element->SetDefaultRadiiHierarchy(nodelist[0].FastGetSolutionStepValue(RADIUS));
         analytic_sample_element->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
         analytic_sample_element->Set(DEMFlags::BELONGS_TO_A_CLUSTER, false);
         analytic_sample_element->CreateDiscontinuumConstitutiveLaws(spheres_model_part.GetProcessInfo());
@@ -1163,7 +1158,6 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         analytic_sample_element->Initialize(spheres_model_part.GetProcessInfo());
         return p_elem;
     }
-
 
     void ParticleCreatorDestructor::ClearVariables(ModelPart::NodesContainerType::iterator node_it, Variable<array_1d<double, 3 > >& rVariable) {
         KRATOS_TRY

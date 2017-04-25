@@ -34,39 +34,52 @@ namespace Kratos {
 
     class ParticleCreatorDestructor;
     
-    class DEM_Inlet {
-        
+    class  KRATOS_API(DEM_APPLICATION) DEM_Inlet
+    {
+    public:
+
         typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
         typedef WeakPointerVector<Element> ParticleWeakVectorType;
         typedef ModelPart::ElementsContainerType ElementsArrayType;
         
-    public:              
         
         /// Constructor:               
         DEM_Inlet(ModelPart& inlet_modelpart);
 
         /// Destructor.
-        virtual ~DEM_Inlet();
+        virtual ~DEM_Inlet(){}
         
         virtual void InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const bool using_strategy_for_continuum = false);
-        void DettachElements(ModelPart& r_modelpart, unsigned int& max_Id); 
+        virtual void InitializeStep(ModelPart&){}
+        void DettachElements(ModelPart& r_modelpart, unsigned int& max_Id);
         void DettachClusters(ModelPart& r_clusters_modelpart, unsigned int& max_Id);
         virtual void CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator);
+        ModelPart& GetInletModelPart();
+        void SetNormalizedMaxIndentationForRelease(const double value);
+        void SetNormalizedMaxIndentationForNewParticleCreation(const double value);
 
     private:
         virtual void FixInjectorConditions(Element* p_element);
         virtual void FixInjectionConditions(Element* p_element);
         virtual void RemoveInjectionConditions(Element &element);
+
         Vector mPartialParticleToInsert; //array of doubles, must be resized in the constructor to the number of meshes
         Vector mLastInjectionTimes; //array of doubles, must be resized in the constructor to the number of meshes
-        std::vector<int> mTotalNumberOfDetachedParticles;
-        ModelPart& mInletModelPart; //The model part used to insert elements
+
         bool mFirstTime;
-        boost::numeric::ublas::vector<bool> mLayerRemoved;
         bool mBallsModelPartHasSphericity;
         bool mBallsModelPartHasRotation;
         bool mStrategyForContinuum;
+        // The following two ratios mark the limit indentation (normalized by the radius) for releasing a particle
+        // and for allowing a new one to be injected. admissible_indentation_ratio_for_release should be smaller
+        // (more strict), since we want to make sure that the particle is taken far enough to avoid interferences
+        // with the newly created ones to come. Otherwise, an initial huge indentation could easily happen.
+        double mNormalizedMaxIndentationForRelease;
+        double mNormalizedMaxIndentationForNewParticleCreation;
         std::vector<PropertiesProxy> mFastProperties;
+        boost::numeric::ublas::vector<bool> mLayerRemoved;
+        std::vector<int> mTotalNumberOfDetachedParticles;
+        ModelPart& mInletModelPart; //The model part used to insert elements
     };
 }// namespace Kratos.
 
