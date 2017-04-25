@@ -125,12 +125,16 @@ public:
         /* We compute the penalty factor */
         
         // We initialize the mean values
-        double MeanYoungModulus = 0.0;
-        double MeanNodalH       = 0.0;
+        double MeanYoungModulusSlave  = 0.0;
+        double MeanNodalHSlave        = 0.0;
+//         double MeanYoungModulusMaster = 0.0;
+//         double MeanNodalHMaster       = 0.0;
         
         // We initialize the total areas and volumes
-        double TotalVolume      = 0.0;
-        double TotalArea        = 0.0;
+        double TotalVolumeSlave  = 0.0;
+        double TotalAreaSlave    = 0.0;
+//         double TotalVolumeMaster = 0.0;
+//         double TotalAreaMaster   = 0.0;
         
         // Now we iterate over the conditions to calculate the nodal area
         ConditionsArrayType& pConditions = mrThisModelPart.Conditions();
@@ -141,49 +145,71 @@ public:
         {
             auto itCond = pConditions.begin() + i;
             
+            // We get the condition geometry
+            GeometryType& rThisGeometry = itCond->GetGeometry();
+            const unsigned NumNodesGeometry = rThisGeometry.size();
+            
+            // We get the values from the element
+            Element::Pointer pElem = itCond->GetValue(ELEMENT_POINTER);
+            
+            const double YoungModulus = pElem->GetProperties()[YOUNG_MODULUS];
+            const double ElementVolume = pElem->GetGeometry().Area();
+            
+            // We get the values from the condition
+            const double ConditionArea = rThisGeometry.Area();
+            const double NodalConditionArea = ConditionArea/NumNodesGeometry;
+            
             if (itCond->Is(SLAVE) == true)
             {
-                // We get the condition geometry
-                GeometryType& rThisGeometry = itCond->GetGeometry();
-                const unsigned NumNodesGeometry = rThisGeometry.size();
-                
-                // We get the values from the element
-                Element::Pointer pElem = itCond->GetValue(ELEMENT_POINTER);
-                
-                const double YoungModulus = pElem->GetProperties()[YOUNG_MODULUS];
-                const double ElementVolume = pElem->GetGeometry().Area();
+                #pragma omp atomic
+                TotalVolumeSlave += ElementVolume;
                 
                 #pragma omp atomic
-                TotalVolume += ElementVolume;
-                
-                // We get the values from the condition
-                const double ConditionArea = rThisGeometry.Area();
-                const double NodalConditionArea = ConditionArea/NumNodesGeometry;
+                TotalAreaSlave += ConditionArea;
                 
                 #pragma omp atomic
-                TotalArea += ConditionArea;
-                
-                #pragma omp atomic
-                MeanYoungModulus += YoungModulus * ElementVolume;
+                MeanYoungModulusSlave += YoungModulus * ElementVolume;
                 
                 for (unsigned int iNode = 0; iNode < NumNodesGeometry; iNode++)
                 {
                     #pragma omp atomic
-                    MeanNodalH += rThisGeometry[iNode].FastGetSolutionStepValue(NODAL_H) * NodalConditionArea;
+                    MeanNodalHSlave += rThisGeometry[iNode].FastGetSolutionStepValue(NODAL_H) * NodalConditionArea;
                 }
             }
+//             else if (itCond->Is(MASTER) == true)
+//             {
+//                 #pragma omp atomic
+//                 TotalVolumeMaster += ElementVolume;
+//                 
+//                 #pragma omp atomic
+//                 TotalAreaMaster += ConditionArea;
+//                 
+//                 #pragma omp atomic
+//                 MeanYoungModulusMaster += YoungModulus * ElementVolume;
+//                 
+//                 for (unsigned int iNode = 0; iNode < NumNodesGeometry; iNode++)
+//                 {
+//                     #pragma omp atomic
+//                     MeanNodalHMaster += rThisGeometry[iNode].FastGetSolutionStepValue(NODAL_H) * NodalConditionArea;
+//                 }
+//             }
         }
         
         // Now we divide between the total areas and volumes
-        MeanNodalH /= TotalArea; 
-        MeanYoungModulus /= TotalVolume; 
+        MeanNodalHSlave /= (TotalAreaSlave + 1.0e-12); 
+        MeanYoungModulusSlave /= (TotalVolumeSlave + 1.0e-12);
+        
+//         MeanNodalHMaster /= (TotalAreaMaster  + 1.0e-12); 
+//         MeanYoungModulusMaster /= (TotalVolumeMaster + 1.0e-12);
         
         // Finally we compute the penalty factor
-        const double PenaltyFactor = 10.0 * MeanYoungModulus/MeanNodalH;
-        const double ScaleFactor   = 10.0 * MeanYoungModulus/MeanNodalH; // NOTE: We use the same value
+        const double PenaltyFactorSlave  = 10.0 * MeanYoungModulusSlave/MeanNodalHSlave;
+        const double ScaleFactorSlave    = 10.0 * MeanYoungModulusSlave/MeanNodalHSlave;
+        const double PenaltyFactorMaster = 0.0;//10.0 * MeanYoungModulusMaster/MeanNodalHMaster;
+        const double ScaleFactorMaster   = 0.0;//10.0 * MeanYoungModulusMaster/MeanNodalHMaster; 
         
-        mrThisModelPart.GetProcessInfo()[PENALTY_FACTOR] = PenaltyFactor;
-        mrThisModelPart.GetProcessInfo()[SCALE_FACTOR]   = ScaleFactor;
+        mrThisModelPart.GetProcessInfo()[PENALTY_FACTOR] = (PenaltyFactorSlave > PenaltyFactorMaster) ? PenaltyFactorSlave : PenaltyFactorMaster;
+        mrThisModelPart.GetProcessInfo()[SCALE_FACTOR]   = (ScaleFactorSlave > ScaleFactorMaster) ? ScaleFactorSlave : ScaleFactorMaster;
         
         KRATOS_CATCH("");
     }
@@ -244,8 +270,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-
+    
     ///@}
     ///@name Protected  Access
     ///@{
