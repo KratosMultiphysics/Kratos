@@ -1247,9 +1247,9 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 ///@}
 ///@} addtogroup block
  
-template class KRATOS_API(KRATOS_CORE) KratosComponents<ConstitutiveLaw >;
-
-void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, ConstitutiveLaw const& ThisComponent);
+// template class KRATOS_API(KRATOS_CORE) KratosComponents<ConstitutiveLaw >;
+// 
+// void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, ConstitutiveLaw const& ThisComponent);
 
 /**
  * Definition of ConstitutiveLaw variable

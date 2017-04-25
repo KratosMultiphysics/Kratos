@@ -14,6 +14,10 @@ namespace Kratos
 {
 typedef array_1d<double,3> Vector3;
 
+
+typedef Variable<ShellCrossSection::Pointer > ShellCrossSectionPointer; 
+REGISTER_COMPONENT( ShellCrossSectionPointer )
+    
 // Generalized eigenvalue problem
 KRATOS_CREATE_VARIABLE( int, BUILD_LEVEL )
 KRATOS_CREATE_VARIABLE( Vector, EIGENVALUE_VECTOR)

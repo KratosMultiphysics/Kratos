@@ -644,12 +644,12 @@ private:
         rSerializer.load("Equation Id", mEquationId);
         rSerializer.load("Solution Steps Data", mpSolutionStepsData);
         rSerializer.load("Variable", name);
-        mpVariable=KratosComponents<VariableData>::pGet(name);
+        mpVariable=&KratosComponents<VariableData>::Get(name);
         rSerializer.load("Reaction", name);
         if(name == "NONE")
             mpReaction = &msNone;
         else
-            mpReaction=KratosComponents<VariableData>::pGet(name);
+            mpReaction=&KratosComponents<VariableData>::Get(name);
         rSerializer.load("Variable Type", mVariableType);
         rSerializer.load("Reaction Type", mReactionType);
     }

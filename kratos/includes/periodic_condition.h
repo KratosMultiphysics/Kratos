@@ -372,8 +372,6 @@ private:
 
 ///@}
 
-template class KRATOS_API(KRATOS_CORE) KratosComponents<PeriodicCondition >;
-
 ///@name Type Definitions
 ///@{
 

@@ -202,7 +202,7 @@ public:
 
             //			KRATOS_WATCH(variable_key);
 
-            i->second->SetKey(variable_key);
+            (const_cast<VariableData*>(i->second))->SetKey(variable_key);
 
         }
 

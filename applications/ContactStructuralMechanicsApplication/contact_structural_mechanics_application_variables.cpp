@@ -14,6 +14,8 @@ namespace Kratos
 {
 typedef array_1d<double,3> Vector3;
 
+REGISTER_COMPONENT( Variable< std::vector< contact_container>* > )
+
 // CONDITIONS
 /* Mortar method */
 KRATOS_CREATE_VARIABLE( std::vector<contact_container>*, CONTACT_CONTAINERS )     // A vector of which contains the structure which defines the contact conditions

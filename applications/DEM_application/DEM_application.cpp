@@ -48,6 +48,11 @@
 
 namespace Kratos
 {
+    REGISTER_COMPONENT( Variable<DEMDiscontinuumConstitutiveLaw::Pointer > )
+    REGISTER_COMPONENT( Variable<DEMContinuumConstitutiveLaw::Pointer > )
+    REGISTER_COMPONENT( Variable<DEMIntegrationScheme::Pointer > )
+    REGISTER_COMPONENT( Variable<ClusterInformation > )
+    
   KRATOS_CREATE_VARIABLE(WeakPointerVector< Element >, CONTINUUM_INI_NEIGHBOUR_ELEMENTS)
   KRATOS_CREATE_VARIABLE(WeakPointerVector< Element >, NODE_TO_NEIGH_ELEMENT_POINTER)
   

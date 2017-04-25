@@ -28,82 +28,60 @@
 
 // Project includes
 #include "includes/kratos_components.h"
+#include "containers/variable_component.h"
+#include "containers/vector_component_adaptor.h"
+#include "containers/flags.h"
+#include "utilities/quaternion.h"
+#include "geometries/point.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/constitutive_law.h"
-#include "utilities/quaternion.h"
+#include "includes/convection_diffusion_settings.h"
+#include "includes/radiation_settings.h"
+#include "containers/periodic_variables_container.h"
+
 
 namespace Kratos
 {
+ 
+    
+    typedef array_1d<double, 3> Array3;
 
-void AddKratosComponent(std::string const& Name, Variable<bool> const& ThisComponent)
-{
-    KratosComponents<Variable<bool> >::Add(Name, ThisComponent);
-}
+    REGISTER_COMPONENT( Variable<bool> )
+    REGISTER_COMPONENT( Variable<int> )
+    REGISTER_COMPONENT( Variable<unsigned int> )
+    REGISTER_COMPONENT( Variable<double> )
+    REGISTER_COMPONENT( Variable<Array3 > )
+    REGISTER_COMPONENT( Variable<Quaternion<double> > )
+    REGISTER_COMPONENT( Variable<Vector> )
+    REGISTER_COMPONENT( Variable<Matrix> )
+    REGISTER_COMPONENT( Variable<std::string> )
+    REGISTER_COMPONENT( VariableComponent<VectorComponentAdaptor<Array3>> )    
+    REGISTER_COMPONENT( Variable<Flags> )
+    REGISTER_COMPONENT( Variable<Element> )  
+    REGISTER_COMPONENT( Variable<Element::Pointer> ) 
+    REGISTER_COMPONENT( Variable<Condition> )
+    REGISTER_COMPONENT( Variable<ConstitutiveLaw> )  
+    REGISTER_COMPONENT( Variable<ConstitutiveLaw::Pointer> )  
+    REGISTER_COMPONENT( Variable<vector<int> > )  
+    REGISTER_COMPONENT( Variable<vector<Array3> > )  
+    REGISTER_COMPONENT( Variable<WeakPointerVector<Node<3>>> )
+    REGISTER_COMPONENT( Variable<WeakPointerVector<Element>> ) 
+    REGISTER_COMPONENT( Variable<WeakPointerVector<Condition>> ) 
+    REGISTER_COMPONENT( Variable<WeakPointerVector<GeometricalObject>>)
+    REGISTER_COMPONENT( Variable<ConvectionDiffusionSettings::Pointer> ) 
+    REGISTER_COMPONENT( Variable<RadiationSettings::Pointer> ) 
+    REGISTER_COMPONENT( Variable<PeriodicVariablesContainer> )
+    REGISTER_COMPONENT( Element )  
+    
+    REGISTER_COMPONENT( Condition )  
+    REGISTER_COMPONENT( Flags )  
+    
+    REGISTER_COMPONENT( VariableData )  
+    
 
-void AddKratosComponent(std::string const& Name, Variable<int> const& ThisComponent)
-{
-    KratosComponents<Variable<int> >::Add(Name, ThisComponent);
-}
+    
 
-void AddKratosComponent(std::string const& Name, Variable<unsigned int> const& ThisComponent)
-{
-    KratosComponents<Variable<unsigned int> >::Add(Name, ThisComponent);
-}
 
-void AddKratosComponent(std::string const& Name, Variable<double> const& ThisComponent)
-{
-    KratosComponents<Variable<double> >::Add(Name, ThisComponent);
-}
-
-void AddKratosComponent(std::string const& Name, Variable<array_1d<double, 3> > const& ThisComponent)
-{
-    KratosComponents<Variable<array_1d<double, 3> > >::Add(Name, ThisComponent);
-}
-
-void AddKratosComponent(std::string const& Name, Variable<Quaternion<double> > const& ThisComponent)
-{
-    KratosComponents<Variable<Quaternion<double> > >::Add(Name, ThisComponent);
-}
-
-void AddKratosComponent(std::string const& Name, Variable<Vector> const& ThisComponent)
-{
-    KratosComponents<Variable<Vector> >::Add(Name, ThisComponent);
-}
-
-void AddKratosComponent(std::string const& Name, Variable<Matrix> const& ThisComponent)
-{
-    KratosComponents<Variable<Matrix> >::Add(Name, ThisComponent);
-}
-
-void AddKratosComponent(std::string const& Name, Variable<std::string> const& ThisComponent)
-{
-    KratosComponents<Variable<std::string> >::Add(Name, ThisComponent);
-}
-
-void AddKratosComponent(std::string const& Name, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > const& ThisComponent)
-{
-    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::Add(Name, ThisComponent);
-}
-
-void AddKratosComponent(std::string const& Name, Variable<Flags> const& ThisComponent)
-{
-    KratosComponents<Variable<Flags> >::Add(Name, ThisComponent);
-}
-
-void AddKratosComponent(std::string const& Name, Element const& ThisComponent)
-{
-    KratosComponents<Element>::Add(Name, ThisComponent);
-}
-
-void AddKratosComponent(std::string const& Name, Condition const& ThisComponent)
-{
-    KratosComponents<Condition>::Add(Name, ThisComponent);
-}
-
-void AddKratosComponent(std::string const& Name, ConstitutiveLaw const& ThisComponent)
-{
-    KratosComponents<ConstitutiveLaw>::Add(Name, ThisComponent);
-}
 
 }  // namespace Kratos.
