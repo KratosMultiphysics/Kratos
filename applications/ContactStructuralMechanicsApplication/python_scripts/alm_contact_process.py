@@ -147,6 +147,11 @@ class ALMContactProcess(KratosMultiphysics.Process):
             self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.PENALTY_FACTOR] = penalty
             self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.SCALE_FACTOR]   = scale_factor
             
+        # We print the parameters considered
+        print("The parameters considered finally are: ")
+        print("PENALTY FACTOR: ", self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.PENALTY_FACTOR])
+        print("SCALE_FACTOR: ", self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.PENALTY_FACTOR])
+            
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(computing_model_part)
 
@@ -203,7 +208,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             
             gid_io.FinalizeResults()
             
-            raise NameError("DEBUG")
+            #raise NameError("DEBUG")
         
     def ExecuteFinalizeSolutionStep(self):
         pass
