@@ -116,7 +116,8 @@ public:
             "bucket_size"                          : 4, 
             "search_factor"                        : 2.0, 
             "type_search"                          : "InRadius", 
-            "active_check_factor"                  : 0.01
+            "active_check_factor"                  : 0.01,
+            "dual_search_check"                    : false
         })" );
         
         ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
@@ -124,6 +125,7 @@ public:
         mAllocationSize = ThisParameters["allocation_size"].GetInt();
         mSearchFactor = ThisParameters["search_factor"].GetDouble();
         mActiveCheckFactor = ThisParameters["active_check_factor"].GetDouble();
+        mDualSearchCheck = ThisParameters["dual_search_check"].GetBool();
         mSearchTreeType = ConvertSearchTree(ThisParameters["type_search"].GetString());
         mBucketSize = ThisParameters["bucket_size"].GetInt();
         
@@ -414,7 +416,7 @@ public:
                             if (CheckCondition(ConditionPointersDestination, (*itCond.base()), pCondOrigin) == true) 
                             {    
                                 // If not active we check if can be potentially in contact
-                                SearchUtilities::ContactContainerFiller(ConditionPointersDestination, (*itCond.base()), pCondOrigin, itCond->GetValue(NORMAL), pCondOrigin->GetValue(NORMAL), mActiveCheckFactor); 
+                                SearchUtilities::ContactContainerFiller(ConditionPointersDestination, (*itCond.base()), pCondOrigin, itCond->GetValue(NORMAL), pCondOrigin->GetValue(NORMAL), mActiveCheckFactor, mDualSearchCheck); 
                             }
                             
                             if (ConditionPointersDestination->size() > 0)
@@ -706,6 +708,7 @@ private:
     unsigned int mAllocationSize;             // Allocation size for the vectors and max number of potential results
     double mSearchFactor;                     // The search factor to be considered
     double mActiveCheckFactor;                // The check factor to be considered
+    bool mDualSearchCheck;                    // The search is done reciprocally
     SearchTreeType mSearchTreeType;           // The search tree considered
     unsigned int mBucketSize;                 // Bucket size for kd-tree
     PointVector mPointListDestination;        // A list that contents the all the points (from nodes) from the modelpart 

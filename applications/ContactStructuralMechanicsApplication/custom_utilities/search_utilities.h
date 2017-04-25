@@ -83,12 +83,14 @@ public:
     static inline bool ContactChecker(
             GeometryType& Geom1, // SLAVE
             GeometryType& Geom2, // MASTER
-            const array_1d<double, 3> & ContactNormal1, // SLAVE
-            const array_1d<double, 3> & ContactNormal2, // MASTER
-            const double ActiveCheckLength
+            const array_1d<double, 3>& ContactNormal1, // SLAVE
+            const array_1d<double, 3>& ContactNormal2, // MASTER
+            const double ActiveCheckLength,
+            const bool DualCheck = false
             )
     {
         // Define the basic information
+//         const double Tolerance = 1.0e-12;
         const double Tolerance = std::numeric_limits<double>::epsilon();
         
         bool ConditionIsActive = false;
@@ -110,19 +112,24 @@ public:
                     AuxDistance = ContactUtilities::FastProjectDirection(Geom2, Geom1[iNode], ProjectedPoint, ContactNormal2, Normal);
                 }  
                 
-//                 // Debug
-//                 if (Geom1[iNode].GetValue(DISTANCE) > AuxDistance)
-//                 {
-//                     Geom1[iNode].GetValue(DISTANCE) = AuxDistance;
-//                 }
-                
                 array_1d<double, 3> Result;
-                if (AuxDistance <= ActiveCheckLength && Geom2.IsInside(ProjectedPoint, Result)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
+                if (AuxDistance <= ActiveCheckLength && Geom2.IsInside(ProjectedPoint, Result, Tolerance)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
                 {
                     ConditionIsActive = true;
                     
 //                     #pragma omp critical
                     Geom1[iNode].Set(ACTIVE, true);
+                }
+                else if (DualCheck == true)
+                {
+                    AuxDistance = ContactUtilities::FastProjectDirection(Geom2, Geom1[iNode], ProjectedPoint, ContactNormal2, -ContactNormal2);
+                    if (AuxDistance <= ActiveCheckLength && Geom2.IsInside(ProjectedPoint, Result, Tolerance)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
+                    {
+                        ConditionIsActive = true;
+                        
+    //                     #pragma omp critical
+                        Geom1[iNode].Set(ACTIVE, true);
+                    }
                 }
              }
              else
@@ -183,10 +190,11 @@ public:
         const Condition::Pointer & pCond2, // MASTER
         const array_1d<double, 3> & ContactNormal1, // SLAVE
         const array_1d<double, 3> & ContactNormal2, // MASTER
-        const double ActiveCheckLength
+        const double ActiveCheckLength,
+        const bool DualCheck = false 
         )
     {
-        const bool ConditionIsActive = ContactChecker(pCond1->GetGeometry(), pCond2->GetGeometry(), ContactNormal1, ContactNormal2, ActiveCheckLength);
+        const bool ConditionIsActive = ContactChecker(pCond1->GetGeometry(), pCond2->GetGeometry(), ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck);
         
         if (ConditionIsActive == true)
         {

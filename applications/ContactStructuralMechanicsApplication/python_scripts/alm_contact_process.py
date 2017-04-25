@@ -28,6 +28,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "frictional_law"              : "Coulomb",
             "search_factor"               : 2.0,
             "active_check_factor"         : 0.01,
+            "dual_search_check"           : false,
             "max_number_results"          : 1000,
             "bucket_size"                 : 4,
             "normal_variation"            : false,
@@ -164,6 +165,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
         search_parameters.AddValue("bucket_size",self.params["bucket_size"])
         search_parameters.AddValue("search_factor",self.params["search_factor"])
         search_parameters.AddValue("active_check_factor",self.params["active_check_factor"])
+        search_parameters.AddValue("dual_search_check",self.params["dual_search_check"])
         self.contact_search = ContactStructuralMechanicsApplication.TreeContactSearch(computing_model_part, search_parameters)
         
         # We initialize the conditions    
@@ -201,7 +203,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             
             gid_io.FinalizeResults()
             
-            #raise NameError("DEBUG")
+            raise NameError("DEBUG")
         
     def ExecuteFinalizeSolutionStep(self):
         pass
