@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/elasticity_models/elasticity_model.hpp"
+#include "custom_models/constitutive_model.hpp"
 #include "custom_models/plasticity_models/yield_criteria/yield_criterion.hpp"
 
 namespace Kratos
@@ -46,7 +46,7 @@ namespace Kratos
   /** Detail class definition.
    */
   template<class TElasticityModel, class TYieldCriterion>
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) PlasticityModel : public ElasticityModel
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) PlasticityModel : public ConstitutiveModel
   {
   public:
     
@@ -78,7 +78,7 @@ namespace Kratos
     ///@{
 
     /// Default constructor.
-    PlasticityModel() : ElasticityModel()
+    PlasticityModel() : ConstitutiveModel()
     {
       KRATOS_TRY
 	
@@ -90,17 +90,17 @@ namespace Kratos
 
 
     /// Constructor.
-    PlasticityModel(ElasticityModelPointer pElasticityModel, YieldCriterionPointer pYieldCriterion) : ElasticityModel(), mpElasticityModel(pElasticityModel), mpYieldCriterion(pYieldCriterion) {}
+    PlasticityModel(ElasticityModelPointer pElasticityModel, YieldCriterionPointer pYieldCriterion) : ConstitutiveModel(), mpElasticityModel(pElasticityModel), mpYieldCriterion(pYieldCriterion) {}
 
     
     /// Copy constructor.
-    PlasticityModel(PlasticityModel const& rOther) : ElasticityModel(rOther), mpElasticityModel(rOther.mpElasticityModel), mpYieldCriterion(rOther.mpYieldCriterion) {}
+    PlasticityModel(PlasticityModel const& rOther) : ConstitutiveModel(rOther), mpElasticityModel(rOther.mpElasticityModel), mpYieldCriterion(rOther.mpYieldCriterion) {}
 
     /// Assignment operator.
     PlasticityModel& operator=(PlasticityModel const& rOther) {return *this;}
 
     /// Clone.
-    ElasticityModel::Pointer Clone() const override
+    ConstitutiveModel::Pointer Clone() const override
     {
       return ( PlasticityModel::Pointer(new PlasticityModel(*this)) );
     }
@@ -207,8 +207,24 @@ namespace Kratos
     ///@}
     ///@name Access
     ///@{
+    
+    /**
+     * method to ask the plasticity model the list of variables (dofs) needed from the domain
+     * @param rScalarVariables : list of scalar dofs
+     * @param rComponentVariables :  list of vector dofs
+     */
+    virtual void GetDomainVariablesList(std::vector<Variable<double> >& rScalarVariables,
+					std::vector<Variable<array_1d<double,3> > >& rComponentVariables) override
+    {
+      KRATOS_TRY
 
-    ElasticityModel::Pointer pGetElasticityModel() {return mpElasticityModel;};
+      mpElasticityModel->GetDomainVariablesList(rScalarVariables, rComponentVariables);
+ 	
+      KRATOS_CATCH(" ")
+    }
+
+    
+    ConstitutiveModel::Pointer pGetElasticityModel() {return mpElasticityModel;};    
     
     ///@}
     ///@name Inquiry
@@ -322,7 +338,7 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const override
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ElasticityModel )
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveModel )
 
       rSerializer.save("mpElasticityModel",mpElasticityModel);
       rSerializer.save("mpYieldCriterion",mpYieldCriterion);
@@ -330,7 +346,7 @@ namespace Kratos
     
     virtual void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ElasticityModel )
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveModel )
 
       rSerializer.load("mpElasticityModel",mpElasticityModel);
       rSerializer.load("mpYieldCriterion",mpYieldCriterion);	

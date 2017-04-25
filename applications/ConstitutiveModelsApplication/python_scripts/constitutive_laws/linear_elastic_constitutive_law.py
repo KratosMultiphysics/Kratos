@@ -7,7 +7,7 @@ class LinearElasticLaw:
     
     def __init__(self):
         #print(" python: elastic law ")
-        self.constitutive_law = KratosMaterial.LinearElastic3DLaw()
+        self.constitutive_law = KratosMaterial.Linear3DLaw()
     #
     def CallLaw(self):
         print(" python: call the python law ")

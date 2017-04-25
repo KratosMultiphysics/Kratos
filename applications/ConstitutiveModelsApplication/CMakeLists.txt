@@ -17,36 +17,13 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/python_outfitted_constitutive_law.cpp
 
 	#general constitutive laws
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/elastic_3D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/constitutive_3D_law.cpp
 
-	#elasticicy laws
-	
-	#isotropic linear elastic laws
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/linear_elastic_laws/linear_elastic_3D_law.cpp
+	#small strain laws
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/small_strain_laws/small_strain_3D_law.cpp
 
-	#isotropic hyperelastic laws
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/hyperelastic_laws/hyperelastic_3D_law.cpp
-
-	#plasticity laws
-	
-	#isotropic linear elastic plasticity laws
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/linear_elastic_plastic_laws/linear_elastic_plastic_3D_law.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/linear_elastic_plastic_laws/linear_elastic_plastic_plane_strain_2D_law.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/linear_elastic_plastic_laws/linear_elastic_plastic_plane_stress_2D_law.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/linear_elastic_plastic_laws/linear_elastic_plastic_axysimmetric_2D_law.cpp
-
-	#isotropic hyperelastic plasticity laws
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/hyperelastic_plastic_laws/hyperelastic_plastic_3D_law.cpp
-
-
-	#isotropic linear elastic damage laws
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/linear_elastic_damage_laws/isotropic_damage_simo_ju_3D_law.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/linear_elastic_damage_laws/isotropic_damage_simo_ju_plane_strain_2D_law.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/linear_elastic_damage_laws/isotropic_damage_simo_ju_plane_stress_2D_law.cpp
-
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/linear_elastic_damage_laws/isotropic_damage_modified_mises_3D_law.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/linear_elastic_damage_laws/isotropic_damage_modified_mises_plane_strain_2D_law.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/linear_elastic_damage_laws/isotropic_damage_modified_mises_plane_stress_2D_law.cpp
+	#large strain laws
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/large_strain_laws/large_strain_3D_law.cpp
 
 
 	#general constitutive models
@@ -54,11 +31,9 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_SOURCES
 
 	#elasticity models
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/linear_elastic_model.cpp
-		
-	#hyperelastic models
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/hyperelastic_models/hyperelastic_model.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/hyperelastic_model.cpp
 
-	#plastic models (template, all in headers)
+	#plasticity models (template, all in headers)
 	
 	#yield criteria (template, all in headers)
 

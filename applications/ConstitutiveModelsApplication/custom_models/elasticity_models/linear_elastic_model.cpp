@@ -22,7 +22,7 @@ namespace Kratos
   //************************************************************************************
 
   LinearElasticModel::LinearElasticModel()
-    : ElasticityModel()
+    : ConstitutiveModel()
   {
   }
 
@@ -30,14 +30,14 @@ namespace Kratos
   //************************************************************************************
 
   LinearElasticModel::LinearElasticModel(const LinearElasticModel& rOther)
-    : ElasticityModel(rOther)
+    : ConstitutiveModel(rOther)
   {
   }
 
   //********************************CLONE***********************************************
   //************************************************************************************
 
-  ElasticityModel::Pointer LinearElasticModel::Clone() const
+  ConstitutiveModel::Pointer LinearElasticModel::Clone() const
   {
     return ( LinearElasticModel::Pointer(new LinearElasticModel(*this)) );
   }
@@ -46,7 +46,7 @@ namespace Kratos
   //************************************************************************************
   LinearElasticModel& LinearElasticModel::operator=(LinearElasticModel const& rOther)
   {
-    ElasticityModel::operator=(rOther);
+    ConstitutiveModel::operator=(rOther);
     return *this;
   }
   
@@ -97,14 +97,14 @@ namespace Kratos
     this->InitializeElasticData(rValues,Variables);
     
     VectorType StrainVector;
-    StrainVector = ConstitutiveLawUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
+    StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
 
     this->CalculateAndAddConstitutiveTensor(Variables);
     
     VectorType StressVector;
     this->CalculateAndAddStressTensor(Variables,StrainVector,StressVector);
 
-    rStressMatrix = ConstitutiveLawUtilities::VectorToSymmetricTensor(StressVector,rStressMatrix);
+    rStressMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(StressVector,rStressMatrix);
     
     KRATOS_CATCH(" ")
   }
@@ -200,7 +200,7 @@ namespace Kratos
               
     this->CalculateAndAddConstitutiveTensor(rVariables);
     
-    rConstitutiveMatrix = ConstitutiveLawUtilities::ConstitutiveTensorToMatrix(rVariables.ConstitutiveTensor,rConstitutiveMatrix);
+    rConstitutiveMatrix = ConstitutiveModelUtilities::ConstitutiveTensorToMatrix(rVariables.ConstitutiveTensor,rConstitutiveMatrix);
       
     KRATOS_CATCH(" ")
   }
@@ -258,14 +258,14 @@ namespace Kratos
     this->InitializeElasticData(rValues,Variables);
     
     VectorType StrainVector;
-    StrainVector = ConstitutiveLawUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
+    StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
 
     this->CalculateAndAddConstitutiveTensor(Variables, rConstitutiveMatrix);
     
     VectorType StressVector;
     this->CalculateAndAddStressTensor(Variables,StrainVector,StressVector);
 
-    rStressMatrix = ConstitutiveLawUtilities::VectorToSymmetricTensor(StressVector,rStressMatrix);
+    rStressMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(StressVector,rStressMatrix);
 
     
     KRATOS_CATCH(" ")
@@ -321,7 +321,7 @@ namespace Kratos
 
     this->CalculateAndAddIsochoricConstitutiveTensor(rVariables);
     
-    rConstitutiveMatrix = ConstitutiveLawUtilities::ConstitutiveTensorToMatrix(rVariables.ConstitutiveTensor, rConstitutiveMatrix);
+    rConstitutiveMatrix = ConstitutiveModelUtilities::ConstitutiveTensorToMatrix(rVariables.ConstitutiveTensor, rConstitutiveMatrix);
           
     KRATOS_CATCH(" ")
   }
@@ -361,7 +361,7 @@ namespace Kratos
               
     this->CalculateAndAddVolumetricConstitutiveTensor(rVariables);
     
-    rConstitutiveMatrix = ConstitutiveLawUtilities::ConstitutiveTensorToMatrix(rVariables.ConstitutiveTensor, rConstitutiveMatrix);
+    rConstitutiveMatrix = ConstitutiveModelUtilities::ConstitutiveTensorToMatrix(rVariables.ConstitutiveTensor, rConstitutiveMatrix);
       
     KRATOS_CATCH(" ")
   }

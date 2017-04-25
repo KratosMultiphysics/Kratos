@@ -18,7 +18,7 @@
 #include "custom_models/plasticity_models/non_linear_associative_plasticity_model.hpp"
 #include "custom_models/plasticity_models/yield_criteria/mises_huber_yield_criterion.hpp"
 #include "custom_models/plasticity_models/hardening_laws/non_linear_isotropic_kinematic_hardening_law.hpp"
-#include "custom_models/elasticity_models/hyperelastic_models/neo_hookean_model.hpp"
+#include "custom_models/elasticity_models/isochoric_neo_hookean_model.hpp"
 
 namespace Kratos
 {
@@ -47,7 +47,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) VonMisesNeoHookeanPlasticityModel : public NonLinearAssociativePlasticityModel<NeoHookeanModel, MisesHuberYieldCriterion<NonLinearIsotropicKinematicHardeningLaw> >
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) VonMisesNeoHookeanPlasticityModel : public NonLinearAssociativePlasticityModel<IsochoricNeoHookeanModel, MisesHuberYieldCriterion<NonLinearIsotropicKinematicHardeningLaw> >
   {
   public:
     
@@ -55,7 +55,7 @@ namespace Kratos
     ///@{
 
     //elasticity model
-    typedef NeoHookeanModel                                ElasticityModelType;
+    typedef IsochoricNeoHookeanModel                       ElasticityModelType;
     typedef typename ElasticityModelType::Pointer       ElasticityModelPointer;
 
     //yield criterion
@@ -92,9 +92,6 @@ namespace Kratos
 
       this->mpElasticityModel = ElasticityModelPointer( new ElasticityModelType() );
       this->mpYieldCriterion  = YieldCriterionPointer( new YieldCriterionType() );
-
-      std::cout<<" Von Mises NeoHookean Model "<<std::endl;
-      this->mpElasticityModel->PrintInfo(std::cout);
      
       KRATOS_CATCH(" ")
     }
@@ -110,7 +107,7 @@ namespace Kratos
     }
 
     /// Clone.
-    ElasticityModel::Pointer Clone() const override
+    ConstitutiveModel::Pointer Clone() const override
     {
       return ( VonMisesNeoHookeanPlasticityModel::Pointer(new VonMisesNeoHookeanPlasticityModel(*this)) );
     }

@@ -47,68 +47,28 @@
 
 //general constitutive laws
 
-//elasticity laws
+//small strain laws
+#include "custom_laws/small_strain_laws/small_strain_orthotropic_3D_law.hpp"
+#include "custom_laws/small_strain_laws/small_strain_plane_strain_2D_law.hpp"
+#include "custom_laws/small_strain_laws/small_strain_plane_stress_2D_law.hpp"
+#include "custom_laws/small_strain_laws/small_strain_axisymmetric_2D_law.hpp"
 
-//isotropic linear elastic laws
-#include "custom_laws/linear_elastic_laws/linear_elastic_plane_strain_2D_law.hpp"
-#include "custom_laws/linear_elastic_laws/linear_elastic_plane_stress_2D_law.hpp"
-#include "custom_laws/linear_elastic_laws/linear_elastic_axisymmetric_2D_law.hpp"
+//large strain laws
+#include "custom_laws/large_strain_laws/large_strain_plane_strain_2D_law.hpp"
+#include "custom_laws/large_strain_laws/large_strain_axisymmetric_2D_law.hpp"
 
-//orthotropic linear elastic laws
-#include "custom_laws/linear_elastic_laws/linear_elastic_orthotropic_3D_law.hpp"
-
-//isotropic hyperelastic laws
-#include "custom_laws/hyperelastic_laws/hyperelastic_plane_strain_2D_law.hpp"
-#include "custom_laws/hyperelastic_laws/hyperelastic_axisymmetric_2D_law.hpp"
-#include "custom_laws/hyperelastic_laws/hyperelastic_U_P_plane_strain_2D_law.hpp"
-#include "custom_laws/hyperelastic_laws/hyperelastic_U_P_axisymmetric_2D_law.hpp"
-
-//specialized isotropic hyperelastic laws
-#include "custom_laws/hyperelastic_laws/neo_hookean_3D_law.hpp"
-#include "custom_laws/hyperelastic_laws/isochoric_neo_hookean_3D_law.hpp"
-
-//plasticity laws
-
-//isotropic linear elastic plasticity laws
-//#include "custom_laws/linear_elastic_plastic_laws/linear_elastic_plastic_3D_law.hpp"
-//#include "custom_laws/linear_elastic_plastic_laws/linear_elastic_plastic_plane_strain_2D_law.hpp"
-//#include "custom_laws/linear_elastic_plastic_laws/linear_elastic_plastic_plane_stress_2D_law.hpp"
-//#include "custom_laws/linear_elastic_plastic_laws/linear_elastic_plastic_axysimmetric_2D_law.hpp"
-
-//isotropic hyperelastic plasticity laws
-#include "custom_laws/hyperelastic_plastic_laws/hyperelastic_plastic_3D_law.hpp"
-#include "custom_laws/hyperelastic_plastic_laws/hyperelastic_plastic_plane_strain_2D_law.hpp"
-#include "custom_laws/hyperelastic_plastic_laws/hyperelastic_plastic_axisymmetric_2D_law.hpp"
-
-#include "custom_laws/hyperelastic_plastic_laws/hyperelastic_plastic_U_P_3D_law.hpp"
-#include "custom_laws/hyperelastic_plastic_laws/hyperelastic_plastic_U_P_plane_strain_2D_law.hpp"
-#include "custom_laws/hyperelastic_plastic_laws/hyperelastic_plastic_U_P_axisymmetric_2D_law.hpp"
-
-//specialized isotropic hyperelastic plastic laws
-#include "custom_laws/hyperelastic_plastic_laws/von_mises_hyperelastic_plastic_3D_law.hpp"
-
-
-//isotropic linear elastic damage laws
-//#include "custom_laws/linear_elastic_damage_laws/isotropic_damage_simo_ju_3D_law.hpp"
-//#include "custom_laws/linear_elastic_damage_laws/isotropic_damage_simo_ju_plane_strain_2D_law.hpp"
-//#include "custom_laws/linear_elastic_damage_laws/isotropic_damage_simo_ju_plane_stress_2D_law.hpp"
-
-//#include "custom_laws/linear_elastic_damage_laws/isotropic_damage_modified_mises_3D_law.hpp"
-//#include "custom_laws/linear_elastic_damage_laws/isotropic_damage_modified_mises_plane_strain_2D_law.hpp"
-//#include "custom_laws/linear_elastic_damage_laws/isotropic_damage_modified_mises_plane_stress_2D_law.hpp"
+//specialized large strain laws
 
 //elasticity models
 #include "custom_models/elasticity_models/linear_elastic_model.hpp"
-
-//hyperelastic models
-#include "custom_models/elasticity_models/hyperelastic_models/saint_venant_kirchhoff_model.hpp"
-#include "custom_models/elasticity_models/hyperelastic_models/neo_hookean_model.hpp"
-#include "custom_models/elasticity_models/hyperelastic_models/compressible_neo_hookean_model.hpp"
-#include "custom_models/elasticity_models/hyperelastic_models/isochoric_neo_hookean_model.hpp"
-#include "custom_models/elasticity_models/hyperelastic_models/incompressible_neo_hookean_model.hpp"
+#include "custom_models/elasticity_models/saint_venant_kirchhoff_model.hpp"
+#include "custom_models/elasticity_models/neo_hookean_model.hpp"
+#include "custom_models/elasticity_models/compressible_neo_hookean_model.hpp"
+#include "custom_models/elasticity_models/isochoric_neo_hookean_model.hpp"
+#include "custom_models/elasticity_models/incompressible_neo_hookean_model.hpp"
 
 //plasticity models
-#include "custom_models/plasticity_models/von_mises_plasticity_model.hpp"
+#include "custom_models/plasticity_models/von_mises_neo_hookean_plasticity_model.hpp"
 
 //yield criteria
 #include "custom_models/plasticity_models/yield_criteria/mises_huber_yield_criterion.hpp"
@@ -152,9 +112,7 @@ namespace Kratos {
     ///@name Type Definitions
     ///@{
 
-    typedef ElasticityModel                                         ElasticityModelType;
     typedef HardeningLaw                                               HardeningLawType; 
-    typedef YieldCriterion<HardeningLawType>                         YieldCriterionType;
     
     /// Pointer definition of KratosConstitutiveModelsApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosConstitutiveModelsApplication);
@@ -275,57 +233,25 @@ namespace Kratos {
     //outfitted python laws
     const PythonOutfittedConstitutiveLaw          mPythonOutfittedConstitutiveLaw;
     
+    //general constitutive laws
+    
+    //small strain laws
+    const SmallStrain3DLaw                      mSmallStrain3DLaw;
+    const SmallStrainOrthotropic3DLaw           mSmallStrainOrthotropic3DLaw;
+    const SmallStrainPlaneStrain2DLaw           mSmallStrainPlaneStrain2DLaw;
+    const SmallStrainPlaneStress2DLaw           mSmallStrainPlaneStress2DLaw;
+    const SmallStrainAxisymmetric2DLaw          mSmallStrainAxisymmetric2DLaw;
+
+    //large strain laws
+    const LargeStrain3DLaw                       mLargeStrain3DLaw;
+    const LargeStrainPlaneStrain2DLaw            mLargeStrainPlaneStrain2DLaw;
+    const LargeStrainAxisymmetric2DLaw           mLargeStrainAxisymmetric2DLaw;
+
+
+    //general constitutive models
+
     //elasticity models
-    
-    //isotropic linear elastic laws
-    const LinearElastic3DLaw                      mLinearElastic3DLaw;
-    const LinearElasticPlaneStrain2DLaw           mLinearElasticPlaneStrain2DLaw;
-    const LinearElasticPlaneStress2DLaw           mLinearElasticPlaneStress2DLaw;
-    const LinearElasticAxisymmetric2DLaw          mLinearElasticAxisymmetric2DLaw;
-
-    //orthotropic linear elastic laws
-    const LinearElasticOrthotropic3DLaw           mLinearElasticOrthotropic3DLaw;
-
-    //isotropic hyperelastic laws
-    const HyperElastic3DLaw                       mHyperElastic3DLaw;
-    const HyperElasticPlaneStrain2DLaw            mHyperElasticPlaneStrain2DLaw;
-    const HyperElasticAxisymmetric2DLaw           mHyperElasticAxisymmetric2DLaw;
-
-    const HyperElasticUP3DLaw                     mHyperElasticUP3DLaw;
-    const HyperElasticUPPlaneStrain2DLaw          mHyperElasticUPPlaneStrain2DLaw;
-    const HyperElasticUPAxisymmetric2DLaw         mHyperElasticUPAxisymmetric2DLaw;
-
-
-    //plasticity models
-
-    //isotropic linear elastic plasticity laws
-    //const LinearElasticPlastic3DLaw               mLinearElasticPlastic3DLaw;
-    //const LinearElasticPlasticPlaneStrain2DLaw    mLinearElasticPlasticPlaneStrain2DLaw;
-    //const LinearElasticPlasticPlaneStress2DLaw    mLinearElasticPlasticPlaneStress2DLaw;
-    //const LinearElasticPlasticAxisymmetric2DLaw   mLinearElasticPlasticAxisymmetric2DLaw;
-    
-    //isotropic hyperelastic plasticity laws
-    const HyperElasticPlastic3DLaw                 mHyperElasticPlastic3DLaw;
-    const HyperElasticPlasticPlaneStrain2DLaw      mHyperElasticPlasticPlaneStrain2DLaw;
-    const HyperElasticPlasticAxisymmetric2DLaw     mHyperElasticPlasticAxisymmetric2DLaw;    
-
-    const HyperElasticPlasticUP3DLaw               mHyperElasticPlasticUP3DLaw;
-    const HyperElasticPlasticUPPlaneStrain2DLaw    mHyperElasticPlasticUPPlaneStrain2DLaw;
-    const HyperElasticPlasticUPAxisymmetric2DLaw   mHyperElasticPlasticUPAxisymmetric2DLaw;          
-
-    //isotropic linear elastic damage laws
-    //const IsotropicDamageSimoJu3DLaw              mIsotropicDamageSimoJu3DLaw;
-    //const IsotropicDamageSimoJuPlaneStrain2DLaw   mIsotropicDamageSimoJuPlaneStrain2DLaw;
-    //const IsotropicDamageSimoJuPlaneStress2DLaw   mIsotropicDamageSimoJuPlaneStress2DLaw;
-
-    //const IsotropicDamageModifiedMises3DLaw            mIsotropicDamageModifiedMises3DLaw;
-    //const IsotropicDamageModifiedMisesPlaneStrain2DLaw mIsotropicDamageModifiedMisesPlaneStrain2DLaw;
-    //const IsotropicDamageModifiedMisesPlaneStress2DLaw mIsotropicDamageModifiedMisesPlaneStress2DLaw;
-
-    //linear elastic models
     const LinearElasticModel                       mLinearElasticModel;
-    
-    //hyperelastic models
     const SaintVenantKirchhoffModel                mSaintVenantKirchhoffModel;
     const NeoHookeanModel                          mNeoHookeanModel;
     const NeoHookeanModel                          mCompressibleNeoHookeanModel;
@@ -333,8 +259,7 @@ namespace Kratos {
     const IncompressibleNeoHookeanModel            mIncompressibleNeoHookeanModel;
 
     //plasticity models
-    const NonLinearAssociativePlasticityModel<ElasticityModelType,YieldCriterionType> mNonLinearAssociativePlasticityModel;
-    const VonMisesPlasticityModel<ElasticityModelType>                                mVonMisesPlasticityModel;
+    const VonMisesNeoHookeanPlasticityModel        mVonMisesNeoHookeanPlasticityModel;
        
     //yield criteria
     const MisesHuberYieldCriterion<HardeningLawType>     mMisesHuberYieldCriterion;

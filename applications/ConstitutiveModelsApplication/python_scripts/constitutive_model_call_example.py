@@ -34,10 +34,11 @@ DN_DX = Matrix(3,2)
 
 ######################################## here we choose the constitutive law #########################
 #construct a constitutive law
-#elasticity_model = KratosMaterialModels.NeoHookeanModel()
-plasticity_model = KratosMaterialModels.VonMisesNeoHookeanPlasticityModel()
-cl  = KratosMaterialModels.HyperElasticPlastic3DLaw(plasticity_model)
-#cl  = KratosMaterialModels.VonMisesHyperElasticPlastic3DLaw()
+elasticity_model = KratosMaterialModels.SaintVenantKirchhoffModel()
+cl  = KratosMaterialModels.LargeStrain3DLaw(elasticity_model)
+
+#plasticity_model = KratosMaterialModels.VonMisesNeoHookeanPlasticityModel()
+#cl  = KratosMaterialModels.LargeStrain3DLaw(plasticity_model)
 
 cl.Check( properties, geom, model_part.ProcessInfo )
 
@@ -56,7 +57,7 @@ cl_options.Set(ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, True)
 #cl_options.Set(ConstitutiveLaw.TOTAL_TENSOR, True)
 #cl_options.Set(ConstitutiveLaw.FINALIZE_MATERIAL_RESPONSE, False)
 
-##from here below it should be an otput not an input
+##from here below it should be an output not an input
 #cl_options.Set(ConstitutiveLaw.FINITE_STRAINS, False) 
 #cl_options.Set(ConstitutiveLaw.INFINITESIMAL_STRAINS, False)
 #cl_options.Set(ConstitutiveLaw.PLANE_STRAIN_LAW, False)

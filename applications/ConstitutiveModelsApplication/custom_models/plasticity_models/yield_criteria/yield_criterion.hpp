@@ -16,7 +16,7 @@
 
 // Project includes
 #include "custom_models/plasticity_models/hardening_laws/hardening_law.hpp"
-#include "custom_utilities/constitutive_law_utilities.hpp"
+#include "custom_utilities/constitutive_model_utilities.hpp"
 
 namespace Kratos
 {

@@ -120,7 +120,7 @@ namespace Kratos
       const Matrix& rStressMatrix = rModelData.GetStressMatrix();
     
       VectorType PrincipalStresses;
-      noalias(PrincipalStresses) = ConstitutiveLawUtilities::EigenValuesDirectMethod(rStressMatrix);
+      noalias(PrincipalStresses) = ConstitutiveModelUtilities::EigenValuesDirectMethod(rStressMatrix);
 
 
       double Macaulay_PrincipalStress = 0.0, Absolute_PrincipalStress = 0.0;

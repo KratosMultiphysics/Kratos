@@ -114,7 +114,7 @@ namespace Kratos
     }
 
     /// Clone.
-    ElasticityModel::Pointer Clone() const override
+    ConstitutiveModel::Pointer Clone() const override
     {
       return ( VonMisesPlasticityModel::Pointer(new VonMisesPlasticityModel(*this)) );
     }

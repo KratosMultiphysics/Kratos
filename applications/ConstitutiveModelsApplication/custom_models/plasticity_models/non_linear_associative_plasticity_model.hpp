@@ -141,7 +141,7 @@ namespace Kratos
     }
 
     /// Clone.
-    virtual ElasticityModel::Pointer Clone() const override
+    virtual ConstitutiveModel::Pointer Clone() const override
     {
       return ( NonLinearAssociativePlasticityModel::Pointer(new NonLinearAssociativePlasticityModel(*this)) );
     }
@@ -355,7 +355,7 @@ namespace Kratos
       KRATOS_TRY
 
       //1.-Isochoric stress norm   (rStressMatrix := Elastic Isochoric Stress Matrix)
-      rVariables.StressNorm = ConstitutiveLawUtilities::CalculateStressNorm(rStressMatrix, rVariables.StressNorm);
+      rVariables.StressNorm = ConstitutiveModelUtilities::CalculateStressNorm(rStressMatrix, rVariables.StressNorm);
 
       //2.-Check yield condition
       rVariables.TrialStateFunction = this->mpYieldCriterion->CalculateYieldCondition(rVariables, rVariables.TrialStateFunction);

@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/elasticity_models/elasticity_model.hpp"
+#include "custom_models/constitutive_model.hpp"
 
 namespace Kratos
 {
@@ -46,7 +46,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) LinearElasticModel : public ElasticityModel
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) LinearElasticModel : public ConstitutiveModel
   {
   protected:
  
@@ -99,7 +99,7 @@ namespace Kratos
     LinearElasticModel(LinearElasticModel const& rOther);
 
     /// Clone.
-    virtual ElasticityModel::Pointer Clone() const override;
+    virtual ConstitutiveModel::Pointer Clone() const override;
 
     /// Assignment operator.
     LinearElasticModel& operator=(LinearElasticModel const& rOther);
@@ -299,12 +299,12 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const override
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ElasticityModel )
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveModel )
     }
 
     virtual void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ElasticityModel )      
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveModel )      
     }
 
      ///@}

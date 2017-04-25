@@ -19,7 +19,7 @@
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
-#include "custom_utilities/constitutive_law_utilities.hpp"
+#include "custom_utilities/constitutive_model_utilities.hpp"
 
 
 
