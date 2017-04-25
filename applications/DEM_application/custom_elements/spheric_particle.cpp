@@ -651,7 +651,7 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
 
     //LOOP OVER NEIGHBORS:
     for (int i = 0; data_buffer.SetNextNeighbourOrExit(i); ++i){
-        if (this->Is(NEW_ENTITY) && data_buffer.mpOtherParticle->Is(NEW_ENTITY)) continue;
+        if (this->Is(NEW_ENTITY) && data_buffer.mpOtherParticle->Is(BLOCKED)) continue;
         if (data_buffer.mMultiStageRHS  &&  this->Id() > data_buffer.mpOtherParticle->Id()) continue;
 
         CalculateRelativePositions(data_buffer);
@@ -759,8 +759,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
         DEMWall* wall = rNeighbours[i];
         if(wall == NULL) continue;
         if(wall->IsPhantom()){
-            int side_sign = wall->CheckSide(this);
-            (void)side_sign;
+            wall->CheckSide(this);
             continue;
         }
 
@@ -1630,6 +1629,13 @@ double SphericParticle::GetSearchRadius()                                       
 double SphericParticle::GetSearchRadiusWithFem()                                                 { return mSearchRadiusWithFem;   }
 void   SphericParticle::SetSearchRadius(const double radius)                                     { mSearchRadius = radius; }
 void   SphericParticle::SetSearchRadiusWithFem(const double radius)                              { mSearchRadiusWithFem = radius; }
+void SphericParticle::SetDefaultRadiiHierarchy(const double radius)
+{
+    SetRadius(radius);
+    SetSearchRadius(radius);
+    SetSearchRadiusWithFem(radius);
+}
+
 double SphericParticle::GetMass()                                                                { return mRealMass;       }
 void   SphericParticle::SetMass(double real_mass)                                                { mRealMass = real_mass;  GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = real_mass;}
 double SphericParticle::CalculateMomentOfInertia()                                               { return 0.4 * GetMass() * GetRadius() * GetRadius(); }
@@ -1668,6 +1674,8 @@ void   SphericParticle::SetParticleMaterialFromProperties(int* particle_material
 void   SphericParticle::SetParticleCohesionFromProperties(double* particle_cohesion)     { GetFastProperties()->SetParticleCohesionFromProperties( particle_cohesion);      }
 void   SphericParticle::SetParticleKNormalFromProperties(double* particle_k_normal)      { GetFastProperties()->SetParticleKNormalFromProperties( particle_k_normal);       }
 void   SphericParticle::SetParticleKTangentialFromProperties(double* particle_k_tangential) { GetFastProperties()->SetParticleKTangentialFromProperties( particle_k_tangential); }
+
+DEMDiscontinuumConstitutiveLaw::Pointer SphericParticle::GetConstitutiveLawPointer(){return mDiscontinuumConstitutiveLaw;}
 
 // Conical damage
 void   SphericParticle::SetParticleContactRadiusFromProperties(double* particle_contact_radius) { GetFastProperties()->SetParticleContactRadiusFromProperties( particle_contact_radius); }

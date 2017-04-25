@@ -73,12 +73,12 @@ namespace Kratos
       virtual std::string Info() const
       {
         std::stringstream buffer;
-        buffer << "SphericSwimmingParticle" ;
+        buffer << "Swimming version of " << TBaseElement::Info();
         return buffer.str();
       }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SphericSwimmingParticle";}
+      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "Swimming version of " << TBaseElement::Info();}
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const {}
