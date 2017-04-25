@@ -90,8 +90,6 @@ AxisymContactDomainLM2DCondition::~AxisymContactDomainLM2DCondition()
 void AxisymContactDomainLM2DCondition::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
 
-   //ContactDomainLM2DCondition::InitializeGeneralVariables( rVariables, rCurrentProcessInfo);
-   //return;
     GeometryType & MasterGeometry = mContactVariables.GetMasterGeometry();
 
     const unsigned int number_of_nodes = MasterGeometry.size();
@@ -183,9 +181,6 @@ void AxisymContactDomainLM2DCondition::CalculateKinematics( GeneralVariables& rV
 {
     KRATOS_TRY
 
-    //ContactDomainLM2DCondition::CalculateKinematics( rVariables, rCurrentProcessInfo, rPointNumber);
-    //CalculateRadius( rVariables.CurrentRadius, rVariables.ReferenceRadius, rVariables.N );
-    //return;
     ElementType&  MasterElement  = mContactVariables.GetMasterElement();
     GeometryType& MasterGeometry = mContactVariables.GetMasterGeometry();
       
