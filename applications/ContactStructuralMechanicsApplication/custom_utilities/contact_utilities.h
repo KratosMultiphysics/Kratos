@@ -633,8 +633,11 @@ public:
             }
         }
         
-        // Applied laziness - MUST be calculated BEFORE normalizing the normals
-        ComputeDeltaNodesMeanNormalModelPart( rModelPart ); 
+        if (rModelPart.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] == true)
+        {
+            // Applied laziness - MUST be calculated BEFORE normalizing the normals
+            ComputeDeltaNodesMeanNormalModelPart( rModelPart ); 
+        }
 
         #pragma omp parallel for 
         for(unsigned int i = 0; i < numNodes; i++) 
@@ -1134,19 +1137,17 @@ public:
             {
                 const array_1d<double,3> LagrangeMultiplier = (itNode)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
                 const array_1d<double,3> NodalNormal = (itNode)->GetValue(NORMAL);
+                const double NormalLagrangeMultiplier = inner_prod(NodalNormal, LagrangeMultiplier);
                 
-                const double AugmentedNormalPressure = k * inner_prod(NodalNormal, LagrangeMultiplier) + epsilon * (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);     
+                const double AugmentedNormalPressure = k * NormalLagrangeMultiplier + epsilon * (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);     
                 
                 if (AugmentedNormalPressure < 0.0) // NOTE: This could be conflictive (< or <=)
                 {
                     (itNode)->Set(ACTIVE, true);
                     
                     // Computing the augmented tangent pressure
-                    const array_1d<double, 3> NodalTangentXi  = (itNode)->GetValue(TANGENT_XI); 
-                    const array_1d<double, 3> NodalTangentEta = (itNode)->GetValue(TANGENT_ETA);
-                    const double TangentXiLM  = inner_prod(NodalTangentXi,  LagrangeMultiplier);
-                    const double TangentEtaLM = inner_prod(NodalTangentEta, LagrangeMultiplier);
-                    const double LambdaTangent = std::sqrt(TangentXiLM * TangentXiLM + TangentEtaLM * TangentEtaLM); 
+                    const array_1d<double,3> TangentLagrangeMultiplier = LagrangeMultiplier - NormalLagrangeMultiplier * NodalNormal;
+                    const double LambdaTangent = norm_2(TangentLagrangeMultiplier); 
                     
                     // The friction coefficient
                     const double mu = (itNode)->GetValue(WEIGHTED_FRICTION);
