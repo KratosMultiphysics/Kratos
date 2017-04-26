@@ -176,11 +176,11 @@ public:
             {
                 if (FrictionalCase == true)
                 {
-                    std::cout << "Convergence is achieved in ACTIVE/INACTIVE mortar nodes check" << std::endl;
+                    std::cout << "Convergence is achieved in ACTIVE/INACTIVE and STICK/SLIP mortar nodes check" << std::endl;
                 }
                 else
                 {
-                    std::cout << "Convergence is achieved in ACTIVE/INACTIVE and STICK/SLIP mortar nodes check" << std::endl;
+                    std::cout << "Convergence is achieved in ACTIVE/INACTIVE mortar nodes check" << std::endl;
                 }
             }
             else
