@@ -47,6 +47,50 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+
+/** \brief DerivativeData
+ * This data will be used to compute the derivatives
+ */
+template< unsigned int TDim, unsigned int TNumNodes>
+class FrictionalDerivativeData : public DerivativeData<TDim, TNumNodes>
+{
+public:
+    
+    // Auxiliar types
+    typedef DerivativeData<TDim, TNumNodes>      BaseType;
+    typedef bounded_matrix<double, TNumNodes, TDim> Type2;
+    
+    // Displacements and velocities
+    Type2 u1old;
+    Type2 u2old;
+    
+    // Default destructor
+    ~FrictionalDerivativeData(){}
+    
+    /**
+     * Initializer method 
+     * @param  GeometryInput: The geometry of the slave 
+     */
+    
+    void Initialize(const GeometryType& GeometryInput) override
+    {        
+        BaseType::Initialize(GeometryInput);
+        
+        u1old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), DISPLACEMENT, 1);
+    }
+
+    /**
+     * Updating the Master pair
+     * @param  pCond: The pointer of the current master
+     */
+    
+    void UpdateMasterPair(const Condition::Pointer& pCond) override
+    {
+        BaseType::UpdateMasterPair(pCond);
+        
+        u2old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(pCond->GetGeometry(), DISPLACEMENT, 1);
+    }
+};  // Class DerivativeData
     
 /** \brief AugmentedLagrangianMethodFrictionalMortarContactCondition
  * This is a contact condition which employes the mortar method with dual lagrange multiplier 
@@ -92,6 +136,8 @@ public:
     typedef Triangle3D3<Point<3>>                                                    TriangleType;
     
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
+    
+    typedef DerivativeData<TDim, TNumNodes>                                    DerivativeDataType;
     
     static constexpr unsigned int MatrixSize = TDim * (TNumNodes + TNumNodes + TNumNodes);
          
@@ -222,7 +268,7 @@ protected:
     
     bounded_matrix<double, MatrixSize, MatrixSize> CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
-        const unsigned int& rMasterElementIndex,
+        const DerivativeDataType& rDerivativeData,
         const double& rPenaltyFactor,
         const double& rScaleFactor,
         const unsigned int& rActiveInactive
@@ -234,7 +280,7 @@ protected:
     
     array_1d<double, MatrixSize> CalculateLocalRHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
-        const unsigned int& rMasterElementIndex,
+        const DerivativeDataType& rDerivativeData,
         const double& rPenaltyFactor,
         const double& rScaleFactor,
         const unsigned int& rActiveInactive

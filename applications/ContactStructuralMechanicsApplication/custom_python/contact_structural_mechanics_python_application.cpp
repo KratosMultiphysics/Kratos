@@ -66,6 +66,7 @@ BOOST_PYTHON_MODULE(KratosContactStructuralMechanicsApplication)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( TANGENT_AUGMENTATION_FACTOR )                 // The constant that is considered for the check if the node is slip/stick (NOTE: Deprecated)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( PENALTY_FACTOR )                              // The penalty factor needed for the ALM
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( SCALE_FACTOR )                                // The scale factor needed for the ALM
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( CONSIDER_NORMAL_VARIATION )                   // A value used to check if consider normal variation or not
 }
 
 

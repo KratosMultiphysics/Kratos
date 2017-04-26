@@ -452,6 +452,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
     // We get the ALM variables
     const double PenaltyFactor = rCurrentProcessInfo[PENALTY_FACTOR];
     const double ScaleFactor = rCurrentProcessInfo[SCALE_FACTOR];
+    const bool NormalVariation = rCurrentProcessInfo[CONSIDER_NORMAL_VARIATION];
     
     // Create and initialize condition variables:#pragma omp critical
     GeneralVariables rVariables;
@@ -492,8 +493,11 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
             // Initialize the mortar operators
             rThisMortarConditionMatrices.Initialize();
             
-//             // Compute the normal derivatives of the master
-//             this->CalculateDeltaNormalMaster(rDerivativeData);
+            if (NormalVariation == true)
+            {
+                // Compute the normal derivatives of the master
+                this->CalculateDeltaNormalMaster(rDerivativeData);
+            }
             
             for (unsigned int iGeom = 0; iGeom < ConditionsPointsSlave.size(); iGeom++)
             {
@@ -562,7 +566,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                     rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
             {
                 // Calculate the local contribution
-                const bounded_matrix<double, MatrixSize, MatrixSize> LHS_contact_pair = this->CalculateLocalLHS( rThisMortarConditionMatrices, PairIndex, PenaltyFactor, ScaleFactor, ActiveInactive);
+                const bounded_matrix<double, MatrixSize, MatrixSize> LHS_contact_pair = this->CalculateLocalLHS( rThisMortarConditionMatrices, rDerivativeData, PenaltyFactor, ScaleFactor, ActiveInactive);
                 
                 // Contributions to stiffness matrix calculated on the reference config
                 this->CalculateAndAddLHS( rLocalSystem, LHS_contact_pair, PairIndex );
@@ -577,7 +581,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                     rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
             {
                 // Calculate the local contribution
-                const array_1d<double, MatrixSize> RHS_contact_pair = this->CalculateLocalRHS( rThisMortarConditionMatrices, PairIndex, PenaltyFactor, ScaleFactor, ActiveInactive);
+                const array_1d<double, MatrixSize> RHS_contact_pair = this->CalculateLocalRHS( rThisMortarConditionMatrices, rDerivativeData, PenaltyFactor, ScaleFactor, ActiveInactive);
                 
                 // Contribution to previous step contact force and residuals vector
                 this->CalculateAndAddRHS( rLocalSystem, RHS_contact_pair, PairIndex );
@@ -970,13 +974,13 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     const double NormMe = norm_frobenius(rAeData.Me);
     
     // Now we normalize the matrix
-    const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> NormalizedMe = rAeData.Me/NormMe;
+    const bounded_matrix<double, TNumNodes, TNumNodes> NormalizedMe = rAeData.Me/NormMe;
     
     // We compute the normalized inverse
-    const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> NormalizedInvMe = MathUtils<double>::InvertMatrix<TNumNodes>(NormalizedMe, auxdet, Tolerance); 
+    const bounded_matrix<double, TNumNodes, TNumNodes> NormalizedInvMe = MathUtils<double>::InvertMatrix<TNumNodes>(NormalizedMe, auxdet, Tolerance); 
     
     // Now we compute the inverse
-    const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> InvMe = NormalizedInvMe/NormMe;
+    const bounded_matrix<double, TNumNodes, TNumNodes> InvMe = NormalizedInvMe/NormMe;
     
     noalias(rDerivativeData.Ae) = prod(rAeData.De, InvMe);
     
@@ -1061,7 +1065,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 template<>
 bounded_matrix<double, 10, 10> AugmentedLagrangianMethodMortarContactCondition<2,2, false>::CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
-        const unsigned int& rMasterElementIndex,
+        const DerivativeDataType& rDerivativeData,
         const double& rPenaltyFactor,
         const double& rScaleFactor,
         const unsigned int& rActiveInactive
@@ -1078,7 +1082,7 @@ bounded_matrix<double, 10, 10> AugmentedLagrangianMethodMortarContactCondition<2
 template<>
 bounded_matrix<double, 21, 21> AugmentedLagrangianMethodMortarContactCondition<3,3, false>::CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
-        const unsigned int& rMasterElementIndex,
+        const DerivativeDataType& rDerivativeData,
         const double& rPenaltyFactor,
         const double& rScaleFactor,
         const unsigned int& rActiveInactive
@@ -1095,7 +1099,7 @@ bounded_matrix<double, 21, 21> AugmentedLagrangianMethodMortarContactCondition<3
 template<>
 bounded_matrix<double, 28, 28> AugmentedLagrangianMethodMortarContactCondition<3,4, false>::CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
-        const unsigned int& rMasterElementIndex,
+        const DerivativeDataType& rDerivativeData,
         const double& rPenaltyFactor,
         const double& rScaleFactor,
         const unsigned int& rActiveInactive
@@ -1112,7 +1116,7 @@ bounded_matrix<double, 28, 28> AugmentedLagrangianMethodMortarContactCondition<3
 template<>
 bounded_matrix<double, 12, 12> AugmentedLagrangianMethodMortarContactCondition<2,2, true>::CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
-        const unsigned int& rMasterElementIndex,
+        const DerivativeDataType& rDerivativeData,
         const double& rPenaltyFactor,
         const double& rScaleFactor,
         const unsigned int& rActiveInactive
@@ -1129,7 +1133,9 @@ bounded_matrix<double, 12, 12> AugmentedLagrangianMethodMortarContactCondition<2
 // template<>
 // bounded_matrix<double, 27, 27> AugmentedLagrangianMethodMortarContactCondition<3,3, true>::CalculateLocalLHS(
 //         const MortarConditionMatrices& rMortarConditionMatrices,
-//         const unsigned int& rMasterElementIndex,
+//         const DerivativeDataType& rDerivativeData,
+//         const double& rPenaltyFactor,
+//         const double& rScaleFactor,
 //         const unsigned int& rActiveInactive
 //         )
 // {
@@ -1144,7 +1150,9 @@ bounded_matrix<double, 12, 12> AugmentedLagrangianMethodMortarContactCondition<2
 // template<>
 // bounded_matrix<double, 36, 36> AugmentedLagrangianMethodMortarContactCondition<3,4, true>::CalculateLocalLHS(
 //         const MortarConditionMatrices& rMortarConditionMatrices,
-//         const unsigned int& rMasterElementIndex,
+//         const DerivativeDataType& rDerivativeData,
+//         const double& rPenaltyFactor,
+//         const double& rScaleFactor,
 //         const unsigned int& rActiveInactive
 //         )
 // {
@@ -1222,7 +1230,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 template<>
 array_1d<double,10> AugmentedLagrangianMethodMortarContactCondition<2,2, false>::CalculateLocalRHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
-        const unsigned int& rMasterElementIndex,
+        const DerivativeDataType& rDerivativeData,
         const double& rPenaltyFactor,
         const double& rScaleFactor,
         const unsigned int& rActiveInactive
@@ -1239,7 +1247,7 @@ array_1d<double,10> AugmentedLagrangianMethodMortarContactCondition<2,2, false>:
 template<>
 array_1d<double,21> AugmentedLagrangianMethodMortarContactCondition<3,3, false>::CalculateLocalRHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
-        const unsigned int& rMasterElementIndex,
+        const DerivativeDataType& rDerivativeData,
         const double& rPenaltyFactor,
         const double& rScaleFactor,
         const unsigned int& rActiveInactive
@@ -1256,7 +1264,7 @@ array_1d<double,21> AugmentedLagrangianMethodMortarContactCondition<3,3, false>:
 template<>
 array_1d<double,28> AugmentedLagrangianMethodMortarContactCondition<3,4, false>::CalculateLocalRHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
-        const unsigned int& rMasterElementIndex,
+        const DerivativeDataType& rDerivativeData,
         const double& rPenaltyFactor,
         const double& rScaleFactor,
         const unsigned int& rActiveInactive
@@ -1273,7 +1281,7 @@ array_1d<double,28> AugmentedLagrangianMethodMortarContactCondition<3,4, false>:
 template<>
 array_1d<double,12> AugmentedLagrangianMethodMortarContactCondition<2,2, true>::CalculateLocalRHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
-        const unsigned int& rMasterElementIndex,
+        const DerivativeDataType& rDerivativeData,
         const double& rPenaltyFactor,
         const double& rScaleFactor,
         const unsigned int& rActiveInactive
@@ -1290,7 +1298,9 @@ array_1d<double,12> AugmentedLagrangianMethodMortarContactCondition<2,2, true>::
 // template<>
 // array_1d<double,27> AugmentedLagrangianMethodMortarContactCondition<3,3, true>::CalculateLocalRHS(
 //         const MortarConditionMatrices& rMortarConditionMatrices,
-//         const unsigned int& rMasterElementIndex,
+//         const DerivativeDataType& rDerivativeData,
+//         const double& rPenaltyFactor,
+//         const double& rScaleFactor,
 //         const unsigned int& rActiveInactive
 //         )
 // {
@@ -1305,7 +1315,9 @@ array_1d<double,12> AugmentedLagrangianMethodMortarContactCondition<2,2, true>::
 // template<>
 // array_1d<double,36> AugmentedLagrangianMethodMortarContactCondition<3,4, true>::CalculateLocalRHS(
 //         const MortarConditionMatrices& rMortarConditionMatrices,
-//         const unsigned int& rMasterElementIndex,
+//         const DerivativeDataType& rDerivativeData,
+//         const double& rPenaltyFactor,
+//         const double& rScaleFactor,
 //         const unsigned int& rActiveInactive
 //         )
 // {

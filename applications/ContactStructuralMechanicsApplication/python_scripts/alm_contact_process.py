@@ -89,9 +89,9 @@ class ALMContactProcess(KratosMultiphysics.Process):
             
         # We recompute the normal at each iteration (false by default)
         if (self.normal_variation == True):
-            computing_model_part.Set(KratosMultiphysics.INTERACTION, True) # TODO: Pending to implement
+            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.CONSIDER_NORMAL_VARIATION] = True
         else:
-            computing_model_part.Set(KratosMultiphysics.INTERACTION, False)
+            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.CONSIDER_NORMAL_VARIATION] = False
         
         # Copying the properties in the contact model part
         self.contact_model_part.SetProperties(computing_model_part.GetProperties())
@@ -107,9 +107,15 @@ class ALMContactProcess(KratosMultiphysics.Process):
         self.Preprocess = ContactStructuralMechanicsApplication.InterfacePreprocessCondition(computing_model_part)
         
         if self.params["contact_type"].GetString() == "Frictionless":
-            condition_name = "ALMFrictionlessMortarContact"
+            if self.normal_variation == True:
+                condition_name = "ALMNVFrictionlessMortarContact"
+            else:
+                condition_name = "ALMFrictionlessMortarContact"
         elif self.params["contact_type"].GetString() == "Frictional":
-            condition_name = "ALMFrictionalMortarContact"
+            if self.normal_variation == True:
+                condition_name = "ALMNVFrictionalMortarContact"
+            else:
+                condition_name = "ALMFrictionalMortarContact"
         
         #print("MODEL PART BEFORE CREATING INTERFACE")
         #print(computing_model_part) 

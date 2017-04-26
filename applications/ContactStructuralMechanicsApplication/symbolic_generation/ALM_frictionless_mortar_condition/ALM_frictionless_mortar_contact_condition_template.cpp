@@ -25,32 +25,32 @@ namespace Kratos
 /************************************* OPERATIONS **********************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes>
-Condition::Pointer AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes>::Create( 
+template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
+Condition::Pointer AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Create( 
     IndexType NewId,
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
 {
-    return boost::make_shared< AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return boost::make_shared< AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes>
-Condition::Pointer AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes>::Create(
+template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
+Condition::Pointer AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Create(
     IndexType NewId,
     GeometryPointerType pGeom,
     PropertiesPointerType pProperties) const
 {
-    return boost::make_shared< AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes> >( NewId, pGeom, pProperties );
+    return boost::make_shared< AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation> >( NewId, pGeom, pProperties );
 }
 
 /************************************* DESTRUCTOR **********************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes>
-AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes>::~AugmentedLagrangianMethodFrictionlessMortarContactCondition( )
+template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
+AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation>::~AugmentedLagrangianMethodFrictionlessMortarContactCondition( )
 {
 }
 
@@ -70,8 +70,8 @@ AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes>::~Au
 /****************************** END AD REPLACEMENT *********************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes>
-void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes>::EquationIdVector(
+template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
+void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation>::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& CurrentProcessInfo 
     )
@@ -134,8 +134,8 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes>
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes>
-void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim, TNumNodes>::GetDofList(
+template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
+void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation>::GetDofList(
     DofsVectorType& rConditionalDofList,
     ProcessInfo& rCurrentProcessInfo 
 )
@@ -197,8 +197,11 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim, TNumNodes
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2>;
-template class AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3>;
-template class AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4>;
+template class AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false>;
+template class AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false>;
+template class AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false>;
+template class AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, true>;
+template class AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true>;
+template class AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true>;
 
 } // Namespace Kratos

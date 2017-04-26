@@ -117,25 +117,16 @@ public:
      * @param  GeometryInput: The geometry of the slave 
      */
     
-    void Initialize(const GeometryType& GeometryInput)
+    virtual void Initialize(const GeometryType& GeometryInput)
     {
         SlaveGeometry  = GeometryInput;
         
         // The normals of the nodes
         NormalSlave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry,  NORMAL);
         
-        // Displacements and velocities of the slave            
-        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
-        {
-            const array_1d<double, 3> Coordinates  = SlaveGeometry[iNode].GetInitialPosition();
-            const array_1d<double, 3> Displacement = SlaveGeometry[iNode].FastGetSolutionStepValue(DISPLACEMENT);
-
-            for (unsigned int iDof = 0; iDof < TDim; iDof++)
-            {
-                X1(iNode, iDof) = Coordinates[iDof];
-                u1(iNode, iDof) = Displacement[iDof];
-            }
-        }
+        // Displacements and velocities of the slave       
+        u1 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 0);
+        X1 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(SlaveGeometry, false);
         
         // Derivatives 
         for (unsigned int i = 0; i < TNumNodes * TDim; i++)
@@ -170,26 +161,16 @@ public:
      * @param  pCond: The pointer of the current master
      */
     
-    void UpdateMasterPair(const Condition::Pointer& pCond)
+    virtual void UpdateMasterPair(const Condition::Pointer& pCond)
     {
-        const GeometryType GeometryInput =  pCond->GetGeometry();
-        MasterGeometry = GeometryInput; // Updating the geometry
+        MasterGeometry =  pCond->GetGeometry();
+        
+        NormalMaster = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry,  NORMAL);
         
         // Displacements, coordinates and normals of the master
-        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
-        {
-            const array_1d<double, 3> Coordinates  = MasterGeometry[iNode].GetInitialPosition();
-            const array_1d<double, 3> Displacement = MasterGeometry[iNode].FastGetSolutionStepValue(DISPLACEMENT);
+        u2 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 0);
+        X2 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(MasterGeometry, false);
 
-            const array_1d<double,3> Normal = MasterGeometry[iNode].GetValue(NORMAL);
-            
-            for (unsigned int iDof = 0; iDof < TDim; iDof++)
-            {
-                X2(iNode, iDof) = Coordinates[iDof];
-                u2(iNode, iDof) = Displacement[iDof];
-                NormalMaster(iNode, iDof) = Normal[iDof]; 
-            }
-        }
         // Derivative of master's normal
         for (unsigned int i = 0; i < TNumNodes * TDim; i++)
         {
@@ -309,13 +290,9 @@ public:
         void print( )
         {
             KRATOS_WATCH( NSlave );
-//             LOG_VECTOR_PRETTY( NSlave );
             KRATOS_WATCH( NMaster );
-//             LOG_VECTOR_PRETTY( NMaster );
             KRATOS_WATCH( PhiLagrangeMultipliers );
-//             LOG_VECTOR_PRETTY( PhiLagrangeMultipliers );
             KRATOS_WATCH( jSlave );
-//             LOG_MATRIX_PRETTY( jSlave );
             KRATOS_WATCH( DetJSlave );
         }
     };
@@ -675,16 +652,12 @@ protected:
         void print() 
         {
             KRATOS_WATCH(DOperator);
-//             LOG_MATRIX_PRETTY(DOperator);
             KRATOS_WATCH(MOperator);
-//             LOG_MATRIX_PRETTY(MOperator);
             
 //             for (unsigned int i = 0; i < TNumNodes * TDim; i++)
 //             {
 //                 KRATOS_WATCH(DeltaDOperator[i]);
-// //                 LOG_MATRIX_PRETTY(DeltaDOperator[i]);
 //                 KRATOS_WATCH(DeltaMOperator[i]);
-// //                 LOG_MATRIX_PRETTY(DeltaMOperator[i]);
 //             }
         }
     };
@@ -875,7 +848,7 @@ protected:
     
     virtual bounded_matrix<double, MatrixSize, MatrixSize> CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
-        const unsigned int& rMasterElementIndex,
+        const DerivativeDataType& rDerivativeData,
         const double& rPenaltyFactor,
         const double& rScaleFactor,
         const unsigned int& rActiveInactive
@@ -907,7 +880,7 @@ protected:
     
     virtual array_1d<double, MatrixSize> CalculateLocalRHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
-        const unsigned int& rMasterElementIndex,
+        const DerivativeDataType& rDerivativeData,
         const double& rPenaltyFactor,
         const double& rScaleFactor,
         const unsigned int& rActiveInactive

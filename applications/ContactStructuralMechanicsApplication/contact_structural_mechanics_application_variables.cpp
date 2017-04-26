@@ -46,6 +46,7 @@ KRATOS_CREATE_VARIABLE( bool, AUXILIAR_SLIP )                                   
 /* For ALM mortar condition */
 KRATOS_CREATE_VARIABLE( double, PENALTY_FACTOR )                                  // The penalty factor for the ALM
 KRATOS_CREATE_VARIABLE( double, SCALE_FACTOR )                                    // The scale factor for the ALM
+KRATOS_CREATE_VARIABLE( bool, CONSIDER_NORMAL_VARIATION )                         // A value used to check if consider normal variation or not
 
 /* For mesh tying mortar condition */
 KRATOS_CREATE_VARIABLE( std::string, TYING_VARIABLE )                             // The variable name for the mesh tying 

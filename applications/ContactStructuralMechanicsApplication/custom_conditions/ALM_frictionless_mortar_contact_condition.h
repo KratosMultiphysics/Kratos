@@ -53,7 +53,7 @@ namespace Kratos
  * The method has been taken from the Alexander Popps thesis:
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
  */
-template< unsigned int TDim, unsigned int TNumNodes>
+template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
 class AugmentedLagrangianMethodFrictionlessMortarContactCondition: public AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, false> 
 {
 public:
@@ -92,6 +92,8 @@ public:
     typedef Triangle3D3<Point<3>>                                                    TriangleType;
     
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
+    
+    typedef typename BaseType::DerivativeDataType                              DerivativeDataType;
     
     static constexpr unsigned int MatrixSize = TDim * (TNumNodes + TNumNodes) + TNumNodes;
          
@@ -220,7 +222,7 @@ protected:
     
     bounded_matrix<double, MatrixSize, MatrixSize> CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
-        const unsigned int& rMasterElementIndex,
+        const DerivativeDataType& rDerivativeData,
         const double& rPenaltyFactor,
         const double& rScaleFactor,
         const unsigned int& rActiveInactive
@@ -232,7 +234,7 @@ protected:
     
     array_1d<double, MatrixSize> CalculateLocalRHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
-        const unsigned int& rMasterElementIndex,
+        const DerivativeDataType& rDerivativeData,
         const double& rPenaltyFactor,
         const double& rScaleFactor,
         const unsigned int& rActiveInactive

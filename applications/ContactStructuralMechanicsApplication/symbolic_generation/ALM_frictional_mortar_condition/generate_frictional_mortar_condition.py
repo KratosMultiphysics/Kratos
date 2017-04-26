@@ -37,281 +37,295 @@ def real_norm(input):
     return output
 
 lhs_string = ""
-lhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\nbounded_matrix<double, MatrixSize, MatrixSize> AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes>::CalculateLocalLHS(\n        const MortarConditionMatrices& rMortarConditionMatrices,\n        const unsigned int& rMasterElementIndex,\n        const double& rPenaltyFactor,\n        const double& rScaleFactor,\n        const unsigned int& rActiveInactive\n        )\n{\n    bounded_matrix<double,MatrixSize,MatrixSize> lhs = ZeroMatrix(MatrixSize,MatrixSize);\n    \n    // Master segment info\n    GeometryType& CurrentMasterElement = mThisMasterElements[rMasterElementIndex]->GetGeometry();\n\n    // Initialize values\n    const bounded_matrix<double, TNumNodes, TDim> u1 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), DISPLACEMENT, 0);\n    const bounded_matrix<double, TNumNodes, TDim> u1old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), DISPLACEMENT, 1);\n    const bounded_matrix<double, TNumNodes, TDim> u2 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(CurrentMasterElement, DISPLACEMENT, 0);\n    const bounded_matrix<double, TNumNodes, TDim> u2old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(CurrentMasterElement, DISPLACEMENT, 1);\n    const bounded_matrix<double, TNumNodes, TDim> X1 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(this->GetGeometry(), false);\n    const bounded_matrix<double, TNumNodes, TDim> X2 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(CurrentMasterElement, false);\n    \n    const bounded_matrix<double, TNumNodes, TDim> lm = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); \n    \n    const bounded_matrix<double, TNumNodes, TDim> normalslave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(),  NORMAL);\n    \n    // Mortar operators\n    const bounded_matrix<double, TNumNodes, TNumNodes> MOperator = rMortarConditionMatrices.MOperator;\n    const bounded_matrix<double, TNumNodes, TNumNodes> DOperator = rMortarConditionMatrices.DOperator;\n    // Mortar operators derivatives\n    const array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2> DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;\n    const array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2> DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;\n\n    // We get the friction coefficient\n    const array_1d<double, TNumNodes> mu = GetFrictionCoefficient();\n\n"
+lhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\nbounded_matrix<double, MatrixSize, MatrixSize> AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes, TNormalVariation>::CalculateLocalLHS(\n        const MortarConditionMatrices& rMortarConditionMatrices,\n        const DerivativeDataType& rDerivativeData,\n        const double& PenaltyFactor,\n        const double& ScaleFactor,\n        const unsigned int& rActiveInactive\n        )\n{\n    bounded_matrix<double,MatrixSize,MatrixSize> lhs = ZeroMatrix(MatrixSize,MatrixSize);\n\n    // Initialize values\n    const bounded_matrix<double, TNumNodes, TDim> u1 = rDerivativeData.u1;\n    const bounded_matrix<double, TNumNodes, TDim> u1old = rDerivativeData.u1old;\n    const bounded_matrix<double, TNumNodes, TDim> u2 = rDerivativeData.u2;\n    const bounded_matrix<double, TNumNodes, TDim> u2old = rDerivativeData.u2old;\n    const bounded_matrix<double, TNumNodes, TDim> X1 = rDerivativeData.X1;\n    const bounded_matrix<double, TNumNodes, TDim> X2 = rDerivativeData.X2;\n    \n    const bounded_matrix<double, TNumNodes, TDim> LM = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); \n    \n    const bounded_matrix<double, TNumNodes, TDim> NormalSlave = DerivativeData.NormalSlave;\n    \n    // Mortar operators\n    const bounded_matrix<double, TNumNodes, TNumNodes> MOperator = rMortarConditionMatrices.MOperator;\n    const bounded_matrix<double, TNumNodes, TNumNodes> DOperator = rMortarConditionMatrices.DOperator;\n    // Mortar operators derivatives\n    const array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2> DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;\n    const array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2> DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;\n\n    // We get the friction coefficient\n    const array_1d<double, TNumNodes> mu = GetFrictionCoefficient();\n\n"
 
 lhs_template_end_string = "\n\n    return lhs;\n}\n"
 
 rhs_string = ""
-rhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\narray_1d<double, MatrixSize> AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes>::CalculateLocalRHS(\n        const MortarConditionMatrices& rMortarConditionMatrices,\n        const unsigned int& rMasterElementIndex,\n        const double& rPenaltyFactor,\n        const double& rScaleFactor,\n        const unsigned int& rActiveInactive\n        )\n{\n    array_1d<double,MatrixSize> rhs(0.0,MatrixSize);\n\n    // Master segment info\n    GeometryType& CurrentMasterElement = mThisMasterElements[rMasterElementIndex]->GetGeometry();\n\n    // Initialize values\n    const bounded_matrix<double, TNumNodes, TDim> u1 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), DISPLACEMENT, 0);\n    const bounded_matrix<double, TNumNodes, TDim> u1old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), DISPLACEMENT, 1);\n    const bounded_matrix<double, TNumNodes, TDim> u2 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(CurrentMasterElement, DISPLACEMENT, 0);\n    const bounded_matrix<double, TNumNodes, TDim> u2old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(CurrentMasterElement, DISPLACEMENT, 1);\n    const bounded_matrix<double, TNumNodes, TDim> X1 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(this->GetGeometry(), false);\n    const bounded_matrix<double, TNumNodes, TDim> X2 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(CurrentMasterElement, false);\n    \n    const bounded_matrix<double, TNumNodes, TDim> lm = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); \n    \n    const bounded_matrix<double, TNumNodes, TDim> normalslave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(),  NORMAL);\n    \n    // Mortar operators\n    const bounded_matrix<double, TNumNodes, TNumNodes> MOperator = rMortarConditionMatrices.MOperator;\n    const bounded_matrix<double, TNumNodes, TNumNodes> DOperator = rMortarConditionMatrices.DOperator;\n    // We get the friction coefficient\n\n    const array_1d<double, TNumNodes> mu = GetFrictionCoefficient();\n\n"
+rhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\narray_1d<double, MatrixSize> AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes, TNormalVariation>::CalculateLocalRHS(\n        const MortarConditionMatrices& rMortarConditionMatrices,\n        const DerivativeDataType& rDerivativeData,\n        const double& PenaltyFactor,\n        const double& ScaleFactor,\n        const unsigned int& rActiveInactive\n        )\n{\n    array_1d<double,MatrixSize> rhs(0.0,MatrixSize);\n\n    // Initialize values\n    const bounded_matrix<double, TNumNodes, TDim> u1 = rDerivativeData.u1;\n    const bounded_matrix<double, TNumNodes, TDim> u1old = rDerivativeData.u1old;\n    const bounded_matrix<double, TNumNodes, TDim> u2 = rDerivativeData.u2;\n    const bounded_matrix<double, TNumNodes, TDim> u2old = rDerivativeData.u2old;\n    const bounded_matrix<double, TNumNodes, TDim> X1 = rDerivativeData.X1;\n    const bounded_matrix<double, TNumNodes, TDim> X2 = rDerivativeData.X2;\n    \n    const bounded_matrix<double, TNumNodes, TDim> LM = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); \n    \n    const bounded_matrix<double, TNumNodes, TDim> NormalSlave = DerivativeData.NormalSlave;\n    \n    // Mortar operators\n    const bounded_matrix<double, TNumNodes, TNumNodes> MOperator = rMortarConditionMatrices.MOperator;\n    const bounded_matrix<double, TNumNodes, TNumNodes> DOperator = rMortarConditionMatrices.DOperator;\n    // We get the friction coefficient\n\n    const array_1d<double, TNumNodes> mu = GetFrictionCoefficient();\n\n"
 
 rhs_template_end_string = "\n\n    return rhs;\n}\n"
 
-for dim, nnodes in zip(dim_combinations, nnodes_combinations):
+for normalvar in range(2):
     
-    number_dof = dim * (3 * nnodes)
-
-    #Defining the unknowns
-    u1 = DefineMatrix('u1',nnodes,dim) #u1(i,j) is the current displacement of node i component j at domain 1
-    u2 = DefineMatrix('u2',nnodes,dim) #u2(i,j) is the current displacement of node i component j at domain 2
-    u1old = DefineMatrix('u1old',nnodes,dim) #u1(i,j) is the previous displacement of node i component j at domain 1
-    u2old = DefineMatrix('u2old',nnodes,dim) #u2(i,j) is the previous displacement of node i component j at domain 2
-    lm = DefineMatrix('lm',nnodes,dim)
-    # Normal and tangets of the slave
-    normalslave = DefineMatrix('normalslave',nnodes,dim)
-    
-    # The resultant tangent
-    tangentslave = DefineMatrix('tangentslave',nnodes,dim)
-    
-    # Define test functions
-    w1 = DefineMatrix('w1',nnodes,dim)
-    w2 = DefineMatrix('w2',nnodes,dim)
-    wlm = DefineMatrix('wlm',nnodes,dim)
-    
-    # Defining normal and tangent components 
-    lmnormal = DefineVector('lmnormal',nnodes)
-    wlmnormal = DefineVector('wlmnormal',nnodes)
-    
-    # The resultant tangent LM
-    lmtangent = DefineMatrix('lmtangent',nnodes,dim)
-    wlmtangent = DefineMatrix('wlmtangent',nnodes,dim)
-    
-    for node in range(nnodes):
-        lmnormal[node] = lm.row(node) * normalslave.row(node).transpose()
-        wlmnormal[node] = wlm.row(node) * normalslave.row(node).transpose()
+    if normalvar == 0:
+        normalvarstring = "false"
+    else:
+        normalvarstring = "true"
         
-        # We calculate the LM tangent resultant
-        for idim in range(dim):
-            lmtangent[node,idim] = lm[node,idim] - lmnormal[node] * normalslave[node,idim]
-            wlmtangent[node,idim] = wlm[node,idim] - wlmnormal[node] * normalslave[node,idim]
+    if normalvar == 1:
+        lhs_template_begin_string += "   const array_1d<bounded_matrix<double, TNumNodes, TDim>,  (TNumNodes * TDim)> DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;\n\n"
+
+    for dim, nnodes in zip(dim_combinations, nnodes_combinations):
         
-        tangentnorm = real_norm(lmtangent.row(node))
-        for idim in range(dim):
-            tangentslave[node,idim] = lmtangent[node,idim]/tangentnorm
+        number_dof = dim * (3 * nnodes)
+
+        #Defining the unknowns
+        u1 = DefineMatrix('u1',nnodes,dim) #u1(i,j) is the current displacement of node i component j at domain 1
+        u2 = DefineMatrix('u2',nnodes,dim) #u2(i,j) is the current displacement of node i component j at domain 2
+        u1old = DefineMatrix('u1old',nnodes,dim) #u1(i,j) is the previous displacement of node i component j at domain 1
+        u2old = DefineMatrix('u2old',nnodes,dim) #u2(i,j) is the previous displacement of node i component j at domain 2
+        LM = DefineMatrix('LM',nnodes,dim)
+        # Normal and tangets of the slave
+        NormalSlave = DefineMatrix('NormalSlave',nnodes,dim)
         
-    # Defining additional variables
-    normalgap = DefineVector('normalgap',nnodes) 
-    tangentslip = DefineMatrix('tangentslip',nnodes, dim) 
-    DOperator = DefineMatrix('DOperator',nnodes,nnodes) 
-    MOperator = DefineMatrix('MOperator',nnodes,nnodes) 
-    #DOperatorold = DefineMatrix('DOperatorold',nnodes,nnodes) 
-    #MOperatorold = DefineMatrix('MOperatorold',nnodes,nnodes) 
+        # The resultant tangent
+        TangentSlave = DefineMatrix('TangentSlave',nnodes,dim)
+        
+        # Define test functions
+        w1 = DefineMatrix('w1',nnodes,dim)
+        w2 = DefineMatrix('w2',nnodes,dim)
+        wLM = DefineMatrix('wLM',nnodes,dim)
+        
+        # Defining normal and tangent components 
+        LMNormal = DefineVector('LMNormal',nnodes)
+        wLMNormal = DefineVector('wLMNormal',nnodes)
+        
+        # The resultant tangent LM
+        LMTangent = DefineMatrix('LMTangent',nnodes,dim)
+        wLMTangent = DefineMatrix('wLMTangent',nnodes,dim)
+        
+        for node in range(nnodes):
+            LMNormal[node] = LM.row(node) * NormalSlave.row(node).transpose()
+            wLMNormal[node] = wLM.row(node) * NormalSlave.row(node).transpose()
+            
+            # We calculate the LM tangent resultant
+            for idim in range(dim):
+                LMTangent[node,idim] = LM[node,idim] - LMNormal[node] * NormalSlave[node,idim]
+                wLMTangent[node,idim] = wLM[node,idim] - wLMNormal[node] * NormalSlave[node,idim]
+            
+            tangentnorm = real_norm(LMTangent.row(node))
+            for idim in range(dim):
+                TangentSlave[node,idim] = LMTangent[node,idim]/tangentnorm
+            
+        # Defining additional variables
+        NormalGap = DefineVector('NormalGap',nnodes) 
+        TangentSlip = DefineMatrix('TangentSlip',nnodes, dim) 
+        DOperator = DefineMatrix('DOperator',nnodes,nnodes) 
+        MOperator = DefineMatrix('MOperator',nnodes,nnodes) 
+        #DOperatorold = DefineMatrix('DOperatorold',nnodes,nnodes) 
+        #MOperatorold = DefineMatrix('MOperatorold',nnodes,nnodes) 
 
-    # Define other parameters
-    X1 = DefineMatrix('X1',nnodes,dim)
-    X2 = DefineMatrix('X2',nnodes,dim)
-    x1 = X1 + u1
-    x2 = X2 + u2 
-    x1old = X1 + u1old 
-    x2old = X2 + u2old 
+        # Define other parameters
+        X1 = DefineMatrix('X1',nnodes,dim)
+        X2 = DefineMatrix('X2',nnodes,dim)
+        x1 = X1 + u1
+        x2 = X2 + u2 
+        x1old = X1 + u1old 
+        x2old = X2 + u2old 
 
-    #Define other symbols
-    mu  = DefineVector('mu',nnodes) 
-    penalty_factor  = Symbol('penalty_factor',  positive=True)
-    scale_factor = Symbol('scale_factor', positive=True)
+        #Define other symbols
+        mu  = DefineVector('mu',nnodes) 
+        PenaltyFactor  = Symbol('PenaltyFactor',  positive=True)
+        ScaleFactor = Symbol('ScaleFactor', positive=True)
 
-    # Define variables list for later derivation
-    u1_var = []
-    u2_var = []
-    lm_var = []
-    CreateVariableMatrixList(u1_var, u1)
-    CreateVariableMatrixList(u2_var, u2)
-    u12_var=u1_var.copy()
-    u1_lm_var=u1_var.copy()
-    CreateVariableMatrixList(u12_var, u2)
-    CreateVariableMatrixList(lm_var, lm)
-    CreateVariableMatrixList(u1_lm_var, lm)
-    all_var=u12_var.copy()
-    CreateVariableMatrixList(all_var, lm)
+        # Define variables list for later derivation
+        u1_var = []
+        u2_var = []
+        LM_var = []
+        CreateVariableMatrixList(u1_var, u1)
+        CreateVariableMatrixList(u2_var, u2)
+        u12_var=u1_var.copy()
+        u1_LM_var=u1_var.copy()
+        CreateVariableMatrixList(u12_var, u2)
+        CreateVariableMatrixList(LM_var, LM)
+        CreateVariableMatrixList(u1_LM_var, LM)
+        all_var=u12_var.copy()
+        CreateVariableMatrixList(all_var, LM)
 
-    # Force the variables to be dependendant of the DOF
-    #normalslave = DefineDofDependencyMatrix(normalslave, u1_var)
-    DOperator = DefineDofDependencyMatrix(DOperator, u12_var) # If you consider Gitterle you need to keep the old operators
-    MOperator = DefineDofDependencyMatrix(MOperator, u12_var)
+        # Force the variables to be dependendant of the DOF
+        if normalvar == 1:
+            NormalSlave = DefineDofDependencyMatrix(NormalSlave, u1_var)
+        DOperator = DefineDofDependencyMatrix(DOperator, u12_var) # If you consider Gitterle you need to keep the old operators
+        MOperator = DefineDofDependencyMatrix(MOperator, u12_var)
 
-    # Defining the normal normalgap and tangent slip
-    Dx1Mx2 = DOperator * x1 - MOperator * x2
-    Dx1oldMx2old = DOperator * x1old - MOperator * x2old
-    Dw1Mw2 = DOperator * w1 - MOperator * w2
-    for node in range(nnodes): 
-        normalgap[node]  = Dx1Mx2.row(node) * - normalslave.row(node).transpose()
-        auxtangentslip = (Dx1oldMx2old.row(node) * tangentslave.row(node).transpose())
-        for idim in range(dim):
-            tangentslip[node,idim]  = auxtangentslip * tangentslave[node,idim]
+        # Defining the normal NormalGap and tangent slip
+        Dx1Mx2 = DOperator * x1 - MOperator * x2
+        Dx1oldMx2old = DOperator * x1old - MOperator * x2old
+        Dw1Mw2 = DOperator * w1 - MOperator * w2
+        for node in range(nnodes): 
+            NormalGap[node]  = Dx1Mx2.row(node) * - NormalSlave.row(node).transpose()
+            auxTangentSlip = (Dx1oldMx2old.row(node) * TangentSlave.row(node).transpose())
+            for idim in range(dim):
+                TangentSlip[node,idim]  = auxTangentSlip * TangentSlave[node,idim]
 
-    # Define dofs & test function vector
-    dofs = Matrix( zeros(number_dof, 1) )
-    testfunc = Matrix( zeros(number_dof, 1) )
-    count = 0
-    for i in range(0,nnodes):
-        for k in range(0,dim):
-            dofs[count] = u2[i,k]
-            testfunc[count] = w2[i,k]
-            count+=1
-    for i in range(0,nnodes):
-        for k in range(0,dim):
-            dofs[count] = u1[i,k]
-            testfunc[count] = w1[i,k]
-            count+=1
-    for i in range(0,nnodes):
-        for k in range(0,dim):
-            dofs[count] = lm[i,k]
-            testfunc[count] = wlm[i,k]
-            count+=1
-    print("dofs = ",dofs)
-    print("testfunc = ",testfunc)
+        # Define dofs & test function vector
+        dofs = Matrix( zeros(number_dof, 1) )
+        testfunc = Matrix( zeros(number_dof, 1) )
+        count = 0
+        for i in range(0,nnodes):
+            for k in range(0,dim):
+                dofs[count] = u2[i,k]
+                testfunc[count] = w2[i,k]
+                count+=1
+        for i in range(0,nnodes):
+            for k in range(0,dim):
+                dofs[count] = u1[i,k]
+                testfunc[count] = w1[i,k]
+                count+=1
+        for i in range(0,nnodes):
+            for k in range(0,dim):
+                dofs[count] = LM[i,k]
+                testfunc[count] = wLM[i,k]
+                count+=1
+        print("dofs = ",dofs)
+        print("testfunc = ",testfunc)
 
-    #############################################################################
-    #############################################################################
-    ########################## FUNCTIONAL DEFINITION ############################
-    #############################################################################
-    #############################################################################
+        #############################################################################
+        #############################################################################
+        ########################## FUNCTIONAL DEFINITION ############################
+        #############################################################################
+        #############################################################################
 
-    # We compute the augmented tangent LM
-    hatlmtangent = DefineMatrix('hatlmtangent',nnodes,dim)
-    hattangentslave = DefineMatrix('hattangentslave',nnodes,dim)
-    for node in range(nnodes):
-        for idim in range(dim):
-            hatlmtangent[node,idim] = scale_factor * lmtangent[node,idim] + tangentslip[node,idim] * penalty_factor
-    
-    # Now we can compute the resultant tangent
-    hattangentslave = hatlmtangent.copy()
-    for node in range(nnodes):
-        auxhattangentnorm = real_norm(hattangentslave.row(node))
-        for idim in range(dim):
-            hattangentslave[node,idim] /= auxhattangentnorm
+        # We compute the augmented tangent LM
+        hatLMTangent = DefineMatrix('hatLMTangent',nnodes,dim)
+        HatTangentSlave = DefineMatrix('HatTangentSlave',nnodes,dim)
+        for node in range(nnodes):
+            for idim in range(dim):
+                hatLMTangent[node,idim] = ScaleFactor * LMTangent[node,idim] + TangentSlip[node,idim] * PenaltyFactor
+        
+        # Now we can compute the resultant tangent
+        HatTangentSlave = hatLMTangent.copy()
+        for node in range(nnodes):
+            AuxHatTangentNorm = real_norm(HatTangentSlave.row(node))
+            for idim in range(dim):
+                HatTangentSlave[node,idim] /= AuxHatTangentNorm
 
-    # Compute galerkin functional # NOTE: Maybe you can define a different penalty and scale factor in the tangent direction
-    lhs_string += lhs_template_begin_string
-    rhs_string += rhs_template_begin_string
-    for node in range(nnodes):
-        for slip in range(3):
-            rv_galerkin = 0
-            if (slip == 0):  
-                rv_galerkin -=  0.5/penalty_factor * scale_factor**2.0 * lmnormal[node] * wlmnormal[node]
-                rv_galerkin -= (0.5/penalty_factor * scale_factor**2.0 * lmtangent.row(node) * wlmtangent.row(node).transpose())[0,0]
-            else:
-                rv_galerkin += ((((scale_factor * lmnormal[node] + penalty_factor * normalgap[node]) * normalslave.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
-                rv_galerkin +=  scale_factor * normalgap[node] * wlmnormal[node]
+        # Compute galerkin functional # NOTE: Maybe you can define a different penalty and scale factor in the tangent direction
+        lhs_string += lhs_template_begin_string
+        rhs_string += rhs_template_begin_string
+        for node in range(nnodes):
+            for slip in range(3):
+                rv_galerkin = 0
+                if (slip == 0):  
+                    rv_galerkin -=  0.5/PenaltyFactor * ScaleFactor**2.0 * LMNormal[node] * wLMNormal[node]
+                    rv_galerkin -= (0.5/PenaltyFactor * ScaleFactor**2.0 * LMTangent.row(node) * wLMTangent.row(node).transpose())[0,0]
+                else:
+                    rv_galerkin += ((((ScaleFactor * LMNormal[node] + PenaltyFactor * NormalGap[node]) * NormalSlave.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
+                    rv_galerkin +=  ScaleFactor * NormalGap[node] * wLMNormal[node]
+                    
+                    if (slip == 1): # Slip 
+                        rv_galerkin -= (((mu[node] * (ScaleFactor * LMNormal[node] + PenaltyFactor * NormalGap[node]) * HatTangentSlave.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
+                        rv_galerkin -=  (0.5/PenaltyFactor * ScaleFactor * (ScaleFactor * LMTangent.row(node) + mu[node] * (ScaleFactor * LMNormal[node] + PenaltyFactor * NormalGap[node]) * HatTangentSlave.row(node)) * wLMTangent.row(node).transpose())[0,0] 
+                    else: # Stick 
+                        rv_galerkin += (((ScaleFactor * LMTangent.row(node) + PenaltyFactor * TangentSlip.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
+                        rv_galerkin +=  (ScaleFactor * TangentSlip.row(node) * wLMTangent.row(node).transpose())[0,0]
+
+                if(do_simplifications):
+                    rv_galerkin = simplify(rv_galerkin)
+
+                #############################################################################
+                # Complete functional
+                rv = Matrix( zeros(1, 1) )
+                rv[0,0] = rv_galerkin 
+
+                rhs,lhs = Compute_RHS_and_LHS(rv.copy(), testfunc, dofs, False)
+                print("LHS= ",lhs.shape)
+                print("RHS= ",rhs.shape)
+                print("LHS and RHS have been created!")
+
+                lhs_out = OutputMatrix_CollectingFactorsNonZero(lhs,"lhs", mode, 1, number_dof)
+                rhs_out = OutputVector_CollectingFactorsNonZero(rhs,"rhs", mode, 1, number_dof)
+                print("Substitution strings are ready....")
+
+                if (slip == 0):
+                    lhs_string += "    \n    // NODE " + str(node) + "\n"
+                    lhs_string += "    if (this->GetGeometry()["+str(node)+"].Is(ACTIVE) == false ) // INACTIVE\n    {\n    "
+                elif (slip == 1):
+                    lhs_string += "    else if (this->GetGeometry()["+str(node)+"].Is(SLIP) == true ) // ACTIVE-SLIP\n    {\n    "
+                else:
+                    lhs_string += "    else // ACTIVE-STICK\n    {\n    "
+                    
+                lhs_string += lhs_out.replace("\n","\n    ")
+                lhs_string += "}\n"    
+            
+                if (slip == 0):
+                    rhs_string += "    \n    // NODE " + str(node) + "\n"
+                    rhs_string += "    if (this->GetGeometry()["+str(node)+"].Is(ACTIVE) == false ) // INACTIVE\n    {\n    "
+                elif (slip == 1):
+                    rhs_string += "    else if (this->GetGeometry()["+str(node)+"].Is(SLIP) == true ) // ACTIVE-SLIP\n    {\n    "
+                else:
+                    rhs_string += "    else // ACTIVE-STICK\n    {\n    "
+                rhs_string += rhs_out.replace("\n","\n    ")
+                rhs_string += "}\n"
                 
-                if (slip == 1): # Slip 
-                    rv_galerkin -= (((mu[node] * (scale_factor * lmnormal[node] + penalty_factor * normalgap[node]) * hattangentslave.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
-                    rv_galerkin -=  (0.5/penalty_factor * scale_factor * (scale_factor * lmtangent.row(node) + mu[node] * (scale_factor * lmnormal[node] + penalty_factor * normalgap[node]) * hattangentslave.row(node)) * wlmtangent.row(node).transpose())[0,0] 
-                else: # Stick 
-                    rv_galerkin += (((scale_factor * lmtangent.row(node) + penalty_factor * tangentslip.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
-                    rv_galerkin +=  (scale_factor * tangentslip.row(node) * wlmtangent.row(node).transpose())[0,0]
-
-            if(do_simplifications):
-                rv_galerkin = simplify(rv_galerkin)
-
-            #############################################################################
-            # Complete functional
-            rv = Matrix( zeros(1, 1) )
-            rv[0,0] = rv_galerkin 
-
-            rhs,lhs = Compute_RHS_and_LHS(rv.copy(), testfunc, dofs, False)
-            print("LHS= ",lhs.shape)
-            print("RHS= ",rhs.shape)
-            print("LHS and RHS have been created!")
-
-            lhs_out = OutputMatrix_CollectingFactorsNonZero(lhs,"lhs", mode, 1, number_dof)
-            rhs_out = OutputVector_CollectingFactorsNonZero(rhs,"rhs", mode, 1, number_dof)
-            print("Substitution strings are ready....")
-
-            if (slip == 0):
-                lhs_string += "    \n    // NODE " + str(node) + "\n"
-                lhs_string += "    if (this->GetGeometry()["+str(node)+"].Is(ACTIVE) == false ) // INACTIVE\n    {\n    "
-            elif (slip == 1):
-                lhs_string += "    else if (this->GetGeometry()["+str(node)+"].Is(SLIP) == true ) // ACTIVE-SLIP\n    {\n    "
-            else:
-                lhs_string += "    else // ACTIVE-STICK\n    {\n    "
+        lhs_string += lhs_template_end_string
+        rhs_string += rhs_template_end_string
                 
-            lhs_string += lhs_out.replace("\n","\n    ")
-            lhs_string += "}\n"    
-        
-            if (slip == 0):
-                rhs_string += "    \n    // NODE " + str(node) + "\n"
-                rhs_string += "    if (this->GetGeometry()["+str(node)+"].Is(ACTIVE) == false ) // INACTIVE\n    {\n    "
-            elif (slip == 1):
-                rhs_string += "    else if (this->GetGeometry()["+str(node)+"].Is(SLIP) == true ) // ACTIVE-SLIP\n    {\n    "
+        lhs_string = lhs_string.replace("TDim", str(dim))
+        lhs_string = lhs_string.replace("TNumNodes", str(nnodes))
+        lhs_string = lhs_string.replace("MatrixSize", str(lhs.shape[0]))
+        lhs_string = lhs_string.replace("TNormalVariation", normalvarstring)
+        lhs_string = lhs_string.replace("SIZEDERIVATIVES2", str(2 * (nnodes * dim)))
+
+        rhs_string = rhs_string.replace("TDim", str(dim))
+        rhs_string = rhs_string.replace("TNumNodes", str(nnodes))
+        rhs_string = rhs_string.replace("TNormalVariation", normalvarstring)
+        rhs_string = rhs_string.replace("MatrixSize", str(lhs.shape[0]))
+
+        ##############################################################################
+        ##############################################################################
+        ##################### DEFINE VARIABLES AND DERIVATIVES #######################
+        ##############################################################################
+        ##############################################################################
+
+        var_strings = []
+        var_strings_subs = []
+        var_strings_aux_subs = []
+        der_var_strings = []
+        der_var_list = []
+        der_var_used_index = []
+
+        if normalvar == 1:
+            var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list = DefineVariableLists(NormalSlave, "NormalSlave", "NormalSlave", u1_var, var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list, "matrix")
+        var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list = DefineVariableLists(DOperator, "DOperator", "DOperator", u12_var, var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list, "matrix")
+        var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list = DefineVariableLists(MOperator, "MOperator", "MOperator", u12_var, var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list, "matrix")
+
+        #############################################################################
+        ############################### SUBSTITUTION ################################
+        #############################################################################
+
+        # Replace all
+        lhs_string = lhs_string.replace("//subsvar_", "")
+        rhs_string = rhs_string.replace("//subsvar_", "")
+
+        for index in range(len(der_var_strings)):
+            if (separate_derivatives == True):
+                lhs_string = lhs_string.replace(der_var_strings[index], der_var_list[index])
+                rhs_string = rhs_string.replace(der_var_strings[index], der_var_list[index])
             else:
-                rhs_string += "    else // ACTIVE-STICK\n    {\n    "
-            rhs_string += rhs_out.replace("\n","\n    ")
-            rhs_string += "}\n"
-            
-    lhs_string += lhs_template_end_string
-    rhs_string += rhs_template_end_string
-            
-    lhs_string = lhs_string.replace("TDim", str(dim))
-    lhs_string = lhs_string.replace("TNumNodes", str(nnodes))
-    lhs_string = lhs_string.replace("MatrixSize", str(lhs.shape[0]))
-    lhs_string = lhs_string.replace("SIZEDERIVATIVES2", str(2 * (nnodes * dim)))
+                aux_out = ccode(der_var_strings_subs[index])
+                if ("// Not supported in C:") in aux_out:
+                    print("WARNING")
+                    print(der_var_strings[index])
+                    print(der_var_strings_subs[index])
+                lhs_string = lhs_string.replace(der_var_strings[index], aux_out)
+                rhs_string = rhs_string.replace(der_var_strings[index], aux_out)
+                
+        for index in range(len(var_strings)):
+            lhs_string = lhs_string.replace(var_strings[index], var_strings_subs[index])
+            rhs_string = rhs_string.replace(var_strings[index], var_strings_subs[index])
 
-    rhs_string = rhs_string.replace("TDim", str(dim))
-    rhs_string = rhs_string.replace("TNumNodes", str(nnodes))
-    rhs_string = rhs_string.replace("MatrixSize", str(lhs.shape[0]))
-
-    ##############################################################################
-    ##############################################################################
-    ##################### DEFINE VARIABLES AND DERIVATIVES #######################
-    ##############################################################################
-    ##############################################################################
-
-    var_strings = []
-    var_strings_subs = []
-    var_strings_aux_subs = []
-    der_var_strings = []
-    der_var_list = []
-    der_var_used_index = []
-
-    #var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list = DefineVariableLists(normalslave, "normalslave", "normalslave", u1_var, var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list, "matrix")
-    var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list = DefineVariableLists(DOperator, "DOperator", "DOperator", u12_var, var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list, "matrix")
-    var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list = DefineVariableLists(MOperator, "MOperator", "MOperator", u12_var, var_strings, var_strings_subs, var_strings_aux_subs, der_var_strings, der_var_list, "matrix")
-
-    #############################################################################
-    ############################### SUBSTITUTION ################################
-    #############################################################################
-
-    # Replace all
-    lhs_string = lhs_string.replace("//subsvar_", "")
-    rhs_string = rhs_string.replace("//subsvar_", "")
-
-    for index in range(len(der_var_strings)):
-        if (separate_derivatives == True):
-            lhs_string = lhs_string.replace(der_var_strings[index], der_var_list[index])
-            rhs_string = rhs_string.replace(der_var_strings[index], der_var_list[index])
-        else:
-            aux_out = ccode(der_var_strings_subs[index])
-            if ("// Not supported in C:") in aux_out:
-                print("WARNING")
-                print(der_var_strings[index])
-                print(der_var_strings_subs[index])
-            lhs_string = lhs_string.replace(der_var_strings[index], aux_out)
-            rhs_string = rhs_string.replace(der_var_strings[index], aux_out)
-            
-    for index in range(len(var_strings)):
-        lhs_string = lhs_string.replace(var_strings[index], var_strings_subs[index])
-        rhs_string = rhs_string.replace(var_strings[index], var_strings_subs[index])
-
-    lhs_string = SubstituteIndex(lhs_string, mode, number_dof)
-    rhs_string = SubstituteIndex(rhs_string, mode, number_dof)
-    lhs_string = lhs_string.replace("array[1]d", "array_1d") # Repair the definition
-    rhs_string = rhs_string.replace("array[1]d", "array_1d") # Repair the definition
+        lhs_string = SubstituteIndex(lhs_string, mode, number_dof)
+        rhs_string = SubstituteIndex(rhs_string, mode, number_dof)
+        lhs_string = lhs_string.replace("array[1]d", "array_1d") # Repair the definition
+        rhs_string = rhs_string.replace("array[1]d", "array_1d") # Repair the definition
 
 #############################################################################
 ############################### SIMPLIFICATION ##############################
 #############################################################################
 
-lhs_string = lhs_string.replace("penalty_factor", "rPenaltyFactor")
-lhs_string = lhs_string.replace("scale_factor", "rScaleFactor")
+lhs_string = lhs_string.replace("PenaltyFactor", "rPenaltyFactor")
+lhs_string = lhs_string.replace("ScaleFactor", "rScaleFactor")
 lhs_string = lhs_string.replace("pow(", "std::pow(")
 lhs_string = lhs_string.replace("sqrt(", "std::sqrt(")
-rhs_string = rhs_string.replace("penalty_factor", "rPenaltyFactor")
-rhs_string = rhs_string.replace("scale_factor", "rScaleFactor")
+rhs_string = rhs_string.replace("PenaltyFactor", "rPenaltyFactor")
+rhs_string = rhs_string.replace("ScaleFactor", "rScaleFactor")
 rhs_string = rhs_string.replace("pow(", "std::pow(")
 rhs_string = rhs_string.replace("sqrt(", "std::sqrt(")
 
-#for dof in reversed(range(len(u1_var))):
-    #lhs_string = lhs_string.replace("Deltanormalslave"+str(dof), "Deltanormalslave["+str(dof)+"]")
+for dof in reversed(range(len(u1_var))):
+    lhs_string = lhs_string.replace("DeltaNormalSlave"+str(dof), "DeltaNormalSlave["+str(dof)+"]")
 for dof in reversed(range(len(u12_var))):
     lhs_string = lhs_string.replace("DeltaDOperator"+str(dof), "DeltaDOperator["+str(dof)+"]")
 for dof in reversed(range(len(u12_var))):

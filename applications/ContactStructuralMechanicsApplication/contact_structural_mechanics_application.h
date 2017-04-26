@@ -211,9 +211,12 @@ private:
     
     // ALM Mortar contact conditions
     // Frictionless cases
-    const AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2> mALMFrictionlessMortarContactCondition2D2N;
-    const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3> mALMFrictionlessMortarContactCondition3D3N;
-    const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4> mALMFrictionlessMortarContactCondition3D4N;
+    const AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false> mALMFrictionlessMortarContactCondition2D2N;
+    const AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, true> mALMNVFrictionlessMortarContactCondition2D2N;
+    const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false> mALMFrictionlessMortarContactCondition3D3N;
+    const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true> mALMNVFrictionlessMortarContactCondition3D3N;
+    const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false> mALMFrictionlessMortarContactCondition3D4N;
+    const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true> mALMNVFrictionlessMortarContactCondition3D4N;
     // Frictional cases
     const AugmentedLagrangianMethodFrictionalMortarContactCondition<2, 2> mALMFrictionalMortarContactCondition2D2N;
 //     const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 3> mALMFrictionalMortarContactCondition3D3N;

@@ -186,7 +186,7 @@ public:
             itElem->InitializeNonLinearIteration(CurrentProcessInfo);
         }
 
-        if (rModelPart.Is(INTERACTION) == true)
+        if (CurrentProcessInfo[CONSIDER_NORMAL_VARIATION] == true)
         {
             // Update normal of the conditions
             ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart.GetSubModelPart("Contact") ); 
@@ -338,7 +338,7 @@ public:
             itElem->FinalizeNonLinearIteration(CurrentProcessInfo);
         }
 
-        if (rModelPart.Is(INTERACTION) == true)
+        if (CurrentProcessInfo[CONSIDER_NORMAL_VARIATION] == true)
         {
             // Update normal of the conditions
             ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart.GetSubModelPart("Contact") ); 
