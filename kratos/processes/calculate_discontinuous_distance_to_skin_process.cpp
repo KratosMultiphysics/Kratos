@@ -111,6 +111,7 @@ namespace Kratos
 		// This function assumes tetrahedra element and triangle intersected object as input at this moment
 		constexpr int tetrahedra_edges[6][2] = { { 0,1 },{ 1,2 },{ 2,0 },{ 0,3 },{ 1,3 },{ 2,3 } };
 		auto& element_geometry = rElement1.GetGeometry();
+		const Vector& elemental_distances = rElement1.GetValue(ELEMENTAL_DISTANCES);
 		std::array<Point<3>, 6> edge_optimum_cut_point;
 		int number_of_cut_edge = 0;
 		auto new_id = mSkinRepresentation.NumberOfNodes() + GetModelPart1().NumberOfNodes() + 1;
@@ -159,7 +160,7 @@ namespace Kratos
 				}
 			}
 		}
-		else if (number_of_cut_edge == 3) {
+		else if (number_of_cut_edge > 2) { // If there are more than 3 edges cut I would just use the first 3 to create a plane. This can be improved by using the one having the largest surface but is expensive.
 
 			mSkinRepresentation.CreateNewNode(new_id, edge_optimum_cut_point[0].X(), edge_optimum_cut_point[0].Y(), edge_optimum_cut_point[0].Z());
 			mSkinRepresentation.CreateNewNode(new_id + 1, edge_optimum_cut_point[1].X(), edge_optimum_cut_point[1].Y(), edge_optimum_cut_point[1].Z());
@@ -169,61 +170,6 @@ namespace Kratos
 			for (auto& node : rElement1.GetGeometry()) {
 				double distance = plane.CalculateSignedDistance(node);
 				node.GetSolutionStepValue(DISTANCE) = std::min(node.GetSolutionStepValue(DISTANCE), distance);
-			}
-		}
-		else if (number_of_cut_edge == 4) {
-			std::cout << "Element #" << rElement1.Id() << " has 4 cut edge " << std::endl;
-			mSkinRepresentation.CreateNewNode(new_id, edge_optimum_cut_point[0].X(), edge_optimum_cut_point[0].Y(), edge_optimum_cut_point[0].Z());
-			mSkinRepresentation.CreateNewNode(new_id + 1, edge_optimum_cut_point[1].X(), edge_optimum_cut_point[1].Y(), edge_optimum_cut_point[1].Z());
-			mSkinRepresentation.CreateNewNode(new_id + 2, edge_optimum_cut_point[2].X(), edge_optimum_cut_point[2].Y(), edge_optimum_cut_point[2].Z());
-			mSkinRepresentation.CreateNewNode(new_id + 3, edge_optimum_cut_point[3].X(), edge_optimum_cut_point[3].Y(), edge_optimum_cut_point[3].Z());
-			mSkinRepresentation.CreateNewElement("Element3D3N", new_id, { new_id, new_id + 1, new_id + 2 }, mSkinRepresentation.pGetProperties(0));
-			mSkinRepresentation.CreateNewElement("Element3D3N", new_id + 1, { new_id, new_id + 2, new_id + 3 }, mSkinRepresentation.pGetProperties(0));
-			mSkinRepresentation.CreateNewElement("Element3D3N", new_id + 2, { new_id + 1, new_id + 2, new_id + 3 }, mSkinRepresentation.pGetProperties(0));
-			mSkinRepresentation.CreateNewElement("Element3D3N", new_id + 3, { new_id , new_id + 1, new_id + 3 }, mSkinRepresentation.pGetProperties(0));
-			for (auto& node : rElement1.GetGeometry()) {
-				double distance = std::numeric_limits<double>::max();
-				for (auto& cut_point : edge_optimum_cut_point) {
-					distance = std::min(distance, norm_2(cut_point - node));
-				}
-				node.GetSolutionStepValue(DISTANCE) = distance;
-			}
-		}
-		else if (number_of_cut_edge == 5) {
-			std::cout << "Element #" << rElement1.Id() << " has 5 cut edge " << std::endl;
-			mSkinRepresentation.CreateNewNode(new_id, edge_optimum_cut_point[0].X(), edge_optimum_cut_point[0].Y(), edge_optimum_cut_point[0].Z());
-			mSkinRepresentation.CreateNewNode(new_id + 1, edge_optimum_cut_point[1].X(), edge_optimum_cut_point[1].Y(), edge_optimum_cut_point[1].Z());
-			mSkinRepresentation.CreateNewNode(new_id + 2, edge_optimum_cut_point[2].X(), edge_optimum_cut_point[2].Y(), edge_optimum_cut_point[2].Z());
-			mSkinRepresentation.CreateNewNode(new_id + 3, edge_optimum_cut_point[3].X(), edge_optimum_cut_point[3].Y(), edge_optimum_cut_point[3].Z());
-			mSkinRepresentation.CreateNewNode(new_id + 4, edge_optimum_cut_point[4].X(), edge_optimum_cut_point[4].Y(), edge_optimum_cut_point[4].Z());
-			mSkinRepresentation.CreateNewElement("Element3D3N", new_id, { new_id, new_id + 1, new_id + 2 }, mSkinRepresentation.pGetProperties(0));
-			mSkinRepresentation.CreateNewElement("Element3D3N", new_id + 1, { new_id, new_id + 2, new_id + 3 }, mSkinRepresentation.pGetProperties(0));
-			mSkinRepresentation.CreateNewElement("Element3D3N", new_id + 2, { new_id, new_id + 3, new_id + 4 }, mSkinRepresentation.pGetProperties(0));
-			for (auto& node : rElement1.GetGeometry()) {
-				double distance = std::numeric_limits<double>::max();
-				for (auto& cut_point : edge_optimum_cut_point) {
-					distance = std::min(distance, norm_2(cut_point - node));
-				}
-				node.GetSolutionStepValue(DISTANCE) = distance;
-			}
-		}
-		else if (number_of_cut_edge == 6) {
-			mSkinRepresentation.CreateNewNode(new_id, edge_optimum_cut_point[0].X(), edge_optimum_cut_point[0].Y(), edge_optimum_cut_point[0].Z());
-			mSkinRepresentation.CreateNewNode(new_id + 1, edge_optimum_cut_point[1].X(), edge_optimum_cut_point[1].Y(), edge_optimum_cut_point[1].Z());
-			mSkinRepresentation.CreateNewNode(new_id + 2, edge_optimum_cut_point[2].X(), edge_optimum_cut_point[2].Y(), edge_optimum_cut_point[2].Z());
-			mSkinRepresentation.CreateNewNode(new_id + 3, edge_optimum_cut_point[3].X(), edge_optimum_cut_point[3].Y(), edge_optimum_cut_point[3].Z());
-			mSkinRepresentation.CreateNewNode(new_id + 4, edge_optimum_cut_point[4].X(), edge_optimum_cut_point[4].Y(), edge_optimum_cut_point[4].Z());
-			mSkinRepresentation.CreateNewNode(new_id + 5, edge_optimum_cut_point[5].X(), edge_optimum_cut_point[5].Y(), edge_optimum_cut_point[5].Z());
-			mSkinRepresentation.CreateNewElement("Element3D3N", new_id, { new_id, new_id + 1, new_id + 2 }, mSkinRepresentation.pGetProperties(0));
-			mSkinRepresentation.CreateNewElement("Element3D3N", new_id + 1, { new_id, new_id + 2, new_id + 3 }, mSkinRepresentation.pGetProperties(0));
-			mSkinRepresentation.CreateNewElement("Element3D3N", new_id + 2, { new_id, new_id + 3, new_id + 4 }, mSkinRepresentation.pGetProperties(0));
-			mSkinRepresentation.CreateNewElement("Element3D3N", new_id + 3, { new_id, new_id + 4, new_id + 5 }, mSkinRepresentation.pGetProperties(0));
-			for (auto& node : rElement1.GetGeometry()) {
-				double distance = std::numeric_limits<double>::max();
-				for (auto& cut_point : edge_optimum_cut_point) {
-					distance = std::min(distance, norm_2(cut_point - node));
-				}
-				node.GetSolutionStepValue(DISTANCE) = distance;
 			}
 		}
 		else {
