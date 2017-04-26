@@ -203,12 +203,12 @@ public:
 //         MeanYoungModulusMaster /= (TotalVolumeMaster + 1.0e-12);
         
         // Finally we compute the penalty factor
-        const double PenaltyFactorSlave  = 10.0 * MeanYoungModulusSlave/MeanNodalHSlave;
+        const double PenaltyParameterSlave  = 10.0 * MeanYoungModulusSlave/MeanNodalHSlave;
         const double ScaleFactorSlave    = 10.0 * MeanYoungModulusSlave/MeanNodalHSlave;
-        const double PenaltyFactorMaster = 0.0;//10.0 * MeanYoungModulusMaster/MeanNodalHMaster;
+        const double PenaltyParameterMaster = 0.0;//10.0 * MeanYoungModulusMaster/MeanNodalHMaster;
         const double ScaleFactorMaster   = 0.0;//10.0 * MeanYoungModulusMaster/MeanNodalHMaster; 
         
-        mrThisModelPart.GetProcessInfo()[PENALTY_FACTOR] = (PenaltyFactorSlave > PenaltyFactorMaster) ? PenaltyFactorSlave : PenaltyFactorMaster;
+        mrThisModelPart.GetProcessInfo()[PENALTY_PARAMETER] = (PenaltyParameterSlave > PenaltyParameterMaster) ? PenaltyParameterSlave : PenaltyParameterMaster;
         mrThisModelPart.GetProcessInfo()[SCALE_FACTOR]   = (ScaleFactorSlave > ScaleFactorMaster) ? ScaleFactorSlave : ScaleFactorMaster;
         
         KRATOS_CATCH("");

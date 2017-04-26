@@ -162,7 +162,7 @@ KRATOS_DEFINE_VARIABLE( bool, AUXILIAR_ACTIVE )                                /
 KRATOS_DEFINE_VARIABLE( bool, AUXILIAR_SLIP )                                  // Auxiliar boolean to check if the node is stick or not
 
 /* For ALM mortar condition */
-KRATOS_DEFINE_VARIABLE( double, PENALTY_FACTOR )                               // The penalty factor for the ALM
+KRATOS_DEFINE_VARIABLE( double, PENALTY_PARAMETER )                               // The penalty factor for the ALM
 KRATOS_DEFINE_VARIABLE( double, SCALE_FACTOR )                                 // The scale factor for the ALM
 KRATOS_DEFINE_VARIABLE( double, TANGENT_FACTOR )                               // The proportion between the tangent and normal penalty
 KRATOS_DEFINE_VARIABLE( bool, CONSIDER_NORMAL_VARIATION )                      // A value used to check if consider normal variation or not

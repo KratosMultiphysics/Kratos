@@ -968,7 +968,7 @@ public:
     
     static inline void ReComputeActiveInactiveFrictionlessALM(ModelPart & rModelPart)
     {        
-        const double epsilon = rModelPart.GetProcessInfo()[PENALTY_FACTOR]; 
+        const double epsilon = rModelPart.GetProcessInfo()[PENALTY_PARAMETER]; 
         const double k = rModelPart.GetProcessInfo()[SCALE_FACTOR]; 
         
         NodesArrayType& pNodes = rModelPart.GetSubModelPart("Contact").Nodes();
@@ -1031,7 +1031,7 @@ public:
 
     static inline void ReComputeActiveInactiveFrictionalALM(ModelPart & rModelPart)
     {
-        const double epsilon = rModelPart.GetProcessInfo()[PENALTY_FACTOR]; 
+        const double epsilon = rModelPart.GetProcessInfo()[PENALTY_PARAMETER]; 
         const double k = rModelPart.GetProcessInfo()[SCALE_FACTOR]; 
         
         NodesArrayType& pNodes = rModelPart.GetSubModelPart("Contact").Nodes();

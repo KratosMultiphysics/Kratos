@@ -86,7 +86,7 @@ public:
     GeometryType MasterGeometry;
     
     // The ALM parameters
-    double PenaltyFactor;
+    double PenaltyParameter;
     double ScaleFactor;
     
     // The normals of the nodes
@@ -136,7 +136,7 @@ public:
         X1 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(SlaveGeometry, false);
         
         // We get the ALM variables
-        PenaltyFactor = rCurrentProcessInfo[PENALTY_FACTOR];
+        PenaltyParameter = rCurrentProcessInfo[PENALTY_PARAMETER];
         ScaleFactor = rCurrentProcessInfo[SCALE_FACTOR];
         
         // Derivatives 

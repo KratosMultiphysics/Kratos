@@ -152,13 +152,13 @@ class ALMContactProcess(KratosMultiphysics.Process):
             scale_factor = self.params["scale_factor"].GetDouble()
             
             # We set the values in the process info
-            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.PENALTY_FACTOR] = penalty
+            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.PENALTY_PARAMETER] = penalty
             self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.SCALE_FACTOR]   = scale_factor
             
         # We print the parameters considered
         print("The parameters considered finally are: ")
-        print("PENALTY FACTOR: ", self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.PENALTY_FACTOR])
-        print("SCALE_FACTOR: ", self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.PENALTY_FACTOR])
+        print("PENALTY FACTOR: ", self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.PENALTY_PARAMETER])
+        print("SCALE_FACTOR: ", self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.PENALTY_PARAMETER])
             
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(computing_model_part)
