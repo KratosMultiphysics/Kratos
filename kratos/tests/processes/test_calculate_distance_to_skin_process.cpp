@@ -41,7 +41,7 @@ namespace Kratos {
 
       Parameters mesher_parameters(R"(
             {
-                "number_of_divisions":   10,
+                "number_of_divisions":   8,
                 "element_name":     "Element3D4N"
             })");
 
@@ -69,9 +69,13 @@ namespace Kratos {
       // TODO: Change the tested process as soon as the new distance process is available
 	  CalculateDiscontinuousDistanceToSkinProcess process(volume_part, skin_part);
 	  process.Execute();
-	  ModelPart& skin_rpresentation_part = process.GetSkinRepresentation();
-	  KRATOS_WATCH(skin_rpresentation_part);
-	  CalculateSignedDistanceTo3DSkinProcess(skin_part, volume_part).Execute();
+	  //ModelPart& skin_rpresentation_part = process.GetSkinRepresentation();
+	  //KRATOS_WATCH(skin_rpresentation_part);
+	  CalculateSignedDistanceTo3DSkinProcess sign_distance_process(skin_part, volume_part);
+	  //sign_distance_process.Execute();
+	  ModelPart skin_rpresentation_part;
+	  sign_distance_process.GenerateSkinModelPart(skin_rpresentation_part);
+	  
 
        GidIO<> gid_io_fluid("C:/Temp/Tests/distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
        gid_io_fluid.InitializeMesh(0.00);

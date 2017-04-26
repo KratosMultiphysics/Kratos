@@ -1545,7 +1545,7 @@ public:
             i_fluid_element != mrFluidModelPart.ElementsEnd();
             i_fluid_element++)
         {
-            bool is_split = i_fluid_element->GetValue(SPLIT_ELEMENT);
+            bool is_split = i_fluid_element->Is(TO_SPLIT);
             if(is_split == true)
             {
                 const Vector& distances = i_fluid_element->GetValue(ELEMENTAL_DISTANCES);
