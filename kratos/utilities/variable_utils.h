@@ -132,6 +132,30 @@ public:
     }
 
     /**
+     * Sets the nodal value of a scalar variable
+     * @param rFlag: flag to be set
+     * @param rFlagValue: flag value to be set
+     * @param rContainer: reference to the objective container
+     */
+    template< class TContainerType >
+    void SetFlag(const Flags& rFlag,
+                 const bool& rFlagValue,
+                 TContainerType& rContainer)
+    {
+        KRATOS_TRY
+
+        typedef typename TContainerType::iterator        TIteratorType;
+
+        #pragma omp parallel for
+        for (int k = 0; k< static_cast<int> (rContainer.size()); k++)
+        {
+            TIteratorType i = rContainer.begin() + k;
+            i->Set(rFlag, rFlagValue);
+        }
+        KRATOS_CATCH("")
+    }
+
+    /**
      * Takes the value of a non-historical vector variable and sets it in other variable
      * @param OriginVariable: reference to the origin vector variable
      * @param SavedVariable: reference to the destination vector variable
