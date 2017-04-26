@@ -434,18 +434,29 @@ public:
     }
 
     /**
-     * This function calculates the normal of a condition
+     * This function calculates the normal and tangents of a condition
      * @param Cond: The pointer to the condition of interest
      */
 
     static inline void ConditionNormal(Condition::Pointer pCond)
     {
-        // TODO: Add calculation of normal to geometry.h 
         array_1d<double,3> & Normal     = pCond->GetValue(NORMAL);
         array_1d<double,3> & TangentXi  = pCond->GetValue(TANGENT_XI);
         array_1d<double,3> & TangentEta = pCond->GetValue(TANGENT_ETA);
         
         GeometryNormal(Normal, TangentXi, TangentEta, pCond->GetGeometry());
+    }
+    
+    /**
+     * This function calculates the normal of a condition
+     * @param Cond: The pointer to the condition of interest
+     */
+
+    static inline void FastConditionNormal(Condition::Pointer pCond)
+    {
+        array_1d<double,3> & Normal = pCond->GetValue(NORMAL); // TODO: Add calculation of normal to geometry.h 
+        
+        GeometryNormal(Normal, pCond->GetGeometry());
     }
 
     /**
@@ -579,6 +590,87 @@ public:
         for(unsigned int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
+            itNode->GetValue(NODAL_AREA)      = 0.0;
+            noalias(itNode->GetValue(NORMAL)) = ZeroVect;
+        }
+        
+        // Sum all the nodes normals
+        ConditionsArrayType& pCond = rModelPart.Conditions();
+        auto numConditions = pCond.end() - pCond.begin();
+        
+        #pragma omp parallel for
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCond = pCond.begin() + i;
+            
+            if (itCond->Is(SLAVE) || itCond->Is(MASTER) || itCond->Is(ACTIVE))
+            {
+                FastConditionNormal(*(itCond.base()));
+                
+                const unsigned int NumberNodes = itCond->GetGeometry().PointsNumber();
+                const double & rArea = itCond->GetGeometry().Area()/NumberNodes;
+                const array_1d<double, 3> & rNormal = itCond->GetValue(NORMAL);
+                
+                for (unsigned int i = 0; i < NumberNodes; i++)
+                {
+                    #pragma omp atomic
+                    itCond->GetGeometry()[i].GetValue(NODAL_AREA)        += rArea;
+                    #pragma omp critical
+                    noalias( itCond->GetGeometry()[i].GetValue(NORMAL) ) += rArea * rNormal;
+                }
+            }
+        }
+        
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+
+            const double TotalArea = itNode->GetValue(NODAL_AREA);
+            if (TotalArea > Tolerance)
+            {
+                itNode->GetValue(NORMAL) /= TotalArea;
+            }
+        }
+        
+        // Applied laziness - MUST be calculated BEFORE normalizing the normals
+        ComputeDeltaNodesMeanNormalModelPart( rModelPart ); 
+
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+
+            const double NormNormal = norm_2(itNode->GetValue(NORMAL));
+            
+            if (NormNormal > Tolerance)
+            {
+                itNode->GetValue(NORMAL) /= NormNormal;
+            }
+        }
+    }
+    
+    /**
+     * It computes the mean of the normal and tangent in the condition in all the nodes
+     * @param ModelPart: The model part to compute
+     * @return The modelparts with the normal computed
+     */
+    
+    static inline void ComputeNodesMeanNormalAndTangentModelPart(ModelPart & rModelPart) 
+    {
+        // Tolerance
+        const double Tolerance = std::numeric_limits<double>::epsilon();
+
+        // Initialize normal vectors
+        const array_1d<double,3> ZeroVect = ZeroVector(3);
+        
+        NodesArrayType& pNode = rModelPart.Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
             itNode->GetValue(NODAL_AREA)           = 0.0;
             noalias(itNode->GetValue(NORMAL))      = ZeroVect;
             noalias(itNode->GetValue(TANGENT_XI))  = ZeroVect; 
@@ -595,7 +687,6 @@ public:
             auto itCond = pCond.begin() + i;
             
             if (itCond->Is(SLAVE) || itCond->Is(MASTER) || itCond->Is(ACTIVE))
-//             if (itCond->Is(ACTIVE) || itCond->Is(MASTER)) // NOTE: This can produce troubles, nodal normals are affected by the neighbour conditions (which can be innactive, think about search for neightbour conditions first)
             {
                 ConditionNormal(*(itCond.base()));
                 
@@ -632,9 +723,6 @@ public:
                 itNode->GetValue(TANGENT_ETA) /= TotalArea;
             }
         }
-        
-//         // Applied laziness - MUST be calculated BEFORE normalizing the normals
-//         ComputeDeltaNodesMeanNormalModelPart( rModelPart ); // NOTE: The area pondering?, after or before
 
         #pragma omp parallel for 
         for(unsigned int i = 0; i < numNodes; i++) 

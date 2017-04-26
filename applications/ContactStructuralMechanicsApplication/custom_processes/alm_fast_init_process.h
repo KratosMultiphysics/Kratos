@@ -139,8 +139,6 @@ public:
             
             // The normal and tangents vectors
             itNode->GetValue(NORMAL)      = zerovector;
-            itNode->GetValue(TANGENT_XI)  = zerovector;
-            itNode->GetValue(TANGENT_ETA) = zerovector;
         }
         
         // Now we iterate over the conditions
@@ -154,8 +152,6 @@ public:
             
             // The normal and tangents vectors
             itCond->GetValue(NORMAL)      = zerovector;
-            itCond->GetValue(TANGENT_XI)  = zerovector;
-            itCond->GetValue(TANGENT_ETA) = zerovector;
         }
 
         KRATOS_CATCH("");

@@ -1497,81 +1497,15 @@ bounded_matrix<double, TDim, TDim> AugmentedLagrangianMethodMortarContactConditi
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional> // NOTE: Formulation taken from Mohamed Khalil work
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaNormalSlave(DerivativeDataType& rDerivativeData)
 {
-    if (TDim == 2) // TODO: Use explicit 
+    for ( unsigned int iSlave = 0, i = 0; iSlave < TNumNodes; ++iSlave, i += TDim )
     {
-        for ( unsigned int iSlave = 0, i = 0; iSlave < TNumNodes; ++iSlave, i += TDim )
+        bounded_matrix<double, TDim, TDim> DeltaNormal = GetGeometry()[iSlave].GetValue(DELTA_NORMAL);
+//         bounded_matrix<double, TDim, TDim> DeltaNormal = this->LocalDeltaNormal(GetGeometry(), iSlave);
+        for (unsigned iDoF = 0; iDoF < TDim; iDoF++) 
         {
-//             bounded_matrix<double, 2, 2> DeltaNormal = GetGeometry()[iSlave].GetValue(DELTA_NORMAL);
-            bounded_matrix<double, 2, 2> DeltaNormal = this->LocalDeltaNormal(GetGeometry(), iSlave);
-            for (unsigned iDoF = 0; iDoF < TDim; iDoF++) 
+            for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
             {
-                for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
-                {
-                    row(rDerivativeData.DeltaNormalSlave[iSlave * TDim + iDoF], iNode) = trans(column(DeltaNormal, iDoF)); 
-                }
-            }
-        }
-    }
-    else
-    {
-        for ( unsigned int iSlave = 0, i = 0; iSlave < TNumNodes; ++iSlave, i += TDim )
-        {
-//             bounded_matrix<double, 3, 3> DeltaNormal = GetGeometry()[iSlave]->GetValue(DELTA_NORMAL);
-            const bounded_matrix<double, 3, 3> DeltaNormal = this->LocalDeltaNormal(this->GetGeometry(), iSlave);
-            
-            // Calculate nodal tangents
-            
-            const MatrixType I = IdentityMatrix( TDim, TDim );
-            
-            array_1d<double, 2> DNDej;
-            if( TNumNodes == 3 )    // linear triangle element // TODO: Use an enum
-            {
-                if( iSlave == 0 )
-                {
-                    DNDej[0] = -1.0;
-                    DNDej[1] = -1.0;
-                }
-                else if( iSlave == 1 )
-                {
-                    DNDej[0] = 1.0;
-                    DNDej[1] = 0.0;
-                }
-                else // iSlave == 2
-                {
-                    DNDej[0] = 0.0;
-                    DNDej[1] = 1.0;
-                }
-            }
-            else if( TNumNodes == 4 )    // linear quad element 
-            {
-                if( iSlave == 0 )
-                {
-                    DNDej[0] = -0.5;
-                    DNDej[1] = -0.5;
-                }
-                else if( iSlave == 1 )
-                {
-                    DNDej[0] =  0.5;
-                    DNDej[1] = -0.5;
-                }
-                else if( iSlave == 2 )
-                {
-                    DNDej[0] =  0.5;
-                    DNDej[1] =  0.5;
-                }
-                else // iSlave == 3
-                {
-                    DNDej[0] = -0.5;
-                    DNDej[1] =  0.5;
-                }
-            }
-            
-            for (unsigned iDoF = 0; iDoF < TDim; iDoF++) 
-            {
-                for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
-                {
-                    row(rDerivativeData.DeltaNormalSlave[iSlave * TDim + iDoF], iNode) = trans(column(DeltaNormal, iDoF)); 
-                }
+                row(rDerivativeData.DeltaNormalSlave[iSlave * TDim + iDoF], iNode) = trans(column(DeltaNormal, iDoF)); 
             }
         }
     }
@@ -1583,33 +1517,15 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional> // NOTE: Formulation taken from Mohamed Khalil work
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaNormalMaster(DerivativeDataType& rDerivativeData)
 {
-    if (TDim == 2)
+    for ( unsigned int i_master = 0, i = 0; i_master < TNumNodes; ++i_master, i += TDim )
     {
-        for ( unsigned int i_master = 0, i = 0; i_master < TNumNodes; ++i_master, i += TDim )
+//         bounded_matrix<double, TDim, TDim> DeltaNormal = GetGeometry[i_master].GetValue(DELTA_NORMAL);
+        bounded_matrix<double, TDim, TDim> DeltaNormal = this->LocalDeltaNormal(rDerivativeData.MasterGeometry, i_master);
+        for (unsigned iDoF = 0; iDoF < TDim; iDoF++) 
         {
-//             bounded_matrix<double, 2, 2> DeltaNormal = GetGeometry[i_master].GetValue(DELTA_NORMAL);
-            bounded_matrix<double, 2, 2> DeltaNormal = this->LocalDeltaNormal(rDerivativeData.MasterGeometry, i_master);
-            for (unsigned iDoF = 0; iDoF < TDim; iDoF++) 
+            for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
             {
-                for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
-                {
-                    row(rDerivativeData.DeltaNormalMaster[i_master * TDim + iDoF], iNode) = trans(column(DeltaNormal, iDoF)); 
-                }
-            }
-        }
-    }
-    else
-    {
-        for ( unsigned int i_master = 0, i = 0; i_master < TNumNodes; ++i_master, i += TDim )
-        {
-//             bounded_matrix<double, 3, 3> DeltaNormal = GetGeometry[i_master]->GetValue(DELTA_NORMAL);
-            const bounded_matrix<double, 3, 3> DeltaNormal = this->LocalDeltaNormal(rDerivativeData.MasterGeometry, i_master);
-            for (unsigned iDoF = 0; iDoF < TDim; iDoF++) 
-            {
-                for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
-                {
-                    row(rDerivativeData.DeltaNormalMaster[i_master * TDim + iDoF], iNode)  = trans(column(DeltaNormal, iDoF)); 
-                }
+                row(rDerivativeData.DeltaNormalMaster[i_master * TDim + iDoF], iNode) = trans(column(DeltaNormal, iDoF)); 
             }
         }
     }
