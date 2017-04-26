@@ -132,7 +132,7 @@ public:
     }
 
     /**
-     * Sets the nodal value of a scalar variable
+     * Sets a flag according to a given status over a given container
      * @param rFlag: flag to be set
      * @param rFlagValue: flag value to be set
      * @param rContainer: reference to the objective container
@@ -144,7 +144,7 @@ public:
     {
         KRATOS_TRY
 
-        typedef typename TContainerType::iterator        TIteratorType;
+        typedef typename TContainerType::iterator TIteratorType;
 
         #pragma omp parallel for
         for (int k = 0; k< static_cast<int> (rContainer.size()); k++)
