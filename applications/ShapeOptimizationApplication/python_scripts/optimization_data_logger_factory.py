@@ -24,6 +24,7 @@ import os
 
 from design_logger_gid import DesignLoggerGID
 from design_logger_unv import DesignLoggerUNV
+from design_logger_vtk import DesignLoggerVTK
 
 from response_logger_steepest_descent import ResponseLoggerSteepestDescent
 from response_logger_penalized_projection import ResponseLoggerPenalizedProjection
@@ -54,7 +55,9 @@ def createDesignLogger( designSurface, optimizationSettings):
     if outputFormatName == "gid":
         return DesignLoggerGID( designSurface, optimizationSettings )
     if outputFormatName == "unv":
-        return DesignLoggerUNV( designSurface, optimizationSettings )        
+        return DesignLoggerUNV( designSurface, optimizationSettings )  
+    if outputFormatName == "vtk":
+        return DesignLoggerVTK( designSurface, optimizationSettings )                
     else:
         raise NameError("The following output format is not supported by the design logger (name may be misspelled): " + outputFormatName)
 
