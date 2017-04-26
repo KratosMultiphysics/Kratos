@@ -160,6 +160,8 @@ virtual double GetInteractionRadius(const int radius_index = 0);
 virtual void SetInteractionRadius(const double radius, const int radius_index = 0);
 virtual double GetSearchRadius();
 virtual double GetSearchRadiusWithFem();
+DEMDiscontinuumConstitutiveLaw::Pointer GetConstitutiveLawPointer();
+virtual void SetDefaultRadiiHierarchy(const double radius);
 virtual void SetSearchRadius(const double radius);
 virtual void SetSearchRadiusWithFem(const double radius);
 virtual double GetMass();

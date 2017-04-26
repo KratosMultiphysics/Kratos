@@ -128,8 +128,6 @@ class FaceHistoryDatabase // It holds the historical information gathered for a 
         ++mNCrossings;
         mNSignedCrossings = mNSignedCrossings + Sign(normal_vel);
         mMass += mass * Sign(normal_vel);
-        KRATOS_WATCH(mNSignedCrossings)
-        KRATOS_WATCH(mMass)
         mTimes.push_back(time);
         mId2.push_back(id2);
         mMasses.push_back(mass * Sign(normal_vel));
