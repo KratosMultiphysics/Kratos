@@ -240,6 +240,7 @@ void  AddContainersToPython()
     ;
 
     class_<VariableData>( "VariableData", no_init )
+    .def("Name", &VariableData::Name, return_value_policy<copy_const_reference>())
     .def( self_ns::str( self ) )
     ;
 
