@@ -45,9 +45,7 @@ namespace Kratos
 
 /** @brief Custom convergence criteria for the mortar condition 
  */
-template<class TSparseSpace,
-         class TDenseSpace
-         >
+template<class TSparseSpace, class TDenseSpace>
 class MortarConvergenceCriteria : public virtual  ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
@@ -102,6 +100,8 @@ public:
      * @param 
      * @return 
      */
+    
+
     bool PostCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
@@ -110,8 +110,12 @@ public:
         const TSystemVectorType& b
     )
     {
+        // First we check if we are in the frictional case
+        const bool FrictionalCase = rModelPart.Is(SLIP);
+            
         if (mInitialPreviousState == false)
-        {
+        {            
+            // We iterate over the nodes
             NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
             
             auto numNodes = pNode.end() - pNode.begin();
@@ -120,33 +124,23 @@ public:
             for(unsigned int i = 0; i < numNodes; i++) 
             {
                 auto itNode = pNode.begin() + i;
-                if (itNode->Is(ACTIVE))
+ 
+                itNode->SetValue(AUXILIAR_ACTIVE, itNode->Is(ACTIVE));
+
+                if (FrictionalCase == true)
                 {
-                    itNode->GetValue(AUXILIAR_ACTIVE) = true;
+                    itNode->SetValue(AUXILIAR_SLIP, itNode->Is(SLIP));
                 }
-                else
-                {
-                    itNode->GetValue(AUXILIAR_ACTIVE) = false;
-                }
-                
-                if (itNode->Is(SLIP))
-                {
-                    itNode->GetValue(AUXILIAR_SLIP) = true;
-                }
-                else
-                {
-                    itNode->GetValue(AUXILIAR_SLIP) = false;
-                }
+
             }
             
             mInitialPreviousState = true;
             return false;
         }
         
-        bool IsConverged       = true;
-        bool ActiveIsConverged = true;
-        bool SlipIsConverged   = true;
+        bool IsConverged = true;
         
+        // We iterate again over the nodes
         NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
         
         auto numNodes = pNode.end() - pNode.begin();
@@ -157,84 +151,70 @@ public:
             auto itNode = pNode.begin() + i;
 
             // NORMAL DIRECTION
-            bool AuxBoolNormal;
-            if (itNode->Is(ACTIVE))
-            {
-                AuxBoolNormal = true;
-            }
-            else
-            {
-                AuxBoolNormal = false;
-            }
-            if (itNode->GetValue(AUXILIAR_ACTIVE) != AuxBoolNormal)
+            if (itNode->GetValue(AUXILIAR_ACTIVE) != itNode->Is(ACTIVE))
             {                            
-                itNode->GetValue(AUXILIAR_ACTIVE) = AuxBoolNormal;
-                ActiveIsConverged = false;
+                itNode->SetValue(AUXILIAR_ACTIVE, itNode->Is(ACTIVE));
+                #pragma omp critical
+                IsConverged = false;
             }
             
-            // TANGENT DIRECTION
-            bool AuxBoolTangent;
-            if (itNode->Is(SLIP))
+            if (FrictionalCase == true)
             {
-                AuxBoolTangent = true;
+                // TANGENT DIRECTION
+                if (itNode->GetValue(AUXILIAR_SLIP) != itNode->Is(SLIP))
+                {                            
+                    itNode->SetValue(AUXILIAR_SLIP, itNode->Is(SLIP));
+                    #pragma omp critical
+                    IsConverged = false;
+                }
             }
-            else
-            {
-                AuxBoolTangent = false;
-            }
-            if (itNode->GetValue(AUXILIAR_SLIP) != AuxBoolTangent)
-            {                            
-                itNode->GetValue(AUXILIAR_SLIP) = AuxBoolTangent;
-                SlipIsConverged = false;
-            }
-            
-            IsConverged = ActiveIsConverged && SlipIsConverged;
         }
         
         if (this->GetEchoLevel() > 0)
         {
             if (IsConverged == true)
             {
-                std::cout << "Convergence is achieved in ACTIVE/INACTIVE and STICK/SLIP mortar nodes check" << std::endl;
-            }
-            else if ((not ActiveIsConverged && SlipIsConverged ) == true)
-            {
-                std::cout << "Convergence is not achieved in ACTIVE/INACTIVE mortar nodes check. RECALCULATING...." << std::endl;
-            }
-            else if ((ActiveIsConverged && not SlipIsConverged ) == true)
-            {
-                std::cout << "Convergence is not achieved in STICK/SLIP mortar nodes check. RECALCULATING...." << std::endl;
+                if (FrictionalCase == true)
+                {
+                    std::cout << "Convergence is achieved in ACTIVE/INACTIVE mortar nodes check" << std::endl;
+                }
+                else
+                {
+                    std::cout << "Convergence is achieved in ACTIVE/INACTIVE and STICK/SLIP mortar nodes check" << std::endl;
+                }
             }
             else
             {
-                std::cout << "Convergence is not achieved in ACTIVE/INACTIVE and STICK/SLIP mortar nodes check. RECALCULATING...." << std::endl;
+                if (FrictionalCase == true)
+                {
+                    std::cout << "Convergence is not achieved in ACTIVE/INACTIVE and STICK/SLIP mortar nodes check. RECALCULATING...." << std::endl;
+                }
+                else
+                {
+                    std::cout << "Convergence is not achieved in ACTIVE/INACTIVE mortar nodes check. RECALCULATING...." << std::endl;
+                }
             }
         }
         
         return IsConverged;
     }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
     
     /**
-     * This function 
-     * @param 
-     * @return 
+     * This function initialize the convergence criteria
+     * @param rModelPart: The model part of interest
      */ 
+    
     void Initialize(ModelPart& rModelPart)
     {
         BaseType::mConvergenceCriteriaIsInitialized = true;
     }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
     
     /**
      * This function 
      * @param 
      * @return 
      */
+    
     void InitializeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
@@ -245,22 +225,23 @@ public:
     {
         mInitialPreviousState = false;        
     }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
     
     /**
      * This function 
      * @param 
      * @return 
      */
+    
     void FinalizeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    ) {}
+    ) 
+    {
+        
+    }
 
     ///@}
     ///@name Operations
@@ -345,6 +326,8 @@ private:
 
 }; // Class ClassName 
 
+///@name Explicit Specializations
+///@{
 
 }  // namespace Kratos 
 
