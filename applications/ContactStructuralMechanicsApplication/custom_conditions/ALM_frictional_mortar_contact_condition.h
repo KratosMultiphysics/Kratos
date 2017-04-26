@@ -64,6 +64,9 @@ public:
     Type2 u1old;
     Type2 u2old;
     
+    // The tangent factor for the ALM parameters
+    double TangentFactor;
+    
     // Default destructor
     ~FrictionalDerivativeData(){}
     
@@ -72,9 +75,15 @@ public:
      * @param  GeometryInput: The geometry of the slave 
      */
     
-    void Initialize(const GeometryType& GeometryInput) override
+    void Initialize(
+        const GeometryType& GeometryInput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
     {        
         BaseType::Initialize(GeometryInput);
+        
+        // We get the ALM variables
+        TangentFactor = rCurrentProcessInfo[TANGENT_FACTOR];
         
         u1old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), DISPLACEMENT, 1);
     }
@@ -269,8 +278,6 @@ protected:
     bounded_matrix<double, MatrixSize, MatrixSize> CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DerivativeDataType& rDerivativeData,
-        const double& rPenaltyFactor,
-        const double& rScaleFactor,
         const unsigned int& rActiveInactive
         ) override;
     
@@ -281,8 +288,6 @@ protected:
     array_1d<double, MatrixSize> CalculateLocalRHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DerivativeDataType& rDerivativeData,
-        const double& rPenaltyFactor,
-        const double& rScaleFactor,
         const unsigned int& rActiveInactive
         ) override;
         

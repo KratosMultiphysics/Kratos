@@ -61,8 +61,6 @@ template<>
 bounded_matrix<double, 12, 12> AugmentedLagrangianMethodFrictionalMortarContactCondition<2,2>::CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DerivativeDataType& rDerivativeData,
-        const double& rPenaltyFactor,
-        const double& rScaleFactor,
         const unsigned int& rActiveInactive
         )
 {
@@ -82,8 +80,6 @@ template<>
 array_1d<double, 12> AugmentedLagrangianMethodFrictionalMortarContactCondition<2,2>::CalculateLocalRHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DerivativeDataType& rDerivativeData,
-        const double& rPenaltyFactor,
-        const double& rScaleFactor,
         const unsigned int& rActiveInactive
         )
 {

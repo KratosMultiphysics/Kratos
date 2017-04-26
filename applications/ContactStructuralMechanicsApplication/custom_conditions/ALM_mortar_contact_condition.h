@@ -85,6 +85,10 @@ public:
     GeometryType SlaveGeometry;
     GeometryType MasterGeometry;
     
+    // The ALM parameters
+    double PenaltyFactor;
+    double ScaleFactor;
+    
     // The normals of the nodes
     Type2 NormalMaster;
     Type2 NormalSlave;
@@ -117,7 +121,10 @@ public:
      * @param  GeometryInput: The geometry of the slave 
      */
     
-    virtual void Initialize(const GeometryType& GeometryInput)
+    virtual void Initialize(
+        const GeometryType& GeometryInput,
+        const ProcessInfo& rCurrentProcessInfo
+        )
     {
         SlaveGeometry  = GeometryInput;
         
@@ -127,6 +134,10 @@ public:
         // Displacements and velocities of the slave       
         u1 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 0);
         X1 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(SlaveGeometry, false);
+        
+        // We get the ALM variables
+        PenaltyFactor = rCurrentProcessInfo[PENALTY_FACTOR];
+        ScaleFactor = rCurrentProcessInfo[SCALE_FACTOR];
         
         // Derivatives 
         for (unsigned int i = 0; i < TNumNodes * TDim; i++)
@@ -849,8 +860,6 @@ protected:
     virtual bounded_matrix<double, MatrixSize, MatrixSize> CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DerivativeDataType& rDerivativeData,
-        const double& rPenaltyFactor,
-        const double& rScaleFactor,
         const unsigned int& rActiveInactive
         );
     
@@ -881,8 +890,6 @@ protected:
     virtual array_1d<double, MatrixSize> CalculateLocalRHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DerivativeDataType& rDerivativeData,
-        const double& rPenaltyFactor,
-        const double& rScaleFactor,
         const unsigned int& rActiveInactive
         );
     

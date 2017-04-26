@@ -37,12 +37,12 @@ def real_norm(input):
     return output
 
 lhs_string = ""
-lhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\nbounded_matrix<double, MatrixSize, MatrixSize> AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes, TNormalVariation>::CalculateLocalLHS(\n        const MortarConditionMatrices& rMortarConditionMatrices,\n        const DerivativeDataType& rDerivativeData,\n        const double& PenaltyFactor,\n        const double& ScaleFactor,\n        const unsigned int& rActiveInactive\n        )\n{\n    bounded_matrix<double,MatrixSize,MatrixSize> lhs = ZeroMatrix(MatrixSize,MatrixSize);\n\n    // Initialize values\n    const bounded_matrix<double, TNumNodes, TDim> u1 = rDerivativeData.u1;\n    const bounded_matrix<double, TNumNodes, TDim> u1old = rDerivativeData.u1old;\n    const bounded_matrix<double, TNumNodes, TDim> u2 = rDerivativeData.u2;\n    const bounded_matrix<double, TNumNodes, TDim> u2old = rDerivativeData.u2old;\n    const bounded_matrix<double, TNumNodes, TDim> X1 = rDerivativeData.X1;\n    const bounded_matrix<double, TNumNodes, TDim> X2 = rDerivativeData.X2;\n    \n    const bounded_matrix<double, TNumNodes, TDim> LM = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); \n    \n    const bounded_matrix<double, TNumNodes, TDim> NormalSlave = DerivativeData.NormalSlave;\n    \n    // Mortar operators\n    const bounded_matrix<double, TNumNodes, TNumNodes> MOperator = rMortarConditionMatrices.MOperator;\n    const bounded_matrix<double, TNumNodes, TNumNodes> DOperator = rMortarConditionMatrices.DOperator;\n    // Mortar operators derivatives\n    const array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2> DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;\n    const array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2> DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;\n\n    // We get the friction coefficient\n    const array_1d<double, TNumNodes> mu = GetFrictionCoefficient();\n\n"
+lhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\nbounded_matrix<double, MatrixSize, MatrixSize> AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes, TNormalVariation>::CalculateLocalLHS(\n        const MortarConditionMatrices& rMortarConditionMatrices,\n        const DerivativeDataType& rDerivativeData,\n        const unsigned int& rActiveInactive\n        )\n{\n    bounded_matrix<double,MatrixSize,MatrixSize> lhs = ZeroMatrix(MatrixSize,MatrixSize);\n\n    // Initialize values\n    const bounded_matrix<double, TNumNodes, TDim> u1 = rDerivativeData.u1;\n    const bounded_matrix<double, TNumNodes, TDim> u1old = rDerivativeData.u1old;\n    const bounded_matrix<double, TNumNodes, TDim> u2 = rDerivativeData.u2;\n    const bounded_matrix<double, TNumNodes, TDim> u2old = rDerivativeData.u2old;\n    const bounded_matrix<double, TNumNodes, TDim> X1 = rDerivativeData.X1;\n    const bounded_matrix<double, TNumNodes, TDim> X2 = rDerivativeData.X2;\n    \n    const bounded_matrix<double, TNumNodes, TDim> LM = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); \n    \n    const bounded_matrix<double, TNumNodes, TDim> NormalSlave = DerivativeData.NormalSlave;\n// The ALM parameters\n    const double ScaleFactor = rDerivativeData.ScaleFactor;\n    const double PenaltyFactor = rDerivativeData.PenaltyFactor;\n    const double TangentFactor = rDerivativeData.TangentFactor;\n    \n    // Mortar operators\n    const bounded_matrix<double, TNumNodes, TNumNodes> MOperator = rMortarConditionMatrices.MOperator;\n    const bounded_matrix<double, TNumNodes, TNumNodes> DOperator = rMortarConditionMatrices.DOperator;\n    // Mortar operators derivatives\n    const array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2> DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;\n    const array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2> DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;\n\n    // We get the friction coefficient\n    const array_1d<double, TNumNodes> mu = GetFrictionCoefficient();\n\n"
 
 lhs_template_end_string = "\n\n    return lhs;\n}\n"
 
 rhs_string = ""
-rhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\narray_1d<double, MatrixSize> AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes, TNormalVariation>::CalculateLocalRHS(\n        const MortarConditionMatrices& rMortarConditionMatrices,\n        const DerivativeDataType& rDerivativeData,\n        const double& PenaltyFactor,\n        const double& ScaleFactor,\n        const unsigned int& rActiveInactive\n        )\n{\n    array_1d<double,MatrixSize> rhs(0.0,MatrixSize);\n\n    // Initialize values\n    const bounded_matrix<double, TNumNodes, TDim> u1 = rDerivativeData.u1;\n    const bounded_matrix<double, TNumNodes, TDim> u1old = rDerivativeData.u1old;\n    const bounded_matrix<double, TNumNodes, TDim> u2 = rDerivativeData.u2;\n    const bounded_matrix<double, TNumNodes, TDim> u2old = rDerivativeData.u2old;\n    const bounded_matrix<double, TNumNodes, TDim> X1 = rDerivativeData.X1;\n    const bounded_matrix<double, TNumNodes, TDim> X2 = rDerivativeData.X2;\n    \n    const bounded_matrix<double, TNumNodes, TDim> LM = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); \n    \n    const bounded_matrix<double, TNumNodes, TDim> NormalSlave = DerivativeData.NormalSlave;\n    \n    // Mortar operators\n    const bounded_matrix<double, TNumNodes, TNumNodes> MOperator = rMortarConditionMatrices.MOperator;\n    const bounded_matrix<double, TNumNodes, TNumNodes> DOperator = rMortarConditionMatrices.DOperator;\n    // We get the friction coefficient\n\n    const array_1d<double, TNumNodes> mu = GetFrictionCoefficient();\n\n"
+rhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\narray_1d<double, MatrixSize> AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes, TNormalVariation>::CalculateLocalRHS(\n        const MortarConditionMatrices& rMortarConditionMatrices,\n        const DerivativeDataType& rDerivativeData,\n        const unsigned int& rActiveInactive\n        )\n{\n    array_1d<double,MatrixSize> rhs(0.0,MatrixSize);\n\n    // Initialize values\n    const bounded_matrix<double, TNumNodes, TDim> u1 = rDerivativeData.u1;\n    const bounded_matrix<double, TNumNodes, TDim> u1old = rDerivativeData.u1old;\n    const bounded_matrix<double, TNumNodes, TDim> u2 = rDerivativeData.u2;\n    const bounded_matrix<double, TNumNodes, TDim> u2old = rDerivativeData.u2old;\n    const bounded_matrix<double, TNumNodes, TDim> X1 = rDerivativeData.X1;\n    const bounded_matrix<double, TNumNodes, TDim> X2 = rDerivativeData.X2;\n    \n    const bounded_matrix<double, TNumNodes, TDim> LM = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); \n    \n    const bounded_matrix<double, TNumNodes, TDim> NormalSlave = DerivativeData.NormalSlave;\n// The ALM parameters\n    const double ScaleFactor = rDerivativeData.ScaleFactor;\n    const double PenaltyFactor = rDerivativeData.PenaltyFactor;\n    const double TangentFactor = rDerivativeData.TangentFactor;\n    \n    // Mortar operators\n    const bounded_matrix<double, TNumNodes, TNumNodes> MOperator = rMortarConditionMatrices.MOperator;\n    const bounded_matrix<double, TNumNodes, TNumNodes> DOperator = rMortarConditionMatrices.DOperator;\n    // We get the friction coefficient\n\n    const array_1d<double, TNumNodes> mu = GetFrictionCoefficient();\n\n"
 
 rhs_template_end_string = "\n\n    return rhs;\n}\n"
 
@@ -118,6 +118,7 @@ for normalvar in range(2):
         mu  = DefineVector('mu',nnodes) 
         PenaltyFactor  = Symbol('PenaltyFactor',  positive=True)
         ScaleFactor = Symbol('ScaleFactor', positive=True)
+        TangentFactor = Symbol('TangentFactor', positive=True)
 
         # Define variables list for later derivation
         u1_var = []
@@ -182,7 +183,7 @@ for normalvar in range(2):
         HatTangentSlave = DefineMatrix('HatTangentSlave',nnodes,dim)
         for node in range(nnodes):
             for idim in range(dim):
-                hatLMTangent[node,idim] = ScaleFactor * LMTangent[node,idim] + TangentSlip[node,idim] * PenaltyFactor
+                hatLMTangent[node,idim] = ScaleFactor * TangentFactor * LMTangent[node,idim] + TangentSlip[node,idim] * PenaltyFactor * TangentFactor
         
         # Now we can compute the resultant tangent
         HatTangentSlave = hatLMTangent.copy()
@@ -199,14 +200,14 @@ for normalvar in range(2):
                 rv_galerkin = 0
                 if (slip == 0):  
                     rv_galerkin -=  0.5/PenaltyFactor * ScaleFactor**2.0 * LMNormal[node] * wLMNormal[node]
-                    rv_galerkin -= (0.5/PenaltyFactor * ScaleFactor**2.0 * LMTangent.row(node) * wLMTangent.row(node).transpose())[0,0]
+                    rv_galerkin -= (0.5/(PenaltyFactor * TangentFactor) * (ScaleFactor * TangentFactor)**2.0 * LMTangent.row(node) * wLMTangent.row(node).transpose())[0,0]
                 else:
                     rv_galerkin += ((((ScaleFactor * LMNormal[node] + PenaltyFactor * NormalGap[node]) * NormalSlave.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
                     rv_galerkin +=  ScaleFactor * NormalGap[node] * wLMNormal[node]
                     
                     if (slip == 1): # Slip 
                         rv_galerkin -= (((mu[node] * (ScaleFactor * LMNormal[node] + PenaltyFactor * NormalGap[node]) * HatTangentSlave.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
-                        rv_galerkin -=  (0.5/PenaltyFactor * ScaleFactor * (ScaleFactor * LMTangent.row(node) + mu[node] * (ScaleFactor * LMNormal[node] + PenaltyFactor * NormalGap[node]) * HatTangentSlave.row(node)) * wLMTangent.row(node).transpose())[0,0] 
+                        rv_galerkin -=  (0.5/(PenaltyFactor * TangentFactor) * (ScaleFactor * TangentFactor)**2.0 * (ScaleFactor * TangentFactor * LMTangent.row(node) + mu[node] * (ScaleFactor * LMNormal[node] + PenaltyFactor * NormalGap[node]) * HatTangentSlave.row(node)) * wLMTangent.row(node).transpose())[0,0] 
                     else: # Stick 
                         rv_galerkin += (((ScaleFactor * LMTangent.row(node) + PenaltyFactor * TangentSlip.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
                         rv_galerkin +=  (ScaleFactor * TangentSlip.row(node) * wLMTangent.row(node).transpose())[0,0]
@@ -315,12 +316,8 @@ for normalvar in range(2):
 ############################### SIMPLIFICATION ##############################
 #############################################################################
 
-lhs_string = lhs_string.replace("PenaltyFactor", "rPenaltyFactor")
-lhs_string = lhs_string.replace("ScaleFactor", "rScaleFactor")
 lhs_string = lhs_string.replace("pow(", "std::pow(")
 lhs_string = lhs_string.replace("sqrt(", "std::sqrt(")
-rhs_string = rhs_string.replace("PenaltyFactor", "rPenaltyFactor")
-rhs_string = rhs_string.replace("ScaleFactor", "rScaleFactor")
 rhs_string = rhs_string.replace("pow(", "std::pow(")
 rhs_string = rhs_string.replace("sqrt(", "std::sqrt(")
 

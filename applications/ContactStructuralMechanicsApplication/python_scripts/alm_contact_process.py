@@ -35,6 +35,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "manual_ALM"                  : false,
             "penalty"                     : 0.0,
             "scale_factor"                : 1.0,
+            "tangent_factor"              : 0.1,
             "type_search"                 : "InRadius",
             "integration_order"           : 2,
             "debug_mode"                  : false
@@ -88,10 +89,11 @@ class ALMContactProcess(KratosMultiphysics.Process):
             computing_model_part.Set(KratosMultiphysics.SLIP, False) 
             
         # We recompute the normal at each iteration (false by default)
-        if (self.normal_variation == True):
-            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.CONSIDER_NORMAL_VARIATION] = True
-        else:
-            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.CONSIDER_NORMAL_VARIATION] = False
+        self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.CONSIDER_NORMAL_VARIATION] = self.normal_variation
+        
+        # We set the value that scales in the tangent direction the penalty and scale parameter
+        if self.params["contact_type"].GetString() == "Frictional":
+            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.TANGENT_FACTOR] = self.params["tangent_factor"].GetDouble()
         
         # Copying the properties in the contact model part
         self.contact_model_part.SetProperties(computing_model_part.GetProperties())

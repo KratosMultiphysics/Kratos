@@ -223,8 +223,6 @@ protected:
     bounded_matrix<double, MatrixSize, MatrixSize> CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DerivativeDataType& rDerivativeData,
-        const double& rPenaltyFactor,
-        const double& rScaleFactor,
         const unsigned int& rActiveInactive
         ) override;
     
@@ -235,8 +233,6 @@ protected:
     array_1d<double, MatrixSize> CalculateLocalRHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DerivativeDataType& rDerivativeData,
-        const double& rPenaltyFactor,
-        const double& rScaleFactor,
         const unsigned int& rActiveInactive
         ) override;
     
