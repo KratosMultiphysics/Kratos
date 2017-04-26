@@ -20,6 +20,9 @@ HELP: For the moment, MPI only works in Linux and requires compiling METIS_APPLI
 DEPENDENCIES: (OpenMP,RESTORE,Number_of_threads,#CURRENT#)(MPI,HIDE,Number_of_threads,1)
 QUESTION: Number_of_threads
 VALUE: 1
+QUESTION: Periodic_Interface_Conditions#CB#(true,false)
+VALUE: false
+HELP: Define periodic conditions between the upper and lower nodes of interface elements (for dynamic activation of joints).
 QUESTION: FIC_Stabilization#CB#(true,false)
 VALUE: false
 HELP: Only for linear elements with equal order interpolation for displacements and pressures.

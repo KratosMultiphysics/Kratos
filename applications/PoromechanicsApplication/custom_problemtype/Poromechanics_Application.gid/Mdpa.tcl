@@ -539,7 +539,7 @@ proc WriteMdpa { basename dir problemtypedir } {
 
     # Periodic_Bars
     set IsPeriodic [GiD_AccessValue get gendata Periodic_Interface_Conditions]
-    if {IsPeriodic eq true} {
+    if {$IsPeriodic eq true} {
         set PeriodicBarsDict [dict create]
         set Groups [GiD_Info conditions Interface_Part groups]
         for {set i 0} {$i < [llength $Groups]} {incr i} {
@@ -554,10 +554,17 @@ proc WriteMdpa { basename dir problemtypedir } {
                 # InterfaceElement3D8N
                 SavePeriodicBarsFromIE3D8N PeriodicBarsDict ConditionId ConditionList [lindex $Groups $i] $InterfaceElemsProp
 
-                #TODO: write conditions in file. El conditionlist esta be??
-
-                dict set ConditionDict PeriodicBars[lindex [lindex $Groups $i] 1] $ConditionList
+                dict set ConditionDict Periodic_Bars_[lindex [lindex $Groups $i] 1] $ConditionList
             }
+        }
+
+        if {[dict size $PeriodicBarsDict] > 0} {
+            puts $FileVar "Begin Conditions PeriodicCondition"
+            dict for {Name PeriodicBar} $PeriodicBarsDict {
+                puts $FileVar "  [dict get $PeriodicBar Id]  [dict get $PeriodicBar PropertyId]  [dict get $PeriodicBar Connectivities]"
+            }
+            puts $FileVar "End Conditions"
+            puts $FileVar ""
         }
     }
 
@@ -590,6 +597,11 @@ proc WriteMdpa { basename dir problemtypedir } {
     WriteLoadSubmodelPart FileVar Interface_Normal_Fluid_Flux $TableDict $ConditionDict
     # Body_Acceleration
     WriteConstraintSubmodelPart FileVar Body_Acceleration $TableDict
+    
+    # Periodic_Bars
+    if {$IsPeriodic eq true} {
+        WritePeriodicBarsSubmodelPart FileVar Interface_Part $ConditionDict
+    }
     
     close $FileVar
     
