@@ -70,9 +70,11 @@ public:
     /// Default constructor.
     ALMVariablesCalculationProcess(
         ModelPart& rThisModelPart,
-        Variable<double>& rNodalLengthVariable = NODAL_H
+        Variable<double>& rNodalLengthVariable = NODAL_H,
+        const double FactorStiffness = 10.0
         ):mrThisModelPart(rThisModelPart), 
-          mrNodalLengthVariable(rNodalLengthVariable)
+          mrNodalLengthVariable(rNodalLengthVariable),
+          mFactorStiffness(FactorStiffness)
     {
         KRATOS_TRY;
         
@@ -127,14 +129,14 @@ public:
         // We initialize the mean values
         double MeanYoungModulusSlave  = 0.0;
         double MeanNodalHSlave        = 0.0;
-//         double MeanYoungModulusMaster = 0.0;
-//         double MeanNodalHMaster       = 0.0;
+        double MeanYoungModulusMaster = 0.0;
+        double MeanNodalHMaster       = 0.0;
         
         // We initialize the total areas and volumes
         double TotalVolumeSlave  = 0.0;
         double TotalAreaSlave    = 0.0;
-//         double TotalVolumeMaster = 0.0;
-//         double TotalAreaMaster   = 0.0;
+        double TotalVolumeMaster = 0.0;
+        double TotalAreaMaster   = 0.0;
         
         // Now we iterate over the conditions to calculate the nodal area
         ConditionsArrayType& pConditions = mrThisModelPart.Conditions();
@@ -163,10 +165,8 @@ public:
             {
                 #pragma omp atomic
                 TotalVolumeSlave += ElementVolume;
-                
                 #pragma omp atomic
                 TotalAreaSlave += ConditionArea;
-                
                 #pragma omp atomic
                 MeanYoungModulusSlave += YoungModulus * ElementVolume;
                 
@@ -176,39 +176,39 @@ public:
                     MeanNodalHSlave += rThisGeometry[iNode].FastGetSolutionStepValue(NODAL_H) * NodalConditionArea;
                 }
             }
-//             else if (itCond->Is(MASTER) == true)
-//             {
-//                 #pragma omp atomic
-//                 TotalVolumeMaster += ElementVolume;
-//                 
-//                 #pragma omp atomic
-//                 TotalAreaMaster += ConditionArea;
-//                 
-//                 #pragma omp atomic
-//                 MeanYoungModulusMaster += YoungModulus * ElementVolume;
-//                 
-//                 for (unsigned int iNode = 0; iNode < NumNodesGeometry; iNode++)
-//                 {
-//                     #pragma omp atomic
-//                     MeanNodalHMaster += rThisGeometry[iNode].FastGetSolutionStepValue(NODAL_H) * NodalConditionArea;
-//                 }
-//             }
+            
+            if (itCond->Is(MASTER) == true)
+            {
+
+                #pragma omp atomic
+                TotalVolumeMaster += ElementVolume;
+                #pragma omp atomic
+                TotalAreaMaster += ConditionArea;
+                #pragma omp atomic
+                MeanYoungModulusMaster += YoungModulus * ElementVolume;
+                
+                for (unsigned int iNode = 0; iNode < NumNodesGeometry; iNode++)
+                {
+                    #pragma omp atomic
+                    MeanNodalHMaster += rThisGeometry[iNode].FastGetSolutionStepValue(NODAL_H) * NodalConditionArea;
+                }
+            }
         }
         
         // Now we divide between the total areas and volumes
         MeanNodalHSlave /= (TotalAreaSlave + 1.0e-12); 
         MeanYoungModulusSlave /= (TotalVolumeSlave + 1.0e-12);
         
-//         MeanNodalHMaster /= (TotalAreaMaster  + 1.0e-12); 
-//         MeanYoungModulusMaster /= (TotalVolumeMaster + 1.0e-12);
+        MeanNodalHMaster /= (TotalAreaMaster  + 1.0e-12); 
+        MeanYoungModulusMaster /= (TotalVolumeMaster + 1.0e-12);
         
         // Finally we compute the penalty factor
-        const double PenaltyParameterSlave  = 10.0 * MeanYoungModulusSlave/MeanNodalHSlave;
-        const double ScaleFactorSlave    = 10.0 * MeanYoungModulusSlave/MeanNodalHSlave;
-        const double PenaltyParameterMaster = 0.0;//10.0 * MeanYoungModulusMaster/MeanNodalHMaster;
-        const double ScaleFactorMaster   = 0.0;//10.0 * MeanYoungModulusMaster/MeanNodalHMaster; 
+        const double PenaltyParameterSlave  = mFactorStiffness * MeanYoungModulusSlave/MeanNodalHSlave;
+        const double ScaleFactorSlave    = mFactorStiffness * MeanYoungModulusSlave/MeanNodalHSlave;
+        const double PenaltyParameterMaster = mFactorStiffness * MeanYoungModulusMaster/MeanNodalHMaster;
+        const double ScaleFactorMaster   = mFactorStiffness * MeanYoungModulusMaster/MeanNodalHMaster; 
         
-        mrThisModelPart.GetProcessInfo()[PENALTY_PARAMETER] = (PenaltyParameterSlave > PenaltyParameterMaster) ? PenaltyParameterSlave : PenaltyParameterMaster;
+        mrThisModelPart.GetProcessInfo()[PENALTY_PARAMETER] = (PenaltyParameterSlave > PenaltyParameterMaster) ? PenaltyParameterSlave : PenaltyParameterMaster; // NOTE: > or <? , we are supposed to take the largest of the values (more stiff)
         mrThisModelPart.GetProcessInfo()[SCALE_FACTOR]   = (ScaleFactorSlave > ScaleFactorMaster) ? ScaleFactorSlave : ScaleFactorMaster;
         
         KRATOS_CATCH("");
@@ -298,6 +298,7 @@ private:
     ///@{
     ModelPart& mrThisModelPart;
     Variable<double>& mrNodalLengthVariable;
+    const double mFactorStiffness;
 
     ///@}
     ///@name Private Operators

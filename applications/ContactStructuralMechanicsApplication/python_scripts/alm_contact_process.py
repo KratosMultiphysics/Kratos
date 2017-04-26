@@ -33,6 +33,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "bucket_size"                 : 4,
             "normal_variation"            : false,
             "manual_ALM"                  : false,
+            "stiffness_factor"            : 10.0,
             "penalty"                     : 0.0,
             "scale_factor"                : 1.0,
             "tangent_factor"              : 0.1,
@@ -59,8 +60,8 @@ class ALMContactProcess(KratosMultiphysics.Process):
                 node.Set(KratosMultiphysics.SLAVE, True)
             del(node)
         
-        self.normal_variation         = self.params["normal_variation"].GetBool()
-        self.integration_order        = self.params["integration_order"].GetInt() 
+        self.normal_variation  = self.params["normal_variation"].GetBool()
+        self.integration_order = self.params["integration_order"].GetInt() 
         self.frictional_law = self.params["frictional_law"].GetString()
         self.debug_mode = self.params["debug_mode"].GetBool()
         
@@ -140,11 +141,11 @@ class ALMContactProcess(KratosMultiphysics.Process):
             del(cond)
 
         if (self.params["manual_ALM"].GetBool() == False):
-            # Computing the scale factors or the penalty parameters (10 * E_mean/h_mean)
+            # Computing the scale factors or the penalty parameters (StiffnessFactor * E_mean/h_mean)
             self.find_nodal_h = KratosMultiphysics.FindNodalHProcess(computing_model_part)
             self.find_nodal_h.Execute()
             
-            self.alm_var_process = ContactStructuralMechanicsApplication.ALMVariablesCalculationProcess(self.contact_model_part)
+            self.alm_var_process = ContactStructuralMechanicsApplication.ALMVariablesCalculationProcess(self.contact_model_part,KratosMultiphysics.NODAL_H,self.params["stiffness_factor"].GetDouble())
             self.alm_var_process.Execute()
         else:
             # Penalty and scalar factor
@@ -153,12 +154,12 @@ class ALMContactProcess(KratosMultiphysics.Process):
             
             # We set the values in the process info
             self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.PENALTY_PARAMETER] = penalty
-            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.SCALE_FACTOR]   = scale_factor
+            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.SCALE_FACTOR]  = scale_factor
             
         # We print the parameters considered
         print("The parameters considered finally are: ")
         print("PENALTY FACTOR: ", self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.PENALTY_PARAMETER])
-        print("SCALE_FACTOR: ", self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.PENALTY_PARAMETER])
+        print("SCALE_FACTOR: ", self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.SCALE_FACTOR])
             
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(computing_model_part)
