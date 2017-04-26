@@ -112,6 +112,9 @@ namespace Kratos
       //internal variables
       InternalVariables<TVarSize>      Internal;
       InternalVariables<TVarSize> DeltaInternal;
+
+      //strain matrix
+      MatrixType StrainMatrix; //wildcard strain (cauchy green tensors or infinitessimal tensor)
       
       //Set Data Pointers
       void SetState           (Flags& rState)                    {mpState = &rState;};
@@ -132,7 +135,9 @@ namespace Kratos
       
       const InternalVariables<TVarSize>&      GetInternal () const {return Internal;};
       const InternalVariables<TVarSize>& GetDeltaInternal () const {return DeltaInternal;};
-
+      
+      const MatrixType&                   GetStrainMatrix () const {return StrainMatrix;};
+      
       const array_1d<double,TVarSize>& GetInternalVariables       () const {return Internal.Variables;};
       const array_1d<double,TVarSize>& GetDeltaInternalVariables  () const {return DeltaInternal.Variables;};
      

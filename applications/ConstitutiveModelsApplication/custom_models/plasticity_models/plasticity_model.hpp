@@ -70,6 +70,7 @@ namespace Kratos
     typedef typename TYieldCriterion::PlasticDataType              PlasticDataType;
     typedef typename TYieldCriterion::InternalVariablesType  InternalVariablesType;
 
+    
     /// Pointer definition of PlasticityModel
     KRATOS_CLASS_POINTER_DEFINITION( PlasticityModel );
 

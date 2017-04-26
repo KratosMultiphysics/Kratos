@@ -74,6 +74,10 @@ namespace Kratos
     typedef typename BaseType::PlasticDataType                 PlasticDataType;
     typedef typename BaseType::InternalVariablesType     InternalVariablesType;
 
+    typedef ConstitutiveModelData::StrainMeasureType         StrainMeasureType;   
+    typedef ConstitutiveModelData::StressMeasureType         StressMeasureType;   
+
+    
   protected:    
 
     struct ThermalVariables
@@ -178,8 +182,7 @@ namespace Kratos
       rValues.StressMatrix = rStressMatrix;  //store isochoric stress as StressMatrix
       
       rStressMatrix += VolumetricStressMatrix;
-	
-    
+		
       KRATOS_CATCH(" ")
     
     }
@@ -195,9 +198,10 @@ namespace Kratos
       // calculate elastic isochoric stress
       this->mpElasticityModel->CalculateIsochoricStressTensor(rValues,rStressMatrix);
 
-      // calculate plastic isochoric stress
-      this->CalculateAndAddIsochoricStressTensor(Variables,rStressMatrix);
 
+      
+      // calculate plastic isochoric stress
+      this->CalculateAndAddIsochoricStressTensor(Variables,rStressMatrix);      
 
       if( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES ) )
 	this->UpdateInternalVariables(Variables);
@@ -253,19 +257,19 @@ namespace Kratos
       this->InitializeVariables(rValues,Variables);
 
       //Calculate Stress Matrix
-
+      
       // calculate volumetric stress
       MatrixType VolumetricStressMatrix;
       this->mpElasticityModel->CalculateVolumetricStressTensor(rValues,VolumetricStressMatrix);
-
+      
       // calculate isochoric stress
 
       // calculate elastic isochoric stress
       this->mpElasticityModel->CalculateIsochoricStressTensor(rValues,rStressMatrix);
-   
+      
       // calculate plastic isochoric stress
       this->CalculateAndAddIsochoricStressTensor(Variables,rStressMatrix);
-
+      
       rValues.StressMatrix = rStressMatrix;  //store isochoric stress as StressMatrix
    
       //Calculate Constitutive Matrix
@@ -363,12 +367,84 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
+    
+    /**
+     * Calculate Stresses
+     */
+    virtual void SetWorkingMeasures(PlasticDataType& rVariables, MatrixType& rStressMatrix)
+    {
+      KRATOS_TRY
+
+      const ModelDataType&  rModelData = rVariables.GetModelData();
+
+      //working stress is Kirchhoff by default : transform stresses is working stress is PK2
+      const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
+      const StrainMeasureType& rStrainMeasure = rModelData.GetStrainMeasure();
+      
+      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){	
+	const MatrixType& rDeformationGradientF = rModelData.GetDeformationGradientF();
+	MatrixType StressMatrixPart;
+	noalias( StressMatrixPart ) = prod( trans(rDeformationGradientF), rStressMatrix );
+	noalias( rStressMatrix )  = prod( StressMatrixPart, rDeformationGradientF );
+
+	if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Right || rStrainMeasure == ConstitutiveModelData::CauchyGreen_None){
+	  double I3 = 0;
+	  ConstitutiveModelUtilities::InvertMatrix3( rModelData.GetStrainMatrix(), rVariables.StrainMatrix, I3 );
+	}
+	else{
+	  KRATOS_ERROR << "calling initialize PlasticityModel .. StrainMeasure provided is inconsistent" << std::endl;
+	}
+      }
+      else if(  rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){
+
+	if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Left || rStrainMeasure == ConstitutiveModelData::CauchyGreen_None){
+	  rVariables.StrainMatrix = identity_matrix<double>(3);
+	}
+	else{
+	  KRATOS_ERROR << "calling initialize PlasticityModel .. StrainMeasure provided is inconsistent" << std::endl;
+	}
+	
+      }
+      else{
+	KRATOS_ERROR << "calling initialize PlasticityModel .. StressMeasure provided is inconsistent" << std::endl;
+      }
+
+      
+      KRATOS_CATCH(" ")    
+    }
+
+
+    /**
+     * Calculate Stresses
+     */
+    virtual void GetWorkingMeasures(PlasticDataType& rVariables, MatrixType& rStressMatrix)
+    {
+      KRATOS_TRY
+	
+      const ModelDataType&  rModelData = rVariables.GetModelData();
+
+      //working stress is Kirchhoff by default : transform stresses is working stress is PK2
+      const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
+      
+      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){	
+	const MatrixType& rDeformationGradientF = rModelData.GetDeformationGradientF();
+	MatrixType StressMatrixPart;
+	noalias( StressMatrixPart ) = prod( rDeformationGradientF, rStressMatrix );
+	noalias( rStressMatrix )  = prod( StressMatrixPart, trans(rDeformationGradientF) );
+      }	
+   
+      KRATOS_CATCH(" ")    
+    }
+    
     /**
      * Calculate Stresses
      */
     virtual void CalculateAndAddIsochoricStressTensor(PlasticDataType& rVariables, MatrixType& rStressMatrix)
     {
       KRATOS_TRY
+
+      //0.-Check working stress
+      this->SetWorkingMeasures(rVariables,rStressMatrix);
 
       //1.-Isochoric stress norm   (rStressMatrix := Elastic Isochoric Stress Matrix)
       rVariables.StressNorm = ConstitutiveModelUtilities::CalculateStressNorm(rStressMatrix, rVariables.StressNorm);
@@ -408,6 +484,9 @@ namespace Kratos
 
       }
 
+      //6.- Recover working stress
+      this->GetWorkingMeasures(rVariables,rStressMatrix);
+      
       rVariables.State().Set(ConstitutiveModelData::COMPUTED_RETURN_MAPPING,true);
    
       KRATOS_CATCH(" ")    
@@ -432,7 +511,8 @@ namespace Kratos
       const ModelDataType&  rModelData        = rVariables.GetModelData();
       const SizeType&       rVoigtSize        = rModelData.GetVoigtSize();      
       const VoigtIndexType& rIndexVoigtTensor = rModelData.GetVoigtIndexTensor();
-    
+
+      
       for(SizeType i=0; i<rVoigtSize; i++)
 	{
 	  for(SizeType j=0; j<rVoigtSize; j++)
@@ -445,6 +525,7 @@ namespace Kratos
 	
 	}
 
+      
       rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX);
     
       KRATOS_CATCH(" ")
@@ -464,16 +545,18 @@ namespace Kratos
       const MaterialDataType& rMaterial        = rVariables.GetMaterialParameters();
 
       const MatrixType& rIsochoricStressMatrix = rModelData.GetStressMatrix(); //isochoric stress stored as StressMatrix
-      const MatrixType& rCauchyGreenMatrix     = rModelData.GetStrainMatrix();
+      const MatrixType& rCauchyGreenMatrix     = rVariables.GetStrainMatrix(); // C^-1 or Id
 
-    
+      //TODO: this constitutive part must be revised, depending on the working strain/stress measure C^-1 or Id must be supplied
+
+     
       double Cabcd = (1.0/3.0) * ( rCauchyGreenMatrix(a,b) * rCauchyGreenMatrix(c,d) );
     
       Cabcd -= (0.5 * ( rCauchyGreenMatrix(a,c) * rCauchyGreenMatrix(b,d) + rCauchyGreenMatrix(a,d) * rCauchyGreenMatrix(b,c) ) );
     
       Cabcd *= 3.0 * rMaterial.GetLameMuBar();
 
-      Cabcd += ( rCauchyGreenMatrix(c,d)* rIsochoricStressMatrix(a,b) + rIsochoricStressMatrix(c,d) * rCauchyGreenMatrix(a,b) );
+      Cabcd += ( rCauchyGreenMatrix(c,d) * rIsochoricStressMatrix(a,b) + rIsochoricStressMatrix(c,d) * rCauchyGreenMatrix(a,b) );
  
       Cabcd *= (-2.0/3.0) * ( (-1) * rFactors.Beta1 );
     
@@ -658,11 +741,11 @@ namespace Kratos
       MatrixType Identity = identity_matrix<double> (3);
     
       //2.-Auxiliar matrices
-      rFactors.Normal      = rIsochoricStressMatrix * ( 1.0 / rVariables.StressNorm );
+      rFactors.Normal = rIsochoricStressMatrix * ( 1.0 / rVariables.StressNorm );
 
-      MatrixType Norm_Normal      = prod( rFactors.Normal, trans(rFactors.Normal) );
+      MatrixType Norm_Normal = prod( rFactors.Normal, trans(rFactors.Normal) );
 
-      double Trace_Norm_Normal    = Norm_Normal( 0, 0 ) + Norm_Normal( 1, 1 ) + Norm_Normal( 2, 2 );
+      double Trace_Norm_Normal = Norm_Normal( 0, 0 ) + Norm_Normal( 1, 1 ) + Norm_Normal( 2, 2 );
 
       rFactors.Dev_Normal  = Norm_Normal;
     
@@ -692,7 +775,7 @@ namespace Kratos
 	    rVariables.RateFactor = 0;
 	
 	  double DeltaHardening = this->mpYieldCriterion->GetHardeningLaw().CalculateDeltaHardening( rVariables, DeltaHardening );
-
+	  
 	  rFactors.Beta0 = 1.0 + DeltaHardening/(3.0 * rMaterial.GetLameMuBar());
 		
 	  rFactors.Beta1 = 2.0 * rMaterial.GetLameMuBar() * rDeltaGamma / rVariables.StressNorm;

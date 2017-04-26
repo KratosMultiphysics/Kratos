@@ -480,7 +480,8 @@ namespace Kratos
     else{      
       mpModel->CalculateStressTensor(rModelValues, StressMatrix);
     }
-    
+
+    rStressVector.clear();
     rStressVector = ConstitutiveModelUtilities::StressTensorToVector(StressMatrix, rStressVector);
         
     KRATOS_CATCH(" ")
@@ -538,7 +539,6 @@ namespace Kratos
       mpModel->CalculateStressAndConstitutiveTensors(rModelValues, StressMatrix, rConstitutiveMatrix);
     }
 
-    
     rStressVector = ConstitutiveModelUtilities::StressTensorToVector(StressMatrix, rStressVector);
 
     

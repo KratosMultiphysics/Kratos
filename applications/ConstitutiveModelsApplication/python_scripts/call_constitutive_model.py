@@ -42,7 +42,8 @@ material_process.ExecuteInitialize()
 clock_time = StartTimeMeasuring()
 
 # time testing (loop for massive calculation):
-for i in range(0,1000000):
+calls = 0
+for i in range(0,calls):
     material_process.Execute()
 
 material_process.ExecuteFinalize()

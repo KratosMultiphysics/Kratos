@@ -9,12 +9,18 @@
             "material_name"   : "steel",
 	    "constitutive_law": {
                 "law_name"   : "KratosMultiphysics.ConstitutiveModelsApplication.LargeStrain3DLaw",
-		"model_name" : "KratosMultiphysics.ConstitutiveModelsApplication.SaintVenantKirchhoffModel"
+		"model_name" : "KratosMultiphysics.ConstitutiveModelsApplication.VonMisesNeoHookeanPlasticityModel"
             },
 	    "variables": {
 		"KratosMultiphysics.ConstitutiveModelsApplication.HYPERELASTIC_MODEL_PARAMETERS": [3.84615384615384615385e10],
-	        "KratosMultiphysics.YOUNG_MODULUS": 200.0e9,
-		"KratosMultiphysics.POISSON_RATIO": 0.3
+	        "KratosMultiphysics.YOUNG_MODULUS": 206.9e7,
+		"KratosMultiphysics.POISSON_RATIO": 0.29,
+		"KratosMultiphysics.YIELD_STRESS": 4.5E2,
+		"KratosMultiphysics.ConstitutiveModelsApplication.ISOTROPIC_HARDENING_MODULUS": 0.0,
+		"KratosMultiphysics.ConstitutiveModelsApplication.KINEMATIC_HARDENING_MODULUS": 1.2924e2,
+		"KratosMultiphysics.ConstitutiveModelsApplication.HARDENING_EXPONENT": 16.93,
+		"KratosMultiphysics.ConstitutiveModelsApplication.REFERENCE_HARDENING_MODULUS": 450,
+		"KratosMultiphysics.ConstitutiveModelsApplication.INFINITY_HARDENING_MODULUS": 715		
             },
 	    "tables": {
 		"table1": {

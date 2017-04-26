@@ -215,23 +215,23 @@ namespace Kratos
 	
       MatrixType StressPartMatrix;
       MatrixType StressMatrix;
-      
+
       if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Variables.Strain.CauchyGreenMatrix = RightCauchyGreen (C)
 
 	StressPartMatrix = GetI1RightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
-	noalias(rStressMatrix)  = rVariables.Factors.Alpha1 * StressPartMatrix;
+	noalias(StressMatrix)  = rVariables.Factors.Alpha1 * StressPartMatrix;
 
 	StressPartMatrix = GetI2RightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
-	noalias(rStressMatrix) += rVariables.Factors.Alpha2 * StressPartMatrix;
+	noalias(StressMatrix) += rVariables.Factors.Alpha2 * StressPartMatrix;
 
 	StressPartMatrix = GetI3RightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
-	noalias(rStressMatrix) += rVariables.Factors.Alpha3 * StressPartMatrix;
+	noalias(StressMatrix) += rVariables.Factors.Alpha3 * StressPartMatrix;
 
 	StressPartMatrix = GetIsochoricRightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
 	StressMatrix = prod(StressMatrix, StressPartMatrix);
-
-	StressMatrix *= 2.0;
 	
+	StressMatrix *= 2.0;
+
 	rStressMatrix += StressMatrix;
 	
       }
@@ -254,8 +254,7 @@ namespace Kratos
 	rStressMatrix += StressMatrix;
       }
 
-
-      
+       
       KRATOS_CATCH(" ")
     }
 
