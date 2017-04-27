@@ -45,7 +45,7 @@ namespace Kratos
             
             class_<ALMVariablesCalculationProcess, bases<ProcessBaseType>, boost::noncopyable >
             (
-                "ALMVariablesCalculationProcess", init<ModelPart&, Variable<double>&,const double>()
+                "ALMVariablesCalculationProcess", init<ModelPart&, Variable<double>&, Parameters>()
             )
             .def(init<ModelPart&, Variable<double>&>()) // Considering default variables
             .def(init<ModelPart&>()) 

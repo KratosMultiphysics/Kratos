@@ -17,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "includes/kratos_parameters.h"
 #include "processes/process.h"
 #include "utilities/math_utils.h"
 #include "contact_structural_mechanics_application_variables.h"
@@ -71,12 +72,22 @@ public:
     ALMVariablesCalculationProcess(
         ModelPart& rThisModelPart,
         Variable<double>& rNodalLengthVariable = NODAL_H,
-        const double FactorStiffness = 10.0
+        Parameters ThisParameters =  Parameters(R"({})")
         ):mrThisModelPart(rThisModelPart), 
-          mrNodalLengthVariable(rNodalLengthVariable),
-          mFactorStiffness(FactorStiffness)
+          mrNodalLengthVariable(rNodalLengthVariable)
     {
         KRATOS_TRY;
+        
+        Parameters DefaultParameters = Parameters(R"(
+        {
+            "stiffness_factor"                     : 10.0,
+            "penalty_scale_factor"                 : 1.0
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        
+        mFactorStiffness = ThisParameters["stiffness_factor"].GetDouble();
+        mPenaltyScale = ThisParameters["penalty_scale_factor"].GetDouble();
         
         if (rThisModelPart.GetNodalSolutionStepVariablesList().Has( rNodalLengthVariable ) == false ) // TODO: Ask Riccardo if it is necessary to use GetNodalSolutionStepVariablesList (REQUIRES BUFFER!!!!)
         {
@@ -204,9 +215,9 @@ public:
         
         // Finally we compute the penalty factor
         const double PenaltyParameterSlave  = mFactorStiffness * MeanYoungModulusSlave/MeanNodalHSlave;
-        const double ScaleFactorSlave    = mFactorStiffness * MeanYoungModulusSlave/MeanNodalHSlave;
+        const double ScaleFactorSlave    = mPenaltyScale * mFactorStiffness * MeanYoungModulusSlave/MeanNodalHSlave;
         const double PenaltyParameterMaster = mFactorStiffness * MeanYoungModulusMaster/MeanNodalHMaster;
-        const double ScaleFactorMaster   = mFactorStiffness * MeanYoungModulusMaster/MeanNodalHMaster; 
+        const double ScaleFactorMaster   = mPenaltyScale * mFactorStiffness * MeanYoungModulusMaster/MeanNodalHMaster; 
         
         mrThisModelPart.GetProcessInfo()[PENALTY_PARAMETER] = (PenaltyParameterSlave > PenaltyParameterMaster) ? PenaltyParameterSlave : PenaltyParameterMaster; // NOTE: > or <? , we are supposed to take the largest of the values (more stiff)
         mrThisModelPart.GetProcessInfo()[SCALE_FACTOR]   = (ScaleFactorSlave > ScaleFactorMaster) ? ScaleFactorSlave : ScaleFactorMaster;
@@ -298,7 +309,8 @@ private:
     ///@{
     ModelPart& mrThisModelPart;
     Variable<double>& mrNodalLengthVariable;
-    const double mFactorStiffness;
+    double mFactorStiffness;
+    double mPenaltyScale;
 
     ///@}
     ///@name Private Operators

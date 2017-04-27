@@ -34,6 +34,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "normal_variation"            : false,
             "manual_ALM"                  : false,
             "stiffness_factor"            : 10.0,
+            "penalty_scale_factor"        : 1.0,
             "penalty"                     : 0.0,
             "scale_factor"                : 1.0,
             "tangent_factor"              : 0.1,
@@ -145,7 +146,10 @@ class ALMContactProcess(KratosMultiphysics.Process):
             self.find_nodal_h = KratosMultiphysics.FindNodalHProcess(computing_model_part)
             self.find_nodal_h.Execute()
             
-            self.alm_var_process = ContactStructuralMechanicsApplication.ALMVariablesCalculationProcess(self.contact_model_part,KratosMultiphysics.NODAL_H,self.params["stiffness_factor"].GetDouble())
+            alm_var_parameters = KratosMultiphysics.Parameters("""{}""")
+            alm_var_parameters.AddValue("stiffness_factor",self.params["stiffness_factor"])
+            alm_var_parameters.AddValue("penalty_scale_factor",self.params["penalty_scale_factor"])
+            self.alm_var_process = ContactStructuralMechanicsApplication.ALMVariablesCalculationProcess(self.contact_model_part,KratosMultiphysics.NODAL_H, alm_var_parameters)
             self.alm_var_process.Execute()
         else:
             # Penalty and scalar factor
@@ -158,7 +162,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             
         # We print the parameters considered
         print("The parameters considered finally are: ")
-        print("PENALTY FACTOR: ", self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.PENALTY_PARAMETER])
+        print("PENALTY_PARAMETER: ", self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.PENALTY_PARAMETER])
         print("SCALE_FACTOR: ", self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.SCALE_FACTOR])
             
         #print("MODEL PART AFTER CREATING INTERFACE")
