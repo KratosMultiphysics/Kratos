@@ -1,11 +1,15 @@
-/*
- * File:   AdvancedNMPointsMapper.hpp
- * Author: jcotela
- * Co-author: vmataix, rzorrilla
- *
- * Created on 19 January 2010, 10:20
- * Last update on 28 August 2016, 10:28
- */
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Jordi Cotela, Vicente Mataix and Ruben Zorrilla
+//
+//
 
 #if !defined(KRATOS_ADVANCED_NM_POINTS_MAPPER_H_INCLUDED )
 #define  KRATOS_ADVANCED_NM_POINTS_MAPPER_H_INCLUDED
@@ -20,8 +24,10 @@
 #include "fsi_application.h"
 #include "includes/model_part.h"
 #include "containers/array_1d.h"
-#include "spatial_containers/spatial_containers.h" // kd-tree
-#include "utilities/math_utils.h"                  // Cross Product
+#include "spatial_containers/spatial_containers.h"      // kd-tree
+#include "utilities/math_utils.h"                       // Cross Product
+#include "utilities/openmp_utils.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -48,8 +54,8 @@ public:
 
     ///@name Type Definitions
     ///@{
-    /// Auxiliar matrix 3x3 employed for the 3D cases
-    typedef boost::numeric::ublas::bounded_matrix<double,3,3> MatrixVar;
+
+    typedef boost::numeric::ublas::bounded_matrix<double,3,3>              MatrixVar; /// Auxiliar matrix 3x3 employed for the 3D cases
 
     /// Counted pointer of GaussPointItem
     KRATOS_CLASS_POINTER_DEFINITION( GaussPointItem );
@@ -101,7 +107,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * Returns the area of the condtition
      * @return The area of the condition
@@ -191,7 +197,7 @@ public:
             double & Dist,
             const int dimension
             );
-            
+
     /**
      * Project a point over a plane
      * @param PointInPlane: A point in the plane
@@ -316,6 +322,7 @@ class AdvancedNMPointsMapper
 {
     ///@name Type Definitions
     ///@{
+
     // Type definitions for the tree
     typedef GaussPointItem                              PointType;
     typedef GaussPointItem::Pointer                     PointTypePointer;
@@ -323,6 +330,10 @@ class AdvancedNMPointsMapper
     typedef std::vector<PointType::Pointer>::iterator   GaussPointIterator;
     typedef std::vector<double>                         DistanceVector;
     typedef std::vector<double>::iterator               DistanceIterator;
+
+    // Geometry types
+    typedef Node < 3 >                                          NodeType;
+    typedef Geometry<NodeType>                              GeometryType;
 
     // KDtree definitions
     typedef Bucket< 3ul, PointType, GaussPointVector, PointTypePointer, GaussPointIterator, DistanceIterator > BucketType;
@@ -346,10 +357,8 @@ public:
      * @param rOriginModelPart: The original model part
      * @return rDestinationModelPart: The destination model part
      */
-    AdvancedNMPointsMapper(
-            const ModelPart & rOriginModelPart,
-            ModelPart & rDestinationModelPart
-            );
+    AdvancedNMPointsMapper(ModelPart & rOriginModelPart,
+                           ModelPart & rDestinationModelPart);
 
     /// Destructor.
     //~AdvancedNMPointsMapper();
@@ -370,14 +379,11 @@ public:
      * @return TolIter: Tolerance accepted in the iteration
      * @return sign_pos: Positive or negative projection
      */
-
-    void ScalarToNormalVectorMap(
-            const Variable<double> & rOriginVar,
-            Variable<array_1d<double,3> >& rDestVar,
-            const int MaxIter,
-            const double TolIter,
-            const bool sign_pos
-            );
+    void ScalarToNormalVectorMap(const Variable<double> & rOriginVar,
+                                 const Variable<array_1d<double,3> >& rDestVar,
+                                 const int MaxIter,
+                                 const double TolIter,
+                                 const bool sign_pos);
 
     /**
      * It maps a normal vector variable to a scalar from a model part to other
@@ -387,14 +393,11 @@ public:
      * @return TolIter: Tolerance accepted in the iteration
      * @return sign_pos: Positive or negative projection
      */
-
-    void NormalVectorToScalarMap(
-            const Variable<array_1d<double,3> >& rOriginVar,
-            Variable<double> & rDestVar,
-            const int MaxIter,
-            const double TolIter,
-            const bool sign_pos
-            );
+    void NormalVectorToScalarMap(const Variable<array_1d<double,3> >& rOriginVar,
+                                 const Variable<double> & rDestVar,
+                                 const int MaxIter,
+                                 const double TolIter,
+                                 const bool sign_pos);
 
     /**
      * It maps a variable (scalar) from a model part to other
@@ -404,14 +407,11 @@ public:
      * @return TolIter: Tolerance accepted in the iteration
      * @return sign_pos: Positive or negative projection
      */
-
-    void ScalarMap(
-            const Variable<double> & rOriginVar,
-            Variable<double> & rDestVar,
-            const int MaxIter,
-            const double TolIter,
-            const bool sign_pos
-            );
+    void ScalarMap(const Variable<double> & rOriginVar,
+                   const Variable<double> & rDestVar,
+                   const int MaxIter,
+                   const double TolIter,
+                   const bool sign_pos);
 
     /**
      * It maps a variable (vector) from a model part to other
@@ -421,22 +421,18 @@ public:
      * @return TolIter: Tolerance accepted in the iteration
      * @return sign_pos: Positive or negative projection
      */
-
-    void VectorMap(
-            const Variable< array_1d<double,3> > & rOriginVar,
-            Variable< array_1d<double,3> > & rDestVar,
-            const int MaxIter,
-            const double TolIter,
-            const bool sign_pos,
-            const bool distributed
-            );
+    void VectorMap(const Variable< array_1d<double,3> > & rOriginVar,
+                   const Variable< array_1d<double,3> > & rDestVar,
+                   const int MaxIter,
+                   const double TolIter,
+                   const bool sign_pos,
+                   const bool distributed);
 
     /**
      * It searches neighbours nodes in a specific radius
      * @param SearchRadiusFactor: The radius of search
      * @return A value of a close Gauss point, or alternative
      */
-
     void FindNeighbours(double SearchRadiusFactor);
 
     ///@}
@@ -492,7 +488,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    const ModelPart& mrOriginModelPart; // The original model part
+    ModelPart& mrOriginModelPart;       // The original model part
     ModelPart& mrDestinationModelPart;  // The destination model part
     unsigned int mBucketSize;           // Bucket size for kd-tree
     GaussPointVector mGaussPointList;   // The list of Gauss points
@@ -513,13 +509,10 @@ private:
      * @return Area: The area of the condition
      * @param dimension: 2D/3D case
      */
-
-    void CalcNormalAndArea(
-            const Condition::Pointer pCond,
-            array_1d<double,3>& Normal,
-            double& Area,
-            const int dimension
-            );
+    void CalcNormalAndArea(const Condition::Pointer pCond,
+                           array_1d<double,3>& Normal,
+                           double& Area,
+                           const int dimension);
 
     /**
      * It calculates the the center and raidus of a line
@@ -527,12 +520,9 @@ private:
      * @return Center: Center point (3D)
      * @return Radius: The radius of the line (half lenght)
      */
-
-    void LineCenterAndRadius(
-            const Condition::Pointer pCond,
-            Point<3>& Center,
-            double& Radius
-            );
+    void LineCenterAndRadius(const Condition::Pointer pCond,
+                             Point<3>& Center,
+                             double& Radius);
 
     /**
      * It calculates the the center and radius of a triangle
@@ -540,12 +530,9 @@ private:
      * @return Center: Center point (3D)
      * @return Radius: The radius of the line (half lenght)
      */
-
-    void TriangleCenterAndRadius(
-            const Condition::Pointer pCond,
-            Point<3>& Center,
-            double& Radius
-            );
+    void TriangleCenterAndRadius(const Condition::Pointer pCond,
+                                 Point<3>& Center,
+                                 double& Radius);
 
     /**
      * Desired outcome: It sets the projectioon of a Gauss node to a condition
@@ -554,12 +541,9 @@ private:
      * @param Dist: The distance between the node and the Gauss Point
      * @param dimension: 2D/3D case
      */
-
-    void SetProjectionToCond(
-            GaussPointItem& GaussPoint,
-            Condition::Pointer pCandidateCond,
-            const int dimension
-            );
+    void SetProjectionToCond(GaussPointItem& GaussPoint,
+                             Condition::Pointer pCandidateCond,
+                             const int dimension);
 
     /**
      * Alternative when no condition is available: It sets the projection of a Gauss point to a node
@@ -567,42 +551,31 @@ private:
      * @return pCandidateNode: The candidate node
      * @param Dist: The distance between the node and the Gauss Point
      */
-
-    void SetProjectionToNode(
-            GaussPointItem& GaussPoint,
-            Node<3>::Pointer pCandidateNode,
-            const double& Dist
-            );
+    void SetProjectionToNode(GaussPointItem& GaussPoint,
+                             Node<3>::Pointer pCandidateNode,
+                             const double& Dist);
 
     /**
      *  Test function, stores the distance between a Gauss Point and its projection
      */
-
     void DistanceCheck();
 
     /**
      *  Auxiliar function to compute the nodal length/area of each node in both origin and destiny model parts.
      */
-
     void ComputeNodalLengthArea();
-    
+
     /**
      *  Auxiliar function to compute the equivalent nodal tractions to point loads minimizing the L2 norm of the error.
      */
-    
-    void ComputeEquivalentTractions(
-            const Variable<array_1d<double,3> >& rOriginVar,
-            const int MaxIter,
-            const double TolIter
-            );
-    
+    void ComputeEquivalentTractions(const Variable<array_1d<double,3> >& rOriginVar,
+                                    const int MaxIter,
+                                    const double TolIter);
+
     /**
      *  Auxiliar function to compute the equivalent nodal tractions to point loads minimizing the L2 norm of the error.
      */
-    
-    void ComputeNodalLoadsFromTractions(
-            const Variable<array_1d<double,3> >& rDestVar
-            );
+    void ComputeNodalLoadsFromTractions(const Variable<array_1d<double,3> >& rDestVar);
 
     ///@}
     ///@name Private  Access
