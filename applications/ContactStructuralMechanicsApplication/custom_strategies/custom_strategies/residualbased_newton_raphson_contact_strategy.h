@@ -381,7 +381,8 @@ protected:
         
         double& ScaleFactor = StrategyBaseType::GetModelPart().GetProcessInfo()[SCALE_FACTOR]; 
         
-        ScaleFactor *= std::sqrt(AuxNonContact/AuxContact);
+        ScaleFactor *= std::sqrt(AuxContact/AuxNonContact); // NOTE: The inverse¿?
+//         ScaleFactor *= std::sqrt(AuxNonContact/AuxContact);
         
         if (StrategyBaseType::mEchoLevel > 0)
         {

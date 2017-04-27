@@ -1074,6 +1074,8 @@ public:
             {
                 const double AugmentedNormalPressure = k * (itNode)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + epsilon * (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);     
                 
+                (itNode)->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, AugmentedNormalPressure);
+                
                 if (AugmentedNormalPressure < 0.0) // NOTE: This could be conflictive (< or <=)
                 {
                     (itNode)->Set(ACTIVE, true);
@@ -1141,6 +1143,8 @@ public:
                 
                 const double AugmentedNormalPressure = k * NormalLagrangeMultiplier + epsilon * (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);     
                 
+                itNode->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, AugmentedNormalPressure);
+                
                 if (AugmentedNormalPressure < 0.0) // NOTE: This could be conflictive (< or <=)
                 {
                     (itNode)->Set(ACTIVE, true);
@@ -1155,6 +1159,8 @@ public:
                     // Finally we compute the augmented tangent pressure
                     const double gt = (itNode)->FastGetSolutionStepValue(WEIGHTED_SLIP);
                     const double AugmentedTangentPressure = std::abs(k * LambdaTangent + epsilon * gt) + mu * AugmentedNormalPressure;
+                    
+                    (itNode)->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, AugmentedTangentPressure);
                     
                     if (AugmentedTangentPressure <= 0.0) // TODO: Check if it is minor equal or just minor
                     {
