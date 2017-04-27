@@ -877,7 +877,9 @@ public:
         {
             this->Jacobian( jacobian, pnt, ThisMethod);
             
-            rResult[pnt] = MathUtils<double>::GeneralizedDet(jacobian);
+            const double detJ = std::pow(jacobian(0,1),2)*(std::pow(jacobian(1,0),2)+std::pow(jacobian(2,0),2))+std::pow(jacobian(1,1)*jacobian(2,0)-jacobian(1,0)*jacobian(2,1),2)-2*jacobian(0,0)*jacobian(0,1)*(jacobian(1,0)*jacobian(1,1)+jacobian(2,0)*jacobian(2,1))+std::pow(jacobian(0,0),2)*(std::pow(jacobian(1,1),2)+std::pow(jacobian(2,1),2));
+            
+            rResult[pnt] = std::sqrt(detJ);
         }
         
         return rResult;
@@ -912,7 +914,9 @@ public:
          
         this->Jacobian( jacobian, IntegrationPointIndex, ThisMethod);
             
-        return MathUtils<double>::GeneralizedDet(jacobian);
+        const double detJ = std::pow(jacobian(0,1),2)*(std::pow(jacobian(1,0),2)+std::pow(jacobian(2,0),2))+std::pow(jacobian(1,1)*jacobian(2,0)-jacobian(1,0)*jacobian(2,1),2)-2*jacobian(0,0)*jacobian(0,1)*(jacobian(1,0)*jacobian(1,1)+jacobian(2,0)*jacobian(2,1))+std::pow(jacobian(0,0),2)*(std::pow(jacobian(1,1),2)+std::pow(jacobian(2,1),2));
+            
+        return std::sqrt(detJ);
     }
 
     /**
@@ -945,6 +949,8 @@ public:
         Matrix jacobian ( 3, 2 );
          
         this->Jacobian( jacobian, rPoint);
+            
+        const double detJ = std::pow(jacobian(0,1),2)*(std::pow(jacobian(1,0),2)+std::pow(jacobian(2,0),2))+std::pow(jacobian(1,1)*jacobian(2,0)-jacobian(1,0)*jacobian(2,1),2)-2*jacobian(0,0)*jacobian(0,1)*(jacobian(1,0)*jacobian(1,1)+jacobian(2,0)*jacobian(2,1))+std::pow(jacobian(0,0),2)*(std::pow(jacobian(1,1),2)+std::pow(jacobian(2,1),2));
         
         return MathUtils<double>::GeneralizedDet(jacobian);
     }
