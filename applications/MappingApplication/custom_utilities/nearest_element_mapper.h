@@ -116,14 +116,25 @@ public:
                          mNumNodesDestination);
         }
 
-        // create Functionpointer here ...
-        // TODO rename to MappingOptions and InternalOptions!
-        // Maybe also process the ADD_VALUE stuff right there...? (Same as I did before)
+        ProcessMappingOptions(MappingOptions, factor);
 
-        mpMapperCommunicator->TransferInterpolatedData(rOriginVariable,
-                rDestinationVariable,
-                MappingOptions,
-                factor);
+        // Creating the function pointers for the InterfaceObjects
+        auto function_pointer_origin = std::bind(&GetInterpolatedValueFromGeometryScalar, 
+                                      std::placeholders::_1, 
+                                      rOriginVariable,  
+                                      MappingOptions, 
+                                      std::placeholders::_2);
+
+        auto function_pointer_destination = std::bind(&SetValueOfNode<double>, 
+                                              std::placeholders::_1, 
+                                              std::placeholders::_2,
+                                              rDestinationVariable,  
+                                              MappingOptions,
+                                              factor);
+
+        mpMapperCommunicator->TransferData(function_pointer_origin,
+                                           function_pointer_destination,
+                                           rOriginVariable);
     }
 
     /* This function maps from Origin to Destination */
@@ -140,10 +151,25 @@ public:
                          mNumNodesDestination);
         }
 
-        mpMapperCommunicator->TransferInterpolatedData(rOriginVariable,
-                rDestinationVariable,
-                MappingOptions,
-                factor);
+        ProcessMappingOptions(MappingOptions, factor);
+
+        // Creating the function pointers for the InterfaceObjects
+        auto function_pointer_origin = std::bind(&GetInterpolatedValueFromGeometryVector, 
+                                      std::placeholders::_1, 
+                                      rOriginVariable,  
+                                      MappingOptions, 
+                                      std::placeholders::_2);
+
+        auto function_pointer_destination = std::bind(&SetValueOfNode< array_1d<double, 3> >, 
+                                              std::placeholders::_1, 
+                                              std::placeholders::_2,
+                                              rDestinationVariable,  
+                                              MappingOptions,
+                                              factor);
+
+        mpMapperCommunicator->TransferData(function_pointer_origin,
+                                           function_pointer_destination,
+                                           rOriginVariable);
     }
 
     /* This function maps from Destination to Origin */
@@ -275,6 +301,64 @@ private:
     ///@name Private Operations
     ///@{
 
+    static double GetInterpolatedValueFromGeometryScalar(InterfaceObject* pInterfaceObject, //TODO const
+                                                   const Variable<double>& rVariable,
+                                                   const Kratos::Flags& rOptions,
+                                                   const std::vector<double>& rShapeFunctionValues) 
+    {
+        Geometry<Node<3>>* p_base_geometry = static_cast<InterfaceGeometryObject*>(pInterfaceObject)->pGetBase();
+        KRATOS_ERROR_IF_NOT(p_base_geometry) << "Base Pointer is nullptr!!!" << std::endl;
+
+        double interpolated_value = 0.0f;
+
+        for (std::size_t i = 0; i < p_base_geometry->PointsNumber(); ++i)
+        {
+            interpolated_value += p_base_geometry->GetPoint(i).FastGetSolutionStepValue(rVariable) * rShapeFunctionValues[i];
+        }
+        return interpolated_value;
+    }
+
+    static array_1d<double, 3> GetInterpolatedValueFromGeometryVector(InterfaceObject* pInterfaceObject, //TODO const
+                                const Variable< array_1d<double, 3> >& rVariable,
+                                const Kratos::Flags& rOptions,
+                                const std::vector<double>& rShapeFunctionValues) 
+    {
+        Geometry<Node<3>>* p_base_geometry = static_cast<InterfaceGeometryObject*>(pInterfaceObject)->pGetBase();
+        KRATOS_ERROR_IF_NOT(p_base_geometry) << "Base Pointer is nullptr!!!" << std::endl;
+
+        array_1d<double, 3> interpolated_value;
+        interpolated_value[0] = 0.0f;
+        interpolated_value[1] = 0.0f;
+        interpolated_value[2] = 0.0f;
+        for (std::size_t i = 0; i < p_base_geometry->PointsNumber(); ++i)
+        {
+            interpolated_value[0] += p_base_geometry->GetPoint(i).FastGetSolutionStepValue(rVariable)[0] * rShapeFunctionValues[i];
+            interpolated_value[1] += p_base_geometry->GetPoint(i).FastGetSolutionStepValue(rVariable)[1] * rShapeFunctionValues[i];
+            interpolated_value[2] += p_base_geometry->GetPoint(i).FastGetSolutionStepValue(rVariable)[2] * rShapeFunctionValues[i];
+        }
+        return interpolated_value;
+    }
+
+
+    template <typename T>
+    static void SetValueOfNode(InterfaceObject* pInterfaceObject,
+                                const T& rValue,
+                                const Variable< T >& rVariable,
+                                const Kratos::Flags& rOptions,
+                                const double Factor)
+    {
+        Node<3>* p_base_node = static_cast<InterfaceNode*>(pInterfaceObject)->pGetBase();
+        KRATOS_ERROR_IF_NOT(p_base_node) << "Base Pointer is nullptr!!!" << std::endl;
+
+        if (rOptions.Is(MapperFlags::ADD_VALUES))
+        {
+            p_base_node->FastGetSolutionStepValue(rVariable) += rValue * Factor;
+        }
+        else
+        {
+            p_base_node->FastGetSolutionStepValue(rVariable) = rValue * Factor;
+        }
+    }
 
     ///@}
     ///@name Private  Access

@@ -92,6 +92,11 @@ public:
     ///@name Operations
     ///@{
 
+    Geometry<Node<3>>* pGetBase()
+    {
+        return mpGeometry;
+    }
+
     bool EvaluateResult(const array_1d<double, 3>& rGlobalCoords,
                         double& rMinDistance, const double Distance,
                         std::vector<double>& rShapeFunctionValues) override   // I am an object in the bins
@@ -395,7 +400,7 @@ private:
     Geometry<Node<3>>* mpGeometry;
     Node<3>* mpPoint;
     GeometryData::KratosGeometryFamily mGeometryFamily;
-    int mNumPoints;
+    int mNumPoints; //TODO check if still needed
     double mApproximationTolerance = 0.0f;
     int mConstructionIndex;
     GeometryData::IntegrationMethod mIntegrationMethod;

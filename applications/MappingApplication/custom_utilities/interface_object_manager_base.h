@@ -326,6 +326,27 @@ public:
     }
 
     template <typename T>
+    void FillBufferWithValues(std::function<T(InterfaceObject*, const std::vector<double>&)> FunctionPointer, 
+                              std::vector< T >& rBuffer)
+    {
+        int i = 0;
+
+        std::vector<InterfaceObject::Pointer> interface_objects;
+        if (mReceiveObjects.count(mCommRank) > 0)
+        {
+            interface_objects = mReceiveObjects.at(mCommRank);
+        }
+        // bind shape function values // TODO
+        rBuffer.resize(interface_objects.size());
+
+        for (auto interface_obj : interface_objects)
+        {
+            rBuffer[i] = FunctionPointer(boost::get_pointer(interface_obj), mShapeFunctionValues.at(mCommRank)[i]);
+            ++i;
+        }
+    }
+
+    template <typename T>
     void ProcessValues(const std::vector< T >& rBuffer, const Variable< T >& rVariable,
                        Kratos::Flags& rOptions, const double Factor)
     {
@@ -351,6 +372,31 @@ public:
         }
     }
 
+    template <typename T>
+    void ProcessValues(std::function<void(InterfaceObject*, T)> FunctionPointer,
+                       const std::vector< T >& rBuffer)
+    {
+        std::vector<InterfaceObject::Pointer> interface_objects;
+        if (mSendObjects.count(mCommRank) > 0)
+        {
+            interface_objects = mSendObjects.at(mCommRank);
+        }
+
+        // Debug Check
+        if (interface_objects.size() != rBuffer.size())
+        {
+            KRATOS_ERROR << "Wrong number of results received!;"
+                         << " \"interface_objects.size() = "
+                         << interface_objects.size() << ", rBuffer.size() = "
+                         << rBuffer.size() << std::endl;
+        }
+
+        for (std::size_t i = 0; i < interface_objects.size(); ++i)
+        {
+            FunctionPointer(boost::get_pointer(interface_objects[i]), rBuffer[i]);
+        }
+    }
+
     // ***** InterfaceObjectManagerParallel *****
     virtual void ComputeBufferSizesAndCommunicationGraph(int& rMaxSendBufferSize,
             int& rMaxReceiveBufferSize,
@@ -359,6 +405,7 @@ public:
     {
         KRATOS_ERROR << "Base class function called!" << std::endl;
     }
+
     virtual void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
                                       const Variable<double>& rVariable, Kratos::Flags& rOptions)
     {
@@ -382,6 +429,30 @@ public:
     virtual void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
                                const Variable< array_1d<double, 3> >& rVariable,
                                Kratos::Flags& rOptions, const double Factor)
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
+//////////////////
+    virtual void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
+                              std::function<double(InterfaceObject*, const std::vector<double>&)> FunctionPointer)
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
+
+    virtual void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
+                              std::function<array_1d<double, 3>(InterfaceObject*, const std::vector<double>&)> FunctionPointer)
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
+
+    virtual void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
+                       std::function<void(InterfaceObject*, double)> FunctionPointer)
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
+
+    virtual void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
+                       std::function<void(InterfaceObject*, array_1d<double, 3>)> FunctionPointer)
     {
         KRATOS_ERROR << "Base class function called!" << std::endl;
     }

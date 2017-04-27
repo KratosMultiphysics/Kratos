@@ -370,6 +370,7 @@ public:
         delete [] local_comm_list;
         delete [] local_memory_size_array;
     }
+
     void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
                               const Variable<double>& rVariable, Kratos::Flags& rOptions) override
     {
@@ -504,6 +505,126 @@ public:
 
             interface_objects[i]->SetObjectValue(rVariable, value,
                                                  rOptions, Factor);
+        }
+    }
+
+    void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
+                              std::function<double(InterfaceObject*, const std::vector<double>&)> FunctionPointer) override
+    {
+        int i = 0;
+        std::vector<InterfaceObject::Pointer> interface_objects;
+        if (mReceiveObjects.count(CommPartner) > 0)
+        {
+            interface_objects = mReceiveObjects.at(CommPartner);
+        }
+
+        for (auto interface_obj : interface_objects)
+        {
+            pBuffer[i] = FunctionPointer(boost::get_pointer(interface_obj), mShapeFunctionValues.at(CommPartner)[i]);
+            ++i;
+        }
+
+        rBufferSize = static_cast<int>(interface_objects.size());
+
+        // Debug Check
+        if (rBufferSize != i)
+        {
+            KRATOS_ERROR << "size mismatch" << std::endl;
+        }
+    }
+
+    void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
+                              std::function<array_1d<double, 3>(InterfaceObject*, const std::vector<double>&)> FunctionPointer) override
+    {
+        int i = 0;
+        std::vector<InterfaceObject::Pointer> interface_objects;
+        if (mReceiveObjects.count(CommPartner) > 0)
+        {
+            interface_objects = mReceiveObjects.at(CommPartner);
+        }
+
+        array_1d<double, 3> value;
+
+        for (auto interface_obj : interface_objects)
+        {   
+            value = FunctionPointer(boost::get_pointer(interface_obj), mShapeFunctionValues.at(CommPartner)[i]);
+
+            pBuffer[(i * 3) + 0] = value[0];
+            pBuffer[(i * 3) + 1] = value[1];
+            pBuffer[(i * 3) + 2] = value[2];
+
+            ++i;
+        }
+
+        rBufferSize = static_cast<int>(interface_objects.size()) * 3;
+
+        // Debug Check
+        if (rBufferSize != i * 3)
+        {
+            KRATOS_ERROR << "size mismatch" << std::endl;
+        }
+    }
+
+    void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
+                       std::function<void(InterfaceObject*, double)> FunctionPointer) override
+    {
+        std::vector<InterfaceObject::Pointer> interface_objects;
+        if (mSendObjects.count(CommPartner) > 0)
+        {
+            interface_objects = mSendObjects.at(CommPartner);
+        }
+
+        // Debug Check
+        if (static_cast<int>(interface_objects.size()) != BufferSize)
+        {
+            KRATOS_ERROR << "Wrong number of results received!; "
+                         << "interface_objects.size() = " << interface_objects.size()
+                         << ", BufferSize = " << BufferSize << std::endl;
+        }
+
+        for (int i = 0; i < BufferSize; ++i)
+        {
+            FunctionPointer(boost::get_pointer(interface_objects[i]), pBuffer[i]);
+        }
+    }
+
+    void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
+                       std::function<void(InterfaceObject*, array_1d<double, 3>)> FunctionPointer) override
+    {
+        // Debug Check
+        if (BufferSize % 3 != 0)
+        {
+            KRATOS_ERROR << "Uneven number of results "
+                         << "received!; BufferSize modulo 3 = "
+                         << BufferSize % 3 << std::endl;
+        }
+
+        const int num_values = BufferSize / 3;
+
+        std::vector<InterfaceObject::Pointer> interface_objects;
+        if (mSendObjects.count(CommPartner) > 0)
+        {
+            interface_objects = mSendObjects.at(CommPartner);
+        }
+
+        // Debug Check
+        if (static_cast<int>(interface_objects.size()) != num_values)
+        {
+            KRATOS_ERROR << "Wrong number of results received!; "
+                         << "interface_objects.size() = "
+                         << interface_objects.size() << ", num_values = "
+                         << num_values << std::endl;
+        }
+
+        array_1d<double, 3> value;
+
+        for (int i = 0; i < num_values; ++i)
+        {
+            value[0] = pBuffer[(i * 3) + 0];
+            value[1] = pBuffer[(i * 3) + 1];
+            value[2] = pBuffer[(i * 3) + 2];
+
+            FunctionPointer(boost::get_pointer(interface_objects[i]), value);
         }
     }
 

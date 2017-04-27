@@ -83,6 +83,11 @@ public:
     ///@name Operations
     ///@{
 
+    Node<3>* pGetBase()
+    {
+        return mpNode;
+    }
+
     bool EvaluateResult(const array_1d<double, 3>& GlobalCooords,
                         double& rMinDistance, const double Distance,
                         std::vector<double>& rShapeFunctionValues) override   // I am an object in the bins
@@ -110,6 +115,11 @@ public:
         {
             return mpNode->FastGetSolutionStepValue(rVariable);
         }
+    }
+
+    virtual double GetObjectValue(std::function<double(Kratos::Node<3>*)> FunctionPointer) override
+    {
+        return FunctionPointer(mpNode);
     }
 
     void SetObjectValue(const Variable<double>& rVariable,

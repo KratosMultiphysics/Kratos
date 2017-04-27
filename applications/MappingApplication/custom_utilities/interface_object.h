@@ -210,6 +210,26 @@ public:
         KRATOS_ERROR << "Base class function called!" << std::endl;
     }
 
+    virtual double GetObjectValue(double xxx)
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
+
+    virtual double GetObjectValue(std::function<double(InterfaceObject*)> FunctionPointer)
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
+
+    virtual double GetObjectValue(std::function<double(Kratos::Node<3>*)> FunctionPointer)
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
+
+    virtual double GetObjectValue(std::function<double(Kratos::Geometry<Node<3>>*)> FunctionPointer)
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
+
     virtual double GetObjectValueInterpolated(const Variable<double>& rVariable,
             const std::vector<double>& rShapeFunctionValues)
     {

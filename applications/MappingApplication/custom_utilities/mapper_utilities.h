@@ -228,6 +228,52 @@ public:
         return NumNodesOrigin / NumNodesDestination;
     }
 
+
+
+
+
+
+
+
+
+    static double GetValueOfNode(Node<3>* pNode,
+                                 const Variable<double>& rVariable,
+                                 const Kratos::Flags& rOptions){
+        return pNode->FastGetSolutionStepValue(rVariable);
+    }
+
+  
+    static void SetValueOfNode(Node<3>* pNode,
+                               const Variable<double>& rVariable,
+                               const double& rValue,
+                               const Kratos::Flags& rOptions,
+                               const double Factor) 
+    {
+        if (rOptions.Is(MapperFlags::ADD_VALUES))
+        {
+            pNode->FastGetSolutionStepValue(rVariable) += rValue * Factor;
+        }
+        else
+        {
+            pNode->FastGetSolutionStepValue(rVariable) = rValue * Factor;
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     static bool ProjectPointToLine(const Geometry<Node<3>>* pGeometry,
                                    const array_1d<double, 3>& GlobalCoords,
                                    array_1d<double, 3>& rLocalCoords,
