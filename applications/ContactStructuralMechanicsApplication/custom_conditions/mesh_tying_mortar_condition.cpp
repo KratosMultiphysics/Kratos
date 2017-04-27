@@ -85,7 +85,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
 //     mThisSlaveElement = this->GetValue(ELEMENT_POINTER);
     
     // Populate of the vector of master elements (it is supposed to be constant)    
-    boost::shared_ptr<ConditionMap>& AllConditionSets = this->GetValue( CONTACT_SETS );
+    boost::shared_ptr<ConditionSet>& AllConditionSets = this->GetValue( CONTACT_SETS );
     
     mIntegrationOrder = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
 
@@ -97,9 +97,9 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
     // Create and initialize condition variables:
     GeneralVariables rVariables;
     
-    for (auto ipair = AllConditionSets->begin(); ipair != AllConditionSets->end(); ++ipair )
+    for (auto itPair = AllConditionSets->begin(); itPair != AllConditionSets->end(); ++itPair )
     {
-        Condition::Pointer pCond = ipair->first;
+        Condition::Pointer pCond = *(itPair);
         
         // Reading integration points
         ConditionArrayListType ConditionsPointsSlave;

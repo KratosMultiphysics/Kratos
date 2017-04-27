@@ -98,14 +98,14 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     KRATOS_TRY;
     
     // First populate of the vector of master elements
-    boost::shared_ptr<ConditionMap>& AllConditionSets = this->GetValue( CONTACT_SETS );
+    boost::shared_ptr<ConditionSet>& AllConditionSets = this->GetValue( CONTACT_SETS );
     mPairSize = AllConditionSets->size();
     mThisMasterElements.resize( mPairSize );
     
     unsigned int iCond = 0;
-    for (auto iPair = AllConditionSets->begin(); iPair != AllConditionSets->end(); ++iPair )
+    for (auto itPair = AllConditionSets->begin(); itPair != AllConditionSets->end(); ++itPair )
     {
-        mThisMasterElements[iCond] = iPair->first;
+        mThisMasterElements[iCond] = *(itPair);
         iCond += 1;
     }
     

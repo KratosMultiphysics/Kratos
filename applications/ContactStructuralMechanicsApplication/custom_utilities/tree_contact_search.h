@@ -177,7 +177,7 @@ public:
         {
             auto itCond = pConditions.begin() + i;
 
-            itCond->GetValue(CONTACT_SETS) = boost::shared_ptr<ConditionMap>(new ConditionMap); 
+            itCond->GetValue(CONTACT_SETS) = boost::shared_ptr<ConditionSet>(new ConditionSet); 
 //             itCond->GetValue(CONTACT_SETS)->reserve(mAllocationSize); 
         }
     }
@@ -407,7 +407,7 @@ public:
                     
                     if (NumberPointsFound > 0)
                     {                           
-                        boost::shared_ptr<ConditionMap>& ConditionPointersDestination = itCond->GetValue(CONTACT_SETS);
+                        boost::shared_ptr<ConditionSet>& ConditionPointersDestination = itCond->GetValue(CONTACT_SETS);
                         
                         for(unsigned int i = 0; i < NumberPointsFound; i++)
                         {   
@@ -428,9 +428,6 @@ public:
                 }
             }
 //         }
-        
-        // Here we remove all the inactive pairs
-        ClearAllInactivePairs(); 
     }
     
     /**
@@ -458,7 +455,7 @@ public:
             {
                 KRATOS_WATCH(itCond->GetGeometry());
                 
-                boost::shared_ptr<ConditionMap>& ConditionPointersDestination = itCond->GetValue(CONTACT_SETS);
+                boost::shared_ptr<ConditionSet>& ConditionPointersDestination = itCond->GetValue(CONTACT_SETS);
                 KRATOS_WATCH(ConditionPointersDestination->size());
                 ConditionPointersDestination->print();
             }
@@ -480,56 +477,6 @@ public:
     }
     
     /**
-     * It clears all the inactive pairs
-     */
-    
-    void ClearAllInactivePairs()
-    {
-        ConditionsArrayType& pCond = mrMainModelPart.Conditions();
-        
-        auto numConditions = pCond.end() - pCond.begin();
-        
-//         #pragma omp parallel for // NOTE: Be careful, if you change something with get value over the nodes iteraring in the conditions this will not work in OpenMP 
-        for(unsigned int i = 0; i < numConditions; i++) 
-        {
-            auto itCond = pCond.begin() + i;
-            
-            if (itCond->Is(SLAVE) == true && itCond->Is(ACTIVE) == true)
-            {            
-                boost::shared_ptr<ConditionMap>& ConditionPointers = itCond->GetValue(CONTACT_SETS);
-                                
-                if (ConditionPointers != nullptr)
-                {
-                    for ( auto itPair = ConditionPointers->begin(); itPair != ConditionPointers->end(); ++itPair )
-                    {                        
-                        if (itPair->second == false)
-                        {
-                            // Last oportunity for the condition pair
-                            const bool CondActive = SearchUtilities::ContactChecker(itCond->GetGeometry(),    (itPair->first)->GetGeometry(), 
-                                                                                    itCond->GetValue(NORMAL), (itPair->first)->GetValue(NORMAL), 
-                                                                                    mActiveCheckFactor);
-                            if (CondActive == false) // Not paired anymore paired
-                            {
-                                ConditionPointers->erase(itPair);
-                            }
-                        }
-                    } 
-                    
-                    // All the pairs has been removed
-                    if ((*ConditionPointers).size() == 0)
-                    {
-                        itCond->Set(ACTIVE, false);
-                    }
-                }
-                else
-                {
-                    itCond->Set(ACTIVE, false);
-                }
-            }
-        }
-    }
-    
-    /**
      * It check the conditions if they are correctly detected
      * @return ConditionPointers1: A vector containing the pointers to the conditions 
      * @param pCond1: The pointer to the condition in the destination model part
@@ -537,7 +484,7 @@ public:
      */
     
     bool CheckCondition(
-        boost::shared_ptr<ConditionMap>& ConditionPointers1,
+        boost::shared_ptr<ConditionSet>& ConditionPointers1,
         const Condition::Pointer & pCond1,
         const Condition::Pointer & pCond2
         )

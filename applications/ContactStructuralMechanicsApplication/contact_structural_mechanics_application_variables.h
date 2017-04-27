@@ -21,7 +21,7 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
-#include <unordered_map>
+#include <unordered_set>
 
 namespace Kratos
 {
@@ -77,11 +77,11 @@ struct contact_container // TODO: Remove this, deprecated
     }
 };
 
-struct ConditionMap : std::unordered_map<Condition::Pointer, bool, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> >
+struct ConditionSet : std::unordered_set<Condition::Pointer, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> >
 {
-    ~ConditionMap(){}
+    ~ConditionSet(){}
     
-    typedef std::unordered_map<Condition::Pointer, bool, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> > BaseType;
+    typedef std::unordered_set<Condition::Pointer, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> > BaseType;
     
     void RemoveCondition(Condition::Pointer pCond)
     {
@@ -94,31 +94,14 @@ struct ConditionMap : std::unordered_map<Condition::Pointer, bool, SharedPointer
     
     void AddNewCondition(Condition::Pointer pCond)
     {
-        insert({pCond, true}); // True by default when adding a new one
-    }
-    
-    void SetActive(Condition::Pointer pCond, const bool Active)
-    {
-        BaseType::iterator Set = find(pCond);
-        if(Set != end())
-        {
-            Set->second = Active;
-        }
-    }
-    
-    bool IsActive(Condition::Pointer pCond)
-    {
-        BaseType::const_iterator Set = find(pCond);
-        return (Set->second);
+        insert(pCond);
     }
     
     void print()
     {
         for ( auto it = begin(); it != end(); ++it )
-        {
-            std::cout << "The condition " << (it->first)->Id() << " is ACTIVE: " << it->second;
-            
-            KRATOS_WATCH((it->first)->GetGeometry());
+        {            
+            KRATOS_WATCH((*it)->GetGeometry());
         }
     }
     
@@ -136,7 +119,7 @@ struct ConditionMap : std::unordered_map<Condition::Pointer, bool, SharedPointer
 // CONDITIONS
 /* Mortar method */ 
 KRATOS_DEFINE_VARIABLE( std::vector<contact_container>*, CONTACT_CONTAINERS )   // A vector of which contains the structure which defines the contact conditions // TODO: Remove this, deprecated
-KRATOS_DEFINE_VARIABLE( boost::shared_ptr<ConditionMap>, CONTACT_SETS )                           // An unordened map of which contains the structure which defines the contact conditions
+KRATOS_DEFINE_VARIABLE( boost::shared_ptr<ConditionSet>, CONTACT_SETS )                           // An unordened map of which contains the structure which defines the contact conditions
 KRATOS_DEFINE_VARIABLE( Element::Pointer, ELEMENT_POINTER )                     // A pointer to the element belonging to this condition
 KRATOS_DEFINE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                       // The integration order computed in the contact
 KRATOS_DEFINE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                       // Mortar Contact Operator

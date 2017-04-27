@@ -174,7 +174,7 @@ public:
     }
     
     /**
-     * This function fills the ConditionMap for the Mortar condition
+     * This function fills the ConditionSet for the Mortar condition
      * @param ConditionPointers: The map storing the potential contact conditions
      * @param Geom1: The geometry of the slave 
      * @param Geom2: The geometry of the master 
@@ -185,7 +185,7 @@ public:
      */
     
     static inline void ContactContainerFiller(
-        boost::shared_ptr<ConditionMap>& ConditionPointers,
+        boost::shared_ptr<ConditionSet>& ConditionPointers,
         Condition::Pointer & pCond1,       // SLAVE
         const Condition::Pointer & pCond2, // MASTER
         const array_1d<double, 3> & ContactNormal1, // SLAVE
