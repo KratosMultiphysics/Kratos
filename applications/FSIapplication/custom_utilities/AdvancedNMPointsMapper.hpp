@@ -506,13 +506,9 @@ private:
      * It calculates the normal and area of a condition
      * @param pCond: The pointer to the condition
      * @return Normal: The normal of the condition
-     * @return Area: The area of the condition
-     * @param dimension: 2D/3D case
      */
-    void CalcNormalAndArea(const Condition::Pointer pCond,
-                           array_1d<double,3>& Normal,
-                           double& Area,
-                           const int dimension);
+    void ComputeConditionNormal(const Condition::Pointer pCond,
+                                array_1d<double,3>& Normal);
 
     /**
      * It calculates the the center and raidus of a line

@@ -209,39 +209,35 @@ AdvancedNMPointsMapper::AdvancedNMPointsMapper(ModelPart& rOriginModelPart,
                                                mBucketSize(4)
 {
     const unsigned int dimension = mrDestinationModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension();
-
-    array_1d<double, 3> GPCoord; // Will store the coordinates of a condition's Gauss Points
-    GPCoord = ZeroVector(3);
-    array_1d<double, 3> Normal;
+    array_1d<double, 3> GPCoord, Normal;
 
     if (dimension == 2) // 2D case
     {
         boost::numeric::ublas::bounded_matrix<double,2,3> Nodes;
         boost::numeric::ublas::bounded_matrix<double,2,3> GaussPoints;
         boost::numeric::ublas::bounded_matrix<double,2,2> GPPos;
-        double Length;
 
         // 2 Gauss-Legendre point quadrature
         // eps = +-(1/3)^0.5
         // N1 = (1-eps)/2
         // N2 = (1+eps)/2
 
-        GPPos(0, 0) = (1.0+(-std::sqrt(1.0/3.0)))/2.0;
-        GPPos(0, 1) = (1.0-(-std::sqrt(1.0/3.0)))/2.0;
-        GPPos(1, 0) = (1.0+(+std::sqrt(1.0/3.0)))/2.0;
-        GPPos(1, 1) = (1.0-(+std::sqrt(1.0/3.0)))/2.0;
+        GPPos(0, 0) = (1.0+(-std::sqrt(1.0/3.0)))/2.0; GPPos(0, 1) = (1.0-(-std::sqrt(1.0/3.0)))/2.0;
+        GPPos(1, 0) = (1.0+(+std::sqrt(1.0/3.0)))/2.0; GPPos(1, 1) = (1.0-(+std::sqrt(1.0/3.0)))/2.0;
 
         for (ModelPart::ConditionsContainerType::iterator cond_it = rDestinationModelPart.ConditionsBegin();
-            cond_it != rDestinationModelPart.ConditionsEnd();
-            cond_it++)
+             cond_it != rDestinationModelPart.ConditionsEnd();
+             cond_it++)
         {
-            CalcNormalAndArea(*cond_it.base(), Normal, Length,  dimension);
+            const GeometryType& rGeom = cond_it->GetGeometry();
+            const double Length = rGeom.DomainSize();
+            ComputeConditionNormal(*(cond_it.base()), Normal);
 
             for(unsigned int i = 0; i < 2; i++)
             {
                 for(unsigned int j = 0; j < 3; j++)
                 {
-                    Nodes(i,j) = cond_it->GetGeometry()[i].Coordinate(j + 1);
+                    Nodes(i,j) = rGeom[i].Coordinate(j + 1);
                 }
             }
 
@@ -268,30 +264,24 @@ AdvancedNMPointsMapper::AdvancedNMPointsMapper(ModelPart& rOriginModelPart,
         // | G2x G2y G2z | = | 0.2 0.6 0.2 | . | Bx By Bz |
         // | G3x G3y G3z |   | 0.2 0.2 0.6 |   | Cx Cy Cz |
 
-        double Area;
         MatrixVar Nodes, GaussPoints, GPPos;
-        GPPos(0,0) = 0.6;
-        GPPos(0,1) = 0.2;
-        GPPos(0,2) = 0.2;
-        GPPos(1,0) = 0.2;
-        GPPos(1,1) = 0.6;
-        GPPos(1,2) = 0.2;
-        GPPos(2,0) = 0.2;
-        GPPos(2,1) = 0.2;
-        GPPos(2,2) = 0.6;
+        GPPos(0,0) = 0.6; GPPos(0,1) = 0.2; GPPos(0,2) = 0.2;
+        GPPos(1,0) = 0.2; GPPos(1,1) = 0.6; GPPos(1,2) = 0.2;
+        GPPos(2,0) = 0.2; GPPos(2,1) = 0.2; GPPos(2,2) = 0.6;
 
-        for (
-            ModelPart::ConditionsContainerType::iterator cond_it = rDestinationModelPart.ConditionsBegin();
-            cond_it != rDestinationModelPart.ConditionsEnd();
-            cond_it++)
+        for (ModelPart::ConditionsContainerType::iterator cond_it = rDestinationModelPart.ConditionsBegin();
+             cond_it != rDestinationModelPart.ConditionsEnd();
+             cond_it++)
         {
-            CalcNormalAndArea(*cond_it.base(), Normal, Area, dimension);
+            const GeometryType& rGeom = cond_it->GetGeometry();
+            const double Area = rGeom.DomainSize();
+            ComputeConditionNormal(*(cond_it.base()), Normal);
 
             for(unsigned int i = 0; i < 3; i++)
             {
                 for(unsigned int j = 0; j < 3; j++)
                 {
-                    Nodes(i,j) = cond_it->GetGeometry()[i].Coordinate(j + 1);
+                    Nodes(i,j) = rGeom[i].Coordinate(j + 1);
                 }
             }
 
@@ -424,16 +414,16 @@ void AdvancedNMPointsMapper::FindNeighbours(double SearchRadiusFactor)
     }
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-void AdvancedNMPointsMapper::CalcNormalAndArea(
-        const Condition::Pointer Cond,
-        array_1d<double,3> & Normal,
-        double & Area,
-        const int dimension
-        )
+/**
+ * It calculates the normal and area of a condition
+ * @param pCond: The pointer to the condition
+ * @return Normal: The normal of the condition
+ */
+void AdvancedNMPointsMapper::ComputeConditionNormal(const Condition::Pointer Cond,
+                                                    array_1d<double,3> & Normal)
 {
+    const unsigned int dimension = Cond->WorkingSpaceDimension();
+
     array_1d<double,3> v1,v2;
 
     v1[0] = Cond->GetGeometry()[1].X() - Cond->GetGeometry()[0].X();
@@ -459,15 +449,6 @@ void AdvancedNMPointsMapper::CalcNormalAndArea(
     double NNorm = std::sqrt(Normal[0]*Normal[0] + Normal[1]*Normal[1] + Normal[2]*Normal[2]);
 
     Normal /= NNorm;
-
-    if (dimension ==2)
-    {
-        Area = std::sqrt(v1[0]*v1[0] + v1[1]*v1[1] + v1[2]*v1[2]); // Note that in 2D, the Area variable represents the condition length
-    }
-    else
-    {
-        Area = 0.5 * NNorm;
-    }
 }
 
 /***********************************************************************************/
@@ -815,26 +796,14 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(
     {
         // Define some variables that will be used in the iteration
         MatrixVar MCons; // Elemental Consistent Mass Matrix = Aelem/12 * MCons
-        MCons(0, 0) = 2.0;
-        MCons(0, 1) = 1.0;
-        MCons(0, 2) = 1.0;
-        MCons(1, 0) = 1.0;
-        MCons(1, 1) = 2.0;
-        MCons(1, 2) = 1.0;
-        MCons(2, 0) = 1.0;
-        MCons(2, 1) = 1.0;
-        MCons(2, 2) = 2.0;
+        MCons(0, 0) = 2.0; MCons(0, 1) = 1.0; MCons(0, 2) = 1.0;
+        MCons(1, 0) = 1.0; MCons(1, 1) = 2.0; MCons(1, 2) = 1.0;
+        MCons(2, 0) = 1.0; MCons(2, 1) = 1.0; MCons(2, 2) = 2.0;
 
         MatrixVar MInterp; // Interpolation Matrix (NodalValues = (A/24)*MInterp*GaussValues)
-        MInterp(0, 0) = 6.0;
-        MInterp(0, 1) = 1.0;
-        MInterp(0, 2) = 1.0;
-        MInterp(1, 0) = 1.0;
-        MInterp(1, 1) = 6.0;
-        MInterp(1, 2) = 1.0;
-        MInterp(2, 0) = 1.0;
-        MInterp(2, 1) = 1.0;
-        MInterp(2, 2) = 6.0;
+        MInterp(0, 0) = 6.0; MInterp(0, 1) = 1.0; MInterp(0, 2) = 1.0;
+        MInterp(1, 0) = 1.0; MInterp(1, 1) = 6.0; MInterp(1, 2) = 1.0;
+        MInterp(2, 0) = 1.0; MInterp(2, 1) = 1.0; MInterp(2, 2) = 6.0;
 
         std::vector< boost::shared_ptr< array_1d<double, 3> > > pInterpValues;
 
@@ -1513,26 +1482,14 @@ void AdvancedNMPointsMapper::ScalarMap(
     {
         // Define some variables that will be used in the iteration
         MatrixVar MCons; // Elemental Consistent Mass Matrix = Aelem/12 * MCons
-        MCons(0, 0) = 2.0;
-        MCons(0, 1) = 1.0;
-        MCons(0, 2) = 1.0;
-        MCons(1, 0) = 1.0;
-        MCons(1, 1) = 2.0;
-        MCons(1, 2) = 1.0;
-        MCons(2, 0) = 1.0;
-        MCons(2, 1) = 1.0;
-        MCons(2, 2) = 2.0;
+        MCons(0, 0) = 2.0; MCons(0, 1) = 1.0; MCons(0, 2) = 1.0;
+        MCons(1, 0) = 1.0; MCons(1, 1) = 2.0; MCons(1, 2) = 1.0;
+        MCons(2, 0) = 1.0; MCons(2, 1) = 1.0; MCons(2, 2) = 2.0;
 
         MatrixVar MInterp; // Interpolation Matrix (NodalValues = (A/24)*MInterp*GaussValues)
-        MInterp(0, 0) = 6.0;
-        MInterp(0, 1) = 1.0;
-        MInterp(0, 2) = 1.0;
-        MInterp(1, 0) = 1.0;
-        MInterp(1, 1) = 6.0;
-        MInterp(1, 2) = 1.0;
-        MInterp(2, 0) = 1.0;
-        MInterp(2, 1) = 1.0;
-        MInterp(2, 2) = 6.0;
+        MInterp(0, 0) = 6.0; MInterp(0, 1) = 1.0; MInterp(0, 2) = 1.0;
+        MInterp(1, 0) = 1.0; MInterp(1, 1) = 6.0; MInterp(1, 2) = 1.0;
+        MInterp(2, 0) = 1.0; MInterp(2, 1) = 1.0; MInterp(2, 2) = 6.0;
 
         std::vector< boost::shared_ptr< array_1d<double, 3> > > pInterpValues;
 
