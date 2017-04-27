@@ -183,7 +183,7 @@ for normalvar in range(2):
         HatTangentSlave = DefineMatrix('HatTangentSlave',nnodes,dim)
         for node in range(nnodes):
             for idim in range(dim):
-                hatLMTangent[node,idim] = ScaleFactor * TangentFactor * LMTangent[node,idim] + TangentSlip[node,idim] * PenaltyParameter * TangentFactor
+                hatLMTangent[node,idim] = ScaleFactor * LMTangent[node,idim] + TangentSlip[node,idim] * PenaltyParameter * TangentFactor
         
         # Now we can compute the resultant tangent
         HatTangentSlave = hatLMTangent.copy()
@@ -200,14 +200,14 @@ for normalvar in range(2):
                 rv_galerkin = 0
                 if (slip == 0):  
                     rv_galerkin -=  0.5/PenaltyParameter * ScaleFactor**2.0 * LMNormal[node] * wLMNormal[node]
-                    rv_galerkin -= (0.5/(PenaltyParameter * TangentFactor) * (ScaleFactor * TangentFactor)**2.0 * LMTangent.row(node) * wLMTangent.row(node).transpose())[0,0]
+                    rv_galerkin -= (0.5/(PenaltyParameter * TangentFactor) * ScaleFactor**2.0 * LMTangent.row(node) * wLMTangent.row(node).transpose())[0,0]
                 else:
                     rv_galerkin += ((((ScaleFactor * LMNormal[node] + PenaltyParameter * NormalGap[node]) * NormalSlave.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
                     rv_galerkin +=  ScaleFactor * NormalGap[node] * wLMNormal[node]
                     
                     if (slip == 1): # Slip 
                         rv_galerkin -= (((mu[node] * (ScaleFactor * LMNormal[node] + PenaltyParameter * NormalGap[node]) * HatTangentSlave.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
-                        rv_galerkin -=  (0.5/(PenaltyParameter * TangentFactor) * (ScaleFactor * TangentFactor)**2.0 * (ScaleFactor * TangentFactor * LMTangent.row(node) + mu[node] * (ScaleFactor * LMNormal[node] + PenaltyParameter * NormalGap[node]) * HatTangentSlave.row(node)) * wLMTangent.row(node).transpose())[0,0] 
+                        rv_galerkin -=  (0.5/(PenaltyParameter * TangentFactor) * ScaleFactor**2.0 * (ScaleFactor * LMTangent.row(node) + mu[node] * (ScaleFactor * LMNormal[node] + PenaltyParameter * NormalGap[node]) * HatTangentSlave.row(node)) * wLMTangent.row(node).transpose())[0,0] 
                     else: # Stick 
                         rv_galerkin += (((ScaleFactor * LMTangent.row(node) + PenaltyParameter * TangentSlip.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
                         rv_galerkin +=  (ScaleFactor * TangentSlip.row(node) * wLMTangent.row(node).transpose())[0,0]
