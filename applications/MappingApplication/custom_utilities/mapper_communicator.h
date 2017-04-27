@@ -173,14 +173,14 @@ public:
         InvokeSearch(mInitialSearchRadius, mMaxSearchIterations);
     }
 
-    virtual void TransferData(std::function<double(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
+    virtual void TransferVariableData(std::function<double(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
                               std::function<void(InterfaceObject*, double)> FunctionPointerDestination,
                               const Variable<double>& rOriginVariable) 
     {
         ExchangeDataLocal(FunctionPointerOrigin, FunctionPointerDestination);
     }
 
-    virtual void TransferData(std::function<array_1d<double, 3>(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
+    virtual void TransferVariableData(std::function<array_1d<double, 3>(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
                               std::function<void(InterfaceObject*, array_1d<double, 3>)> FunctionPointerDestination,
                               const Variable< array_1d<double, 3> >& rOriginVariable) 
     {

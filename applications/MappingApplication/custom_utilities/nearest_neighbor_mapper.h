@@ -129,7 +129,7 @@ public:
                                               MappingOptions,
                                               factor);
 
-        mpMapperCommunicator->TransferData(function_pointer_origin,
+        mpMapperCommunicator->TransferVariableData(function_pointer_origin,
                                            function_pointer_destination,
                                            rOriginVariable);
     }
@@ -164,7 +164,7 @@ public:
                                               MappingOptions,
                                               factor);
 
-        mpMapperCommunicator->TransferData(function_pointer_origin,
+        mpMapperCommunicator->TransferVariableData(function_pointer_origin,
                                            function_pointer_destination,
                                            rOriginVariable);
     }

@@ -128,7 +128,7 @@ public:
         mIntegrationMethodDestination = IntegrationMethodDestination;
     }
 
-    void TransferData(std::function<double(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
+    void TransferVariableData(std::function<double(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
                       std::function<void(InterfaceObject*, double)> FunctionPointerDestination,
                       const Variable<double>& rOriginVariable) override
     {
@@ -140,7 +140,7 @@ public:
         MPI_Barrier(MPI_COMM_WORLD);
     }
 
-    void TransferData(std::function<array_1d<double, 3>(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
+    void TransferVariableData(std::function<array_1d<double, 3>(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
                       std::function<void(InterfaceObject*, array_1d<double, 3>)> FunctionPointerDestination,
                       const Variable< array_1d<double, 3> >& rOriginVariable) override
     {
