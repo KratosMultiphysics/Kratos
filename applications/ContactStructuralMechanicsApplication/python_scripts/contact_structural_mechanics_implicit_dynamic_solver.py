@@ -68,6 +68,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             "max_iteration": 10,
             "split_factor": 10.0,
             "max_number_splits": 3,
+            "rescale_factor": false,
             "linear_solver_settings":{
                 "solver_type": "SuperLUSolver",
                 "max_iteration": 500,
@@ -259,8 +260,10 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                     
                 else:
                     if  self.settings["compute_mortar_contact"].GetInt() > 0:
-                        split_factor   = self.settings["split_factor"].GetDouble()
-                        max_number_splits = self.settings["max_number_splits"].GetInt()
+                        newton_parameters = KratosMultiphysics.Parameters("""{}""")
+                        newton_parameters.AddValue("split_factor",self.settings["split_factor"])
+                        newton_parameters.AddValue("max_number_splits",self.settings["max_number_splits"])
+                        newton_parameters.AddValue("rescale_factor",self.settings["rescale_factor"])
                         self.mechanical_solver = ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactStrategy(
                                                                                 self.computing_model_part, 
                                                                                 mechanical_scheme, 
@@ -271,8 +274,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                                                                                 compute_reactions, 
                                                                                 reform_step_dofs, 
                                                                                 move_mesh_flag,
-                                                                                split_factor,
-                                                                                max_number_splits
+                                                                                newton_parameters
                                                                                 )
                     else:
                         self.mechanical_solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(

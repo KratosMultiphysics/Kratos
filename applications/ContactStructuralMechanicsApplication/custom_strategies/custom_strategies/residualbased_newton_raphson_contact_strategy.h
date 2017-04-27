@@ -19,6 +19,7 @@
 #include "boost/smart_ptr.hpp"
 
 /* Project includes */
+#include "includes/kratos_parameters.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
@@ -115,8 +116,6 @@ public:
      * @param CalculateReactions: The flag for the reaction calculation
      * @param ReformDofSetAtEachStep: The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag: The flag that allows to move the mesh
-     * @param SplitFactor: Value by one we split the time step when the problem does not converge
-     * @param MaxNumberSplits: Maximim number of splits of the time step
      */
     
     ResidualBasedNewtonRaphsonContactStrategy(
@@ -128,16 +127,24 @@ public:
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false,
-        double SplitFactor = 10.0,
-        unsigned int MaxNumberSplits = 3
+        Parameters ThisParameters =  Parameters(R"({})")
     )
         : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
     {
         KRATOS_TRY;
 
-        // Splitting values
-        mSplitFactor = SplitFactor;
-        mMaxNumberSplits = MaxNumberSplits;
+        Parameters DefaultParameters = Parameters(R"(
+        {
+            "split_factor"                     : 10.0,
+            "max_number_splits"                : 3,
+            "rescale_factor"                   : false
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        
+        mSplitFactor = ThisParameters["split_factor"].GetDouble();
+        mMaxNumberSplits = ThisParameters["max_number_splits"].GetInt();
+        mRecalculateFactor = ThisParameters["rescale_factor"].GetBool();
 
         KRATOS_CATCH("");
     }
@@ -152,8 +159,6 @@ public:
      * @param CalculateReactions: The flag for the reaction calculation
      * @param ReformDofSetAtEachStep: The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag: The flag that allows to move the mesh
-     * @param SplitFactor: Value by one we split the time step when the problem does not converge
-     * @param MaxNumberSplits: Maximim number of splits of the time step
      */
     
     ResidualBasedNewtonRaphsonContactStrategy(
@@ -166,16 +171,24 @@ public:
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false,
-        double SplitFactor = 10,
-        unsigned int MaxNumberSplits = 3
+        Parameters ThisParameters =  Parameters(R"({})")
     )
         : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag )
     {
         KRATOS_TRY;
 
-        // Splitting values
-        mSplitFactor = SplitFactor;
-        mMaxNumberSplits = MaxNumberSplits;
+        Parameters DefaultParameters = Parameters(R"(
+        {
+            "split_factor"                     : 10.0,
+            "max_number_splits"                : 3,
+            "rescale_factor"                   : false
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        
+        mSplitFactor = ThisParameters["split_factor"].GetDouble();
+        mMaxNumberSplits = ThisParameters["max_number_splits"].GetInt();
+        mRecalculateFactor = ThisParameters["rescale_factor"].GetBool();
 
         KRATOS_CATCH("");
     }
@@ -298,6 +311,7 @@ protected:
     
     double mSplitFactor;           // Number by one the delta time is split
     unsigned int mMaxNumberSplits; // Maximum number of splits
+    bool mRecalculateFactor;       // To check if we recalculate or not the factor
 
     ///@}
     ///@name Protected Operators
@@ -313,8 +327,11 @@ protected:
     {
         BaseType::InitializeSolutionStep();
         
-//         // Now we rescale the scale factor
-//         RescaleFactor();
+        // Now we rescale the scale factor
+        if (mRecalculateFactor == true)
+        {
+            RescaleFactor();
+        }
     }
     
     /**
@@ -352,12 +369,12 @@ protected:
                 if (((itDoF)->GetVariable().Name()).find("VECTOR_LAGRANGE") != std::string::npos || ((itDoF)->GetVariable().Name()).find("NORMAL_CONTACT_STRESS") == std::string::npos) // Corresponding with contact
                 {          
                     #pragma omp atomic
-                    AuxContact += b[j];
+                    AuxContact += b[j] * b[j];
                 }
                 else 
                 {
                     #pragma omp atomic
-                    AuxNonContact += b[j];
+                    AuxNonContact += b[j] * b[j];
                 }
             }
         }
@@ -366,7 +383,10 @@ protected:
         
         ScaleFactor *= std::sqrt(AuxNonContact/AuxContact);
         
-        std::cout << "The new SCALE_FACTOR is: " << ScaleFactor << std::endl;
+        if (StrategyBaseType::mEchoLevel > 0)
+        {
+            std::cout << "The new SCALE_FACTOR is: " << ScaleFactor << std::endl;
+        }
     }
     
     /**
