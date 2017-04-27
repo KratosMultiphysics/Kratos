@@ -118,6 +118,18 @@ namespace Kratos
 			this->mEffAreaZ = GetProperties()[AREA_EFFECTIVE_Z];
 		}
 		else this->mEffAreaZ = 0.00;
+
+		//rotational inertia
+		if (this->GetProperties().Has(INERTIA_ROT_Y) == true) {
+			this->mRotInertiaY = GetProperties()[INERTIA_ROT_Y];
+		}
+		else this->mRotInertiaY = this->mInertiaY;
+		if (this->GetProperties().Has(INERTIA_ROT_Z) == true) {
+			this->mRotInertiaY = GetProperties()[INERTIA_ROT_Z];
+		}
+		else this->mRotInertiaZ = this->mInertiaZ;
+
+		//caluclate Psi,y,z
 		this->mPsiY = this->CalculatePsi(this->mInertiaY, this->mEffAreaZ);
 		this->mPsiZ = this->CalculatePsi(this->mInertiaZ, this->mEffAreaY);
 		//manual beam rotation
@@ -732,6 +744,7 @@ namespace Kratos
 		KRATOS_TRY
 		const int number_of_nodes = GetGeometry().PointsNumber();
 		const int dimension = GetGeometry().WorkingSpaceDimension();
+		const int smallMatSize = number_of_nodes * 2;
 		const int MatSize = number_of_nodes * dimension * 2;
 
 		if (rMassMatrix.size1() != MatSize) {
@@ -740,64 +753,80 @@ namespace Kratos
 		rMassMatrix = ZeroMatrix(MatSize, MatSize);
 
 		const double L = this->mLength;
-		const double MassScaling = this->mArea * L * this->mDensity / 420.00;
+		const double L2 = L * L;
+		const double rho = this->mDensity;
+		const double A = this->mArea;
+		const double E = this->mYoungsModulus;
+		const double Iy = this->mInertiaY;
+		const double Iz = this->mInertiaZ;
+		const double J = this->mInertiaX;
+		const double G = this->mShearModulus;
+		const double Ay = this->mEffAreaY;
+		const double Az = this->mEffAreaZ;
+		const double IRy = this->mRotInertiaY;
+		const double IRz = this->mRotInertiaZ;
 
-		rMassMatrix(0, 0) = 140.00;
-		rMassMatrix(0, 6) = 70.00;
-		rMassMatrix(1, 1) = 156.00;
-		rMassMatrix(1, 5) = 22.00 * L;
-		rMassMatrix(1, 7) = 54.00;
-		rMassMatrix(1, 11) = -13.00 * L;
-		rMassMatrix(2, 2) = 156.00;
-		rMassMatrix(2, 4) = 22.00 * L;
-		rMassMatrix(2, 8) = 54.00;
-		rMassMatrix(2, 10) = -13.00 * L;
-		rMassMatrix(3, 3) = 140.00;
-		rMassMatrix(3, 9) = 70.00;
 
-		for (int i = 0; i < 4; ++i) {
-			rMassMatrix(4, i) = rMassMatrix(i, 4);
+		double Phiy = 0.00;
+		double Phiz = 0.00;
+
+		if (Ay != 0.00) Phiz = (12.00 * E * Iz) / (L2*G*Ay);
+		if (Az != 0.00) Phiy = (12.00 * E * Iy) / (L2*G*Az);
+
+		const double CTy = (rho * A * L) / ((1 + Phiy)*(1 + Phiy));
+		const double CTz = (rho * A * L) / ((1 + Phiz)*(1 + Phiz));
+
+		const double CRy = (rho*IRy) / ((1 + Phiy)*(1 + Phiy)*L);
+		const double CRz = (rho*IRz) / ((1 + Phiz)*(1 + Phiz)*L);
+
+
+		//longitudinal forces + torsional moment
+		const double M00 = (1.00 / 3.00)*A*rho*L;
+		const double M06 = M00 / 2.00;
+		rMassMatrix(0, 0) = M00;
+		rMassMatrix(0, 6) = M06;
+		rMassMatrix(6, 6) = M00;
+		rMassMatrix(3, 3) = M00;
+		rMassMatrix(3, 9) = M06;
+		rMassMatrix(9, 9) = M00;
+
+
+		Matrix TempBendingMassMatrix = ZeroMatrix(smallMatSize, smallMatSize);
+		this->BuildSingleMassMatrix(TempBendingMassMatrix, Phiz, CTz, CRz, L);
+
+		rMassMatrix(1, 1) = TempBendingMassMatrix(0, 0);
+		rMassMatrix(1, 5) = TempBendingMassMatrix(0, 1);
+		rMassMatrix(1, 7) = TempBendingMassMatrix(0, 2);
+		rMassMatrix(1, 11) = TempBendingMassMatrix(0, 3);
+		rMassMatrix(5, 5) = TempBendingMassMatrix(1, 1);
+		rMassMatrix(5, 7) = TempBendingMassMatrix(1, 2);
+		rMassMatrix(5, 11) = TempBendingMassMatrix(1, 3);
+		rMassMatrix(7, 7) = TempBendingMassMatrix(2, 2);
+		rMassMatrix(7, 11) = TempBendingMassMatrix(2, 3);
+		rMassMatrix(11, 11) = TempBendingMassMatrix(3, 3);
+
+		TempBendingMassMatrix = ZeroMatrix(smallMatSize, smallMatSize);
+		this->BuildSingleMassMatrix(TempBendingMassMatrix, Phiy, CTy, CRy, L);
+
+		rMassMatrix(2, 2) = TempBendingMassMatrix(0, 0);
+		rMassMatrix(2, 4) = TempBendingMassMatrix(0, 1);
+		rMassMatrix(2, 8) = TempBendingMassMatrix(0, 2);
+		rMassMatrix(2, 10) = TempBendingMassMatrix(0, 3);
+		rMassMatrix(4, 4) = TempBendingMassMatrix(1, 1);
+		rMassMatrix(4, 8) = TempBendingMassMatrix(1, 2);
+		rMassMatrix(4, 10) = TempBendingMassMatrix(1, 3);
+		rMassMatrix(8, 8) = TempBendingMassMatrix(2, 2);
+		rMassMatrix(8, 10) = TempBendingMassMatrix(2, 3);
+		rMassMatrix(10, 10) = TempBendingMassMatrix(3, 3);
+
+
+		for (int j = 1; j < 12; ++j)
+		{
+			for (int i = 0; i < j; ++i)
+			{
+				rMassMatrix(j, i) = rMassMatrix(i, j);
+			}
 		}
-		rMassMatrix(4, 4) = 4.00 * L * L;
-		rMassMatrix(4, 8) = 13.00 * L;
-		rMassMatrix(4, 10) = -3.00 * L * L;
-
-		for (int i = 0; i < 5; ++i) {
-			rMassMatrix(5, i) = rMassMatrix(i, 5);
-		}
-		rMassMatrix(5, 5) = 4.00 * L * L;
-		rMassMatrix(5, 7) = 13.00 * L;
-		rMassMatrix(5, 11) = -3.00 * L *L;
-
-		rMassMatrix(6, 0) = 70.00;
-		rMassMatrix(6, 6) = 140.00;
-
-		for (int i = 0; i < 7; ++i) {
-			rMassMatrix(7, i) = rMassMatrix(i, 7);
-		}
-		rMassMatrix(7, 7) = 156.00;
-		rMassMatrix(7, 11) = -22.0 * L;
-
-		for (int i = 0; i < 8; ++i) {
-			rMassMatrix(8, i) = rMassMatrix(i, 8);
-		}
-		rMassMatrix(8, 8) = 156.00;
-		rMassMatrix(8, 10) = -22.0 * L;
-
-		rMassMatrix(9, 3) = 70.00;
-		rMassMatrix(9, 9) = 140.00;
-	
-		for (int i = 0; i < 10; ++i) {
-			rMassMatrix(10, i) = rMassMatrix(i, 10);
-		}
-		rMassMatrix(10, 10) = 4.00 * L * L;
-
-		for (int i = 0; i < 11; ++i) {
-			rMassMatrix(11, i) = rMassMatrix(i, 11);
-		}
-		rMassMatrix(11, 11) = 4.00 * L * L;
-
-		rMassMatrix *= MassScaling;
 
 		Matrix RotationMatrix = ZeroMatrix(MatSize);
 		Matrix aux_matrix = ZeroMatrix(MatSize);
@@ -1058,7 +1087,7 @@ namespace Kratos
 	double CrBeamElement3D2N::CalculatePsi(const double I, const double A_eff) {
 
 		KRATOS_TRY
-			const double E = this->mYoungsModulus;
+		const double E = this->mYoungsModulus;
 		const double L = this->mCurrentLength;
 		const double G = this->mShearModulus;
 
@@ -1220,6 +1249,86 @@ namespace Kratos
 		}
 		KRATOS_CATCH("")
 	}
+
+
+	void CrBeamElement3D2N::BuildSingleMassMatrix(MatrixType& rMassMatrix,
+		double Phi, double CT, double CR, double L) 
+	{
+		KRATOS_TRY;
+		const int number_of_nodes = GetGeometry().PointsNumber();
+		const int MatSize = number_of_nodes * 2;
+
+		if (rMassMatrix.size1() != MatSize) {
+			rMassMatrix.resize(MatSize, MatSize, false);
+		}
+		rMassMatrix = ZeroMatrix(MatSize, MatSize);
+		Matrix TempMassMatrix = ZeroMatrix(MatSize, MatSize);
+		const double Phi2 = Phi * Phi;
+		const double L2 = L*L;
+
+
+		TempMassMatrix(0, 0) = (13.00 / 35.00) + (7.00 / 10.00)*Phi
+			+ (1.00 / 3.00)*Phi2;
+		TempMassMatrix(0, 1) = ((11.00 / 210.00) + (11.00 / 210.00)*Phi
+			+ (1.00 / 24.00)*Phi2)*L;
+		TempMassMatrix(0, 2) = (9.00 / 70.00) + (3.00 / 10.00)*Phi 
+			+ (1.00 / 6.00)*Phi2;
+		TempMassMatrix(0, 3) = -((13.00 / 420.00) + (3.00 / 40.00)*Phi
+			+ (1.00 / 24.00)*Phi2)*L;
+		TempMassMatrix(1, 0) = TempMassMatrix(0, 1);
+		TempMassMatrix(1, 1) = ((1.00 / 105.00) + (1.00 / 60.00)*Phi 
+			+ (1.00 / 120.00)*Phi2)*L2;
+		TempMassMatrix(1, 2) = ((13.00 / 420.00) + (3.00 / 40.00)*Phi 
+			+ (1.00 / 24.00)*Phi2)*L;
+		TempMassMatrix(1, 3) = -((1.00 / 140.00) + (1.00 / 60.00)*Phi 
+			+ (1.00 / 120.00)*Phi2)*L2;
+		TempMassMatrix(2, 0) = TempMassMatrix(0, 2);
+		TempMassMatrix(2, 1) = TempMassMatrix(1, 2);
+		TempMassMatrix(2, 2) = (13.00 / 35.00) + (7.00 / 10.00)*Phi
+			+ (1.00 / 3.00)*Phi2;
+		TempMassMatrix(2, 3) = -((11.00 / 210.00) + (11.00 / 210.00)*Phi 
+			+ (1.00 / 24.00)*Phi2)*L;
+		TempMassMatrix(3, 0) = TempMassMatrix(0, 3);
+		TempMassMatrix(3, 1) = TempMassMatrix(1, 3);
+		TempMassMatrix(3, 2) = TempMassMatrix(2, 3);
+		TempMassMatrix(3, 3) = ((1.00 / 105.00) + (1.00 / 60.00)*Phi 
+			+ (1.00 / 120.00)*Phi2)*L2;
+
+		TempMassMatrix *= CT;
+		rMassMatrix += TempMassMatrix;
+
+
+		TempMassMatrix = ZeroMatrix(MatSize, MatSize);
+
+		TempMassMatrix(0, 0) = 6.00 / 5.00;
+		TempMassMatrix(0, 1) = ((1.00 / 10.00) - (1.00 / 2.00)*Phi)*L;
+		TempMassMatrix(0, 2) = -6.00 / 5.00;
+		TempMassMatrix(0, 3) = ((1.00 / 10.00) - (1.00 / 2.00)*Phi)*L;
+		TempMassMatrix(1, 0) = TempMassMatrix(0, 1);
+		TempMassMatrix(1, 1) = ((2.00 / 15.00) + (1.00 / 6.00)*Phi 
+			+ (1.00 / 3.00)*Phi2)*L2;
+		TempMassMatrix(1, 2) = ((-1.00 / 10.00) + (1.00 / 2.00)*Phi)*L;
+		TempMassMatrix(1, 3) = -((1.00 / 30.00) + (1.00 / 6.00)*Phi
+			- (1.00 / 6.00)*Phi2)*L2;
+		TempMassMatrix(2, 0) = TempMassMatrix(0, 2);
+		TempMassMatrix(2, 1) = TempMassMatrix(1, 2);
+		TempMassMatrix(2, 2) = 6.00 / 5.00;
+		TempMassMatrix(2, 3) = ((-1.00 / 10.00) + (1.00 / 2.00)*Phi)*L;
+		TempMassMatrix(3, 0) = TempMassMatrix(0, 3);
+		TempMassMatrix(3, 1) = TempMassMatrix(1, 3);
+		TempMassMatrix(3, 2) = TempMassMatrix(2, 3);
+		TempMassMatrix(3, 3) = ((2.00 / 15.00) + (1.00 / 6.00)*Phi
+			+ (1.00 / 3.00)*Phi2)*L2;
+
+		TempMassMatrix *= CR;
+		rMassMatrix += TempMassMatrix;
+		KRATOS_CATCH("")
+	}
+
+
+
+
+
 
 	int  CrBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 	{
