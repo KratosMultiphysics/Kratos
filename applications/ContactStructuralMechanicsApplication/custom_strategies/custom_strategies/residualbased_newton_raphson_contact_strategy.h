@@ -302,7 +302,73 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-
+    
+    /**
+     * Performs all the required operations that should be done (for each step) 
+     * before solving the solution step.
+     * A member variable should be used as a flag to make sure this function is called only once per step.
+     */
+        
+    void InitializeSolutionStep() override
+    {
+        BaseType::InitializeSolutionStep();
+        
+//         // Now we rescale the scale factor
+//         RescaleFactor();
+    }
+    
+    /**
+     * We rescale the scale factor in function of the norm of the RHS
+     */
+    
+    void RescaleFactor()
+    {
+        // Pointers needed in the solution
+        typename TSchemeType::Pointer pScheme = BaseType::GetScheme();
+        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = BaseType::GetBuilderAndSolver();
+        
+        // We recalculate the RHS
+        TSystemVectorType& b = *BaseType::mpb;
+        TSparseSpace::SetToZero(b);
+        pBuilderAndSolver->BuildRHS(pScheme, StrategyBaseType::GetModelPart(), b);
+        
+        // We initialize the values of the contact and non contact norm
+        double AuxContact = 0.0;
+        double AuxNonContact = 0.0;
+        
+        // Now we iterate over all the nodes
+        NodesArrayType& pNode = StrategyBaseType::GetModelPart().GetSubModelPart("Contact").Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+    
+            for(auto itDoF = itNode->GetDofs().begin() ; itDoF != itNode->GetDofs().end() ; itDoF++)
+            {
+                const int j = (itDoF)->EquationId();
+                
+                if (((itDoF)->GetVariable().Name()).find("VECTOR_LAGRANGE") != std::string::npos || ((itDoF)->GetVariable().Name()).find("NORMAL_CONTACT_STRESS") == std::string::npos) // Corresponding with contact
+                {          
+                    #pragma omp atomic
+                    AuxContact += b[j];
+                }
+                else 
+                {
+                    #pragma omp atomic
+                    AuxNonContact += b[j];
+                }
+            }
+        }
+        
+        double& ScaleFactor = StrategyBaseType::GetModelPart().GetProcessInfo()[SCALE_FACTOR]; 
+        
+        ScaleFactor *= std::sqrt(AuxNonContact/AuxContact);
+        
+        std::cout << "The new SCALE_FACTOR is: " << ScaleFactor << std::endl;
+    }
+    
     /**
      * Here the database is updated
      */
@@ -315,15 +381,15 @@ protected:
     ) override
     {
         BaseType::UpdateDatabase(A,Dx,b,MoveMesh);
-        
+            
         CalculateContactReactions(b);
     }
     
     /**
-     * This method calculates the reactions concerning the contact (residual of the contact)
+     * We activate all yhe nodes in the active conditions
      */
     
-    void CalculateContactReactions(TSystemVectorType& b)
+    void ReactivateNodes()
     {
         // Now we iterate over all the conditions and we set all the nodes as ACTIVE in the active conditions 
         ConditionsArrayType& pCond = StrategyBaseType::GetModelPart().GetSubModelPart("Contact").Conditions();
@@ -338,21 +404,32 @@ protected:
             {
                 for (unsigned int iNode = 0; iNode < itCond->GetGeometry().size(); iNode++)
                 {
-                    #pragma omp critical
+                    itCond->GetGeometry()[iNode].SetLock();
                     itCond->GetGeometry()[iNode].Set(ACTIVE, true);
+                    itCond->GetGeometry()[iNode].UnSetLock();
                 }
             }
         }
+    }
+    
+    /**
+     * This method calculates the reactions concerning the contact (residual of the contact)
+     */
+    
+    void CalculateContactReactions(TSystemVectorType& b)
+    {       
+        // First we activate all the nodes in the active conditions
+        ReactivateNodes();
         
         // Pointers needed in the solution
         typename TSchemeType::Pointer pScheme = BaseType::GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = BaseType::GetBuilderAndSolver();
         
-        // We recalulate the RHS (NOTE: EXPENSIVE)
+        const double ScaleFactor = (StrategyBaseType::GetModelPart().GetProcessInfo()[SCALE_FACTOR] > 0.0) ? StrategyBaseType::GetModelPart().GetProcessInfo()[SCALE_FACTOR] : 1.0;
+        
+        // We recalculate the RHS (NOTE: EXPENSIVE)
         TSparseSpace::SetToZero(b);
         pBuilderAndSolver->BuildRHS(pScheme, StrategyBaseType::GetModelPart(), b);
-            
-        const double ScaleFactor = (StrategyBaseType::GetModelPart().GetProcessInfo()[SCALE_FACTOR] > 0.0) ? StrategyBaseType::GetModelPart().GetProcessInfo()[SCALE_FACTOR] : 1.0;
         
         // Now we iterate over all the nodes
         NodesArrayType& pNode = StrategyBaseType::GetModelPart().GetSubModelPart("Contact").Nodes();
