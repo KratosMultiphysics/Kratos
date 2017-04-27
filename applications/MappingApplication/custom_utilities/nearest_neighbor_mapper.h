@@ -85,15 +85,15 @@ public:
     ///@name Operations
     ///@{
 
-    void UpdateInterface(Kratos::Flags Options, double SearchRadius) override
+    void UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius) override
     {
-        mpMapperCommunicator->UpdateInterface(Options, SearchRadius);
+        mpMapperCommunicator->UpdateInterface(MappingOptions, SearchRadius);
         if (mpInverseMapper)
         {
-            mpInverseMapper->UpdateInterface(Options, SearchRadius);
+            mpInverseMapper->UpdateInterface(MappingOptions, SearchRadius);
         }
 
-        if (Options.Is(MapperFlags::REMESHED))
+        if (MappingOptions.Is(MapperFlags::REMESHED))
         {
             ComputeNumberOfNodesAndConditions();
         }
@@ -102,11 +102,11 @@ public:
     /* This function maps from Origin to Destination */
     void Map(const Variable<double>& rOriginVariable,
              const Variable<double>& rDestinationVariable,
-             Kratos::Flags Options) override
+             Kratos::Flags MappingOptions) override
     {
         double factor = 1.0f;
 
-        if (Options.Is(MapperFlags::CONSERVATIVE))
+        if (MappingOptions.Is(MapperFlags::CONSERVATIVE))
         {
             factor = MapperUtilities::ComputeConservativeFactor(
                          mNumNodesOrigin,
@@ -115,18 +115,18 @@ public:
 
         mpMapperCommunicator->TransferNodalData(rOriginVariable,
                                                 rDestinationVariable,
-                                                Options,
+                                                MappingOptions,
                                                 factor);
     }
 
     /* This function maps from Origin to Destination */
     void Map(const Variable< array_1d<double, 3> >& rOriginVariable,
              const Variable< array_1d<double, 3> >& rDestinationVariable,
-             Kratos::Flags Options) override
+             Kratos::Flags MappingOptions) override
     {
         double factor = 1.0f;
 
-        if (Options.Is(MapperFlags::CONSERVATIVE))
+        if (MappingOptions.Is(MapperFlags::CONSERVATIVE))
         {
             factor = MapperUtilities::ComputeConservativeFactor(
                          mNumNodesOrigin,
@@ -135,14 +135,14 @@ public:
 
         mpMapperCommunicator->TransferNodalData(rOriginVariable,
                                                 rDestinationVariable,
-                                                Options,
+                                                MappingOptions,
                                                 factor);
     }
 
     /* This function maps from Destination to Origin */
     void InverseMap(const Variable<double>& rOriginVariable,
                     const Variable<double>& rDestinationVariable,
-                    Kratos::Flags Options) override
+                    Kratos::Flags MappingOptions) override
     {
         // Construct the inverse mapper if it hasn't been done before
         // It is constructed with the order of the model_parts changed!
@@ -152,13 +152,13 @@ public:
                                                mModelPartOrigin,
                                                mJsonParameters) );
         }
-        mpInverseMapper->Map(rDestinationVariable, rOriginVariable, Options);
+        mpInverseMapper->Map(rDestinationVariable, rOriginVariable, MappingOptions);
     }
 
     /* This function maps from Destination to Origin */
     void InverseMap(const Variable< array_1d<double, 3> >& rOriginVariable,
                     const Variable< array_1d<double, 3> >& rDestinationVariable,
-                    Kratos::Flags Options) override
+                    Kratos::Flags MappingOptions) override
     {
         // Construct the inverse mapper if it hasn't been done before
         // It is constructed with the order of the model_parts changed!
@@ -168,7 +168,7 @@ public:
                                                mModelPartOrigin,
                                                mJsonParameters) );
         }
-        mpInverseMapper->Map(rDestinationVariable, rOriginVariable, Options);
+        mpInverseMapper->Map(rDestinationVariable, rOriginVariable, MappingOptions);
     }
 
     ///@}
