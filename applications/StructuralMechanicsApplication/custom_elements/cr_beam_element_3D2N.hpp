@@ -118,6 +118,10 @@ namespace Kratos
 			MatrixType& rMassMatrix,
 			ProcessInfo& rCurrentProcessInfo) override;
 
+		void BuildSingleMassMatrix(
+			MatrixType& rMassMatrix,
+			const double Phi, const double CT, const double CR, const double L);
+
 		void CalculateDampingMatrix(
 			MatrixType& rDampingMatrix,
 			ProcessInfo& rCurrentProcessInfo) override;
@@ -161,7 +165,7 @@ namespace Kratos
 		double mArea, mYoungsModulus, mLength, mDensity, mInertiaX, mInertiaY;
 		double mInertiaZ, mCurrentLength, mPsiY, mPsiZ;
 		double mEffAreaY, mEffAreaZ, mShearModulus, mPoisson, mtheta;
-		double mdPhi_x_a;
+		double mdPhi_x_a, mRotInertiaY, mRotInertiaZ;
 		Vector mNX, mNY, mNZ, mRHS, mTotalDef, mTotalPos;
 		Vector mTotalNodalDeformation, mTotalNodalPosistion, mBodyForces;
 		Vector mDeformationModes, mIncrementDeformation;
