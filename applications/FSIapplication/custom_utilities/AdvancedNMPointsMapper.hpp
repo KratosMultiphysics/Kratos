@@ -55,7 +55,12 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef boost::numeric::ublas::bounded_matrix<double,3,3>              MatrixVar; /// Auxiliar matrix 3x3 employed for the 3D cases
+    // Geometry types
+    typedef Node < 3 >                                               NodeType;
+    typedef Geometry<NodeType>                                   GeometryType;
+
+    // Auxiliar matrix 3x3 employed for the 3D cases
+    typedef boost::numeric::ublas::bounded_matrix<double,3,3>       MatrixVar;
 
     /// Counted pointer of GaussPointItem
     KRATOS_CLASS_POINTER_DEFINITION( GaussPointItem );
@@ -189,57 +194,41 @@ public:
 
     /**
      * It projects in 2D/3D for a line/triangle a returns the local coordinates and distance
+     * @param pOriginCond: Pointer to the Gauss point origin condition
+     * @return Coords: Projection local coordinates
+     * @return dist: The distance between the point and the plane
      */
-
-    void Project(
-            Condition::Pointer pOriginCond,
-            array_1d<double,2> & Coords,
-            double & Dist,
-            const int dimension
-            );
+    void Project(Condition::Pointer pOriginCond,
+                 array_1d<double,2> & Coords,
+                 double & Dist);
 
     /**
      * Project a point over a plane
      * @param PointInPlane: A point in the plane
      * @param PointToBeProjected: The point to be projected
-     * @param Normal: The normal of the plane
      * @return PointProjected: The point pojected over the plane
      * @return dist: The distance between the point and the plane
      */
-
-    void ProjectPointToPlane(
-            const Point<3> & PointInPlane,
-            const Point<3> & PointToBeProjected,
-            Point<3> & PointProjected,
-            double & dist,
-            const array_1d<double,3> & Normal
-            );
+    void ProjectPointToPlane(const Point<3> & PointInPlane,
+                             const Point<3> & PointToBeProjected,
+                             Point<3> & PointProjected,
+                             double & dist);
 
     /**
      * It gets the projected value for scalar variables
      * @param rOriginVar: The variable (scalar) in the original condition
      * @return Value: The projected value (scalar)
-     * @param dimension: 2D/3D case
      */
-
-    void GetProjectedValue(
-            const Variable<double> & rOriginVar,
-            double& Value,
-            const int dimension
-            );
+    void GetProjectedValue(const Variable<double> & rOriginVar,
+                           double& Value);
 
     /**
      * It gets the projected value for vector variables
      * @param rOriginVar: The variable (vector) in the original condition
      * @return Value: The projected value (vector)
-     * @param dimension: 2D/3D case
      */
-
-    void GetProjectedValue(
-            const Variable< array_1d<double,3> > & rOriginVar,
-            array_1d<double,3>& Value,
-            const int dimension
-            );
+    void GetProjectedValue(const Variable< array_1d<double,3> > & rOriginVar,
+                           array_1d<double,3>& Value);
 
 protected:
 
@@ -535,11 +524,9 @@ private:
      * @param GaussPoint: The origin Gauss Point
      * @return pCandidateCond: The candidate condition
      * @param Dist: The distance between the node and the Gauss Point
-     * @param dimension: 2D/3D case
      */
     void SetProjectionToCond(GaussPointItem& GaussPoint,
-                             Condition::Pointer pCandidateCond,
-                             const int dimension);
+                             Condition::Pointer pCandidateCond);
 
     /**
      * Alternative when no condition is available: It sets the projection of a Gauss point to a node
