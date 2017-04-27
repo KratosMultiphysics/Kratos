@@ -17,11 +17,19 @@ class PeriodicInterfaceActivationProcess(KratosMultiphysics.Process):
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("model_part_name",settings["model_part_name"])
         params.AddValue("mesh_id",settings["mesh_id"])
+        params.AddValue("dimension",settings["dimension"])
         
         self.process = KratosPoro.PeriodicInterfaceProcess(model_part, params)
 
+        if(settings["dimension"].GetInt() == 2):
+            self.FindNodalNeigh = KratosMultiphysics.FindNodalNeighboursProcess(model_part,2,5)
+        else:
+            self.FindNodalNeigh = KratosMultiphysics.FindNodalNeighboursProcess(model_part,10,10)
+
     def ExecuteInitialize(self):
         
+        self.FindNodalNeigh.Execute()
+
         self.process.ExecuteInitialize()
 
     def ExecuteAfterOutputStep(self):

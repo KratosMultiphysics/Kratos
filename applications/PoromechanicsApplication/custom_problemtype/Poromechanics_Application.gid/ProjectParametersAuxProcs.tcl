@@ -241,7 +241,8 @@ proc WritePeriodicInterfaceProcess {FileVar GroupNum Groups NumGroups} {
         puts $MyFileVar "        \"process_name\":  \"PeriodicInterfaceActivationProcess\","
         puts $MyFileVar "        \"Parameters\":    \{"
         puts $MyFileVar "            \"mesh_id\":         0,"
-        puts $MyFileVar "            \"model_part_name\": \"Periodic_Bars_[lindex [lindex $Groups $i] 1]\""
+        puts $MyFileVar "            \"model_part_name\": \"Periodic_Bars_[lindex [lindex $Groups $i] 1]\","
+        puts $MyFileVar "            \"dimension\":       [GiD_AccessValue get gendata Domain_Size]"
         puts $MyFileVar "        \}"
         if {$MyGroupNum < $NumGroups} {
             puts $MyFileVar "    \},\{"
