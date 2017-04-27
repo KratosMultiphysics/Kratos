@@ -23,19 +23,13 @@
 namespace Kratos
 {
 // GaussPointItem Methods
-
-/**
- * It projects in 2D/3D for a line/triangle a returns the local coordinates and distance
- * @param pOriginCond: Pointer to the origin condition
- * @return Coords: Local coordinates of the projected Gauss pt.
- * @return Dist: Projection normal distance
- * @param dimension: Problem dimension
- */
-void GaussPointItem::Project(Condition::Pointer pOriginCond,
-                             array_1d<double,2>& Coords,
-                             double& Dist)
+void GaussPointItem::Project(
+        Condition::Pointer pOriginCond,
+        array_1d<double,2>& Coords,
+        double& Dist,
+        const int dimension
+        )
 {
-    const unsigned int dimension = pOriginCond->WorkingSpaceDimension();
 
     if (dimension == 2)
     {
@@ -45,10 +39,10 @@ void GaussPointItem::Project(Condition::Pointer pOriginCond,
         point_to_project.Coordinate(3) = this->Coordinate(3);
 
         Point<3> point_projected;
-        ProjectPointToPlane(pOriginCond->GetGeometry()[0], point_to_project, point_projected, Dist);
+        ProjectPointToPlane(pOriginCond->GetGeometry()[0],point_to_project,point_projected,Dist,mNormal);
 
         array_1d<double, 3> point_projected_local_coor;
-        point_projected_local_coor = pOriginCond->GetGeometry().PointLocalCoordinates(point_projected_local_coor, point_projected);
+        point_projected_local_coor = pOriginCond->GetGeometry().PointLocalCoordinates(point_projected_local_coor,point_projected);
 
         Coords[0] = point_projected_local_coor[0];
         Coords[1] = 0.0;
@@ -93,35 +87,34 @@ void GaussPointItem::Project(Condition::Pointer pOriginCond,
     }
 }
 
-/**
- * Project a point over a plane
- * @param PointInPlane: A point in the plane
- * @param PointToBeProjected: The point to be projected
- * @return PointProjected: The point pojected over the plane
- * @return dist: The distance between the point and the plane
- */
-void GaussPointItem::ProjectPointToPlane(const Point<3>& PointInPlane,
-                                         const Point<3>& PointToBeProjected,
-                                         Point<3>& PointProjected,
-                                         double& dist)
+/***********************************************************************************/
+/***********************************************************************************/
+
+void GaussPointItem::ProjectPointToPlane(
+        const Point<3>& PointInPlane,
+        const Point<3>& PointToBeProjected,
+        Point<3>& PointProjected,
+        double& dist,
+        const array_1d<double,3>& Normal
+        )
+    {
+         array_1d<double,3> vector_points;
+         noalias(vector_points) = PointToBeProjected.Coordinates() - PointInPlane.Coordinates();
+
+         dist = inner_prod(vector_points, Normal);
+
+         PointProjected.Coordinates() = PointToBeProjected.Coordinates() - Normal * dist;
+    }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void GaussPointItem::GetProjectedValue(
+        const Variable<double> & rOriginVar,
+        double& Value,
+        const int dimension
+        )
 {
-     array_1d<double,3> vector_points;
-     noalias(vector_points) = PointToBeProjected.Coordinates() - PointInPlane.Coordinates();
-
-     dist = inner_prod(vector_points, mNormal);
-     PointProjected.Coordinates() = PointToBeProjected.Coordinates() - mNormal * dist;
-}
-
-/**
- * It gets the projected value for scalar variables
- * @param rOriginVar: The variable (scalar) in the original condition
- * @return Value: The projected value (scalar)
- */
-void GaussPointItem::GetProjectedValue(const Variable<double> & rOriginVar,
-                                       double& Value)
-{
-    const unsigned int dimension = (mpOriginCond.lock())->WorkingSpaceDimension();
-
     if (mProjStatus == 1) // Get Interpolated value from origin condition
     {
         if (dimension == 2)
@@ -154,15 +147,15 @@ void GaussPointItem::GetProjectedValue(const Variable<double> & rOriginVar,
     }
 }
 
-/**
- * It gets the projected value for vector variables
- * @param rOriginVar: The variable (vector) in the original condition
- * @return Value: The projected value (vector)
- */
-void GaussPointItem::GetProjectedValue(const Variable<array_1d<double,3> >& rOriginVar,
-                                       array_1d<double,3>& Value)
+/***********************************************************************************/
+/***********************************************************************************/
+
+void GaussPointItem::GetProjectedValue(
+        const Variable<array_1d<double,3> >& rOriginVar,
+        array_1d<double,3>& Value,
+        const int dimension
+        )
 {
-    const unsigned int dimension = (mpOriginCond.lock())->WorkingSpaceDimension();
 
     if (mProjStatus == 1) // Get Interpolated value from origin condition
     {
@@ -277,9 +270,15 @@ AdvancedNMPointsMapper::AdvancedNMPointsMapper(ModelPart& rOriginModelPart,
 
         double Area;
         MatrixVar Nodes, GaussPoints, GPPos;
-        GPPos(0,0) = 0.6; GPPos(0,1) = 0.2; GPPos(0,2) = 0.2;
-        GPPos(1,0) = 0.2; GPPos(1,1) = 0.6; GPPos(1,2) = 0.2;
-        GPPos(2,0) = 0.2; GPPos(2,1) = 0.2; GPPos(2,2) = 0.6;
+        GPPos(0,0) = 0.6;
+        GPPos(0,1) = 0.2;
+        GPPos(0,2) = 0.2;
+        GPPos(1,0) = 0.2;
+        GPPos(1,1) = 0.6;
+        GPPos(1,2) = 0.2;
+        GPPos(2,0) = 0.2;
+        GPPos(2,1) = 0.2;
+        GPPos(2,2) = 0.6;
 
         for (
             ModelPart::ConditionsContainerType::iterator cond_it = rDestinationModelPart.ConditionsBegin();
@@ -543,7 +542,7 @@ void AdvancedNMPointsMapper::SetProjectionToCond(
 {
     array_1d<double,2> LocalCoords;
     double Dist;
-    GaussPoint.Project(pCandidateCond, LocalCoords, Dist);
+    GaussPoint.Project(pCandidateCond, LocalCoords, Dist, dimension);
 
     if (dimension == 2)
     {
@@ -702,10 +701,10 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(
             // Note that currently the implementation is valid for only 2 GP
             double TempValue = 0.0;
 
-            mGaussPointList[GPi]->GetProjectedValue(rOriginVar, TempValue);
+            mGaussPointList[GPi]->GetProjectedValue(rOriginVar, TempValue, dimension);
             GPValues[0] = TempValue;
 
-            mGaussPointList[GPi + 1]->GetProjectedValue(rOriginVar, TempValue);
+            mGaussPointList[GPi + 1]->GetProjectedValue(rOriginVar, TempValue, dimension);
             GPValues[1] = TempValue;
 
             const double K = CondLength/2.0;
@@ -857,7 +856,9 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(
 
             for (unsigned int i = 0; i < 3; i++)
             {
-                mGaussPointList[GPi + i]->GetProjectedValue(rOriginVar, GPValues[i]);
+                //~ cond_it->GetGeometry()[i].GetValue(NODAL_MAUX) += 0.333333333333333333 * CondArea;
+                mGaussPointList[GPi + i]->GetProjectedValue(rOriginVar, GPValues[i], 3);
+
                 cond_it->GetGeometry()[i].GetValue(NORMAL) += NormalVector; // Store the condition normal in each node to compute the nodal normal
             }
 
@@ -1041,10 +1042,10 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap( // Note: JUST 3D!!!!
 
             for (unsigned int j = 0; j < 3; j++)
             {
-                mGaussPointList[GPi]->GetProjectedValue(rOriginVar, TempValue);
+                mGaussPointList[GPi]->GetProjectedValue(rOriginVar, TempValue, dimension);
                 GPValues[j] = TempValue[j];
 
-                mGaussPointList[GPi + 1]->GetProjectedValue(rOriginVar, TempValue);
+                mGaussPointList[GPi + 1]->GetProjectedValue(rOriginVar, TempValue, dimension);
                 GPValues[j + 3] = TempValue[j];
             }
 
@@ -1195,7 +1196,7 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap( // Note: JUST 3D!!!!
             array_1d<double,3> TempValues = ZeroVector(3);
 
             // Gauss point 1
-            mGaussPointList[GPi]->GetProjectedValue(rOriginVar, TempValues);
+            mGaussPointList[GPi]->GetProjectedValue(rOriginVar, TempValues, 3);
 
             for (unsigned int i = 0; i < 3; i++)
             {
@@ -1203,7 +1204,7 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap( // Note: JUST 3D!!!!
             }
 
             // Gauss point 2
-            mGaussPointList[GPi + 1]->GetProjectedValue(rOriginVar, TempValues);
+            mGaussPointList[GPi + 1]->GetProjectedValue(rOriginVar, TempValues, 3);
 
             for (unsigned int i = 0; i < 3; i++)
             {
@@ -1211,7 +1212,7 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap( // Note: JUST 3D!!!!
             }
 
             // Gauss point 3
-            mGaussPointList[GPi + 2]->GetProjectedValue(rOriginVar, TempValues);
+            mGaussPointList[GPi + 2]->GetProjectedValue(rOriginVar, TempValues, 3);
 
             for (unsigned int i = 0; i < 3; i++)
             {
@@ -1412,10 +1413,10 @@ void AdvancedNMPointsMapper::ScalarMap(
             // Note that currently the implementation is valid for only 2 GP
             double TempValue = 0.0;
 
-            mGaussPointList[GPi]->GetProjectedValue(rOriginVar, TempValue);
+            mGaussPointList[GPi]->GetProjectedValue(rOriginVar, TempValue, dimension);
             GPValues[0] = TempValue;
 
-            mGaussPointList[GPi + 1]->GetProjectedValue(rOriginVar, TempValue);
+            mGaussPointList[GPi + 1]->GetProjectedValue(rOriginVar, TempValue, dimension);
             GPValues[1] = TempValue;
 
             NodalValues[0] = K*(MInterp(0,0)*GPValues[0] + MInterp(0,1)*GPValues[1]);
@@ -1550,7 +1551,7 @@ void AdvancedNMPointsMapper::ScalarMap(
 
             for (unsigned int i = 0; i < 3; i++)
             {
-                mGaussPointList[GPi + i]->GetProjectedValue(rOriginVar, GPValues[i]);
+                mGaussPointList[GPi + i]->GetProjectedValue(rOriginVar, GPValues[i], dimension);
             }
 
             noalias(NodalValues) = (CondArea/24.0) * prod(MInterp, GPValues);
@@ -1725,11 +1726,11 @@ void AdvancedNMPointsMapper::VectorMap(
             // Gauss point 1
             if (distributed == false)
             {
-                mGaussPointList[GPi]->GetProjectedValue(rOriginVar, TempValues);
+                mGaussPointList[GPi]->GetProjectedValue(rOriginVar, TempValues, dimension);
             }
             else
             {
-                mGaussPointList[GPi]->GetProjectedValue(VAUX_EQ_TRACTION, TempValues);
+                mGaussPointList[GPi]->GetProjectedValue(VAUX_EQ_TRACTION, TempValues, dimension);
             }
 
             for (unsigned int i = 0; i < 3; i++)
@@ -1740,11 +1741,11 @@ void AdvancedNMPointsMapper::VectorMap(
             // Gauss point 2
             if (distributed == false)
             {
-                mGaussPointList[GPi + 1]->GetProjectedValue(rOriginVar, TempValues);
+                mGaussPointList[GPi + 1]->GetProjectedValue(rOriginVar, TempValues, dimension);
             }
             else
             {
-                mGaussPointList[GPi + 1]->GetProjectedValue(VAUX_EQ_TRACTION, TempValues);
+                mGaussPointList[GPi + 1]->GetProjectedValue(VAUX_EQ_TRACTION, TempValues, dimension);
             }
 
             for (unsigned int i = 0; i < 3; i++)
@@ -1914,7 +1915,7 @@ void AdvancedNMPointsMapper::VectorMap(
             if (distributed == false)
             {
                 // Gauss point 1
-                mGaussPointList[GPi]->GetProjectedValue(rOriginVar, TempValues);
+                mGaussPointList[GPi]->GetProjectedValue(rOriginVar, TempValues, dimension);
 
                 for (unsigned int i = 0; i < 3; i++)
                 {
@@ -1922,7 +1923,7 @@ void AdvancedNMPointsMapper::VectorMap(
                 }
 
                 // Gauss point 2
-                mGaussPointList[GPi + 1]->GetProjectedValue(rOriginVar, TempValues);
+                mGaussPointList[GPi + 1]->GetProjectedValue(rOriginVar, TempValues, dimension);
 
                 for (unsigned int i = 0; i < 3; i++)
                 {
@@ -1930,7 +1931,7 @@ void AdvancedNMPointsMapper::VectorMap(
                 }
 
                 // Gauss point 3
-                mGaussPointList[GPi + 2]->GetProjectedValue(rOriginVar, TempValues);
+                mGaussPointList[GPi + 2]->GetProjectedValue(rOriginVar, TempValues, dimension);
 
                 for (unsigned int i = 0; i < 3; i++)
                 {
@@ -1940,7 +1941,7 @@ void AdvancedNMPointsMapper::VectorMap(
             else
             {
                 // Gauss point 1
-                mGaussPointList[GPi]->GetProjectedValue(VAUX_EQ_TRACTION, TempValues);
+                mGaussPointList[GPi]->GetProjectedValue(VAUX_EQ_TRACTION, TempValues, dimension);
 
                 for (unsigned int i = 0; i < 3; i++)
                 {
@@ -1948,7 +1949,7 @@ void AdvancedNMPointsMapper::VectorMap(
                 }
 
                 // Gauss point 2
-                mGaussPointList[GPi + 1]->GetProjectedValue(VAUX_EQ_TRACTION, TempValues);
+                mGaussPointList[GPi + 1]->GetProjectedValue(VAUX_EQ_TRACTION, TempValues, dimension);
 
                 for (unsigned int i = 0; i < 3; i++)
                 {
@@ -1956,7 +1957,7 @@ void AdvancedNMPointsMapper::VectorMap(
                 }
 
                 // Gauss point 3
-                mGaussPointList[GPi + 2]->GetProjectedValue(VAUX_EQ_TRACTION, TempValues);
+                mGaussPointList[GPi + 2]->GetProjectedValue(VAUX_EQ_TRACTION, TempValues, dimension);
 
                 for (unsigned int i = 0; i < 3; i++)
                 {

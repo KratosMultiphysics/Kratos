@@ -110,7 +110,7 @@ public:
 
     /**
      * Returns the area of the condtition
-     * @return Area: The area of the condition
+     * @return The area of the condition
      */
     void GetArea(double& Area)
     {
@@ -119,7 +119,7 @@ public:
 
     /**
      * Returns the normal of the condtition
-     * @return Normal: The normal of the condition
+     * @return The normal of the condition
      */
     void GetNormal(array_1d<double, 3>& Normal)
     {
@@ -128,8 +128,9 @@ public:
 
     /**
      * It returns the distance along normal from Gauss point to a condition
-     * @return Dist: The projection distance
+     * @return
      */
+
     void GetDist(double& Dist)
     {
         Dist = mDist;
@@ -139,15 +140,16 @@ public:
      * It returns the projection status
      * @return Proj: The projection status
      */
+
     void GetProjStatus(int& Proj)
     {
         Proj = mProjStatus;
     }
 
     /**
-     * It returns the origin condition for a Gauss pt.
-     * @return mpOriginCond: Pointer to the origin condition
+     * Test function
      */
+
     boost::weak_ptr<Condition> GetOriginCond()
     {
         return mpOriginCond;
@@ -155,15 +157,15 @@ public:
 
     /**
      * It sets a projection for a condition
-     * @param pCond: Pointer to the candidate condition
-     * @param Coords: Projected Gauss pt. coordinates
-     * @param Dist: Projection distance
      */
-    void SetProjection(Condition::WeakPointer pCond,
-                       array_1d<double,2> Coords,
-                       double Dist)
+
+    void SetProjection(
+            Condition::WeakPointer Cond,
+            array_1d<double,2> Coords,
+            double Dist
+            )
     {
-        mpOriginCond = pCond;
+        mpOriginCond = Cond;
         mOriginCoords = Coords;
         mDist = Dist;
         mProjStatus = 1;
@@ -171,14 +173,15 @@ public:
 
     /**
      * It sets a projection for a node
-     * @param pNode: Pointer to the candidate node
-     * @param Dist: Projection distance
      */
-    void SetProjection(Node<3>::WeakPointer pNode,
-                       const double Dist)
+
+    void SetProjection(
+            Node<3>::WeakPointer pNode,
+            const double SqDist
+            )
     {
         mpOriginNode = pNode;
-        mDist = Dist;
+        mDist = SqDist;
         mProjStatus = 2;
         mOriginCoords[0] = 0.0;
         mOriginCoords[1] = 0.0;
@@ -186,41 +189,57 @@ public:
 
     /**
      * It projects in 2D/3D for a line/triangle a returns the local coordinates and distance
-     * @param pOriginCond: Pointer to the origin condition
-     * @return Coords: Local coordinates of the projected Gauss pt.
-     * @return Dist: Projection normal distance
      */
-    void Project(Condition::Pointer pOriginCond,
-                 array_1d<double,2> & Coords,
-                 double & Dist);
+
+    void Project(
+            Condition::Pointer pOriginCond,
+            array_1d<double,2> & Coords,
+            double & Dist,
+            const int dimension
+            );
 
     /**
      * Project a point over a plane
      * @param PointInPlane: A point in the plane
      * @param PointToBeProjected: The point to be projected
+     * @param Normal: The normal of the plane
      * @return PointProjected: The point pojected over the plane
      * @return dist: The distance between the point and the plane
      */
-    void ProjectPointToPlane(const Point<3> & PointInPlane,
-                             const Point<3> & PointToBeProjected,
-                             Point<3> & PointProjected,
-                             double & dist);
+
+    void ProjectPointToPlane(
+            const Point<3> & PointInPlane,
+            const Point<3> & PointToBeProjected,
+            Point<3> & PointProjected,
+            double & dist,
+            const array_1d<double,3> & Normal
+            );
 
     /**
      * It gets the projected value for scalar variables
      * @param rOriginVar: The variable (scalar) in the original condition
      * @return Value: The projected value (scalar)
+     * @param dimension: 2D/3D case
      */
-    void GetProjectedValue(const Variable<double> & rOriginVar,
-                           double& Value);
+
+    void GetProjectedValue(
+            const Variable<double> & rOriginVar,
+            double& Value,
+            const int dimension
+            );
 
     /**
      * It gets the projected value for vector variables
      * @param rOriginVar: The variable (vector) in the original condition
      * @return Value: The projected value (vector)
+     * @param dimension: 2D/3D case
      */
-    void GetProjectedValue(const Variable< array_1d<double,3> > & rOriginVar,
-                           array_1d<double,3>& Value);
+
+    void GetProjectedValue(
+            const Variable< array_1d<double,3> > & rOriginVar,
+            array_1d<double,3>& Value,
+            const int dimension
+            );
 
 protected:
 
