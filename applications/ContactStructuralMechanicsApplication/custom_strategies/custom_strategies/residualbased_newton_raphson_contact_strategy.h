@@ -328,7 +328,7 @@ protected:
         BaseType::InitializeSolutionStep();
         
         // Now we rescale the scale factor
-        if (mRecalculateFactor == true)
+        if (mRecalculateFactor == true && StrategyBaseType::GetModelPart().GetProcessInfo()[TIME_STEPS] == 1)
         {
             RescaleFactor();
         }
