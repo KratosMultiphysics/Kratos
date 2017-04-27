@@ -500,17 +500,17 @@ public:
                                 
                 if (ConditionPointers != nullptr)
                 {
-                    for ( auto ipair = ConditionPointers->begin(); ipair != ConditionPointers->end(); ++ipair )
+                    for ( auto itPair = ConditionPointers->begin(); itPair != ConditionPointers->end(); ++itPair )
                     {                        
-                        if (ipair->second == false)
+                        if (itPair->second == false)
                         {
                             // Last oportunity for the condition pair
-                            const bool CondActive = SearchUtilities::ContactChecker(itCond->GetGeometry(),   (ipair->first)->GetGeometry(), 
-                                                                                            itCond->GetValue(NORMAL), (ipair->first)->GetValue(NORMAL), 
-                                                                                            mActiveCheckFactor);
+                            const bool CondActive = SearchUtilities::ContactChecker(itCond->GetGeometry(),    (itPair->first)->GetGeometry(), 
+                                                                                    itCond->GetValue(NORMAL), (itPair->first)->GetValue(NORMAL), 
+                                                                                    mActiveCheckFactor);
                             if (CondActive == false) // Not paired anymore paired
                             {
-                                ConditionPointers->erase(ipair);
+                                ConditionPointers->erase(itPair);
                             }
                         }
                     } 

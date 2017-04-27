@@ -131,14 +131,19 @@ public:
             }
             
             // Nodal area
-            itNode->GetValue(NODAL_AREA)   = 0.0;
+            itNode->SetValue(NODAL_AREA, 0.0);
             
             // Auxiliar values
-            itNode->GetValue(AUXILIAR_ACTIVE) = false;
-            itNode->GetValue(AUXILIAR_SLIP)   = false;
+            itNode->SetValue(AUXILIAR_ACTIVE, false);
+            itNode->SetValue(AUXILIAR_SLIP, false);
+            itNode->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, 0.0);
+            if (frictional == true)
+            {
+                itNode->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, 0.0);
+            }
             
             // The normal and tangents vectors
-            itNode->GetValue(NORMAL)      = zerovector;
+            itNode->SetValue(NORMAL, zerovector);
         }
         
         // Now we iterate over the conditions
@@ -151,7 +156,7 @@ public:
             auto itCond = pConditions.begin() + i;
             
             // The normal and tangents vectors
-            itCond->GetValue(NORMAL)      = zerovector;
+            itCond->SetValue(NORMAL, zerovector);
         }
 
         KRATOS_CATCH("");
