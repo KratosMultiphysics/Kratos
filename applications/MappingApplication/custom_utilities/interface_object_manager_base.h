@@ -298,34 +298,6 @@ public:
     // **********************************************************************
     // ** InterfaceObjectManagerSerial and InterfaceObjectManagerParallel **
     template <typename T>
-    void FillBufferWithValues(std::vector< T >& rBuffer, const Variable< T >& rVariable,
-                              Kratos::Flags& rOptions)
-    {
-        int i = 0;
-
-        std::vector<InterfaceObject::Pointer> interface_objects;
-        if (mReceiveObjects.count(mCommRank) > 0)
-        {
-            interface_objects = mReceiveObjects.at(mCommRank);
-        }
-
-        rBuffer.resize(interface_objects.size());
-
-        for (auto interface_obj : interface_objects)
-        {
-            if (rOptions.Is(MapperFlags::INTERPOLATE_VALUES))
-            {
-                rBuffer[i] = interface_obj->GetObjectValueInterpolated(rVariable, mShapeFunctionValues.at(mCommRank)[i]);
-            }
-            else
-            {
-                rBuffer[i] = interface_obj->GetObjectValue(rVariable, rOptions);
-            }
-            ++i;
-        }
-    }
-
-    template <typename T>
     void FillBufferWithValues(std::function<T(InterfaceObject*, const std::vector<double>&)> FunctionPointer, 
                               std::vector< T >& rBuffer)
     {
@@ -343,32 +315,6 @@ public:
         {
             rBuffer[i] = FunctionPointer(boost::get_pointer(interface_obj), mShapeFunctionValues.at(mCommRank)[i]);
             ++i;
-        }
-    }
-
-    template <typename T>
-    void ProcessValues(const std::vector< T >& rBuffer, const Variable< T >& rVariable,
-                       Kratos::Flags& rOptions, const double Factor)
-    {
-        std::vector<InterfaceObject::Pointer> interface_objects;
-        if (mSendObjects.count(mCommRank) > 0)
-        {
-            interface_objects = mSendObjects.at(mCommRank);
-        }
-
-        // Debug Check
-        if (interface_objects.size() != rBuffer.size())
-        {
-            KRATOS_ERROR << "Wrong number of results received!;"
-                         << " \"interface_objects.size() = "
-                         << interface_objects.size() << ", rBuffer.size() = "
-                         << rBuffer.size() << std::endl;
-        }
-
-        for (std::size_t i = 0; i < interface_objects.size(); ++i)
-        {
-            interface_objects[i]->SetObjectValue(rVariable, rBuffer[i],
-                                                 rOptions, Factor);
         }
     }
 
@@ -405,34 +351,7 @@ public:
     {
         KRATOS_ERROR << "Base class function called!" << std::endl;
     }
-
-    virtual void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
-                                      const Variable<double>& rVariable, Kratos::Flags& rOptions)
-    {
-        KRATOS_ERROR << "Base class function called!" << std::endl;
-    }
-
-    virtual void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
-                                      const Variable< array_1d<double, 3> >& rVariable,
-                                      Kratos::Flags& rOptions)
-    {
-        KRATOS_ERROR << "Base class function called!" << std::endl;
-    }
-
-    virtual void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
-                               const Variable<double>& rVariable,
-                               Kratos::Flags& rOptions, const double Factor)
-    {
-        KRATOS_ERROR << "Base class function called!" << std::endl;
-    }
-
-    virtual void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
-                               const Variable< array_1d<double, 3> >& rVariable,
-                               Kratos::Flags& rOptions, const double Factor)
-    {
-        KRATOS_ERROR << "Base class function called!" << std::endl;
-    }
-//////////////////
+    
     virtual void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
                               std::function<double(InterfaceObject*, const std::vector<double>&)> FunctionPointer)
     {

@@ -173,50 +173,6 @@ public:
         InvokeSearch(mInitialSearchRadius, mMaxSearchIterations);
     }
 
-
-
-    // // Interface function for mapper developers; scalar version
-    // virtual void TransferNodalData(const Variable<double>& rOriginVariable,
-    //                                const Variable<double>& rDestinationVariable,
-    //                                Kratos::Flags& rOptions,
-    //                                double Factor = 1.0f)
-    // {
-    //     TransferDataSerial(rOriginVariable, rDestinationVariable,
-    //                        rOptions, Factor);
-    // }
-
-    // // Interface function for mapper developers; vector version
-    // virtual void TransferNodalData(const Variable< array_1d<double, 3> >& rOriginVariable,
-    //                                const Variable< array_1d<double, 3> >& rDestinationVariable,
-    //                                Kratos::Flags& rOptions,
-    //                                double Factor = 1.0f)
-    // {
-    //     TransferDataSerial(rOriginVariable, rDestinationVariable,
-    //                        rOptions, Factor);
-    // }
-
-    // // Interface function for mapper developers; scalar version
-    // virtual void TransferInterpolatedData(const Variable<double>& rOriginVariable,
-    //                                       const Variable<double>& rDestinationVariable,
-    //                                       Kratos::Flags& rOptions,
-    //                                       double Factor = 1.0f)
-    // {
-    //     rOptions.Set(MapperFlags::INTERPOLATE_VALUES);
-    //     TransferDataSerial(rOriginVariable, rDestinationVariable,
-    //                        rOptions, Factor);
-    // }
-
-    // // Interface function for mapper developers; vector version
-    // virtual void TransferInterpolatedData(const Variable< array_1d<double, 3> >& rOriginVariable,
-    //                                       const Variable< array_1d<double, 3> >& rDestinationVariable,
-    //                                       Kratos::Flags& rOptions,
-    //                                       double Factor = 1.0f)
-    // {
-    //     rOptions.Set(MapperFlags::INTERPOLATE_VALUES);
-    //     TransferDataSerial(rOriginVariable, rDestinationVariable,
-    //                        rOptions, Factor);
-    // }
-
     virtual void TransferData(std::function<double(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
                               std::function<void(InterfaceObject*, double)> FunctionPointerDestination,
                               const Variable<double>& rOriginVariable) 
@@ -231,13 +187,6 @@ public:
         ExchangeDataLocal(FunctionPointerOrigin, FunctionPointerDestination);
     }
 
-    // Interface function for mapper developer
-    virtual void TransferShapeFunctions(Kratos::Flags& rOptions)
-    {
-
-
-    }
-
     virtual int MyPID() // Copy from "kratos/includes/communicator.h"
     {
         return 0;
@@ -247,14 +196,6 @@ public:
     {
         return 1;
     }
-
-    // InterfaceObjectManagerBase::Pointer pGetInterfaceObjectManagerOrigin() {
-    //     return mpInterfaceObjectManagerOrigin;
-    // }
-
-    // InterfaceObjectManagerBase::Pointer pGetInterfaceObjectManagerDestination() {
-    //     return mpInterfaceObjectManagerDestination;
-    // }
 
     void PrintTime(const std::string& rMapperName,
                    const std::string& rFunctionName,
@@ -343,18 +284,6 @@ protected:
     ///@{
 
     template <typename T>
-    void ExchangeDataLocal(const Variable< T >& rOriginVariable,
-                           const Variable< T >& rDestinationVariable,
-                           Kratos::Flags& rOptions,
-                           const double Factor)
-    {
-        std::vector< T > values;
-
-        mpInterfaceObjectManagerOrigin->FillBufferWithValues(values, rOriginVariable, rOptions);
-        mpInterfaceObjectManagerDestination->ProcessValues(values, rDestinationVariable, rOptions, Factor);
-    }
-
-    template <typename T>
     void ExchangeDataLocal(std::function<T(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
                            std::function<void(InterfaceObject*, T)> FunctionPointerDestination)
     {
@@ -428,15 +357,6 @@ private:
             PrintPairs();
         }
     }
-
-    // template <typename T>
-    // void TransferDataSerial(const Variable< T >& rOriginVariable,
-    //                         const Variable< T >& rDestinationVariable,
-    //                         Kratos::Flags& rOptions,
-    //                         double Factor)
-    // {
-    //     ExchangeDataLocal(rOriginVariable, rDestinationVariable, rOptions, Factor);
-    // }
 
     ///@}
     ///@name Private  Access

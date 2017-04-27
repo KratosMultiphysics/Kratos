@@ -129,11 +129,6 @@ public:
                                               MappingOptions,
                                               factor);
 
-        // mpMapperCommunicator->TransferNodalData(rOriginVariable,
-        //                                         rDestinationVariable,
-        //                                         MappingOptions,
-        //                                         factor);
-
         mpMapperCommunicator->TransferData(function_pointer_origin,
                                            function_pointer_destination,
                                            rOriginVariable);
@@ -168,11 +163,6 @@ public:
                                               rDestinationVariable,  
                                               MappingOptions,
                                               factor);
-
-        // mpMapperCommunicator->TransferNodalData(rOriginVariable,
-        //                                         rDestinationVariable,
-        //                                         MappingOptions,
-        //                                         factor);
 
         mpMapperCommunicator->TransferData(function_pointer_origin,
                                            function_pointer_destination,

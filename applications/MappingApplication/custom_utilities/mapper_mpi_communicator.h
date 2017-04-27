@@ -128,50 +128,6 @@ public:
         mIntegrationMethodDestination = IntegrationMethodDestination;
     }
 
-
-
-    // void TransferNodalData(const Variable<double>& rOriginVariable,
-    //                        const Variable<double>& rDestinationVariable,
-    //                        Kratos::Flags& rOptions,
-    //                        double Factor = 1.0f) override
-    // {
-    //     TransferDataParallel(rOriginVariable, rDestinationVariable, rOptions, Factor);
-    // }
-
-    // void TransferNodalData(const Variable< array_1d<double, 3> >& rOriginVariable,
-    //                        const Variable< array_1d<double, 3> >& rDestinationVariable,
-    //                        Kratos::Flags& rOptions,
-    //                        double Factor = 1.0f) override
-    // {
-    //     TransferDataParallel(rOriginVariable, rDestinationVariable, rOptions, Factor);
-    // }
-
-    // // Interface function for mapper developers; scalar version
-    // void TransferInterpolatedData(const Variable<double>& rOriginVariable,
-    //                               const Variable<double>& rDestinationVariable,
-    //                               Kratos::Flags& rOptions,
-    //                               double Factor = 1.0f) override
-    // {
-    //     rOptions.Set(MapperFlags::INTERPOLATE_VALUES);
-    //     mrModelPartOrigin.GetCommunicator().SynchronizeVariable(rOriginVariable); // required bcs
-    //     // data interpolation can also involve ghost nodes
-    //     TransferDataParallel(rOriginVariable, rDestinationVariable,
-    //                          rOptions, Factor);
-    // }
-
-    // // Interface function for mapper developers; vector version
-    // void TransferInterpolatedData(const Variable< array_1d<double, 3> >& rOriginVariable,
-    //                               const Variable< array_1d<double, 3> >& rDestinationVariable,
-    //                               Kratos::Flags& rOptions,
-    //                               double Factor = 1.0f) override
-    // {
-    //     rOptions.Set(MapperFlags::INTERPOLATE_VALUES);
-    //     mrModelPartOrigin.GetCommunicator().SynchronizeVariable(rOriginVariable); // required bcs
-    //     // data interpolation can also involve ghost nodes
-    //     TransferDataParallel(rOriginVariable, rDestinationVariable,
-    //                          rOptions, Factor);
-    // }
-
     void TransferData(std::function<double(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
                       std::function<void(InterfaceObject*, double)> FunctionPointerDestination,
                       const Variable<double>& rOriginVariable) override
@@ -332,61 +288,6 @@ private:
         {
             PrintPairs();
         }
-    }
-
-    template <typename T>
-    void TransferDataParallel(const Variable< T >& rOriginVariable,
-                              const Variable< T >& rDestinationVariable,
-                              Kratos::Flags& rOptions,
-                              double Factor)
-    {
-        ExchangeDataLocal(rOriginVariable, rDestinationVariable,
-                          rOptions, Factor);
-
-        ExchangeDataRemote(rOriginVariable, rDestinationVariable,
-                           rOptions, Factor);
-
-        MPI_Barrier(MPI_COMM_WORLD);
-    }
-
-    template <typename T>
-    void ExchangeDataRemote(const Variable< T >& rOriginVariable,
-                            const Variable< T >& rDestinationVariable,
-                            Kratos::Flags& rOptions,
-                            const double Factor)
-    {
-        int send_buffer_size = 0;
-        int receive_buffer_size = 0;
-
-        int max_send_buffer_size = mMaxSendBufferSize;
-        int max_receive_buffer_size = mMaxReceiveBufferSize;
-
-        int buffer_size_factor = MapperUtilitiesMPI::SizeOfVariable(T());
-
-        max_send_buffer_size *= buffer_size_factor;
-        max_receive_buffer_size *= buffer_size_factor;
-
-        double* send_buffer = new double[max_send_buffer_size];
-        double* receive_buffer = new double[max_receive_buffer_size];
-
-        for (int i = 0; i < mMaxColors; ++i)   // loop over communication steps (aka. colour)
-        {
-            int comm_partner = mColoredGraph(MyPID(), i); // get the partner rank
-            if (comm_partner != -1)   // check if rank is communicating in this communication step (aka. colour)
-            {
-                mpInterfaceObjectManagerOrigin->FillBufferWithValues(send_buffer, send_buffer_size, comm_partner,
-                        rOriginVariable, rOptions);
-
-                MapperUtilitiesMPI::MpiSendRecv(send_buffer, receive_buffer, send_buffer_size, receive_buffer_size,
-                                                max_send_buffer_size, max_receive_buffer_size, comm_partner);
-
-                mpInterfaceObjectManagerDestination->ProcessValues(receive_buffer, receive_buffer_size, comm_partner,
-                        rDestinationVariable, rOptions, Factor);
-            } // if I am communicating in this loop (comm_partner != -1)
-        } // loop colors
-
-        delete [] send_buffer;
-        delete [] receive_buffer;
     }
 
     template <typename T>
