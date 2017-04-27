@@ -29,6 +29,9 @@
 #include "custom_elements/small_displacement_beam_element_3D2N.hpp"
 #include "custom_elements/cr_beam_element_3D2N.hpp"
 
+/* Adding RoccoNet element */
+#include "custom_elements/rocco_net_element_3D4N.hpp"
+
 /* Adding truss element */
 #include "custom_elements/truss_element_3D2N.hpp"
 
@@ -223,6 +226,9 @@ private:
 
 	// Adding the truss element
 	const TrussElement3D2N mTrussElement3D2N;    
+
+	// Adding the Rocco element
+	const RoccoNetElement3D4N mRoccoNetElement3D4N;
 
     // Adding the shells elements 
     const IsotropicShellElement  mIsotropicShellElement3D3N;

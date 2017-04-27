@@ -29,6 +29,9 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
     
 	#Adding the truss element
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_element_3D2N.cpp
+
+	#Adding the rocco net element
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rocco_net_element_3D4N.cpp
     
 	# Adding shells and membranes elements
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp

@@ -47,6 +47,8 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
 	mCrBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2)))),
 	// Adding the truss elements
 	mTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2)))),    
+	// Adding RoccoNet element
+	mRoccoNetElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     // Adding the shells elements
     mIsotropicShellElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mShellThickElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ), false ),
@@ -98,6 +100,8 @@ void KratosStructuralMechanicsApplication::Register()
 	// Beam generalized variables
 	KRATOS_REGISTER_VARIABLE(AREA_EFFECTIVE_Y)
 	KRATOS_REGISTER_VARIABLE(AREA_EFFECTIVE_Z)
+	KRATOS_REGISTER_VARIABLE(INERTIA_ROT_Y)
+	KRATOS_REGISTER_VARIABLE(INERTIA_ROT_Z)
 
     //  Shell generalized variables
     KRATOS_REGISTER_VARIABLE( SHELL_STRAIN )
@@ -163,6 +167,9 @@ void KratosStructuralMechanicsApplication::Register()
     
 	//Register the bar element
 	KRATOS_REGISTER_ELEMENT("TrussElement3D2N",mTrussElement3D2N)
+
+	//Register Rocco element
+	KRATOS_REGISTER_ELEMENT("RoccoNetElement3D4N", mRoccoNetElement3D4N)
     
     //Register the shells elements
     KRATOS_REGISTER_ELEMENT( "IsotropicShellElement3D3N", mIsotropicShellElement3D3N )
