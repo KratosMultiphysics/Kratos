@@ -108,6 +108,7 @@ class UPwSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_CONTACT_STRESS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TANGENTIAL_CONTACT_STRESS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)
         ## Fluid Variables
         # Add water pressure
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.WATER_PRESSURE)
@@ -119,6 +120,9 @@ class UPwSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NORMAL_FLUID_FLUX)
         ##Common variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PERIODIC_PAIR_INDEX)
+        # self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEIGHBOUR_ELEMENTS)
+        # self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEIGHBOUR_NODES)
         
         print("Variables correctly added")
 
