@@ -482,9 +482,6 @@ protected:
     }
     
     
-    
-    void 
-    
     /**
      * Here the database is updated
      */
