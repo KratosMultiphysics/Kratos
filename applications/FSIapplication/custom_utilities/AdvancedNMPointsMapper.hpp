@@ -59,9 +59,6 @@ public:
     typedef Node < 3 >                                               NodeType;
     typedef Geometry<NodeType>                                   GeometryType;
 
-    // Auxiliar matrix 3x3 employed for the 3D cases
-    typedef boost::numeric::ublas::bounded_matrix<double,3,3>       MatrixVar;
-
     /// Counted pointer of GaussPointItem
     KRATOS_CLASS_POINTER_DEFINITION( GaussPointItem );
 
@@ -78,11 +75,9 @@ public:
         mNormal = ZeroVector(3);
     }
 
-    GaussPointItem(
-            array_1d<double, 3> Coords,
-            double Area,
-            array_1d<double, 3> Normal
-            ):
+    GaussPointItem(array_1d<double, 3> Coords,
+                   double Area,
+                   array_1d<double, 3> Normal):
         Point<3>(Coords),
         mArea(Area),
         mNormal(Normal),
@@ -103,7 +98,7 @@ public:
     }
 
     /// Destructor.
-    // ~GaussPointItem();
+    virtual ~GaussPointItem(){};
 
     ///@}
     ///@name Operators
@@ -135,7 +130,6 @@ public:
      * It returns the distance along normal from Gauss point to a condition
      * @return
      */
-
     void GetDist(double& Dist)
     {
         Dist = mDist;
@@ -145,30 +139,20 @@ public:
      * It returns the projection status
      * @return Proj: The projection status
      */
-
     void GetProjStatus(int& Proj)
     {
         Proj = mProjStatus;
     }
 
     /**
-     * Test function
-     */
-
-    boost::weak_ptr<Condition> GetOriginCond()
-    {
-        return mpOriginCond;
-    }
-
-    /**
      * It sets a projection for a condition
+     * @param Cond: Origin projection condition
+     * @param Coords: Origin projected point coordinates
+     * @param Dist: Distance value
      */
-
-    void SetProjection(
-            Condition::WeakPointer Cond,
-            array_1d<double,2> Coords,
-            double Dist
-            )
+    void SetProjection(Condition::WeakPointer Cond,
+                       array_1d<double,2> Coords,
+                       double Dist)
     {
         mpOriginCond = Cond;
         mOriginCoords = Coords;
@@ -178,15 +162,14 @@ public:
 
     /**
      * It sets a projection for a node
+     * @param pNode: Selected destination node
+     * @param Dist: Distance value
      */
-
-    void SetProjection(
-            Node<3>::WeakPointer pNode,
-            const double SqDist
-            )
+    void SetProjection(Node<3>::WeakPointer pNode,
+                       const double Dist)
     {
         mpOriginNode = pNode;
-        mDist = SqDist;
+        mDist = Dist;
         mProjStatus = 2;
         mOriginCoords[0] = 0.0;
         mOriginCoords[1] = 0.0;
@@ -195,24 +178,24 @@ public:
     /**
      * It projects in 2D/3D for a line/triangle a returns the local coordinates and distance
      * @param pOriginCond: Pointer to the Gauss point origin condition
-     * @return Coords: Projection local coordinates
+     * @return ProjectedLocalCoords: Projection local coordinates
      * @return dist: The distance between the point and the plane
      */
     void Project(Condition::Pointer pOriginCond,
-                 array_1d<double,2> & Coords,
+                 array_1d<double,2> & ProjectedLocalCoords,
                  double & Dist);
 
     /**
-     * Project a point over a plane
+     * Projects a point over a line
      * @param PointInPlane: A point in the plane
      * @param PointToBeProjected: The point to be projected
      * @return PointProjected: The point pojected over the plane
      * @return dist: The distance between the point and the plane
      */
-    void ProjectPointToPlane(const Point<3> & PointInPlane,
-                             const Point<3> & PointToBeProjected,
-                             Point<3> & PointProjected,
-                             double & dist);
+    void ProjectPointToLine(const Point<3> & PointInPlane,
+                            const Point<3> & PointToBeProjected,
+                            Point<3> & PointProjected,
+                            double & dist);
 
     /**
      * It gets the projected value for scalar variables
@@ -350,7 +333,7 @@ public:
                            ModelPart & rDestinationModelPart);
 
     /// Destructor.
-    //~AdvancedNMPointsMapper();
+    virtual ~AdvancedNMPointsMapper(){};
 
     ///@}
     ///@name Operators
@@ -500,30 +483,19 @@ private:
                                 array_1d<double,3>& Normal);
 
     /**
-     * It calculates the the center and raidus of a line
+     * It calculates the the center and radius of the condition
      * @param pCond: The pointer to the condition
      * @return Center: Center point (3D)
-     * @return Radius: The radius of the line (half lenght)
+     * @return Radius: Geometry radius
      */
-    void LineCenterAndRadius(const Condition::Pointer pCond,
-                             Point<3>& Center,
-                             double& Radius);
+    void ComputeGeometryCenterAndRadius(const Condition::Pointer pCond,
+                                        Point<3>& Center,
+                                        double& Radius);
 
     /**
-     * It calculates the the center and radius of a triangle
-     * @param pCond: The pointer to the condition
-     * @return Center: Center point (3D)
-     * @return Radius: The radius of the line (half lenght)
-     */
-    void TriangleCenterAndRadius(const Condition::Pointer pCond,
-                                 Point<3>& Center,
-                                 double& Radius);
-
-    /**
-     * Desired outcome: It sets the projectioon of a Gauss node to a condition
+     * Desired outcome: It sets the projection of a Gauss node to a condition
      * @param GaussPoint: The origin Gauss Point
-     * @return pCandidateCond: The candidate condition
-     * @param Dist: The distance between the node and the Gauss Point
+     * @param pCandidateCond: The candidate condition
      */
     void SetProjectionToCond(GaussPointItem& GaussPoint,
                              Condition::Pointer pCandidateCond);
@@ -531,7 +503,7 @@ private:
     /**
      * Alternative when no condition is available: It sets the projection of a Gauss point to a node
      * @param GaussPoint: The origin Gauss Point
-     * @return pCandidateNode: The candidate node
+     * @param pCandidateNode: The candidate node
      * @param Dist: The distance between the node and the Gauss Point
      */
     void SetProjectionToNode(GaussPointItem& GaussPoint,
