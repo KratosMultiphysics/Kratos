@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Tobias Tescheamacher
+//  Main authors:    Tobias Teschemacher
 //                   Riccardo Rossi
 //
 
@@ -1003,17 +1003,17 @@ void MeshlessMembraneElement::CalculateAndAdd_BodyForce(
 	const double density = this->GetProperties()[DENSITY];
 
 
-	noalias(BodyForce) = ZeroVector(3);
-	for (unsigned int i = 0; i<number_of_nodes; i++)
-		BodyForce += N[i] * this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-	BodyForce *= density;
+	//noalias(BodyForce) = ZeroVector(3);
+	//for (unsigned int i = 0; i<number_of_nodes; i++)
+	//	BodyForce += N[i] * this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+	//BodyForce *= density;
 
 	for (unsigned int i = 0; i < number_of_nodes; i++)
 	{
 		int index = 3 * i;
 
-		for (unsigned int j = 0; j < 3; j++)
-			rRightHandSideVector[index + j] += weight * N[i] * BodyForce[j];
+    for (unsigned int j = 0; j < 3; j++)
+      rRightHandSideVector[index + j] += weight * N[i];// *BodyForce[j];
 	}
 
 	KRATOS_CATCH("")

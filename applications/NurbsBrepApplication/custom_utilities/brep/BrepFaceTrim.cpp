@@ -18,7 +18,7 @@
 
 
 // Project includes
-#include "FaceTrim.h"
+#include "BrepFaceTrim.h"
 #include "nurbs_brep_application.h"
 #include "nurbs_brep_application_variables.h"
 
@@ -26,16 +26,23 @@
 namespace Kratos
 {
 // --------------------------------------------------------------------------
-
+  unsigned int& BrepFaceTrim::GetFaceId()
+  {
+    return m_face_id;
+  }
+  unsigned int& BrepFaceTrim::GetTrimIndex()
+  {
+    return m_trim_index;
+  }
 //Constructor
-FaceTrim::FaceTrim(unsigned int face_id, unsigned int trim_index, bool relative_direction)
+BrepFaceTrim::BrepFaceTrim(unsigned int face_id, unsigned int trim_index, bool relative_direction)
   : m_face_id(face_id),
     m_trim_index(trim_index),
     m_relative_direction(relative_direction)
 {
 }
 //Destructor
-FaceTrim::~FaceTrim()
+BrepFaceTrim::~BrepFaceTrim()
 {}
 
 }  // namespace Kratos.

@@ -41,12 +41,10 @@ namespace Kratos
 
     for (unsigned int brep_itr = 0; brep_itr < m_brep_model_vector.size(); brep_itr++)
     {
-      //std::cout << "number of faces: " << m_brep_model_vector[brep_itr].GetFaceVector().size() << std::endl;
-      //std::cout << "number of edges: " << m_brep_model_vector[brep_itr].GetEdgeVector().size() << std::endl;
 
       for (unsigned int face_itr = 0; face_itr < m_brep_model_vector[brep_itr].GetFaceVector().size(); face_itr++)
       {
-        Face& face = m_brep_model_vector[brep_itr].GetFaceVector()[face_itr];
+        BrepFace& face = m_brep_model_vector[brep_itr].GetFaceVector()[face_itr];
         unsigned int face_id = face.GetId();
 
         Vector& knot_vector_u = face.GetUKnotVector();
@@ -78,36 +76,113 @@ namespace Kratos
 
             bool point_is_inside = face.CheckIfPointIsInside(point_of_interest);
 
-            if (point_is_inside)
-            {
-              // compute unique point in CAD-model for given u&v
-              ++cad_node_counter;
-              Point<3> cad_point_coordinates;
+            //if (point_is_inside)
+            //{
+            //  // compute unique point in CAD-model for given u&v
+            //  ++cad_node_counter;
+            //  Node<3>::Pointer cad_point = Node<3>::Pointer(new Node<3>(cad_node_counter, 0,0,0));
 
-              std::cout << "check point inside" << std::endl;
+            //  face.EvaluateSurfacePoint(cad_point, u_i, v_j);
 
-              face.EvaluateSurfacePoint(cad_point_coordinates, u_i, v_j, m_model_part);
-
-              std::cout << "check: " << std::endl;
-
-              // Add id to point --> node. Add node to list of CAD nodes
-              Node<3>::Pointer node = model_part.CreateNewNode(cad_node_counter, cad_point_coordinates[0], cad_point_coordinates[1], cad_point_coordinates[2]);
-              node->SetValue(LOCAL_PARAMETERS, point_of_interest);
-              node->SetValue(FACE_BREP_ID, face_id);
-            }
+            //  cad_point->SetValue(LOCAL_PARAMETERS, point_of_interest);
+            //  cad_point->SetValue(FACE_BREP_ID, face_id);
+            //  // Add id to point --> node. Add node to list of CAD nodes
+            //  model_part.AddNode(cad_point);// .CreateNewNode(cad_node_counter, cad_point_coordinates[0], cad_point_coordinates[1], cad_point_coordinates[2]);
+            //}
           }
         }
-        std::cout << "Ende" << std::endl;
       }
     }
     unsigned int nodes = model_part.NumberOfNodes();
   }
 
-  Face& NurbsBrepModeler::GetFace(const unsigned int face_id)
+  void NurbsBrepModeler::CreateIntegrationDomain(const int& shapefunction_order, ModelPart& model_part)
+  {
+    int id_itr = 1;
+    ModelPart& model_part_faces = model_part.CreateSubModelPart("FACES");
+    ModelPart& model_part_coupling_edges = model_part.CreateSubModelPart("COUPLING_EDGES");
+    ModelPart& model_part_edges = model_part.CreateSubModelPart("EDGES");
+
+    for (unsigned int brep_itr = 0; brep_itr < m_brep_model_vector.size(); brep_itr++)
+    {
+      for (unsigned int face_itr = 0; face_itr < m_brep_model_vector[brep_itr].GetFaceVector().size(); face_itr++)
+      {
+        BrepFace& face = m_brep_model_vector[brep_itr].GetFaceVector()[face_itr];
+
+        ModelPart& model_part_face_id = model_part_faces.CreateSubModelPart("FACE_" + std::to_string(face.Id()));
+
+        std::vector<Node<3>::Pointer> NodeVectorElement = face.GetQuadraturePoints(shapefunction_order);
+        for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
+        {
+          NodeVectorElement[k]->SetId(id_itr);
+          id_itr++;
+          model_part_face_id.AddNode(NodeVectorElement[k]);
+        }
+      }
+
+      for (unsigned int edge_itr = 0; edge_itr < m_brep_model_vector[brep_itr].GetEdgeVector().size(); edge_itr++)
+      {
+        BrepEdge& edge = m_brep_model_vector[brep_itr].GetEdgeVector()[edge_itr];
+
+        if (edge.isCouplingEdge())
+        {
+          ModelPart& model_part_coupling_edge_id = model_part_coupling_edges.CreateSubModelPart("COUPLING_EDGE_" + std::to_string(edge.Id()));
+          int face_id_slave;
+          int trim_index_slave;
+          edge.GetEdgeInformation(1, face_id_slave, trim_index_slave);
+          BrepFace& face_slave = GetFace(face_id_slave);
+          std::vector<Point<3>> points = face_slave.GetIntersectionPoints(trim_index_slave);
+
+          int face_id_master;
+          int trim_index_master;
+          edge.GetEdgeInformation(0, face_id_master, trim_index_master);
+          BrepFace& face_master = GetFace(face_id_master);
+
+          std::vector<Node<3>::Pointer> NodeVectorElement = face_master.GetQuadraturePointsOfTrimmingCurveWithPoints(
+            shapefunction_order, trim_index_master, points);
+
+          for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
+          {
+            KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_VALUES))
+              KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_SLAVE))
+          }
+
+          face_slave.EnhanceShapeFunctionsSlave(NodeVectorElement, 2);
+          for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
+          {
+            KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_VALUES))
+              KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_SLAVE))
+            NodeVectorElement[k]->SetId(id_itr);
+            id_itr++;
+            model_part_coupling_edge_id.AddNode(NodeVectorElement[k]);
+          }
+        }
+        else
+        {
+          ModelPart& model_part_edge_id = model_part_edges.CreateSubModelPart("EDGE_" + std::to_string(edge.Id()));
+          int face_id;
+          int trim_index;
+          edge.GetEdgeInformation(0, face_id, trim_index);
+
+          BrepFace& face = GetFace(face_id);
+
+          std::vector<Node<3>::Pointer> NodeVectorElement = face.GetQuadraturePointsOfTrimmingCurve(shapefunction_order, trim_index);
+          for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
+          {
+            NodeVectorElement[k]->SetId(id_itr);
+            id_itr++;
+            model_part_edge_id.AddNode(NodeVectorElement[k]);
+          }
+        }
+      }
+    }
+  }
+
+  BrepFace& NurbsBrepModeler::GetFace(const unsigned int face_id)
   {
     for (unsigned int i = 0; i < m_brep_model_vector.size(); i++)
     {
-      FacesVector& face_vector = m_brep_model_vector[i].GetFaceVector();
+      BrepFacesVector& face_vector = m_brep_model_vector[i].GetFaceVector();
       for (unsigned int j = 0; j < face_vector.size(); j++)
       {
         if (face_vector[j].GetId() == face_id)
@@ -118,19 +193,7 @@ namespace Kratos
     }
     KRATOS_THROW_ERROR(std::logic_error, "NurbsBrepModeler::GetFace: face_id does not exist", "");
   }
-
-  //Tree< KDTreePartition<BucketType> > NurbsBrepModeler::CreateSearchTree(ModelPart model_part)
-  //{
-  //  std::cout << "\n> Starting construction of search-tree..." << std::endl;
-  //  //boost::timer timer;
-  //  typedef Bucket< 3, NodeType, NodeVector, NodeType::Pointer, std::vector<NodeType::Pointer>::iterator, std::vector<double>::iterator > BucketType;
-  //  //std::vector<NodeType::Pointer>& node_vector = model_part.NodesArray;
-  //  int bucket_size = 20;
-  //  Tree< KDTreePartition<BucketType> > search_tree(model_part.NodesArray.NodesStart, model_part.NodesArray.NodesEnd, bucket_size);
-  //  return search_tree;
-  //  //std::cout << "> Time needed for constructing search-tree: " << timer.elapsed() << " s" << std::endl;
-  //}
-
+  //void NurbsBrepModeler::GetClosestPoint(const Node<3>::Pointer& node, Node<3>::Pointer& node_on_geometry)
   void NurbsBrepModeler::MapNode(const Node<3>::Pointer& node, Node<3>::Pointer& node_on_geometry)
   {
     ModelPart local_model_part("MeshingPoints");
@@ -149,16 +212,24 @@ namespace Kratos
     //boost::shared_ptr<Node<3>>& nodes_local = local_model_part.NodesArray;
     int bucket_size = 20;
     tree search_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
-    NodeType::Pointer nearest_point = search_tree.SearchNearestPoint(*node);
+    node_on_geometry = search_tree.SearchNearestPoint(*node);
     //std::cout << "Point found!" << std::endl;
-    Vector local_parameters_of_nearest_point = nearest_point->GetValue(LOCAL_PARAMETERS);
-    unsigned int face_id_of_nearest_point = nearest_point->GetValue(FACE_BREP_ID);
+    Vector local_parameters_of_nearest_point = node_on_geometry->GetValue(LOCAL_PARAMETERS);
+    unsigned int face_id_of_nearest_point = node_on_geometry->GetValue(FACE_BREP_ID);
     std::cout << "face_id_of_nearest_point: " << face_id_of_nearest_point << std::endl;
     std::cout << "local_parameters_of_nearest_point: " << local_parameters_of_nearest_point << std::endl;
 
-    Face& face = GetFace(face_id_of_nearest_point);
+    BrepFace& face = GetFace(face_id_of_nearest_point);
 
-    face.MapNodeNewtonRaphson(nearest_point, node_on_geometry, m_model_part);
+    face.MapNodeNewtonRaphson(node, node_on_geometry);
+
+    local_parameters_of_nearest_point = node_on_geometry->GetValue(LOCAL_PARAMETERS);
+    face_id_of_nearest_point = node_on_geometry->GetValue(FACE_BREP_ID);
+    std::cout << "face_id_of_nearest_point: " << face_id_of_nearest_point << std::endl;
+    std::cout << "local_parameters_of_nearest_point: " << local_parameters_of_nearest_point << std::endl;
+
+    Vector N = node_on_geometry->GetValue(SHAPE_FUNCTION_VALUES);
+    KRATOS_WATCH(N)
   }
 
 NurbsBrepModeler::NurbsBrepModeler(BrepModelGeometryReader& brep_model_geometry_reader, ModelPart& model_part)
@@ -166,10 +237,10 @@ NurbsBrepModeler::NurbsBrepModeler(BrepModelGeometryReader& brep_model_geometry_
 {
   m_brep_model_vector = brep_model_geometry_reader.ReadGeometry(m_model_part);
 
-  Node<3>::Pointer node = Node<3>::Pointer(new Node<3>(0, 1, 0));
-  Node<3>::Pointer closest_point = Node<3>::Pointer(new Node<3>(0, 1, 0));
+  //Node<3>::Pointer node = Node<3>::Pointer(new Node<3>(0, 0, 7.3, 0));
+  //Node<3>::Pointer closest_point = Node<3>::Pointer(new Node<3>(0, 0.25, 0.1792, 0));
 
-  MapNode(node, closest_point);
+  //MapNode(node, closest_point);
 }
 
 

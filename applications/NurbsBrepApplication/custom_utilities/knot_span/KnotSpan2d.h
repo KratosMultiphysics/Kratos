@@ -1,5 +1,5 @@
-#if !defined(KRATOS_EDGE_H_INCLUDED )
-#define  KRATOS_EDGE_H_INCLUDED
+#if !defined(KRATOS_KNOT_SPAN_2D_H_INCLUDED )
+#define  KRATOS_KNOT_SPAN_2D_H_INCLUDED
 
 
 // ------------------------------------------------------------------------------
@@ -15,9 +15,9 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "FaceTrim.h"
-#include "../../kratos/includes/node.h"
-
+#include "../integration_utilities.h"
+//#include "../../kratos/includes/node.h"
+//
 #include "nurbs_brep_application.h"
 #include "nurbs_brep_application_variables.h"
 
@@ -31,6 +31,8 @@ namespace Kratos
   ///@} 
   ///@name Type Definitions
   ///@{ 
+  typedef Node<3> NodeType;
+  typedef std::vector<NodeType::Pointer> NodeVector;
   ///@}
   ///@name  Enum's
   ///@{
@@ -43,38 +45,39 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class Edge : public IndexedObject, public Flags
+  class KnotSpan2d : public IndexedObject, public Flags
   {
   public:
     ///@name Type Definitions
     ///@{
 
-    typedef std::vector<FaceTrim> FaceTrimVector;
-    typedef std::vector<Vector> ParameterVector;
     
     /// Pointer definition of KratosNurbsTestcaseApplication
-    //KRATOS_CLASS_POINTER_DEFINITION(Edge);
+    //KRATOS_CLASS_POINTER_DEFINITION(KnotSpan2d);
 
     ///@}
     ///@name Life Cycle 
     ///@{ 
-
+    std::vector<array_1d<double, 3>> KnotSpan2d::getIntegrationPointsInFullGaussianDomain();
+    std::vector<array_1d<double, 3>> KnotSpan2d::getIntegrationPointsInParameterDomain();
 
 
     //TODO: you need to give reading access to your internals through the Calculate function
     /// Constructor.
-    Edge(unsigned int edge_id,
-      ParameterVector& boundary_vertices,
-      FaceTrimVector& face_trims_vector);
+    KnotSpan2d(unsigned int knot_span_2d_id,
+      bool is_untrimmed,
+      int p, int q,
+      Vector parameter_span_u,
+      Vector parameter_span_v);
 
     /// Destructor.
-    virtual ~Edge();
+    virtual ~KnotSpan2d();
 
     /// Copy constructor.
-    //Edge(Edge const& rOther);
+    //KnotSpan2d(KnotSpan2d const& rOther);
 
     /// Assignment operator.
-    //Edge& operator=(Edge const& rOther);
+    //KnotSpan2d& operator=(KnotSpan2d const& rOther);
     ///@} 
   protected:
 
@@ -86,14 +89,16 @@ namespace Kratos
     ///@} 
     ///@name Member Variables
     ///@{ 
-
-    ParameterVector m_boundary_vertices;
-    FaceTrimVector m_face_trims_vector;
+    bool m_is_untrimmed;
+    int m_p;
+    int m_q;
+    Vector m_parameter_span_u;
+    Vector m_parameter_span_v;
 
     ///@}    
 
-  }; // Class Edge 
+  }; // Class KnotSpan2d 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_EDGE_H_INCLUDED  defined
+#endif // KRATOS_KNOT_SPAN_2D_H_INCLUDED  defined

@@ -12,7 +12,7 @@
 //
 
 // Project includes
-#include "Edge.h"
+#include "BrepModel.h"
 #include "nurbs_brep_application.h"
 #include "nurbs_brep_application_variables.h"
 
@@ -20,21 +20,29 @@
 namespace Kratos
 {
   // --------------------------------------------------------------------------
+  std::vector<BrepFace>& BrepModel::GetFaceVector()
+  {
+    //std::cout << "m_faces.size(): " << m_faces.size() << std::endl;
+    return m_brep_faces;
+  }
 
+  std::vector<BrepEdge>& BrepModel::GetEdgeVector()
+  {
+    return m_brep_edges;
+  }
   // --------------------------------------------------------------------------
   ///Constructor
-  Edge::Edge(unsigned int edge_id, 
-    ParameterVector& boundary_vertices, 
-    FaceTrimVector& face_trims_vector)
-    : m_boundary_vertices(boundary_vertices),
-      m_face_trims_vector(face_trims_vector),
-      IndexedObject(edge_id),
+  BrepModel::BrepModel(unsigned int& brep_id, FacesVector& faces, EdgesVector& edges)
+    : m_brep_faces(faces),
+      m_brep_edges(edges),
+      IndexedObject(brep_id),
       Flags()
   {
+    //std::cout << "m_faces.size(): " << m_faces.size() << std::endl;
   }
 
   ///Destructor
-  Edge::~Edge()
+  BrepModel::~BrepModel()
   {
   }
 

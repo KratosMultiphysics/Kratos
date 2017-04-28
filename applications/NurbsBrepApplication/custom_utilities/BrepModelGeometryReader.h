@@ -23,13 +23,12 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "BrepModel.h"
-#include "TrimmingCurve.h"
-#include "BoundaryLoop.h"
-#include "BrepModel.h"
-#include "Face.h"
-#include "Edge.h"
-#include "FaceTrim.h"
+#include "brep/BrepModel.h"
+#include "brep/BrepTrimmingCurve.h"
+#include "brep/BrepBoundaryLoop.h"
+#include "brep/BrepFace.h"
+#include "brep/BrepEdge.h"
+#include "brep/BrepFaceTrim.h"
 
 #include "includes/kratos_parameters.h"
 #include "../../kratos/includes/model_part.h"
@@ -69,15 +68,15 @@ namespace Kratos
     typedef std::vector<Vector> ParameterVector;
 
     //Edge:
-    typedef std::vector<FaceTrim> FaceTrimVector;
+    typedef std::vector<BrepFaceTrim> BrepFaceTrimVector;
 
     //Face:
-    typedef std::vector<TrimmingCurve> TrimmingCurveVector;
-    typedef std::vector<BoundaryLoop> TrimmingLoopVector;
+    typedef std::vector<BrepTrimmingCurve> BrepTrimmingCurveVector;
+    typedef std::vector<BrepBoundaryLoop> BrepTrimmingLoopVector;
 
     //BrepModel:
-    typedef std::vector<Face> FacesVector;
-    typedef std::vector<Edge> EdgesVector;
+    typedef std::vector<BrepFace> BrepFacesVector;
+    typedef std::vector<BrepEdge> BrepEdgesVector;
 
 
     

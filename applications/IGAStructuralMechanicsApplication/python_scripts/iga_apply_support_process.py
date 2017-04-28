@@ -3,25 +3,14 @@ import python_process
 
 ##all the processes python processes should be derived from "python_process"
 class IGAApplySupport(python_process.PythonProcess):
-    def __init__(self, model_part, variable_name, is_fixed_x, is_fixed_y, is_fixed_z, is_fixed_rot, value, mesh_id=0 ):
+    def __init__(self, model_part, variables, mesh_id=0 ):
         python_process.PythonProcess.__init__(self) 
-       
-        DisplacementRotationFix = 0 #defined by rot, dispx, dispy, dispz
-        if (is_fixed_rot):
-            DisplacementRotationFix += 1000
-        if (is_fixed_x):
-            DisplacementRotationFix += 100
-        if (is_fixed_y):
-            DisplacementRotationFix += 10
-        if (is_fixed_z):
-            DisplacementRotationFix += 1
 
-        variable = globals().get(variable_name)
-        #print(model_part)
-        for condition in model_part.GetMesh(mesh_id).Conditions:
-            condition.SetValue(KratosMultiphysics.DISPLACEMENT,[value[0].GetDouble(),value[1].GetDouble(),value[2].GetDouble()])
-            condition.SetValue(KratosMultiphysics.IGAStructuralMechanicsApplication.DISPLACEMENT_ROTATION_FIX, DisplacementRotationFix)
-        #print(value[0].GetDouble(),value[1].GetDouble(),value[2].GetDouble())
+        for condition in model_part.Conditions:
+            for variable_key in variables:
+                print(variables[variable_key])
+                condition.SetValue(eval(variable_key), variables[variable_key])
+
         print("Finished construction of IGAApplySupport Process")
         
     def ExecuteInitialize(self):
@@ -54,15 +43,33 @@ class IGAApplySupport(python_process.PythonProcess):
 def Factory(settings, Model):
 	params = settings["parameters"]
 	#print(params["model_part_name"].GetString())
-	model_part = Model.get(  params["model_part_name"].GetString() , "model part not found" )
+	model_part = Model[params["model_part_name"].GetString()].GetSubModelPart(params["sub_model_part_name"].GetString())# , "model part not found" )
 	mesh_id = params["mesh_id"]
 
+	variables = {}
 	#if(settings["process_name"] == "IGAApplyLoad"):
-	variable_name = params["variable_name"] 
-	is_fixed_x = params["is_fixed_x"].GetBool()
-	is_fixed_y = params["is_fixed_y"].GetBool()
-	is_fixed_z = params["is_fixed_z"].GetBool()
-	is_fixed_rot = params["is_fixed_rot"].GetBool()
-	value = params["value"]
+	for variable_i in range (0,params["variables"].size()):
+		variable_name = params["variables"][variable_i]["variable_name"].GetString()
+		if (variable_name == "KratosMultiphysics.IGAStructuralMechanicsApplication.PENALTY_FACTOR"):
+			variables.update({variable_name : params["variables"][variable_i]["variable"].GetDouble()})
+		if (variable_name == "KratosMultiphysics.IGAStructuralMechanicsApplication.DISPLACEMENT_ROTATION_FIX"):
+			DisplacementRotationFix = 0 #defined by rot, dispx, dispy, dispz
+			if (params["variables"][variable_i]["variable"]["C1-Continuity"]["t1"].GetBool()):
+				DisplacementRotationFix += 1000
+			if (params["variables"][variable_i]["variable"]["C0-Continuity"]["x"].GetBool()):
+				DisplacementRotationFix += 100
+			if (params["variables"][variable_i]["variable"]["C0-Continuity"]["y"].GetBool()):
+				DisplacementRotationFix += 10
+			if (params["variables"][variable_i]["variable"]["C0-Continuity"]["z"].GetBool()):
+				DisplacementRotationFix += 1
+			variables.update({variable_name : DisplacementRotationFix})
+		if (variable_name == "KratosMultiphysics.DISPLACEMENT"):
+			displacements = KratosMultiphysics.Vector(3)
+			displacements[0] = params["variables"][variable_i]["variable"]["C0-Continuity"]["x"].GetDouble()
+			displacements[1] = params["variables"][variable_i]["variable"]["C0-Continuity"]["y"].GetDouble()
+			displacements[2] = params["variables"][variable_i]["variable"]["C0-Continuity"]["z"].GetDouble()
+			variables.update({variable_name : displacements})
+
+	print(variables)
 	
-	return IGAApplySupport(model_part, variable_name, is_fixed_x, is_fixed_y, is_fixed_z, is_fixed_rot, value)
+	return IGAApplySupport(model_part, variables)

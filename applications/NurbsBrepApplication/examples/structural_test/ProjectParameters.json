@@ -1,0 +1,278 @@
+{
+  
+  "problem_data": {
+    "problem_name": "geometry_kratos",
+    "model_part_name": "IGAModelPart",
+    "domain_size": 5,
+    "start_time": 0,
+    "end_time": 0,
+    "time_step": 0.01
+  },
+  "Parameters": { "materials_filename": "materials.json" },
+  "solver_settings": {
+    "solver_type": "iga_structural_mechanics_solver",
+    "model_import_settings": {
+      "input_type": "NurbsBrepApplication"
+    },
+    "maximum_iterations": 1,
+    "echo_level": 3,
+    "compute_reactions": false,
+    "reform_dofs_at_each_iteration": false,
+    "relative_tolerance": 1E-07,
+    "absolute_tolerance": 1E-07,
+    "linear_solver_settings": {
+      "solver_type": "Super_LU",
+      "scaling": false,
+      "verbosity": 0
+    },
+    "problem_domain_sub_model_part_list": [ ],
+    "processes_sub_model_part_list": [ ],
+    "rotation_dofs": "false"
+  },
+  "output_configuration": {
+    "result_file_configuration": {
+      "gidpost_flags": {
+        "GiDPostMode": "GiD_PostAscii",
+        "WriteDeformedMeshFlag": "WriteUndeformed",
+        "WriteConditionsFlag": "WriteConditions",
+        "MultiFileFlag": "SingleFile"
+      },
+      "file_label": "step",
+      "output_control_type": "step",
+      "output_frequency": 1,
+      "body_output": false,
+      "node_output": true,
+      "skin_output": false,
+      "plane_output": [ ],
+      "nodal_results": [ "DISPLACEMENT" ],
+      "gauss_point_results": [ ]
+    },
+    "point_data_configuration": [ ]
+  },
+  "constraints_process_list": [
+    {
+      "python_module": "iga_apply_support_process",
+      "kratos_module": "KratosMultiphysics.IGAStructuralMechanicsApplication",
+      "help": "This process applies a dirichlet condition",
+      "process_name": "IGAApplySupport",
+      "parameters": {
+        "mesh_id": 0,
+        "model_part_name": "IGAModelPart",
+        "sub_model_part_name": "SUPPORT_3",
+        "variables" : [
+          {
+            "variable_name" : "KratosMultiphysics.IGAStructuralMechanicsApplication.PENALTY_FACTOR",
+            "variable": 1.0000e+10
+          },
+          {
+            "variable_name" : "KratosMultiphysics.IGAStructuralMechanicsApplication.DISPLACEMENT_ROTATION_FIX",
+            "variable": {
+                      "C0-Continuity": {
+                        "x": true,
+                        "y": true,
+                        "z": true
+                      },
+                      "C1-Continuity": {
+                        "t1": true,
+                        "t2": true
+                      }
+            }
+          },
+          {
+            "variable_name" : "KratosMultiphysics.DISPLACEMENT",
+            "variable": {
+              "C0-Continuity": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                      }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "python_module": "iga_apply_continuity_process",
+      "kratos_module": "KratosMultiphysics.IGAStructuralMechanicsApplication",
+      "help": "This process applies a continuity condition between pacthes",
+      "process_name": "IGAApplyConinuity",
+      "parameters": {
+        "mesh_id": 0,
+        "model_part_name": "IGAModelPart",
+        "sub_model_part_name": "CONTINUITY_EDGES",
+        "variables" : [
+          {
+            "variable_name" : "KratosMultiphysics.IGAStructuralMechanicsApplication.PENALTY_FACTOR",
+            "variable": 1.0000e+10
+          },
+          {
+            "variable_name" : "KratosMultiphysics.IGAStructuralMechanicsApplication.DISPLACEMENT_ROTATION_FIX",
+            "variable": {
+                      "C0-Continuity": {
+                        "x": true,
+                        "y": true,
+                        "z": true
+                      },
+                      "C1-Continuity": {
+                        "t1": false,
+                        "t2": false
+                      }
+            }
+          }
+        ]
+      }
+    }
+    ],
+  "loads_process_list": [
+    {
+      "python_module": "iga_apply_load_process",
+      "kratos_module": "KratosMultiphysics.IGAStructuralMechanicsApplication",
+      "help": "This process adds a load condition. The variable DISTRIBUTED_LOAD_FACTOR stands for the distributed load for the quadrature points. It has to be multiplied to the weighting before applied to the condition.",
+      "condition_type_description": "SURFACE_PRESSURE",
+      "process_name": "IGAApplyLoad",
+      "parameters": {
+        "mesh_id": 0,
+        "model_part_name": "IGAModelPart",
+        "sub_model_part_name": "LOAD_5",
+        "variables" : [
+          {
+            "variable_name" : "KratosMultiphysics.IGAStructuralMechanicsApplication.LOAD_TYPE",
+            "variable": "EDGE_LOAD"
+          },
+          {
+            "variable_name": "KratosMultiphysics.IGAStructuralMechanicsApplication.DISTRIBUTED_LOAD_FACTOR",
+            "variable": 100
+          },
+          {
+            "variable_name" : "KratosMultiphysics.DIRECTION",
+            "variable": {
+                        "x": 1,
+                        "y": 0,
+                        "z": 0
+                        }
+          }
+        ]
+      }
+    }
+  ],
+  "element_list": [
+    {
+      "element_name" : "MeshlessShellElement",
+      "cad_model_part" : [ "FACES" ],
+      "iga_model_part" : "STRUCTURAL_ANALYSIS", 
+      "parameters": {
+        "properties_id": 1,
+        "control_points" :  "KratosMultiphysics.NURBSBRepApplication.CONTROL_POINT_IDS",
+        "variables": [
+          {
+            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_VALUES",
+            "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_VALUES"
+          },
+          {
+            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_DERIVATIVES",
+            "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_LOCAL_DERIVATIVES"
+          },
+          {
+            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_SECOND_DERIVATIVES",
+            "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES"
+          },
+          {
+            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.INTEGRATION_WEIGHT",
+            "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.INTEGRATION_WEIGHT"
+          }
+        ]
+      }
+    }
+  ],
+  "condition_list": [
+    {
+      "condition_name" : "MeshlessSupportRotationCondition",
+      "cad_model_part" : [ "EDGE_5" ],
+      "iga_model_part" : "SUPPORT_3", 
+      "parameters": {
+        "properties_id": 1,
+        "control_points" :  ["KratosMultiphysics.NURBSBRepApplication.CONTROL_POINT_IDS"],
+        "variables": [
+          {
+            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_VALUES",
+            "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_VALUES"
+          },
+          {
+            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_DERIVATIVES",
+            "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_LOCAL_DERIVATIVES"
+          },
+          {
+            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.INTEGRATION_WEIGHT",
+            "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.INTEGRATION_WEIGHT"
+          },
+          {
+            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.TANGENTS_BASIS_VECTOR",
+            "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.TANGENTS"
+          }
+        ]
+      }
+    },
+    {
+      "condition_name" : "MeshlessLoadCondition",
+      "cad_model_part" : [ "EDGE_10" ],
+      "iga_model_part" : "LOAD_5", 
+      "parameters": {
+        "properties_id": 1,
+        "control_points" :  ["KratosMultiphysics.NURBSBRepApplication.CONTROL_POINT_IDS"],
+        "variables": [
+          {
+            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_VALUES",
+            "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_VALUES"
+          },
+          {
+            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_DERIVATIVES",
+            "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_LOCAL_DERIVATIVES"
+          },
+          {
+            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.INTEGRATION_WEIGHT",
+            "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.INTEGRATION_WEIGHT"
+          },
+          {
+            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.TANGENTS_BASIS_VECTOR",
+            "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.TANGENTS"
+          }
+        ]
+      }
+    },
+    {
+      "condition_name" : "MeshlessPenaltyCouplingRotationCondition",
+      "cad_model_part" : [ "COUPLING_EDGES" ],
+      "iga_model_part" : "CONTINUITY_EDGES", 
+      "parameters": {
+        "properties_id": 1,
+        "control_points" :  ["KratosMultiphysics.NURBSBRepApplication.CONTROL_POINT_IDS", "KratosMultiphysics.NURBSBRepApplication.CONTROL_POINT_IDS_SLAVE"],
+        "variables": [
+          {
+            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_VALUES",
+            "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_VALUES"
+          },
+          {
+            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_DERIVATIVES",
+            "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_LOCAL_DERIVATIVES"
+          },
+          {
+            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.INTEGRATION_WEIGHT",
+            "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.INTEGRATION_WEIGHT"
+          },
+          {
+            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.TANGENTS_BASIS_VECTOR",
+            "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.TANGENTS"
+          },
+          {  
+            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_SLAVE",
+            "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_VALUES_SLAVE"
+          },
+          {
+            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_DERIVATIVES_SLAVE",
+            "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,5 +1,5 @@
-#if !defined(KRATOS_BREP_MODEL_H_INCLUDED )
-#define  KRATOS_BREP_MODEL_H_INCLUDED
+#if !defined(KRATOS_BREP_EDGE_H_INCLUDED )
+#define  KRATOS_BREP_EDGE_H_INCLUDED
 
 
 // ------------------------------------------------------------------------------
@@ -15,8 +15,11 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "Face.h"
-#include "Edge.h"
+#include "BrepFaceTrim.h"
+#include "../../kratos/includes/node.h"
+
+#include "nurbs_brep_application.h"
+#include "nurbs_brep_application_variables.h"
 
 // ==============================================================================
 
@@ -40,39 +43,39 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class BrepModel : public IndexedObject, public Flags
+  class BrepEdge : public IndexedObject, public Flags
   {
   public:
     ///@name Type Definitions
     ///@{
 
-    typedef std::vector<Face> FacesVector;
-    typedef std::vector<Edge> EdgesVector;
+    typedef std::vector<BrepFaceTrim> BrepFaceTrimVector;
+    typedef std::vector<Vector> ParameterVector;
     
     /// Pointer definition of KratosNurbsTestcaseApplication
-    KRATOS_CLASS_POINTER_DEFINITION(BrepModel);
+    //KRATOS_CLASS_POINTER_DEFINITION(BrepEdge);
 
     ///@}
     ///@name Life Cycle 
     ///@{ 
-    FacesVector& GetFaceVector();
-    EdgesVector& GetEdgeVector();
-
+    //std::vector<Node<3>::Pointer> GetQuadraturePoints(const int& shapefunction_order);
+    bool isCouplingEdge();
+    void GetEdgeInformation(const int& face_trim, int& face_id, int& trim_index);
 
     //TODO: you need to give reading access to your internals through the Calculate function
     /// Constructor.
-    BrepModel(unsigned int& brep_id, 
-      FacesVector& faces, 
-      EdgesVector& edges);
+    BrepEdge(unsigned int edge_id,
+      ParameterVector& boundary_vertices,
+      BrepFaceTrimVector& brep_face_trims_vector);
 
     /// Destructor.
-    virtual ~BrepModel();
+    virtual ~BrepEdge();
 
     /// Copy constructor.
-    //BrepModel(BrepModel const& rOther);
+    //BrepEdge(BrepEdge const& rOther);
 
     /// Assignment operator.
-    //BrepModel& operator=(BrepModel const& rOther);
+    //BrepEdge& operator=(BrepEdge const& rOther);
     ///@} 
   protected:
 
@@ -84,12 +87,14 @@ namespace Kratos
     ///@} 
     ///@name Member Variables
     ///@{ 
-    FacesVector m_faces;
-    EdgesVector m_edges;
+
+    ParameterVector m_boundary_vertices;
+    BrepFaceTrimVector m_brep_face_trims_vector;
+
     ///@}    
 
-  }; // Class BrepModel 
+  }; // Class BrepEdge 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BREP_MODEL_H_INCLUDED  defined
+#endif // KRATOS_BREP_EDGE_H_INCLUDED  defined

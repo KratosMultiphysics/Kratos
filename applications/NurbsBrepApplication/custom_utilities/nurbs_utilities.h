@@ -36,13 +36,24 @@ namespace Kratos
 
     /// Pointer definition of MapperUtilities
     KRATOS_CLASS_POINTER_DEFINITION(NurbsUtilities);
+    /**
+    * @Author T. Oberbichler
+    * @date   April, 2017
+    * @brief   calculates the binomial coefficients. 
+    *           B(n)
+    *            (k)
+    * @param [in] repeat  Number of times to do nothing.
+    */
+    static double binom(const int &n, const int &k) {
+      return boost::math::binomial_coefficient<double>(n, k);
+    }
 
-    // adapted from ALGORITHM A2.1, Page 68, "The NURBS Book" by Piegl, Tiller 
-    // T.Oberbichler 02.2017
+    //// adapted from ALGORITHM A2.1, Page 68, "The NURBS Book" by Piegl, Tiller 
+    //// T.Oberbichler 02.2017
     //static int find_knot_span(const int &p, const Vector &knots, const double &u) {
     //  const auto upper = upper_bound(knots.begin() + p, knots.end() - p, u);
 
-    //  const auto span = distance(knots.begin(), upper) - 1;
+    //  const auto span = distance(knots.begin(), upper);
 
     //  return span;
     //}
