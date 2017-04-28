@@ -49,15 +49,20 @@ namespace Kratos
 
 namespace Python
 {
+template <class TDataType>
+using TSpaceType = UblasSpace<TDataType, boost::numeric::ublas::compressed_matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
+template <class TDataType>
+using TLocalSpaceType = UblasSpace<TDataType, boost::numeric::ublas::matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
+template <class TDataType>
+using TLinearSolverType = LinearSolver<TSpaceType<TDataType>, TLocalSpaceType<TDataType>>;
+template <class TDataType>
+using TDirectSolverType = DirectSolver<TSpaceType<TDataType>, TLocalSpaceType<TDataType>>;
+
 void  AddLinearSolversToPython()
 {
     typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
-    typedef UblasSpace<std::complex<double>, boost::numeric::ublas::compressed_matrix<std::complex<double>>, boost::numeric::ublas::vector<std::complex<double>>> ComplexSpaceType;
-    typedef UblasSpace<std::complex<double>, boost::numeric::ublas::matrix<std::complex<double>>, boost::numeric::ublas::vector<std::complex<double>>> ComplexLocalSpaceType;
-    typedef LinearSolver<ComplexSpaceType,  ComplexLocalSpaceType> ComplexLinearSolverType;
-    typedef DirectSolver<ComplexSpaceType,  ComplexLocalSpaceType> ComplexDirectSolverType;
     typedef DirectSolver<SpaceType,  LocalSpaceType> DirectSolverType;
     typedef SuperLUSolver<SpaceType,  LocalSpaceType> SuperLUSolverType;
     typedef SuperLUIterativeSolver<SpaceType,  LocalSpaceType> SuperLUIterativeSolverType;
@@ -67,12 +72,12 @@ void  AddLinearSolversToPython()
 
     using namespace boost::python;
 
-    class_<ComplexLinearSolverType, ComplexLinearSolverType::Pointer, boost::noncopyable>("ComplexLinearSolver")
-    .def(self_ns::str(self))
-    ;
-    class_<ComplexDirectSolverType, ComplexDirectSolverType::Pointer, bases<ComplexLinearSolverType>, boost::noncopyable >("ComplexDirectSolver")
-    .def(self_ns::str(self))
-    ;
+    class_<TLinearSolverType<std::complex<double>>, TLinearSolverType<std::complex<double>>::Pointer, boost::noncopyable>(
+        "ComplexLinearSolver").def(self_ns::str(self));
+    class_<TDirectSolverType<std::complex<double>>,
+           TDirectSolverType<std::complex<double>>::Pointer,
+           bases<TLinearSolverType<std::complex<double>>>,
+           boost::noncopyable>("ComplexDirectSolver").def(self_ns::str(self));
 
     //***************************************************************************
     //linear solvers
@@ -81,7 +86,7 @@ void  AddLinearSolversToPython()
     typedef FEASTSolver<SpaceType, LocalSpaceType> FEASTSolverType;
     class_<FEASTSolverType, FEASTSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >
         ( "FEASTSolver", init<Parameters::Pointer>() )
-        .def(init<Parameters::Pointer, ComplexLinearSolverType::Pointer>())
+        .def(init<Parameters::Pointer, TLinearSolverType<std::complex<double>>::Pointer>())
         ;
 #endif    
           
@@ -112,8 +117,8 @@ void  AddLinearSolversToPython()
     .def(init<double,int,int,int,bool>())
     .def(init<Parameters>());
     ;
-    typedef PastixComplexSolver<ComplexSpaceType, ComplexLocalSpaceType> PastixComplexSolverType;
-    class_<PastixComplexSolverType, bases<ComplexDirectSolverType>, boost::noncopyable >
+    typedef PastixComplexSolver<TSpaceType<std::complex<double>>, TLocalSpaceType<std::complex<double>>> PastixComplexSolverType;
+    class_<PastixComplexSolverType, bases<TDirectSolverType<std::complex<double>>>, boost::noncopyable >
     ("PastixComplexSolver",init<Parameters&>())
     ;
 #endif
