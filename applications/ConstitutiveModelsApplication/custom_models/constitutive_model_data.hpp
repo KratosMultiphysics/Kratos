@@ -100,19 +100,11 @@ namespace Kratos
       double LameLambda;
       double BulkModulus;
 
-    private:
-
       //general hyperelastic material properties
-      const Vector* mpModelParameters;
+      std::vector<double> ModelParameters;
 
     public:
       
-      //Set Data Pointers
-      void SetModelParameters (const Vector& rModelParameters) {mpModelParameters = &rModelParameters;};
-      
-      //Get Data Pointers
-      const Vector& GetModelParameters   () const {return *mpModelParameters;};
-
       //Get const Data
       const double& GetPoissonCoefficient() const {return PoissonCoefficient;};
       const double& GetYoungModulus      () const {return YoungModulus;};
@@ -120,6 +112,9 @@ namespace Kratos
       const double& GetLameMuBar         () const {return LameMuBar;};   
       const double& GetLameLambda        () const {return LameLambda;};
       const double& GetBulkModulus       () const {return BulkModulus;};
+      
+      const std::vector<double>& GetModelParameters   () const {return ModelParameters;};
+
     };
 
 
@@ -293,10 +288,15 @@ namespace Kratos
 
 
       //hyperelastic model parameters
-      if( rProperties.Has(HYPERELASTIC_MODEL_PARAMETERS) )
-	rValues.MaterialParameters.SetModelParameters( rProperties[HYPERELASTIC_MODEL_PARAMETERS] );
+      if( rProperties.Has(C10) )
+	rValues.MaterialParameters.ModelParameters.push_back(rProperties[C10]);
 
-      
+      if( rProperties.Has(C20) )
+	rValues.MaterialParameters.ModelParameters.push_back(rProperties[C20]);
+
+      if( rProperties.Has(C30) )
+	rValues.MaterialParameters.ModelParameters.push_back(rProperties[C30]);
+	        
       KRATOS_CATCH(" ")
 
     }

@@ -17,9 +17,8 @@ properties = model_part.Properties[prop_id]
 properties.SetValue(YOUNG_MODULUS, 200e9)
 properties.SetValue(POISSON_RATIO, 0.3)
 
-HyperElasticParameters = Vector(1)
-HyperElasticParameters[0] = 200e9/(4*(1+0.3))
-properties.SetValue(KratosMaterialModels.HYPERELASTIC_MODEL_PARAMETERS, HyperElasticParameters)
+C10 = 200e9/(4*(1+0.3))
+properties.SetValue(KratosMaterialModels.C10, C10)
 
 #allocate a geometry
 #a = PointerVector()

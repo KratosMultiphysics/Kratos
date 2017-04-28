@@ -107,18 +107,15 @@ namespace Kratos
        
     
     virtual int Check(const Properties& rMaterialProperties,
-		      const ProcessInfo& rCurrentProcessInfo)
+		      const ProcessInfo& rCurrentProcessInfo) override
     {
       KRATOS_TRY
 
       HyperElasticModel::Check(rMaterialProperties,rCurrentProcessInfo);
-	
-      if( rMaterialProperties[HYPERELASTIC_MODEL_PARAMETERS].size() == 0 )
-        KRATOS_ERROR << "HYPERELASTIC_MODEL_PARAMETERS has an invalid size " << rMaterialProperties[HYPERELASTIC_MODEL_PARAMETERS].size() << std::endl;
 
-      if( rMaterialProperties[HYPERELASTIC_MODEL_PARAMETERS][0] <= 0.00 )
-        KRATOS_ERROR << "HYPERELASTIC_MODEL_PARAMETERS has an invalid value" << std::endl;
-
+      if( C10.Key() == 0 || rMaterialProperties[C10] <= 0.00 )
+	KRATOS_ERROR << "C10 has an invalid key or value" << std::endl;
+      
       return 0;
 	  
       KRATOS_CATCH(" ")	  

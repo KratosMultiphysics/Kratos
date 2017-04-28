@@ -384,16 +384,19 @@ namespace Kratos
   int LinearElasticModel::Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
-      
-    if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
+
+    if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.00)
       KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value" << std::endl;
 
-    const double& nu = rMaterialProperties[POISSON_RATIO];
-    const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
-
-    if(POISSON_RATIO.Key() == 0 || check==true)
+    if(POISSON_RATIO.Key() == 0){
       KRATOS_ERROR << "POISSON_RATIO has Key zero invalid value" << std::endl;
-		
+    }
+    else{
+      const double& nu = rMaterialProperties[POISSON_RATIO];
+      if( (nu > 0.499 && nu < 0.501) || (nu < -0.999 && nu > -1.01) )
+	KRATOS_ERROR << "POISSON_RATIO has an invalid value" << std::endl;
+    }
+      	
     return 0;
 
 	  

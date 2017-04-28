@@ -12,7 +12,7 @@
 		"model_name" : "KratosMultiphysics.ConstitutiveModelsApplication.VonMisesNeoHookeanPlasticityModel"
             },
 	    "variables": {
-		"KratosMultiphysics.ConstitutiveModelsApplication.HYPERELASTIC_MODEL_PARAMETERS": [3.84615384615384615385e10],
+		"KratosMultiphysics.ConstitutiveModelsApplication.C10": 3.84615384615384615385e10,
 	        "KratosMultiphysics.YOUNG_MODULUS": 206.9e7,
 		"KratosMultiphysics.POISSON_RATIO": 0.29,
 		"KratosMultiphysics.YIELD_STRESS": 4.5E2,

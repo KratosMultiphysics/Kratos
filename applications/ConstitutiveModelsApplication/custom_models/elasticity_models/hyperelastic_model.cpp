@@ -1419,20 +1419,7 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    if(HYPERELASTIC_MODEL_PARAMETERS.Key() == 0 || rMaterialProperties[HYPERELASTIC_MODEL_PARAMETERS].size() == 0)
-      KRATOS_ERROR << "HYPERELASTIC_MODEL_PARAMETERS has Key zero or invalid value" << std::endl;
-
-    // if(BULK_MODULUS.Key() == 0 || rMaterialProperties[BULK_MODULUS] <= 0.0)
-    //   KRATOS_ERROR << "BULK_MODULUS has Key zero or invalid value" << std::endl;
-
-    // if(LAME_LAMBDA.Key() == 0 || rMaterialProperties[LAME_LAMBDA] <= 0.0)
-    //   KRATOS_ERROR << "LAME_LAMBDA has Key zero or invalid value" << std::endl;
-
-    // if(LAME_MU.Key() == 0 || rMaterialProperties[LAME_MU] <= 0.0)
-    //   KRATOS_ERROR << "LAME_MU has Key zero or invalid value" << std::endl;
-
     return 0;
-
 	  
     KRATOS_CATCH(" ")
   }
