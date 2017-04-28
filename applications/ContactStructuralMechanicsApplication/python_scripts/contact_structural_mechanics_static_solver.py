@@ -186,28 +186,65 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         return mechanical_scheme
     
     def _GetConvergenceCriterion(self):
-        # Creation of an auxiliar Kratos parameters object to store the convergence settings
-        conv_params = KratosMultiphysics.Parameters("{}")
-        conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
-        conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
-        conv_params.AddValue("echo_level",self.settings["echo_level"])
-        conv_params.AddValue("component_wise",self.settings["component_wise"])
-        conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])
-        conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
-        conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
-        conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
-        
-        # Construction of the class convergence_criterion
-        import convergence_criteria_factory
-        convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params)
-        
-        if  (self.settings["compute_mortar_contact"].GetInt() == 1 or self.settings["compute_mortar_contact"].GetInt() == 2):
+        if "Contact" in self.settings["convergence_criterion"].GetString():
+            D_RT = self.settings["displacement_relative_tolerance"].GetDouble()
+            D_AT = self.settings["displacement_absolute_tolerance"].GetDouble()
+            R_RT = self.settings["residual_relative_tolerance"].GetDouble()
+            R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
+            echo_level = self.settings["echo_level"].Getint()
+            
+            if(self.settings["convergence_criterion"].GetString() == "Contact_Displacement_criterion"):
+                self.mechanical_convergence_criterion = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT,D_RT, D_AT)
+                self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
+                
+            elif(self.settings["convergence_criterion"].GetString() == "Contact_Residual_criterion"):
+                self.mechanical_convergence_criterion = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, R_RT, R_AT)
+                self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
+                    
+            elif(self.settings["convergence_criterion"].GetString() == "Contact_And_criterion"):
+                Displacement = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, D_RT, D_AT)
+                Displacement.SetEchoLevel(echo_level)
+                Residual = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, R_RT, R_AT)
+                Residual.SetEchoLevel(echo_level)
+                convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
+                
+            elif(self.settings["convergence_criterion"].GetString() == "Contact_Or_criterion"):
+                Displacement = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, D_RT, D_AT)
+                Displacement.SetEchoLevel(echo_level)
+                Residual = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, R_RT, R_AT)
+                Residual.SetEchoLevel(echo_level)
+                convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
+                
             Mortar = ContactStructuralMechanicsApplication.MortarConvergenceCriteria()
             Mortar.SetEchoLevel(self.echo_level)
 
-            convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Mortar, convergence_criterion.mechanical_convergence_criterion)
+            convergence_criterion = KratosMultiphysics.AndCriteria(Mortar, convergence_criterion)
+            
+            return convergence_criterion
         
-        return convergence_criterion.mechanical_convergence_criterion
+        else: # Standard criteria (same as solid and structural mechanics application)
+            # Creation of an auxiliar Kratos parameters object to store the convergence settings
+            conv_params = KratosMultiphysics.Parameters("{}")
+            conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
+            conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
+            conv_params.AddValue("echo_level",self.settings["echo_level"])
+            conv_params.AddValue("component_wise",self.settings["component_wise"])
+            conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])
+            conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
+            conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
+            conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
+            
+            # Construction of the class convergence_criterion
+            import convergence_criteria_factory
+            convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params)
+        
+            if  (self.settings["compute_mortar_contact"].GetInt() == 1 or self.settings["compute_mortar_contact"].GetInt() == 2):
+                Mortar = ContactStructuralMechanicsApplication.MortarConvergenceCriteria()
+                Mortar.SetEchoLevel(self.echo_level)
+
+                convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Mortar, convergence_criterion.mechanical_convergence_criterion)
+            
+            return convergence_criterion.mechanical_convergence_criterion
         
     def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search, implex):
         

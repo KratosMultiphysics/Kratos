@@ -23,7 +23,9 @@
 
 namespace Kratos
 {
-
+///@addtogroup ContacStructuralMechanicsApplication
+///@{
+    
 ///@name Kratos Globals
 ///@{
 
@@ -96,11 +98,14 @@ public:
     ///@{
 
     /**
-     * Criterias that need to be called after getting the solution 
-     * @param 
-     * @return 
+     * Compute relative and absolute error.
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     * @return true if convergence is achieved, false otherwise
      */
-    
 
     bool PostCriteria(
         ModelPart& rModelPart,
@@ -210,9 +215,12 @@ public:
     }
     
     /**
-     * This function 
-     * @param 
-     * @return 
+     * This function initializes the solution step
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
      */
     
     void InitializeSolutionStep(
@@ -227,9 +235,12 @@ public:
     }
     
     /**
-     * This function 
-     * @param 
-     * @return 
+     * This function finalizes the solution step
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
      */
     
     void FinalizeSolutionStep(
@@ -324,7 +335,7 @@ private:
     ///@{
     ///@}
 
-}; // Class ClassName 
+}; // Class MortarConvergenceCriteria 
 
 ///@name Explicit Specializations
 ///@{

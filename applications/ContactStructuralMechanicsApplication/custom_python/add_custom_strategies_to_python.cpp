@@ -38,6 +38,8 @@
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/mortar_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/displacement_lagrangemultiplier_contact_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/displacement_lagrangemultiplier_residual_contact_criteria.h"
 
 // Builders and solvers
 
@@ -75,6 +77,8 @@ void  AddCustomStrategiesToPython()
 
     // Custom convergence criterion types
     typedef MortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > MortarConvergenceCriteriaType;
+    typedef DisplacementLagrangeMultiplierContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierContactCriteriaType;
+    typedef DisplacementLagrangeMultiplierResidualContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierResidualContactCriteriaType;
     
     // Custom builder and solvers types
     
@@ -140,7 +144,7 @@ void  AddCustomStrategiesToPython()
     //*******************CONVERGENCE CRITERIA CLASSES*********************
     //********************************************************************
 
-    // Displacement Convergence Criterion
+    // Dual set strategy for SSNM Convergence Criterion
     class_< MortarConvergenceCriteriaType,
             bases< ConvergenceCriteriaType >, boost::noncopyable >
             (
@@ -148,6 +152,24 @@ void  AddCustomStrategiesToPython()
             init< >())
             .def(init< >())
             .def("SetEchoLevel", &MortarConvergenceCriteriaType::SetEchoLevel)
+            ;
+            
+    // Displacement and lagrange multiplier Convergence Criterion
+    class_< DisplacementLagrangeMultiplierContactCriteriaType,
+            bases< ConvergenceCriteriaType >, boost::noncopyable >
+            (
+            "DisplacementLagrangeMultiplierContactCriteria", 
+            init< double, double, double, double >())
+            .def("SetEchoLevel", &DisplacementLagrangeMultiplierContactCriteriaType::SetEchoLevel)
+            ;
+            
+    // Displacement and lagrange multiplier residual Convergence Criterion
+    class_< DisplacementLagrangeMultiplierResidualContactCriteriaType,
+            bases< ConvergenceCriteriaType >, boost::noncopyable >
+            (
+            "DisplacementLagrangeMultiplierResidualContactCriteria", 
+            init< double, double, double, double >())
+            .def("SetEchoLevel", &DisplacementLagrangeMultiplierResidualContactCriteriaType::SetEchoLevel)
             ;
             
     //********************************************************************
