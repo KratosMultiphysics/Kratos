@@ -41,7 +41,7 @@ namespace Kratos {
 
       Parameters mesher_parameters(R"(
             {
-                "number_of_divisions":   8,
+                "number_of_divisions":   50,
                 "element_name":     "Element3D4N"
             })");
 
@@ -72,7 +72,7 @@ namespace Kratos {
 	  //ModelPart& skin_rpresentation_part = process.GetSkinRepresentation();
 	  //KRATOS_WATCH(skin_rpresentation_part);
 	  CalculateSignedDistanceTo3DSkinProcess sign_distance_process(skin_part, volume_part);
-	  //sign_distance_process.Execute();
+	  sign_distance_process.Execute();
 	  ModelPart skin_rpresentation_part;
 	  sign_distance_process.GenerateSkinModelPart(skin_rpresentation_part);
 	  

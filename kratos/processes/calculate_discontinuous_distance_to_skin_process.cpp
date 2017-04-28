@@ -18,6 +18,7 @@
 
 // Project includes
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
+#include "utilities/geometry_utilities.h"
 
 
 namespace Kratos
@@ -34,7 +35,7 @@ namespace Kratos
 		Initialize(); // Now the spatial container should be created
 
 		for (auto& node : GetModelPart1().Nodes()) {
-			node.GetSolutionStepValue(DISTANCE) = std::numeric_limits<double>::max();
+			node.GetSolutionStepValue(DISTANCE) = 1000.;// std::numeric_limits<double>::max();
 		}
 
 		std::vector<PointerVector<GeometricalObject>> intersected_objects;
@@ -108,6 +109,7 @@ namespace Kratos
 		// This function assumes tetrahedra element and triangle intersected object as input at this moment
 		constexpr int tetrahedra_edges[6][2] = { { 0,1 },{ 1,2 },{ 2,0 },{ 0,3 },{ 1,3 },{ 2,3 } };
 		constexpr int number_of_tetrahedra_points = 4;
+		constexpr double epsilon = std::numeric_limits<double>::epsilon();
 		auto& element_geometry = rElement1.GetGeometry();
 		Vector& elemental_distances = rElement1.GetValue(ELEMENTAL_DISTANCES);
 		elemental_distances.resize(number_of_tetrahedra_points, false);
@@ -115,8 +117,20 @@ namespace Kratos
 		int number_of_cut_edge = 0;
 		auto new_id = mSkinRepresentation.NumberOfNodes() + GetModelPart1().NumberOfNodes() + 1;
 
+		for (int i = 0; i < number_of_tetrahedra_points; i++) {
+			for (auto triangle : rIntersectedObjects.GetContainer()) {
+				elemental_distances[i] = GeometryUtils::PointDistanceToTriangle3D(triangle->GetGeometry()[0], triangle->GetGeometry()[1], triangle->GetGeometry()[2], rElement1.GetGeometry()[i]);
+				if (fabs(rElement1.GetGeometry()[i].GetSolutionStepValue(DISTANCE)) > fabs(elemental_distances[i]))
+						rElement1.GetGeometry()[i].GetSolutionStepValue(DISTANCE) = elemental_distances[i];
+			}
+		}
+
 		std::vector<Point<3> > intersection_points;
 		for (int i = 0; i < 6; i++) {
+			if (elemental_distances[tetrahedra_edges[i][0]] < epsilon)
+				continue;
+			if (elemental_distances[tetrahedra_edges[i][1]] < epsilon)
+				continue;
 			Node<3>::Pointer p_edge_point_1 = element_geometry(tetrahedra_edges[i][0]);
 			Node<3>::Pointer p_edge_point_2 = element_geometry(tetrahedra_edges[i][1]);
 			LineSegment edge(p_edge_point_1, p_edge_point_2);
@@ -136,50 +150,39 @@ namespace Kratos
 				edge_optimum_cut_point[number_of_cut_edge++] = average_point;
 			}
 		}
-		if (number_of_cut_edge == 1) {
-			std::cout << "Element #" << rElement1.Id() << " has 1 cut edge " << std::endl;
-			mSkinRepresentation.CreateNewNode(new_id, edge_optimum_cut_point[0].X(), edge_optimum_cut_point[0].Y(), edge_optimum_cut_point[0].Z());
-			Point<3>& r_cut_point = edge_optimum_cut_point[0];
-			for (int i = 0; i < number_of_tetrahedra_points; i++) {
-				elemental_distances[i] = norm_2(r_cut_point - rElement1.GetGeometry()[i]);
-			}
-			//rElement1.Set(TO_SPLIT, true);
-		}
-		else if (number_of_cut_edge == 2) {
-			std::cout << "Element #" << rElement1.Id() << " has 2 cut edge " << std::endl;
-			mSkinRepresentation.CreateNewNode(new_id, edge_optimum_cut_point[0].X(), edge_optimum_cut_point[0].Y(), edge_optimum_cut_point[0].Z());
-			mSkinRepresentation.CreateNewNode(new_id + 1, edge_optimum_cut_point[1].X(), edge_optimum_cut_point[1].Y(), edge_optimum_cut_point[1].Z());
-			// TODO: I should calculate the this distance to line here (but the distance to end point is also a good approximation) Pooyan.
-			for (int i = 0; i < number_of_tetrahedra_points; i++) {
-				elemental_distances[i] = std::min(norm_2(edge_optimum_cut_point[0] - rElement1.GetGeometry()[i]), norm_2(edge_optimum_cut_point[1] - rElement1.GetGeometry()[i]));
-			}
-			//rElement1.Set(TO_SPLIT, true);
-		}
-		else if (number_of_cut_edge > 2) { // If there are more than 3 edges cut I would just use the first 3 to create a plane. This can be improved by using the one having the largest surface but is expensive.
-
-			mSkinRepresentation.CreateNewNode(new_id, edge_optimum_cut_point[0].X(), edge_optimum_cut_point[0].Y(), edge_optimum_cut_point[0].Z());
-			mSkinRepresentation.CreateNewNode(new_id + 1, edge_optimum_cut_point[1].X(), edge_optimum_cut_point[1].Y(), edge_optimum_cut_point[1].Z());
-			mSkinRepresentation.CreateNewNode(new_id + 2, edge_optimum_cut_point[2].X(), edge_optimum_cut_point[2].Y(), edge_optimum_cut_point[2].Z());
-			mSkinRepresentation.CreateNewElement("Element3D3N", new_id, { new_id, new_id + 1, new_id + 2 }, mSkinRepresentation.pGetProperties(0));
+		if (number_of_cut_edge == 3) {
 			Plane3D plane(edge_optimum_cut_point[0], edge_optimum_cut_point[1], edge_optimum_cut_point[2]);
 			for (int i = 0; i < number_of_tetrahedra_points; i++) {
-				elemental_distances[i] = plane.CalculateSignedDistance(rElement1.GetGeometry()[i]);
-				if (fabs(rElement1.GetGeometry()[i].GetSolutionStepValue(DISTANCE)) > fabs(elemental_distances[i]))
-					rElement1.GetGeometry()[i].GetSolutionStepValue(DISTANCE) = elemental_distances[i];
+				if (plane.CalculateSignedDistance(rElement1.GetGeometry()[i]) < 0)
+					elemental_distances[i] = -elemental_distances[i];
 			}
 			rElement1.Set(TO_SPLIT, true);
 		}
-		else {
-			std::cout << "Element #" << rElement1.Id() << " don't have intersection with faces ";
-			for (int i = 0; i < rIntersectedObjects.size(); i++) {
-				std::cout << rIntersectedObjects[i].Id() << " ,";
-			}
-			std::cout << std::endl;
+		else if (number_of_cut_edge > 3) { // If there are more than 3 edges cut I would just use the first 3. This can be improved by using the one having the largest surface but is expensive.
+			KRATOS_WATCH(number_of_cut_edge);
+				Plane3D plane(edge_optimum_cut_point[0], edge_optimum_cut_point[1], edge_optimum_cut_point[2]);
+				for (int i = 0; i < number_of_tetrahedra_points; i++) {
+					if (plane.CalculateSignedDistance(rElement1.GetGeometry()[i]) < -std::numeric_limits<double>::epsilon())
+						elemental_distances[i] = -elemental_distances[i];
+				}
+			rElement1.Set(TO_SPLIT, true);
 		}
-		//if(GetModelPart1().NumberOfNodes() > 38)
-		//	std::cout << "after processing Element #" << rElement1.Id() << " The distance in node 37 is " << GetModelPart1().GetNode(37).GetSolutionStepValue(DISTANCE) << std::endl;
-		//double distance_1 = norm_2(*p_edge_point_1 - intersection_points[0]);
-		//p_edge_point_1->GetSolutionStepValue(DISTANCE) = std::min(p_edge_point_1->GetSolutionStepValue(DISTANCE), distance_1);
+		//else {
+		//	std::cout << "Element #" << rElement1.Id() << " don't have intersection with faces ";
+		//	for (int i = 0; i < rIntersectedObjects.size(); i++) {
+		//		std::cout << rIntersectedObjects[i].Id() << " ,";
+		//	}
+		//	std::cout << std::endl;
+		//}
+
+		for (int i = 0; i < number_of_tetrahedra_points; i++) {
+			if (fabs(elemental_distances[i]) < epsilon) {
+				elemental_distances[i] = -1e-6;
+				rElement1.Set(TO_SPLIT, true);
+			}
+
+		}
+
 	}
 
 

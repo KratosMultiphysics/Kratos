@@ -1535,8 +1535,8 @@ public:
 
     void GenerateSkinModelPart( ModelPart& mrNewSkinModelPart )
     {
-        unsigned int id_node = 1;
-        unsigned int id_condition = 1;
+        unsigned int id_node = 10000;
+        unsigned int id_condition = 10000;
 
         mrNewSkinModelPart.Nodes().reserve(mrFluidModelPart.Nodes().size());
         mrNewSkinModelPart.Conditions().reserve(mrFluidModelPart.Elements().size());
