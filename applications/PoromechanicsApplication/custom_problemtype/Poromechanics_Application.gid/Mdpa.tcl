@@ -543,7 +543,7 @@ proc WriteMdpa { basename dir problemtypedir } {
         set PeriodicBarsDict [dict create]
         set Groups [GiD_Info conditions Interface_Part groups]
         for {set i 0} {$i < [llength $Groups]} {incr i} {
-            if {[lindex [lindex $Groups $i] 3] eq false} {
+            if {[lindex [lindex $Groups $i] 20] eq true} {
                 # Elements Property
                 set InterfaceElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
                 set ConditionList [list]

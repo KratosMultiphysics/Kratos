@@ -1064,33 +1064,35 @@ proc WritePeriodicBarsSubmodelPart {FileVar CondName ConditionDict} {
         upvar $FileVar MyFileVar
         
         for {set i 0} {$i < [llength $Groups]} {incr i} {
-            puts $MyFileVar "Begin SubModelPart Periodic_Bars_[lindex [lindex $Groups $i] 1]"
-            # Tables
-            # puts $MyFileVar "  Begin SubModelPartTables"
-            # puts $MyFileVar "  End SubModelPartTables"
-            # Nodes
-            set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] nodes]
-            puts $MyFileVar "  Begin SubModelPartNodes"
-            for {set j 0} {$j < [llength $Entities]} {incr j} {
-                puts $MyFileVar "    [lindex $Entities $j]"
+            if {[lindex [lindex $Groups $i] 20] eq true} {
+                puts $MyFileVar "Begin SubModelPart Periodic_Bars_[lindex [lindex $Groups $i] 1]"
+                # Tables
+                # puts $MyFileVar "  Begin SubModelPartTables"
+                # puts $MyFileVar "  End SubModelPartTables"
+                # Nodes
+                set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] nodes]
+                puts $MyFileVar "  Begin SubModelPartNodes"
+                for {set j 0} {$j < [llength $Entities]} {incr j} {
+                    puts $MyFileVar "    [lindex $Entities $j]"
+                }
+                puts $MyFileVar "  End SubModelPartNodes"
+                # Elements
+                set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] elements]
+                puts $MyFileVar "  Begin SubModelPartElements"
+                for {set j 0} {$j < [llength $Entities]} {incr j} {
+                    puts $MyFileVar "    [lindex $Entities $j]"
+                }
+                puts $MyFileVar "  End SubModelPartElements"
+                # Conditions
+                set ConditionList [dict get $ConditionDict Periodic_Bars_[lindex [lindex $Groups $i] 1]]
+                puts $MyFileVar "  Begin SubModelPartConditions"
+                for {set j 0} {$j < [llength $ConditionList]} {incr j} {
+                    puts $MyFileVar "    [lindex $ConditionList $j]"
+                }
+                puts $MyFileVar "  End SubModelPartConditions"
+                puts $MyFileVar "End SubModelPart"
+                puts $MyFileVar ""
             }
-            puts $MyFileVar "  End SubModelPartNodes"
-            # Elements
-            set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] elements]
-            puts $MyFileVar "  Begin SubModelPartElements"
-            for {set j 0} {$j < [llength $Entities]} {incr j} {
-                puts $MyFileVar "    [lindex $Entities $j]"
-            }
-            puts $MyFileVar "  End SubModelPartElements"
-            # Conditions
-            set ConditionList [dict get $ConditionDict Periodic_Bars_[lindex [lindex $Groups $i] 1]]
-            puts $MyFileVar "  Begin SubModelPartConditions"
-            for {set j 0} {$j < [llength $ConditionList]} {incr j} {
-                puts $MyFileVar "    [lindex $ConditionList $j]"
-            }
-            puts $MyFileVar "  End SubModelPartConditions"
-            puts $MyFileVar "End SubModelPart"
-            puts $MyFileVar ""
         }
     }
 }

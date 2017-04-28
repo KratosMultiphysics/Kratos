@@ -22,17 +22,6 @@ namespace Kratos
 class PeriodicInterfaceProcess : public Process
 {
 
-// protected:
-
-    // struct PeriodicBar
-    // {
-    //     Condition::Pointer pCondition;
-    //     std::vector<Element::Pointer> NeighbourElements;
-    // };
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION(PeriodicInterfaceProcess);
@@ -51,7 +40,8 @@ public:
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "mesh_id": 0,
-                "dimension": 2
+                "dimension": 2,
+                "von_mises_limit": 100.0e6
             }  )" );
         
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -62,11 +52,11 @@ public:
         rParameters.ValidateAndAssignDefaults(default_parameters);
         
         mmesh_id = rParameters["mesh_id"].GetInt();
-
-        if(rParameters["dimension"].GetInt()==2)
+        if(rParameters["dimension"].GetInt() == 2)
             mVoigtSize = 3;
         else
             mVoigtSize = 6;
+        mVonMisesLimit = rParameters["von_mises_limit"].GetDouble();
 
         KRATOS_CATCH("");
     }
@@ -96,7 +86,12 @@ public:
         for(int i = 0; i < NCons; i++)
         {
             ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
+            Condition::GeometryType& rGeom = itCond->GetGeometry();
+
             itCond->Set(PERIODIC,true);
+
+            rGeom[0].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = rGeom[1].Id();
+            rGeom[1].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = rGeom[0].Id();            
         }
 
         int NElems = static_cast<int>(mr_model_part.Elements().size());
@@ -124,30 +119,28 @@ public:
         for(int i = 0; i < NCons; i++)
         {
             ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
-            const Condition::GeometryType& Geom = itCond->GetGeometry();
+            Condition::GeometryType& rGeom = itCond->GetGeometry();
             
-            const Matrix& NodalStressMatrix = Geom[0].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
+            const Matrix& NodalStressMatrix = rGeom[0].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
             Vector NodalStressVector(mVoigtSize);
             noalias(NodalStressVector) = MathUtils<double>::StressTensorToVector( NodalStressMatrix, mVoigtSize );
             ComparisonUtilities EquivalentStress;
             double VonMisesStress = EquivalentStress.CalculateVonMises(NodalStressVector);
-            // TODO: seguir amb el limit de tensio definit per cada grup
-            if (VonMisesStress > threshold)
+            
+            // Check whether the Von Mises stress at the node is higher than the prescribed limit to activate the joints
+            if (VonMisesStress >= mVonMisesLimit)
             {
-                WeakPointerVector<Element>& rE Geom[0].GetValue(NEIGHBOUR_ELEMENTS);
+                itCond->Set(PERIODIC,false);
+
+                WeakPointerVector<Element>& rE = rGeom[0].GetValue(NEIGHBOUR_ELEMENTS);
                 for(unsigned int ie = 0; ie < rE.size(); ie++)
                 {
-
                     #pragma omp critical
                     {
-                        
+                        rE[ie].Set(ACTIVE,true);
                     }
                 }
-
             }
-            
-            
-            
         }
         
         KRATOS_CATCH("");
@@ -179,7 +172,7 @@ protected:
     ModelPart& mr_model_part;
     std::size_t mmesh_id;
     int mVoigtSize;
-
+    double mVonMisesLimit;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     

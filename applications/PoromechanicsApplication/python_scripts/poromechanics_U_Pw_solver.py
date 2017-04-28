@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division # makes KratosM
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
+import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -41,6 +42,7 @@ class UPwSolver(object):
             "clear_storage": false,
             "compute_reactions": false,
             "move_mesh_flag": true,
+            "periodic_interface_conditions": false,
             "solution_type": "Quasi-Static",
             "scheme_type": "Newmark",
             "newmark_beta": 0.25,
@@ -263,12 +265,17 @@ class UPwSolver(object):
             self.main_model_part.SetBufferSize( minimum_buffer_size )
 
     def _ConstructBuilderAndSolver(self, block_builder):
-        
+
         # Creating the builder and solver
-        if(block_builder):
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+        if(self.settings["periodic_interface_conditions"].GetBool() == True):
+            builder_and_solver = KratosCFD.ResidualBasedBlockBuilderAndSolverPeriodic(self.linear_solver,KratosMultiphysics.PERIODIC_PAIR_INDEX)
+            self.main_model_part.ProcessInfo.SetValue(KratosPoro.NODAL_SMOOTHING, True)
         else:
-            builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
+            if(block_builder):
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+            else:
+                builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
+            self.main_model_part.ProcessInfo.SetValue(KratosPoro.NODAL_SMOOTHING, False)
         
         return builder_and_solver
         

@@ -40,10 +40,18 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \},"
     puts $FileVar "        \"buffer_size\":                        2,"
     puts $FileVar "        \"echo_level\":                         [GiD_AccessValue get gendata Echo_Level],"
-    puts $FileVar "        \"reform_dofs_at_each_step\":           false,"
     puts $FileVar "        \"clear_storage\":                      false,"
     puts $FileVar "        \"compute_reactions\":                  [GiD_AccessValue get gendata Write_Reactions],"
-    puts $FileVar "        \"move_mesh_flag\":                     true,"
+    puts $FileVar "        \"move_mesh_flag\":                     [GiD_AccessValue get gendata Move_Mesh],"
+    set IsPeriodic [GiD_AccessValue get gendata Periodic_Interface_Conditions]
+    if {$IsPeriodic eq true} {
+        puts $FileVar "        \"periodic_interface_conditions\":      true,"
+        puts $FileVar "        \"reform_dofs_at_each_step\":           true,"
+    } else {
+        puts $FileVar "        \"periodic_interface_conditions\":      false,"
+        puts $FileVar "        \"reform_dofs_at_each_step\":           [GiD_AccessValue get gendata Reform_Dofs_At_Each_Step],"
+    }
+    puts $FileVar "        \"block_builder\":                      [GiD_AccessValue get gendata Block_Builder],"
     puts $FileVar "        \"solution_type\":                      \"[GiD_AccessValue get gendata Solution_Type]\","
     puts $FileVar "        \"scheme_type\":                        \"[GiD_AccessValue get gendata Scheme_Type]\","
     puts $FileVar "        \"newmark_beta\":                       [GiD_AccessValue get gendata Newmark_Beta],"
@@ -61,7 +69,6 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"desired_iterations\":                 [GiD_AccessValue get gendata Desired_Iterations],"
     puts $FileVar "        \"max_radius_factor\":                  [GiD_AccessValue get gendata Max_Radius_Factor],"
     puts $FileVar "        \"min_radius_factor\":                  [GiD_AccessValue get gendata Min_Radius_Factor],"
-    puts $FileVar "        \"block_builder\":                      [GiD_AccessValue get gendata Block_Builder],"
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
         puts $FileVar "        \"nonlocal_damage\":                    false,"
     } else {
@@ -148,7 +155,6 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     # Body_Acceleration
     AppendGroupNames PutStrings Body_Acceleration
     # Periodic_Bars
-    set IsPeriodic [GiD_AccessValue get gendata Periodic_Interface_Conditions]
     if {$IsPeriodic eq true} {
         set Groups [GiD_Info conditions Interface_Part groups]    
         for {set i 0} {$i < [llength $Groups]} {incr i} {
@@ -322,7 +328,11 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     incr NumGroups [llength $Groups]
     if {$IsPeriodic eq true} {
         set Groups [GiD_Info conditions Interface_Part groups]
-        incr NumGroups [llength $Groups]
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            if {[lindex [lindex $Groups $i] 20] eq true} {
+                incr NumGroups
+            }
+        }
     }
     if {$NumGroups > 0} {
         set iGroup 0
