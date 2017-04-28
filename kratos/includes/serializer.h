@@ -791,7 +791,7 @@ private:
         }
     }
 
-    VariableData* GetVariableData(std::string const & VariableName);
+    const VariableData* GetVariableData(std::string const & VariableName);
 
 //        void read(bool& rData)
 //        {

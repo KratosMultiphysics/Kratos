@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
@@ -27,7 +27,6 @@
 #include "containers/variable.h"
 #include "containers/variable_component.h"
 #include "containers/vector_component_adaptor.h"
-#include "includes/kratos_components.h"
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
 #include "containers/weak_pointer_vector.h"
@@ -39,7 +38,7 @@
 namespace Kratos
 {
     typedef array_1d<double,3> Vector3;
-    
+
     //Define Variables by type:
 
     //bools
@@ -49,7 +48,7 @@ namespace Kratos
 
     //ints
     KRATOS_DEFINE_VARIABLE( int, DOMAIN_SIZE )
-    
+
     //for General kratos application:
     KRATOS_DEFINE_VARIABLE( int, LOAD_RESTART )
     KRATOS_DEFINE_VARIABLE( int, TIME_STEPS )
@@ -329,7 +328,7 @@ namespace Kratos
 
     KRATOS_DEFINE_VARIABLE( Vector, EXTERNAL_FORCES_VECTOR )
     KRATOS_DEFINE_VARIABLE( Vector, INTERNAL_FORCES_VECTOR )
-    KRATOS_DEFINE_VARIABLE( Vector, CONTACT_FORCES_VECTOR ) 
+    KRATOS_DEFINE_VARIABLE( Vector, CONTACT_FORCES_VECTOR )
 
     KRATOS_DEFINE_VARIABLE( Vector, CAUCHY_STRESS_VECTOR )
     KRATOS_DEFINE_VARIABLE( Vector, PK2_STRESS_VECTOR )
@@ -426,7 +425,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE(double, YIELD_STRESS)
     KRATOS_DEFINE_VARIABLE(double, MU)
     KRATOS_DEFINE_VARIABLE(double, TAU)
-            
+
     KRATOS_DEFINE_VARIABLE(double, SEARCH_RADIUS )
 
     // for Vulcan application
@@ -476,4 +475,3 @@ namespace Kratos
 #define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
 
 #endif // KRATOS_VARIABLES_H_INCLUDED  defined
-

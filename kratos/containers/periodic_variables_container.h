@@ -22,6 +22,7 @@
 #include "containers/variable.h"
 #include "containers/variable_component.h"
 #include "containers/vector_component_adaptor.h"
+#include "includes/kratos_components.h"
 
 
 namespace Kratos
@@ -321,7 +322,7 @@ private:
         for(std::size_t i = 0; i < DoubleVarSize; i++)
         {
             rSerializer.load("Variable Name", Name);
-            Add( *(static_cast<DoubleVariableType*>(KratosComponents<VariableData>::pGet(Name))) );
+            Add( (static_cast<DoubleVariableType const&>(KratosComponents<VariableData>::Get(Name))) );
         }
 
         std::size_t VarComponentSize;
@@ -329,7 +330,7 @@ private:
         for(std::size_t i = 0; i < VarComponentSize; i++)
         {
             rSerializer.load("Variable Name", Name);
-            Add( *(static_cast<VariableComponentType*>(KratosComponents<VariableData>::pGet(Name))) );
+            Add( (static_cast<VariableComponentType const&>(KratosComponents<VariableData>::Get(Name))) );
         }
     }
 

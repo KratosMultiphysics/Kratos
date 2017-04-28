@@ -35,6 +35,7 @@
 #include "includes/define.h"
 #include "includes/cfd_variables.h"
 #include "includes/kernel.h"
+#include "includes/kratos_components.h"
 
 namespace Kratos
 {

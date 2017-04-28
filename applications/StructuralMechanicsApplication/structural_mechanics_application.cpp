@@ -23,6 +23,8 @@
 #include "structural_mechanics_application.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
+#include "includes/kratos_components.h"
+
 
 #include "geometries/triangle_3d_3.h"
 #include "geometries/triangle_3d_6.h"
@@ -37,6 +39,7 @@
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
 #include "geometries/prism_3d_6.h"
+#include "custom_utilities/shell_cross_section.hpp"
 
 namespace Kratos
 {
@@ -73,7 +76,7 @@ void KratosStructuralMechanicsApplication::Register()
     std::cout << "                  | |   |    |   | (    |   |   | |   (   | |               " << std::endl;
     std::cout << "            _____/ \\__|_|   \\__,_|\\___|\\__|\\__,_|_|  \\__,_|_| MECHANICS     " << std::endl;
 
-
+    
     // Generalized eigenvalue problem
     KRATOS_REGISTER_VARIABLE( BUILD_LEVEL )
     KRATOS_REGISTER_VARIABLE( EIGENVALUE_VECTOR )

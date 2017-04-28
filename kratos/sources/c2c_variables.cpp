@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -36,6 +36,7 @@
 #include "includes/c2c_variables.h"
 #include "includes/kernel.h"
 #include "includes/node.h"
+#include "includes/kratos_components.h"
 // #include "includes/element.h"
 // #include "includes/condition.h"
 // #include "includes/constitutive_law.h"
@@ -140,7 +141,7 @@ namespace Kratos
     Kratos::Variable<double> SOLIDIF_MODULUS_US( "SOLIDIF MODULUS" );
     Kratos::Variable<double> TEMPERATURES_US( "TEMPERATURES" );
     KRATOS_CREATE_VARIABLE(double,FRONT_MEETING)
-    KRATOS_CREATE_VARIABLE( double, MOULD_AVERAGE_TEMPERATURE )  
+    KRATOS_CREATE_VARIABLE( double, MOULD_AVERAGE_TEMPERATURE )
 	Kratos::Variable<double> LIQUID_TIME("TIME TO START SOLIDIFICATION");
 	Kratos::Variable<double>  FLOW_LENGTH ("FLOW LENGTH ESTIMATION 1");
 	Kratos::Variable<double>  FLOW_LENGTH2("FLOW LENGTH ESTIMATION 2" );
@@ -190,7 +191,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(  POSETIVE_DISTANCE)
         KRATOS_REGISTER_VARIABLE(  NAGATIVE_DISTANCE)
         KRATOS_REGISTER_VARIABLE( IS_ESCAPED)
-        KRATOS_REGISTER_VARIABLE(  IS_SOLIDIFIED)  
+        KRATOS_REGISTER_VARIABLE(  IS_SOLIDIFIED)
         KRATOS_REGISTER_VARIABLE(  SOLIDFRACTION )
 		KRATOS_REGISTER_VARIABLE( SOLIDFRACTION_RATE)
         KRATOS_REGISTER_VARIABLE(  SOLIDIF_TIME  )
@@ -202,7 +203,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(  IS_GRAVITY_FILLING)
         KRATOS_REGISTER_VARIABLE( VOLUME_FRACTION )
 
-        KRATOS_REGISTER_VARIABLE( KAPPA ) 
+        KRATOS_REGISTER_VARIABLE( KAPPA )
         KRATOS_REGISTER_VARIABLE( EPSILON )
         KRATOS_REGISTER_VARIABLE( SHRINKAGE_POROSITY_US)
         KRATOS_REGISTER_VARIABLE( SOLIDIF_MODULUS_US)
@@ -225,6 +226,3 @@ namespace Kratos
 
 // This define must be HERE
 #undef DKRATOS_EXPORT_INTERFACE_2
-
-
-

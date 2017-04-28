@@ -165,7 +165,7 @@ public:
         for(KratosComponents<VariableData>::ComponentsContainerType::iterator i = KratosComponents<VariableData>::GetComponents().begin() ;
                 i != KratosComponents<VariableData>::GetComponents().end() ; i++)
             //const_cast<VariableData&>(i->second.get()).SetKey(++j);
-            i->second->SetKey(++j);
+            const_cast<VariableData*>(i->second)->SetKey(++j);
     }
 
     /// Initializes and synchronizes the list of variables, elements and conditions in each application.

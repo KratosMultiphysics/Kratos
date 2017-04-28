@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -74,6 +74,7 @@
 #include "includes/radiation_settings.h"
 
 #include "includes/kratos_flags.h"
+#include "includes/kratos_components.h"
 
 namespace Kratos
 {
@@ -84,7 +85,7 @@ namespace Kratos
 
 
     //for Structural application:
- 
+
     //for Level Set application:
     KRATOS_CREATE_VARIABLE( bool, IS_DUPLICATED )
     KRATOS_CREATE_VARIABLE( bool, SPLIT_ELEMENT )
@@ -100,7 +101,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( int, IMPOSED_ANGULAR_VELOCITY_X )
     KRATOS_CREATE_VARIABLE( int, IMPOSED_ANGULAR_VELOCITY_Y )
     KRATOS_CREATE_VARIABLE( int, IMPOSED_ANGULAR_VELOCITY_Z )
-    
+
     //For the DEM Application:
     KRATOS_CREATE_VARIABLE(double, IMPOSED_VELOCITY_X_VALUE)
     KRATOS_CREATE_VARIABLE(double, IMPOSED_VELOCITY_Y_VALUE)
@@ -177,11 +178,11 @@ namespace Kratos
 
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( xi_c )
 
-  
+
 
   void KratosApplication::RegisterDeprecatedVariables()
   {
-      
+
     //for Level Set application:
     KRATOS_REGISTER_VARIABLE(  IS_DUPLICATED )
     KRATOS_REGISTER_VARIABLE(  SPLIT_ELEMENT )
@@ -196,7 +197,7 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( IMPOSED_ANGULAR_VELOCITY_X )
     KRATOS_REGISTER_VARIABLE( IMPOSED_ANGULAR_VELOCITY_Y )
     KRATOS_REGISTER_VARIABLE( IMPOSED_ANGULAR_VELOCITY_Z )
-    
+
     //For the DEM Application:
     KRATOS_REGISTER_VARIABLE(IMPOSED_VELOCITY_X_VALUE)
     KRATOS_REGISTER_VARIABLE(IMPOSED_VELOCITY_Y_VALUE)
@@ -281,6 +282,3 @@ namespace Kratos
 
 // This define must be HERE
 #undef DKRATOS_EXPORT_INTERFACE_2
-
-
-

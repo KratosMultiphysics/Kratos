@@ -542,7 +542,7 @@ private:
         for(std::size_t i = 0 ; i < size ; i++)
         {
             rSerializer.load("Variable Name", name);
-            Add(*KratosComponents<VariableData>::pGet(name));
+            Add(KratosComponents<VariableData>::Get(name));
         }
     }
 

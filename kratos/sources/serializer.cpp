@@ -32,9 +32,9 @@ Serializer::RegisteredObjectsContainerType Serializer::msRegisteredObjects;
 
 Serializer::RegisteredObjectsNameContainerType Serializer::msRegisteredObjectsName;
 
-VariableData* Serializer::GetVariableData(std::string const & VariableName)
+const VariableData* Serializer::GetVariableData(std::string const & VariableName)
 {
-    return KratosComponents<VariableData>::pGet(VariableName);
+    return &KratosComponents<VariableData>::Get(VariableName);
 }
 
 
