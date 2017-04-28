@@ -109,7 +109,7 @@ namespace Kratos
 		// This function assumes tetrahedra element and triangle intersected object as input at this moment
 		constexpr int tetrahedra_edges[6][2] = { { 0,1 },{ 1,2 },{ 2,0 },{ 0,3 },{ 1,3 },{ 2,3 } };
 		constexpr int number_of_tetrahedra_points = 4;
-		constexpr double epsilon = std::numeric_limits<double>::epsilon();
+		constexpr double epsilon = 1e-6;// std::numeric_limits<double>::epsilon();
 		auto& element_geometry = rElement1.GetGeometry();
 		Vector& elemental_distances = rElement1.GetValue(ELEMENTAL_DISTANCES);
 		elemental_distances.resize(number_of_tetrahedra_points, false);
@@ -118,8 +118,9 @@ namespace Kratos
 		auto new_id = mSkinRepresentation.NumberOfNodes() + GetModelPart1().NumberOfNodes() + 1;
 
 		for (int i = 0; i < number_of_tetrahedra_points; i++) {
+			elemental_distances[i] = std::numeric_limits<double>::max();
 			for (auto triangle : rIntersectedObjects.GetContainer()) {
-				elemental_distances[i] = GeometryUtils::PointDistanceToTriangle3D(triangle->GetGeometry()[0], triangle->GetGeometry()[1], triangle->GetGeometry()[2], rElement1.GetGeometry()[i]);
+				elemental_distances[i] = std::min(elemental_distances[i],GeometryUtils::PointDistanceToTriangle3D(triangle->GetGeometry()[0], triangle->GetGeometry()[1], triangle->GetGeometry()[2], rElement1.GetGeometry()[i]));
 				if (fabs(rElement1.GetGeometry()[i].GetSolutionStepValue(DISTANCE)) > fabs(elemental_distances[i]))
 						rElement1.GetGeometry()[i].GetSolutionStepValue(DISTANCE) = elemental_distances[i];
 			}
