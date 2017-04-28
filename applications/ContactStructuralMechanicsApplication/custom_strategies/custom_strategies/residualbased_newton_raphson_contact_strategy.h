@@ -6,8 +6,7 @@
 //  License:             BSD License
 //                                       license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Mohamed Khalil
-//                   Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrándiz
 //
 
 #if !defined(KRATOS_RESIDUALBASED_NEWTON_RAPHSON_CONTACT_STRATEGY)

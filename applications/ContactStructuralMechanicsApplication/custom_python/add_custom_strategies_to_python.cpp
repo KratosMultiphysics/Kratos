@@ -25,6 +25,7 @@
 
 // Strategies
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "custom_strategies/custom_strategies/line_search_contact_strategy.h"
 #include "custom_strategies/custom_strategies/residualbased_newton_raphson_contact_strategy.h"
 
 // Schemes
@@ -64,6 +65,7 @@ void  AddCustomStrategiesToPython()
         
     // Custom strategy types
     typedef ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedNewtonRaphsonContactStrategyType;
+    typedef LineSearchContactStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  LineSearchContactStrategyType;
     
     // Custom scheme types
     typedef ResidualBasedIncrementalUpdateStaticContactScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedIncrementalUpdateStaticContactSchemeType;
@@ -88,6 +90,16 @@ void  AddCustomStrategiesToPython()
             .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetMaxIterationNumber)
             .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetKeepSystemConstantDuringIterations)
             .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetKeepSystemConstantDuringIterations)
+            ;
+            
+    // Residual Based Newton Raphson Contact Strategy      
+    class_< LineSearchContactStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
+            ("LineSearchContactStrategy", init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters >())
+            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters >())
+            .def("SetMaxIterationNumber", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetMaxIterationNumber)
+            .def("GetMaxIterationNumber", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetMaxIterationNumber)
+            .def("SetKeepSystemConstantDuringIterations", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetKeepSystemConstantDuringIterations)
+            .def("GetKeepSystemConstantDuringIterations", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetKeepSystemConstantDuringIterations)
             ;
             
     //********************************************************************

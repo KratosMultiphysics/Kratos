@@ -234,7 +234,9 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                                                                                                             move_mesh_flag
                                                                                                             )
                 else:
-                    self.mechanical_solver = KratosMultiphysics.LineSearchStrategy(
+                    newton_parameters = KratosMultiphysics.Parameters("""{}""")
+                    newton_parameters.AddValue("rescale_factor",self.settings["rescale_factor"])
+                    self.mechanical_solver = ContactStructuralMechanicsApplication.LineSearchContactStrategy(
                                                                                 self.computing_model_part, 
                                                                                 mechanical_scheme, 
                                                                                 self.linear_solver, 
@@ -243,7 +245,8 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                                                                                 max_iters, 
                                                                                 compute_reactions, 
                                                                                 reform_step_dofs, 
-                                                                                move_mesh_flag
+                                                                                move_mesh_flag,
+                                                                                newton_parameters
                                                                                 )
 
             else:
