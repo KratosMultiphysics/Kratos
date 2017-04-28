@@ -125,7 +125,7 @@ namespace Kratos
 		}
 		else this->mRotInertiaY = this->mInertiaY;
 		if (this->GetProperties().Has(INERTIA_ROT_Z) == true) {
-			this->mRotInertiaY = GetProperties()[INERTIA_ROT_Z];
+			this->mRotInertiaZ = GetProperties()[INERTIA_ROT_Z];
 		}
 		else this->mRotInertiaZ = this->mInertiaZ;
 
@@ -766,7 +766,6 @@ namespace Kratos
 		const double IRy = this->mRotInertiaY;
 		const double IRz = this->mRotInertiaZ;
 
-
 		double Phiy = 0.00;
 		double Phiz = 0.00;
 
@@ -779,7 +778,6 @@ namespace Kratos
 		const double CRy = (rho*IRy) / ((1 + Phiy)*(1 + Phiy)*L);
 		const double CRz = (rho*IRz) / ((1 + Phiz)*(1 + Phiz)*L);
 
-
 		//longitudinal forces + torsional moment
 		const double M00 = (1.00 / 3.00)*A*rho*L;
 		const double M06 = M00 / 2.00;
@@ -789,7 +787,6 @@ namespace Kratos
 		rMassMatrix(3, 3) = M00;
 		rMassMatrix(3, 9) = M06;
 		rMassMatrix(9, 9) = M00;
-
 
 		Matrix TempBendingMassMatrix = ZeroMatrix(smallMatSize, smallMatSize);
 		this->BuildSingleMassMatrix(TempBendingMassMatrix, Phiz, CTz, CRz, L);
