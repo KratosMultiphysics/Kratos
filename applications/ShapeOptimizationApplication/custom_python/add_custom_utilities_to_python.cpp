@@ -27,6 +27,7 @@
 #include "custom_utilities/optimization_utilities.h"
 #include "custom_utilities/geometry_utilities.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing.h"
+#include "custom_utilities/mapping/mapper_vertex_morphing_iterative.h"
 #include "custom_utilities/response_functions/strain_energy_response_function.h"
 #include "custom_utilities/response_functions/mass_response_function.h"
 #include "custom_utilities/input_output/universal_file_io.h"
@@ -52,6 +53,14 @@ void  AddCustomUtilitiesToPython()
         .def("map_to_geometry_space", &MapperVertexMorphing::map_to_geometry_space)
         ;
 
+    // ================================================================
+    // For perfoming the mapping according to Vertex Morphing iteratively
+    // ================================================================
+    class_<MapperVertexMorphingIterative, bases<Process> >("MapperVertexMorphingIterative", init<ModelPart&, boost::python::dict, Parameters&>())
+        .def("map_to_design_space", &MapperVertexMorphingIterative::map_to_design_space)
+        .def("map_to_geometry_space", &MapperVertexMorphingIterative::map_to_geometry_space)
+        ;
+ 
     // ========================================================================
     // For performing individual steps of an optimization algorithm
     // ========================================================================

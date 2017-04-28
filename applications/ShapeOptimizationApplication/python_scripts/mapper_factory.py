@@ -22,7 +22,7 @@ CheckForPreviousImport()
 def CreateMapper( designSurface, listOfDampingRegions, optimizationSettings ):
     isIterativeMappingRequired = optimizationSettings["design_variables"]["iterative_mapping"].GetBool()
     if isIterativeMappingRequired:
-        raise NameError("Iterative mapping is not yet supported by the mapper!","")              
+        return MapperVertexMorphingIterative( designSurface, listOfDampingRegions, optimizationSettings )  
     else:
         return MapperVertexMorphing( designSurface, listOfDampingRegions, optimizationSettings )         
 
