@@ -1059,8 +1059,8 @@ public:
     
     static inline void ReComputeActiveInactiveFrictionlessALM(ModelPart & rModelPart)
     {        
-        const double epsilon = rModelPart.GetProcessInfo()[PENALTY_PARAMETER]; 
-        const double k = rModelPart.GetProcessInfo()[SCALE_FACTOR]; 
+        const double Epsilon = rModelPart.GetProcessInfo()[PENALTY_PARAMETER]; 
+        const double ScaleFactor = rModelPart.GetProcessInfo()[SCALE_FACTOR]; 
         
         NodesArrayType& pNodes = rModelPart.GetSubModelPart("Contact").Nodes();
         auto numNodes = pNodes.end() - pNodes.begin();
@@ -1072,7 +1072,7 @@ public:
             
             if ((itNode)->Is(ACTIVE) == true )
             {
-                const double AugmentedNormalPressure = k * (itNode)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + epsilon * (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);     
+                const double AugmentedNormalPressure = ScaleFactor * (itNode)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + Epsilon * (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);     
                 
                 (itNode)->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, AugmentedNormalPressure);
                 
@@ -1124,8 +1124,9 @@ public:
 
     static inline void ReComputeActiveInactiveFrictionalALM(ModelPart & rModelPart)
     {
-        const double epsilon = rModelPart.GetProcessInfo()[PENALTY_PARAMETER]; 
-        const double k = rModelPart.GetProcessInfo()[SCALE_FACTOR]; 
+        const double Epsilon = rModelPart.GetProcessInfo()[PENALTY_PARAMETER]; 
+        const double ScaleFactor = rModelPart.GetProcessInfo()[SCALE_FACTOR];
+        const double TangentFactor = rModelPart.GetProcessInfo()[TANGENT_FACTOR];
         
         NodesArrayType& pNodes = rModelPart.GetSubModelPart("Contact").Nodes();
         auto numNodes = pNodes.end() - pNodes.begin();
@@ -1141,7 +1142,7 @@ public:
                 const array_1d<double,3> NodalNormal = (itNode)->GetValue(NORMAL);
                 const double NormalLagrangeMultiplier = inner_prod(NodalNormal, LagrangeMultiplier);
                 
-                const double AugmentedNormalPressure = k * NormalLagrangeMultiplier + epsilon * (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);     
+                const double AugmentedNormalPressure = ScaleFactor * NormalLagrangeMultiplier + Epsilon * (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);     
                 
                 itNode->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, AugmentedNormalPressure);
                 
@@ -1158,7 +1159,7 @@ public:
                     
                     // Finally we compute the augmented tangent pressure
                     const double gt = (itNode)->FastGetSolutionStepValue(WEIGHTED_SLIP);
-                    const double AugmentedTangentPressure = std::abs(k * LambdaTangent + epsilon * gt) + mu * AugmentedNormalPressure;
+                    const double AugmentedTangentPressure = std::abs(ScaleFactor * LambdaTangent + TangentFactor * Epsilon * gt) + mu * AugmentedNormalPressure;
                     
                     (itNode)->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, AugmentedTangentPressure);
                     

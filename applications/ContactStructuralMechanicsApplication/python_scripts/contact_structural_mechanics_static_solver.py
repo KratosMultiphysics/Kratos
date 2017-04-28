@@ -60,6 +60,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
             "split_factor": 10.0,
             "max_number_splits": 3,
             "rescale_factor": false,
+            "path_following_penalty": false,
             "linear_solver_settings":{
                 "solver_type": "SuperLUSolver",
                 "max_iteration": 500,
@@ -284,6 +285,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                         newton_parameters.AddValue("split_factor",self.settings["split_factor"])
                         newton_parameters.AddValue("max_number_splits",self.settings["max_number_splits"])
                         newton_parameters.AddValue("rescale_factor",self.settings["rescale_factor"])
+                        newton_parameters.AddValue("path_following_penalty",self.settings["path_following_penalty"])
                         self.mechanical_solver = ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactStrategy(
                                                                                 self.computing_model_part, 
                                                                                 mechanical_scheme, 
