@@ -280,16 +280,17 @@ protected:
             for(auto itDoF = itNode->GetDofs().begin() ; itDoF != itNode->GetDofs().end() ; itDoF++)
             {
                 const int j = (itDoF)->EquationId();
+                std::size_t CurrVar = (itDoF)->GetVariable().Key();
                 
-                if (((itDoF)->GetVariable().Name()).find("VECTOR_LAGRANGE") != std::string::npos || ((itDoF)->GetVariable().Name()).find("NORMAL_CONTACT_STRESS") == std::string::npos) // Corresponding with contact
+                if ((CurrVar == DISPLACEMENT_X) || (CurrVar == DISPLACEMENT_Y) || (CurrVar == DISPLACEMENT_Z))
                 {          
                     #pragma omp atomic
-                    AuxContact += b[j] * b[j];
+                    AuxNonContact += b[j] * b[j];
                 }
-                else 
+                else // Corresponding with contact
                 {
                     #pragma omp atomic
-                    AuxNonContact += b[j] * b[j];
+                    AuxContact += b[j] * b[j];
                 }
             }
         }

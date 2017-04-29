@@ -244,6 +244,9 @@ public:
                 }
             }
 
+            rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = (ResidualDispRatio > ResidualLMRatio) ? ResidualDispRatio : ResidualLMRatio;
+            rModelPart.GetProcessInfo()[RESIDUAL_NORM] = (ResidualLMAbs > mLMAbsTolerance) ? ResidualLMAbs : mLMAbsTolerance;
+            
             if ((ResidualDispRatio <= mDispRatioTolerance || ResidualDispAbs <= mDispAbsTolerance) &&
                     (ResidualLMRatio <= mLMRatioTolerance || ResidualLMAbs <= mLMAbsTolerance) )
             {
