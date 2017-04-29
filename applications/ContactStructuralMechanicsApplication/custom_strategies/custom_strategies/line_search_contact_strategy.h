@@ -321,64 +321,48 @@ protected:
         TSystemVectorType aux(b.size()); //TODO: do it by using the space
         TSparseSpace::Assign(aux, 0.5, Dx);
 
+        TSystemVectorType DxDisp(b.size()); 
+        TSystemVectorType DxLM(b.size()); 
+        ComputeSplitDx(Dx, DxDisp, DxLM);
+        
         // Compute residual without update
         TSparseSpace::SetToZero(b);
         pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
-        const double ro = TSparseSpace::TwoNorm(b);
-
+        double roDisp;
+        double roLM;
+        ComputeMixedResidual(b, roDisp, roLM);
+        
         // Compute half step residual
         NRBaseType::UpdateDatabase(A,aux,b,MoveMesh);
         TSparseSpace::SetToZero(b);
         pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
-        const double rh = TSparseSpace::TwoNorm(b);
+        double rhDisp;
+        double rhLM;
+        ComputeMixedResidual(b, rhDisp, rhLM);
 
         // Compute full step residual (add another half Dx to the previous half)
         NRBaseType::UpdateDatabase(A,aux,b,MoveMesh);
         TSparseSpace::SetToZero(b);
         pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
-        const double rf = TSparseSpace::TwoNorm(b);
+        double rfDisp;
+        double rfLM;
+        ComputeMixedResidual(b, rfDisp, rfLM);
 
-        // Compute optimal (limited to the range 0-1)
-        // Parabola is y = a*x^2 + b*x + c -> min/max for
-        // x=0   --> r=ro
-        // x=1/2 --> r=rh
-        // x=1   --> r =
-        // c= ro,     b= 4*rh -rf -3*ro,  a= 2*rf - 4*rh + 2*ro
-        // max found if a>0 at the position  xmax = (rf/4 - rh)/(rf - 2*rh);
+        // We compute the parabola        
+        double XminDisp = 1e-3;
+        double XmaxDisp = 1.0;
+        double XminLM = 1e-3;
+        double XmaxLM = 1.0;
         
-        const double parabola_a = 2 * rf + 2 * ro - 4 * rh;
-        const double parabola_b = 4 * rh - rf - 3 * ro;
-        double xmin = 1e-3;
-        double xmax = 1.0;
+        ComputeParabola(XminDisp, XmaxDisp, rfDisp, roDisp, rhDisp);
+        ComputeParabola(XminLM, XmaxLM, rfLM, roLM, rhLM);
         
-        if( parabola_a > 0.0) //  If parabola has a local minima
-        {
-            xmax = -0.5 * parabola_b/parabola_a; // -b / 2a
-            if( xmax > 1.0)
-            {
-                xmax = 1.0;
-            }
-            else if(xmax < -1.0)
-            {
-                xmax = -1.0;
-            }
-        }
-        else //parabola degenerates to either a line or to have a local max. best solution on either extreme
-        {
-            if(rf < ro)
-            {
-                xmax = 1.0;
-            }
-            else
-            {
-                xmax = xmin; //should be zero, but otherwise it will stagnate
-            }
-        }
-
         // Perform final update
-        TSparseSpace::Assign(aux,-(1.0-xmax), Dx);
+        TSparseSpace::Assign(aux,-(1.0 - XmaxDisp), DxDisp);
+        TSparseSpace::UnaliasedAdd(aux,-(1.0 - XmaxLM), DxLM);
         NRBaseType::UpdateDatabase(A,aux,b,MoveMesh);
         
+        // Finally we compute the contact "weighted values"
         CalculateContactReactions(b);
     }
     
@@ -411,6 +395,7 @@ protected:
     
     /**
      * This method calculates the reactions concerning the contact (residual of the contact)
+     * @param b: The residual vector
      */
     
     void CalculateContactReactions(TSystemVectorType& b)
@@ -456,6 +441,144 @@ protected:
         }
     }
 
+    /**
+     * This method split the vector of increment of DoF in displacement and LM
+     * @return Dx: The increment of displacements and LM
+     * @return DxDisp: The increment of displacements
+     * @return DxLM: The increment of LM
+     */
+        
+    void ComputeSplitDx(
+        TSystemVectorType& Dx,
+        TSystemVectorType& DxDisp,
+        TSystemVectorType& DxLM
+        )
+    {        
+        // Now we iterate over all the nodes
+        NodesArrayType& pNode = StrategyBaseType::GetModelPart().Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+    
+            for(auto itDoF = itNode->GetDofs().begin() ; itDoF != itNode->GetDofs().end() ; itDoF++)
+            {
+                const int j = (itDoF)->EquationId();
+                std::size_t CurrVar = (itDoF)->GetVariable().Key();
+                
+                if ((CurrVar == DISPLACEMENT_X) || (CurrVar == DISPLACEMENT_Y) || (CurrVar == DISPLACEMENT_Z))
+                {          
+                    DxDisp[j] = Dx[j];
+                    DxLM[j] = 0.0;
+                }
+                else // Corresponding with contact
+                {
+                    DxDisp[j] = 0.0;
+                    DxLM[j] = Dx[j];
+                }
+            }
+        }
+    }
+    
+    /**
+     * This method calculates the norm considering one norm for the displacement and other norm for the LM
+     * @param b: The residual vector
+     * @return normDisp: The norm of the displacement
+     * @return normLM: The norm of the LM
+     */
+        
+    void ComputeMixedResidual(
+        TSystemVectorType& b,
+        double& normDisp, 
+        double& normLM
+        )
+    {        
+        // Now we iterate over all the nodes
+        NodesArrayType& pNode = StrategyBaseType::GetModelPart().Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+    
+            for(auto itDoF = itNode->GetDofs().begin() ; itDoF != itNode->GetDofs().end() ; itDoF++)
+            {
+                const int j = (itDoF)->EquationId();
+                std::size_t CurrVar = (itDoF)->GetVariable().Key();
+                
+                if ((CurrVar == DISPLACEMENT_X) || (CurrVar == DISPLACEMENT_Y) || (CurrVar == DISPLACEMENT_Z))
+                {          
+                    #pragma omp atomic
+                    normDisp += b[j] * b[j];
+                }
+                else // Corresponding with contact
+                {
+                    #pragma omp atomic
+                    normLM += b[j] * b[j];
+                }
+            }
+        }
+        
+        normDisp = std::sqrt(normDisp);
+        normLM = std::sqrt(normLM);
+    }
+    
+    /**
+     * This method computes the parabola necessary for the line search
+     * @return Xmax: The maximal abscissa
+     * @return Xmin: The norm of the LM
+     * @param rf: The residual norm of the full step
+     * @param ro: The residual norm without step
+     * @param rh: The residual norm of the half step
+     */
+        
+    void ComputeParabola(
+        double& Xmax,
+        double& Xmin,
+        const double rf,
+        const double ro,
+        const double rh
+        )
+    {   
+        // Compute optimal (limited to the range 0-1)
+        // Parabola is y = a*x^2 + b*x + c -> min/max for
+        // x=0   --> r=ro
+        // x=1/2 --> r=rh
+        // x=1   --> r =
+        // c= ro,     b= 4*rh -rf -3*ro,  a= 2*rf - 4*rh + 2*ro
+        // max found if a>0 at the position  Xmax = (rf/4 - rh)/(rf - 2*rh);
+        
+        const double ParabolaA = 2 * rf + 2 * ro - 4 * rh;
+        const double ParabolaB = 4 * rh - rf - 3 * ro;
+        
+        if( ParabolaA > 0.0) //  If parabola has a local minima
+        {
+            Xmax = -0.5 * ParabolaB/ParabolaA; // -b / 2a
+            if( Xmax > 1.0)
+            {
+                Xmax = 1.0;
+            }
+            else if(Xmax < -1.0)
+            {
+                Xmax = -1.0;
+            }
+        }
+        else // Parabola degenerates to either a line or to have a local max. best solution on either extreme
+        {
+            if(rf < ro)
+            {
+                Xmax = 1.0;
+            }
+            else
+            {
+                Xmax = Xmin; // Should be zero, but otherwise it will stagnate
+            }
+        }
+    }
+    
     ///@}
     ///@name Protected Operations
     ///@{

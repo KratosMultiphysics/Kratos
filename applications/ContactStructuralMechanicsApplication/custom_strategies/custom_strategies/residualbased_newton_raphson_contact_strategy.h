@@ -527,6 +527,7 @@ protected:
     
     /**
      * This method calculates the reactions concerning the contact (residual of the contact)
+     * @param b: The residual vector
      */
     
     void CalculateContactReactions(TSystemVectorType& b)
