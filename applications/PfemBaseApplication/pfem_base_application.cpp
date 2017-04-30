@@ -48,10 +48,10 @@ namespace Kratos
     // calling base class register to register Kratos components
     KratosApplication::Register();
        
-    std::cout << "            ___  __           ___                           " << std::endl;
-    std::cout << "     KRATOS| _ \\/ _|___ _ __ | _ ) __ _ ___ ___             " << std::endl;
-    std::cout << "           |  _/  _/ -_) '  \\| _ \\/ _` (_-</ -_)            " << std::endl;
-    std::cout << "           |_| |_| \\___|_|_|_|___/\\__,_/__/\\___|APPLICATION " << std::endl;
+    std::cout << "             ___  __           ___                           " << std::endl;
+    std::cout << "      KRATOS| _ \\/ _|___ _ __ | _ ) __ _ ___ ___             " << std::endl;
+    std::cout << "            |  _/  _/ -_) '  \\| _ \\/ _` (_-</ -_)            " << std::endl;
+    std::cout << "            |_| |_| \\___|_|_|_|___/\\__,_/__/\\___|APPLICATION " << std::endl;
     std::cout << "Initializing KratosPfemBaseApplication...                   " << std::endl;                                
 
     //Register Variables (variables created in pfem_solid_mechanics_application_variables.cpp)

@@ -71,7 +71,7 @@ namespace Kratos
       SpatialBoundingBox DomainBox (rModelPart, extra_radius);
       
       ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-      BoxVertices = DomainBox.GetVertices( CurrentProcessInfo[TIME], dimension );
+      DomainBox.GetVertices( BoxVertices, CurrentProcessInfo[TIME], dimension );
     }
 
     //input mesh: NODES
@@ -164,20 +164,20 @@ namespace Kratos
     const unsigned int dimension = rModelPart.ConditionsBegin(MeshId)->GetGeometry().WorkingSpaceDimension();
 
     //*********************************************************************
-    if( in.segmentlist != NULL ){
+    if(in.segmentlist){
       delete [] in.segmentlist;
       in.numberofsegments = 0;
     }
 
-    if( in.segmentmarkerlist != NULL )
+    if(in.segmentmarkerlist)
       delete [] in.segmentmarkerlist;
     
-    if( in.holelist != NULL ){
+    if(in.holelist){
       delete [] in.holelist;
       in.numberofholes = 0;
     }
     
-    if( in.regionlist != NULL ){
+    if(in.regionlist){
       delete [] in.regionlist;
       in.numberofregions = 0;
     }
@@ -190,7 +190,7 @@ namespace Kratos
     SpatialBoundingBox DomainBox (rModelPart, extra_radius);
     
     ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-    BoxVertices = DomainBox.GetVertices( CurrentProcessInfo[TIME], dimension );
+    DomainBox.GetVertices( BoxVertices, CurrentProcessInfo[TIME], dimension );
     
     
     in.numberofsegments           = rModelPart.NumberOfConditions() + BoxVertices.size();
@@ -213,12 +213,11 @@ namespace Kratos
     int& NumberOfPoints   = InMesh.GetNumberOfPoints();
 
     int ids = NumberOfPoints - BoxVertices.size() + 1;
-    for(unsigned int i = 0; i<BoxVertices.size()-1; i++) //2d (rectangular box of 4 sides)
+    for(unsigned int i=ids; i<BoxVertices.size(); i++) //2d (rectangular box of 4 sides)
       {
-	in.segmentlist[base]   = ids;
-	in.segmentlist[base+1] = ids+1;
-	
-	ids+=1;
+	in.segmentlist[base]   = i;
+	in.segmentlist[base+1] = i+1;
+
 	base+=2;
       }  
     

@@ -19,134 +19,157 @@
 
 namespace Kratos
 {
+    
+  //******************************CONSTRUCTOR*******************************************
+  //************************************************************************************
 
-
-//******************************CONSTRUCTOR*******************************************
-//************************************************************************************
-
-ContactDomainLM3DCondition::ContactDomainLM3DCondition( IndexType NewId, GeometryType::Pointer pGeometry )
+  ContactDomainLM3DCondition::ContactDomainLM3DCondition( IndexType NewId, GeometryType::Pointer pGeometry )
     : ContactDomainCondition( NewId, pGeometry )
-{
+  {
     //DO NOT ADD DOFS HERE!!!
-}
+  }
 
 
-//******************************CONSTRUCTOR*******************************************
-//************************************************************************************
+  //******************************CONSTRUCTOR*******************************************
+  //************************************************************************************
 
-ContactDomainLM3DCondition::ContactDomainLM3DCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+  ContactDomainLM3DCondition::ContactDomainLM3DCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : ContactDomainCondition( NewId, pGeometry, pProperties )
-{
+  {
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-}
+  }
 
 
-//******************************COPY CONSTRUCTOR**************************************
-//************************************************************************************
+  //******************************COPY CONSTRUCTOR**************************************
+  //************************************************************************************
 
-ContactDomainLM3DCondition::ContactDomainLM3DCondition( ContactDomainLM3DCondition const& rOther)
+  ContactDomainLM3DCondition::ContactDomainLM3DCondition( ContactDomainLM3DCondition const& rOther)
     :ContactDomainCondition(rOther)
-{
-}
+  {
+  }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
-//************************************************************************************
+  //*******************************ASSIGMENT OPERATOR***********************************
+  //************************************************************************************
 
-ContactDomainLM3DCondition&  ContactDomainLM3DCondition::operator=(ContactDomainLM3DCondition const& rOther)
-{
+  ContactDomainLM3DCondition&  ContactDomainLM3DCondition::operator=(ContactDomainLM3DCondition const& rOther)
+  {
     ContactDomainCondition::operator=(rOther);
 
     return *this;
-}
+  }
 
 
-//*********************************OPERATIONS*****************************************
-//************************************************************************************
+  //*********************************OPERATIONS*****************************************
+  //************************************************************************************
 
-Condition::Pointer ContactDomainLM3DCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
-{
+  Condition::Pointer ContactDomainLM3DCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
+  {
     return Condition::Pointer(new ContactDomainLM3DCondition( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
-}
+  }
 
 
-//*******************************DESTRUCTOR*******************************************
-//************************************************************************************
+  //*******************************DESTRUCTOR*******************************************
+  //************************************************************************************
 
 
-ContactDomainLM3DCondition::~ContactDomainLM3DCondition()
-{
-}
+  ContactDomainLM3DCondition::~ContactDomainLM3DCondition()
+  {
+  }
 
 
-//************* STARTING - ENDING  METHODS
-//************************************************************************************
-//************************************************************************************
+  //************* STARTING - ENDING  METHODS
+  //************************************************************************************
+  //************************************************************************************
 
+  void ContactDomainLM3DCondition::SetMasterGeometry()
+  {  
+    KRATOS_TRY     
 
-void ContactDomainLM3DCondition::SetMasterGeometry()
-
-{
-    Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS).back();
-    mContactVariables.SetMasterElement(MasterElement);
+    Element::ElementType& rMasterElement = GetValue(MASTER_ELEMENTS).back();
+    mContactVariables.SetMasterElement(rMasterElement);
 
     Element::NodeType&    MasterNode  = GetValue(MASTER_NODES).back();
     mContactVariables.SetMasterNode(MasterNode);
 
-    int  slave = -1;
+    std::cout<<" Number Of Master Nodes "<<GetValue(MASTER_NODES).size()<<std::endl;
     
-    for(unsigned int i=0; i<MasterElement.GetGeometry().PointsNumber(); i++)
-    {
-        if(MasterNode.Id()==MasterElement.GetGeometry()[i].Id())
-        {
+    int slave = -1;
+    
+    Geometry< Node<3> >& rMasterGeometry = rMasterElement.GetGeometry();
+    Geometry< Node<3> >& rGeometry       = GetGeometry();
+
+    
+    for(unsigned int i=0; i<rMasterGeometry.PointsNumber(); i++)
+      {
+        if(MasterNode.Id()==rMasterGeometry[i].Id())
+	  {
 	    slave=i;
-	}
-    }
+	  }
+      }   
+      
 
+    //set conectivities a-b-c-d correspondence with 1-2-3-4 (local contact element):
+    //nodes 1/2/3 and slave for FaceType (PATCH-A)
+    //nodes 1/2 and 3/4 for EdgeType (PATCH-B)
 
+    //order contains the relationship between contact element and body element condident nodes numeration
+    
     if(slave>=0)
-    {
+      {
 
         NodesArrayType vertex;
-	mContactVariables.order.resize(GetGeometry().PointsNumber(),false);
+	mContactVariables.order.resize(rGeometry.PointsNumber(),false);
 	
 	int counter = 0;
+	bool iset = false;
         for(unsigned int i=0; i<GetGeometry().PointsNumber(); i++)
-        {
-            bool iset=false;
-            for(unsigned int j=0; j<GetGeometry().PointsNumber(); j++)
-            {
+	  {
+	    iset = false;
+	    for(unsigned int j=0; j<GetGeometry().PointsNumber(); j++)
+	      {
 
-                if(GetGeometry()[i].Id()==MasterElement.GetGeometry()[j].Id())
-                {
-                    //vertex[i]=GetGeometry()[i];
-		    //vertex.push_back( GetGeometry()[i] );
-   		    //mContactVariables.nodes.push_back(i);
+                if(rGeometry[i].Id()==rMasterGeometry[j].Id())
+		  {
                     mContactVariables.order[i] = j;
- 		    //std::cout<<" order ["<<i<<"] = "<<j<<std::endl;
+ 		    std::cout<<" order master ["<<i<<"] = "<<j<<std::endl;
                     iset=true;
 		    break;
-                }
+		  }
 
-            }
+	      }
 
             if(iset==false)
-            {
-		//vertex[i]=GetGeometry()[i];
-                //vertex[i]=MasterNode;
-		//vertex.push_back( MasterNode );
+	      {
          	mContactVariables.order[i] = slave;
-		//std::cout<<" order ["<<i<<"] = "<<slave<<std::endl;
                 mContactVariables.slaves.push_back(i);
-            }
+	      }
 
 	    counter += mContactVariables.order[i];
-        }
+	  }
 
 
-	if( counter != 6 )
-	  KRATOS_THROW_ERROR( std::invalid_argument, "Something is Wrong with MASTERNODE and contact order", "" )
+	//set the second slave in order
+	if( this->Is(SELECTED) ){
+	  
+	  for(unsigned int i=0; i<GetGeometry().PointsNumber(); i++)
+	    {
+	      iset = false;
+	      for(unsigned int j=0; j<mContactVariables.order.size(); j++)
+		{		
+		  if(mContactVariables.order[j] == i)
+		    {
+		      iset = true;
+		      break;
+		    }
+		}
 
+	      if(iset==false)
+		mContactVariables.order[mContactVariables.slaves.back()] = i;	      
+	    }
+	}
+
+	
 	//Permute
 	std::vector<unsigned int> permute (7);
       
@@ -161,21 +184,24 @@ void ContactDomainLM3DCondition::SetMasterGeometry()
 	//reorder counter-clock-wise
 	if(mContactVariables.slaves.size() == 1){
 
-	  for( unsigned int i=1; i<3; i++ )
+	  for( unsigned int i=1; i<4; i++ )
 	    {
 	      mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+i]);
 	    }
 	  
 	}
 	else if(mContactVariables.slaves.size() == 2){
-
+	  
+	  //domains (a,b):	  
 	  if( mContactVariables.slaves.back() == permute[mContactVariables.slaves.front()+1] ){
+	    //slave=0 (a,a,b,b) slave=1 (b,a,a,b) or the same [slave=0 (b,b,a,a) slave=1 (a,b,b,a)]
 	    mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+1]);
 	    mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+2]);
 	  }
 	  else{
 
 	    if( mContactVariables.slaves.back() == permute[mContactVariables.slaves.front()+2] ){
+	      //slave=2 (a,b,a,b) or the same [slave=2 (b,a,b,a)]
 	      mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+1]);
 	      mContactVariables.nodes.push_back(permute[mContactVariables.slaves.front()+1]);
 	    }
@@ -197,69 +223,82 @@ void ContactDomainLM3DCondition::SetMasterGeometry()
 	  
 	}
 	else{
-
 	  std::cout<<" Problem in the SLAVES DETECTION "<<std::endl;
 	}
     
-	mContactVariables.SetMasterGeometry( MasterElement.GetGeometry() );
+	mContactVariables.SetMasterGeometry( rMasterElement.GetGeometry() );
        
-    }
+      }
     else
-    {
+      {
         KRATOS_THROW_ERROR( std::invalid_argument, "MASTERNODE do not belongs to MASTER ELEMENT", "" )
-    }
+      }
 
+
+    for(unsigned int j=0; j<mContactVariables.order.size(); j++)
+      {		
+	std::cout<<" Order ["<<j<<"] "<<mContactVariables.order[j]<<std::endl;
+      }
+    for(unsigned int j=0; j<mContactVariables.nodes.size(); j++)
+      {		
+	std::cout<<" Nodes ["<<j<<"] "<<mContactVariables.nodes[j]<<std::endl;
+      }
+    for(unsigned int j=0; j<mContactVariables.slaves.size(); j++)
+      {		
+	std::cout<<" Slaves ["<<j<<"] "<<mContactVariables.slaves[j]<<std::endl;
+      }
     
-}
+    KRATOS_CATCH(" ")    
+  }
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
 
  
-void ContactDomainLM3DCondition::CalculatePreviousGap() //prediction of the lagrange multiplier
-{
+  void ContactDomainLM3DCondition::CalculatePreviousGap() //prediction of the lagrange multiplier
+  {
 
-  if( this->Is(SELECTED) )
-    CalculatePreviousGapEdgeType(); 
-  else
-    CalculatePreviousGapFaceType();
+    if( this->Is(SELECTED) )
+      CalculatePreviousGapEdgeType(); 
+    else
+      CalculatePreviousGapFaceType();
 
-}
+  }
   
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
   
-void ContactDomainLM3DCondition::TransformCovariantToContravariantBase(SurfaceBase& Covariant,SurfaceBase& Contravariant) //prediction of the lagrange multiplier face type element
-{
+  void ContactDomainLM3DCondition::TransformCovariantToContravariantBase(SurfaceBase& Covariant,SurfaceBase& Contravariant) //prediction of the lagrange multiplier face type element
+  {
 
-  Covariant.Metric.resize(2,2);
+    Covariant.Metric.resize(2,2);
 
-  Covariant.Metric(0,0) = inner_prod(Covariant.DirectionA, Covariant.DirectionA);
-  Covariant.Metric(0,1) = inner_prod(Covariant.DirectionA, Covariant.DirectionB);
-  Covariant.Metric(1,0) = inner_prod(Covariant.DirectionB, Covariant.DirectionA);
-  Covariant.Metric(1,1) = inner_prod(Covariant.DirectionB, Covariant.DirectionB);
+    Covariant.Metric(0,0) = inner_prod(Covariant.DirectionA, Covariant.DirectionA);
+    Covariant.Metric(0,1) = inner_prod(Covariant.DirectionA, Covariant.DirectionB);
+    Covariant.Metric(1,0) = inner_prod(Covariant.DirectionB, Covariant.DirectionA);
+    Covariant.Metric(1,1) = inner_prod(Covariant.DirectionB, Covariant.DirectionB);
 
 
-  double MetricDet;
-  MathUtils<double>::InvertMatrix2(Covariant.Metric,Contravariant.Metric, MetricDet);
+    double MetricDet;
+    MathUtils<double>::InvertMatrix2(Covariant.Metric,Contravariant.Metric, MetricDet);
 
-  //transform DirectionA to the contravariant base
-  Contravariant.DirectionA = Covariant.DirectionA * Contravariant.Metric(0,0) + Covariant.DirectionB * Contravariant.Metric(0,1);
+    //transform DirectionA to the contravariant base
+    Contravariant.DirectionA = Covariant.DirectionA * Contravariant.Metric(0,0) + Covariant.DirectionB * Contravariant.Metric(0,1);
 
-  //transform DirectionB to the contravariant base
-  Contravariant.DirectionB = Covariant.DirectionA * Contravariant.Metric(1,0) + Covariant.DirectionB * Contravariant.Metric(1,1);
+    //transform DirectionB to the contravariant base
+    Contravariant.DirectionB = Covariant.DirectionA * Contravariant.Metric(1,0) + Covariant.DirectionB * Contravariant.Metric(1,1);
 
-}
+  }
   
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
   
-void ContactDomainLM3DCondition::CalculatePreviousGapFaceType() //prediction of the lagrange multiplier face type element
-{
+  void ContactDomainLM3DCondition::CalculatePreviousGapFaceType() //prediction of the lagrange multiplier face type element
+  {
  
     //Contact face node1-node2-node3
     unsigned int node1=mContactVariables.nodes[0];
@@ -318,12 +357,12 @@ void ContactDomainLM3DCondition::CalculatePreviousGapFaceType() //prediction of 
 
 
     if((inner_prod(mContactVariables.PreStepSurface.Normal,mContactVariables.ReferenceSurface.Normal))<0) //to give the correct direction
-        mContactVariables.PreStepSurface.Normal*=-1;
+      mContactVariables.PreStepSurface.Normal*=-1;
 
     if(!(norm_2(mContactVariables.PreStepSurface.Normal)))
-    {
+      {
         mContactVariables.PreStepSurface.Normal=mContactVariables.ReferenceSurface.Normal;
-    }
+      }
 
   
     //e.- Compute A_n-1,B_n-1,L_n-1
@@ -422,14 +461,14 @@ void ContactDomainLM3DCondition::CalculatePreviousGapFaceType() //prediction of 
 
     //std::cout<<"ConditionID:  "<<this->Id()<<" -> Previous Tractions [tN:"<<NormalTensil<<"] "<<std::endl; 
     //std::cout<<" Previous Normal Gap [gN:"<<mContactVariables.PreviousGap.Normal<<"] "<<std::endl; 
-}
+  }
 
   
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void ContactDomainLM3DCondition::CalculatePreviousGapEdgeType() //prediction of the lagrange multiplier face type element
-{
+  void ContactDomainLM3DCondition::CalculatePreviousGapEdgeType() //prediction of the lagrange multiplier face type element
+  {
  
     //Contact face segment node1-node2
     unsigned int node1=mContactVariables.nodes[0];
@@ -497,12 +536,12 @@ void ContactDomainLM3DCondition::CalculatePreviousGapEdgeType() //prediction of 
     //std::cout<<" Pre Normal ["<<this->Id()<<"] "<<mContactVariables.PreStepSurface.Normal<<std::endl;
 
     if((inner_prod(mContactVariables.PreStepSurface.Normal,mContactVariables.ReferenceSurface.Normal))<0) //to give the correct direction
-        mContactVariables.PreStepSurface.Normal*=-1;
+      mContactVariables.PreStepSurface.Normal*=-1;
 
     if(!(norm_2(mContactVariables.PreStepSurface.Normal)))
-    {
+      {
         mContactVariables.PreStepSurface.Normal=mContactVariables.ReferenceSurface.Normal;
-    }
+      }
 
 
     //Reference normal: n_n,t_n  -> mContactVariables.ReferenceSurface.Normal / mContactVariables.ReferenceSurface.Tangent
@@ -552,8 +591,8 @@ void ContactDomainLM3DCondition::CalculatePreviousGapEdgeType() //prediction of 
 
     mContactVariables.Tangent.PreviousGapB.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionB,(D1*(-PreviousBase[0].A/PreviousBase[0].L)));
     mContactVariables.Tangent.PreviousGapB.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionB,(D2*(-PreviousBase[0].B/PreviousBase[0].L)));
-  mContactVariables.Tangent.PreviousGapB.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionB,(DS1*(PreviousBase[1].A/PreviousBase[1].L)));
-  mContactVariables.Tangent.PreviousGapB.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionB,(DS2*(PreviousBase[1].B/PreviousBase[1].L)));
+    mContactVariables.Tangent.PreviousGapB.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionB,(DS1*(PreviousBase[1].A/PreviousBase[1].L)));
+    mContactVariables.Tangent.PreviousGapB.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionB,(DS2*(PreviousBase[1].B/PreviousBase[1].L)));
 
 
     mContactVariables.Tangent.PreviousGapA.Contravariant+=inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionA,(D1*(-PreviousBase[0].A/PreviousBase[0].L)));
@@ -606,20 +645,20 @@ void ContactDomainLM3DCondition::CalculatePreviousGapEdgeType() //prediction of 
 
     //std::cout<<"ConditionID:  "<<this->Id()<<" -> Previous Tractions [tN:"<<NormalTensil<<"] "<<std::endl; 
     //std::cout<<" Previous Normal Gap [gN:"<<mContactVariables.PreviousGap.Normal<<"] "<<std::endl; 
-}
+  }
 
 
-//**********************************COMPUTE TAU STAB**********************************
-//************************************************************************************
+  //**********************************COMPUTE TAU STAB**********************************
+  //************************************************************************************
 
 
-void ContactDomainLM3DCondition::CalculateContactFactor( ProcessInfo& rCurrentProcessInfo )
-{
+  void ContactDomainLM3DCondition::CalculateContactFactor( ProcessInfo& rCurrentProcessInfo )
+  {
     //Initilialize Tau for the stabilization
     double alpha_stab = 0.1;
     alpha_stab = GetProperties()[TAU_STAB];
 
-    ElementType& MasterElement = mContactVariables.GetMasterElement();
+    ElementType& rMasterElement = mContactVariables.GetMasterElement();
   
     //Look at the nodes, get the slave and get the Emin
 
@@ -628,21 +667,21 @@ void ContactDomainLM3DCondition::CalculateContactFactor( ProcessInfo& rCurrentPr
 
 
     double Eslave = GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties()[YOUNG_MODULUS];
-    double Emin   = MasterElement.GetProperties()[YOUNG_MODULUS];
+    double Emin   = rMasterElement.GetProperties()[YOUNG_MODULUS];
 
     //STANDARD OPTION
     if(Emin>Eslave)
-	Emin=Eslave;
+      Emin=Eslave;
 
     mContactVariables.StabilizationFactor = alpha_stab/Emin;
 
     //EXPERIMENTAL OPTION
-    // const GeometryType::IntegrationPointsArrayType& integration_points = MasterElement.GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+    // const GeometryType::IntegrationPointsArrayType& integration_points = rMasterElement.GetGeometry().IntegrationPoints( mThisIntegrationMethod );
    
     // //Get Current ConstitutiveMatrix
     // int size = integration_points.size();
     // std::vector<Matrix> ConstitutiveMatrix(size);   
-    // MasterElement.CalculateOnIntegrationPoints(CONSTITUTIVE_MATRIX,ConstitutiveMatrix,rCurrentProcessInfo);
+    // rMasterElement.CalculateOnIntegrationPoints(CONSTITUTIVE_MATRIX,ConstitutiveMatrix,rCurrentProcessInfo);
 
     // //Calc Norm of the Constitutive tensor:
     // double Cnorm=0;
@@ -662,47 +701,47 @@ void ContactDomainLM3DCondition::CalculateContactFactor( ProcessInfo& rCurrentPr
     
 
     
-}
+  }
 
-//************************************************************************************
-//************************************************************************************
-
-
-//************* COMPUTING  METHODS
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
 
-//********************************CALCULATE EXPLICIT MULTIPLIERS**********************
-//************************************************************************************
-
-void ContactDomainLM3DCondition::CalculateExplicitFactors(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
-{
-
-  if( this->Is(SELECTED) )
-    CalculateExplicitFactorsEdgeType(rVariables, rCurrentProcessInfo); 
-  else
-    CalculateExplicitFactorsFaceType(rVariables, rCurrentProcessInfo);
+  //************* COMPUTING  METHODS
+  //************************************************************************************
+  //************************************************************************************
 
 
+  //********************************CALCULATE EXPLICIT MULTIPLIERS**********************
+  //************************************************************************************
 
-  // //set contact normal
-  // array_1d<double, 3> &ContactNormal  = GetGeometry()[slave].FastGetSolutionStepValue(CONTACT_NORMAL);
+  void ContactDomainLM3DCondition::CalculateExplicitFactors(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+  {
+
+    if( this->Is(SELECTED) )
+      CalculateExplicitFactorsEdgeType(rVariables, rCurrentProcessInfo); 
+    else
+      CalculateExplicitFactorsFaceType(rVariables, rCurrentProcessInfo);
+
+
+
+    // //set contact normal
+    // array_1d<double, 3> &ContactNormal  = GetGeometry()[slave].FastGetSolutionStepValue(CONTACT_NORMAL);
   
-  // for(unsigned int i=0; i<3; i++)
-  //   ContactNormal[i] = rVariables.Contact.CurrentSurface.Normal[i];
+    // for(unsigned int i=0; i<3; i++)
+    //   ContactNormal[i] = rVariables.Contact.CurrentSurface.Normal[i];
 
     
-  if(mContactVariables.IterationCounter < 1)
-    mContactVariables.IterationCounter += 1;
+    if(mContactVariables.IterationCounter < 1)
+      mContactVariables.IterationCounter += 1;
   
-}
+  }
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void ContactDomainLM3DCondition::CalculateExplicitFactorsFaceType(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
-{
+  void ContactDomainLM3DCondition::CalculateExplicitFactorsFaceType(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+  {
 
     //Contact face node1-node2-node3
     unsigned int node1=mContactVariables.nodes[0];
@@ -745,12 +784,12 @@ void ContactDomainLM3DCondition::CalculateExplicitFactorsFaceType(GeneralVariabl
 
 
     if(double(inner_prod(rVariables.Contact.CurrentSurface.Normal,mContactVariables.ReferenceSurface.Normal))<0) //to give the correct direction
-        rVariables.Contact.CurrentSurface.Normal*=-1;
+      rVariables.Contact.CurrentSurface.Normal*=-1;
 
     rVariables.Contact.CurrentSurface.Normal /= norm_2(rVariables.Contact.CurrentSurface.Normal);  //to be unitary
 
     if(!(norm_2(rVariables.Contact.CurrentSurface.Normal)))
-        rVariables.Contact.CurrentSurface.Normal=mContactVariables.ReferenceSurface.Normal;
+      rVariables.Contact.CurrentSurface.Normal=mContactVariables.ReferenceSurface.Normal;
 
 
 
@@ -892,7 +931,7 @@ void ContactDomainLM3DCondition::CalculateExplicitFactorsFaceType(GeneralVariabl
     
     
     if(mContactVariables.PreviousGap.Normal!=0 && mContactVariables.IterationCounter<1){    
-       EffectiveGapN+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapN-mContactVariables.PreviousGap.Normal);
+      EffectiveGapN+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapN-mContactVariables.PreviousGap.Normal);
     }     
  
     if(mContactVariables.Tangent.PreviousGapA.Covariant!=0 && mContactVariables.IterationCounter<1){
@@ -943,26 +982,26 @@ void ContactDomainLM3DCondition::CalculateExplicitFactorsFaceType(GeneralVariabl
 
 
     if(EffectiveGapN<=0)   //if(EffectiveGap<0){
-    {
+      {
 
         rVariables.Contact.Options.Set(ACTIVE);  //normal contact active
 
         if( (fabs(EffectiveGapcvTA+EffectiveGapcvTB)<=rVariables.Contact.FrictionCoefficient*fabs(EffectiveGapN)) ||
 	    (fabs(EffectiveGapcnTA+EffectiveGapcnTB)<=rVariables.Contact.FrictionCoefficient*fabs(EffectiveGapN)) )
-        {
+	  {
 	    rVariables.Contact.Options.Set(SLIP,false); //contact stick case active
-        }
+	  }
         else
-        {
+	  {
 
 	    rVariables.Contact.Options.Set(SLIP,true);  //contact slip  case active
-        }
+	  }
 
-    }
+      }
     else
-    {
+      {
 	rVariables.Contact.Options.Set(ACTIVE,false); //normal contact not active
-    }
+      }
 
     //From total current gap compute multipliers:
 
@@ -978,24 +1017,24 @@ void ContactDomainLM3DCondition::CalculateExplicitFactorsFaceType(GeneralVariabl
 
     
     if(rVariables.Contact.Tangent.A.Multiplier<0)  //add the sign of the Lagrange Multiplier
-    {
+      {
         rVariables.Contact.Tangent.A.GapSign*=(-1);
-    }
+      }
 
     if(rVariables.Contact.Tangent.B.Multiplier<0)  //add the sign of the Lagrange Multiplier
-    {
+      {
         rVariables.Contact.Tangent.B.GapSign*=(-1);
-    }
+      }
 
     //check for distorted patches
-}
+  }
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void ContactDomainLM3DCondition::CalculateExplicitFactorsEdgeType(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
-{
+  void ContactDomainLM3DCondition::CalculateExplicitFactorsEdgeType(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+  {
 
     //Contact face node1-node2-node3
     unsigned int node1=mContactVariables.nodes[0];
@@ -1048,12 +1087,12 @@ void ContactDomainLM3DCondition::CalculateExplicitFactorsEdgeType(GeneralVariabl
 
 
     if(double(inner_prod(rVariables.Contact.CurrentSurface.Normal,mContactVariables.ReferenceSurface.Normal))<0) //to give the correct direction
-        rVariables.Contact.CurrentSurface.Normal*=-1;
+      rVariables.Contact.CurrentSurface.Normal*=-1;
 
     rVariables.Contact.CurrentSurface.Normal /= norm_2(rVariables.Contact.CurrentSurface.Normal);  //to be unitary
 
     if(!(norm_2(rVariables.Contact.CurrentSurface.Normal)))
-        rVariables.Contact.CurrentSurface.Normal=mContactVariables.ReferenceSurface.Normal;
+      rVariables.Contact.CurrentSurface.Normal=mContactVariables.ReferenceSurface.Normal;
 
 
 
@@ -1198,7 +1237,7 @@ void ContactDomainLM3DCondition::CalculateExplicitFactorsEdgeType(GeneralVariabl
     
     
     if(mContactVariables.PreviousGap.Normal!=0 && mContactVariables.IterationCounter<1){    
-       EffectiveGapN+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapN-mContactVariables.PreviousGap.Normal);
+      EffectiveGapN+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapN-mContactVariables.PreviousGap.Normal);
     }     
  
     if(mContactVariables.Tangent.PreviousGapA.Covariant!=0 && mContactVariables.IterationCounter<1){
@@ -1250,26 +1289,26 @@ void ContactDomainLM3DCondition::CalculateExplicitFactorsEdgeType(GeneralVariabl
 
 
     if(EffectiveGapN<=0)   //if(EffectiveGap<0){
-    {
+      {
 
         rVariables.Contact.Options.Set(ACTIVE);  //normal contact active
 
         if( (fabs(EffectiveGapcvTA+EffectiveGapcvTB)<=rVariables.Contact.FrictionCoefficient*fabs(EffectiveGapN)) ||
 	    (fabs(EffectiveGapcnTA+EffectiveGapcnTB)<=rVariables.Contact.FrictionCoefficient*fabs(EffectiveGapN)) )
-        {
+	  {
 	    rVariables.Contact.Options.Set(SLIP,false); //contact stick case active
-        }
+	  }
         else
-        {
+	  {
 
 	    rVariables.Contact.Options.Set(SLIP,true);  //contact slip  case active
-        }
+	  }
 
-    }
+      }
     else
-    {
+      {
 	rVariables.Contact.Options.Set(ACTIVE,false); //normal contact not active
-    }
+      }
 
     //From total current gap compute multipliers:
 
@@ -1285,27 +1324,27 @@ void ContactDomainLM3DCondition::CalculateExplicitFactorsEdgeType(GeneralVariabl
 
     
     if(rVariables.Contact.Tangent.A.Multiplier<0)  //add the sign of the Lagrange Multiplier
-    {
+      {
         rVariables.Contact.Tangent.A.GapSign*=(-1);
-    }
+      }
 
     if(rVariables.Contact.Tangent.B.Multiplier<0)  //add the sign of the Lagrange Multiplier
-    {
+      {
         rVariables.Contact.Tangent.B.GapSign*=(-1);
-    }
+      }
 
     //check for distorted patches
     
-}
+  }
 
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
 
-void ContactDomainLM3DCondition::CalculateDomainShapeN(GeneralVariables& rVariables)
-{
+  void ContactDomainLM3DCondition::CalculateDomainShapeN(GeneralVariables& rVariables)
+  {
 
     unsigned int ndi,ndj,ndk,ndl,ndm,ndn;
 
@@ -1445,30 +1484,30 @@ void ContactDomainLM3DCondition::CalculateDomainShapeN(GeneralVariables& rVariab
 
     }
 
-  //rVariables.Contact.CurTangent=(rVariables.Contact.Tangent.cvta+rVariables.Contact.Tangent.cvtb).direction();
+    //rVariables.Contact.CurTangent=(rVariables.Contact.Tangent.cvta+rVariables.Contact.Tangent.cvtb).direction();
 
-  //A.TsigmaP :
-  FSigmaP(rVariables,rVariables.Contact.Tangent.A.Tsigma,rVariables.Contact.Tangent.CovariantBase.DirectionA,ndi,ndj,ndk,ndl,ndm,ndn);
+    //A.TsigmaP :
+    FSigmaP(rVariables,rVariables.Contact.Tangent.A.Tsigma,rVariables.Contact.Tangent.CovariantBase.DirectionA,ndi,ndj,ndk,ndl,ndm,ndn);
 
 
-  //B.TsigmaP :
-  FSigmaP(rVariables,rVariables.Contact.Tangent.B.Tsigma,rVariables.Contact.Tangent.CovariantBase.DirectionB,ndi,ndj,ndk,ndl,ndm,ndn);
+    //B.TsigmaP :
+    FSigmaP(rVariables,rVariables.Contact.Tangent.B.Tsigma,rVariables.Contact.Tangent.CovariantBase.DirectionB,ndi,ndj,ndk,ndl,ndm,ndn);
 
  
-  //NsigmaP :
-  FSigmaP(rVariables,rVariables.Contact.Nsigma,rVariables.Contact.CurrentSurface.Normal,ndi,ndj,ndk,ndl,ndm,ndn);
+    //NsigmaP :
+    FSigmaP(rVariables,rVariables.Contact.Nsigma,rVariables.Contact.CurrentSurface.Normal,ndi,ndj,ndk,ndl,ndm,ndn);
 
 
-  rVariables.DN_DX = DN_DX;
+    rVariables.DN_DX = DN_DX;
 
-}
+  }
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void ContactDomainLM3DCondition::FSigmaP(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, PointType& DirVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndl,unsigned int &ndm,unsigned int &ndn)
-{
+  void ContactDomainLM3DCondition::FSigmaP(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, PointType& DirVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndl,unsigned int &ndm,unsigned int &ndn)
+  {
     if( this->Is(SELECTED) ){
 
       //node for computation / node for assignment (nd1,nd2,nd5,nd6)
@@ -1502,30 +1541,30 @@ void ContactDomainLM3DCondition::FSigmaP(GeneralVariables& rVariables, std::vect
       
     }
 
-}
+  }
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
 
-void ContactDomainLM3DCondition::FSigmaPnd(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, PointType& DirVector,unsigned int &ndi,unsigned int &ndj)
-{
+  void ContactDomainLM3DCondition::FSigmaPnd(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, PointType& DirVector,unsigned int &ndi,unsigned int &ndj)
+  {
     //Computation with the ndi and storage to ndj
     SigmaP[ndj].resize(3);
     noalias(SigmaP[ndj]) = ZeroVector(3);
 
     //part1:
     SigmaP[ndj][0]= DirVector[0]*mContactVariables.ReferenceSurface.Normal[0]*(rVariables.StressVector[0]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[3]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[5]*rVariables.DN_DX(ndi,2))+
-                    DirVector[0]*mContactVariables.ReferenceSurface.Normal[1]*(rVariables.StressVector[3]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[1]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[4]*rVariables.DN_DX(ndi,2))+
-                    DirVector[0]*mContactVariables.ReferenceSurface.Normal[2]*(rVariables.StressVector[5]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[4]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[2]*rVariables.DN_DX(ndi,2));
+      DirVector[0]*mContactVariables.ReferenceSurface.Normal[1]*(rVariables.StressVector[3]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[1]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[4]*rVariables.DN_DX(ndi,2))+
+      DirVector[0]*mContactVariables.ReferenceSurface.Normal[2]*(rVariables.StressVector[5]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[4]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[2]*rVariables.DN_DX(ndi,2));
 
     SigmaP[ndj][1]= DirVector[1]*mContactVariables.ReferenceSurface.Normal[1]*(rVariables.StressVector[3]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[1]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[4]*rVariables.DN_DX(ndi,2))+
-                    DirVector[1]*mContactVariables.ReferenceSurface.Normal[0]*(rVariables.StressVector[0]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[5]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[5]*rVariables.DN_DX(ndi,2))+
-                    DirVector[1]*mContactVariables.ReferenceSurface.Normal[2]*(rVariables.StressVector[5]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[4]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[2]*rVariables.DN_DX(ndi,2));
+      DirVector[1]*mContactVariables.ReferenceSurface.Normal[0]*(rVariables.StressVector[0]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[5]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[5]*rVariables.DN_DX(ndi,2))+
+      DirVector[1]*mContactVariables.ReferenceSurface.Normal[2]*(rVariables.StressVector[5]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[4]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[2]*rVariables.DN_DX(ndi,2));
 
     SigmaP[ndj][2]= DirVector[2]*mContactVariables.ReferenceSurface.Normal[2]*(rVariables.StressVector[5]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[4]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[2]*rVariables.DN_DX(ndi,2))+
-                    DirVector[2]*mContactVariables.ReferenceSurface.Normal[1]*(rVariables.StressVector[3]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[1]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[4]*rVariables.DN_DX(ndi,2))+
-                    DirVector[2]*mContactVariables.ReferenceSurface.Normal[0]*(rVariables.StressVector[0]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[3]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[5]*rVariables.DN_DX(ndi,2));
+      DirVector[2]*mContactVariables.ReferenceSurface.Normal[1]*(rVariables.StressVector[3]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[1]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[4]*rVariables.DN_DX(ndi,2))+
+      DirVector[2]*mContactVariables.ReferenceSurface.Normal[0]*(rVariables.StressVector[0]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[3]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[5]*rVariables.DN_DX(ndi,2));
 
     
     //part2:
@@ -1637,24 +1676,24 @@ void ContactDomainLM3DCondition::FSigmaPnd(GeneralVariables& rVariables, std::ve
     FDB[6].resize(3);   FDB[7].resize(3);   FDB[8].resize(3);
 
     for(unsigned int i=0; i<9; i++)
-    {
-      noalias(FDB[i]) = ZeroVector(3);
-    }
+      {
+	noalias(FDB[i]) = ZeroVector(3);
+      }
     
     for(unsigned int i=0; i<9; i++)
-    {
+      {
         for(unsigned int j=0; j<3; j++)
-        {
+	  {
 
-	  FDB[i][j]= FD[i][0]*rVariables.F(j,0)*rVariables.DN_DX(ndi,0)+
-	             FD[i][1]*rVariables.F(j,1)*rVariables.DN_DX(ndi,1)+
-	             FD[i][2]*rVariables.F(j,2)*rVariables.DN_DX(ndi,2)+
-            (FD[i][3]+FD[i][4])*(0.5)*(rVariables.F(j,0)*rVariables.DN_DX(ndi,1)+rVariables.F(j,1)*rVariables.DN_DX(ndi,0))+
-            (FD[i][5]+FD[i][6])*(0.5)*(rVariables.F(j,1)*rVariables.DN_DX(ndi,2)+rVariables.F(j,2)*rVariables.DN_DX(ndi,1))+
-            (FD[i][7]+FD[i][8])*(0.5)*(rVariables.F(j,2)*rVariables.DN_DX(ndi,0)+rVariables.F(j,0)*rVariables.DN_DX(ndi,2));
-        }
+	    FDB[i][j]= FD[i][0]*rVariables.F(j,0)*rVariables.DN_DX(ndi,0)+
+	      FD[i][1]*rVariables.F(j,1)*rVariables.DN_DX(ndi,1)+
+	      FD[i][2]*rVariables.F(j,2)*rVariables.DN_DX(ndi,2)+
+	      (FD[i][3]+FD[i][4])*(0.5)*(rVariables.F(j,0)*rVariables.DN_DX(ndi,1)+rVariables.F(j,1)*rVariables.DN_DX(ndi,0))+
+	      (FD[i][5]+FD[i][6])*(0.5)*(rVariables.F(j,1)*rVariables.DN_DX(ndi,2)+rVariables.F(j,2)*rVariables.DN_DX(ndi,1))+
+	      (FD[i][7]+FD[i][8])*(0.5)*(rVariables.F(j,2)*rVariables.DN_DX(ndi,0)+rVariables.F(j,0)*rVariables.DN_DX(ndi,2));
+	  }
 
-    }
+      }
 
     // std::cout<<" FBD [0] "<<FDB[0]<<std::endl;
     // std::cout<<" FBD [1] "<<FDB[1]<<std::endl;
@@ -1663,115 +1702,115 @@ void ContactDomainLM3DCondition::FSigmaPnd(GeneralVariables& rVariables, std::ve
 
 
     for(unsigned int i=0; i<3; i++)
-    {
-      SigmaP[ndj][i]+=  DirVector[0]*mContactVariables.ReferenceSurface.Normal[0]*(FDB[0][i])+
-            	        DirVector[1]*mContactVariables.ReferenceSurface.Normal[1]*(FDB[1][i])+
-                        DirVector[2]*mContactVariables.ReferenceSurface.Normal[2]*(FDB[2][i])+
+      {
+	SigmaP[ndj][i]+=  DirVector[0]*mContactVariables.ReferenceSurface.Normal[0]*(FDB[0][i])+
+	  DirVector[1]*mContactVariables.ReferenceSurface.Normal[1]*(FDB[1][i])+
+	  DirVector[2]*mContactVariables.ReferenceSurface.Normal[2]*(FDB[2][i])+
 
-                        DirVector[0]*mContactVariables.ReferenceSurface.Normal[1]*(FDB[3][i])+
-                        DirVector[1]*mContactVariables.ReferenceSurface.Normal[0]*(FDB[4][i])+
-                        DirVector[1]*mContactVariables.ReferenceSurface.Normal[2]*(FDB[5][i])+
+	  DirVector[0]*mContactVariables.ReferenceSurface.Normal[1]*(FDB[3][i])+
+	  DirVector[1]*mContactVariables.ReferenceSurface.Normal[0]*(FDB[4][i])+
+	  DirVector[1]*mContactVariables.ReferenceSurface.Normal[2]*(FDB[5][i])+
 
-                        DirVector[2]*mContactVariables.ReferenceSurface.Normal[1]*(FDB[6][i])+
-                        DirVector[0]*mContactVariables.ReferenceSurface.Normal[2]*(FDB[7][i])+
-                        DirVector[2]*mContactVariables.ReferenceSurface.Normal[0]*(FDB[8][i]);
+	  DirVector[2]*mContactVariables.ReferenceSurface.Normal[1]*(FDB[6][i])+
+	  DirVector[0]*mContactVariables.ReferenceSurface.Normal[2]*(FDB[7][i])+
+	  DirVector[2]*mContactVariables.ReferenceSurface.Normal[0]*(FDB[8][i]);
 
-    }
+      }
 
 
 
-}
+  }
 
-//***********************************************************************************
-//************************************************************************************
+  //***********************************************************************************
+  //************************************************************************************
 
-double& ContactDomainLM3DCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
-{
+  double& ContactDomainLM3DCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
+  {
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     if ( dimension == 2 ){   
-      ElementType& MasterElement = mContactVariables.GetMasterElement();
-      rIntegrationWeight *= MasterElement.GetProperties()[THICKNESS];
+      ElementType& rMasterElement = mContactVariables.GetMasterElement();
+      rIntegrationWeight *= rMasterElement.GetProperties()[THICKNESS];
     }
 	
     return rIntegrationWeight;
-}
+  }
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
-void ContactDomainLM3DCondition::CalculateNormalForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
-{    
+  void ContactDomainLM3DCondition::CalculateNormalForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
+  {    
 
     F  = rVariables.Contact.Multiplier.Normal*rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir];
     F *= (1.0/3.0) * rVariables.Contact.Tangent.EquivalentArea;
 
-}
+  }
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
 
-void ContactDomainLM3DCondition::CalculateTangentStickForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
-{
+  void ContactDomainLM3DCondition::CalculateTangentStickForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
+  {
 
-	if( rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) )
-	{
-	        F = rVariables.Contact.CurrentGap.Normal * rVariables.Contact.CurrentSurface.Normal[idir] +
-		    rVariables.Contact.Tangent.A.CurrentGap.Contravariant * rVariables.Contact.Tangent.CovariantBase.DirectionA[idir] +
- 		    rVariables.Contact.Tangent.B.CurrentGap.Contravariant * rVariables.Contact.Tangent.CovariantBase.DirectionB[idir];
+    if( rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) )
+      {
+	F = rVariables.Contact.CurrentGap.Normal * rVariables.Contact.CurrentSurface.Normal[idir] +
+	  rVariables.Contact.Tangent.A.CurrentGap.Contravariant * rVariables.Contact.Tangent.CovariantBase.DirectionA[idir] +
+	  rVariables.Contact.Tangent.B.CurrentGap.Contravariant * rVariables.Contact.Tangent.CovariantBase.DirectionB[idir];
 
 		  
-		F *= ( rVariables.Contact.Tangent.A.Multiplier * rVariables.Contact.Tangent.A.dN_dt[ndi]+
-		       rVariables.Contact.Tangent.B.Multiplier * rVariables.Contact.Tangent.B.dN_dt[ndi] );
+	F *= ( rVariables.Contact.Tangent.A.Multiplier * rVariables.Contact.Tangent.A.dN_dt[ndi]+
+	       rVariables.Contact.Tangent.B.Multiplier * rVariables.Contact.Tangent.B.dN_dt[ndi] );
 		
-		F += rVariables.Contact.dN_drn[ndi] * ( rVariables.Contact.Tangent.A.Multiplier * rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir] + rVariables.Contact.Tangent.B.Multiplier * rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir] );
+	F += rVariables.Contact.dN_drn[ndi] * ( rVariables.Contact.Tangent.A.Multiplier * rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir] + rVariables.Contact.Tangent.B.Multiplier * rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir] );
 
-		F *= (1.0/3.0) * rVariables.Contact.Tangent.EquivalentArea;
-	}
-	else{
-		F=0.0;
-	}
+	F *= (1.0/3.0) * rVariables.Contact.Tangent.EquivalentArea;
+      }
+    else{
+      F=0.0;
+    }
 	
-}
+  }
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
 
-void ContactDomainLM3DCondition::CalculateTangentSlipForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
-{
+  void ContactDomainLM3DCondition::CalculateTangentSlipForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
+  {
          
-	if( rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) )
-	{
+    if( rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) )
+      {
 
-	         F = (rVariables.Contact.Tangent.A.GapSign * rVariables.Contact.Tangent.CovariantBase.DirectionA[ndi] +
-		      rVariables.Contact.Tangent.B.GapSign * rVariables.Contact.Tangent.CovariantBase.DirectionB[ndi] );
+	F = (rVariables.Contact.Tangent.A.GapSign * rVariables.Contact.Tangent.CovariantBase.DirectionA[ndi] +
+	     rVariables.Contact.Tangent.B.GapSign * rVariables.Contact.Tangent.CovariantBase.DirectionB[ndi] );
 		  
-		 F *= rVariables.Contact.CurrentGap.Normal * rVariables.Contact.CurrentSurface.Normal[idir];
+	F *= rVariables.Contact.CurrentGap.Normal * rVariables.Contact.CurrentSurface.Normal[idir];
 		  
-		 F += rVariables.Contact.dN_drn[ndi] * ( rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir] +
-							 rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir] );
+	F += rVariables.Contact.dN_drn[ndi] * ( rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir] +
+						rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir] );
 
-		 F *= ( rVariables.Contact.Multiplier.Normal * rVariables.Contact.FrictionCoefficient );
+	F *= ( rVariables.Contact.Multiplier.Normal * rVariables.Contact.FrictionCoefficient );
 
-		 F *= (1.0/3.0) * rVariables.Contact.Tangent.EquivalentArea;
-	}
-	else{
-		 F=0.0;
-	}
-
-
-
-}
+	F *= (1.0/3.0) * rVariables.Contact.Tangent.EquivalentArea;
+      }
+    else{
+      F=0.0;
+    }
 
 
-//************************************************************************************
-//************************************************************************************
 
-void ContactDomainLM3DCondition::CalcContactStiffness (double &Kcont,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir)
-{
+  }
+
+
+  //************************************************************************************
+  //************************************************************************************
+
+  void ContactDomainLM3DCondition::CalcContactStiffness (double &Kcont,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir)
+  {
     Kcont=0;
 
     double athird = 1.0/3.0;
@@ -1779,20 +1818,20 @@ void ContactDomainLM3DCondition::CalcContactStiffness (double &Kcont,GeneralVari
     //Normal contact contribution:
     //KI:       
     Kcont =  (athird*rVariables.Contact.Tangent.EquivalentHeigh/(rVariables.Contact.ContactFactor.Normal)) *
-             (rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir] )-    
-             (rVariables.Contact.Multiplier.Normal * rVariables.Contact.CurrentGap.Normal ) *
-             (rVariables.Contact.Tangent.ContravariantBase.Metric(0,0)*rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
-	      rVariables.Contact.Tangent.ContravariantBase.Metric(0,1)*rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
-	      rVariables.Contact.Tangent.ContravariantBase.Metric(1,0)*rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
-	      rVariables.Contact.Tangent.ContravariantBase.Metric(1,1)*rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])-
-             (rVariables.Contact.Multiplier.Normal) *
-             (rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.Tangent.ContravariantBase.DirectionA[jdir]+
-	      rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.Tangent.ContravariantBase.DirectionB[jdir]+
-	      rVariables.Contact.dN_dn[ndi]*rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir]*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
-	      rVariables.Contact.dN_dn[ndi]*rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir]*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])-
-             (rVariables.Contact.dN_dn[ndi] * rVariables.Contact.CurrentSurface.Normal[idir]) *
-             (rVariables.Contact.Tangent.A.CurrentTensil.Contravariant*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
-	      rVariables.Contact.Tangent.B.CurrentTensil.Contravariant*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]);
+      (rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir] )-    
+      (rVariables.Contact.Multiplier.Normal * rVariables.Contact.CurrentGap.Normal ) *
+      (rVariables.Contact.Tangent.ContravariantBase.Metric(0,0)*rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
+       rVariables.Contact.Tangent.ContravariantBase.Metric(0,1)*rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
+       rVariables.Contact.Tangent.ContravariantBase.Metric(1,0)*rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
+       rVariables.Contact.Tangent.ContravariantBase.Metric(1,1)*rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])-
+      (rVariables.Contact.Multiplier.Normal) *
+      (rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.Tangent.ContravariantBase.DirectionA[jdir]+
+       rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.Tangent.ContravariantBase.DirectionB[jdir]+
+       rVariables.Contact.dN_dn[ndi]*rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir]*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
+       rVariables.Contact.dN_dn[ndi]*rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir]*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])-
+      (rVariables.Contact.dN_dn[ndi] * rVariables.Contact.CurrentSurface.Normal[idir]) *
+      (rVariables.Contact.Tangent.A.CurrentTensil.Contravariant*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
+       rVariables.Contact.Tangent.B.CurrentTensil.Contravariant*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]);
 
     // rstiff = cte*geofct_n/tau_n*hdNn_a(in)*ne_a(idime)*hdNn_a(jn)*ne_a(jdime)
     
@@ -1807,291 +1846,291 @@ void ContactDomainLM3DCondition::CalcContactStiffness (double &Kcont,GeneralVari
 
     //Stick contact contribution:
     if(rVariables.Contact.Options.Is(NOT_SLIP))
-    {
-      //std::cout<<" + stick ";
-      if(rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS))
-        {
-	  //std::cout<<"(mu_on)";
-	  //KI:
-	  double raux=rVariables.Contact.CurrentGap.Normal*rVariables.Contact.CurrentSurface.Normal[idir]+ 
-	              rVariables.Contact.Tangent.A.CurrentGap.Contravariant*rVariables.Contact.Tangent.CovariantBase.DirectionA[idir]+ 
-           	      rVariables.Contact.Tangent.B.CurrentGap.Contravariant*rVariables.Contact.Tangent.CovariantBase.DirectionB[idir]; //it must be GapcnTA (contravariant gap)
+      {
+	//std::cout<<" + stick ";
+	if(rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS))
+	  {
+	    //std::cout<<"(mu_on)";
+	    //KI:
+	    double raux=rVariables.Contact.CurrentGap.Normal*rVariables.Contact.CurrentSurface.Normal[idir]+ 
+	      rVariables.Contact.Tangent.A.CurrentGap.Contravariant*rVariables.Contact.Tangent.CovariantBase.DirectionA[idir]+ 
+	      rVariables.Contact.Tangent.B.CurrentGap.Contravariant*rVariables.Contact.Tangent.CovariantBase.DirectionB[idir]; //it must be GapcnTA (contravariant gap)
 	  
-	  //KI:
-	  Kcont+= (raux*rVariables.Contact.Tangent.A.dN_dt[ndi]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir]) *
-	          ( (athird*rVariables.Contact.Tangent.EquivalentHeigh/(rVariables.Contact.ContactFactor.Normal) )*rVariables.Contact.dN_drn[ndj]*rVariables.Contact.Tangent.CovariantBase.DirectionA[jdir]+
-		    rVariables.Contact.Multiplier.Normal*rVariables.Contact.CurrentSurface.Normal[jdir]*(rVariables.Contact.Tangent.CovariantBase.Metric(0,0)*rVariables.Contact.Tangent.A.dN_dt[ndj]+rVariables.Contact.Tangent.CovariantBase.Metric(0,1)*rVariables.Contact.Tangent.B.dN_dt[ndj]) )+
-	    (raux*rVariables.Contact.Tangent.B.dN_dt[ndi]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir])*
-  	         ( (athird*rVariables.Contact.Tangent.EquivalentHeigh/(rVariables.Contact.ContactFactor.Normal) )*rVariables.Contact.dN_drn[ndj]*rVariables.Contact.Tangent.CovariantBase.DirectionB[jdir]+
-		   rVariables.Contact.Multiplier.Normal*rVariables.Contact.CurrentSurface.Normal[jdir]*(rVariables.Contact.Tangent.CovariantBase.Metric(1,0)*rVariables.Contact.Tangent.A.dN_dt[ndj]+rVariables.Contact.Tangent.CovariantBase.Metric(1,1)*rVariables.Contact.Tangent.B.dN_dt[ndj]) )+
-	    rVariables.Contact.Tangent.A.Multiplier*(rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
-			    rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
-			   (rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir]*rVariables.Contact.Tangent.CovariantBase.DirectionA[jdir]+rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir]*rVariables.Contact.Tangent.CovariantBase.DirectionB[jdir])*rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.dN_drn[ndj]+
-			   (rVariables.Contact.Tangent.A.CurrentGap.Contravariant*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+ rVariables.Contact.Tangent.B.CurrentGap.Contravariant*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])*rVariables.Contact.Tangent.A.dN_dt(ndi)*rVariables.Contact.CurrentSurface.Normal(idir)-
-			   raux*rVariables.Contact.Tangent.A.dN_dt(ndi)*rVariables.Contact.Tangent.CovariantBase.DirectionA(jdir)*rVariables.Contact.Tangent.A.dN_dt(ndj)-
-			   raux*rVariables.Contact.Tangent.B.dN_dt(ndi)*rVariables.Contact.Tangent.CovariantBase.DirectionB(jdir)*rVariables.Contact.Tangent.A.dN_dt(ndj))-	    
-	    rVariables.Contact.Tangent.B.Multiplier*(rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
-			   rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
-			   (rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir]*rVariables.Contact.Tangent.CovariantBase.DirectionA[jdir]+rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir]*rVariables.Contact.Tangent.CovariantBase.DirectionB[jdir])*rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.dN_drn[ndj]+
-			   (rVariables.Contact.Tangent.A.CurrentGap.Contravariant*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+ rVariables.Contact.Tangent.B.CurrentGap.Contravariant*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])*rVariables.Contact.Tangent.B.dN_dt(ndi)*rVariables.Contact.CurrentSurface.Normal(idir)-
-			   raux*rVariables.Contact.Tangent.A.dN_dt(ndi)*rVariables.Contact.Tangent.CovariantBase.DirectionA(jdir)*rVariables.Contact.Tangent.B.dN_dt(ndj)-
-			   raux*rVariables.Contact.Tangent.B.dN_dt(ndi)*rVariables.Contact.Tangent.CovariantBase.DirectionB(jdir)*rVariables.Contact.Tangent.B.dN_dt(ndj));
+	    //KI:
+	    Kcont+= (raux*rVariables.Contact.Tangent.A.dN_dt[ndi]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir]) *
+	      ( (athird*rVariables.Contact.Tangent.EquivalentHeigh/(rVariables.Contact.ContactFactor.Normal) )*rVariables.Contact.dN_drn[ndj]*rVariables.Contact.Tangent.CovariantBase.DirectionA[jdir]+
+		rVariables.Contact.Multiplier.Normal*rVariables.Contact.CurrentSurface.Normal[jdir]*(rVariables.Contact.Tangent.CovariantBase.Metric(0,0)*rVariables.Contact.Tangent.A.dN_dt[ndj]+rVariables.Contact.Tangent.CovariantBase.Metric(0,1)*rVariables.Contact.Tangent.B.dN_dt[ndj]) )+
+	      (raux*rVariables.Contact.Tangent.B.dN_dt[ndi]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir])*
+	      ( (athird*rVariables.Contact.Tangent.EquivalentHeigh/(rVariables.Contact.ContactFactor.Normal) )*rVariables.Contact.dN_drn[ndj]*rVariables.Contact.Tangent.CovariantBase.DirectionB[jdir]+
+		rVariables.Contact.Multiplier.Normal*rVariables.Contact.CurrentSurface.Normal[jdir]*(rVariables.Contact.Tangent.CovariantBase.Metric(1,0)*rVariables.Contact.Tangent.A.dN_dt[ndj]+rVariables.Contact.Tangent.CovariantBase.Metric(1,1)*rVariables.Contact.Tangent.B.dN_dt[ndj]) )+
+	      rVariables.Contact.Tangent.A.Multiplier*(rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
+						       rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
+						       (rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir]*rVariables.Contact.Tangent.CovariantBase.DirectionA[jdir]+rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir]*rVariables.Contact.Tangent.CovariantBase.DirectionB[jdir])*rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.dN_drn[ndj]+
+						       (rVariables.Contact.Tangent.A.CurrentGap.Contravariant*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+ rVariables.Contact.Tangent.B.CurrentGap.Contravariant*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])*rVariables.Contact.Tangent.A.dN_dt(ndi)*rVariables.Contact.CurrentSurface.Normal(idir)-
+						       raux*rVariables.Contact.Tangent.A.dN_dt(ndi)*rVariables.Contact.Tangent.CovariantBase.DirectionA(jdir)*rVariables.Contact.Tangent.A.dN_dt(ndj)-
+						       raux*rVariables.Contact.Tangent.B.dN_dt(ndi)*rVariables.Contact.Tangent.CovariantBase.DirectionB(jdir)*rVariables.Contact.Tangent.A.dN_dt(ndj))-	    
+	      rVariables.Contact.Tangent.B.Multiplier*(rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
+						       rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
+						       (rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir]*rVariables.Contact.Tangent.CovariantBase.DirectionA[jdir]+rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir]*rVariables.Contact.Tangent.CovariantBase.DirectionB[jdir])*rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.dN_drn[ndj]+
+						       (rVariables.Contact.Tangent.A.CurrentGap.Contravariant*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+ rVariables.Contact.Tangent.B.CurrentGap.Contravariant*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])*rVariables.Contact.Tangent.B.dN_dt(ndi)*rVariables.Contact.CurrentSurface.Normal(idir)-
+						       raux*rVariables.Contact.Tangent.A.dN_dt(ndi)*rVariables.Contact.Tangent.CovariantBase.DirectionA(jdir)*rVariables.Contact.Tangent.B.dN_dt(ndj)-
+						       raux*rVariables.Contact.Tangent.B.dN_dt(ndi)*rVariables.Contact.Tangent.CovariantBase.DirectionB(jdir)*rVariables.Contact.Tangent.B.dN_dt(ndj));
 
-    // rstiff = rstiff + (raux*dNt1_a(in) + t1cn(idime)*hdNn_n(in))*                                                      
-    //                    ( cte*geofct_n/tau_t*t1cv(jdime)*hdNn_n(jn) +                                                    
-    //                      lam_n*ne_a(jdime)*(gmcov(1,1)*dNt1_a(jn) + gmcov(1,2)*dNt2_a(jn)) ) +                          
+	    // rstiff = rstiff + (raux*dNt1_a(in) + t1cn(idime)*hdNn_n(in))*                                                      
+	    //                    ( cte*geofct_n/tau_t*t1cv(jdime)*hdNn_n(jn) +                                                    
+	    //                      lam_n*ne_a(jdime)*(gmcov(1,1)*dNt1_a(jn) + gmcov(1,2)*dNt2_a(jn)) ) +                          
 
-    //                    (raux*dNt2_a(in) + t2cn(idime)*hdNn_n(in))*                                                      
-    //                    ( cte*geofct_n/tau_t*t2cv(jdime)*hdNn_n(jn) +                                                    
-    //                      lam_n*ne_a(jdime)*(gmcov(2,1)*dNt1_a(jn) + gmcov(2,2)*dNt2_a(jn)) ) +                          
+	    //                    (raux*dNt2_a(in) + t2cn(idime)*hdNn_n(in))*                                                      
+	    //                    ( cte*geofct_n/tau_t*t2cv(jdime)*hdNn_n(jn) +                                                    
+	    //                      lam_n*ne_a(jdime)*(gmcov(2,1)*dNt1_a(jn) + gmcov(2,2)*dNt2_a(jn)) ) +                          
 
-    //           lam_t1*( ne_a(idime)*dNt1_a(in)*ne_a(jdime)*hdNn_a(jn) +
-    // 			  ne_a(idime)*hdNn_n(in)*ne_a(jdime)*dNt1_a(jn) +  &
+	    //           lam_t1*( ne_a(idime)*dNt1_a(in)*ne_a(jdime)*hdNn_a(jn) +
+	    // 			  ne_a(idime)*hdNn_n(in)*ne_a(jdime)*dNt1_a(jn) +  &
 
-    //                    ( t1cn(idime)*t1cv(jdime) + t2cn(idime)*t2cv(jdime) )*dNt1_a(in)*hdNn_n(jn) +                    
-    //                    ( gt1_cv*ne_a(jdime)*dNt1_a(jn) + gt2_cv*ne_a(jdime)*dNt2_a(jn) )*ne_a(idime)*dNt1_a(in) -       
-    //                    raux*dNt1_a(in)*t1cv(jdime)*dNt1_a(jn) - 
-    // 			  raux*dNt2_a(in)*t2cv(jdime)*dNt1_a(jn) ) +              &
+	    //                    ( t1cn(idime)*t1cv(jdime) + t2cn(idime)*t2cv(jdime) )*dNt1_a(in)*hdNn_n(jn) +                    
+	    //                    ( gt1_cv*ne_a(jdime)*dNt1_a(jn) + gt2_cv*ne_a(jdime)*dNt2_a(jn) )*ne_a(idime)*dNt1_a(in) -       
+	    //                    raux*dNt1_a(in)*t1cv(jdime)*dNt1_a(jn) - 
+	    // 			  raux*dNt2_a(in)*t2cv(jdime)*dNt1_a(jn) ) +              &
 
-    //           lam_t2*( ne_a(idime)*dNt2_a(in)*ne_a(jdime)*hdNn_a(jn) + ne_a(idime)*hdNn_n(in)*ne_a(jdime)*dNt2_a(jn) +  
-    //                    ( t1cn(idime)*t1cv(jdime) + t2cn(idime)*t2cv(jdime) )*dNt2_a(in)*hdNn_n(jn) +                    
-    //                    ( gt1_cv*ne_a(jdime)*dNt1_a(jn) + gt2_cv*ne_a(jdime)*dNt2_a(jn) )*ne_a(idime)*dNt2_a(in) -       
-    //                    raux*dNt1_a(in)*t1cv(jdime)*dNt2_a(jn) -
-    // 			  raux*dNt2_a(in)*t2cv(jdime)*dNt2_a(jn) )
+	    //           lam_t2*( ne_a(idime)*dNt2_a(in)*ne_a(jdime)*hdNn_a(jn) + ne_a(idime)*hdNn_n(in)*ne_a(jdime)*dNt2_a(jn) +  
+	    //                    ( t1cn(idime)*t1cv(jdime) + t2cn(idime)*t2cv(jdime) )*dNt2_a(in)*hdNn_n(jn) +                    
+	    //                    ( gt1_cv*ne_a(jdime)*dNt1_a(jn) + gt2_cv*ne_a(jdime)*dNt2_a(jn) )*ne_a(idime)*dNt2_a(in) -       
+	    //                    raux*dNt1_a(in)*t1cv(jdime)*dNt2_a(jn) -
+	    // 			  raux*dNt2_a(in)*t2cv(jdime)*dNt2_a(jn) )
 
             //KII:
 	    Kcont+= ((rVariables.Contact.CurrentGap.Normal*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.Tangent.A.CurrentGap.Contravariant*rVariables.Contact.Tangent.CovariantBase.DirectionA[idir]+rVariables.Contact.Tangent.B.CurrentGap.Contravariant*rVariables.Contact.Tangent.CovariantBase.DirectionB[idir])*
-	     (rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.Tangent.A.Tsigma[ndj][jdir]+rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.Tangent.B.Tsigma[ndj][jdir])+
-	     (rVariables.Contact.dN_drn[ndi]*(rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir]*rVariables.Contact.Tangent.A.Tsigma[ndj][jdir]+rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir]*rVariables.Contact.Tangent.B.Tsigma[ndj][jdir])));
+		     (rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.Tangent.A.Tsigma[ndj][jdir]+rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.Tangent.B.Tsigma[ndj][jdir])+
+		     (rVariables.Contact.dN_drn[ndi]*(rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir]*rVariables.Contact.Tangent.A.Tsigma[ndj][jdir]+rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir]*rVariables.Contact.Tangent.B.Tsigma[ndj][jdir])));
 
-  // rstiff = rstiff + ( he_a*ne_a(idime) + gt1_cn*t1cv(idime) + gt2_cn*t2cv(idime) )*  
-  //                               ( dNt1_a(in)*raux1 + dNt2_a(in)*raux2 ) +                        &
-  //                               hdNn_n(in)*( t1cn(idime)*raux1 + t2cn(idime)*raux2 )
-        }
-    }
+	    // rstiff = rstiff + ( he_a*ne_a(idime) + gt1_cn*t1cv(idime) + gt2_cn*t2cv(idime) )*  
+	    //                               ( dNt1_a(in)*raux1 + dNt2_a(in)*raux2 ) +                        &
+	    //                               hdNn_n(in)*( t1cn(idime)*raux1 + t2cn(idime)*raux2 )
+	  }
+      }
     else
-    {
+      {
         //Slip contact contribution:
 	//std::cout<<" + slip ";
         if(rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS))
-        {
+	  {
 
 
-//          raux = he_a*ne_a(idime) + gt1_cn*t1cv(idime) + gt2_cn*t2cv(idime)
+	    //          raux = he_a*ne_a(idime) + gt1_cn*t1cv(idime) + gt2_cn*t2cv(idime)
 	  
 	    //std::cout<<"(mu_on)";
             //KI:
-//     rstiff = rstiff + (raux*dNt1_a(in) + t1cn(idime)*hdNn_n(in))*                                                      
-//                                   ( cte*geofct_n/tau_t*t1cv(jdime)*hdNn_n(jn) +                                                    
-//                                     lam_n*ne_a(jdime)*(gmcov(1,1)*dNt1_a(jn) + gmcov(1,2)*dNt2_a(jn)) ) +                          
-//                       (raux*dNt2_a(in) + t2cn(idime)*hdNn_n(in))*                              
-//   	                             ( cte*geofct_n/tau_t*t2cv(jdime)*hdNn_n(jn) +                                                    
-//                                     lam_n*ne_a(jdime)*(gmcov(2,1)*dNt1_a(jn) + gmcov(2,2)*dNt2_a(jn)) ) +                         
+	    //     rstiff = rstiff + (raux*dNt1_a(in) + t1cn(idime)*hdNn_n(in))*                                                      
+	    //                                   ( cte*geofct_n/tau_t*t1cv(jdime)*hdNn_n(jn) +                                                    
+	    //                                     lam_n*ne_a(jdime)*(gmcov(1,1)*dNt1_a(jn) + gmcov(1,2)*dNt2_a(jn)) ) +                          
+	    //                       (raux*dNt2_a(in) + t2cn(idime)*hdNn_n(in))*                              
+	    //   	                             ( cte*geofct_n/tau_t*t2cv(jdime)*hdNn_n(jn) +                                                    
+	    //                                     lam_n*ne_a(jdime)*(gmcov(2,1)*dNt1_a(jn) + gmcov(2,2)*dNt2_a(jn)) ) +                         
  
-//                          lam_t1*( ( gt1_cv*ne_a(jdime)*dNt1_a(jn) + gt2_cv*ne_a(jdime)*dNt2_a(jn) )*ne_a(idime)*dNt1_a(in) -      
-//                                   raux*dNt1_a(in)*t1cv(jdime)*dNt1_a(jn) - raux*dNt2_a(in)*t2cv(jdime)*dNt1_a(jn) -                
-//                                   t1cn(idime)*hdNn_n(in)*t1cv(jdime)*dNt1_a(jn) - t2cn(idime)*hdNn_n(in)*t2cv(jdime)*dNt1_a(jn) )+ 
+	    //                          lam_t1*( ( gt1_cv*ne_a(jdime)*dNt1_a(jn) + gt2_cv*ne_a(jdime)*dNt2_a(jn) )*ne_a(idime)*dNt1_a(in) -      
+	    //                                   raux*dNt1_a(in)*t1cv(jdime)*dNt1_a(jn) - raux*dNt2_a(in)*t2cv(jdime)*dNt1_a(jn) -                
+	    //                                   t1cn(idime)*hdNn_n(in)*t1cv(jdime)*dNt1_a(jn) - t2cn(idime)*hdNn_n(in)*t2cv(jdime)*dNt1_a(jn) )+ 
 
-//                          lam_t2*( ( gt1_cv*ne_a(jdime)*dNt1_a(jn) + gt2_cv*ne_a(jdime)*dNt2_a(jn) )*ne_a(idime)*dNt2_a(in) -       
-//                                   raux*dNt1_a(in)*t1cv(jdime)*dNt2_a(jn) - raux*dNt2_a(in)*t2cv(jdime)*dNt2_a(jn) -                
-//                                   t1cn(idime)*hdNn_n(in)*t1cv(jdime)*dNt2_a(jn) - t2cn(idime)*hdNn_n(in)*t2cv(jdime)*dNt2_a(jn) 
+	    //                          lam_t2*( ( gt1_cv*ne_a(jdime)*dNt1_a(jn) + gt2_cv*ne_a(jdime)*dNt2_a(jn) )*ne_a(idime)*dNt2_a(in) -       
+	    //                                   raux*dNt1_a(in)*t1cv(jdime)*dNt2_a(jn) - raux*dNt2_a(in)*t2cv(jdime)*dNt2_a(jn) -                
+	    //                                   t1cn(idime)*hdNn_n(in)*t1cv(jdime)*dNt2_a(jn) - t2cn(idime)*hdNn_n(in)*t2cv(jdime)*dNt2_a(jn) 
 
             //KII:
             
 
-        }
-    }
+	  }
+      }
 
 
     Kcont *= (1.0/3.0) * rVariables.Contact.Tangent.EquivalentArea;
     
     //std::cout<<" Ks "<<Kcont-K1<<std::endl;
 
-}
+  }
 
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
 
-ContactDomainUtilities::PointType & ContactDomainLM3DCondition::CalculateCurrentTangent ( PointType &rTangent )
-{
+  ContactDomainUtilities::PointType & ContactDomainLM3DCondition::CalculateCurrentTangent ( PointType &rTangent )
+  {
 
-	unsigned int node1=mContactVariables.nodes[0];
-	unsigned int node2=mContactVariables.nodes[1];
+    unsigned int node1=mContactVariables.nodes[0];
+    unsigned int node2=mContactVariables.nodes[1];
 
-	PointType P1  =  GetGeometry()[node1].Coordinates();
-	PointType P2  =  GetGeometry()[node2].Coordinates();
+    PointType P1  =  GetGeometry()[node1].Coordinates();
+    PointType P2  =  GetGeometry()[node2].Coordinates();
   
-	//Set Reference Tangent
-	rTangent=mContactUtilities.CalculateFaceTangent(rTangent,P1,P2);
+    //Set Reference Tangent
+    rTangent=mContactUtilities.CalculateFaceTangent(rTangent,P1,P2);
   
-	return rTangent;
+    return rTangent;
 
-}
+  }
 
-//************************************************************************************
-//************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
 
-inline bool ContactDomainLM3DCondition::CheckFictiousContacts(GeneralVariables& rVariables)
-{
+  inline bool ContactDomainLM3DCondition::CheckFictiousContacts(GeneralVariables& rVariables)
+  {
 
-  bool real_contact = false;
+    bool real_contact = false;
 
-  //Contact face segment node1-node2
-  unsigned int node1=mContactVariables.nodes[0];
-  unsigned int node2=mContactVariables.nodes[1];    
-  unsigned int slave=mContactVariables.slaves.back();
+    //Contact face segment node1-node2
+    unsigned int node1=mContactVariables.nodes[0];
+    unsigned int node2=mContactVariables.nodes[1];    
+    unsigned int slave=mContactVariables.slaves.back();
 
-  double offset_factor = rVariables.Contact.CurrentGap.Normal; 
+    double offset_factor = rVariables.Contact.CurrentGap.Normal; 
   
-  PointType PS  =  GetGeometry()[slave].Coordinates();
+    PointType PS  =  GetGeometry()[slave].Coordinates();
 
-  PointType Normal =GetGeometry()[slave].FastGetSolutionStepValue(NORMAL); 
-  double  Shrink             =1;//GetGeometry()[slave].FastGetSolutionStepValue(SHRINK_FACTOR);   
-  PointType Offset =GetGeometry()[slave].FastGetSolutionStepValue(OFFSET);   
-  offset_factor = norm_2(Offset);
+    PointType Normal =GetGeometry()[slave].FastGetSolutionStepValue(NORMAL); 
+    double  Shrink             =1;//GetGeometry()[slave].FastGetSolutionStepValue(SHRINK_FACTOR);   
+    PointType Offset =GetGeometry()[slave].FastGetSolutionStepValue(OFFSET);   
+    offset_factor = norm_2(Offset);
 
-  //modify slave position projection following slave normal
-  double Sx1 = PS[0]+Normal[0]*Shrink*offset_factor;
-  double Sy1 = PS[1]+Normal[1]*Shrink*offset_factor;
+    //modify slave position projection following slave normal
+    double Sx1 = PS[0]+Normal[0]*Shrink*offset_factor;
+    double Sy1 = PS[1]+Normal[1]*Shrink*offset_factor;
 
-  //modify slave position projection following master normal
-  double Mx1 = PS[0]-rVariables.Contact.CurrentSurface.Normal[0]*Shrink*offset_factor;
-  double My1 = PS[1]-rVariables.Contact.CurrentSurface.Normal[1]*Shrink*offset_factor;
+    //modify slave position projection following master normal
+    double Mx1 = PS[0]-rVariables.Contact.CurrentSurface.Normal[0]*Shrink*offset_factor;
+    double My1 = PS[1]-rVariables.Contact.CurrentSurface.Normal[1]*Shrink*offset_factor;
 
-  //Domain neighbours:
+    //Domain neighbours:
       
 
-  //Check slave node inside the contacting domain:
+    //Check slave node inside the contacting domain:
 
-  //node1:
-  WeakPointerVector<Element >& rNeighbours_n1 = GetGeometry()[node1].GetValue(NEIGHBOUR_ELEMENTS);
-  //node2:
-  WeakPointerVector<Element >& rNeighbours_n2 = GetGeometry()[node2].GetValue(NEIGHBOUR_ELEMENTS);
+    //node1:
+    WeakPointerVector<Element >& rNeighbours_n1 = GetGeometry()[node1].GetValue(NEIGHBOUR_ELEMENTS);
+    //node2:
+    WeakPointerVector<Element >& rNeighbours_n2 = GetGeometry()[node2].GetValue(NEIGHBOUR_ELEMENTS);
 
-  unsigned int NumberOfNeighbours_n1 = rNeighbours_n1.size();
-  unsigned int NumberOfNeighbours_n2 = rNeighbours_n2.size();
+    unsigned int NumberOfNeighbours_n1 = rNeighbours_n1.size();
+    unsigned int NumberOfNeighbours_n2 = rNeighbours_n2.size();
 
-  bool is_inside_a = false;
-  //following slave normal projection of the slave Sx1 and Sy1
-  for(unsigned int i = 0; i < NumberOfNeighbours_n1; i++)
-    {
-      GeometryType::PointsArrayType& vertices=rNeighbours_n1[i].GetGeometry().Points();
-  
-      is_inside_a = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
-							       vertices[1].X(), vertices[1].Y(),
-							       vertices[2].X(), vertices[2].Y(),
-							       Sx1, Sy1);
-
-      if(is_inside_a)
-	break;
-    }
-
-  if(!is_inside_a){
-  
-    for(unsigned int i = 0; i < NumberOfNeighbours_n2; i++)
+    bool is_inside_a = false;
+    //following slave normal projection of the slave Sx1 and Sy1
+    for(unsigned int i = 0; i < NumberOfNeighbours_n1; i++)
       {
-	GeometryType::PointsArrayType& vertices=rNeighbours_n2[i].GetGeometry().Points();
-      
+	GeometryType::PointsArrayType& vertices=rNeighbours_n1[i].GetGeometry().Points();
+  
 	is_inside_a = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
-								 vertices[1].X(), vertices[1].Y(),
-								 vertices[2].X(), vertices[2].Y(),
-								 Sx1, Sy1);
-      
+							   vertices[1].X(), vertices[1].Y(),
+							   vertices[2].X(), vertices[2].Y(),
+							   Sx1, Sy1);
+
 	if(is_inside_a)
 	  break;
       }
 
-  }
-
-  bool is_inside_b = false;
-  //Check projection of the slave node inside the contacting domain:
-  //following master normal projection of the slave Mx1 and My1
-  for(unsigned int i = 0; i < NumberOfNeighbours_n1; i++)
-    {
-      GeometryType::PointsArrayType& vertices=rNeighbours_n1[i].GetGeometry().Points();
+    if(!is_inside_a){
   
-      is_inside_b = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
-							       vertices[1].X(), vertices[1].Y(),
-							       vertices[2].X(), vertices[2].Y(),
-							       Mx1, My1);
+      for(unsigned int i = 0; i < NumberOfNeighbours_n2; i++)
+	{
+	  GeometryType::PointsArrayType& vertices=rNeighbours_n2[i].GetGeometry().Points();
+      
+	  is_inside_a = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
+							     vertices[1].X(), vertices[1].Y(),
+							     vertices[2].X(), vertices[2].Y(),
+							     Sx1, Sy1);
+      
+	  if(is_inside_a)
+	    break;
+	}
 
-      if(is_inside_b)
-	break;
     }
 
-  if(!is_inside_b){
-  
-
-    for(unsigned int i = 0; i < NumberOfNeighbours_n2; i++)
+    bool is_inside_b = false;
+    //Check projection of the slave node inside the contacting domain:
+    //following master normal projection of the slave Mx1 and My1
+    for(unsigned int i = 0; i < NumberOfNeighbours_n1; i++)
       {
-	GeometryType::PointsArrayType& vertices=rNeighbours_n2[i].GetGeometry().Points();
-      
+	GeometryType::PointsArrayType& vertices=rNeighbours_n1[i].GetGeometry().Points();
+  
 	is_inside_b = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
-								 vertices[1].X(), vertices[1].Y(),
-								 vertices[2].X(), vertices[2].Y(),
-								 Mx1, My1);
-      
+							   vertices[1].X(), vertices[1].Y(),
+							   vertices[2].X(), vertices[2].Y(),
+							   Mx1, My1);
+
 	if(is_inside_b)
 	  break;
       }
 
-  }
+    if(!is_inside_b){
+  
 
-  if(is_inside_a && is_inside_b)
-    real_contact = true; //if the slave node is inside of the domain --> real contact
-  else
-    real_contact = false;
-
-  if( real_contact == false && (is_inside_b || is_inside_a) ){ //following the master normal is in.
-    std::cout<<" THERE IS a SERIOUS DOUBT IN A FICTIOUS CONTACT "<<this->Id()<<std::endl;
-
-    PointType P1  =  GetGeometry()[node1].Coordinates();
-    PointType P2  =  GetGeometry()[node2].Coordinates();
-
-    bool is_obtuse = mContactUtilities.CalculateObtuseAngle( P1[0], P1[1],
-							     P2[0], P2[1],
-							     PS[0], PS[1] );
-
-    if(!is_obtuse){
-      real_contact=true;
-    }
-    else{
-      std::cout<<" BUT IT IS OBTUSE --> FICTIOUS "<<std::endl;
-    }
+      for(unsigned int i = 0; i < NumberOfNeighbours_n2; i++)
+	{
+	  GeometryType::PointsArrayType& vertices=rNeighbours_n2[i].GetGeometry().Points();
       
-  }
+	  is_inside_b = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
+							     vertices[1].X(), vertices[1].Y(),
+							     vertices[2].X(), vertices[2].Y(),
+							     Mx1, My1);
+      
+	  if(is_inside_b)
+	    break;
+	}
 
-  double projection = inner_prod(Normal,rVariables.Contact.CurrentSurface.Normal);
+    }
 
-  if(real_contact==false && fabs(projection)>0.707){
-    real_contact = true;
-    std::cout<<" NORMALS say that this is a REAL CONTACT "<<std::endl;
-  }
+    if(is_inside_a && is_inside_b)
+      real_contact = true; //if the slave node is inside of the domain --> real contact
+    else
+      real_contact = false;
 
-  if(real_contact==false){
-    std::cout<<" S normal ("<<Sx1<<","<<Sy1<<")"<<std::endl;
-    std::cout<<" P normal ("<<Mx1<<","<<My1<<")"<<std::endl;
-    std::cout<<" Current Normal "<<rVariables.Contact.CurrentSurface.Normal<<" Slave normal "<<Normal<<std::endl;
-    std::cout<<" Shrink "<<Shrink<<" offset_factor "<<offset_factor<<" Shrink*offset_factor "<<Shrink*offset_factor<<std::endl;
-  }
+    if( real_contact == false && (is_inside_b || is_inside_a) ){ //following the master normal is in.
+      std::cout<<" THERE IS a SERIOUS DOUBT IN A FICTIOUS CONTACT "<<this->Id()<<std::endl;
+
+      PointType P1  =  GetGeometry()[node1].Coordinates();
+      PointType P2  =  GetGeometry()[node2].Coordinates();
+
+      bool is_obtuse = mContactUtilities.CalculateObtuseAngle( P1[0], P1[1],
+							       P2[0], P2[1],
+							       PS[0], PS[1] );
+
+      if(!is_obtuse){
+	real_contact=true;
+      }
+      else{
+	std::cout<<" BUT IT IS OBTUSE --> FICTIOUS "<<std::endl;
+      }
+      
+    }
+
+    double projection = inner_prod(Normal,rVariables.Contact.CurrentSurface.Normal);
+
+    if(real_contact==false && fabs(projection)>0.707){
+      real_contact = true;
+      std::cout<<" NORMALS say that this is a REAL CONTACT "<<std::endl;
+    }
+
+    if(real_contact==false){
+      std::cout<<" S normal ("<<Sx1<<","<<Sy1<<")"<<std::endl;
+      std::cout<<" P normal ("<<Mx1<<","<<My1<<")"<<std::endl;
+      std::cout<<" Current Normal "<<rVariables.Contact.CurrentSurface.Normal<<" Slave normal "<<Normal<<std::endl;
+      std::cout<<" Shrink "<<Shrink<<" offset_factor "<<offset_factor<<" Shrink*offset_factor "<<Shrink*offset_factor<<std::endl;
+    }
 
  
-  return real_contact;
-}
+    return real_contact;
+  }
 
 
-void ContactDomainLM3DCondition::save( Serializer& rSerializer ) const
-{
+  void ContactDomainLM3DCondition::save( Serializer& rSerializer ) const
+  {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ContactDomainCondition )
-}
+  }
 
-void ContactDomainLM3DCondition::load( Serializer& rSerializer )
-{
+  void ContactDomainLM3DCondition::load( Serializer& rSerializer )
+  {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ContactDomainCondition )
-}
+  }
 
 
 

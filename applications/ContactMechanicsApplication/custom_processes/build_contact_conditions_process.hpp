@@ -154,9 +154,9 @@ namespace Kratos
       ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin(mMeshId);
 
       for(int el = 0; el<OutNumberOfElements; el++)
-	{
+	{  
 	  if(mrRemesh.PreservedElements[el])
-	    {
+	    {	      
 	      Geometry<Node<3> > Vertices;
 	      for(unsigned int i=0; i<nds; i++)
 		{

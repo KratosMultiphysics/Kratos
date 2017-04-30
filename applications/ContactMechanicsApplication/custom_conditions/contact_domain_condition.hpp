@@ -80,7 +80,7 @@ public:
     typedef ContactDomainUtilities::SurfaceBase           SurfaceBase;
 
 protected:
-
+ 
     /**
      * Parameters to be used in the Condition as they are. Direct interface to Parameters Struct
      */

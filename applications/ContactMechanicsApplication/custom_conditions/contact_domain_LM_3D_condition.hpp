@@ -39,7 +39,7 @@ namespace Kratos
 
 class ContactDomainLM3DCondition
     : public ContactDomainCondition
-{
+{ 
 public:
 
 
@@ -168,6 +168,13 @@ protected:
     ///@name Protected Operators
     ///@{
 
+
+    /**
+     * Check and resolve the element type EDGE_TO_EDGE (EdgeType) or FaceType
+     */
+    void ResolveElementType();
+  
+  
     /**
      * Calculation of the Contact Master Nodes and Mechanical variables
      */
