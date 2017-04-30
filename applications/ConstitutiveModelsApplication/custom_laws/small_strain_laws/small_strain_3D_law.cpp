@@ -37,9 +37,11 @@ namespace Kratos
 
   SmallStrain3DLaw::SmallStrain3DLaw(ModelTypePointer pModel)
     : Constitutive3DLaw()
-    , mpModel(pModel)
   {
     KRATOS_TRY
+
+    //model
+    mpModel = pModel->Clone();
       
     //member variables initialization
     mInitialStrainVector.clear();
@@ -54,8 +56,20 @@ namespace Kratos
     : Constitutive3DLaw(rOther)
     ,mInitialStrainVector(rOther.mInitialStrainVector)
   {
+    mpModel = rOther.mpModel->Clone();
   }
 
+  //*******************************ASSIGMENT OPERATOR***********************************
+  //************************************************************************************
+
+  SmallStrain3DLaw& SmallStrain3DLaw::operator=(const SmallStrain3DLaw& rOther)
+  {
+    Constitutive3DLaw::operator=(rOther);
+    mpModel = rOther.mpModel->Clone();
+    mInitialStrainVector = rOther.mInitialStrainVector;
+    return *this;
+  } 
+  
   //********************************CLONE***********************************************
   //************************************************************************************
 

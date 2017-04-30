@@ -67,6 +67,13 @@ namespace Kratos
       /// Copy constructor.
       LargeStrainAxisymmetric2DLaw(const LargeStrainAxisymmetric2DLaw& rOther) : LargeStrain3DLaw(rOther) {}
 
+      /// Assignment operator.
+      LargeStrainAxisymmetric2DLaw& operator=(LargeStrainAxisymmetric2DLaw const& rOther)
+      {
+        LargeStrain3DLaw::operator=(rOther);
+	return *this;
+      }
+      
       /// Clone.
       ConstitutiveLaw::Pointer Clone() const override
       {
@@ -244,11 +251,7 @@ namespace Kratos
       ///@}    
       ///@name Un accessible methods 
       ///@{ 
-      
-      /// Assignment operator.
-      LargeStrainAxisymmetric2DLaw& operator=(LargeStrainAxisymmetric2DLaw const& rOther){ return *this; }
-
-        
+              
       ///@}    
         
     }; // Class LargeStrainAxisymmetric2DLaw 

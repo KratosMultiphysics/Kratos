@@ -58,7 +58,6 @@ namespace Kratos
     
     typedef YieldCriterion<THardeningLaw>                                BaseType;
     typedef typename BaseType::Pointer                            BaseTypePointer;
-    typedef typename BaseType::HardeningLawPointer            HardeningLawPointer;
     typedef typename BaseType::PlasticDataType                    PlasticDataType;
     
     /// Pointer definition of ModifiedMisesYieldCriterion
@@ -70,9 +69,6 @@ namespace Kratos
 
     /// Default constructor.
     ModifiedMisesYieldCriterion() : BaseType() {}
-
-    /// Constructor.
-    ModifiedMisesYieldCriterion(HardeningLawPointer pHardeningLaw) : BaseType(pHardeningLaw) {}
     
     /// Copy constructor.
     ModifiedMisesYieldCriterion(ModifiedMisesYieldCriterion const& rOther) : BaseType(rOther) {}
@@ -163,7 +159,7 @@ namespace Kratos
     {    
       KRATOS_TRY
       
-      rStateFunction = this->mpHardeningLaw->CalculateHardening(rVariables,rStateFunction);
+      rStateFunction = this->mHardeningLaw.CalculateHardening(rVariables,rStateFunction);
     
       return rStateFunction;
 
@@ -178,7 +174,7 @@ namespace Kratos
     {
       KRATOS_TRY
           
-      rDeltaStateFunction = this->mpHardeningLaw->CalculateDeltaHardening(rVariables,rDeltaStateFunction);
+      rDeltaStateFunction = this->mHardeningLaw.CalculateDeltaHardening(rVariables,rDeltaStateFunction);
       
       return rDeltaStateFunction;
       

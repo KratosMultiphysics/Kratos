@@ -25,10 +25,10 @@ namespace Kratos {
     // calling base class register to register Kratos components
     KratosApplication::Register();
 
-    std::cout << "             __  __      _           _      _         "<< std::endl;
-    std::cout << "CONSTITUTIVE|  \\/  |__ _| |_ ___ _ _(_)__ _| |        "<< std::endl;
-    std::cout << "            | |\\/| / _` |  _/ -_) '_| / _` | |        "<< std::endl;
-    std::cout << "            |_|  |_\\__,_|\\__\\___|_| |_\\__,_|_|MODELS" << std::endl;
+    std::cout << "            __  __      _           _      _         "<< std::endl;
+    std::cout << "     KRATOS|  \\/  |__ _| |_ ___ _ _(_)__ _| |        "<< std::endl;
+    std::cout << "           | |\\/| / _` |  _/ -_) '_| / _` | |        "<< std::endl;
+    std::cout << "           |_|  |_\\__,_|\\__\\___|_| |_\\__,_|_|MODELS" << std::endl;
     std::cout << "Initializing KratosConstitutiveModelsApplication... " << std::endl;
 
     //Register Variables (variables created in constitutive_models_application_variables.cpp) 

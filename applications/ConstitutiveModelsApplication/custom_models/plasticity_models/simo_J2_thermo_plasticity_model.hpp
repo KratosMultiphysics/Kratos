@@ -85,16 +85,7 @@ namespace Kratos
     ///@{
 
     /// Default constructor.
-    SimoJ2ThermoPlasticityModel()
-      :BaseType()
-    {
-      KRATOS_TRY
-
-      this->mpElasticityModel = ElasticityModelPointer( new ElasticityModelType() );
-      this->mpYieldCriterion  = YieldCriterionPointer( new YieldCriterionType() );
-     
-      KRATOS_CATCH(" ")
-    }
+    SimoJ2ThermoPlasticityModel() : BaseType() {}
     
     /// Copy constructor.
     SimoJ2ThermoPlasticityModel(SimoJ2ThermoPlasticityModel const& rOther) : BaseType(rOther) {}

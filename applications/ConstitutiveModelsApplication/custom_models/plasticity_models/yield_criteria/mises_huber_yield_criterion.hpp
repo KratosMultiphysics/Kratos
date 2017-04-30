@@ -60,7 +60,6 @@ namespace Kratos
 
     typedef YieldCriterion<THardeningLaw>                                BaseType;
     typedef typename BaseType::Pointer                            BaseTypePointer;
-    typedef typename BaseType::HardeningLawPointer            HardeningLawPointer;
     typedef typename BaseType::PlasticDataType                    PlasticDataType;
     
     /// Pointer definition of MisesHuberYieldCriterion
@@ -72,10 +71,7 @@ namespace Kratos
 
     /// Default constructor.
     MisesHuberYieldCriterion() : BaseType() {}
-
-    /// Constructor.
-    MisesHuberYieldCriterion(HardeningLawPointer pHardeningLaw) : BaseType(pHardeningLaw) {}
-    
+   
     /// Copy constructor.
     MisesHuberYieldCriterion(MisesHuberYieldCriterion const& rOther) : BaseType(rOther) {}
 
@@ -117,7 +113,7 @@ namespace Kratos
 
       const double& rStressNorm = rVariables.GetStressNorm();
 
-      Hardening = this->mpHardeningLaw->CalculateHardening(rVariables,Hardening);
+      Hardening = this->mHardeningLaw.CalculateHardening(rVariables,Hardening);
 		
       rYieldCondition = rStressNorm - sqrt(2.0/3.0) * Hardening;
 		
@@ -142,7 +138,7 @@ namespace Kratos
     
       double Hardening = 0;
 		
-      Hardening = this->mpHardeningLaw->CalculateHardening( rVariables, Hardening );
+      Hardening = this->mHardeningLaw.CalculateHardening( rVariables, Hardening );
 
       rStateFunction = rStressNorm - 2.0 * rMaterial.GetLameMuBar() * rDeltaGamma - sqrt(2.0/3.0) * ( Hardening );
 		
@@ -163,7 +159,7 @@ namespace Kratos
 
       double DeltaHardening = 0;
 
-      DeltaHardening = this->mpHardeningLaw->CalculateDeltaHardening( rVariables, DeltaHardening );
+      DeltaHardening = this->mHardeningLaw.CalculateDeltaHardening( rVariables, DeltaHardening );
 
       //std::cout<<" DeltaHardening "<<DeltaHardening<<std::endl;
 

@@ -66,6 +66,13 @@ namespace Kratos
       /// Copy constructor.
       SmallStrainOrthotropic3DLaw(const SmallStrainOrthotropic3DLaw& rOther) : SmallStrain3DLaw(rOther) {}
 
+      /// Assignment operator.
+      SmallStrainOrthotropic3DLaw& operator=(SmallStrainOrthotropic3DLaw const& rOther)
+      {
+	SmallStrain3DLaw::operator=(rOther);
+	return *this;
+      }
+      
       /// Clone.
       ConstitutiveLaw::Pointer Clone() const override
       {
@@ -322,10 +329,6 @@ namespace Kratos
       ///@}    
       ///@name Un accessible methods 
       ///@{ 
-      
-      /// Assignment operator.
-      SmallStrainOrthotropic3DLaw& operator=(SmallStrainOrthotropic3DLaw const& rOther){ return *this; }
-
         
       ///@}    
         

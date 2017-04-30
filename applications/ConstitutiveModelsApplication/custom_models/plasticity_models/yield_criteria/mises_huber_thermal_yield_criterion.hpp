@@ -60,7 +60,6 @@ namespace Kratos
     typedef MisesHuberYieldCriterion<THardeningLaw>                   DerivedType;
     typedef YieldCriterion<THardeningLaw>                                BaseType;
     typedef typename BaseType::Pointer                            BaseTypePointer;
-    typedef typename BaseType::HardeningLawPointer            HardeningLawPointer;
     typedef typename BaseType::PlasticDataType                    PlasticDataType;
     
     /// Pointer definition of MisesHuberThermalYieldCriterion
@@ -72,9 +71,6 @@ namespace Kratos
 
     /// Default constructor.
     MisesHuberThermalYieldCriterion() : DerivedType() {}
-
-    /// Constructor.
-    MisesHuberThermalYieldCriterion(HardeningLawPointer pHardeningLaw) : DerivedType(pHardeningLaw) {}
     
     /// Copy constructor.
     MisesHuberThermalYieldCriterion(MisesHuberThermalYieldCriterion const& rOther) : DerivedType(rOther) {}
@@ -121,7 +117,7 @@ namespace Kratos
       const double& rDeltaTime               = rModelData.GetProcessInfo()[DELTA_TIME];
 
       double Hardening = 0;
-      Hardening = this->mpHardeningLaw->CalculateHardening(rVariables,Hardening);
+      Hardening = this->mHardeningLaw.CalculateHardening(rVariables,Hardening);
 
       double EquivalentStress =  sqrt(2.0/3.0) * ( Hardening );
 
@@ -150,15 +146,15 @@ namespace Kratos
       const double& rLameMuBar = rMaterialParameters.GetLameMuBar();
 
       double DeltaHardening = 0;
-      DeltaHardening = this->mpHardeningLaw->CalculateDeltaHardening(rVariables,DeltaHardening);
+      DeltaHardening = this->mHardeningLaw.CalculateDeltaHardening(rVariables,DeltaHardening);
 
       double Hardening = 0;
-      Hardening = this->mpHardeningLaw->CalculateHardening(rVariables,Hardening);
+      Hardening = this->mHardeningLaw.CalculateHardening(rVariables,Hardening);
 
       double EquivalentStress =  sqrt(2.0/3.0) * ( Hardening );
 
       double DeltaThermalHardening = 0;
-      DeltaThermalHardening = this->mpHardeningLaw->CalculateDeltaThermalHardening(rVariables, DeltaThermalHardening);
+      DeltaThermalHardening = this->mHardeningLaw.CalculateDeltaThermalHardening(rVariables, DeltaThermalHardening);
 
       rDeltaPlasticDissipation  = (0.9 * sqrt(2.0/3.0)/rDeltaTime); 
       rDeltaPlasticDissipation *= ( (-1) * DeltaThermalHardening );
@@ -184,7 +180,7 @@ namespace Kratos
       const double& rDeltaTime               = rModelData.GetProcessInfo()[DELTA_TIME];
 
       double Hardening = 0;
-      Hardening = this->mpHardeningLaw->CalculateHardening(rVariables,Hardening);
+      Hardening = this->mHardeningLaw.CalculateHardening(rVariables,Hardening);
 
       //TODO(change the definition of this stress Hardening has a different expression  !!!!)
       double EquivalentStress =  sqrt(2.0/3.0) * ( Hardening );
@@ -211,7 +207,7 @@ namespace Kratos
       const double& rDeltaTime               = rModelData.GetProcessInfo()[DELTA_TIME];
       
       double DeltaThermalHardening = 0;
-      DeltaThermalHardening = this->mpHardeningLaw->CalculateDeltaThermalHardening(rVariables, DeltaThermalHardening);
+      DeltaThermalHardening = this->mHardeningLaw.CalculateDeltaThermalHardening(rVariables, DeltaThermalHardening);
 
       rDeltaPlasticDissipation  = (0.9 * sqrt(2.0/3.0)/rDeltaTime); 
       rDeltaPlasticDissipation *= ( (-1) * DeltaThermalHardening );

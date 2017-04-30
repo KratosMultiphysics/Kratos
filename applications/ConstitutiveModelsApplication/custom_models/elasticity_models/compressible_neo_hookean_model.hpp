@@ -236,11 +236,11 @@ namespace Kratos
          
     //   if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mCauchyGreenMatrix = RightCauchyGreen (C)
     // 	Cabcd  = rMaterial.GetLameLambda() * (rVariables.Strain.InverseCauchyGreenMatrix(a,b)*rVariables.Strain.InverseCauchyGreenMatrix(c,d));
-    // 	Cabcd += (rMaterial.GetLameMu() - std::log(rVariables.Strain.Invariants.J) * rMaterial.GetLameLambda()) * (rVariables.Strain.InverseCauchyGreenMatrix(a,c)*rVariables.Strain.InverseCauchyGreenMatrix(b,d)+rVariables.Strain.InverseCauchyGreenMatrix(a,d)*rVariables.Strain.InverseCauchyGreenMatrix(b,c));
+    // 	Cabcd += (rMaterial.GetLameMu() - rMaterial.GetLameLambda() * std::log(rVariables.Strain.Invariants.J)) * (rVariables.Strain.InverseCauchyGreenMatrix(a,c)*rVariables.Strain.InverseCauchyGreenMatrix(b,d)+rVariables.Strain.InverseCauchyGreenMatrix(a,d)*rVariables.Strain.InverseCauchyGreenMatrix(b,c));
     //   }
     //   else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mCauchyGreenMatrix = LeftCauchyGreen (b)
     // 	Cabcd  = rMaterial.GetLameLambda() * (msIdentityMatrix(a,b)*msIdentityMatrix(c,d));
-    // 	Cabcd += rMaterial.GetLameMu() * (msIdentityMatrix(a,c)*msIdentityMatrix(b,d)+msIdentityMatrix(a,d)*msIdentityMatrix(b,c));  
+    // 	Cabcd += (rMaterial.GetLameMu() - rMaterial.GetLameLambda() * std::log(rVariables.Strain.Invariants.J)) * (msIdentityMatrix(a,c)*msIdentityMatrix(b,d)+msIdentityMatrix(a,d)*msIdentityMatrix(b,c));  
     //   }
       
     //   rCabcd += Cabcd;
@@ -301,7 +301,7 @@ namespace Kratos
       const MaterialDataType&  rMaterial = rVariables.GetMaterialParameters();
 
       //derivative of "g(J) = (lambda/2)*ln(J)² - (mu)*lnJ"
-      //dg(J)/dI3 = (lambda/2)*(lnJ/J²) -  mu*(1/J²)/2
+      //dg(J)/dI3 = (lambda/2)*(lnJ/J²) - mu*(1/J²)/2
       rDerivative  = 0.5 * rMaterial.GetLameLambda() * std::log( rVariables.Strain.Invariants.J );
       rDerivative -= 0.5 * rMaterial.GetLameMu();
       rDerivative /= rVariables.Strain.Invariants.I3;

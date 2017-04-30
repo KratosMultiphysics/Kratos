@@ -43,9 +43,11 @@ namespace Kratos
 
   LargeStrain3DLaw::LargeStrain3DLaw(ModelTypePointer pModel)
     : Constitutive3DLaw()
-    , mpModel(pModel)
   {
     KRATOS_TRY
+
+    //model
+    mpModel = pModel->Clone();
 
     //member variables initialization
     mDeterminantF0 = 1.0;
@@ -65,13 +67,26 @@ namespace Kratos
 
   LargeStrain3DLaw::LargeStrain3DLaw(const LargeStrain3DLaw& rOther)
     : Constitutive3DLaw(rOther)
-    , mpModel(rOther.mpModel)
-    , mDeterminantF0(rOther.mDeterminantF0)  
-    , mInverseDeformationGradientF0(rOther.mInverseDeformationGradientF0)    
-    , mCauchyGreenVector(rOther.mCauchyGreenVector)
+    ,mDeterminantF0(rOther.mDeterminantF0)
+    ,mInverseDeformationGradientF0(rOther.mInverseDeformationGradientF0)
+    ,mCauchyGreenVector(rOther.mCauchyGreenVector)
   {
+    mpModel = rOther.mpModel->Clone();
   }
 
+  //*******************************ASSIGMENT OPERATOR***********************************
+  //************************************************************************************
+
+  LargeStrain3DLaw& LargeStrain3DLaw::operator=(const LargeStrain3DLaw& rOther)
+  {
+    Constitutive3DLaw::operator=(rOther);
+    mpModel = rOther.mpModel->Clone();
+    mDeterminantF0 = rOther.mDeterminantF0;
+    mInverseDeformationGradientF0 = rOther.mInverseDeformationGradientF0;
+    mCauchyGreenVector = rOther.mCauchyGreenVector;    
+    return *this;
+  } 
+  
   //********************************CLONE***********************************************
   //************************************************************************************
 
@@ -455,6 +470,10 @@ namespace Kratos
     //7.- Finalize hyperelastic model parameters    
     this->FinalizeModelData(rValues,ModelValues);
 
+
+    // std::cout<<" StrainVector "<<rValues.GetStrainVector()<<std::endl;
+    // std::cout<<" StressVector "<<rValues.GetStressVector()<<std::endl;
+    // std::cout<<" ConstitutiveMatrix "<<rValues.GetConstitutiveMatrix()<<std::endl;
     
     KRATOS_CATCH(" ")
       

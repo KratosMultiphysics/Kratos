@@ -55,11 +55,9 @@ namespace Kratos
 
     //elasticity model
     typedef TElasticityModel                                   ElasticityModelType;
-    typedef typename TElasticityModel::Pointer              ElasticityModelPointer;
 
     //yield criterion
     typedef TYieldCriterion                                     YieldCriterionType;
-    typedef typename TYieldCriterion::Pointer                YieldCriterionPointer;
 
     //common types
     typedef ConstitutiveModelData::SizeType                               SizeType;
@@ -79,26 +77,19 @@ namespace Kratos
     ///@{
 
     /// Default constructor.
-    PlasticityModel() : ConstitutiveModel()
-    {
-      KRATOS_TRY
-	
-      mpElasticityModel = ElasticityModelPointer( new ElasticityModelType() );
-      mpYieldCriterion  = YieldCriterionPointer( new YieldCriterionType() );
-	
-      KRATOS_CATCH(" ")
-    }
-
-
-    /// Constructor.
-    PlasticityModel(ElasticityModelPointer pElasticityModel, YieldCriterionPointer pYieldCriterion) : ConstitutiveModel(), mpElasticityModel(pElasticityModel), mpYieldCriterion(pYieldCriterion) {}
-
+    PlasticityModel() : ConstitutiveModel() {}
     
     /// Copy constructor.
-    PlasticityModel(PlasticityModel const& rOther) : ConstitutiveModel(rOther), mpElasticityModel(rOther.mpElasticityModel), mpYieldCriterion(rOther.mpYieldCriterion) {}
-
+    PlasticityModel(PlasticityModel const& rOther) : ConstitutiveModel(rOther), mElasticityModel(rOther.mElasticityModel), mYieldCriterion(rOther.mYieldCriterion) {}
+    
     /// Assignment operator.
-    PlasticityModel& operator=(PlasticityModel const& rOther) {return *this;}
+    PlasticityModel& operator=(PlasticityModel const& rOther)
+    {
+      ConstitutiveModel::operator=(rOther);
+      mElasticityModel = rOther.mElasticityModel;
+      mYieldCriterion  = rOther.mYieldCriterion;
+      return *this;
+    }
 
     /// Clone.
     ConstitutiveModel::Pointer Clone() const override
@@ -145,7 +136,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      mpElasticityModel->CalculateVolumetricStressTensor(rValues,rStressMatrix);
+      mElasticityModel.CalculateVolumetricStressTensor(rValues,rStressMatrix);
 	
       KRATOS_CATCH(" ")
     }
@@ -168,7 +159,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      mpElasticityModel->CalculateVolumetricConstitutiveTensor(rValues,rConstitutiveMatrix);
+      mElasticityModel.CalculateVolumetricConstitutiveTensor(rValues,rConstitutiveMatrix);
 	
       KRATOS_CATCH(" ")
     }
@@ -236,13 +227,13 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      mpElasticityModel->GetDomainVariablesList(rScalarVariables, rComponentVariables);
+      mElasticityModel.GetDomainVariablesList(rScalarVariables, rComponentVariables);
  	
       KRATOS_CATCH(" ")
     }
 
     
-    ConstitutiveModel::Pointer pGetElasticityModel() {return mpElasticityModel;};    
+    ElasticityModelType& GetElasticityModel() {return mElasticityModel;};    
     
     ///@}
     ///@name Inquiry
@@ -289,8 +280,8 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
     
-    ElasticityModelPointer   mpElasticityModel;
-    YieldCriterionPointer    mpYieldCriterion;
+    ElasticityModelType   mElasticityModel;
+    YieldCriterionType    mYieldCriterion;
     
     ///@}
     ///@name Protected Operators
@@ -358,16 +349,16 @@ namespace Kratos
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveModel )
 
-      rSerializer.save("mpElasticityModel",mpElasticityModel);
-      rSerializer.save("mpYieldCriterion",mpYieldCriterion);
+      rSerializer.save("mpElasticityModel",mElasticityModel);
+      rSerializer.save("mpYieldCriterion",mYieldCriterion);
     }
     
     virtual void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveModel )
 
-      rSerializer.load("mpElasticityModel",mpElasticityModel);
-      rSerializer.load("mpYieldCriterion",mpYieldCriterion);	
+      rSerializer.load("mpElasticityModel",mElasticityModel);
+      rSerializer.load("mpYieldCriterion",mYieldCriterion);	
     }
     
     ///@}

@@ -119,6 +119,8 @@ namespace Kratos
 
     rValues.MaterialParameters.LameMuBar =  rValues.MaterialParameters.LameMu * ( rVariables.Strain.CauchyGreenMatrix(0,0) + rVariables.Strain.CauchyGreenMatrix(1,1) + rVariables.Strain.CauchyGreenMatrix(2,2) ) * 1.0/3.0 * pow(rValues.GetDeterminantF(),(-2.0/3.0));
 
+    //std::cout<<" CauchyGreeMatrix "<<rVariables.Strain.CauchyGreenMatrix<<std::endl;
+    
     this->CalculateInvariants(rVariables);
 
     //Algorithmic moduli factors
@@ -216,10 +218,10 @@ namespace Kratos
      
       StressPartMatrix = GetI1LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
       noalias(StressMatrix)  = rVariables.Factors.Alpha1 * StressPartMatrix;
-     
+      
       StressPartMatrix = GetI2LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
       noalias(StressMatrix) += rVariables.Factors.Alpha2 * StressPartMatrix;
-      
+
       StressPartMatrix = GetI3LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);      
       noalias(StressMatrix) += rVariables.Factors.Alpha3 * StressPartMatrix;
 

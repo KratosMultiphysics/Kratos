@@ -194,7 +194,7 @@ namespace Kratos
       double StateFunction                = rVariables.TrialStateFunction;	
 
       //Calculate Delta State Function:
-      DeltaStateFunction = this->mpYieldCriterion->CalculateDeltaStateFunction( rVariables, DeltaStateFunction );
+      DeltaStateFunction = this->mYieldCriterion.CalculateDeltaStateFunction( rVariables, DeltaStateFunction );
 
       //Calculate DeltaGamma:
       rDeltaGamma  = StateFunction/DeltaStateFunction;

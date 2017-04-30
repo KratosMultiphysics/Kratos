@@ -59,7 +59,6 @@ namespace Kratos
 
     typedef YieldCriterion<THardeningLaw>                                BaseType;
     typedef typename BaseType::Pointer                            BaseTypePointer;
-    typedef typename BaseType::HardeningLawPointer            HardeningLawPointer;
     typedef typename BaseType::PlasticDataType                    PlasticDataType;
     
     /// Pointer definition of SimoJuYieldCriterion
@@ -71,9 +70,6 @@ namespace Kratos
 
     /// Default constructor.
     SimoJuYieldCriterion() : BaseType() {}
-    
-    /// Constructor.
-    SimoJuYieldCriterion(HardeningLawPointer pHardeningLaw) : BaseType(pHardeningLaw) {}
 
     /// Copy constructor.
     SimoJuYieldCriterion(SimoJuYieldCriterion const& rOther) : BaseType(rOther) {}
@@ -176,7 +172,7 @@ namespace Kratos
     {
       KRATOS_TRY
         
-      rStateFunction = this->mpHardeningLaw->CalculateHardening(rVariables,rStateFunction);
+      rStateFunction = this->mHardeningLaw.CalculateHardening(rVariables,rStateFunction);
     
       return rStateFunction;
     
@@ -192,7 +188,7 @@ namespace Kratos
     {
       KRATOS_TRY
     
-      rDeltaStateFunction = this->mpHardeningLaw->CalculateDeltaHardening(rVariables,rDeltaStateFunction);
+      rDeltaStateFunction = this->mHardeningLaw.CalculateDeltaHardening(rVariables,rDeltaStateFunction);
     
       return rDeltaStateFunction;
 

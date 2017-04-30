@@ -66,6 +66,13 @@ namespace Kratos
       /// Copy constructor.
       SmallStrainPlaneStrain2DLaw(const SmallStrainPlaneStrain2DLaw& rOther) : SmallStrain3DLaw(rOther) {}
 
+      /// Assignment operator.
+      SmallStrainPlaneStrain2DLaw& operator=(SmallStrainPlaneStrain2DLaw const& rOther)
+      {
+	SmallStrain3DLaw::operator=(rOther);
+	return *this;
+      }
+
       /// Clone.
       ConstitutiveLaw::Pointer Clone() const override
       {
@@ -267,10 +274,6 @@ namespace Kratos
       ///@}    
       ///@name Un accessible methods 
       ///@{ 
-      
-      /// Assignment operator.
-      SmallStrainPlaneStrain2DLaw& operator=(SmallStrainPlaneStrain2DLaw const& rOther){ return *this; }
-
         
       ///@}    
         

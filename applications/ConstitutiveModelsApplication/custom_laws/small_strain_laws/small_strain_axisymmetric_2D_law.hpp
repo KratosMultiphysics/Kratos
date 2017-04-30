@@ -66,6 +66,13 @@ namespace Kratos
       /// Copy constructor.
       SmallStrainAxisymmetric2DLaw(const SmallStrainAxisymmetric2DLaw& rOther) : SmallStrain3DLaw(rOther) {}
 
+      /// Assignment operator.
+      SmallStrainAxisymmetric2DLaw& operator=(SmallStrainAxisymmetric2DLaw const& rOther)
+      {
+	SmallStrain3DLaw::operator=(rOther);
+	return *this;
+      }
+      
       /// Clone.
       ConstitutiveLaw::Pointer Clone() const override
       {
@@ -274,9 +281,6 @@ namespace Kratos
       ///@name Un accessible methods 
       ///@{ 
       
-      /// Assignment operator.
-      SmallStrainAxisymmetric2DLaw& operator=(SmallStrainAxisymmetric2DLaw const& rOther){ return *this; }
-
         
       ///@}    
         

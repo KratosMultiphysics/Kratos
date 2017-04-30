@@ -59,9 +59,7 @@ namespace Kratos
     typedef ConstitutiveModelData::MaterialData                  MaterialDataType;
     
     typedef THardeningLaw                                        HardeningLawType;
-    typedef typename THardeningLaw::PlasticDataType               PlasticDataType;
-    typedef typename THardeningLaw::Pointer                   HardeningLawPointer;
-    
+    typedef typename THardeningLaw::PlasticDataType               PlasticDataType;   
     typedef typename THardeningLaw::InternalVariablesType   InternalVariablesType;
     
     /// Pointer definition of YieldCriterion
@@ -72,27 +70,17 @@ namespace Kratos
     ///@{
 
     /// Default constructor.
-    YieldCriterion()
-    {
-      KRATOS_TRY
-
-      mpHardeningLaw = HardeningLawPointer( new HardeningLawType() );
-	
-      KRATOS_CATCH(" ")
-    }
-
-    /// Constructor.
-    YieldCriterion(HardeningLawPointer pHardeningLaw) : mpHardeningLaw(pHardeningLaw) {}
+    YieldCriterion() {}
 
     /// Copy constructor.
-    YieldCriterion(YieldCriterion const& rOther) : mpHardeningLaw(rOther.mpHardeningLaw) {}
+    YieldCriterion(YieldCriterion const& rOther) : mHardeningLaw(rOther.mHardeningLaw) {}
 
     /// Assignment operator.
     YieldCriterion& operator=(YieldCriterion const& rOther)
-      {
-	mpHardeningLaw = rOther.mpHardeningLaw;
-	return *this;
-      }
+    {
+      mHardeningLaw = rOther.mHardeningLaw;
+      return *this;
+    }
     
     /// Clone.
     virtual YieldCriterion::Pointer Clone() const
@@ -238,7 +226,7 @@ namespace Kratos
     ///@name Access
     ///@{
 
-    HardeningLawType& GetHardeningLaw() { return *mpHardeningLaw; };
+    HardeningLawType& GetHardeningLaw() { return mHardeningLaw; };
     
     ///@}
     ///@name Inquiry
@@ -287,7 +275,7 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 	
-    HardeningLawPointer mpHardeningLaw;
+    HardeningLawType mHardeningLaw;
     
     ///@}
     ///@name Protected Operators
@@ -349,12 +337,12 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const
     {
-      rSerializer.save("mpHardeningLaw", mpHardeningLaw);
+      rSerializer.save("mpHardeningLaw", mHardeningLaw);
     }
 
     virtual void load(Serializer& rSerializer)
     {
-      rSerializer.load("mpHardeningLaw", mpHardeningLaw);
+      rSerializer.load("mpHardeningLaw", mHardeningLaw);
     }
 
     ///@}

@@ -85,16 +85,7 @@ namespace Kratos
     ///@{
 
     /// Default constructor.
-    VonMisesNeoHookeanPlasticityModel()
-      :BaseType()
-    {
-      KRATOS_TRY
-
-      this->mpElasticityModel = ElasticityModelPointer( new ElasticityModelType() );
-      this->mpYieldCriterion  = YieldCriterionPointer( new YieldCriterionType() );
-     
-      KRATOS_CATCH(" ")
-    }
+    VonMisesNeoHookeanPlasticityModel() : BaseType() {}
     
     /// Copy constructor.
     VonMisesNeoHookeanPlasticityModel(VonMisesNeoHookeanPlasticityModel const& rOther) : BaseType(rOther) {}

@@ -55,12 +55,10 @@ namespace Kratos
 
     //elasticity model
     typedef TElasticityModel                               ElasticityModelType;
-    typedef typename  ElasticityModelType::Pointer      ElasticityModelPointer;
 
     //yield criterion
     typedef TYieldCriterion                                 YieldCriterionType;
-    typedef typename YieldCriterionType::Pointer         YieldCriterionPointer;
-
+ 
     //base type
     typedef PlasticityModel<ElasticityModelType,YieldCriterionType>   BaseType;
 
@@ -130,10 +128,7 @@ namespace Kratos
 
     /// Default constructor.
     NonLinearAssociativePlasticityModel() : BaseType() {}
-
-    /// Constructor.
-    NonLinearAssociativePlasticityModel(ElasticityModelPointer pElasticityModel, YieldCriterionPointer pYieldCriterion) : BaseType(pElasticityModel, pYieldCriterion) {}
-    
+   
     /// Copy constructor.
     NonLinearAssociativePlasticityModel(NonLinearAssociativePlasticityModel const& rOther) :BaseType(rOther), mInternal(rOther.mInternal), mPreviousInternal(rOther.mPreviousInternal), mThermalVariables(rOther.mThermalVariables) {}
 
@@ -141,6 +136,9 @@ namespace Kratos
     NonLinearAssociativePlasticityModel& operator=(NonLinearAssociativePlasticityModel const& rOther)
     {
       BaseType::operator=(rOther);
+      mInternal = rOther.mInternal;
+      mPreviousInternal = rOther.mPreviousInternal;
+      mThermalVariables = rOther.mThermalVariables;
       return *this;
     }
 
@@ -174,7 +172,7 @@ namespace Kratos
       // calculate volumetric stress
       MatrixType VolumetricStressMatrix;
       VolumetricStressMatrix.clear();
-      this->mpElasticityModel->CalculateVolumetricStressTensor(rValues,VolumetricStressMatrix);
+      this->mElasticityModel.CalculateVolumetricStressTensor(rValues,VolumetricStressMatrix);
 
       // calculate isochoric stress
       this->CalculateIsochoricStressTensor(rValues,rStressMatrix);
@@ -196,7 +194,7 @@ namespace Kratos
       this->InitializeVariables(rValues,Variables);
 
       // calculate elastic isochoric stress
-      this->mpElasticityModel->CalculateIsochoricStressTensor(rValues,rStressMatrix);
+      this->mElasticityModel.CalculateIsochoricStressTensor(rValues,rStressMatrix);
 
 
       
@@ -228,7 +226,7 @@ namespace Kratos
 
       MatrixType StressMatrix = rValues.StressMatrix;
       //1.-Elastic Isochoric Stress Matrix
-      this->mpElasticityModel->CalculateIsochoricStressTensor(rValues,rValues.StressMatrix);
+      this->mElasticityModel.CalculateIsochoricStressTensor(rValues,rValues.StressMatrix);
 
       //2.-Calculate and Add Plastic Isochoric Stress Matrix
       this->CalculateAndAddIsochoricStressTensor(Variables,rValues.StressMatrix);
@@ -236,7 +234,7 @@ namespace Kratos
       //Calculate Constitutive Matrix
 
       // calculate elastic constitutive tensor
-      this->mpElasticityModel->CalculateConstitutiveTensor(rValues,rConstitutiveMatrix);
+      this->mElasticityModel.CalculateConstitutiveTensor(rValues,rConstitutiveMatrix);
     
       // calculate plastic constitutive tensor
       this->CalculateAndAddPlasticConstitutiveTensor(Variables,rConstitutiveMatrix);
@@ -260,12 +258,12 @@ namespace Kratos
       
       // calculate volumetric stress
       MatrixType VolumetricStressMatrix;
-      this->mpElasticityModel->CalculateVolumetricStressTensor(rValues,VolumetricStressMatrix);
+      this->mElasticityModel.CalculateVolumetricStressTensor(rValues,VolumetricStressMatrix);
       
       // calculate isochoric stress
 
       // calculate elastic isochoric stress
-      this->mpElasticityModel->CalculateIsochoricStressTensor(rValues,rStressMatrix);
+      this->mElasticityModel.CalculateIsochoricStressTensor(rValues,rStressMatrix);
       
       // calculate plastic isochoric stress
       this->CalculateAndAddIsochoricStressTensor(Variables,rStressMatrix);
@@ -275,7 +273,7 @@ namespace Kratos
       //Calculate Constitutive Matrix
     
       // calculate elastic constitutive tensor
-      this->mpElasticityModel->CalculateConstitutiveTensor(rValues,rConstitutiveMatrix);
+      this->mElasticityModel.CalculateConstitutiveTensor(rValues,rConstitutiveMatrix);
     
       // calculate plastic constitutive tensor
       this->CalculateAndAddPlasticConstitutiveTensor(Variables,rConstitutiveMatrix);
@@ -450,7 +448,7 @@ namespace Kratos
       rVariables.StressNorm = ConstitutiveModelUtilities::CalculateStressNorm(rStressMatrix, rVariables.StressNorm);
 
       //2.-Check yield condition
-      rVariables.TrialStateFunction = this->mpYieldCriterion->CalculateYieldCondition(rVariables, rVariables.TrialStateFunction);
+      rVariables.TrialStateFunction = this->mYieldCriterion.CalculateYieldCondition(rVariables, rVariables.TrialStateFunction);
     
       if( rVariables.State().Is(ConstitutiveModelData::IMPLEX_ACTIVE) ) 
 	{
@@ -600,7 +598,7 @@ namespace Kratos
       while ( fabs(StateFunction)>=Tolerance && iter<=MaxIterations)
 	{
 	  //Calculate Delta State Function:
-	  DeltaStateFunction = this->mpYieldCriterion->CalculateDeltaStateFunction( rVariables, DeltaStateFunction );
+	  DeltaStateFunction = this->mYieldCriterion.CalculateDeltaStateFunction( rVariables, DeltaStateFunction );
 
 	  //Calculate DeltaGamma:
 	  DeltaDeltaGamma  = StateFunction/DeltaStateFunction;
@@ -611,7 +609,7 @@ namespace Kratos
 	  rEquivalentPlasticStrain = rEquivalentPlasticStrainOld + DeltaPlasticStrain;
 	       	
 	  //Calculate State Function:
-	  StateFunction = this->mpYieldCriterion->CalculateStateFunction( rVariables, StateFunction );
+	  StateFunction = this->mYieldCriterion.CalculateStateFunction( rVariables, StateFunction );
 
 	  iter++;
 	}
@@ -774,7 +772,7 @@ namespace Kratos
 	  else if ( rVariables.State().IsNot(ConstitutiveModelData::PLASTIC_RATE_REGION) )
 	    rVariables.RateFactor = 0;
 	
-	  double DeltaHardening = this->mpYieldCriterion->GetHardeningLaw().CalculateDeltaHardening( rVariables, DeltaHardening );
+	  double DeltaHardening = this->mYieldCriterion.GetHardeningLaw().CalculateDeltaHardening( rVariables, DeltaHardening );
 	  
 	  rFactors.Beta0 = 1.0 + DeltaHardening/(3.0 * rMaterial.GetLameMuBar());
 		
@@ -802,13 +800,13 @@ namespace Kratos
       KRATOS_TRY
       
       //1.- Thermal Dissipation:
-       mThermalVariables.PlasticDissipation = this->mpYieldCriterion->CalculatePlasticDissipation( rVariables, mThermalVariables.PlasticDissipation );
+       mThermalVariables.PlasticDissipation = this->mYieldCriterion.CalculatePlasticDissipation( rVariables, mThermalVariables.PlasticDissipation );
   
 
       //std::cout<<" PlasticDissipation "<<mThermalVariables.PlasticDissipation<<std::endl;
 
       //2.- Thermal Dissipation Increment:
-      mThermalVariables.DeltaPlasticDissipation = this->mpYieldCriterion->CalculateDeltaPlasticDissipation( rVariables, mThermalVariables.DeltaPlasticDissipation );
+      mThermalVariables.DeltaPlasticDissipation = this->mYieldCriterion.CalculateDeltaPlasticDissipation( rVariables, mThermalVariables.DeltaPlasticDissipation );
 		    		    
       //std::cout<<" DeltaPlasticDissipation "<<mThermalVariables.DeltaPlasticDissipation<<std::endl;
 
@@ -821,10 +819,10 @@ namespace Kratos
       KRATOS_TRY
        
       //1.- Thermal Dissipation:
-      mThermalVariables.PlasticDissipation = this->mpYieldCriterion->CalculateImplexPlasticDissipation( rVariables, mThermalVariables.PlasticDissipation );
+      mThermalVariables.PlasticDissipation = this->mYieldCriterion.CalculateImplexPlasticDissipation( rVariables, mThermalVariables.PlasticDissipation );
   
       //2.- Thermal Dissipation Increment:      
-      mThermalVariables.DeltaPlasticDissipation = this->mpYieldCriterion->CalculateImplexDeltaPlasticDissipation( rVariables, mThermalVariables.DeltaPlasticDissipation );
+      mThermalVariables.DeltaPlasticDissipation = this->mYieldCriterion.CalculateImplexDeltaPlasticDissipation( rVariables, mThermalVariables.DeltaPlasticDissipation );
 
       KRATOS_CATCH(" ")  
     }

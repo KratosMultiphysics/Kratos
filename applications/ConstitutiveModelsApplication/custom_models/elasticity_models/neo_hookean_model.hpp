@@ -232,12 +232,12 @@ namespace Kratos
     //   const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
          
     //   if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mCauchyGreenMatrix = RightCauchyGreen (C)
-    // 	Cabcd  = rVariables.Strain.I3 * rMaterial.GetLameLambda() * (rVariables.Strain.InverseCauchyGreenMatrix(a,b)*rVariables.Strain.InverseCauchyGreenMatrix(c,d));
-    // 	Cabcd += (rMaterial.GetLameMu() - 0.5* (rVariables.Strain.I3-1.0) * rMaterial.GetLameLambda()) * (rVariables.Strain.InverseCauchyGreenMatrix(a,c)*rVariables.Strain.InverseCauchyGreenMatrix(b,d)+rVariables.Strain.InverseCauchyGreenMatrix(a,d)*rVariables.Strain.InverseCauchyGreenMatrix(b,c));
+    // 	Cabcd  = rVariables.Strain.Invariants.I3 * rMaterial.GetLameLambda() * (rVariables.Strain.InverseCauchyGreenMatrix(a,b)*rVariables.Strain.InverseCauchyGreenMatrix(c,d));
+    // 	Cabcd += (rMaterial.GetLameMu() - 0.5 * rMaterial.GetLameLambda() * (rVariables.Strain.Invariants.I3-1.0)) * (rVariables.Strain.InverseCauchyGreenMatrix(a,c)*rVariables.Strain.InverseCauchyGreenMatrix(b,d)+rVariables.Strain.InverseCauchyGreenMatrix(a,d)*rVariables.Strain.InverseCauchyGreenMatrix(b,c));
     //   }
     //   else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mCauchyGreenMatrix = LeftCauchyGreen (b)
     // 	Cabcd  = rMaterial.GetLameLambda() * (msIdentityMatrix(a,b)*msIdentityMatrix(c,d));
-    // 	Cabcd += rMaterial.GetLameMu() * (msIdentityMatrix(a,c)*msIdentityMatrix(b,d)+msIdentityMatrix(a,d)*msIdentityMatrix(b,c));  
+    // 	Cabcd += (rMaterial.GetLameMu() - 0.5 * rMaterial.GetLameLambda() * (rVariables.Strain.Invariants.I3-1.0)) * (msIdentityMatrix(a,c)*msIdentityMatrix(b,d)+msIdentityMatrix(a,d)*msIdentityMatrix(b,c));  
     //   }
       
     //   rCabcd += Cabcd;
@@ -338,9 +338,9 @@ namespace Kratos
       KRATOS_TRY
 
       const MaterialDataType&   rMaterial = rVariables.GetMaterialParameters();
-      //ddg(J)/dI3dI3 = (lambda/4)*(1/J⁴) -  (mu/2)*(1/J⁴)
+      //ddg(J)/dI3dI3 = (lambda/4)*(1/J⁴) + (mu/2)*(1/J⁴)
       rDerivative  = 0.25 * rMaterial.GetLameLambda();
-      rDerivative  = 0.5  * rMaterial.GetLameMu();
+      rDerivative += 0.5  * rMaterial.GetLameMu();
       rDerivative /= (rVariables.Strain.Invariants.I3 * rVariables.Strain.Invariants.I3);
       
       return rDerivative;

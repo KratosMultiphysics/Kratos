@@ -50,6 +50,9 @@ namespace Kratos
     /// Copy constructor.
     LargeStrain3DLaw(const LargeStrain3DLaw& rOther);
 
+    /// Assignment operator.
+    LargeStrain3DLaw& operator=(LargeStrain3DLaw const& rOther);
+    
     /// Clone.
     ConstitutiveLaw::Pointer Clone() const override;
 
@@ -293,8 +296,6 @@ namespace Kratos
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    LargeStrain3DLaw& operator=(LargeStrain3DLaw const& rOther){ return *this; }
     
     ///@}
   }; // Class LargeStrain3DLaw
