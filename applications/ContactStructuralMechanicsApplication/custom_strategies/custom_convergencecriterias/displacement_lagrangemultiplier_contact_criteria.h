@@ -210,9 +210,10 @@ public:
             {
                 if (this->GetEchoLevel() >= 1)
                 {
-                    std::cout << " DoF CONVERGENCE CHECK:" << std::endl;
-                    std::cout << " DISPLACEMENT: ratio = " << DispRatio <<"; exp.ratio = " << mDispRatioTolerance << " abs = " << DispAbs << " exp.abs = " << mDispAbsTolerance << std::endl;
-                    std::cout << " LAGRANGE MULTIPLIER.: ratio = " << LMRatio <<"; exp.ratio = " << mLMRatioTolerance << " abs = " << LMAbs << " exp.abs = " << mLMAbsTolerance << std::endl;
+                    std::cout.precision(4);
+                    std::cout << "DoF CONVERGENCE CHECK:" << std::endl << std::scientific;
+                    std::cout << "\tDISPLACEMENT: RATIO = " << DispRatio <<" EXP.RATIO = " << mDispRatioTolerance << " ABS = " << DispAbs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
+                    std::cout << " LAGRANGE MUL:\tRATIO = " << LMRatio <<" EXP.RATIO = " << mLMRatioTolerance << " ABS = " << LMAbs << " EXP.ABS = " << mLMAbsTolerance << std::endl;
                 }
             }
 

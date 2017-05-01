@@ -181,22 +181,22 @@ public:
             {
                 if (FrictionalCase == true)
                 {
-                    std::cout << "Convergence is achieved in ACTIVE/INACTIVE and STICK/SLIP mortar nodes check" << std::endl;
+                    std::cout << "\tConvergence is achieved in ACTIVE/INACTIVE and STICK/SLIP mortar nodes check" << std::endl;
                 }
                 else
                 {
-                    std::cout << "Convergence is achieved in ACTIVE/INACTIVE mortar nodes check" << std::endl;
+                    std::cout << "\tConvergence is achieved in ACTIVE/INACTIVE mortar nodes check" << std::endl;
                 }
             }
             else
             {
                 if (FrictionalCase == true)
                 {
-                    std::cout << "Convergence is not achieved in ACTIVE/INACTIVE and STICK/SLIP mortar nodes check. RECALCULATING...." << std::endl;
+                    std::cout << "\tConvergence is not achieved in ACTIVE/INACTIVE and STICK/SLIP mortar nodes check. RECALCULATING...." << std::endl;
                 }
                 else
                 {
-                    std::cout << "Convergence is not achieved in ACTIVE/INACTIVE mortar nodes check. RECALCULATING...." << std::endl;
+                    std::cout << "\tConvergence is not achieved in ACTIVE/INACTIVE mortar nodes check. RECALCULATING...." << std::endl;
                 }
             }
         }

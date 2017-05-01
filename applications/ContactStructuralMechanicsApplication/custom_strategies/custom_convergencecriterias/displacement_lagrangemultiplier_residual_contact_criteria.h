@@ -191,6 +191,9 @@ public:
                 }
             }
 
+            mDispCurrentResidualNorm = DispResidualSolutionNorm;
+            mLMCurrentResidualNorm = LMResidualSolutionNorm;
+            
             TDataType ResidualDispRatio; 
             TDataType ResidualLMRatio;
             
@@ -202,11 +205,6 @@ public:
                 ResidualDispRatio = 1.0;
                 ResidualLMRatio = 1.0;
                 mInitialResidualIsSet = true;
-            }
-            else
-            {
-                mDispCurrentResidualNorm = DispResidualSolutionNorm;
-                mLMCurrentResidualNorm = LMResidualSolutionNorm;
             }
             
             // We calculate the ratio of the displacements
@@ -238,9 +236,10 @@ public:
             {
                 if (this->GetEchoLevel() >= 1)
                 {
-                    std::cout << " RESIDUAL CONVERGENCE CHECK:" << std::endl;
-                    std::cout << " DISPLACEMENT: ratio = " << ResidualDispRatio <<"; exp.ratio = " << mDispRatioTolerance << " abs = " << ResidualDispAbs << " exp.abs = " << mDispAbsTolerance << std::endl;
-                    std::cout << " LAGRANGE MULTIPLIER.: ratio = " << ResidualLMRatio <<"; exp.ratio = " << mLMRatioTolerance << " abs = " << ResidualLMAbs << " exp.abs = " << mLMAbsTolerance << std::endl;
+                    std::cout.precision(4);
+                    std::cout << "RESIDUAL CONVERGENCE CHECK:" << std::endl << std::scientific;
+                    std::cout << "\tDISPLACEMENT: RATIO = " << ResidualDispRatio <<" EXP.RATIO = " << mDispRatioTolerance << " ABS = " << ResidualDispAbs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
+                    std::cout << "\tLAGRANGE MUL: RATIO = " << ResidualLMRatio <<" EXP.RATIO = " << mLMRatioTolerance << " ABS = " << ResidualLMAbs << " EXP.ABS = " << mLMAbsTolerance << std::endl;
                 }
             }
 

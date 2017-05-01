@@ -295,8 +295,7 @@ protected:
             }
         }
         
-        ScaleFactor *= std::sqrt(AuxContact/AuxNonContact); // NOTE: The inverse¿?
-//         ScaleFactor *= std::sqrt(AuxNonContact/AuxContact);
+        ScaleFactor *= std::sqrt(AuxNonContact/AuxContact);
         
         if (StrategyBaseType::mEchoLevel > 0)
         {
