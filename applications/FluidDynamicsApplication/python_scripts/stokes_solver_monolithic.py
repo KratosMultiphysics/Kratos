@@ -84,12 +84,11 @@ class StokesSolver:
 
 
     def AddDofs(self):
-        for node in self.main_model_part.Nodes:
-            # adding dofs
-            node.AddDof(kratoscore.VELOCITY_X, kratoscore.REACTION_X)
-            node.AddDof(kratoscore.VELOCITY_Y, kratoscore.REACTION_Y)
-            node.AddDof(kratoscore.VELOCITY_Z, kratoscore.REACTION_Z)
-            node.AddDof(kratoscore.PRESSURE, kratoscore.REACTION_WATER_PRESSURE)
+        kratoscore.VariableUtils().AddDofs(self.main_model_part,kratoscore.VELOCITY_X, kratoscore.REACTION_X)
+        kratoscore.VariableUtils().AddDofs(self.main_model_part,kratoscore.VELOCITY_Y, kratoscore.REACTION_Y)
+        kratoscore.VariableUtils().AddDofs(self.main_model_part,kratoscore.VELOCITY_Z, kratoscore.REACTION_Z)
+        kratoscore.VariableUtils().AddDofs(self.main_model_part,kratoscore.PRESSURE, kratoscore.REACTION_WATER_PRESSURE)
+
 
     def ImportModelPart(self):
         

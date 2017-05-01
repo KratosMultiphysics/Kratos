@@ -127,12 +127,10 @@ class NavierStokesBaseSolver(object):
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
     def AddDofs(self):
-        ## Adding dofs
-        for node in self.main_model_part.Nodes:
-            node.AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE)
-            node.AddDof(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.REACTION_X)
-            node.AddDof(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.REACTION_Y)
-            node.AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z)
+        KratosMultiphysics.VariableUtils().AddDofs(self.main_model_part,KratosMultiphysics.PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE)
+        KratosMultiphysics.VariableUtils().AddDofs(self.main_model_part,KratosMultiphysics.VELOCITY_X, KratosMultiphysics.REACTION_X)
+        KratosMultiphysics.VariableUtils().AddDofs(self.main_model_part,KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.REACTION_Y)
+        KratosMultiphysics.VariableUtils().AddDofs(self.main_model_part,KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z)
 
         print("Base class fluid solver DOFs added correctly.")
 
