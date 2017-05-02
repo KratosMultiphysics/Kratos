@@ -63,15 +63,11 @@ namespace Kratos
 			return;
 
 		// This function assumes tetrahedra element and triangle intersected object as input at this moment
-		constexpr int tetrahedra_edges[6][2] = { { 0,1 },{ 1,2 },{ 2,0 },{ 0,3 },{ 1,3 },{ 2,3 } };
 		constexpr int number_of_tetrahedra_points = 4;
-		constexpr double epsilon = 1e-6;// std::numeric_limits<double>::epsilon();
+		constexpr double epsilon = std::numeric_limits<double>::epsilon();
 		auto& element_geometry = rElement1.GetGeometry();
 		Vector& elemental_distances = rElement1.GetValue(ELEMENTAL_DISTANCES);
 		elemental_distances.resize(number_of_tetrahedra_points, false);
-		std::array<Point<3>, 6> edge_optimum_cut_point;
-		int number_of_cut_edge = 0;
-		auto new_id = mSkinRepresentation.NumberOfNodes() + GetModelPart1().NumberOfNodes() + 1;
 
 		for (int i = 0; i < number_of_tetrahedra_points; i++) {
 			elemental_distances[i] = std::numeric_limits<double>::max();
@@ -79,7 +75,31 @@ namespace Kratos
 				elemental_distances[i] = std::min(elemental_distances[i],GeometryUtils::PointDistanceToTriangle3D(triangle->GetGeometry()[0], triangle->GetGeometry()[1], triangle->GetGeometry()[2], rElement1.GetGeometry()[i]));
 			}
 		}
+		array_1d<double, 3> average_normal = ZeroVector(3);
+		double average_distance_to_origin = 0.00;
+		for (auto triangle : rIntersectedObjects.GetContainer()) {
+			array_1d<double, 3> triangle_normal = ZeroVector(3);
+			array_1d<double, 3> v1 = triangle->GetGeometry()[1] - triangle->GetGeometry()[0];
+			array_1d<double, 3> v2 = triangle->GetGeometry()[2] - triangle->GetGeometry()[0];
+			MathUtils<double>::CrossProduct(triangle_normal, v1, v2);
+			double normal_length = norm_2(triangle_normal);
+			if (normal_length < epsilon) 
+				continue; // we don't count the degenerated triangles
+			triangle_normal /= normal_length;
+			average_normal += triangle_normal;
+			average_distance_to_origin -= inner_prod(triangle_normal, triangle->GetGeometry()[0]);
+		}
 
+		average_distance_to_origin /= rIntersectedObjects.size();
+		for (int i = 0; i < number_of_tetrahedra_points; i++) {
+			if (inner_prod(average_normal, rElement1.GetGeometry()[i]) + average_distance_to_origin < -epsilon) {
+				elemental_distances[i] = -elemental_distances[i];
+			}
+		}
+
+		std::array<Point<3>, 6> edge_optimum_cut_point;
+		int number_of_cut_edge = 0;
+		constexpr int tetrahedra_edges[6][2] = { { 0,1 },{ 1,2 },{ 2,0 },{ 0,3 },{ 1,3 },{ 2,3 } };
 		std::vector<Point<3> > intersection_points;
 		for (int i = 0; i < 6; i++) {
 			if (elemental_distances[tetrahedra_edges[i][0]] < epsilon)
@@ -114,7 +134,6 @@ namespace Kratos
 			rElement1.Set(TO_SPLIT, true);
 		}
 		else if (number_of_cut_edge > 3) { // If there are more than 3 edges cut I would just use the first 3. This can be improved by using the one having the largest surface but is expensive.
-			KRATOS_WATCH(number_of_cut_edge);
 				Plane3D plane(edge_optimum_cut_point[0], edge_optimum_cut_point[1], edge_optimum_cut_point[2]);
 				for (int i = 0; i < number_of_tetrahedra_points; i++) {
 					if (plane.CalculateSignedDistance(rElement1.GetGeometry()[i]) < -std::numeric_limits<double>::epsilon())
