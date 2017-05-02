@@ -1306,14 +1306,14 @@ namespace Kratos {
       	y2 = xy[1][1];
       	y3 = xy[2][1];
       	y4 = xy[3][1];
-      	a1=1.0/4*(-x1+x2+x3-x4);
-      	a2=1.0/4*(x1-x2+x3-x4);
-      	a3=1.0/4*(-x1-x2+x3+x4);
-      	a4=1.0/4*(x1+x2+x3+x4);
-      	b1=1.0/4*(-y1+y2+y3-y4);
-      	b2=1.0/4*(y1-y2+y3-y4);
-      	b3=1.0/4*(-y1-y2+y3+y4);
-      	b4=1.0/4*(y1+y2+y3+y4);
+        a1=0.25*(-x1+x2+x3-x4);
+        a2=0.25*(x1-x2+x3-x4);
+        a3=0.25*(-x1-x2+x3+x4);
+        a4=0.25*(x1+x2+x3+x4);
+        b1=0.25*(-y1+y2+y3-y4);
+        b2=0.25*(y1-y2+y3-y4);
+        b3=0.25*(-y1-y2+y3+y4);
+        b4=0.25*(y1+y2+y3+y4);
 
       	x = x0 - a4;
       	y = y0 - b4;
@@ -1328,8 +1328,9 @@ namespace Kratos {
       	}
       	else
       	{
-            g1 = (-t1 + sqrt(t1*t1-4*s1*d1)) / (2*s1);
-            g2 = (-t1 - sqrt(t1*t1-4*s1*d1)) / (2*s1);
+            const double sqrt_aux = sqrt(t1*t1-4*s1*d1);
+            g1 = (-t1 + sqrt_aux) / (2*s1);
+            g2 = (-t1 - sqrt_aux) / (2*s1);
             if (fabs(g1) < 1.0+tolerance)
             {
                 g0 = (x-a3*g1) / (a1+a2*g1);
@@ -1498,7 +1499,7 @@ namespace Kratos {
         }
 
         CrossProduct(Vector1, Vector2, Vector0);
-        area = DEM_MODULUS_3(Vector0) / 2.0;
+        area = 0.5 * DEM_MODULUS_3(Vector0);
     }
 
     //TriAngle Weight, coord1,coord2,coord3,testcoord,weight
@@ -1511,10 +1512,10 @@ namespace Kratos {
 
         TriAngleArea(Coord1, Coord2, Coord3, s);
         /////s = area[0] + area[1] + area[2];
-
-        Weight[0] = area[1] / s;
-        Weight[1] = area[2] / s;
-        Weight[2] = area[0] / s;
+        const double s_inv = 1.0 / s;
+        Weight[0] = area[1] * s_inv;
+        Weight[1] = area[2] * s_inv;
+        Weight[2] = area[0] * s_inv;
     }
      
     //Quadrilatera Weight, coord1,coord2,coord3,testcoord,weight (Paper Zhang)
@@ -1670,7 +1671,7 @@ namespace Kratos {
 
         for (unsigned int index =0; index<3; index++) {
             
-            CoMTri[index] = 0.3333333333*(Coord1[index]+Coord2[index]+Coord3[index]);
+            CoMTri[index] = 0.33333333333333 *(Coord1[index]+Coord2[index]+Coord3[index]);
             }
 
         } //AreaAndCentroidTriangle

@@ -24,7 +24,7 @@ class ProjectionModule:
         self.shape_factor                = pp.CFD_DEM.shape_factor
         self.do_impose_flow_from_field   = pp.CFD_DEM.do_impose_flow_from_field
         self.flow_field                  = flow_field
-        
+
         if (self.dimension == 3):
 
             if pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
@@ -44,7 +44,7 @@ class ProjectionModule:
 
         # telling the projector which variables we are interested in modifying
 
-        for var in pp.coupling_dem_vars:            
+        for var in pp.coupling_dem_vars:
             self.projector.AddDEMCouplingVariable(var)
 
         for var in pp.coupling_fluid_vars:
@@ -112,5 +112,3 @@ class ProjectionModule:
 
     def ComputePostProcessResults(self, particles_process_info):
         self.projector.ComputePostProcessResults(self.particles_model_part, self.fluid_model_part, self.FEM_DEM_model_part, self.bin_of_objects_fluid, particles_process_info)
-
-

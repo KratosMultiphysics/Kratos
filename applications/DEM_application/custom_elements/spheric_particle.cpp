@@ -228,8 +228,8 @@ void SphericParticle::CalculateMaxBallToBallIndentation(double& r_current_max_in
         }
 
         else { // periodic domain
-            double my_coors[3] = {this->GetGeometry()[0].Coordinates()[0], this->GetGeometry()[0].Coordinates()[1], this->GetGeometry()[0].Coordinates()[2]};
-            double other_coors[3] = {ineighbour->GetGeometry()[0].Coordinates()[0], ineighbour->GetGeometry()[0].Coordinates()[1], ineighbour->GetGeometry()[0].Coordinates()[2]};
+            double my_coors[3] = {this->GetGeometry()[0][0], this->GetGeometry()[0][1], this->GetGeometry()[0][2]};
+            double other_coors[3] = {ineighbour->GetGeometry()[0][0], ineighbour->GetGeometry()[0][1], ineighbour->GetGeometry()[0][2]};
             DiscreteParticleConfigure<3>::TransformToClosestPeriodicCoordinates(my_coors, other_coors);
             other_to_me_vect[0] = my_coors[0] - other_coors[0];
             other_to_me_vect[1] = my_coors[1] - other_coors[1];
@@ -375,9 +375,9 @@ void SphericParticle::EvaluateDeltaDisplacement(double RelDeltDisp[3],
 {
     // FORMING LOCAL COORDINATES
 
-    //Notes: Since we will normally inherit the mesh from GiD, we respect the global system X,Y,Z [0],[1],[2]
-    //In the local coordinates we will define the normal direction of the contact as the [2] component!!!!!
-    //the way the normal direction is defined (other_to_me_vect) compression is positive!!!
+    // Notes: Since we will normally inherit the mesh from GiD, we respect the global system X,Y,Z [0],[1],[2]
+    // In the local coordinates we will define the normal direction of the contact as the [2] component.
+    // Compression is positive.
     GeometryFunctions::ComputeContactLocalCoordSystem(other_to_me_vect, distance, LocalCoordSystem); //new Local Coordinate System (normalizes other_to_me_vect)
 
     // FORMING OLD LOCAL COORDINATES
@@ -387,6 +387,10 @@ void SphericParticle::EvaluateDeltaDisplacement(double RelDeltDisp[3],
     const array_1d<double, 3>& other_delta_displ = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
     array_1d<double, 3> old_coord_neigh;
     noalias(old_coord_neigh) = p_neighbour->GetGeometry()[0].Coordinates() - other_delta_displ;
+
+    if (DiscreteParticleConfigure<3>::GetDomainPeriodicity()){ // the domain is periodic
+        DiscreteParticleConfigure<3>::TransformToClosestPeriodicCoordinates(old_coord_target, old_coord_neigh);
+    }
 
     array_1d<double, 3> old_other_to_me_vect;
     noalias(old_other_to_me_vect) = old_coord_target - old_coord_neigh;
@@ -411,7 +415,7 @@ void SphericParticle::EvaluateDeltaDisplacement(double RelDeltDisp[3],
 void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation(const double indentation,
                                                 double RelDeltDisp[3],
                                                 double RelVel[3],
-                                                double LocalCoordSystem[3][3],
+                                                const double LocalCoordSystem[3][3],
                                                 const double& other_radius,
                                                 const double& dt,
                                                 const array_1d<double, 3>& my_ang_vel,
@@ -461,7 +465,7 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
 
 void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotationMatrix(double DeltDisp[3],
                                                 double RelVel[3],
-                                                double OldLocalCoordSystem[3][3],
+                                                const double OldLocalCoordSystem[3][3],
                                                 const double& other_radius,
                                                 const double& dt,
                                                 const array_1d<double, 3>& angular_vel,
@@ -482,8 +486,14 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
         const double my_rotated_angle = DEM_MODULUS_3(temp_angular_vel);
         const double other_rotated_angle = DEM_MODULUS_3(temp_neigh_angular_vel);
 
-        array_1d<double, 3> other_to_me_vect;
-        noalias(other_to_me_vect)  = this->GetGeometry()[0].Coordinates() - p_neighbour->GetGeometry()[0].Coordinates();
+        const array_1d<double, 3>& coors = p_neighbour->GetGeometry()[0].Coordinates();
+        array_1d<double, 3> neigh_coors = p_neighbour->GetGeometry()[0].Coordinates();
+
+        if (DiscreteParticleConfigure<3>::GetDomainPeriodicity()){ // the domain is periodic
+            DiscreteParticleConfigure<3>::TransformToClosestPeriodicCoordinates(coors, neigh_coors);
+        }
+
+        const array_1d<double, 3> other_to_me_vect = coors - neigh_coors;
         const double distance            = DEM_MODULUS_3(other_to_me_vect);
         const double radius_sum          = GetInteractionRadius() + other_radius;
         const double indentation         = radius_sum - distance;
@@ -501,7 +511,6 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
         array_1d<double, 3> new_axes2 = e2;
 
         if (my_rotated_angle) {
-
             array_1d<double, 3> axis_1;
             axis_1[0] = temp_angular_vel[0] / my_rotated_angle;
             axis_1[1] = temp_angular_vel[1] / my_rotated_angle;
@@ -512,7 +521,6 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
         } //if my_rotated_angle
 
         if (other_rotated_angle) {
-
             array_1d<double, 3> axis_2;
             axis_2[0] = temp_neigh_angular_vel[0] / other_rotated_angle;
             axis_2[1] = temp_neigh_angular_vel[1] / other_rotated_angle;
@@ -1094,20 +1102,16 @@ void SphericParticle::AddNeighbourContributionToStressTensor(const double Force[
 
     double gap = distance - radius_sum;
     double real_distance = GetInteractionRadius() + 0.5 * gap;
-    
-    // Esto ya estaba comentado!!!
-    //double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
-    //rRepresentative_Volume += 0.33333333333333 * (real_distance * contact_area);
 
     array_1d<double, 3> normal_vector_on_contact;
-    normal_vector_on_contact[0] = -1 * other_to_me_vect[0]; //outwards
-    normal_vector_on_contact[1] = -1 * other_to_me_vect[1]; //outwards
-    normal_vector_on_contact[2] = -1 * other_to_me_vect[2]; //outwards
+    normal_vector_on_contact[0] = - other_to_me_vect[0]; //outwards
+    normal_vector_on_contact[1] = - other_to_me_vect[1]; //outwards
+    normal_vector_on_contact[2] = - other_to_me_vect[2]; //outwards
 
     array_1d<double, 3> x_centroid = real_distance * normal_vector_on_contact;
 
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
             (*mStressTensor)(i,j) += x_centroid[j] * Force[i]; //ref: Katalin Bagi 1995 Mean stress tensor
         }
     }

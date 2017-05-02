@@ -351,14 +351,7 @@ class Algorithm(BaseAlgorithm):
                     node.Fix(TURBULENT_VISCOSITY)
 
     def GetFieldUtility(self):
-        field_utility = None
-
-        if self.pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
-            flow_field = ConstantVelocityField(0.00001, 0, 0)
-            space_time_set = SpaceTimeSet()
-            field_utility = FluidFieldUtility(space_time_set, flow_field, 1000.0, 1e-6)
-
-        return field_utility
+        return None
 
     def GetResultsCreator(self):
         return None
