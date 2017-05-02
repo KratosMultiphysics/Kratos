@@ -202,7 +202,7 @@ namespace Kratos
       this->CalculateAndAddIsochoricStressTensor(Variables,rStressMatrix);      
 
       if( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES ) )
-	this->UpdateInternalVariables(Variables);
+	this->UpdateInternalVariables(rValues, Variables);
 
     
       KRATOS_CATCH(" ")
@@ -706,12 +706,12 @@ namespace Kratos
       KRATOS_CATCH(" ")    
     }
 
-    virtual void UpdateInternalVariables(PlasticDataType& rVariables)
+    virtual void UpdateInternalVariables(ModelDataType& rValues, PlasticDataType& rVariables)
     {
       KRATOS_TRY
     
       double& rEquivalentPlasticStrainOld  = mPreviousInternal.Variables[0];
-      double& rEquivalentPlasticStrain     = rVariables.Internal.Variables[0];
+      double& rEquivalentPlasticStrain     = mInternal.Variables[0];
       double& rDeltaGamma                  = rVariables.DeltaInternal.Variables[0];
 
       //update mechanical variables
@@ -720,6 +720,17 @@ namespace Kratos
 	
       //update thermal variables
       //mThermalVariables = rVariables.Thermal;
+
+      //update total strain measure
+      double VolumetricPart = (rValues.StrainMatrix(0,0)+rValues.StrainMatrix(1,1)+rValues.StrainMatrix(2,2))/3.0;
+      
+      rValues.StrainMatrix  = rValues.StressMatrix;
+      rValues.StrainMatrix *=  ( 1.0 / rValues.MaterialParameters.LameMu );
+            
+      rValues.StrainMatrix(0,0) += VolumetricPart;
+      rValues.StrainMatrix(1,1) += VolumetricPart;
+      rValues.StrainMatrix(2,2) += VolumetricPart;
+      
     
       KRATOS_CATCH(" ")    
     }
