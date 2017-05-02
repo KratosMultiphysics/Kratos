@@ -25,7 +25,7 @@
 
 
 // Project includes
-#include "includes/define.h"
+#include "processes/calculate_discontinuous_distance_to_skin_process.h"
 
 
 namespace Kratos
@@ -39,7 +39,7 @@ namespace Kratos
   /// Calculates the nodal distances using elemental discontinuous distances.
   /** This class calculates the nodal distances as a minimum elemental distances connected to it.
   */
-  class CalculateDistanceToSkinProcess
+  class KRATOS_API(KRATOS_CORE) CalculateDistanceToSkinProcess : public CalculateDiscontinuousDistanceToSkinProcess
     {
     public:
       ///@name Type Definitions
@@ -53,9 +53,15 @@ namespace Kratos
       ///@{
 
       /// Default constructor.
-      CalculateDistanceToSkinProcess();
+      CalculateDistanceToSkinProcess() = delete;;
 
-      /// Destructor.
+	  /// Copy constructor.
+	  CalculateDistanceToSkinProcess(CalculateDistanceToSkinProcess const& rOther) = delete;
+
+	  /// Constructor to be used.
+	  CalculateDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart);
+	  
+	  /// Destructor.
       virtual ~CalculateDistanceToSkinProcess();
 
 
@@ -68,6 +74,7 @@ namespace Kratos
       ///@name Operations
       ///@{
 
+	  void CalculateDistanceToSkinProcess::Execute() override;
 
       ///@}
       ///@name Access
@@ -174,8 +181,6 @@ namespace Kratos
       /// Assignment operator.
       CalculateDistanceToSkinProcess& operator=(CalculateDistanceToSkinProcess const& rOther);
 
-      /// Copy constructor.
-      CalculateDistanceToSkinProcess(CalculateDistanceToSkinProcess const& rOther);
 
 
       ///@}

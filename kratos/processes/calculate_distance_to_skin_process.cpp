@@ -18,12 +18,42 @@
 
 
 // Project includes
-#include "includes/define.h"
+#include "processes/calculate_distance_to_skin_process.h"
 
 
 namespace Kratos
 {
 
+	CalculateDistanceToSkinProcess::CalculateDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart)
+		: CalculateDiscontinuousDistanceToSkinProcess(rVolumePart, rSkinPart) {
+
+	}
+
+	CalculateDistanceToSkinProcess::~CalculateDistanceToSkinProcess() {}
+
+
+	void CalculateDistanceToSkinProcess::Execute() {
+		for (auto& node : GetModelPart1().Nodes()) {
+			node.GetSolutionStepValue(DISTANCE) =  std::numeric_limits<double>::max();
+		}
+
+		CalculateDiscontinuousDistanceToSkinProcess::Execute();
+
+	}
+
+	/// Turn back information as a string.
+	std::string CalculateDistanceToSkinProcess::Info() const {
+		return "CalculateDistanceToSkinProcess";
+	}
+
+	/// Print information about this object.
+	void CalculateDistanceToSkinProcess::PrintInfo(std::ostream& rOStream) const {
+		rOStream << Info();
+	}
+
+	/// Print object's data.
+	void CalculateDistanceToSkinProcess::PrintData(std::ostream& rOStream) const {
+	}
 
   
   

@@ -34,10 +34,6 @@ namespace Kratos
 	void CalculateDiscontinuousDistanceToSkinProcess::Execute() {
 		Initialize(); // Now the spatial container should be created
 
-		for (auto& node : GetModelPart1().Nodes()) {
-			node.GetSolutionStepValue(DISTANCE) = 1000.;// std::numeric_limits<double>::max();
-		}
-
 		std::vector<PointerVector<GeometricalObject>> intersected_objects;
 		FindIntersectedSkinObjects(intersected_objects);
 
