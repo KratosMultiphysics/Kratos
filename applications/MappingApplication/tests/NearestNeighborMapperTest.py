@@ -14,8 +14,6 @@ try: # test to import the modules for the parallel execution
 except:
     pass
 
-# from random import uniform # needed to set up test (with random values)
-
 class NearestNeighborMapperTest(KratosUnittest.TestCase):
 
     def __init__(self, gid_output):
@@ -65,7 +63,7 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         if (self.GiD_output):
             self.InitializeGiD()
 
-        # self.PrintValuesToPrescribe()
+        # self.PrintValuesToPrescribe() # needed to set up the test
 
         self.SetPrescribedValues()
 
@@ -597,6 +595,7 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         gid_io.FinalizeMesh()
 
     def PrintValuesToPrescribe(self):
+        from random import uniform
         values_range = [-100, 100]
         values_precision = 4
         print("Origin ModelPart; Scalar Values")

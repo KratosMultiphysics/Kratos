@@ -150,10 +150,6 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double, POISSON_VALUE)
   KRATOS_CREATE_VARIABLE(double, INTERNAL_COHESION)
 
-  // *************** Nano-particle only BEGIN *************
-  KRATOS_CREATE_VARIABLE(double, CATION_CONCENTRATION)
-  // *************** Nano-particle only END *************
-
   // *************** Continuum only BEGIN *************
   KRATOS_CREATE_VARIABLE(double, SLOPE_FRACTION_N1)
   KRATOS_CREATE_VARIABLE(double, SLOPE_FRACTION_N2)
@@ -243,8 +239,6 @@ namespace Kratos
   // *************** Continuum only BEGIN *************
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(INITIAL_ROTA_MOMENT)
   KRATOS_CREATE_VARIABLE(Vector, PARTICLE_BLOCK_CONTACT_FORCE)
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(EXTERNAL_APPLIED_FORCE)
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(EXTERNAL_APPLIED_MOMENT)
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(LOCAL_CONTACT_FORCE)
   KRATOS_CREATE_VARIABLE(VectorArray3Double, PARTICLE_CONTACT_FORCES )
   KRATOS_CREATE_VARIABLE(double,NEIGHBOUR_SIZE)
@@ -385,6 +379,7 @@ namespace Kratos
     mSolidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mSolidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mAnalyticRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mRigidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mRigidEdge3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2)))),
     mCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
@@ -518,10 +513,6 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(POISSON_VALUE)
     KRATOS_REGISTER_VARIABLE(INTERNAL_COHESION)      
 
-    // *************** Nano-particle only BEGIN *************
-    KRATOS_REGISTER_VARIABLE(CATION_CONCENTRATION)
-    // *************** Nano-particle only END *************
-
     // *************** Continuum only BEGIN *************
     KRATOS_REGISTER_VARIABLE(SLOPE_FRACTION_N1)
     KRATOS_REGISTER_VARIABLE(SLOPE_FRACTION_N2)
@@ -613,8 +604,6 @@ namespace Kratos
     // *************** Continuum only BEGIN *************
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INITIAL_ROTA_MOMENT)
     KRATOS_REGISTER_VARIABLE(PARTICLE_BLOCK_CONTACT_FORCE)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(EXTERNAL_APPLIED_FORCE)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(EXTERNAL_APPLIED_MOMENT)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(LOCAL_CONTACT_FORCE)
     KRATOS_REGISTER_VARIABLE(PARTICLE_CONTACT_FORCES)
 
@@ -735,7 +724,9 @@ namespace Kratos
     KRATOS_REGISTER_CONDITION("SolidFace3D3N", mSolidFace3D3N)
     KRATOS_REGISTER_CONDITION("SolidFace3D4N", mSolidFace3D4N)
     KRATOS_REGISTER_CONDITION("RigidFace3D", mRigidFace3D3N)
+    KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D", mAnalyticRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("RigidFace3D3N", mRigidFace3D3N)
+    KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D3N", mAnalyticRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("RigidFace3D4N", mRigidFace3D4N)
     KRATOS_REGISTER_CONDITION("RigidEdge3D", mRigidEdge3D2N)
     KRATOS_REGISTER_CONDITION("RigidEdge3D2N", mRigidEdge3D2N)

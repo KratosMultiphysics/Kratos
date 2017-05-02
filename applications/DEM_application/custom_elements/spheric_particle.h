@@ -41,7 +41,6 @@ typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
 typedef WeakPointerVector<Element> ParticleWeakVectorType;
 typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
 typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
-
 /// Default constructor.
 SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry );
 SphericParticle( IndexType NewId, NodesArrayType const& ThisNodes);
@@ -91,6 +90,9 @@ array_1d<double, 3> mOtherToMeVector;
 SphericParticle* mpThisParticle;
 SphericParticle* mpOtherParticle;
 };
+
+typedef std::unique_ptr<ParticleDataBuffer> BufferPointerType;
+
 
 virtual std::unique_ptr<ParticleDataBuffer> CreateParticleDataBuffer(SphericParticle* p_this_particle)
 {
@@ -158,6 +160,8 @@ virtual double GetInteractionRadius(const int radius_index = 0);
 virtual void SetInteractionRadius(const double radius, const int radius_index = 0);
 virtual double GetSearchRadius();
 virtual double GetSearchRadiusWithFem();
+DEMDiscontinuumConstitutiveLaw::Pointer GetConstitutiveLawPointer();
+virtual void SetDefaultRadiiHierarchy(const double radius);
 virtual void SetSearchRadius(const double radius);
 virtual void SetSearchRadiusWithFem(const double radius);
 virtual double GetMass();
@@ -235,6 +239,7 @@ double mElasticEnergy;
 double mInelasticFrictionalEnergy;
 double mInelasticViscodampingEnergy;
 std::vector<SphericParticle*>     mNeighbourElements;
+std::vector<int>                  mContactingNeighbourIds;
 std::vector<DEMWall*>             mNeighbourRigidFaces;
 std::vector<DEMWall*>             mNeighbourPotentialRigidFaces;
 

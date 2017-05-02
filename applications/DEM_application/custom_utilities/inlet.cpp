@@ -55,12 +55,10 @@ namespace Kratos {
         mFirstTime = true;
         mBallsModelPartHasSphericity = false;  
         mBallsModelPartHasRotation   = false;
+        SetNormalizedMaxIndentationForRelease(0.0);
+        SetNormalizedMaxIndentationForNewParticleCreation(0.05);
     }
-            
-    /// Destructor
-    
-    DEM_Inlet::~DEM_Inlet() {}
-     
+                 
     void DEM_Inlet::InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const bool using_strategy_for_continuum) {
         
         mStrategyForContinuum = using_strategy_for_continuum;
@@ -102,7 +100,7 @@ namespace Kratos {
             double max_rand_dev_angle = mp[MAX_RAND_DEVIATION_ANGLE];
             if (max_rand_dev_angle < 0.0 || max_rand_dev_angle > 89.5) {
                 
-                KRATOS_THROW_ERROR(std::runtime_error, "The velocity deviation angle must be between 0 and 90 degrees for group ", identifier);
+                KRATOS_THROW_ERROR(std::runtime_error, "The velocity deviation angle must be between 0 and 89.5 degrees for group ", identifier);
             }
             
             int general_properties_id = mInletModelPart.GetProperties(mp[PROPERTIES_ID]).Id();  
@@ -118,15 +116,13 @@ namespace Kratos {
             }
             
             Element::Pointer dummy_element_pointer;
-            std::string ElementNameString;
-            if (mStrategyForContinuum) ElementNameString = "SphericContinuumParticle3D";
-            else ElementNameString = "SphericParticle3D";
+            std::string& ElementNameString = mp[ELEMENT_TYPE];
             const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
             
             Properties::Pointer p_properties = mInletModelPart.pGetProperties(mp[PROPERTIES_ID]);
             
             for (int i = 0; i < mesh_size; i++) {                
-                /*Element* p_element = */creator.ElementCreatorWithPhysicalParameters(r_modelpart,
+                Element* p_element = creator.ElementCreatorWithPhysicalParameters(r_modelpart,
                                                              max_Id+1,
                                                              all_nodes[i],
                                                              dummy_element_pointer,
@@ -138,7 +134,9 @@ namespace Kratos {
                                                              mBallsModelPartHasRotation,
                                                              true,
                                                              smp_it->Elements());
-		max_Id++;
+
+                FixInjectorConditions(p_element);
+                max_Id++;
                 /*if(mStrategyForContinuum){
                     SphericContinuumParticle* p_continuum_spheric_particle = dynamic_cast<SphericContinuumParticle*>(p_element);
                     p_continuum_spheric_particle->mContinuumInitialNeighborsSize=0;
@@ -171,13 +169,18 @@ namespace Kratos {
                 
                 Node<3>& neighbour_node = neighbour_particle->GetGeometry()[0];
 
-                const double admissible_indentation_ratio = 0.0;
                 const double indentation = CalculateNormalizedIndentation(spheric_particle, *neighbour_particle);
-                const bool indentation_is_significant = indentation > admissible_indentation_ratio;
+                const bool indentation_is_significant_for_release = indentation > mNormalizedMaxIndentationForRelease;
+                const bool indentation_is_significant_for_injection = indentation > mNormalizedMaxIndentationForNewParticleCreation;
                 const bool i_am_injected_he_is_injector = node_it.IsNot(BLOCKED) && neighbour_node.Is(BLOCKED);
                 const bool i_am_injector_he_is_injected = node_it.Is(BLOCKED) && neighbour_node.IsNot(BLOCKED);
 
-                if ((i_am_injected_he_is_injector || i_am_injector_he_is_injected) && indentation_is_significant) {
+                if (i_am_injected_he_is_injector && indentation_is_significant_for_release) {
+                    have_just_stopped_touching = false;
+                    break;
+                }
+
+                if (i_am_injector_he_is_injected && indentation_is_significant_for_injection) {
                     have_just_stopped_touching = false;
                     break;
                 }
@@ -185,31 +188,56 @@ namespace Kratos {
 
             if (have_just_stopped_touching) {
                 if (node_it.IsNot(BLOCKED)) {//The ball must be freed
-                    node_it.Set(DEMFlags::FIXED_VEL_X, false);
-                    node_it.Set(DEMFlags::FIXED_VEL_Y, false);
-                    node_it.Set(DEMFlags::FIXED_VEL_Z, false);
-                    node_it.Set(DEMFlags::FIXED_ANG_VEL_X, false);
-                    node_it.Set(DEMFlags::FIXED_ANG_VEL_Y, false);
-                    node_it.Set(DEMFlags::FIXED_ANG_VEL_Z, false);
-                    elem_it->Set(NEW_ENTITY, 0);
-                    node_it.Set(NEW_ENTITY, 0);
-                    node_it.pGetDof(VELOCITY_X)->FreeDof();
-                    node_it.pGetDof(VELOCITY_Y)->FreeDof();
-                    node_it.pGetDof(VELOCITY_Z)->FreeDof();
-                    node_it.pGetDof(ANGULAR_VELOCITY_X)->FreeDof();
-                    node_it.pGetDof(ANGULAR_VELOCITY_Y)->FreeDof();
-                    node_it.pGetDof(ANGULAR_VELOCITY_Z)->FreeDof();
+                    RemoveInjectionConditions(spheric_particle);
                 }
                 else {
                     //Inlet BLOCKED nodes are ACTIVE when injecting, so when they cease to be in contact with other balls, ACTIVE is set to 'false', as they become available for injecting new elements.
                     node_it.Set(ACTIVE, false);
-                    elem_it->Set(ACTIVE, false);
+                    elem_it->Set(ACTIVE, false);                    
                 }
             }            
         }         
         mFirstTime = false;        
     } //Dettach
 
+    void DEM_Inlet::FixInjectorConditions(Element* p_element){}
+
+    void DEM_Inlet::FixInjectionConditions(Element* p_element)
+    {
+        Node<3>& node = p_element->GetGeometry()[0];
+        node.pGetDof(VELOCITY_X)->FixDof();
+        node.pGetDof(VELOCITY_Y)->FixDof();
+        node.pGetDof(VELOCITY_Z)->FixDof();
+        node.pGetDof(ANGULAR_VELOCITY_X)->FixDof();
+        node.pGetDof(ANGULAR_VELOCITY_Y)->FixDof();
+        node.pGetDof(ANGULAR_VELOCITY_Z)->FixDof();
+
+        node.Set(DEMFlags::FIXED_VEL_X, true);
+        node.Set(DEMFlags::FIXED_VEL_Y, true);
+        node.Set(DEMFlags::FIXED_VEL_Z, true);
+        node.Set(DEMFlags::FIXED_ANG_VEL_X, true);
+        node.Set(DEMFlags::FIXED_ANG_VEL_Y, true);
+        node.Set(DEMFlags::FIXED_ANG_VEL_Z, true);
+    }
+
+    void DEM_Inlet::RemoveInjectionConditions(Element& element)
+    {
+        Node<3>& node = element.GetGeometry()[0];
+        node.Set(DEMFlags::FIXED_VEL_X, false);
+        node.Set(DEMFlags::FIXED_VEL_Y, false);
+        node.Set(DEMFlags::FIXED_VEL_Z, false);
+        node.Set(DEMFlags::FIXED_ANG_VEL_X, false);
+        node.Set(DEMFlags::FIXED_ANG_VEL_Y, false);
+        node.Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+        element.Set(NEW_ENTITY, 0);
+        node.Set(NEW_ENTITY, 0);
+        node.pGetDof(VELOCITY_X)->FreeDof();
+        node.pGetDof(VELOCITY_Y)->FreeDof();
+        node.pGetDof(VELOCITY_Z)->FreeDof();
+        node.pGetDof(ANGULAR_VELOCITY_X)->FreeDof();
+        node.pGetDof(ANGULAR_VELOCITY_Y)->FreeDof();
+        node.pGetDof(ANGULAR_VELOCITY_Z)->FreeDof();
+    }
 
     void DEM_Inlet::DettachClusters(ModelPart& r_clusters_modelpart, unsigned int& max_Id) {    
                             
@@ -266,7 +294,8 @@ namespace Kratos {
     } //DettachClusters
     
     void DEM_Inlet::CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator) {                    
-        unsigned int& max_Id=creator.mMaxNodeId; 
+        InitializeStep(r_modelpart);
+        unsigned int& max_Id=creator.mMaxNodeId;
         const double current_time = r_modelpart.GetProcessInfo()[TIME];
         DettachElements(r_modelpart, max_Id);
         DettachClusters(r_clusters_modelpart, max_Id);
@@ -314,8 +343,8 @@ namespace Kratos {
                
                 for (int i = 0; i < mesh_size_elements; i++) {                    
                     if (all_elements[i]->IsNot(ACTIVE)) { 
-		        valid_elements[valid_elements_length] = all_elements[i];   
-		        valid_elements_length++; 
+                        valid_elements[valid_elements_length] = all_elements[i];
+                        valid_elements_length++;
                     } // (push_back) //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted.
                 }
 
@@ -373,9 +402,9 @@ namespace Kratos {
                 if (mp[CONTAINS_CLUSTERS] == false) {
                
                     for (int i = 0; i < number_of_particles_to_insert; i++) {
-                        /*Element* p_element = */creator.ElementCreatorWithPhysicalParameters(r_modelpart,                                                                     
+                        Element* p_element = creator.ElementCreatorWithPhysicalParameters(r_modelpart,
                                                                                         max_Id+1, 
-                                                                                        inserting_elements[i]->GetGeometry()(0), 
+                                                                                        inserting_elements[i]->GetGeometry()(0),
                                                                                         inserting_elements[i],
                                                                                         p_properties, 
                                                                                         mp,
@@ -389,6 +418,9 @@ namespace Kratos {
                             SphericContinuumParticle& spheric_cont_particle = dynamic_cast<SphericContinuumParticle&>(*p_element);
                             spheric_cont_particle.mContinuumInitialNeighborsSize = 0;
                         }*/
+
+                        FixInjectionConditions(p_element);
+
                         inserting_elements[i]->Set(ACTIVE); //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted. 
                         inserting_elements[i]->GetGeometry()[0].Set(ACTIVE);
                         max_Id++;
@@ -426,5 +458,20 @@ namespace Kratos {
         creator.RemoveUnusedNodesOfTheClustersModelPart(r_clusters_modelpart);
         
     }    //CreateElementsFromInletMesh       
+
+    ModelPart& DEM_Inlet::GetInletModelPart()
+    {
+        return mInletModelPart;
+    }
+
+    void DEM_Inlet::SetNormalizedMaxIndentationForRelease(const double value)
+    {
+        mNormalizedMaxIndentationForRelease = value;
+    }
+
+    void DEM_Inlet::SetNormalizedMaxIndentationForNewParticleCreation(const double value)
+    {
+        mNormalizedMaxIndentationForNewParticleCreation = value;
+    }
 
 } // namespace Kratos

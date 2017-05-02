@@ -33,6 +33,8 @@ namespace Kratos
                                                     a[1][0] = b[1][0]; a[1][1] = b[1][1]; a[1][2] = b[1][2]; \
                                                     a[2][0] = b[2][0]; a[2][1] = b[2][1]; a[2][2] = b[2][2];
     
+#define DEM_DETERMINANT_3x3(a0, a1, a2)            (a0[0] * (a1[1] * a2[2] - a1[2] * a2[1]) - a0[1] * (a1[0] * a2[2] - a1[2] * a2[0]) + a0[2] * (a1[0] * a2[1] - a1[1] * a2[0]))
+
   KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, CONTINUUM_INI_NEIGHBOUR_ELEMENTS)
   KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, NODE_TO_NEIGH_ELEMENT_POINTER)
 
@@ -131,10 +133,6 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(double, POISSON_VALUE)
   KRATOS_DEFINE_VARIABLE(double, INTERNAL_COHESION)
   
-  // *************** Nano-particle only BEGIN *************
-  KRATOS_DEFINE_VARIABLE(double, CATION_CONCENTRATION)
-  // *************** Nano-particle only END *************
-
   // *************** Continuum only BEGIN *************
   KRATOS_DEFINE_VARIABLE(double, SLOPE_FRACTION_N1)
   KRATOS_DEFINE_VARIABLE(double, SLOPE_FRACTION_N2)
@@ -229,8 +227,6 @@ namespace Kratos
   // *************** Continuum only BEGIN *************
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(INITIAL_ROTA_MOMENT)
   KRATOS_DEFINE_VARIABLE(Vector, PARTICLE_BLOCK_CONTACT_FORCE)
-  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(EXTERNAL_APPLIED_FORCE)
-  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(EXTERNAL_APPLIED_MOMENT)
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(LOCAL_CONTACT_FORCE)
   KRATOS_DEFINE_VARIABLE(VectorArray3Double, PARTICLE_CONTACT_FORCES )
   KRATOS_DEFINE_VARIABLE(double, NEIGHBOUR_SIZE)
