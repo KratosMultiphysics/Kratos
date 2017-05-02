@@ -19,7 +19,7 @@
 #include "processes/calculate_signed_distance_to_3d_skin_process.h" // TODO: Change the tested process as soon as the new distance process is available
 #include "processes/structured_mesh_generator_process.h"
 #include "geometries/hexahedra_3d_8.h"
-#include "processes/calculate_discontinuous_distance_to_skin_process.h"
+#include "processes/calculate_distance_to_skin_process.h"
 
 namespace Kratos {
   namespace Testing {
@@ -65,7 +65,7 @@ namespace Kratos {
 
 		  // Compute distance
 		  // TODO: Change the tested process as soon as the new distance process is available
-		  CalculateDiscontinuousDistanceToSkinProcess process(volume_part, skin_part);
+		  CalculateDistanceToSkinProcess process(volume_part, skin_part);
 		  process.Execute();
 		  //ModelPart& skin_rpresentation_part = process.GetSkinRepresentation();
 		  //KRATOS_WATCH(skin_rpresentation_part);
@@ -138,7 +138,7 @@ namespace Kratos {
 
 		  // Compute distance
 		  // TODO: Change the tested process as soon as the new distance process is available
-		  CalculateDiscontinuousDistanceToSkinProcess process(volume_part, skin_part);
+		  CalculateDistanceToSkinProcess process(volume_part, skin_part);
 		  process.Execute();
 		  //ModelPart& skin_rpresentation_part = process.GetSkinRepresentation();
 		  //KRATOS_WATCH(skin_rpresentation_part);

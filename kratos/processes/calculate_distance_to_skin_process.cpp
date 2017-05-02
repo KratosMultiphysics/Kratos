@@ -39,6 +39,18 @@ namespace Kratos
 
 		CalculateDiscontinuousDistanceToSkinProcess::Execute();
 
+		constexpr int number_of_tetrahedra_points = 4;
+		for (auto& element : GetModelPart1().Elements()) {
+			if (element.Is(TO_SPLIT)) {
+				auto& r_elemental_distances = element.GetValue(ELEMENTAL_DISTANCES);
+				for (int i = 0; i < number_of_tetrahedra_points; i++) {
+					Node<3>& r_node = element.GetGeometry()[i];
+					double& r_distance = r_node.GetSolutionStepValue(DISTANCE);
+					if (fabs(r_distance) > r_elemental_distances[i])
+						r_distance = r_elemental_distances[i];
+				}
+			}
+		}
 	}
 
 	/// Turn back information as a string.

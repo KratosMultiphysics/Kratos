@@ -117,8 +117,6 @@ namespace Kratos
 			elemental_distances[i] = std::numeric_limits<double>::max();
 			for (auto triangle : rIntersectedObjects.GetContainer()) {
 				elemental_distances[i] = std::min(elemental_distances[i],GeometryUtils::PointDistanceToTriangle3D(triangle->GetGeometry()[0], triangle->GetGeometry()[1], triangle->GetGeometry()[2], rElement1.GetGeometry()[i]));
-				if (fabs(rElement1.GetGeometry()[i].GetSolutionStepValue(DISTANCE)) > fabs(elemental_distances[i]))
-						rElement1.GetGeometry()[i].GetSolutionStepValue(DISTANCE) = elemental_distances[i];
 			}
 		}
 
