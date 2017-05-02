@@ -113,12 +113,14 @@ public:
           mNumberOfDesignVariables(designSurface.Nodes().size()),
           mFilterFunction( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() ),
           mFilterRadius( optimizationSettings["design_variables"]["filter"]["filter_radius"].GetDouble() ),
-          mPerformDamping( optimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool() )
+          mPerformDamping( optimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool() ),
+          mpSearchTree()
     {
+        createListOfNodesOfDesignSurface();
         assignMappingMatrixIds();
         initalizeDampingFactorsToHaveNoInfluence(); 
         if(mPerformDamping)   
-            setDampingFactorsForAllDampingRegions( dampingRegions, optimizationSettings["design_variables"]["damping"]["damping_regions"] );
+            setDampingFactorsForAllDampingRegions( dampingRegions, optimizationSettings["design_variables"]["damping"]["damping_regions"] );         
     }
 
     /// Destructor.
@@ -137,6 +139,16 @@ public:
     ///@{
 
     // ==============================================================================
+    void createListOfNodesOfDesignSurface()
+    {
+        for (ModelPart::NodesContainerType::iterator node_it = mrDesignSurface.NodesBegin(); node_it != mrDesignSurface.NodesEnd(); ++node_it)
+        {
+            NodeTypePointer pnode = *(node_it.base());
+            mListOfNodesOfDesignSurface.push_back(pnode);
+        }
+    }
+    
+    // --------------------------------------------------------------------------
     void assignMappingMatrixIds()
     {
         unsigned int i = 0;
@@ -160,19 +172,8 @@ public:
     {
         std::cout << "\n> Starting to prepare damping..." << std::endl;
 
-        // Creating an auxiliary list for the nodes to be searched on
-        NodeVector listOfNodes;
-
-        // Add nodes to list wich collects all nodes for neighbour-search
-        for (ModelPart::NodesContainerType::iterator node_it = mrDesignSurface.NodesBegin(); node_it != mrDesignSurface.NodesEnd(); ++node_it)
-        {
-            NodeTypePointer pnode = *(node_it.base());
-            listOfNodes.push_back(pnode);
-        }
-
-        // Compute tree with the node positions
-        unsigned int bucket_size = 100;
-        KDTree treeOfAllOptimizationNodes(listOfNodes.begin(), listOfNodes.end(), bucket_size);
+        resetSearchTreeIfAlreadyExisting( mpSearchTree );
+        mpSearchTree = createSearchTreeWithAllNodesOnDesignSurface();
 
         // Loop over all regions for which damping is to be applied
         for (unsigned int regionNumber = 0; regionNumber < len(dampingRegions); regionNumber++)
@@ -205,11 +206,11 @@ public:
 
                 // Perform spatial search for current node
                 unsigned int numberOfNodesAffected;
-                numberOfNodesAffected = treeOfAllOptimizationNodes.SearchInRadius( currentDampingNode, 
-                                                                                   dampingRadius, 
-                                                                                   nodesAffected.begin(),
-                                                                                   resulting_squared_distances.begin(), 
-                                                                                   maxNodesAffected ); 
+                numberOfNodesAffected = mpSearchTree->SearchInRadius( currentDampingNode, 
+                                                                      dampingRadius, 
+                                                                      nodesAffected.begin(),
+                                                                      resulting_squared_distances.begin(), 
+                                                                      maxNodesAffected ); 
                 
                 // Throw a warning if specified (hard-coded) maximum number of neighbors is reached
                 if(numberOfNodesAffected == maxNodesAffected)
@@ -269,23 +270,10 @@ public:
         VectorType dJdsx, dJdsy, dJdsz;
         dJdsx.resize(mNumberOfDesignVariables);
         dJdsy.resize(mNumberOfDesignVariables);
-        dJdsz.resize(mNumberOfDesignVariables);
-
-        // Creating an auxiliary list for the nodes to be searched on
-        NodeVector listOfNodes;
-
-        // starting calculating time of construction of the kdtree
-        for (ModelPart::NodesContainerType::iterator node_it = mrDesignSurface.NodesBegin(); node_it != mrDesignSurface.NodesEnd(); ++node_it)
-        {
-            NodeTypePointer pnode = *(node_it.base());
-
-            // Putting the nodes of interest in an auxiliary list
-            listOfNodes.push_back(pnode);
-        }
-
-        // Compute tree with the node positions
-        unsigned int bucket_size = 100;
-        KDTree treeOfAllOptimizationNodes(listOfNodes.begin(), listOfNodes.end(), bucket_size);
+        dJdsz.resize(mNumberOfDesignVariables);       
+        
+        resetSearchTreeIfAlreadyExisting( mpSearchTree );
+        mpSearchTree = createSearchTreeWithAllNodesOnDesignSurface();
 
         // Prepare Weighting function to be used in the mapping
         FilterFunction filterFunction( mFilterFunction, mFilterRadius );
@@ -305,11 +293,11 @@ public:
 
             // Perform spatial search for current node
             unsigned int numberOfNodesAffected;
-            numberOfNodesAffected = treeOfAllOptimizationNodes.SearchInRadius( node_i, 
-                                                                               mFilterRadius, 
-                                                                               nodesAffected.begin(),
-                                                                               resulting_squared_distances.begin(), 
-                                                                               maxNodesAffected );
+            numberOfNodesAffected = mpSearchTree->SearchInRadius( node_i, 
+                                                                mFilterRadius, 
+                                                                nodesAffected.begin(),
+                                                                resulting_squared_distances.begin(), 
+                                                                maxNodesAffected );
 
             // Throw a warning if specified (hard-coded) maximum number of neighbors is reached
             if(numberOfNodesAffected >= maxNodesAffected)
@@ -388,21 +376,8 @@ public:
         dy.resize(mNumberOfDesignVariables);
         dz.resize(mNumberOfDesignVariables);
 
-        // Creating an auxiliary list for the nodes to be searched on
-        NodeVector listOfNodes;
-
-        // starting calculating time of construction of the kdtree
-        for (ModelPart::NodesContainerType::iterator node_it = mrDesignSurface.NodesBegin(); node_it != mrDesignSurface.NodesEnd(); ++node_it)
-        {
-            NodeTypePointer pnode = *(node_it.base());
-
-            // Putting the nodes of interest in an auxiliary list
-            listOfNodes.push_back(pnode);
-        }
-
-        // Compute tree with the node positions
-        unsigned int bucket_size = 100;
-        KDTree treeOfAllOptimizationNodes(listOfNodes.begin(), listOfNodes.end(), bucket_size);
+        resetSearchTreeIfAlreadyExisting( mpSearchTree );
+        mpSearchTree = createSearchTreeWithAllNodesOnDesignSurface();
 
         // Prepare Weighting function to be used in the mapping
         FilterFunction filterFunction( mFilterFunction, mFilterRadius );
@@ -425,11 +400,11 @@ public:
 
             // Perform spatial search for current node
             unsigned int numberOfNodesAffected;
-            numberOfNodesAffected = treeOfAllOptimizationNodes.SearchInRadius( node_i, 
-                                                                               mFilterRadius, 
-                                                                               nodesAffected.begin(),
-                                                                               resulting_squared_distances.begin(), 
-                                                                               maxNodesAffected );
+            numberOfNodesAffected = mpSearchTree->SearchInRadius( node_i, 
+                                                                  mFilterRadius, 
+                                                                  nodesAffected.begin(),
+                                                                  resulting_squared_distances.begin(), 
+                                                                  maxNodesAffected );
 
             // Throw a warning if specified (hard-coded) maximum number of neighbors is reached
             if(numberOfNodesAffected >= maxNodesAffected)
@@ -510,6 +485,19 @@ public:
             nodalVariable[2] *= damping_factor[2];  
         }  
     }
+
+    // --------------------------------------------------------------------------
+    void resetSearchTreeIfAlreadyExisting( KDTree::Pointer searchTree )
+    {
+        if(searchTree != 0)
+            searchTree.reset();
+    }
+
+    // --------------------------------------------------------------------------
+    KDTree::Pointer createSearchTreeWithAllNodesOnDesignSurface()
+    {
+        return boost::shared_ptr<KDTree>(new KDTree(mListOfNodesOfDesignSurface.begin(), mListOfNodesOfDesignSurface.end(), mBucketSize));
+    }    
    
     // ==============================================================================
 
@@ -608,9 +596,11 @@ private:
     bool mPerformDamping;
 
     // ==============================================================================
-    // General working arrays
+    // Variables for spatial search
     // ==============================================================================
-    SparseMatrixType mMappingMatrix;
+    unsigned int mBucketSize = 100;
+    NodeVector mListOfNodesOfDesignSurface;
+    KDTree::Pointer mpSearchTree;
 
     ///@}
     ///@name Private Operators
