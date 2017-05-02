@@ -87,10 +87,13 @@ bool HyperElastic3DLaw::Has( const Variable<Matrix>& rThisVariable )
 double& HyperElastic3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
   if (rThisVariable == STRAIN_ENERGY)
-  {
-      
+  {      
     rValue = mStrainEnergy;
   }
+  else{
+    rValue = 0;
+  }
+    
     
     return( rValue );
 }

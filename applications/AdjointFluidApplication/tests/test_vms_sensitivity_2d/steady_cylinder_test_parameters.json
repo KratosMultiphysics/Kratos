@@ -49,7 +49,6 @@
         "oss_switch"                   : 0,
         "echo_level"                   : 0,
         "consider_periodic_conditions" : false,
-        "time_order"                   : 2,
         "compute_reactions"            : true,
         "divergence_clearance_steps"   : 0,
         "reform_dofs_at_each_step"     : false,
@@ -59,14 +58,8 @@
         "absolute_pressure_tolerance"  : 1e-7,
         "linear_solver_settings"       : {
             "solver_type"         : "AMGCL",
-            "max_iteration"       : 500,
-            "tolerance"           : 1e-9,
-            "provide_coordinates" : false,
-            "smoother_type"       : "ilu0",
-            "krylov_type"         : "gmres",
-            "coarsening_type"     : "aggregation",
-            "scaling"             : true,
-            "verbosity"           : 0
+            "verbosity"           : 0,
+            "coarse_enough"       : 500
         },
         "volume_model_part_name"       : "Parts_Fluid",
         "skin_parts"                   : ["Inlet2D_Inlet","Outlet2D_Outlet","NoSlip2D_Cylinder","NoSlip2D_Wall"],

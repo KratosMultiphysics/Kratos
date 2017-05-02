@@ -45,7 +45,7 @@ def AddDofs(model_part, config=None):
         node.AddDof(VELOCITY_X, REACTION_X)
         node.AddDof(VELOCITY_Y, REACTION_Y)
         node.AddDof(VELOCITY_Z, REACTION_Z)
-        node.AddDof(PRESSURE, REACTION_WATER_PRESSURE)
+        node.AddDof(PRESSURE, REACTION_WATER_PRESSURE)       
 
     if config is not None:
         if hasattr(config, "TurbulenceModel"):

@@ -286,12 +286,12 @@ public:
 	  threshold_value += *v;
 
 	threshold_value /= double(Value.size());
-	threshold_value *= MasterElement.GetGeometry().Area();
+	threshold_value *= MasterElement.GetGeometry().DomainSize();
 	
 	//calculate condition length
 	double face_size = mModelerUtilities.CalculateBoundarySize(pCondition->GetGeometry());
 	
-	if( threshold_value > mrRemesh.Refine->ReferenceThreshold * MasterElement.GetGeometry().Area() && face_size > critical_size )
+	if( threshold_value > mrRemesh.Refine->ReferenceThreshold && face_size > critical_size )
 	  return true;
       }
 
@@ -472,10 +472,15 @@ public:
 	  this->HermiteTriangleInterpolation(pCondition, position_correction);
 
 	}
-	
-	xc += position_correction[0];
-	yc += position_correction[1];
-	zc += position_correction[2];
+
+	//correct only if not self contact
+	ModelerUtilities ModelerUtils;
+	if( !ModelerUtils.CheckSubdomain(pCondition->GetGeometry()) )
+	  {
+	    xc += position_correction[0];
+	    yc += position_correction[1];
+	    zc += position_correction[2];
+	  }
 
       }
       

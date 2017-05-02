@@ -54,7 +54,6 @@ namespace Kratos
     //bools
 
     //for Structural application:
-    KRATOS_DEFINE_VARIABLE( bool, IS_INACTIVE )
 
     //for Level Set application:
     KRATOS_DEFINE_VARIABLE( bool, IS_DUPLICATED )

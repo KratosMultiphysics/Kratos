@@ -99,7 +99,7 @@ namespace Kratos
 			i_node->Set(NOT_SELECTED);
 
 		for (auto i_element = mrModelPart.ElementsBegin(); i_element != mrModelPart.ElementsEnd(); i_element++) {
-			double quality = i_element->GetGeometry().Quality(Geometry<Node<3> >::QualityCriteria::AVERAGE_LENGTH_VOLUME_RATIO);
+			double quality = i_element->GetGeometry().Quality(Geometry<Node<3> >::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH);
 			mMeshQualityNorm += (1.00-quality)*(1.00-quality);
 			mMeshMinQuality = std::min(quality, mMeshMinQuality);
 
@@ -150,10 +150,10 @@ namespace Kratos
 		constexpr std::size_t maximum_bisectioning_iteration = 1;
 
 		TetrahedraBall node_ball(rNode);
-		double bisectioning_min = node_ball.CalculateMinQuality(Geometry<Node<3> >::QualityCriteria::AVERAGE_LENGTH_VOLUME_RATIO);
+		double bisectioning_min = node_ball.CalculateMinQuality(Geometry<Node<3> >::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH);
 		auto old_coordinates = rNode.Coordinates();
 		rNode.Coordinates() = OptimumPosition;
-		double bisectioning_max = node_ball.CalculateMinQuality(Geometry<Node<3> >::QualityCriteria::AVERAGE_LENGTH_VOLUME_RATIO);
+		double bisectioning_max = node_ball.CalculateMinQuality(Geometry<Node<3> >::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH);
 
 		double min_alpha = 0.00;
 		double max_alpha = 1.00;
@@ -163,7 +163,7 @@ namespace Kratos
 		{
 			alpha = (min_alpha + max_alpha)*.5;
 			rNode.Coordinates() = old_coordinates * (1.00 - alpha) + OptimumPosition * alpha;
-			double quality = node_ball.CalculateMinQuality(Geometry<Node<3> >::QualityCriteria::AVERAGE_LENGTH_VOLUME_RATIO);
+			double quality = node_ball.CalculateMinQuality(Geometry<Node<3> >::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH);
 			if (bisectioning_max > bisectioning_min) {
 				min_alpha = alpha;
 				bisectioning_min = quality;
@@ -184,12 +184,12 @@ namespace Kratos
 
 		rNode.Coordinates() = old_coordinates * (1.00 - alpha) + OptimumPosition * alpha;
 
-		//double old_quality = node_ball.CalculateMinQuality(Geometry<Node<3> >::QualityCriteria::AVERAGE_LENGTH_VOLUME_RATIO);
+		//double old_quality = node_ball.CalculateMinQuality(Geometry<Node<3> >::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH);
 
 		////auto old_coordinates = rNode.Coordinates();
 		//rNode.Coordinates() = OptimumPosition;
 
-		//double new_quality = node_ball.CalculateMinQuality(Geometry<Node<3> >::QualityCriteria::AVERAGE_LENGTH_VOLUME_RATIO);
+		//double new_quality = node_ball.CalculateMinQuality(Geometry<Node<3> >::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH);
 
 		//if (new_quality < old_quality) {
 		//	rNode.Coordinates() = old_coordinates;

@@ -21,22 +21,21 @@ class Pouliot2012MaterialAccelerationRecoverer(Pouliot2012GradientRecoverer, L2_
         Pouliot2012GradientRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
         self.do_pre_recovery = do_pre_recovery
 
-        if self.do_pre_recovery:
-            scheme = ResidualBasedIncrementalUpdateStaticScheme()
-            amgcl_smoother = AMGCLSmoother.ILU0
-            amgcl_krylov_type = AMGCLIterativeSolverType.BICGSTAB
-            tolerance = 1e-6
-            max_iterations = 1000
-            verbosity = 0 #0->shows no information, 1->some information, 2->all the information
-            gmres_size = 50
+        scheme = ResidualBasedIncrementalUpdateStaticScheme()
+        amgcl_smoother = AMGCLSmoother.SPAI0
+        amgcl_krylov_type = AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK
+        tolerance = 1e-12
+        max_iterations = 200
+        verbosity = 2 #0->shows no information, 1->some information, 2->all the information
+        gmres_size = 400
 
-            if self.use_lumped_mass_matrix:
-                linear_solver = CGSolver()
-            else:
-                linear_solver = AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
+        if self.use_lumped_mass_matrix:
+            linear_solver = CGSolver()
+        else:
+            linear_solver = AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
 
-            self.aux_recovery_strategy = ResidualBasedDerivativeRecoveryStrategy(self.recovery_model_part, scheme, linear_solver, False, True, False, False)
-            self.aux_recovery_strategy.SetEchoLevel(0)
+        self.recovery_strategy = ResidualBasedDerivativeRecoveryStrategy(self.recovery_model_part, scheme, linear_solver, False, True, False, False)
+        self.recovery_strategy.SetEchoLevel(0)
 
 class Pouliot2012LaplacianRecoverer(L2_projection_recoverer.L2ProjectionDerivativesRecoverer, recoverer.LaplacianRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):

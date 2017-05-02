@@ -245,7 +245,10 @@ public:
 
         for ( typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it )
         {
-            if ( !( *it )->GetValue( IS_INACTIVE ) )
+            bool element_is_active = true;
+            if( (*it)->IsDefined(ACTIVE) )
+                element_is_active = (*it)->Is(ACTIVE);
+            if ( element_is_active )
             {
                 //calculate elemental contribution
                 pScheme->CalculateSystemContributions( *it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
@@ -271,7 +274,10 @@ public:
         // assemble all conditions
         for ( typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it )
         {
-            if ( !( *it )->GetValue( IS_INACTIVE ) )
+            bool condition_is_active = true;
+            if( (*it)->IsDefined(ACTIVE) )
+                condition_is_active = (*it)->Is(ACTIVE);
+            if ( condition_is_active )
             {
                 //calculate elemental contribution
                 pScheme->Condition_CalculateSystemContributions( *it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
@@ -322,7 +328,10 @@ public:
 
             for ( typename ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
             {
-                if ( !( *it )->GetValue( IS_INACTIVE ) )
+                bool element_is_active = true;
+                if( (*it)->IsDefined(ACTIVE) )
+                    element_is_active = (*it)->Is(ACTIVE);
+                if ( element_is_active )
                 {
                     //calculate elemental contribution
                     pScheme->CalculateSystemContributions( *it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
@@ -357,7 +366,10 @@ public:
 
             for ( typename ConditionsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
             {
-                if ( !( *it )->GetValue( IS_INACTIVE ) )
+                bool condition_is_active = true;
+                if( (*it)->IsDefined(ACTIVE) )
+                    condition_is_active = (*it)->Is(ACTIVE);
+                if ( condition_is_active )
                 {
                     //calculate elemental contribution
                     pScheme->Condition_CalculateSystemContributions( *it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
@@ -415,7 +427,10 @@ public:
 
         for ( typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it )
         {
-            if ( !( *it )->GetValue( IS_INACTIVE ) )
+            bool element_is_active = true;
+            if( (*it)->IsDefined(ACTIVE) )
+                element_is_active = (*it)->Is(ACTIVE);
+            if ( element_is_active )
             {
                 //calculate elemental contribution
                 pScheme->Calculate_LHS_Contribution( *it, LHS_Contribution, EquationId, CurrentProcessInfo );
@@ -434,7 +449,10 @@ public:
 
         for ( typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it )
         {
-            if ( !( *it )->GetValue( IS_INACTIVE ) )
+            bool condition_is_active = true;
+            if( (*it)->IsDefined(ACTIVE) )
+                condition_is_active = (*it)->Is(ACTIVE);
+            if ( condition_is_active )
             {
                 //calculate elemental contribution
                 pScheme->Condition_Calculate_LHS_Contribution( *it, LHS_Contribution, EquationId, CurrentProcessInfo );
@@ -479,7 +497,10 @@ public:
 
         for ( typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it )
         {
-            if ( !( *it )->GetValue( IS_INACTIVE ) )
+            bool element_is_active = true;
+            if( (*it)->IsDefined(ACTIVE) )
+                element_is_active = (*it)->Is(ACTIVE);
+            if ( element_is_active )
             {
                 //calculate elemental contribution
                 pScheme->Calculate_LHS_Contribution( *it, LHS_Contribution, EquationId, CurrentProcessInfo );
@@ -498,7 +519,10 @@ public:
 
         for ( typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it )
         {
-            if ( !( *it )->GetValue( IS_INACTIVE ) )
+            bool condition_is_active = true;
+            if( (*it)->IsDefined(ACTIVE) )
+                condition_is_active = (*it)->Is(ACTIVE);
+            if ( condition_is_active )
             {
                 //calculate elemental contribution
                 pScheme->Condition_Calculate_LHS_Contribution( *it, LHS_Contribution, EquationId, CurrentProcessInfo );

@@ -588,7 +588,7 @@ public:
     @param rX. Solution vector.
     @param rB. Right hand side vector.
     */
-    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         if(this->IsNotConsistent(rA, rX, rB))
             return false;
@@ -617,7 +617,7 @@ public:
     @param rX. Solution vector.
     @param rB. Right hand side vector.
     */
-    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
+    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
     {
         const int size1 = TDenseSpaceType::Size1(rX);
         const int size2 = TDenseSpaceType::Size2(rX);
@@ -652,13 +652,13 @@ public:
 
 
     /// Print information about this object.
-    void  PrintInfo(std::ostream& rOStream) const
+    void  PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "LU factorization solver finished.";
     }
 
     /// Print object's data.
-    void  PrintData(std::ostream& rOStream) const
+    void  PrintData(std::ostream& rOStream) const override
     {
     }
 

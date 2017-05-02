@@ -223,12 +223,12 @@ namespace Kratos {
     KRATOS_CATCH("")
     }*/
 
-    void SphericContinuumParticle::ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
-                                                                 array_1d<double, 3>& rContactForce,
-                                                                 double& RollingResistance,
+    void SphericContinuumParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
                                                                  ProcessInfo& r_process_info,
-                                                                 const double dt,
-                                                                 const bool multi_stage_RHS) {
+                                                                 array_1d<double, 3>& rElasticForce,
+                                                                 array_1d<double, 3>& rContactForce,
+                                                                 double& RollingResistance)
+    {
         KRATOS_TRY
         
         const int time_steps = r_process_info[TIME_STEPS];
@@ -298,7 +298,7 @@ namespace Kratos {
             EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator, distance);
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                RelativeDisplacementAndVelocityOfContactPointDueToRotationMatrix(DeltDisp, RelVel, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);                
+                RelativeDisplacementAndVelocityOfContactPointDueToRotationMatrix(DeltDisp, RelVel, OldLocalCoordSystem, other_radius, data_buffer.mDt, ang_vel, neighbour_iterator);
             }
 
             RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, OldLocalCoordSystem, LocalCoordSystem, neighbour_iterator);
@@ -331,7 +331,7 @@ namespace Kratos {
             double equiv_visco_damp_coeff_tangential;
             double ElasticLocalRotationalMoment[3] = {0.0};
             double ViscoLocalRotationalMoment[3] = {0.0};
-
+            double cohesive_force =  0.0;
             double LocalRelVel[3] = {0.0};
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);
 
@@ -367,12 +367,15 @@ namespace Kratos {
                                                                    LocalRelVel,
                                                                    ViscoDampingLocalContactForce);
 
-            } else if (indentation > 0.0) {
-                double cohesive_force =  0.0;
+            } else if (indentation > 0.0) {                
                 const double previous_indentation = indentation + LocalDeltDisp[2];
                 mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce, LocalElasticContactForce,
                         LocalDeltDisp, LocalRelVel, indentation, previous_indentation,
                         ViscoDampingLocalContactForce, cohesive_force, this, neighbour_iterator, sliding, LocalCoordSystem);
+            } else { //Not bonded and no indentation
+                LocalElasticContactForce[0] = 0.0;      LocalElasticContactForce[1] = 0.0;      LocalElasticContactForce[2] = 0.0;
+                ViscoDampingLocalContactForce[0] = 0.0; ViscoDampingLocalContactForce[1] = 0.0; ViscoDampingLocalContactForce[2] = 0.0;
+                cohesive_force= 0.0;
             }
 
             // Transforming to global forces and adding up
@@ -798,6 +801,8 @@ namespace Kratos {
             }
             return;
         }//CRITICAL DELTA CALCULATION
+        
+        SphericParticle::Calculate(rVariable, Output, r_process_info);
 
         KRATOS_CATCH("")
     }//Calculate

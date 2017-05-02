@@ -84,8 +84,7 @@ namespace Kratos
 
 
     //for Structural application:
-    KRATOS_CREATE_VARIABLE( bool, IS_INACTIVE )
-
+ 
     //for Level Set application:
     KRATOS_CREATE_VARIABLE( bool, IS_DUPLICATED )
     KRATOS_CREATE_VARIABLE( bool, SPLIT_ELEMENT )
@@ -183,8 +182,6 @@ namespace Kratos
   void KratosApplication::RegisterDeprecatedVariables()
   {
       
-    KRATOS_REGISTER_VARIABLE(  IS_INACTIVE )
-
     //for Level Set application:
     KRATOS_REGISTER_VARIABLE(  IS_DUPLICATED )
     KRATOS_REGISTER_VARIABLE(  SPLIT_ELEMENT )

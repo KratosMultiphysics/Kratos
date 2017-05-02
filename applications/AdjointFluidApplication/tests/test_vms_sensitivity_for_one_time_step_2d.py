@@ -2,7 +2,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.AdjointFluidApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import calculate_bossak_drag_sensitivity_process
 
 class TestCase(KratosUnittest.TestCase):
 
@@ -118,11 +117,6 @@ class TestCase(KratosUnittest.TestCase):
         # process_info
         model_part.ProcessInfo[TIME] = self.getDeltaTime()
         model_part.ProcessInfo[DELTA_TIME] =-self.getDeltaTime()
-        DragDirection = Vector(3)
-        DragDirection[0] = 1.0
-        DragDirection[1] = 0.0
-        DragDirection[2] = 0.0
-        model_part.ProcessInfo[DRAG_DIRECTION] = DragDirection
         model_part.ProcessInfo[DOMAIN_SIZE] = self.getDomainSize()
         model_part.ProcessInfo[OSS_SWITCH] = 0
         model_part.ProcessInfo[DYNAMIC_TAU] = 1.0
@@ -240,7 +234,18 @@ class TestCase(KratosUnittest.TestCase):
         self.solver.SetEchoLevel(0)
         self.solver.Check()
 
-        self.adjoint_time_scheme = AdjointBossakDragScheme(alpha_bossak)
+        objective_params = Parameters("""{
+            "structure_model_part_name": "structure",
+            "drag_direction": [1.0, 0.0, 0.0]
+        }""")
+        scheme_params = Parameters("""{
+            "boundary_model_part_name": "boundary",
+            "alpha_bossak": -0.3,
+            "adjoint_start_time": 0.0,
+            "adjoint_end_time": 1.0
+        }""")
+        self.objective_function = DragObjectiveFunction2D(objective_params)
+        self.adjoint_time_scheme = AdjointBossakScheme(scheme_params, self.objective_function)
         self.adjoint_builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         self.adjoint_solver = ResidualBasedLinearStrategy(self.adjoint_model_part,
                                                           self.adjoint_time_scheme,
@@ -295,19 +300,19 @@ class TestCase(KratosUnittest.TestCase):
         ElemMassMatrix0 = adjoint_element.Calculate(MASS_MATRIX_0,self.adjoint_model_part.ProcessInfo)
         ElemAdjointMatrix1 = adjoint_element.Calculate(ADJOINT_MATRIX_1,self.adjoint_model_part.ProcessInfo)
         ElemAdjointMatrix1 = self.transposeMatrix(ElemAdjointMatrix1)
-        LHS = Matrix(2,2)
+        LHS = Matrix(2,2) # \partial f / \partial(p1, p3)
         for i in range(2):
             for j in range(2):
                 LHS[i,j] = ElemAdjointMatrix1[ft[i],ft[j]] - (1.0 - alpha_bossak) * ElemMassMatrix0[ft[i],ft[j]] / (gamma * delta_time)
         RHS = Vector(2)
         ElemShapeDerivativeMatrix1 = adjoint_element.Calculate(SHAPE_DERIVATIVE_MATRIX_1,self.adjoint_model_part.ProcessInfo)
         ElemShapeDerivativeMatrix1 = self.transposeMatrix(ElemShapeDerivativeMatrix1)
-        RHS[0] =-ElemShapeDerivativeMatrix1[ft[0],0]
+        RHS[0] =-ElemShapeDerivativeMatrix1[ft[0],0] # -\partial f / \partial x1
         RHS[1] =-ElemShapeDerivativeMatrix1[ft[1],0]
         x = self.solve2x2(LHS,RHS)
         dP1dX1 = x[0]
         dP3dX1 = x[1]
-        RHS[0] =-ElemShapeDerivativeMatrix1[ft[0],1]
+        RHS[0] =-ElemShapeDerivativeMatrix1[ft[0],1] # -\partial f / \partial y1
         RHS[1] =-ElemShapeDerivativeMatrix1[ft[1],1]
         x = self.solve2x2(LHS,RHS)
         dP1dY1 = x[0]
@@ -405,50 +410,12 @@ class TestCase(KratosUnittest.TestCase):
             self.assertNotEqual(Adjoint[i], 0.0)
             self.assertAlmostEqual(Adjoint[i], ElemAdjoint[i])
 
-    def test_Sensitivity(self):
-        # the goal of this test is to verify that the scheme, strategy and process correctly solve
-        # the adjoint equation and sensitivity of the first time step.
-        # test_AdjointBossakDragScheme should work before this test is debugged.
-        h = 0.00000001 # finite difference step size
-        param = Parameters(
-                """
-                { 
-                    "Parameters": {
-                        "model_part_name": "test",
-                        "structure_model_part_name": "structure",
-                        "boundary_model_part_name": "boundary",
-                        "alpha_bossak": -0.3,
-                        "adjoint_start_time": 0.0,
-                        "adjoint_end_time": 1.0,
-                        "drag_direction": [1.0, 0.0, 0.0]
-                    }
-                }
-                """)
-        sensitivity_process = calculate_bossak_drag_sensitivity_process.Factory(
-            param,
-            {"test": self.adjoint_model_part})
-        sensitivity_process.ExecuteInitialize()
-        sensitivity_process.ExecuteBeforeSolutionLoop()
-        sensitivity_process.ExecuteInitializeSolutionStep()
-
-        # solve primal
-        self.solver.Solve()
-        # copy solution to adjoint model part
-        self.copyNodalSolutionStepValues(self.model_part,self.adjoint_model_part,VELOCITY)
-        self.copyNodalSolutionStepValues(self.model_part,self.adjoint_model_part,PRESSURE)
-        self.copyNodalSolutionStepValues(self.model_part,self.adjoint_model_part,ACCELERATION)
-
-        # use AdjointBossakDragScheme to solve adjoint
-        self.adjoint_solver.Initialize()
-        self.adjoint_solver.Solve()
-        
-        # use CalculateBossakDragSensitivityProcess to calculate sensitivity
-        sensitivity_process.ExecuteFinalizeSolutionStep()
         Sensitivity = Vector(2)
         Sensitivity[0] = self.adjoint_model_part.GetNode(1).GetSolutionStepValue(SHAPE_SENSITIVITY_X,0)
         Sensitivity[1] = self.adjoint_model_part.GetNode(1).GetSolutionStepValue(SHAPE_SENSITIVITY_Y,0)
 
          # do finite differencing of drag
+        h = 0.00000001 # finite difference step size
         FDSensitivity = Vector(2)
         node1 = self.model_part.GetNode(1)
         # unperturbed
@@ -470,7 +437,6 @@ class TestCase(KratosUnittest.TestCase):
         for i in range(2):
             self.assertNotEqual(Sensitivity[i], 0.0)
             self.assertAlmostEqual(Sensitivity[i], FDSensitivity[i])
-
 
 if __name__ == '__main__':
     KratosUnittest.main()

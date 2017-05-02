@@ -38,6 +38,7 @@ def FillVectors(recovery_type, sizes, average_errors, max_errors, laplacian_or_m
             sizes.append(size)
             average_errors.append(size_dset[0])
             max_errors.append(size_dset[1])
+
 min_error = float("inf")
 max_error = - float("inf")
 average_errors = []
@@ -114,8 +115,8 @@ elif show_math_deriv_or_laplacian == 'L':
         max_error = max(max_error, average_errors[0])
         plt.plot(sizes, average_errors, marker = marker_type, color=color, label= laplacian_type + laplacian_slope_msg, linewidth = line_width, linestyle='solid', markersize = 20)
     #plt.plot(sizes, laplacian_max_errors,'-^', color=color, label= laplacian_type + ' laplacian (maximum)', linewidth = 2 * line_width, linestyle='dashed', markersize = 20)
-plt.semilogy()
 plt.semilogx()
+plt.semilogy()
 plt.axis('equal')
 
 min_error /= 2

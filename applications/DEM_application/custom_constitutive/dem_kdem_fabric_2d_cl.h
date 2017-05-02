@@ -16,11 +16,11 @@ namespace Kratos {
 
         ~DEM_KDEMFabric2D() {}
 
-        DEMContinuumConstitutiveLaw::Pointer Clone() const;
+        DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
 
-        void CalculateContactArea(double radius, double other_radius, double& calculation_area);
+        void CalculateContactArea(double radius, double other_radius, double& calculation_area) override;
         
         void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                               SphericContinuumParticle* neighbor,
@@ -31,17 +31,17 @@ namespace Kratos {
                                               double ElasticLocalRotationalMoment[3],
                                               double ViscoLocalRotationalMoment[3],
                                               double equiv_poisson,
-                                              double indentation);
+                                              double indentation) override;
 
     private:
 
         friend class Serializer;
 
-        virtual void load(Serializer& rSerializer) {
+        virtual void load(Serializer& rSerializer) override {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
         }
         
-        virtual void save(Serializer& rSerializer) const {
+        virtual void save(Serializer& rSerializer) const override {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
         }
     };

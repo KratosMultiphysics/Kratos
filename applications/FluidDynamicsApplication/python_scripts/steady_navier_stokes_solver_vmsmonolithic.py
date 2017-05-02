@@ -21,16 +21,12 @@ class SteadyNavierStokesSolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.
         # could be used and the scheme type could be passed in json parameters.
         self.velocity_relaxation_factor = custom_settings["velocity_relaxation_factor"].GetDouble()
         self.pressure_relaxation_factor = custom_settings["pressure_relaxation_factor"].GetDouble()
-        s = custom_settings.PrettyPrintJsonString()
-        istart = s[:s.find('"velocity_relaxation_factor"')].rfind("\n")
-        iend = s.find("\n",istart+1)
-        s = s[:istart] + s[iend:]
-        istart = s[:s.find('"pressure_relaxation_factor"')].rfind("\n")
-        iend = s.find("\n",istart+1)
-        s = s[:istart] + s[iend:]
+        base_settings = custom_settings
+        base_settings.RemoveValue("velocity_relaxation_factor")
+        base_settings.RemoveValue("pressure_relaxation_factor")
 
         # call base class constructor with remaining parameters
-        super().__init__(main_model_part, KratosMultiphysics.Parameters(s))
+        super().__init__(main_model_part, base_settings)
 
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             raise ValueError("consider_periodic_conditions not supported yet.")
@@ -80,13 +76,12 @@ class SteadyNavierStokesSolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.
                                                                             self.settings["maximum_iterations"].GetInt(),
                                                                             self.settings["compute_reactions"].GetBool(),
                                                                             self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                            self.settings["MoveMeshFlag"].GetBool())
+                                                                            self.settings["move_mesh_flag"].GetBool())
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         (self.solver).Check()
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.M, self.settings["regularization_coef"].GetDouble())
 
         print ("Monolithic solver initialization finished.")

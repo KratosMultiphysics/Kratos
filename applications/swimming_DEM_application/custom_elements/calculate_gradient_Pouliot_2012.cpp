@@ -11,15 +11,15 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::CalculateLocalSystem(MatrixTyp
     BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
     //const double h_inv = 1.0 / this->GetGeometry().MinEdgeLength();
     //const double epsilon = 1e-3 * h_inv * h_inv; // we divide by h^3 to scale the L2 system to the same RHS order of magnitude as the Pouliot 2012 system; then we multiply by h to make the sum of systems of order 2 (the L2 system is accurate of order 1 only)
-    const double epsilon = 1e-3;//* this->GetGeometry().MinEdgeLength();
+    const double epsilon = 1e-4 * this->GetGeometry().MinEdgeLength() * this->GetGeometry().MinEdgeLength();
     const unsigned int LocalSize(TDim * TNumNodes);
-    double weight = this->GetGeometry().Volume();
+    //double weight = this->GetGeometry().Volume();
 
     for (unsigned int i=0; i<LocalSize; ++i){
         for (unsigned int j=0; j<LocalSize; ++j){
-            rLeftHandSideMatrix(i, j) *= 0*epsilon;
+            rLeftHandSideMatrix(i, j) *= epsilon;
         }
-        rRightHandSideVector(i) *= 0*epsilon;
+        rRightHandSideVector(i) *= epsilon;
     }
 
 //    for (unsigned int i=0; i<TNumNodes; ++i){
@@ -140,7 +140,7 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::AddPouliot2012LHS(MatrixType& 
         noalias(le) = rGeom[edges[e][1]].Coordinates() - rGeom[edges[e][0]].Coordinates();
         const double he_inv = 1.0 / std::sqrt(le[0] * le[0] + le[1] * le[1] + le[2] * le[2]);
         edge_lengths_inv[e] = he_inv;
-        le *= he_inv;
+        //le *= he_inv;
         AssembleEdgeLHSContribution(edges[e], le, rLeftHandSideMatrix);
     }
 }
@@ -230,7 +230,7 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::AddFEMLaplacianStabilizationLH
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeGradientPouliot2012<TDim, TNumNodes>::AssembleEdgeLHSContribution(const unsigned int edge[2], const array_1d<double, 3>& edge_normalized_vector, MatrixType& rLeftHandSideMatrix)
-{   const double epsilon = 1e-4 * this->GetGeometry().MinEdgeLength()* this->GetGeometry().MinEdgeLength()* this->GetGeometry().MinEdgeLength();
+{   const double epsilon =  1e-4 * this->GetGeometry().MinEdgeLength() * this->GetGeometry().MinEdgeLength();
     for (unsigned int node_e = 0; node_e < 2; ++node_e){
         for (unsigned int i = 0; i < TDim; ++i){
             for (unsigned int node_f = 0; node_f < 2; ++node_f){
@@ -294,7 +294,7 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::AddPouliot2012RHS(VectorType& 
         noalias(le) = rGeom[edges[e][1]].Coordinates() - rGeom[edges[e][0]].Coordinates();
         const double he_inv = 1.0 / std::sqrt(le[0] * le[0] + le[1] * le[1] + le[2] * le[2]);
         edge_lengths_inv[e] = he_inv;
-        le *= he_inv;
+        //le *= he_inv;
 
         if (this->mCurrentComponent == 'X'){
             AssembleEdgeRHSContributionX(edges[e], he_inv, le, F);
@@ -335,7 +335,8 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::AssembleEdgeRHSContributionX(c
 
     for (unsigned int node_e = 0; node_e < 2; ++node_e){
         for (unsigned int i = 0; i < TDim; ++i){
-            F(TDim * edge[node_e] + i) += 2.0 * h_edge_inv * edge_normalized_vector[i] * vel_component_variation_along_edge;
+            //F(TDim * edge[node_e] + i) += 2.0 * h_edge_inv * edge_normalized_vector[i] * vel_component_variation_along_edge;
+            F(TDim * edge[node_e] + i) += 2.0 * edge_normalized_vector[i] * vel_component_variation_along_edge;
         }
     }
 }
@@ -347,7 +348,8 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::AssembleEdgeRHSContributionY(c
 
     for (unsigned int node_e = 0; node_e < 2; ++node_e){
         for (unsigned int i = 0; i < TDim; ++i){
-            F(TDim * edge[node_e] + i) += 2.0 * h_edge_inv * edge_normalized_vector[i] * vel_component_variation_along_edge;
+            //F(TDim * edge[node_e] + i) += 2.0 * h_edge_inv * edge_normalized_vector[i] * vel_component_variation_along_edge;
+            F(TDim * edge[node_e] + i) += 2.0 * edge_normalized_vector[i] * vel_component_variation_along_edge;
         }
     }
 }
@@ -359,7 +361,8 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::AssembleEdgeRHSContributionZ(c
 
     for (unsigned int node_e = 0; node_e < 2; ++node_e){
         for (unsigned int i = 0; i < TDim; ++i){
-            F(TDim * edge[node_e] + i) += 2.0 * h_edge_inv * edge_normalized_vector[i] * vel_component_variation_along_edge;
+            //F(TDim * edge[node_e] + i) += 2.0 * h_edge_inv * edge_normalized_vector[i] * vel_component_variation_along_edge;
+            F(TDim * edge[node_e] + i) += 2.0 * edge_normalized_vector[i] * vel_component_variation_along_edge;
         }
     }
 }

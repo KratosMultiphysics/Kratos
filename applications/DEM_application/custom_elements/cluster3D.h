@@ -46,7 +46,7 @@ namespace Kratos
         Cluster3D( IndexType NewId, NodesArrayType const& ThisNodes);
         Cluster3D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
 
-        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;      
+        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;      
 
         /// Destructor.
         virtual ~Cluster3D();
@@ -54,8 +54,8 @@ namespace Kratos
         using Element::Initialize;
         virtual void Initialize(ProcessInfo& r_process_info);
         virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& integration_scheme);
-        virtual void InitializeSolutionStep(ProcessInfo& r_process_info){};
-        virtual void FinalizeSolutionStep(ProcessInfo& r_process_info){};
+        virtual void InitializeSolutionStep(ProcessInfo& r_process_info) override {};
+        virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override {};
         virtual void CustomInitialize(ProcessInfo& r_process_info);
         virtual void SetOrientation(const Quaternion<double> Orientation);
         virtual void CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties, const bool continuum_strategy);
@@ -70,7 +70,7 @@ namespace Kratos
         virtual void SetInitialConditionsToSpheres(const array_1d<double,3>& velocity);
         virtual void SetInitialNeighbours(const double search_tolerance);
         virtual void CreateContinuumConstitutiveLaws();
-        virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
+        virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
         
         virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
         virtual DEMIntegrationScheme& GetIntegrationScheme() { return *mpIntegrationScheme; }
@@ -79,7 +79,7 @@ namespace Kratos
         virtual double SlowGetDensity();
         virtual int SlowGetParticleMaterial();
 
-        virtual std::string Info() const
+        virtual std::string Info() const override
         {
 	    std::stringstream buffer;
 	    buffer << "Discrete Element #" << Id();
@@ -87,13 +87,13 @@ namespace Kratos
         }
       
         /// Print information about this object.
-        virtual void PrintInfo(std::ostream& rOStream) const
+        virtual void PrintInfo(std::ostream& rOStream) const override
         {
 	    rOStream << "Discrete Element #" << Id();
         }
       
         /// Print object's data.
-        virtual void PrintData(std::ostream& rOStream) const
+        virtual void PrintData(std::ostream& rOStream) const override
         {
 	    //mpGeometry->PrintData(rOStream);
         }
@@ -109,12 +109,12 @@ namespace Kratos
        
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const
+        virtual void save(Serializer& rSerializer) const override
         {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
         }
 
-        virtual void load(Serializer& rSerializer)
+        virtual void load(Serializer& rSerializer) override
         {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element );
         }

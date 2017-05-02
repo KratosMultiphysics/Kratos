@@ -10,6 +10,26 @@
         "nsteps"          : 3,
         "time_step"       : 1.0
     },
+    "output_configuration" : {
+        "result_file_configuration" : {
+            "gidpost_flags" : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteUndeformed",
+                "WriteConditionsFlag"   : "WriteElementsOnly",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "time",
+            "output_control_type" : "step",
+            "output_frequency"    : 1.0,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["VELOCITY","PRESSURE"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
     "solver_settings" : {
         "solver_type"                   : "navier_stokes_solver_vmsmonolithic",
         "maximum_iterations"            : 10,
@@ -17,7 +37,6 @@
         "oss_switch"                    : 0,
         "echo_level"                    : 0,
         "consider_periodic_conditions"  : false,
-        "time_order"                    : 2,
         "compute_reactions"             : false,
         "divergence_clearance_steps"    : 0,
         "reform_dofs_at_each_step"      : false,
@@ -30,13 +49,6 @@
         "no_skin_parts"                 : [],
         "linear_solver_settings" : {
             "solver_type"         : "AMGCL",
-            "max_iteration"       : 500,
-            "tolerance"           : 1e-9,
-            "provide_coordinates" : false,
-            "smoother_type"       : "ilu0",
-            "krylov_type"         : "gmres",
-            "coarsening_type"     : "aggregation",
-            "scaling"             : true,
             "verbosity"           : 0
         },
         "model_import_settings" : {

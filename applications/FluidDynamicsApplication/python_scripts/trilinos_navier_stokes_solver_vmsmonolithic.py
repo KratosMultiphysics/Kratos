@@ -26,7 +26,6 @@ class NavierStokesMPISolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.Nav
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "trilinos_navier_stokes_solver_vmsmonolithic",
-            "scheme_type": "Bossak",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
@@ -56,14 +55,18 @@ class NavierStokesMPISolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.Nav
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
             "no_skin_parts":[""],
+            "time_stepping": {
+                "automatic_time_step" : true,
+                "CFL_number"          : 1,
+                "minimum_delta_time"  : 1e-4,
+                "maximum_delta_time"  : 0.01
+            },
             "alpha":-0.3,
             "move_mesh_strategy": 0,
             "periodic": "periodic",
             "regularization_coef": 1000,
-            "MoveMeshFlag": false,
-            "use_slip_conditions": false,
-            "turbulence_model": "None",
-            "use_spalart_allmaras": false
+            "move_mesh_flag": false,
+            "turbulence_model": "None"
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -144,6 +147,10 @@ class NavierStokesMPISolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.Nav
         ## Get the computing model part
         self.computing_model_part = self.GetComputingModelPart()
 
+        ## If needed, create the estimate time step utility
+        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
+            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
+
         ## Creating the Trilinos convergence criteria
         self.conv_criteria = KratosTrilinos.TrilinosUPCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
                                                                self.settings["absolute_velocity_tolerance"].GetDouble(),
@@ -152,20 +159,17 @@ class NavierStokesMPISolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.Nav
                                                                self.EpetraCommunicator)
 
         ## Creating the Trilinos time scheme
-        if self.settings["consider_periodic_conditions"].GetBool() == True:
+        if (self.settings["turbulence_model"].GetString() == "None"):
+            if self.settings["consider_periodic_conditions"].GetBool() == True:
                 self.time_scheme = KratosTrilinos.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(self.settings["alpha"].GetDouble(),
                                                                                                           self.settings["move_mesh_strategy"].GetInt(),
                                                                                                           self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                                                                                                           KratosCFD.PATCH_INDEX)
-        else:
-            if self.settings["scheme_type"].GetString() == "Bossak":
+            else:
                 self.time_scheme = KratosTrilinos.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(self.settings["alpha"].GetDouble(),
                                                                                                           self.settings["move_mesh_strategy"].GetInt(),
                                                                                                           self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
-            elif self.settings["scheme_type"].GetString() == "BDF":
-                self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(self.computing_model_part,self.settings["time_order"].GetInt())
-                self.time_scheme = KratosTrilinos.TrilinosResidualBasedPredictorCorrectorBDFScheme(self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                                                                                   KratosMultiphysics.IS_STRUCTURE)
+
 
         ## Set the guess_row_size (guess about the number of zero entries) for the Trilinos builder and solver
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
@@ -193,7 +197,7 @@ class NavierStokesMPISolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.Nav
                                                                    self.settings["maximum_iterations"].GetInt(),
                                                                    self.settings["compute_reactions"].GetBool(),
                                                                    self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                   self.settings["MoveMeshFlag"].GetBool())
+                                                                   self.settings["move_mesh_flag"].GetBool())
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
@@ -202,13 +206,10 @@ class NavierStokesMPISolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.Nav
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.M, self.settings["regularization_coef"].GetDouble())
 
         print ("Monolithic MPI solver initialization finished.")
 
 
     def Solve(self):
-        if self.settings["scheme_type"].GetString() == "BDF":
-            self.bdf_process.Execute()
         self.DivergenceClearance()
-        self.solver.Solve()
+        (self.solver).Solve()

@@ -212,7 +212,7 @@ namespace Kratos {
             int time_steps) {
 
         KRATOS_TRY       
-        
+      
         if (indentation >= 0.0) { //COMPRESSION
             LocalElasticContactForce[2] = kn_el * indentation;  
         }
@@ -231,6 +231,7 @@ namespace Kratos {
                 LocalElasticContactForce[2] = 0.0; 
             }
         }
+        
         KRATOS_CATCH("")      
     }
 

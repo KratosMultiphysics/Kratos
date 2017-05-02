@@ -31,6 +31,7 @@
 #include "custom_elements/calculate_mat_deriv_simplex_element.h"
 #include "custom_elements/calculate_component_gradient_simplex_element.h"
 #include "custom_elements/calculate_gradient_Pouliot_2012.h"
+#include "custom_elements/calculate_gradient_Pouliot_2012_edge.h"
 #include "custom_elements/calculate_velocity_laplacian_component.h"
 #include "custom_elements/calculate_velocity_laplacian.h"
 #include "custom_elements/shell_rigid.h"
@@ -40,6 +41,7 @@
 #include "custom_elements/spheric_swimming_particle.h"
 #include "../DEM_application/custom_elements/spheric_particle.h"
 #include "../DEM_application/custom_elements/nanoparticle.h"
+#include "../DEM_application/custom_elements/analytic_spheric_particle.h"
 
 namespace Kratos
 {
@@ -127,6 +129,8 @@ private:
     const ComputeComponentGradientSimplex<2> mComputeComponentGradientSimplex2D;
     const ComputeComponentGradientSimplex<3> mComputeComponentGradientSimplex3D;
 
+    const ComputeGradientPouliot2012Edge<3> mComputeGradientPouliot20123DEdge;
+
     const ComputeGradientPouliot2012<2> mComputeGradientPouliot20122D;
     const ComputeGradientPouliot2012<3> mComputeGradientPouliot20123D;
 
@@ -147,6 +151,7 @@ private:
     /// swimming derivation of spheric basic DEM element (SphericParticle)
     const SphericSwimmingParticle<SphericParticle> mSphericSwimmingParticle3D;
     const SphericSwimmingParticle<NanoParticle> mSwimmingNanoParticle3D;
+    const SphericSwimmingParticle<AnalyticSphericParticle> mSwimmingAnalyticParticle3D;
 
     //const DEM_FEM_Particle mDEM_FEM_Particle2D;
     const VariablesList mVariablesList;

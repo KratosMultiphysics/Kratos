@@ -33,7 +33,7 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
         max_iterations = 1000
         verbosity = 0 #0->shows no information, 1->some information, 2->all the information
         gmres_size = 50
-
+        
         if self.use_lumped_mass_matrix:
             linear_solver = CGSolver()
         else:
@@ -85,7 +85,7 @@ class L2ProjectionGradientRecoverer(L2ProjectionDerivativesRecoverer, recoverer.
         if self.calculate_vorticity:
             self.cplusplus_recovery_tool.CalculateVorticityFromGradient(self.model_part, VELOCITY_X_GRADIENT, VELOCITY_Y_GRADIENT, VELOCITY_Z_GRADIENT, VORTICITY)
 
-    def RecoverGradientOfVelocityComponent(self, component:[int]):
+    def RecoverGradientOfVelocityComponent(self, component):
         self.model_part.ProcessInfo[CURRENT_COMPONENT] = component
         self.Solve()
         if self.calculate_vorticity:

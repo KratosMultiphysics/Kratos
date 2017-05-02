@@ -12,11 +12,7 @@ KratosMultiphysics.CheckForPreviousImport()
 
 
 def AddVariables(main_model_part):
-
-    main_model_part.ProcessInfo.SetValue(KratosContact.NUMBER_OF_ACTIVE_CONTACTS, 0)
-    main_model_part.ProcessInfo.SetValue(KratosContact.NUMBER_OF_STICK_CONTACTS, 0)
-    main_model_part.ProcessInfo.SetValue(KratosContact.NUMBER_OF_SLIP_CONTACTS, 0)
-    
+  
     main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL);
     main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H);
     

@@ -355,7 +355,7 @@ class DEM_FEM_Search : public SpatialSearch
   }
 
   /// Turn back information as a string.
-  virtual std::string Info() const
+  virtual std::string Info() const override
   {
       std::stringstream buffer;
       buffer << "DEM_FEM_Search" ;
@@ -364,10 +364,10 @@ class DEM_FEM_Search : public SpatialSearch
   }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "DEM_FEM_Search";}
+      virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "DEM_FEM_Search";}
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const {}
+      virtual void PrintData(std::ostream& rOStream) const override {}
 
 
       ///@}

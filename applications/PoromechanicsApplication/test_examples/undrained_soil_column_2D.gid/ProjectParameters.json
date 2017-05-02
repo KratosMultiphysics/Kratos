@@ -47,16 +47,14 @@
             "solver_type":   "SuperLUSolver"
         },
         "problem_domain_sub_model_part_list": ["Body_Part-auto-1"],
-        "body_domain_sub_model_part_list":    ["Body_Part-auto-1"],
         "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Solid_Displacement-auto-3","Fluid_Pressure-auto-1","Face_Load-auto-1","Normal_Fluid_Flux-auto-1"],
-        "loads_sub_model_part_list":          ["Face_Load-auto-1","Normal_Fluid_Flux-auto-1"],
-        "loads_variable_list":                ["FACE_LOAD","NORMAL_FLUID_FLUX"]
+        "body_domain_sub_model_part_list":    ["Body_Part-auto-1"]
     },
     "output_configuration": {
         "result_file_configuration": {
             "gidpost_flags":       {
                 "GiDPostMode":           "GiD_PostBinary",
-                "WriteDeformedMeshFlag": "WriteDeformed",
+                "WriteDeformedMeshFlag": "WriteUndeformed",
                 "WriteConditionsFlag":   "WriteElementsOnly",
                 "MultiFileFlag":         "SingleFile"
             },
@@ -71,12 +69,6 @@
             "gauss_point_results": []
         },
         "point_data_configuration":  []
-    },
-    "restart_options": {
-        "SaveRestart":      false,
-        "RestartFrequency": 0,
-        "LoadRestart":      false,
-        "Restart_Step":     0
     },
     "constraints_process_list": [{
         "python_module": "apply_constraint_vector_table_process",

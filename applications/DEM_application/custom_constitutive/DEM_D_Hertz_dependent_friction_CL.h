@@ -23,13 +23,13 @@ namespace Kratos {
 
         ~DEM_D_Hertz_dependent_friction() {}
 
-        void Initialize(const ProcessInfo& r_process_info);
+        void Initialize(const ProcessInfo& r_process_info) override;
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
         
-        std::string GetTypeOfLaw();
+        std::string GetTypeOfLaw() override;
 
-        DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;
+        DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
         void InitializeDependentContact(SphericParticle* const element1, SphericParticle* const element2, double& equiv_radius, double& equiv_young, double& equiv_shear, const double indentation);
 
@@ -140,12 +140,12 @@ namespace Kratos {
 
         friend class Serializer;
         
-        virtual void save(Serializer& rSerializer) const {
+        virtual void save(Serializer& rSerializer) const override {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMDiscontinuumConstitutiveLaw)
                     //rSerializer.save("MyMemberName",myMember);
         }
 
-        virtual void load(Serializer& rSerializer) {
+        virtual void load(Serializer& rSerializer)  override {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMDiscontinuumConstitutiveLaw)
                     //rSerializer.load("MyMemberName",myMember);
         }

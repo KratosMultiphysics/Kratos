@@ -16,6 +16,7 @@
 // Project includes
 #include "utilities/math_utils.h"
 #include "custom_utilities/metrics_math_utils.h"
+#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
 #include "meshing_application.h"
@@ -83,21 +84,41 @@ public:
     
     ComputeLevelSetSolMetricProcess(
         ModelPart& rThisModelPart,
-        const double rMinSize,
-        const bool rEnforceCurrent = true,
         const Variable<array_1d<double,3>> rVariableGradient = DISTANCE_GRADIENT,
-        const double rAnisRatio = 1.0,
-        const double rBoundLayer =  1.0,
-        const std::string rInterpolation = "Linear"
+        Parameters ThisParameters = Parameters(R"({})")
         )
         :mThisModelPart(rThisModelPart),
         mVariableGradient(rVariableGradient),
-        mMinSize(rMinSize),
-        mEnforceCurrent(rEnforceCurrent),
-        mAnisRatio(rAnisRatio),
-        mBoundLayer(rBoundLayer)
+        mMinSize(ThisParameters["minimal_size"].GetDouble()),
+        mEnforceCurrent(ThisParameters["enforce_current"].GetBool())
     {   
-        mInterpolation = ConvertInter(rInterpolation);
+        Parameters DefaultParameters = Parameters(R"(
+        {
+            "minimal_size"                         : 0.1, 
+            "enforce_current"                      : true, 
+            "anisotropy_remeshing"                 : true, 
+            "anisotropy_parameters": 
+            {
+                "hmin_over_hmax_anisotropic_ratio"      : 1.0, 
+                "boundary_layer_max_distance"           : 1.0, 
+                "interpolation"                         : "Linear"
+            }
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        
+        // In case we have isotropic remeshing (default values)
+        if (ThisParameters["anisotropy_remeshing"].GetBool() == false)
+        {
+            mAnisRatio = DefaultParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
+            mBoundLayer = DefaultParameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
+            mInterpolation = ConvertInter(DefaultParameters["anisotropy_parameters"]["interpolation"].GetString());
+        }
+        else
+        {
+            mAnisRatio = ThisParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
+            mBoundLayer = ThisParameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
+            mInterpolation = ConvertInter(ThisParameters["anisotropy_parameters"]["interpolation"].GetString());
+        }
     }
     
     /// Destructor.
@@ -133,7 +154,7 @@ public:
             
             if ( itNode->SolutionStepsDataHas( mVariableGradient ) == false )
             {
-                KRATOS_THROW_ERROR( std::invalid_argument, "Missing gradient variable on node ", itNode->Id() )
+                KRATOS_ERROR << "Missing gradient variable on node " << itNode->Id() << std::endl;
             }
             
             const double distance = itNode->FastGetSolutionStepValue(DISTANCE, 0);
@@ -217,7 +238,7 @@ public:
         rOStream << "ComputeLevelSetSolMetricProcess";
     }
 
-    /// Print object's data.
+    /// Print object"s data.
     virtual void PrintData(std::ostream& rOStream) const
     {
     }
@@ -300,8 +321,8 @@ private:
     
     /**
      * This converts the interpolation string to an enum
-     * @param str: The string
-     * @param Interpolation: The equivalent enum
+     * @param str: The string that you want to comvert in the equivalent enum
+     * @return Interpolation: The equivalent enum (this requires less memmory than a std::string)
      */
         
     Interpolation ConvertInter(const std::string& str)

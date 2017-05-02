@@ -16,6 +16,7 @@
 // Project includes
 #include "utilities/math_utils.h"
 #include "custom_utilities/metrics_math_utils.h"
+#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
 #include "meshing_application.h"
@@ -88,26 +89,52 @@ public:
     ComputeHessianSolMetricProcess(
         ModelPart& rThisModelPart,
         TVarType& rVariable,
-        const double rMinSize,
-        const double rMaxSize,
-        const bool rEnforceCurrent = true,
-        const double rInterpError = 1.0e-6,
-        const double rMeshConstant = 0.28125, // TODO: This is for tetrahedron, look in literature for more
-        const double rAnisRatio = 1.0,
-        const double rBoundLayer =  1.0,
-        const std::string rInterpolation = "Linear"
+        Parameters ThisParameters = Parameters(R"({})")
         )
         :mThisModelPart(rThisModelPart),
-        mVariable(rVariable),
-        mMinSize(rMinSize),
-        mMaxSize(rMaxSize),
-        mEnforceCurrent(rEnforceCurrent),
-        mInterpError(rInterpError),
-        mMeshConstant(rMeshConstant),
-        mAnisRatio(rAnisRatio),
-        mBoundLayer(rBoundLayer)
-    {       
-        mInterpolation = ConvertInter(rInterpolation);
+        mVariable(rVariable)
+    {               
+        Parameters DefaultParameters = Parameters(R"(
+        {
+            "minimal_size"                        : 0.1,
+            "maximal_size"                        : 10.0, 
+            "enforce_current"                     : true, 
+            "hessian_strategy_parameters": 
+            { 
+                "interpolation_error"                  : 1.0e-6, 
+                "mesh_dependent_constant"              : 0.28125
+            }, 
+            "anisotropy_remeshing"                : true, 
+            "anisotropy_parameters":
+            {
+                "hmin_over_hmax_anisotropic_ratio"     : 1.0, 
+                "boundary_layer_max_distance"          : 1.0, 
+                "interpolation"                        : "Linear"
+            }
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+         
+        mMinSize = ThisParameters["minimal_size"].GetDouble();
+        mMaxSize = ThisParameters["maximal_size"].GetDouble();
+        mEnforceCurrent = ThisParameters["enforce_current"].GetBool();
+        
+        // In case we have isotropic remeshing (default values)
+        if (ThisParameters["anisotropy_remeshing"].GetBool() == false)
+        {
+            mInterpError = DefaultParameters["hessian_strategy_parameters"]["interpolation_error"].GetDouble();
+            mMeshConstant = DefaultParameters["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble();
+            mAnisRatio = DefaultParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
+            mBoundLayer = DefaultParameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
+            mInterpolation = ConvertInter(DefaultParameters["anisotropy_parameters"]["interpolation"].GetString());
+        }
+        else
+        {
+            mInterpError = ThisParameters["hessian_strategy_parameters"]["interpolation_error"].GetDouble();
+            mMeshConstant = ThisParameters["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble();
+            mAnisRatio = ThisParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
+            mBoundLayer = ThisParameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
+            mInterpolation = ConvertInter(ThisParameters["anisotropy_parameters"]["interpolation"].GetString());
+        }
     }
     
     /// Destructor.
@@ -145,7 +172,7 @@ public:
             
             if ( itNode->SolutionStepsDataHas( mVariable ) == false )
             {
-                KRATOS_THROW_ERROR( std::invalid_argument, "Missing variable on node ", itNode->Id() )
+                KRATOS_ERROR << "Missing variable on node " << itNode->Id() << std::endl;
             }
             
             const double distance = itNode->FastGetSolutionStepValue(DISTANCE, 0); // TODO: This should be changed for the varaible of interestin the future. This means that the value of the boundary value would be changed to a threshold value instead
@@ -227,7 +254,7 @@ public:
         rOStream << "ComputeHessianSolMetricProcess";
     }
 
-    /// Print object's data.
+    /// Print object"s data.
     virtual void PrintData(std::ostream& rOStream) const
     {
     }
@@ -325,7 +352,7 @@ private:
         // We first transform into a matrix
         const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> hessian_matrix = MetricsMathUtils<TDim>::VectorToTensor(hessian);
         
-        MetricsMathUtils<TDim>::EigenSystem(hessian_matrix, eigen_vector_matrix, eigen_values_matrix, 1e-18, 20);
+        MathUtils<double>::EigenSystem<TDim>(hessian_matrix, eigen_vector_matrix, eigen_values_matrix, 1e-18, 20);
         
         // Recalculate the metric eigen values
         for (unsigned int i = 0; i < TDim; i++)
@@ -473,7 +500,7 @@ private:
             }
             else
             {
-                KRATOS_THROW_ERROR( std::logic_error, "WARNING: YOU CAN USE JUST 2D TRIANGLES OR 3D TETRAEDRA RIGHT NOW IN THE GEOMETRY UTILS: ", geom.size() );
+                KRATOS_ERROR << "WARNING: YOU CAN USE JUST 2D TRIANGLES OR 3D TETRAEDRA RIGHT NOW IN THE GEOMETRY UTILS: " << geom.size() << std::endl;
             }
         }
             
@@ -487,8 +514,8 @@ private:
     
     /**
      * This converts the interpolation string to an enum
-     * @param str: The string
-     * @param Interpolation: The equivalent enum
+     * @param str: The string that you want to comvert in the equivalent enum
+     * @return Interpolation: The equivalent enum (this requires less memmory than a std::string)
      */
         
     Interpolation ConvertInter(const std::string& str)

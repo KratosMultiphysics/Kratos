@@ -2,19 +2,19 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
 //
-	           
+//
+
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -33,7 +33,7 @@ namespace Kratos
 	TetrahedraMeshWorstElementSmoothingProcess::TetrahedraMeshWorstElementSmoothingProcess(ModelPart& rModelPart, double AptQuality, std::size_t IterationsNumber)
 		:MeshLocalSmoothingProcess(rModelPart, AptQuality, IterationsNumber) {
 	}
-  
+
 	TetrahedraMeshWorstElementSmoothingProcess::~TetrahedraMeshWorstElementSmoothingProcess() {
 	}
 
@@ -54,7 +54,7 @@ namespace Kratos
 		for (std::size_t i = 0; i < size; i++)
 		{
 			CalculateElementOptimumPosition(rNode, r_neighbours[i].GetGeometry(), rOptimumPoints[i]);
-			auto quality = std::abs(r_neighbours[i].GetGeometry().Quality(Geometry<Node<3> >::QualityCriteria::AVERAGE_LENGTH_VOLUME_RATIO));
+			auto quality = std::abs(r_neighbours[i].GetGeometry().Quality(Geometry<Node<3> >::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH));
 			if (quality < min_quality) {
 				min_quality = quality;
 				min_i = i;
@@ -85,5 +85,3 @@ namespace Kratos
 	}
 
 }  // namespace Kratos.
-
-

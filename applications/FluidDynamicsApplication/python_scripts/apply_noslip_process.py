@@ -1,34 +1,39 @@
-from KratosMultiphysics import * 
+import KratosMultiphysics
 
 def Factory(settings, Model):
-    if(type(settings) != Parameters):
+    if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ApplyNoSlipProcess(Model, settings["Parameters"])
 
-##all the processes python processes should be derived from "python_process"
-class ApplyNoSlipProcess(Process):
-    def __init__(self, Model, settings):
-        
-        Process.__init__(self)
-        
-        model_part = Model[settings["model_part_name"].GetString()]
-        settings.AddEmptyValue("is_fixed").SetBool(True)
-        settings.AddEmptyValue("value").SetDouble(0)
-        
-        # For X component
-        settings.AddEmptyValue("variable_name").SetString("VELOCITY_X")
-        self.x = ApplyConstantScalarValueProcess(model_part,settings)
-        
-        # For Y component
-        settings.AddEmptyValue("variable_name").SetString("VELOCITY_Y")
-        self.y = ApplyConstantScalarValueProcess(model_part,settings)
-        
-        #For Z component
-        settings.AddEmptyValue("variable_name").SetString("VELOCITY_Z")
-        self.z = ApplyConstantScalarValueProcess(model_part,settings)
 
-    def ExecuteInitialize(self):
-        
-        self.x.ExecuteInitialize()
-        self.y.ExecuteInitialize()
-        self.z.ExecuteInitialize()
+class ApplyNoSlipProcess(KratosMultiphysics.Process):
+    def __init__(self, Model, settings):
+
+        KratosMultiphysics.Process.__init__(self)
+
+        default_settings = KratosMultiphysics.Parameters("""
+            {
+                "mesh_id"              : 0,
+                "model_part_name"      : "please_specify_model_part_name",
+                "variable_name"        : "VELOCITY",
+                "interval"             : [0.0, 1e30],
+                "value"                : [0.0, 0.0, 0.0],
+                "constrained"          : [true,true,true],
+                "local_axes"           : {}
+            }
+            """
+            )
+
+        settings.ValidateAndAssignDefaults(default_settings)
+
+        import experimental_assign_vector_process
+
+        self.vector_process = experimental_assign_vector_process.AssignVectorProcess(Model, settings)
+
+
+    def ExecuteInitializeSolutionStep(self):
+        self.vector_process.ExecuteInitializeSolutionStep()
+
+
+    def ExecuteFinalizeSolutionStep(self):
+        self.vector_process.ExecuteFinalizeSolutionStep()

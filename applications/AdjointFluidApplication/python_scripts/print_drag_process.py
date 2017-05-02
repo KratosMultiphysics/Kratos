@@ -1,5 +1,4 @@
 import KratosMultiphysics
-#import KratosMultiphysics.AdjointFluidApplication as AdjointFluidApplication
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):

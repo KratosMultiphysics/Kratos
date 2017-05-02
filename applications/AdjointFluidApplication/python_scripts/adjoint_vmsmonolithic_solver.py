@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.AdjointFluidApplication as AdjointFluidApplication
-#import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -12,76 +11,39 @@ def CreateSolver(main_model_part, custom_settings):
 
 class AdjointVMSMonolithicSolver:
 
-    ##constructor. the constructor shall only take care of storing the settings
-    ##and the pointer to the main_model part. This is needed since at the point of constructing the
-    ##model part is still not filled and the variables are not yet allocated
-    ##
-    ##real construction shall be delayed to the function "Initialize" which
-    ##will be called once the model is already filled
     def __init__(self, main_model_part, custom_settings):
 
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
 
-        ##settings string in json format
+        # default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "adjoint_vmsmonolithic_solver",
-            "scheme_type": "bossak_drag",
-            "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name"
+            "solver_type" : "adjoint_vmsmonolithic_solver",
+            "scheme_settings" : {
+                "scheme_type" : "bossak"
             },
-            "maximum_iterations": 10,
-            "dynamic_tau": 0.0,
-            "oss_switch": 0,
-            "echo_level": 0,
-            "consider_periodic_conditions": false,
-            "time_order": 2,
-            "compute_reactions": false,
-            "divergence_clearance_steps": 0,
-            "reform_dofs_at_each_step": true,
-            "relative_velocity_tolerance": 1e-5,
-            "absolute_velocity_tolerance": 1e-7,
-            "relative_pressure_tolerance": 1e-5,
-            "absolute_pressure_tolerance": 1e-7,
-            "linear_solver_settings"        : {
-                "solver_type" : "AMGCL_NS_Solver",
-                "krylov_type" : "bicgstab",
-                "velocity_block_preconditioner" : {
-                    "tolerance" : 1e-3,
-                    "precondioner_type" : "spai0"
-                },
-                "pressure_block_preconditioner" : {
-                    "tolerance" : 1e-2,
-                    "precondioner_type" : "spai0"
-                },
-                "tolerance" : 1e-6,
-                "krylov_type": "bicgstab",
-                "gmres_krylov_space_dimension": 50,
-                "max_iteration": 50,
-                "verbosity" : 0,
-                "scaling": true,
-                "coarse_enough" : 5000
+            "objective_settings" : {
+                "objective_type" : "drag"
+            },
+            "model_import_settings" : {
+                "input_type"     : "mdpa",
+                "input_filename" : "unknown_name"
+            },
+            "linear_solver_settings" : {
+                "solver_type" : "AMGCL"
             },
             "volume_model_part_name" : "volume_model_part",
-            "skin_parts": [""],
-            "no_skin_parts":[""],
-            "alpha_bossak":-0.3,
-            "move_mesh_strategy": 0,
-            "periodic": "periodic",
-            "regularization_coef": 1000,
-            "MoveMeshFlag": false,
-            "use_slip_conditions": false,
-            "turbulence_model": "None",
-            "use_spalart_allmaras": false
+            "skin_parts"  : [""],
+            "dynamic_tau" : 0.0,
+            "oss_switch"  : 0,
+            "echo_level"  : 0
         }""")
 
-        ##overwrite the default settings with user-provided parameters
+        # overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        #construct the linear solver
+        # construct the linear solver
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
@@ -109,28 +71,28 @@ class AdjointVMSMonolithicSolver:
     def ImportModelPart(self):
 
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-            #here it would be the place to import restart data if required
+            # here it would be the place to import restart data if required
             KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
 
-            ##here we shall check that the input read has the shape we like
+            # here we shall check that the input read has the shape we like
             aux_params = KratosMultiphysics.Parameters("{}")
             aux_params.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
             aux_params.AddValue("skin_parts",self.settings["skin_parts"])
 
-            #here we replace the dummy elements we read with proper elements
+            # here we replace the dummy elements we read with proper elements
             self.settings.AddEmptyValue("element_replace_settings")
             if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
                 self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
-                    "element_name":"VMSAdjointElement3D",
-                    "condition_name": "MonolithicWallCondition3D"
+                    "element_name": "VMSAdjointElement3D",
+                    "condition_name": "SurfaceCondition3D3N"
                     }
                     """)
             elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
                 self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
-                    "element_name":"VMSAdjointElement2D",
-                    "condition_name": "MonolithicWallCondition2D"
+                    "element_name": "VMSAdjointElement2D",
+                    "condition_name": "LineCondition2D2N"
                     }
                     """)
             else:
@@ -176,10 +138,23 @@ class AdjointVMSMonolithicSolver:
 
         self.computing_model_part = self.GetComputingModelPart()
 
-        if self.settings["scheme_type"].GetString() == "bossak_drag":
-            self.time_scheme = AdjointFluidApplication.AdjointBossakDragScheme(self.settings["alpha_bossak"].GetDouble())
-        elif self.settings["scheme_type"].GetString() == "steady_drag":
-            self.time_scheme = AdjointFluidApplication.AdjointSteadyDragScheme()
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        if self.settings["objective_settings"]["objective_type"].GetString() == "drag":
+            if (domain_size == 2):
+                self.objective_function = AdjointFluidApplication.DragObjectiveFunction2D(self.settings["objective_settings"])
+            elif (domain_size == 3):
+                self.objective_function = AdjointFluidApplication.DragObjectiveFunction3D(self.settings["objective_settings"])
+            else:
+                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+        else:
+            raise Exception("invalid objective_type: " + self.settings["objective_settings"]["objective_type"].GetString())
+
+        if self.settings["scheme_settings"]["scheme_type"].GetString() == "bossak":
+            self.time_scheme = AdjointFluidApplication.AdjointBossakScheme(self.settings["scheme_settings"], self.objective_function)
+        elif self.settings["scheme_settings"]["scheme_type"].GetString() == "steady":
+            self.time_scheme = AdjointFluidApplication.AdjointSteadyScheme(self.settings["scheme_settings"], self.objective_function)
+        else:
+            raise Exception("invalid scheme_type: " + self.settings["scheme_settings"]["scheme_type"].GetString())
 
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
@@ -202,10 +177,7 @@ class AdjointVMSMonolithicSolver:
         print ("Adjoint solver initialization finished.")
 
     def GetComputingModelPart(self):
-        # Get as computational model part the "volume_model_part_name" in the ProjectParameters Json string
-        #~ return self.main_model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString())
-
-        # Get as computational model part the submodelpart generated in CheckAndPrepareModelProcess
+        # get the submodelpart generated in CheckAndPrepareModelProcess
         return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
 
     def GetOutputVariables(self):
