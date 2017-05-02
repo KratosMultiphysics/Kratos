@@ -40,7 +40,7 @@ namespace Kratos
 		const std::size_t number_of_elements = GetModelPart1().NumberOfElements();
 		auto& r_elements = GetModelPart1().ElementsArray();
 		for (std::size_t i = 0; i < number_of_elements; i++) {
-			CalculateElementDistance(*(r_elements[i]), intersected_objects[i]);
+			CalculateElementalDistances(*(r_elements[i]), intersected_objects[i]);
 		}
 	}
 
@@ -58,34 +58,7 @@ namespace Kratos
 	void CalculateDiscontinuousDistanceToSkinProcess::PrintData(std::ostream& rOStream) const {
 	}
 
-	// TODO: I should move this class to a separate file but is out of scope of this branch
-	class Plane3D {
-	public:
-		using VectorType = array_1d<double, 3>;
-		using PointType = Point<3>;
-
-		Plane3D(VectorType const& TheNormal, double DistanceToOrigin) :mNormal(TheNormal), mD(DistanceToOrigin) {}
-		Plane3D() = delete;
-		Plane3D(PointType const& Point1, PointType const& Point2, PointType const& Point3) {
-			VectorType v1 = Point2 - Point1;
-			VectorType v2 = Point3 - Point1;
-			MathUtils<double>::CrossProduct(mNormal, v1, v2);
-			mNormal /= norm_2(mNormal);
-			mD = -inner_prod(mNormal, Point1);
-		}
-		VectorType const& GetNormal() { return mNormal; }
-		double GetDistance() { return mD; }
-		double CalculateSignedDistance(PointType const& ThePoint) {
-			return inner_prod(mNormal, ThePoint) + mD;
-		}
-
-	private:
-		VectorType mNormal;
-		double mD;
-	};
-
-
-	void CalculateDiscontinuousDistanceToSkinProcess::CalculateElementDistance(Element& rElement1, PointerVector<GeometricalObject>& rIntersectedObjects) {
+	void CalculateDiscontinuousDistanceToSkinProcess::CalculateElementalDistances(Element& rElement1, PointerVector<GeometricalObject>& rIntersectedObjects) {
 		if (rIntersectedObjects.empty())
 			return;
 
@@ -118,7 +91,7 @@ namespace Kratos
 			LineSegment edge(p_edge_point_1, p_edge_point_2);
 			intersection_points.clear();
 			CalculateIntersectionPoints(edge, rIntersectedObjects, intersection_points);
-			//RemoveDuplicatedPoints(intersection_points);
+
 			if (intersection_points.size() == 1) {
 				edge_optimum_cut_point[number_of_cut_edge++] = intersection_points[0];
 			}
@@ -149,13 +122,6 @@ namespace Kratos
 				}
 			rElement1.Set(TO_SPLIT, true);
 		}
-		//else {
-		//	std::cout << "Element #" << rElement1.Id() << " don't have intersection with faces ";
-		//	for (int i = 0; i < rIntersectedObjects.size(); i++) {
-		//		std::cout << rIntersectedObjects[i].Id() << " ,";
-		//	}
-		//	std::cout << std::endl;
-		//}
 
 		AvoidZeroDistanceNodes(rElement1, epsilon);
 

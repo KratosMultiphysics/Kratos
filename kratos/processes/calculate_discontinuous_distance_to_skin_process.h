@@ -260,6 +260,35 @@ namespace Kratos
 
 		};
 
+
+		// TODO: I should move this class to a separate file but is out of scope of this branch
+		class Plane3D {
+		public:
+			using VectorType = array_1d<double, 3>;
+			using PointType = Point<3>;
+
+			Plane3D(VectorType const& TheNormal, double DistanceToOrigin) :mNormal(TheNormal), mD(DistanceToOrigin) {}
+			Plane3D() = delete;
+			Plane3D(PointType const& Point1, PointType const& Point2, PointType const& Point3) {
+				VectorType v1 = Point2 - Point1;
+				VectorType v2 = Point3 - Point1;
+				MathUtils<double>::CrossProduct(mNormal, v1, v2);
+				mNormal /= norm_2(mNormal);
+				mD = -inner_prod(mNormal, Point1);
+			}
+			VectorType const& GetNormal() { return mNormal; }
+			double GetDistance() { return mD; }
+			double CalculateSignedDistance(PointType const& ThePoint) {
+				return inner_prod(mNormal, ThePoint) + mD;
+			}
+
+		private:
+			VectorType mNormal;
+			double mD;
+		};
+
+
+
       ///@name Static Member Variables
       ///@{
 
@@ -279,7 +308,7 @@ namespace Kratos
       ///@name Private Operations
       ///@{
 
-		void CalculateElementDistance(Element& rElement1, PointerVector<GeometricalObject>& rIntersectedObjects);
+		void CalculateElementalDistances(Element& rElement1, PointerVector<GeometricalObject>& rIntersectedObjects);
 		
 		void CalculateDiscontinuousDistanceToSkinProcess::AvoidZeroDistanceNodes(Element& rElement1, const double Epsilon);
 
