@@ -1,18 +1,14 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
-
-
-// This define must be HERE
-#define DKRATOS_EXPORT_INTERFACE_2 1
 
 // System includes
 #include <string>
@@ -26,49 +22,13 @@
 #include "includes/dem_variables.h"
 #include "includes/kernel.h"
 #include "includes/node.h"
-// #include "includes/element.h"
-// #include "includes/condition.h"
-// #include "includes/constitutive_law.h"
-// #include "includes/geometrical_object.h"
-
-// #include "geometries/line_2d.h"
-// #include "geometries/line_2d_2.h"
-// #include "geometries/line_2d_3.h"
-// #include "geometries/line_3d_2.h"
-// #include "geometries/line_3d_3.h"
-// #include "geometries/point.h"
-// #include "geometries/point_2d.h"
-// #include "geometries/point_3d.h"
-// #include "geometries/sphere_3d_1.h"
-// #include "geometries/triangle_2d_3.h"
-// #include "geometries/triangle_2d_6.h"
-// #include "geometries/triangle_3d_3.h"
-// #include "geometries/triangle_3d_6.h"
-// #include "geometries/quadrilateral_2d_4.h"
-// #include "geometries/quadrilateral_2d_8.h"
-// #include "geometries/quadrilateral_2d_9.h"
-// #include "geometries/quadrilateral_3d_4.h"
-// #include "geometries/quadrilateral_3d_8.h"
-// #include "geometries/quadrilateral_3d_9.h"
-// #include "geometries/tetrahedra_3d_4.h"
-// #include "geometries/tetrahedra_3d_10.h"
-// #include "geometries/prism_3d_6.h"
-// #include "geometries/prism_3d_15.h"
-// #include "geometries/hexahedra_3d_8.h"
-// #include "geometries/hexahedra_3d_20.h"
-// #include "geometries/hexahedra_3d_27.h"
-
-// #include "python/add_dem_variables_to_python.h"
-
-// #include "includes/convection_diffusion_settings.h"
-// #include "includes/radiation_settings.h"
 
 #include "includes/kratos_flags.h"
 
 namespace Kratos
 {
-    
-  //KRATOS_CREATE_VARIABLE( double, MOULD_AVERAGE_TEMPERATURE ) 
+
+  //KRATOS_CREATE_VARIABLE( double, MOULD_AVERAGE_TEMPERATURE )
     KRATOS_CREATE_VARIABLE( int, PARTICLE_MATERIAL )
     KRATOS_CREATE_VARIABLE(int, NUMBER_OF_INIT_BASSET_STEPS)
     KRATOS_CREATE_VARIABLE( double, PARTICLE_MASS )
@@ -90,8 +50,8 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( vector<int>, CONTINUUM_INI_NEIGHBOURS_IDS )
     KRATOS_CREATE_VARIABLE( vector<int>, NEIGHBOURS_IDS )
     KRATOS_CREATE_VARIABLE( vector<int>, PARTICLE_INITIAL_FAILURE_ID )
-    KRATOS_CREATE_VARIABLE( vector<int>, CONTINUUM_PARTICLE_INITIAL_FAILURE_ID )              
-    KRATOS_CREATE_VARIABLE( std::string, ELEMENT_TYPE)   
+    KRATOS_CREATE_VARIABLE( vector<int>, CONTINUUM_PARTICLE_INITIAL_FAILURE_ID )
+    KRATOS_CREATE_VARIABLE( std::string, ELEMENT_TYPE)
     KRATOS_CREATE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
     KRATOS_CREATE_VARIABLE( int, COUPLING_TYPE)
     KRATOS_CREATE_VARIABLE( int, NON_NEWTONIAN_OPTION )
@@ -102,7 +62,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( int, VIRTUAL_MASS_FORCE_TYPE )
     KRATOS_CREATE_VARIABLE( int, BASSET_FORCE_TYPE )
     KRATOS_CREATE_VARIABLE( int, LIFT_FORCE_TYPE )
-    KRATOS_CREATE_VARIABLE( int, MAGNUS_FORCE_TYPE )  
+    KRATOS_CREATE_VARIABLE( int, MAGNUS_FORCE_TYPE )
     KRATOS_CREATE_VARIABLE( int, HYDRO_TORQUE_TYPE )
     KRATOS_CREATE_VARIABLE( int, FLUID_MODEL_TYPE )
     KRATOS_CREATE_VARIABLE( int, DRAG_POROSITY_CORRECTION_TYPE )
@@ -203,7 +163,7 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( ELEMENT_TYPE )
     KRATOS_REGISTER_VARIABLE( PARTICLE_ROTATE_SPRING_MOMENT )
 
-    // Swimming DEM Application BEGINNING      
+    // Swimming DEM Application BEGINNING
     KRATOS_REGISTER_VARIABLE( NUMBER_OF_INIT_BASSET_STEPS )
     KRATOS_REGISTER_VARIABLE( COUPLING_TYPE)
     KRATOS_REGISTER_VARIABLE( NON_NEWTONIAN_OPTION )
@@ -295,7 +255,3 @@ namespace Kratos
 
 
 }  // namespace Kratos.
-
-// This define must be HERE
-#undef DKRATOS_EXPORT_INTERFACE_2
-
