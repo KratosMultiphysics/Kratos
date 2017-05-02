@@ -81,7 +81,7 @@ public:
         
         int NCons = static_cast<int>(mr_model_part.Conditions().size());
         ModelPart::ConditionsContainerType::iterator con_begin = mr_model_part.ConditionsBegin();
-        
+
         #pragma omp parallel for
         for(int i = 0; i < NCons; i++)
         {
@@ -91,7 +91,7 @@ public:
             itCond->Set(PERIODIC,true);
 
             rGeom[0].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = rGeom[1].Id();
-            rGeom[1].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = rGeom[0].Id();            
+            rGeom[1].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = rGeom[0].Id();
         }
 
         int NElems = static_cast<int>(mr_model_part.Elements().size());

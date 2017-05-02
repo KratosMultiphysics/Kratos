@@ -121,8 +121,6 @@ class UPwSolver(object):
         ##Common variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PERIODIC_PAIR_INDEX)
-        # self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEIGHBOUR_ELEMENTS)
-        # self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEIGHBOUR_NODES)
         
         print("Variables correctly added")
 
