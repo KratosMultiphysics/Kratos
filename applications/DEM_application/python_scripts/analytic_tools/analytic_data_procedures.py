@@ -12,7 +12,7 @@ class WatcherAnalyzer:
         self.times_data_base_names = []
         self.n_particles_data_base_names = []
         self.mass_data_base_names = []
-        self.n_particles_accumulated = 0.0
+        self.n_particles_accumulated = 0
         self.mass_accumulated = 0.0
         self.folder_path = path
         self.file_path = path + '/flux_data.hdf5'
@@ -53,13 +53,10 @@ class WatcherAnalyzer:
         return joint_list
 
     def CalculateAccumulatedAndRememberForNextTime(self, length, number_flux, mass_flux):
-        number_flux = self.CalculateAccumulated(original_list = number_flux, old_accumulated = self.n_particles_accumulated)
-        mass_flux = self.CalculateAccumulated(original_list = mass_flux, old_accumulated = self.mass_accumulated)
-        if length and self.do_clear_data:
-            self.n_particles_accumulated = number_flux[-1]
-            self.mass_accumulated = mass_flux[-1]
+        acc_number_flux = self.CalculateAccumulated(original_list = number_flux, old_accumulated = self.n_particles_accumulated)
+        acc_mass_flux = self.CalculateAccumulated(original_list = mass_flux, old_accumulated = self.mass_accumulated)
 
-        return number_flux, mass_flux
+        return acc_number_flux, acc_mass_flux
 
     def CalculateAccumulated(self, original_list, old_accumulated = 0):
         return np.cumsum(np.array(original_list)) + old_accumulated
@@ -76,10 +73,13 @@ class WatcherAnalyzer:
 
         with h5py.File(self.file_path) as f:
             f.require_dataset(name_times, data = times, shape = shape, dtype = np.float64)
-            f.require_dataset(name_n_particles, data = n_particles_data, shape = shape, dtype = np.float64)
+            f.require_dataset(name_n_particles, data = n_particles_data, shape = shape, dtype = np.int64)
             f.require_dataset(name_mass, data = mass_data, shape = shape, dtype = np.float64)
 
         if self.do_clear_data:
+            if len(n_particles_data):
+                self.n_particles_accumulated = n_particles_data[-1]
+                self.mass_accumulated = mass_data[-1]
             self.face_watcher.ClearData()
 
     def MakeTotalFluxPlot(self):
