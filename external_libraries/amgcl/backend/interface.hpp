@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -342,6 +342,22 @@ struct relaxation_is_supported : boost::true_type {};
 /// Is the coarsening supported by the backend?
 template <class Backend, class Coarsening, class Enable = void>
 struct coarsening_is_supported : boost::true_type {};
+
+/// Linear combination of vectors
+/**
+ * \f[ y = \sum_j c_j v_j + alpha * y \f]
+ */
+template <class Coefs, class Vecs, class Coef, class Vec>
+void lin_comb(size_t n, const Coefs &c, const Vecs &v, const Coef &alpha, Vec &y) {
+    axpby(c[0], *v[0], alpha, y);
+
+    size_t i = 1;
+    for(; i + 1 < n; i += 2)
+        axpbypcz(c[i], *v[i], c[i+1], *v[i+1], math::identity<Coef>(), y);
+
+    for(; i < n; ++i)
+        axpby(c[i], *v[i], math::identity<Coef>(), y);
+}
 
 } // namespace backend
 } // namespace amgcl

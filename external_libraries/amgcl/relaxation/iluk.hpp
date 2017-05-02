@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,6 @@ THE SOFTWARE.
 #include <queue>
 #include <cmath>
 
-#include <boost/typeof/typeof.hpp>
 #include <boost/foreach.hpp>
 
 #include <amgcl/backend/builtin.hpp>
@@ -92,25 +91,19 @@ struct iluk {
         typedef typename backend::row_iterator<Matrix>::type row_iterator;
         const size_t n = backend::rows(A);
 
-        boost::shared_ptr<build_matrix> L = boost::make_shared<build_matrix>();
-        boost::shared_ptr<build_matrix> U = boost::make_shared<build_matrix>();
+        size_t Anz = backend::nonzeros(A);
 
-        L->nrows = L->ncols = n;
-        L->ptr.reserve(n+1); L->ptr.push_back(0);
+        std::vector<ptrdiff_t>  Lptr; Lptr.reserve(n+1); Lptr.push_back(0);
+        std::vector<ptrdiff_t>  Lcol; Lcol.reserve(Anz / 3);
+        std::vector<value_type> Lval; Lval.reserve(Anz / 3);
 
-        L->col.reserve(backend::nonzeros(A) / 3);
-        L->val.reserve(backend::nonzeros(A) / 3);
+        std::vector<ptrdiff_t>  Uptr; Uptr.reserve(n+1); Uptr.push_back(0);
+        std::vector<ptrdiff_t>  Ucol; Ucol.reserve(Anz / 3);
+        std::vector<value_type> Uval; Uval.reserve(Anz / 3);
 
-        U->nrows = U->ncols = n;
-        U->ptr.reserve(n+1); U->ptr.push_back(0);
+        std::vector<int> Ulev; Ulev.reserve(Anz / 3);
 
-        U->col.reserve(backend::nonzeros(A) / 3);
-        U->val.reserve(backend::nonzeros(A) / 3);
-
-        std::vector<int> Ulev; Ulev.reserve(backend::nonzeros(A) / 3);
-
-        std::vector<value_type> D;
-        D.reserve(n);
+        std::vector<value_type> D; D.reserve(n);
 
         sparse_vector w(n, prm.k);
 
@@ -125,9 +118,9 @@ struct iluk {
                 nonzero &a = w.next_nonzero();
                 a.val = a.val * D[a.col];
 
-                for(ptrdiff_t j = U->ptr[a.col], e = U->ptr[a.col+1]; j < e; ++j) {
+                for(ptrdiff_t j = Uptr[a.col], e = Uptr[a.col+1]; j < e; ++j) {
                     int lev = std::max(a.lev, Ulev[j]) + 1;
-                    w.add(U->col[j], -a.val * U->val[j], lev);
+                    w.add(Ucol[j], -a.val * Uval[j], lev);
                 }
             }
 
@@ -135,24 +128,24 @@ struct iluk {
 
             BOOST_FOREACH(const nonzero &e, w.nz) {
                 if (e.col < i) {
-                    L->col.push_back(e.col);
-                    L->val.push_back(e.val);
+                    Lcol.push_back(e.col);
+                    Lval.push_back(e.val);
                 } else if (e.col == i) {
                     D.push_back(math::inverse(e.val));
                 } else {
-                    U->col.push_back(e.col);
-                    U->val.push_back(e.val);
+                    Ucol.push_back(e.col);
+                    Uval.push_back(e.val);
                     Ulev.push_back(e.lev);
                 }
             }
 
-            L->ptr.push_back(L->col.size());
-            U->ptr.push_back(U->col.size());
+            Lptr.push_back(Lcol.size());
+            Uptr.push_back(Ucol.size());
         }
 
         this->D = Backend::copy_vector(D, bprm);
-        this->L = Backend::copy_matrix(L, bprm);
-        this->U = Backend::copy_matrix(U, bprm);
+        this->L = Backend::copy_matrix(boost::make_shared<build_matrix>(n, n, Lptr, Lcol, Lval), bprm);
+        this->U = Backend::copy_matrix(boost::make_shared<build_matrix>(n, n, Uptr, Ucol, Uval), bprm);
 
         if (!serial_backend::value) {
             t1 = Backend::create_vector(n, bprm);
@@ -209,7 +202,7 @@ struct iluk {
 
             nonzero() : col(-1) {}
 
-            nonzero(ptrdiff_t col, value_type val, int lev)
+            nonzero(ptrdiff_t col, const value_type &val, int lev)
                 : col(col), val(val), lev(lev) {}
 
             friend bool operator<(const nonzero &a, const nonzero &b) {
@@ -246,7 +239,7 @@ struct iluk {
                 nz.reserve(16);
             }
 
-            void add(ptrdiff_t col, value_type val, int lev) {
+            void add(ptrdiff_t col, const value_type &val, int lev) {
                 if (idx[col] < 0) {
                     if (lev <= lfil) {
                         int p = nz.size();

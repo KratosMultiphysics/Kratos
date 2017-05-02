@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -753,7 +753,7 @@ class iterative_solver {
                 const InnerProduct &inner_product = InnerProduct()
                 )
             : solver(prm.get("type", runtime::solver::bicgstab)),
-              handle(0)
+              handle(0), n(n)
         {
             if (!prm.erase("type")) AMGCL_PARAM_MISSING("type");
 
@@ -832,9 +832,13 @@ class iterative_solver {
             return (*this)(P.system_matrix(), P, rhs, x);
         }
 
+        friend std::ostream& operator<<(std::ostream &os, const iterative_solver &s) {
+            return os << s.solver << ": " << s.n << " unknowns";
+        }
     private:
-        const runtime::solver::type  solver;
-        void                        *handle;
+        const runtime::solver::type solver;
+        void *handle;
+        size_t n;
 };
 
 } // namespace runtime

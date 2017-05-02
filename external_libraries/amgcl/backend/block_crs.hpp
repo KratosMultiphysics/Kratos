@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -190,6 +190,12 @@ struct block_crs {
     /// Copy vector from builtin backend.
     static boost::shared_ptr<vector>
     copy_vector(const vector &x, const params&)
+    {
+        return boost::make_shared<vector>(x);
+    }
+
+    static boost::shared_ptr< vector >
+    copy_vector(const std::vector<value_type> &x, const params&)
     {
         return boost::make_shared<vector>(x);
     }

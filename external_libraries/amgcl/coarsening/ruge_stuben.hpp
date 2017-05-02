@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,6 @@ THE SOFTWARE.
  * \brief  Ruge-Stuben coarsening with direct interpolation.
  */
 
-#include <boost/typeof/typeof.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/shared_ptr.hpp>
@@ -123,9 +122,7 @@ struct ruge_stuben {
             if (cf[i] == 'C') cidx[i] = static_cast<ptrdiff_t>(nc++);
 
         boost::shared_ptr<Matrix> P = boost::make_shared<Matrix>();
-        P->nrows = n;
-        P->ncols = nc;
-        P->ptr.resize(n + 1, 0);
+        P->set_size(n, nc, true);
 
         std::vector<Val> Amin, Amax;
 
@@ -133,10 +130,6 @@ struct ruge_stuben {
             Amin.resize(n);
             Amax.resize(n);
         }
-
-        BOOST_AUTO(Aptr, A.ptr_data());
-        BOOST_AUTO(Acol, A.col_data());
-        BOOST_AUTO(Aval, A.val_data());
 
 #pragma omp parallel for
         for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
@@ -148,32 +141,31 @@ struct ruge_stuben {
             if (prm.do_trunc) {
                 Val amin = zero, amax = zero;
 
-                for(ptrdiff_t j = Aptr[i], e = Aptr[i + 1]; j < e; ++j) {
-                    if (!S.val[j] || cf[ Acol[j] ] != 'C') continue;
+                for(ptrdiff_t j = A.ptr[i], e = A.ptr[i + 1]; j < e; ++j) {
+                    if (!S.val[j] || cf[ A.col[j] ] != 'C') continue;
 
-                    amin = std::min(amin, Aval[j]);
-                    amax = std::max(amax, Aval[j]);
+                    amin = std::min(amin, A.val[j]);
+                    amax = std::max(amax, A.val[j]);
                 }
 
                 Amin[i] = (amin *= prm.eps_trunc);
                 Amax[i] = (amax *= prm.eps_trunc);
 
-                for(ptrdiff_t j = Aptr[i], e = Aptr[i + 1]; j < e; ++j) {
-                    if (!S.val[j] || cf[Acol[j]] != 'C') continue;
+                for(ptrdiff_t j = A.ptr[i], e = A.ptr[i + 1]; j < e; ++j) {
+                    if (!S.val[j] || cf[A.col[j]] != 'C') continue;
 
-                    if (Aval[j] < amin || amax < Aval[j])
+                    if (A.val[j] < amin || amax < A.val[j])
                         ++P->ptr[i + 1];
                 }
             } else {
-                for(ptrdiff_t j = Aptr[i], e = Aptr[i + 1]; j < e; ++j)
-                    if (S.val[j] && cf[Acol[j]] == 'C')
+                for(ptrdiff_t j = A.ptr[i], e = A.ptr[i + 1]; j < e; ++j)
+                    if (S.val[j] && cf[A.col[j]] == 'C')
                         ++P->ptr[i + 1];
             }
         }
 
-        boost::partial_sum(P->ptr, P->ptr.begin());
-        P->col.resize(P->ptr.back());
-        P->val.resize(P->ptr.back());
+        std::partial_sum(P->ptr, P->ptr + n + 1, P->ptr);
+        P->set_nonzeros(P->ptr[n]);
 
 #pragma omp parallel for
         for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
@@ -190,9 +182,9 @@ struct ruge_stuben {
             Val b_num = zero, b_den = zero;
             Val d_neg = zero, d_pos = zero;
 
-            for(ptrdiff_t j = Aptr[i], e = Aptr[i + 1]; j < e; ++j) {
-                ptrdiff_t c = Acol[j];
-                Val  v = Aval[j];
+            for(ptrdiff_t j = A.ptr[i], e = A.ptr[i + 1]; j < e; ++j) {
+                ptrdiff_t c = A.col[j];
+                Val  v = A.val[j];
 
                 if (c == i) {
                     dia = v;
@@ -230,9 +222,9 @@ struct ruge_stuben {
             Scalar alpha = math::norm(a_den) > eps ? -cf_neg * math::norm(a_num) / (math::norm(dia) * math::norm(a_den)) : 0;
             Scalar beta  = math::norm(b_den) > eps ? -cf_pos * math::norm(b_num) / (math::norm(dia) * math::norm(b_den)) : 0;
 
-            for(ptrdiff_t j = Aptr[i], e = Aptr[i + 1]; j < e; ++j) {
-                ptrdiff_t c = Acol[j];
-                Val  v = Aval[j];
+            for(ptrdiff_t j = A.ptr[i], e = A.ptr[i + 1]; j < e; ++j) {
+                ptrdiff_t c = A.col[j];
+                Val  v = A.val[j];
 
                 if (!S.val[j] || cf[c] != 'C') continue;
                 if (prm.do_trunc && Amin[i] < v && v < Amax[i]) continue;
@@ -244,9 +236,7 @@ struct ruge_stuben {
         }
         TOC("interpolation");
 
-        boost::shared_ptr<Matrix> R = boost::make_shared<Matrix>();
-        *R = transpose(*P);
-        return boost::make_tuple(P, R);
+        return boost::make_tuple(P, transpose(*P));
     }
 
     /// \copydoc amgcl::coarsening::aggregation::coarse_operator
@@ -287,12 +277,9 @@ struct ruge_stuben {
             const Scalar eps = amgcl::detail::eps<Scalar>(1);
 
             S.nrows = S.ncols = n;
-            S.ptr.resize( n+1 );
-            S.val.resize( nnz );
-
-            BOOST_AUTO(Aptr, A.ptr_data());
-            BOOST_AUTO(Acol, A.col_data());
-            BOOST_AUTO(Aval, A.val_data());
+            S.ptr = new Ptr[n+1];
+            S.val = new char[nnz];
+            S.ptr[0] = 0;
 
 #pragma omp parallel for
             for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
@@ -308,24 +295,26 @@ struct ruge_stuben {
 
                 a_min *= eps_strong;
 
-                for(Ptr j = Aptr[i], e = Aptr[i + 1]; j < e; ++j)
-                    S.val[j] = (Acol[j] != i && Aval[j] < a_min);
+                for(Ptr j = A.ptr[i], e = A.ptr[i + 1]; j < e; ++j)
+                    S.val[j] = (A.col[j] != i && A.val[j] < a_min);
+
+                S.ptr[i+1] = 0;
             }
 
             // Transposition of S:
             for(size_t i = 0; i < nnz; ++i)
-                if (S.val[i]) ++( S.ptr[ Acol[i] + 1] );
+                if (S.val[i]) ++( S.ptr[ A.col[i] + 1] );
 
-            boost::partial_sum(S.ptr, S.ptr.begin());
+            std::partial_sum(S.ptr, S.ptr + n + 1, S.ptr);
 
-            S.col.resize( S.ptr.back() );
+            S.col = new Col[S.ptr[n]];
 
             for(size_t i = 0; i < n; ++i)
-                for(Ptr j = Aptr[i], e = Aptr[i + 1]; j < e; ++j)
-                    if (S.val[j]) S.col[ S.ptr[ Acol[j] ]++ ] = i;
+                for(Ptr j = A.ptr[i], e = A.ptr[i + 1]; j < e; ++j)
+                    if (S.val[j]) S.col[ S.ptr[ A.col[j] ]++ ] = i;
 
-            std::rotate(S.ptr.begin(), S.ptr.end() - 1, S.ptr.end());
-            S.ptr.front() = 0;
+            std::rotate(S.ptr, S.ptr + n, S.ptr + n + 1);
+            S.ptr[0] = 0;
         }
 
         // Split variables into C(oarse) and F(ine) sets.
@@ -337,9 +326,6 @@ struct ruge_stuben {
                 )
         {
             const size_t n = rows(A);
-
-            BOOST_AUTO(Aptr, A.ptr_data());
-            BOOST_AUTO(Acol, A.col_data());
 
             std::vector<Col> lambda(n);
 
@@ -402,10 +388,10 @@ struct ruge_stuben {
                     cf[c] = 'F';
 
                     // Increase lambdas of the newly created F's neighbours.
-                    for(Ptr aj = Aptr[c], ae = Aptr[c + 1]; aj < ae; ++aj) {
+                    for(Ptr aj = A.ptr[c], ae = A.ptr[c + 1]; aj < ae; ++aj) {
                         if (!S.val[aj]) continue;
 
-                        Col ac    = Acol[aj];
+                        Col ac    = A.col[aj];
                         Col lam_a = lambda[ac];
 
                         if (cf[ac] != 'U' || static_cast<size_t>(lam_a) + 1 >= n)
@@ -428,10 +414,10 @@ struct ruge_stuben {
                 }
 
                 // Decrease lambdas of the newly create C's neighbours.
-                for(Ptr j = Aptr[i], e = Aptr[i + 1]; j < e; j++) {
+                for(Ptr j = A.ptr[i], e = A.ptr[i + 1]; j < e; j++) {
                     if (!S.val[j]) continue;
 
-                    Col c   = Acol[j];
+                    Col c   = A.col[j];
                     Col lam = lambda[c];
 
                     if (cf[c] != 'U' || lam == 0) continue;

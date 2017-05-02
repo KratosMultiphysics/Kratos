@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,6 @@ THE SOFTWARE.
  * \brief  Multicolor Gauss-Seidel relaxation scheme.
  */
 
-#include <boost/typeof/typeof.hpp>
 #include <boost/graph/sequential_vertex_coloring.hpp>
 #include <boost/range/algorithm.hpp>
 #include <boost/range/numeric.hpp>
@@ -91,15 +90,12 @@ std::pair<
     typename graph<Matrix>::adjacency_iterator
     >
 adjacent_vertices(ptrdiff_t v, const graph<Matrix> &G) {
-    BOOST_AUTO(Aptr, G.A.ptr_data());
-    BOOST_AUTO(Acol, G.A.col_data());
-
-    typename Matrix::ptr_type row_beg = Aptr[v];
-    typename Matrix::ptr_type row_end = Aptr[v + 1];
+    typename Matrix::ptr_type row_beg = G.A.ptr[v];
+    typename Matrix::ptr_type row_end = G.A.ptr[v + 1];
 
     return std::make_pair(
-            Acol + row_beg,
-            Acol + row_end
+            G.A.col + row_beg,
+            G.A.col + row_end
             );
 }
 

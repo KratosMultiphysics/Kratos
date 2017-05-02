@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 Copyright (c) 2016, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -248,15 +248,10 @@ class schur_pressure_correction {
             for(size_t i = 0; i < n; ++i)
                 idx[i] = (prm.pmask[i] ? np++ : nu++);
 
-            boost::tie(Kuu->nrows, Kuu->ncols) = boost::make_tuple(nu, nu);
-            boost::tie(Kup->nrows, Kup->ncols) = boost::make_tuple(nu, np);
-            boost::tie(Kpu->nrows, Kpu->ncols) = boost::make_tuple(np, nu);
-            boost::tie(Kpp->nrows, Kpp->ncols) = boost::make_tuple(np, np);
-
-            Kuu->ptr.resize(nu + 1, 0);
-            Kup->ptr.resize(nu + 1, 0);
-            Kpu->ptr.resize(np + 1, 0);
-            Kpp->ptr.resize(np + 1, 0);
+            Kuu->set_size(nu, nu, true);
+            Kup->set_size(nu, np, true);
+            Kpu->set_size(np, nu, true);
+            Kpp->set_size(np, np, true);
 
 #pragma omp parallel for
             for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
@@ -281,22 +276,15 @@ class schur_pressure_correction {
                 }
             }
 
-            boost::partial_sum(Kuu->ptr, Kuu->ptr.begin());
-            boost::partial_sum(Kup->ptr, Kup->ptr.begin());
-            boost::partial_sum(Kpu->ptr, Kpu->ptr.begin());
-            boost::partial_sum(Kpp->ptr, Kpp->ptr.begin());
+            std::partial_sum(Kuu->ptr, Kuu->ptr + nu + 1, Kuu->ptr);
+            std::partial_sum(Kup->ptr, Kup->ptr + nu + 1, Kup->ptr);
+            std::partial_sum(Kpu->ptr, Kpu->ptr + np + 1, Kpu->ptr);
+            std::partial_sum(Kpp->ptr, Kpp->ptr + np + 1, Kpp->ptr);
 
-            Kuu->col.resize(Kuu->ptr.back());
-            Kuu->val.resize(Kuu->ptr.back());
-
-            Kup->col.resize(Kup->ptr.back());
-            Kup->val.resize(Kup->ptr.back());
-
-            Kpu->col.resize(Kpu->ptr.back());
-            Kpu->val.resize(Kpu->ptr.back());
-
-            Kpp->col.resize(Kpp->ptr.back());
-            Kpp->val.resize(Kpp->ptr.back());
+            Kuu->set_nonzeros(Kuu->ptr[nu]);
+            Kup->set_nonzeros(Kup->ptr[nu]);
+            Kpu->set_nonzeros(Kpu->ptr[np]);
+            Kpp->set_nonzeros(Kpp->ptr[np]);
 
 #pragma omp parallel for
             for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
@@ -363,43 +351,65 @@ class schur_pressure_correction {
             boost::shared_ptr<build_matrix> u2x = boost::make_shared<build_matrix>();
             boost::shared_ptr<build_matrix> p2x = boost::make_shared<build_matrix>();
 
-            boost::tie(x2u->nrows, x2u->ncols) = boost::make_tuple(nu, n);
-            boost::tie(x2p->nrows, x2p->ncols) = boost::make_tuple(np, n);
-            boost::tie(u2x->nrows, u2x->ncols) = boost::make_tuple(n, nu);
-            boost::tie(p2x->nrows, p2x->ncols) = boost::make_tuple(n, np);
+            x2u->set_size(nu, n, true);
+            x2p->set_size(np, n, true);
+            u2x->set_size(n, nu, true);
+            p2x->set_size(n, np, true);
 
-            x2u->ptr.reserve(nu+1); x2u->ptr.push_back(0);
-            x2p->ptr.reserve(np+1); x2p->ptr.push_back(0);
-            u2x->ptr.reserve(n +1); u2x->ptr.push_back(0);
-            p2x->ptr.reserve(n +1); p2x->ptr.push_back(0);
+            {
+                ptrdiff_t x2u_head = 0, x2u_idx = 0;
+                ptrdiff_t x2p_head = 0, x2p_idx = 0;
+                ptrdiff_t u2x_head = 0, u2x_idx = 0;
+                ptrdiff_t p2x_head = 0, p2x_idx = 0;
 
-            x2u->col.reserve(nu);
-            x2p->col.reserve(np);
-            u2x->col.reserve(nu);
-            p2x->col.reserve(np);
+                for(size_t i = 0; i < n; ++i) {
+                    ptrdiff_t j = idx[i];
 
-            x2u->val.resize(nu, math::identity<value_type>());
-            x2p->val.resize(np, math::identity<value_type>());
-            u2x->val.resize(nu, math::identity<value_type>());
-            p2x->val.resize(np, math::identity<value_type>());
+                    if (prm.pmask[i]) {
+                        x2p->ptr[++x2p_idx] = ++x2p_head;
+                        ++p2x_head;
+                    } else {
+                        x2u->ptr[++x2u_idx] = ++x2u_head;
+                        ++u2x_head;
+                    }
 
-            for(size_t i = 0; i < n; ++i) {
-                ptrdiff_t j = idx[i];
-
-                if (prm.pmask[i]) {
-                    x2p->col.push_back(i);
-                    x2p->ptr.push_back(x2p->col.size());
-
-                    p2x->col.push_back(j);
-                } else {
-                    x2u->col.push_back(i);
-                    x2u->ptr.push_back(x2u->col.size());
-
-                    u2x->col.push_back(j);
+                    p2x->ptr[++p2x_idx] = p2x_head;
+                    u2x->ptr[++u2x_idx] = u2x_head;
                 }
+            }
 
-                p2x->ptr.push_back(p2x->col.size());
-                u2x->ptr.push_back(u2x->col.size());
+            x2u->set_nonzeros();
+            x2p->set_nonzeros();
+            u2x->set_nonzeros();
+            p2x->set_nonzeros();
+
+            {
+                ptrdiff_t x2u_head = 0;
+                ptrdiff_t x2p_head = 0;
+                ptrdiff_t u2x_head = 0;
+                ptrdiff_t p2x_head = 0;
+
+                for(size_t i = 0; i < n; ++i) {
+                    ptrdiff_t j = idx[i];
+
+                    if (prm.pmask[i]) {
+                        x2p->col[x2p_head] = i;
+                        x2p->val[x2p_head] = math::identity<value_type>();
+                        ++x2p_head;
+
+                        p2x->col[p2x_head] = j;
+                        p2x->val[p2x_head] = math::identity<value_type>();
+                        ++p2x_head;
+                    } else {
+                        x2u->col[x2u_head] = i;
+                        x2u->val[x2u_head] = math::identity<value_type>();
+                        ++x2u_head;
+
+                        u2x->col[u2x_head] = j;
+                        u2x->val[u2x_head] = math::identity<value_type>();
+                        ++u2x_head;
+                    }
+                }
             }
 
             this->x2u = backend_type::copy_matrix(x2u, bprm);
