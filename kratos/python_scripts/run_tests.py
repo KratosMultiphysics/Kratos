@@ -157,7 +157,7 @@ class Commander(object):
                     '-v'+str(verbose)
                 ])
 
-                # Used instrad of wait to "soft-block" the process and prevent deadlocks
+                # Used instead of wait to "soft-block" the process and prevent deadlocks
                 self.process.communicate()
             else:
                 if verbose > 0:
