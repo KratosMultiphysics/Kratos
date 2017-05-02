@@ -280,7 +280,11 @@ namespace Kratos
       ///@{
 
 		void CalculateElementDistance(Element& rElement1, PointerVector<GeometricalObject>& rIntersectedObjects);
+		
+		void CalculateDiscontinuousDistanceToSkinProcess::AvoidZeroDistanceNodes(Element& rElement1, const double Epsilon);
+
 		int CalculateIntersectionPoints(LineSegment& rSegment, PointerVector<GeometricalObject>& rIntersectedObjects, std::vector<Point<3> >& IntersectionPoints);
+
 
       ///@}
       ///@name Private  Access

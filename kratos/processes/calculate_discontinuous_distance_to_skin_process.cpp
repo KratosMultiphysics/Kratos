@@ -157,16 +157,21 @@ namespace Kratos
 		//	std::cout << std::endl;
 		//}
 
-		for (int i = 0; i < number_of_tetrahedra_points; i++) {
-			if (fabs(elemental_distances[i]) < epsilon) {
-				elemental_distances[i] = -1e-6;
-				rElement1.Set(TO_SPLIT, true);
-			}
-
-		}
+		AvoidZeroDistanceNodes(rElement1, epsilon);
 
 	}
 
+	void CalculateDiscontinuousDistanceToSkinProcess::AvoidZeroDistanceNodes(Element& rElement1, const double Epsilon) {
+		constexpr int number_of_tetrahedra_points = 4;
+		Vector& elemental_distances = rElement1.GetValue(ELEMENTAL_DISTANCES);
+
+		for (int i = 0; i < number_of_tetrahedra_points; i++) {
+			if (fabs(elemental_distances[i]) < Epsilon) {
+				elemental_distances[i] = Epsilon;
+				rElement1.Set(TO_SPLIT, true);
+			}
+		}
+	}
 
 	int	CalculateDiscontinuousDistanceToSkinProcess::CalculateIntersectionPoints(LineSegment& rSegment, PointerVector<GeometricalObject>& rIntersectedObjects, std::vector<Point<3> >& IntersectionPoints) {
 		Point<3> intersection_point;
