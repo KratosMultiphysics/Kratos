@@ -52,10 +52,6 @@ void  AddCustomUtilitiesToPython()
         .def("map_to_design_space", &MapperVertexMorphing::map_to_design_space)
         .def("map_to_geometry_space", &MapperVertexMorphing::map_to_geometry_space)
         ;
-
-    // ================================================================
-    // For perfoming the mapping according to Vertex Morphing iteratively
-    // ================================================================
     class_<MapperVertexMorphingIterative, bases<Process> >("MapperVertexMorphingIterative", init<ModelPart&, boost::python::dict, Parameters&>())
         .def("map_to_design_space", &MapperVertexMorphingIterative::map_to_design_space)
         .def("map_to_geometry_space", &MapperVertexMorphingIterative::map_to_geometry_space)

@@ -17,7 +17,7 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include <iomanip>      // for std::setprecision
+#include <iomanip> 
 
 // ------------------------------------------------------------------------------
 // External includes
@@ -57,7 +57,6 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-
     typedef boost::python::extract<ModelPart&> extractModelPart;
 
 ///@}
@@ -317,9 +316,6 @@ public:
             ModelPart::NodeType& node_i = *node_itr;
             array_3d i_coord = node_i.Coordinates();
 
-            // Get tID of the node in the mapping matrix
-            int i = node_i.GetValue(MAPPING_MATRIX_ID);
-
             // Arrays needed for spatial search
             unsigned int maxNodesAffected = 10000;            
             NodeVector nodesAffected(maxNodesAffected);
@@ -350,11 +346,11 @@ public:
                 ModelPart::NodeType& node_j = *nodesAffected[j_itr];
                 array_3d j_coord = node_j.Coordinates();
 
-                // Get the id of the node in the mapping matrix
-                int j = node_j.GetValue(MAPPING_MATRIX_ID);
-
                 // Computation of weight according specified weighting function
                 double weightForThisNeighbourNode = filterFunction.compute_weight(i_coord,j_coord);
+
+                // Get the id of the node in the mapping matrix
+                int j = node_j.GetValue(MAPPING_MATRIX_ID);
 
                 // Add values to list
                 listOfNeighborMappingIds[j_itr] = j;
@@ -366,16 +362,16 @@ public:
 
 
             // Get objective sensitivies for node_i 
-            // (dJdX = node_obj_sens[0], dJdY = node_obj_sens[1], dJdZ = node_obj_sens[2])
-            array_3d& node_obj_sens = node_i.FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
+            // (dJdX = node_i_obj_sens[0], dJdY = node_i_obj_sens[1], dJdZ = node_i_obj_sens[2])
+            array_3d& node_i_obj_sens = node_i.FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
             
             // Initialize constraint sensitivities as objective sensitivies (otherwise compiler complains)
-            array_3d& node_constr_sens = node_obj_sens; 
+            array_3d& node_i_constr_sens = node_i_obj_sens; 
             if(constraint_given)
             {
-                // Get constraint sensitivies for node_i 
-                // (dCdX = node_constr_sens[0], dCdY = node_constr_sens[1], dCdZ = node_constr_sens[2])
-                node_constr_sens = node_i.FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY);
+                // Get constraint sensitivies for node_i
+                // (dCdX = node_i_constr_sens[0], dCdY = node_i_constr_sens[1], dCdZ = node_i_constr_sens[2])
+                node_i_constr_sens = node_i.FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY);
             }
 
 
@@ -387,16 +383,16 @@ public:
                 double weightForThisNeighbourNode = list_of_weights[j_itr] / sum_weights;
 
                 // Mapping of objective sensitivies
-                dJdsx[j] += weightForThisNeighbourNode*node_obj_sens[0];
-                dJdsy[j] += weightForThisNeighbourNode*node_obj_sens[1];
-                dJdsz[j] += weightForThisNeighbourNode*node_obj_sens[2];
+                dJdsx[j] += weightForThisNeighbourNode*node_i_obj_sens[0];
+                dJdsy[j] += weightForThisNeighbourNode*node_i_obj_sens[1];
+                dJdsz[j] += weightForThisNeighbourNode*node_i_obj_sens[2];
 
                 // Mapping of constraint sensitivities
                 if(constraint_given)
                 {
-                    dCdsx[j] += weightForThisNeighbourNode*node_constr_sens[0];
-                    dCdsy[j] += weightForThisNeighbourNode*node_constr_sens[1];
-                    dCdsz[j] += weightForThisNeighbourNode*node_constr_sens[2];
+                    dCdsx[j] += weightForThisNeighbourNode*node_i_constr_sens[0];
+                    dCdsy[j] += weightForThisNeighbourNode*node_i_constr_sens[1];
+                    dCdsz[j] += weightForThisNeighbourNode*node_i_constr_sens[2];
                 }
             }                          
         }
@@ -518,7 +514,6 @@ public:
             // We sort in row by row using push_back. This is much more efficient than having only one loop and using a direct access
             for(unsigned int j_itr = 0 ; j_itr<numberOfNodesAffected ; j_itr++)
             {
-                int j = listOfNeighborMappingIds[j_itr]; // 
                 double weightForThisNeighbourNode = list_of_weights[j_itr] / sum_weights;
 
                 // Get design update from node_j
