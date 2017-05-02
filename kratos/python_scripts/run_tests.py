@@ -72,6 +72,7 @@ def handler(signum, frame):
 class Commander(object):
     def __init__(self):
         self.process = None
+        self.exitCode = 1
 
     def RunTestSuitInTime(self, application, applicationPath, path, level, verbose, command, timeout):
         if(timeout > -1):
@@ -87,10 +88,12 @@ class Commander(object):
                 self.process.terminate()
                 t.join()
                 print('\nABORT: Tests for {} took to long. Process Killed.'.format(application), file=sys.stderr)
+                return 1
             else:
                 print('\nTests for {} finished in time ({}s).'.format(application, timeout))
+                return
         else:
-            self.RunTestSuit(application, applicationPath, path, level, verbose, command)
+            return self.RunTestSuit(application, applicationPath, path, level, verbose, command)
 
     def RunTestSuit(self, application, applicationPath, path, level, verbose, command):
         ''' Calls the script that will run the tests.
@@ -158,7 +161,7 @@ class Commander(object):
                 ])
 
                 # Used instead of wait to "soft-block" the process and prevent deadlocks
-                self.process.communicate()
+                self.exitCode = self.process.communicate()
             else:
                 if verbose > 0:
                     print(
