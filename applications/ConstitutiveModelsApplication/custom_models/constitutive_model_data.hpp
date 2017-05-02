@@ -288,8 +288,13 @@ namespace Kratos
 
 
       //hyperelastic model parameters
-      if( rProperties.Has(C10) )
+      if( rProperties.Has(C10) ){
 	rValues.MaterialParameters.ModelParameters.push_back(rProperties[C10]);
+
+	//make neo-hookean consistent with the parameters:
+	rValues.MaterialParameters.LameMu = 2.0 * rProperties[C10];
+	rValues.MaterialParameters.BulkModulus   = rValues.MaterialParameters.LameLambda + (2.0/3.0) * rValues.MaterialParameters.LameMu;
+      }
 
       if( rProperties.Has(C20) )
 	rValues.MaterialParameters.ModelParameters.push_back(rProperties[C20]);
