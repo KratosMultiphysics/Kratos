@@ -58,19 +58,6 @@ namespace Kratos
 	void CalculateDiscontinuousDistanceToSkinProcess::PrintData(std::ostream& rOStream) const {
 	}
 
-	void RemoveDuplicatedPoints(std::vector<Point<3> >& IntersectionPoints) {
-		constexpr double epsilon = 1.e-12;
-		
-		for (std::size_t i = 0; i < IntersectionPoints.size(); i++)
-			for (std::size_t j = i+1; j < IntersectionPoints.size(); j++) {
-				array_1d<double, 3> v = IntersectionPoints[i] - IntersectionPoints[j];
-				if (inner_prod(v, v) < epsilon)
-					IntersectionPoints.erase(IntersectionPoints.begin() + j);
-			}
-
-
-	}
-
 	// TODO: I should move this class to a separate file but is out of scope of this branch
 	class Plane3D {
 	public:
