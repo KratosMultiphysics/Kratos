@@ -264,7 +264,7 @@ namespace Kratos
       //update total strain measure
       mCauchyGreenVector = ConstitutiveModelUtilities::SymmetricTensorToVector(rModelValues.StrainMatrix, mCauchyGreenVector);
 
-      // //update total strain measure
+      // //update total strain measure ( in the UpdateInternalVariables method of the plasticity model )
       // mCauchyGreenVector[0] = rModelValues.StressMatrix(0,0);
       // mCauchyGreenVector[1] = rModelValues.StressMatrix(1,1);
       // mCauchyGreenVector[2] = rModelValues.StressMatrix(2,2);
