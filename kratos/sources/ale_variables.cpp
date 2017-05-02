@@ -10,9 +10,6 @@
 //  Main authors:    msandre
 //
 
-// This define must be HERE
-#define DKRATOS_EXPORT_INTERFACE_2 1
-
 // System includes
 
 // External includes
@@ -36,6 +33,3 @@ void KratosApplication::RegisterALEVariables()
 }
 
 }  // namespace Kratos.
-
-// This define must be HERE
-#undef DKRATOS_EXPORT_INTERFACE_2
