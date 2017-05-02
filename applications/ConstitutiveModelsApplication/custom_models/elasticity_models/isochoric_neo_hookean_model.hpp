@@ -305,7 +305,7 @@ namespace Kratos
 
       const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
       
-      rDerivative = 0.5 * rMaterial.GetBulkModulus() * (rVariables.Strain.Invariants.J * rVariables.Strain.Invariants.J - 1.0 );
+      rDerivative = 0.5 * rMaterial.GetBulkModulus() * (rVariables.Strain.Invariants.J * rVariables.Strain.Invariants.J + 1.0 );
 
       rDerivative /= rVariables.Strain.Invariants.J * rVariables.Strain.Invariants.J ;
 
