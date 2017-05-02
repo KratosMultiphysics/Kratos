@@ -779,7 +779,17 @@ public:
 
         //
 
+//TODO: ConstructMatrixStructure cambia el tamaño de la matriz A!!
+KRATOS_WATCH("Dins del ResizeAndInitializeVectors")
 
+KRATOS_WATCH(BaseType::mEquationSystemSize)
+
+KRATOS_WATCH(A.size1())
+KRATOS_WATCH(Dx.size())
+KRATOS_WATCH(b.size())
+
+KRATOS_ERROR << "######## PROVAAAAAAA ###########" << std::endl;
+//
 
 
         KRATOS_CATCH("")
