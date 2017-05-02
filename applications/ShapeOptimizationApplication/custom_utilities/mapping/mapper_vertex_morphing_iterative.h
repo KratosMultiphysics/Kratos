@@ -17,7 +17,6 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include <iomanip> 
 
 // ------------------------------------------------------------------------------
 // External includes
@@ -116,7 +115,6 @@ public:
           mFilterRadius( optimizationSettings["design_variables"]["filter"]["filter_radius"].GetDouble() ),
           mPerformDamping( optimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool() )
     {
-        setPrecisionForOutput();
         assignMappingMatrixIds();
         initalizeDampingFactorsToHaveNoInfluence(); 
         if(mPerformDamping)   
@@ -139,12 +137,6 @@ public:
     ///@{
 
     // ==============================================================================
-    void setPrecisionForOutput()
-    {
-        std::cout.precision(12);
-    }
-
-    // --------------------------------------------------------------------------
     void assignMappingMatrixIds()
     {
         unsigned int i = 0;
@@ -251,44 +243,33 @@ public:
 
 
     // --------------------------------------------------------------------------
-    void map_to_design_space( bool constraint_given )
+    void map_to_design_space( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
+    {
+        if(mPerformDamping)
+            damp_nodal_variable( rNodalVariable );
+        perform_mapping_to_design_space( rNodalVariable, rNodalVariableInDesignSpace );
+    }
+
+    // --------------------------------------------------------------------------
+    void map_to_geometry_space( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
+    {
+        perform_mapping_to_geometry_space( rNodalVariable, rNodalVariableInGeometrySpace );
+        if(mPerformDamping)
+            damp_nodal_variable( rNodalVariable );
+    }
+
+    // --------------------------------------------------------------------------
+    void perform_mapping_to_design_space( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
     {
         // Measure time
         boost::timer mapping_time;
-        std::cout << "\n> Starting mapping of sensitivities to design space..." << std::endl;
-
-        // First we apply edge damping to the sensitivities if specified
-        if(mPerformDamping)
-            for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
-            {
-                node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY_X) *= node_i->GetValue(DAMPING_FACTOR_X);
-                node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY_Y) *= node_i->GetValue(DAMPING_FACTOR_Y);
-                node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY_Z) *= node_i->GetValue(DAMPING_FACTOR_Z);
-                if(constraint_given)
-                {
-                    node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY_X) *= node_i->GetValue(DAMPING_FACTOR_X);
-                    node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY_Y) *= node_i->GetValue(DAMPING_FACTOR_Y);
-                    node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY_Z) *= node_i->GetValue(DAMPING_FACTOR_Z);                    
-                }                
-            }
-
+        std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;
 
         // Perform mapping of objective sensitivities
         VectorType dJdsx, dJdsy, dJdsz;
         dJdsx.resize(mNumberOfDesignVariables);
         dJdsy.resize(mNumberOfDesignVariables);
         dJdsz.resize(mNumberOfDesignVariables);
-
-        // Perform mapping of constraints
-        VectorType dCdsx, dCdsy, dCdsz;
-        if(constraint_given)
-        {
-            
-            dCdsx.resize(mNumberOfDesignVariables);
-            dCdsy.resize(mNumberOfDesignVariables);
-            dCdsz.resize(mNumberOfDesignVariables);
-        }
-
 
         // Creating an auxiliary list for the nodes to be searched on
         NodeVector listOfNodes;
@@ -363,18 +344,8 @@ public:
 
             // Get objective sensitivies for node_i 
             // (dJdX = node_i_obj_sens[0], dJdY = node_i_obj_sens[1], dJdZ = node_i_obj_sens[2])
-            array_3d& node_i_obj_sens = node_i.FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
+            array_3d& node_i_obj_sens = node_i.FastGetSolutionStepValue(rNodalVariable);
             
-            // Initialize constraint sensitivities as objective sensitivies (otherwise compiler complains)
-            array_3d& node_i_constr_sens = node_i_obj_sens; 
-            if(constraint_given)
-            {
-                // Get constraint sensitivies for node_i
-                // (dCdX = node_i_constr_sens[0], dCdY = node_i_constr_sens[1], dCdZ = node_i_constr_sens[2])
-                node_i_constr_sens = node_i.FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY);
-            }
-
-
             // Post scaling + sort in all matrix entries in mapping matrix
             // We sort in row by row using push_back. This is much more efficient than having only one loop and using a direct access
             for(unsigned int j_itr = 0 ; j_itr<numberOfNodesAffected ; j_itr++)
@@ -386,17 +357,8 @@ public:
                 dJdsx[j] += weightForThisNeighbourNode*node_i_obj_sens[0];
                 dJdsy[j] += weightForThisNeighbourNode*node_i_obj_sens[1];
                 dJdsz[j] += weightForThisNeighbourNode*node_i_obj_sens[2];
-
-                // Mapping of constraint sensitivities
-                if(constraint_given)
-                {
-                    dCdsx[j] += weightForThisNeighbourNode*node_i_constr_sens[0];
-                    dCdsy[j] += weightForThisNeighbourNode*node_i_constr_sens[1];
-                    dCdsz[j] += weightForThisNeighbourNode*node_i_constr_sens[2];
-                }
             }                          
         }
-
 
         // Assign results to nodal variables
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
@@ -406,16 +368,7 @@ public:
             dJds_i(0) = dJdsx[i];
             dJds_i(1) = dJdsy[i];
             dJds_i(2) = dJdsz[i];
-            node_i->FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY) = dJds_i;
-            
-            if(constraint_given)
-            {
-                VectorType dCds_i = ZeroVector(3);
-                dCds_i(0) = dCdsx[i];
-                dCds_i(1) = dCdsy[i];
-                dCds_i(2) = dCdsz[i];
-                node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY) = dCds_i;
-            }
+            node_i->FastGetSolutionStepValue(rNodalVariableInDesignSpace) = dJds_i;
         }
 
         // Console output for information
@@ -423,13 +376,11 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void map_to_geometry_space()
+    void perform_mapping_to_geometry_space( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
     {
         // Measure time of mapping
         boost::timer mapping_time;
-        std::cout << "\n> Starting mapping of design update to geometry space..." << std::endl;
-
-        // 1. PERFORM MAPPING TO COMPUTE DESIGN UPDATE
+        std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to geometry space..." << std::endl;
 
         // Initialize vectors dx, dy, dz
         VectorType dx, dy, dz;
@@ -518,7 +469,7 @@ public:
 
                 // Get design update from node_j
                 ModelPart::NodeType& node_j = *nodesAffected[j_itr];
-                array_3d& node_design_update = node_j.FastGetSolutionStepValue(DESIGN_UPDATE);
+                array_3d& node_design_update = node_j.FastGetSolutionStepValue(rNodalVariable);
 
                 // add design update of node_j into vector of shape update
                 dx[i] += weightForThisNeighbourNode*node_design_update[0];
@@ -531,62 +482,35 @@ public:
         // Assign dx as nodal shape updates and update coordinates accordingly
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
-            // If shape update deactivated, set it to zero
-            if(node_i->FastGetSolutionStepValue(SHAPE_UPDATES_DEACTIVATED))
-            {
-                array_3d zero_array(3,0.0);
-                noalias(node_i->FastGetSolutionStepValue(SHAPE_UPDATE)) = zero_array;
-            }
-            // In case it is not deactivated, it is checked if it is on a specified boundary beyond which no update is wanted
-            else
-            {
-                // Read shape update from solution vector
-                int i = node_i->GetValue(MAPPING_MATRIX_ID);
-                array_3d shape_update;
-                shape_update[0] = dx[i];
-                shape_update[1] = dy[i];
-                shape_update[2] = dz[i];
+            // Read shape update from solution vector
+            int i = node_i->GetValue(MAPPING_MATRIX_ID);
+            array_3d shape_update;
+            shape_update[0] = dx[i];
+            shape_update[1] = dy[i];
+            shape_update[2] = dz[i];
 
-                // If node is on specified boundary, project shape update on specified boundary plane
-                // I.e. remove component that is normal to the boundary plane
-                if(node_i->FastGetSolutionStepValue(IS_ON_BOUNDARY))
-                {
-                    array_3d boundary_plane = node_i->FastGetSolutionStepValue(BOUNDARY_PLANE);
-                    shape_update = shape_update - (inner_prod(shape_update,boundary_plane))*boundary_plane/norm_2(boundary_plane);
-                }
-
-                // Assign shape update to nodal variable
-                noalias(node_i->FastGetSolutionStepValue(SHAPE_UPDATE)) = shape_update;
-            }
-        }
-
-        // Apply edge damping if specified
-        if(mPerformDamping)
-            for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
-            {   
-                node_i->FastGetSolutionStepValue(SHAPE_UPDATE_X) *= node_i->GetValue(DAMPING_FACTOR_X);
-                node_i->FastGetSolutionStepValue(SHAPE_UPDATE_Y) *= node_i->GetValue(DAMPING_FACTOR_Y);
-                node_i->FastGetSolutionStepValue(SHAPE_UPDATE_Z) *= node_i->GetValue(DAMPING_FACTOR_Z);
-            }
-
-        // Update model part and record absolute shape change 
-        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
-        {
-            array_3d& shape_update = node_i->FastGetSolutionStepValue(SHAPE_UPDATE);
-                
-            // Update coordinates
-            node_i->X() += shape_update[0];
-            node_i->Y() += shape_update[1];
-            node_i->Z() += shape_update[2];
-
-            // Add shape update to previous updates
-            noalias(node_i->FastGetSolutionStepValue(SHAPE_CHANGE_ABSOLUTE)) += shape_update;
+            // Assign shape update to nodal variable
+            noalias(node_i->FastGetSolutionStepValue(rNodalVariableInGeometrySpace)) = shape_update;
         }
 
         // Console output for information
         std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
     }
 
+    // --------------------------------------------------------------------------
+    void damp_nodal_variable( const Variable<array_3d> &rNodalVariable )
+    {
+        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+        {   
+            auto& damping_factor = node_i->GetValue(DAMPING_FACTOR);
+            auto& nodalVariable = node_i->FastGetSolutionStepValue(rNodalVariable);
+
+            nodalVariable[0] *= damping_factor[0];
+            nodalVariable[1] *= damping_factor[1];
+            nodalVariable[2] *= damping_factor[2];  
+        }  
+    }
+   
     // ==============================================================================
 
     ///@}

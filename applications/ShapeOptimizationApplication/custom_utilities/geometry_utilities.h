@@ -17,7 +17,6 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include <iomanip>      // for std::setprecision
 
 // ------------------------------------------------------------------------------
 // External includes
@@ -113,7 +112,6 @@ public:
     GeometryUtilities( ModelPart& modelPart )
         : mrModelPart( modelPart )
     {
-        setPrecisionForOutput();
     }
 
     /// Destructor.
@@ -132,12 +130,6 @@ public:
     ///@{
 
     // ==============================================================================
-    void setPrecisionForOutput()
-    {
-        std::cout.precision(12);
-    }
-
-    // --------------------------------------------------------------------------
     void compute_unit_surface_normals()
     {
         KRATOS_TRY;
@@ -160,39 +152,36 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void project_grad_on_unit_surface_normal( bool constraint_given )
+    void project_nodal_variable_on_unit_surface_normals( const Variable<array_3d> &rNodalVariable )
     {
         KRATOS_TRY;
 
         // We loop over all nodes and compute the part of the sensitivity which is in direction to the surface normal
         for (ModelPart::NodeIterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); ++node_i)
         {
+            array_3d &nodal_variable = node_i->FastGetSolutionStepValue(rNodalVariable);
+            array_3d &node_normal = node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
+
             // We compute dFdX_n = (dFdX \cdot n) * n
-            array_3d node_sens = node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
-            array_3d node_normal = node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
-            double surface_sens = inner_prod(node_sens,node_normal);
-            array_3d normal_node_sens = surface_sens * node_normal;
-
-            // Assign resulting sensitivities back to node
-            node_i->GetSolutionStepValue(OBJECTIVE_SURFACE_SENSITIVITY) = surface_sens;
-            noalias(node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY)) = normal_node_sens;
-
-            // Repeat for constraint
-            if(constraint_given)
-            {
-                // We compute dFdX_n = (dFdX \cdot n) * n
-                node_sens = node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY);
-                node_normal = node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
-                surface_sens = inner_prod(node_sens,node_normal);
-                normal_node_sens =  surface_sens * node_normal;
-
-                // Assign resulting sensitivities back to node
-                node_i->GetSolutionStepValue(CONSTRAINT_SURFACE_SENSITIVITY) = surface_sens;
-                noalias(node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY)) = normal_node_sens;
-            }
+            double surface_sens = inner_prod(nodal_variable,node_normal);
+            nodal_variable = surface_sens * node_normal;
         }
 
         KRATOS_CATCH("");
+    }
+
+    // --------------------------------------------------------------------------
+    void update_coordinates_according_to_input_variable( const Variable<array_3d> &rNodalVariable )
+    {
+        for (ModelPart::NodeIterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); ++node_i)
+        {
+            array_3d& shape_update = node_i->FastGetSolutionStepValue(rNodalVariable);                
+           
+            node_i->X() += shape_update[0];
+            node_i->Y() += shape_update[1];
+            node_i->Z() += shape_update[2];
+            noalias(node_i->FastGetSolutionStepValue(SHAPE_CHANGE_ABSOLUTE)) += shape_update;
+        }
     }
 
     // --------------------------------------------------------------------------

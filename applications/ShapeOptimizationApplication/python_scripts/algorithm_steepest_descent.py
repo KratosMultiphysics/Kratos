@@ -41,7 +41,6 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.maxIterations = optimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1        
         self.onlyObjective = optimizationSettings["objectives"][0]["identifier"].GetString()
         self.initialStepSize = optimizationSettings["line_search"]["step_size"].GetDouble()
-        self.isConstraintGiven = False
 
         self.geometryTools = GeometryUtilities( designSurface )
         self.optimizationTools = OptimizationUtilities( designSurface, optimizationSettings )
@@ -73,29 +72,25 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             print("> ",self.timer.getTimeStamp(),": Starting optimization iteration ",optimizationIteration)
             print(">===================================================================\n")
 
-            self.__callCoumminicatorToCreateNewRequests()
+            self.__callCommunicatorToRequestNewAnalyses()
 
-            self.analyzer.analyzeDesignAndReportToCommunicator( self.designSurface, optimizationIteration, self.communicator )
+            self.__callAnalyzerToPerformRequestedAnalyses( optimizationIteration )
          
-            self.__storeGradientsObtainedByCommunicatorOnNodes()
+            self.__storeResultOfSensitivityAnalysisOnNodes()
 
-            self.geometryTools.compute_unit_surface_normals()
-            self.geometryTools.project_grad_on_unit_surface_normal( self.isConstraintGiven )
+            self.__alignSensitivitiesToLocalSurfaceNormal()
 
-            self.mapper.map_to_design_space( self.isConstraintGiven )
+            self.__mapSensitivitiesToDesignSpace()
 
-            self.optimizationTools.compute_search_direction_steepest_descent()
+            self.__computeDesignUpdate()
 
-            self.optimizationTools.compute_design_update()
+            self.__mapDesignUpdateToGeometrySpaceToGetShapeUpdate()  
 
-            self.mapper.map_to_geometry_space()  
+            self.__updateShape()
 
-            self.dataLogger.logCurrentData( optimizationIteration )
+            self.__logCurrentOptimizationStep( optimizationIteration )
 
-            # Take time needed for current optimization step
-            print("\n> Time needed for current optimization step = ", self.timer.getLapTime(), "s")
-            print("> Time needed for total optimization so far = ", self.timer.getTotalTime(), "s")
-            self.timer.resetLapTime()
+            self.__timeOptimizationStep()
 
             if self.__isAlgorithmConverged( optimizationIteration ):
                 break            
@@ -105,22 +100,60 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.dataLogger.finalizeDataLogging() 
 
     # --------------------------------------------------------------------------
-    def __callCoumminicatorToCreateNewRequests( self ):
+    def __callCommunicatorToRequestNewAnalyses( self ):
         self.communicator.initializeCommunication()
         self.communicator.requestFunctionValueOf( self.onlyObjective )
         self.communicator.requestGradientOf( self.onlyObjective )    
 
     # --------------------------------------------------------------------------
-    def __storeGradientsObtainedByCommunicatorOnNodes( self ):
-        gradientOfObjectiveFunction = self.communicator.getReportedGradientOf ( self.onlyObjective )        
-        for nodeId in gradientOfObjectiveFunction:
-            if self.designSurface.Nodes[nodeId].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED):
-                continue
-            sensitivity = Vector(3)
-            sensitivity[0] = gradientOfObjectiveFunction[nodeId][0]
-            sensitivity[1] = gradientOfObjectiveFunction[nodeId][1]
-            sensitivity[2] = gradientOfObjectiveFunction[nodeId][2]           
-            self.designSurface.Nodes[nodeId].SetSolutionStepValue(OBJECTIVE_SENSITIVITY,0,sensitivity)
+    def __callAnalyzerToPerformRequestedAnalyses( self, optimizationIteration ):
+        self.analyzer.analyzeDesignAndReportToCommunicator( self.designSurface, optimizationIteration, self.communicator )
+
+    # --------------------------------------------------------------------------
+    def __storeResultOfSensitivityAnalysisOnNodes( self ):
+        gradientOfObjectiveFunction = self.communicator.getReportedGradientOf ( self.onlyObjective )
+        self.__storeGradientOnNodalVariable( gradientOfObjectiveFunction, OBJECTIVE_SENSITIVITY )
+
+    # --------------------------------------------------------------------------
+    def __storeGradientOnNodalVariable( self , givenGradient, variable_name ):
+        for nodeId in givenGradient:
+            gradient = Vector(3)
+            gradient[0] = givenGradient[nodeId][0]
+            gradient[1] = givenGradient[nodeId][1]
+            gradient[2] = givenGradient[nodeId][2]           
+            self.designSurface.Nodes[nodeId].SetSolutionStepValue(variable_name,0,gradient)
+
+    # --------------------------------------------------------------------------
+    def __alignSensitivitiesToLocalSurfaceNormal( self ):
+            self.geometryTools.compute_unit_surface_normals()
+            self.geometryTools.project_nodal_variable_on_unit_surface_normals( OBJECTIVE_SENSITIVITY )
+
+    # --------------------------------------------------------------------------
+    def __mapSensitivitiesToDesignSpace( self ):
+        self.mapper.map_to_design_space( OBJECTIVE_SENSITIVITY, MAPPED_OBJECTIVE_SENSITIVITY )
+
+    # --------------------------------------------------------------------------
+    def __computeDesignUpdate( self ):
+        self.optimizationTools.compute_search_direction_steepest_descent()
+        self.optimizationTools.compute_design_update()
+
+    # --------------------------------------------------------------------------
+    def __mapDesignUpdateToGeometrySpaceToGetShapeUpdate( self ):
+        self.mapper.map_to_geometry_space( DESIGN_UPDATE, SHAPE_UPDATE ) 
+
+    # --------------------------------------------------------------------------
+    def __updateShape( self ):
+        self.geometryTools.update_coordinates_according_to_input_variable( SHAPE_UPDATE )
+
+    # --------------------------------------------------------------------------
+    def __logCurrentOptimizationStep( self, optimizationIteration ):
+        self.dataLogger.logCurrentData( optimizationIteration )
+
+    # --------------------------------------------------------------------------
+    def __timeOptimizationStep( self ):
+        print("\n> Time needed for current optimization step = ", self.timer.getLapTime(), "s")
+        print("> Time needed for total optimization so far = ", self.timer.getTotalTime(), "s")
+        self.timer.resetLapTime()
 
     # --------------------------------------------------------------------------
     def __isAlgorithmConverged( self, optimizationIteration ):
