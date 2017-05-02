@@ -258,6 +258,7 @@ namespace Kratos
       
       // calculate volumetric stress
       MatrixType VolumetricStressMatrix;
+      VolumetricStressMatrix.clear();
       this->mElasticityModel.CalculateVolumetricStressTensor(rValues,VolumetricStressMatrix);
       
       // calculate isochoric stress
