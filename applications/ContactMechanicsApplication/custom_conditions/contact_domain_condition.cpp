@@ -136,13 +136,16 @@ namespace Kratos
 	  }
       }
 
-    //ADD MASTER NODE
-    Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
+    //ADD MASTER NODES
+    for ( unsigned int i = 0; i < GetValue(MASTER_NODES).size(); i++ )
+      {
+	Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
     
-    rConditionalDofList.push_back( MasterNode.pGetDof( DISPLACEMENT_X ) );
-    rConditionalDofList.push_back( MasterNode.pGetDof( DISPLACEMENT_Y ) );
-    if ( GetGeometry().WorkingSpaceDimension() == 3 )
-      rConditionalDofList.push_back( MasterNode.pGetDof( DISPLACEMENT_Z ) );
+	rConditionalDofList.push_back( MasterNode.pGetDof( DISPLACEMENT_X ) );
+	rConditionalDofList.push_back( MasterNode.pGetDof( DISPLACEMENT_Y ) );
+	if ( GetGeometry().WorkingSpaceDimension() == 3 )
+	  rConditionalDofList.push_back( MasterNode.pGetDof( DISPLACEMENT_Z ) );
+      }
   }
 
   //************************************************************************************
@@ -152,7 +155,8 @@ namespace Kratos
   {
     int number_of_nodes = GetGeometry().size();
     int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int mat_sizes = (number_of_nodes + 1)  * dimension;
+    unsigned int number_master_nodes = GetValue(MASTER_NODES).size();
+    unsigned int mat_sizes    = (number_of_nodes + number_master_nodes)  * dimension;
 
     if ( rResult.size() != mat_sizes )
       rResult.resize( mat_sizes, false );
@@ -167,15 +171,17 @@ namespace Kratos
 	  rResult[index + 2] = GetGeometry()[i].GetDof( DISPLACEMENT_Z ).EquationId();
       }
 
-    //ADD MASTER NODE
-    int index = number_of_nodes * dimension;
-    Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
+    //ADD MASTER NODES
+    for ( int i = 0; i < number_master_nodes; i++ )
+      {
+	int index = (number_of_nodes + i) * dimension;
+	Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
  
-    rResult[index]   = MasterNode.GetDof( DISPLACEMENT_X ).EquationId();
-    rResult[index+1] = MasterNode.GetDof( DISPLACEMENT_Y ).EquationId();
-    if ( dimension == 3 )
-      rResult[index+2] = MasterNode.GetDof( DISPLACEMENT_Z ).EquationId();
-
+	rResult[index]   = MasterNode.GetDof( DISPLACEMENT_X ).EquationId();
+	rResult[index+1] = MasterNode.GetDof( DISPLACEMENT_Y ).EquationId();
+	if ( dimension == 3 )
+	  rResult[index+2] = MasterNode.GetDof( DISPLACEMENT_Z ).EquationId();
+      }
   }
 
   //*********************************DISPLACEMENT***************************************
@@ -185,7 +191,8 @@ namespace Kratos
   {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int mat_size = (number_of_nodes + 1) * dimension;
+    unsigned int number_master_nodes = GetValue(MASTER_NODES).size();
+    unsigned int mat_size = (number_of_nodes + number_master_nodes) * dimension;
 
     if ( rValues.size() != mat_size ) rValues.resize( mat_size, false );
 
@@ -200,15 +207,18 @@ namespace Kratos
       }
 
 
-    //ADD MASTER NODE
-    unsigned int index = number_of_nodes * dimension;
-    Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
+    //ADD MASTER NODES
+    for ( int i = 0; i < number_master_nodes; i++ )
+      {
+	unsigned int index = (number_of_nodes + i) * dimension;
+	Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
 
-    rValues[index] = MasterNode.GetSolutionStepValue( DISPLACEMENT_X, Step );
-    rValues[index+1] = MasterNode.GetSolutionStepValue( DISPLACEMENT_Y, Step );
-
-    if ( dimension == 3 )
-      rValues[index+1] = MasterNode.GetSolutionStepValue( DISPLACEMENT_Z, Step );
+	rValues[index] = MasterNode.GetSolutionStepValue( DISPLACEMENT_X, Step );
+	rValues[index+1] = MasterNode.GetSolutionStepValue( DISPLACEMENT_Y, Step );
+	
+	if ( dimension == 3 )
+	  rValues[index+1] = MasterNode.GetSolutionStepValue( DISPLACEMENT_Z, Step );
+      }
 
   }
 
@@ -220,7 +230,8 @@ namespace Kratos
   {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int mat_size = (number_of_nodes + 1) * dimension;
+    unsigned int number_master_nodes = GetValue(MASTER_NODES).size();
+    unsigned int mat_size = (number_of_nodes + number_master_nodes) * dimension;
 
     if ( rValues.size() != mat_size ) rValues.resize( mat_size, false );
 
@@ -234,15 +245,18 @@ namespace Kratos
 	  rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
       }
 
-    //ADD MASTER NODE
-    unsigned int index = number_of_nodes * dimension;
-    Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
-
-    rValues[index] = MasterNode.GetSolutionStepValue( VELOCITY_X, Step );
-    rValues[index+1] = MasterNode.GetSolutionStepValue( VELOCITY_Y, Step );
-
-    if ( dimension == 3 )
-      rValues[index+1] = MasterNode.GetSolutionStepValue( VELOCITY_Z, Step );
+    //ADD MASTER NODES
+    for ( int i = 0; i < number_master_nodes; i++ )
+      {
+	unsigned int index = (number_of_nodes + i) * dimension;
+	Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
+	
+	rValues[index] = MasterNode.GetSolutionStepValue( VELOCITY_X, Step );
+	rValues[index+1] = MasterNode.GetSolutionStepValue( VELOCITY_Y, Step );
+	
+	if ( dimension == 3 )
+	  rValues[index+1] = MasterNode.GetSolutionStepValue( VELOCITY_Z, Step );
+      }
 
   }
 
@@ -255,7 +269,8 @@ namespace Kratos
   {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int mat_size = (number_of_nodes + 1) * dimension;
+    unsigned int number_master_nodes = GetValue(MASTER_NODES).size();
+    unsigned int mat_size = (number_of_nodes + number_master_nodes) * dimension;
 
     if ( rValues.size() != mat_size ) rValues.resize( mat_size, false );
 
@@ -269,17 +284,19 @@ namespace Kratos
 	  rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
       }
 
-    //ADD MASTER NODE
-    unsigned int index = number_of_nodes * dimension;
-    Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
-
-    rValues[index] = MasterNode.GetSolutionStepValue( ACCELERATION_X, Step );
-    rValues[index+1] = MasterNode.GetSolutionStepValue( ACCELERATION_Y, Step );
-
-    if ( dimension == 3 )
-      rValues[index+1] = MasterNode.GetSolutionStepValue( ACCELERATION_Z, Step );
-
-
+    //ADD MASTER NODES
+    for ( int i = 0; i < number_master_nodes; i++ )
+      {
+	unsigned int index = (number_of_nodes + i) * dimension;
+	Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
+	
+	rValues[index] = MasterNode.GetSolutionStepValue( ACCELERATION_X, Step );
+	rValues[index+1] = MasterNode.GetSolutionStepValue( ACCELERATION_Y, Step );
+	
+	if ( dimension == 3 )
+	  rValues[index+1] = MasterNode.GetSolutionStepValue( ACCELERATION_Z, Step );
+	
+      }	
   }
 
 
@@ -564,7 +581,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     if( rRHSVariable == CONTACT_FORCES_VECTOR && rDestinationVariable == CONTACT_FORCE )
@@ -640,11 +657,10 @@ namespace Kratos
 
   void ContactDomainCondition::ClearMasterElementNodalForces(ElementType& rMasterElement)
   {
-    KRATOS_TRY
-      
+    KRATOS_TRY      
     
-      //------------------------------------//
-      const unsigned int number_of_nodes = rMasterElement.GetGeometry().PointsNumber();
+    //------------------------------------//
+    const unsigned int number_of_nodes = rMasterElement.GetGeometry().PointsNumber();
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
 	rMasterElement.GetGeometry()[i].SetLock();
@@ -696,7 +712,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-      ElementType&  MasterElement  = mContactVariables.GetMasterElement();
+    ElementType&  MasterElement  = mContactVariables.GetMasterElement();
     GeometryType& MasterGeometry = mContactVariables.GetMasterGeometry();
     
 
@@ -1068,8 +1084,10 @@ namespace Kratos
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-    //resizing as needed the LHS
-    unsigned int mat_size = (number_of_nodes + 1) * dimension;
+    //resizing as needed the LHS    
+    unsigned int number_master_nodes = GetValue(MASTER_NODES).size();
+    unsigned int mat_size = (number_of_nodes + number_master_nodes) * dimension;
+
 
     if ( rCalculationFlags.Is(ContactDomainUtilities::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
       {
@@ -1104,9 +1122,8 @@ namespace Kratos
 
     unsigned int voigtsize = 3;
     if( dimension == 3 )
-      {
-        voigtsize  = 6;
-      }
+      voigtsize  = 6;
+      
 
     rVariables.F.resize( dimension, dimension );
 
@@ -1315,9 +1332,9 @@ namespace Kratos
   {
     KRATOS_TRY
 
-      //std::cout<<"//******** CONTACT ELEMENT "<<this->Id()<<" ********// "<<std::endl;
-      //std::cout<<" ["<<GetGeometry()[0].Id()<<","<<GetGeometry()[1].Id()<<","<<GetGeometry()[2].Id()<<"]"<<std::endl;
-      GeneralVariables Variables;
+    //std::cout<<"//******** CONTACT ELEMENT "<<this->Id()<<" ********// "<<std::endl;
+    //std::cout<<" ["<<GetGeometry()[0].Id()<<","<<GetGeometry()[1].Id()<<","<<GetGeometry()[2].Id()<<"]"<<std::endl;
+    GeneralVariables Variables;
     this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
 
     

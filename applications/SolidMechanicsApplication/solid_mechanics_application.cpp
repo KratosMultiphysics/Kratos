@@ -139,11 +139,18 @@ namespace Kratos
     // calling base class register to register Kratos components
     KratosApplication::Register();
     
-    std::cout << "     KRATOS  __|  _ \\  |   |  _ \\              " << std::endl;
-    std::cout << "           \\__ \\ (   | |   | | , )             " << std::endl;
-    std::cout << "           |___/\\___/ ___|_| ___/ MECHANICS     " << std::endl;
+    // std::cout << "      KRATOS  __|  _ \\  |   |  _ \\              " << std::endl;
+    // std::cout << "            \\__ \\ (   | |   | | , )             " << std::endl;
+    // std::cout << "            |___/\\___/ ___|_| ___/ MECHANICS     " << std::endl;
+    // //std::cout << "Initializing KratosSolidMechanicsApplication...  " << std::endl;
+
+    std::cout << "            ___      _ _    _          " << std::endl;
+    std::cout << "     KRATOS/ __| ___| (_)__| |         " << std::endl;
+    std::cout << "           \\__ \\/ _ \\ | / _` |         " << std::endl;
+    std::cout << "           |___/\\___/_|_\\__,_|MECHANICS" << std::endl;
     std::cout << "Initializing KratosSolidMechanicsApplication...  " << std::endl;
 
+    
     //Register Variables (variables created in solid_mechanics_application_variables.cpp)
 
     //explicit schemes

@@ -208,6 +208,36 @@ namespace Kratos
 		pContactCondition->SetValue(MASTER_CONDITION, pMasterCondition );
 		pContactCondition->SetValue(MASTER_ELEMENTS, pMasterCondition->GetValue(MASTER_ELEMENTS) );
 		pContactCondition->SetValue(MASTER_NODES, pMasterCondition->GetValue(MASTER_NODES) );
+		
+		if( pContactCondition->Is(SELECTED) ){ //two master nodes needed
+		  
+		  Element::ElementType& rMasterElement  = pMasterCondition->GetValue(MASTER_ELEMENTS).back();
+		  Geometry< Node<3> >&  rMasterGeometry = rMasterElement.GetGeometry();
+		  Element::NodeType&    rMasterNode     = pContactCondition->GetValue(MASTER_NODES).back();
+		  Geometry< Node<3> >&  rGeometry       = pContactCondition->GetGeometry();
+
+		  std::vector<bool> edge_nodes(4);
+		  std::fill(edge_nodes.begin(), edge_nodes.end(), false);
+
+		  for(unsigned int i=0; i<rMasterGeometry.PointsNumber(); i++)
+		    {
+		      for(unsigned int j=0; j<rGeometry.PointsNumber(); j++)
+			{
+			  if(rGeometry[j].Id()==rMasterGeometry[i].Id()){
+			    edge_nodes[i] = true;
+			    break;
+			  }
+			}
+		    }
+
+		  for(unsigned int i=0; i<4; i++)
+		    {
+		      if(!edge_nodes[i] && rMasterGeometry[i].Id() != rMasterNode.Id())
+			pContactCondition->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer(rMasterGeometry(i)) );
+		    }
+		}
+		  
+		  
 		pContactCondition->SetValue(NORMAL, pMasterCondition->GetValue(NORMAL) );
 		pContactCondition->Set(CONTACT);
 

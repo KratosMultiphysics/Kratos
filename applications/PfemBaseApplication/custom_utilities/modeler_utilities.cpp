@@ -1337,6 +1337,10 @@ namespace Kratos
     //std::cout<<" lpofa "<<lpofa<<std::endl;
     //std::cout<<" rGeometry "<<rGeometry<<std::endl;
 
+    unsigned int face_elements = 0;
+    unsigned int edge_elements = 0;
+
+    
     if( rGeometry.size() == 3 ){ //triangles of 3 nodes
      
       condition_found=false;
@@ -1370,7 +1374,9 @@ namespace Kratos
 	}
     }else if( rGeometry.size() == 4 ){ //tetraheda of 4 nodes
 
-
+      face_elements = 0;
+      edge_elements = 0;
+      
       condition_found=false;
       for(ModelPart::ConditionsContainerType::iterator ic=rModelConditions.begin(); ic!=rModelConditions.end(); ic++)
 	{
@@ -1382,15 +1388,16 @@ namespace Kratos
 	  	      
 	    for(unsigned int iface=0; iface<lpofa.size2(); iface++)
 	      {
-		if( (   rConditionGeometry[0].Id() == rGeometry[lpofa(1,iface)].Id() 
+		//detection for contact elements clockwise numeration of the contact geometry.
+		if( (   rConditionGeometry[2].Id() == rGeometry[lpofa(1,iface)].Id() 
 			&& rConditionGeometry[1].Id() == rGeometry[lpofa(2,iface)].Id()
-			&& rConditionGeometry[2].Id() == rGeometry[lpofa(3,iface)].Id() ) || 
-		    (   rConditionGeometry[0].Id() == rGeometry[lpofa(3,iface)].Id() 
+			&& rConditionGeometry[0].Id() == rGeometry[lpofa(3,iface)].Id() ) || 
+		    (   rConditionGeometry[2].Id() == rGeometry[lpofa(3,iface)].Id() 
 			&& rConditionGeometry[1].Id() == rGeometry[lpofa(1,iface)].Id()
-			&& rConditionGeometry[2].Id() == rGeometry[lpofa(2,iface)].Id() ) ||
-		    (   rConditionGeometry[0].Id() == rGeometry[lpofa(2,iface)].Id() 
+			&& rConditionGeometry[0].Id() == rGeometry[lpofa(2,iface)].Id() ) ||
+		    (   rConditionGeometry[2].Id() == rGeometry[lpofa(2,iface)].Id() 
 			&& rConditionGeometry[1].Id() == rGeometry[lpofa(3,iface)].Id()
-			&& rConditionGeometry[2].Id() == rGeometry[lpofa(1,iface)].Id() ) )
+			&& rConditionGeometry[0].Id() == rGeometry[lpofa(1,iface)].Id() ) )
 		  {
 		    pMasterCondition= *(ic.base());
 		    condition_found=true;
@@ -1403,6 +1410,8 @@ namespace Kratos
 
 	  if(condition_found)
 	    {
+	      pCondition->Set(NOT_SELECTED); //meaning that is a element that shares faces
+	      face_elements++;
 	      break;
 	    }
 			
@@ -1449,6 +1458,7 @@ namespace Kratos
 	    if(condition_found)
 	      {
 		pCondition->Set(SELECTED); //meaning that is a element that shares edges instead of faces
+		edge_elements++;
 		break;
 	      }
 			
@@ -1471,6 +1481,11 @@ namespace Kratos
       std::cout<<" ]"<<std::endl;
       
     }
+    else{
+      
+      std::cout<<"    [Face Elements: "<<face_elements<<" Edge Elements: "<<edge_elements<<"]"<<std::endl;
+    }
+      
 
     return pMasterCondition;
 	

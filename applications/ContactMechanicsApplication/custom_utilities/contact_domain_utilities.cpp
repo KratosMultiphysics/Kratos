@@ -174,7 +174,7 @@ namespace Kratos
 	  V1 /= norm_2(V1);
 	  V2 /= norm_2(V2);
 	  
-	  CalculateLineIntersection(BaseVector[1].B, P3, PPS, V1, V2 );
+	  CalculateLineIntersection(BaseVector[2].B, P3, PPS, V1, V2 );
 
 	  BaseVector[2].A = BaseVector[2].L-BaseVector[2].B;
 
