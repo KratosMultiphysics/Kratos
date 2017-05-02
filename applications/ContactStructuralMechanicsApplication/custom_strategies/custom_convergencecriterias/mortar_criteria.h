@@ -20,6 +20,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "custom_utilities/color_utilities.h"
 
 namespace Kratos
 {
@@ -181,22 +182,22 @@ public:
             {
                 if (FrictionalCase == true)
                 {
-                    std::cout << "\tConvergence is achieved in ACTIVE/INACTIVE and STICK/SLIP mortar nodes check" << std::endl;
+                    std::cout << "\tConvergence is " << BOLD(FGRN("achieved")) << " in ACTIVE/INACTIVE and STICK/SLIP mortar nodes check" << std::endl;
                 }
                 else
                 {
-                    std::cout << "\tConvergence is achieved in ACTIVE/INACTIVE mortar nodes check" << std::endl;
+                    std::cout << "\tConvergence is " << BOLD(FGRN("achieved")) << " in ACTIVE/INACTIVE mortar nodes check" << std::endl;
                 }
             }
             else
             {
                 if (FrictionalCase == true)
                 {
-                    std::cout << "\tConvergence is not achieved in ACTIVE/INACTIVE and STICK/SLIP mortar nodes check. RECALCULATING...." << std::endl;
+                    std::cout << "\tConvergence is " << BOLD(FRED("not achieved")) << " in ACTIVE/INACTIVE and STICK/SLIP mortar nodes check. RECALCULATING...." << std::endl;
                 }
                 else
                 {
-                    std::cout << "\tConvergence is not achieved in ACTIVE/INACTIVE mortar nodes check. RECALCULATING...." << std::endl;
+                    std::cout << "\tConvergence is " << BOLD(FRED("not achieved")) << " in ACTIVE/INACTIVE mortar nodes check. RECALCULATING...." << std::endl;
                 }
             }
         }

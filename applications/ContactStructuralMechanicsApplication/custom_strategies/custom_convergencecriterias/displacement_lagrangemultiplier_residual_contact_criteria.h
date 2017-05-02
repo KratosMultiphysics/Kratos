@@ -21,6 +21,7 @@
 #include "includes/model_part.h"
 #include "includes/define.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "custom_utilities/color_utilities.h"
 
 namespace Kratos
 {
@@ -237,9 +238,9 @@ public:
                 if (this->GetEchoLevel() >= 1)
                 {
                     std::cout.precision(4);
-                    std::cout << "RESIDUAL CONVERGENCE CHECK:" << std::endl << std::scientific;
-                    std::cout << "\tDISPLACEMENT: RATIO = " << ResidualDispRatio <<" EXP.RATIO = " << mDispRatioTolerance << " ABS = " << ResidualDispAbs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
-                    std::cout << "\tLAGRANGE MUL: RATIO = " << ResidualLMRatio <<" EXP.RATIO = " << mLMRatioTolerance << " ABS = " << ResidualLMAbs << " EXP.ABS = " << mLMAbsTolerance << std::endl;
+                    std::cout << BOLD("RESIDUAL CONVERGENCE CHECK:") << std::endl << std::scientific;
+                    std::cout << BOLD("\tDISPLACEMENT: RATIO = ") << ResidualDispRatio << BOLD(" EXP.RATIO = ") << mDispRatioTolerance << BOLD(" ABS = ") << ResidualDispAbs  << BOLD(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
+                    std::cout << BOLD("\tLAGRANGE MUL: RATIO = ") << ResidualLMRatio  << BOLD(" EXP.RATIO = ") << mLMRatioTolerance << BOLD(" ABS = ") << ResidualLMAbs << BOLD(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
                 }
             }
 
