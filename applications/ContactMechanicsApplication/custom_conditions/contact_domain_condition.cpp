@@ -153,15 +153,15 @@ namespace Kratos
 
   void ContactDomainCondition::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
   {
-    int number_of_nodes = GetGeometry().size();
-    int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     unsigned int number_master_nodes = GetValue(MASTER_NODES).size();
     unsigned int mat_sizes    = (number_of_nodes + number_master_nodes)  * dimension;
 
     if ( rResult.size() != mat_sizes )
       rResult.resize( mat_sizes, false );
 
-    for ( int i = 0; i < number_of_nodes; i++ )
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
         int index = i * dimension;
         rResult[index] = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
@@ -172,7 +172,7 @@ namespace Kratos
       }
 
     //ADD MASTER NODES
-    for ( int i = 0; i < number_master_nodes; i++ )
+    for ( unsigned int i = 0; i < number_master_nodes; i++ )
       {
 	int index = (number_of_nodes + i) * dimension;
 	Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
@@ -208,7 +208,7 @@ namespace Kratos
 
 
     //ADD MASTER NODES
-    for ( int i = 0; i < number_master_nodes; i++ )
+    for ( unsigned int i = 0; i < number_master_nodes; i++ )
       {
 	unsigned int index = (number_of_nodes + i) * dimension;
 	Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
@@ -217,7 +217,7 @@ namespace Kratos
 	rValues[index+1] = MasterNode.GetSolutionStepValue( DISPLACEMENT_Y, Step );
 	
 	if ( dimension == 3 )
-	  rValues[index+1] = MasterNode.GetSolutionStepValue( DISPLACEMENT_Z, Step );
+	  rValues[index+2] = MasterNode.GetSolutionStepValue( DISPLACEMENT_Z, Step );
       }
 
   }
@@ -246,7 +246,7 @@ namespace Kratos
       }
 
     //ADD MASTER NODES
-    for ( int i = 0; i < number_master_nodes; i++ )
+    for ( unsigned int i = 0; i < number_master_nodes; i++ )
       {
 	unsigned int index = (number_of_nodes + i) * dimension;
 	Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
@@ -255,7 +255,7 @@ namespace Kratos
 	rValues[index+1] = MasterNode.GetSolutionStepValue( VELOCITY_Y, Step );
 	
 	if ( dimension == 3 )
-	  rValues[index+1] = MasterNode.GetSolutionStepValue( VELOCITY_Z, Step );
+	  rValues[index+2] = MasterNode.GetSolutionStepValue( VELOCITY_Z, Step );
       }
 
   }
@@ -285,7 +285,7 @@ namespace Kratos
       }
 
     //ADD MASTER NODES
-    for ( int i = 0; i < number_master_nodes; i++ )
+    for ( unsigned int i = 0; i < number_master_nodes; i++ )
       {
 	unsigned int index = (number_of_nodes + i) * dimension;
 	Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
@@ -294,7 +294,7 @@ namespace Kratos
 	rValues[index+1] = MasterNode.GetSolutionStepValue( ACCELERATION_Y, Step );
 	
 	if ( dimension == 3 )
-	  rValues[index+1] = MasterNode.GetSolutionStepValue( ACCELERATION_Z, Step );
+	  rValues[index+2] = MasterNode.GetSolutionStepValue( ACCELERATION_Z, Step );
 	
       }	
   }
@@ -1361,7 +1361,7 @@ namespace Kratos
         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
 
         if(Variables.Contact.Options.Is(ACTIVE))
-	  {
+	  {	    
 	    rLocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_LHS_MATRIX,true); //take a look on strategy and impose it
 
 	    if ( rLocalSystem.CalculationFlags.Is(ContactDomainUtilities::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
@@ -1421,7 +1421,7 @@ namespace Kratos
 	    if(calculated == false)
 	      {
 		KRATOS_THROW_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rLeftHandSideVariables[i])
-		  }
+	      }
 
 	  }
       } 
@@ -1566,8 +1566,8 @@ namespace Kratos
 
     rRightHandSideVector  *=  rIntegrationWeight;
 
-    // std::cout<<std::endl;
-    // std::cout<<" Fcontact ["<<this->Id()<<"]"<<rRightHandSideVector<<std::endl;
+    std::cout<<std::endl;
+    std::cout<<" Fcontact ["<<this->Id()<<"]"<<rRightHandSideVector<<std::endl;
 
 
     KRATOS_CATCH( "" )
@@ -1586,8 +1586,8 @@ namespace Kratos
   { 
     KRATOS_TRY
 
-      //contributions to stiffness matrix calculated on the reference config
-      unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    //contributions to stiffness matrix calculated on the reference config
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     unsigned int size      = rLeftHandSideMatrix.size1()/dimension;
     double kcont=0;
 
@@ -1601,7 +1601,7 @@ namespace Kratos
 		  {
 		    kcont=0;
 		    this->CalcContactStiffness(kcont,rVariables,ndi,ndj,i,j);
-		    rLeftHandSideMatrix(ndi*2+i,ndj*2+j)+=kcont;
+		    rLeftHandSideMatrix(ndi*dimension+i,ndj*dimension+j)+=kcont;
 		  }
 	      }
 	  }
@@ -1609,8 +1609,8 @@ namespace Kratos
 
     rLeftHandSideMatrix *= rIntegrationWeight;
 
-    //std::cout<<std::endl;
-    //std::cout<<" Kcontact ["<<this->Id()<<"]"<<rLeftHandSideMatrix<<std::endl;
+    std::cout<<std::endl;
+    std::cout<<" Kcontact ["<<this->Id()<<"]"<<rLeftHandSideMatrix<<std::endl;
 
     KRATOS_CATCH( "" )
   }
