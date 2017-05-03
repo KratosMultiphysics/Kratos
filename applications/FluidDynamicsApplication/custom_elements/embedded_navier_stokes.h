@@ -1012,7 +1012,9 @@ protected:
         VectorType aux_int(rSplittingData.n_pos);
         VectorType aux_cut(TNumNodes);
 
+        //
         // Compute the no penetration condition contributions
+        //
         for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
         {
             double weight = rSplittingData.cut_edge_areas(icut);
@@ -1028,7 +1030,8 @@ protected:
                 {
                     for (unsigned int k=0; k<TDim; ++k)
                     {
-                        M_gamma_normal(i*TDim+k,j*TDim+k) += weight*(rSplittingData.intersection_normal(k)*aux_out(i))*(rSplittingData.intersection_normal(k)*aux_out(j));
+                        M_gamma_normal(i*TDim+k,j*TDim+k) += weight*(rSplittingData.intersection_normal(k)*rSplittingData.intersection_normal(k)*aux_out(i))*
+                                                                    (rSplittingData.intersection_normal(k)*rSplittingData.intersection_normal(k)*aux_out(j));
                     }
                 }
             }
@@ -1040,7 +1043,8 @@ protected:
                 {
                     for (unsigned int k=0; k<TDim; ++k)
                     {
-                        N_gamma_normal(i*TDim+k,j*TDim+k) += weight*(rSplittingData.intersection_normal(k)*aux_out(i))*(rSplittingData.intersection_normal(k)*aux_int(j));
+                        N_gamma_normal(i*TDim+k,j*TDim+k) += weight*(rSplittingData.intersection_normal(k)*rSplittingData.intersection_normal(k)*aux_out(i))*
+                                                                    (rSplittingData.intersection_normal(k)*rSplittingData.intersection_normal(k)*aux_int(j));
                     }
                 }
             }
@@ -1052,7 +1056,8 @@ protected:
                 {
                     for (unsigned int k=0; k<TDim; ++k)
                     {
-                        f_gamma_normal(i*TDim+k,j*TDim+k) += weight*(rSplittingData.intersection_normal(k)*aux_out(i))*(rSplittingData.intersection_normal(k)*aux_cut(j));
+                        f_gamma_normal(i*TDim+k,j*TDim+k) += weight*(rSplittingData.intersection_normal(k)*rSplittingData.intersection_normal(k)*aux_out(i))*
+                                                                    (rSplittingData.intersection_normal(k)*rSplittingData.intersection_normal(k)*aux_cut(j));
                     }
                 }
             }
@@ -1154,6 +1159,52 @@ protected:
             rRightHandSideVector += prod(auxLeftHandSideMatrix, aux_embedded_vel);
 
         }
+
+        //
+        // Compute the null tangential stress condition contribution
+        //
+        bounded_matrix<double, TDim, (TDim-1)*3> tangential_proj_matrix;        // Set the tangential projection matrix
+        SetTangentialProjectionMatrix(rSplittingData, tangential_proj_matrix);
+
+        MatrixType OuterNodesB_matrix;    // Set outer nodes strain matrix
+        SetOuterNodesStrainMatrix(rData, rSplittingData, OuterNodesB_matrix);
+
+        MatrixType InnerNodesB_matrix;    // Set inner nodes strain matrix
+        SetInnerNodesStrainMatrix(rData, rSplittingData, InnerNodesB_matrix);
+
+        bounded_matrix<double, TDim, (TDim-1)*3> aux_tang_proj_cons_matrix;
+        aux_tang_proj_cons_matrix = prod(tangential_proj_matrix, rData.C);
+
+        MatrixType OuterNodesProjectedCB_matrix;
+        MatrixType InnerNodesProjectedCB_matrix;
+        OuterNodesProjectedCB_matrix = prod(aux_tang_proj_cons_matrix, OuterNodesB_matrix)
+        InnerNodesProjectedCB_matrix = prod(aux_tang_proj_cons_matrix, InnerNodesB_matrix)
+
+        MatrixType Aux_M_gamma_tang;
+        MatrixType Aux_N_gamma_tang;
+        Aux_M_gamma_tang = prod(OuterNodesProjectedCB_matrix.transpose(), OuterNodesProjectedCB_matrix)
+        Aux_N_gamma_tang = prod(OuterNodesProjectedCB_matrix.transpose(), InnerNodesProjectedCB_matrix)
+
+        auxLeftHandSideMatrix.clear()
+
+        // LHS outside nodes null tangential stress contribution assembly
+        // Outer nodes contribution assembly
+        for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
+        {
+            unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
+
+            for (unsigned int j=0; j<rSplittingData.n_neg; ++j)
+            {
+                unsigned int out_node_col_id = rSplittingData.out_vec_identifiers[j];
+
+                for (unsigned int comp = 0; comp<TDim; comp++)
+                {
+                    auxLeftHandSideMatrix(out_node_row_id*BlockSize+comp, out_node_col_id*BlockSize+comp) = M_gamma_normal(i*TDim+comp, j*TDim+comp);
+                }
+            }
+        }
+
+
     }
 
 
@@ -1328,55 +1379,148 @@ protected:
 
 
     /**
-    * This functions sets the B strain matrix
-    * @param rData: reference to element data structure (it contains the shape functions derivatives)
+    * This functions sets the B strain matrix for the outer nodes
+    * @param rData: reference to element data structure
     * @param rSplittingData: reference to the intersection data structure
-    * @param rGradNormProj: reference to the computed gradient normal projection
+    * @param rOuterNodesB_matrix: reference to the computed B strain matrix
     */
-    void ComputeGradientNormalProjection(const ElementDataType& rData,
-                                         const ElementSplittingDataStruct& rSplittingData,
-                                         array_1d<double, TDim>& rGradNormProj)
+    void SetOuterNodesStrainMatrix(const ElementDataType& rData,
+                                   const ElementSplittingDataStruct& rSplittingData,
+                                   MatrixType& rOuterNodesB_matrix)
     {
-        rGradNormProj.clear();
-        MatrixType Gradient = ZeroMatrix(TDim, TDim); // Matrix to temporary store the velocity gradient dvj/dxi
+        rOuterNodesB_matrix = ZeroMatrix((TDim-1)*3, rSplittingData.n_neg*TDim);
 
-        // Fill the gradient matrix
         if (TDim == 3)
         {
-            for (unsigned int i=0; i<TNumNodes; i++)
+            for (unsigned int i=0; i<rSplittingData.n_neg; i++)
             {
-                Gradient(0,0) += rData.DN_DX(i,0)*rData.v(i,0);
-                Gradient(0,1) += rData.DN_DX(i,0)*rData.v(i,1);
-                Gradient(0,2) += rData.DN_DX(i,0)*rData.v(i,2);
-                Gradient(1,0) += rData.DN_DX(i,1)*rData.v(i,0);
-                Gradient(1,1) += rData.DN_DX(i,1)*rData.v(i,1);
-                Gradient(1,2) += rData.DN_DX(i,1)*rData.v(i,2);
-                Gradient(2,0) += rData.DN_DX(i,2)*rData.v(i,0);
-                Gradient(2,1) += rData.DN_DX(i,2)*rData.v(i,1);
-                Gradient(2,2) += rData.DN_DX(i,2)*rData.v(i,2);
-            }
+                const unsigned int out_node_id = rSplittingData.out_vec_identifiers[i];
 
+                rOuterNodesB_matrix(0,out_node_id*TDim)   = rData.DN_DX(out_node_id,0);
+                rOuterNodesB_matrix(1,out_node_id*TDim+1) = rData.DN_DX(out_node_id,1);
+                rOuterNodesB_matrix(2,out_node_id*TDim+2) = rData.DN_DX(out_node_id,2);
+                rOuterNodesB_matrix(3,out_node_id*TDim)   = rData.DN_DX(out_node_id,1);
+                rOuterNodesB_matrix(3,out_node_id*TDim+1) = rData.DN_DX(out_node_id,0);
+                rOuterNodesB_matrix(4,out_node_id*TDim+1) = rData.DN_DX(out_node_id,2);
+                rOuterNodesB_matrix(4,out_node_id*TDim+2) = rData.DN_DX(out_node_id,1);
+                rOuterNodesB_matrix(5,out_node_id*TDim)   = rData.DN_DX(out_node_id,2);
+                rOuterNodesB_matrix(5,out_node_id*TDim+2) = rData.DN_DX(out_node_id,0);
+            }
         }
         else
         {
-            for (unsigned int i=0; i<TNumNodes; ++i)
+            for (unsigned int i=0; i<rSplittingData.n_neg; i++)
             {
-                Gradient(0,0) += rData.DN_DX(i,0)*rData.v(i,0);
-                Gradient(0,1) += rData.DN_DX(i,0)*rData.v(i,1);
-                Gradient(1,0) += rData.DN_DX(i,1)*rData.v(i,0);
-                Gradient(1,1) += rData.DN_DX(i,1)*rData.v(i,1);
+                const unsigned int out_node_id = rSplittingData.out_vec_identifiers[i];
+
+                rOuterNodesB_matrix(0,out_node_id*TDim)   = rData.DN_DX(out_node_id,0);
+                rOuterNodesB_matrix(1,out_node_id*TDim+1) = rData.DN_DX(out_node_id,1);
+                rOuterNodesB_matrix(2,out_node_id*TDim)   = rData.DN_DX(out_node_id,1);
+                rOuterNodesB_matrix(2,out_node_id*TDim+1) = rData.DN_DX(out_node_id,0);
             }
         }
+    }
 
-        // Compute the intersection normal projection of the gradient
-        for (unsigned int i=0; i<TDim; ++i)
+
+    /**
+    * This functions sets the B strain matrix for the inner nodes
+    * @param rData: reference to element data structure
+    * @param rSplittingData: reference to the intersection data structure
+    * @param rInnerNodesB_matrix: reference to the computed B strain matrix
+    */
+    void SetInnerNodesStrainMatrix(const ElementDataType& rData,
+                                   const ElementSplittingDataStruct& rSplittingData,
+                                   MatrixType& rInnerNodesB_matrix)
+    {
+        rInnerNodesB_matrix = ZeroMatrix((TDim-1)*3, rSplittingData.n_pos*TDim);
+
+        if (TDim == 3)
         {
-            for (unsigned int j=0; j<TDim; ++j)
+            for (unsigned int i=0; i<rSplittingData.n_pos; i++)
             {
-                rGradNormProj(i) = rSplittingData.intersection_normal[j]*Gradient(j,i);
+                const unsigned int int_node_id = rSplittingData.int_vec_identifiers[i];
+
+                rInnerNodesB_matrix(0,int_node_id*TDim)   = rData.DN_DX(int_node_id,0);
+                rInnerNodesB_matrix(1,int_node_id*TDim+1) = rData.DN_DX(int_node_id,1);
+                rInnerNodesB_matrix(2,int_node_id*TDim+2) = rData.DN_DX(int_node_id,2);
+                rInnerNodesB_matrix(3,int_node_id*TDim)   = rData.DN_DX(int_node_id,1);
+                rInnerNodesB_matrix(3,int_node_id*TDim+1) = rData.DN_DX(int_node_id,0);
+                rInnerNodesB_matrix(4,int_node_id*TDim+1) = rData.DN_DX(int_node_id,2);
+                rInnerNodesB_matrix(4,int_node_id*TDim+2) = rData.DN_DX(int_node_id,1);
+                rInnerNodesB_matrix(5,int_node_id*TDim)   = rData.DN_DX(int_node_id,2);
+                rInnerNodesB_matrix(5,int_node_id*TDim+2) = rData.DN_DX(int_node_id,0);
             }
         }
+        else
+        {
+            for (unsigned int i=0; i<rSplittingData.n_pos; i++)
+            {
+                const unsigned int int_node_id = rSplittingData.int_vec_identifiers[i];
 
+                rInnerNodesB_matrix(0,int_node_id*TDim)   = rData.DN_DX(int_node_id,0);
+                rInnerNodesB_matrix(1,int_node_id*TDim+1) = rData.DN_DX(int_node_id,1);
+                rInnerNodesB_matrix(2,int_node_id*TDim)   = rData.DN_DX(int_node_id,1);
+                rInnerNodesB_matrix(2,int_node_id*TDim+1) = rData.DN_DX(int_node_id,0);
+            }
+        }
+    }
+
+    /**
+    * This functions sets the B strain matrix for the inner nodes
+    * @param rSplittingData: reference to the intersection data structure
+    * @param rTangProj_matrix: reference to the computed tangential projection matrix
+    */
+    void SetTangentialProjectionMatrix(const ElementSplittingDataStruct& rSplittingData,
+                                       bounded_matrix<double, TDim, (TDim-1)*3>& rTangProj_matrix)
+    {
+
+        rTangProj_matrix.clear();
+
+        bounded_matrix<double, TDim, TDim>& rTangVectorMatrix;
+        bounded_matrix<double, TDim, (TDim-1)*3>& rVoigtNormalProjectionMatrix;
+
+        if (TDim == 3)
+        {
+            // Fill the tangential projection matrix (I-nxn)
+            rTangVectorMatrix(0,0) = 1.0 - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(0);
+            rTangVectorMatrix(0,1) =     - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(1);
+            rTangVectorMatrix(0,2) =     - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(2);
+            rTangVectorMatrix(1,0) =     - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(0);
+            rTangVectorMatrix(1,1) = 1.0 - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(1);
+            rTangVectorMatrix(1,2) =     - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(2);
+            rTangVectorMatrix(2,0) =     - rSplittingData.intersection_normal(2)*rSplittingData.intersection_normal(0);
+            rTangVectorMatrix(2,1) =     - rSplittingData.intersection_normal(2)*rSplittingData.intersection_normal(1);
+            rTangVectorMatrix(2,2) = 1.0 - rSplittingData.intersection_normal(2)*rSplittingData.intersection_normal(2);
+
+            // Fill the Voigt notation normal projection matrix
+            rVoigtNormalProjectionMatrix.clear();
+            rVoigtNormalProjectionMatrix(0,0) = rSplittingData.intersection_normal(0);
+            rVoigtNormalProjectionMatrix(0,3) = rSplittingData.intersection_normal(1);
+            rVoigtNormalProjectionMatrix(0,5) = rSplittingData.intersection_normal(2);
+            rVoigtNormalProjectionMatrix(1,1) = rSplittingData.intersection_normal(1);
+            rVoigtNormalProjectionMatrix(1,3) = rSplittingData.intersection_normal(0);
+            rVoigtNormalProjectionMatrix(1,4) = rSplittingData.intersection_normal(2);
+            rVoigtNormalProjectionMatrix(2,2) = rSplittingData.intersection_normal(2);
+            rVoigtNormalProjectionMatrix(2,4) = rSplittingData.intersection_normal(1);
+            rVoigtNormalProjectionMatrix(2,5) = rSplittingData.intersection_normal(0);
+        }
+        else
+        {
+            // Fill the tangential projection matrix (I-nxn)
+            rTangVectorMatrix(0,0) = 1.0 - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(0)
+            rTangVectorMatrix(0,1) =     - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(1)
+            rTangVectorMatrix(1,0) =     - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(0)
+            rTangVectorMatrix(1,1) = 1.0 - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(1)
+
+            // Fill the Voigt notation normal projection matrix
+            rVoigtNormalProjectionMatrix.clear();
+            rVoigtNormalProjectionMatrix(0,0) = rSplittingData.intersection_normal(0);
+            rVoigtNormalProjectionMatrix(0,2) = rSplittingData.intersection_normal(1);
+            rVoigtNormalProjectionMatrix(1,1) = rSplittingData.intersection_normal(1);
+            rVoigtNormalProjectionMatrix(1,2) = rSplittingData.intersection_normal(0);
+        }
+
+        rTangProj_matrix = prod(rTangVectorMatrix, rVoigtNormalProjectionMatrix);
     }
 
     ///@}
