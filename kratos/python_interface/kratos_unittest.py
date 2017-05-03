@@ -1,5 +1,5 @@
 from __future__ import print_function, absolute_import, division
-from unittest import *
+from unittest import TestLoader, TextTestRunner, TestCase, TestSuite
 
 import getopt
 import sys
@@ -131,7 +131,9 @@ def runTests(tests):
             '[Warning]: "{}" test suite is empty'.format(level),
             file=sys.stderr)
     else:
-        TextTestRunner(verbosity=verbosity, buffer=True).run(tests[level])
+        ret = not TextTestRunner(verbosity=verbosity, buffer=True).run(tests[level]).wasSuccessful()
+        sys.exit(ret)
+
 
 KratosSuites = {
     'small': TestSuite(),
