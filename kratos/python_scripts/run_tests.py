@@ -88,10 +88,8 @@ class Commander(object):
                 self.process.terminate()
                 t.join()
                 print('\nABORT: Tests for {} took to long. Process Killed.'.format(application), file=sys.stderr)
-                return 1
             else:
                 print('\nTests for {} finished in time ({}s).'.format(application, timeout))
-                return
         else:
             self.RunTestSuit(application, applicationPath, path, level, verbose, command)
 
