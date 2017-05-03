@@ -41,7 +41,7 @@ namespace Kratos {
 
 		  Parameters mesher_parameters(R"(
             {
-                "number_of_divisions":   1,
+                "number_of_divisions":   8,
                 "element_name":     "Element3D4N"
             })");
 
@@ -67,17 +67,17 @@ namespace Kratos {
 		  // TODO: Change the tested process as soon as the new distance process is available
 		  CalculateDistanceToSkinProcess process(volume_part, skin_part);
 		  process.Execute();
+
+		  for(auto& node : volume_part.Nodes())
+			  if(node.Z() < 2.00)
+				  node.GetSolutionStepValue(DISTANCE) = -(fabs(node.GetSolutionStepValue(DISTANCE)));
+			  else
+				  node.GetSolutionStepValue(DISTANCE) = (fabs(node.GetSolutionStepValue(DISTANCE)));
 		  //ModelPart& skin_rpresentation_part = process.GetSkinRepresentation();
 		  //KRATOS_WATCH(skin_rpresentation_part);
 		  CalculateSignedDistanceTo3DSkinProcess sign_distance_process(skin_part, volume_part);
-		  //sign_distance_process.Execute();
 		  ModelPart skin_rpresentation_part;
 		  sign_distance_process.GenerateSkinModelPart(skin_rpresentation_part);
-
-		  volume_part.GetNode(1).GetSolutionStepValue(DISTANCE) = -(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE));
-		  volume_part.GetNode(2).GetSolutionStepValue(DISTANCE) = -(volume_part.GetNode(2).GetSolutionStepValue(DISTANCE));
-		  volume_part.GetNode(3).GetSolutionStepValue(DISTANCE) = -(volume_part.GetNode(3).GetSolutionStepValue(DISTANCE));
-		  volume_part.GetNode(4).GetSolutionStepValue(DISTANCE) = -(volume_part.GetNode(4).GetSolutionStepValue(DISTANCE));
 
 
 		  GidIO<> gid_io_fluid("C:/Temp/Tests/horizontal_plane_distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
@@ -138,18 +138,20 @@ namespace Kratos {
 		  // TODO: Change the tested process as soon as the new distance process is available
 		  CalculateDistanceToSkinProcess process(volume_part, skin_part);
 		  process.Execute();
+
+		  for (auto& node : volume_part.Nodes())
+			  if (node.Z() < 5.00)
+				  node.GetSolutionStepValue(DISTANCE) = -(fabs(node.GetSolutionStepValue(DISTANCE)));
+			  else
+				  node.GetSolutionStepValue(DISTANCE) = (fabs(node.GetSolutionStepValue(DISTANCE)));
+
+
 		  //ModelPart& skin_rpresentation_part = process.GetSkinRepresentation();
 		  //KRATOS_WATCH(skin_rpresentation_part);
 		  CalculateSignedDistanceTo3DSkinProcess sign_distance_process(skin_part, volume_part);
 		  //sign_distance_process.Execute();
 		  ModelPart skin_rpresentation_part;
 		  sign_distance_process.GenerateSkinModelPart(skin_rpresentation_part);
-
-		  volume_part.GetNode(1).GetSolutionStepValue(DISTANCE) = -(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE));
-		  volume_part.GetNode(2).GetSolutionStepValue(DISTANCE) = -(volume_part.GetNode(2).GetSolutionStepValue(DISTANCE));
-		  volume_part.GetNode(3).GetSolutionStepValue(DISTANCE) = -(volume_part.GetNode(3).GetSolutionStepValue(DISTANCE));
-		  volume_part.GetNode(4).GetSolutionStepValue(DISTANCE) = -(volume_part.GetNode(4).GetSolutionStepValue(DISTANCE));
-
 
 		  GidIO<> gid_io_fluid("C:/Temp/Tests/horizontal_plane_zero_distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
 		  gid_io_fluid.InitializeMesh(0.00);
