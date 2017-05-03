@@ -70,7 +70,7 @@ namespace Kratos {
 		  //ModelPart& skin_rpresentation_part = process.GetSkinRepresentation();
 		  //KRATOS_WATCH(skin_rpresentation_part);
 		  CalculateSignedDistanceTo3DSkinProcess sign_distance_process(skin_part, volume_part);
-		  sign_distance_process.Execute();
+		  //sign_distance_process.Execute();
 		  ModelPart skin_rpresentation_part;
 		  sign_distance_process.GenerateSkinModelPart(skin_rpresentation_part);
 
@@ -89,6 +89,77 @@ namespace Kratos {
 		  gid_io_fluid.FinalizeResults();
 
 		  GidIO<> gid_io_skin("C:/Temp/Tests/horizontal_plane_distance_test_representation_skin", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+		  gid_io_skin.InitializeMesh(0.00);
+		  gid_io_skin.WriteMesh(skin_rpresentation_part.GetMesh());
+		  gid_io_skin.FinalizeMesh();
+
+	  }
+
+	  KRATOS_TEST_CASE_IN_SUITE(HorizontalPlaneZeroDistanceProcess, KratosCoreFastSuite)
+	  {
+
+		  // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
+		  Point<3>::Pointer p_point1(new Point<3>(0.00, 0.00, 0.00));
+		  Point<3>::Pointer p_point2(new Point<3>(10.00, 0.00, 0.00));
+		  Point<3>::Pointer p_point3(new Point<3>(10.00, 10.00, 0.00));
+		  Point<3>::Pointer p_point4(new Point<3>(0.00, 10.00, 0.00));
+		  Point<3>::Pointer p_point5(new Point<3>(0.00, 0.00, 10.00));
+		  Point<3>::Pointer p_point6(new Point<3>(10.00, 0.00, 10.00));
+		  Point<3>::Pointer p_point7(new Point<3>(10.00, 10.00, 10.00));
+		  Point<3>::Pointer p_point8(new Point<3>(0.00, 10.00, 10.00));
+
+		  Hexahedra3D8<Point<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
+
+		  Parameters mesher_parameters(R"(
+            {
+                "number_of_divisions":   2,
+                "element_name":     "Element3D4N"
+            })");
+
+		  ModelPart volume_part("Volume");
+		  volume_part.AddNodalSolutionStepVariable(VELOCITY);
+		  volume_part.AddNodalSolutionStepVariable(DISTANCE);
+		  volume_part.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
+		  StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
+
+		  // Generate the skin
+		  ModelPart skin_part("Skin");
+		  skin_part.AddNodalSolutionStepVariable(VELOCITY);
+		  skin_part.CreateNewNode(901, 0.0, 0.0, 5.0);
+		  skin_part.CreateNewNode(902, 10.0, 0.0, 5.0);
+		  skin_part.CreateNewNode(903, 10.0, 10.0, 5.0);
+		  // skin_part.CreateNewNode(4, 4.0, 6.0, 7.0);
+		  skin_part.CreateNewNode(904, 0.0, 10.0, 5.0);
+		  Properties::Pointer p_properties(new Properties(0));
+		  skin_part.CreateNewElement("Element3D3N", 901, { 901,902,903 }, p_properties);
+		  skin_part.CreateNewElement("Element3D3N", 902, { 901,904,903 }, p_properties);
+
+		  // Compute distance
+		  // TODO: Change the tested process as soon as the new distance process is available
+		  CalculateDistanceToSkinProcess process(volume_part, skin_part);
+		  process.Execute();
+		  //ModelPart& skin_rpresentation_part = process.GetSkinRepresentation();
+		  //KRATOS_WATCH(skin_rpresentation_part);
+		  CalculateSignedDistanceTo3DSkinProcess sign_distance_process(skin_part, volume_part);
+		  //sign_distance_process.Execute();
+		  ModelPart skin_rpresentation_part;
+		  sign_distance_process.GenerateSkinModelPart(skin_rpresentation_part);
+
+		  volume_part.GetNode(1).GetSolutionStepValue(DISTANCE) = -(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE));
+		  volume_part.GetNode(2).GetSolutionStepValue(DISTANCE) = -(volume_part.GetNode(2).GetSolutionStepValue(DISTANCE));
+		  volume_part.GetNode(3).GetSolutionStepValue(DISTANCE) = -(volume_part.GetNode(3).GetSolutionStepValue(DISTANCE));
+		  volume_part.GetNode(4).GetSolutionStepValue(DISTANCE) = -(volume_part.GetNode(4).GetSolutionStepValue(DISTANCE));
+
+
+		  GidIO<> gid_io_fluid("C:/Temp/Tests/horizontal_plane_zero_distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+		  gid_io_fluid.InitializeMesh(0.00);
+		  gid_io_fluid.WriteMesh(volume_part.GetMesh());
+		  gid_io_fluid.FinalizeMesh();
+		  gid_io_fluid.InitializeResults(0, volume_part.GetMesh());
+		  gid_io_fluid.WriteNodalResults(DISTANCE, volume_part.Nodes(), 0, 0);
+		  gid_io_fluid.FinalizeResults();
+
+		  GidIO<> gid_io_skin("C:/Temp/Tests/horizontal_plane_zero_distance_test_representation_skin", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
 		  gid_io_skin.InitializeMesh(0.00);
 		  gid_io_skin.WriteMesh(skin_rpresentation_part.GetMesh());
 		  gid_io_skin.FinalizeMesh();
@@ -163,7 +234,7 @@ namespace Kratos {
 
 	  }
 
-	  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3IntersectionDistanceProcess, KratosCoreFastSuite)
+	KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3IntersectionDistanceProcess, KratosCoreFastSuite)
 	{
 
 		ModelPart volume_part("Volume");
