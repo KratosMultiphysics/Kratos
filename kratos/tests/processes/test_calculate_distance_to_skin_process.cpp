@@ -229,9 +229,12 @@ namespace Kratos {
 		skin_part.CreateNewElement("Element3D3N", 903, { 902,903,904 }, p_properties);
 		skin_part.CreateNewElement("Element3D3N", 904, { 901,902,904 }, p_properties);
 
-		CalculateDiscontinuousDistanceToSkinProcess(volume_part, skin_part).Execute();
+		CalculateDistanceToSkinProcess(volume_part, skin_part).Execute();
 
-		volume_part.GetNode(1).GetSolutionStepValue(DISTANCE) = -(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE));
+		//volume_part.GetNode(1).GetSolutionStepValue(DISTANCE) = -(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE));
+
+		KRATOS_CHECK_NEAR(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE), 2.0, 1e-9);
+		KRATOS_CHECK_NEAR(volume_part.GetNode(3).GetSolutionStepValue(DISTANCE), 0.9685, 1e-5);
 
 		GidIO<> gid_io_fluid("C:/Temp/Tests/tetrahedra_5_intersection_distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
 		gid_io_fluid.InitializeMesh(0.00);
