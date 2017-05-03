@@ -1,15 +1,19 @@
+sudo: false
+dist: trusty
 language: cpp
 compiler: g++
-dist: trusty
-sudo: false
 
 git:
   depth: 3
 
-cache:
-  apt: true
-  directories:
-    - /var/cache/apt/archives
+cache: ccache
+
+env:
+  global:
+    - CCACHE_COMPILERCHECK=content
+    - CCACHE_COMPRESS=true
+    - CCACHE_NODISABLE=true
+    - CCACHE_MAXSIZE=500M
 
 addons:
   apt:
@@ -27,8 +31,12 @@ addons:
       - liblapack-dev
 
 before_script:
-- export CC="gcc-6"
-- export CXX="g++-6"
+- which gcc-6
+- which g++-6
+- export CC="ccache gcc-6"
+- export CXX="ccache g++-6"
+- which gcc-6
+- which g++-6
 - export PYTHONPATH=${PYTHONPATH}:${TRAVIS_BUILD_DIR}
 - export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${TRAVIS_BUILD_DIR}/libs
 
@@ -36,5 +44,6 @@ script:
 - cp scripts/build/travis/configure_travis_trusty.sh cmake_build/configure.sh
 - cd cmake_build
 - bash configure.sh
+- ccache -s
 - cd ../kratos/python_scripts
 - python run_tests.py
