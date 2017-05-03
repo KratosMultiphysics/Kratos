@@ -227,7 +227,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "                \"GiDPostMode\":           \"[GiD_AccessValue get gendata GiD_post_mode]\","
     puts $FileVar "                \"WriteDeformedMeshFlag\": \"[GiD_AccessValue get gendata Write_deformed_mesh]\","
     puts $FileVar "                \"WriteConditionsFlag\":   \"[GiD_AccessValue get gendata Write_conditions]\","
-    if {[GiD_AccessValue get gendata Fracture_Propagation] eq true} {
+    if { ([GiD_AccessValue get gendata Fracture_Propagation] eq true) || ($IsPeriodic eq true) } {
         puts $FileVar "                \"MultiFileFlag\":         \"MultipleFiles\""
         puts $FileVar "            \},"
         puts $FileVar "            \"file_label\":          \"time\","
@@ -260,6 +260,10 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
         incr iGroup
         append PutStrings \" PARTITION_INDEX \" ,
+    }
+    if {$IsPeriodic eq true} {
+        incr iGroup
+        append PutStrings \" NODAL_CAUCHY_STRESS_TENSOR \" , \" NODAL_VON_MISES_STRESS \" ,
     }
     if {$iGroup > 0} {
         set PutStrings [string trimright $PutStrings ,]

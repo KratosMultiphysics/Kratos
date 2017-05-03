@@ -115,6 +115,7 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
         # Construct the communicator
         self.EpetraCommunicator = TrilinosApplication.CreateCommunicator()
         
+        # Set ProcessInfo variables
         self.main_model_part.ProcessInfo.SetValue(KratosPoro.NODAL_SMOOTHING, False)
         
         # Builder and solver creation

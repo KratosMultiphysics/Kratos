@@ -52,7 +52,8 @@ public:
         rParameters.ValidateAndAssignDefaults(default_parameters);
         
         mmesh_id = rParameters["mesh_id"].GetInt();
-        if(rParameters["dimension"].GetInt() == 2)
+        mDimension = rParameters["dimension"].GetInt();
+        if(mDimension == 2)
             mVoigtSize = 3;
         else
             mVoigtSize = 6;
@@ -107,8 +108,8 @@ public:
         KRATOS_CATCH("");
     }
 
-    /// this function will be executed at every time step AFTER writing the output
-    void ExecuteAfterOutputStep()
+    /// this function will be executed at every time step AFTER performing the solve phase
+    void ExecuteFinalizeSolutionStep()
     {
         KRATOS_TRY;
         
@@ -121,11 +122,15 @@ public:
             ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
             Condition::GeometryType& rGeom = itCond->GetGeometry();
             
-            const Matrix& NodalStressMatrix = rGeom[0].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
+            Matrix NodalStressMatrix(mDimension,mDimension);
+            noalias(NodalStressMatrix) = 0.5 * ( rGeom[0].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) + rGeom[1].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) );
             Vector NodalStressVector(mVoigtSize);
             noalias(NodalStressVector) = MathUtils<double>::StressTensorToVector( NodalStressMatrix, mVoigtSize );
             ComparisonUtilities EquivalentStress;
             double VonMisesStress = EquivalentStress.CalculateVonMises(NodalStressVector);
+            
+            rGeom[0].FastGetSolutionStepValue(NODAL_VON_MISES_STRESS) = VonMisesStress;
+            rGeom[1].FastGetSolutionStepValue(NODAL_VON_MISES_STRESS) = VonMisesStress;
             
             // Check whether the Von Mises stress at the node is higher than the prescribed limit to activate the joints
             if (VonMisesStress >= mVonMisesLimit)
@@ -171,6 +176,7 @@ protected:
 
     ModelPart& mr_model_part;
     std::size_t mmesh_id;
+    int mDimension;
     int mVoigtSize;
     double mVonMisesLimit;
 

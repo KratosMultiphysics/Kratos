@@ -33,6 +33,6 @@ class PeriodicInterfaceActivationProcess(KratosMultiphysics.Process):
 
         self.process.ExecuteInitialize()
 
-    def ExecuteAfterOutputStep(self):
-        
-        self.process.ExecuteAfterOutputStep()
+    def ExecuteFinalizeSolutionStep(self):
+
+        self.process.ExecuteFinalizeSolutionStep()
