@@ -779,18 +779,6 @@ public:
 
         //
 
-//TODO: ConstructMatrixStructure cambia el tamaño de la matriz A!!
-KRATOS_WATCH("Dins del ResizeAndInitializeVectors")
-
-KRATOS_WATCH(BaseType::mEquationSystemSize)
-
-KRATOS_WATCH(A.size1())
-KRATOS_WATCH(Dx.size())
-KRATOS_WATCH(b.size())
-
-KRATOS_ERROR << "######## PROVAAAAAAA ###########" << std::endl;
-//
-
 
         KRATOS_CATCH("")
 
@@ -1026,7 +1014,7 @@ protected:
         //filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
 
-        const std::size_t equation_size = BaseType::mDofSet.size();
+        const std::size_t equation_size = BaseType::mEquationSystemSize;
 
 #ifdef USE_GOOGLE_HASH
         std::vector<google::dense_hash_set<std::size_t> > indices(equation_size);
