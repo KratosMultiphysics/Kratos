@@ -424,7 +424,7 @@ class PartitionedFSIBaseSolver:
             keep_sign = True
             distribute_load = False
             self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
-                                                             KratosALE.MESH_DISPLACEMENT,
+                                                             KratosMultiphysics.MESH_DISPLACEMENT,
                                                              keep_sign,
                                                              distribute_load)
 
