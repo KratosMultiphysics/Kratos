@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosTestApplication 
+KratosPureDiffusionApplication 
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -44,42 +44,56 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author:  $
-//   Date:                $Date:  $
-//   Revision:            $Revision: 1.2 $
+//   Last modified by:    $Author:  $
+//   Date:                $Date: $
+//   Revision:            $Revision: 1.3 $
 //
 //
-
-
-#if !defined(KRATOS_STRATEGIES_PYTHON_H_INCLUDED )
-#define  KRATOS_STRATEGIES_PYTHON_H_INCLUDED
-
-
 
 // System includes 
 
-
+#if defined(KRATOS_PYTHON)
 // External includes 
-#include "boost/smart_ptr.hpp"
+#include <boost/python.hpp>
 
 
-// Project includes
+// Project includes 
 #include "includes/define.h"
+#include "pure_diffusion_application.h"
+#include "custom_python/add_custom_strategies_to_python.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 
-
+ 
 namespace Kratos
 {
 
-	namespace Python
+namespace Python
+{
+
+	using namespace boost::python;
+
+
+  
+	BOOST_PYTHON_MODULE(KratosPureDiffusionApplication)
 	{
 
-		void  AddCustomStrategiesToPython();
-		//~ {
-			//~ using namespace boost::python;
-		//~ }
+	  class_<KratosPureDiffusionApplication, 
+			  KratosPureDiffusionApplication::Pointer, 
+			  bases<KratosApplication>, boost::noncopyable >("KratosPureDiffusionApplication")
+			;
 
-	}  // namespace Python.
+	AddCustomStrategiesToPython();
+	AddCustomUtilitiesToPython();
+
+	//registering variables in python
+	KRATOS_REGISTER_IN_PYTHON_VARIABLE(POINT_HEAT_SOURCE);
+
+
+	}
+
+
+}  // namespace Python.
   
 }  // namespace Kratos.
 
-#endif // KRATOS_STRATEGIES_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_PYTHON defined
