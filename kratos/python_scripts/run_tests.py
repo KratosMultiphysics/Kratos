@@ -93,7 +93,7 @@ class Commander(object):
                 print('\nTests for {} finished in time ({}s).'.format(application, timeout))
                 return
         else:
-            return self.RunTestSuit(application, applicationPath, path, level, verbose, command)
+            self.RunTestSuit(application, applicationPath, path, level, verbose, command)
 
     def RunTestSuit(self, application, applicationPath, path, level, verbose, command):
         ''' Calls the script that will run the tests.
@@ -161,7 +161,10 @@ class Commander(object):
                 ])
 
                 # Used instead of wait to "soft-block" the process and prevent deadlocks
-                self.exitCode = self.process.communicate()
+                # and capture the first exit code different from OK
+                self.process.communicate()
+                if(not self.exitCode):
+                    self.process.returncode
             else:
                 if verbose > 0:
                     print(
@@ -295,6 +298,9 @@ def main():
             cmd,
             signalTime
         )
+
+    print(commander.exitCode)
+    sys.exit(commander.exitCode)
 
 
 if __name__ == "__main__":
