@@ -72,7 +72,7 @@ def handler(signum, frame):
 class Commander(object):
     def __init__(self):
         self.process = None
-        self.exitCode = 1
+        self.exitCode = 0
 
     def RunTestSuitInTime(self, application, applicationPath, path, level, verbose, command, timeout):
         if(timeout > -1):
