@@ -299,7 +299,6 @@ def main():
             signalTime
         )
 
-    print(commander.exitCode)
     sys.exit(commander.exitCode)
 
 
