@@ -31,8 +31,6 @@ addons:
       - liblapack-dev
 
 before_script:
-- export CC="ccache gcc-6"
-- export CXX="ccache g++-6"
 - export PYTHONPATH=${PYTHONPATH}:${TRAVIS_BUILD_DIR}
 - export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${TRAVIS_BUILD_DIR}/libs
 
@@ -40,6 +38,7 @@ script:
 - cp scripts/build/travis/configure_travis_trusty.sh cmake_build/configure.sh
 - cd cmake_build
 - bash configure.sh
+- make install -j1
 - ccache -s
 - cd ../kratos/python_scripts
 - python run_tests.py

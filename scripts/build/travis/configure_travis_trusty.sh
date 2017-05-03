@@ -45,8 +45,8 @@ CMAKE_BIN=cmake
 #        C_COMPILER=gcc
 #        CXX_COMPILER=g++
 # --------------------------------------------------------------------------------------------------------------
-C_COMPILER=${CC}
-CXX_COMPILER=${CXX}
+C_COMPILER=gcc-6
+CXX_COMPILER=g++-6
 
 # Build type
 #    Indicate the build type. Possible values are "Release", "RelWithDebInfo" or "Debug"
@@ -207,8 +207,3 @@ CMAKE_EXTRA=(
 
 # This line issues the configuration command with cmake that will generate the Makefile
 ${CMAKE_BIN} ${KRATOS_ROOT} "${CMAKE_BUILD[@]}" "${CMAKE_LIBS[@]}" "${CMAKE_APPLICATION[@]}" "${CMAKE_EXTRA[@]}"
-
-# Decomment this to compile after configuring
-#    -jN: Number of processors used during the compilation.
-#      for old machine, please take into account that this can use up to aprox 3*N GB of ram.
-make install -j1
