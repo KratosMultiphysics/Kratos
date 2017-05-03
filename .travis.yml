@@ -9,7 +9,7 @@ git:
 cache:
   apt: true
   directories:
-    - ${TRAVIS_BUILD_DIR}/cmake_build
+    - /var/cache/apt/archives
 
 addons:
   apt:
@@ -17,8 +17,8 @@ addons:
       - sourceline: 'ppa:ubuntu-toolchain-r/test'
       - sourceline: 'ppa:boost-latest/ppa'
     packages:
-      - gcc-4.9
-      - g++-4.9
+      - gcc-6
+      - g++-6
       - gfortran
       - libboost1.55-dev
       - libboost-serialization1.55-dev
@@ -27,8 +27,8 @@ addons:
       - liblapack-dev
 
 before_script:
-- export CC="gcc-4.9"
-- export CXX="g++-4.9"
+- export CC="gcc-6"
+- export CXX="g++-6"
 - export PYTHONPATH=${PYTHONPATH}:${TRAVIS_BUILD_DIR}
 - export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${TRAVIS_BUILD_DIR}/libs
 
