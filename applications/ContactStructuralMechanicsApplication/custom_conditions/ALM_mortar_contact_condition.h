@@ -989,15 +989,6 @@ protected:
         );
     
     /*
-     * Calculates the matrix De
-     */
-    
-    bounded_matrix<double, TNumNodes, TNumNodes> ComputeMe(        
-        const array_1d<double, TNumNodes> N1, 
-        const double detJ 
-        );
-    
-    /*
      * Calculates the matrix DeltaAe
      */
     

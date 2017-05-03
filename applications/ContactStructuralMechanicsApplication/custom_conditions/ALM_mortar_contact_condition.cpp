@@ -876,36 +876,17 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 {
     /* DEFINITIONS */
     const VectorType N1 = rVariables.NSlave;
-    const double detJ   = rVariables.DetJSlave; 
+    const double DetJ   = rVariables.DetJSlave; 
      
-    rAeData.De += rIntegrationWeight * this->ComputeDe( N1, detJ);
-    rAeData.Me += rIntegrationWeight * this->ComputeMe( N1, detJ);
+    rAeData.De += rIntegrationWeight * this->ComputeDe( N1, DetJ );
+    rAeData.Me += rIntegrationWeight * DetJ * outer_prod(N1, N1);
     
     for (unsigned int i = 0; i < TDim * TNumNodes; i++)
     {
         const double DeltaDetJ = rDerivativeData.DeltaJSlave[i];
         
-        const bounded_matrix<double, TNumNodes, TNumNodes> DeltaMe = DeltaDetJ * outer_prod(N1, N1);
-        bounded_matrix<double, TNumNodes, TNumNodes> DeltaDe;
-        
-        for (unsigned int iSlave = 0; iSlave < TNumNodes; iSlave++)
-        {
-            for (unsigned int jSlave = iSlave; jSlave < TNumNodes; jSlave++)
-            {
-                if (iSlave == jSlave)
-                {
-                    DeltaDe(iSlave, iSlave) = DeltaDetJ * N1[iSlave];
-                }
-                else
-                {
-                    DeltaDe(iSlave, jSlave) = 0.0;
-                    DeltaDe(jSlave, iSlave) = 0.0;
-                }
-            }
-        }
-        
-        rAeData.DeltaDe[i] += rIntegrationWeight * DeltaDe;
-        rAeData.DeltaMe[i] += rIntegrationWeight * DeltaMe;
+        rAeData.DeltaDe[i] += rIntegrationWeight *  this->ComputeDe( N1, DeltaDetJ );
+        rAeData.DeltaMe[i] += rIntegrationWeight * DeltaDetJ * outer_prod(N1, N1);
     }
 }
 
@@ -926,7 +907,7 @@ bounded_matrix<double, TNumNodes, TNumNodes> AugmentedLagrangianMethodMortarCont
         {
             if (i == j)
             {
-                De(i,i) = detJ * N1[i];
+                De(i, i) = detJ * N1[i];
             }
             else
             {
@@ -936,28 +917,6 @@ bounded_matrix<double, TNumNodes, TNumNodes> AugmentedLagrangianMethodMortarCont
     }
     
     return De;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
-bounded_matrix<double, TNumNodes, TNumNodes> AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::ComputeMe(
-        const array_1d<double, TNumNodes> N1, 
-        const double detJ 
-        )
-{
-    bounded_matrix<double, TNumNodes, TNumNodes>  Me;
-    
-    for (unsigned int i = 0; i < TNumNodes; i++)
-    {
-        for (unsigned int j = 0; j < TNumNodes; j++)
-        {
-            Me(i,j) = detJ * N1[i] * N1[j];
-        }
-    }
-    
-    return Me;
 }
 
 /***********************************************************************************/

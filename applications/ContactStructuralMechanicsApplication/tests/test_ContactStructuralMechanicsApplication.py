@@ -116,8 +116,8 @@ def AssambleTestSuites():
     smallSuite.addTest(TALMSimpleSlopePatchTestContact('test_execution'))
     smallSuite.addTest(TALMSimplePatchNotMatchingATestContact('test_execution'))
     smallSuite.addTest(TALMSimplePatchNotMatchingBTestContact('test_execution'))
-    #smallSuite.addTest(TALMTaylorPatchTestContact('test_execution'))
-    #smallSuite.addTest(TALMTaylorPatchDynamicTestContact('test_execution'))
+    smallSuite.addTest(TALMTaylorPatchTestContact('test_execution'))
+    smallSuite.addTest(TALMTaylorPatchDynamicTestContact('test_execution'))
     #smallSuite.addTest(TALMHertzSimpleSphereTestContact('test_execution'))
     #smallSuite.addTest(TALMHertzSphereTestContact('test_execution'))
     #smallSuite.addTest(TALMHertzSimpleTestContact('test_execution'))
@@ -164,10 +164,10 @@ def AssambleTestSuites():
             TThreeDPatchNonMatchingTestContact,
             TALMHyperSimplePatchTestContact,
             TALMSimplePatchTestContact,
-            TALMSimpleSlopePatchTestContact, # FIXME: This is giving wrong solutions
+            TALMSimpleSlopePatchTestContact,
             TALMSimplePatchNotMatchingATestContact,
             TALMSimplePatchNotMatchingBTestContact,
-            #TALMTaylorPatchTestContact,
+            TALMTaylorPatchTestContact,
             #TALMTaylorPatchDynamicTestContact,
             #TALMHertzSimpleTestContact,
             #TALMHertzSimpleSphereTestContact,
