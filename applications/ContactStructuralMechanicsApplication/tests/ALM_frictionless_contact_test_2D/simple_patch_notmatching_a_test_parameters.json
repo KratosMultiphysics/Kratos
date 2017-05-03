@@ -1,6 +1,6 @@
 {
     "problem_data"             : {
-        "problem_name"    : "simple_patch_test",
+        "problem_name"    : "simple_patch_notmatching_a_test",
         "model_part_name" : "Structure",
         "domain_size"     : 2,
         "time_step"       : 1.1,
@@ -15,28 +15,28 @@
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "ALM_frictionless_contact_test_2D/simple_patch_test"
+            "input_filename" : "ALM_frictionless_contact_test_2D/simple_patch_notmatching_a_test"
         },
         "compute_mortar_contact"             : 2,
         "block_builder"                      : true,
-        "clear_storage"                      : true,
         "line_search"                        : false,
-        "compute_reactions"                  : false,
+        "clear_storage"                      : false,
+        "reform_dofs_at_each_step"           : true,
         "convergence_criterion"              : "Contact_Residual_criterion",
-        "displacement_relative_tolerance"    : 0.001,
+        "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
+        "split_factor"                       : 10.0,
+        "max_number_splits"                  : 3,
         "linear_solver_settings"             : {
-                "solver_type": "SuperLUSolver",
-                "max_iteration": 500,
-                "tolerance": 1e-9,
-                "scaling": false,
-                "verbosity": 1
+            "solver_type" : "SuperLUSolver",
+            "scaling"     : false,
+            "verbosity"   : 0
         },
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto2","Parts_Parts_Auto3"],
-        "processes_sub_model_part_list"      : ["Contact_Part","Parts_Parts_Auto2","Parts_Parts_Auto3","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","IMPOSE_DISP_Auto1"]
+        "processes_sub_model_part_list"      : ["Parts_Parts_Auto2","Parts_Parts_Auto3","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","IMPOSE_DISP_Auto1","Contact_Part"]
     },
     "constraints_process_list" : [{
         "python_module"   : "impose_vector_value_by_components_process",
@@ -100,34 +100,6 @@
         }
     }
     ],
-    "json_check_process" : [
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "input_file_name"      : "ALM_frictionless_contact_test_2D/simple_patch_test_results.json",
-            "model_part_name"      : "Contact_Part",
-            "time_frequency"       : 1.00
-        }
-    }
-    ],
-    "_json_output_process" : [
-    {
-        "python_module"   : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
-            "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "output_file_name"     : "ALM_frictionless_contact_test_2D/simple_patch_test_results.json",
-            "model_part_name"      : "Contact_Part",
-            "time_frequency"       : 1.00
-        }
-    }
-    ],
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
@@ -149,6 +121,34 @@
         },
         "point_data_configuration"  : []
     },
+    "json_check_process" : [
+    {
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "input_file_name"      : "ALM_frictionless_contact_test_2D/simple_patch_notmatching_a_test_results.json",
+            "model_part_name"      : "Contact_Part",
+            "time_frequency"       : 1.00
+        }
+    }
+    ],
+    "_json_output_process" : [
+    {
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "output_file_name"     : "ALM_frictionless_contact_test_2D/simple_patch_notmatching_a_test_results.json",
+            "model_part_name"      : "Contact_Part",
+            "time_frequency"       : 1.00
+        }
+    }
+    ],
     "restart_options"          : {
         "SaveRestart"      : false,
         "RestartFrequency" : 0,

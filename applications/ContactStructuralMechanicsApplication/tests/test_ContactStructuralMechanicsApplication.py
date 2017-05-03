@@ -10,6 +10,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
+# Exact integration tests
 from TestExactIntegration import TestLineExactIntegration1 as TTestLineExactIntegration1
 from TestExactIntegration import TestLineExactIntegration2 as TTestLineExactIntegration2
 from TestExactIntegration import TestTriangleExactIntegration1 as TTestTriangleExactIntegration1
@@ -17,9 +18,13 @@ from TestExactIntegration import TestTriangleExactIntegration2 as TTestTriangleE
 from TestExactIntegration import TestTriangleExactIntegration3 as TTestTriangleExactIntegration3
 from TestExactIntegration import TestQuadrilateralExactIntegration1 as TTestQuadrilateralExactIntegration1
 from TestExactIntegration import TestQuadrilateralExactIntegration2 as TTestQuadrilateralExactIntegration2
+
+# Mesh tying tests
 from SmallTests import SimplePatchTestTwoDMeshTying as TSimplePatchTestTwoDMeshTying
 from SmallTests import SimplestPatchTestThreeDMeshTying as TSimplestPatchTestThreeDMeshTying
 from SmallTests import SimplePatchTestThreeDMeshTying as TSimplePatchTestThreeDMeshTying
+
+ # Legacy tests 
 from SmallTests import SimplePatchTestContact as TSimplePatchTestContact
 from SmallTests import SimpleSlopePatchTestContact as TSimpleSlopePatchTestContact
 from SmallTests import SimplePatchNotMatchingATestContact as TSimplePatchNotMatchingATestContact
@@ -35,8 +40,18 @@ from SmallTests import ThreeDSimplestTrianglePatchMatchingTestContact as TThreeD
 from SmallTests import ThreeDPatchMatchingTestContact as TThreeDPatchMatchingTestContact
 from SmallTests import ThreeDPatchNotMatchingTestContact as TThreeDPatchNonMatchingTestContact
 
+# ALM frictionless tests
 from SmallTests import ALMHyperSimplePatchTestContact as TALMHyperSimplePatchTestContact
 from SmallTests import ALMSimplePatchTestContact as TALMSimplePatchTestContact
+from SmallTests import ALMSimpleSlopePatchTestContact as TALMSimpleSlopePatchTestContact
+from SmallTests import ALMSimplePatchNotMatchingATestContact as TALMSimplePatchNotMatchingATestContact
+from SmallTests import ALMSimplePatchNotMatchingBTestContact as TALMSimplePatchNotMatchingBTestContact
+from SmallTests import ALMTaylorPatchTestContact as TALMTaylorPatchTestContact
+from SmallTests import ALMTaylorPatchDynamicTestContact as TALMTaylorPatchDynamicTestContact
+from SmallTests import ALMHertzSimpleTestContact as TALMHertzSimpleTestContact
+from SmallTests import ALMHertzSimpleSphereTestContact as TALMHertzSimpleSphereTestContact
+from SmallTests import ALMHertzSphereTestContact as TALMHertzSphereTestContact
+#from SmallTests import ALMHertzCompleteTestContact as TALMHertzCompleteTestContact
 from SmallTests import ALMThreeDSimplestPatchMatchingTestContact as TALMThreeDSimplestPatchMatchingTestContact
 from SmallTests import ALMThreeDPatchMatchingTestContact as TALMTThreeDPatchMatchingTestContact
 from SmallTests import ALMThreeDPatchNotMatchingTestContact as TALMThreeDPatchNotMatchingTestContact
@@ -44,6 +59,8 @@ from SmallTests import ALMThreeDPatchNotMatchingTestContact as TALMThreeDPatchNo
 ## NIGTHLY TESTS
 from NightlyTests import IroningTestContact as TIroningTestContact
 from NightlyTests import IroningDieTestContact as TIroningDieTestContact
+#from NightlyTests import ALMIroningTestContact as TALMIroningTestContact
+#from NightlyTests import ALMIroningDieTestContact as TALMIroningDieTestContact
 
 ## VALIDATION TESTS
 
@@ -96,9 +113,9 @@ def AssambleTestSuites():
     # ALM frictionless tests
     smallSuite.addTest(TALMHyperSimplePatchTestContact('test_execution'))
     smallSuite.addTest(TALMSimplePatchTestContact('test_execution'))
-    #smallSuite.addTest(TALMSimpleSlopePatchTestContact('test_execution'))
-    #smallSuite.addTest(TALMSimplePatchNotMatchingATestContact('test_execution'))
-    #smallSuite.addTest(TALMSimplePatchNotMatchingBTestContact('test_execution'))
+    smallSuite.addTest(TALMSimpleSlopePatchTestContact('test_execution'))
+    smallSuite.addTest(TALMSimplePatchNotMatchingATestContact('test_execution'))
+    smallSuite.addTest(TALMSimplePatchNotMatchingBTestContact('test_execution'))
     #smallSuite.addTest(TALMTaylorPatchTestContact('test_execution'))
     #smallSuite.addTest(TALMTaylorPatchDynamicTestContact('test_execution'))
     #smallSuite.addTest(TALMHertzSimpleSphereTestContact('test_execution'))
@@ -147,9 +164,9 @@ def AssambleTestSuites():
             TThreeDPatchNonMatchingTestContact,
             TALMHyperSimplePatchTestContact,
             TALMSimplePatchTestContact,
-            #TALMSimpleSlopePatchTestContact,
-            #TALMSimplePatchNotMatchingATestContact,
-            #TALMSimplePatchNotMatchingBTestContact,
+            #TALMSimpleSlopePatchTestContact, # FIXME: This is giving wrong solutions
+            TALMSimplePatchNotMatchingATestContact,
+            TALMSimplePatchNotMatchingBTestContact,
             #TALMTaylorPatchTestContact,
             #TALMTaylorPatchDynamicTestContact,
             #TALMHertzSimpleTestContact,
