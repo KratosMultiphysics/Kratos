@@ -1,9 +1,5 @@
 # import Kratos
 from KratosMultiphysics import *
-from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.ExternalSolversApplication import *
-from KratosMultiphysics.StructuralMechanicsApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.FSIApplication import *
 
 # Import Kratos "wrapper" for unittests
