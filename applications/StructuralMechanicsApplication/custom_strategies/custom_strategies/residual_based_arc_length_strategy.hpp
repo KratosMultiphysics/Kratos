@@ -1272,7 +1272,7 @@ private:
         DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
 
         // Setting up the Vectors involved to the correct size with value cero
-        pBuilderAndSolver->ResizeAndInitializeVectors(mpA,mpDx,mpb,BaseType::GetModelPart().Elements(),BaseType::GetModelPart().Conditions(),BaseType::GetModelPart().GetProcessInfo());
+        pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA,mpDx,mpb,BaseType::GetModelPart().Elements(),BaseType::GetModelPart().Conditions(),BaseType::GetModelPart().GetProcessInfo());
         InitializeAuxVectors(mpDelta_p);
         InitializeAuxVectors(mpDelta_pold);
         InitializeAuxVectors(mpX_old);

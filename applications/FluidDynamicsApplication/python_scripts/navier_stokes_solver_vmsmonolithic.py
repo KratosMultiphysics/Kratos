@@ -28,7 +28,7 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
                 "input_filename": "unknown_name"
             },
             "maximum_iterations": 10,
-            "dynamic_tau": 0.0,
+            "dynamic_tau": 0.01,
             "oss_switch": 0,
             "echo_level": 0,
             "consider_periodic_conditions": false,
