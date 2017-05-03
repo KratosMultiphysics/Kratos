@@ -233,8 +233,10 @@ namespace Kratos {
 
 		//volume_part.GetNode(1).GetSolutionStepValue(DISTANCE) = -(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE));
 
-		KRATOS_CHECK_NEAR(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE), 2.0, 1e-9);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(3).GetSolutionStepValue(DISTANCE), 0.9685, 1e-5);
+		KRATOS_CHECK_NEAR(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE), 2.0, 1e-6);
+		KRATOS_CHECK_NEAR(volume_part.GetNode(2).GetSolutionStepValue(DISTANCE), -0.132068, 1e-6);
+		KRATOS_CHECK_NEAR(volume_part.GetNode(3).GetSolutionStepValue(DISTANCE), 0.968496, 1e-6);
+		KRATOS_CHECK_NEAR(volume_part.GetNode(4).GetSolutionStepValue(DISTANCE), -0.52827, 1e-6);
 
 		GidIO<> gid_io_fluid("C:/Temp/Tests/tetrahedra_5_intersection_distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
 		gid_io_fluid.InitializeMesh(0.00);
