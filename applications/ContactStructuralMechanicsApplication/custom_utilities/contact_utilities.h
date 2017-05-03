@@ -314,6 +314,26 @@ public:
     }
     
     /**
+     * This functions checks if the length of the line is to short, with the potential of provoque ill condition in the dual LM formulation
+     * @param GeometryLine: The line to be checked
+     * @param Tolerance: The threshold length
+     * @return True if the line is too short, false otherwise
+     */
+    
+    static inline bool LengthCheck(
+        const GeometryPointType GeometryLine,
+        const double Tolerance = 1.0e-6
+        )
+    {
+        const double lx = GeometryLine[0].X() - GeometryLine[1].X();
+        const double ly = GeometryLine[0].Y() - GeometryLine[1].Y();
+
+        const double Length = std::sqrt(lx * lx + ly * ly);
+        
+        return (Length < Tolerance) ? true : false;
+    }
+    
+    /**
      * This functions checks if the semiperimeter is smaller than any of the sides of the triangle
      * @param GeometryTriangle: The triangle to be checked
      * @return True if the triangle is in bad shape, false otherwise

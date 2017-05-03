@@ -513,7 +513,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                 
                 DecompositionType DecompGeom( PointsArray );
                 
-                const bool BadShape = (TDim == 2) ? false : ContactUtilities::HeronCheck(DecompGeom);
+                const bool BadShape = (TDim == 2) ? ContactUtilities::LengthCheck(DecompGeom, this->GetGeometry().Length() * 1.0e-6) : ContactUtilities::HeronCheck(DecompGeom);
                 
                 if (BadShape == false)
                 {
@@ -667,7 +667,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                 
                 DecompositionType DecompGeom( PointsArray );
                 
-                const bool BadShape = (TDim == 2) ? false : ContactUtilities::HeronCheck(DecompGeom);
+                const bool BadShape = (TDim == 2) ? ContactUtilities::LengthCheck(DecompGeom, this->GetGeometry().Length() * 1.0e-6) : ContactUtilities::HeronCheck(DecompGeom);
                 
                 if (BadShape == false)
                 {
@@ -885,7 +885,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     {
         const double DeltaDetJ = rDerivativeData.DeltaJSlave[i];
         
-        rAeData.DeltaDe[i] += rIntegrationWeight *  this->ComputeDe( N1, DeltaDetJ );
+        rAeData.DeltaDe[i] += rIntegrationWeight * this->ComputeDe( N1, DeltaDetJ );
         rAeData.DeltaMe[i] += rIntegrationWeight * DeltaDetJ * outer_prod(N1, N1);
     }
 }
