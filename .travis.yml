@@ -31,12 +31,8 @@ addons:
       - liblapack-dev
 
 before_script:
-- which gcc-6
-- which g++-6
 - export CC="ccache gcc-6"
 - export CXX="ccache g++-6"
-- which gcc-6
-- which g++-6
 - export PYTHONPATH=${PYTHONPATH}:${TRAVIS_BUILD_DIR}
 - export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${TRAVIS_BUILD_DIR}/libs
 
