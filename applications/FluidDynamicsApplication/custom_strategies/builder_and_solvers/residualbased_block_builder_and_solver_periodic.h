@@ -132,7 +132,7 @@ public:
         {
             // PeriodicCondition always have exactly 2 nodes
             ModelPart::ConditionType::GeometryType& rGeom = itCond->GetGeometry();
-            if (rGeom.PointsNumber() == 2)
+            if ( (itCond->Is(PERIODIC)) && (rGeom.PointsNumber() == 2) )
             {
                 int Node0 = rGeom[0].Id();
                 int Node0Pair = rGeom[0].FastGetSolutionStepValue(mPeriodicIdVar);

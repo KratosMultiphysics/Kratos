@@ -780,8 +780,6 @@ public:
         //
 
 
-
-
         KRATOS_CATCH("")
 
     }
@@ -1016,7 +1014,7 @@ protected:
         //filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
 
-        const std::size_t equation_size = BaseType::mDofSet.size();
+        const std::size_t equation_size = BaseType::mEquationSystemSize;
 
 #ifdef USE_GOOGLE_HASH
         std::vector<google::dense_hash_set<std::size_t> > indices(equation_size);
