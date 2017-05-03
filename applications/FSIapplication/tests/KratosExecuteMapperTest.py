@@ -25,7 +25,7 @@ class KratosExecuteMapperTest:
         self.structure_main_model_part = ModelPart("structure_part")
         self.fluid_main_model_part = ModelPart("fluid_part")
 
-        # Set the domain size (2D test)
+        # Set the domain size (2D or 3D test)
         self.structure_main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParametersFluid["problem_data"]["domain_size"].GetInt())
         self.fluid_main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParametersSolid["problem_data"]["domain_size"].GetInt())
 
@@ -88,12 +88,14 @@ class KratosExecuteMapperTest:
             process.ExecuteInitialize()
 
         # Mapper construction
-        search_radius_factor = 1.0
-        mapper_max_iteration = 25
+        search_radius_factor = 2.0
+        mapper_max_iterations = 200
+        mapper_tolerance = 1e-12
         self.mapper = NonConformant_OneSideMap.NonConformant_OneSideMap(self.fluid_main_model_part,
                                                                         self.structure_main_model_part,
                                                                         search_radius_factor,
-                                                                        mapper_max_iteration)
+                                                                        mapper_max_iterations,
+                                                                        mapper_tolerance)
 
         # Output settings
         self.output_post = False # Set this variable to True if it is need to print the results for debugging purposes

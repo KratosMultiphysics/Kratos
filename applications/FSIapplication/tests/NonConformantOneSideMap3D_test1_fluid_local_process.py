@@ -26,11 +26,15 @@ class ApplyLocalProcess(Process, KratosUnittest.TestCase):
 
 
     def ExecuteInitialize(self):
-        # Parabolic velocity distribution
+        # Linear pressure distribution
         for node in self.interface_model_part.Nodes:
-            node.SetSolutionStepValue(VELOCITY_X, 0, node.Y*10)             # Linear VELOCITY_X distribution
-            node.SetSolutionStepValue(VELOCITY_Y, 0, node.Y*node.Y*10000)   # Parabolic VELOCITY_Y distribution
-            node.SetSolutionStepValue(VELOCITY_Z, 0, 0.0)
+            node.SetSolutionStepValue(PRESSURE, 0, node.X*node.Y*node.Z)
+
+        # Linear reaction distribution
+        for node in self.interface_model_part.Nodes:
+            node.SetSolutionStepValue(REACTION_X, 0,  node.Y)
+            node.SetSolutionStepValue(REACTION_Y, 0, 2*node.Z)
+            node.SetSolutionStepValue(REACTION_Z, 0, 3*node.X)
 
 
     def ExecuteBeforeSolutionLoop(self):
@@ -54,27 +58,9 @@ class ApplyLocalProcess(Process, KratosUnittest.TestCase):
 
 
     def ExecuteFinalize(self):
-        # Mapped PRESSURE check
+        # Mapped VELOCITY check
         for node in self.interface_model_part.Nodes:
-            obtained_pressure_value = node.GetSolutionStepValue(PRESSURE,0)
-            expected_pressure_value = node.Y*20
-            self.assertAlmostEqual(obtained_pressure_value, expected_pressure_value, delta=0.1)
-
-        # Force equilibrium check (mapped POINT_LOAD)
-        expected_sum_fx = 765.0
-        expected_sum_fy = 858.375
-        expected_sum_fz = 0.0
-
-        obtained_sum_fx = 0.0
-        obtained_sum_fy = 0.0
-        obtained_sum_fz = 0.0
-
-        for node in self.interface_model_part.Nodes:
-            f_solid = node.GetSolutionStepValue(POINT_LOAD)
-            obtained_sum_fx += f_solid[0]
-            obtained_sum_fy += f_solid[1]
-            obtained_sum_fz += f_solid[2]
-
-        self.assertAlmostEqual(obtained_sum_fx, expected_sum_fx, delta=0.1)
-        self.assertAlmostEqual(obtained_sum_fy, expected_sum_fy, delta=0.1)
-        self.assertAlmostEqual(obtained_sum_fz, expected_sum_fz, delta=0.1)
+            obtained_velocity_value = node.GetSolutionStepValue(VELOCITY,0)
+            expected_velocity_value = [-(2*node.Z-node.Y*node.Z/2.0) , 2*node.Z-node.Y*node.Z/2.0, node.X*node.Y]
+            for i in range(0,3):
+                self.assertAlmostEqual(obtained_velocity_value[i], expected_velocity_value[i], delta=5e-3)

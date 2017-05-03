@@ -92,6 +92,10 @@ class NonConformantOneSideMap2D_test2(MapperTestFactory):
     file_name = "NonConformantOneSideMap2D_test2/NonConformantOneSideMap2D_test2"
 
 @KratosUnittest.skipIf(missing_external_dependencies, "Missing required application: {0}".format(missing_application))
+class NonConformantOneSideMap3D_test1(MapperTestFactory):
+    file_name = "NonConformantOneSideMap3D_test1/NonConformantOneSideMap3D_test1"
+
+@KratosUnittest.skipIf(missing_external_dependencies, "Missing required application: {0}".format(missing_application))
 class FSIProblemEmulatorTest(FSIProblemEmulatorTestFactory):
     file_name_1 = "FSIProblemEmulatorTest/FSIProblemEmulatorTest_Aitken"
     file_name_2 = "FSIProblemEmulatorTest/FSIProblemEmulatorTest_MVQN"
