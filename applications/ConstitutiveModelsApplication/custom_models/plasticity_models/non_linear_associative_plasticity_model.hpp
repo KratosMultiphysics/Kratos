@@ -501,6 +501,10 @@ namespace Kratos
       //Compute radial return
       if( rVariables.State().IsNot(ConstitutiveModelData::COMPUTED_RETURN_MAPPING) )
 	KRATOS_ERROR << "ReturnMapping has to be computed to perform the calculati" << std::endl;
+      if (rVariables.State().IsNot(ConstitutiveModelData::PLASTIC_REGION) ) {
+          rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX);
+          return;
+      }
     
       //Algorithmic moduli factors
       PlasticFactors Factors;    
