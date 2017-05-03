@@ -44,42 +44,64 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author:  $
+//   Last modified by:    $Author:  $
 //   Date:                $Date:  $
 //   Revision:            $Revision: 1.2 $
 //
 //
 
 
-#if !defined(KRATOS_STRATEGIES_PYTHON_H_INCLUDED )
-#define  KRATOS_STRATEGIES_PYTHON_H_INCLUDED
-
-
-
 // System includes 
 
 
 // External includes 
-#include "boost/smart_ptr.hpp"
+#include <boost/python.hpp>
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <boost/timer.hpp> 
 
 
 // Project includes
 #include "includes/define.h"
+#include "custom_python/add_custom_strategies_to_python.h"
+
+#include "spaces/ublas_space.h"
+
+//strategies
+#include "solving_strategies/strategies/solving_strategy.h"
+
+//linear solvers
+#include "linear_solvers/linear_solver.h"
+
 
 
 namespace Kratos
 {
 
 	namespace Python
-	{
+	{		
+		using namespace boost::python;
 
-		void  AddCustomStrategiesToPython();
-		//~ {
-			//~ using namespace boost::python;
-		//~ }
+		void  AddCustomStrategiesToPython()
+		{
+			typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+			typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+
+			typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+			typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+			typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+
+			//********************************************************************
+			//********************************************************************
+// 			class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,	
+// 					bases< BaseSolvingStrategyType >,  boost::noncopyable >
+// 				("TestStrategy", 
+// 				init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
+// 				.def("MoveNodes",&TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
+// 				;
+		 
+		}
 
 	}  // namespace Python.
-  
-}  // namespace Kratos.
 
-#endif // KRATOS_STRATEGIES_PYTHON_H_INCLUDED  defined 
+} // Namespace Kratos
+

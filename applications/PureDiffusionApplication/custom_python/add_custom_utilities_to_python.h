@@ -7,14 +7,11 @@ A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
+Pooyan Dadvand, Riccardo Rossi
 pooyan@cimne.upc.edu 
 rrossi@cimne.upc.edu
-janosch.stascheit@rub.de
-nagel@sd.rub.de
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
-- Ruhr-University Bochum, Institute for Structural Mechanics, Germany
 
 
 Permission is hereby granted, free  of charge, to any person obtaining
@@ -46,13 +43,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //   Project Name:        Kratos       
 //   Last Modified by:    $Author:  $
 //   Date:                $Date:  $
-//   Revision:            $Revision: 1.2 $
+//   Revision:            $Revision: 1.1 $
 //
 //
 
 
-#if !defined(KRATOS_STRATEGIES_PYTHON_H_INCLUDED )
-#define  KRATOS_STRATEGIES_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED
 
 
 
@@ -60,7 +57,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes 
-#include "boost/smart_ptr.hpp"
 
 
 // Project includes
@@ -70,16 +66,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	namespace Python
-	{
+namespace Python
+{
 
-		void  AddCustomStrategiesToPython();
-		//~ {
-			//~ using namespace boost::python;
-		//~ }
+  void  AddCustomUtilitiesToPython();
 
-	}  // namespace Python.
+}  // namespace Python.
   
 }  // namespace Kratos.
 
-#endif // KRATOS_STRATEGIES_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED  defined 

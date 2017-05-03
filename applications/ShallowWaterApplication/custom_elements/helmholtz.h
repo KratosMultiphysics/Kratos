@@ -59,7 +59,7 @@ namespace Kratos
 * symbolic implementation is defined in the file:
 *    https://drive.google.com/file/d/0B_gRLnSH5vCwaXRKRUpDbmx4VXM/view?usp=sharing
 */
-template< unsigned int TDim, unsigned int TNumVar = 1, unsigned int TNumNodes = TDim + 1 >  // TODO: TNumVar is OK? (See helmholtz_cpp_template.cpp)
+template< unsigned int TDim, unsigned int TNumVar = 1, unsigned int TNumNodes = TDim + 1 > 
 class Helmholtz : public Element
 {
 public:

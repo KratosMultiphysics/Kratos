@@ -7,14 +7,11 @@ A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
+Pooyan Dadvand, Riccardo Rossi
 pooyan@cimne.upc.edu 
 rrossi@cimne.upc.edu
-janosch.stascheit@rub.de
-nagel@sd.rub.de
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
-- Ruhr-University Bochum, Institute for Structural Mechanics, Germany
 
 
 Permission is hereby granted, free  of charge, to any person obtaining
@@ -44,42 +41,51 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author:  $
+//   Last modified by:    $Author:  $
 //   Date:                $Date:  $
 //   Revision:            $Revision: 1.2 $
 //
 //
 
 
-#if !defined(KRATOS_STRATEGIES_PYTHON_H_INCLUDED )
-#define  KRATOS_STRATEGIES_PYTHON_H_INCLUDED
-
-
-
 // System includes 
 
-
 // External includes 
-#include "boost/smart_ptr.hpp"
+#include <boost/python.hpp>
 
 
 // Project includes
 #include "includes/define.h"
+#include "processes/process.h"
+#include "custom_python/add_custom_utilities_to_python.h"
+
+#include "spaces/ublas_space.h"
+#include "linear_solvers/linear_solver.h"
+
+#include "custom_utilities/calculate_mean_temp.h"
 
 
 namespace Kratos
 {
+	
+namespace Python
+{
 
-	namespace Python
-	{
+	
+  void  AddCustomUtilitiesToPython()
+  {
+	using namespace boost::python;
 
-		void  AddCustomStrategiesToPython();
-		//~ {
-			//~ using namespace boost::python;
-		//~ }
 
-	}  // namespace Python.
-  
-}  // namespace Kratos.
+		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+		
+		class_<CalculateMeanTemperature > ("CalculateMeanTemperature", init<ModelPart& >())  // The input parameters is a model part 
+                   .def("Execute", &CalculateMeanTemperature::Calculate);  // When we call "Execute" in python, Calculate is called in C++. Notice we don't write the input parameters here 
+  }
 
-#endif // KRATOS_STRATEGIES_PYTHON_H_INCLUDED  defined 
+}  // namespace Python.
+
+} // namespace Kratos
+
