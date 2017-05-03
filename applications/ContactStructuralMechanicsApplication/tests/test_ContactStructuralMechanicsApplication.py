@@ -164,7 +164,7 @@ def AssambleTestSuites():
             TThreeDPatchNonMatchingTestContact,
             TALMHyperSimplePatchTestContact,
             TALMSimplePatchTestContact,
-            #TALMSimpleSlopePatchTestContact, # FIXME: This is giving wrong solutions
+            TALMSimpleSlopePatchTestContact, # FIXME: This is giving wrong solutions
             TALMSimplePatchNotMatchingATestContact,
             TALMSimplePatchNotMatchingBTestContact,
             #TALMTaylorPatchTestContact,
