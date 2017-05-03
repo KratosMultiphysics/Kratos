@@ -254,7 +254,7 @@ public:
                 {
                     if (this->GetEchoLevel() >= 1)
                     {
-                        std::cout << "Convergence is achieved" << std::endl;
+                        std::cout << "Convergence is " << BOLD(FGRN("achieved")) << std::endl;
                     }
                 }
                 return true;
