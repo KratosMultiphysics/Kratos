@@ -92,15 +92,45 @@ class ThreeDPatchMatchingTestContact(StructuralMechanichsTestFactory):
 
 class ThreeDPatchNotMatchingTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test_3D/3D_contact_patch_nonmatching_test"
-
-class ALMSimplePatchTestContact(StructuralMechanichsTestFactory):
-    file_name = "ALM_frictionless_contact_test_2D/simple_patch_test"
     
 class ALMHyperSimplePatchTestContact(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test"
     
-class ALMSimplestPatchTestThreeDContact(StructuralMechanichsTestFactory):
+class ALMSimplePatchTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/simple_patch_test"
+    
+class ALMSimpleSlopePatchTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/simple_slope_patch_test"
+    
+class ALMSimplePatchNotMatchingATestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/simple_patch_notmatching_a_test"
+    
+class ALMSimplePatchNotMatchingBTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/simple_patch_notmatching_b_test"
+    
+class ALMTaylorPatchTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/taylor_patch_test"
+
+class ALMTaylorPatchDynamicTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/taylor_patch_dynamic_test"
+    
+class ALMHertzSimpleSphereTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/simple_hertz_sphere_plate_test"
+    
+class ALMHertzSimpleTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/hertz_simple_test"
+    
+class ALMHertzSphereTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/hertz_sphere_plate_test"
+    
+class ALMHertzCompleteTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/hertz_complete_test"
+
+class ALMThreeDSimplestPatchMatchingTestContact(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test"
     
-class ALMSimplePatchTestThreeDContact(StructuralMechanichsTestFactory):
-    file_name = "ALM_frictionless_contact_test_3D/simple_patch_test_3D"
+class ALMThreeDPatchMatchingTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_matching_test"
+
+class ALMThreeDPatchNotMatchingTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_nonmatching_test"

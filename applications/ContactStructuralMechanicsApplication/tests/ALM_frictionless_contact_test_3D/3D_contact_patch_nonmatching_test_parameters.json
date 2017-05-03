@@ -1,6 +1,6 @@
 {
     "problem_data"             : {
-        "problem_name"    : "simple_patch_test_3D",
+        "problem_name"    : "3D_contact_patch_nonmatching_test",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
         "time_step"       : 1.1,
@@ -15,7 +15,7 @@
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "ALM_frictionless_contact_test_3D/simple_patch_test_3D"
+            "input_filename" : "ALM_frictionless_contact_test_3D/3D_contact_patch_nonmatching_test"
         },
         "compute_mortar_contact"             : 2,
         "block_builder"                      : true,
@@ -144,7 +144,8 @@
             "modulus"         : 1.0,
             "direction"       : [0.0,-1.0,0.0]
         }
-    }],
+    }
+    ],
     "list_other_processes" :[
     {
         "python_module"   : "alm_contact_process",
@@ -191,7 +192,7 @@
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
             "check_variables"      : ["DISPLACEMENT_Y"],
-            "input_file_name"      : "ALM_frictionless_contact_test_3D/simple_patch_test_3D_results.json",
+            "input_file_name"      : "ALM_frictionless_contact_test_3D/3D_contact_patch_nonmatching_test_results.json",
             "model_part_name"      : "Contact_Part",
             "time_frequency"       : 1.0
         }
@@ -205,7 +206,7 @@
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_Y"],
-            "output_file_name"     : "ALM_frictionless_contact_test_3D/simple_patch_test_3D_results.json",
+            "output_file_name"     : "ALM_frictionless_contact_test_3D/3D_contact_patch_nonmatching_test_results.json",
             "model_part_name"      : "Contact_Part",
             "time_frequency"       : 1.0
         }
