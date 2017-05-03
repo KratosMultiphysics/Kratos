@@ -34,10 +34,12 @@ from SmallTests import ThreeDSimplestPatchMatchingTestContact as TThreeDSimplest
 from SmallTests import ThreeDSimplestTrianglePatchMatchingTestContact as TThreeDSimplestTrianglePatchMatchingTestContact
 from SmallTests import ThreeDPatchMatchingTestContact as TThreeDPatchMatchingTestContact
 from SmallTests import ThreeDPatchNotMatchingTestContact as TThreeDPatchNonMatchingTestContact
+
 from SmallTests import ALMHyperSimplePatchTestContact as TALMHyperSimplePatchTestContact
 from SmallTests import ALMSimplePatchTestContact as TALMSimplePatchTestContact
-from SmallTests import ALMSimplestPatchTestThreeDContact as TALMSimplestPatchTestThreeDContact
-from SmallTests import ALMSimplePatchTestThreeDContact as TALMSimplePatchTestThreeDContact
+from SmallTests import ALMThreeDSimplestPatchMatchingTestContact as TALMThreeDSimplestPatchMatchingTestContact
+from SmallTests import ALMThreeDPatchMatchingTestContact as TALMTThreeDPatchMatchingTestContact
+from SmallTests import ALMThreeDPatchNotMatchingTestContact as TALMThreeDPatchNotMatchingTestContact
 
 ## NIGTHLY TESTS
 from NightlyTests import IroningTestContact as TIroningTestContact
@@ -61,6 +63,7 @@ def AssambleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
+    # Exact integration tests
     smallSuite.addTest(TTestLineExactIntegration1('test_execution'))
     smallSuite.addTest(TTestLineExactIntegration2('test_execution'))
     smallSuite.addTest(TTestTriangleExactIntegration1('test_execution'))
@@ -68,9 +71,13 @@ def AssambleTestSuites():
     smallSuite.addTest(TTestTriangleExactIntegration3('test_execution'))
     smallSuite.addTest(TTestQuadrilateralExactIntegration1('test_execution'))
     smallSuite.addTest(TTestQuadrilateralExactIntegration2('test_execution'))
+    
+    # Mesh tying tests 
     smallSuite.addTest(TSimplePatchTestTwoDMeshTying('test_execution'))
     smallSuite.addTest(TSimplestPatchTestThreeDMeshTying('test_execution'))
     smallSuite.addTest(TSimplePatchTestThreeDMeshTying('test_execution'))
+    
+    # Legacy tests 
     smallSuite.addTest(TSimplePatchTestContact('test_execution'))
     smallSuite.addTest(TSimpleSlopePatchTestContact('test_execution'))
     smallSuite.addTest(TSimplePatchNotMatchingATestContact('test_execution'))
@@ -85,10 +92,22 @@ def AssambleTestSuites():
     smallSuite.addTest(TThreeDSimplestTrianglePatchMatchingTestContact('test_execution'))
     smallSuite.addTest(TThreeDPatchMatchingTestContact('test_execution'))
     smallSuite.addTest(TThreeDPatchNonMatchingTestContact('test_execution'))
+    
+    # ALM frictionless tests
     smallSuite.addTest(TALMHyperSimplePatchTestContact('test_execution'))
     smallSuite.addTest(TALMSimplePatchTestContact('test_execution'))
-    smallSuite.addTest(TALMSimplestPatchTestThreeDContact('test_execution'))
-    smallSuite.addTest(TALMSimplePatchTestThreeDContact('test_execution'))
+    #smallSuite.addTest(TALMSimpleSlopePatchTestContact('test_execution'))
+    #smallSuite.addTest(TALMSimplePatchNotMatchingATestContact('test_execution'))
+    #smallSuite.addTest(TALMSimplePatchNotMatchingBTestContact('test_execution'))
+    #smallSuite.addTest(TALMTaylorPatchTestContact('test_execution'))
+    #smallSuite.addTest(TALMTaylorPatchDynamicTestContact('test_execution'))
+    #smallSuite.addTest(TALMHertzSimpleSphereTestContact('test_execution'))
+    #smallSuite.addTest(TALMHertzSphereTestContact('test_execution'))
+    #smallSuite.addTest(TALMHertzSimpleTestContact('test_execution'))
+    ##smallSuite.addTest(THertzCompleteTestContact('test_execution'))
+    smallSuite.addTest(TALMThreeDSimplestPatchMatchingTestContact('test_execution'))
+    smallSuite.addTest(TALMTThreeDPatchMatchingTestContact('test_execution'))
+    smallSuite.addTest(TALMThreeDPatchNotMatchingTestContact('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -112,7 +131,7 @@ def AssambleTestSuites():
             TTestQuadrilateralExactIntegration2,
             TSimplePatchTestTwoDMeshTying,
             TSimplestPatchTestThreeDMeshTying,
-            #TSimplePatchTestThreeDMeshTying,
+            #TSimplePatchTestThreeDMeshTying, # FIXME: Some error in the mesh tying condition
             TSimplePatchTestContact,
             TSimpleSlopePatchTestContact,
             TSimplePatchNotMatchingATestContact,
@@ -128,12 +147,24 @@ def AssambleTestSuites():
             TThreeDPatchNonMatchingTestContact,
             TALMHyperSimplePatchTestContact,
             TALMSimplePatchTestContact,
-            TALMSimplestPatchTestThreeDContact,
-            TALMSimplePatchTestThreeDContact,
+            #TALMSimpleSlopePatchTestContact,
+            #TALMSimplePatchNotMatchingATestContact,
+            #TALMSimplePatchNotMatchingBTestContact,
+            #TALMTaylorPatchTestContact,
+            #TALMTaylorPatchDynamicTestContact,
+            #TALMHertzSimpleTestContact,
+            #TALMHertzSimpleSphereTestContact,
+            #TALMHertzSphereTestContact,
+            TALMThreeDSimplestPatchMatchingTestContact,
+            TALMTThreeDPatchMatchingTestContact, # FIXME: Some error, rotation in the solution
+            TALMThreeDPatchNotMatchingTestContact,
             ############# JUST TESTING ###########
             ##THertzCompleteTestContact,
             ##TIroningTestContact,
             ##TIroningDieTestContact,
+            ##TALMHertzCompleteTestContact,
+            ##TALMIroningTestContact,
+            ##TALMIroningDieTestContact,
         ])
     )
 
