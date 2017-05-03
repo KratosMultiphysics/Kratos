@@ -110,13 +110,13 @@ public:
     /// Default constructor.
     MapperVertexMorphingIterative( ModelPart& designSurface, boost::python::dict dampingRegions, Parameters& optimizationSettings )
         : mrDesignSurface( designSurface ),
-          mNumberOfDesignVariables(designSurface.Nodes().size()),
-          mFilterFunction( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() ),
+          mNumberOfDesignVariables( designSurface.Nodes().size() ),
           mFilterRadius( optimizationSettings["design_variables"]["filter"]["filter_radius"].GetDouble() ),
-          mPerformDamping( optimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool() ),
-          mpSearchTree()
+          mFilterType( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() ),
+          mPerformDamping( optimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool() )
     {
         createListOfNodesOfDesignSurface();
+        createFilterFunction();
         assignMappingMatrixIds();
         initalizeDampingFactorsToHaveNoInfluence(); 
         if(mPerformDamping)   
@@ -147,7 +147,13 @@ public:
             mListOfNodesOfDesignSurface.push_back(pnode);
         }
     }
-    
+
+    // --------------------------------------------------------------------------
+    void createFilterFunction()
+    {
+        mpFilterFunction = boost::shared_ptr<FilterFunction>(new FilterFunction(mFilterType, mFilterRadius));
+    }    
+
     // --------------------------------------------------------------------------
     void assignMappingMatrixIds()
     {
@@ -195,40 +201,29 @@ public:
             // Loop over all nodes in specified damping sub-model part 
             for ( ModelPart::NodeIterator node_itr = dampingRegion.NodesBegin(); node_itr != dampingRegion.NodesEnd(); ++node_itr )
             {
-                // Get node information
                 ModelPart::NodeType& currentDampingNode = *node_itr;
-                array_3d i_coord = currentDampingNode.Coordinates();
+                NodeVector neighbor_nodes(mMaxNeighborNodes);
+                DoubleVector resulting_squared_distances(mMaxNeighborNodes);
+                unsigned int number_of_neighbor_nodes = mpSearchTree->SearchInRadius( currentDampingNode,
+                                                                                      mFilterRadius, 
+                                                                                      neighbor_nodes.begin(),
+                                                                                      resulting_squared_distances.begin(), 
+                                                                                      mMaxNeighborNodes );
 
-                // Arrays needed for spatial search
-                unsigned int maxNodesAffected = 10000;
-                NodeVector nodesAffected(maxNodesAffected);
-                DoubleVector resulting_squared_distances(maxNodesAffected);
-
-                // Perform spatial search for current node
-                unsigned int numberOfNodesAffected;
-                numberOfNodesAffected = mpSearchTree->SearchInRadius( currentDampingNode, 
-                                                                      dampingRadius, 
-                                                                      nodesAffected.begin(),
-                                                                      resulting_squared_distances.begin(), 
-                                                                      maxNodesAffected ); 
-                
-                // Throw a warning if specified (hard-coded) maximum number of neighbors is reached
-                if(numberOfNodesAffected == maxNodesAffected)
-                    std::cout << "\n> WARNING!!!!! For node " << currentDampingNode.Id() << " and specified damping radius, maximum number of neighbor nodes (=" << maxNodesAffected << " nodes) reached!" << std::endl;
+                ThrowWarningIfNodeNeighborsExceedLimit( currentDampingNode, number_of_neighbor_nodes );                                                                               
 
                 // Loop over all nodes in radius (including node on damping region itself)
-                for(unsigned int j_itr = 0 ; j_itr<numberOfNodesAffected ; j_itr++)
+                for(unsigned int j_itr = 0 ; j_itr<number_of_neighbor_nodes ; j_itr++)
                 {
                     // Get node information
-                    ModelPart::NodeType& node_j = *nodesAffected[j_itr];
-                    array_3d j_coord = node_j.Coordinates();
+                    ModelPart::NodeType& neighbor_node = *neighbor_nodes[j_itr];
 
                     // Computation of damping factor
-                    double dampingFactor = dampingFunction.compute_damping_factor(i_coord,j_coord);
+                    double dampingFactor = dampingFunction.compute_damping_factor( currentDampingNode.Coordinates(), neighbor_node.Coordinates());
 
                     // For every specified damping direction we check if new damping factor is smaller than the assigned one for current node. 
                     // In case yes, we overwrite the value. This ensures that the damping factor of a node is computed by its closest distance to the damping region
-                    auto& damping_factor_variable = node_j.GetValue(DAMPING_FACTOR);
+                    auto& damping_factor_variable = neighbor_node.GetValue(DAMPING_FACTOR);
                     if(dampX && dampingFactor < damping_factor_variable[0])
                         damping_factor_variable[0] = dampingFactor;
                     if(dampY && dampingFactor < damping_factor_variable[1])       
@@ -262,61 +257,42 @@ public:
     // --------------------------------------------------------------------------
     void perform_mapping_to_design_space( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
     {
-        // Measure time
         boost::timer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;
 
-        // Perform mapping of objective sensitivities
-        VectorType dJdsx, dJdsy, dJdsz;
-        dJdsx.resize(mNumberOfDesignVariables);
-        dJdsy.resize(mNumberOfDesignVariables);
-        dJdsz.resize(mNumberOfDesignVariables);       
+        VectorType dFdsx, dFdsy, dFdsz;
+        dFdsx.resize(mNumberOfDesignVariables);
+        dFdsy.resize(mNumberOfDesignVariables);
+        dFdsz.resize(mNumberOfDesignVariables);       
         
         resetSearchTreeIfAlreadyExisting( mpSearchTree );
         mpSearchTree = createSearchTreeWithAllNodesOnDesignSurface();
 
-        // Prepare Weighting function to be used in the mapping
-        FilterFunction filterFunction( mFilterFunction, mFilterRadius );
-
-        // Loop over all design variables
         for (ModelPart::NodeIterator node_itr = mrDesignSurface.NodesBegin(); node_itr != mrDesignSurface.NodesEnd(); ++node_itr)
         {
-            // Get node information
             ModelPart::NodeType& node_i = *node_itr;
-            array_3d i_coord = node_i.Coordinates();
+            NodeVector neighbor_nodes(mMaxNeighborNodes);
+            DoubleVector resulting_squared_distances(mMaxNeighborNodes);
+            unsigned int number_of_neighbor_nodes = mpSearchTree->SearchInRadius( node_i,
+                                                                                  mFilterRadius, 
+                                                                                  neighbor_nodes.begin(),
+                                                                                  resulting_squared_distances.begin(), 
+                                                                                  mMaxNeighborNodes );
 
-            // Arrays needed for spatial search
-            unsigned int maxNodesAffected = 10000;            
-            NodeVector nodesAffected(maxNodesAffected);
-            DoubleVector resulting_squared_distances(maxNodesAffected);
+            ThrowWarningIfNodeNeighborsExceedLimit( node_i, number_of_neighbor_nodes );                                                                               
 
-
-            // Perform spatial search for current node
-            unsigned int numberOfNodesAffected;
-            numberOfNodesAffected = mpSearchTree->SearchInRadius( node_i, 
-                                                                mFilterRadius, 
-                                                                nodesAffected.begin(),
-                                                                resulting_squared_distances.begin(), 
-                                                                maxNodesAffected );
-
-            // Throw a warning if specified (hard-coded) maximum number of neighbors is reached
-            if(numberOfNodesAffected >= maxNodesAffected)
-                std::cout << "\n> WARNING!!!!! For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << maxNodesAffected << " nodes) reached!" << std::endl;
-
-            // Some lists to increase efficiency in the loop later
-            DoubleVector list_of_weights(numberOfNodesAffected,0.0);
-            std::vector<int> listOfNeighborMappingIds(numberOfNodesAffected,0);
+            DoubleVector list_of_weights( number_of_neighbor_nodes,0.0 );
+            std::vector<int> listOfNeighborMappingIds( number_of_neighbor_nodes, 0 );
+            double sum_weights = 0.0;
 
             // Compute and assign weights in the mapping matrix
-            double sum_weights = 0.0;
-            for(unsigned int j_itr = 0 ; j_itr<numberOfNodesAffected ; j_itr++)
+            for(unsigned int j_itr = 0 ; j_itr<number_of_neighbor_nodes ; j_itr++)
             {
                 // Get node information
-                ModelPart::NodeType& node_j = *nodesAffected[j_itr];
-                array_3d j_coord = node_j.Coordinates();
+                ModelPart::NodeType& node_j = *neighbor_nodes[j_itr];
 
                 // Computation of weight according specified weighting function
-                double weightForThisNeighbourNode = filterFunction.compute_weight(i_coord,j_coord);
+                double weightForThisNeighbourNode = mpFilterFunction->compute_weight( node_i.Coordinates(), node_j.Coordinates() );
 
                 // Get the id of the node in the mapping matrix
                 int j = node_j.GetValue(MAPPING_MATRIX_ID);
@@ -329,22 +305,20 @@ public:
                 sum_weights += weightForThisNeighbourNode;
             }
 
-
             // Get objective sensitivies for node_i 
-            // (dJdX = node_i_obj_sens[0], dJdY = node_i_obj_sens[1], dJdZ = node_i_obj_sens[2])
             array_3d& node_i_obj_sens = node_i.FastGetSolutionStepValue(rNodalVariable);
             
             // Post scaling + sort in all matrix entries in mapping matrix
             // We sort in row by row using push_back. This is much more efficient than having only one loop and using a direct access
-            for(unsigned int j_itr = 0 ; j_itr<numberOfNodesAffected ; j_itr++)
+            for(unsigned int j_itr = 0 ; j_itr<number_of_neighbor_nodes ; j_itr++)
             {
                 int j = listOfNeighborMappingIds[j_itr];
                 double weightForThisNeighbourNode = list_of_weights[j_itr] / sum_weights;
 
                 // Mapping of objective sensitivies
-                dJdsx[j] += weightForThisNeighbourNode*node_i_obj_sens[0];
-                dJdsy[j] += weightForThisNeighbourNode*node_i_obj_sens[1];
-                dJdsz[j] += weightForThisNeighbourNode*node_i_obj_sens[2];
+                dFdsx[j] += weightForThisNeighbourNode*node_i_obj_sens[0];
+                dFdsy[j] += weightForThisNeighbourNode*node_i_obj_sens[1];
+                dFdsz[j] += weightForThisNeighbourNode*node_i_obj_sens[2];
             }                          
         }
 
@@ -352,11 +326,11 @@ public:
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
             int i = node_i->GetValue(MAPPING_MATRIX_ID);
-            VectorType dJds_i = ZeroVector(3);
-            dJds_i(0) = dJdsx[i];
-            dJds_i(1) = dJdsy[i];
-            dJds_i(2) = dJdsz[i];
-            node_i->FastGetSolutionStepValue(rNodalVariableInDesignSpace) = dJds_i;
+            VectorType dFds_i = ZeroVector(3);
+            dFds_i(0) = dFdsx[i];
+            dFds_i(1) = dFdsy[i];
+            dFds_i(2) = dFdsz[i];
+            node_i->FastGetSolutionStepValue(rNodalVariableInDesignSpace) = dFds_i;
         }
 
         // Console output for information
@@ -379,10 +353,6 @@ public:
         resetSearchTreeIfAlreadyExisting( mpSearchTree );
         mpSearchTree = createSearchTreeWithAllNodesOnDesignSurface();
 
-        // Prepare Weighting function to be used in the mapping
-        FilterFunction filterFunction( mFilterFunction, mFilterRadius );
-
-        // Loop over all design variables
         for (ModelPart::NodeIterator node_itr = mrDesignSurface.NodesBegin(); node_itr != mrDesignSurface.NodesEnd(); ++node_itr)
         {
             // Get node information
@@ -392,41 +362,33 @@ public:
             // Get tID of the node in the mapping matrix
             int i = node_i.GetValue(MAPPING_MATRIX_ID);
 
-            // Arrays needed for spatial search
-            unsigned int maxNodesAffected = 10000;            
-            NodeVector nodesAffected(maxNodesAffected);
-            DoubleVector resulting_squared_distances(maxNodesAffected);
+            NodeVector neighbor_nodes(mMaxNeighborNodes);
+            DoubleVector resulting_squared_distances(mMaxNeighborNodes);
+            unsigned int number_of_neighbor_nodes = mpSearchTree->SearchInRadius( node_i,
+                                                                                  mFilterRadius, 
+                                                                                  neighbor_nodes.begin(),
+                                                                                  resulting_squared_distances.begin(), 
+                                                                                  mMaxNeighborNodes );
 
-
-            // Perform spatial search for current node
-            unsigned int numberOfNodesAffected;
-            numberOfNodesAffected = mpSearchTree->SearchInRadius( node_i, 
-                                                                  mFilterRadius, 
-                                                                  nodesAffected.begin(),
-                                                                  resulting_squared_distances.begin(), 
-                                                                  maxNodesAffected );
-
-            // Throw a warning if specified (hard-coded) maximum number of neighbors is reached
-            if(numberOfNodesAffected >= maxNodesAffected)
-                std::cout << "\n> WARNING!!!!! For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << maxNodesAffected << " nodes) reached!" << std::endl;
-
+            ThrowWarningIfNodeNeighborsExceedLimit( node_i, number_of_neighbor_nodes );                                                                               
+            
             // Some list to increase efficiency in the loop later
-            DoubleVector list_of_weights(numberOfNodesAffected,0.0);
-            std::vector<int> listOfNeighborMappingIds(numberOfNodesAffected,0);
+            DoubleVector list_of_weights(number_of_neighbor_nodes,0.0);
+            std::vector<int> listOfNeighborMappingIds(number_of_neighbor_nodes,0);
 
             // Compute and assign weights in the mapping matrix
             double sum_weights = 0.0;
-            for(unsigned int j_itr = 0 ; j_itr<numberOfNodesAffected ; j_itr++)
+            for(unsigned int j_itr = 0 ; j_itr<number_of_neighbor_nodes ; j_itr++)
             {
                 // Get node information
-                ModelPart::NodeType& node_j = *nodesAffected[j_itr];
+                ModelPart::NodeType& node_j = *neighbor_nodes[j_itr];
                 array_3d j_coord = node_j.Coordinates();
 
                 // Get the id of the node in the mapping matrix
                 int j = node_j.GetValue(MAPPING_MATRIX_ID);
 
                 // Computation of weight according specified weighting function
-                double weightForThisNeighbourNode = filterFunction.compute_weight(i_coord,j_coord);
+                double weightForThisNeighbourNode = mpFilterFunction->compute_weight(i_coord,j_coord);
 
                 // Add values to list
                 listOfNeighborMappingIds[j_itr] = j;
@@ -438,12 +400,12 @@ public:
 
             // Post scaling + sort in all matrix entries in mapping matrix
             // We sort in row by row using push_back. This is much more efficient than having only one loop and using a direct access
-            for(unsigned int j_itr = 0 ; j_itr<numberOfNodesAffected ; j_itr++)
+            for(unsigned int j_itr = 0 ; j_itr<number_of_neighbor_nodes ; j_itr++)
             {
                 double weightForThisNeighbourNode = list_of_weights[j_itr] / sum_weights;
 
                 // Get design update from node_j
-                ModelPart::NodeType& node_j = *nodesAffected[j_itr];
+                ModelPart::NodeType& node_j = *neighbor_nodes[j_itr];
                 array_3d& node_design_update = node_j.FastGetSolutionStepValue(rNodalVariable);
 
                 // add design update of node_j into vector of shape update
@@ -498,7 +460,14 @@ public:
     {
         return boost::shared_ptr<KDTree>(new KDTree(mListOfNodesOfDesignSurface.begin(), mListOfNodesOfDesignSurface.end(), mBucketSize));
     }    
-   
+
+    // --------------------------------------------------------------------------
+    void ThrowWarningIfNodeNeighborsExceedLimit( ModelPart::NodeType& given_node, unsigned int number_of_neighbor_nodes )
+    {
+        if(number_of_neighbor_nodes >= mMaxNeighborNodes)
+            std::cout << "\n> WARNING!!!!! For node " << given_node.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << mMaxNeighborNodes << " nodes) reached!" << std::endl;
+    }
+
     // ==============================================================================
 
     ///@}
@@ -591,14 +560,16 @@ private:
     // ==============================================================================
     ModelPart& mrDesignSurface;
     const unsigned int mNumberOfDesignVariables;
-    std::string mFilterFunction;
-    const double mFilterRadius;
+    double mFilterRadius;
+    std::string mFilterType;
+    FilterFunction::Pointer mpFilterFunction;
     bool mPerformDamping;
 
     // ==============================================================================
     // Variables for spatial search
     // ==============================================================================
     unsigned int mBucketSize = 100;
+    unsigned int mMaxNeighborNodes = 10000;            
     NodeVector mListOfNodesOfDesignSurface;
     KDTree::Pointer mpSearchTree;
 
