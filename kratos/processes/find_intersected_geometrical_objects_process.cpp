@@ -150,7 +150,8 @@ namespace Kratos
 			for (auto p_element_2 : *(p_leaf->pGetObjects())) {
 				if (HasIntersection(rElement1.GetGeometry(), p_element_2->GetGeometry())) {
 					rElement1.Set(SELECTED);
-					rResults.push_back(p_element_2);
+					if(std::find(rResults.ptr_begin(), rResults.ptr_end(), p_element_2) == rResults.ptr_end())
+						rResults.push_back(p_element_2);
 				}
 			}
 		}

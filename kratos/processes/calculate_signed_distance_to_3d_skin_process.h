@@ -42,7 +42,7 @@
 #include "includes/kratos_flags.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
-#include "processes/calculate_discontinuous_distance_to_skin_process.h"
+#include "processes/calculate_distance_to_skin_process.h"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -328,7 +328,7 @@ public:
 
         //DistanceFluidStructure();
 
-		CalculateDiscontinuousDistanceToSkinProcess(mrFluidModelPart, mrBodyModelPart).Execute();
+		CalculateDistanceToSkinProcess(mrFluidModelPart, mrBodyModelPart).Execute();
 
         //          ------------------------------------------------------------------
         //          GenerateNodes();
