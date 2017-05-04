@@ -992,85 +992,10 @@ protected:
         constexpr unsigned int BlockSize = TDim+1;                 // Block size
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;   // Matrix size
 
-        // Obtain the previous iteration velocity solution
-        array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
-
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            for (unsigned int comp=0; comp<TDim; comp++)
-            {
-                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
-            }
-        }
-
-        // Compute the BCs imposition matrices
-        MatrixType M_gamma_normal = ZeroMatrix(rSplittingData.n_neg*TDim, rSplittingData.n_neg*TDim);      // Outside nodes normal matrix (Nitche contribution)
-        MatrixType N_gamma_normal = ZeroMatrix(rSplittingData.n_neg*TDim, rSplittingData.n_pos*TDim);      // Interior nodes normal matrix (Nitche contribution)
-        MatrixType f_gamma_normal = ZeroMatrix(rSplittingData.n_neg*TDim, TNumNodes*TDim);                 // Normal matrix to compute the RHS (Nitche contribution)
-
-        VectorType aux_out(rSplittingData.n_neg);
-        VectorType aux_int(rSplittingData.n_pos);
-        VectorType aux_cut(TNumNodes);
-
-        //
-        // Compute the no penetration condition contributions
-        //
-        for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
-        {
-            double weight = rSplittingData.cut_edge_areas(icut);
-
-            aux_out = row(rSplittingData.N_container_out, icut);
-            aux_int = row(rSplittingData.N_container_int, icut);
-            aux_cut = row(rSplittingData.N_container_cut, icut);
-
-            // Outer nodes matrix fill
-            for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
-            {
-                for (unsigned int j=0; j<rSplittingData.n_neg; ++j)
-                {
-                    for (unsigned int k=0; k<TDim; ++k)
-                    {
-                        M_gamma_normal(i*TDim+k,j*TDim+k) += weight*(rSplittingData.intersection_normal(k)*rSplittingData.intersection_normal(k)*aux_out(i))*
-                                                                    (rSplittingData.intersection_normal(k)*rSplittingData.intersection_normal(k)*aux_out(j));
-                    }
-                }
-            }
-
-            // Inner nodes matrix fill
-            for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
-            {
-                for (unsigned int j=0; j<rSplittingData.n_pos; ++j)
-                {
-                    for (unsigned int k=0; k<TDim; ++k)
-                    {
-                        N_gamma_normal(i*TDim+k,j*TDim+k) += weight*(rSplittingData.intersection_normal(k)*rSplittingData.intersection_normal(k)*aux_out(i))*
-                                                                    (rSplittingData.intersection_normal(k)*rSplittingData.intersection_normal(k)*aux_int(j));
-                    }
-                }
-            }
-
-            // Imposed solution matrix fill
-            for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
-            {
-                for (unsigned int j=0; j<TNumNodes; ++j)
-                {
-                    for (unsigned int k=0; k<TDim; ++k)
-                    {
-                        f_gamma_normal(i*TDim+k,j*TDim+k) += weight*(rSplittingData.intersection_normal(k)*rSplittingData.intersection_normal(k)*aux_out(i))*
-                                                                    (rSplittingData.intersection_normal(k)*rSplittingData.intersection_normal(k)*aux_cut(j));
-                    }
-                }
-            }
-        }
-
-
-        // Declare auxLeftHandSideNormalMatrix
-        MatrixType auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
-
         // Set the LHS and RHS u_out rows to zero (outside nodes used to impose the BC)
         for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
         {
-            unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
+            const unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
 
             for (unsigned int j=0; j<TDim; ++j)
             {
@@ -1085,37 +1010,99 @@ protected:
             }
         }
 
-        // LHS outside nodes contribution assembly
-        // Outer nodes contribution assembly
-        for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
+        // Obtain the previous iteration velocity solution
+        array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
+
+        for (unsigned int i=0; i<TNumNodes; i++)
         {
-            unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
-
-            for (unsigned int j=0; j<rSplittingData.n_neg; ++j)
+            for (unsigned int comp=0; comp<TDim; comp++)
             {
-                unsigned int out_node_col_id = rSplittingData.out_vec_identifiers[j];
-
-                for (unsigned int comp = 0; comp<TDim; comp++)
-                {
-                    auxLeftHandSideMatrix(out_node_row_id*BlockSize+comp, out_node_col_id*BlockSize+comp) = M_gamma_normal(i*TDim+comp, j*TDim+comp);
-                }
+                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
             }
         }
 
-        // Interior nodes contribution assembly
-        for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
+        // Compute the normal projection matrix
+        bounded_matrix<double, TDim, TDim> normal_projection_matrix;
+        SetNormalProjectionMatrix(rSplittingData, normal_projection_matrix);
+
+        // Declare auxLeftHandSideNormalMatrix
+        MatrixType auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
+
+        // Compute the effective viscosity with the previous iteration data
+        const double eff_mu = BaseType::ComputeEffectiveViscosity(rData);
+
+        //
+        // Compute the no penetration condition contributions
+        //
+        for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
         {
-            unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
+            const double weight = rSplittingData.cut_edge_areas(icut);
 
-            for (unsigned int j=0; j<rSplittingData.n_pos; ++j)
+            const VectorType aux_out = row(rSplittingData.N_container_out, icut);
+            const VectorType aux_int = row(rSplittingData.N_container_int, icut);
+
+            MatrixType aux_out_mat = ZeroMatrix(TDim, rSplittingData.n_neg*TDim);
+            MatrixType aux_int_mat = ZeroMatrix(TDim, rSplittingData.n_pos*TDim);
+
+            // Fill the previous auxiliar matrices
+            for (unsigned int i=0; i<TDim; ++i)
             {
-                unsigned int int_node_col_id = rSplittingData.int_vec_identifiers[j];
-
-                for (unsigned int comp=0; comp<TDim; ++comp)
+                for (unsigned int j=0; j<rSplittingData.n_neg; ++j)
                 {
-                    auxLeftHandSideMatrix(out_node_row_id*BlockSize+comp, int_node_col_id*BlockSize+comp) = N_gamma_normal(i*TDim+comp, j*TDim+comp);
+                    aux_out_mat(i,j*TDim+i) = aux_out(j);
                 }
             }
+
+            for (unsigned int i=0; i<TDim; ++i)
+            {
+                for (unsigned int j=0; j<rSplittingData.n_pos; ++j)
+                {
+                    aux_int_mat(i,j*TDim+i) = aux_int(j);
+                }
+            }
+
+            const MatrixType aux_matrix = prod(trans(aux_out_mat), normal_projection_matrix);
+            const MatrixType M_gamma_normal = prod(aux_matrix, aux_out_mat);
+            const MatrixType N_gamma_normal = prod(aux_matrix, aux_int_mat);
+
+            // Outer nodes contribution assembly
+            for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
+            {
+                const unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
+
+                for (unsigned int j=0; j<rSplittingData.n_neg; ++j)
+                {
+                    const unsigned int out_node_col_id = rSplittingData.out_vec_identifiers[j];
+
+                    for (unsigned int ii=0; ii<TDim; ++ii)
+                    {
+                        for (unsigned int jj=0; jj<TDim; ++jj)
+                        {
+                            auxLeftHandSideMatrix(out_node_row_id*BlockSize+ii, out_node_col_id*BlockSize+jj) += weight*M_gamma_normal(i*TDim+ii, j*TDim+jj);
+                        }
+                    }
+                }
+            }
+
+            // Interior nodes contribution assembly
+            for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
+            {
+                const unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
+
+                for (unsigned int j=0; j<rSplittingData.n_pos; ++j)
+                {
+                    const unsigned int int_node_col_id = rSplittingData.int_vec_identifiers[j];
+
+                    for (unsigned int ii=0; ii<TDim; ++ii)
+                    {
+                        for (unsigned int jj=0; jj<TDim; ++jj)
+                        {
+                            auxLeftHandSideMatrix(out_node_row_id*BlockSize+ii, int_node_col_id*BlockSize+jj) += weight*N_gamma_normal(i*TDim+ii, j*TDim+jj);
+                        }
+                    }
+                }
+            }
+
         }
 
         // LHS outside Nitche contribution assembly
@@ -1140,71 +1127,160 @@ protected:
                 aux_embedded_vel(i*BlockSize+2) = embedded_vel(2);
             }
 
-            // Asemble the RHS f_gamma contribution
-            for (unsigned int i=0; i<rSplittingData.n_neg; i++)
+            // Compute and assemble the level set velocity contribution
+            for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
             {
-                unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
+                const double weight = rSplittingData.cut_edge_areas(icut);
 
-                for (unsigned int j=0; j<TNumNodes; j++)
+                const VectorType aux_out = row(rSplittingData.N_container_out, icut);
+                const VectorType aux_cut = row(rSplittingData.N_container_cut, icut);
+
+                MatrixType aux_out_mat = ZeroMatrix(TDim, rSplittingData.n_neg*TDim);
+                MatrixType aux_cut_mat = ZeroMatrix(TDim, TNumNodes*TDim);
+
+                // Fill the previous auxiliar matrices
+                for (unsigned int i=0; i<TDim; ++i)
                 {
-                    for (unsigned int comp = 0; comp<TDim; comp++)
+                    for (unsigned int j=0; j<rSplittingData.n_neg; ++j)
                     {
-                        auxLeftHandSideMatrix(out_node_row_id*BlockSize+comp, j*BlockSize+comp) = f_gamma_normal(i*TDim+comp,j*TDim+comp);
+                        aux_out_mat(i,j*TDim+i) = aux_out(j);
+                    }
+                }
+
+                for (unsigned int i=0; i<TDim; ++i)
+                {
+                    for (unsigned int j=0; j<TNumNodes; ++j)
+                    {
+                        aux_cut_mat(i,j*TDim+i) = aux_cut(j);
+                    }
+                }
+
+                const MatrixType aux_matrix = prod(trans(aux_out_mat), normal_projection_matrix);
+                const MatrixType f_gamma_normal = prod(aux_matrix, aux_cut_mat);
+
+                // Asemble the RHS f_gamma contribution
+                for (unsigned int i=0; i<rSplittingData.n_neg; i++)
+                {
+                    unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
+
+                    for (unsigned int j=0; j<TNumNodes; j++)
+                    {
+                        for (unsigned int ii = 0; ii<TDim; ++ii)
+                        {
+                            for (unsigned int jj = 0; jj<TDim; ++jj)
+                            {
+                                auxLeftHandSideMatrix(out_node_row_id*BlockSize+ii, j*BlockSize+jj) -= weight*f_gamma_normal(i*TDim+ii,j*TDim+jj);
+                            }
+                        }
                     }
                 }
             }
 
-            // auxNormalLHS = prod(auxLeftHandSideNormalMatrix, auxLeftHandSideMatrix);
-            // rRightHandSideVector += prod(auxNormalLHS, aux_embedded_vel);
             rRightHandSideVector += prod(auxLeftHandSideMatrix, aux_embedded_vel);
-
         }
 
         //
-        // Compute the null tangential stress condition contribution
+        //Compute the null tangential stress condition contribution
         //
-        bounded_matrix<double, TDim, (TDim-1)*3> tangential_proj_matrix;        // Set the tangential projection matrix
-        SetTangentialProjectionMatrix(rSplittingData, tangential_proj_matrix);
+        auxLeftHandSideMatrix.clear(); // Recall to clear the auxLHS matrix again
 
-        MatrixType OuterNodesB_matrix;    // Set outer nodes strain matrix
+        bounded_matrix<double, (TDim-1)*3, (TDim-1)*3> voigt_tang_proj_matrix;        // Set the Voigt notation tangential projection matrix
+        SetVoigtTangentialProjectionMatrix(rSplittingData, voigt_tang_proj_matrix);
+
+        MatrixType OuterNodesB_matrix;    // Set outer nodes strain matrix (constant since linear elements are used)
         SetOuterNodesStrainMatrix(rData, rSplittingData, OuterNodesB_matrix);
 
-        MatrixType InnerNodesB_matrix;    // Set inner nodes strain matrix
+        MatrixType InnerNodesB_matrix;    // Set inner nodes strain matrix (constant since linear elements are used)
         SetInnerNodesStrainMatrix(rData, rSplittingData, InnerNodesB_matrix);
 
-        bounded_matrix<double, TDim, (TDim-1)*3> aux_tang_proj_cons_matrix;
-        aux_tang_proj_cons_matrix = prod(tangential_proj_matrix, rData.C);
+        // Compute the auxiliar matrix that is used in all contributions
+        const bounded_matrix<double, (TDim-1)*3, (TDim-1)*3> aux_matrix_1 = prod(trans(rData.C), voigt_tang_proj_matrix);
+        const MatrixType aux_matrix_2 = prod(trans(OuterNodesB_matrix), aux_matrix_1);
+        const MatrixType aux_matrix_3 = prod(aux_matrix_2, rData.C);
 
-        MatrixType OuterNodesProjectedCB_matrix;
-        MatrixType InnerNodesProjectedCB_matrix;
-        OuterNodesProjectedCB_matrix = prod(aux_tang_proj_cons_matrix, OuterNodesB_matrix)
-        InnerNodesProjectedCB_matrix = prod(aux_tang_proj_cons_matrix, InnerNodesB_matrix)
+        // Compute the no tangential stress condition contribution matrices
+        const MatrixType Aux_M_gamma_tang = prod(aux_matrix_3, OuterNodesB_matrix);
+        const MatrixType Aux_N_gamma_tang = prod(aux_matrix_3, InnerNodesB_matrix);
 
-        MatrixType Aux_M_gamma_tang;
-        MatrixType Aux_N_gamma_tang;
-        Aux_M_gamma_tang = prod(OuterNodesProjectedCB_matrix.transpose(), OuterNodesProjectedCB_matrix)
-        Aux_N_gamma_tang = prod(OuterNodesProjectedCB_matrix.transpose(), InnerNodesProjectedCB_matrix)
-
-        auxLeftHandSideMatrix.clear()
-
-        // LHS outside nodes null tangential stress contribution assembly
-        // Outer nodes contribution assembly
-        for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
+        for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
         {
-            unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
+            double weight = rSplittingData.cut_edge_areas(icut);
 
-            for (unsigned int j=0; j<rSplittingData.n_neg; ++j)
+            // LHS outside nodes null tangential stress contribution assembly
+            // Outer nodes contribution assembly
+            for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
             {
-                unsigned int out_node_col_id = rSplittingData.out_vec_identifiers[j];
+                const unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
 
-                for (unsigned int comp = 0; comp<TDim; comp++)
+                for (unsigned int j=0; j<rSplittingData.n_neg; ++j)
                 {
-                    auxLeftHandSideMatrix(out_node_row_id*BlockSize+comp, out_node_col_id*BlockSize+comp) = M_gamma_normal(i*TDim+comp, j*TDim+comp);
+                    const unsigned int out_node_col_id = rSplittingData.out_vec_identifiers[j];
+
+                    for (unsigned int ii = 0; ii<TDim; ++ii)
+                    {
+                        for (unsigned int jj = 0; jj<TDim; ++jj)
+                        {
+                            auxLeftHandSideMatrix(out_node_row_id*BlockSize+ii, out_node_col_id*BlockSize+jj) += (1/eff_mu)*weight*Aux_M_gamma_tang(i*TDim+ii, j*TDim+jj);
+                        }
+                    }
+                }
+            }
+
+            // Interior nodes contribution assembly
+            for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
+            {
+                const unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
+
+                for (unsigned int j=0; j<rSplittingData.n_pos; ++j)
+                {
+                    const unsigned int int_node_col_id = rSplittingData.int_vec_identifiers[j];
+
+                    for (unsigned int ii = 0; ii<TDim; ++ii)
+                    {
+                        for (unsigned int jj = 0; jj<TDim; ++jj)
+                        {
+                            auxLeftHandSideMatrix(out_node_row_id*BlockSize+ii, int_node_col_id*BlockSize+jj) += (1/eff_mu)*weight*Aux_N_gamma_tang(i*TDim+ii, j*TDim+jj);
+                        }
+                    }
+                }
+            }
+
+            // Pressure contribution assembly
+
+            // Set the current Gauss pt. pressure to Voigt notation matrix
+            const VectorType aux_cut = row(rSplittingData.N_container_cut, icut);
+            MatrixType press_to_voigt_mat = ZeroMatrix((TDim-1)*3,BlockSize*TNumNodes);
+            for (unsigned int i=0; i<TDim; ++i)
+            {
+                for (unsigned int j=0; j<TNumNodes; ++j)
+                {
+                    press_to_voigt_mat(i,j*BlockSize) = aux_cut(j);
+                }
+            }
+
+            const MatrixType Aux_Pres_gamma_tang = prod(aux_matrix_2, press_to_voigt_mat);
+
+            for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
+            {
+                const unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
+
+                for (unsigned int j=0; j<TNumNodes; ++j)
+                {
+                    for (unsigned int ii = 0; ii<TDim; ++ii)
+                    {
+                        //TODO: multiply by mu effective to make units consistent
+                        auxLeftHandSideMatrix(out_node_row_id*BlockSize+ii, j*BlockSize) -= weight*Aux_Pres_gamma_tang(i*TDim+ii, j*BlockSize);
+                    }
                 }
             }
         }
 
+        // LHS outside Nitche contribution assembly
+        rLeftHandSideMatrix += auxLeftHandSideMatrix;
 
+        // RHS outside Nitche contribution assembly
+        // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
+        rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol);
     }
 
 
@@ -1396,15 +1472,15 @@ protected:
             {
                 const unsigned int out_node_id = rSplittingData.out_vec_identifiers[i];
 
-                rOuterNodesB_matrix(0,out_node_id*TDim)   = rData.DN_DX(out_node_id,0);
-                rOuterNodesB_matrix(1,out_node_id*TDim+1) = rData.DN_DX(out_node_id,1);
-                rOuterNodesB_matrix(2,out_node_id*TDim+2) = rData.DN_DX(out_node_id,2);
-                rOuterNodesB_matrix(3,out_node_id*TDim)   = rData.DN_DX(out_node_id,1);
-                rOuterNodesB_matrix(3,out_node_id*TDim+1) = rData.DN_DX(out_node_id,0);
-                rOuterNodesB_matrix(4,out_node_id*TDim+1) = rData.DN_DX(out_node_id,2);
-                rOuterNodesB_matrix(4,out_node_id*TDim+2) = rData.DN_DX(out_node_id,1);
-                rOuterNodesB_matrix(5,out_node_id*TDim)   = rData.DN_DX(out_node_id,2);
-                rOuterNodesB_matrix(5,out_node_id*TDim+2) = rData.DN_DX(out_node_id,0);
+                rOuterNodesB_matrix(0,i*TDim)   = rData.DN_DX(out_node_id,0);
+                rOuterNodesB_matrix(1,i*TDim+1) = rData.DN_DX(out_node_id,1);
+                rOuterNodesB_matrix(2,i*TDim+2) = rData.DN_DX(out_node_id,2);
+                rOuterNodesB_matrix(3,i*TDim)   = rData.DN_DX(out_node_id,1);
+                rOuterNodesB_matrix(3,i*TDim+1) = rData.DN_DX(out_node_id,0);
+                rOuterNodesB_matrix(4,i*TDim+1) = rData.DN_DX(out_node_id,2);
+                rOuterNodesB_matrix(4,i*TDim+2) = rData.DN_DX(out_node_id,1);
+                rOuterNodesB_matrix(5,i*TDim)   = rData.DN_DX(out_node_id,2);
+                rOuterNodesB_matrix(5,i*TDim+2) = rData.DN_DX(out_node_id,0);
             }
         }
         else
@@ -1413,10 +1489,10 @@ protected:
             {
                 const unsigned int out_node_id = rSplittingData.out_vec_identifiers[i];
 
-                rOuterNodesB_matrix(0,out_node_id*TDim)   = rData.DN_DX(out_node_id,0);
-                rOuterNodesB_matrix(1,out_node_id*TDim+1) = rData.DN_DX(out_node_id,1);
-                rOuterNodesB_matrix(2,out_node_id*TDim)   = rData.DN_DX(out_node_id,1);
-                rOuterNodesB_matrix(2,out_node_id*TDim+1) = rData.DN_DX(out_node_id,0);
+                rOuterNodesB_matrix(0,i*TDim)   = rData.DN_DX(out_node_id,0);
+                rOuterNodesB_matrix(1,i*TDim+1) = rData.DN_DX(out_node_id,1);
+                rOuterNodesB_matrix(2,i*TDim)   = rData.DN_DX(out_node_id,1);
+                rOuterNodesB_matrix(2,i*TDim+1) = rData.DN_DX(out_node_id,0);
             }
         }
     }
@@ -1440,15 +1516,15 @@ protected:
             {
                 const unsigned int int_node_id = rSplittingData.int_vec_identifiers[i];
 
-                rInnerNodesB_matrix(0,int_node_id*TDim)   = rData.DN_DX(int_node_id,0);
-                rInnerNodesB_matrix(1,int_node_id*TDim+1) = rData.DN_DX(int_node_id,1);
-                rInnerNodesB_matrix(2,int_node_id*TDim+2) = rData.DN_DX(int_node_id,2);
-                rInnerNodesB_matrix(3,int_node_id*TDim)   = rData.DN_DX(int_node_id,1);
-                rInnerNodesB_matrix(3,int_node_id*TDim+1) = rData.DN_DX(int_node_id,0);
-                rInnerNodesB_matrix(4,int_node_id*TDim+1) = rData.DN_DX(int_node_id,2);
-                rInnerNodesB_matrix(4,int_node_id*TDim+2) = rData.DN_DX(int_node_id,1);
-                rInnerNodesB_matrix(5,int_node_id*TDim)   = rData.DN_DX(int_node_id,2);
-                rInnerNodesB_matrix(5,int_node_id*TDim+2) = rData.DN_DX(int_node_id,0);
+                rInnerNodesB_matrix(0,i*TDim)   = rData.DN_DX(int_node_id,0);
+                rInnerNodesB_matrix(1,i*TDim+1) = rData.DN_DX(int_node_id,1);
+                rInnerNodesB_matrix(2,i*TDim+2) = rData.DN_DX(int_node_id,2);
+                rInnerNodesB_matrix(3,i*TDim)   = rData.DN_DX(int_node_id,1);
+                rInnerNodesB_matrix(3,i*TDim+1) = rData.DN_DX(int_node_id,0);
+                rInnerNodesB_matrix(4,i*TDim+1) = rData.DN_DX(int_node_id,2);
+                rInnerNodesB_matrix(4,i*TDim+2) = rData.DN_DX(int_node_id,1);
+                rInnerNodesB_matrix(5,i*TDim)   = rData.DN_DX(int_node_id,2);
+                rInnerNodesB_matrix(5,i*TDim+2) = rData.DN_DX(int_node_id,0);
             }
         }
         else
@@ -1457,70 +1533,101 @@ protected:
             {
                 const unsigned int int_node_id = rSplittingData.int_vec_identifiers[i];
 
-                rInnerNodesB_matrix(0,int_node_id*TDim)   = rData.DN_DX(int_node_id,0);
-                rInnerNodesB_matrix(1,int_node_id*TDim+1) = rData.DN_DX(int_node_id,1);
-                rInnerNodesB_matrix(2,int_node_id*TDim)   = rData.DN_DX(int_node_id,1);
-                rInnerNodesB_matrix(2,int_node_id*TDim+1) = rData.DN_DX(int_node_id,0);
+                rInnerNodesB_matrix(0,i*TDim)   = rData.DN_DX(int_node_id,0);
+                rInnerNodesB_matrix(1,i*TDim+1) = rData.DN_DX(int_node_id,1);
+                rInnerNodesB_matrix(2,i*TDim)   = rData.DN_DX(int_node_id,1);
+                rInnerNodesB_matrix(2,i*TDim+1) = rData.DN_DX(int_node_id,0);
             }
         }
     }
 
     /**
-    * This functions sets the B strain matrix for the inner nodes
+    * This functions sets the auxiliar matrix to compute the tangential projection in Voigt notation
     * @param rSplittingData: reference to the intersection data structure
-    * @param rTangProj_matrix: reference to the computed tangential projection matrix
+    * @param rVoigtTangProj_matrix: reference to the computed tangential projection auxiliar matrix
     */
-    void SetTangentialProjectionMatrix(const ElementSplittingDataStruct& rSplittingData,
-                                       bounded_matrix<double, TDim, (TDim-1)*3>& rTangProj_matrix)
+    void SetNormalProjectionMatrix(const ElementSplittingDataStruct& rSplittingData,
+                                   bounded_matrix<double, TDim, TDim>& rNormProj_matrix)
     {
+        rNormProj_matrix.clear();
 
-        rTangProj_matrix.clear();
+        if (TDim == 3)
+        {
+            // Fill the tangential projection matrix (nxn)
+            rNormProj_matrix = outer_prod(rSplittingData.intersection_normal, rSplittingData.intersection_normal);
+        }
+        else
+        {
+            // Fill the tangential projection matrix (nxn)
+            rNormProj_matrix(0,0) = rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(0);
+            rNormProj_matrix(0,1) = rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(1);
+            rNormProj_matrix(1,0) = rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(0);
+            rNormProj_matrix(1,1) = rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(1);
+        }
+    }
 
-        bounded_matrix<double, TDim, TDim>& rTangVectorMatrix;
-        bounded_matrix<double, TDim, (TDim-1)*3>& rVoigtNormalProjectionMatrix;
+    /**
+    * This functions sets the auxiliar matrix to compute the tangential projection in Voigt notation
+    * @param rSplittingData: reference to the intersection data structure
+    * @param rVoigtTangProj_matrix: reference to the computed tangential projection auxiliar matrix
+    */
+    void SetVoigtTangentialProjectionMatrix(const ElementSplittingDataStruct& rSplittingData,
+                                            bounded_matrix<double, (TDim-1)*3, (TDim-1)*3>& rVoigtTangProj_matrix)
+    {
+        rVoigtTangProj_matrix.clear();
+
+        bounded_matrix<double, TDim, TDim> tang_vector_matrix;
+        bounded_matrix<double, TDim, (TDim-1)*3> voigt_normal_projection_matrix;
 
         if (TDim == 3)
         {
             // Fill the tangential projection matrix (I-nxn)
-            rTangVectorMatrix(0,0) = 1.0 - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(0);
-            rTangVectorMatrix(0,1) =     - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(1);
-            rTangVectorMatrix(0,2) =     - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(2);
-            rTangVectorMatrix(1,0) =     - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(0);
-            rTangVectorMatrix(1,1) = 1.0 - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(1);
-            rTangVectorMatrix(1,2) =     - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(2);
-            rTangVectorMatrix(2,0) =     - rSplittingData.intersection_normal(2)*rSplittingData.intersection_normal(0);
-            rTangVectorMatrix(2,1) =     - rSplittingData.intersection_normal(2)*rSplittingData.intersection_normal(1);
-            rTangVectorMatrix(2,2) = 1.0 - rSplittingData.intersection_normal(2)*rSplittingData.intersection_normal(2);
+            const bounded_matrix<double, TDim, TDim> norm_vector_matrix = outer_prod(rSplittingData.intersection_normal,
+                                                                                     rSplittingData.intersection_normal);
+            tang_vector_matrix.clear();
+            for (unsigned int i=0; i<TDim; ++i) {tang_vector_matrix(i,i) = 1.0;}
+            tang_vector_matrix -= norm_vector_matrix;
+
+            // tang_vector_matrix(0,0) = 1.0 - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(0);
+            // tang_vector_matrix(0,1) =     - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(1);
+            // tang_vector_matrix(0,2) =     - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(2);
+            // tang_vector_matrix(1,0) =     - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(0);
+            // tang_vector_matrix(1,1) = 1.0 - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(1);
+            // tang_vector_matrix(1,2) =     - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(2);
+            // tang_vector_matrix(2,0) =     - rSplittingData.intersection_normal(2)*rSplittingData.intersection_normal(0);
+            // tang_vector_matrix(2,1) =     - rSplittingData.intersection_normal(2)*rSplittingData.intersection_normal(1);
+            // tang_vector_matrix(2,2) = 1.0 - rSplittingData.intersection_normal(2)*rSplittingData.intersection_normal(2);
 
             // Fill the Voigt notation normal projection matrix
-            rVoigtNormalProjectionMatrix.clear();
-            rVoigtNormalProjectionMatrix(0,0) = rSplittingData.intersection_normal(0);
-            rVoigtNormalProjectionMatrix(0,3) = rSplittingData.intersection_normal(1);
-            rVoigtNormalProjectionMatrix(0,5) = rSplittingData.intersection_normal(2);
-            rVoigtNormalProjectionMatrix(1,1) = rSplittingData.intersection_normal(1);
-            rVoigtNormalProjectionMatrix(1,3) = rSplittingData.intersection_normal(0);
-            rVoigtNormalProjectionMatrix(1,4) = rSplittingData.intersection_normal(2);
-            rVoigtNormalProjectionMatrix(2,2) = rSplittingData.intersection_normal(2);
-            rVoigtNormalProjectionMatrix(2,4) = rSplittingData.intersection_normal(1);
-            rVoigtNormalProjectionMatrix(2,5) = rSplittingData.intersection_normal(0);
+            voigt_normal_projection_matrix.clear();
+            voigt_normal_projection_matrix(0,0) = rSplittingData.intersection_normal(0);
+            voigt_normal_projection_matrix(0,3) = rSplittingData.intersection_normal(1);
+            voigt_normal_projection_matrix(0,5) = rSplittingData.intersection_normal(2);
+            voigt_normal_projection_matrix(1,1) = rSplittingData.intersection_normal(1);
+            voigt_normal_projection_matrix(1,3) = rSplittingData.intersection_normal(0);
+            voigt_normal_projection_matrix(1,4) = rSplittingData.intersection_normal(2);
+            voigt_normal_projection_matrix(2,2) = rSplittingData.intersection_normal(2);
+            voigt_normal_projection_matrix(2,4) = rSplittingData.intersection_normal(1);
+            voigt_normal_projection_matrix(2,5) = rSplittingData.intersection_normal(0);
         }
         else
         {
             // Fill the tangential projection matrix (I-nxn)
-            rTangVectorMatrix(0,0) = 1.0 - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(0)
-            rTangVectorMatrix(0,1) =     - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(1)
-            rTangVectorMatrix(1,0) =     - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(0)
-            rTangVectorMatrix(1,1) = 1.0 - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(1)
+            tang_vector_matrix(0,0) = 1.0 - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(0);
+            tang_vector_matrix(0,1) =     - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(1);
+            tang_vector_matrix(1,0) =     - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(0);
+            tang_vector_matrix(1,1) = 1.0 - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(1);
 
             // Fill the Voigt notation normal projection matrix
-            rVoigtNormalProjectionMatrix.clear();
-            rVoigtNormalProjectionMatrix(0,0) = rSplittingData.intersection_normal(0);
-            rVoigtNormalProjectionMatrix(0,2) = rSplittingData.intersection_normal(1);
-            rVoigtNormalProjectionMatrix(1,1) = rSplittingData.intersection_normal(1);
-            rVoigtNormalProjectionMatrix(1,2) = rSplittingData.intersection_normal(0);
+            voigt_normal_projection_matrix.clear();
+            voigt_normal_projection_matrix(0,0) = rSplittingData.intersection_normal(0);
+            voigt_normal_projection_matrix(0,2) = rSplittingData.intersection_normal(1);
+            voigt_normal_projection_matrix(1,1) = rSplittingData.intersection_normal(1);
+            voigt_normal_projection_matrix(1,2) = rSplittingData.intersection_normal(0);
         }
 
-        rTangProj_matrix = prod(rTangVectorMatrix, rVoigtNormalProjectionMatrix);
+        const bounded_matrix<double, TDim, (TDim-1)*3> aux_proj_voigt = prod(tang_vector_matrix, voigt_normal_projection_matrix);
+        rVoigtTangProj_matrix = prod(trans(voigt_normal_projection_matrix), aux_proj_voigt);
     }
 
     ///@}
