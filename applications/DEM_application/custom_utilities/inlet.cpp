@@ -480,7 +480,7 @@ namespace Kratos {
         return mNumberOfParticlesInjected;
     }
 
-    int DEM_Inlet::GetMassInjectedSoFar()
+    double DEM_Inlet::GetMassInjectedSoFar()
     {
         return mMassInjected;
     }
