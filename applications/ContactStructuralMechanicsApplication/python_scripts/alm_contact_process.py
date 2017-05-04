@@ -73,7 +73,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
 
             self.gid_mode = KratosMultiphysics.GiDPostMode.GiD_PostBinary
             self.singlefile = KratosMultiphysics.MultiFileFlag.SingleFile
-            self.deformed_mesh_flag = KratosMultiphysics.WriteDeformedMeshFlag.WriteDeformed
+            self.deformed_mesh_flag = KratosMultiphysics.WriteDeformedMeshFlag.WriteUndeformed
             self.write_conditions = KratosMultiphysics.WriteConditionsFlag.WriteElementsOnly
         
     def ExecuteInitialize(self):

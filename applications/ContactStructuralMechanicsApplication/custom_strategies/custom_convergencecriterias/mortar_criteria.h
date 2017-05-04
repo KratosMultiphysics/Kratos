@@ -181,21 +181,21 @@ public:
         {
             if (IsConvergedActive == true)
             {
-                std::cout << BOLD("\tACTIVE/INACTIVE set") << " convergence is " << BOLD(FGRN("achieved")) << std::endl;
+                std::cout << BOLD("\tActive set") << " convergence is " << BOLD(FGRN("achieved")) << std::endl;
             }
             else
             {
-                std::cout << BOLD("\tACTIVE/INACTIVE set") << " convergence is " << BOLD(FRED("not achieved")) << std::endl;
+                std::cout << BOLD("\tActive set") << " convergence is " << BOLD(FRED("not achieved")) << std::endl;
             }
             if (FrictionalCase == true)
             {
                 if (IsConvergedActive == true)
                 {
-                    std::cout << BOLD("\tSLIP/STICK set") << " convergence is " << BOLD(FGRN("achieved")) << std::endl;
+                    std::cout << BOLD("\tSlip/stick set") << " convergence is " << BOLD(FGRN("achieved")) << std::endl;
                 }
                 else
                 {
-                    std::cout << BOLD("\tSLIP/STICK set") << " convergence is " << BOLD(FRED("not achieved")) << std::endl;
+                    std::cout << BOLD("\tSlip/stick set") << " convergence is " << BOLD(FRED("not achieved")) << std::endl;
                 }
             }
         }
