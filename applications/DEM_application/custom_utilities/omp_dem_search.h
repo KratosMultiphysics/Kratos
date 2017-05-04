@@ -26,7 +26,7 @@
 #include "node_configure.h"
 
 // Search
-//#include "spatial_containers/bins_dynamic_objects.h"
+#include "spatial_containers/bins_dynamic_objects.h"
 #include "spatial_containers/bins_dynamic.h"
 #include "custom_search/bins_dynamic_objects_periodic.h"
 
@@ -90,9 +90,10 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
       typedef GeometricalConfigure<3>                       GeometricalConfigureType;   //Generic Geometry
       
       //Bin Types
-      typedef BinsObjectDynamicPeriodic<ElementConfigureType>       BinsType;
-      typedef BinsObjectDynamicPeriodic<NodeConfigureType>          NodeBinsType;
-      typedef BinsObjectDynamicPeriodic<GeometricalConfigureType>   GeometricalBinsType;
+      typedef BinsObjectDynamic<ElementConfigureType>               BinsType;
+      typedef BinsObjectDynamicPeriodic<ElementConfigureType>       BinsTypePeriodic;
+      typedef BinsObjectDynamic<NodeConfigureType>                  NodeBinsType;
+      typedef BinsObjectDynamic<GeometricalConfigureType>           GeometricalBinsType;
       
       //GeoimetricalObject
       typedef PointerVectorSet<GeometricalObject, IndexedObject>     GeometricalObjectType;
@@ -106,7 +107,9 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
 
       OMP_DEMSearch(const double domain_min_x = 0.0, const double domain_min_y = 0.0, const double domain_min_z = 0.0,
                     const double domain_max_x = -1.0, const double domain_max_y = -1.0, const double domain_max_z = -1.0)
-                    {}
+      {
+            mDomainPeriodicity = (domain_min_x <= domain_max_x) ? true : false;
+      }
 
       /// Destructor.
       ~OMP_DEMSearch(){
@@ -183,7 +186,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           
           ElementsContainerType::ContainerType& elements_array     = const_cast<ElementsContainerType::ContainerType&>(rElements.GetContainer());
           ElementsContainerType::ContainerType& elements_ModelPart = const_cast<ElementsContainerType::ContainerType&>(rStructureElements.GetContainer());
-          BinsType bins(elements_ModelPart.begin(), elements_ModelPart.end(), this->mDomainMin, this->mDomainMax);
+          BinsType bins = GetBins(elements_ModelPart);
 
           #pragma omp parallel
           {
@@ -263,8 +266,8 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           
           ElementsContainerType::ContainerType& elements_array     = const_cast<ElementsContainerType::ContainerType&>(rElements.GetContainer());
           ElementsContainerType::ContainerType& elements_ModelPart = const_cast<ElementsContainerType::ContainerType&>(rStructureElements.GetContainer());
-        
-          BinsType bins(elements_ModelPart.begin(), elements_ModelPart.end());
+
+          BinsType bins = GetBins(elements_ModelPart);
           
           #pragma omp parallel
           {
@@ -776,7 +779,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
       ///@} 
       ///@name Member Variables 
       ///@{ 
-        
+      bool mDomainPeriodicity;
         
       ///@} 
       ///@name Private Operators
@@ -796,7 +799,19 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
       ///@}    
       ///@name Private Inquiry 
       ///@{ 
-        
+      ///
+        BinsType GetBins(ElementsContainerType::ContainerType& r_model_part_container)
+        {
+            if (mDomainPeriodicity){
+                BinsTypePeriodic bins(r_model_part_container.begin(), r_model_part_container.end(), this->mDomainMin, this->mDomainMax);
+                return bins;
+            }
+
+            else {
+                BinsType bins(r_model_part_container.begin(), r_model_part_container.end());
+                return bins;
+            }
+        }
         
       ///@}    
       ///@name Un accessible methods 

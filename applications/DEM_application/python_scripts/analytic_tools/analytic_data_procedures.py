@@ -16,6 +16,7 @@ class WatcherAnalyzer:
         self.mass_accumulated = 0.0
         self.folder_path = path
         self.file_path = path + '/flux_data.hdf5'
+        self.inlet = None
 
         if os.path.exists(self.file_path):
             os.remove(self.file_path)
@@ -27,6 +28,9 @@ class WatcherAnalyzer:
         assert length == len(number_flux) == len(mass_flux)
         shape = (length, )
         number_flux, mass_flux = self.CalculateAccumulated(length, number_flux, mass_flux)
+        if self.inlet is not None:
+            self.inlet_accumulated_mass.append(self.inlet.GetMassInjectedSoFar())
+            self.inlet_accumulated_number_of_particles.append(self.inlet.GetNumberOfParticlesInjectedSoFar())
 
         return shape, times, number_flux, mass_flux
 
@@ -101,3 +105,9 @@ class WatcherAnalyzer:
         plt.plot(times, flux)
         plt.savefig(self.folder_path + '/throughput.svg')
         plt.clf()
+
+    def MakeInletMassPlot(self):
+        self.MakeInletReading()
+
+    def SetInlet(self, inlet):
+        self.inlet = inlet

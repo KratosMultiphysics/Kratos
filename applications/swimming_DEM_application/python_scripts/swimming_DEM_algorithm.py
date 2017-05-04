@@ -237,6 +237,9 @@ class Algorithm(BaseAlgorithm):
         self.watcher = AnalyticFaceWatcher()
         self.watcher_analyser = analytic_data_procedures.WatcherAnalyzer(analytic_face_watcher = self.watcher, path = self.main_path)
 
+    def SetInletWatcher(self):
+        self.watcher_analyser.SetInlet(self.DEM_inlet)
+
     def SetSolverStrategy(self):
         import swimming_sphere_strategy as SolverStrategy
         return SolverStrategy
