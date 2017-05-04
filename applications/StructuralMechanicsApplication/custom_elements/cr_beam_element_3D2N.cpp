@@ -1011,8 +1011,9 @@ namespace Kratos
 		nodalForcesGlobal_q = prod(TransformationMatrix, nodalForcesLocal_qe);
 		rRightHandSideVector -= nodalForcesGlobal_q;
 
+
 		//add bodyforces 
-		rRightHandSideVector += mBodyForces;
+		rRightHandSideVector += this->mBodyForces;
 		KRATOS_CATCH("")
 
 	}

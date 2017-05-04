@@ -202,7 +202,7 @@ void RoccoNetElement3D4N::AddCableStiffnessContribution(Matrix& rLeftHandSideMat
 
 	rLeftHandSideMatrix = ZeroMatrix(element_size, element_size);
 
-	double StiffnessKt = this->mKt;
+	double StiffnessKt = this->mKt*4.00;
 
 	if (ReferenceCableLength > ActualCableLength && this->mCableResistanceReached == false)
 	{
@@ -418,6 +418,8 @@ void RoccoNetElement3D4N::AddCableRHSForces(Vector& rInternalForces)
 	const double ActualCableLength = this->CalculateActualCableLength();
 	const double U_cable = ActualCableLength - ReferenceCableLength;
 	const double StiffnessKt = this->mKt;
+
+
 
 	double N_cable = 0.00;
 	if (U_cable > 0.00) N_cable = StiffnessKt * U_cable;

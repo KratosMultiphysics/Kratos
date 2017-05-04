@@ -247,8 +247,8 @@ namespace Kratos
 			beta = rCurrentProcessInfo[RAYLEIGH_BETA];
 		}
 
-		noalias(rDampingMatrix) += alpha * MassMatrix;
-		noalias(rDampingMatrix) += beta  * StiffnessMatrix;
+		rDampingMatrix += alpha * MassMatrix;
+		rDampingMatrix += beta  * StiffnessMatrix;
 
 		KRATOS_CATCH("")
 	}
@@ -406,9 +406,9 @@ namespace Kratos
 		//create+compute RHS
 		rRightHandSideVector = ZeroVector(LocalSize);
 		//update Residual
-		noalias(rRightHandSideVector) -= InternalForces;
+		rRightHandSideVector -= InternalForces;
 		//add bodyforces 
-		noalias(rRightHandSideVector) += this->CalculateBodyForces();
+		rRightHandSideVector += this->CalculateBodyForces();
 
 		if (this->mIsCable == true && this->mIsCompressed == true) {
 			rRightHandSideVector = ZeroVector(LocalSize);
@@ -430,10 +430,10 @@ namespace Kratos
 
 		VectorType InternalForces = ZeroVector(LocalSize);
 		this->UpdateInternalForces(InternalForces);
-		noalias(rRightHandSideVector) -= InternalForces;
+		rRightHandSideVector -= InternalForces;
 
 		//add bodyforces 
-		noalias(rRightHandSideVector) += this->CalculateBodyForces();
+		rRightHandSideVector += this->CalculateBodyForces();
 		if (this->mIsCable == true && this->mIsCompressed == true) {
 			rRightHandSideVector = ZeroVector(LocalSize);
 		}
