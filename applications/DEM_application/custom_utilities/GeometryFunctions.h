@@ -1671,7 +1671,7 @@ namespace Kratos {
 
         for (unsigned int index =0; index<3; index++) {
             
-            CoMTri[index] = 0.33333333333333 *(Coord1[index]+Coord2[index]+Coord3[index]);
+            CoMTri[index] = 0.33333333333333 * (Coord1[index]+Coord2[index]+Coord3[index]);
             }
 
         } //AreaAndCentroidTriangle
