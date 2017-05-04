@@ -123,7 +123,7 @@
             "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "input_file_name"      : "ALM_frictionless_contact_test_2D/hertz_simple_test_results.json",
             "model_part_name"      : "Contact_Part",
-            "time_frequency"       : 0.5
+            "time_frequency"       : 1.01
         }
     }
     ],
@@ -137,7 +137,7 @@
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictionless_contact_test_2D/hertz_simple_test_results.json",
             "model_part_name"      : "Contact_Part",
-            "time_frequency"       : 0.5
+            "time_frequency"       : 1.01
         }
     }
     ],

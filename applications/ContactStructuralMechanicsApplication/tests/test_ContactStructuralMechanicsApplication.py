@@ -159,7 +159,7 @@ def AssambleTestSuites():
             ##TTaylorPatchDynamicTestContact,
             ##THertzSimpleTestContact,
             ##THertzSimpleSphereTestContact,
-            THertzSphereTestContact,
+            ##THertzSphereTestContact,
             ##TThreeDSimplestPatchMatchingTestContact,
             ##TThreeDSimplestTrianglePatchMatchingTestContact,
             ##TThreeDPatchMatchingTestContact,
@@ -173,7 +173,7 @@ def AssambleTestSuites():
             TALMTaylorPatchDynamicTestContact, # NOTE: Check that in debug dynamic gives an error
             TALMHertzSimpleTestContact,
             TALMHertzSimpleSphereTestContact,
-            ##TALMHertzSphereTestContact,
+            TALMHertzSphereTestContact,
             TALMThreeDSimplestPatchMatchingTestContact,
             TALMTThreeDPatchMatchingTestContact, # FIXME: Some error, rotation in the solution
             TALMThreeDPatchNotMatchingTestContact,
