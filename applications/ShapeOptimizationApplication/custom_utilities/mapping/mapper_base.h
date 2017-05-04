@@ -88,10 +88,10 @@ public:
   ///@{
 
   // ==============================================================================
-  virtual void map_to_design_space( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace ) = 0;
+  virtual void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace ) = 0;
 
   // --------------------------------------------------------------------------
-  virtual void map_to_geometry_space( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace ) = 0;
+  virtual void MapToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace ) = 0;
 
   // ==============================================================================
 
