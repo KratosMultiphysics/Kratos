@@ -20,9 +20,9 @@ CheckForPreviousImport()
 
 # ==============================================================================
 def CreateMapper( designSurface, listOfDampingRegions, optimizationSettings ):
-    isIterativeMappingRequired = optimizationSettings["design_variables"]["iterative_mapping"].GetBool()
-    if isIterativeMappingRequired:
-        return MapperVertexMorphingIterative( designSurface, listOfDampingRegions, optimizationSettings )  
+    isMatrixFreeMappingRequired = optimizationSettings["design_variables"]["matrix_free_mapping"].GetBool()
+    if isMatrixFreeMappingRequired:
+        return MapperVertexMorphingMatrixFree( designSurface, listOfDampingRegions, optimizationSettings )  
     else:
         return MapperVertexMorphing( designSurface, listOfDampingRegions, optimizationSettings )         
 

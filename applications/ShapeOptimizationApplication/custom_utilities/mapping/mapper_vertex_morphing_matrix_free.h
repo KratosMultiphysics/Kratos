@@ -8,8 +8,8 @@
 //
 // ==============================================================================
 
-#ifndef MAPPER_VERTEX_MORPHING_ITERATIVE_H
-#define MAPPER_VERTEX_MORPHING_ITERATIVE_H
+#ifndef MAPPER_VERTEX_MORPHING_MATRIX_FREE_H
+#define MAPPER_VERTEX_MORPHING_MATRIX_FREE_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -75,7 +75,7 @@ namespace Kratos
 
 */
 
-class MapperVertexMorphingIterative
+class MapperVertexMorphingMatrixFree
 {
 public:
     ///@name Type Definitions
@@ -100,15 +100,15 @@ public:
     typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
     typedef Tree< KDTreePartition<BucketType> > KDTree;    
 
-    /// Pointer definition of MapperVertexMorphingIterative
-    KRATOS_CLASS_POINTER_DEFINITION(MapperVertexMorphingIterative);
+    /// Pointer definition of MapperVertexMorphingMatrixFree
+    KRATOS_CLASS_POINTER_DEFINITION(MapperVertexMorphingMatrixFree);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MapperVertexMorphingIterative( ModelPart& designSurface, boost::python::dict dampingRegions, Parameters& optimizationSettings )
+    MapperVertexMorphingMatrixFree( ModelPart& designSurface, boost::python::dict dampingRegions, Parameters& optimizationSettings )
         : mrDesignSurface( designSurface ),
           mNumberOfDesignVariables( designSurface.Nodes().size() ),
           mFilterRadius( optimizationSettings["design_variables"]["filter"]["filter_radius"].GetDouble() ),
@@ -124,7 +124,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~MapperVertexMorphingIterative()
+    virtual ~MapperVertexMorphingMatrixFree()
     {
     }
 
@@ -476,13 +476,13 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "MapperVertexMorphingIterative";
+        return "MapperVertexMorphingMatrixFree";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "MapperVertexMorphingIterative";
+        rOStream << "MapperVertexMorphingMatrixFree";
     }
 
     /// Print object's data.
@@ -587,15 +587,15 @@ private:
     ///@{
 
     /// Assignment operator.
-//      MapperVertexMorphingIterative& operator=(MapperVertexMorphingIterative const& rOther);
+//      MapperVertexMorphingMatrixFree& operator=(MapperVertexMorphingMatrixFree const& rOther);
 
     /// Copy constructor.
-//      MapperVertexMorphingIterative(MapperVertexMorphingIterative const& rOther);
+//      MapperVertexMorphingMatrixFree(MapperVertexMorphingMatrixFree const& rOther);
 
 
     ///@}
 
-}; // Class MapperVertexMorphingIterative
+}; // Class MapperVertexMorphingMatrixFree
 
 ///@}
 
@@ -612,4 +612,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // MAPPER_VERTEX_MORPHING_ITERATIVE_H
+#endif // MAPPER_VERTEX_MORPHING_MATRIX_FREE_H

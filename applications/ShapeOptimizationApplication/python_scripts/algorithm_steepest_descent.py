@@ -82,7 +82,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
             self.__alignSensitivitiesToLocalSurfaceNormal()
 
-            self.dampingDampingUtilities.dampNodalVariable( OBJECTIVE_SENSITIVITY )
+            #self.dampingDampingUtilities.dampNodalVariable( OBJECTIVE_SENSITIVITY )
 
             self.__mapSensitivitiesToDesignSpace()
 
@@ -90,7 +90,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
             self.__mapDesignUpdateToGeometrySpaceToGetShapeUpdate()  
 
-            self.dampingDampingUtilities.dampNodalVariable( SHAPE_UPDATE )
+            #self.dampingDampingUtilities.dampNodalVariable( SHAPE_UPDATE )
 
             self.__updateShape()
 

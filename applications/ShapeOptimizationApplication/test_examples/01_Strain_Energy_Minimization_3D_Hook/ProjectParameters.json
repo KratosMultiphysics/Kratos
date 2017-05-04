@@ -116,7 +116,7 @@
         "constraints" : [],
         "design_variables" : {
             "design_variables_type"     : "vertex_morphing", 
-            "iterative_mapping"         : false,
+            "matrix_free_mapping"       : false,
             "input_model_part_name"     : "3D_Hook",
             "design_submodel_part_name" : "design_surface",
             "domain_size"               : 3,
