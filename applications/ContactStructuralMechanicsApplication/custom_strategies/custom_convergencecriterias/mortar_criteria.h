@@ -177,7 +177,7 @@ public:
             }
         }
         
-        if (this->GetEchoLevel() > 0)
+        if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
         {
             if (IsConvergedActive == true)
             {

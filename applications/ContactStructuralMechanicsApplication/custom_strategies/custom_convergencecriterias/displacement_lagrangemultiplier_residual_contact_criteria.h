@@ -260,6 +260,10 @@ public:
         }
         else // In this case all the displacements are imposed!
         {
+            if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
+            {
+                std::cout << BOLD("\tResidual") << " convergence is " << BOLD(FRED(" not achieved")) << std::endl;
+            }
             return true;
         }
     }
