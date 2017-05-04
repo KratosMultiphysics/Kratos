@@ -73,8 +73,8 @@ namespace Kratos
 	// For edge damping
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DAMPING_FACTOR);
 
-    // To create and process mapping matrix
-    KRATOS_DEFINE_VARIABLE(int,MAPPING_MATRIX_ID);
+    // For mapping
+    KRATOS_DEFINE_VARIABLE(int,MAPPING_ID);
 
     // For Structure Sensitivity Analysis
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(STRAIN_ENERGY_SHAPE_GRADIENT);

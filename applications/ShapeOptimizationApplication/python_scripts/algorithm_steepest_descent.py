@@ -136,7 +136,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace( self ):
-        self.mapper.map_to_design_space( OBJECTIVE_SENSITIVITY, MAPPED_OBJECTIVE_SENSITIVITY )
+        self.mapper.MapToDesignSpace( OBJECTIVE_SENSITIVITY, MAPPED_OBJECTIVE_SENSITIVITY )
 
     # --------------------------------------------------------------------------
     def __computeDesignUpdate( self ):
@@ -145,7 +145,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __mapDesignUpdateToGeometrySpaceToGetShapeUpdate( self ):
-        self.mapper.map_to_geometry_space( DESIGN_UPDATE, SHAPE_UPDATE ) 
+        self.mapper.MapToGeometrySpace( DESIGN_UPDATE, SHAPE_UPDATE ) 
 
     # --------------------------------------------------------------------------
     def __updateShape( self ):
