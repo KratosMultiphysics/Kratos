@@ -38,6 +38,8 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.communicator = communicator
         self.optimizationSettings = optimizationSettings
 
+        self.dampingDampingUtilities = DampingUtilities( ... )
+
         self.maxIterations = optimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1        
         self.onlyObjective = optimizationSettings["objectives"][0]["identifier"].GetString()
         self.initialStepSize = optimizationSettings["line_search"]["step_size"].GetDouble()
@@ -80,11 +82,15 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
             self.__alignSensitivitiesToLocalSurfaceNormal()
 
+            self.dampingDampingUtilities.dampNodalVariable( OBJECTIVE_SENSITIVITY )
+
             self.__mapSensitivitiesToDesignSpace()
 
             self.__computeDesignUpdate()
 
             self.__mapDesignUpdateToGeometrySpaceToGetShapeUpdate()  
+
+            self.dampingDampingUtilities.dampNodalVariable( SHAPE_UPDATE )
 
             self.__updateShape()
 
