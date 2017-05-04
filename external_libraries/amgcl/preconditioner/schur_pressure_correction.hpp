@@ -363,8 +363,6 @@ class schur_pressure_correction {
                 ptrdiff_t p2x_head = 0, p2x_idx = 0;
 
                 for(size_t i = 0; i < n; ++i) {
-                    ptrdiff_t j = idx[i];
-
                     if (prm.pmask[i]) {
                         x2p->ptr[++x2p_idx] = ++x2p_head;
                         ++p2x_head;
@@ -426,12 +424,16 @@ class schur_pressure_correction {
             return os;
         }
 
+#if defined(AMGCL_DEBUG) || !defined(NDEBUG)
         template <typename I, typename E>
         static void report(const std::string &name, const boost::tuple<I, E> &c) {
-#if defined(AMGCL_DEBUG) || !defined(NDEBUG)
             std::cout << name << " (" << boost::get<0>(c) << ", " << boost::get<1>(c) << ")\n";
-#endif
         }
+#else
+        template <typename I, typename E>
+        static void report(const std::string&, const boost::tuple<I, E>&) {
+        }
+#endif
 };
 
 } // namespace preconditioner

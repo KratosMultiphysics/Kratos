@@ -121,19 +121,9 @@ class pointwise_aggregates {
                 {
                     std::vector<ptrdiff_t> marker(Ap.nrows, -1);
 
-#ifdef _OPENMP
-                    int nt  = omp_get_num_threads();
-                    int tid = omp_get_thread_num();
-
-                    size_t chunk_size  = (Ap.nrows + nt - 1) / nt;
-                    size_t chunk_start = tid * chunk_size;
-                    size_t chunk_end   = std::min(Ap.nrows, chunk_start + chunk_size);
-#else
-                    size_t chunk_start = 0;
-                    size_t chunk_end   = Ap.nrows;
-#endif
-
-                    for(size_t ip = chunk_start, ia = ip * prm.block_size; ip < chunk_end; ++ip) {
+#pragma omp for
+                    for(ptrdiff_t ip = 0; ip < static_cast<ptrdiff_t>(Ap.nrows); ++ip) {
+                        ptrdiff_t ia = ip * prm.block_size;
                         ptrdiff_t row_beg = Ap.ptr[ip];
                         ptrdiff_t row_end = row_beg;
 
@@ -218,24 +208,15 @@ class pointwise_aggregates {
             {
                 std::vector<ptrdiff_t> marker(mp, -1);
 
-#ifdef _OPENMP
-                int nt  = omp_get_num_threads();
-                int tid = omp_get_thread_num();
-
-                size_t chunk_size  = (np + nt - 1) / nt;
-                size_t chunk_start = tid * chunk_size;
-                size_t chunk_end   = std::min(np, chunk_start + chunk_size);
-#else
-                size_t chunk_start = 0;
-                size_t chunk_end   = np;
-#endif
-
                 // Count number of nonzeros in block matrix.
-                for(size_t ip = chunk_start, ia = ip * block_size; ip < chunk_end; ++ip) {
+#pragma omp for
+                for(ptrdiff_t ip = 0; ip < static_cast<ptrdiff_t>(np); ++ip) {
+                    ptrdiff_t ia = ip * block_size;
+
                     for(unsigned k = 0; k < block_size; ++k, ++ia) {
                         for(row_iterator a = backend::row_begin(A, ia); a; ++a) {
                             ptrdiff_t cp = a.col() / block_size;
-                            if (static_cast<size_t>(marker[cp]) != ip) {
+                            if (marker[cp] != ip) {
                                 marker[cp] = ip;
                                 ++Ap.ptr[ip + 1];
                             }
@@ -251,20 +232,10 @@ class pointwise_aggregates {
             {
                 std::vector<ptrdiff_t> marker(mp, -1);
 
-#ifdef _OPENMP
-                int nt  = omp_get_num_threads();
-                int tid = omp_get_thread_num();
-
-                size_t chunk_size  = (np + nt - 1) / nt;
-                size_t chunk_start = tid * chunk_size;
-                size_t chunk_end   = std::min(np, chunk_start + chunk_size);
-#else
-                size_t chunk_start = 0;
-                size_t chunk_end   = np;
-#endif
-
                 // Fill the reduced matrix. Use max norm for blocks.
-                for(size_t ip = chunk_start, ia = ip * block_size; ip < chunk_end; ++ip) {
+#pragma omp for
+                for(ptrdiff_t ip = 0; ip < static_cast<ptrdiff_t>(np); ++ip) {
+                    ptrdiff_t ia = ip * block_size;
                     ptrdiff_t row_beg = Ap.ptr[ip];
                     ptrdiff_t row_end = row_beg;
 

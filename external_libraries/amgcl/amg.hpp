@@ -364,8 +364,7 @@ class amg {
 
             void create_coarse(
                     boost::shared_ptr<build_matrix> A,
-                    params &prm, const backend_params &bprm,
-                    bool single_level)
+                    const backend_params &bprm, bool single_level)
             {
                 m_rows     = backend::rows(*A);
                 m_nonzeros = backend::nonzeros(*A);
@@ -423,7 +422,7 @@ class amg {
                 TIC("coarsest level");
                 if (prm.direct_coarse) {
                     level l;
-                    l.create_coarse(A, prm, bprm, levels.empty());
+                    l.create_coarse(A, bprm, levels.empty());
 
                     {
 #ifdef AMGCL_ASYNC_SETUP

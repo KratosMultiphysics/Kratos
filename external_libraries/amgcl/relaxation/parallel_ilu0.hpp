@@ -242,7 +242,6 @@ struct parallel_ilu0 {
         }
 
         std::partial_sum(Uptr, Uptr + n + 1, Uptr);
-        assert(Uptr[n] == Uh->ptr[n] - n);
 
         for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
             for(ptrdiff_t k = Uh->ptr[i]; k < Uh->ptr[i+1]; ++k) {
@@ -297,7 +296,7 @@ struct parallel_ilu0 {
     }
 
     template <class Matrix, class VectorRHS, class VectorX>
-    void apply(const Matrix &A, const VectorRHS &rhs, VectorX &x, const params &prm) const
+    void apply(const Matrix&, const VectorRHS &rhs, VectorX &x, const params &prm) const
     {
         backend::copy(rhs, x);
         solve(x, prm);

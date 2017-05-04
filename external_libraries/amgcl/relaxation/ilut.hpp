@@ -209,7 +209,7 @@ struct ilut {
     }
 
     template <class Matrix, class VectorRHS, class VectorX>
-    void apply(const Matrix &A, const VectorRHS &rhs, VectorX &x, const params &prm) const
+    void apply(const Matrix&, const VectorRHS &rhs, VectorX &x, const params &prm) const
     {
         backend::copy(rhs, x);
         solve(x, prm, serial_backend());
@@ -389,7 +389,7 @@ struct ilut {
         };
 
         template <class VectorX>
-        void solve(VectorX &x, const params &prm, boost::true_type) const
+        void solve(VectorX &x, const params&, boost::true_type) const
         {
             relaxation::detail::serial_ilu_solve(*L, *U, *D, x);
         }

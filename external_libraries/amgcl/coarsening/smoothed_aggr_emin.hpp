@@ -203,18 +203,6 @@ struct smoothed_aggr_emin {
 
 #pragma omp parallel
             {
-#ifdef _OPENMP
-                int nt  = omp_get_num_threads();
-                int tid = omp_get_thread_num();
-
-                size_t chunk_size  = (n + nt - 1) / nt;
-                size_t chunk_start = tid * chunk_size;
-                size_t chunk_end   = std::min(n, chunk_start + chunk_size);
-#else
-                size_t chunk_start = 0;
-                size_t chunk_end   = n;
-#endif
-
                 std::vector<ptrdiff_t> marker(nc, -1);
 
                 // Compute A * Dinv * AP row by row and compute columnwise
@@ -223,7 +211,8 @@ struct smoothed_aggr_emin {
                 std::vector<Col> adap_col(128);
                 std::vector<Val> adap_val(128);
 
-                for(size_t ia = chunk_start; ia < chunk_end; ++ia) {
+#pragma omp for
+                for(ptrdiff_t ia = 0; ia < static_cast<ptrdiff_t>(n); ++ia) {
                     adap_col.clear();
                     adap_val.clear();
 

@@ -38,7 +38,6 @@ THE SOFTWARE.
 #  include <omp.h>
 #endif
 
-#include <boost/noncopyable.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
@@ -63,7 +62,7 @@ template <
     typename col_t = ptrdiff_t,
     typename ptr_t = col_t
     >
-struct crs : private boost::noncopyable {
+struct crs {
     typedef val_t val_type;
     typedef col_t col_type;
     typedef ptr_t ptr_type;
@@ -462,7 +461,7 @@ class numa_vector {
             BOOST_ASSERT( (
                     boost::is_same<
                         std::random_access_iterator_tag,
-                        std::iterator_traits<Iterator>::iterator_category
+                        typename std::iterator_traits<Iterator>::iterator_category
                     >::value
                     ) );
 #pragma omp parallel for
@@ -717,29 +716,21 @@ struct inner_product_impl<
 
 #pragma omp parallel
         {
-#ifdef _OPENMP
-            int nt  = omp_get_num_threads();
-            int tid = omp_get_thread_num();
-
-            size_t chunk_size  = (n + nt - 1) / nt;
-            size_t chunk_start = tid * chunk_size;
-            size_t chunk_end   = std::min(n, chunk_start + chunk_size);
-#else
-            size_t chunk_start = 0;
-            size_t chunk_end   = n;
-#endif
-
             return_type s = math::zero<return_type>();
             return_type c = math::zero<return_type>();
-            for(size_t i = chunk_start; i < chunk_end; ++i) {
+
+#pragma omp for
+            for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
                 return_type d = math::inner_product(x[i], y[i]) - c;
                 return_type t = s + d;
                 c = (t - s) - d;
                 s = t;
             }
+
 #pragma omp critical
             sum += s;
         }
+
         return sum;
     }
 };

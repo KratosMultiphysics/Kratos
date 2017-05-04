@@ -207,7 +207,7 @@ struct ilu0 {
 
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_post
     template <class Matrix, class VectorRHS, class VectorX>
-    void apply(const Matrix &A, const VectorRHS &rhs, VectorX &x, const params &prm) const
+    void apply(const Matrix&, const VectorRHS &rhs, VectorX &x, const params &prm) const
     {
         backend::copy(rhs, x);
         solve(x, prm, serial_backend());
@@ -223,7 +223,7 @@ struct ilu0 {
         boost::shared_ptr<vector> t1, t2;
 
         template <class VectorX>
-        void solve(VectorX &x, const params &prm, boost::true_type) const
+        void solve(VectorX &x, const params&, boost::true_type) const
         {
             relaxation::detail::serial_ilu_solve(*L, *U, *D, x);
         }

@@ -152,11 +152,7 @@ typename boost::disable_if<
     typename backend::coarsening_is_supported<Backend, Coarsening>::type,
     void
     >::type
-process_amg(
-        runtime::relaxation::type relaxation,
-        const Func &func
-        )
-{
+process_amg(runtime::relaxation::type, const Func&) {
     throw std::logic_error("The coarsening is not supported by the backend");
 }
 
@@ -183,6 +179,7 @@ process_amg(
                 amgcl::relaxation::gauss_seidel
                 >(func);
             break;
+#ifndef AMGCL_RUNTIME_DISABLE_MULTICOLOR_GS
         case runtime::relaxation::multicolor_gauss_seidel:
             process_amg<
                 Backend,
@@ -190,6 +187,7 @@ process_amg(
                 amgcl::relaxation::multicolor_gauss_seidel
                 >(func);
             break;
+#endif
         case runtime::relaxation::ilu0:
             process_amg<
                 Backend,
@@ -197,6 +195,7 @@ process_amg(
                 amgcl::relaxation::ilu0
                 >(func);
             break;
+#ifndef AMGCL_RUNTIME_DISABLE_PARALLEL_ILU0
         case runtime::relaxation::parallel_ilu0:
             process_amg<
                 Backend,
@@ -204,6 +203,7 @@ process_amg(
                 amgcl::relaxation::parallel_ilu0
                 >(func);
             break;
+#endif
         case runtime::relaxation::iluk:
             process_amg<
                 Backend,
@@ -232,6 +232,7 @@ process_amg(
                 amgcl::relaxation::spai0
                 >(func);
             break;
+#ifndef AMGCL_RUNTIME_DISABLE_SPAI1
         case runtime::relaxation::spai1:
             process_amg<
                 Backend,
@@ -239,6 +240,8 @@ process_amg(
                 amgcl::relaxation::spai1
                 >(func);
             break;
+#endif
+#ifndef AMGCL_RUNTIME_DISABLE_CHEBYSHEV
         case runtime::relaxation::chebyshev:
             process_amg<
                 Backend,
@@ -246,6 +249,9 @@ process_amg(
                 amgcl::relaxation::chebyshev
                 >(func);
             break;
+#endif
+        default:
+            precondition(false, "Unsupported relaxation value");
     }
 }
 

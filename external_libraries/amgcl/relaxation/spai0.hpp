@@ -108,7 +108,7 @@ struct spai0 {
     }
 
     template <class Matrix, class VectorRHS, class VectorX>
-    void apply( const Matrix &A, const VectorRHS &rhs, VectorX &x, const params&) const
+    void apply( const Matrix&, const VectorRHS &rhs, VectorX &x, const params&) const
     {
         backend::vmul(math::identity<scalar_type>(), *M, rhs, math::zero<scalar_type>(), x);
     }

@@ -54,7 +54,7 @@ class dummy {
         template <class Matrix>
         dummy(
                 const Matrix &M,
-                const params &prm = params(),
+                const params& = params(),
                 const backend_params &bprm = backend_params()
                 )
             : A(Backend::copy_matrix(boost::make_shared<build_matrix>(M), bprm))

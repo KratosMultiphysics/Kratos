@@ -429,8 +429,6 @@ class schur_pressure_correction {
                 ptrdiff_t p2x_head = 0, p2x_idx = 0;
 
                 for(ptrdiff_t i = 0; i < n; ++i) {
-                    ptrdiff_t j = idx[i];
-
                     if (prm.pmask[i]) {
                         x2p->ptr[++x2p_idx] = ++x2p_head;
                         ++p2x_head;
@@ -559,13 +557,17 @@ class schur_pressure_correction {
         boost::shared_ptr<USolver> U;
         boost::shared_ptr<PSolver> P;
 
+#ifdef AMGCL_DEBUG
         template <typename I, typename E>
         void report(const std::string &name, const boost::tuple<I, E> &c) const {
-#ifdef AMGCL_DEBUG
             if (comm.rank == 0)
                 std::cout << name << " (" << boost::get<0>(c) << ", " << boost::get<1>(c) << ")\n";
-#endif
         }
+#else
+        template <typename I, typename E>
+        void report(const std::string&, const boost::tuple<I, E>&) const {
+        }
+#endif
 
 };
 

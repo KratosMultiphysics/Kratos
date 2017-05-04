@@ -197,7 +197,7 @@ class cpr_drs {
                 for(ptrdiff_t ip = 0; ip < static_cast<ptrdiff_t>(np); ++ip) {
                     ptrdiff_t ik = ip * B;
                     bool      done = true;
-                    ptrdiff_t cur_col;
+                    ptrdiff_t cur_col = 0;
 
                     boost::fill(a_dia, 0);
                     boost::fill(a_off, 0);
@@ -296,7 +296,7 @@ class cpr_drs {
                     ptrdiff_t ik = ip * B;
                     ptrdiff_t head = App->ptr[ip];
                     bool      done = true;
-                    ptrdiff_t cur_col;
+                    ptrdiff_t cur_col = 0;
 
                     value_type *d = &fpp->val[ik];
 

@@ -128,20 +128,9 @@ struct smoothed_aggregation {
         {
             std::vector<ptrdiff_t> marker(P->ncols, -1);
 
-#ifdef _OPENMP
-            int nt  = omp_get_num_threads();
-            int tid = omp_get_thread_num();
-
-            ptrdiff_t chunk_size  = (n + nt - 1) / nt;
-            ptrdiff_t chunk_start = tid * chunk_size;
-            ptrdiff_t chunk_end   = std::min<ptrdiff_t>(n, chunk_start + chunk_size);
-#else
-            ptrdiff_t chunk_start = 0;
-            ptrdiff_t chunk_end   = n;
-#endif
-
             // Count number of entries in P.
-            for(ptrdiff_t i = chunk_start; i < chunk_end; ++i) {
+#pragma omp for
+            for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
                 for(ptrdiff_t ja = A.ptr[i], ea = A.ptr[i+1]; ja < ea; ++ja) {
                     ptrdiff_t ca = A.col[ja];
 
@@ -168,20 +157,9 @@ struct smoothed_aggregation {
         {
             std::vector<ptrdiff_t> marker(P->ncols, -1);
 
-#ifdef _OPENMP
-            int nt  = omp_get_num_threads();
-            int tid = omp_get_thread_num();
-
-            ptrdiff_t chunk_size  = (n + nt - 1) / nt;
-            ptrdiff_t chunk_start = tid * chunk_size;
-            ptrdiff_t chunk_end   = std::min<ptrdiff_t>(n, chunk_start + chunk_size);
-#else
-            ptrdiff_t chunk_start = 0;
-            ptrdiff_t chunk_end   = n;
-#endif
-
             // Fill the interpolation matrix.
-            for(ptrdiff_t i = chunk_start; i < chunk_end; ++i) {
+#pragma omp for
+            for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
 
                 // Diagonal of the filtered matrix is the original matrix
                 // diagonal minus its weak connections.
