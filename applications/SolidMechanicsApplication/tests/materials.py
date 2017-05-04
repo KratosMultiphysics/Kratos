@@ -14,3 +14,8 @@ def AssignMaterial(Properties):
     prop = Properties[prop_id]
     mat = LinearElastic3DLaw();
     prop.SetValue(CONSTITUTIVE_LAW, mat.Clone());
+    
+    prop_id = 3;
+    prop = Properties[prop_id]
+    mat = IsotropicDamageSimoJuPlaneStress2DLaw();
+    prop.SetValue(CONSTITUTIVE_LAW, mat.Clone());

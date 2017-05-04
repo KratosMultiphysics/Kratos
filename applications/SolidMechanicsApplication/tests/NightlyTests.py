@@ -42,3 +42,6 @@ class SolidMechanichsTestFactory(KratosUnittest.TestCase):
 
     def tearDown(self):
         pass
+    
+class IsotropicDamageSimoJuPlaneStressFourPointShearTest(SolidMechanichsTestFactory):
+    file_name = "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test"

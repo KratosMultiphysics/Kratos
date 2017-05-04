@@ -36,7 +36,11 @@ from SmallTests import ULThreeDShearTetraPatchTest   as TULThreeDShearTetraPatch
 from SmallTests import ULThreeDTensionHexaPatchTest  as TULThreeDTensionHexaPatchTest
 from SmallTests import ULThreeDTensionTetraPatchTest as TULThreeDTensionTetraPatchTest
 
+# CL tests
+
 ## NIGTHLY TESTS
+# CL tests
+from NightlyTests import IsotropicDamageSimoJuPlaneStressFourPointShearTest as TIsotropicDamageSimoJuPlaneStressFourPointShearTest
 
 ## VALIDATION TESTS
 
@@ -56,6 +60,7 @@ def AssambleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
+    # Patch test Small Displacements
     smallSuite.addTest(TSDTwoDShearQuaPatchTest('test_execution'))
     smallSuite.addTest(TSDTwoDShearTriPatchTest('test_execution'))
     smallSuite.addTest(TSDTwoDTensionQuaPatchTest('test_execution'))
@@ -64,6 +69,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TSDThreeDShearTetraPatchTest('test_execution'))
     smallSuite.addTest(TSDThreeDTensionHexaPatchTest('test_execution'))
     smallSuite.addTest(TSDThreeDTensionTetraPatchTest('test_execution'))
+    # Patch test Total Lagrangian
     smallSuite.addTest(TTLTwoDShearQuaPatchTest('test_execution'))
     smallSuite.addTest(TTLTwoDShearTriPatchTest('test_execution'))
     smallSuite.addTest(TTLTwoDTensionQuaPatchTest('test_execution'))
@@ -72,6 +78,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TTLThreeDShearTetraPatchTest('test_execution'))
     smallSuite.addTest(TTLThreeDTensionHexaPatchTest('test_execution'))
     smallSuite.addTest(TTLThreeDTensionTetraPatchTest('test_execution'))
+    # Patch test Updated Lagrangian
     smallSuite.addTest(TULTwoDShearQuaPatchTest('test_execution'))
     smallSuite.addTest(TULTwoDShearTriPatchTest('test_execution'))
     smallSuite.addTest(TULTwoDTensionQuaPatchTest('test_execution'))
@@ -80,10 +87,13 @@ def AssambleTestSuites():
     smallSuite.addTest(TULThreeDShearTetraPatchTest('test_execution'))
     smallSuite.addTest(TULThreeDTensionHexaPatchTest('test_execution'))
     smallSuite.addTest(TULThreeDTensionTetraPatchTest('test_execution'))
+    # CL tests
     
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
+    # CL tests
+    nightSuite.addTest(TIsotropicDamageSimoJuPlaneStressFourPointShearTest('test_execution'))
     
     # For very long tests that should not be in nighly and you can use to validate 
     validationSuite = suites['validation']
@@ -116,6 +126,7 @@ def AssambleTestSuites():
             TULThreeDShearTetraPatchTest,
             TULThreeDTensionHexaPatchTest,
             TULThreeDTensionTetraPatchTest,
+            TIsotropicDamageSimoJuPlaneStressFourPointShearTest,
         ])
     )
 
