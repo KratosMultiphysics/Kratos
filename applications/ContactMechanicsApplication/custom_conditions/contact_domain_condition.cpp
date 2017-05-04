@@ -457,10 +457,6 @@ void ContactDomainCondition::InitializeNonLinearIteration( ProcessInfo& CurrentP
   //Clear nodal contact forces
   ClearNodalForces();
 
-  CurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] = 0;
-  CurrentProcessInfo[NUMBER_OF_STICK_CONTACTS]  = 0;
-  CurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS]   = 0;
-
 }
 
 

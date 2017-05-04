@@ -12,8 +12,7 @@
         "parallel_type"          : "OpenMP",
         "echo_level"             : 0,
         "start_step"             : 0.0,
-        "end_time"               : 0.1,
-        "time_step"              : 0.01
+        "end_time"               : 0.1
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -65,7 +64,11 @@
         },
         "volume_model_part_name"       : "Parts_Fluid",
         "skin_parts"                   : ["Inlet2D_Contour"],
-        "no_skin_parts"                : []
+        "no_skin_parts"                : [],
+        "time_stepping"                : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.01
+        }
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [],

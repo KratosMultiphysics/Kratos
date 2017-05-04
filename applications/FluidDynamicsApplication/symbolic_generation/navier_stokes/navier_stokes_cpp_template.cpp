@@ -120,19 +120,19 @@ void NavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matrix<double,16,
     const double h = data.h;                                // Characteristic element size
     const double c = data.c;                                // Wave velocity
 
+    const double& dt = data.dt;
     const double& bdf0 = data.bdf0;
-    const double& bdf1 = data.bdf1;
-    const double& bdf2 = data.bdf2;
-    const double& delta_t = data.delta_t;
-    const double& dyn_tau_coeff = data.dyn_tau_coeff;
+    // const double& bdf1 = data.bdf1;
+    // const double& bdf2 = data.bdf2;
+    const double& dyn_tau = data.dyn_tau;
 
     const bounded_matrix<double,nnodes,dim>& v = data.v;
-    const bounded_matrix<double,nnodes,dim>& vn = data.vn;
-    const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
+    // const bounded_matrix<double,nnodes,dim>& vn = data.vn;
+    // const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
     const bounded_matrix<double,nnodes,dim>& vmesh = data.vmesh;
     const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
-    const bounded_matrix<double,nnodes,dim>& f = data.f;
-    const array_1d<double,nnodes>& p = data.p;
+    // const bounded_matrix<double,nnodes,dim>& f = data.f;
+    // const array_1d<double,nnodes>& p = data.p;
     // const array_1d<double,nnodes>& pn = data.pn;
     // const array_1d<double,nnodes>& pnn = data.pnn;
     //~ const array_1d<double,strain_size>& stress = data.stress;
@@ -144,15 +144,15 @@ void NavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matrix<double,16,
     const array_1d<double,nnodes>& N = data.N;
     const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
 
-    const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
+    // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
 
-    const double vconv_norm = norm_2(vconv_gauss);
+    // const double vconv_norm = norm_2(vconv_gauss);
 
     // Stabilization parameters
-    const double c1 = 4.0;
-    const double c2 = 2.0;
-    const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
-    const double tau2 = (h*h)/(c1*tau1);
+    const double stab_c1 = 4.0;
+    const double stab_c2 = 2.0;
+    // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
+    // const double tau2 = (h*h)/(c1*tau1);
 
     //substitute_lhs_3D
 
@@ -171,19 +171,19 @@ void NavierStokes<2>::ComputeGaussPointLHSContribution(bounded_matrix<double,9,9
     const double h = data.h;                                // Characteristic element size
     const double c = data.c;                                // Wave velocity
 
+    const double& dt = data.dt;
     const double& bdf0 = data.bdf0;
-    const double& bdf1 = data.bdf1;
-    const double& bdf2 = data.bdf2;
-    const double& delta_t = data.delta_t;
-    const double& dyn_tau_coeff = data.dyn_tau_coeff;
+    // const double& bdf1 = data.bdf1;
+    // const double& bdf2 = data.bdf2;
+    const double& dyn_tau = data.dyn_tau;
 
     const bounded_matrix<double,nnodes,dim>& v = data.v;
-    const bounded_matrix<double,nnodes,dim>& vn = data.vn;
-    const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
+    // const bounded_matrix<double,nnodes,dim>& vn = data.vn;
+    // const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
     const bounded_matrix<double,nnodes,dim>& vmesh = data.vmesh;
     const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
-    const bounded_matrix<double,nnodes,dim>& f = data.f;
-    const array_1d<double,nnodes>& p = data.p;
+    // const bounded_matrix<double,nnodes,dim>& f = data.f;
+    // const array_1d<double,nnodes>& p = data.p;
     // const array_1d<double,nnodes>& pn = data.pn;
     // const array_1d<double,nnodes>& pnn = data.pnn;
     //~ const array_1d<double,strain_size>& stress = data.stress;
@@ -195,15 +195,15 @@ void NavierStokes<2>::ComputeGaussPointLHSContribution(bounded_matrix<double,9,9
     const array_1d<double,nnodes>& N = data.N;
     const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
 
-    const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
+    // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
 
-    const double vconv_norm = norm_2(vconv_gauss);
+    // const double vconv_norm = norm_2(vconv_gauss);
 
     // Stabilization parameters
-    const double c1 = 4.0;
-    const double c2 = 2.0;
-    const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
-    const double tau2 = (h*h)/(c1*tau1);
+    const double stab_c1 = 4.0;
+    const double stab_c2 = 2.0;
+    // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
+    // const double tau2 = (h*h)/(c1*tau1);
 
     //substitute_lhs_2D
 
@@ -222,11 +222,11 @@ void NavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs,
     const double h = data.h;                                // Characteristic element size
     const double c = data.c;                                // Wave velocity
 
+    const double& dt = data.dt;
     const double& bdf0 = data.bdf0;
     const double& bdf1 = data.bdf1;
     const double& bdf2 = data.bdf2;
-    const double& delta_t = data.delta_t;
-    const double& dyn_tau_coeff = data.dyn_tau_coeff;
+    const double& dyn_tau = data.dyn_tau;
 
     const bounded_matrix<double,nnodes,dim>& v = data.v;
     const bounded_matrix<double,nnodes,dim>& vn = data.vn;
@@ -249,20 +249,20 @@ void NavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs,
     // Auxiliary variables used in the calculation of the RHS
     const array_1d<double,dim> f_gauss = prod(trans(f), N);
     const array_1d<double,dim> grad_p = prod(trans(DN), p);
-    const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
+    // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
     //~ const double p_gauss = inner_prod(N,p);
 
-    const double vconv_norm = norm_2(vconv_gauss);
+    // const double vconv_norm = norm_2(vconv_gauss);
 
     //~ array_1d<double,dim> accel_gauss = bdf0*v_gauss;
     //~ noalias(accel_gauss) += bdf1*prod(trans(vn), N);
     //~ noalias(accel_gauss) += bdf2*prod(trans(vnn), N);
 
     // Stabilization parameters
-    const double c1 = 4.0;
-    const double c2 = 2.0;
-    const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
-    const double tau2 = (h*h)/(c1*tau1);
+    const double stab_c1 = 4.0;
+    const double stab_c2 = 2.0;
+    // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
+    // const double tau2 = (h*h)/(c1*tau1);
 
     //substitute_rhs_3D
 }
@@ -280,11 +280,11 @@ void NavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<double,9>& rhs, 
     const double h = data.h;                                // Characteristic element size
     const double c = data.c;                                // Wave velocity
 
+    const double& dt = data.dt;
     const double& bdf0 = data.bdf0;
     const double& bdf1 = data.bdf1;
     const double& bdf2 = data.bdf2;
-    const double& delta_t = data.delta_t;
-    const double& dyn_tau_coeff = data.dyn_tau_coeff;
+    const double& dyn_tau = data.dyn_tau;
 
     const bounded_matrix<double,nnodes,dim>& v = data.v;
     const bounded_matrix<double,nnodes,dim>& vn = data.vn;
@@ -307,20 +307,20 @@ void NavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<double,9>& rhs, 
     // Auxiliary variables used in the calculation of the RHS
     const array_1d<double,dim> f_gauss = prod(trans(f), N);
     const array_1d<double,dim> grad_p = prod(trans(DN), p);
-    const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
+    // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
     //~ const double p_gauss = inner_prod(N,p);
 
-    const double vconv_norm = norm_2(vconv_gauss);
+    // const double vconv_norm = norm_2(vconv_gauss);
 
     //~ array_1d<double,dim> accel_gauss = bdf0*v_gauss;
     //~ noalias(accel_gauss) += bdf1*prod(trans(vn), N);
     //~ noalias(accel_gauss) += bdf2*prod(trans(vnn), N);
 
     // Stabilization parameters
-    const double c1 = 4.0;
-    const double c2 = 2.0;
-    const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
-    const double tau2 = (h*h)/(c1*tau1);
+    const double stab_c1 = 4.0;
+    const double stab_c2 = 2.0;
+    // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
+    // const double tau2 = (h*h)/(c1*tau1);
 
     //substitute_rhs_2D
 }
@@ -338,11 +338,11 @@ double NavierStokes<3>::SubscaleErrorEstimate(const ElementDataStruct& data)
     const double h = data.h;                                // Characteristic element size
     // const double c = data.c;                                // Wave velocity
 
+    const double& dt = data.dt;
     const double& bdf0 = data.bdf0;
     const double& bdf1 = data.bdf1;
     const double& bdf2 = data.bdf2;
-    const double& delta_t = data.delta_t;
-    const double& dyn_tau_coeff = data.dyn_tau_coeff;
+    const double& dyn_tau = data.dyn_tau;
 
     const bounded_matrix<double,nnodes,dim>& v = data.v;
     const bounded_matrix<double,nnodes,dim>& vn = data.vn;
@@ -367,15 +367,15 @@ double NavierStokes<3>::SubscaleErrorEstimate(const ElementDataStruct& data)
     const array_1d<double,dim> v_gauss = prod(trans(v), N);
     const array_1d<double,dim> f_gauss = prod(trans(f), N);
     const array_1d<double,dim> grad_p = prod(trans(DN), p);
-    const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
+    // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
 
-    const double vconv_norm = norm_2(vconv_gauss);
+    // const double vconv_norm = norm_2(vconv_gauss);
 
     // Stabilization parameters
-    const double c1 = 4.0;
-    const double c2 = 2.0;
-    const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
-    // const double tau2 = (h*h)/(c1*tau1);
+    const double stab_c1 = 4.0;
+    const double stab_c2 = 2.0;
+    // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
+    // // const double tau2 = (h*h)/(c1*tau1);
 
     // Gauss point velocity subscale value computation
     //substitute_gausspt_subscale_3D
@@ -398,11 +398,11 @@ double NavierStokes<2>::SubscaleErrorEstimate(const ElementDataStruct& data)
     const double h = data.h;                                // Characteristic element size
     // const double c = data.c;                                // Wave velocity
 
+    const double& dt = data.dt;
     const double& bdf0 = data.bdf0;
     const double& bdf1 = data.bdf1;
     const double& bdf2 = data.bdf2;
-    const double& delta_t = data.delta_t;
-    const double& dyn_tau_coeff = data.dyn_tau_coeff;
+    const double& dyn_tau = data.dyn_tau;
 
     const bounded_matrix<double,nnodes,dim>& v = data.v;
     const bounded_matrix<double,nnodes,dim>& vn = data.vn;
@@ -423,15 +423,15 @@ double NavierStokes<2>::SubscaleErrorEstimate(const ElementDataStruct& data)
     const array_1d<double,dim> v_gauss = prod(trans(v), N);
     const array_1d<double,dim> f_gauss = prod(trans(f), N);
     const array_1d<double,dim> grad_p = prod(trans(DN), p);
-    const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
+    // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
 
-    const double vconv_norm = norm_2(vconv_gauss);
+    // const double vconv_norm = norm_2(vconv_gauss);
 
     // Stabilization parameters
-    const double c1 = 4.0;
-    const double c2 = 2.0;
-    const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
-    // const double tau2 = (h*h)/(c1*tau1);
+    const double stab_c1 = 4.0;
+    const double stab_c2 = 2.0;
+    // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
+    // // const double tau2 = (h*h)/(c1*tau1);
 
     // Gauss point velocity subscale value computation
     //substitute_gausspt_subscale_2D

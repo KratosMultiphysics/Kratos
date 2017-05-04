@@ -259,6 +259,7 @@ public:
      
     virtual ~ResidualBasedNewtonRaphsonStrategy()
     {
+        Clear();
     }
 
     /**
@@ -452,22 +453,20 @@ public:
     {
         KRATOS_TRY;
 
-        SparseSpaceType::Clear(mpA);
-        TSystemMatrixType& A = *mpA;
-        SparseSpaceType::Resize(A, 0, 0);
+        // if the preconditioner is saved between solves, it
+        // should be cleared here.
+        GetBuilderAndSolver()->GetLinearSystemSolver()->Clear();
 
-        SparseSpaceType::Clear(mpDx);
-        TSystemVectorType& Dx = *mpDx;
-        SparseSpaceType::Resize(Dx, 0);
-
-        SparseSpaceType::Clear(mpb);
-        TSystemVectorType& b = *mpb;
-        SparseSpaceType::Resize(b, 0);
+        if (mpA != nullptr)
+            SparseSpaceType::Clear(mpA);
+        if (mpDx != nullptr)
+            SparseSpaceType::Clear(mpDx);
+        if (mpb != nullptr)
+            SparseSpaceType::Clear(mpb);
 
         //setting to zero the internal flag to ensure that the dof sets are recalculated
         GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
         GetBuilderAndSolver()->Clear();
-
         GetScheme()->Clear();
 
         if (this->GetEchoLevel() > 0)
@@ -576,7 +575,7 @@ public:
 
             //setting up the Vectors involved to the correct size
             double system_matrix_resize_begin = OpenMPUtils::GetCurrentTime();
-            pBuilderAndSolver->ResizeAndInitializeVectors(mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
+            pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
             if (this->GetEchoLevel() > 0 && rank == 0)
             {
                 double system_matrix_resize_end = OpenMPUtils::GetCurrentTime();

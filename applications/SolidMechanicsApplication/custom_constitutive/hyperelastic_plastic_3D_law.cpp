@@ -103,20 +103,24 @@ bool HyperElasticPlastic3DLaw::Has( const Variable<Matrix>& rThisVariable )
 
 double& HyperElasticPlastic3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
-  if (rThisVariable==PLASTIC_STRAIN)
+    if (rThisVariable == DETERMINANT_F)
     {
-      const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
-      rValue=InternalVariables.EquivalentPlasticStrain;
+        rValue = mDeterminantF0;
     }
-  
-  if (rThisVariable==DELTA_PLASTIC_STRAIN)
+    
+    if (rThisVariable == PLASTIC_STRAIN)
     {
-      const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
-      rValue=InternalVariables.DeltaPlasticStrain;
+        const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
+        rValue = InternalVariables.EquivalentPlasticStrain;
     }
-
-
-  return( rValue );
+    
+    if (rThisVariable == DELTA_PLASTIC_STRAIN)
+    {
+        const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
+        rValue = InternalVariables.DeltaPlasticStrain;
+    }
+    
+    return( rValue );
 }
 
 Vector& HyperElasticPlastic3DLaw::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
@@ -137,10 +141,19 @@ Matrix& HyperElasticPlastic3DLaw::GetValue( const Variable<Matrix>& rThisVariabl
 void HyperElasticPlastic3DLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
                                   const ProcessInfo& rCurrentProcessInfo )
 {
-
-  if (rThisVariable == DETERMINANT_F)
+    if (rThisVariable == DETERMINANT_F)
     {
-      mDeterminantF0 = rValue;
+        mDeterminantF0 = rValue;
+    }
+    
+    if (rThisVariable == PLASTIC_STRAIN)
+    {
+        mpFlowRule->SetInternalVariables().EquivalentPlasticStrain = rValue;
+    }
+  
+    if (rThisVariable == DELTA_PLASTIC_STRAIN)
+    {
+        mpFlowRule->SetInternalVariables().DeltaPlasticStrain = rValue;
     }
   
 }
@@ -406,7 +419,9 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
     {
       
         if( ReturnMappingVariables.Options.Is(FlowRule::NOT_RETURN_MAPPING_COMPUTED) )
-	  KRATOS_THROW_ERROR( std::logic_error, " ReturnMappingCall was not performed  ...error in the constitutive calculation...", "" )
+        {
+            KRATOS_ERROR << " ReturnMappingCall was not performed  ...error in the constitutive calculation..." << std::endl;
+        }
 
         //initialize constitutive tensors
         ConstitutiveMatrix.clear();
@@ -617,17 +632,23 @@ int HyperElasticPlastic3DLaw::Check(const Properties& rMaterialProperties,
 {
 
     if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
-        KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ", "" )
+    {
+        KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
+    }
 
     const double& nu = rMaterialProperties[POISSON_RATIO];
     const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
 
     if(POISSON_RATIO.Key() == 0 || check==true)
-        KRATOS_THROW_ERROR( std::invalid_argument,"POISSON_RATIO has Key zero invalid value ", "" )
+    {
+        KRATOS_ERROR << "POISSON_RATIO has Key zero invalid value " << std::endl;
+    }
 
 
     if(DENSITY.Key() == 0 || rMaterialProperties[DENSITY]<0.00)
-        KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY has Key zero or invalid value ", "" )
+    {
+        KRATOS_ERROR << "DENSITY has Key zero or invalid value " << std::endl;
+    }
 
 
     return 0;

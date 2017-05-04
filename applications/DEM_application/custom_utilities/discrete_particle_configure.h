@@ -372,14 +372,15 @@ private:
 
     static inline void PeriodicSubstract(const array_1d<double, 3>& a, const array_1d<double, 3>& b, double c[3])
     {
-        for (unsigned int i = 0; i < 3; i++){
+        for (unsigned int i = 0; i < 3; ++i){
                 c[i] = a[i] - b[i];
         }
         
         if (mDomainIsPeriodic){ // Periods have been set (the domain is periodic)
-            for (unsigned int i = 0; i < 3; i++){
-                c[i] = a[i] - b[i];
-                if (fabs(c[i]) > 0.5 * mDomainPeriods[i]) c[i] -= GetSign(c[i]) * mDomainPeriods[i];
+            for (unsigned int i = 0; i < 3; ++i){
+                if (fabs(c[i]) > 0.5 * mDomainPeriods[i]){ // the objects are closer through the boundary
+                    c[i] -= GetSign(c[i]) * mDomainPeriods[i];
+                }
             }
         }
     }

@@ -1160,7 +1160,7 @@ protected:
                 //std::cout<<"in InitializeSolution Step of strategy"<<std::endl;
                 //std::cout<<"ResizeAndInitializeVectors"<<std::endl;
                 //setting up the Vectors involved to the correct size
-                pBuilderAndSolver->ResizeAndInitializeVectors(mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
+                pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
                 
                 TSystemMatrixType& mA = *mpA;
                 TSystemVectorType& mDx = *mpDx;

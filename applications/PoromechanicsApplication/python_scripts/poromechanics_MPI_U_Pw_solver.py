@@ -1,12 +1,11 @@
 from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
-import KratosMultiphysics.PoromechanicsApplication as KratosPoro
-
 import KratosMultiphysics.mpi as mpi
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.MetisApplication as MetisApplication
+import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -72,10 +71,10 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
                 "krylov_type": "fgmres"
             },
             "problem_domain_sub_model_part_list": [""],
-            "body_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
-            "loads_sub_model_part_list": [""],
-            "loads_variable_list": [""]
+            "body_domain_sub_model_part_list": [],
+            "loads_sub_model_part_list": [],
+            "loads_variable_list": []
         }
         """)
 
@@ -135,7 +134,7 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
         self.Solver.SetEchoLevel(self.settings["echo_level"].GetInt())
 
         # Check if everything is assigned correctly
-        self.Solver.Check();
+        self.Solver.Check()
 
         print ("Initialization MPI UPwSolver finished")
 

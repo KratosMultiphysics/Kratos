@@ -1,58 +1,25 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
+//
 
 #if !defined(KRATOS_ILU_PRECONDITIONER_H_INCLUDED )
 #define  KRATOS_ILU_PRECONDITIONER_H_INCLUDED
 
-
-
-
 // System includes
-
-
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
-
-
 
 namespace Kratos
 {
@@ -178,14 +145,14 @@ public:
 
 
 
-    virtual void Mult(SparseMatrixType& rA, VectorType& rX, VectorType& rY)
+    virtual void Mult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
     {
         VectorType z = rX;
         TSparseSpaceType::Mult(rA,z, rY);
         ApplyLeft(rY);
     }
 
-    virtual void TransposeMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY)
+    virtual void TransposeMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
     {
         VectorType z = rX;
         ApplyTransposeLeft(z);
@@ -196,7 +163,7 @@ public:
         then multiply temp by U^-1 and store result in rX
         @param rX  Unknows of preconditioner suystem
     */
-    virtual VectorType& ApplyLeft(VectorType& rX)
+    virtual VectorType& ApplyLeft(VectorType& rX) override
     {
         const int size = TSparseSpaceType::Size(rX);
         VectorType temp(size);
@@ -227,7 +194,7 @@ public:
         then multiply temp by L^-T and store result in rX
         @param rX  Unknows of preconditioner suystem
     */
-    virtual VectorType& ApplyTransposeLeft(VectorType& rX)
+    virtual VectorType& ApplyTransposeLeft(VectorType& rX) override
     {
         const int size = TSparseSpaceType::Size(rX);
         VectorType temp(size);
@@ -273,20 +240,20 @@ public:
     ///@{
 
     /// Return information about this object.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "ILUPreconditioner";
     }
 
 
     /// Print information about this object.
-    virtual void  PrintInfo(std::ostream& OStream) const
+    virtual void  PrintInfo(std::ostream& OStream) const override
     {
         OStream << "ILUPreconditioner";
     }
 
 
-    virtual void PrintData(std::ostream& OStream) const
+    virtual void PrintData(std::ostream& OStream) const override
     {
     }
 

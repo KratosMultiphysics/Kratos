@@ -57,25 +57,15 @@ public:
      */
     virtual ~RigidEdge3D();
 
-    /**
-     * Operations.
-     */
 
+    Condition::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-
-    Condition::Pointer Create( IndexType NewId,
-                               NodesArrayType const& ThisNodes,
-                               PropertiesType::Pointer pProperties) const;
-
-
-    void Initialize();
-    void CalculateRightHandSide( VectorType& rRightHandSideVector,
-                                 ProcessInfo& r_process_info);
-    
-    void CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& r_process_info);
-    void CalculateNormal(array_1d<double, 3>& rnormal);
-    void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info);
-    void FinalizeSolutionStep(ProcessInfo& r_process_info);
+    void Initialize() override;
+    void CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& r_process_info) override;    
+    void CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& r_process_info) override;
+    void CalculateNormal(array_1d<double, 3>& rnormal) override;
+    void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info) override;
+    void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
 
 
     /**
@@ -109,12 +99,12 @@ private:
     // A private default constructor necessary for serialization
     RigidEdge3D() {};
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMWall );
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMWall );
     }

@@ -145,7 +145,7 @@ public:
     * which require knowledge on the spatial position of the nodes associated to a given dof.
     * This function tells if the solver requires such data
     */
-    virtual bool AdditionalPhysicalDataIsNeeded()
+    virtual bool AdditionalPhysicalDataIsNeeded() override
     {
         return mp_linear_solver->AdditionalPhysicalDataIsNeeded();
     }
@@ -162,12 +162,12 @@ public:
         VectorType& rB,
         typename ModelPart::DofsArrayType& rdof_set,
         ModelPart& r_model_part
-    )
+    ) override
     {
         mp_linear_solver->ProvideAdditionalData(rA,rX,rB,rdof_set,r_model_part);
     }
 
-    virtual void InitializeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    virtual void InitializeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         mp_linear_solver->InitializeSolutionStep(rA,rX,rB);
     }
@@ -178,7 +178,7 @@ public:
     @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    virtual void FinalizeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    virtual void FinalizeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         mp_linear_solver->FinalizeSolutionStep(rA,rX,rB);
     }
@@ -187,7 +187,7 @@ public:
      * Clear is designed to leave the solver object as if newly created.
      * After a clear a new Initialize is needed
      */
-    virtual void Clear()
+    virtual void Clear() override
     {
         mp_linear_solver->Clear();
     }
@@ -200,7 +200,7 @@ public:
     guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         if(this->IsNotConsistent(rA, rX, rB))
             return false;
@@ -263,7 +263,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Composite Linear Solver. Uses internally the following linear solver " << mp_linear_solver->Info();
@@ -271,13 +271,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         BaseType::PrintData(rOStream);
     }

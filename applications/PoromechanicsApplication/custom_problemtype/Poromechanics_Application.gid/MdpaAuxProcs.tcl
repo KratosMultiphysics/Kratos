@@ -305,6 +305,7 @@ proc WriteFaceConditions {FileVar ConditionId ConditionDict Groups CondName Prop
                 for {set k 0} {$k < [llength ElementGroup]} {incr k} {
                     if {[dict exists $PropertyDict [lindex $ElementGroup $k]] eq 1} {
                         set PropertyId [dict get $PropertyDict [lindex $ElementGroup $k]]
+                        break
                     }
                 }
                 set Connectivities [GiD_Mesh get element [lindex [lindex $Entities 0] $j] face [lindex [lindex $Entities 1] $j]]
@@ -334,6 +335,7 @@ proc WriteTypeFaceConditions {FileVar ConditionId ConditionList Group ElemType C
             for {set k 0} {$k < [llength ElementGroup]} {incr k} {
                 if {[dict exists $PropertyDict [lindex $ElementGroup $k]] eq 1} {
                     set PropertyId [dict get $PropertyDict [lindex $ElementGroup $k]]
+                    break
                 }
             }
             set Connectivities [GiD_Mesh get element [lindex [lindex $Entities 0] $j] face [lindex [lindex $Entities 1] $j]]

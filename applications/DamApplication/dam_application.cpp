@@ -66,10 +66,6 @@ KratosDamApplication::KratosDamApplication():
     mSmallDisplacementThermoMechanicElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType(20)))),
     mSmallDisplacementThermoMechanicElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType(27)))),
 
-    //~ mAddedMassCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType(2)))),
-    //~ mAddedMassCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType(3)))),
-    //~ mAddedMassCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType(4)))),
-
 	mFreeSurfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType(2)))),
     mFreeSurfaceCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType(3)))),
     mFreeSurfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType(4)))),
@@ -114,9 +110,6 @@ void KratosDamApplication::Register()
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement3D27N", mSmallDisplacementThermoMechanicElement3D27N )
 
     //Register Conditions
-    //~ KRATOS_REGISTER_CONDITION( "AddedMassCondition2D2N", mAddedMassCondition2D2N )
-    //~ KRATOS_REGISTER_CONDITION( "AddedMassCondition3D3N", mAddedMassCondition3D3N )
-    //~ KRATOS_REGISTER_CONDITION( "AddedMassCondition3D4N", mAddedMassCondition3D4N )
     KRATOS_REGISTER_CONDITION( "FreeSurfaceCondition2D2N", mFreeSurfaceCondition2D2N )
     KRATOS_REGISTER_CONDITION( "FreeSurfaceCondition3D3N", mFreeSurfaceCondition3D3N )
     KRATOS_REGISTER_CONDITION( "FreeSurfaceCondition3D4N", mFreeSurfaceCondition3D4N )
@@ -131,6 +124,14 @@ void KratosDamApplication::Register()
     Serializer::Register("ThermalLinearElastic3DLaw",mThermalLinearElastic3DLaw);
     Serializer::Register("ThermalLinearElastic2DPlaneStress",mThermalLinearElastic2DPlaneStress);
     Serializer::Register("ThermalLinearElastic2DPlaneStrain",mThermalLinearElastic2DPlaneStrain);
+
+    Serializer::Register("LinearElastic3DLawNodal",mLinearElastic3DLawNodal);
+    Serializer::Register("LinearElastic2DPlaneStressNodal",mLinearElastic2DPlaneStressNodal);
+    Serializer::Register("LinearElastic2DPlaneStrainNodal",mLinearElastic2DPlaneStrainNodal);
+
+    Serializer::Register("ThermalLinearElastic3DLawNodal",mThermalLinearElastic3DLawNodal);
+    Serializer::Register("ThermalLinearElastic2DPlaneStressNodal",mThermalLinearElastic2DPlaneStressNodal);
+    Serializer::Register("ThermalLinearElastic2DPlaneStrainNodal",mThermalLinearElastic2DPlaneStrainNodal);
 
     Serializer::Register("ThermalSimoJuLocalDamage3DLaw",mThermalSimoJuLocalDamage3DLaw);
     Serializer::Register("ThermalSimoJuLocalDamagePlaneStrain2DLaw",mThermalSimoJuLocalDamagePlaneStrain2DLaw);
@@ -181,7 +182,9 @@ void KratosDamApplication::Register()
     KRATOS_REGISTER_VARIABLE( Dt_PRESSURE )
     KRATOS_REGISTER_VARIABLE( Dt2_PRESSURE ) 
     KRATOS_REGISTER_VARIABLE( VELOCITY_PRESSURE_COEFFICIENT )
-    KRATOS_REGISTER_VARIABLE( ACCELERATION_PRESSURE_COEFFICIENT )   
+    KRATOS_REGISTER_VARIABLE( ACCELERATION_PRESSURE_COEFFICIENT )  
+
+    KRATOS_REGISTER_VARIABLE( NODAL_YOUNG_MODULUS ) 
     
 }
 

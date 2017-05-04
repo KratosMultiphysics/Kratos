@@ -121,7 +121,7 @@ public:
             direction = 1;
         else if( mgravity_direction == "Y")
             direction = 2;
-        else if( mgravity_direction == "Z")
+        else
             direction = 3;
               
                 
@@ -194,7 +194,7 @@ public:
             direction = 1;
         else if( mgravity_direction == "Y")
             direction = 2;
-        else if( mgravity_direction == "Z")
+        else
             direction = 3;
               
                 

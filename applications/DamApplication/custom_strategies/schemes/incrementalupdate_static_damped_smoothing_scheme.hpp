@@ -167,26 +167,25 @@ public:
     {
         KRATOS_TRY;
 
-        const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+        int NumThreads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector DofSetPartition;
+        OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
 
-        // Update of displacement (by DOF)
-        OpenMPUtils::PartitionVector DofPartition;
-        OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofPartition);
-
-        const int ndof = static_cast<int>(rDofSet.size());
-        typename DofsArrayType::iterator DofBegin = rDofSet.begin();
-
-        #pragma omp parallel for firstprivate(DofBegin)
-        for(int i = 0;  i < ndof; i++)
+        #pragma omp parallel
         {
-            typename DofsArrayType::iterator itDof = DofBegin + i;
+            int k = OpenMPUtils::ThisThread();
 
-            if (itDof->IsFree() )
+            typename DofsArrayType::iterator DofsBegin = rDofSet.begin() + DofSetPartition[k];
+            typename DofsArrayType::iterator DofsEnd = rDofSet.begin() + DofSetPartition[k+1];
+            
+            //Update Displacement and Pressure (DOFs)
+            for (typename DofsArrayType::iterator itDof = DofsBegin; itDof != DofsEnd; ++itDof)
             {
-                itDof->GetSolutionStepValue() += Dx[itDof->EquationId()];
+                if (itDof->IsFree())
+                    itDof->GetSolutionStepValue() += TSparseSpace::GetValue(Dx, itDof->EquationId());
             }
         }
-
+        
         // Updating time derivatives (nodally for efficiency)
         OpenMPUtils::PartitionVector NodePartition;
         OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);

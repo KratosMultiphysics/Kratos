@@ -134,8 +134,8 @@ public:
         for ( ElementsArrayType::ptr_iterator it=model_part.Elements().ptr_begin();
                 it!=model_part.Elements().ptr_end(); ++it)
         {
-            if( (*it)->GetValue(ACTIVATION_LEVEL) < 0 ) (*it)->SetValue(IS_INACTIVE, true);
-            else (*it)->SetValue(IS_INACTIVE, false);
+            if( (*it)->GetValue(ACTIVATION_LEVEL) < 0 ) (*it)->Set(ACTIVE, false);
+            else (*it)->Set(ACTIVE, true);
             (*it)->Initialize();
         }
         for ( ConditionsArrayType::ptr_iterator it=model_part.Conditions().ptr_begin();
@@ -145,8 +145,8 @@ public:
             {
                 (*it)->SetValue(ACTIVATION_LEVEL, 0 );
             }
-            if( (*it)->GetValue(ACTIVATION_LEVEL) < 0 ) (*it)->SetValue(IS_INACTIVE, true);
-            else (*it)->SetValue(IS_INACTIVE, false);
+            if( (*it)->GetValue(ACTIVATION_LEVEL) < 0 ) (*it)->Set(ACTIVE, false);
+            else (*it)->Set(ACTIVE, true);
             (*it)->Initialize();
         }
         std::cout << "deactivation utility initialized" << std::endl;
@@ -177,7 +177,7 @@ public:
                     || ( (*it)->GetValue( ACTIVATION_LEVEL ) < 0 )
               )
             {
-                (*it)->GetValue( IS_INACTIVE ) = true;
+                (*it)->Set(ACTIVE, false );
             }
         }
         for( ConditionsArrayType::ptr_iterator it = model_part.Conditions().ptr_begin();
@@ -192,7 +192,7 @@ public:
             {
                 if( !( (*it)->GetValue( IS_CONTACT_MASTER ) || (*it)->GetValue( IS_CONTACT_SLAVE ) ) )
                 {
-                    (*it)->GetValue( IS_INACTIVE ) = true;
+                    (*it)->Set(ACTIVE,false); 
                 }
             }
         }
@@ -208,10 +208,10 @@ public:
     {
         for ( ElementsArrayType::ptr_iterator it=model_part.Elements().ptr_begin();
                 it!=model_part.Elements().ptr_end(); ++it)
-            (*it)->GetValue( IS_INACTIVE ) = false;
+            (*it)->Set(ACTIVE,true); 
         for( ConditionsArrayType::ptr_iterator it = model_part.Conditions().ptr_begin();
                 it != model_part.Conditions().ptr_end(); ++it )
-            (*it)->GetValue( IS_INACTIVE ) = false;
+            (*it)->Set(ACTIVE,true); 
     }
 
     /**

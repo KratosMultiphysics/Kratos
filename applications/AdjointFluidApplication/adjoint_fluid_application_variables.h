@@ -1,9 +1,9 @@
+//  KratosAdjointFluidApplication
 //
-//   Project Name:        KratosAdjointFluidApplication $
-//   Last modified by:    $Author: michael.andre@tum.de $
-//   Date:                $Date:          February 2015 $
-//   Revision:            $Revision:                0.0 $
+//  License:		 BSD License
+//					 license: AdjointFluidApplication/license.txt
 //
+//  Main authors:    Michael Andre, https://github.com/msandre
 //
 
 #if !defined(KRATOS_ADJOINT_FLUID_APPLICATION_VARIABLES_H_INCLUDED)
