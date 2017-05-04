@@ -51,32 +51,6 @@ struct SharedPointerComparator
 
 typedef array_1d<double,3> Vector3;
 
-struct contact_container // TODO: Remove this, deprecated
-{
-    Condition::Pointer condition;
-    bool             active_pair;
-  
-    ~contact_container(){}
-    
-    void clear()
-    {
-        condition   = nullptr;
-        active_pair = false;
-    }
-    
-    void save( Serializer& rSerializer ) const
-    {
-        rSerializer.save("condition",     condition);
-        rSerializer.save("active_pair", active_pair);
-    }
-
-    void load( Serializer& rSerializer )
-    {
-        rSerializer.load("condition",     condition);
-        rSerializer.load("active_pair", active_pair);
-    }
-};
-
 struct ConditionSet : std::unordered_set<Condition::Pointer, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> >
 {
     ~ConditionSet(){}
@@ -118,17 +92,11 @@ struct ConditionSet : std::unordered_set<Condition::Pointer, SharedPointerHasher
 
 // CONDITIONS
 /* Mortar method */ 
-KRATOS_DEFINE_VARIABLE( std::vector<contact_container>*, CONTACT_CONTAINERS )   // A vector of which contains the structure which defines the contact conditions // TODO: Remove this, deprecated
 KRATOS_DEFINE_VARIABLE( boost::shared_ptr<ConditionSet>, CONTACT_SETS )                           // An unordened map of which contains the structure which defines the contact conditions
 KRATOS_DEFINE_VARIABLE( Element::Pointer, ELEMENT_POINTER )                     // A pointer to the element belonging to this condition
 KRATOS_DEFINE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                       // The integration order computed in the contact
 KRATOS_DEFINE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                       // Mortar Contact Operator
 KRATOS_DEFINE_VARIABLE( double, ACTIVE_CHECK_FACTOR )                           // The factor employed to serach an active/inactive node
-
-/* The complementary values */
-// NOTE: This will be eventually not necessary
-KRATOS_DEFINE_VARIABLE( double, NORMAL_AUGMENTATION_FACTOR )                    // The constant that is considered for the check of active or inactive (when 0 it doesn't accept traction)
-KRATOS_DEFINE_VARIABLE( double, TANGENT_AUGMENTATION_FACTOR )                   // The constant that is considered for the check if the node is slip/stick
 
 /* Weighted values */
 KRATOS_DEFINE_VARIABLE( double, WEIGHTED_GAP )                                  // The integrated gap employed in mortar formulation

@@ -30,9 +30,7 @@
 
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
-#include "custom_strategies/custom_schemes/residual_based_incremental_update_static_contact_scheme.hpp"
 #include "custom_strategies/custom_schemes/residual_based_incremental_update_static_ALM_contact_scheme.hpp"
-#include "custom_strategies/custom_schemes/residual_based_bossak_displacement_contact_scheme.hpp"
 #include "custom_strategies/custom_schemes/residual_based_bossak_displacement_ALM_contact_scheme.hpp"
 
 // Convergence criterias
@@ -70,9 +68,7 @@ void  AddCustomStrategiesToPython()
     typedef LineSearchContactStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  LineSearchContactStrategyType;
     
     // Custom scheme types
-    typedef ResidualBasedIncrementalUpdateStaticContactScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedIncrementalUpdateStaticContactSchemeType;
     typedef ResidualBasedIncrementalUpdateStaticALMContactScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedIncrementalUpdateStaticALMContactSchemeType;
-    typedef ResidualBasedBossakDisplacementContactScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementContactSchemeType;
     typedef ResidualBasedBossakDisplacementALMContactScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementALMContactSchemeType;
 
     // Custom convergence criterion types
@@ -109,13 +105,6 @@ void  AddCustomStrategiesToPython()
     //********************************************************************
     //*************************SCHEME CLASSES*****************************
     //********************************************************************
-
-    // Residual Based Incremental Update Static Contact Scheme Type
-    class_< ResidualBasedIncrementalUpdateStaticContactSchemeType,
-            bases< BaseSchemeType >, boost::noncopyable >
-            (
-            "ResidualBasedIncrementalUpdateStaticContactScheme", init< >()
-            );
             
     // Residual Based Incremental Update Static Contact Scheme Type
     class_< ResidualBasedIncrementalUpdateStaticALMContactSchemeType,
@@ -124,21 +113,13 @@ void  AddCustomStrategiesToPython()
             "ResidualBasedIncrementalUpdateStaticALMContactScheme", init< >()
             );
             
-    // Residual Based Bossak Scheme Type
-    class_< ResidualBasedBossakDisplacementContactSchemeType,
-    bases< BaseSchemeType >,  boost::noncopyable >
-    (
-        "ResidualBasedBossakDisplacementContactScheme", init< double >() )
-        .def("Initialize", &ResidualBasedBossakDisplacementContactScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-    ;
-    
-    // Residual Based Bossak Scheme Type
+    // Residual Based Implicit Bossak DynamicContact Scheme Type 
     class_< ResidualBasedBossakDisplacementALMContactSchemeType,
-    bases< BaseSchemeType >,  boost::noncopyable >
-    (
-        "ResidualBasedBossakDisplacementALMContactScheme", init< double >() )
-        .def("Initialize", &ResidualBasedBossakDisplacementALMContactScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-    ;
+            bases< BaseSchemeType >, boost::noncopyable >
+            (
+            "ResidualBasedBossakDisplacementALMContactScheme", init< double >())
+            .def("Initialize", &ResidualBasedBossakDisplacementALMContactScheme<SparseSpaceType, LocalSpaceType>::Initialize) 
+            ;
      
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************

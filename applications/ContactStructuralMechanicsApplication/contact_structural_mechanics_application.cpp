@@ -59,16 +59,10 @@ KratosContactStructuralMechanicsApplication::KratosContactStructuralMechanicsApp
     mALMNVFrictionlessMortarContactCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
     // Frictional
     // 2D
-    mALMFrictionalMortarContactCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mALMFrictionalMortarContactCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) )
 //     // 3D
 //     mALMFrictionalMortarContactCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
 //     mALMFrictionalMortarContactCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
-
-    // OLD Contact mortar conditions 
-    mMortarContactCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
-    mMortarContactCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
-    mMortarContactCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
-    mMortarContactCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) )
 {}
 
 void KratosContactStructuralMechanicsApplication::Register()
@@ -78,17 +72,11 @@ void KratosContactStructuralMechanicsApplication::Register()
 
     // VARIABLES
     /* Mortar method general variables */
-    KRATOS_REGISTER_VARIABLE( CONTACT_CONTAINERS )                              // A vector of which contains the structure which defines the contact conditions // TODO: Remove this, deprecated
     KRATOS_REGISTER_VARIABLE( CONTACT_SETS )                                    // An unordened map of which contains the structure which defines the contact conditions
     KRATOS_REGISTER_VARIABLE( INTEGRATION_ORDER_CONTACT )                       // The integration order computed in the contact
     KRATOS_REGISTER_VARIABLE( ELEMENT_POINTER )                                 // A pointer to the element belonging to this condition
     KRATOS_REGISTER_VARIABLE( MORTAR_CONTACT_OPERATOR )                         // Mortar Contact Operator
     KRATOS_REGISTER_VARIABLE( ACTIVE_CHECK_FACTOR )                             // The factor employed to serach an active/inactive node
-    
-    /* The complementary values */
-    // NOTE: This will be eventually not necessary
-    KRATOS_REGISTER_VARIABLE( NORMAL_AUGMENTATION_FACTOR )                      // The constant that is considered for the check of active or inactive (when 0 it doesn't accept traction)
-    KRATOS_REGISTER_VARIABLE( TANGENT_AUGMENTATION_FACTOR )                     // The constant that is considered for the check if the node is slip/stick
     
     /* Weighted values */
     KRATOS_REGISTER_VARIABLE( WEIGHTED_GAP )                                    // The integrated gap employed in mortar formulation
@@ -138,12 +126,6 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "ALMFrictionalMortarContactCondition2D2N", mALMFrictionalMortarContactCondition2D2N );
 //     KRATOS_REGISTER_CONDITION( "ALMFrictionalMortarContactCondition3D3N", mALMFrictionalMortarContactCondition3D3N );
 //     KRATOS_REGISTER_CONDITION( "ALMFrictionalMortarContactCondition3D4N", mALMFrictionalMortarContactCondition3D4N );
-    
-    // OLD Mortar conditions
-    KRATOS_REGISTER_CONDITION( "MortarContactCondition2D2N", mMortarContactCondition2D2N );
-    KRATOS_REGISTER_CONDITION( "MortarContactCondition2D3N", mMortarContactCondition2D3N );
-    KRATOS_REGISTER_CONDITION( "MortarContactCondition3D3N", mMortarContactCondition3D3N );
-    KRATOS_REGISTER_CONDITION( "MortarContactCondition3D4N", mMortarContactCondition3D4N );
 }
 
 }  // namespace Kratos.

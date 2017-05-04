@@ -142,38 +142,6 @@ public:
     }
     
     /**
-     * This function fills the contact_container for the Mortar condition
-     * @param ConditionPointers: The vector storing all the potential conditions
-     * @param Geom1: The geometry of the slave 
-     * @param Geom2: The geometry of the master 
-     * @param ContactNormal1: The normals of the slave
-     * @param ContactNormal2: The normals of the master
-     * @param ActiveCheckLength: The threshold distance to check the potential contact
-     * @return ConditionIsActive: True if the condition is active, false otherwise
-     */
-    
-    static inline void ContactContainerFiller(
-        std::vector<contact_container> *& ConditionPointers,
-        Condition::Pointer & pCond1,       // SLAVE
-        const Condition::Pointer & pCond2, // MASTER
-        const array_1d<double, 3> & ContactNormal1, // SLAVE
-        const array_1d<double, 3> & ContactNormal2, // MASTER
-        const double ActiveCheckLength
-        )
-    {
-        const bool ConditionIsActive = ContactChecker(pCond1->GetGeometry(), pCond2->GetGeometry(), ContactNormal1, ContactNormal2, ActiveCheckLength);
-        
-        if (ConditionIsActive == true)
-        {
-            pCond1->Set(ACTIVE, true);
-            contact_container AuxContactContainer;
-            AuxContactContainer.condition   = pCond2;
-            AuxContactContainer.active_pair = true;
-            ConditionPointers->push_back(AuxContactContainer);
-        }
-    }
-    
-    /**
      * This function fills the ConditionSet for the Mortar condition
      * @param ConditionPointers: The map storing the potential contact conditions
      * @param Geom1: The geometry of the slave 

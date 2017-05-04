@@ -24,7 +24,6 @@
 
 //Utilities
 #include "custom_utilities/tree_contact_search.h"
-#include "custom_utilities/deprecated_tree_contact_search.h"
 #include "custom_utilities/exact_mortar_segmentation_utility.h"
 
 namespace Kratos
@@ -34,18 +33,6 @@ namespace Python
 void  AddCustomUtilitiesToPython()
 {
     using namespace boost::python;
-
-    class_<DeprecatedTreeContactSearch>("DeprecatedTreeContactSearch", init<ModelPart&, ModelPart&, const unsigned int>())
-    .def("ModelPartSetter",&DeprecatedTreeContactSearch::ModelPartSetter)
-    .def("InitializeMortarConditions",&DeprecatedTreeContactSearch::InitializeMortarConditions)
-    .def("TotalClearMortarConditions",&DeprecatedTreeContactSearch::TotalClearMortarConditions)
-    .def("PartialClearMortarConditions",&DeprecatedTreeContactSearch::PartialClearMortarConditions)
-    .def("CreatePointListMortar",&DeprecatedTreeContactSearch::CreatePointListMortar)
-    .def("UpdatePointListMortar",&DeprecatedTreeContactSearch::UpdatePointListMortar)
-    .def("CreateMortarConditions",&DeprecatedTreeContactSearch::CreateMortarConditions)
-    .def("UpdateMortarConditions",&DeprecatedTreeContactSearch::UpdateMortarConditions)
-    .def("CheckMortarConditions",&DeprecatedTreeContactSearch::CheckMortarConditions)
-    ;
     
     class_<TreeContactSearch>("TreeContactSearch", init<ModelPart&>())
     .def(init<ModelPart&, Parameters>())
