@@ -256,7 +256,6 @@ message( " ")
 ######################################################################################
 #include internal dependencies
 include_directories( ${CMAKE_SOURCE_DIR}/external_libraries )
-include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/omptl )
 include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/zlib )
 # we have to add this for zconf
 include_directories( ${CMAKE_BINARY_DIR}/external_libraries/zlib )
