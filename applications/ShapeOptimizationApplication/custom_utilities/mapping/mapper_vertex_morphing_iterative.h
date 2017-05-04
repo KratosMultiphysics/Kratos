@@ -115,9 +115,15 @@ public:
           mFilterType( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() ),
           mPerformDamping( optimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool() )
     {
+        boost::timer timer;        
+        std::cout << "\n> Creating search tree..." << std::endl;
         createListOfNodesOfDesignSurface();
+        CreateSearchTreeWithAllNodesOnDesignSurface();
+        std::cout << "> Search tree created in: " << timer.elapsed() << " s" << std::endl;
+
         createFilterFunction();
-        assignMappingMatrixIds();
+        assignMappingIds();
+
         initalizeDampingFactorsToHaveNoInfluence(); 
         if(mPerformDamping)   
             setDampingFactorsForAllDampingRegions( dampingRegions, optimizationSettings["design_variables"]["damping"]["damping_regions"] );         
@@ -149,13 +155,19 @@ public:
     }
 
     // --------------------------------------------------------------------------
+    void CreateSearchTreeWithAllNodesOnDesignSurface()
+    {
+        mpSearchTree = boost::shared_ptr<KDTree>(new KDTree(mListOfNodesOfDesignSurface.begin(), mListOfNodesOfDesignSurface.end(), mBucketSize));
+    }   
+
+    // --------------------------------------------------------------------------
     void createFilterFunction()
     {
         mpFilterFunction = boost::shared_ptr<FilterFunction>(new FilterFunction(mFilterType, mFilterRadius));
     }     
 
     // --------------------------------------------------------------------------
-    void assignMappingMatrixIds()
+    void assignMappingIds()
     {
         unsigned int i = 0;
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
@@ -178,8 +190,7 @@ public:
     {
         std::cout << "\n> Starting to prepare damping..." << std::endl;
 
-        ResetSearchTreeIfAlreadyExisting( mpSearchTree );
-        mpSearchTree = createSearchTreeWithAllNodesOnDesignSurface();
+        UpdateSearchTreeIfGeometryHasChanged();        
 
         // Loop over all regions for which damping is to be applied
         for (unsigned int regionNumber = 0; regionNumber < len(dampingRegions); regionNumber++)
@@ -265,8 +276,7 @@ public:
         y_variables_in_design_space.resize(mNumberOfDesignVariables);
         z_variables_in_design_space.resize(mNumberOfDesignVariables);       
         
-        ResetSearchTreeIfAlreadyExisting( mpSearchTree );
-        mpSearchTree = createSearchTreeWithAllNodesOnDesignSurface();
+        UpdateSearchTreeIfGeometryHasChanged();
 
         MapComponentwiseVariablesToDesignSpace( rNodalVariable,
                                                 x_variables_in_design_space, 
@@ -292,8 +302,7 @@ public:
         y_variables_in_geometry_space.resize(mNumberOfDesignVariables);
         z_variables_in_geometry_space.resize(mNumberOfDesignVariables);
 
-        ResetSearchTreeIfAlreadyExisting( mpSearchTree );
-        mpSearchTree = createSearchTreeWithAllNodesOnDesignSurface();
+        UpdateSearchTreeIfGeometryHasChanged();
 
         MapComponentwiseVariablesToGeometrySpace( rNodalVariable,
                                                   x_variables_in_geometry_space, 
@@ -320,20 +329,29 @@ public:
             nodalVariable[1] *= damping_factor[1];
             nodalVariable[2] *= damping_factor[2];  
         }  
+    } 
+
+    // --------------------------------------------------------------------------
+    void UpdateSearchTreeIfGeometryHasChanged()
+    {
+        if(HasGeometryChanged())
+        {
+            DeleteSearchTree();
+            CreateSearchTreeWithAllNodesOnDesignSurface();
+        }
     }
 
     // --------------------------------------------------------------------------
-    void ResetSearchTreeIfAlreadyExisting( KDTree::Pointer searchTree )
+    bool HasGeometryChanged()
     {
-        if(searchTree != 0)
-            searchTree.reset();
+        return true;
     }
 
     // --------------------------------------------------------------------------
-    KDTree::Pointer createSearchTreeWithAllNodesOnDesignSurface()
+    void DeleteSearchTree()
     {
-        return boost::shared_ptr<KDTree>(new KDTree(mListOfNodesOfDesignSurface.begin(), mListOfNodesOfDesignSurface.end(), mBucketSize));
-    }    
+        mpSearchTree.reset();
+    }     
 
  // --------------------------------------------------------------------------
     void MapComponentwiseVariablesToDesignSpace( const Variable<array_3d>& rNodalVariable,
