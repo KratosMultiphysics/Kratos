@@ -542,12 +542,12 @@ namespace Kratos
   {
     KRATOS_TRY
    
-      //--------------
+    //--------------
   
-      //set contact forces to nodes
-    
-      //create local system components
-      LocalSystemComponents LocalSystem;
+    //set contact forces to nodes
+      
+    //create local system components
+    LocalSystemComponents LocalSystem;
     
     //calculation flags
     LocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_RHS_VECTOR);
@@ -812,8 +812,8 @@ namespace Kratos
 
   void ContactDomainCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
   {
-
-    //create local system components
+    
+    //create local system components   
     LocalSystemComponents LocalSystem;
 
     //calculation flags
@@ -877,7 +877,7 @@ namespace Kratos
 
   void ContactDomainCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
   {
-
+    
     //create local system components
     LocalSystemComponents LocalSystem;
 
@@ -1361,7 +1361,7 @@ namespace Kratos
         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
 
         if(Variables.Contact.Options.Is(ACTIVE))
-	  {	    
+	{	    
 	    rLocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_LHS_MATRIX,true); //take a look on strategy and impose it
 
 	    if ( rLocalSystem.CalculationFlags.Is(ContactDomainUtilities::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
@@ -1380,7 +1380,7 @@ namespace Kratos
 	      }
 
 
-	  }
+	    }
       }
 
 
@@ -1489,8 +1489,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
-      //contributions to stiffness matrix calculated on the reference config
-      const unsigned int number_of_nodes = GetGeometry().size();
+    //contributions to stiffness matrix calculated on the reference config
+    const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     //resizing as needed the LHS
@@ -1566,8 +1566,8 @@ namespace Kratos
 
     rRightHandSideVector  *=  rIntegrationWeight;
 
-    std::cout<<std::endl;
-    std::cout<<" Fcontact ["<<this->Id()<<"]"<<rRightHandSideVector<<std::endl;
+    // std::cout<<std::endl;
+    // std::cout<<" Fcontact ["<<this->Id()<<"]"<<rRightHandSideVector<<std::endl;
 
 
     KRATOS_CATCH( "" )
@@ -1590,7 +1590,7 @@ namespace Kratos
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     unsigned int size      = rLeftHandSideMatrix.size1()/dimension;
     double kcont=0;
-
+    
     for (unsigned int ndi=0; ndi<size; ndi++)
       {      
         for (unsigned int ndj=0; ndj<size; ndj++)
@@ -1609,8 +1609,8 @@ namespace Kratos
 
     rLeftHandSideMatrix *= rIntegrationWeight;
 
-    std::cout<<std::endl;
-    std::cout<<" Kcontact ["<<this->Id()<<"]"<<rLeftHandSideMatrix<<std::endl;
+    // std::cout<<std::endl;
+    // std::cout<<" Kcontact ["<<this->Id()<<"]"<<rLeftHandSideMatrix<<std::endl;
 
     KRATOS_CATCH( "" )
   }

@@ -33,7 +33,7 @@ namespace Kratos
 	//*******************************************************************************************
 
         //GEOMETRICAL THEORY
-        // Heron's Formula for the area of a triangle(Hero's Formula)
+        // Heron's Formula for the area of a triangle 
         // A method for calculating the area of a triangle when you know the lengths of all three sides.
         // Let a,b,c be the lengths of the sides of a triangle. The area is given by:
 
