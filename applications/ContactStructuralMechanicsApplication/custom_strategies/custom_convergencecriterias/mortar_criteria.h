@@ -144,7 +144,8 @@ public:
             return false;
         }
         
-        bool IsConverged = true;
+        bool IsConvergedActive = true;
+        bool IsConvergedSlip = true;
         
         // We iterate again over the nodes
         NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
@@ -161,7 +162,7 @@ public:
             {                            
                 itNode->SetValue(AUXILIAR_ACTIVE, itNode->Is(ACTIVE));
                 #pragma omp critical
-                IsConverged = false;
+                IsConvergedActive = false;
             }
             
             if (FrictionalCase == true)
@@ -171,38 +172,35 @@ public:
                 {                            
                     itNode->SetValue(AUXILIAR_SLIP, itNode->Is(SLIP));
                     #pragma omp critical
-                    IsConverged = false;
+                    IsConvergedSlip = false;
                 }
             }
         }
         
         if (this->GetEchoLevel() > 0)
         {
-            if (IsConverged == true)
+            if (IsConvergedActive == true)
             {
-                if (FrictionalCase == true)
-                {
-                    std::cout << "\tConvergence is " << BOLD(FGRN("achieved")) << " in ACTIVE/INACTIVE and STICK/SLIP mortar nodes check" << std::endl;
-                }
-                else
-                {
-                    std::cout << "\tConvergence is " << BOLD(FGRN("achieved")) << " in ACTIVE/INACTIVE mortar nodes check" << std::endl;
-                }
+                std::cout << BOLD("\tACTIVE/INACTIVE set") << " convergence is " << BOLD(FGRN("achieved")) << std::endl;
             }
             else
             {
-                if (FrictionalCase == true)
+                std::cout << BOLD("\tACTIVE/INACTIVE set") << " convergence is " << BOLD(FRED("not achieved")) << std::endl;
+            }
+            if (FrictionalCase == true)
+            {
+                if (IsConvergedActive == true)
                 {
-                    std::cout << "\tConvergence is " << BOLD(FRED("not achieved")) << " in ACTIVE/INACTIVE and STICK/SLIP mortar nodes check. RECALCULATING...." << std::endl;
+                    std::cout << BOLD("\tSLIP/STICK set") << " convergence is " << BOLD(FGRN("achieved")) << std::endl;
                 }
                 else
                 {
-                    std::cout << "\tConvergence is " << BOLD(FRED("not achieved")) << " in ACTIVE/INACTIVE mortar nodes check. RECALCULATING...." << std::endl;
+                    std::cout << BOLD("\tSLIP/STICK set") << " convergence is " << BOLD(FRED("not achieved")) << std::endl;
                 }
             }
         }
         
-        return IsConverged;
+        return (IsConvergedActive && IsConvergedSlip);
     }
     
     /**

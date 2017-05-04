@@ -207,26 +207,20 @@ public:
             TDataType LMAbs = std::sqrt(LMIncreaseNorm)/ static_cast<TDataType>(LMDofNum);
 
             // We print the results
-            if (rModelPart.GetCommunicator().MyPID() == 0)
+            if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
             {
-                if (this->GetEchoLevel() >= 1)
-                {
-                    std::cout.precision(4);
-                    std::cout << BOLD("DoF CONVERGENCE CHECK:") << std::endl << std::scientific;
-                    std::cout << BOLD("\tDISPLACEMENT: RATIO = ") << DispRatio << BOLD(" EXP.RATIO = ") << mDispRatioTolerance << BOLD(" ABS = ") << DispAbs << BOLD(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
-                    std::cout << BOLD(" LAGRANGE MUL:\tRATIO = ") << LMRatio << BOLD(" EXP.RATIO = ") << mLMRatioTolerance << BOLD(" ABS = ") << LMAbs << BOLD(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
-                }
+                std::cout.precision(4);
+                std::cout << BOLD("DoF CONVERGENCE CHECK:") << std::endl << std::scientific;
+                std::cout << BOLD("\tDISPLACEMENT: RATIO = ") << DispRatio << BOLD(" EXP.RATIO = ") << mDispRatioTolerance << BOLD(" ABS = ") << DispAbs << BOLD(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
+                std::cout << BOLD(" LAGRANGE MUL:\tRATIO = ") << LMRatio << BOLD(" EXP.RATIO = ") << mLMRatioTolerance << BOLD(" ABS = ") << LMAbs << BOLD(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
             }
 
             if ((DispRatio <= mDispRatioTolerance || DispAbs <= mDispAbsTolerance) &&
                     (LMRatio <= mLMRatioTolerance || LMAbs <= mLMAbsTolerance) )
             {
-                if (rModelPart.GetCommunicator().MyPID() == 0)
+                if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
                 {
-                    if (this->GetEchoLevel() >= 1)
-                    {
-                        std::cout << "Convergence is " << BOLD(FGRN("achieved")) << std::endl;
-                    }
+                    std::cout << BOLD("\tDoF") << " convergence is " << BOLD(FGRN("achieved")) << std::endl;
                 }
                 return true;
             }
