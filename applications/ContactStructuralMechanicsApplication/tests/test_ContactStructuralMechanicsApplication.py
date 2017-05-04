@@ -157,7 +157,7 @@ def AssambleTestSuites():
             ##TSimplePatchNotMatchingBTestContact,
             ##TTaylorPatchTestContact,
             ##TTaylorPatchDynamicTestContact,
-            THertzSimpleTestContact,
+            ##THertzSimpleTestContact,
             ##THertzSimpleSphereTestContact,
             THertzSphereTestContact,
             ##TThreeDSimplestPatchMatchingTestContact,
@@ -171,7 +171,7 @@ def AssambleTestSuites():
             TALMSimplePatchNotMatchingBTestContact,
             TALMTaylorPatchTestContact,
             TALMTaylorPatchDynamicTestContact, # NOTE: Check that in debug dynamic gives an error
-            ##TALMHertzSimpleTestContact,
+            TALMHertzSimpleTestContact,
             TALMHertzSimpleSphereTestContact,
             ##TALMHertzSphereTestContact,
             TALMThreeDSimplestPatchMatchingTestContact,

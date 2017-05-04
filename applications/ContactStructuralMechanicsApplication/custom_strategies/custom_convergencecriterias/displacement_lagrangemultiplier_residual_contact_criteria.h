@@ -236,7 +236,7 @@ public:
             if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
             {
                 std::cout.precision(4);
-                std::cout << BOLD("RESIDUAL CONVERGENCE CHECK:") << std::endl << std::scientific;
+                std::cout << BOLD("RESIDUAL CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
                 std::cout << BOLD("\tDISPLACEMENT: RATIO = ") << ResidualDispRatio << BOLD(" EXP.RATIO = ") << mDispRatioTolerance << BOLD(" ABS = ") << ResidualDispAbs  << BOLD(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
                 std::cout << BOLD("\tLAGRANGE MUL: RATIO = ") << ResidualLMRatio  << BOLD(" EXP.RATIO = ") << mLMRatioTolerance << BOLD(" ABS = ") << ResidualLMAbs << BOLD(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
             }

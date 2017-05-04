@@ -476,49 +476,6 @@ public:
         }
     }
     
-    /**
-     * It check the conditions if they are correctly detected
-     * @return ConditionPointers1: A vector containing the pointers to the conditions 
-     * @param pCond1: The pointer to the condition in the destination model part
-     * @param pCond2: The pointer to the condition in the destination model part  
-     */
-    
-    bool CheckCondition(
-        boost::shared_ptr<ConditionSet>& ConditionPointers1,
-        const Condition::Pointer & pCond1,
-        const Condition::Pointer & pCond2
-        )
-    {
-        if (((pCond1 != pCond2) && (pCond1->GetValue(ELEMENT_POINTER) != pCond2->GetValue(ELEMENT_POINTER))) == false) // Avoiding "auto self-contact" and "auto element contact"
-        {
-            return false;
-        }
-        
-        // Avoid conditions oriented in the same direction
-        const double Tolerance = 1.0e-16;
-        if (norm_2(pCond1->GetValue(NORMAL) - pCond2->GetValue(NORMAL)) < Tolerance)
-        {
-            return false;
-        }
-        
-        if (ConditionPointers1->find(pCond2) != ConditionPointers1->end())
-        {
-            return false;
-        }
-        
-        if (pCond2->Is(SLAVE) == true) // Otherwise will not be necessary to check
-        {
-            auto& ConditionPointers2 = pCond2->GetValue(CONTACT_SETS);
-            
-            if (ConditionPointers2->find(pCond1) != ConditionPointers2->end())
-            {
-                return false;
-            }
-        }
-        
-        return true;
-    }
-    
     ///@}
     ///@name Access
     ///@{
@@ -566,7 +523,50 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-
+    
+    /**
+     * It check the conditions if they are correctly detected
+     * @return ConditionPointers1: A vector containing the pointers to the conditions 
+     * @param pCond1: The pointer to the condition in the destination model part
+     * @param pCond2: The pointer to the condition in the destination model part  
+     */
+    
+    bool CheckCondition(
+        boost::shared_ptr<ConditionSet>& ConditionPointers1,
+        const Condition::Pointer & pCond1,
+        const Condition::Pointer & pCond2
+        )
+    {
+        if (((pCond1 != pCond2) && (pCond1->GetValue(ELEMENT_POINTER) != pCond2->GetValue(ELEMENT_POINTER))) == false) // Avoiding "auto self-contact" and "auto element contact"
+        {
+            return false;
+        }
+        
+        // Avoid conditions oriented in the same direction
+        const double Tolerance = 1.0e-16;
+        if (norm_2(pCond1->GetValue(NORMAL) - pCond2->GetValue(NORMAL)) < Tolerance)
+        {
+            return false;
+        }
+        
+        if (ConditionPointers1->find(pCond2) != ConditionPointers1->end())
+        {
+            return false;
+        }
+        
+        if (pCond2->Is(SLAVE) == true) // Otherwise will not be necessary to check
+        {
+            auto& ConditionPointers2 = pCond2->GetValue(CONTACT_SETS);
+            
+            if (ConditionPointers2->find(pCond1) != ConditionPointers2->end())
+            {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
     /**
      * This resets the contact operators
      * @param rModelPart: The model part where the contact operators are reset

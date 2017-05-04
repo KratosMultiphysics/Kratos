@@ -5,12 +5,12 @@
         "domain_size"     : 2,
         "time_step"       : 0.55,
         "start_time"      : 0.0,
-        "end_time"        : 0.54,
+        "end_time"        : 1.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
         "solver_type"                        : "contact_structural_mechanics_static_solver",
-        "echo_level"                         : 1,
+        "echo_level"                         : 0,
         "solution_type"                      : "Static",
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
@@ -27,7 +27,7 @@
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 1,
+        "max_iteration"                      : 10,
         "linear_solver_settings"             : {
             "solver_type" : "SuperLUSolver",
             "scaling"     : false,
@@ -76,14 +76,23 @@
             "assume_master_slave"         : "Parts_parts_hemisphere",
             "contact_model_part"          : "Contact_Part",
             "contact_type"                : "Frictionless",
-            "search_factor"               : 2.0,
+            "search_factor"               : 10.0,
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
-            "integration_order"           : 2
+            "integration_order"           : 2,
+            "active_check_factor"         : 1.0e-02,
+            "normal_variation"            : false,
+            "dual_search_check"           : false,
+            "stiffness_factor"            : 10.0,
+            "penalty_scale_factor"        : 1.0,
+            "manual_ALM"                  : true,
+            "penalty"                     : 1.0e7,
+            "scale_factor"                : 1.0e1,
+            "debug_mode"                  : false
         }
     }
     ],
-    "output_configuration"     : {
+    "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -104,7 +113,7 @@
         },
         "point_data_configuration"  : []
     },
-    "_json_check_process" : [
+    "json_check_process" : [
     {
         "python_module"   : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",
@@ -118,7 +127,7 @@
         }
     }
     ],
-    "json_output_process" : [
+    "_json_output_process" : [
     {
         "python_module"   : "json_output_process",
         "kratos_module" : "KratosMultiphysics",

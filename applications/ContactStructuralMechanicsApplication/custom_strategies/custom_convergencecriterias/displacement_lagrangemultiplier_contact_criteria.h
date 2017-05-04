@@ -210,7 +210,7 @@ public:
             if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
             {
                 std::cout.precision(4);
-                std::cout << BOLD("DoF CONVERGENCE CHECK:") << std::endl << std::scientific;
+                std::cout << BOLD("DoF ONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
                 std::cout << BOLD("\tDISPLACEMENT: RATIO = ") << DispRatio << BOLD(" EXP.RATIO = ") << mDispRatioTolerance << BOLD(" ABS = ") << DispAbs << BOLD(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
                 std::cout << BOLD(" LAGRANGE MUL:\tRATIO = ") << LMRatio << BOLD(" EXP.RATIO = ") << mLMRatioTolerance << BOLD(" ABS = ") << LMAbs << BOLD(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
             }
