@@ -1,5 +1,5 @@
 from __future__ import print_function, absolute_import, division
-from unittest import TestLoader, TextTestRunner, TestCase, TestSuite
+from unittest import *
 
 import getopt
 import sys
