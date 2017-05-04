@@ -18,7 +18,7 @@
             "input_filename"   : "mesh_tying_test/3D_contact_simplest_patch_matching_test",
             "input_file_label" : 0
         },
-        "compute_mortar_contact"             : 4,
+        "mortar_type"                        : "ComponentsMeshTying",
         "block_builder"                      : true,
         "line_search"                        : false,
         "clear_storage"                      : false,

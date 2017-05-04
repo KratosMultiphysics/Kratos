@@ -17,7 +17,7 @@
             "input_type"     : "mdpa",
             "input_filename" : "ALM_frictionless_contact_test_2D/hyper_simple_patch_test"
         },
-        "compute_mortar_contact"             : 2,
+        "mortar_type"                        : "ALMContactFrictionless",
         "block_builder"                      : false,
         "clear_storage"                      : true,
         "line_search"                        : false,

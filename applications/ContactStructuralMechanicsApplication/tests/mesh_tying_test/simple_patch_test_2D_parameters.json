@@ -17,7 +17,7 @@
             "input_type"     : "mdpa",
             "input_filename" : "mesh_tying_test/simple_patch_test_2D"
         },
-        "compute_mortar_contact"             : 4,
+        "mortar_type"                        : "ComponentsMeshTying",
         "block_builder"                      : true,
         "clear_storage"                      : true,
         "line_search"                        : false,
