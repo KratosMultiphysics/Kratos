@@ -46,8 +46,7 @@ public:
     int CheckSide(SphericParticle* p_particle) override;
     bool IsPhantom() override {return true;}
 
-    int GetNumberOfCrossings();
-    std::vector<int> GetIdsOfCrossers();
+    int GetNumberThroughput();
     std::vector<int> GetSignedCollidingIds();
     std::vector<double> GetCollidingNormalRelativeVelocity();
     std::vector<double> GetCollidingTangentialRelativeVelocity();
@@ -63,13 +62,22 @@ public:
 private:
 
     unsigned int mNumberOfCrossingSpheres;
+    int mNumberThroughput;
     std::vector<int> mContactingNeighbourSignedIds;
     std::vector<int> mOldContactingNeighbourSignedIds;
     std::vector<int> mCrossers;
-    std::vector<int> mAllCrossers;
     std::vector<double> mCollidingNormalVelocities;
     std::vector<double> mCollidingTangentialVelocities;
     std::vector<double> mMasses;
+
+    template<class Tvalue>
+    bool IsInside(const Tvalue& value, const std::vector<Tvalue>& my_vector)
+    {
+        auto beginning = std::begin(my_vector);
+        auto end       = std::end(my_vector);
+        const bool is_inside = (end != std::find(beginning, end, value));
+        return is_inside;
+    }
 
     void TestForNewCrosserAndPushBack(SphericParticle* p_particle);
 

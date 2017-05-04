@@ -26,7 +26,7 @@ class WatcherAnalyzer:
         length = len(times)
         assert length == len(number_flux) == len(mass_flux)
         shape = (length, )
-        number_flux, mass_flux = self.CalculateAccumulatedAndRememberForNextTime(length, number_flux, mass_flux)
+        number_flux, mass_flux = self.CalculateAccumulated(length, number_flux, mass_flux)
 
         return shape, times, number_flux, mass_flux
 
@@ -52,14 +52,15 @@ class WatcherAnalyzer:
 
         return joint_list
 
-    def CalculateAccumulatedAndRememberForNextTime(self, length, number_flux, mass_flux):
+    def CalculateAccumulated(self, length, number_flux, mass_flux):
         acc_number_flux = self.CalculateAccumulated(original_list = number_flux, old_accumulated = self.n_particles_accumulated)
         acc_mass_flux = self.CalculateAccumulated(original_list = mass_flux, old_accumulated = self.mass_accumulated)
 
         return acc_number_flux, acc_mass_flux
 
     def CalculateAccumulated(self, original_list, old_accumulated = 0):
-        return np.cumsum(np.array(original_list)) + old_accumulated
+        new_accumulated = np.cumsum(np.array(original_list)) + old_accumulated
+        return new_accumulated
 
     def UpdateDataFile(self, time):
         shape, times, n_particles_data, mass_data = self.MakeReading()
@@ -99,3 +100,4 @@ class WatcherAnalyzer:
         plt.ylabel('accumulated number of particles through surface')
         plt.plot(times, flux)
         plt.savefig(self.folder_path + '/throughput.svg')
+        plt.clf()
