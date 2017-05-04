@@ -1094,7 +1094,7 @@ public:
             {
                 const double AugmentedNormalPressure = ScaleFactor * (itNode)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + Epsilon * (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);     
                 
-                (itNode)->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, AugmentedNormalPressure);
+                (itNode)->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, AugmentedNormalPressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
                 
                 if (AugmentedNormalPressure < 0.0) // NOTE: This could be conflictive (< or <=)
                 {
@@ -1164,7 +1164,7 @@ public:
                 
                 const double AugmentedNormalPressure = ScaleFactor * NormalLagrangeMultiplier + Epsilon * (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);     
                 
-                itNode->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, AugmentedNormalPressure);
+                itNode->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, AugmentedNormalPressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
                 
                 if (AugmentedNormalPressure < 0.0) // NOTE: This could be conflictive (< or <=)
                 {
@@ -1181,7 +1181,7 @@ public:
                     const double gt = (itNode)->FastGetSolutionStepValue(WEIGHTED_SLIP);
                     const double AugmentedTangentPressure = std::abs(ScaleFactor * LambdaTangent + TangentFactor * Epsilon * gt) + mu * AugmentedNormalPressure;
                     
-                    (itNode)->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, AugmentedTangentPressure);
+                    (itNode)->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, AugmentedTangentPressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
                     
                     if (AugmentedTangentPressure <= 0.0) // TODO: Check if it is minor equal or just minor
                     {

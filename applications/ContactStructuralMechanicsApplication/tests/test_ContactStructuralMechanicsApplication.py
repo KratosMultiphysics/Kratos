@@ -57,10 +57,12 @@ from SmallTests import ALMThreeDPatchMatchingTestContact as TALMTThreeDPatchMatc
 from SmallTests import ALMThreeDPatchNotMatchingTestContact as TALMThreeDPatchNotMatchingTestContact
 
 ## NIGTHLY TESTS
+ # Legacy tests 
 from NightlyTests import IroningTestContact as TIroningTestContact
 from NightlyTests import IroningDieTestContact as TIroningDieTestContact
-#from NightlyTests import ALMIroningTestContact as TALMIroningTestContact
-#from NightlyTests import ALMIroningDieTestContact as TALMIroningDieTestContact
+# ALM frictionless tests
+from NightlyTests import ALMIroningTestContact as TALMIroningTestContact
+from NightlyTests import ALMIroningDieTestContact as TALMIroningDieTestContact
 
 ## VALIDATION TESTS
 
@@ -156,7 +158,7 @@ def AssambleTestSuites():
             ##TTaylorPatchTestContact,
             ##TTaylorPatchDynamicTestContact,
             THertzSimpleTestContact,
-            THertzSimpleSphereTestContact,
+            ##THertzSimpleSphereTestContact,
             THertzSphereTestContact,
             ##TThreeDSimplestPatchMatchingTestContact,
             ##TThreeDSimplestTrianglePatchMatchingTestContact,
@@ -168,9 +170,9 @@ def AssambleTestSuites():
             TALMSimplePatchNotMatchingATestContact,
             TALMSimplePatchNotMatchingBTestContact,
             TALMTaylorPatchTestContact,
-            TALMTaylorPatchDynamicTestContact,
+            TALMTaylorPatchDynamicTestContact, # NOTE: Check that in debug dynamic gives an error
             ##TALMHertzSimpleTestContact,
-            ##TALMHertzSimpleSphereTestContact,
+            TALMHertzSimpleSphereTestContact,
             ##TALMHertzSphereTestContact,
             TALMThreeDSimplestPatchMatchingTestContact,
             TALMTThreeDPatchMatchingTestContact, # FIXME: Some error, rotation in the solution
