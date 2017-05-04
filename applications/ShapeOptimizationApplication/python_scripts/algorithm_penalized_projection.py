@@ -79,8 +79,9 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
             self.analyzer.analyzeDesignAndReportToCommunicator( self.designSurface, optimizationIteration, self.communicator )
 
+            self.__storeGradientsObtainedByCommunicatorOnNodalVariables()
+            
             constraintIsActive = self.__isConstraintActive()
-            self.__storeGradientsObtainedByCommunicatorOnNodes()
 
             self.geometryTools.compute_unit_surface_normals()
             self.geometryTools.project_grad_on_unit_surface_normal( constraintIsActive )
@@ -117,34 +118,20 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         self.communicator.requestGradientOf( self.onlyConstraint )    
 
     # --------------------------------------------------------------------------
-    def __storeGradientsObtainedByCommunicatorOnNodes( self ):
-        self.__storeObjectiveGradients()
-        if self.onlyConstraint != None:
-            self.__storeConstraintGradients()
+    def __storeGradientsObtainedByCommunicatorOnNodalVariables( self ):
+        gradientOfObjectiveFunction = self.communicator.getReportedGradientOf ( self.onlyObjective )
+        gradientOfConstraintFunction = self.communicator.getReportedGradientOf ( self.onlyConstraint )
+        self.__storeGradientOnNodalVariable( gradientOfObjectiveFunction, OBJECTIVE_SENSITIVITY )
+        self.__storeGradientOnNodalVariable( gradientOfConstraintFunction, CONSTRAINT_SENSITIVITY )
 
     # --------------------------------------------------------------------------
-    def __storeObjectiveGradients( self ):
-        gradientOfObjectiveFunction = self.communicator.getReportedGradientOf ( self.onlyObjective )        
-        for nodeId in gradientOfObjectiveFunction:
-            if self.designSurface.Nodes[nodeId].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED):
-                continue
-            sensitivity = Vector(3)
-            sensitivity[0] = gradientOfObjectiveFunction[nodeId][0]
-            sensitivity[1] = gradientOfObjectiveFunction[nodeId][1]
-            sensitivity[2] = gradientOfObjectiveFunction[nodeId][2]           
-            self.designSurface.Nodes[nodeId].SetSolutionStepValue(OBJECTIVE_SENSITIVITY,0,sensitivity)
-
-    # --------------------------------------------------------------------------
-    def __storeConstraintGradients( self ):
-        gradientOfConstraintFunction = self.communicator.getReportedGradientOf ( self.onlyConstraint )        
-        for nodeId in gradientOfConstraintFunction:
-            if self.designSurface.Nodes[nodeId].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED):
-                continue
-            sensitivity = Vector(3)
-            sensitivity[0] = gradientOfConstraintFunction[nodeId][0]
-            sensitivity[1] = gradientOfConstraintFunction[nodeId][1]
-            sensitivity[2] = gradientOfConstraintFunction[nodeId][2]           
-            self.designSurface.Nodes[nodeId].SetSolutionStepValue(CONSTRAINT_SENSITIVITY,0,sensitivity)     
+    def __storeGradientOnNodalVariable( self, gradients, variable_name ):
+        for nodeId in gradients:
+            gradient = Vector(3)
+            gradient[0] = gradients[nodeId][0]
+            gradient[1] = gradients[nodeId][1]
+            gradient[2] = gradients[nodeId][2]           
+            self.designSurface.Nodes[nodeId].SetSolutionStepValue(variable_name,0,gradient)
 
     # --------------------------------------------------------------------------
     def __isConstraintActive( self ):

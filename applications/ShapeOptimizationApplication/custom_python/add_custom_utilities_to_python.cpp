@@ -27,6 +27,7 @@
 #include "custom_utilities/optimization_utilities.h"
 #include "custom_utilities/geometry_utilities.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing.h"
+#include "custom_utilities/mapping/mapper_vertex_morphing_iterative.h"
 #include "custom_utilities/response_functions/strain_energy_response_function.h"
 #include "custom_utilities/response_functions/mass_response_function.h"
 #include "custom_utilities/input_output/universal_file_io.h"
@@ -51,7 +52,11 @@ void  AddCustomUtilitiesToPython()
         .def("map_to_design_space", &MapperVertexMorphing::map_to_design_space)
         .def("map_to_geometry_space", &MapperVertexMorphing::map_to_geometry_space)
         ;
-
+    class_<MapperVertexMorphingIterative, bases<Process> >("MapperVertexMorphingIterative", init<ModelPart&, boost::python::dict, Parameters&>())
+        .def("map_to_design_space", &MapperVertexMorphingIterative::map_to_design_space)
+        .def("map_to_geometry_space", &MapperVertexMorphingIterative::map_to_geometry_space)
+        ;
+ 
     // ========================================================================
     // For performing individual steps of an optimization algorithm
     // ========================================================================
@@ -78,7 +83,8 @@ void  AddCustomUtilitiesToPython()
     // ========================================================================
     class_<GeometryUtilities, bases<Process> >("GeometryUtilities", init<ModelPart&>())
         .def("compute_unit_surface_normals", &GeometryUtilities::compute_unit_surface_normals)
-        .def("project_grad_on_unit_surface_normal", &GeometryUtilities::project_grad_on_unit_surface_normal)
+        .def("project_nodal_variable_on_unit_surface_normals", &GeometryUtilities::project_nodal_variable_on_unit_surface_normals)
+        .def("update_coordinates_according_to_input_variable", &GeometryUtilities::update_coordinates_according_to_input_variable)
         .def("extract_surface_nodes", &GeometryUtilities::extract_surface_nodes)
         ;
 

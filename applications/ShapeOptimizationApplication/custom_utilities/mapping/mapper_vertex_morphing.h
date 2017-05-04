@@ -74,7 +74,6 @@ namespace Kratos
 
 /// Short class definition.
 /** Detail class definition.
-
 */
 
 class MapperVertexMorphing
