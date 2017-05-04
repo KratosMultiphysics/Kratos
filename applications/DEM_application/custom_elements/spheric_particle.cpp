@@ -486,7 +486,7 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
         const double my_rotated_angle = DEM_MODULUS_3(temp_angular_vel);
         const double other_rotated_angle = DEM_MODULUS_3(temp_neigh_angular_vel);
 
-        const array_1d<double, 3>& coors = p_neighbour->GetGeometry()[0].Coordinates();
+        const array_1d<double, 3>& coors = this->GetGeometry()[0].Coordinates();
         array_1d<double, 3> neigh_coors = p_neighbour->GetGeometry()[0].Coordinates();
 
         if (DiscreteParticleConfigure<3>::GetDomainPeriodicity()){ // the domain is periodic
