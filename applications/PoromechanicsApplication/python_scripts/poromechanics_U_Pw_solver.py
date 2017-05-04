@@ -121,6 +121,7 @@ class UPwSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PERIODIC_PAIR_INDEX)
         if(self.settings["periodic_interface_conditions"].GetBool() == True):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
             self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)
             self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_VON_MISES_STRESS)
 

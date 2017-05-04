@@ -224,14 +224,15 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "    \"output_configuration\": \{"
     puts $FileVar "        \"result_file_configuration\": \{"
     puts $FileVar "            \"gidpost_flags\":       \{"
-    puts $FileVar "                \"GiDPostMode\":           \"[GiD_AccessValue get gendata GiD_post_mode]\","
     puts $FileVar "                \"WriteDeformedMeshFlag\": \"[GiD_AccessValue get gendata Write_deformed_mesh]\","
     puts $FileVar "                \"WriteConditionsFlag\":   \"[GiD_AccessValue get gendata Write_conditions]\","
     if { ([GiD_AccessValue get gendata Fracture_Propagation] eq true) || ($IsPeriodic eq true) } {
+        puts $FileVar "                \"GiDPostMode\":           \"GiD_PostAscii\","
         puts $FileVar "                \"MultiFileFlag\":         \"MultipleFiles\""
         puts $FileVar "            \},"
         puts $FileVar "            \"file_label\":          \"time\","
     } else {
+        puts $FileVar "                \"GiDPostMode\":           \"[GiD_AccessValue get gendata GiD_post_mode]\","
         puts $FileVar "                \"MultiFileFlag\":         \"[GiD_AccessValue get gendata Multi_file_flag]\""
         puts $FileVar "            \},"
         puts $FileVar "            \"file_label\":          \"[GiD_AccessValue get gendata File_label]\","
