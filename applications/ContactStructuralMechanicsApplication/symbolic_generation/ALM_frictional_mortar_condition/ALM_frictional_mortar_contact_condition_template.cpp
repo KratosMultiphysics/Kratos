@@ -78,10 +78,10 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TN
 {
     KRATOS_TRY;   
     
-    boost::shared_ptr<ConditionMap>& AllConditionSets = this->GetValue( CONTACT_SETS );
+    boost::shared_ptr<ConditionSet>& AllConditionSets = this->GetValue( CONTACT_SETS );
     
     // Calculates the size of the system
-    const unsigned int ConditionSize = (TDim * ( TNumNodes + TNumNodes + TNumNodes) ) * AllConditionSets->size(); 
+    const unsigned int ConditionSize = (TDim * ( TNumNodes + TNumNodes) + TNumNodes)* AllConditionSets->size(); 
     
     if (rResult.size() != ConditionSize)
     {
@@ -91,9 +91,9 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TN
     unsigned int index = 0;
     
     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
-    for (auto ipair = AllConditionSets->begin(); ipair != AllConditionSets->end(); ++ipair )
+    for (auto itPair = AllConditionSets->begin(); itPair != AllConditionSets->end(); ++itPair )
     {
-        GeometryType& current_master = (ipair->first)->GetGeometry( );
+        GeometryType& current_master = (*itPair)->GetGeometry( );
         
         // Master Nodes Displacement Equation IDs
         for ( unsigned int i_master = 0; i_master < TNumNodes; i_master++ ) // NOTE: Assuming same number of nodes for master and slave
@@ -147,10 +147,10 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TN
 {
     KRATOS_TRY;
     
-    boost::shared_ptr<ConditionMap>& AllConditionSets = this->GetValue( CONTACT_SETS );
+    boost::shared_ptr<ConditionSet>& AllConditionSets = this->GetValue( CONTACT_SETS );
     
     // Calculates the size of the system
-    const unsigned int ConditionSize = (TDim * ( TNumNodes + TNumNodes + TNumNodes) ) * AllConditionSets->size(); 
+    const unsigned int ConditionSize = (TDim * ( TNumNodes + TNumNodes) + TNumNodes)* AllConditionSets->size(); 
     
     if (rConditionalDofList.size() != ConditionSize)
     {
@@ -160,9 +160,9 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TN
     unsigned int index = 0;
     
     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
-    for (auto ipair = AllConditionSets->begin(); ipair != AllConditionSets->end(); ++ipair )
+    for (auto itPair = AllConditionSets->begin(); itPair != AllConditionSets->end(); ++itPair )
     {
-        GeometryType& current_master = (ipair->first)->GetGeometry( );
+        GeometryType& current_master = (*itPair)->GetGeometry( );
 
         // Master Nodes Displacement Equation IDs
         for ( unsigned int i_master = 0; i_master < TNumNodes; i_master++ ) // NOTE: Assuming same number of nodes for master and slave

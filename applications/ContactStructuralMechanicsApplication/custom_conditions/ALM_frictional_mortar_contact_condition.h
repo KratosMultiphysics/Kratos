@@ -47,66 +47,13 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-
-/** \brief DerivativeData
- * This data will be used to compute the derivatives
- */
-template< unsigned int TDim, unsigned int TNumNodes>
-class FrictionalDerivativeData : public DerivativeData<TDim, TNumNodes>
-{
-public:
-    
-    // Auxiliar types
-    typedef DerivativeData<TDim, TNumNodes>      BaseType;
-    typedef bounded_matrix<double, TNumNodes, TDim> Type2;
-    
-    // Displacements and velocities
-    Type2 u1old;
-    Type2 u2old;
-    
-    // The tangent factor for the ALM parameters
-    double TangentFactor;
-    
-    // Default destructor
-    ~FrictionalDerivativeData(){}
-    
-    /**
-     * Initializer method 
-     * @param  GeometryInput: The geometry of the slave 
-     */
-    
-    void Initialize(
-        const GeometryType& GeometryInput,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override
-    {        
-        BaseType::Initialize(GeometryInput);
-        
-        // We get the ALM variables
-        TangentFactor = rCurrentProcessInfo[TANGENT_FACTOR];
-        
-        u1old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(this->GetGeometry(), DISPLACEMENT, 1);
-    }
-
-    /**
-     * Updating the Master pair
-     * @param  pCond: The pointer of the current master
-     */
-    
-    void UpdateMasterPair(const Condition::Pointer& pCond) override
-    {
-        BaseType::UpdateMasterPair(pCond);
-        
-        u2old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(pCond->GetGeometry(), DISPLACEMENT, 1);
-    }
-};  // Class DerivativeData
     
 /** \brief AugmentedLagrangianMethodFrictionalMortarContactCondition
  * This is a contact condition which employes the mortar method with dual lagrange multiplier 
  * The method has been taken from the Alexander Popps thesis:
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
  */
-template< unsigned int TDim, unsigned int TNumNodes>
+template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
 class AugmentedLagrangianMethodFrictionalMortarContactCondition: public AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, true> 
 {
 public:
@@ -146,7 +93,7 @@ public:
     
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
     
-    typedef DerivativeData<TDim, TNumNodes>                                    DerivativeDataType;
+    typedef DerivativeData<TDim, TNumNodes, true>                              DerivativeDataType;
     
     static constexpr unsigned int MatrixSize = TDim * (TNumNodes + TNumNodes + TNumNodes);
          

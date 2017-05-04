@@ -67,12 +67,13 @@ namespace Kratos
 /** \brief DerivativeData
  * This data will be used to compute the derivatives
  */
-template< unsigned int TDim, unsigned int TNumNodes>
+template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 class DerivativeData
 {
 public:
     
     // Auxiliar types
+    typedef int zero[0];
     typedef array_1d<double, TNumNodes> Type1;
     typedef bounded_matrix<double, TNumNodes, TDim> Type2;
     typedef bounded_matrix<double, TNumNodes, TNumNodes> Type3;
@@ -89,6 +90,8 @@ public:
     double PenaltyParameter;
     double ScaleFactor;
     
+    typename std::conditional< TFrictional,double,zero >::type TangentFactor;
+    
     // The normals of the nodes
     Type2 NormalMaster;
     Type2 NormalSlave;
@@ -98,6 +101,8 @@ public:
     Type2 X2;
     Type2 u1;
     Type2 u2;
+    typename std::conditional< TFrictional,Type2,zero >::type u1old;
+    typename std::conditional< TFrictional,Type2,zero >::type u2old;
     
     // Derivatives    
     array_1d<double, Size1> DeltaJSlave;
@@ -149,6 +154,11 @@ public:
             DeltaN2[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
             DeltaNormalSlave[i]      = ZeroMatrix(TNumNodes, TDim);
         }
+        
+        #if (TFrictional == true)
+            TangentFactor = rCurrentProcessInfo[TANGENT_FACTOR];
+            u1old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 1);
+        #endif
     }
     
     /**
@@ -187,6 +197,10 @@ public:
         {
             DeltaNormalMaster[i] = ZeroMatrix(TNumNodes, TDim);
         }
+        
+        #if (TFrictional == true)
+            u2old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1);
+        #endif
     }
 };  // Class DerivativeData
     
@@ -227,7 +241,7 @@ public:
     
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
     
-    typedef DerivativeData<TDim, TNumNodes>                                    DerivativeDataType;
+    typedef DerivativeData<TDim, TNumNodes, TFrictional>                       DerivativeDataType;
     
     static constexpr unsigned int MatrixSize = TFrictional == true ? TDim * (TNumNodes + TNumNodes + TNumNodes) : TDim * (TNumNodes + TNumNodes) + TNumNodes;
     

@@ -211,9 +211,12 @@ private:
     const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false> mALMFrictionlessMortarContactCondition3D4N;
     const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true> mALMNVFrictionlessMortarContactCondition3D4N;
     // Frictional cases
-    const AugmentedLagrangianMethodFrictionalMortarContactCondition<2, 2> mALMFrictionalMortarContactCondition2D2N;
-//     const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 3> mALMFrictionalMortarContactCondition3D3N;
-//     const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 4> mALMFrictionalMortarContactCondition3D4N;
+    const AugmentedLagrangianMethodFrictionalMortarContactCondition<2, 2, false> mALMFrictionalMortarContactCondition2D2N;
+    const AugmentedLagrangianMethodFrictionalMortarContactCondition<2, 2, true> mALMNVFrictionalMortarContactCondition2D2N;
+    const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 3, false> mALMFrictionalMortarContactCondition3D3N;
+    const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 3, true> mALMNVFrictionalMortarContactCondition3D3N;
+    const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 4, false> mALMFrictionalMortarContactCondition3D4N;
+    const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 4, true> mALMNVFrictionalMortarContactCondition3D4N;
     
     ///@}
     ///@name Private Operators
