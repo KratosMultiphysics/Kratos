@@ -178,7 +178,7 @@ CMAKE_BUILD=(
   -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE
 
   # Custom python suffix for liboost-python
-  -DBOOST_PYTHON_SUFIX="-py34"
+  -DBOOST_PYTHON_SUFFIX="-py34"
 )
 
 ########################################################################################################################
