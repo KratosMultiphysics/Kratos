@@ -197,6 +197,13 @@ public:
                     "scalar_variable"                  : "DISTANCE",
                     "gradient_variable"                : "DISTANCE_GRADIENT"
                 },
+                "hessian_strategy_parameters"              :{
+                    "metric_variable"                  : ["DISTANCE"],
+                    "interpolation_error"              : 0.04,
+                    "mesh_dependent_constant"          : 0.0
+                },
+                "error_strategy_parameters"              :{
+                },
                 "framework"                            : "Eulerian",
                 "internal_variables_parameters"        :
                 {
@@ -205,11 +212,6 @@ public:
                     "search_factor"                        : 2, 
                     "interpolation_type"                   : "LST",
                     "internal_variable_interpolation_list" :[]
-                },
-                "hessian_strategy_parameters"              :{
-                    "metric_variable"                  : ["DISTANCE"],
-                    "interpolation_error"              : 0.04,
-                    "mesh_dependent_constant"          : 0.0
                 },
                 "enforce_current"                  : true,
                 "initial_step"                     : 1,
@@ -601,7 +603,7 @@ protected:
         NodesArrayType& pNode = mrThisModelPart.Nodes();
         auto numNodes = pNode.end() - pNode.begin();
         
-        SetSolSize(numNodes);
+        SetSolSizeTensor(numNodes);
 
 //         #pragma omp parallel for 
         for(unsigned int i = 0; i < numNodes; i++) 
@@ -1455,11 +1457,25 @@ protected:
         );
     
     /**
-     * This sets the size of the solution
+     * This sets the size of the solution for the scalar case
      * @param numNodes: Number of nodes
      */
     
-    void SetSolSize(const int numNodes);
+    void SetSolSizeScalar(const int numNodes);
+    
+    /**
+     * This sets the size of the solution for the vector case
+     * @param numNodes: Number of nodes
+     */
+    
+    void SetSolSizeVector(const int numNodes);
+    
+    /**
+     * This sets the size of the solution for the tensor case
+     * @param numNodes: Number of nodes
+     */
+    
+    void SetSolSizeTensor(const int numNodes);
     
     /**
      * This checks the mesh data and prints if it is OK
@@ -1734,6 +1750,26 @@ protected:
         }
     }
 
+    /**
+     * This function is used to compute the metric scalar
+     * @param Metric: The inverse of the size node
+     */
+
+    void SetMetricScalar(
+        const double& Metric,
+        const int NodeId 
+        );
+    
+    /**
+     * This function is used to compute the metric vector (x, y, z)
+     * @param Metric: This array contains the components of the metric vector
+     */
+
+    void SetMetricVector(
+        const array_1d<double, 3>& Metric,
+        const int NodeId 
+        );
+    
     /**
      * This function is used to compute the Hessian metric tensor, note that when using the Hessian, more than one metric can be defined simultaneously, so in consecuence we need to define the elipsoid which defines the volume of maximal intersection
      * @param Metric: This array contains the components of the metric tensor in the MMG defined order
@@ -2462,7 +2498,52 @@ protected:
     /***********************************************************************************/
 
     template<>  
-    void MmgUtility<2>::SetSolSize(const int numNodes)
+    void MmgUtility<2>::SetSolSizeScalar(const int numNodes)
+    {
+        if ( MMG2D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,numNodes,MMG5_Scalar) != 1 )
+        {
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    template<>  
+    void MmgUtility<3>::SetSolSizeScalar(const int numNodes)
+    {
+        if ( MMG3D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,numNodes,MMG5_Scalar) != 1 )
+        {
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    template<>  
+    void MmgUtility<2>::SetSolSizeVector(const int numNodes)
+    {
+        KRATOS_ERROR << "WARNING:: Vector metric not avalaible in 2D" << std::endl;
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    template<>  
+    void MmgUtility<3>::SetSolSizeVector(const int numNodes)
+    {
+        if ( MMG3D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,numNodes,MMG5_Vector) != 1 )
+        {
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    template<>  
+    void MmgUtility<2>::SetSolSizeTensor(const int numNodes)
     {
         if ( MMG2D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,numNodes,MMG5_Tensor) != 1 )
         {
@@ -2474,7 +2555,7 @@ protected:
     /***********************************************************************************/
 
     template<>  
-    void MmgUtility<3>::SetSolSize(const int numNodes)
+    void MmgUtility<3>::SetSolSizeTensor(const int numNodes)
     {
         if ( MMG3D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,numNodes,MMG5_Tensor) != 1 )
         {
@@ -2899,6 +2980,63 @@ protected:
     /***********************************************************************************/
     
     template<>  
+    void MmgUtility<2>::SetMetricScalar(
+        const double& Metric,
+        const int NodeId 
+        )
+    {
+        if ( MMG2D_Set_scalarSol(mmgSol, Metric, NodeId) != 1 )
+        {
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    void MmgUtility<3>::SetMetricScalar(
+        const double& Metric,
+        const int NodeId 
+        )
+    {
+        if ( MMG3D_Set_scalarSol(mmgSol, Metric, NodeId) != 1 )
+        {
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    void MmgUtility<2>::SetMetricVector(
+        const array_1d<double, 3>& Metric,
+        const int NodeId 
+        )
+    {
+        KRATOS_ERROR << "WARNING:: Vector metric not avalaible in 2D" << std::endl;
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    void MmgUtility<3>::SetMetricVector(
+        const array_1d<double, 3>& Metric,
+        const int NodeId 
+        )
+    {
+        if ( MMG3D_Set_vectorSol(mmgSol, Metric[0], Metric[1], Metric[2], NodeId) != 1 )
+        {
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
     void MmgUtility<2>::SetMetricTensor(
         const Vector& Metric,
         const int NodeId 
@@ -2925,8 +3063,6 @@ protected:
         }
     }
 
-
-    
 ///@name Type Definitions
 ///@{
 
