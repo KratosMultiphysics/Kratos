@@ -64,7 +64,7 @@ namespace Kratos
 
 		// This function assumes tetrahedra element and triangle intersected object as input at this moment
 		constexpr int number_of_tetrahedra_points = 4;
-		constexpr double epsilon = std::numeric_limits<double>::epsilon();
+		constexpr double epsilon = 1;// std::numeric_limits<double>::epsilon();
 		auto& element_geometry = rElement1.GetGeometry();
 		Vector& elemental_distances = rElement1.GetValue(ELEMENTAL_DISTANCES);
 		elemental_distances.resize(number_of_tetrahedra_points, false);
@@ -119,11 +119,43 @@ namespace Kratos
 			}
 			rElement1.Set(TO_SPLIT, true);
 		}
+		else if (number_of_cut_edge == 3 && (number_of_zero_distance_nodes == 1)) {
+			Plane3D plane(edge_optimum_cut_point[0], edge_optimum_cut_point[1], edge_optimum_cut_point[2]);
+			for (int i = 0; i < number_of_tetrahedra_points; i++) {
+				if (elemental_distances[i] > epsilon) {
+					if (plane.CalculateSignedDistance(rElement1.GetGeometry()[i]) > epsilon) {
+						rElement1.Set(TO_SPLIT, true);
+					}
+				}
+				else // avoid zero distance
+					elemental_distances[i] = -epsilon;
+			}
+
+		}
+		else if (number_of_cut_edge == 3 && (number_of_zero_distance_nodes > 1)) {
+			Plane3D plane(edge_optimum_cut_point[0], edge_optimum_cut_point[1], edge_optimum_cut_point[2]);
+			for (int i = 0; i < number_of_tetrahedra_points; i++) {
+				if (elemental_distances[i] > epsilon) {
+					if (plane.CalculateSignedDistance(rElement1.GetGeometry()[i]) > epsilon) {
+						rElement1.Set(TO_SPLIT, true);
+					}
+				}
+				else // avoid zero distance
+					elemental_distances[i] = -epsilon;
+			}
+
+		}
 		else if (number_of_cut_edge > 3) { // If there are more than 3 edges cut I would just use the first 3. This can be improved.
 			if (number_of_zero_distance_nodes != 0) {
+				Plane3D plane(edge_optimum_cut_point[0], edge_optimum_cut_point[1], edge_optimum_cut_point[2]);
 				for (int i = 0; i < number_of_tetrahedra_points; i++) {
-					if(elemental_distances[i] > epsilon)
-						elemental_distances[i] = -elemental_distances[i];
+					if (elemental_distances[i] > epsilon) {
+						if (plane.CalculateSignedDistance(rElement1.GetGeometry()[i]) > epsilon) {
+							rElement1.Set(TO_SPLIT, true);
+						}
+					}
+					else // avoid zero distance
+						elemental_distances[i] = -epsilon;
 				}
 			}
 			else {
@@ -132,10 +164,9 @@ namespace Kratos
 					if (plane.CalculateSignedDistance(rElement1.GetGeometry()[i]) < -std::numeric_limits<double>::epsilon())
 						elemental_distances[i] = -elemental_distances[i];
 				}
-
+				rElement1.Set(TO_SPLIT, true);
 			}
 				
-			rElement1.Set(TO_SPLIT, true);
 		}
 
 		AvoidZeroDistanceNodes(rElement1, epsilon);
@@ -148,7 +179,7 @@ namespace Kratos
 
 		for (int i = 0; i < number_of_tetrahedra_points; i++) {
 			if (fabs(elemental_distances[i]) < Epsilon) {
-				elemental_distances[i] = Epsilon;
+				elemental_distances[i] = -Epsilon;
 				rElement1.Set(TO_SPLIT, true);
 			}
 		}
