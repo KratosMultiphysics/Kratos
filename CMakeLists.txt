@@ -141,7 +141,14 @@ endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 set(Boost_USE_STATIC_LIBS   OFF)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_REALPATH ON)
-find_package(Boost COMPONENTS python REQUIRED)
+
+# Select python3 by default unless its specified in the configure file
+if(${USE_PYTHON_2} MATCHES ON)
+  FIND_PACKAGE(Boost COMPONENTS python REQUIRED)
+else(${USE_PYTHON_2} MATCHES ON)
+  FIND_PACKAGE(Boost COMPONENTS python3 REQUIRED)
+endif(${USE_PYTHON_2} MATCHES ON)
+
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 

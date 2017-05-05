@@ -62,8 +62,8 @@ BUILD_TYPE="Release"
 #        C_PERF_FLAGS="-msse3 -fopenmp"
 #        CXX_PERF_FLAGS="-msse3 -fopenmp"
 # --------------------------------------------------------------------------------------------------------------
-C_PERF_FLAGS="-fopenmp"
-CXX_PERF_FLAGS="-fopenmp"
+C_PERF_FLAGS="-O1 -fopenmp"
+CXX_PERF_FLAGS="-O1 -fopenmp"
 
 # Flags for warnings control
 #    Indicate the warning related flags. Wall is enabled by default. This is the proper place to ignore
@@ -169,7 +169,9 @@ CMAKE_BUILD=(
   -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -std=c++11 ${CXX_PERF_FLAGS} ${CXX_IGNORE_WARN} ${CXX_CUSTOM_FLAGS}"
 
   # Build type
-  -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
+  # NOTE: This is better commented for travis since we don't want to use
+  # a default configuration. (-O0 is prefered here)
+  # -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
 
   # Install info
   -DCMAKE_INSTALL_RPATH="${KRATOS_ROOT}/libs"
