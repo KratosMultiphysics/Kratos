@@ -175,11 +175,9 @@ public:
     }
 
     // --------------------------------------------------------------------------
-<<<<<<< HEAD:applications/ShapeOptimizationApplication/custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h
 /*    void initalizeDampingFactorsToHaveNoInfluence()
-=======
-    void InitalizeDampingFactorsToHaveNoInfluence()
->>>>>>> cbc81c89826c1e35794a7d62f3f830555333f470:applications/ShapeOptimizationApplication/custom_utilities/mapping/mapper_vertex_morphing_iterative.h
+
+
     {
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
@@ -190,11 +188,7 @@ public:
     }
 */
     // --------------------------------------------------------------------------
-<<<<<<< HEAD:applications/ShapeOptimizationApplication/custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h
 /*    void setDampingFactorsForAllDampingRegions( boost::python::dict dampingRegions, Parameters dampingSettings )
-=======
-    void SetDampingFactorsForAllDampingRegions( boost::python::dict dampingRegions, Parameters dampingSettings )
->>>>>>> cbc81c89826c1e35794a7d62f3f830555333f470:applications/ShapeOptimizationApplication/custom_utilities/mapping/mapper_vertex_morphing_iterative.h
     {
         std::cout << "\n> Starting to prepare damping..." << std::endl;
 
@@ -260,29 +254,17 @@ public:
     // --------------------------------------------------------------------------
     void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
     {
-<<<<<<< HEAD:applications/ShapeOptimizationApplication/custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h
         //if(mPerformDamping)
         //    dampNodalVariable( rNodalVariable );
-        perform_mapping_to_design_space( rNodalVariable, rNodalVariableInDesignSpace );
-=======
-        if(mPerformDamping)
-            dampNodalVariable( rNodalVariable );
         PerformMappingToDesignSpace( rNodalVariable, rNodalVariableInDesignSpace );
->>>>>>> cbc81c89826c1e35794a7d62f3f830555333f470:applications/ShapeOptimizationApplication/custom_utilities/mapping/mapper_vertex_morphing_iterative.h
     }
 
     // --------------------------------------------------------------------------
     void MapToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
     {
-<<<<<<< HEAD:applications/ShapeOptimizationApplication/custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h
-        perform_mapping_to_geometry_space( rNodalVariable, rNodalVariableInGeometrySpace );
+        PerformMappingToGeometrySpace( rNodalVariable, rNodalVariableInGeometrySpace );
         //if(mPerformDamping)
         //    dampNodalVariable( rNodalVariable );
-=======
-        PerformMappingToGeometrySpace( rNodalVariable, rNodalVariableInGeometrySpace );
-        if(mPerformDamping)
-            dampNodalVariable( rNodalVariable );
->>>>>>> cbc81c89826c1e35794a7d62f3f830555333f470:applications/ShapeOptimizationApplication/custom_utilities/mapping/mapper_vertex_morphing_iterative.h
     }
 
     // --------------------------------------------------------------------------
@@ -350,7 +332,7 @@ public:
             nodalVariable[2] *= damping_factor[2];  
         }  
     } 
-
+*/
     // --------------------------------------------------------------------------
     void UpdateSearchTreeIfGeometryHasChanged()
     {
@@ -360,7 +342,7 @@ public:
             CreateSearchTreeWithAllNodesOnDesignSurface();
         }
     }
-*/
+
     // --------------------------------------------------------------------------
     bool HasGeometryChanged()
     {

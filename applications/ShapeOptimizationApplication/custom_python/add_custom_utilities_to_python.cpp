@@ -55,8 +55,8 @@ void  AddCustomUtilitiesToPython()
         ;
 
     class_<MapperVertexMorphingMatrixFree, bases<Process> >("MapperVertexMorphingMatrixFree", init<ModelPart&, boost::python::dict, Parameters&>())
-        .def("mapToDesignSpace", &MapperVertexMorphingMatrixFree::mapToDesignSpace)
-        .def("mapToGeometrySpace", &MapperVertexMorphingMatrixFree::mapToGeometrySpace)
+        .def("MapToDesignSpace", &MapperVertexMorphingMatrixFree::MapToDesignSpace)
+        .def("MapToGeometrySpace", &MapperVertexMorphingMatrixFree::MapToGeometrySpace)
         ;
     
     // ================================================================
