@@ -41,4 +41,4 @@ script:
 - make install -j2
 - ccache -s
 - cd ../kratos/python_scripts
-- python3 run_tests.py
+- python3 run_tests.py -l small
