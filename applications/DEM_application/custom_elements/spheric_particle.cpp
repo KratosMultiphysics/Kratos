@@ -177,6 +177,14 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
 
     if (this->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)){
         ComputeAdditionalForces(additional_forces, additionally_applied_moment, r_process_info, gravity);
+        #ifdef KRATOS_DEBUG
+        if(std::isnan(additional_forces[0]) || std::isnan(additional_forces[1]) || std::isnan(additional_forces[2])){
+            KRATOS_ERROR<<"NAN in Additional Forces in RHS of Ball";
+        }
+        if(std::isnan(additionally_applied_moment[0]) || std::isnan(additionally_applied_moment[1]) || std::isnan(additionally_applied_moment[2])){
+            KRATOS_ERROR<<"NAN in Additional Torque in RHS of Ball";
+        }
+        #endif        
     }
     
     // ROLLING FRICTION
@@ -201,6 +209,15 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
     total_moment[0] = mContactMoment[0] + additionally_applied_moment[0];
     total_moment[1] = mContactMoment[1] + additionally_applied_moment[1];
     total_moment[2] = mContactMoment[2] + additionally_applied_moment[2];
+    
+    #ifdef KRATOS_DEBUG
+    if(std::isnan(total_forces[0]) || std::isnan(total_forces[1]) || std::isnan(total_forces[2])){
+        KRATOS_ERROR<<"NAN in Total Forces in RHS of Ball";
+    }
+    if(std::isnan(total_moment[0]) || std::isnan(total_moment[1]) || std::isnan(total_moment[2])){
+        KRATOS_ERROR<<"NAN in Total Torque in RHS of Ball";
+    }
+    #endif
 
     FinalizeForceComputation(data_buffer);
     KRATOS_CATCH("")
@@ -652,9 +669,12 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
     //LOOP OVER NEIGHBORS:
     for (int i = 0; data_buffer.SetNextNeighbourOrExit(i); ++i){
         if (this->Is(NEW_ENTITY) && data_buffer.mpOtherParticle->Is(BLOCKED)) continue;
+        if (this->Is(BLOCKED) && data_buffer.mpOtherParticle->Is(NEW_ENTITY)) continue;
         if (data_buffer.mMultiStageRHS  &&  this->Id() > data_buffer.mpOtherParticle->Id()) continue;
 
         CalculateRelativePositions(data_buffer);
+        
+        if(data_buffer.mDistance < std::numeric_limits<double>::epsilon()) continue;
 
         EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, data_buffer.mOtherToMeVector, velocity, delta_displ, data_buffer.mpOtherParticle, data_buffer.mDistance);
 
@@ -705,6 +725,17 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
         DEM_SET_COMPONENTS_TO_ZERO_3x3(OldLocalCoordSystem)
 
     }// for each neighbor
+    
+    #ifdef KRATOS_DEBUG
+    if(std::isnan(GlobalContactForce[0]) || std::isnan(GlobalContactForce[1]) || std::isnan(GlobalContactForce[2])){
+        KRATOS_ERROR<<"NAN in Force in Ball to Ball contact";
+    }
+    if(std::isnan(mContactMoment[0]) || std::isnan(mContactMoment[1]) || std::isnan(mContactMoment[2])){
+        KRATOS_ERROR<<"NAN in Torque in Ball to Ball contact";
+    }
+    #endif
+
+    
 
     KRATOS_CATCH("")
 }// ComputeBallToBallContactForce
