@@ -184,6 +184,9 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( Matrix, SHAPE_DERIVATIVE_MATRIX_1 )
     KRATOS_DEFINE_VARIABLE( Matrix, SHAPE_DERIVATIVE_MATRIX_2 )
 
+    // For MeshingApplication
+    KRATOS_DEFINE_VARIABLE( double, ELEMENTAL_ERROR )
+    
     //for PFEM fluids application:
     KRATOS_DEFINE_VARIABLE( double, NODAL_AREA )
 

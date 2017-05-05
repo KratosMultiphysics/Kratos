@@ -1,4 +1,4 @@
-// //    |  /           |
+//    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
@@ -213,9 +213,8 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( Matrix, SHAPE_DERIVATIVE_MATRIX_1 )
   KRATOS_CREATE_VARIABLE( Matrix, SHAPE_DERIVATIVE_MATRIX_2 )
 
-
-  //for Electric application
-
+  // For MeshingApplication
+  KRATOS_CREATE_VARIABLE( double, ELEMENTAL_ERROR )
 
   //for PFEM fluids application:
   KRATOS_CREATE_VARIABLE( double, NODAL_AREA )
@@ -857,9 +856,10 @@ namespace Kratos
       KRATOS_REGISTER_VARIABLE( SHAPE_DERIVATIVE_MATRIX_1 )
       KRATOS_REGISTER_VARIABLE( SHAPE_DERIVATIVE_MATRIX_2 )
 
-      //--------------- FOTOELECTRIC Application -------------------//
-
-
+      //--------------- Meshing ApplicationApplication -------------------//
+      
+      KRATOS_REGISTER_VARIABLE( ELEMENTAL_ERROR )
+      
       //--------------- PFEM fluids Application -------------------//
 
       KRATOS_REGISTER_VARIABLE( NODAL_AREA )
