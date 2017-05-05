@@ -69,14 +69,7 @@ public:
     /**
      * This is the default constructor
      * @param rThisModelPart: The model part to be computed
-     * @param rMinSize: The min size of element
-     * @param rMaxSize: The maximal size of the elements
-     * @param rInterpError: The interpolation error assumed
-     * @param rMeshConstant: The constant that appears in papers an none knows where comes from, where...
-     * @param rAnisRatio: The anisotropic ratio
-     * @param rBoundLayer: The boundary layer limit
-     * @param rInterpolation: The interpolation type
-     * @param rVariable: The variable considered for remeshing
+     * @param ThisParameters: The input parameters
      */
     
     ComputeErrorSolMetricProcess(
