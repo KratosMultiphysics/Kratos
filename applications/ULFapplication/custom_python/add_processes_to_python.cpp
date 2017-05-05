@@ -62,6 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 #include "custom_processes/pressure_calculate_process.h"
+#include "custom_processes/pressure_calculate_process_axisym.h"
 #include "custom_processes/mass_calculate_process.h"
 #include "custom_processes/ulf_apply_bc_process.h"
 #include "custom_processes/ulf_time_step_dec_process.h"
@@ -115,6 +116,10 @@ void  AddProcessesToPython()
     class_<PressureCalculateProcess, bases<Process> >("PressureCalculateProcess",
             init<ModelPart&, unsigned int>())
     ;
+    class_<PressureCalculateProcessAxisym, bases<Process> >("PressureCalculateProcessAxisym",
+            init<ModelPart&, unsigned int>())
+    ;
+
     class_<MassCalculateProcess, bases<Process> >("MassCalculateProcess",
             init<ModelPart&>())
     ;

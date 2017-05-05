@@ -127,8 +127,11 @@ void  AddCustomUtilitiesToPython()
     ;
 
    class_<AssignPointNeumannConditions > ("AssignPointNeumannConditions", init<>())
-    .def("AssignPointNeumannConditions3D", &AssignPointNeumannConditions::AssignPointNeumannConditions3D)
-    ;
+    .def("AssignPointNeumannConditionsDisp", &AssignPointNeumannConditions::AssignPointNeumannConditionsDisp)
+    .def("AssignPointNeumannConditionsDispAxisym", &AssignPointNeumannConditions::AssignPointNeumannConditionsDispAxisym)
+    //.def("AssignPointNeumannConditionsMonolithic2D", &AssignPointNeumannConditions::AssignPointNeumannConditionsMonolithic2D)
+    ; 
+
 
 }
 

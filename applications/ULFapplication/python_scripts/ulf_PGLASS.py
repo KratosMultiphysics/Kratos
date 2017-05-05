@@ -68,7 +68,7 @@ class ULF_FSISolver:
 
 	#adaptivity options
 	self.add_nodes=bool(add_nodes)
-	print "Add nodes? ", self.add_nodes
+	print(("Add nodes? ", self.add_nodes))
         #time integration scheme
         damp_factor = -0.3
         self.time_scheme = ResidualBasedPredictorCorrectorBossakScheme(damp_factor)
@@ -113,7 +113,8 @@ class ULF_FSISolver:
         self.box_corner2 = box_corner2
         
         if(domain_size == 2):
-            self.Mesher = TriGenPFEMModeler()
+            #self.Mesher = TriGenPFEMModeler()
+            self.Mesher = TriGenGLASSModeler()            
             self.combined_neigh_finder = FindNodalNeighboursProcess(combined_model_part,9,18)
             self.fluid_neigh_finder = FindNodalNeighboursProcess(fluid_model_part,9,18)
             #this is needed if we want to also store the conditions a node belongs to
@@ -129,8 +130,8 @@ class ULF_FSISolver:
             self.condition_neigh_finder = FindConditionsNeighboursProcess(fluid_model_part,3, 20)
      
 
-        print "after reading all the model contains:"
-        print self.fluid_model_part
+        print("after reading all the model contains:")
+        print((self.fluid_model_part))
 
         #detect initial size distribution - note that initially the fluid model part contains
         #all the elements of both structure and fluid ... this is only true after reading the input
@@ -157,13 +158,13 @@ class ULF_FSISolver:
         import ulf_strategy_PGLASS
         self.solver = ulf_strategy_PGLASS.ULFStrategyPython(self.combined_model_part,self.time_scheme,self.model_linear_solver,self.conv_criteria,CalculateReactionFlag,ReformDofSetAtEachStep,MoveMeshFlag,self.domain_size)
         
-        print "self.echo_level = " , self.echo_level
+        print(("self.echo_level = " , self.echo_level))
         (self.solver).SetEchoLevel(self.echo_level)
-        print "finished initialization of the fluid strategy"
+        print("finished initialization of the fluid strategy")
 
         #saving the structural elements
         (self.mark_fluid_process).Execute(); #we need this before saving the structrural elements
-        print "Saving STRUCTURE"
+        print("Saving STRUCTURE")
         (self.save_structure_model_part_process).SaveStructure(self.fluid_model_part, self.structure_model_part);        
         (self.save_structure_conditions_process).SaveStructureConditions(self.fluid_model_part, self.structure_model_part);
         
@@ -204,12 +205,12 @@ class ULF_FSISolver:
         max_reduction_steps = 5
         time_reduction_step = 0
         while(inverted_elements == True and time_reduction_step <= max_reduction_steps):
-            print " *************************************************** "
-            print "inverted element found ... reducing the time step"
+            print(" *************************************************** ")
+            print("inverted element found ... reducing the time step")
             (self.UlfUtils).ReduceTimeStep(self.combined_model_part,reduction_factor);
             (self.UlfUtils).ReduceTimeStep(self.fluid_model_part,reduction_factor);
             (self.UlfUtils).ReduceTimeStep(self.structure_model_part,reduction_factor);
-            print "reduction_step = ", time_reduction_step
+            print(("reduction_step = ", time_reduction_step))
             time_reduction_step = time_reduction_step + 1
 
             #copying vars from the old step
@@ -225,19 +226,19 @@ class ULF_FSISolver:
 ##                node.SetSolutionStepValue(ACCELERATION,0,accold);
 
             self.solver.MoveMesh()
-            print "time step reduction completed"
-            print " *************************************************** "
+            print("time step reduction completed")
+            print(" *************************************************** ")
 
             (self.solver).Solve(self.domain_size,self.UlfUtils)
             [inverted_elements,vol] = self.CheckForInvertedElements()            
 
         if(inverted_elements == True):
             
-            print "***********************************************************************"
-            print "***********************************************************************"
-            print "CRITICAL: ... element is still inverted after reducing the time step"
-            print "***********************************************************************"
-            print "***********************************************************************"
+            print("***********************************************************************")
+            print("***********************************************************************")
+            print("CRITICAL: ... element is still inverted after reducing the time step")
+            print("***********************************************************************")
+            print("***********************************************************************")
             factor = 2.0**5 #this is the original time step
             (self.UlfUtils).ReduceTimeStep(self.combined_model_part,factor);
             (self.UlfUtils).ReduceTimeStep(self.fluid_model_part,factor);
@@ -256,7 +257,7 @@ class ULF_FSISolver:
 
             self.solver.MoveMesh()
 
-            print "advancing in time without doing anything..."
+            print("advancing in time without doing anything...")
             (self.solver).PredictionStep(self.domain_size,self.UlfUtils)
             
                             
@@ -304,7 +305,8 @@ class ULF_FSISolver:
         if (self.domain_size == 2):
             #(self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2Dinc", self.fluid_model_part, self.node_erase_process, self.add_nodes, self.alpha_shape)          
             #(self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2D","Condition2D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
-            (self.Mesher).ReGenerateMesh("UlfAxisym","Condition2D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
+            #(self.Mesher).ReGenerateMesh("UlfAxisym","Condition2D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
+            (self.Mesher).ReGenerateMesh("UlfAxisym","Condition2D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)            
         elif (self.domain_size == 3):
             (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3D","Condition3D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)            
               
@@ -371,7 +373,7 @@ class ULF_FSISolver:
 	
 	
         ##############THIS IS FOR EMBEDDED"""""""""""""""""""""""""
-        print "end of remesh fucntion"       
+        print("end of remesh fucntion")       
     ######################################################################
     def FindNeighbours(self):
         (self.neigh_finder).Execute();
