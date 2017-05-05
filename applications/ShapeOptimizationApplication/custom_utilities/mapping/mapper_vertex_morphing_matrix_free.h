@@ -115,12 +115,18 @@ public:
           mFilterType( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() )
           //mPerformDamping( optimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool() )
     {
-        createListOfNodesOfDesignSurface();
-        createFilterFunction();
-        assignMappingMatrixIds();
-        //initalizeDampingFactorsToHaveNoInfluence(); 
+        boost::timer timer;        
+        std::cout << "\n> Creating search tree..." << std::endl;
+        CreateListOfNodesOfDesignSurface();
+        CreateSearchTreeWithAllNodesOnDesignSurface();
+        std::cout << "> Search tree created in: " << timer.elapsed() << " s" << std::endl;
+
+        CreateFilterFunction();
+        AssignMappingIds();
+
+        //InitalizeDampingFactorsToHaveNoInfluence(); 
         //if(mPerformDamping)   
-        //    setDampingFactorsForAllDampingRegions( dampingRegions, optimizationSettings["design_variables"]["damping"]["damping_regions"] );         
+        //    SetDampingFactorsForAllDampingRegions( dampingRegions, optimizationSettings["design_variables"]["damping"]["damping_regions"] );         
     }
 
     /// Destructor.
@@ -139,7 +145,7 @@ public:
     ///@{
 
     // ==============================================================================
-    void createListOfNodesOfDesignSurface()
+    void CreateListOfNodesOfDesignSurface()
     {
         for (ModelPart::NodesContainerType::iterator node_it = mrDesignSurface.NodesBegin(); node_it != mrDesignSurface.NodesEnd(); ++node_it)
         {
@@ -149,21 +155,31 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void createFilterFunction()
+    void CreateSearchTreeWithAllNodesOnDesignSurface()
+    {
+        mpSearchTree = boost::shared_ptr<KDTree>(new KDTree(mListOfNodesOfDesignSurface.begin(), mListOfNodesOfDesignSurface.end(), mBucketSize));
+    }   
+
+    // --------------------------------------------------------------------------
+    void CreateFilterFunction()
     {
         mpFilterFunction = boost::shared_ptr<FilterFunction>(new FilterFunction(mFilterType, mFilterRadius));
     }     
 
     // --------------------------------------------------------------------------
-    void assignMappingMatrixIds()
+    void AssignMappingIds()
     {
         unsigned int i = 0;
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
-            node_i->SetValue(MAPPING_MATRIX_ID,i++);
+            node_i->SetValue(MAPPING_ID,i++);
     }
 
     // --------------------------------------------------------------------------
+<<<<<<< HEAD:applications/ShapeOptimizationApplication/custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h
 /*    void initalizeDampingFactorsToHaveNoInfluence()
+=======
+    void InitalizeDampingFactorsToHaveNoInfluence()
+>>>>>>> cbc81c89826c1e35794a7d62f3f830555333f470:applications/ShapeOptimizationApplication/custom_utilities/mapping/mapper_vertex_morphing_iterative.h
     {
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
@@ -174,12 +190,15 @@ public:
     }
 */
     // --------------------------------------------------------------------------
+<<<<<<< HEAD:applications/ShapeOptimizationApplication/custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h
 /*    void setDampingFactorsForAllDampingRegions( boost::python::dict dampingRegions, Parameters dampingSettings )
+=======
+    void SetDampingFactorsForAllDampingRegions( boost::python::dict dampingRegions, Parameters dampingSettings )
+>>>>>>> cbc81c89826c1e35794a7d62f3f830555333f470:applications/ShapeOptimizationApplication/custom_utilities/mapping/mapper_vertex_morphing_iterative.h
     {
         std::cout << "\n> Starting to prepare damping..." << std::endl;
 
-        ResetSearchTreeIfAlreadyExisting( mpSearchTree );
-        mpSearchTree = createSearchTreeWithAllNodesOnDesignSurface();
+        UpdateSearchTreeIfGeometryHasChanged();        
 
         // Loop over all regions for which damping is to be applied
         for (unsigned int regionNumber = 0; regionNumber < len(dampingRegions); regionNumber++)
@@ -208,7 +227,7 @@ public:
                                                                                  resulting_squared_distances.begin(), 
                                                                                  mMaxNeighborNodes );
 
-                ThrowWarningIfNodeNeighborsExceedLimit( currentDampingNode, number_of_neighbors );                                                                               
+                ThrowWarningIfMaxNodeNeighborsReached( currentDampingNode, number_of_neighbors );                                                                               
 
                 // Loop over all nodes in radius (including node on damping region itself)
                 for(unsigned int j_itr = 0 ; j_itr<number_of_neighbors ; j_itr++)
@@ -239,23 +258,35 @@ public:
     }    
 */
     // --------------------------------------------------------------------------
-    void map_to_design_space( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
+    void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
     {
+<<<<<<< HEAD:applications/ShapeOptimizationApplication/custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h
         //if(mPerformDamping)
         //    dampNodalVariable( rNodalVariable );
         perform_mapping_to_design_space( rNodalVariable, rNodalVariableInDesignSpace );
+=======
+        if(mPerformDamping)
+            dampNodalVariable( rNodalVariable );
+        PerformMappingToDesignSpace( rNodalVariable, rNodalVariableInDesignSpace );
+>>>>>>> cbc81c89826c1e35794a7d62f3f830555333f470:applications/ShapeOptimizationApplication/custom_utilities/mapping/mapper_vertex_morphing_iterative.h
     }
 
     // --------------------------------------------------------------------------
-    void map_to_geometry_space( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
+    void MapToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
     {
+<<<<<<< HEAD:applications/ShapeOptimizationApplication/custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h
         perform_mapping_to_geometry_space( rNodalVariable, rNodalVariableInGeometrySpace );
         //if(mPerformDamping)
         //    dampNodalVariable( rNodalVariable );
+=======
+        PerformMappingToGeometrySpace( rNodalVariable, rNodalVariableInGeometrySpace );
+        if(mPerformDamping)
+            dampNodalVariable( rNodalVariable );
+>>>>>>> cbc81c89826c1e35794a7d62f3f830555333f470:applications/ShapeOptimizationApplication/custom_utilities/mapping/mapper_vertex_morphing_iterative.h
     }
 
     // --------------------------------------------------------------------------
-    void perform_mapping_to_design_space( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
+    void PerformMappingToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
     {
         boost::timer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;
@@ -265,8 +296,7 @@ public:
         y_variables_in_design_space.resize(mNumberOfDesignVariables);
         z_variables_in_design_space.resize(mNumberOfDesignVariables);       
         
-        ResetSearchTreeIfAlreadyExisting( mpSearchTree );
-        mpSearchTree = createSearchTreeWithAllNodesOnDesignSurface();
+        UpdateSearchTreeIfGeometryHasChanged();
 
         MapComponentwiseVariablesToDesignSpace( rNodalVariable,
                                                 x_variables_in_design_space, 
@@ -282,7 +312,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void perform_mapping_to_geometry_space( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
+    void PerformMappingToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
     {
         boost::timer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to geometry space..." << std::endl;
@@ -292,8 +322,7 @@ public:
         y_variables_in_geometry_space.resize(mNumberOfDesignVariables);
         z_variables_in_geometry_space.resize(mNumberOfDesignVariables);
 
-        ResetSearchTreeIfAlreadyExisting( mpSearchTree );
-        mpSearchTree = createSearchTreeWithAllNodesOnDesignSurface();
+        UpdateSearchTreeIfGeometryHasChanged();
 
         MapComponentwiseVariablesToGeometrySpace( rNodalVariable,
                                                   x_variables_in_geometry_space, 
@@ -320,22 +349,31 @@ public:
             nodalVariable[1] *= damping_factor[1];
             nodalVariable[2] *= damping_factor[2];  
         }  
+    } 
+
+    // --------------------------------------------------------------------------
+    void UpdateSearchTreeIfGeometryHasChanged()
+    {
+        if(HasGeometryChanged())
+        {
+            DeleteSearchTree();
+            CreateSearchTreeWithAllNodesOnDesignSurface();
+        }
     }
 */
     // --------------------------------------------------------------------------
-    void ResetSearchTreeIfAlreadyExisting( KDTree::Pointer searchTree )
+    bool HasGeometryChanged()
     {
-        if(searchTree != 0)
-            searchTree.reset();
+        return true;
     }
 
     // --------------------------------------------------------------------------
-    KDTree::Pointer createSearchTreeWithAllNodesOnDesignSurface()
+    void DeleteSearchTree()
     {
-        return boost::shared_ptr<KDTree>(new KDTree(mListOfNodesOfDesignSurface.begin(), mListOfNodesOfDesignSurface.end(), mBucketSize));
-    }    
+        mpSearchTree.reset();
+    }     
 
- // --------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     void MapComponentwiseVariablesToDesignSpace( const Variable<array_3d>& rNodalVariable,
                                                  VectorType& x_variables_in_design_space, 
                                                  VectorType& y_variables_in_design_space, 
@@ -353,7 +391,7 @@ public:
                                                                              resulting_squared_distances.begin(), 
                                                                              mMaxNeighborNodes );
 
-            ThrowWarningIfNodeNeighborsExceedLimit( design_node, number_of_neighbors );                                                                               
+            ThrowWarningIfMaxNodeNeighborsReached( design_node, number_of_neighbors );                                                                               
 
             DoubleVector list_of_weights( number_of_neighbors, 0.0 );
             double sum_of_weights = 0.0;
@@ -364,7 +402,7 @@ public:
             for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
             {
                 ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-                int neighbor_node_mapping_id = neighbor_node.GetValue(MAPPING_MATRIX_ID);
+                int neighbor_node_mapping_id = neighbor_node.GetValue(MAPPING_ID);
 
                 double weight = list_of_weights[neighbor_itr] / sum_of_weights;
 
@@ -375,7 +413,7 @@ public:
         } 
     }   
 
- // --------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     void MapComponentwiseVariablesToGeometrySpace( const Variable<array_3d>& rNodalVariable,
                                                    VectorType& x_variables_in_geometry_space, 
                                                    VectorType& y_variables_in_geometry_space, 
@@ -393,14 +431,14 @@ public:
                                                                              resulting_squared_distances.begin(), 
                                                                              mMaxNeighborNodes );
 
-            ThrowWarningIfNodeNeighborsExceedLimit( design_node, number_of_neighbors );                                                                               
+            ThrowWarningIfMaxNodeNeighborsReached( design_node, number_of_neighbors );                                                                               
             
             DoubleVector list_of_weights( number_of_neighbors, 0.0 );
             double sum_of_weights = 0.0;
             ComputeWeightForAllNeighbors( design_node, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
 
             // Local mapping including post-scaling
-            int design_node_mapping_id = design_node.GetValue(MAPPING_MATRIX_ID);
+            int design_node_mapping_id = design_node.GetValue(MAPPING_ID);
             for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
             {
                 double weight = list_of_weights[neighbor_itr] / sum_of_weights;
@@ -423,7 +461,7 @@ public:
     {
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
-            int i = node_i->GetValue(MAPPING_MATRIX_ID);
+            int i = node_i->GetValue(MAPPING_ID);
 
             VectorType node_vector = ZeroVector(3);
             node_vector(0) = vector_field_x[i];
@@ -434,7 +472,7 @@ public:
     }    
 
     // --------------------------------------------------------------------------
-    void ThrowWarningIfNodeNeighborsExceedLimit( ModelPart::NodeType& given_node, unsigned int number_of_neighbors )
+    void ThrowWarningIfMaxNodeNeighborsReached( ModelPart::NodeType& given_node, unsigned int number_of_neighbors )
     {
         if(number_of_neighbors >= mMaxNeighborNodes)
             std::cout << "\n> WARNING!!!!! For node " << given_node.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << mMaxNeighborNodes << " nodes) reached!" << std::endl;

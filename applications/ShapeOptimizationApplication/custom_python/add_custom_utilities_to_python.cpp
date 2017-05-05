@@ -50,12 +50,13 @@ void  AddCustomUtilitiesToPython()
     // For perfoming the mapping according to Vertex Morphing
     // ================================================================
     class_<MapperVertexMorphing, bases<Process> >("MapperVertexMorphing", init<ModelPart&, boost::python::dict, Parameters&>())
-        .def("map_to_design_space", &MapperVertexMorphing::map_to_design_space)
-        .def("map_to_geometry_space", &MapperVertexMorphing::map_to_geometry_space)
+        .def("MapToDesignSpace", &MapperVertexMorphing::MapToDesignSpace)
+        .def("MapToGeometrySpace", &MapperVertexMorphing::MapToGeometrySpace)
         ;
+
     class_<MapperVertexMorphingMatrixFree, bases<Process> >("MapperVertexMorphingMatrixFree", init<ModelPart&, boost::python::dict, Parameters&>())
-        .def("map_to_design_space", &MapperVertexMorphingMatrixFree::map_to_design_space)
-        .def("map_to_geometry_space", &MapperVertexMorphingMatrixFree::map_to_geometry_space)
+        .def("mapToDesignSpace", &MapperVertexMorphingMatrixFree::mapToDesignSpace)
+        .def("mapToGeometrySpace", &MapperVertexMorphingMatrixFree::mapToGeometrySpace)
         ;
     
     // ================================================================

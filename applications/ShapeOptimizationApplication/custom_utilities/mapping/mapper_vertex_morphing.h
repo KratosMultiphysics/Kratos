@@ -149,7 +149,7 @@ public:
     {
         unsigned int i = 0;
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
-            node_i->SetValue(MAPPING_MATRIX_ID,i++);
+            node_i->SetValue(MAPPING_ID,i++);
     }
 
     // --------------------------------------------------------------------------
@@ -290,7 +290,7 @@ public:
             array_3d i_coord = node_i.Coordinates();
 
             // Get tID of the node in the mapping matrix
-            int i = node_i.GetValue(MAPPING_MATRIX_ID);
+            int i = node_i.GetValue(MAPPING_ID);
 
             // Arrays needed for spatial search
             unsigned int maxNodesAffected = 10000;            
@@ -323,7 +323,7 @@ public:
                 array_3d j_coord = node_j.Coordinates();
 
                 // Get the id of the node in the mapping matrix
-                int j = node_j.GetValue(MAPPING_MATRIX_ID);
+                int j = node_j.GetValue(MAPPING_ID);
 
                 // Computation of weight according specified weighting function
                 double Aij = filterFunction.compute_weight(i_coord,j_coord);
@@ -351,7 +351,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void map_to_design_space( bool constraint_given )
+    void MapToDesignSpace( bool constraint_given )
     {
         // First we compute the new mapping matrix assuming that with each map to design space, the geometry changed
         compute_mapping_matrix();
@@ -384,7 +384,7 @@ public:
         dJdZ.resize(mNumberOfDesignVariables);
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
-            int i = node_i->GetValue(MAPPING_MATRIX_ID);
+            int i = node_i->GetValue(MAPPING_ID);
             array_3d& node_sens = node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
             dJdX[i] = node_sens[0];
             dJdY[i] = node_sens[1];
@@ -398,7 +398,7 @@ public:
             dCdZ.resize(mNumberOfDesignVariables);
             for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
             {
-                int i = node_i->GetValue(MAPPING_MATRIX_ID);
+                int i = node_i->GetValue(MAPPING_ID);
                 array_3d& node_sens = node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY);
                 dCdX[i] = node_sens[0];
                 dCdY[i] = node_sens[1];
@@ -418,7 +418,7 @@ public:
         // Assign results to nodal variables
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
-            int i = node_i->GetValue(MAPPING_MATRIX_ID);
+            int i = node_i->GetValue(MAPPING_ID);
             VectorType dJds_i = ZeroVector(3);
             dJds_i(0) = dJdsx[i];
             dJds_i(1) = dJdsy[i];
@@ -441,7 +441,7 @@ public:
             // Assign results to nodal variables
             for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
             {
-                int i = node_i->GetValue(MAPPING_MATRIX_ID);
+                int i = node_i->GetValue(MAPPING_ID);
                 VectorType dCds_i = ZeroVector(3);
                 dCds_i(0) = dCdsx[i];
                 dCds_i(1) = dCdsy[i];
@@ -455,7 +455,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void map_to_geometry_space()
+    void MapToGeometrySpace()
     {
         // Measure time of mapping
         boost::timer mapping_time;
@@ -468,7 +468,7 @@ public:
         dsz.resize(mNumberOfDesignVariables);
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
-            int i = node_i->GetValue(MAPPING_MATRIX_ID);
+            int i = node_i->GetValue(MAPPING_ID);
             dsx[i] = node_i->FastGetSolutionStepValue(DESIGN_UPDATE_X);
             dsy[i] = node_i->FastGetSolutionStepValue(DESIGN_UPDATE_Y);
             dsz[i] = node_i->FastGetSolutionStepValue(DESIGN_UPDATE_Z);
@@ -496,7 +496,7 @@ public:
             else
             {
                 // Read shape update from solution vector
-                int i = node_i->GetValue(MAPPING_MATRIX_ID);
+                int i = node_i->GetValue(MAPPING_ID);
                 array_3d shape_update;
                 shape_update[0] = dx[i];
                 shape_update[1] = dy[i];
