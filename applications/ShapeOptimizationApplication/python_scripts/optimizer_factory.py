@@ -88,10 +88,12 @@ class VertexMorphingMethod:
         designSurface = self.__getDesignSurfaceFromInputModelPart()
         listOfDampingRegions = self.__getListOfDampingRegionsFromInputModelPart()
 
+        # neu: ohne listOfDampingRegions an 2. stelle
         mapper = mapper_factory.CreateMapper( designSurface, listOfDampingRegions, self.optimizationSettings ) 
         communicator = communicator_factory.CreateCommunicator( self.optimizationSettings )
-            
-        algorithm = algorithm_factory.CreateAlgorithm( designSurface, self.analyzer, mapper, communicator, self.optimizationSettings )
+
+        # neu: mit listOfDampingRegions an 4. stelle
+        algorithm = algorithm_factory.CreateAlgorithm( designSurface, self.analyzer, mapper, listOfDampingRegions , communicator, self.optimizationSettings )
         algorithm.execute()       
 
         print("\n> ==============================================================================================================")

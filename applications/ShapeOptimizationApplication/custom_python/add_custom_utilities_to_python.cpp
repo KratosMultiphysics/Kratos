@@ -28,6 +28,7 @@
 #include "custom_utilities/geometry_utilities.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h"
+#include "custom_utilities/damping/damping_utilities.h"
 #include "custom_utilities/response_functions/strain_energy_response_function.h"
 #include "custom_utilities/response_functions/mass_response_function.h"
 #include "custom_utilities/input_output/universal_file_io.h"
@@ -55,6 +56,13 @@ void  AddCustomUtilitiesToPython()
     class_<MapperVertexMorphingMatrixFree, bases<Process> >("MapperVertexMorphingMatrixFree", init<ModelPart&, boost::python::dict, Parameters&>())
         .def("map_to_design_space", &MapperVertexMorphingMatrixFree::map_to_design_space)
         .def("map_to_geometry_space", &MapperVertexMorphingMatrixFree::map_to_geometry_space)
+        ;
+    
+    // ================================================================
+    // For perfoming the damping
+    // ================================================================
+    class_<DampingUtilities, bases<Process> >("DampingUtilities", init<ModelPart&, boost::python::dict, Parameters&>())
+        .def("damp_nodal_variable", &DampingUtilities::damp_nodal_variable)
         ;
  
     // ========================================================================

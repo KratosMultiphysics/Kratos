@@ -30,7 +30,7 @@ import optimization_data_logger_factory as optimization_data_logger_factory
 class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
-    def __init__( self, designSurface, analyzer, mapper, communicator, optimizationSettings ):
+    def __init__( self, designSurface, analyzer, mapper, listOfDampingRegions, communicator, optimizationSettings ):
 
         self.designSurface = designSurface
         self.analyzer = analyzer
@@ -38,11 +38,13 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.communicator = communicator
         self.optimizationSettings = optimizationSettings
 
-        self.dampingDampingUtilities = DampingUtilities( ... )
+        #self.dampingDampingUtilities = DampingUtilities( ... )
+        self.dampingUtilities = DampingUtilities( designSurface, listOfDampingRegions, self.optimizationSettings )
 
         self.maxIterations = optimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1        
         self.onlyObjective = optimizationSettings["objectives"][0]["identifier"].GetString()
         self.initialStepSize = optimizationSettings["line_search"]["step_size"].GetDouble()
+        self.performDamping = optimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
 
         self.geometryTools = GeometryUtilities( designSurface )
         self.optimizationTools = OptimizationUtilities( designSurface, optimizationSettings )
@@ -82,7 +84,9 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
             self.__alignSensitivitiesToLocalSurfaceNormal()
 
-            #self.dampingDampingUtilities.dampNodalVariable( OBJECTIVE_SENSITIVITY )
+            if self.performDamping:
+                #self.dampingDampingUtilities.dampNodalVariable( OBJECTIVE_SENSITIVITY )
+                self.__dampObjectiveSensitivities()
 
             self.__mapSensitivitiesToDesignSpace()
 
@@ -90,7 +94,9 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
             self.__mapDesignUpdateToGeometrySpaceToGetShapeUpdate()  
 
-            #self.dampingDampingUtilities.dampNodalVariable( SHAPE_UPDATE )
+            if self.performDamping:
+                #self.dampingDampingUtilities.dampNodalVariable( SHAPE_UPDATE )
+                self.__dampShapeUpdate()
 
             self.__updateShape()
 
@@ -135,6 +141,10 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             self.geometryTools.project_nodal_variable_on_unit_surface_normals( OBJECTIVE_SENSITIVITY )
 
     # --------------------------------------------------------------------------
+    def __dampObjectiveSensitivities( self ): # edit here
+        self.dampingUtilities.damp_nodal_variable( OBJECTIVE_SENSITIVITY )
+
+    # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace( self ):
         self.mapper.map_to_design_space( OBJECTIVE_SENSITIVITY, MAPPED_OBJECTIVE_SENSITIVITY )
 
@@ -147,6 +157,9 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
     def __mapDesignUpdateToGeometrySpaceToGetShapeUpdate( self ):
         self.mapper.map_to_geometry_space( DESIGN_UPDATE, SHAPE_UPDATE ) 
 
+    # --------------------------------------------------------------------------
+    def __dampShapeUpdate( self ): # edit here 
+        self.dampingUtilities.damp_nodal_variable( SHAPE_UPDATE )
     # --------------------------------------------------------------------------
     def __updateShape( self ):
         self.geometryTools.update_coordinates_according_to_input_variable( SHAPE_UPDATE )

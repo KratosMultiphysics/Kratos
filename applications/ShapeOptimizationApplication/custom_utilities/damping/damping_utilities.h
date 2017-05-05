@@ -4,12 +4,13 @@
 //  License:         BSD License
 //                   license: ShapeOptimizationApplication/license.txt
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner,
+//                   Willer Matthias, https://github.com/matthiaswiller
 //
 // ==============================================================================
 
-#ifndef MAPPER_VERTEX_MORPHING_MATRIX_FREE_H
-#define MAPPER_VERTEX_MORPHING_MATRIX_FREE_H
+#ifndef DAMPING_UTILITIES_H
+#define DAMPING_UTILITIES_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -42,8 +43,8 @@
 #include "../../kratos/utilities/normal_calculation_utils.h"
 #include "../../kratos/spaces/ublas_space.h"
 #include "shape_optimization_application.h"
-#include "filter_function.h"
-//#include "damping_function.h"
+//#include "filter_function.h"
+#include "damping_function.h"
 
 // ==============================================================================
 
@@ -75,7 +76,7 @@ namespace Kratos
 
 */
 
-class MapperVertexMorphingMatrixFree
+class DampingUtilities
 {
 public:
     ///@name Type Definitions
@@ -100,31 +101,31 @@ public:
     typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
     typedef Tree< KDTreePartition<BucketType> > KDTree;    
 
-    /// Pointer definition of MapperVertexMorphingMatrixFree
-    KRATOS_CLASS_POINTER_DEFINITION(MapperVertexMorphingMatrixFree);
+    /// Pointer definition of DampingUtilities
+    KRATOS_CLASS_POINTER_DEFINITION(DampingUtilities);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MapperVertexMorphingMatrixFree( ModelPart& designSurface, boost::python::dict dampingRegions, Parameters& optimizationSettings )
+    DampingUtilities( ModelPart& designSurface, boost::python::dict dampingRegions, Parameters& optimizationSettings )
         : mrDesignSurface( designSurface ),
-          mNumberOfDesignVariables( designSurface.Nodes().size() ),
-          mFilterRadius( optimizationSettings["design_variables"]["filter"]["filter_radius"].GetDouble() ),
-          mFilterType( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() )
+          //mNumberOfDesignVariables( designSurface.Nodes().size() ),
+          mFilterRadius( optimizationSettings["design_variables"]["filter"]["filter_radius"].GetDouble() )
+          //mFilterType( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() )
           //mPerformDamping( optimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool() )
     {
         createListOfNodesOfDesignSurface();
-        createFilterFunction();
-        assignMappingMatrixIds();
-        //initalizeDampingFactorsToHaveNoInfluence(); 
+        //createFilterFunction();
+        //assignMappingMatrixIds();
+        initalizeDampingFactorsToHaveNoInfluence(); 
         //if(mPerformDamping)   
-        //    setDampingFactorsForAllDampingRegions( dampingRegions, optimizationSettings["design_variables"]["damping"]["damping_regions"] );         
+        setDampingFactorsForAllDampingRegions( dampingRegions, optimizationSettings["design_variables"]["damping"]["damping_regions"] );         
     }
 
     /// Destructor.
-    virtual ~MapperVertexMorphingMatrixFree()
+    virtual ~DampingUtilities()
     {
     }
 
@@ -149,21 +150,21 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void createFilterFunction()
+ /*   void createFilterFunction()
     {
         mpFilterFunction = boost::shared_ptr<FilterFunction>(new FilterFunction(mFilterType, mFilterRadius));
     }     
-
+*/
     // --------------------------------------------------------------------------
-    void assignMappingMatrixIds()
+ /*   void assignMappingMatrixIds()
     {
         unsigned int i = 0;
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
             node_i->SetValue(MAPPING_MATRIX_ID,i++);
     }
-
+*/
     // --------------------------------------------------------------------------
-/*    void initalizeDampingFactorsToHaveNoInfluence()
+    void initalizeDampingFactorsToHaveNoInfluence()
     {
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
@@ -172,9 +173,9 @@ public:
             node_i->SetValue(DAMPING_FACTOR_Z,1.0);  
         } 
     }
-*/
+
     // --------------------------------------------------------------------------
-/*    void setDampingFactorsForAllDampingRegions( boost::python::dict dampingRegions, Parameters dampingSettings )
+    void setDampingFactorsForAllDampingRegions( boost::python::dict dampingRegions, Parameters dampingSettings )
     {
         std::cout << "\n> Starting to prepare damping..." << std::endl;
 
@@ -231,31 +232,31 @@ public:
 
         std::cout << "> Finished preparation of damping." << std::endl;
     }
-*/
+
     // --------------------------------------------------------------------------
-/*    DampingFunction::Pointer CreateDampingFunction( std::string damping_type, double damping_radius )
+    DampingFunction::Pointer CreateDampingFunction( std::string damping_type, double damping_radius )
     {
         return boost::shared_ptr<DampingFunction>(new DampingFunction(damping_type, damping_radius));
     }    
+
+    // --------------------------------------------------------------------------
+    void damp_nodal_variable( const Variable<array_3d> &rNodalVariable )
+    {
+        //if(mPerformDamping)
+        dampNodalVariable( rNodalVariable );
+        //perform_mapping_to_design_space( rNodalVariable, rNodalVariableInDesignSpace );
+    }
+
+    // --------------------------------------------------------------------------
+/*    void map_to_geometry_space( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
+    {
+        //perform_mapping_to_geometry_space( rNodalVariable, rNodalVariableInGeometrySpace );
+        if(mPerformDamping)
+            dampNodalVariable( rNodalVariable );
+    }
 */
     // --------------------------------------------------------------------------
-    void map_to_design_space( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
-    {
-        //if(mPerformDamping)
-        //    dampNodalVariable( rNodalVariable );
-        perform_mapping_to_design_space( rNodalVariable, rNodalVariableInDesignSpace );
-    }
-
-    // --------------------------------------------------------------------------
-    void map_to_geometry_space( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
-    {
-        perform_mapping_to_geometry_space( rNodalVariable, rNodalVariableInGeometrySpace );
-        //if(mPerformDamping)
-        //    dampNodalVariable( rNodalVariable );
-    }
-
-    // --------------------------------------------------------------------------
-    void perform_mapping_to_design_space( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
+/*    void perform_mapping_to_design_space( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
     {
         boost::timer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;
@@ -280,9 +281,9 @@ public:
 
         std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
     }
-
+*/
     // --------------------------------------------------------------------------
-    void perform_mapping_to_geometry_space( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
+/*    void perform_mapping_to_geometry_space( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
     {
         boost::timer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to geometry space..." << std::endl;
@@ -307,9 +308,9 @@ public:
 
         std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
     }
-
+*/
     // --------------------------------------------------------------------------
-/*    void dampNodalVariable( const Variable<array_3d> &rNodalVariable )
+    void dampNodalVariable( const Variable<array_3d> &rNodalVariable )
     {
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {   
@@ -321,7 +322,7 @@ public:
             nodalVariable[2] *= damping_factor[2];  
         }  
     }
-*/
+
     // --------------------------------------------------------------------------
     void ResetSearchTreeIfAlreadyExisting( KDTree::Pointer searchTree )
     {
@@ -336,7 +337,7 @@ public:
     }    
 
  // --------------------------------------------------------------------------
-    void MapComponentwiseVariablesToDesignSpace( const Variable<array_3d>& rNodalVariable,
+/*    void MapComponentwiseVariablesToDesignSpace( const Variable<array_3d>& rNodalVariable,
                                                  VectorType& x_variables_in_design_space, 
                                                  VectorType& y_variables_in_design_space, 
                                                  VectorType& z_variables_in_design_space )
@@ -374,9 +375,9 @@ public:
             }                          
         } 
     }   
-
+*/
  // --------------------------------------------------------------------------
-    void MapComponentwiseVariablesToGeometrySpace( const Variable<array_3d>& rNodalVariable,
+/*    void MapComponentwiseVariablesToGeometrySpace( const Variable<array_3d>& rNodalVariable,
                                                    VectorType& x_variables_in_geometry_space, 
                                                    VectorType& y_variables_in_geometry_space, 
                                                    VectorType& z_variables_in_geometry_space )
@@ -414,9 +415,9 @@ public:
             }                          
         }        
     }
-
+*/
     // --------------------------------------------------------------------------
-    void AssignComponentwiseMappedVariablesToNodes( VectorType& vector_field_x, 
+ /*   void AssignComponentwiseMappedVariablesToNodes( VectorType& vector_field_x, 
                                                     VectorType& vector_field_y, 
                                                     VectorType& vector_field_z,
                                                     const Variable<array_3d> &rNodalVariable )
@@ -432,7 +433,7 @@ public:
             node_i->FastGetSolutionStepValue(rNodalVariable) = node_vector;
         }
     }    
-
+*/
     // --------------------------------------------------------------------------
     void ThrowWarningIfNodeNeighborsExceedLimit( ModelPart::NodeType& given_node, unsigned int number_of_neighbors )
     {
@@ -441,7 +442,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void ComputeWeightForAllNeighbors(  ModelPart::NodeType& design_node, 
+/*    void ComputeWeightForAllNeighbors(  ModelPart::NodeType& design_node, 
                                         NodeVector& neighbor_nodes, 
                                         unsigned int number_of_neighbors,
                                         DoubleVector& list_of_weights, 
@@ -456,7 +457,7 @@ public:
             sum_of_weights += weight;
         }
     }
-
+*/
     // ==============================================================================
 
     ///@}
@@ -476,13 +477,13 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "MapperVertexMorphingMatrixFree";
+        return "DampingUtilities";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "MapperVertexMorphingMatrixFree";
+        rOStream << "DampingUtilities";
     }
 
     /// Print object's data.
@@ -548,10 +549,10 @@ private:
     // Initialized by class constructor
     // ==============================================================================
     ModelPart& mrDesignSurface;
-    const unsigned int mNumberOfDesignVariables;
+    //const unsigned int mNumberOfDesignVariables;
     double mFilterRadius;
-    std::string mFilterType;
-    FilterFunction::Pointer mpFilterFunction;
+    //std::string mFilterType;
+    //FilterFunction::Pointer mpFilterFunction;
     //bool mPerformDamping;
 
     // ==============================================================================
@@ -587,15 +588,15 @@ private:
     ///@{
 
     /// Assignment operator.
-//      MapperVertexMorphingMatrixFree& operator=(MapperVertexMorphingMatrixFree const& rOther);
+//      DampingUtilities& operator=(DampingUtilities const& rOther);
 
     /// Copy constructor.
-//      MapperVertexMorphingMatrixFree(MapperVertexMorphingMatrixFree const& rOther);
+//      DampingUtilities(DampingUtilities const& rOther);
 
 
     ///@}
 
-}; // Class MapperVertexMorphingMatrixFree
+}; // Class DampingUtilities
 
 ///@}
 
@@ -612,4 +613,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // MAPPER_VERTEX_MORPHING_MATRIX_FREE_H
+#endif // DAMPIG_UTILITIES_H
