@@ -143,12 +143,12 @@ set(Boost_USE_MULTITHREADED ON)
 set(Boost_REALPATH ON)
 
 # Select python3 by default unless its specified in the configure file
-message("Using component: python${BOOST_PYTHON_SUFIX}")
-if(BOOST_PYTHON_SUFIX)
-  FIND_PACKAGE(Boost COMPONENTS "python${BOOST_PYTHON_SUFIX}" REQUIRED)
-else(BOOST_PYTHON_SUFIX)
+message("Using component: python${BOOST_PYTHON_SUFFIX}")
+if(BOOST_PYTHON_SUFFIX)
+  FIND_PACKAGE(Boost COMPONENTS "python${BOOST_PYTHON_SUFFIX}" REQUIRED)
+else(BOOST_PYTHON_SUFFIX)
   FIND_PACKAGE(Boost COMPONENTS python REQUIRED)
-endif(BOOST_PYTHON_SUFIX)
+endif(BOOST_PYTHON_SUFFIX)
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
