@@ -141,9 +141,21 @@ endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 set(Boost_USE_STATIC_LIBS   OFF)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_REALPATH ON)
-find_package(Boost COMPONENTS python REQUIRED)
+
+# Select python3 by default unless its specified in the configure file
+message("Using component: python${BOOST_PYTHON_SUFFIX}")
+if(BOOST_PYTHON_SUFFIX)
+  FIND_PACKAGE(Boost COMPONENTS "python${BOOST_PYTHON_SUFFIX}" REQUIRED)
+else(BOOST_PYTHON_SUFFIX)
+  FIND_PACKAGE(Boost COMPONENTS python REQUIRED)
+endif(BOOST_PYTHON_SUFFIX)
+
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
+
+message("Boost Include: ${Boost_INCLUDE_DIRS}")
+message("Boost Linkdir: ${Boost_LIBRARY_DIRS}")
+message("Boostlib used: ${Boost_LIBRARIES}")
 
 ##*****************************
 # Finding and including PYTHON
@@ -316,8 +328,7 @@ install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DE
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/application_importer.py" DESTINATION KratosMultiphysics )
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_unittest.py" DESTINATION KratosMultiphysics RENAME KratosUnittest.py )
 
-message("boost python lib used = " ${Boost_PYTHON_LIBRARY_RELEASE})
-install(FILES ${Boost_PYTHON_LIBRARY_RELEASE} DESTINATION libs)
+install(FILES ${Boost_LIBRARIES} DESTINATION libs)
 install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
 
 # Install blas and lapack
