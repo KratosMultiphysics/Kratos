@@ -252,23 +252,23 @@ public:
     }    
 */
     // --------------------------------------------------------------------------
-    void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
+/*    void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
     {
         //if(mPerformDamping)
         //    dampNodalVariable( rNodalVariable );
         PerformMappingToDesignSpace( rNodalVariable, rNodalVariableInDesignSpace );
     }
-
+*/
     // --------------------------------------------------------------------------
-    void MapToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
+/*    void MapToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
     {
         PerformMappingToGeometrySpace( rNodalVariable, rNodalVariableInGeometrySpace );
         //if(mPerformDamping)
         //    dampNodalVariable( rNodalVariable );
     }
-
+*/
     // --------------------------------------------------------------------------
-    void PerformMappingToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
+    void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
     {
         boost::timer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;
@@ -294,7 +294,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void PerformMappingToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
+    void MapToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
     {
         boost::timer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to geometry space..." << std::endl;
