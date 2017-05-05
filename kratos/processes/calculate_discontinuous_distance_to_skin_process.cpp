@@ -72,7 +72,14 @@ namespace Kratos
 		for (int i = 0; i < number_of_tetrahedra_points; i++) {
 			elemental_distances[i] = std::numeric_limits<double>::max();
 			for (auto triangle : rIntersectedObjects.GetContainer()) {
-				elemental_distances[i] = std::min(elemental_distances[i],GeometryUtils::PointDistanceToTriangle3D(triangle->GetGeometry()[0], triangle->GetGeometry()[1], triangle->GetGeometry()[2], rElement1.GetGeometry()[i]));
+				auto distance = GeometryUtils::PointDistanceToTriangle3D(triangle->GetGeometry()[0], triangle->GetGeometry()[1], triangle->GetGeometry()[2], rElement1.GetGeometry()[i]);
+				if (fabs(elemental_distances[i] > distance))
+				{
+					elemental_distances[i] = distance;
+					Plane3D plane(triangle->GetGeometry()[0], triangle->GetGeometry()[1], triangle->GetGeometry()[2]);
+					if (plane.CalculateSignedDistance(rElement1.GetGeometry()[i]) < 0)
+						elemental_distances[i] = -elemental_distances[i];
+				}
 			}
 		}
 
@@ -107,35 +114,22 @@ namespace Kratos
 
 		int number_of_zero_distance_nodes = 0;
 		for (auto distance : elemental_distances) {
-			if (distance < epsilon)
+			if (fabs(distance) < epsilon)
 				number_of_zero_distance_nodes++;
 		}
 		
 		if (number_of_cut_edge == 3 && (number_of_zero_distance_nodes == 0)) {
-			Plane3D plane(edge_optimum_cut_point[0], edge_optimum_cut_point[1], edge_optimum_cut_point[2]);
-			for (int i = 0; i < number_of_tetrahedra_points; i++) {
-				if (plane.CalculateSignedDistance(rElement1.GetGeometry()[i]) < 0)
-					elemental_distances[i] = -elemental_distances[i];
-			}
+			//Plane3D plane(edge_optimum_cut_point[0], edge_optimum_cut_point[1], edge_optimum_cut_point[2]);
+			//for (int i = 0; i < number_of_tetrahedra_points; i++) {
+			//	if (plane.CalculateSignedDistance(rElement1.GetGeometry()[i]) < 0)
+			//		elemental_distances[i] = -elemental_distances[i];
+			//}
 			rElement1.Set(TO_SPLIT, true);
 		}
-		else if (number_of_cut_edge == 3 && (number_of_zero_distance_nodes == 1)) {
+		else if (number_of_cut_edge == 3) {  // number_of_zero_distance_nodes != 0
 			Plane3D plane(edge_optimum_cut_point[0], edge_optimum_cut_point[1], edge_optimum_cut_point[2]);
 			for (int i = 0; i < number_of_tetrahedra_points; i++) {
-				if (elemental_distances[i] > epsilon) {
-					if (plane.CalculateSignedDistance(rElement1.GetGeometry()[i]) > epsilon) {
-						rElement1.Set(TO_SPLIT, true);
-					}
-				}
-				else // avoid zero distance
-					elemental_distances[i] = -epsilon;
-			}
-
-		}
-		else if (number_of_cut_edge == 3 && (number_of_zero_distance_nodes > 1)) {
-			Plane3D plane(edge_optimum_cut_point[0], edge_optimum_cut_point[1], edge_optimum_cut_point[2]);
-			for (int i = 0; i < number_of_tetrahedra_points; i++) {
-				if (elemental_distances[i] > epsilon) {
+				if (fabs(elemental_distances[i]) > epsilon) {
 					if (plane.CalculateSignedDistance(rElement1.GetGeometry()[i]) > epsilon) {
 						rElement1.Set(TO_SPLIT, true);
 					}
@@ -149,7 +143,7 @@ namespace Kratos
 			if (number_of_zero_distance_nodes != 0) {
 				Plane3D plane(edge_optimum_cut_point[0], edge_optimum_cut_point[1], edge_optimum_cut_point[2]);
 				for (int i = 0; i < number_of_tetrahedra_points; i++) {
-					if (elemental_distances[i] > epsilon) {
+					if (fabs(elemental_distances[i]) > epsilon) {
 						if (plane.CalculateSignedDistance(rElement1.GetGeometry()[i]) > epsilon) {
 							rElement1.Set(TO_SPLIT, true);
 						}
@@ -159,11 +153,11 @@ namespace Kratos
 				}
 			}
 			else {
-				Plane3D plane(edge_optimum_cut_point[0], edge_optimum_cut_point[1], edge_optimum_cut_point[2]);
-				for (int i = 0; i < number_of_tetrahedra_points; i++) {
-					if (plane.CalculateSignedDistance(rElement1.GetGeometry()[i]) < -std::numeric_limits<double>::epsilon())
-						elemental_distances[i] = -elemental_distances[i];
-				}
+				//Plane3D plane(edge_optimum_cut_point[0], edge_optimum_cut_point[1], edge_optimum_cut_point[2]);
+				//for (int i = 0; i < number_of_tetrahedra_points; i++) {
+				//	if (plane.CalculateSignedDistance(rElement1.GetGeometry()[i]) < -std::numeric_limits<double>::epsilon())
+				//		elemental_distances[i] = -elemental_distances[i];
+				//}
 				rElement1.Set(TO_SPLIT, true);
 			}
 				

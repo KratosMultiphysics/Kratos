@@ -132,7 +132,7 @@ namespace Kratos {
 		  skin_part.CreateNewNode(904, 0.0, 10.0, 5.0);
 		  Properties::Pointer p_properties(new Properties(0));
 		  skin_part.CreateNewElement("Element3D3N", 901, { 901,902,903 }, p_properties);
-		  skin_part.CreateNewElement("Element3D3N", 902, { 901,904,903 }, p_properties);
+		  skin_part.CreateNewElement("Element3D3N", 902, { 901,903,904 }, p_properties);
 
 		  // Compute distance
 		  // TODO: Change the tested process as soon as the new distance process is available

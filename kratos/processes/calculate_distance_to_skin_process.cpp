@@ -46,7 +46,7 @@ namespace Kratos
 				for (int i = 0; i < number_of_tetrahedra_points; i++) {
 					Node<3>& r_node = element.GetGeometry()[i];
 					double& r_distance = r_node.GetSolutionStepValue(DISTANCE);
-					if (fabs(r_distance) > r_elemental_distances[i])
+					if (fabs(r_distance) > fabs(r_elemental_distances[i]))
 						r_distance = r_elemental_distances[i];
 				}
 			}
