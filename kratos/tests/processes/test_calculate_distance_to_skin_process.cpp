@@ -79,7 +79,6 @@ namespace Kratos {
 		  ModelPart skin_rpresentation_part;
 		  sign_distance_process.GenerateSkinModelPart(skin_rpresentation_part);
 
-
 		  GidIO<> gid_io_fluid("C:/Temp/Tests/horizontal_plane_distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
 		  gid_io_fluid.InitializeMesh(0.00);
 		  gid_io_fluid.WriteMesh(volume_part.GetMesh());
@@ -93,6 +92,11 @@ namespace Kratos {
 		  gid_io_skin.WriteMesh(skin_rpresentation_part.GetMesh());
 		  gid_io_skin.FinalizeMesh();
 
+		  for (auto& node : volume_part.Nodes())
+			  if (fabs(node.GetSolutionStepValue(DISTANCE)) < 1.00e16) { // There are no propagation in this version so I avoid numeric_limit::max() one
+				  auto distance = node.Z() - 2.00;
+				  KRATOS_CHECK_NEAR(node.GetSolutionStepValue(DISTANCE), distance, 1e-6);
+			  }
 	  }
 
 	  KRATOS_TEST_CASE_IN_SUITE(HorizontalPlaneZeroDistanceProcess, KratosCoreFastSuite)

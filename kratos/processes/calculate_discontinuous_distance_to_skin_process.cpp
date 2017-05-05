@@ -65,6 +65,7 @@ namespace Kratos
 		// This function assumes tetrahedra element and triangle intersected object as input at this moment
 		constexpr int number_of_tetrahedra_points = 4;
 		constexpr double epsilon = std::numeric_limits<double>::epsilon();
+		int number_of_zero_distance_nodes = 0;
 		auto& element_geometry = rElement1.GetGeometry();
 		Vector& elemental_distances = rElement1.GetValue(ELEMENTAL_DISTANCES);
 		elemental_distances.resize(number_of_tetrahedra_points, false);
@@ -75,8 +76,10 @@ namespace Kratos
 				auto distance = GeometryUtils::PointDistanceToTriangle3D(triangle->GetGeometry()[0], triangle->GetGeometry()[1], triangle->GetGeometry()[2], rElement1.GetGeometry()[i]);
 				if (fabs(elemental_distances[i] > distance))
 				{
-					if (distance < epsilon)
+					if (distance < epsilon) {
 						elemental_distances[i] = -epsilon;
+						number_of_zero_distance_nodes++;
+					}
 					else {
 						elemental_distances[i] = distance;
 						Plane3D plane(triangle->GetGeometry()[0], triangle->GetGeometry()[1], triangle->GetGeometry()[2]);
@@ -116,7 +119,6 @@ namespace Kratos
 			}
 		}
 
-		int number_of_zero_distance_nodes = 0;
 		for (auto distance : elemental_distances) {
 			if (fabs(distance) < epsilon)
 				number_of_zero_distance_nodes++;
