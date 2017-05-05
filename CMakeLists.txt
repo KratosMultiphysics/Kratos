@@ -329,6 +329,7 @@ install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DE
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/application_importer.py" DESTINATION KratosMultiphysics )
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_unittest.py" DESTINATION KratosMultiphysics RENAME KratosUnittest.py )
 
+install(FILES ${Boost_LIBRARIES} DESTINATION libs)
 install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
 
 # Install blas and lapack
