@@ -176,6 +176,9 @@ CMAKE_BUILD=(
   # Install info
   -DCMAKE_INSTALL_RPATH="${KRATOS_ROOT}/libs"
   -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE
+
+  # Custom python suffix for liboost-python
+  -DPYTHON_SUFIX="-py34"
 )
 
 ########################################################################################################################
