@@ -116,12 +116,12 @@ public:
           //mFilterType( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() )
           //mPerformDamping( optimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool() )
     {
-        createListOfNodesOfDesignSurface();
+        CreateListOfNodesOfDesignSurface();
         //createFilterFunction();
         //assignMappingMatrixIds();
-        initalizeDampingFactorsToHaveNoInfluence(); 
+        InitalizeDampingFactorsToHaveNoInfluence(); 
         //if(mPerformDamping)   
-        setDampingFactorsForAllDampingRegions( dampingRegions, optimizationSettings["design_variables"]["damping"]["damping_regions"] );         
+        SetDampingFactorsForAllDampingRegions( dampingRegions, optimizationSettings["design_variables"]["damping"]["damping_regions"] );         
     }
 
     /// Destructor.
@@ -140,7 +140,7 @@ public:
     ///@{
 
     // ==============================================================================
-    void createListOfNodesOfDesignSurface()
+    void CreateListOfNodesOfDesignSurface()
     {
         for (ModelPart::NodesContainerType::iterator node_it = mrDesignSurface.NodesBegin(); node_it != mrDesignSurface.NodesEnd(); ++node_it)
         {
@@ -164,7 +164,7 @@ public:
     }
 */
     // --------------------------------------------------------------------------
-    void initalizeDampingFactorsToHaveNoInfluence()
+    void InitalizeDampingFactorsToHaveNoInfluence()
     {
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
@@ -175,7 +175,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void setDampingFactorsForAllDampingRegions( boost::python::dict dampingRegions, Parameters dampingSettings )
+    void SetDampingFactorsForAllDampingRegions( boost::python::dict dampingRegions, Parameters dampingSettings )
     {
         std::cout << "\n> Starting to prepare damping..." << std::endl;
 
@@ -240,13 +240,13 @@ public:
     }    
 
     // --------------------------------------------------------------------------
-    void damp_nodal_variable( const Variable<array_3d> &rNodalVariable )
+/*    void DampNodalVariable( const Variable<array_3d> &rNodalVariable )
     {
         //if(mPerformDamping)
         dampNodalVariable( rNodalVariable );
         //perform_mapping_to_design_space( rNodalVariable, rNodalVariableInDesignSpace );
     }
-
+*/
     // --------------------------------------------------------------------------
 /*    void map_to_geometry_space( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
     {
@@ -310,7 +310,7 @@ public:
     }
 */
     // --------------------------------------------------------------------------
-    void dampNodalVariable( const Variable<array_3d> &rNodalVariable )
+    void DampNodalVariable( const Variable<array_3d> &rNodalVariable )
     {
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {   

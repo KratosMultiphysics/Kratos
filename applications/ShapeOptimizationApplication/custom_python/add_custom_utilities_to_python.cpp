@@ -63,7 +63,7 @@ void  AddCustomUtilitiesToPython()
     // For perfoming the damping
     // ================================================================
     class_<DampingUtilities, bases<Process> >("DampingUtilities", init<ModelPart&, boost::python::dict, Parameters&>())
-        .def("damp_nodal_variable", &DampingUtilities::damp_nodal_variable)
+        .def("DampNodalVariable", &DampingUtilities::DampNodalVariable)
         ;
  
     // ========================================================================

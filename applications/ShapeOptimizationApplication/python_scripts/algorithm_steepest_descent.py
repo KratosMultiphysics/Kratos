@@ -38,7 +38,6 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.communicator = communicator
         self.optimizationSettings = optimizationSettings
 
-        #self.dampingDampingUtilities = DampingUtilities( ... )
         self.dampingUtilities = DampingUtilities( designSurface, listOfDampingRegions, self.optimizationSettings )
 
         self.maxIterations = optimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1        
@@ -85,7 +84,6 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             self.__alignSensitivitiesToLocalSurfaceNormal()
 
             if self.performDamping:
-                #self.dampingDampingUtilities.dampNodalVariable( OBJECTIVE_SENSITIVITY )
                 self.__dampObjectiveSensitivities()
 
             self.__mapSensitivitiesToDesignSpace()
@@ -95,7 +93,6 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             self.__mapDesignUpdateToGeometrySpaceToGetShapeUpdate()  
 
             if self.performDamping:
-                #self.dampingDampingUtilities.dampNodalVariable( SHAPE_UPDATE )
                 self.__dampShapeUpdate()
 
             self.__updateShape()
@@ -141,8 +138,8 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             self.geometryTools.project_nodal_variable_on_unit_surface_normals( OBJECTIVE_SENSITIVITY )
 
     # --------------------------------------------------------------------------
-    def __dampObjectiveSensitivities( self ): # edit here
-        self.dampingUtilities.damp_nodal_variable( OBJECTIVE_SENSITIVITY )
+    def __dampObjectiveSensitivities( self ):
+        self.dampingUtilities.DampNodalVariable( OBJECTIVE_SENSITIVITY )
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace( self ):
@@ -158,8 +155,8 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.mapper.MapToGeometrySpace( DESIGN_UPDATE, SHAPE_UPDATE ) 
 
     # --------------------------------------------------------------------------
-    def __dampShapeUpdate( self ): # edit here 
-        self.dampingUtilities.damp_nodal_variable( SHAPE_UPDATE )
+    def __dampShapeUpdate( self ):
+        self.dampingUtilities.DampNodalVariable( SHAPE_UPDATE )
     # --------------------------------------------------------------------------
     def __updateShape( self ):
         self.geometryTools.update_coordinates_according_to_input_variable( SHAPE_UPDATE )
