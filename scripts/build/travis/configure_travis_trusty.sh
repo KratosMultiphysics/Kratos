@@ -53,7 +53,7 @@ CXX_COMPILER=g++-6
 #    - Example:
 #        BUILD_TYPE="RelWithDebInfo"
 # --------------------------------------------------------------------------------------------------------------
-BUILD_TYPE="Release"
+# BUILD_TYPE="Release"
 
 # Flags for performance
 #    Indicate the compiler performance related flags. Please notice that OX flags are added by cmake
@@ -62,8 +62,8 @@ BUILD_TYPE="Release"
 #        C_PERF_FLAGS="-msse3 -fopenmp"
 #        CXX_PERF_FLAGS="-msse3 -fopenmp"
 # --------------------------------------------------------------------------------------------------------------
-C_PERF_FLAGS="-O1 -fopenmp"
-CXX_PERF_FLAGS="-O1 -fopenmp"
+C_PERF_FLAGS="-O0 -fopenmp"
+CXX_PERF_FLAGS="-O0 -fopenmp"
 
 # Flags for warnings control
 #    Indicate the warning related flags. Wall is enabled by default. This is the proper place to ignore
@@ -112,17 +112,17 @@ CMAKE_LIBS=(
 CMAKE_APPLICATION=(
   -DINCOMPRESSIBLE_FLUID_APPLICATION=OFF
   -DMESHING_APPLICATION=OFF
-  -DEXTERNAL_SOLVERS_APPLICATION=OFF
+  -DEXTERNAL_SOLVERS_APPLICATION=ON
   -DPFEM_APPLICATION=OFF
   -DPFEM_BASE_APPLICATION=OFF
   -DPFEM_SOLID_MECHANICS_APPLICATION=OFF
   -DPFEM_FLUID_DYNAMICS_APPLICATION=OFF
   -DPFEM2_APPLICATION=OFF
   -DSTRUCTURAL_APPLICATION=OFF
-  -DSTRUCTURAL_MECHANICS_APPLICATION=OFF
+  -DSTRUCTURAL_MECHANICS_APPLICATION=ON
   -DCONVECTION_DIFFUSION_APPLICATION=OFF
-  -DSOLID_MECHANICS_APPLICATION=OFF
-  -DFLUID_DYNAMICS_APPLICATION=OFF
+  -DSOLID_MECHANICS_APPLICATION=ON
+  -DFLUID_DYNAMICS_APPLICATION=ON
   -DALE_APPLICATION=OFF
   -DFSI_APPLICATION=OFF
   -DEMPIRE_APPLICATION=OFF
