@@ -28,6 +28,7 @@
 #include "custom_utilities/geometry_utilities.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_iterative.h"
+#include "custom_utilities/mapping/mapper_vertex_morphing_integration.h"
 #include "custom_utilities/response_functions/strain_energy_response_function.h"
 #include "custom_utilities/response_functions/mass_response_function.h"
 #include "custom_utilities/input_output/universal_file_io.h"
@@ -56,7 +57,11 @@ void  AddCustomUtilitiesToPython()
         .def("MapToDesignSpace", &MapperVertexMorphingIterative::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphingIterative::MapToGeometrySpace)
         ;
- 
+    class_<MapperVertexMorphingIntegration, bases<Process> >("MapperVertexMorphingIntegration", init<ModelPart&, boost::python::dict, Parameters&>())
+        .def("MapToDesignSpace", &MapperVertexMorphingIntegration::MapToDesignSpace)
+        .def("MapToGeometrySpace", &MapperVertexMorphingIntegration::MapToGeometrySpace)
+        ;
+
     // ========================================================================
     // For performing individual steps of an optimization algorithm
     // ========================================================================
@@ -94,27 +99,27 @@ void  AddCustomUtilitiesToPython()
     class_<StrainEnergyResponseFunction, bases<Process> >("StrainEnergyResponseFunction", init<ModelPart&, Parameters&>())
         .def("initialize", &StrainEnergyResponseFunction::initialize)
         .def("calculate_value", &StrainEnergyResponseFunction::calculate_value)
-        .def("calculate_gradient", &StrainEnergyResponseFunction::calculate_gradient) 
+        .def("calculate_gradient", &StrainEnergyResponseFunction::calculate_gradient)
         .def("get_value", &StrainEnergyResponseFunction::get_value)
-        .def("get_initial_value", &StrainEnergyResponseFunction::get_initial_value)  
-        .def("get_gradient", &StrainEnergyResponseFunction::get_gradient)                              
-        ; 
+        .def("get_initial_value", &StrainEnergyResponseFunction::get_initial_value)
+        .def("get_gradient", &StrainEnergyResponseFunction::get_gradient)
+        ;
     class_<MassResponseFunction, bases<Process> >("MassResponseFunction", init<ModelPart&, Parameters&>())
         .def("initialize", &MassResponseFunction::initialize)
         .def("calculate_value", &MassResponseFunction::calculate_value)
-        .def("calculate_gradient", &MassResponseFunction::calculate_gradient)  
+        .def("calculate_gradient", &MassResponseFunction::calculate_gradient)
         .def("get_value", &MassResponseFunction::get_value)
-        .def("get_initial_value", &MassResponseFunction::get_initial_value) 
-        .def("get_gradient", &MassResponseFunction::get_gradient)                              
-        ;                     
+        .def("get_initial_value", &MassResponseFunction::get_initial_value)
+        .def("get_gradient", &MassResponseFunction::get_gradient)
+        ;
 
     // ========================================================================
     // For input / output
-    // ======================================================================== 
+    // ========================================================================
     class_<UniversalFileIO, bases<Process> >("UniversalFileIO", init<ModelPart&, Parameters&>())
         .def("initializeLogging", &UniversalFileIO::initializeLogging)
         .def("logNodalResults", &UniversalFileIO::logNodalResults)
-        ;            
+        ;
 }
 
 

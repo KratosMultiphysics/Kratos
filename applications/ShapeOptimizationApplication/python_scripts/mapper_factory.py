@@ -21,9 +21,20 @@ CheckForPreviousImport()
 # ==============================================================================
 def CreateMapper( designSurface, listOfDampingRegions, optimizationSettings ):
     isIterativeMappingRequired = optimizationSettings["design_variables"]["iterative_mapping"].GetBool()
+
+    try:
+        isIntegrationMappingRequired = optimizationSettings["design_variables"]["integration"].GetBool()
+        if isIntegrationMappingRequired:
+            if isIterativeMappingRequired:
+                raise ValueError ("Iterative Mapper and Integration cannot be combined yet!")
+            else:
+                return MapperVertexMorphingIntegration( designSurface, listOfDampingRegions, optimizationSettings )
+    except:
+        pass
+
     if isIterativeMappingRequired:
-        return MapperVertexMorphingIterative( designSurface, listOfDampingRegions, optimizationSettings )  
+        return MapperVertexMorphingIterative( designSurface, listOfDampingRegions, optimizationSettings )
     else:
-        return MapperVertexMorphing( designSurface, listOfDampingRegions, optimizationSettings )         
+        return MapperVertexMorphing( designSurface, listOfDampingRegions, optimizationSettings )
 
 # ==============================================================================
