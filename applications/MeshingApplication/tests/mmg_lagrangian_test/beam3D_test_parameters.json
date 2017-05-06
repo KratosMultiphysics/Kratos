@@ -130,17 +130,18 @@
         }
     }
     ],
-    "_compare_two_files_check_process" :[
+    "compare_two_files_check_process" :[
     {
         "python_module"   : "compare_two_files_check_process",
         "kratos_module"   : "KratosMultiphysics",
         "help"                  : "This process compares two files and executes an Unittest Assert",
         "process_name"          : "CompareTwoFilesCheckProcess",
         "Parameters"            : {
-            "file_name_1"            : "mmg_lagrangian_test/beam3D_test_step=3.o.mesh",
-            "file_name_2"            : "mmg_lagrangian_test/beam3D_test_result.mesh",
+            "file_name_1"            : "mmg_lagrangian_test/beam3D_test_step=3.sol",
+            "file_name_2"            : "mmg_lagrangian_test/beam3D_test_result.sol",
             "deterministic"          : false,
-            "error_assumed"          : 1.0e-6
+            "error_assumed"          : 1.0e-6,
+            "non_deterministic_comp" : "sol_file"
         }
     }
     ]
