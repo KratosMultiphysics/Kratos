@@ -947,18 +947,12 @@ namespace Kratos
 				rRightHandSideVector, rIntegrationWeight);
 		}
 
-		KRATOS_WATCH(rRightHandSideVector);
-		KRATOS_WATCH(ForceVector);
-
 		//mEnergy += inner_prod(ForceVector, Displacements);
 		//new energy calculation
 
 		Vector Deformation = ZeroVector(local_size*2);
 		this->GetValuesVector(Deformation);
 		mEnergy += inner_prod(rRightHandSideVector, Deformation);
-
-
-		std::cout << "+++++++++++++++++++++++++++++++++" << std::endl;
 
 		KRATOS_CATCH("")
 	}
@@ -1022,6 +1016,7 @@ namespace Kratos
 		if(VectorNormC != 0.00) LoadOrthogonalDir /= VectorNormC;
 
 
+
 		// now caluclate respective work equivilent nodal moments
 
 		const double CustomMoment = NormForceVectorOrth *
@@ -1041,10 +1036,6 @@ namespace Kratos
 	}
 	//************************************************************************************
 
-
-	//!!!!!!!!!!! -------------> change energy and the remaining function !! 
-	//!!!!!!! displacement * force also the in the latest function (matsizes etc.)
-	//maybe write extra function
 
 	void ForceLoadCondition::GetNodalDeltaMovements(Vector& rValues, const int& rNode)
 	{
