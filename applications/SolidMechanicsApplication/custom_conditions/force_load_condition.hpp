@@ -439,6 +439,14 @@ public:
 				      const ProcessInfo& rCurrentProcessInfo);
 
 
+	/**
+	* Calculate and add work equivalent nodal moments for line load
+	*/
+
+	void CalculateAndAddWorkEquivalentNodalForcesLineLoad(
+		const Vector ForceInput, VectorType& rRightHandSideVector,
+		const double GeometryLength);
+
 
     //************************************************************************************
     //************************************************************************************
