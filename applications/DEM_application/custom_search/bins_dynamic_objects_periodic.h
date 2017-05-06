@@ -13,6 +13,7 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+#include "DEM_application.h"
 #include "includes/define.h"
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "spatial_containers/search_structure.h"
@@ -99,7 +100,7 @@ BinsObjectDynamicPeriodic (IteratorType const& ObjectsBegin, IteratorType const&
   : BinsObjectDynamic<TConfigure>(ObjectsBegin, ObjectsEnd)
 {}
 
-BinsObjectDynamicPeriodic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd, const double domain_min[3], const double domain_max[3])
+BinsObjectDynamicPeriodic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd, const array_1d<double, 3> domain_min, const array_1d<double, 3> domain_max)
   : BinsObjectDynamic<TConfigure>(ObjectsBegin, ObjectsEnd)
 {
     SetDomainLimits(domain_min, domain_max);
@@ -359,10 +360,10 @@ void FillObjectPeriodic(SearchStructureType& Box, const PointerType& i_object)
 
 private:
 
-double mDomainMin[3];
-double mDomainMax[3];
+array_1d<double, 3> mDomainMin;
+array_1d<double, 3> mDomainMax;
 
-void SetDomainLimits(const double domain_min[3], const double domain_max[3])
+void SetDomainLimits(const array_1d<double, 3> domain_min, const array_1d<double, 3> domain_max)
 {
     mDomainMin[0] = domain_min[0];
     mDomainMin[1] = domain_min[1];

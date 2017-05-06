@@ -779,8 +779,8 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
       ///@} 
       ///@name Member Variables 
       ///@{ 
-      bool mDomainPeriodicity;
-        
+
+
       ///@} 
       ///@name Private Operators
       ///@{ 
