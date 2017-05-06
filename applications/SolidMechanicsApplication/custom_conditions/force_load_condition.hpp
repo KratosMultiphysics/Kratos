@@ -495,8 +495,9 @@ protected:
      */
     void ClearNodalForces ();
 
-
+	bool mIsLineLoadWithRotDof = false;
     /**
+
      * Initialize System Matrices
      */
 
