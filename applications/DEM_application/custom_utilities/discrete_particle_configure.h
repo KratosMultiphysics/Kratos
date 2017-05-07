@@ -79,45 +79,40 @@ public:
     typedef std::vector<ContactPairType>                            ContainerContactType;
     typedef ContainerContactType::iterator                          IteratorContactType;
     typedef ContainerContactType::value_type                        PointerContactType;
-    
-    /////////////////////////////////////////////////////////////////////////////////////////// bins_dynamic_objects.h:279
-    
-//     typedef SpatialSearch                                                       SearchType;
-// 
-//     typedef SearchType::PointType                                               PointType;
-//     typedef PointerVectorSet<GeometricalObject, IndexedObject>::ContainerType   ContainerType;
-//     typedef PointerVectorSet<GeometricalObject, IndexedObject>                  ElementsContainerType;
-//     
-//     typedef SearchType::ElementType                                             ElementType;
-//     typedef ContainerType::value_type                                           PointerType;
-//     typedef ContainerType::iterator                                             IteratorType;
-//     typedef ElementsContainerType::iterator                                     ElementIteratorType;
-//     
-//     typedef PointerVectorSet<GeometricalObject, IndexedObject>::ContainerType   ResultContainerType;
-// //     typedef SearchType::ResultDistanceType::ContainerType             ResultDistanceType;
-//     
-//     typedef ResultContainerType::iterator                           ResultIteratorType;
-//     typedef std::vector<double>::iterator                           DistanceIteratorType;
-//     
-//     typedef ContactPair<PointerType>                                ContactPairType;
-//     typedef std::vector<ContactPairType>                            ContainerContactType;
-//     typedef ContainerContactType::iterator                          IteratorContactType;
-//     typedef ContainerContactType::value_type                        PointerContactType;
-    
-    ///@}
-    ///@name Life Cycle
-    ///@{
 
     DiscreteParticleConfigure(){};
     virtual ~DiscreteParticleConfigure(){
 	}
+
+    static void SetDomain(const double domain_min_x, const double domain_min_y, const double domain_min_z,
+                          const double domain_max_x, const double domain_max_y, const double domain_max_z)
+    {
+        mDomainMin[0] = domain_min_x;
+        mDomainMin[1] = domain_min_y;
+        mDomainMin[2] = domain_min_z;
+        mDomainMax[0] = domain_max_x;
+        mDomainMax[1] = domain_max_y;
+        mDomainMax[2] = domain_max_z;
+        SetPeriods(domain_max_x - domain_min_x, domain_max_y - domain_min_y, domain_max_z - domain_min_z);
+        mDomainIsPeriodic = (mDomainPeriods[0] >= 0 && mDomainPeriods[1] >= 0 && mDomainPeriods[2] >= 0);
+        KRATOS_WATCH(mDomainIsPeriodic)
+    }
 
     static void SetPeriods(double domain_period_x, double domain_period_y, double domain_period_z)
     {
         mDomainPeriods[0] = domain_period_x;
         mDomainPeriods[1] = domain_period_y;
         mDomainPeriods[2] = domain_period_z;
-        mDomainIsPeriodic = (mDomainPeriods[0] >= 0 && mDomainPeriods[1] >= 0 && mDomainPeriods[2] >= 0);
+    }
+
+    static void GetMinPoint()
+    {
+        return mDomainMin;
+    }
+
+    static void GetMaxPoint()
+    {
+        return mDomainMax;
     }
 
     static void GetPeriods(double periods[3])
@@ -132,9 +127,21 @@ public:
         return mDomainIsPeriodic;
     }
 
-    static inline void TransformToClosestPeriodicCoordinates(double target[3], double base_coordinates[3])
+    static inline void TransformToClosestPeriodicCoordinates(const double target[3], double base_coordinates[3])
     {
-        for (unsigned int i = 0; i < 3; i++){
+        for (unsigned int i = 0; i < 3; ++i){
+            double incr_i = target[i] - base_coordinates[i];
+
+            if (fabs(incr_i) > 0.5 * mDomainPeriods[i]){
+                base_coordinates[i] += GetSign(incr_i) * mDomainPeriods[i];
+            }
+        }
+
+    }
+
+    static inline void TransformToClosestPeriodicCoordinates(const array_1d<double,3>& target, array_1d<double,3>& base_coordinates)
+    {
+        for (unsigned int i = 0; i < 3; ++i){
             double incr_i = target[i] - base_coordinates[i];
 
             if (fabs(incr_i) > 0.5 * mDomainPeriods[i]){
@@ -155,14 +162,14 @@ public:
     //******************************************************************************************************************
 
     static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint)
-    { 
+    {
         noalias(rHighPoint) = rObject->GetGeometry()[0];
         noalias(rLowPoint)  = rObject->GetGeometry()[0];
-        
-        SphericParticle* p_particle = static_cast<SphericParticle*>(&*rObject);        
-        double radius = p_particle->GetSearchRadius();        
 
-        for(std::size_t i = 0; i < 3; i++)
+        SphericParticle* p_particle = static_cast<SphericParticle*>(&*rObject);
+        double radius = p_particle->GetSearchRadius();
+
+        for(std::size_t i = 0; i < 3; ++i)
         {
             rLowPoint[i]  += -radius;
             rHighPoint[i] += radius;
@@ -171,22 +178,13 @@ public:
 
     static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint, const double& Radius)
     {
-        noalias(rHighPoint) = rObject->GetGeometry()[0];
-        noalias(rLowPoint)  = rObject->GetGeometry()[0];
-        
-        SphericParticle* p_particle = static_cast<SphericParticle*>(&*rObject);        
-        double radius = p_particle->GetSearchRadius();   
-        
-        for(std::size_t i = 0; i < 3; i++)
-        {
-            rLowPoint[i]  += -radius;
-            rHighPoint[i] += radius;
-        }
+        (void) Radius;
+        CalculateBoundingBox(rObject, rLowPoint, rHighPoint);
     }
-        
+
     static inline void CalculateCenter(const PointerType& rObject, PointType& rCenter)
     {
-        rCenter  = rObject->GetGeometry()[0];
+        rCenter = rObject->GetGeometry()[0];
     }
 
     //******************************************************************************************************************
@@ -221,7 +219,7 @@ public:
 
     //******************************************************************************************************************
     
-    static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
+    static inline bool IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
     {
         const array_1d<double, 3>& center_of_particle = rObject->GetGeometry()[0];
  
@@ -302,10 +300,12 @@ public:
     }
 
     static double mDomainPeriods[3];
+    static double mDomainMin[3];
+    static double mDomainMax[3];
     static bool mDomainIsPeriodic;
 
     /// Turn back information as a string.
-    virtual std::string Info() const {return " Spatial Containers Configure for Particles"; }
+    virtual std::string Info() const {return " Spatial Containers Configure for Discrete Particles"; }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const {}
@@ -448,6 +448,10 @@ private:
     ///
 template <std::size_t TDimension>
 double DiscreteParticleConfigure<TDimension>::mDomainPeriods[] = {-1.0, -1.0, -1.0};
+template <std::size_t TDimension>
+double DiscreteParticleConfigure<TDimension>::mDomainMin[] = {0.0, 0.0, 0.0};
+template <std::size_t TDimension>
+double DiscreteParticleConfigure<TDimension>::mDomainMax[] = {-1.0, -1.0, -1.0};
 template <std::size_t TDimension>
 bool DiscreteParticleConfigure<TDimension>::mDomainIsPeriodic = false;
 
