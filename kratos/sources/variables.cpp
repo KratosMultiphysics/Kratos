@@ -214,7 +214,8 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( Matrix, SHAPE_DERIVATIVE_MATRIX_2 )
 
   // For MeshingApplication
-  KRATOS_CREATE_VARIABLE( double, ELEMENTAL_ERROR )
+  KRATOS_CREATE_VARIABLE( double, NODAL_ERROR )
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( NODAL_ERROR_COMPONENTS )
 
   //for PFEM fluids application:
   KRATOS_CREATE_VARIABLE( double, NODAL_AREA )
@@ -858,7 +859,8 @@ namespace Kratos
 
       //--------------- Meshing ApplicationApplication -------------------//
       
-      KRATOS_REGISTER_VARIABLE( ELEMENTAL_ERROR )
+      KRATOS_REGISTER_VARIABLE( NODAL_ERROR )
+      KRATOS_REGISTER_VARIABLE( NODAL_ERROR_COMPONENTS )
       
       //--------------- PFEM fluids Application -------------------//
 

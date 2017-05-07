@@ -45,7 +45,6 @@ typedef array_1d<double,3> Vector3;
 // Variables definition
 //KRATOS_DEFINE_VARIABLE(double, WEIGHT_FATHER_NODES ) // Moved to variables.h so trilinos application can use it too
 // KRATOS_DEFINE_VARIABLE(double, COUNTER)              // Already put on variables.h (warning was appearing on Windows)
-KRATOS_DEFINE_VARIABLE(double, NODAL_ERROR);         // The error weighted in the node
 KRATOS_DEFINE_VARIABLE(double, ANISOTROPIC_RATIO);   // The anisotropic aspect ratio
 KRATOS_DEFINE_VARIABLE(Vector3, AUXILIAR_GRADIENT);  // An auxiliar gradient needed to compute the metric
 KRATOS_DEFINE_VARIABLE(Vector,  AUXILIAR_HESSIAN);   // An auxiliar hessian needed to compute the metric
