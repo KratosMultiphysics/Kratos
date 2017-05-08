@@ -74,7 +74,7 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-	  void CalculateDistanceToSkinProcess::Execute() override;
+	  void Execute() override;
 
       ///@}
       ///@name Access
