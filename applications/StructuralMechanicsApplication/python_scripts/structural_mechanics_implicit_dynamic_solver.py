@@ -54,7 +54,19 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             "component_wise": false,
             "move_mesh_flag": true,
             "error_mesh_criteria" : false,
-            "error_mesh_tolerance" : 1.0e-3,
+            "error_mesh_settings":{
+                "error_mesh_tolerance": 1.0e-3,
+                "error_mesh_constant": 1.0-3,
+                "remeshing_parameters": 
+                {
+                    "minimal_size"                        : 0.1,
+                    "maximal_size"                        : 10.0, 
+                    "enforce_current"                     : true, 
+                    "error_strategy_parameters": 
+                    {
+                    }
+                }
+            },
             "convergence_criterion": "Residual_criteria",
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
@@ -101,7 +113,7 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
         
         if (self.settings["error_mesh_criteria"].GetBool() == True):
             import KratosMultiphysics.MeshingApplication as MeshingApplication
-            ErrorMeshCriteria = MeshingApplication.ErrorMeshCriteria(self.settings["error_mesh_tolerance"].GetDouble())
+            ErrorMeshCriteria = MeshingApplication.ErrorMeshCriteria(self.main_model_part, self.settings["error_mesh_settings"])
             ErrorMeshCriteria.SetEchoLevel(self.settings["echo_level"].GetInt())
 
             convergence_criterion = KratosMultiphysics.OrCriteria(ErrorMeshCriteria, convergence_criterion)

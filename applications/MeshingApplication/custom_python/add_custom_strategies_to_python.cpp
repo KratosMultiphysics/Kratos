@@ -75,7 +75,7 @@ void  AddCustomStrategiesToPython()
             bases< ConvergenceCriteriaType >, boost::noncopyable >
             (
             "ErrorMeshCriteria", 
-            init<double>())
+            init<ModelPart&, Parameters>())
             .def("SetEchoLevel", &ErrorMeshCriteriaType::SetEchoLevel)
             ;
             
