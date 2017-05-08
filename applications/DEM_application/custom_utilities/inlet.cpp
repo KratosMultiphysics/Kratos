@@ -8,7 +8,6 @@
 
 #include "inlet.h"
 #include "create_and_destroy.h"
-#include "custom_elements/spheric_particle.h"
 #include "custom_elements/spheric_continuum_particle.h"
 #include "custom_elements/cluster3D.h"
 #include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
@@ -55,6 +54,7 @@ namespace Kratos {
         mFirstTime = true;
         mBallsModelPartHasSphericity = false;  
         mBallsModelPartHasRotation   = false;
+        mNumberOfParticlesInjected = 0;
         SetNormalizedMaxIndentationForRelease(0.0);
         SetNormalizedMaxIndentationForNewParticleCreation(0.05);
     }
@@ -189,6 +189,7 @@ namespace Kratos {
             if (have_just_stopped_touching) {
                 if (node_it.IsNot(BLOCKED)) {//The ball must be freed
                     RemoveInjectionConditions(spheric_particle);
+                    UpdateThroughput(spheric_particle);
                 }
                 else {
                     //Inlet BLOCKED nodes are ACTIVE when injecting, so when they cease to be in contact with other balls, ACTIVE is set to 'false', as they become available for injecting new elements.
@@ -473,5 +474,22 @@ namespace Kratos {
     {
         mNormalizedMaxIndentationForNewParticleCreation = value;
     }
+
+    int DEM_Inlet::GetNumberOfParticlesInjectedSoFar()
+    {
+        return mNumberOfParticlesInjected;
+    }
+
+    double DEM_Inlet::GetMassInjectedSoFar()
+    {
+        return mMassInjected;
+    }
+
+    void DEM_Inlet::UpdateThroughput(SphericParticle& r_spheric_particle)
+    {
+        ++mNumberOfParticlesInjected;
+        mMassInjected += r_spheric_particle.GetMass();
+    }
+
 
 } // namespace Kratos

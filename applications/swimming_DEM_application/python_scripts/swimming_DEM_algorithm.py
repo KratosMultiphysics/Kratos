@@ -237,6 +237,9 @@ class Algorithm(BaseAlgorithm):
         self.watcher = AnalyticFaceWatcher()
         self.watcher_analyser = analytic_data_procedures.WatcherAnalyzer(analytic_face_watcher = self.watcher, path = self.main_path)
 
+    def SetInletWatcher(self):
+        self.watcher_analyser.SetInlet(self.DEM_inlet)
+
     def SetSolverStrategy(self):
         import swimming_sphere_strategy as SolverStrategy
         return SolverStrategy
@@ -351,14 +354,7 @@ class Algorithm(BaseAlgorithm):
                     node.Fix(TURBULENT_VISCOSITY)
 
     def GetFieldUtility(self):
-        field_utility = None
-
-        if self.pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
-            flow_field = ConstantVelocityField(0.00001, 0, 0)
-            space_time_set = SpaceTimeSet()
-            field_utility = FluidFieldUtility(space_time_set, flow_field, 1000.0, 1e-6)
-
-        return field_utility
+        return None
 
     def GetResultsCreator(self):
         return None

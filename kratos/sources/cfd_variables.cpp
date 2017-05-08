@@ -10,20 +10,6 @@
 //  Main authors:    Riccardo Rossi
 //
 
-
-
-
-
-
-
-
-
-
-
-
-// This define must be HERE
-#define DKRATOS_EXPORT_INTERFACE_2 1
-
 // System includes
 #include <string>
 #include <iostream>
@@ -99,6 +85,3 @@ void KratosApplication::RegisterCFDVariables()
 
 
 }  // namespace Kratos.
-
-// This define must be HERE
-#undef DKRATOS_EXPORT_INTERFACE_2

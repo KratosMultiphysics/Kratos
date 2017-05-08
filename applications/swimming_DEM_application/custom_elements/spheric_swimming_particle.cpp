@@ -816,18 +816,18 @@ void SphericSwimmingParticle<TBaseElement>::ComputeHydrodynamicTorque(NodeType& 
         const array_1d<double, 3> slip_rot = 0.5 * node.FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED) - node.FastGetSolutionStepValue(ANGULAR_VELOCITY);
         const double norm_of_slip_rot = SWIMMING_MODULUS_3(slip_rot);
         double rot_reynolds;
-        ComputeParticleRotationReynoldsNumber(norm_of_slip_rot, rot_reynolds);
+        ComputeParticleRotationReynoldsNumberOverNormOfSlipRot(rot_reynolds);
         double rotational_coeff;
 
         if (rot_reynolds > 32){ // Rubinow and Keller, 1961 (Re_rot ~ 32 - 1000)
-            rotational_coeff = 12.9 / sqrt(rot_reynolds) + 128.4 / rot_reynolds;
+            rotational_coeff = 12.9 * std::sqrt(norm_of_slip_rot * rot_reynolds) + 128.4 / rot_reynolds;
         }
 
         else { // Rubinow and Keller, 1961 (Re_rot < 32)
             rotational_coeff = 64 * KRATOS_M_PI / rot_reynolds;
         }
 
-        noalias(hydro_torque) = 0.5 * mFluidDensity * SWIMMING_POW_5(mRadius) * rotational_coeff * norm_of_slip_rot * slip_rot;
+        noalias(hydro_torque) = 0.5 * mFluidDensity * SWIMMING_POW_5(mRadius) * rotational_coeff * slip_rot;
     }
 
     else {
@@ -876,6 +876,13 @@ template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ComputeParticleRotationReynoldsNumber(double norm_of_slip_rot, double& reynolds)
 {
     reynolds = 4 * SWIMMING_POW_2(mRadius) * norm_of_slip_rot / mKinematicViscosity;
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+template < class TBaseElement >
+void SphericSwimmingParticle<TBaseElement>::ComputeParticleRotationReynoldsNumberOverNormOfSlipRot(double& reynolds)
+{
+    reynolds = 4 * SWIMMING_POW_2(mRadius) / mKinematicViscosity;
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
