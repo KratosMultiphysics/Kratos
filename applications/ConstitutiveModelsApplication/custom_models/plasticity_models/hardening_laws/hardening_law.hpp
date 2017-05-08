@@ -73,6 +73,9 @@ namespace Kratos
       //internal variables
       array_1d<double, TVarSize> Variables;
 
+      //default constructor (to initialize Variables)
+      InternalVariables() { Variables.clear(); };
+
       const array_1d<double, TVarSize>& GetVariables() {return Variables;};
 
     private:

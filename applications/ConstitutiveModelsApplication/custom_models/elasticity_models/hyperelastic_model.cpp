@@ -621,12 +621,12 @@ namespace Kratos
       
     rI1 = rCauchyGreenMatrix(0,0) + rCauchyGreenMatrix(1,1) + rCauchyGreenMatrix(2,2);
 
-    rI2 = (  rCauchyGreenMatrix(1,1)*rCauchyGreenMatrix(2,2)	     
-	     + rCauchyGreenMatrix(2,2)*rCauchyGreenMatrix(3,3)
-	     + rCauchyGreenMatrix(1,1)*rCauchyGreenMatrix(3,3)
+    rI2 = (  rCauchyGreenMatrix(0,0)*rCauchyGreenMatrix(1,1)	     
+	     + rCauchyGreenMatrix(1,1)*rCauchyGreenMatrix(2,2)
+	     + rCauchyGreenMatrix(0,0)*rCauchyGreenMatrix(2,2)
+	     - rCauchyGreenMatrix(0,1)*rCauchyGreenMatrix(1,0)
 	     - rCauchyGreenMatrix(1,2)*rCauchyGreenMatrix(2,1)
-	     - rCauchyGreenMatrix(2,3)*rCauchyGreenMatrix(3,2)
-	     - rCauchyGreenMatrix(1,3)*rCauchyGreenMatrix(3,1) );
+	     - rCauchyGreenMatrix(0,2)*rCauchyGreenMatrix(2,0) );
 	
     rI3 = (  rCauchyGreenMatrix(0,0)*rCauchyGreenMatrix(1,1)*rCauchyGreenMatrix(2,2)
 	     + rCauchyGreenMatrix(0,1)*rCauchyGreenMatrix(1,2)*rCauchyGreenMatrix(2,0)
