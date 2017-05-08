@@ -1,11 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosParticleMechanicsApplication $
-//   Last modified by:    $Author:                    ilaria $
-//   Date:                $Date:                  April 2016 $
-//   Revision:            $Revision:                     0.0 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-//
-
+//  Main authors:       Ilaria Iaconeta
 
 //A fast algorithm to check intersection between two axis-aligned quadrilateral is implemented.
 //This axis-aligned rect test is a special case of the separating axis theorem.
@@ -69,8 +71,6 @@ public:
     typedef ModelPart::ElementsContainerType::ContainerType ResultContainerType;
     typedef ResultContainerType::value_type                 ResultPointerType;
     typedef ResultContainerType::iterator                   ResultIteratorType;
-
-
 
     /// Contact Pairs
     // typedef std::pair<PointerType, PointerType>            ContactPairType;
