@@ -162,7 +162,7 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
             ErrorMeshCriteria = MeshingApplication.ErrorMeshCriteria(self.settings["error_mesh_tolerance"].GetDouble())
             ErrorMeshCriteria.SetEchoLevel(self.settings["echo_level"].GetInt())
 
-            convergence_criterion = KratosMultiphysics.AndCriteria(ErrorMeshCriteria, convergence_criterion)
+            convergence_criterion = KratosMultiphysics.OrCriteria(ErrorMeshCriteria, convergence_criterion)
         
         return convergence_criterion
     
