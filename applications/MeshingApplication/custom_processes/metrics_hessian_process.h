@@ -168,10 +168,10 @@ public:
                 KRATOS_ERROR << "Missing variable on node " << itNode->Id() << std::endl;
             }
             
-            const double Distance = itNode->FastGetSolutionStepValue(DISTANCE, 0); // TODO: This should be changed for the varaible of interestin the future. This means that the value of the boundary value would be changed to a threshold value instead
+            const double Distance = itNode->FastGetSolutionStepValue(DISTANCE); // TODO: This should be changed for the varaible of interestin the future. This means that the value of the boundary value would be changed to a threshold value instead
             const Vector& Hessian = itNode->GetValue(AUXILIAR_HESSIAN);
 
-            const double NodalH = itNode->FastGetSolutionStepValue(NODAL_H, 0);            
+            const double NodalH = itNode->FastGetSolutionStepValue(NODAL_H);            
             
             double ElementMinSize = mMinSize;
             if ((ElementMinSize > NodalH) && (mEnforceCurrent == true))
@@ -187,7 +187,7 @@ public:
             const double Ratio = CalculateAnisotropicRatio(Distance, mAnisRatio, mBoundLayer, mInterpolation);
             
             // For postprocess pourposes
-            double& AnisotropicRatio = itNode->FastGetSolutionStepValue(ANISOTROPIC_RATIO, 0); 
+            double& AnisotropicRatio = itNode->FastGetSolutionStepValue(ANISOTROPIC_RATIO); 
             AnisotropicRatio = Ratio;
             
             // We compute the metric
@@ -389,10 +389,10 @@ private:
         }
             
         // We compute the product
-        const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> Metric_matrix =  prod(trans(EigenVectorMatrix), prod<TempType>(EigenValuesMatrix, EigenVectorMatrix));
+        const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> MetricMatrix =  prod(trans(EigenVectorMatrix), prod<TempType>(EigenValuesMatrix, EigenVectorMatrix));
         
         // Finally we transform to a vector
-        const Vector Metric = MetricsMathUtils<TDim>::TensorToVector(Metric_matrix);
+        const Vector Metric = MetricsMathUtils<TDim>::TensorToVector(MetricMatrix);
         
         return Metric;
     }

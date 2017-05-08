@@ -84,7 +84,7 @@ public:
             "maximal_size"                        : 10.0, 
             "enforce_current"                     : true, 
             "error_strategy_parameters": 
-            { 
+            {
             }
         })" );
         ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
@@ -125,17 +125,17 @@ public:
         {
             auto itNode = pNode.begin() + i;
 
-            const double nodal_h = itNode->FastGetSolutionStepValue(NODAL_H, 0);            
+            const double NodalH = itNode->FastGetSolutionStepValue(NODAL_H, 0);            
             
             double ElementMinSize = mMinSize;
-            if ((ElementMinSize > nodal_h) && (mEnforceCurrent == true))
+            if ((ElementMinSize > NodalH) && (mEnforceCurrent == true))
             {
-                ElementMinSize = nodal_h;
+                ElementMinSize = NodalH;
             }
             double ElementMaxSize = mMaxSize;
-            if ((ElementMaxSize > nodal_h) && (mEnforceCurrent == true))
+            if ((ElementMaxSize > NodalH) && (mEnforceCurrent == true))
             {
-                ElementMaxSize = nodal_h;
+                ElementMaxSize = NodalH;
             }
             
             // We compute the Metric
@@ -154,17 +154,18 @@ public:
             }
             #endif
             
+            const double NodalError = itNode->GetValue(NODAL_ERROR);
             const double NormMetric = norm_2(Metric);
             if (NormMetric > 0.0) // NOTE: This means we combine differents metrics, at the same time means that the metric should be reseted each time
             {
                 const Vector OldMetric = itNode->GetValue(MMG_METRIC);
-                const Vector NewMetric = ComputeErrorMetricTensor(ElementMinSize, ElementMaxSize);    
+                const Vector NewMetric = ComputeErrorMetricTensor(NodalH, NodalError, ElementMinSize, ElementMaxSize);    
                 
                 Metric = MetricsMathUtils<TDim>::IntersectMetrics(OldMetric, NewMetric);
             }
             else
             {
-                Metric = ComputeErrorMetricTensor(ElementMinSize, ElementMaxSize);    
+                Metric = ComputeErrorMetricTensor(NodalH, NodalError, ElementMinSize, ElementMaxSize);    
             }
         }
     }
@@ -249,6 +250,7 @@ private:
     double mMinSize;                         // The minimal size of the elements
     double mMaxSize;                         // The maximal size of the elements
     bool mEnforceCurrent;                    // With this we choose if we inforce the current nodal size (NODAL_H)
+    double mTolerance;                       // The error tolerance considered
     
     ///@}
     ///@name Private Operators
@@ -259,23 +261,44 @@ private:
     ///@{
 
     /**
-     * 
-     * @param 
-     * @param 
+     * This function computes the metric tensor using as reference the nodal error
+     * @param OldNodalH: The old size of the mesh in that node
+     * @param NodalError: The weighted on the node  
+     * @param ElementMinSize: This way we can impose as minimum as the previous size if we desire
+     * @param ElementMaxSize: This way we can impose as maximum as the previous size if we desire
      */
         
     Vector ComputeErrorMetricTensor(
-        const double& ElementMinSize, // This way we can impose as minimum as the previous size if we desire
-        const double& ElementMaxSize // This way we can impose as maximum as the previous size if we desire
+        const double& OldNodalH,
+        const double& NodalError, 
+        const double& ElementMinSize,
+        const double& ElementMaxSize
         )
     {        
-//         // Calculating Metric parameters
-//         const double MinRatio = 1.0/(ElementMinSize * ElementMinSize);
-// //         const double MinRatio = 1.0/(mMinSize * mMinSize);
-//         const double MaxRatio = 1.0/(ElementMaxSize * ElementMaxSize);
-// //         const double MaxRatio = 1.0/(mMaxSize * mMaxSize);
-//         
-//         return;
+        // Calculating Metric parameters
+        const double MinRatio = 1.0/(ElementMinSize * ElementMinSize);
+//         const double MinRatio = 1.0/(mMinSize * mMinSize);
+        const double MaxRatio = 1.0/(ElementMaxSize * ElementMaxSize);
+//         const double MaxRatio = 1.0/(mMaxSize * mMaxSize);
+        
+        const double AverageNodalError = mThisModelPart.GetProcessInfo()[AVERAGE_NODAL_ERROR];
+        
+        boost::numeric::ublas::bounded_matrix<double, TDim, TDim> MetricMatrix = ZeroMatrix(TDim, TDim);
+        
+        const double NewNodalH = OldNodalH * AverageNodalError/NodalError;
+        
+        const double NewNodalRatio = NewNodalH > ElementMinSize ? MinRatio : NewNodalH < ElementMaxSize ? MaxRatio : 1.0/(NewNodalH * NewNodalH);
+        
+        // Right now just considering isotropic mesh
+        for (unsigned int iDim = 0; iDim < TDim; iDim++)
+        {
+            MetricMatrix(iDim, iDim) = NewNodalRatio;
+        }
+        
+        // Finally we transform to a vector
+        const Vector Metric = MetricsMathUtils<TDim>::TensorToVector(MetricMatrix);
+        
+        return Metric;
     }
 
     ///@}
