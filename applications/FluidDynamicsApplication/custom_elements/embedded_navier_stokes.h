@@ -603,10 +603,7 @@ protected:
                                                   const ElementSplittingDataStruct& rSplittingData)
     {
         constexpr unsigned int BlockSize = TDim+1;
-        constexpr unsigned int MatrixSize = TNumNodes*BlockSize;    // Matrix size
-
-        array_1d<double, TNumNodes> aux;
-        array_1d<double, MatrixSize> aux_normal;
+        constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
         VectorType auxRightHandSideVector = ZeroVector(MatrixSize);
         MatrixType auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, TNumNodes);
@@ -615,10 +612,9 @@ protected:
         for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
         {
 
-            aux = row(rSplittingData.N_container_cut, icut);
-            aux_normal = ZeroVector(MatrixSize);
-
-            double weight = (rSplittingData.cut_edge_areas)(icut);
+            const double weight = (rSplittingData.cut_edge_areas)(icut);
+            const array_1d<double, TNumNodes> aux = row(rSplittingData.N_container_cut, icut);
+            array_1d<double, MatrixSize> aux_normal = ZeroVector(MatrixSize);
 
             for (unsigned int i=0; i<TNumNodes; i++)
             {
@@ -652,7 +648,8 @@ protected:
         SetStrainMatrix(rData, B_matrix);
 
         bounded_matrix<double, TNumNodes*TDim, TDim> w_matrix;
-        bounded_matrix<double, TNumNodes*TDim, (TDim-1)*3> aux_matrix;
+        bounded_matrix<double, TNumNodes*TDim, (TDim-1)*3> aux_matrix_1;
+        bounded_matrix<double, TNumNodes*TDim, (TDim-1)*3> aux_matrix_2;
 
         auxLeftHandSideMatrix.resize(TNumNodes*TDim, TNumNodes*TDim, false);
         auxRightHandSideVector.resize(TNumNodes*TDim, false);
@@ -662,11 +659,10 @@ protected:
         // Compute the tangential stress LHS contribution
         for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
         {
-            aux = row(rSplittingData.N_container_cut, icut);
-            double weight = (rSplittingData.cut_edge_areas)(icut);
+            const double weight = (rSplittingData.cut_edge_areas)(icut);
+            const array_1d<double, TNumNodes> aux = row(rSplittingData.N_container_cut, icut);
 
             w_matrix.clear();
-            aux_matrix.clear();
 
             for (unsigned int i=0; i<TNumNodes; i++)
             {
@@ -676,10 +672,9 @@ protected:
                 }
             }
 
-            noalias(aux_matrix) = prod(w_matrix, normal_matrix);
-            aux_matrix = prod(aux_matrix, rData.C);
-
-            noalias(auxLeftHandSideMatrix) += weight*prod(aux_matrix, B_matrix);
+            noalias(aux_matrix_1) = prod(w_matrix, normal_matrix);
+            noalias(aux_matrix_2) = prod(aux_matrix_1, rData.C);
+            noalias(auxLeftHandSideMatrix) += weight*prod(aux_matrix_2, B_matrix);
 
         }
 
@@ -692,7 +687,6 @@ protected:
                 {
                     for (unsigned int col=0; col<TDim; col++)
                     {
-                        //~ rLeftHandSideMatrix(i*BlockSize+row,j*BlockSize+col) += auxLeftHandSideMatrix(i*TDim+row, j*TDim+col); // TODO: Check these signs
                         rLeftHandSideMatrix(i*BlockSize+row,j*BlockSize+col) -= auxLeftHandSideMatrix(i*TDim+row, j*TDim+col);
                     }
                 }
@@ -716,7 +710,6 @@ protected:
         {
             for (unsigned int row=0; row<TDim; row++)
             {
-                //~ rRightHandSideVector(i*BlockSize+row) -= auxRightHandSideVector(i*TDim+row); // TODO: Check these signs
                 rRightHandSideVector(i*BlockSize+row) += auxRightHandSideVector(i*TDim+row);
             }
         }
@@ -1019,6 +1012,7 @@ protected:
             {
                 prev_sol(i*BlockSize+comp) = rData.v(i,comp);
             }
+            prev_sol(i*BlockSize+TDim) = rData.p(i);
         }
 
         // Compute the normal projection matrix
@@ -1204,7 +1198,7 @@ protected:
 
         for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
         {
-            double weight = rSplittingData.cut_edge_areas(icut);
+            const double weight = rSplittingData.cut_edge_areas(icut);
 
             // LHS outside nodes null tangential stress contribution assembly
             // Outer nodes contribution assembly
@@ -1268,7 +1262,6 @@ protected:
                 {
                     for (unsigned int ii = 0; ii<TDim; ++ii)
                     {
-                        //TODO: multiply by mu effective to make units consistent
                         auxLeftHandSideMatrix(out_node_row_id*BlockSize+ii, j*BlockSize) -= weight*Aux_Pres_gamma_tang(i*TDim+ii, j*BlockSize);
                     }
                 }
@@ -1281,6 +1274,58 @@ protected:
         // RHS outside Nitche contribution assembly
         // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
         rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol);
+
+        //
+        // Add the pressure equations contribution (use the pressure as a Lagrange multiplier o the no penetration condition)
+        //
+        auxLeftHandSideMatrix.clear(); // Recall to clear the auxLHS matrix again
+
+        for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
+        {
+            const double weight = rSplittingData.cut_edge_areas(icut);
+
+            const VectorType aux_out = row(rSplittingData.N_container_out, icut);
+            const VectorType aux_cut = row(rSplittingData.N_container_cut, icut);
+
+            for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
+            {
+                const unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
+
+                for (unsigned int j=0; j<TNumNodes; ++j)
+                {
+                    for (unsigned int comp=0; comp<TDim; ++comp)
+                    {
+                        auxLeftHandSideMatrix(out_node_row_id*BlockSize+TDim, j*BlockSize+comp) += weight*aux_out(i)*aux_cut(j)*rSplittingData.intersection_normal(comp);
+                    }
+                }
+            }
+        }
+
+        // LHS outside Nitche contribution assembly
+        rLeftHandSideMatrix += auxLeftHandSideMatrix;
+
+        // RHS outside Nitche contribution assembly
+        // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
+        rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol);
+
+        // If level set velocity is not 0, add its contribution to the RHS
+        if (this->Has(EMBEDDED_VELOCITY))
+        {
+            auxLeftHandSideMatrix.clear();
+
+            const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
+            array_1d<double, MatrixSize> aux_embedded_vel = ZeroVector(MatrixSize);
+
+            for (unsigned int i=0; i<TNumNodes; i++)
+            {
+                aux_embedded_vel(i*BlockSize) = embedded_vel(0);
+                aux_embedded_vel(i*BlockSize+1) = embedded_vel(1);
+                aux_embedded_vel(i*BlockSize+2) = embedded_vel(2);
+            }
+
+            rRightHandSideVector += prod(auxLeftHandSideMatrix, aux_embedded_vel);
+        }
+
     }
 
 
@@ -1325,62 +1370,62 @@ protected:
         // Note that this is an excepcional case in where there are both positive and negative distance value but the intersection
         // utility determines that there are no intersections (this might happen if the level set is too close to a node).
         // TODO: Add slip version
-        else if (rSplittingData.ndivisions == 1)
-        {
-            constexpr unsigned int BlockSize = TDim+1;                 // Block size
-            constexpr unsigned int MatrixSize = TNumNodes*BlockSize;   // Matrix size
-
-            double diag_max = 0.0;
-
-            for (unsigned int i=0; i<MatrixSize; i++)
-            {
-                if ((fabs(rLeftHandSideMatrix(i,i)) > diag_max) && ((i+1)%BlockSize != 0))
-                {
-                    diag_max = fabs(rLeftHandSideMatrix(i,i));
-                }
-            }
-
-            double tol_d;
-
-            if (TDim == 2)
-            {
-                tol_d = 1e-2*sqrt(rData.h);
-            }
-            else
-            {
-                tol_d = 1e-2*pow(rData.h, 1.0/3.0);
-            }
-
-            double pen_coef = std::max((diag_max/(0.1*rData.h*rData.h)),(1000*rData.h*rData.h));
-
-            for (unsigned int i=0; i<TNumNodes; i++)
-            {
-                if (fabs(rDistances[i])<tol_d)
-                {
-                    // LHS penalty contribution assembly
-                    for (unsigned int comp=0; comp<TDim; comp++)
-                    {
-                        rLeftHandSideMatrix(i*BlockSize+comp,i*BlockSize+comp) += pen_coef;
-                    }
-
-                    // RHS penalty contribution assembly
-                    if (this->Has(EMBEDDED_VELOCITY))
-                    {
-                        const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-                        for (unsigned int comp = 0; comp<TDim; comp++)
-                        {
-                            rRightHandSideVector(i*BlockSize+comp) += pen_coef*embedded_vel(comp);
-                        }
-                    }
-
-                    // RHS residual contribution assembly
-                    for (unsigned int comp = 0; comp<TDim; comp++)
-                    {
-                        rRightHandSideVector(i*BlockSize+comp) -= pen_coef*rData.v(i,comp);
-                    }
-                }
-            }
-        }
+        // else if (rSplittingData.ndivisions == 1)
+        // {
+        //     constexpr unsigned int BlockSize = TDim+1;                 // Block size
+        //     constexpr unsigned int MatrixSize = TNumNodes*BlockSize;   // Matrix size
+        //
+        //     double diag_max = 0.0;
+        //
+        //     for (unsigned int i=0; i<MatrixSize; i++)
+        //     {
+        //         if ((fabs(rLeftHandSideMatrix(i,i)) > diag_max) && ((i+1)%BlockSize != 0))
+        //         {
+        //             diag_max = fabs(rLeftHandSideMatrix(i,i));
+        //         }
+        //     }
+        //
+        //     double tol_d;
+        //
+        //     if (TDim == 2)
+        //     {
+        //         tol_d = 1e-2*sqrt(rData.h);
+        //     }
+        //     else
+        //     {
+        //         tol_d = 1e-2*pow(rData.h, 1.0/3.0);
+        //     }
+        //
+        //     double pen_coef = std::max((diag_max/(0.1*rData.h*rData.h)),(1000*rData.h*rData.h));
+        //
+        //     for (unsigned int i=0; i<TNumNodes; i++)
+        //     {
+        //         if (fabs(rDistances[i])<tol_d)
+        //         {
+        //             // LHS penalty contribution assembly
+        //             for (unsigned int comp=0; comp<TDim; comp++)
+        //             {
+        //                 rLeftHandSideMatrix(i*BlockSize+comp,i*BlockSize+comp) += pen_coef;
+        //             }
+        //
+        //             // RHS penalty contribution assembly
+        //             if (this->Has(EMBEDDED_VELOCITY))
+        //             {
+        //                 const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
+        //                 for (unsigned int comp = 0; comp<TDim; comp++)
+        //                 {
+        //                     rRightHandSideVector(i*BlockSize+comp) += pen_coef*embedded_vel(comp);
+        //                 }
+        //             }
+        //
+        //             // RHS residual contribution assembly
+        //             for (unsigned int comp = 0; comp<TDim; comp++)
+        //             {
+        //                 rRightHandSideVector(i*BlockSize+comp) -= pen_coef*rData.v(i,comp);
+        //             }
+        //         }
+        //     }
+        // }
     }
 
 
