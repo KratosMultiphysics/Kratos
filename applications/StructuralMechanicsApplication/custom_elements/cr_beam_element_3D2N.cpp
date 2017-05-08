@@ -511,47 +511,47 @@ namespace Kratos
 
 		//1st solution step
 		if (mIterationCount == 0) {
-			mQuaternionVEC_A = ZeroVector(dimension);
-			mQuaternionVEC_B = ZeroVector(dimension);
-			mQuaternionSCA_A = 1.00;
-			mQuaternionSCA_B = 1.00;
+			this->mQuaternionVEC_A = ZeroVector(dimension);
+			this->mQuaternionVEC_B = ZeroVector(dimension);
+			this->mQuaternionSCA_A = 1.00;
+			this->mQuaternionSCA_B = 1.00;
 		}
 
 		Vector tempVec = ZeroVector(dimension);
 		double tempSca = 0.00;
 
 		//Node A
-		tempVec = mQuaternionVEC_A;
-		tempSca = mQuaternionSCA_A;
+		tempVec = this->mQuaternionVEC_A;
+		tempSca = this->mQuaternionSCA_A;
 
-		mQuaternionSCA_A = drA_sca *tempSca;
+		this->mQuaternionSCA_A = drA_sca *tempSca;
 		for (int i = 0; i < dimension; ++i) {
-			mQuaternionSCA_A -= drA_vec[i] * tempVec[i];
+			this->mQuaternionSCA_A -= drA_vec[i] * tempVec[i];
 		}
-		mQuaternionVEC_A = drA_sca*tempVec;
-		mQuaternionVEC_A += tempSca * drA_vec;
-		mQuaternionVEC_A += MathUtils<double>::CrossProduct(drA_vec, tempVec);
+		this->mQuaternionVEC_A = drA_sca*tempVec;
+		this->mQuaternionVEC_A += tempSca * drA_vec;
+		this->mQuaternionVEC_A += MathUtils<double>::CrossProduct(drA_vec, tempVec);
 
 		//Node B
-		tempVec = mQuaternionVEC_B;
-		tempSca = mQuaternionSCA_B;
+		tempVec = this->mQuaternionVEC_B;
+		tempSca = this->mQuaternionSCA_B;
 
-		mQuaternionSCA_B = drB_sca *tempSca;
+		this->mQuaternionSCA_B = drB_sca *tempSca;
 		for (int i = 0; i < dimension; ++i) {
-			mQuaternionSCA_B -= drB_vec[i] * tempVec[i];
+			this->mQuaternionSCA_B -= drB_vec[i] * tempVec[i];
 		}
 
-		mQuaternionVEC_B = drB_sca*tempVec;
-		mQuaternionVEC_B += tempSca * drB_vec;
-		mQuaternionVEC_B += MathUtils<double>::CrossProduct(drB_vec, tempVec);
+		this->mQuaternionVEC_B = drB_sca*tempVec;
+		this->mQuaternionVEC_B += tempSca * drB_vec;
+		this->mQuaternionVEC_B += MathUtils<double>::CrossProduct(drB_vec, tempVec);
 
 
 		//scalar part of difference quaternion
 		double scalar_diff;
-		scalar_diff = (mQuaternionSCA_A + mQuaternionSCA_B) *
-			(mQuaternionSCA_A + mQuaternionSCA_B);
+		scalar_diff = (this->mQuaternionSCA_A + this->mQuaternionSCA_B) *
+			(this->mQuaternionSCA_A + this->mQuaternionSCA_B);
 
-		tempVec = mQuaternionVEC_A + mQuaternionVEC_B;
+		tempVec = this->mQuaternionVEC_A + this->mQuaternionVEC_B;
 		scalar_diff += MathUtils<double>::Norm(tempVec) *
 			MathUtils<double>::Norm(tempVec);
 
@@ -559,19 +559,19 @@ namespace Kratos
 
 		//mean rotation quaternion
 		double meanRotationScalar;
-		meanRotationScalar = (mQuaternionSCA_A + mQuaternionSCA_B) * 0.50;
+		meanRotationScalar = (this->mQuaternionSCA_A + this->mQuaternionSCA_B) * 0.50;
 		meanRotationScalar = meanRotationScalar / scalar_diff;
 
 		Vector meanRotationVector = ZeroVector(dimension);
-		meanRotationVector = (mQuaternionVEC_A + mQuaternionVEC_B) * 0.50;
+		meanRotationVector = (this->mQuaternionVEC_A + this->mQuaternionVEC_B) * 0.50;
 		meanRotationVector = meanRotationVector / scalar_diff;
 
 		//vector part of difference quaternion
 		Vector vector_diff = ZeroVector(dimension);
-		vector_diff = mQuaternionSCA_A * mQuaternionVEC_B;
-		vector_diff -= mQuaternionSCA_B * mQuaternionVEC_A;
-		vector_diff += MathUtils<double>::CrossProduct(mQuaternionVEC_A,
-			mQuaternionVEC_B);
+		vector_diff = this->mQuaternionSCA_A * this->mQuaternionVEC_B;
+		vector_diff -= this->mQuaternionSCA_B * this->mQuaternionVEC_A;
+		vector_diff += MathUtils<double>::CrossProduct(this->mQuaternionVEC_A,
+			this->mQuaternionVEC_B);
 
 		vector_diff = 0.50 * vector_diff / scalar_diff;
 
