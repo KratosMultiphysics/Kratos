@@ -17,7 +17,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                 "mesh_id"                   : 0,
                 "model_part_name"           : "please specify the model part that contains the kutta nodes",
                 "fluid_part_name"           : "MainModelPart",
-                "direction"                  : [1.0,0.0,0.0],
+                "direction"                 : [1.0,0.0,0.0],
+                "stl_filename"              : "please specify name of stl file",
                 "epsilon"    : 1e-9
             }
             """)
@@ -38,6 +39,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
         self.kutta_model_part = Model[settings["model_part_name"].GetString()]
         self.fluid_model_part = Model[settings["fluid_part_name"].GetString()]
+        
+        self.stl_filename = settings["stl_filename"].GetString()
         
     def Execute(self):
         #mark as STRUCTURE and deactivate the elements that touch the kutta node
@@ -107,7 +110,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                             for elnode in elem.GetNodes():
                                 elnode.SetSolutionStepValue(KratosMultiphysics.DISTANCE,0,distances[counter])
                                 counter+=1
-                            #elem.SetValue(ELEMENTAL_DISTANCE,distances)
+                            elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES,distances)
                             
                             #for elnode in elem.GetNodes():
                                 #if elnode.Is(KratosMultiphysics.STRUCTURE):
@@ -117,9 +120,118 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
                             
         else: #3D case
-            raise Exception("wake detection not yet implemented in 3D")
-        
+            import numpy
+            from stl import mesh #this requires numpy-stl
+
+            mesh = mesh.Mesh.from_multi_file(self.stl_filename)
+            wake_mp = KratosMultiphysics.ModelPart("wake_stl")
+            wake_mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+            wake_mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+            prop = wake_mp.Properties[0]
+
+            node_id = 1
+            elem_id = 1
+
+            for m in mesh:
+                print(m)
+
+                for vertex in m.points:
+                    n1 = wake_mp.CreateNewNode(node_id, float(vertex[0]), float(vertex[1]), float(vertex[2]))
+                    node_id+=1
+                    n2 = wake_mp.CreateNewNode(node_id, float(vertex[3]), float(vertex[4]), float(vertex[5]))
+                    node_id+=1
+                    n3 = wake_mp.CreateNewNode(node_id, float(vertex[6]), float(vertex[7]), float(vertex[8]))
+                    node_id+=1
+
+                    el = wake_mp.CreateNewElement("Element3D3N",elem_id,  [n1.Id, n2.Id, n3.Id], prop)
+                    elem_id += 1
+                    
+            ##CHAPUZA! - to be removed
+            #for node in wake_mp.Nodes:
+                #node.X = node.X - 1.0
+                #node.Y = node.Y -0.001
+                
+            representation_mp = KratosMultiphysics.ModelPart("representation_mp")
+            
+            distance_calculator = KratosMultiphysics.CalculateSignedDistanceTo3DSkinProcess(wake_mp, self.fluid_model_part)
+            distance_calculator.Execute()
+            
+            ##chapuza
+            #for elem in self.fluid_model_part.Elements:
+                #d = KratosMultiphysics.Vector(4)
+
+                #if(len(d) == 4):
+                    #npos = 0
+                    #nneg = 0
+                    #i = 0
+                    #for node in elem.GetNodes():
+                        ##d[i] = node.Z - 2502.5
+                        #if(d[i] >= 0):
+                            #npos += 1
+                        #else: 
+                            #nneg += 1
+                            
+                        #i += 1
+                        
+                    ##elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES,d)
+                    #if(npos > 0 and nneg>0):
+                            #elem.Set(KratosMultiphysics.TO_SPLIT,True)
+
+            
+            distance_calculator.GenerateSkinModelPart(representation_mp);
+            
+            i = 200000
+            for node in representation_mp.Nodes:
+                node.Id = i
+                i += 1
+                
+            i = 2e6
+            for elem in representation_mp.Elements:
+                elem.Id = i
+                i+=1
+            
+            from gid_output_process import GiDOutputProcess
+            output_file = "representation_of_wake"
+            gid_output =  GiDOutputProcess(representation_mp,
+                                    output_file,
+                                    KratosMultiphysics.Parameters("""
+                                        {
+                                            "result_file_configuration": {
+                                                "gidpost_flags": {
+                                                    "GiDPostMode": "GiD_PostAscii",
+                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                    "WriteConditionsFlag": "WriteConditions",
+                                                    "MultiFileFlag": "SingleFile"
+                                                },
+                                                "file_label": "time",
+                                                "output_control_type": "step",
+                                                "output_frequency": 1.0,
+                                                "body_output": true,
+                                                "node_output": false,
+                                                "skin_output": false,
+                                                "plane_output": [],
+                                                "nodal_results": [],
+                                                "nodal_nonhistorical_results": [],
+                                                "nodal_flags_results": [],
+                                                "gauss_point_results": [],
+                                                "additional_list_files": []
+                                            }
+                                        }
+                                        """)
+                                    )
+
+            gid_output.ExecuteInitialize()
+            gid_output.ExecuteBeforeSolutionLoop()
+            gid_output.ExecuteInitializeSolutionStep()
+            gid_output.PrintOutput()
+            gid_output.ExecuteFinalizeSolutionStep()
+            gid_output.ExecuteFinalize()
+
+            for elem in self.fluid_model_part.Elements:
+                if(elem.GetValue(KratosMultiphysics.SPLIT_ELEMENT)):
+                    elem.Set(KratosMultiphysics.MARKER,True)
+                    
+                    #print(elem.Id, elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES))
+                
     def ExecuteInitialize(self):
         self.Execute()
-            
-
