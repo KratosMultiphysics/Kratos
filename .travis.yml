@@ -13,7 +13,7 @@ env:
     - CCACHE_COMPILERCHECK=content
     - CCACHE_COMPRESS=true
     - CCACHE_NODISABLE=true
-    - CCACHE_MAXSIZE=500M
+    - CCACHE_MAXSIZE=50M
 
 addons:
   apt:
@@ -40,5 +40,5 @@ script:
 - bash configure.sh
 - make install -j2
 - ccache -s
-- cd ../kratos/python_scripts
-- python3 run_tests.py -l small
+# - cd ../kratos/python_scripts
+# - python3 run_tests.py -l small
