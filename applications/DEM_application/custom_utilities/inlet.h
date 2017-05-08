@@ -28,7 +28,7 @@
 #include "../custom_elements/discrete_element.h"
 #include "../custom_utilities/AuxiliaryFunctions.h"
 #include "../applications/DEM_application/custom_utilities/properties_proxies.h"
-
+#include "custom_elements/spheric_particle.h"
 
 namespace Kratos {
 
@@ -57,11 +57,14 @@ namespace Kratos {
         ModelPart& GetInletModelPart();
         void SetNormalizedMaxIndentationForRelease(const double value);
         void SetNormalizedMaxIndentationForNewParticleCreation(const double value);
+        int GetNumberOfParticlesInjectedSoFar();
+        double GetMassInjectedSoFar();
 
     private:
         virtual void FixInjectorConditions(Element* p_element);
         virtual void FixInjectionConditions(Element* p_element);
         virtual void RemoveInjectionConditions(Element &element);
+        virtual void UpdateThroughput(SphericParticle& r_spheric_particle);
 
         Vector mPartialParticleToInsert; //array of doubles, must be resized in the constructor to the number of meshes
         Vector mLastInjectionTimes; //array of doubles, must be resized in the constructor to the number of meshes
@@ -70,6 +73,8 @@ namespace Kratos {
         bool mBallsModelPartHasSphericity;
         bool mBallsModelPartHasRotation;
         bool mStrategyForContinuum;
+        int mNumberOfParticlesInjected;
+        double mMassInjected;
         // The following two ratios mark the limit indentation (normalized by the radius) for releasing a particle
         // and for allowing a new one to be injected. admissible_indentation_ratio_for_release should be smaller
         // (more strict), since we want to make sure that the particle is taken far enough to avoid interferences

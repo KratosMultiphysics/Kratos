@@ -14,9 +14,7 @@ Bentonite_Force_Based_Inlet::Bentonite_Force_Based_Inlet(ModelPart& inlet_modelp
     mCationConcentration = inlet_modelpart[CATION_CONCENTRATION];
     const double mod_force = DEM_MODULUS_3(injection_force);
     assert(mod_force > 0.0);
-    KRATOS_WATCH(injection_force)
     injection_force = injection_force / mod_force;
-    KRATOS_WATCH(injection_force)
     noalias(mInjectionForce) = injection_force;
 }
 
@@ -39,21 +37,17 @@ void Bentonite_Force_Based_Inlet::InitializeStep(ModelPart& r_receiver_model_par
 void Bentonite_Force_Based_Inlet::FixInjectionConditions(Element* p_element)
 {
     UpdateInjectionForce(p_element);
-    SphericParticle* p_spheric_particle = dynamic_cast<SphericParticle*>(p_element);
-    //p_spheric_particle->SetInteractionRadius(p_spheric_particle->GetRadius());
 }
 
 void Bentonite_Force_Based_Inlet::UpdateInjectionForce(Element* p_element)
 {
     Node<3>& node = p_element->GetGeometry()[0];
     node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = GetInjectionForce(p_element);
-    //KRATOS_WATCH(GetInjectionForce(p_element))
 }
 
 void Bentonite_Force_Based_Inlet::FixInjectorConditions(Element* p_element)
 {
     Node<3>& node = p_element->GetGeometry()[0];
-    KRATOS_WATCH(GetInjectionForce(p_element))
     node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = GetInjectionForce(p_element);
 }
 
@@ -61,15 +55,7 @@ array_1d<double, 3> Bentonite_Force_Based_Inlet::GetInjectionForce(Element* p_el
 {
     DEM_D_Bentonite_Colloid* p_law = dynamic_cast<DEM_D_Bentonite_Colloid*>(dynamic_cast<SphericParticle*>(p_element)->GetConstitutiveLawPointer().get());
     const double normal_force_modulus = fabs(p_law->CalculateNormalForce(1e-7, mCationConcentration));
-//    KRATOS_WATCH(p_law->mA_H)
-//    KRATOS_WATCH(p_law->mA_p)
-//    KRATOS_WATCH(p_law->mD_p)
-//    KRATOS_WATCH(p_law->mThickness)
-//    KRATOS_WATCH(p_law->mDDLCoefficient)
-//    KRATOS_WATCH(normal_force_modulus)
-//    KRATOS_WATCH(mInjectionForce)
     return normal_force_modulus * mInjectionForce;
-
 }
 
 } // namespace Kratos
