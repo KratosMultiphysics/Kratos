@@ -206,7 +206,7 @@ namespace Kratos
         }
       }
     }
-    KRATOS_THROW_ERROR(std::runtime_error, "Brep Trimming Curve with index ", trim_index, " was not found.");
+    KRATOS_ERROR << "Brep Trimming Curve with index " << trim_index << " was not found." << std::endl;
   }
 
   void BrepFace::EnhanceShapeFunctionsSlave(
@@ -237,7 +237,7 @@ namespace Kratos
     return NodeVector;
   }
 
-  void BrepFace::EvaluateShapeFunctionsSlaveNode(double& const u, double& const v, const int& shapefunction_order, Node<3>::Pointer node)
+  void BrepFace::EvaluateShapeFunctionsSlaveNode(double const &u, double const &v, const int& shapefunction_order, Node<3>::Pointer node)
   {
     std::cout << "Shape functions slave" << std::endl;
     Point<3> new_point(0, 0, 0);
@@ -381,7 +381,7 @@ namespace Kratos
     // Initialize Q_k: point on the CAD surface
     Point<3> newton_raphson_point;
     EvaluateSurfacePoint(newton_raphson_point, u, v);
-    // Initialize what's needed in the Newton-Raphson iteration				
+    // Initialize what's needed in the Newton-Raphson iteration
     Vector Q_minus_P = ZeroVector(3); // Distance between current Q_k and P
     Matrix myHessian = ZeroMatrix(2, 2);
     Vector myGradient = ZeroVector(2);
@@ -410,7 +410,7 @@ namespace Kratos
 
       // Q is updated
       EvaluateSurfacePoint(newton_raphson_point, u, v);
-      
+
       norm_delta_u = norm_2(delta_u);
 
       k++;
@@ -434,7 +434,7 @@ namespace Kratos
     Q_k(0) = node_on_geometry->X();
     Q_k(1) = node_on_geometry->Y();
     Q_k(2) = node_on_geometry->Z();
-    // Initialize what's needed in the Newton-Raphson iteration				
+    // Initialize what's needed in the Newton-Raphson iteration
     Vector Q_minus_P = ZeroVector(3); // Distance between current Q_k and P
     Matrix myHessian = ZeroMatrix(2, 2);
     Vector myGradient = ZeroVector(2);
@@ -529,7 +529,7 @@ namespace Kratos
   //GEOMETRY FUNCTIONS:
 
   /**
-  * @Author Daniel Baumgärtner
+  * @Author Daniel Baumgï¿½rtner
   * @date   December, 2016
   * @brief   returns the cartesian coordinates (global) for a specific point
   * located on the NURBS surface S(u=fixed and v=fixed)
@@ -590,15 +590,15 @@ namespace Kratos
   //
   // ======================================================================================
   //  \param[in]  QminP    	 	Distance Vector
-  //  \param[in]  H		     	Hessian reference	
+  //  \param[in]  H		     	Hessian reference
   //  \param[in]  Gradient    	Gradient reference
   //  \param[in]  v    			parameter
-  //  \param[in]  u 				parameter 
+  //  \param[in]  u 				parameter
   //
   // ======================================================================================
   //  \author     Giovanni Filomeno (1/2017) && Massimo Sferza (1/2017)
   //
-  //########################################################################################	
+  //########################################################################################
   void BrepFace::EvaluateGradientsForClosestPointSearch(Vector QminP, Matrix& Hessian, Vector& Gradient, double& u, double& v)
   {
     // The derivatives of the basis functions are evaluated
@@ -676,7 +676,7 @@ namespace Kratos
   //  \param[out] R         basis func
   //
   // ======================================================================================
-  //  \author     Daniel Baumgärtner (12/2016)
+  //  \author     Daniel Baumgï¿½rtner (12/2016)
   //
   //########################################################################################
   void BrepFace::EvaluateNURBSFunctions(int span_u, int span_v, double _u, double _v, Matrix& R)
@@ -733,7 +733,7 @@ namespace Kratos
   * @param[out] DN_De     1st derivatives
   * @param[out] DDN_DDe   2nd derivatives
   */
-  void BrepFace::EvaluateNURBSFunctionsDerivatives(int span_u, int span_v, double u, double v, 
+  void BrepFace::EvaluateNURBSFunctionsDerivatives(int span_u, int span_v, double u, double v,
     Matrix& DN_De, Matrix& DDN_DDe)
   {
     if (span_u == -1) span_u = NurbsUtilities::find_knot_span(m_p, m_knot_vector_u, u);
@@ -795,11 +795,11 @@ namespace Kratos
         - r[k] * ddsum[0] / sum_2
         + 2.0*r[k] * dsum[0] * dsum[0] / sum_3;
       DDN_DDe(k, 1) = DDN_DDe(k, 1) / sum - 2.0*DN_De(k, 1)*dsum[1] / sum_2
-        - r[k] * ddsum[1] / sum_2 
+        - r[k] * ddsum[1] / sum_2
         + 2.0*r[k] * dsum[1] * dsum[1] / sum_3;
       DDN_DDe(k, 2) = DDN_DDe(k, 2) / sum - DN_De(k, 0)*dsum[1] / sum_2
         - DN_De(k, 1)*dsum[0] / sum_2
-        - r[k] * ddsum[2] / sum_2 
+        - r[k] * ddsum[2] / sum_2
         + 2.0*r[k] * dsum[0] * dsum[1] / sum_3;
       DN_De(k, 0) = DN_De(k, 0) / sum - r[k] * dsum[0] / sum_2;
       DN_De(k, 1) = DN_De(k, 1) / sum - r[k] * dsum[1] / sum_2;
@@ -903,4 +903,3 @@ BrepFace::~BrepFace()
 {}
 
 }  // namespace Kratos.
-
