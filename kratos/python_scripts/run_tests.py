@@ -72,6 +72,7 @@ def handler(signum, frame):
 class Commander(object):
     def __init__(self):
         self.process = None
+        self.exitCode = 0
 
     def RunTestSuitInTime(self, application, applicationPath, path, level, verbose, command, timeout):
         if(timeout > -1):
@@ -157,8 +158,11 @@ class Commander(object):
                     '-v'+str(verbose)
                 ])
 
-                # Used instrad of wait to "soft-block" the process and prevent deadlocks
+                # Used instead of wait to "soft-block" the process and prevent deadlocks
+                # and capture the first exit code different from OK
                 self.process.communicate()
+                if(not self.exitCode):
+                    self.process.returncode
             else:
                 if verbose > 0:
                     print(
@@ -292,6 +296,8 @@ def main():
             cmd,
             signalTime
         )
+
+    sys.exit(commander.exitCode)
 
 
 if __name__ == "__main__":

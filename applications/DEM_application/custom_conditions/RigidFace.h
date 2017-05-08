@@ -72,7 +72,7 @@ public:
     void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info) override;
     void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
     int CheckSide(SphericParticle* p_particle) override;
-    virtual bool CheckProjectionFallsInSide(SphericParticle *p_particle);
+    virtual bool CheckProjectionFallsInside(SphericParticle *p_particle);
     void ComputeConditionRelativeData(int rigid_neighbour_index,
                                       SphericParticle* const particle,
                                       double LocalCoordSystem[3][3],

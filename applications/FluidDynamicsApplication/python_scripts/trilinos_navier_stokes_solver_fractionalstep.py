@@ -35,6 +35,8 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
             "maximum_pressure_iterations": 3,
             "velocity_tolerance": 1e-3,
             "pressure_tolerance": 1e-2,
+            "dynamic_tau": 0.01,
+            "oss_switch": 0,
             "echo_level": 0,
             "consider_periodic_conditions": false,
             "time_order": 2,
@@ -193,6 +195,9 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
                                                         self.solver_settings,
                                                         self.settings["predictor_corrector"].GetBool(),
                                                         KratosFluid.PATCH_INDEX)
+
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
         print ("Initialization Trilinos_NavierStokesSolver_FractionalStep Finished")
 

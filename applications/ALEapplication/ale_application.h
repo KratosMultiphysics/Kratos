@@ -68,7 +68,7 @@
 #include "custom_elements/structural_meshmoving_element.h"
 
 #include "includes/variables.h"
-#include "ale_application_variables.h"
+#include "includes/ale_variables.h"
 
 
 namespace Kratos

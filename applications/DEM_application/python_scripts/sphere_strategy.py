@@ -139,10 +139,11 @@ class ExplicitStrategy:
         self.dem_fem_search = dem_fem_search
 
         # STRATEGIES
-        self.search_strategy = OMP_DEMSearch(-1.0, -1.0, -1.0)
-        if (hasattr(Param, "PeriodicDomainOption")):
+        self.search_strategy = OMP_DEMSearch()
+        if hasattr(Param, "PeriodicDomainOption"):
             if self.Var_Translator(Param.PeriodicDomainOption):
-                self.search_strategy = OMP_DEMSearch(Param.BoundingBoxMaxX-Param.BoundingBoxMinX, Param.BoundingBoxMaxY-Param.BoundingBoxMinY, Param.BoundingBoxMaxZ-Param.BoundingBoxMinZ)
+                self.search_strategy = OMP_DEMSearch(Param.BoundingBoxMinX, Param.BoundingBoxMinY, Param.BoundingBoxMinZ,
+                                                     Param.BoundingBoxMaxX, Param.BoundingBoxMaxY, Param.BoundingBoxMaxZ)
 
         self.SetContinuumType()
 
