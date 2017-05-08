@@ -23,12 +23,12 @@
 #include "meshing_application.h"
 #include "includes/kratos_parameters.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-// Utilities
-// #include "custom_utilities/mmg_utility.h"
 // Processes
 #include "processes/find_nodal_h_process.h"
 #include "custom_processes/metric_fast_init_process.h"
 #include "custom_processes/metrics_error_process.h"
+// // Utilities
+// #include "custom_utilities/mmg_utility.h" // FIXME: Error in declaration!!!!
 
 namespace Kratos
 {
