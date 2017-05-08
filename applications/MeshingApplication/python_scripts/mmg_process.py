@@ -250,7 +250,19 @@ class MmgProcess(KratosMultiphysics.Process):
                             hessian_parameters))
                         
         elif (self.strategy == "ErrorStrategy"):
-            pass
+            error_parameters = KratosMultiphysics.Parameters("""{}""")
+            error_parameters.AddValue("minimal_size",self.params["minimal_size"])
+            error_parameters.AddValue("maximal_size",self.params["maximal_size"])
+            error_parameters.AddValue("enforce_current",self.params["enforce_current"])
+            if (self.dim == 2):
+                self.MetricsProcess.append(MeshingApplication.ComputeErrorSolMetricProcess2D(
+                    self.Model[self.model_part_name],
+                    error_parameters))
+
+            else:
+                self.MetricsProcess.append(MeshingApplication.ComputeErrorSolMetricProcess3D(
+                    self.Model[self.model_part_name],
+                    error_parameters))
 
     def _CreateGradientProcess(self):
         # We compute the scalar value gradient

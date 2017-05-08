@@ -163,9 +163,14 @@ public:
                 }
                 else
                 {
-                    const double Reaction = itDof->GetSolutionStepReactionValue();
+//                     const double Reaction = itDof->GetSolutionStepReactionValue();
+//                     #pragma omp atomic
+//                     CurrentSolPow2 += Reaction * Reaction;
+                    
+                    DoFId = itDof->EquationId();
+            
                     #pragma omp atomic
-                    CurrentSolPow2 += Reaction * Reaction;
+                    CurrentSolPow2 += b[DoFId] * b[DoFId];
                 }
             }
         

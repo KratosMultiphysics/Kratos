@@ -52,7 +52,6 @@ class MechanicalSolver(object):
             "component_wise": false,
             "move_mesh_flag": true,
             "convergence_criterion": "Residual_criteria",
-            "error_mesh_criteria" : false,
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
             "residual_relative_tolerance": 1.0e-4,
@@ -343,13 +342,6 @@ class MechanicalSolver(object):
         # Construction of the class convergence_criterion
         import convergence_criteria_factory
         convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params)
-        
-        if (self.settings["error_mesh_criteria"].GetBool() == True):
-            import KratosMultiphysics.MeshingApplication as MeshingApplication
-            ErrorMeshCriteria = MeshingApplication.ErrorMeshCriteria()
-            ErrorMeshCriteria.SetEchoLevel(self.echo_level)
-
-            convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(ErrorMeshCriteria, convergence_criterion.mechanical_convergence_criterion)
         
         return convergence_criterion.mechanical_convergence_criterion
 

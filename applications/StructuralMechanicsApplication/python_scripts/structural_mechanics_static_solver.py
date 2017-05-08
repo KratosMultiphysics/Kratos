@@ -51,6 +51,8 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
             "clear_storage": false,
             "component_wise": false,
             "move_mesh_flag": true,
+            "error_mesh_criteria" : false,
+            "error_mesh_tolerance" : 1.0e-3,
             "convergence_criterion": "Residual_criteria",
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
@@ -151,6 +153,18 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
             print("POINT_LOAD_Y: ", force_y)
             print("POINT_LOAD_Z: ", force_z)
             print("*********************** ")
+    
+    def _GetConvergenceCriterion(self):
+        convergence_criterion = solid_mechanics_static_solver.StaticMechanicalSolver._GetConvergenceCriterion(self)
+        
+        if (self.settings["error_mesh_criteria"].GetBool() == True):
+            import KratosMultiphysics.MeshingApplication as MeshingApplication
+            ErrorMeshCriteria = MeshingApplication.ErrorMeshCriteria(self.settings["error_mesh_tolerance"].GetDouble())
+            ErrorMeshCriteria.SetEchoLevel(self.settings["echo_level"].GetInt())
+
+            convergence_criterion = KratosMultiphysics.AndCriteria(ErrorMeshCriteria, convergence_criterion)
+        
+        return convergence_criterion
     
     def _GetSolutionScheme(self, analysis_type, component_wise, compute_contact_forces):
         if(analysis_type == "Linear"):
