@@ -105,14 +105,14 @@ public:
         mDomainPeriods[2] = domain_period_z;
     }
 
-    static void GetMinPoint()
+    static double* GetMinPoint()
     {
-        // return mDomainMin;
+        return mDomainMin;
     }
 
-    static void GetMaxPoint()
+    static double* GetMaxPoint()
     {
-        // return mDomainMax;
+        return mDomainMax;
     }
 
     static void GetPeriods(double periods[3])
