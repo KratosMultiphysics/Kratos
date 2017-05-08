@@ -111,6 +111,7 @@ namespace Kratos
         void ComputeBrownianMotionForce(NodeType& node, array_1d<double, 3>& brownian_motion_force, const ProcessInfo& r_current_process_info);
         void ComputeParticleReynoldsNumber(double& r_reynolds);
         void ComputeParticleRotationReynoldsNumber(double r_norm_of_slip_rot, double& r_reynolds);
+        void ComputeParticleRotationReynoldsNumberOverNormOfSlipRot(double& r_reynolds);
         void ComputeParticleAccelerationNumber(const array_1d<double, 3>& slip_acc, double& acc_number);
         void MemberDeclarationFirstStep(const ProcessInfo& r_current_process_info);
         void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_current_process_info);
