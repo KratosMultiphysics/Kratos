@@ -116,6 +116,11 @@ public:
         }
     }
 
+    static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint, const double & Radius)
+    {
+        KRATOS_ERROR << "Fast Quad spatial does not define this function" << std::endl;
+    }
+
     //******************************************************************************************************************
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2)
@@ -165,6 +170,11 @@ public:
         return true;
     }
 
+    static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double & Radius)
+    {
+        KRATOS_ERROR << "Fast Quad spatial does not define this function" << std::endl;
+    }
+
     //******************************************************************************************************************
 
     static inline bool IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
@@ -208,6 +218,16 @@ public:
         }
 
 		    return true;
+    }
+
+    static inline bool IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint, const double & Radius)
+    {
+        KRATOS_ERROR << "Fast Quad spatial does not define this function" << std::endl;
+    }
+
+    static inline void Distance(const PointerType& rObj_1, const PointerType& rObj_2, double& distance)
+    {
+        KRATOS_ERROR << "Fast Quad spatial does not define this function" << std::endl;
     }
 
     //static inline void Distance(const PointerType& rObj_1, const PointerType& rObj_2, double& distance)
