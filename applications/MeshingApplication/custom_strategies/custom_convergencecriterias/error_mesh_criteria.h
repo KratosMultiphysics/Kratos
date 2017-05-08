@@ -110,12 +110,25 @@ public:
             "remeshing_utility"   : "MMG"
             "remeshing_parameters": 
             {
-                "error_strategy_parameters": 
+                "filename"                             : "out",
+                "framework"                            : "Lagrangian",
+                "internal_variables_parameters"        :
                 {
-                    "minimal_size"                        : 0.1,
-                    "maximal_size"                        : 10.0, 
-                    "enforce_current"                     : true
-                }
+                    "allocation_size"                      : 1000, 
+                    "bucket_size"                          : 4, 
+                    "search_factor"                        : 2, 
+                    "interpolation_type"                   : "LST",
+                    "internal_variable_interpolation_list" :[]
+                },
+                "save_external_files"              : false,
+                "max_number_of_searchs"            : 1000,
+                "echo_level"                       : 3
+            },
+            "error_strategy_parameters": 
+            {
+                "minimal_size"                        : 0.1,
+                "maximal_size"                        : 10.0, 
+                "enforce_current"                     : true
             }
         })" );
         

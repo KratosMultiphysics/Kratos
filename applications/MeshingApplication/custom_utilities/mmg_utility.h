@@ -189,21 +189,7 @@ public:
     {       
         Parameters DefaultParameters = Parameters(R"(
             {
-                "mesh_id"                          : 0,
                 "filename"                         : "out",
-                "model_part_name"                  : "MainModelPart",
-                "strategy"                         : "LevelSet",
-                "level_set_strategy_parameters"              :{
-                    "scalar_variable"                  : "DISTANCE",
-                    "gradient_variable"                : "DISTANCE_GRADIENT"
-                },
-                "hessian_strategy_parameters"              :{
-                    "metric_variable"                  : ["DISTANCE"],
-                    "interpolation_error"              : 0.04,
-                    "mesh_dependent_constant"          : 0.0
-                },
-                "error_strategy_parameters"              :{
-                },
                 "framework"                            : "Eulerian",
                 "internal_variables_parameters"        :
                 {
@@ -212,29 +198,6 @@ public:
                     "search_factor"                        : 2, 
                     "interpolation_type"                   : "LST",
                     "internal_variable_interpolation_list" :[]
-                },
-                "enforce_current"                  : true,
-                "initial_step"                     : 1,
-                "step_frequency"                   : 0,
-                "automatic_remesh"                 : true,
-                "automatic_remesh_parameters"      :{
-                    "automatic_remesh_type"            : "Ratio",
-                    "min_size_ratio"                   : 1.0,
-                    "max_size_ratio"                   : 3.0,
-                    "refer_type"                       : "Mean",
-                    "min_size_current_percentage"      : 50.0,
-                    "max_size_current_percentage"      : 98.0
-                },
-                "initial_remeshing"                : true,
-                "fix_contour_model_parts"          : [],
-                "minimal_size"                     : 0.1,
-                "maximal_size"                     : 10.0,
-                "anisotropy_remeshing"             : true,
-                "anisotropy_parameters":{
-                    "hmin_over_hmax_anisotropic_ratio" : 0.01,
-                    "boundary_layer_max_distance"      : 1.0,
-                    "boundary_layer_min_size_ratio"    : 2.0,
-                    "interpolation"                    : "Linear"
                 },
                 "save_external_files"              : false,
                 "max_number_of_searchs"            : 1000,
