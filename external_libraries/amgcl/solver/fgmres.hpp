@@ -32,11 +32,11 @@ THE SOFTWARE.
  */
 
 #include <vector>
+#include <algorithm>
 #include <cmath>
 
 #include <boost/multi_array.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <boost/range/algorithm.hpp>
 
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/solver/detail/default_inner_product.hpp>
@@ -163,7 +163,7 @@ class fgmres {
                     break;
 
                 // -- Inner GMRES iteration
-                boost::fill(s, 0);
+                std::fill(s.begin(), s.end(), 0);
                 s[0] = norm_r;
 
                 backend::axpby(math::inverse(norm_r), *v[0],

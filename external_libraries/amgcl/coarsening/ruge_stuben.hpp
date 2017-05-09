@@ -31,6 +31,9 @@ THE SOFTWARE.
  * \brief  Ruge-Stuben coarsening with direct interpolation.
  */
 
+#include <algorithm>
+#include <numeric>
+
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/shared_ptr.hpp>
@@ -349,7 +352,7 @@ struct ruge_stuben {
 
             for(size_t i = 0; i < n; ++i) ++ptr[lambda[i] + 1];
 
-            boost::partial_sum(ptr, ptr.begin());
+            std::partial_sum(ptr.begin(), ptr.end(), ptr.begin());
 
             for(size_t i = 0; i < n; ++i) {
                 Col lam = lambda[i];
@@ -367,7 +370,7 @@ struct ruge_stuben {
                 Col lam = lambda[i];
 
                 if (lam == 0) {
-                    boost::replace(cf, 'U', 'C');
+                    std::replace(cf.begin(), cf.end(), 'U', 'C');
                     break;
                 }
 

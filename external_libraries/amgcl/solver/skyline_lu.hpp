@@ -69,9 +69,6 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <algorithm>
 
-#include <boost/range/algorithm.hpp>
-#include <boost/range/algorithm_ext.hpp>
-
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/util.hpp>
 
@@ -83,7 +80,7 @@ namespace matrix_permutation {
 struct none {
     template <class Matrix>
     static void get(const Matrix&, std::vector<int> &perm) {
-        boost::iota(perm, 0);
+        for(size_t i = 0; i < perm.size(); ++i) perm[i] = i;
     }
 };
 
@@ -132,7 +129,7 @@ struct CuthillMcKee {
         // Main loop
         for (int next = 1; next < n; ) {
             int nMDICLS = 0;
-            boost::fill(nFirstWithDegree, -1);
+            std::fill(nFirstWithDegree.begin(), nFirstWithDegree.end(), -1);
             bool empty = true; // used to detect different connected components
 
             int firstVal  = reverse ? maxDegreeInCurrentLevelSet : 0;

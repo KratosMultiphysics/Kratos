@@ -42,8 +42,6 @@ THE SOFTWARE.
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/range/iterator_range.hpp>
-#include <boost/range/algorithm.hpp>
-#include <boost/range/numeric.hpp>
 
 #include <amgcl/util.hpp>
 #include <amgcl/backend/interface.hpp>
@@ -400,37 +398,6 @@ std::vector<V> diagonal(const crs<V, C, P> &A, bool invert = false)
     return dia;
 }
 
-/// Invert matrix.
-template < typename V, typename C, typename P >
-crs<V, C, P> inverse(const crs<V, C, P> &A) {
-    typedef typename crs<V, C, P>::row_iterator row_iterator;
-    const size_t n = rows(A);
-
-    crs<V, C, P> Ainv;
-    Ainv.nrows = n;
-    Ainv.ncols = n;
-    Ainv.ptr.resize(n + 1);
-    Ainv.col.resize(n * n);
-    Ainv.val.resize(n * n);
-
-    boost::fill(Ainv.val, V());
-
-    for(size_t i = 0; i < n; ++i)
-        for(row_iterator a = A.row_begin(i); a; ++a)
-            Ainv.val[i * n + a.col()] = a.value();
-
-    amgcl::detail::inverse(n, &Ainv.val[0]);
-
-    Ainv.ptr[0] = 0;
-    for(size_t i = 0, idx = 0; i < n; ) {
-        for(size_t j = 0; j < n; ++j, ++idx) Ainv.col[idx] = static_cast<C>(j);
-
-        Ainv.ptr[++i] = static_cast<P>(idx);
-    }
-
-    return Ainv;
-}
-
 /** NUMA-aware vector container. */
 template <class T>
 class numa_vector {
@@ -603,6 +570,9 @@ struct is_builtin_vector< boost::iterator_range<Iterator> > : boost::true_type {
 //---------------------------------------------------------------------------
 // Specialization of backend interface
 //---------------------------------------------------------------------------
+template <typename T1, typename T2>
+struct backends_compatible< builtin<T1>, builtin<T2> > : boost::true_type {};
+
 template < typename V, typename C, typename P >
 struct value_type< crs<V, C, P> > {
     typedef V type;
@@ -719,7 +689,7 @@ struct inner_product_impl<
             return_type s = math::zero<return_type>();
             return_type c = math::zero<return_type>();
 
-#pragma omp for
+#pragma omp for nowait
             for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
                 return_type d = math::inner_product(x[i], y[i]) - c;
                 return_type t = s + d;

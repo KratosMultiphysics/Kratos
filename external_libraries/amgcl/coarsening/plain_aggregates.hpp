@@ -32,8 +32,9 @@ THE SOFTWARE.
  */
 
 #include <vector>
+#include <numeric>
+
 #include <boost/foreach.hpp>
-#include <boost/range/numeric.hpp>
 #include <amgcl/util.hpp>
 #include <amgcl/backend/builtin.hpp>
 
@@ -194,7 +195,7 @@ struct plain_aggregates {
         std::vector<ptrdiff_t> cnt(count, 0);
         BOOST_FOREACH(ptrdiff_t i, id)
             if (i >= 0) cnt[i] = 1;
-        boost::partial_sum(cnt, cnt.begin());
+        std::partial_sum(cnt.begin(), cnt.end(), cnt.begin());
 
         if (static_cast<ptrdiff_t>(count) > cnt.back()) {
             count = cnt.back();

@@ -33,8 +33,6 @@ THE SOFTWARE.
 
 #include <cassert>
 #include <vector>
-#include <boost/range/algorithm.hpp>
-#include <boost/range/numeric.hpp>
 
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/util.hpp>

@@ -37,7 +37,6 @@ THE SOFTWARE.
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/iterator/counting_iterator.hpp>
-#include <boost/range/algorithm.hpp>
 
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/detail/qr.hpp>
@@ -138,7 +137,7 @@ boost::shared_ptr<Matrix> tentative_prolongation(
                 boost::counting_iterator<ptrdiff_t>(0),
                 boost::counting_iterator<ptrdiff_t>(n)
                 );
-        boost::stable_sort(order, detail::skip_negative(aggr, block_size));
+        std::stable_sort(order.begin(), order.end(), detail::skip_negative(aggr, block_size));
 
         // Precompute the shape of the prolongation operator.
         // Each row contains exactly nullspace.cols non-zero entries.

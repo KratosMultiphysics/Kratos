@@ -46,8 +46,6 @@ THE SOFTWARE.
  */
 #include <vector>
 #include <algorithm>
-#include <boost/range/algorithm.hpp>
-#include <boost/range/numeric.hpp>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -66,7 +64,7 @@ void spgemm_saad(const AMatrix &A, const BMatrix &B, CMatrix &C, bool sort = tru
     typedef typename backend::value_type<CMatrix>::type Val;
     typedef ptrdiff_t Idx;
 
-    C.set_size(A.nrows, B.nrows);
+    C.set_size(A.nrows, B.ncols);
     C.ptr[0] = 0;
 
 #pragma omp parallel
@@ -450,7 +448,7 @@ void spgemm_rmerge(const AMatrix &A, const BMatrix &B, CMatrix &C) {
         tmp_val[i].resize(2 * max_row_width);
     }
 
-    C.set_size(A.nrows, B.nrows);
+    C.set_size(A.nrows, B.ncols);
     C.ptr[0] = 0;
 
 

@@ -66,12 +66,12 @@ THE SOFTWARE.
  */
 
 #include <vector>
+#include <algorithm>
 #include <cmath>
 
 #include <boost/multi_array.hpp>
 #include <boost/circular_buffer.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <boost/range/algorithm.hpp>
 
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/solver/detail/default_inner_product.hpp>
@@ -300,7 +300,7 @@ class lgmres {
                             math::zero<scalar_type>(), *vs[0]);
                 }
 
-                boost::fill(s, 0);
+                std::fill(s.begin(), s.end(), 0);
                 s[0] = norm_v0;
 
                 unsigned j = 0;

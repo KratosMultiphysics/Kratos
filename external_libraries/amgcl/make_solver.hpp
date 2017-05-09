@@ -43,14 +43,18 @@ template <
     class IterativeSolver
     >
 class make_solver {
+    BOOST_STATIC_ASSERT_MSG(
+            (
+             backend::backends_compatible<
+                 typename IterativeSolver::backend_type,
+                 typename Precond::backend_type
+                 >::value
+            ),
+            "Backends for preconditioner and iterative solver should be compatible"
+            );
     public:
-        typedef typename Precond::backend_type backend_type;
-        typedef typename Precond::matrix matrix;
-
-        BOOST_STATIC_ASSERT_MSG(
-                (boost::is_same<backend_type, typename IterativeSolver::backend_type>::value),
-                "Backends for preconditioner and iterative solver should coinside"
-                );
+        typedef typename IterativeSolver::backend_type backend_type;
+        typedef typename backend_type::matrix matrix;
 
         typedef typename backend_type::value_type value_type;
         typedef typename backend_type::params backend_params;

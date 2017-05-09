@@ -67,6 +67,13 @@ namespace backend {
  * @{
  */
 
+/// Metafunction that checks if two backends are compatible.
+/**
+ * That is, a solver in SBackend may be used together with a preconditioner in PBackend.
+ */
+template <class SBackend, class PBackend>
+struct backends_compatible : boost::is_same<SBackend, PBackend> {};
+
 /// Metafunction that returns value type of a matrix or a vector type.
 template <class T, class Enable = void>
 struct value_type {

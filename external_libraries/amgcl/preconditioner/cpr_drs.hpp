@@ -32,6 +32,7 @@ THE SOFTWARE.
  */
 
 #include <vector>
+#include <algorithm>
 
 #include <boost/shared_ptr.hpp>
 
@@ -199,9 +200,9 @@ class cpr_drs {
                     bool      done = true;
                     ptrdiff_t cur_col = 0;
 
-                    boost::fill(a_dia, 0);
-                    boost::fill(a_off, 0);
-                    boost::fill(a_top, 0);
+                    std::fill(a_dia.begin(), a_dia.end(), 0);
+                    std::fill(a_off.begin(), a_off.end(), 0);
+                    std::fill(a_top.begin(), a_top.end(), 0);
 
                     k.clear();
                     for(int i = 0; i < B; ++i) {

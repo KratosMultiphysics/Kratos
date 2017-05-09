@@ -284,7 +284,7 @@ class ell<amgcl::static_matrix<T, N, N>, Col, Ptr> {
                 boost::proto::eval(boost::proto::as_child(x), expr_x);
 
                 src.open("{");
-                src.new_line() << type_name<vector_value>() << " v = " << vec_value.str() << ";";
+                src.new_line() << type_name<x_type>() << " v = " << vec_value.str() << ";";
                 for(int k = 0, j = 0; j < N; ++j) {
                     src.new_line() << prm_name << "_sum.data[" << j << "][0] += ";
                     for(int i = 0; i < N; ++i, ++k) {
@@ -319,7 +319,7 @@ class ell<amgcl::static_matrix<T, N, N>, Col, Ptr> {
                 boost::proto::eval(boost::proto::as_child(x), expr_x);
 
                 src.open("{");
-                src.new_line() << type_name<vector_value>() << " v = " << vec_value.str() << ";";
+                src.new_line() << type_name<x_type>() << " v = " << vec_value.str() << ";";
                 for(int k = 0, j = 0; j < N; ++j) {
                     src.new_line() << prm_name << "_sum.data[" << j << "][0] += ";
                     for(int i = 0; i < N; ++i, ++k) {

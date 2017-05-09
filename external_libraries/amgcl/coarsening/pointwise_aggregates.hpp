@@ -34,9 +34,6 @@ THE SOFTWARE.
 #include <vector>
 #include <cmath>
 
-#include <boost/range/algorithm.hpp>
-#include <boost/range/numeric.hpp>
-
 #include <amgcl/util.hpp>
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/coarsening/plain_aggregates.hpp>

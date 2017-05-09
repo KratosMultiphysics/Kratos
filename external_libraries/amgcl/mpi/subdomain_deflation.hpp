@@ -33,10 +33,11 @@ THE SOFTWARE.
  */
 
 #include <vector>
+#include <algorithm>
+#include <numeric>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
-#include <boost/range/numeric.hpp>
 #include <boost/multi_array.hpp>
 #include <boost/function.hpp>
 
@@ -152,7 +153,7 @@ class subdomain_deflation {
             // Lets see how many deflation vectors are there.
             std::vector<ptrdiff_t> dv_size(comm.size);
             MPI_Allgather(&ndv, 1, datatype<ptrdiff_t>(), &dv_size[0], 1, datatype<ptrdiff_t>(), comm);
-            boost::partial_sum(dv_size, dv_start.begin() + 1);
+            std::partial_sum(dv_size.begin(), dv_size.end(), dv_start.begin() + 1);
             nz = dv_start.back();
 
             df.resize(ndv);
@@ -208,7 +209,7 @@ class subdomain_deflation {
                         ++loc_nnz;
                     } else {
                         ++rem_nnz;
-                        d = boost::upper_bound(domain, c) - domain.begin() - 1;
+                        d = std::upper_bound(domain.begin(), domain.end(), c) - domain.begin() - 1;
                     }
 
                     if (marker[d] != i) {
@@ -234,7 +235,7 @@ class subdomain_deflation {
             std::partial_sum(az->ptr, az->ptr + nrows + 1, az->ptr);
             az->set_nonzeros(az->ptr[nrows]);
 
-            boost::fill(marker, -1);
+            std::fill(marker.begin(), marker.end(), -1);
 
             for(ptrdiff_t i = 0, loc_head = 0, rem_head = 0; i < nrows; ++i) {
                 ptrdiff_t az_row_beg = az->ptr[i];
@@ -323,7 +324,7 @@ class subdomain_deflation {
 
             MPI_Waitall(C->recv.req.size(), &C->recv.req[0], MPI_STATUSES_IGNORE);
 
-            boost::fill(marker, -1);
+            std::fill(marker.begin(), marker.end(), -1);
 
             // AZ += Arem * Z
             for(ptrdiff_t i = 0; i < nrows; ++i) {
@@ -335,7 +336,9 @@ class subdomain_deflation {
                     value_type v = a.value();
 
                     // Domain the column belongs to
-                    ptrdiff_t d = C->recv.nbr[boost::upper_bound(C->recv.ptr, c) - C->recv.ptr.begin() - 1];
+                    ptrdiff_t d = C->recv.nbr[
+                        std::upper_bound(C->recv.ptr.begin(), C->recv.ptr.end(), c) -
+                            C->recv.ptr.begin() - 1];
 
                     value_type *zval = &zrecv[ zcol_ptr[c] ];
                     for(ptrdiff_t j = 0, k = dv_start[d]; j < dv_size[d]; ++j, ++k) {
@@ -413,8 +416,8 @@ class subdomain_deflation {
                     MPI_INT, 0, slaves_comm
                     );
 
-            boost::partial_sum(eptr, eptr.begin());
-            boost::partial_sum(Eptr, Eptr.begin());
+            std::partial_sum(eptr.begin(), eptr.end(), eptr.begin());
+            std::partial_sum(Eptr.begin(), Eptr.end(), Eptr.begin());
 
             // Build local strip of E.
             boost::multi_array<value_type, 2> erow(boost::extents[ndv][nz]);

@@ -30,7 +30,6 @@ THE SOFTWARE.
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/unordered_map.hpp>
-#include <boost/range/numeric.hpp>
 #include <boost/multi_array.hpp>
 #include <boost/foreach.hpp>
 

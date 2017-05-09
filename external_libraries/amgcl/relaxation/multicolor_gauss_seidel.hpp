@@ -31,9 +31,10 @@ THE SOFTWARE.
  * \brief  Multicolor Gauss-Seidel relaxation scheme.
  */
 
+#include <algorithm>
+#include <numeric>
+
 #include <boost/graph/sequential_vertex_coloring.hpp>
-#include <boost/range/algorithm.hpp>
-#include <boost/range/numeric.hpp>
 #include <boost/iterator/counting_iterator.hpp>
 
 #include <amgcl/backend/interface.hpp>
@@ -137,8 +138,8 @@ struct multicolor_gauss_seidel {
             order[i] = i;
         }
 
-        boost::stable_sort(order, order_by(color));
-        boost::partial_sum(ptr, ptr.begin());
+        std::stable_sort(order.begin(), order.end(), order_by(color));
+        std::partial_sum(ptr.begin(), ptr.end(), ptr.begin());
     }
 
     template <class Matrix, class VecRHS, class VecX, class VecTMP>

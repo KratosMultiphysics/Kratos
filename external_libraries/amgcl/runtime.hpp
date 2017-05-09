@@ -687,13 +687,14 @@ struct solver_get_params {
 };
 
 template <
+    class Backend,
     class Matrix,
     class Precond,
     class Vec1,
     class Vec2
     >
 struct solver_solve {
-    typedef typename Precond::backend_type::value_type value_type;
+    typedef typename Backend::value_type value_type;
     typedef typename math::scalar_of<value_type>::type scalar_type;
 
     void * handle;
@@ -810,7 +811,7 @@ class iterative_solver {
 
             runtime::detail::process_solver<Backend, InnerProduct>(
                     solver,
-                    runtime::detail::solver_solve<Matrix, Precond, Vec1, Vec2>(
+                    runtime::detail::solver_solve<backend_type, Matrix, Precond, Vec1, Vec2>(
                         handle, A, P, rhs, x, iters, resid)
                     );
 

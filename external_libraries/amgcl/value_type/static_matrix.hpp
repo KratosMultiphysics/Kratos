@@ -71,13 +71,22 @@ struct static_matrix {
         return buf.data();
     }
 
-    const static_matrix& operator+=(const static_matrix &y) {
+    template <typename U>
+    const static_matrix& operator=(const static_matrix<U,N,M> &y) {
+        for(int i = 0; i < N * M; ++i)
+            buf[i] = y.buf[i];
+        return *this;
+    }
+
+    template <typename U>
+    const static_matrix& operator+=(const static_matrix<U,N,M> &y) {
         for(int i = 0; i < N * M; ++i)
             buf[i] += y.buf[i];
         return *this;
     }
 
-    const static_matrix& operator-=(const static_matrix &y) {
+    template <typename U>
+    const static_matrix& operator-=(const static_matrix<U,N,M> &y) {
         for(int i = 0; i < N * M; ++i)
             buf[i] -= y.buf[i];
         return *this;
@@ -89,16 +98,6 @@ struct static_matrix {
         return *this;
     }
 
-
-    friend static_matrix operator+(static_matrix x, const static_matrix &y)
-    {
-        return x += y;
-    }
-
-    friend static_matrix operator-(static_matrix x, const static_matrix &y)
-    {
-        return x -= y;
-    }
 
     friend static_matrix operator*(T a, static_matrix x)
     {
@@ -138,10 +137,22 @@ struct static_matrix {
     }
 };
 
-template <typename T, int N, int K, int M>
+template <typename T, typename U, int N, int M>
+static_matrix<T, N, M> operator+(static_matrix<T, N, M> a, const static_matrix<U, N, M> &b)
+{
+    return a += b;
+}
+
+template <typename T, typename U, int N, int M>
+static_matrix<T, N, M> operator-(static_matrix<T, N, M> a, const static_matrix<U, N, M> &b)
+{
+    return a -= b;
+}
+
+template <typename T, typename U, int N, int K, int M>
 static_matrix<T, N, M> operator*(
         const static_matrix<T, N, K> &a,
-        const static_matrix<T, K, M> &b
+        const static_matrix<U, K, M> &b
         )
 {
     static_matrix<T, N, M> c;
