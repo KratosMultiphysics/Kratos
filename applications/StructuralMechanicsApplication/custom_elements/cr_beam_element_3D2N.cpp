@@ -15,6 +15,7 @@
 #include "includes/define.h"
 
 
+
 namespace Kratos
 {
 
@@ -1161,11 +1162,14 @@ namespace Kratos
 		const int size = NumNodes * dimension;
 		const int LocalSize = NumNodes * dimension * 2;
 
+
+		//element with two nodes can only represent results at one node 
 		const int&  write_points_number = GetGeometry()
-			.IntegrationPointsNumber(GeometryData::GI_GAUSS_3);
+			.IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
 		if (rOutput.size() != write_points_number) {
 			rOutput.resize(write_points_number);
 		}
+
 
 		this->UpdateIncrementDeformation();
 		//calculate Transformation Matrix
@@ -1179,10 +1183,7 @@ namespace Kratos
 		TransformationMatrixS = this->CalculateTransformationS();
 		Stress = prod(TransformationMatrixS, elementForces_t);
 
-		////calculate Body Forces here ngelected atm
-		//Vector BodyForces = ZeroVector(12);
-		//this->CalculateLocalBodyForce(LocalForceVector, rVolumeForce);
-		//Stress -= BodyForces;
+		//rOutput[GP 1,2,3][x,y,z]
 
 		if (rVariable == MOMENT)
 		{
@@ -1197,6 +1198,7 @@ namespace Kratos
 			rOutput[0][2] = -1.0 *Stress[5] * 0.75 + Stress[11] * 0.25;
 			rOutput[1][2] = -1.0 *Stress[5] * 0.50 + Stress[11] * 0.50;
 			rOutput[2][2] = -1.0 *Stress[5] * 0.25 + Stress[11] * 0.75;
+
 		}
 		if (rVariable == FORCE)
 		{
@@ -1211,6 +1213,7 @@ namespace Kratos
 			rOutput[0][2] = -1.0 *Stress[2] * 0.75 + Stress[8] * 0.25;
 			rOutput[1][2] = -1.0 *Stress[2] * 0.50 + Stress[8] * 0.50;
 			rOutput[2][2] = -1.0 *Stress[2] * 0.25 + Stress[8] * 0.75;
+
 		}
 
 		KRATOS_CATCH("")
@@ -1222,9 +1225,11 @@ namespace Kratos
 		const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
-			this->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+		this->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
 		KRATOS_CATCH("")
 	}
+
+
 
 	void CrBeamElement3D2N::AssembleSmallInBigMatrix(Matrix SmallMatrix,
 		Matrix& BigMatrix) {
@@ -1323,7 +1328,11 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-
+	CrBeamElement3D2N::IntegrationMethod CrBeamElement3D2N::GetIntegrationMethod() const
+	{
+		//do this to have 3GP as an output in GID
+		return Kratos::GeometryData::GI_GAUSS_3;
+	}
 
 
 
