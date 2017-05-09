@@ -27,8 +27,9 @@
 #include "processes/find_nodal_h_process.h"
 #include "custom_processes/metric_fast_init_process.h"
 #include "custom_processes/metrics_error_process.h"
-// // Utilities
-// #include "custom_utilities/mmg_utility.h" // FIXME: Error in declaration!!!!
+// #ifdef INCLUDE_MMG
+//     #include "custom_processes/mmg_process.h"
+// #endif
 
 namespace Kratos
 {
@@ -286,16 +287,18 @@ public:
 //             // Remeshing
 //             if (mRemeshingUtilities == MMG)
 //             {
-//                 if (mDimension == 2)
-//                 {
-//                     MmgUtility<2> MmgUtil = MmgUtility<2>(mThisModelPart, mThisParameters["remeshing_parameters"]); 
-//                     MmgUtil.RemeshModelPart();
-//                 }
-//                 else
-//                 {
-//                     MmgUtility<3> MmgUtil = MmgUtility<3>(mThisModelPart, mThisParameters["remeshing_parameters"]); 
-//                     MmgUtil.RemeshModelPart();
-//                 }
+//                 #ifdef INCLUDE_MMG
+//                     if (mDimension == 2)
+//                     {
+//                         MmgProcess<2> MmgProcess = MmgProcess<2>(mThisModelPart, mThisParameters["remeshing_parameters"]); 
+//                         MmgProcess.Execute();
+//                     }
+//                     else
+//                     {
+//                         MmgProcess<3> MmgProcess = MmgProcess<3>(mThisModelPart, mThisParameters["remeshing_parameters"]); 
+//                         MmgProcess.Execute();
+//                     }
+//                 #endif  
 //             }
 //             else
 //             {

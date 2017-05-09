@@ -129,21 +129,21 @@ void  AddProcessesToPython()
         .def("Execute",&ComputeErrorSolMetricProcess<3>::Execute)
         ;
         
-        #ifdef INCLUDE_MMG
         /* MMG PROCESS */
-        // 2D
-        class_<MmgProcess<2>, boost::noncopyable >
-        ("MmgProcess2D", init<ModelPart&>())
-        .def(init<ModelPart&, Parameters>())
-        .def("Execute", &MmgProcess<2>::Execute)
-        ;
-        
-        // 3D
-        class_<MmgProcess<3>, boost::noncopyable >
-        ("MmgProcess3D", init<ModelPart&>())
-        .def(init<ModelPart&, Parameters>())
-        .def("Execute", &MmgProcess<3>::Execute)
-        ;
+        #ifdef INCLUDE_MMG
+            // 2D
+            class_<MmgProcess<2>, boost::noncopyable >
+            ("MmgProcess2D", init<ModelPart&>())
+            .def(init<ModelPart&, Parameters>())
+            .def("Execute", &MmgProcess<2>::Execute)
+            ;
+            
+            // 3D
+            class_<MmgProcess<3>, boost::noncopyable >
+            ("MmgProcess3D", init<ModelPart&>())
+            .def(init<ModelPart&, Parameters>())
+            .def("Execute", &MmgProcess<3>::Execute)
+            ;
         #endif  
 }
 
