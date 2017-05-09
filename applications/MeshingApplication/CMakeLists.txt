@@ -29,6 +29,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetgen/te
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt)
 
 ## generate variables with the sources
+if(${INCLUDE_MMG} MATCHES ON)
 set( KRATOS_MESHING_APPLICATION_SOURCES    
 	${CMAKE_CURRENT_SOURCE_DIR}/meshing_application.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_meshing_python_application.cpp 
@@ -38,10 +39,20 @@ set( KRATOS_MESHING_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
-	if(${INCLUDE_MMG} MATCHES ON)
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp
-    endif(${INCLUDE_MMG} MATCHES ON)
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp
 )
+else(${INCLUDE_MMG} MATCHES ON)
+set( KRATOS_MESHING_APPLICATION_SOURCES    
+	${CMAKE_CURRENT_SOURCE_DIR}/meshing_application.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_meshing_python_application.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_meshers_to_python.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_processes_to_python.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
+)
+endif(${INCLUDE_MMG} MATCHES ON)
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
