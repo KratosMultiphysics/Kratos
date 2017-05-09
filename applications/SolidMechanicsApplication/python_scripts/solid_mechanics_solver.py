@@ -99,6 +99,8 @@ class MechanicalSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.POINT_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.LINE_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.FOLLOWER_LINE_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.FOLLOWER_POINT_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.SURFACE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
 
