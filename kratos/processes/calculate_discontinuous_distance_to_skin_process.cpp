@@ -62,6 +62,8 @@ namespace Kratos
 		if (rIntersectedObjects.empty())
 			return;
 
+		if (rElement1.Id() == 668)
+			KRATOS_WATCH(rIntersectedObjects.size());
 		// This function assumes tetrahedra element and triangle intersected object as input at this moment
 		constexpr int number_of_tetrahedra_points = 4;
 		constexpr double epsilon = std::numeric_limits<double>::epsilon();
@@ -74,7 +76,7 @@ namespace Kratos
 			elemental_distances[i] = std::numeric_limits<double>::max();
 			for (auto triangle : rIntersectedObjects.GetContainer()) {
 				auto distance = GeometryUtils::PointDistanceToTriangle3D(triangle->GetGeometry()[0], triangle->GetGeometry()[1], triangle->GetGeometry()[2], rElement1.GetGeometry()[i]);
-				if (fabs(elemental_distances[i] > distance))
+				if (fabs(elemental_distances[i]) > distance)
 				{
 					if (distance < epsilon) {
 						elemental_distances[i] = -epsilon;
@@ -89,6 +91,17 @@ namespace Kratos
 				}
 			}
 		}
+		
+		bool has_positive_distance = false;
+		bool has_negative_distance = false;
+		for (int i = 0; i < number_of_tetrahedra_points; i++)
+			if (elemental_distances[i] > epsilon)
+				has_positive_distance = true;
+			else
+				has_negative_distance = true;
+
+		if(has_positive_distance && has_negative_distance)
+			rElement1.Set(TO_SPLIT, true);
 
 		std::array<Point<3>, 6> edge_optimum_cut_point;
 		int number_of_cut_edge = 0;
@@ -123,8 +136,12 @@ namespace Kratos
 			if (fabs(distance) < epsilon)
 				number_of_zero_distance_nodes++;
 		}
-		
-		if (number_of_cut_edge == 3 && (number_of_zero_distance_nodes == 0)) {
+		if (number_of_cut_edge < 3) {
+			rElement1.Set(TO_SPLIT, false);
+			for (int i = 0; i < number_of_tetrahedra_points; i++)
+				elemental_distances[i] = fabs(elemental_distances[i]);
+		}
+		else if (number_of_cut_edge == 3 && (number_of_zero_distance_nodes == 0)) {
 			//Plane3D plane(edge_optimum_cut_point[0], edge_optimum_cut_point[1], edge_optimum_cut_point[2]);
 			//for (int i = 0; i < number_of_tetrahedra_points; i++) {
 			//	if (plane.CalculateSignedDistance(rElement1.GetGeometry()[i]) < 0)
@@ -140,8 +157,6 @@ namespace Kratos
 						rElement1.Set(TO_SPLIT, true);
 					}
 				}
-				else // avoid zero distance
-					elemental_distances[i] = -epsilon;
 			}
 
 		}
@@ -168,8 +183,6 @@ namespace Kratos
 			}
 				
 		}
-
-		AvoidZeroDistanceNodes(rElement1, epsilon);
 
 	}
 
