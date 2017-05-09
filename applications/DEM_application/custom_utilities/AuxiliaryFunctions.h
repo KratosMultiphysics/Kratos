@@ -18,7 +18,7 @@ namespace Kratos {
     
     namespace AuxiliaryFunctions {
 
-	static inline void CalculateAlphaFactor3D(int n_neighbours, double external_sphere_area, double total_equiv_area , double& alpha) {
+	static inline void CalculateAlphaFactor3D(const int n_neighbours, const double external_sphere_area, const double total_equiv_area , double& alpha) {
 
 	    double external_polyhedron_area = 0.0;
 	    
@@ -102,7 +102,7 @@ namespace Kratos {
 			
 	}//CalculateAlphaFactor
 	  
-	static inline void CalculateAlphaFactor2D(int n_neighbours, double external_circle_perimeter, double total_equiv_perimeter , double& alpha) {
+	static inline void CalculateAlphaFactor2D(const int n_neighbours, const double external_circle_perimeter, const double total_equiv_perimeter , double& alpha) {
 
             double external_polygon_perimeter = 0.0;
         
@@ -167,7 +167,7 @@ namespace Kratos {
             
         }//CalculateAlphaFactor
 	  	  
-	static inline void SwitchCase(int case_opt, bool& delta_OPTION, bool& continuum_simulation_OPTION) {
+	static inline void SwitchCase(const int case_opt, bool& delta_OPTION, bool& continuum_simulation_OPTION) {
 		
 	    switch (case_opt) {
                 
@@ -197,7 +197,7 @@ namespace Kratos {
 	    }			  
 	} //SwitchCase
 	  
-	inline array_1d<double,3> LinearTimeIncreasingFunction(array_1d<double,3> external_total_applied_force, double current_time, double final_time)
+	inline array_1d<double,3> LinearTimeIncreasingFunction(const array_1d<double,3>& external_total_applied_force, const double current_time, const double final_time)
 	{		
             array_1d<double,3> externally_applied_force_now = external_total_applied_force*current_time/final_time;
             return externally_applied_force_now;
@@ -311,6 +311,33 @@ namespace Kratos {
         }
                     	  
     }//namespace AuxiliaryFunctions
+    
+    namespace DemDebugFunctions {
+        static inline void CheckIfNan(const array_1d<double,3>& vector, const std::string& sentence) {
+            #ifdef KRATOS_DEBUG
+            if(std::isnan(vector[0]) || std::isnan(vector[1]) || std::isnan(vector[2])){
+                KRATOS_ERROR<<sentence;
+            }
+            #endif 
+        }  
+        
+        static inline void CheckIfNan(const double vector[3], const std::string& sentence) {
+            #ifdef KRATOS_DEBUG
+            if(std::isnan(vector[0]) || std::isnan(vector[1]) || std::isnan(vector[2])){
+                KRATOS_ERROR<<sentence;
+            }
+            #endif 
+        }  
+        
+        static inline void CheckIfNan(const double& value, const std::string& sentence) {
+            #ifdef KRATOS_DEBUG
+            if(std::isnan(value)){
+                KRATOS_ERROR<<sentence;
+            }
+            #endif 
+        }  
+        
+    }
   
 }//namespace Kratos
 
