@@ -175,6 +175,9 @@ public:
         const TSystemVectorType& b
     ) override
     {
+        // We recompute the NODAL_H
+        mFindNodalH.Execute();
+                
         // We initialize the check
         bool ConvergedError = true;
         
@@ -338,7 +341,6 @@ public:
         const TSystemVectorType& b
     ) override
     {
-        mFindNodalH.Execute();
     }
     
     /**
