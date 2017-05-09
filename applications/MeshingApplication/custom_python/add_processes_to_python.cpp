@@ -34,8 +34,6 @@
     #include "custom_processes/mmg_process.h"
 #endif
 
-#include "includes/node.h"
-
 namespace Kratos
 {
 
