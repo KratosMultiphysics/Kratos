@@ -66,6 +66,8 @@ namespace Kratos {
         array_1d<double, 3 >& coor = i.Coordinates();
         array_1d<double, 3 >& initial_coor = i.GetInitialPosition();
         array_1d<double, 3 >& force = i.FastGetSolutionStepValue(TOTAL_FORCES);
+        
+        DemDebugFunctions::CheckIfNan(force, "NAN in Force in Integration Scheme");
 
         double mass = i.FastGetSolutionStepValue(NODAL_MASS);                   
 
@@ -85,6 +87,8 @@ namespace Kratos {
         array_1d<double, 3 >& torque = i.FastGetSolutionStepValue(PARTICLE_MOMENT);
         array_1d<double, 3 >& rotated_angle = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
         array_1d<double, 3 >& delta_rotation = i.FastGetSolutionStepValue(DELTA_ROTATION);
+        
+        DemDebugFunctions::CheckIfNan(torque, "NAN in Torque in Integration Scheme");
 
         bool Fix_Ang_vel[3] = {false, false, false};
         Fix_Ang_vel[0] = i.Is(DEMFlags::FIXED_ANG_VEL_X);

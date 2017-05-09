@@ -45,15 +45,15 @@ CMAKE_BIN=cmake
 #        C_COMPILER=gcc
 #        CXX_COMPILER=g++
 # --------------------------------------------------------------------------------------------------------------
-C_COMPILER=gcc
-CXX_COMPILER=g++
+C_COMPILER=gcc-6
+CXX_COMPILER=g++-6
 
 # Build type
 #    Indicate the build type. Possible values are "Release", "RelWithDebInfo" or "Debug"
 #    - Example:
 #        BUILD_TYPE="RelWithDebInfo"
 # --------------------------------------------------------------------------------------------------------------
-BUILD_TYPE="Release"
+# BUILD_TYPE="Release"
 
 # Flags for performance
 #    Indicate the compiler performance related flags. Please notice that OX flags are added by cmake
@@ -62,8 +62,8 @@ BUILD_TYPE="Release"
 #        C_PERF_FLAGS="-msse3 -fopenmp"
 #        CXX_PERF_FLAGS="-msse3 -fopenmp"
 # --------------------------------------------------------------------------------------------------------------
-C_PERF_FLAGS="-fopenmp"
-CXX_PERF_FLAGS="-fopenmp"
+C_PERF_FLAGS="-O0 -fopenmp"
+CXX_PERF_FLAGS="-O0 -fopenmp"
 
 # Flags for warnings control
 #    Indicate the warning related flags. Wall is enabled by default. This is the proper place to ignore
@@ -91,16 +91,17 @@ CMAKE_LIBS=(
   #    - Example:
   #        -DBOOST_ROOT="${KRATOS_ROOT}/external_libraries/boost_1_61_0"
   # --------------------------------------------------------------------------------------------------------------
-  -DBOOST_ROOT="${KRATOS_ROOT}/external_libraries/boost_1_61_0"
+  # Should be compiling against the system boost
+  # -DBOOST_ROOT="${KRATOS_ROOT}/external_libraries/boost_1_61_0"
 
   # Python
   #    Indicate your python lib and include dir in case you don't want to use the system default
-  #    - Example (for ubuntu 16.04):
-  #        -DPYTHON_LIBRARY="/usr/lib/python3.5/config-3.5m-x86_64-linux-gnu/libpython3.5m.so"
-  #        -DPYTHON_INCLUDE_DIR="/usr/include/python3.5"
+  #    - Example (for ubuntu 14.04):
+  #        -DPYTHON_LIBRARY="/usr/lib/python2.7/config-x86_64-linux-gnu/libpython2.7.so"
+  #        -DPYTHON_INCLUDE_DIR="/usr/include/python2.7"
   # --------------------------------------------------------------------------------------------------------------
-  -DPYTHON_LIBRARY="/usr/lib/python3.5/config-3.5m-x86_64-linux-gnu/libpython3.5m.so"
-  -DPYTHON_INCLUDE_DIR="/usr/include/python3.5"
+  -DPYTHON_LIBRARY="/usr/lib/x86_64-linux-gnu/libpython3.4m.so.1.0"
+  -DPYTHON_INCLUDE_DIR="/usr/include/python3.4m"
 )
 
 ########################################################################################################################
@@ -109,41 +110,11 @@ CMAKE_LIBS=(
 # List of applications to compile. Set to ON/OFF
 
 CMAKE_APPLICATION=(
-  -DINCOMPRESSIBLE_FLUID_APPLICATION=OFF
-  -DMESHING_APPLICATION=OFF
-  -DEXTERNAL_SOLVERS_APPLICATION=OFF
-  -DPFEM_APPLICATION=OFF
-  -DPFEM_BASE_APPLICATION=OFF
-  -DPFEM_SOLID_MECHANICS_APPLICATION=OFF
-  -DPFEM_FLUID_DYNAMICS_APPLICATION=OFF
-  -DPFEM2_APPLICATION=OFF
-  -DSTRUCTURAL_APPLICATION=OFF
-  -DSTRUCTURAL_MECHANICS_APPLICATION=OFF
-  -DCONVECTION_DIFFUSION_APPLICATION=OFF
-  -DSOLID_MECHANICS_APPLICATION=OFF
-  -DFLUID_DYNAMICS_APPLICATION=OFF
-  -DALE_APPLICATION=OFF
-  -DFSI_APPLICATION=OFF
-  -DEMPIRE_APPLICATION=OFF
-  -DMIXED_ELEMENT_APPLICATION=OFF
-  -DDEM_APPLICATION=OFF
-  -DSWIMMING_DEM_APPLICATION=OFF
-  -DCONSTITUTIVE_LAWS_APPLICATION=OFF
-  -DTHERMO_MECHANICAL_APPLICATION=OFF
-  -DOPENCL_APPLICATION=OFF
-  -DMPI_SEARCH_APPLICATION=OFF
-  -DTURBULENT_FLOW_APPLICATION=OFF
-  -DPURE_DIFFUSION_APPLICATION=OFF
-  -DMESHLESS_APPLICATION=OFF
-  -DWIND_TURBINE_APPLICATION=OFF
-  -DMULTISCALE_APPLICATION=OFF
-  -DFREEZING_SOIL_APPLICATION=OFF
-  -DADJOINT_FLUID_APPLICATION=OFF
-  -DPOROMECHANICS_APPLICATION=OFF
-  -DPARTICLE_MECHANICS_APPLICATION=OFF
-  -DFORMING_APPLICATION=OFF
-  -DDAM_APPLICATION=OFF
-  -DSHAPE_OPTIMIZATION_APPLICATION=OFF
+  -DEXTERNAL_SOLVERS_APPLICATION=ON
+  -DSOLID_MECHANICS_APPLICATION=ON
+  -DFLUID_DYNAMICS_APPLICATION=ON
+  -DDEM_APPLICATION=ON
+  -DSWIMMING_DEM_APPLICATION=ON
 )
 
 ########################################################################################################################
@@ -168,11 +139,16 @@ CMAKE_BUILD=(
   -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -std=c++11 ${CXX_PERF_FLAGS} ${CXX_IGNORE_WARN} ${CXX_CUSTOM_FLAGS}"
 
   # Build type
-  -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
+  # NOTE: This is better commented for travis since we don't want to use
+  # a default configuration. (-O0 is prefered here)
+  # -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
 
   # Install info
   -DCMAKE_INSTALL_RPATH="${KRATOS_ROOT}/libs"
   -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE
+
+  # Custom python suffix for liboost-python
+  -DBOOST_PYTHON_SUFFIX="-py34"
 )
 
 ########################################################################################################################
@@ -206,8 +182,3 @@ CMAKE_EXTRA=(
 
 # This line issues the configuration command with cmake that will generate the Makefile
 ${CMAKE_BIN} ${KRATOS_ROOT} "${CMAKE_BUILD[@]}" "${CMAKE_LIBS[@]}" "${CMAKE_APPLICATION[@]}" "${CMAKE_EXTRA[@]}"
-
-# Decomment this to compile after configuring
-#    -jN: Number of processors used during the compilation.
-#      for old machine, please take into account that this can use up to aprox 3*N GB of ram.
-make install -j1
