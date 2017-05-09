@@ -161,6 +161,9 @@ namespace Kratos
 			std::vector< array_1d<double, 3 > >& rOutput,
 			const ProcessInfo& rCurrentProcessInfo) override;
 
+
+		IntegrationMethod GetIntegrationMethod() const override;
+
 	private:
 		double mArea, mYoungsModulus, mLength, mDensity, mInertiaX, mInertiaY;
 		double mInertiaZ, mCurrentLength, mPsiY, mPsiZ;
