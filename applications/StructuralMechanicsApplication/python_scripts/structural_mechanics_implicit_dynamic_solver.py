@@ -57,7 +57,7 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             "error_mesh_settings":{
                 "error_mesh_tolerance" : 1.0e-3,
                 "error_mesh_constant" : 1.0e-3,
-                "remeshing_utility"   : "MMG"
+                "remeshing_utility"   : "MMG",
                 "remeshing_parameters": 
                 {
                     "filename"                             : "out",
