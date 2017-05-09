@@ -223,7 +223,7 @@ namespace Kratos
 	      else{
 		mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+1]);
 		mContactVariables.nodes.push_back(permute[mContactVariables.slaves.front()+1]);
-	      } 
+	      }
 	      
 	    }
 	  
@@ -241,13 +241,11 @@ namespace Kratos
 	  //Compute Reference Normal
 	  PointType Normal = mContactUtilities.CalculateSurfaceNormal(Normal,V1,V2);
 	  
-	  V2 = GetGeometry()[mContactVariables.nodes[1]].FastGetSolutionStepValue(NORMAL);
+	  V2 = GetGeometry()[mContactVariables.nodes[0]].FastGetSolutionStepValue(NORMAL);
 
-	  mContactVariables.EdgeSign = 1;
 	  if((inner_prod(V2,Normal))<0){ //change the slaves nodes order for consistency
-	    // std::iter_swap(mContactVariables.slaves.begin(), mContactVariables.slaves.begin()+1);
-	    // std::iter_swap(mContactVariables.nodes.end()-2, mContactVariables.nodes.end()-1);
-	    mContactVariables.EdgeSign = -1;
+	    std::iter_swap(mContactVariables.slaves.begin(), mContactVariables.slaves.begin()+1);
+	    std::iter_swap(mContactVariables.nodes.end()-2, mContactVariables.nodes.end()-1);
 	  }
 	  
 	   
@@ -511,15 +509,10 @@ namespace Kratos
     PointType PS2  =  GetGeometry()[slave2].Coordinates() - (GetGeometry()[slave2].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[slave2].FastGetSolutionStepValue(DISPLACEMENT,1) );
 
     PointType V1 = P2-P1;
-    PointType V2 = PS2-PS1;
+    PointType V2 = PS1-PS2;
 
     //Compute Reference Normal
     mContactVariables.ReferenceSurface.Normal=mContactUtilities.CalculateSurfaceNormal(mContactVariables.ReferenceSurface.Normal,V1,V2);
-    mContactVariables.ReferenceSurface.Normal *= mContactVariables.EdgeSign;
-    
-    // V2 = GetGeometry()[node1].FastGetSolutionStepValue(NORMAL);
-    // if((inner_prod(V2,mContactVariables.ReferenceSurface.Normal))<0) //to give the correct direction
-    //   mContactVariables.ReferenceSurface.Normal*=-1;
     
     //1.- Compute tension vector:  (must be updated each iteration)
     Matrix StressMatrix(3,3);
@@ -564,8 +557,6 @@ namespace Kratos
 
     //Compute Previous Normal
     mContactVariables.PreStepSurface.Normal=mContactUtilities.CalculateSurfaceNormal(mContactVariables.PreStepSurface.Normal,mContactVariables.Tangent.CovariantBase.DirectionA,mContactVariables.Tangent.CovariantBase.DirectionB);
-
-    mContactVariables.PreStepSurface.Normal *= mContactVariables.EdgeSign;
     
     if((inner_prod(mContactVariables.PreStepSurface.Normal,mContactVariables.ReferenceSurface.Normal))<0) //to give the correct direction
       mContactVariables.PreStepSurface.Normal*=-1;
@@ -767,17 +758,20 @@ namespace Kratos
     Element::ElementType& rMasterElement = GetValue(MASTER_ELEMENTS).back();
     mContactVariables.SetMasterElement(rMasterElement);
     
-    // std::cout<<" ELEMENT ["<<this->Id()<<"] ("<<GetGeometry()[0].Coordinates()<<")("<<GetGeometry()[1].Coordinates()<<")("<<GetGeometry()[2].Coordinates()<<")("<<GetGeometry()[3].Coordinates()<<")"<<std::endl;
-    
-    // std::cout<<" CONTACT ("<<GetGeometry()[0].Id()<<")("<<GetGeometry()[1].Id()<<")("<<GetGeometry()[2].Id()<<")("<<GetGeometry()[3].Id()<<")"<<std::endl;
 
-    // std::cout<<" MASTER  ("<<rMasterElement.GetGeometry()[0].Id()<<")("<<rMasterElement.GetGeometry()[1].Id()<<")("<<rMasterElement.GetGeometry()[2].Id()<<")("<<rMasterElement.GetGeometry()[3].Id()<<")"<<std::endl;
-          
-    // std::cout<<" Order ("<<mContactVariables.order[0]<<" "<<mContactVariables.order[1]<<" "<<mContactVariables.order[2]<<" "<<mContactVariables.order[3]<<")"<<std::endl;
-    // std::cout<<" Nodes ("<<mContactVariables.nodes[0]<<" "<<mContactVariables.nodes[1]<<" "<<mContactVariables.nodes[2]<<" "<<mContactVariables.nodes[3]<<")"<<std::endl;
+    if( this->Is(SELECTED) )
+      std::cout<<" ELEMENT ["<<this->Id()<<"] EDGE "<<std::endl;
+    else
+      std::cout<<" ELEMENT ["<<this->Id()<<"] FACE "<<std::endl;
+    
+    std::cout<<" CONTACT ("<<GetGeometry()[0].Id()<<")("<<GetGeometry()[1].Id()<<")("<<GetGeometry()[2].Id()<<")("<<GetGeometry()[3].Id()<<")"<<std::endl;
+    std::cout<<" MASTER  ("<<rMasterElement.GetGeometry()[0].Id()<<")("<<rMasterElement.GetGeometry()[1].Id()<<")("<<rMasterElement.GetGeometry()[2].Id()<<")("<<rMasterElement.GetGeometry()[3].Id()<<")"<<std::endl;
+    std::cout<<" Nodes ("<<mContactVariables.nodes[0]<<" "<<mContactVariables.nodes[1]<<" "<<mContactVariables.nodes[2]<<" "<<mContactVariables.nodes[3]<<")"<<std::endl;
+    //std::cout<<" Order ("<<mContactVariables.order[0]<<" "<<mContactVariables.order[1]<<" "<<mContactVariables.order[2]<<" "<<mContactVariables.order[3]<<")"<<std::endl;
 
     // std::cout<<" Slaves ("<<GetValue(MASTER_NODES).front().Id()<<" "<<GetValue(MASTER_NODES).back().Id()<<") ["<<mContactVariables.slaves[0]<<" "<<mContactVariables.slaves[1]<<"]"<<std::endl;
-   
+
+    
 
     if( this->Is(SELECTED) )
       CalculateExplicitFactorsEdgeType(rVariables, rCurrentProcessInfo); 
@@ -792,15 +786,7 @@ namespace Kratos
     // for(unsigned int i=0; i<3; i++)
     //   ContactNormal[i] = rVariables.Contact.CurrentSurface.Normal[i];
 
-    if( this->Is(SELECTED) )
-      std::cout<<" ELEMENT ["<<this->Id()<<"] EDGE "<<std::endl;
-    else
-      std::cout<<" ELEMENT ["<<this->Id()<<"] FACE "<<std::endl;
-    
-    std::cout<<" CONTACT ("<<GetGeometry()[0].Id()<<")("<<GetGeometry()[1].Id()<<")("<<GetGeometry()[2].Id()<<")("<<GetGeometry()[3].Id()<<")"<<std::endl;
-    std::cout<<" MASTER  ("<<rMasterElement.GetGeometry()[0].Id()<<")("<<rMasterElement.GetGeometry()[1].Id()<<")("<<rMasterElement.GetGeometry()[2].Id()<<")("<<rMasterElement.GetGeometry()[3].Id()<<")"<<std::endl;
-    std::cout<<" Nodes ("<<mContactVariables.nodes[0]<<" "<<mContactVariables.nodes[1]<<" "<<mContactVariables.nodes[2]<<" "<<mContactVariables.nodes[3]<<")"<<std::endl;
-    
+
     std::cout<<" GapN "<<rVariables.Contact.CurrentGap.Normal<<std::endl;
     std::cout<<" LmN "<<rVariables.Contact.Multiplier.Normal<<std::endl;
 
@@ -844,9 +830,10 @@ namespace Kratos
     mContactVariables.TractionVector=prod(StressMatrix,mContactVariables.ReferenceSurface.Normal);
 
 
-    std::cout<<" F "<<rVariables.F<<std::endl;
-    std::cout<<" StressTensor "<<StressMatrix<<std::endl;
-    std::cout<<" Traction Vector "<<mContactVariables.TractionVector<<std::endl;
+    // std::cout<<" F "<<rVariables.F<<std::endl;
+    // std::cout<<" StressTensor "<<StressMatrix<<std::endl;
+    // std::cout<<" Reference Normal "<<mContactVariables.ReferenceSurface.Normal<<std::endl;
+    // std::cout<<" Traction Vector "<<mContactVariables.TractionVector<<std::endl;
 
     
     //d.- Compute the Current Normal and Tangent
@@ -871,9 +858,7 @@ namespace Kratos
 
     if(double(inner_prod(rVariables.Contact.CurrentSurface.Normal,mContactVariables.ReferenceSurface.Normal))<0) //to give the correct direction
       rVariables.Contact.CurrentSurface.Normal*=-1;
-
-    rVariables.Contact.CurrentSurface.Normal /= norm_2(rVariables.Contact.CurrentSurface.Normal);  //to be unitary
-
+    
     if(!(norm_2(rVariables.Contact.CurrentSurface.Normal)))
       rVariables.Contact.CurrentSurface.Normal=mContactVariables.ReferenceSurface.Normal;
 
@@ -918,7 +903,6 @@ namespace Kratos
     
     //f.-obtain the (g_N)3 and (g_T)3 for the n configuration
 
- 
     double ReferenceGapN = inner_prod((PS-P1), mContactVariables.ReferenceSurface.Normal);
 
     //covariant gap
@@ -936,13 +920,11 @@ namespace Kratos
     
     //(g_N)3
     ReferenceGapN*=inner_prod(rVariables.Contact.CurrentSurface.Normal,mContactVariables.ReferenceSurface.Normal);
-
     ReferenceGapN+=inner_prod(rVariables.Contact.CurrentSurface.Normal,(D1*(-rVariables.Contact.ReferenceBase[0].A/rVariables.Contact.ReferenceBase[0].L)));
     ReferenceGapN+=inner_prod(rVariables.Contact.CurrentSurface.Normal,(D2*(-rVariables.Contact.ReferenceBase[1].A/rVariables.Contact.ReferenceBase[1].L)));
     ReferenceGapN+=inner_prod(rVariables.Contact.CurrentSurface.Normal,(D3*(-rVariables.Contact.ReferenceBase[2].A/rVariables.Contact.ReferenceBase[2].L)));
     ReferenceGapN+=inner_prod(rVariables.Contact.CurrentSurface.Normal,DS);
 
-      
     //(g_cvTA)3
     ReferenceGapcvTA+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionA,(D1*(-rVariables.Contact.ReferenceBase[0].A/rVariables.Contact.ReferenceBase[0].L)));
     ReferenceGapcvTA+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionA,(D2*(-rVariables.Contact.ReferenceBase[1].A/rVariables.Contact.ReferenceBase[1].L)));
@@ -997,13 +979,13 @@ namespace Kratos
     rVariables.Contact.Tangent.B.CurrentTensil.Contravariant=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionB,mContactVariables.TractionVector);
 
     
-    ReferenceGapN+= 3 * rVariables.Contact.ContactFactor.Normal * rVariables.Contact.CurrentTensil.Normal;
+    ReferenceGapN += 3 * rVariables.Contact.ContactFactor.Normal * rVariables.Contact.CurrentTensil.Normal;
 
-    ReferenceGapcvTA+= 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.A.CurrentTensil.Covariant;
-    ReferenceGapcvTB+= 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.B.CurrentTensil.Covariant;
+    ReferenceGapcvTA += 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.A.CurrentTensil.Covariant;
+    ReferenceGapcvTB += 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.B.CurrentTensil.Covariant;
     
-    ReferenceGapcnTA+= 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.A.CurrentTensil.Contravariant;
-    ReferenceGapcnTB+= 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.B.CurrentTensil.Contravariant;
+    ReferenceGapcnTA += 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.A.CurrentTensil.Contravariant;
+    ReferenceGapcnTB += 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.B.CurrentTensil.Contravariant;
 
 
     //5.- Compute (Lagrange) Multipliers
@@ -1106,7 +1088,6 @@ namespace Kratos
 
     //temporary
     rVariables.Contact.Options.Set(SLIP,false); //impose stick
-
     
     //From total current gap compute multipliers:
 
@@ -1180,9 +1161,10 @@ namespace Kratos
     //c.- Compute the tension (or traction) vector T=P*N (in the Reference configuration)
     mContactVariables.TractionVector=prod(StressMatrix,mContactVariables.ReferenceSurface.Normal);
 
-    std::cout<<" F "<<rVariables.F<<std::endl;
-    std::cout<<" StressTensor "<<StressMatrix<<std::endl;
-    std::cout<<" Traction Vector "<<mContactVariables.TractionVector<<std::endl;
+    // std::cout<<" F "<<rVariables.F<<std::endl;
+    // std::cout<<" StressTensor "<<StressMatrix<<std::endl;
+    // std::cout<<" Reference Normal "<<mContactVariables.ReferenceSurface.Normal<<std::endl;
+    // std::cout<<" Traction Vector "<<mContactVariables.TractionVector<<std::endl;
 
     //d.- Compute the Current Normal and Tangent
 
@@ -1200,22 +1182,15 @@ namespace Kratos
 
     // std::cout<<" cvMetric "<<rVariables.Contact.Tangent.CovariantBase.Metric<<std::endl;
     // std::cout<<" cnMetric "<<rVariables.Contact.Tangent.ContravariantBase.Metric<<std::endl;
-    
-   
+       
     //Compute Current Normal
     rVariables.Contact.CurrentSurface.Normal=mContactUtilities.CalculateSurfaceNormal(rVariables.Contact.CurrentSurface.Normal,rVariables.Contact.Tangent.CovariantBase.DirectionA, rVariables.Contact.Tangent.CovariantBase.DirectionB);
 
-    rVariables.Contact.CurrentSurface.Normal *= mContactVariables.EdgeSign;
     
-    // V2 = GetGeometry()[node1].FastGetSolutionStepValue(NORMAL);
-    // if((inner_prod(V2,rVariables.Contact.CurrentSurface.Normal))<0) //to give the correct direction
-    //   rVariables.Contact.CurrentSurface.Normal*=-1;
+    if(double(inner_prod(rVariables.Contact.CurrentSurface.Normal,mContactVariables.ReferenceSurface.Normal))<0) //to give the correct direction
+      rVariables.Contact.CurrentSurface.Normal*=-1;
     
-    // if(double(inner_prod(rVariables.Contact.CurrentSurface.Normal,mContactVariables.ReferenceSurface.Normal))<0) //to give the correct direction
-    //   rVariables.Contact.CurrentSurface.Normal*=-1;
-
-    // rVariables.Contact.CurrentSurface.Normal /= norm_2(rVariables.Contact.CurrentSurface.Normal);  //to be unitary
-
+    
     if(!(norm_2(rVariables.Contact.CurrentSurface.Normal)))
       rVariables.Contact.CurrentSurface.Normal=mContactVariables.ReferenceSurface.Normal;
 
@@ -1230,8 +1205,8 @@ namespace Kratos
     //Current normal:   n,t      -> rVariables.Contact.CurrentSurface.Normal /  rVariables.Contact.CurrentSurface.Tangent
 
     //e.- Compute A_n,B_n,L_n
-    rVariables.Contact.ReferenceBase.resize(3);
-    rVariables.Contact.CurrentBase.resize(3);
+    rVariables.Contact.ReferenceBase.resize(2);
+    rVariables.Contact.CurrentBase.resize(2);
 
     //a, b, l:
     mContactUtilities.CalculateEdgeDistances(rVariables.Contact.CurrentBase,P1,P2,PS1,PS2,rVariables.Contact.CurrentSurface.Normal);
@@ -1263,7 +1238,7 @@ namespace Kratos
 
     PointType M1 = 0.5 * (P1+P2);
     PointType M2 = 0.5 * (PS1+PS2);
-    double ReferenceGapN = inner_prod((M2-M1),mContactVariables.PreStepSurface.Normal);
+    double ReferenceGapN = inner_prod((M2-M1), mContactVariables.ReferenceSurface.Normal);
 
     //covariant gap
     double ReferenceGapcvTA = ReferenceGapN * inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionA,mContactVariables.ReferenceSurface.Normal);
@@ -1342,13 +1317,13 @@ namespace Kratos
     rVariables.Contact.Tangent.B.CurrentTensil.Contravariant=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionB,mContactVariables.TractionVector);
 
     
-    ReferenceGapN+= 3 * rVariables.Contact.ContactFactor.Normal * rVariables.Contact.CurrentTensil.Normal;
+    ReferenceGapN += 3 * rVariables.Contact.ContactFactor.Normal * rVariables.Contact.CurrentTensil.Normal/rVariables.Contact.Tangent.EquivalentHeigh;
 
-    ReferenceGapcvTA+= 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.A.CurrentTensil.Covariant;
-    ReferenceGapcvTB+= 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.B.CurrentTensil.Covariant;
+    ReferenceGapcvTA += 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.A.CurrentTensil.Covariant/rVariables.Contact.Tangent.EquivalentHeigh;
+    ReferenceGapcvTB += 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.B.CurrentTensil.Covariant/rVariables.Contact.Tangent.EquivalentHeigh;
     
-    ReferenceGapcnTA+= 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.A.CurrentTensil.Contravariant;
-    ReferenceGapcnTB+= 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.B.CurrentTensil.Contravariant;
+    ReferenceGapcnTA += 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.A.CurrentTensil.Contravariant/rVariables.Contact.Tangent.EquivalentHeigh;
+    ReferenceGapcnTB += 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.B.CurrentTensil.Contravariant/rVariables.Contact.Tangent.EquivalentHeigh;
 
 
     //5.- Compute (Lagrange) Multipliers
@@ -1455,13 +1430,13 @@ namespace Kratos
 
     //rVariables.Contact.Multiplier.Normal = EffectiveGap*(1./(2.0*rVariables.Contact.ContactFactor.Normal)); //posible computation of the Lagrange Multiplier
     rVariables.Contact.Multiplier.Normal =rVariables.Contact.CurrentTensil.Normal;
-    rVariables.Contact.Multiplier.Normal+=rVariables.Contact.CurrentGap.Normal*(1.0/(3.0*rVariables.Contact.ContactFactor.Normal));
+    rVariables.Contact.Multiplier.Normal+=rVariables.Contact.CurrentGap.Normal*(rVariables.Contact.Tangent.EquivalentHeigh/(3.0*rVariables.Contact.ContactFactor.Normal));
 
     rVariables.Contact.Tangent.A.Multiplier=rVariables.Contact.Tangent.A.CurrentTensil.Covariant;
-    rVariables.Contact.Tangent.A.Multiplier+=rVariables.Contact.Tangent.A.CurrentGap.Covariant*(1.0/(3.0*rVariables.Contact.ContactFactor.Tangent));
+    rVariables.Contact.Tangent.A.Multiplier+=rVariables.Contact.Tangent.A.CurrentGap.Covariant*(rVariables.Contact.Tangent.EquivalentHeigh/(3.0*rVariables.Contact.ContactFactor.Tangent));
 
     rVariables.Contact.Tangent.B.Multiplier=rVariables.Contact.Tangent.B.CurrentTensil.Covariant;
-    rVariables.Contact.Tangent.B.Multiplier+=rVariables.Contact.Tangent.B.CurrentGap.Covariant*(1.0/(3.0*rVariables.Contact.ContactFactor.Tangent));
+    rVariables.Contact.Tangent.B.Multiplier+=rVariables.Contact.Tangent.B.CurrentGap.Covariant*(rVariables.Contact.Tangent.EquivalentHeigh/(3.0*rVariables.Contact.ContactFactor.Tangent));
 
     
     if(rVariables.Contact.Tangent.A.Multiplier<0)  //add the sign of the Lagrange Multiplier
@@ -1549,7 +1524,7 @@ namespace Kratos
       rVariables.Contact.dN_dn[ndk]= rVariables.Contact.CurrentBase[1].A/rVariables.Contact.CurrentBase[1].L; 
       rVariables.Contact.dN_dn[ndl]= rVariables.Contact.CurrentBase[1].B/rVariables.Contact.CurrentBase[1].L;
 
-      // std::cout<<" dN_dn "<<rVariables.Contact.dN_dn<<std::endl;
+      //std::cout<<" dN_dn "<<rVariables.Contact.dN_dn<<std::endl;
       
       //dN_drn:
     
@@ -1601,7 +1576,7 @@ namespace Kratos
       rVariables.Contact.dN_dn[ndk]=(-1)*rVariables.Contact.CurrentBase[2].A/rVariables.Contact.CurrentBase[2].L; 
       rVariables.Contact.dN_dn[ndl]= 1.0;
 
-      // std::cout<<" dN_dn "<<rVariables.Contact.dN_dn<<std::endl;
+      //std::cout<<" dN_dn "<<rVariables.Contact.dN_dn<<std::endl;
       
       //dN_drn:
     
@@ -1662,7 +1637,7 @@ namespace Kratos
     //B.TsigmaP :
     FSigmaP(rVariables,rVariables.Contact.Tangent.B.Tsigma,rVariables.Contact.Tangent.CovariantBase.DirectionB,ndi,ndj,ndk,ndl,ndm,ndn);
 
-    std::cout<<" NormalDirection "<<rVariables.Contact.CurrentSurface.Normal<<std::endl;
+    // std::cout<<" NormalDirection "<<rVariables.Contact.CurrentSurface.Normal<<std::endl;
  
     //NsigmaP :
     FSigmaP(rVariables,rVariables.Contact.Nsigma,rVariables.Contact.CurrentSurface.Normal,ndi,ndj,ndk,ndl,ndm,ndn);
@@ -1671,21 +1646,21 @@ namespace Kratos
     rVariables.DN_DX = DN_DX;
 
 
-    unsigned int size = 5;
-    unsigned int dimension = 3;
+    // unsigned int size = 5;
+    // unsigned int dimension = 3;
     
-    if( this->Is(SELECTED) )
-      size = 6;
+    // if( this->Is(SELECTED) )
+    //   size = 6;
     
-    double fcont = 0;
-    for (unsigned int ndi=0; ndi<size; ndi++)
-      {
-    	for (unsigned int i=0; i<dimension; i++)
-    	  {	    
-    	    this->CalculateNormalForce(fcont,rVariables,ndi,i);
-    	    std::cout<<" fcont "<<fcont<<" ndi "<<ndi<<" i "<<i<<std::endl;
-    	  }
-      }
+    // double fcont = 0;
+    // for (unsigned int ndi=0; ndi<size; ndi++)
+    //   {
+    // 	for (unsigned int i=0; i<dimension; i++)
+    // 	  {	    
+    // 	    this->CalculateNormalForce(fcont,rVariables,ndi,i);
+    // 	    std::cout<<" fcont "<<fcont * (1.0/3.0) * rVariables.Contact.Tangent.EquivalentArea<<" ndi "<<ndi<<" i "<<i<<std::endl;
+    // 	  }
+    //   }
 
     // double kcont = 0;
     // for (unsigned int ndi=0; ndi<size; ndi++)
@@ -1698,7 +1673,7 @@ namespace Kratos
     // 		  {
     // 		    kcont=0;
     // 		    this->CalcContactStiffness(kcont,rVariables,ndi,ndj,i,j);
-    // 		    std::cout<<" kcont "<<kcont<<" ndi "<<ndi<<" ndj "<<ndj<<" i "<<i<<" j "<<j<<std::endl;
+    // 		    std::cout<<" kcont "<<kcont * (1.0/3.0) * rVariables.Contact.Tangent.EquivalentArea<<" ndi "<<ndi<<" ndj "<<ndj<<" i "<<i<<" j "<<j<<std::endl;
     // 		  }
     // 	      }
     // 	  }
@@ -1943,13 +1918,6 @@ namespace Kratos
 
   double& ContactDomainLM3DCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
   {
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    if ( dimension == 2 ){   
-      ElementType& rMasterElement = mContactVariables.GetMasterElement();
-      rIntegrationWeight *= rMasterElement.GetProperties()[THICKNESS];
-    }
-	
     return rIntegrationWeight;
   }
 
@@ -1961,7 +1929,6 @@ namespace Kratos
   {    
 
     F  = rVariables.Contact.Multiplier.Normal*rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir];
-    F *= (1.0/3.0) * rVariables.Contact.Tangent.EquivalentArea;  
     
   }
 
@@ -1984,7 +1951,6 @@ namespace Kratos
 		
 	F += rVariables.Contact.dN_drn[ndi] * ( rVariables.Contact.Tangent.A.Multiplier * rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir] + rVariables.Contact.Tangent.B.Multiplier * rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir] );
 
-	F *= (1.0/3.0) * rVariables.Contact.Tangent.EquivalentArea;
       }
     else{
       F=0.0;
@@ -2001,7 +1967,6 @@ namespace Kratos
          
     if( rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) )
       {
-
 	F = (rVariables.Contact.Tangent.A.GapSign * rVariables.Contact.Tangent.CovariantBase.DirectionA[ndi] +
 	     rVariables.Contact.Tangent.B.GapSign * rVariables.Contact.Tangent.CovariantBase.DirectionB[ndi] );
 		  
@@ -2011,8 +1976,6 @@ namespace Kratos
 						rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir] );
 
 	F *= ( rVariables.Contact.Multiplier.Normal * rVariables.Contact.FrictionCoefficient );
-
-	F *= (1.0/3.0) * rVariables.Contact.Tangent.EquivalentArea;
       }
     else{
       F=0.0;
@@ -2061,7 +2024,7 @@ namespace Kratos
     Kcont+= rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Nsigma[ndj][jdir];
     //std::cout<<" Kb "<<Kcont;
 
-    //rVariables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS,false);
+    rVariables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS,false);
       
     //Stick contact contribution:
     if(rVariables.Contact.Options.Is(NOT_SLIP))
@@ -2169,9 +2132,7 @@ namespace Kratos
     // std::cout<<" ndi "<<ndi<<" ndj "<<ndj<<" i "<<idir<<" j "<<jdir<<std::endl;
     // std::cout<<" Kcont "<<Kcont;
     // std::cout<<" constant "<<athird * rVariables.Contact.Tangent.EquivalentArea<<std::endl;
-    
-    Kcont *= athird * rVariables.Contact.Tangent.EquivalentArea;
-    
+        
     //std::cout<<" Ks "<<Kcont-K1<<std::endl;
 
   }

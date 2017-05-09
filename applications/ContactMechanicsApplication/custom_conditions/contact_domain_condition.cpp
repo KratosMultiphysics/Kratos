@@ -1161,7 +1161,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
@@ -1334,9 +1334,10 @@ namespace Kratos
 
     //std::cout<<"//******** CONTACT ELEMENT "<<this->Id()<<" ********// "<<std::endl;
     //std::cout<<" ["<<GetGeometry()[0].Id()<<","<<GetGeometry()[1].Id()<<","<<GetGeometry()[2].Id()<<"]"<<std::endl;
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    
     GeneralVariables Variables;
     this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
-
     
     //SET TANGENT DIRECTION-RELATIVE VELOCITY AND FRICTION PARAMETERS
 
@@ -1357,7 +1358,11 @@ namespace Kratos
         //double IntegrationWeight =0.5 * Variables.Contact.ReferenceBase[0].L;  //all components are multiplied by this
 
 	// SL (ask for the current configuration size)
-	double IntegrationWeight =0.5 * Variables.Contact.CurrentBase[0].L;  //all components are multiplied by this 
+	double IntegrationWeight = 0.5 * Variables.Contact.CurrentBase[0].L;  //all components are multiplied by this
+
+	if(dimension == 3)
+	  IntegrationWeight = (1.0/3.0) * Variables.Contact.Tangent.EquivalentArea;
+	
         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
 
         if(Variables.Contact.Options.Is(ACTIVE))
@@ -1490,14 +1495,8 @@ namespace Kratos
     KRATOS_TRY
 
     //contributions to stiffness matrix calculated on the reference config
-    const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
-    //resizing as needed the LHS
-    unsigned int size = (number_of_nodes + 1);
-
-    // unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    // unsigned int size      = rRightHandSideVector.size()/dimension;
+    unsigned int size = rRightHandSideVector.size()/double(dimension);
 
     Vector Nforce;
     Vector Tforce;
@@ -1531,7 +1530,9 @@ namespace Kratos
 		index++;
 	      }
 
-	    //std::cout<<" Contact["<<this->Id()<<"] STICK: ("<<Tforce<<") "<<rVariables.Contact.CurrentSurface.Tangent<<std::endl;
+	    //std::cout<<" Contact["<<this->Id()<<"] NORMAL: ("<<Nforce*rIntegrationWeight<<") "<<rVariables.Contact.CurrentSurface.Normal<<std::endl;
+	    
+	    //std::cout<<" Contact["<<this->Id()<<"] STICK: ("<<Tforce*rIntegrationWeight<<") "<<rVariables.Contact.CurrentSurface.Tangent<<std::endl;
 	  }
 	else{ //TANGENT FORCE SLIP
 	  
@@ -1588,7 +1589,7 @@ namespace Kratos
 
     //contributions to stiffness matrix calculated on the reference config
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int size      = rLeftHandSideMatrix.size1()/dimension;
+    unsigned int size      = rLeftHandSideMatrix.size1()/double(dimension);
     double kcont=0;
     
     for (unsigned int ndi=0; ndi<size; ndi++)
