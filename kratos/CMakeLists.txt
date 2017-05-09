@@ -14,6 +14,7 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/deprecated_variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/c2c_variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/cfd_variables.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/ale_variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/dem_variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/legacy_structural_app_vars.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/variables.cpp;
@@ -64,6 +65,7 @@ set( KRATOS_PYTHON_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_deprecated_variables_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_c2c_variables_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_cfd_variables_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/python/add_ale_variables_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_dem_variables_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_legacy_structural_app_vars_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_containers_to_python.cpp

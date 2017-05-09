@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 #if !defined(KRATOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVERCOMPONENTWISE )
 #define  KRATOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVERCOMPONENTWISE
@@ -295,7 +295,7 @@ public:
         for(int i = 0; i<A_size; i++)
             omp_destroy_lock(&lock_array[i]);
 #endif
-        
+
         KRATOS_CATCH("")
 
     }
@@ -347,13 +347,14 @@ public:
     //**************************************************************************
     //**************************************************************************
     void ResizeAndInitializeVectors(
+        typename TSchemeType::Pointer pScheme,
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
         ElementsArrayType& rElements,
         ConditionsArrayType& rConditions,
         ProcessInfo& CurrentProcessInfo
-    )
+    ) override
     {
 #ifndef __SUNPRO_CC
         KRATOS_TRY
@@ -733,4 +734,3 @@ private:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVERCOMPONENTWISE  defined */
-

@@ -131,7 +131,9 @@ def runTests(tests):
             '[Warning]: "{}" test suite is empty'.format(level),
             file=sys.stderr)
     else:
-        TextTestRunner(verbosity=verbosity, buffer=True).run(tests[level])
+        result = not TextTestRunner(verbosity=verbosity, buffer=True).run(tests[level]).wasSuccessful()
+        sys.exit(result)
+
 
 KratosSuites = {
     'small': TestSuite(),

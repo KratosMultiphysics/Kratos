@@ -658,7 +658,64 @@ public:
 
         KRATOS_CATCH("")
     }
+    
+    //this function add dofs to the nodes in a model part. It is useful since addition is done in parallel
+    template< class TVarType >
+    void AddDof( const TVarType& rVar,
+                 ModelPart& rModelPart)
+    {
+        KRATOS_TRY
 
+        if(rVar.Key() == 0)
+           KRATOS_ERROR << " Variable : " << rVar << " has a 0 key. Check if the application was correctly registered.";
+
+        if(rModelPart.NumberOfNodes() != 0)
+        {
+            if(rModelPart.NodesBegin()->SolutionStepsDataHas(rVar) == false)
+                KRATOS_ERROR << " Variable : " << rVar << "not included in the Soluttion step data ";
+        }
+
+        #pragma omp parallel for 
+        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k)
+        {
+            auto it = rModelPart.NodesBegin() + k;
+            it->AddDof(rVar);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    //this function add dofs to the nodes in a model part. It is useful since addition is done in parallel
+    template< class TVarType >
+    void AddDofWithReaction( const TVarType& rVar,
+                 const TVarType& rReactionVar,
+                 ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+        
+        if(rVar.Key() == 0)
+            KRATOS_ERROR << " Variable : " << rVar << " has a 0 key. Check if the application was correctly registered.";
+        if(rReactionVar.Key() == 0)
+            KRATOS_ERROR << " Variable : " << rReactionVar << " has a 0 key. Check if the application was correctly registered.";
+
+        if(rModelPart.NumberOfNodes() != 0)
+        {
+            if(rModelPart.NodesBegin()->SolutionStepsDataHas(rVar) == false)
+                KRATOS_ERROR << " Variable : " << rVar << "not included in the Soluttion step data ";
+            if(rModelPart.NodesBegin()->SolutionStepsDataHas(rReactionVar) == false)
+                KRATOS_ERROR << " Variable : " << rReactionVar << "not included in the Soluttion step data ";
+        }
+        
+        #pragma omp parallel for 
+        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k)
+        {
+            auto it = rModelPart.NodesBegin() + k;
+            it->AddDof(rVar,rReactionVar);
+        }
+
+        KRATOS_CATCH("")
+    }
+    
     /*@} */
     /**@name Acces */
     /*@{ */
