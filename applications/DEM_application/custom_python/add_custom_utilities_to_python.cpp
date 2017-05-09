@@ -4,11 +4,15 @@
 
 // External includes 
 #include <boost/python.hpp>
+#include <boost/python/overloads.hpp>
 
 // Project includes
 
 #include "includes/model_part.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_utilities/analytic_tools/analytic_model_part_filler.h"
+#include "custom_utilities/analytic_tools/analytic_particle_watcher.h"
+#include "custom_utilities/analytic_tools/analytic_face_watcher.h"
 #include "custom_utilities/create_and_destroy.h"
 #include "custom_utilities/calculate_global_physical_properties.h"
 #include "custom_utilities/pre_utilities.h"
@@ -19,12 +23,12 @@
 #include "custom_utilities/dem_fem_utilities.h"
 #include "custom_utilities/benchmark_utilities.h" 
 #include "custom_utilities/inlet.h"
+#include "custom_utilities/force_based_inlet.h"
 #include "custom_utilities/reorder_consecutive_from_given_ids_model_part_io.h"
 #include "custom_utilities/AuxiliaryUtilities.h" 
 
 #include "boost/python/list.hpp"
 #include "boost/python/extract.hpp"
-
 
 namespace Kratos {
 
@@ -92,7 +96,12 @@ void AddCustomUtilitiesToPython() {
     class_<DEM_Inlet, boost::noncopyable >
         ("DEM_Inlet", init<ModelPart&>())
         .def("CreateElementsFromInletMesh", &DEM_Inlet::CreateElementsFromInletMesh)        
-        .def("InitializeDEM_Inlet", &DEM_Inlet::InitializeDEM_Inlet) 
+        .def("InitializeDEM_Inlet", &DEM_Inlet::InitializeDEM_Inlet, (arg("model_part"), arg("creator_destructor"), arg("using_strategy_for_continuum") = false))
+        .def("GetNumberOfParticlesInjectedSoFar", &DEM_Inlet::CreateElementsFromInletMesh)
+        ;
+
+    class_<DEM_Force_Based_Inlet, bases<DEM_Inlet> >
+        ("DEM_Force_Based_Inlet", init<ModelPart&, array_1d<double, 3>>())
         ;
 
     class_<SphericElementGlobalPhysicsCalculator, boost::noncopyable >
@@ -125,6 +134,29 @@ void AddCustomUtilitiesToPython() {
         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesML)
         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesLM)
         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesLL)
+        ;
+
+    class_<AnalyticModelPartFiller, boost::noncopyable >
+        ("AnalyticModelPartFiller", init<>())
+        .def("FillAnalyticModelPartGivenFractionOfParticlesToTransform", &AnalyticModelPartFiller::FillAnalyticModelPartGivenFractionOfParticlesToTransform, arg("analytic_sub_model_part_name") = "")
+        ;
+
+    class_<AnalyticParticleWatcher, boost::noncopyable >
+        ("AnalyticParticleWatcher", init<>())
+        .def("MakeMeasurements", &AnalyticParticleWatcher::MakeMeasurements)
+        .def("GetTimeStepsData", &AnalyticParticleWatcher::GetTimeStepsData)
+        .def("GetParticleData", &AnalyticParticleWatcher::GetParticleData)
+        .def("GetAllParticlesData", &AnalyticParticleWatcher::GetAllParticlesData)
+        ;
+
+    class_<AnalyticFaceWatcher, boost::noncopyable >
+        ("AnalyticFaceWatcher", init<>())
+        .def("ClearData", &AnalyticFaceWatcher::ClearData)
+        .def("MakeMeasurements", &AnalyticFaceWatcher::MakeMeasurements)
+        .def("GetTimeStepsData", &AnalyticFaceWatcher::GetTimeStepsData)
+        .def("GetFaceData", &AnalyticFaceWatcher::GetFaceData)
+        .def("GetAllFacesData", &AnalyticFaceWatcher::GetAllFacesData)
+        .def("GetTotalFlux", &AnalyticFaceWatcher::GetTotalFlux)
         ;
 
     class_<DEM_FEM_Search, boost::noncopyable >

@@ -167,7 +167,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
     def _SolveMeshAndFluid(self):
 
         # Set the mesh displacement as the iteration_value displacement
-        self.partitioned_fsi_utilities.SetFluidInterfaceVectorVariable(KratosALE.MESH_DISPLACEMENT, self.iteration_value)
+        self.partitioned_fsi_utilities.SetFluidInterfaceVectorVariable(KratosMultiphysics.MESH_DISPLACEMENT, self.iteration_value)
 
         # Solve the mesh problem (or moves the interface nodes)
         if (self.solve_mesh_at_each_iteration == True):
@@ -211,7 +211,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         # Compute the fluid interface residual vector by means of the VECTOR_PROJECTED variable
         # Besides, its norm is stored within the ProcessInfo.
         disp_residual = KratosMultiphysics.Vector(self.partitioned_fsi_utilities.GetFluidInterfaceResidualSize())
-        self.partitioned_fsi_utilities.ComputeFluidInterfaceVectorResidual(KratosALE.MESH_DISPLACEMENT, KratosFSI.VECTOR_PROJECTED, disp_residual)
+        self.partitioned_fsi_utilities.ComputeFluidInterfaceVectorResidual(KratosMultiphysics.MESH_DISPLACEMENT, KratosFSI.VECTOR_PROJECTED, disp_residual)
 
         return disp_residual
 
@@ -229,7 +229,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         i = 0
         if (self.domain_size == 2):
             for node in self._GetFluidInterfaceSubmodelPart().Nodes:
-                u_n = node.GetSolutionStepValue(KratosALE.MESH_DISPLACEMENT,1)
+                u_n = node.GetSolutionStepValue(KratosMultiphysics.MESH_DISPLACEMENT,1)
                 v_n = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1)
                 a_n = node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION,1)
 
@@ -255,7 +255,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
 
         else:
             for node in self._GetFluidInterfaceSubmodelPart().Nodes:
-                u_n = node.GetSolutionStepValue(KratosALE.MESH_DISPLACEMENT,1)
+                u_n = node.GetSolutionStepValue(KratosMultiphysics.MESH_DISPLACEMENT,1)
                 v_n = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1)
                 a_n = node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION,1)
 
