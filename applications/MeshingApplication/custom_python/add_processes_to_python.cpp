@@ -30,6 +30,10 @@
 //#include "custom_processes/find_nodal_h_process.h"
 // #include "custom_processes/embedded_mesh_locator_process.h"
 
+#ifdef INCLUDE_MMG
+    #include "custom_processes/mmg_process.h"
+#endif
+
 #include "includes/node.h"
 
 namespace Kratos
@@ -70,7 +74,7 @@ void  AddProcessesToPython()
         .def(init<ModelPart&, ModelPart&, Parameters>())
         .def("Execute",&InternalVariablesInterpolationProcess::Execute)
         ;
-    
+        
         /* METRICS PROCESSES */
         // Fast metric initializer
         class_<MetricFastInit<2>, bases<Process> >("MetricFastInit2D", init<ModelPart&>())
@@ -124,6 +128,23 @@ void  AddProcessesToPython()
         .def(init<ModelPart&, Parameters>())
         .def("Execute",&ComputeErrorSolMetricProcess<3>::Execute)
         ;
+        
+        #ifdef INCLUDE_MMG
+        /* MMG PROCESS */
+        // 2D
+        class_<MmgProcess<2>, boost::noncopyable >
+        ("MmgProcess2D", init<ModelPart&>())
+        .def(init<ModelPart&, Parameters>())
+        .def("Execute", &MmgProcess<2>::Execute)
+        ;
+        
+        // 3D
+        class_<MmgProcess<3>, boost::noncopyable >
+        ("MmgProcess3D", init<ModelPart&>())
+        .def(init<ModelPart&, Parameters>())
+        .def("Execute", &MmgProcess<3>::Execute)
+        ;
+        #endif  
 }
 
 }  // namespace Python.

@@ -44,7 +44,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TTestRedistance('test_refine_all'))
     smallSuite.addTest(TTestRedistance('test_refine_half'))
     smallSuite.addTest(TTestRedistance('test_refine_half_and_improve'))
-    if( hasattr(MeshingApplication,  "MmgUtility2D") ):
+    if( hasattr(MeshingApplication,  "MmgProcess2D") ):
         smallSuite.addTest(TTwoDHessianTest('test_execution'))
         smallSuite.addTest(TThreeDHessianTest('test_execution'))
         smallSuite.addTest(TTwoDCavityTest('test_execution'))
@@ -53,23 +53,23 @@ def AssambleTestSuites():
         smallSuite.addTest(TThreeDDynamicBeamTest('test_execution'))
         smallSuite.addTest(TTwoDDynamicPlasticBeamTest('test_execution'))
     else:
-        print("MMG utility is not compiled and the corresponding tests will not be executed")
+        print("MMG process is not compiled and the corresponding tests will not be executed")
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-    if( hasattr(MeshingApplication,  "MmgUtility2D") ):
+    if( hasattr(MeshingApplication,  "MmgProcess2D") ):
         nightSuite.addTest(TStanfordBunnyTest('test_execution'))
     else:
-        print("MMG utility is not compiled and the corresponding tests will not be executed")
+        print("MMG process is not compiled and the corresponding tests will not be executed")
     
     # For very long tests that should not be in nighly and you can use to validate 
     validationSuite = suites['validation']
-    if( hasattr(MeshingApplication,  "MmgUtility2D") ):
+    if( hasattr(MeshingApplication,  "MmgProcess2D") ):
         validationSuite.addTest(TTwoDSphereRemeshedChannelTest('test_execution'))
         validationSuite.addTest(TThreeDSphereRemeshedChannelTest('test_execution'))
     else:
-        print("MMG utility is not compiled and the corresponding tests will not be executed")
+        print("MMG process is not compiled and the corresponding tests will not be executed")
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
@@ -79,7 +79,7 @@ def AssambleTestSuites():
         ])
     )
 
-    if( hasattr(MeshingApplication,  "MmgUtility2D") ):
+    if( hasattr(MeshingApplication,  "MmgProcess2D") ):
         allSuite.addTests(
             KratosUnittest.TestLoader().loadTestsFromTestCases([
                 TTwoDHessianTest,
@@ -95,7 +95,7 @@ def AssambleTestSuites():
             ])
         )
     else:
-        print("MMG utility is not compiled and the corresponding tests will not be executed")
+        print("MMG process is not compiled and the corresponding tests will not be executed")
 
     return suites
 

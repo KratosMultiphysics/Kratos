@@ -213,6 +213,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    
     ModelPart& mrThisModelPart;
 
     ///@}

@@ -167,9 +167,9 @@ class MmgProcess(KratosMultiphysics.Process):
         mmg_parameters.AddValue("max_number_of_searchs",self.params["max_number_of_searchs"])
         mmg_parameters.AddValue("echo_level",self.params["echo_level"])
         if (self.dim == 2):
-            self.MmgUtility = MeshingApplication.MmgUtility2D(self.Model[self.model_part_name], mmg_parameters)
+            self.MmgProcess = MeshingApplication.MmgProcess2D(self.Model[self.model_part_name], mmg_parameters)
         else:
-            self.MmgUtility = MeshingApplication.MmgUtility3D(self.Model[self.model_part_name], mmg_parameters)
+            self.MmgProcess = MeshingApplication.MmgProcess3D(self.Model[self.model_part_name], mmg_parameters)
 
         if (self.initial_remeshing == True):
             self._ExecuteRefinement()
@@ -293,7 +293,7 @@ class MmgProcess(KratosMultiphysics.Process):
             metric_process.Execute()
 
         print("Remeshing")
-        self.MmgUtility.RemeshModelPart()
+        self.MmgProcess.Execute()
 
         if (self.strategy == "LevelSet"):
             self.local_gradient.Execute() # Recalculate gradient after remeshing
