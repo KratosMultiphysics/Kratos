@@ -158,6 +158,10 @@ namespace Kratos
 					}
 				}
 			}
+			if (rElement1.Is(TO_SPLIT))
+				for (int i = 0; i < number_of_tetrahedra_points; i++)
+					if (fabs(elemental_distances[i]) > epsilon)
+						elemental_distances[i] = fabs(elemental_distances[i]);
 
 		}
 		else if (number_of_cut_edge > 3) { // If there are more than 3 edges cut I would just use the first 3. This can be improved.
