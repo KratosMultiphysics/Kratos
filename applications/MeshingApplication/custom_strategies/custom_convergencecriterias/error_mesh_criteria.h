@@ -27,9 +27,9 @@
 #include "processes/find_nodal_h_process.h"
 #include "custom_processes/metric_fast_init_process.h"
 #include "custom_processes/metrics_error_process.h"
-// #ifdef INCLUDE_MMG
-//     #include "custom_processes/mmg_process.h"
-// #endif
+#ifdef INCLUDE_MMG
+    #include "custom_processes/mmg_process.h"
+#endif
 
 namespace Kratos
 {
@@ -284,26 +284,26 @@ public:
                 ComputeMetric.Execute();
             }
             
-//             // Remeshing
-//             if (mRemeshingUtilities == MMG)
-//             {
-//                 #ifdef INCLUDE_MMG
-//                     if (mDimension == 2)
-//                     {
-//                         MmgProcess<2> MmgProcess = MmgProcess<2>(mThisModelPart, mThisParameters["remeshing_parameters"]); 
-//                         MmgProcess.Execute();
-//                     }
-//                     else
-//                     {
-//                         MmgProcess<3> MmgProcess = MmgProcess<3>(mThisModelPart, mThisParameters["remeshing_parameters"]); 
-//                         MmgProcess.Execute();
-//                     }
-//                 #endif  
-//             }
-//             else
-//             {
-//                 KRATOS_ERROR << "Not an alternative utility" << std::endl;
-//             }
+            // Remeshing
+            if (mRemeshingUtilities == MMG)
+            {
+                #ifdef INCLUDE_MMG
+                if (mDimension == 2)
+                {
+                    MmgProcess<2> MmgRemesh = MmgProcess<2>(mThisModelPart, mThisParameters["remeshing_parameters"]); 
+                    MmgRemesh.Execute();
+                }
+                else
+                {
+                    MmgProcess<3> MmgRemesh = MmgProcess<3>(mThisModelPart, mThisParameters["remeshing_parameters"]); 
+                    MmgRemesh.Execute();
+                }
+                #endif  
+            }
+            else
+            {
+                KRATOS_ERROR << "Not an alternative utility" << std::endl;
+            }
             
             mFindNodalH.Execute();
         }
