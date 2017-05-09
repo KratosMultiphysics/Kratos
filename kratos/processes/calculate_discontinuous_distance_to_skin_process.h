@@ -310,7 +310,7 @@ namespace Kratos
 
 		void CalculateElementalDistances(Element& rElement1, PointerVector<GeometricalObject>& rIntersectedObjects);
 		
-		void AvoidZeroDistanceNodes(Element& rElement1, const double Epsilon);
+		double CalculateDistanceToNode(Element& rElement1, int NodeIndex, PointerVector<GeometricalObject>& rIntersectedObjects, const double Epsilon);
 
 		int CalculateIntersectionPoints(LineSegment& rSegment, PointerVector<GeometricalObject>& rIntersectedObjects, std::vector<Point<3> >& IntersectionPoints);
 
