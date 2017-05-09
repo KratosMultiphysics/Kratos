@@ -108,7 +108,7 @@ public:
         {
             "error_mesh_tolerance" : 1.0e-3,
             "error_mesh_constant" : 1.0e-3,
-            "remeshing_utility"   : "MMG"
+            "remeshing_utility"   : "MMG",
             "remeshing_parameters": 
             {
                 "filename"                             : "out",
