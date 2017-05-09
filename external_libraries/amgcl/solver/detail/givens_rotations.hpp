@@ -1,5 +1,5 @@
-#ifndef AMGCL_SOLVER_DETAIL_DEFAULT_INNER_PRODUCT_HPP
-#define AMGCL_SOLVER_DETAIL_DEFAULT_INNER_PRODUCT_HPP
+#ifndef AMGCL_SOLVER_DETAIL_GIVENS_ROTATIONS_HPP
+#define AMGCL_SOLVER_DETAIL_GIVENS_ROTATIONS_HPP
 
 /*
 The MIT License
@@ -26,32 +26,42 @@ THE SOFTWARE.
 */
 
 /**
- * \file   amgcl/solver/detail/default_inner_product.hpp
+ * \file   amgcl/solver/detail/givens_rotations.hpp
  * \author Denis Demidov <dennis.demidov@gmail.com>
- * \brief  Default inner product getter for iterative solvers.
- *
- * Falls through to backend::inner_product().
+ * \brief  Givens plane rotations used in GMRES variants.
  */
 
-#include <amgcl/backend/interface.hpp>
+#include <amgcl/value_type/interface.hpp>
 
 namespace amgcl {
 namespace solver {
 namespace detail {
 
-struct default_inner_product {
-    template <class Vec1, class Vec2>
-    typename math::inner_product_impl<
-        typename backend::value_type<Vec1>::type
-    >::return_type
-    operator()(const Vec1 &x, const Vec2 &y) const {
-        return backend::inner_product(x, y);
+template <class T>
+inline void generate_plane_rotation(T dx, T dy, T &cs, T &sn) {
+    if (math::is_zero(dy)) {
+        cs = 1;
+        sn = 0;
+    } else if (std::abs(dy) > std::abs(dx)) {
+        T tmp = dx / dy;
+        sn = math::inverse(sqrt(math::identity<T>() + tmp * tmp));
+        cs = tmp * sn;
+    } else {
+        T tmp = dy / dx;
+        cs = math::inverse(sqrt(math::identity<T>() + tmp * tmp));
+        sn = tmp * cs;
     }
-};
+}
+
+template <class T>
+void apply_plane_rotation(T &dx, T &dy, T cs, T sn) {
+    T tmp = math::adjoint(cs) * dx + math::adjoint(sn) * dy;
+    dy = -sn * dx + cs * dy;
+    dx = tmp;
+}
 
 } // namespace detail
 } // namespace solver
 } // namespace amgcl
-
 
 #endif

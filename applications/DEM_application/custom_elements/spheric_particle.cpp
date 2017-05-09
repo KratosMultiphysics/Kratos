@@ -177,6 +177,9 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
 
     if (this->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)){
         ComputeAdditionalForces(additional_forces, additionally_applied_moment, r_process_info, gravity);
+        
+        DemDebugFunctions::CheckIfNan(additional_forces, "NAN in Additional Force in RHS of Ball");
+        DemDebugFunctions::CheckIfNan(additionally_applied_moment, "NAN in Additional Torque in RHS of Ball");     
     }
     
     // ROLLING FRICTION
@@ -201,6 +204,9 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
     total_moment[0] = mContactMoment[0] + additionally_applied_moment[0];
     total_moment[1] = mContactMoment[1] + additionally_applied_moment[1];
     total_moment[2] = mContactMoment[2] + additionally_applied_moment[2];
+    
+    DemDebugFunctions::CheckIfNan(total_forces, "NAN in Total Forces in RHS of Ball"); 
+    DemDebugFunctions::CheckIfNan(total_moment, "NAN in Total Torque in RHS of Ball"); 
 
     FinalizeForceComputation(data_buffer);
     KRATOS_CATCH("")
@@ -660,9 +666,12 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
     //LOOP OVER NEIGHBORS:
     for (int i = 0; data_buffer.SetNextNeighbourOrExit(i); ++i){
         if (this->Is(NEW_ENTITY) && data_buffer.mpOtherParticle->Is(BLOCKED)) continue;
+        if (this->Is(BLOCKED) && data_buffer.mpOtherParticle->Is(NEW_ENTITY)) continue;
         if (data_buffer.mMultiStageRHS  &&  this->Id() > data_buffer.mpOtherParticle->Id()) continue;
 
         CalculateRelativePositions(data_buffer);
+        
+        if(data_buffer.mDistance < std::numeric_limits<double>::epsilon()) continue;
 
         EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, data_buffer.mOtherToMeVector, velocity, delta_displ, data_buffer.mpOtherParticle, data_buffer.mDistance);
 
@@ -713,6 +722,10 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
         DEM_SET_COMPONENTS_TO_ZERO_3x3(OldLocalCoordSystem)
 
     }// for each neighbor
+    
+    DemDebugFunctions::CheckIfNan(GlobalContactForce, "NAN in Force in Ball to Ball contact"); 
+    DemDebugFunctions::CheckIfNan(mContactMoment, "NAN in Torque in Ball to Ball contact"); 
+    
 
     KRATOS_CATCH("")
 }// ComputeBallToBallContactForce

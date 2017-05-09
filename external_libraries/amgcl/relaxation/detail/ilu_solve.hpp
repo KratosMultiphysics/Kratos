@@ -26,31 +26,28 @@ void serial_ilu_solve(
     }
 }
 
-template <class Matrix, class VecD, class VecX>
+template <class Matrix, class VecD, class VecX, class VecT>
 void parallel_ilu_solve(
         const Matrix &L, const Matrix &U, const VecD &D,
-        VecX &x, VecX &t1, VecX &t2, unsigned jacobi_iters
+        VecX &x, VecT &t1, VecT &t2, unsigned jacobi_iters
         )
 {
     typedef typename backend::value_type<Matrix>::type value_type;
     typedef typename math::scalar_of<value_type>::type scalar_type;
 
-    VecX *b  = &x;
-    VecX *y0 = &t1;
-    VecX *y1 = &t2;
+    VecT *y0 = &t1;
+    VecT *y1 = &t2;
 
-    backend::copy(*b, *y0);
+    backend::copy(x, *y0);
     for(unsigned i = 0; i < jacobi_iters; ++i) {
-        backend::residual(*b, L, *y0, *y1);
+        backend::residual(x, L, *y0, *y1);
         std::swap(y0, y1);
     }
 
-    b  = y0;
-    y0 = &x;
-    backend::copy(*b, *y0);
+    backend::copy(*y0, x);
     for(unsigned i = 0; i < jacobi_iters; ++i) {
-        backend::residual(*b, U, *y0, *y1);
-        backend::vmul(math::identity<scalar_type>(), D, *y1, math::zero<scalar_type>(), *y0);
+        backend::residual(*y0, U, x, *y1);
+        backend::vmul(math::identity<scalar_type>(), D, *y1, math::zero<scalar_type>(), x);
     }
 }
 
