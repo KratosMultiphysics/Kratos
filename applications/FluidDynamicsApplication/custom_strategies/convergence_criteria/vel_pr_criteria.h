@@ -169,14 +169,20 @@ public:
             TDataType VelAbs = sqrt(VelIncreaseNorm)/ static_cast<TDataType>(VelDofNum);
             TDataType PrAbs = sqrt(PrIncreaseNorm)/ static_cast<TDataType>(PrDofNum);
 
-            std::cout << "CONVERGENCE CHECK:" << std::endl;
-            std::cout << " VELOC.: ratio = " << VelRatio <<"; exp.ratio = " << mVelRatioTolerance << " abs = " << VelAbs << " exp.abs = " << mVelAbsTolerance << std::endl;
-            std::cout << " PRESS.: ratio = " << PrRatio <<"; exp.ratio = " << mPrRatioTolerance << " abs = " << PrAbs << " exp.abs = " << mPrAbsTolerance << std::endl;
+            if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
+            {
+                std::cout << "CONVERGENCE CHECK:" << std::endl;
+                std::cout << " VELOC.: ratio = " << VelRatio <<"; exp.ratio = " << mVelRatioTolerance << " abs = " << VelAbs << " exp.abs = " << mVelAbsTolerance << std::endl;
+                std::cout << " PRESS.: ratio = " << PrRatio <<"; exp.ratio = " << mPrRatioTolerance << " abs = " << PrAbs << " exp.abs = " << mPrAbsTolerance << std::endl;
+            }
 
             if (    (VelRatio <= mVelRatioTolerance || VelAbs <= mVelAbsTolerance) &&
                     (PrRatio <= mPrRatioTolerance || PrAbs <= mPrAbsTolerance) )
             {
-                std::cout << "*** CONVERGENCE IS ACHIEVED ***" << std::endl;
+                if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
+                {
+                    std::cout << "*** CONVERGENCE IS ACHIEVED ***" << std::endl;
+                }
                 return true;
             }
             else
