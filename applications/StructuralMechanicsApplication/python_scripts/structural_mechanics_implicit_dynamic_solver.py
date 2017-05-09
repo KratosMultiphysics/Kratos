@@ -55,16 +55,30 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             "move_mesh_flag": true,
             "error_mesh_criteria" : false,
             "error_mesh_settings":{
-                "error_mesh_tolerance": 1.0e-3,
-                "error_mesh_constant": 1.0-3,
+                "error_mesh_tolerance" : 1.0e-3,
+                "error_mesh_constant" : 1.0e-3,
+                "remeshing_utility"   : "MMG"
                 "remeshing_parameters": 
+                {
+                    "filename"                             : "out",
+                    "framework"                            : "Lagrangian",
+                    "internal_variables_parameters"        :
+                    {
+                        "allocation_size"                      : 1000, 
+                        "bucket_size"                          : 4, 
+                        "search_factor"                        : 2, 
+                        "interpolation_type"                   : "LST",
+                        "internal_variable_interpolation_list" :[]
+                    },
+                    "save_external_files"              : false,
+                    "max_number_of_searchs"            : 1000,
+                    "echo_level"                       : 3
+                },
+                "error_strategy_parameters": 
                 {
                     "minimal_size"                        : 0.1,
                     "maximal_size"                        : 10.0, 
-                    "enforce_current"                     : true, 
-                    "error_strategy_parameters": 
-                    {
-                    }
+                    "enforce_current"                     : true
                 }
             },
             "convergence_criterion": "Residual_criteria",
