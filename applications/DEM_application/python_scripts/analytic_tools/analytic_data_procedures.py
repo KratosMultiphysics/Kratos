@@ -12,10 +12,11 @@ class WatcherAnalyzer:
         self.times_data_base_names = []
         self.n_particles_data_base_names = []
         self.mass_data_base_names = []
-        self.n_particles_accumulated = 0.0
+        self.n_particles_accumulated = 0
         self.mass_accumulated = 0.0
         self.folder_path = path
         self.file_path = path + '/flux_data.hdf5'
+        self.inlet = None
 
         if os.path.exists(self.file_path):
             os.remove(self.file_path)
@@ -26,7 +27,10 @@ class WatcherAnalyzer:
         length = len(times)
         assert length == len(number_flux) == len(mass_flux)
         shape = (length, )
-        number_flux, mass_flux = self.CalculateAccumulatedAndRememberForNextTime(length, number_flux, mass_flux)
+        number_flux, mass_flux = self.CalculateAccumulated(length, number_flux, mass_flux)
+        if self.inlet is not None:
+            self.inlet_accumulated_mass.append(self.inlet.GetMassInjectedSoFar())
+            self.inlet_accumulated_number_of_particles.append(self.inlet.GetNumberOfParticlesInjectedSoFar())
 
         return shape, times, number_flux, mass_flux
 
@@ -52,18 +56,15 @@ class WatcherAnalyzer:
 
         return joint_list
 
-    def CalculateAccumulatedAndRememberForNextTime(self, length, number_flux, mass_flux):
-        number_flux = self.CalculateAccumulated(list_to_accumulate = number_flux, original_list = number_flux, old_accumulated = self.n_particles_accumulated)
-        mass_flux = self.CalculateAccumulated(list_to_accumulate = mass_flux, original_list = mass_flux, old_accumulated = self.mass_accumulated)
+    def CalculateAccumulated(self, length, number_flux, mass_flux):
+        acc_number_flux = self.CalculateAccumulated(original_list = number_flux, old_accumulated = self.n_particles_accumulated)
+        acc_mass_flux = self.CalculateAccumulated(original_list = mass_flux, old_accumulated = self.mass_accumulated)
 
-        if length and self.do_clear_data:
-            self.n_particles_accumulated = number_flux[-1]
-            self.mass_accumulated = mass_flux[-1]
+        return acc_number_flux, acc_mass_flux
 
-        return number_flux, mass_flux
-
-    def CalculateAccumulated(self, list_to_accumulate, original_list, old_accumulated = 0):
-        return np.cumsum(np.array(original_list)) + old_accumulated
+    def CalculateAccumulated(self, original_list, old_accumulated = 0):
+        new_accumulated = np.cumsum(np.array(original_list)) + old_accumulated
+        return new_accumulated
 
     def UpdateDataFile(self, time):
         shape, times, n_particles_data, mass_data = self.MakeReading()
@@ -77,10 +78,13 @@ class WatcherAnalyzer:
 
         with h5py.File(self.file_path) as f:
             f.require_dataset(name_times, data = times, shape = shape, dtype = np.float64)
-            f.require_dataset(name_n_particles, data = n_particles_data, shape = shape, dtype = np.float64)
+            f.require_dataset(name_n_particles, data = n_particles_data, shape = shape, dtype = np.int64)
             f.require_dataset(name_mass, data = mass_data, shape = shape, dtype = np.float64)
 
         if self.do_clear_data:
+            if len(n_particles_data):
+                self.n_particles_accumulated = n_particles_data[-1]
+                self.mass_accumulated = mass_data[-1]
             self.face_watcher.ClearData()
 
     def MakeTotalFluxPlot(self):
@@ -91,4 +95,19 @@ class WatcherAnalyzer:
         plt.ylabel('accumulated mass throughput')
         plt.plot(times, mass_flux)
         plt.savefig(self.folder_path + '/mass_throughput.svg')
-        plt.show()
+
+    def MakeFluxOfNumberOfParticlesPlot(self):
+        self.MakeReading()
+        times = self.GetTimes()
+        flux = self.GetNumberOfParticlesFlux()
+        plt.xlabel('time')
+        plt.ylabel('accumulated number of particles through surface')
+        plt.plot(times, flux)
+        plt.savefig(self.folder_path + '/throughput.svg')
+        plt.clf()
+
+    def MakeInletMassPlot(self):
+        self.MakeInletReading()
+
+    def SetInlet(self, inlet):
+        self.inlet = inlet

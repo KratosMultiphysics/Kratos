@@ -160,6 +160,8 @@ virtual double GetInteractionRadius(const int radius_index = 0);
 virtual void SetInteractionRadius(const double radius, const int radius_index = 0);
 virtual double GetSearchRadius();
 virtual double GetSearchRadiusWithFem();
+DEMDiscontinuumConstitutiveLaw::Pointer GetConstitutiveLawPointer();
+virtual void SetDefaultRadiiHierarchy(const double radius);
 virtual void SetSearchRadius(const double radius);
 virtual void SetSearchRadiusWithFem(const double radius);
 virtual double GetMass();
@@ -300,7 +302,7 @@ virtual void EvaluateDeltaDisplacement(double DeltDisp[3],
 virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotation(const double indentation,
                                                                         double DeltDesp[3],
                                                                         double RelVel[3],
-                                                                        double OldLocalCoordSystem[3][3],
+                                                                        const double OldLocalCoordSystem[3][3],
                                                                         const double &other_radius,
                                                                         const double &dt,
                                                                         const array_1d<double, 3> &angl_vel,
@@ -315,7 +317,7 @@ virtual void RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(cons
 
 virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotationMatrix(double DeltDisp[3],
                                                                               double RelVel[3],
-                                                                              double OldLocalCoordSystem[3][3],
+                                                                              const double OldLocalCoordSystem[3][3],
                                                                               const double& other_radius,
                                                                               const double& dt,
                                                                               const array_1d<double, 3>& ang_vel,

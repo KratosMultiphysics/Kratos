@@ -8,14 +8,13 @@
 
 namespace Kratos {
 
-    class DEM_Force_Based_Inlet: public DEM_Inlet {
-        
+    class KRATOS_API(DEM_APPLICATION) DEM_Force_Based_Inlet: public DEM_Inlet
+    {
+    public:
         typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
         typedef WeakPointerVector<Element> ParticleWeakVectorType;
         typedef ModelPart::ElementsContainerType ElementsArrayType;
-        
-    public:              
-        
+              
         /// Constructor:               
         DEM_Force_Based_Inlet(ModelPart& inlet_modelpart, array_1d<double, 3> injection_force);
 
@@ -25,8 +24,9 @@ namespace Kratos {
     private:
         array_1d<double, 3> mInjectionForce;
         void FixInjectionConditions(Element* p_element) override;
+        void FixInjectorConditions(Element* p_element) override;
         void RemoveInjectionConditions(Element &element) override;
-        array_1d<double, 3> GetInjectionForce();
+        virtual array_1d<double, 3> GetInjectionForce(Element* p_element);
     };
 }// namespace Kratos.
 

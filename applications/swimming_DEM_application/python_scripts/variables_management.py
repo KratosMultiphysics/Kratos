@@ -121,7 +121,7 @@ def ConstructListsOfVariables(pp):
     pp.dem_vars += [BUOYANCY]
     pp.dem_vars += [VELOCITY_OLD]
 
-    if pp.CFD_DEM.IntegrationScheme == 'Hybrid_Bashforth' or pp.CFD_DEM.basset_force_type > 0:
+    if pp.CFD_DEM.IntegrationScheme in {'Hybrid_Bashforth', 'TerminalVelocityScheme'} or pp.CFD_DEM.basset_force_type > 0:
         pp.dem_vars += [VELOCITY_OLD]
         pp.dem_vars += [ADDITIONAL_FORCE_OLD]
         pp.dem_vars += [SLIP_VELOCITY]
@@ -177,6 +177,7 @@ def ConstructListsOfResultsToPrint(pp):
         pp.dem_nodal_results += ["TOTAL_FORCES"]
 
     if DEM_parameters.ElementType == "SwimmingNanoParticle":
+        pp.dem_nodal_results += ["EXTERNAL_APPLIED_FORCE"]
         if DEM_parameters.PostCationConcentration:
             pp.dem_nodal_results += ["CATION_CONCENTRATION"]
 

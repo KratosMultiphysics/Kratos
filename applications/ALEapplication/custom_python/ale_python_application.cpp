@@ -54,7 +54,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "ale_application_variables.h"
 #include "ale_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -81,13 +80,12 @@ BOOST_PYTHON_MODULE(KratosALEApplication)
     AddCustomStrategiesToPython();
     AddCustomUtilitiesToPython();
 
-    //registering variables in python
-
-    //MESH_VELOCITY currently put to the core since used in other applications
-    //KRATOS_REGISTER_IN_PYTHON_VARIABLE(MESH_VELOCITY)
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MESH_DISPLACEMENT);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MESH_REACTION);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MESH_RHS);
+    // variables moved to core
+    // MESH_VELOCITY currently put to the core since used in other applications
+    // KRATOS_REGISTER_IN_PYTHON_VARIABLE(MESH_VELOCITY)
+    // KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MESH_DISPLACEMENT);
+    // KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MESH_REACTION);
+    // KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MESH_RHS);
 
 }
 
