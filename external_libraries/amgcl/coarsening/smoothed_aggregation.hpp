@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,12 +31,9 @@ THE SOFTWARE.
  * \brief  Smoothed aggregation coarsening scheme.
  */
 
-#include <boost/typeof/typeof.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
-#include <boost/range/algorithm.hpp>
-#include <boost/range/numeric.hpp>
 
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/coarsening/detail/galerkin.hpp>
@@ -112,10 +109,6 @@ struct smoothed_aggregation {
 
         const size_t n = rows(A);
 
-        BOOST_AUTO(Aptr, A.ptr_data());
-        BOOST_AUTO(Acol, A.col_data());
-        BOOST_AUTO(Aval, A.val_data());
-
         TIC("aggregates");
         Aggregates aggr(A, prm.aggr, prm.nullspace.cols);
         prm.aggr.eps_strong *= 0.5;
@@ -127,31 +120,17 @@ struct smoothed_aggregation {
                 );
 
         boost::shared_ptr<Matrix> P = boost::make_shared<Matrix>();
-        P->nrows = rows(*P_tent);
-        P->ncols = cols(*P_tent);
-
-        P->ptr.resize(n + 1, 0);
+        P->set_size(rows(*P_tent), cols(*P_tent), true);
 
 #pragma omp parallel
         {
             std::vector<ptrdiff_t> marker(P->ncols, -1);
 
-#ifdef _OPENMP
-            int nt  = omp_get_num_threads();
-            int tid = omp_get_thread_num();
-
-            ptrdiff_t chunk_size  = (n + nt - 1) / nt;
-            ptrdiff_t chunk_start = tid * chunk_size;
-            ptrdiff_t chunk_end   = std::min<ptrdiff_t>(n, chunk_start + chunk_size);
-#else
-            ptrdiff_t chunk_start = 0;
-            ptrdiff_t chunk_end   = n;
-#endif
-
             // Count number of entries in P.
-            for(ptrdiff_t i = chunk_start; i < chunk_end; ++i) {
-                for(ptrdiff_t ja = Aptr[i], ea = Aptr[i+1]; ja < ea; ++ja) {
-                    ptrdiff_t ca = Acol[ja];
+#pragma omp for
+            for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
+                for(ptrdiff_t ja = A.ptr[i], ea = A.ptr[i+1]; ja < ea; ++ja) {
+                    ptrdiff_t ca = A.col[ja];
 
                     // Skip weak off-diagonal connections.
                     if (ca != i && !aggr.strong_connection[ja])
@@ -167,42 +146,41 @@ struct smoothed_aggregation {
                     }
                 }
             }
+        }
 
-            boost::fill(marker, -1);
+        std::partial_sum(P->ptr, P->ptr + n + 1, P->ptr);
+        P->set_nonzeros();
 
-#pragma omp barrier
-#pragma omp single
-            {
-                boost::partial_sum(P->ptr, P->ptr.begin());
-                P->col.resize(P->ptr.back());
-                P->val.resize(P->ptr.back());
-            }
+#pragma omp parallel
+        {
+            std::vector<ptrdiff_t> marker(P->ncols, -1);
 
             // Fill the interpolation matrix.
-            for(ptrdiff_t i = chunk_start; i < chunk_end; ++i) {
+#pragma omp for
+            for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
 
                 // Diagonal of the filtered matrix is the original matrix
                 // diagonal minus its weak connections.
                 value_type dia = math::zero<value_type>();
-                for(ptrdiff_t j = Aptr[i], e = Aptr[i+1]; j < e; ++j) {
-                    if (Acol[j] == i)
-                        dia += Aval[j];
+                for(ptrdiff_t j = A.ptr[i], e = A.ptr[i+1]; j < e; ++j) {
+                    if (A.col[j] == i)
+                        dia += A.val[j];
                     else if (!aggr.strong_connection[j])
-                        dia -= Aval[j];
+                        dia -= A.val[j];
                 }
                 dia = math::inverse(dia);
 
                 ptrdiff_t row_beg = P->ptr[i];
                 ptrdiff_t row_end = row_beg;
-                for(ptrdiff_t ja = Aptr[i], ea = Aptr[i + 1]; ja < ea; ++ja) {
-                    ptrdiff_t ca = Acol[ja];
+                for(ptrdiff_t ja = A.ptr[i], ea = A.ptr[i + 1]; ja < ea; ++ja) {
+                    ptrdiff_t ca = A.col[ja];
 
                     // Skip weak off-diagonal connections.
                     if (ca != i && !aggr.strong_connection[ja]) continue;
 
                     value_type va = (ca == i)
                         ? static_cast<value_type>(static_cast<scalar_type>(1 - prm.relax) * math::identity<value_type>())
-                        : static_cast<value_type>(static_cast<scalar_type>(-prm.relax) * dia * Aval[ja]);
+                        : static_cast<value_type>(static_cast<scalar_type>(-prm.relax) * dia * A.val[ja]);
 
                     for(ptrdiff_t jp = P_tent->ptr[ca], ep = P_tent->ptr[ca+1]; jp < ep; ++jp) {
                         ptrdiff_t cp = P_tent->col[jp];
@@ -222,13 +200,10 @@ struct smoothed_aggregation {
         }
         TOC("interpolation");
 
-        boost::shared_ptr<Matrix> R = boost::make_shared<Matrix>();
-        *R = transpose(*P);
-
         if (prm.nullspace.cols > 0)
             prm.aggr.block_size = prm.nullspace.cols;
 
-        return boost::make_tuple(P, R);
+        return boost::make_tuple(P, transpose(*P));
     }
 
     /// \copydoc amgcl::coarsening::aggregation::coarse_operator

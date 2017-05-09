@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -94,10 +94,10 @@ inline std::istream& operator>>(std::istream &in, type &r)
     std::string val;
     in >> val;
 
-    if (val == "multicolor_gauss_seidel")
-        r = multicolor_gauss_seidel;
-    else if (val == "gauss_seidel")
+    if (val == "gauss_seidel")
         r = gauss_seidel;
+    else if (val == "multicolor_gauss_seidel")
+        r = multicolor_gauss_seidel;
     else if (val == "ilu0")
         r = ilu0;
     else if (val == "parallel_ilu0")
@@ -147,7 +147,7 @@ typename boost::disable_if<
     typename backend::relaxation_is_supported<Backend, Relaxation>::type,
     void
 >::type
-process_rap(const Func &func) {
+process_rap(const Func&) {
     throw std::logic_error("The relaxation scheme is not supported by the backend");
 }
 
@@ -157,15 +157,19 @@ void process_rap(runtime::relaxation::type relaxation, const Func &func) {
         case runtime::relaxation::gauss_seidel:
             process_rap<Backend, amgcl::relaxation::gauss_seidel>(func);
             break;
+#ifndef AMGCL_RUNTIME_DISABLE_MULTICOLOR_GS
         case runtime::relaxation::multicolor_gauss_seidel:
             process_rap<Backend, amgcl::relaxation::multicolor_gauss_seidel>(func);
             break;
+#endif
         case runtime::relaxation::ilu0:
             process_rap<Backend, amgcl::relaxation::ilu0>(func);
             break;
+#ifndef AMGCL_RUNTIME_DISABLE_PARALLEL_ILU0
         case runtime::relaxation::parallel_ilu0:
             process_rap<Backend, amgcl::relaxation::parallel_ilu0>(func);
             break;
+#endif
         case runtime::relaxation::iluk:
             process_rap<Backend, amgcl::relaxation::iluk>(func);
             break;
@@ -178,12 +182,18 @@ void process_rap(runtime::relaxation::type relaxation, const Func &func) {
         case runtime::relaxation::spai0:
             process_rap<Backend, amgcl::relaxation::spai0>(func);
             break;
+#ifndef AMGCL_RUNTIME_DISABLE_SPAI1
         case runtime::relaxation::spai1:
             process_rap<Backend, amgcl::relaxation::spai1>(func);
             break;
+#endif
+#ifndef AMGCL_RUNTIME_DISABLE_CHEBYSHEV
         case runtime::relaxation::chebyshev:
             process_rap<Backend, amgcl::relaxation::chebyshev>(func);
             break;
+#endif
+        default:
+            precondition(false, "Unsupported relaxation value");
     }
 }
 
