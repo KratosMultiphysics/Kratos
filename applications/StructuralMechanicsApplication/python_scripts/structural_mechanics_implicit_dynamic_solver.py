@@ -130,7 +130,7 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             ErrorMeshCriteria = MeshingApplication.ErrorMeshCriteria(self.main_model_part, self.settings["error_mesh_settings"])
             ErrorMeshCriteria.SetEchoLevel(self.settings["echo_level"].GetInt())
 
-            convergence_criterion = KratosMultiphysics.OrCriteria(ErrorMeshCriteria, convergence_criterion)
+            convergence_criterion = KratosMultiphysics.OrCriteria(convergence_criterion, ErrorMeshCriteria)
         
         return convergence_criterion
     
