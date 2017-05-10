@@ -314,6 +314,13 @@ public:
         // Prepare Weighting function to be used in the mapping
         FilterFunction filterFunction( mFilterFunction, mFilterRadius );
 
+        // working matrices and vectors
+
+        // Arrays needed for spatial search
+        unsigned int maxNodesAffected = 10000;
+        NodeVector nodesAffected(maxNodesAffected);
+        DoubleVector resulting_squared_distances(maxNodesAffected);
+
         // Loop over all design variables
         for (ModelPart::NodeIterator node_itr = mrDesignSurface.NodesBegin(); node_itr != mrDesignSurface.NodesEnd(); ++node_itr)
         {
@@ -324,10 +331,6 @@ public:
             // Get tID of the node in the mapping matrix
             int i = node_i.GetValue(MAPPING_ID);
 
-            // Arrays needed for spatial search
-            unsigned int maxNodesAffected = 10000;
-            NodeVector nodesAffected(maxNodesAffected);
-            DoubleVector resulting_squared_distances(maxNodesAffected);
 
 
             // Perform spatial search for current node
@@ -346,10 +349,8 @@ public:
             DoubleVector list_of_weights(numberOfNodesAffected,0.0);
             std::vector<int> listOfNeighborMappingIds(numberOfNodesAffected,0);
 
-
             // Compute and assign weights in the mapping matrix
             double sum_weights = 0.0;
-            std::vector<int> conditionIds;
             for(unsigned int j_itr = 0 ; j_itr<numberOfNodesAffected ; j_itr++)
             {
                 // Get node information
@@ -359,18 +360,14 @@ public:
                 int j = node_j.GetValue(MAPPING_ID);
 
                 // Get all neighbour conditions
-                const WeakPointerVector<Condition>& rC = node_j.GetValue(NEIGHBOUR_CONDITIONS);
-                conditionIds.resize(rC.size());
-                for (unsigned int i=0; i< rC.size(); i++)
-                {
-                    conditionIds[i] = rC[i].Id();
-                }
+                const WeakPointerVector<Condition>& rConditions = node_j.GetValue(NEIGHBOUR_CONDITIONS);
 
                 // loop conditions
-                for(std::vector<int>::iterator c_itr=conditionIds.begin() ; c_itr!=conditionIds.end() ; c_itr++)
+                for(unsigned int c_itr=0; c_itr<rConditions.size(); c_itr++)
                 {
                     // Get geometry information of current condition
-                    Condition::GeometryType& geom_i = mrDesignSurface.Conditions()[*c_itr].GetGeometry();
+                    Condition rCondition = rConditions[c_itr];
+                    Condition::GeometryType& geom_i = rCondition.GetGeometry();
                     unsigned int n_nodes = geom_i.size();
                     int localNodeIndex = -1;
                     for (unsigned int node_ctr=0; node_ctr<n_nodes; node_ctr++)
@@ -388,9 +385,6 @@ public:
                     //Kratos::Vector det_J;
                     //geom_i.DeterminantOfJacobian(det_J, mIntegrationMethod);
 
-                    Condition::GeometryType::JacobiansType J;
-                    geom_i.Jacobian(J,mIntegrationMethod);
-
                     for ( unsigned int pointNumber = 0; pointNumber < numberOfIntegrationPoints; pointNumber++ )
                     {
                         // Get weight for integration
@@ -403,16 +397,6 @@ public:
                         NodeType::CoordinatesArrayType gp_i_coord;
                         geom_i.GlobalCoordinates(gp_i_coord, integrationPoints[pointNumber].Coordinates());
 
-                        // TODO use gramian to determine det_J
-                        Kratos::Matrix J_Ti = trans(J[pointNumber]);
-                        Kratos::Matrix JJ_T = prod(J_Ti,J[pointNumber] );
-                        double detGram;
-                        if (mrDesignSurface.GetProcessInfo()[DOMAIN_SIZE] == 2)
-                            detGram = JJ_T(0,0);
-                        else
-                            detGram = MathUtils<double>::Det(JJ_T);
-                        double det_J = sqrt(detGram);
-
                         // evaluate shape function at gauss point
                         double N_j_gpi = geom_i.ShapeFunctionValue(pointNumber,localNodeIndex,mIntegrationMethod);
 
@@ -423,10 +407,23 @@ public:
                         Aij *= integrationWeight;
 
                         // scale filter function with 1/r for the 2D case - could be omitted because anyway we are normalizing
-                        if (mrDesignSurface.GetProcessInfo()[DOMAIN_SIZE] == 2)
-                            Aij /= mFilterRadius;
+                        // ANYWAY WE APLLY THE POST NORMALIZATION
+                        //if (mrDesignSurface.GetProcessInfo()[DOMAIN_SIZE] == 2)
+                        //    Aij /= mFilterRadius;
 
                         // consider jacobian
+                        double det_J = geom_i.DeterminantOfJacobian(pointNumber,mIntegrationMethod);
+                        // TODO use gramian to determine det_J
+                        //Kratos::Matrix J_Ti = trans(J[pointNumber]);
+                        //Kratos::Matrix JJ_T = prod(J_Ti,J[pointNumber] );
+                        // double detGram;
+                        //if (mrDesignSurface.GetProcessInfo()[DOMAIN_SIZE] == 2)
+                        //    Condition::GeometryType::JacobiansType J;
+                        //    geom_i.Jacobian(J,mIntegrationMethod);
+                        //    detGram = JJ_T(0,0);
+                        //else
+                        //    detGram = MathUtils<double>::Det(JJ_T);
+                        //double det_J = sqrt(detGram);
                         Aij *= det_J;
 
                         // Add values to list
