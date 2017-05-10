@@ -949,6 +949,9 @@ namespace Kratos
 
 		//mEnergy += inner_prod(ForceVector, Displacements);
 		//new energy calculation
+		//KRATOS_WATCH(rVectorForce);
+		//KRATOS_WATCH(rRightHandSideVector);
+		//std::cout << "#############################" << std::endl;
 
 		Vector Deformation = ZeroVector(local_size*2);
 		this->GetValuesVector(Deformation);
@@ -1021,6 +1024,7 @@ namespace Kratos
 
 		const double CustomMoment = NormForceVectorOrth *
 			GeometryLength*GeometryLength / 12.00;
+
 		Vector MomentNodeA = ZeroVector(dimension);
 		MomentNodeA = MathUtils<double>::CrossProduct(GeometricOrientation,
 			LoadOrthogonalDir);

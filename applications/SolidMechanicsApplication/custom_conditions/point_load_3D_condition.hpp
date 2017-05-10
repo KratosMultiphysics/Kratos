@@ -147,6 +147,10 @@ public:
     ///@{
     ///@}
 
+	void CalculateFollowerForceDirection(Vector& rVectorForce);
+	bool mIsFirstStep = true;
+	double mCosAngle;
+
 protected:
     ///@name Protected static Member Variables
     ///@{

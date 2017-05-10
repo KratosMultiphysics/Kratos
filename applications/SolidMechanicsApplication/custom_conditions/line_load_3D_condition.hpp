@@ -124,6 +124,12 @@ public:
     ///@{
     ///@}
 
+	//calculate load direction for Follower Force
+
+	void CalculateFollowerForceDirection(Vector& rVectorForce);
+	bool mIsFirstStep = true;
+	double mCosAngle;
+
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -210,6 +216,12 @@ private:
     ///@name Serialization
     ///@{
 
+	//follower force variables
+	Vector mQuaternionVEC_A, mQuaternionVEC_B;
+	double mQuaternionSCA_A, mQuaternionSCA_B;
+	Vector mDirectionVectorXOriginal, mDirectionVectorYOriginal,
+		mDirectionVectorZOriginal;
+
     friend class Serializer;
 
     virtual void save(Serializer& rSerializer) const;
@@ -218,6 +230,25 @@ private:
 
 
 }; // class LineLoad3DCondition.
+
+
+class OrientationGeometry
+{
+public:
+	OrientationGeometry(array_1d<double, 3>& v1, const double theta = 0.00);
+	OrientationGeometry(array_1d<double, 3>& v1, array_1d<double, 3>& v2);
+
+
+	void CalculateRotationMatrix(bounded_matrix<double, 3, 3>& R);
+	void CalculateBasisVectors(array_1d<double, 3>& v1,
+		array_1d<double, 3>& v2,
+		array_1d<double, 3>& v3);
+
+	Quaternion<double>& GetQuaternion() { return morientation; }
+
+private:
+	Quaternion<double> morientation;
+};
 
 } // namespace Kratos.
 

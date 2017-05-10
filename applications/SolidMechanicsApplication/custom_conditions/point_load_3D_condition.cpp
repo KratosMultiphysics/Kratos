@@ -149,17 +149,51 @@ Vector& PointLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, General
 	  for( unsigned int k = 0; k < dimension; k++ )
 	    rVectorForce[k] += rVariables.N[i] * PointLoad[k];
 
+
+	  //follower forces
+	  double testFollower = 0.00;
+	  for (int i = 0; i < number_of_nodes; ++i)
+	  {
+		  if (GetGeometry()[i].SolutionStepsDataHas(FOLLOWER_POINT_LOAD)) {
+			  array_1d<double, 3 > & LineLoad = GetGeometry()[i].FastGetSolutionStepValue(FOLLOWER_POINT_LOAD);
+			  const double checkFollower = MathUtils<double>::Norm(LineLoad);
+			  testFollower += checkFollower;
+			  if (checkFollower != 0.00)
+			  {
+				  for (unsigned int k = 0; k < dimension; k++)
+				  {
+					  rVectorForce[k] += rVariables.N[i] * LineLoad[k];
+				  }
+			  }
+		  }
+	  }
+	  if (testFollower != 0 && number_of_nodes == 1 && dimension == 3)
+	  {
+		  this->CalculateFollowerForceDirection(rVectorForce);
+	  }
+
 // 	  std::cout<<" PointLoad "<<PointLoad<<" N "<<rVariables.N[0]<<std::endl;
  
 	}
       }
 
 //     std::cout<<" rVerctorForce "<<rVectorForce<<std::endl;
-
     return rVectorForce;
 
     KRATOS_CATCH( "" )
 }
+
+
+void PointLoad3DCondition::CalculateFollowerForceDirection(Vector& rVectorForce)
+{
+	KRATOS_TRY;
+	const int number_of_nodes = GetGeometry().size();
+	const int dimension = GetGeometry().WorkingSpaceDimension();
+	KRATOS_WATCH("Follower_Load not yet implemented!!");
+	KRATOS_CATCH("");
+}
+
+
 
 
 //*********************************COMPUTE KINEMATICS*********************************
