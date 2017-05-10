@@ -39,7 +39,7 @@ namespace Kratos
 
 		const int number_of_elements = GetModelPart1().NumberOfElements();
 		auto& r_elements = GetModelPart1().ElementsArray();
-#pragma omp parallel for
+
 		for (int i = 0; i < number_of_elements; i++) {
 			CalculateElementalDistances(*(r_elements[i]), intersected_objects[i]);
 		}
@@ -61,10 +61,11 @@ namespace Kratos
 
 	void CalculateDiscontinuousDistanceToSkinProcess::CalculateElementalDistances(Element& rElement1, PointerVector<GeometricalObject>& rIntersectedObjects) {
 		if (rIntersectedObjects.empty())
+		{
+			rElement1.Set(TO_SPLIT, false);
 			return;
+		}
 
-		if (rElement1.Id() == 668)
-			KRATOS_WATCH(rIntersectedObjects.size());
 		// This function assumes tetrahedra element and triangle intersected object as input at this moment
 		constexpr int number_of_tetrahedra_points = 4;
 		constexpr double epsilon = std::numeric_limits<double>::epsilon();
@@ -97,7 +98,6 @@ namespace Kratos
 				{
 					if (distance < Epsilon) {
 						result_distance = -Epsilon;
-//						number_of_zero_distance_nodes++;
 					}
 					else {
 						result_distance = distance;
@@ -108,16 +108,6 @@ namespace Kratos
 				}
 			}
 			return result_distance;
-	}
-
-	int	CalculateDiscontinuousDistanceToSkinProcess::CalculateIntersectionPoints(LineSegment& rSegment, PointerVector<GeometricalObject>& rIntersectedObjects, std::vector<Point<3> >& IntersectionPoints) {
-		Point<3> intersection_point;
-		for (auto triangle : rIntersectedObjects.GetContainer())
-		{
-			if (rSegment.TriangleIntersectionPoint(triangle->GetGeometry(), intersection_point) == 1) // I'm avoiding the coplanar case
-				IntersectionPoints.push_back(intersection_point);
-		}
-		return rIntersectedObjects.size();
 	}
 
 

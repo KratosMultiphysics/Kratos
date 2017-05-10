@@ -312,8 +312,6 @@ namespace Kratos
 		
 		double CalculateDistanceToNode(Element& rElement1, int NodeIndex, PointerVector<GeometricalObject>& rIntersectedObjects, const double Epsilon);
 
-		int CalculateIntersectionPoints(LineSegment& rSegment, PointerVector<GeometricalObject>& rIntersectedObjects, std::vector<Point<3> >& IntersectionPoints);
-
 
       ///@}
       ///@name Private  Access
