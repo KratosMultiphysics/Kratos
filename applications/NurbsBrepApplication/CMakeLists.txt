@@ -4,10 +4,10 @@ message("**** configuring KratosNurbBrepApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
-file(GLOB KRATOS_NURBS_BREP_APPLICATION_PYTHON_SOURCES 
+file(GLOB KRATOS_NURBS_BREP_APPLICATION_PYTHON_SOURCES
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.h"
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp")
-file(GLOB KRATOS_NURBS_BREP_APPLICATION_BREP_SOURCES 
+file(GLOB KRATOS_NURBS_BREP_APPLICATION_BREP_SOURCES
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.hpp"
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp"
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/knot_span/*.cpp"
@@ -46,4 +46,4 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/NURBSBRepApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/NurbsBrepApplication.py" DESTINATION KratosMultiphysics )

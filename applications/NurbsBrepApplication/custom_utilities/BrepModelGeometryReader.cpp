@@ -15,7 +15,7 @@
 //#include "utilities/math_utils.h"
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -27,7 +27,7 @@
 namespace Kratos
 {
 //TODO: you should isolate this from python. In kratos the "Parameters" class gives you access to the json object.
-  //std::vector<BrepModel> 
+  //std::vector<BrepModel>
   std::vector<BrepModel> BrepModelGeometryReader::ReadGeometry(ModelPart& model_part)
   {
     std::cout << "\n> Start reading CAD geometry..." << std::endl;
@@ -36,7 +36,7 @@ namespace Kratos
 
     for (int brep_i = 0; brep_i < m_cad_geometry_in_json["breps"].size(); brep_i++)
     {
-      Parameters& brep_json = m_cad_geometry_in_json["breps"][brep_i];
+      Parameters brep_json = m_cad_geometry_in_json["breps"][brep_i];
       unsigned int brep_brep_id = brep_json["brep_id"].GetInt();
 
       BrepFacesVector faces_vector;
@@ -215,7 +215,7 @@ namespace Kratos
       // 3. Step: Create BrepModel
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       BrepModel brep(brep_brep_id, faces_vector, edges_vector);
-      
+
       r_brep_model_vector.push_back(brep);// [brep_i] = &brep;
     }
     std::cout << "\n> Finished reading CAD geometry..." << std::endl;
@@ -234,5 +234,3 @@ BrepModelGeometryReader::~BrepModelGeometryReader()
 {}
 
 }  // namespace Kratos.
-
-

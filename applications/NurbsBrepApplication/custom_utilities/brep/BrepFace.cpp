@@ -502,7 +502,10 @@ namespace Kratos
     {
       // Initialize necessary variables
       polygon_type poly;
-      std::vector<array_1d<double, 2>>& boundary_polygon = m_trimming_loops[loop_i].GetBoundaryPolygon();
+      //std::vector < array_1d <double,2> > & boundary_polygon = m_trimming_loops[loop_i].GetBoundaryPolygon(); // original, operator & has been removed as seen below
+      std::vector < array_1d <double,2> > boundary_polygon = m_trimming_loops[loop_i].GetBoundaryPolygon();
+
+
 
       // Prepare polygon for boost
       for (unsigned int i = 0; i<boundary_polygon.size(); i++)

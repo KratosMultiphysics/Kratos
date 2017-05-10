@@ -37,16 +37,16 @@ namespace Kratos
 {
 
   ///@name Kratos Globals
-  ///@{ 
-  ///@} 
+  ///@{
+  ///@}
   ///@name Type Definitions
-  ///@{ 
+  ///@{
     typedef std::vector<int> IntVector;
   ///@}
   ///@name  Enum's
   ///@{
   ///@}
-  ///@name  Functions 
+  ///@name  Functions
   ///@{
   ///@}
   ///@name Kratos Classes
@@ -63,13 +63,13 @@ namespace Kratos
     typedef std::vector<int> IntVector;
     typedef std::vector<BrepBoundaryLoop> TrimmingLoopVector;
     typedef std::vector<BrepTrimmingCurve> TrimmingCurveVector;
-    
+
     /// Pointer definition of KratosNurbsBrepApplication
     KRATOS_CLASS_POINTER_DEFINITION(BrepFace);
 
     ///@}
-    ///@name Life Cycle 
-    ///@{ 
+    ///@name Life Cycle
+    ///@{
 
     //Get functions
     Vector& GetUKnotVector();
@@ -87,10 +87,10 @@ namespace Kratos
       const int& shapefunction_order, const int& trim_index, std::vector<Point<3>> intersection_points);
     bool CheckIfPointIsInside(Vector node_parameters);
     void EvaluateSurfacePoint(Point<3>& rSurfacePoint, double u, double v);
-    void EvaluateShapeFunctionsSlaveNode(double& const u, double& const v, const int& shapefunction_order, Node<3>::Pointer node);
+    void EvaluateShapeFunctionsSlaveNode(double const & u, double const & v, const int & shapefunction_order, Node<3>::Pointer node);
     Node<3>::Pointer EvaluateNode(double u, double v, const int& shapefunction_order);
     void GetClosestPoint(const Point<3>& point, double& u, double& v);
-    std::vector<Node<3>::Pointer> EnhanceShapeFunctions(std::vector<array_1d<double, 3>>& points, const int& shapefunction_order);  
+    std::vector<Node<3>::Pointer> EnhanceShapeFunctions(std::vector<array_1d<double, 3>>& points, const int& shapefunction_order);
     void EnhanceShapeFunctionsSlave(
       std::vector<Node<3>::Pointer>& nodes, const int& shapefunction_order);
     BrepTrimmingCurve GetTrimmingCurve(const int& trim_index);
@@ -111,22 +111,22 @@ namespace Kratos
 
     /// Assignment operator.
     //BrepFace& operator=(BrepFace const& rOther);
-    ///@} 
+    ///@}
   protected:
 
   private:
 
     ///@name Private methods
-    ///@{ 
+    ///@{
     //Geometry functions
     void EvaluateGradientsForClosestPointSearch(Vector QminP, Matrix& Hessian, Vector& Gradient, double& u, double& v);
     void EvaluateNURBSFunctions(int span_u, int span_v, double _u, double _v, Matrix& R);
     void EvaluateNURBSFunctionsDerivatives(int span_u, int span_v, double _u, double _v, Matrix& _dR, Matrix& _ddR);
     void EvaluateNURBSFunctionsAndDerivative(int span_u, int span_v, double _u, double _v, Matrix& R, std::vector<Matrix>& dR);
-    
-    ///@} 
+
+    ///@}
     ///@name Member Variables
-    ///@{ 
+    ///@{
 
     TrimmingLoopVector m_trimming_loops;
     Vector m_knot_vector_u;
@@ -136,9 +136,9 @@ namespace Kratos
     IntVector m_control_points_ids;
     ModelPart& m_model_part;
 
-    ///@}    
+    ///@}
 
-  }; // Class BrepFace 
+  }; // Class BrepFace
 
 }  // namespace Kratos.
 

@@ -211,6 +211,10 @@ if(${NURBS_APPLICATION} MATCHES ON)
   add_subdirectory(nurbs_application)
 endif(${NURBS_APPLICATION} MATCHES ON)
 
+if(${NURBS_BREP_APPLICATION} MATCHES ON)
+  add_subdirectory(NurbsBrepApplication)
+endif(${NURBS_BREP_APPLICATION} MATCHES ON)
+
 if(${PFEM2_APPLICATION} MATCHES ON)
   add_subdirectory(pfem_2_application)
 endif(${PFEM2_APPLICATION} MATCHES ON)

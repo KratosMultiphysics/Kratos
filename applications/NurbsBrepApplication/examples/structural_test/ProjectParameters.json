@@ -1,5 +1,5 @@
 {
-  
+
   "problem_data": {
     "problem_name": "geometry_kratos",
     "model_part_name": "IGAModelPart",
@@ -159,7 +159,7 @@
     {
       "element_name" : "MeshlessShellElement",
       "cad_model_part" : [ "FACES" ],
-      "iga_model_part" : "STRUCTURAL_ANALYSIS", 
+      "iga_model_part" : "STRUCTURAL_ANALYSIS",
       "parameters": {
         "properties_id": 1,
         "control_points" :  "KratosMultiphysics.NURBSBRepApplication.CONTROL_POINT_IDS",
@@ -188,7 +188,7 @@
     {
       "condition_name" : "MeshlessSupportRotationCondition",
       "cad_model_part" : [ "EDGE_5" ],
-      "iga_model_part" : "SUPPORT_3", 
+      "iga_model_part" : "SUPPORT_3",
       "parameters": {
         "properties_id": 1,
         "control_points" :  ["KratosMultiphysics.NURBSBRepApplication.CONTROL_POINT_IDS"],
@@ -215,7 +215,7 @@
     {
       "condition_name" : "MeshlessLoadCondition",
       "cad_model_part" : [ "EDGE_10" ],
-      "iga_model_part" : "LOAD_5", 
+      "iga_model_part" : "LOAD_5",
       "parameters": {
         "properties_id": 1,
         "control_points" :  ["KratosMultiphysics.NURBSBRepApplication.CONTROL_POINT_IDS"],
@@ -242,7 +242,7 @@
     {
       "condition_name" : "MeshlessPenaltyCouplingRotationCondition",
       "cad_model_part" : [ "COUPLING_EDGES" ],
-      "iga_model_part" : "CONTINUITY_EDGES", 
+      "iga_model_part" : "CONTINUITY_EDGES",
       "parameters": {
         "properties_id": 1,
         "control_points" :  ["KratosMultiphysics.NURBSBRepApplication.CONTROL_POINT_IDS", "KratosMultiphysics.NURBSBRepApplication.CONTROL_POINT_IDS_SLAVE"],
@@ -263,7 +263,7 @@
             "cad_variable": "KratosMultiphysics.NURBSBRepApplication.TANGENTS_BASIS_VECTOR",
             "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.TANGENTS"
           },
-          {  
+          {
             "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_SLAVE",
             "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_VALUES_SLAVE"
           },

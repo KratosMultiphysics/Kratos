@@ -27,17 +27,17 @@ namespace Kratos
 {
 
   ///@name Kratos Globals
-  ///@{ 
-  ///@} 
+  ///@{
+  ///@}
   ///@name Type Definitions
-  ///@{ 
+  ///@{
   typedef Node<3> NodeType;
   typedef std::vector<NodeType::Pointer> NodeVector;
   ///@}
   ///@name  Enum's
   ///@{
   ///@}
-  ///@name  Functions 
+  ///@name  Functions
   ///@{
   ///@}
   ///@name Kratos Classes
@@ -53,10 +53,10 @@ namespace Kratos
     /// Pointer definition of KratosNurbsTestcaseApplication
     //KRATOS_CLASS_POINTER_DEFINITION(KnotSpan1d);
     ///@}
-    ///@name Life Cycle 
-    ///@{ 
-    std::vector<array_1d<double, 2>> KnotSpan1d::getIntegrationPointsInFullGaussianDomain();
-    std::vector<array_1d<double, 2>> KnotSpan1d::getIntegrationPointsInParameterDomain();
+    ///@name Life Cycle
+    ///@{
+    std::vector<array_1d<double, 2>> getIntegrationPointsInFullGaussianDomain();
+    std::vector<array_1d<double, 2>> getIntegrationPointsInParameterDomain();
 
 
     //TODO: you need to give reading access to your internals through the Calculate function
@@ -73,23 +73,23 @@ namespace Kratos
 
     /// Assignment operator.
     //KnotSpan1d& operator=(KnotSpan1d const& rOther);
-    ///@} 
+    ///@}
   protected:
 
   private:
 
     ///@name Private methods
-    ///@{ 
+    ///@{
 
-    ///@} 
+    ///@}
     ///@name Member Variables
-    ///@{ 
+    ///@{
     int m_p;
     Vector m_parameter_u;
 
-    ///@}    
+    ///@}
 
-  }; // Class KnotSpan1d 
+  }; // Class KnotSpan1d
 
 }  // namespace Kratos.
 

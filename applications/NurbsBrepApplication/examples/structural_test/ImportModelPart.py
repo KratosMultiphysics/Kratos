@@ -1,7 +1,8 @@
 # importing the Kratos Library
 from KratosMultiphysics import *
 import KratosMultiphysics.IGAStructuralMechanicsApplication
-import KratosMultiphysics.NURBSBRepApplication
+### import KratosMultiphysics.NURBSBRepApplication
+from applications.NurbsBrepApplication import * ### introduced instead prior line
 from KratosMultiphysics.SolidMechanicsApplication import *
 from beam_sections_python_utility import SetProperties
 import json
@@ -71,7 +72,7 @@ class ModelPartIOIGA(KratosMultiphysics.IO):
 					int_control_points = []
 					for i in range(0,condition_type["parameters"]["control_points"].size()):
 						control_points = node.GetValue(eval(condition_type["parameters"]["control_points"][i].GetString()))
-					
+
 						for cp in control_points:
 							int_control_points.append(int(cp))
 							iga_model_part.AddNode(model_part.GetNode(int(cp)),0)

@@ -27,17 +27,17 @@ namespace Kratos
 {
 
   ///@name Kratos Globals
-  ///@{ 
-  ///@} 
+  ///@{
+  ///@}
   ///@name Type Definitions
-  ///@{ 
+  ///@{
   typedef Node<3> NodeType;
   typedef std::vector<NodeType::Pointer> NodeVector;
   ///@}
   ///@name  Enum's
   ///@{
   ///@}
-  ///@name  Functions 
+  ///@name  Functions
   ///@{
   ///@}
   ///@name Kratos Classes
@@ -51,15 +51,15 @@ namespace Kratos
     ///@name Type Definitions
     ///@{
 
-    
+
     /// Pointer definition of KratosNurbsTestcaseApplication
     //KRATOS_CLASS_POINTER_DEFINITION(KnotSpan2d);
 
     ///@}
-    ///@name Life Cycle 
-    ///@{ 
-    std::vector<array_1d<double, 3>> KnotSpan2d::getIntegrationPointsInFullGaussianDomain();
-    std::vector<array_1d<double, 3>> KnotSpan2d::getIntegrationPointsInParameterDomain();
+    ///@name Life Cycle
+    ///@{
+    std::vector<array_1d<double, 3>> getIntegrationPointsInFullGaussianDomain();
+    std::vector<array_1d<double, 3>> getIntegrationPointsInParameterDomain();
 
 
     //TODO: you need to give reading access to your internals through the Calculate function
@@ -78,26 +78,26 @@ namespace Kratos
 
     /// Assignment operator.
     //KnotSpan2d& operator=(KnotSpan2d const& rOther);
-    ///@} 
+    ///@}
   protected:
 
   private:
 
     ///@name Private methods
-    ///@{ 
+    ///@{
 
-    ///@} 
+    ///@}
     ///@name Member Variables
-    ///@{ 
+    ///@{
     bool m_is_untrimmed;
     int m_p;
     int m_q;
     Vector m_parameter_span_u;
     Vector m_parameter_span_v;
 
-    ///@}    
+    ///@}
 
-  }; // Class KnotSpan2d 
+  }; // Class KnotSpan2d
 
 }  // namespace Kratos.
 

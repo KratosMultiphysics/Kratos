@@ -25,14 +25,24 @@ def StopTimeMeasuring(time_ip, process, report):
 
 #### TIME MONITORING END ####
 
+# # importing the Kratos Library
+# from KratosMultiphysics import *
+# from KratosMultiphysics.SolidMechanicsApplication import *
+# from KratosMultiphysics.StructuralMechanicsApplication import *
+# #from KratosMultiphysics.NurbsBrepApplication import *
+# from KratosMultiphysics.IGAStructuralMechanicsApplication import *
+# ### from KratosMultiphysics.NURBSBRepApplication import *
+# from applications.NurbsBrepApplication import * ### introduced instead prior line
+# import KratosMultiphysics.ExternalSolversApplication
+
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
-#from KratosMultiphysics.NurbsBrepApplication import *
+from KratosMultiphysics.NurbsBrepApplication import *
 from KratosMultiphysics.IGAStructuralMechanicsApplication import *
-from KratosMultiphysics.NURBSBRepApplication import *
-import KratosMultiphysics.ExternalSolversApplication 
+from applications.NurbsBrepApplication import *
+import KratosMultiphysics.ExternalSolversApplication
 
 import json
 import iga_structural_mechanics_solver
@@ -143,7 +153,7 @@ if(echo_level>1):
     for process in list_of_processes:
         print(process)
 
-##TODO: decide which is the correct place to initialize the processes 
+##TODO: decide which is the correct place to initialize the processes
 for process in list_of_processes:
     process.ExecuteInitialize()
 
@@ -183,7 +193,7 @@ for process in list_of_processes:
 ## Set results when are written in a single file
 gid_output.ExecuteBeforeSolutionLoop()
 
-    
+
 # write results and restart files: (frequency writing is controlled internally by the gid_io)
 if gid_output.IsOutputStep():
     gid_output.PrintOutput()
@@ -218,27 +228,27 @@ while(time <= end_time):
 
     # print process info
     ##
-    
+
     for process in list_of_processes:
         process.ExecuteInitializeSolutionStep()
 
     gid_output.ExecuteInitializeSolutionStep()
-        
+
     solver.Solve()
-       
+
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
-    
+
     gid_output.ExecuteFinalizeSolutionStep()
 
     #TODO: decide if it shall be done only when output is processed or not (boundary_conditions_processes ??)
     for process in list_of_processes:
         process.ExecuteBeforeOutputStep()
-    
+
     # write results and restart files: (frequency writing is controlled internally by the gid_io)
     if gid_output.IsOutputStep():
         gid_output.PrintOutput()
-                      
+
     #TODO: decide if it shall be done only when output is processed or not
     for process in list_of_processes:
         process.ExecuteAfterOutputStep()
