@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division # makes KratosM
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
+import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -41,6 +42,7 @@ class UPwSolver(object):
             "clear_storage": false,
             "compute_reactions": false,
             "move_mesh_flag": true,
+            "periodic_interface_conditions": false,
             "solution_type": "Quasi-Static",
             "scheme_type": "Newmark",
             "newmark_beta": 0.25,
@@ -115,8 +117,14 @@ class UPwSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.DT_WATER_PRESSURE)
         # Add variables for the water conditions
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NORMAL_FLUID_FLUX)
-        ##Common variables
+        ## Other variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PERIODIC_PAIR_INDEX)
+        if(self.settings["periodic_interface_conditions"].GetBool() == True):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_VON_MISES_STRESS)
+
         
         print("Variables correctly added")
 
@@ -162,7 +170,13 @@ class UPwSolver(object):
         print ("Model reading finished")
     
     def Initialize(self):
-                
+        
+        # Set ProcessInfo variables
+        if(self.settings["periodic_interface_conditions"].GetBool() == True):
+            self.main_model_part.ProcessInfo.SetValue(KratosPoro.NODAL_SMOOTHING, True)
+        else:
+            self.main_model_part.ProcessInfo.SetValue(KratosPoro.NODAL_SMOOTHING, False)
+        
         # Builder and solver creation
         builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool())
         
@@ -263,12 +277,15 @@ class UPwSolver(object):
             self.main_model_part.SetBufferSize( minimum_buffer_size )
 
     def _ConstructBuilderAndSolver(self, block_builder):
-        
+
         # Creating the builder and solver
-        if(block_builder):
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+        if(self.settings["periodic_interface_conditions"].GetBool() == True):
+            builder_and_solver = KratosCFD.ResidualBasedBlockBuilderAndSolverPeriodic(self.linear_solver,KratosMultiphysics.PERIODIC_PAIR_INDEX)
         else:
-            builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
+            if(block_builder):
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+            else:
+                builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
         
         return builder_and_solver
         

@@ -187,20 +187,225 @@ void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeSolutionStep( ProcessInfo& r
     ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
     ConstitutiveParameters.SetDeterminantF(detF);
     ConstitutiveParameters.SetDeformationGradientF(F);
-        
-    //Loop over integration points
-    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+    
+    if(rCurrentProcessInfo[NODAL_SMOOTHING] == true)
     {
-        noalias(GradNpT) = DN_DXContainer[GPoint];
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        Matrix StressContainer(NumGPoints,VoigtSize);
+            
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+        {
+            noalias(GradNpT) = DN_DXContainer[GPoint];
+            
+            this->CalculateBMatrix(B, GradNpT);
+            
+            noalias(StrainVector) = prod(B,DisplacementVector);
+            
+            noalias(Np) = row(NContainer,GPoint);
+            
+            //compute constitutive tensor and/or stresses
+            mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
+
+            this->SaveGPStress(StressContainer,StressVector,VoigtSize,GPoint);
+        }
+        this->ExtrapolateGPStress(StressContainer,VoigtSize);
+    }
+    else
+    {
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+        {
+            noalias(GradNpT) = DN_DXContainer[GPoint];
+            
+            this->CalculateBMatrix(B, GradNpT);
+            
+            noalias(StrainVector) = prod(B,DisplacementVector);
+            
+            noalias(Np) = row(NContainer,GPoint);
+            
+            //compute constitutive tensor and/or stresses
+            mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
+        }
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainElement<TDim,TNumNodes>::SaveGPStress(Matrix& rStressContainer, const Vector& StressVector, const unsigned int& VoigtSize, const unsigned int& GPoint)
+{
+    for(unsigned int i = 0; i < VoigtSize; i++)
+    {
+        rStressContainer(GPoint,i) = StressVector[i];
+    }
+
+    /* INFO: (Quadrilateral_2D_4 with GI_GAUSS_2)
+     * 
+     *                      |S0-0 S1-0 S2-0|
+     * rStressContainer =   |S0-1 S1-1 S2-1|
+     *                      |S0-2 S1-2 S2-2|
+     *                      |S0-3 S1-3 S2-3|
+     * 
+     * S1-0 = S[1] at GP 0
+    */
+}
+
+//----------------------------------------------------------------------------------------
+
+template< >
+void UPwSmallStrainElement<2,3>::ExtrapolateGPStress(const Matrix& StressContainer, const unsigned int& VoigtSize)
+{   
+    KRATOS_TRY
+    
+    // Triangle_2d_3 with GI_GAUSS_1
+
+    GeometryType& rGeom = this->GetGeometry();
+    const double& Area = rGeom.Area(); // In 3D this is Volume
+    std::vector<Vector> NodalStressVector(3); //List with stresses at each node
+    std::vector<Matrix> NodalStressTensor(3);
+
+    for(unsigned int Node = 0; Node < 3; Node ++)
+    {
+        NodalStressVector[Node].resize(VoigtSize);
+        NodalStressTensor[Node].resize(2,2);
+    }
+
+    for(unsigned int i = 0; i < 3; i++) //NumNodes
+    {
+        noalias(NodalStressVector[i]) = row(StressContainer,0)*Area;
+        noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
         
-        this->CalculateBMatrix(B, GradNpT);
+        rGeom[i].SetLock();
+        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
+        rGeom[i].UnSetLock();
+    }
+    
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< >
+void UPwSmallStrainElement<2,4>::ExtrapolateGPStress(const Matrix& StressContainer, const unsigned int& VoigtSize)
+{   
+    KRATOS_TRY
+    
+    // Quadrilateral_2d_4 with GI_GAUSS_2
+
+    GeometryType& rGeom = this->GetGeometry();
+    const double& Area = rGeom.Area(); // In 3D this is Volume
+    std::vector<Vector> NodalStressVector(4); //List with stresses at each node
+    std::vector<Matrix> NodalStressTensor(4);
+
+    for(unsigned int Node = 0; Node < 4; Node ++)
+    {
+        NodalStressVector[Node].resize(VoigtSize);
+        NodalStressTensor[Node].resize(2,2);
+    }
+
+    boost::numeric::ublas::bounded_matrix<double,4,4> ExtrapolationMatrix;
+    ElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
+    
+    boost::numeric::ublas::bounded_matrix<double,4,3> AuxNodalStress;
+    noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
+
+    /* INFO:
+        * 
+        *                  |S0-0 S1-0 S2-0|
+        * AuxNodalStress = |S0-1 S1-1 S2-1|
+        *                  |S0-2 S1-2 S2-2|
+        *                  |S0-3 S1-3 S2-3|
+        * 
+        * S1-0 = S[1] at node 0
+    */
+
+    for(unsigned int i = 0; i < 4; i++) //TNumNodes
+    {
+        noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
+        noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
         
-        noalias(StrainVector) = prod(B,DisplacementVector);
+        rGeom[i].SetLock();
+        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
+        rGeom[i].UnSetLock();
+    }
+    
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< >
+void UPwSmallStrainElement<3,4>::ExtrapolateGPStress(const Matrix& StressContainer, const unsigned int& VoigtSize)
+{   
+    KRATOS_TRY
+    
+    // Tetrahedra_3d_4 with GI_GAUSS_1
+
+    GeometryType& rGeom = this->GetGeometry();
+    const double& Area = rGeom.Area(); // In 3D this is Volume
+    std::vector<Vector> NodalStressVector(4); //List with stresses at each node
+    std::vector<Matrix> NodalStressTensor(4);
+
+    for(unsigned int Node = 0; Node < 4; Node ++)
+    {
+        NodalStressVector[Node].resize(VoigtSize);
+        NodalStressTensor[Node].resize(3,3);
+    }
+
+    for(unsigned int i = 0; i < 4; i++) //NumNodes
+    {
+        noalias(NodalStressVector[i]) = row(StressContainer,0)*Area;
+        noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
         
-        noalias(Np) = row(NContainer,GPoint);
+        rGeom[i].SetLock();
+        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
+        rGeom[i].UnSetLock();
+    }
+    
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< >
+void UPwSmallStrainElement<3,8>::ExtrapolateGPStress(const Matrix& StressContainer, const unsigned int& VoigtSize)
+{   
+    KRATOS_TRY
+    
+    // Hexahedra_3d_8 with GI_GAUSS_2
+
+    GeometryType& rGeom = this->GetGeometry();
+    const double& Area = rGeom.Area(); // In 3D this is Volume
+    std::vector<Vector> NodalStressVector(8); //List with stresses at each node
+    std::vector<Matrix> NodalStressTensor(8);
+
+    for(unsigned int Node = 0; Node < 8; Node ++)
+    {
+        NodalStressVector[Node].resize(VoigtSize);
+        NodalStressTensor[Node].resize(3,3);
+    }
+
+    boost::numeric::ublas::bounded_matrix<double,8,8> ExtrapolationMatrix;
+    ElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
+    
+    boost::numeric::ublas::bounded_matrix<double,8,6> AuxNodalStress;
+    noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
+
+    for(unsigned int i = 0; i < 8; i++) //TNumNodes
+    {
+        noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
+        noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
         
-        //compute constitutive tensor and/or stresses
-        mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
+        rGeom[i].SetLock();
+        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
+        rGeom[i].UnSetLock();
     }
     
     KRATOS_CATCH( "" )
