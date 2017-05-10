@@ -63,7 +63,18 @@ def AssambleTestSuites():
         ])
     )
 
+    ### Small MPI tests ########################################################
+    smallMPISuite = suites['mpi_small']
+
+    ### Nightly MPI tests ######################################################
+    nightlyMPISuite = suites['mpi_nightly']
+    nightlyMPISuite.addTests(smallMPISuite)
+
+    ### Full MPI set ###########################################################
+    allMPISuite = suites['mpi_all']
+    allMPISuite.addTests(nightlyMPISuite)
+
     return suites
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosUnittest.runTests( AssambleTestSuites() )
