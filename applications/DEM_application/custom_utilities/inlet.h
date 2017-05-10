@@ -49,6 +49,10 @@ namespace Kratos {
         /// Destructor.
         virtual ~DEM_Inlet(){}
         
+        template<class TDataType> void CheckIfSubModelPartHasVariable(ModelPart& smp, const Variable<TDataType>& rThisVariable) {
+            if(!smp.Has(rThisVariable)) KRATOS_ERROR<<"The SubModelPart '"<<smp.Name()<<"' does not have the variable '"<<rThisVariable.Name()<<"'";
+        }            
+        virtual void CheckSubModelPart(ModelPart& smp);
         virtual void InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const bool using_strategy_for_continuum = false);
         virtual void InitializeStep(ModelPart&){}
         void DettachElements(ModelPart& r_modelpart, unsigned int& max_Id);
@@ -57,24 +61,32 @@ namespace Kratos {
         ModelPart& GetInletModelPart();
         void SetNormalizedMaxIndentationForRelease(const double value);
         void SetNormalizedMaxIndentationForNewParticleCreation(const double value);
-        int GetNumberOfParticlesInjectedSoFar();
-        double GetMassInjectedSoFar();
+        int GetPartialNumberOfParticlesInjectedSoFar(const int i);
+        int GetTotalNumberOfParticlesInjectedSoFar();
+        double GetPartialMassInjectedSoFar(const int i);
+        double GetTotalMassInjectedSoFar();
 
     private:
         virtual void FixInjectorConditions(Element* p_element);
         virtual void FixInjectionConditions(Element* p_element);
         virtual void RemoveInjectionConditions(Element &element);
-        virtual void UpdateThroughput(SphericParticle& r_spheric_particle);
+        virtual void UpdateTotalThroughput(SphericParticle& r_spheric_particle); 
+        virtual void UpdateTotalThroughput(Cluster3D& r_cluster);
+        virtual void UpdatePartialThroughput(SphericParticle& r_spheric_particle, const int i);
+        virtual void UpdatePartialThroughput(Cluster3D& r_cluster, const int i);
 
         Vector mPartialParticleToInsert; //array of doubles, must be resized in the constructor to the number of meshes
         Vector mLastInjectionTimes; //array of doubles, must be resized in the constructor to the number of meshes
 
         bool mFirstTime;
+        bool mFirstInjection;
         bool mBallsModelPartHasSphericity;
         bool mBallsModelPartHasRotation;
         bool mStrategyForContinuum;
-        int mNumberOfParticlesInjected;
-        double mMassInjected;
+        int  mTotalNumberOfParticlesInjected;
+        std::vector<int> mNumberOfParticlesInjected;
+        double mTotalMassInjected;
+        Vector mMassInjected; 
         // The following two ratios mark the limit indentation (normalized by the radius) for releasing a particle
         // and for allowing a new one to be injected. admissible_indentation_ratio_for_release should be smaller
         // (more strict), since we want to make sure that the particle is taken far enough to avoid interferences
@@ -83,8 +95,13 @@ namespace Kratos {
         double mNormalizedMaxIndentationForNewParticleCreation;
         std::vector<PropertiesProxy> mFastProperties;
         boost::numeric::ublas::vector<bool> mLayerRemoved;
-        std::vector<int> mTotalNumberOfDetachedParticles;
+        //std::vector<int> mTotalNumberOfDetachedParticles;
         ModelPart& mInletModelPart; //The model part used to insert elements
+        
+        bool mWarningTooSmallInlet;
+        bool mWarningTooSmallInletForMassFlow;
+        void ThrowWarningTooSmallInlet(const ModelPart& mp);
+        void ThrowWarningTooSmallInletForMassFlow(const ModelPart& mp);
     };
 }// namespace Kratos.
 
