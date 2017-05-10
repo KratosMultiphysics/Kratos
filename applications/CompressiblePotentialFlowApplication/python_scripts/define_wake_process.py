@@ -1,4 +1,5 @@
 import KratosMultiphysics
+import KratosMultiphysics.CompressiblePotentialFlowApplication
 import math
 
 def Factory(settings, Model):
@@ -46,6 +47,9 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         #mark as STRUCTURE and deactivate the elements that touch the kutta node
         for node in self.kutta_model_part.Nodes:
             node.Set(KratosMultiphysics.STRUCTURE)
+            
+
+
             
         print(self.kutta_model_part)            
         
@@ -158,7 +162,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                     el = wake_mp.CreateNewElement("Element3D3N",elem_id,  [n1.Id, n2.Id, n3.Id], prop)
                     elem_id += 1
                     
-            ##CHAPUZA! - to be removed
+            #CHAPUZA! - to be removed
             #for node in wake_mp.Nodes:
                 #node.X = node.X - 1.0
                 #node.Y = node.Y -0.001
@@ -167,6 +171,43 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             
             distance_calculator = KratosMultiphysics.CalculateSignedDistanceTo3DSkinProcess(wake_mp, self.fluid_model_part)
             distance_calculator.Execute()
+            
+            for elem in self.fluid_model_part.Elements:
+                if(elem.Is(KratosMultiphysics.TO_SPLIT)):
+                    elem.Set(KratosMultiphysics.MARKER,True)
+            
+            #the following MORE OR LESS WORKS
+            #for elem in self.fluid_model_part.Elements:
+                #kutta_elem = False
+                #for node in elem.GetNodes():
+                    #if(node.Is(KratosMultiphysics.STRUCTURE)):
+                        #kutta_elem = True
+
+                #if(kutta_elem == True and elem.IsNot(KratosMultiphysics.MARKER)):
+                    #elem.Set(KratosMultiphysics.ACTIVE,False)
+                    
+            #for elem in self.fluid_model_part.Elements:
+                #kutta_elem = False
+                #for node in elem.GetNodes():
+                    #if(node.Is(KratosMultiphysics.STRUCTURE)):
+                        #kutta_elem = True
+
+                #if(kutta_elem == True and elem.IsNot(KratosMultiphysics.MARKER)):
+                    #d = elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
+                    #i = 0
+                    #for node in elem.GetNodes():
+                        #if(node.Is(KratosMultiphysics.STRUCTURE)):
+                            #d[i] = -1e-4
+                        #else:
+                            #d[i] = 1.0
+                        #i+=1
+                    #elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, d)
+                    #elem.Set(KratosMultiphysics.MARKER,True)
+                    
+            KratosMultiphysics.CompressiblePotentialFlowApplication.KuttaConditionProcess(self.fluid_model_part).Execute()
+            
+                       
+            
             
             ##chapuza
             #for elem in self.fluid_model_part.Elements:
@@ -239,9 +280,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             gid_output.ExecuteFinalizeSolutionStep()
             gid_output.ExecuteFinalize()
 
-            for elem in self.fluid_model_part.Elements:
-                if(elem.Is(KratosMultiphysics.TO_SPLIT)):
-                    elem.Set(KratosMultiphysics.MARKER,True)
+
                     
                     #print(elem.Id, elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES))
                 
