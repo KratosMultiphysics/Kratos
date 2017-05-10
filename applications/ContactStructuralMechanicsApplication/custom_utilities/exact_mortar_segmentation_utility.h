@@ -926,7 +926,7 @@ private:
             std::vector<double> AuxiliarXi;
             for (unsigned int iMaster = 0; iMaster < 2; iMaster++)
             {
-                const bool IsInside = ContactUtilities::ProjectIterativeLine2D(OriginalSlaveGeometry, OriginalMasterGeometry[iMaster].Coordinates(), ProjectedGPLocal, SlaveNormal);
+                const bool IsInside = ContactUtilities::ProjectIterativeLine2D(OriginalSlaveGeometry, OriginalMasterGeometry[iMaster].Coordinates(), ProjectedGPLocal, SlaveNormal, Tolerance);
                 
                 if (IsInside == true)
                 {
@@ -936,11 +936,11 @@ private:
             
             if (AuxiliarXi.size() == 1)
             {
-                if (AuxiliarCoordinates[0] + 1.0 < Tolerance) // NOTE: Equivalent to == -1.0
+                if (std::abs(AuxiliarCoordinates[0] + 1.0) < Tolerance) // NOTE: Equivalent to == -1.0
                 {
                     AuxiliarCoordinates[1] = AuxiliarXi[0];
                 }
-                else if (AuxiliarCoordinates[1] - 1.0 < Tolerance ) // NOTE: Equivalent to == 1.0
+                else if (std::abs(AuxiliarCoordinates[1] - 1.0) < Tolerance) // NOTE: Equivalent to == 1.0
                 {
                     AuxiliarCoordinates[0] = AuxiliarXi[0];
                 }
@@ -954,11 +954,11 @@ private:
             }
             else  if (AuxiliarXi.size() == 2)
             {
-                if (AuxiliarCoordinates[0] == - 1.0)
+                if (std::abs(AuxiliarCoordinates[0] + 1.0) < Tolerance) // NOTE: Equivalent to == -1.0
                 {
                     AuxiliarCoordinates[1] = AuxiliarXi[0] < AuxiliarXi[1] ? AuxiliarXi[1] : AuxiliarXi[0];
                 }
-                else if (AuxiliarCoordinates[1] == 1.0)
+                else if (std::abs(AuxiliarCoordinates[1] - 1.0) < Tolerance) // NOTE: Equivalent to == 1.0
                 {
                     AuxiliarCoordinates[0] = AuxiliarXi[0] < AuxiliarXi[1] ? AuxiliarXi[0] : AuxiliarXi[1];
                 }
@@ -978,10 +978,10 @@ private:
             }
             else
             {
-//                 return false; // NOTE: Giving problems
-                KRATOS_WATCH(OriginalSlaveGeometry);
-                KRATOS_WATCH(OriginalMasterGeometry);
-                KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!! (TYPE 1)" << std::endl;
+                return false; // NOTE: Giving problems
+//                 KRATOS_WATCH(OriginalSlaveGeometry);
+//                 KRATOS_WATCH(OriginalMasterGeometry);
+//                 KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!! (TYPE 1)" << std::endl;
             }
             
             TotalWeight = AuxiliarCoordinates[1] - AuxiliarCoordinates[0];

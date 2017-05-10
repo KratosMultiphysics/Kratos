@@ -270,6 +270,12 @@ public:
             }
         }
         
+//         // Debug
+//         KRATOS_WATCH(std::abs(DeltaXi - OldDeltaXi))
+//         KRATOS_WATCH(GeomOrigin)
+//         KRATOS_WATCH(PointDestiny)
+//         KRATOS_WATCH(ResultingPoint)
+        
         return false;
     }
     
