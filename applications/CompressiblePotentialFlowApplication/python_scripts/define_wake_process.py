@@ -46,7 +46,9 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         #mark as STRUCTURE and deactivate the elements that touch the kutta node
         for node in self.kutta_model_part.Nodes:
             node.Set(KratosMultiphysics.STRUCTURE)
-            #node.Fix(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
+            
+        print(self.kutta_model_part)            
+        
 
         #compute the distances of the elements of the wake, and decide which ones are wak    
         if(self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2): #2D case
@@ -122,6 +124,16 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         else: #3D case
             import numpy
             from stl import mesh #this requires numpy-stl
+
+            #initialize the distances to zero on all elements
+            zero = KratosMultiphysics.Vector(4)
+            zero[0] = 0
+            zero[1] = 0
+            zero[2] = 0
+            zero[3] = 0
+            for elem in self.fluid_model_part.Elements:
+                elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, zero)
+
 
             mesh = mesh.Mesh.from_multi_file(self.stl_filename)
             wake_mp = KratosMultiphysics.ModelPart("wake_stl")
@@ -228,7 +240,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             gid_output.ExecuteFinalize()
 
             for elem in self.fluid_model_part.Elements:
-                if(elem.GetValue(KratosMultiphysics.SPLIT_ELEMENT)):
+                if(elem.Is(KratosMultiphysics.TO_SPLIT)):
                     elem.Set(KratosMultiphysics.MARKER,True)
                     
                     #print(elem.Id, elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES))
