@@ -936,11 +936,11 @@ private:
             
             if (AuxiliarXi.size() == 1)
             {
-                if (AuxiliarCoordinates[0] == - 1.0)
+                if (AuxiliarCoordinates[0] + 1.0 < Tolerance) // NOTE: Equivalent to == -1.0
                 {
                     AuxiliarCoordinates[1] = AuxiliarXi[0];
                 }
-                else if (AuxiliarCoordinates[1] == 1.0)
+                else if (AuxiliarCoordinates[1] - 1.0 < Tolerance ) // NOTE: Equivalent to == 1.0
                 {
                     AuxiliarCoordinates[0] = AuxiliarXi[0];
                 }
