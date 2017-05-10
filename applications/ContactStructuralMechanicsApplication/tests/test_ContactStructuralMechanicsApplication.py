@@ -88,7 +88,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TALMHertzSimpleSphereTestContact('test_execution'))
     smallSuite.addTest(TALMHertzSphereTestContact('test_execution'))
     smallSuite.addTest(TALMHertzSimpleTestContact('test_execution'))
-    #smallSuite.addTest(THertzCompleteTestContact('test_execution'))
+    smallSuite.addTest(TALMHertzCompleteTestContact('test_execution'))
     smallSuite.addTest(TALMThreeDSimplestPatchMatchingTestContact('test_execution'))
     smallSuite.addTest(TALMTThreeDPatchMatchingTestContact('test_execution'))
     smallSuite.addTest(TALMThreeDPatchNotMatchingTestContact('test_execution'))
@@ -126,11 +126,11 @@ def AssambleTestSuites():
             TALMHertzSimpleTestContact,
             TALMHertzSimpleSphereTestContact,
             TALMHertzSphereTestContact,
+            TALMHertzCompleteTestContact,
             TALMThreeDSimplestPatchMatchingTestContact,
-            TALMTThreeDPatchMatchingTestContact, # FIXME: Some error, rotation in the solution
+            TALMTThreeDPatchMatchingTestContact,
             TALMThreeDPatchNotMatchingTestContact,
             ############# JUST TESTING ###########
-            ##TALMHertzCompleteTestContact,
             ##TALMIroningTestContact,
             ##TALMIroningDieTestContact,
         ])

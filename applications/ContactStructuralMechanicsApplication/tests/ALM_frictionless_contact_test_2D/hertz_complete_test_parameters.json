@@ -17,7 +17,7 @@
             "input_type"     : "mdpa",
             "input_filename" : "ALM_frictionless_contact_test_2D/hertz_complete_test"
         },
-        "compute_mortar_contact"             : 1,
+        "mortar_type"                        : "ALMContactFrictionless",
         "block_builder"                      : true,
         "line_search"                        : false,
         "clear_storage"                      : false,
@@ -28,8 +28,6 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
-        "split_factor"                       : 10.0, 
-        "max_number_splits"                  : 3,
         "linear_solver_settings"             : {
             "solver_type" : "SuperLUSolver",
             "scaling"     : false,
@@ -53,6 +51,21 @@
             "is_fixed_z"      : true,
             "value"           : [0.0,0.0,0.0]
         }
+    },
+    {
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "LinePressure2D_bc_pressure",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_x"      : true,
+            "is_fixed_y"      : false,
+            "is_fixed_z"      : true,
+            "value"           : [0.0,0.0,0.0]
+        }
     }],
     "loads_process_list"       : [{
         "python_module"   : "apply_vector_on_conditions_process",
@@ -64,7 +77,7 @@
             "model_part_name"   : "LinePressure2D_bc_pressure",
             "variable_name"     : "LINE_LOAD",
             "direction"			: [0.0, -1.0, 0.0],
-            "factor"            : 1.0e-7
+            "modulus"           : 5.0e-1
         }
     }],
     "list_other_processes" :[
@@ -78,10 +91,19 @@
             "assume_master_slave"         : "Parts_body_upper",
             "contact_model_part"          : "Contact_Part",
             "contact_type"                : "Frictionless",
-            "search_factor"               : 2.0,
+            "search_factor"               : 20.0,
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
-            "integration_order"           : 2
+            "integration_order"           : 2,
+            "active_check_factor"         : 1.0e-0,
+            "normal_variation"            : true,
+            "dual_search_check"           : false,
+            "stiffness_factor"            : 10.0,
+            "penalty_scale_factor"        : 1.0,
+            "manual_ALM"                  : true,
+            "penalty"                     : 7.0e4,
+            "scale_factor"                : 7.0e4,
+            "debug_mode"                  : false
         }
     }
     ],
@@ -100,7 +122,7 @@
             "skin_output"         : false,
             "plane_output"        : [],
             "nodal_results"       : ["DISPLACEMENT","REACTION","NORMAL_CONTACT_STRESS","WEIGHTED_GAP"],
-            "nodal_nonhistorical_results": ["NORMAL"],
+            "nodal_nonhistorical_results": ["NORMAL","AUGMENTED_NORMAL_CONTACT_PRESSURE"],
             "nodal_flags_results": ["ACTIVE","SLAVE"],
             "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
         },
