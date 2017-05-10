@@ -888,7 +888,7 @@ private:
         const double Tolerance = 1.0e-6;
 //         const double Tolerance = std::numeric_limits<double>::epsilon();
         
-        double total_weight = 0.0;
+        double TotalWeight = 0.0;
         array_1d<double,2> AuxiliarCoordinates = ZeroVector(2);
         
         // Declaring auxiliar values
@@ -896,21 +896,21 @@ private:
         GeometryNodeType::CoordinatesArrayType ProjectedGPLocal;
         
         // First look if the edges of the slave are inside of the master, if not check if the opposite is true, if not then the element is not in contact
-        for (unsigned int i_slave = 0; i_slave < 2; i_slave++)
+        for (unsigned int iSlave = 0; iSlave < 2; iSlave++)
         {
-            const array_1d<double, 3> normal = OriginalSlaveGeometry[i_slave].GetValue(NORMAL);
+            const array_1d<double, 3> normal = OriginalSlaveGeometry[iSlave].GetValue(NORMAL);
             
-            ContactUtilities::FastProjectDirection(OriginalMasterGeometry, OriginalSlaveGeometry[i_slave].Coordinates(), ProjectedGPGlobal, MasterNormal, -normal ); // The opposite direction
+            ContactUtilities::FastProjectDirection(OriginalMasterGeometry, OriginalSlaveGeometry[iSlave].Coordinates(), ProjectedGPGlobal, MasterNormal, -normal ); // The opposite direction
             
             const bool IsInside = OriginalMasterGeometry.IsInside( ProjectedGPGlobal.Coordinates( ), ProjectedGPLocal, Tolerance );
             
             if (IsInside == true) 
             {
-                if (i_slave == 0)
+                if (iSlave == 0)
                 {
                     AuxiliarCoordinates[0] = - 1.0;
                 }
-                else if (i_slave == 1)
+                else if (iSlave == 1)
                 {
                     AuxiliarCoordinates[1] =   1.0;
                 }
@@ -919,14 +919,14 @@ private:
         
         if ((AuxiliarCoordinates[0] == - 1.0 && AuxiliarCoordinates[1] == 1.0) == true)
         {
-            total_weight = 2.0;
+            TotalWeight = 2.0;
         }
         else
         {
             std::vector<double> AuxiliarXi;
-            for (unsigned int i_master = 0; i_master < 2; i_master++)
+            for (unsigned int iMaster = 0; iMaster < 2; iMaster++)
             {
-                const bool IsInside = ContactUtilities::ProjectIterativeLine2D(OriginalSlaveGeometry, OriginalMasterGeometry[i_master].Coordinates(), ProjectedGPLocal, SlaveNormal);
+                const bool IsInside = ContactUtilities::ProjectIterativeLine2D(OriginalSlaveGeometry, OriginalMasterGeometry[iMaster].Coordinates(), ProjectedGPLocal, SlaveNormal);
                 
                 if (IsInside == true)
                 {
@@ -946,7 +946,10 @@ private:
                 }
                 else
                 {
-                    KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!!" << std::endl;
+                    KRATOS_WATCH(AuxiliarXi[0]);
+                    KRATOS_WATCH(AuxiliarCoordinates[0]);
+                    KRATOS_WATCH(AuxiliarCoordinates[1]);
+                    KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!! (TYPE 0)" << std::endl;
                 }
             }
             else  if (AuxiliarXi.size() == 2)
@@ -975,13 +978,16 @@ private:
             }
             else
             {
-                KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!!" << std::endl;
+//                 return false; // NOTE: Giving problems
+                KRATOS_WATCH(OriginalSlaveGeometry);
+                KRATOS_WATCH(OriginalMasterGeometry);
+                KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!! (TYPE 1)" << std::endl;
             }
             
-            total_weight = AuxiliarCoordinates[1] - AuxiliarCoordinates[0];
+            TotalWeight = AuxiliarCoordinates[1] - AuxiliarCoordinates[0];
         }
         
-        if(total_weight < 0.0)
+        if(TotalWeight < 0.0)
         {
             KRATOS_ERROR << "WAAAAAAAAAAAAARNING!!!!!!!!, wrong order of the coordinates: "<< AuxiliarCoordinates << std::endl;
         }
@@ -989,7 +995,7 @@ private:
 //         // Debug
 //         std::cout << "xi1 " << AuxiliarCoordinates[0] << " xi2 " << AuxiliarCoordinates[1] << std::endl;
         
-        if (total_weight > std::numeric_limits<double>::epsilon())
+        if (TotalWeight > std::numeric_limits<double>::epsilon())
         {
             ConditionsPointsSlave.resize(1);
             array_1d<PointType, 2> ListPoints;

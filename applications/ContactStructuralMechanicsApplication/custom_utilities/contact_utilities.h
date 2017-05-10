@@ -207,7 +207,7 @@ public:
         
         //Newton iteration:
 
-        unsigned int maxiter = 10;
+        unsigned int maxiter = 15;
 
         for ( unsigned int k = 0; k < maxiter; k++ )
         {
@@ -215,13 +215,13 @@ public:
             NOrigin[0] = 0.5 * ( 1.0 - ResultingPoint[0]);
             NOrigin[1] = 0.5 * ( 1.0 + ResultingPoint[0]);
             
-            array_1d<double,3> normal_xi = ZeroVector(3);
+            array_1d<double,3> NormalXi = ZeroVector(3);
             for( unsigned int iNode = 0; iNode < 2; ++iNode )
             {
-                normal_xi += NOrigin[iNode] * normals[iNode]; 
+                NormalXi += NOrigin[iNode] * normals[iNode]; 
             }
             
-            normal_xi = normal_xi/norm_2(normal_xi); 
+            NormalXi = NormalXi/norm_2(NormalXi); 
             
             CurrentGlobalCoords = ZeroVector( 3 );
             for( unsigned int iNode = 0; iNode < 2; ++iNode )
@@ -230,17 +230,17 @@ public:
             }
             
             const array_1d<double,3> VectorPoints = GeomOrigin.Center() - PointDestiny;
-            const double dist = inner_prod(VectorPoints, Normal)/inner_prod(-normal_xi, Normal); 
-            const array_1d<double, 3> CurrentDestinyGlobalCoords = PointDestiny - normal_xi * dist;
+            const double Distance = inner_prod(VectorPoints, Normal)/inner_prod(-NormalXi, Normal); 
+            const array_1d<double, 3> CurrentDestinyGlobalCoords = PointDestiny - NormalXi * Distance;
             
 //             // Debug
 //             KRATOS_WATCH(CurrentGlobalCoords)
 //             KRATOS_WATCH(CurrentDestinyGlobalCoords)
             
             // Derivatives of shape functions
-            Matrix shape_functions_gradients;
-            shape_functions_gradients = GeomOrigin.ShapeFunctionsLocalGradients(shape_functions_gradients, ResultingPoint );
-            noalias(DN) = prod(X,shape_functions_gradients);
+            Matrix ShapeFunctionsGradients;
+            ShapeFunctionsGradients = GeomOrigin.ShapeFunctionsLocalGradients(ShapeFunctionsGradients, ResultingPoint );
+            noalias(DN) = prod(X,ShapeFunctionsGradients);
 
             noalias(J) = prod(trans(DN),DN); // TODO: Add the non linearity concerning the normal
             Vector RHS = prod(trans(DN),subrange(CurrentDestinyGlobalCoords - CurrentGlobalCoords,0,2));
@@ -250,11 +250,11 @@ public:
             
             ResultingPoint[0] += DeltaXi;
             
-            if (ResultingPoint[0] < -1.0)
+            if (ResultingPoint[0] <= -1.0)
             {
                 ResultingPoint[0] = -1.0;
             }
-            else if (ResultingPoint[0] > 1.0)
+            else if (ResultingPoint[0] >= 1.0)
             {
                 ResultingPoint[0] = 1.0;
             }
