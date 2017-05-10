@@ -49,13 +49,22 @@ namespace Kratos
 		KRATOS_TRY
 		
 		// Getting the BDF2 coefficients (not fixed to allow variable time step)
-		// The coefficients doesn't yet INCLUDE the time step
+		// The coefficients INCLUDE the time step
 		const int Stationary = rCurrentProcessInfo[STATIONARY];
-		const double delta_t = rCurrentProcessInfo[DELTA_TIME];
-		//const int Stationary = 0;
-		KRATOS_WATCH(Stationary)
+		const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+		//~ const double delta_t = rCurrentProcessInfo[DELTA_TIME];
+		//~ const int Stationary = 0;
+		//~ //double theta = 0.5;
+		//~ //array_1d<double,2> BDFcoeffs;    // Backward difference scheme (theta = 1)
+		//~ //BDFcoeffs[0] = 1/delta_t;
+		//~ //BDFcoeffs[1] = 1/delta_t;
+		//~ double theta = 3/2;
+		//~ array_1d<double,3> BDFcoeffs;      // theta-familiy difference scheme
+		//~ BDFcoeffs[0] =  1/theta/delta_t;
+		//~ BDFcoeffs[1] = (2-theta)/theta/delta_t;
+		//~ BDFcoeffs[2] = -1*(1-theta)/theta/delta_t;
 		
-		boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors = 1.0 / 3.0 / delta_t * IdentityMatrix(3, 3);
+		boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors = 1.0 / 3.0 * IdentityMatrix(3, 3);
 		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;      // Gradients matrix 
 		boost::numeric::ublas::bounded_matrix<double,2,2> msD;          // Conductivity matrix 
 		msD = ZeroMatrix(2,2);                                          // Initializing the matrix as zero
@@ -95,18 +104,22 @@ namespace Kratos
 		// Inertia terms
 		// LHS += bdf*M
 		if(Stationary!=1){
-			noalias(rLeftHandSideMatrix) += (density * specific_heat) * msMassFactors;
+			noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * (density * specific_heat) * msMassFactors;
 		}
 
 		// RHS
 		// No source terms
+		noalias(rRightHandSideVector) = 0 * rRightHandSideVector;
 
 		// Inertia terms
 		// RHS += M*vhistory
 		if(Stationary!=1){
 			for (unsigned int iii = 0; iii < number_of_points; iii++)
-				ms_temp_vec_np[iii] = 1.0 * GetGeometry()[iii].FastGetSolutionStepValue(TEMPERATURE, 1);
-			
+				ms_temp_vec_np[iii] = BDFcoeffs[1] * GetGeometry()[iii].FastGetSolutionStepValue(TEMPERATURE, 1);
+			for (unsigned int jjj = 2; jjj < BDFcoeffs.size(); jjj++){
+				for (unsigned int iii = 0; iii < number_of_points; iii++)
+					ms_temp_vec_np[iii] += BDFcoeffs[jjj] * GetGeometry()[iii].FastGetSolutionStepValue(TEMPERATURE, jjj);
+			}
 			noalias(rRightHandSideVector) += density * specific_heat * prod(msMassFactors, ms_temp_vec_np);
 		}
 
