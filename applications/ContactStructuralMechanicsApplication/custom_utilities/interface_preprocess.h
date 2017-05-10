@@ -994,6 +994,26 @@ private:
         }
     }
     
+    /**
+     * It reorders the Ids of the conditions
+     * @return CondId: The Id from the last condition
+     */
+
+    unsigned int ReorderConditions()
+    {
+        // We reorder the conditions
+        ConditionsArrayType& pCondition = mrMainModelPart.Conditions();
+        unsigned int numConditions = pCondition.end() - pCondition.begin();
+        
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCondition = pCondition.begin() + i;
+            itCondition->SetId(i + 1);
+        }
+        
+        return numConditions;
+    }
+    
     ///@}
     ///@name Private  Access
     ///@{
@@ -1041,18 +1061,9 @@ private:
         auto numNodes = pNode.end() - pNode.begin();
         
         unsigned int CondCounter = 0;
-        unsigned int CondId = 0;
         
         // We reorder the conditions
-        ConditionsArrayType& pCondition = mrMainModelPart.Conditions();
-        auto numConditions = pCondition.end() - pCondition.begin();
-        
-        for(unsigned int i = 0; i < numConditions; i++) 
-        {
-            auto itCondition = pCondition.begin() + i;
-            CondId += 1;
-            itCondition->SetId(CondId);
-        }
+        unsigned int CondId = ReorderConditions();
         
         // Generate Conditions from original the edges that can be considered interface
         for (ModelPart::ElementsContainerType::const_iterator itElem = rOriginPart.ElementsBegin(); itElem != rOriginPart.ElementsEnd(); itElem++)
@@ -1075,12 +1086,12 @@ private:
                 if (count == NumberOfPoints)
                 {
                     std::string EdgeConditionName = ConditionName;
+                    CondId += 1; // NOTE: To paralellize be careful with this ID
                     if (NumberOfPoints == 2)
                     {
                         EdgeConditionName.append("Condition2D2N");
                         EdgeConditionName.append(FinalString);
                         
-                        CondId += 1; // NOTE: To paralellize be careful with this ID
                         CreateNewCondition(rInterfacePart, *(itElem.base()), (*itElem).GetGeometry().Edges()[iEdge], CondId, EdgeConditionName);
                         CondCounter ++;
                     }
@@ -1091,7 +1102,6 @@ private:
                             EdgeConditionName.append("Condition2D3N"); 
                             EdgeConditionName.append(FinalString); 
                             
-                            CondId += 1; 
                             CreateNewCondition(rInterfacePart, *(itElem.base()), (*itElem).GetGeometry().Edges()[iEdge], CondId, EdgeConditionName);
                             CondCounter ++;
                         }
@@ -1099,8 +1109,7 @@ private:
                         {
                             EdgeConditionName.append("Condition2D2N"); 
                             EdgeConditionName.append(FinalString); 
-                            
-                            CondId += 1;
+
                             Line2D2< Node<3> > Lin1((*itElem).GetGeometry().Edges()[iEdge](0), (*itElem).GetGeometry().Edges()[iEdge](1));
                             CreateNewCondition(rInterfacePart, *(itElem.base()), Lin1, CondId, EdgeConditionName);
                             CondCounter ++;
@@ -1151,18 +1160,9 @@ private:
         auto numNodes = pNode.end() - pNode.begin();
         
         unsigned int CondCounter = 0;
-        unsigned int CondId = 0;
         
         // We reorder the conditions
-        ConditionsArrayType& pCondition = mrMainModelPart.Conditions();
-        auto numConditions = pCondition.end() - pCondition.begin();
-        
-        for(unsigned int i = 0; i < numConditions; i++) 
-        {
-            auto itCondition = pCondition.begin() + i;
-            CondId += 1;
-            itCondition->SetId(CondId);
-        }
+        unsigned int CondId = ReorderConditions();
         
         // Generate Conditions from original the faces that can be considered interface
         for (ModelPart::ElementsContainerType::const_iterator itElem = rOriginPart.ElementsBegin(); itElem != rOriginPart.ElementsEnd(); itElem++)
@@ -1185,12 +1185,12 @@ private:
                 if (count == NumberOfPoints)
                 {
                     std::string FaceConditionName = ConditionName;
+                    CondId += 1;
                     if (NumberOfPoints == 3)
                     {
                         FaceConditionName.append("Condition3D3N");
                         FaceConditionName.append(FinalString);
                         
-                        CondId += 1;
                         CreateNewCondition(rInterfacePart, *(itElem.base()), (*itElem).GetGeometry().Faces()[iFace], CondId, FaceConditionName);
                         CondCounter ++;
                     }
@@ -1200,8 +1200,7 @@ private:
                         {
                             FaceConditionName.append("Condition3D4N");
                             FaceConditionName.append(FinalString);
-                            
-                            CondId += 1;
+                        
                             CreateNewCondition(rInterfacePart, *(itElem.base()), (*itElem).GetGeometry().Faces()[iFace], CondId, FaceConditionName);
                             CondCounter ++;
                         }
@@ -1210,7 +1209,6 @@ private:
                             FaceConditionName.append("Condition3D3N");
                             FaceConditionName.append(FinalString);
                             
-                            CondId += 1;
                             Triangle3D3< Node<3> > Tri1((*itElem).GetGeometry().Faces()[iFace](0), (*itElem).GetGeometry().Faces()[iFace](1), (*itElem).GetGeometry().Faces()[iFace](2));
                             CreateNewCondition(rInterfacePart, *(itElem.base()), Tri1, CondId, FaceConditionName);
                             CondCounter ++;
@@ -1222,12 +1220,11 @@ private:
                     }
                     else if (NumberOfPoints == 6)
                     {
-                            if (SimplestGeometry == false)
+                        if (SimplestGeometry == false)
                         {
                             FaceConditionName.append("Condition3D6N");
                             FaceConditionName.append(FinalString);
                             
-                            CondId += 1;
                             CreateNewCondition(rInterfacePart, *(itElem.base()), (*itElem).GetGeometry().Faces()[iFace], CondId, FaceConditionName);
                             CondCounter ++;
                         }
@@ -1236,7 +1233,6 @@ private:
                             FaceConditionName.append("Condition3D3N");
                             FaceConditionName.append(FinalString);
                             
-                            CondId += 1;
                             Triangle3D3< Node<3> > Tri1((*itElem).GetGeometry().Faces()[iFace](0), (*itElem).GetGeometry().Faces()[iFace](1), (*itElem).GetGeometry().Faces()[iFace](5));
                             CreateNewCondition(rInterfacePart, *(itElem.base()), Tri1, CondId, FaceConditionName);
                             CondCounter ++;
@@ -1261,7 +1257,6 @@ private:
                             FaceConditionName.append("Condition3D8N");
                             FaceConditionName.append(FinalString);
                             
-                            CondId += 1;
                             CreateNewCondition(rInterfacePart, *(itElem.base()), (*itElem).GetGeometry().Faces()[iFace], CondId, FaceConditionName);
                             CondCounter ++;
                         }
@@ -1269,8 +1264,7 @@ private:
                         {
                             FaceConditionName.append("Condition3D3N");
                             FaceConditionName.append(FinalString);
-                            
-                            CondId += 1;
+
                             Triangle3D3< Node<3> > Tri1((*itElem).GetGeometry().Faces()[iFace](0), (*itElem).GetGeometry().Faces()[iFace](1), (*itElem).GetGeometry().Faces()[iFace](7));
                             CreateNewCondition(rInterfacePart, *(itElem.base()), Tri1, CondId, FaceConditionName);
                             CondCounter ++;
@@ -1303,7 +1297,6 @@ private:
                             FaceConditionName.append("Condition3D4N");
                             FaceConditionName.append(FinalString);
                             
-                            CondId += 1;
                             CreateNewCondition(rInterfacePart, *(itElem.base()), (*itElem).GetGeometry().Faces()[iFace], CondId, FaceConditionName);
                             CondCounter ++;
                         }
@@ -1311,8 +1304,7 @@ private:
                         {
                             FaceConditionName.append("Condition3D3N");
                             FaceConditionName.append(FinalString);
-                            
-                            CondId += 1;
+
                             Triangle3D3< Node<3> > Tri1((*itElem).GetGeometry().Faces()[iFace](0), (*itElem).GetGeometry().Faces()[iFace](1), (*itElem).GetGeometry().Faces()[iFace](8));
                             CreateNewCondition(rInterfacePart, *(itElem.base()), Tri1, CondId, FaceConditionName);
                             CondCounter ++;
