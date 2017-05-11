@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import assign_vector_components_to_nodes_process
+import assign_vector_variable_process
 from math import *
 
 def Factory(settings, Model):
@@ -8,7 +8,7 @@ def Factory(settings, Model):
     return AssignTimeDerivativeProcess(Model, settings["Parameters"])
 
 ##all the processes python processes should be derived from "python_process"
-class AssignTimeDerivativeProcess(assign_vector_components_to_nodes_process.AssignVectorVariableProcess):
+class AssignTimeDerivativeProcess(assign_vector_variable_process.AssignVectorVariableProcess):
     '''this process fixes the components of the value named "variable_to_be_solved_for" 
     in case the components of "variable_name" is fixed.
     this is needed when the variable to  be solved for is different than the one being fixed'''
