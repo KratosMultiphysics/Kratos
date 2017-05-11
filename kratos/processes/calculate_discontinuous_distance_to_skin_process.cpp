@@ -39,7 +39,7 @@ namespace Kratos
 
 		const int number_of_elements = GetModelPart1().NumberOfElements();
 		auto& r_elements = GetModelPart1().ElementsArray();
-
+#pragma omp parallel for 
 		for (int i = 0; i < number_of_elements; i++) {
 			CalculateElementalDistances(*(r_elements[i]), intersected_objects[i]);
 		}

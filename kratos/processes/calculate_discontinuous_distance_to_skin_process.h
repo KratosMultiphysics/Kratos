@@ -32,22 +32,6 @@ namespace Kratos
   ///@addtogroup Kratos Core
   ///@{
 
-  ///@name Kratos Globals
-  ///@{
-
-  ///@}
-  ///@name Type Definitions
-  ///@{
-
-  ///@}
-  ///@name  Enum's
-  ///@{
-
-  ///@}
-  ///@name  Functions
-  ///@{
-
-  ///@}
   ///@name Kratos Classes
   ///@{
 
@@ -68,12 +52,6 @@ namespace Kratos
       ///@name Life Cycle
       ///@{
 
-      /// Default constructor.
-      CalculateDiscontinuousDistanceToSkinProcess() = delete;
-
-	  /// Copy constructor.
-	  CalculateDiscontinuousDistanceToSkinProcess(FindIntersectedGeometricalObjectsProcess const& rOther) = delete;
-
 	  /// Constructor to be used.
 	  CalculateDiscontinuousDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart);
 
@@ -82,9 +60,20 @@ namespace Kratos
 
 
       ///@}
-      ///@name Operators
+      ///@name Deleted 
       ///@{
 
+	  /// Default constructor.
+	  CalculateDiscontinuousDistanceToSkinProcess() = delete;
+
+	  /// Copy constructor.
+	  CalculateDiscontinuousDistanceToSkinProcess(FindIntersectedGeometricalObjectsProcess const& rOther) = delete;
+
+	  /// Assignment operator.
+	  CalculateDiscontinuousDistanceToSkinProcess& operator=(CalculateDiscontinuousDistanceToSkinProcess const& rOther) = delete;
+
+	  /// Copy constructor.
+	  CalculateDiscontinuousDistanceToSkinProcess(CalculateDiscontinuousDistanceToSkinProcess const& rOther);
 
       ///@}
       ///@name Operations
@@ -120,43 +109,6 @@ namespace Kratos
 
       ///@}
       ///@name Friends
-      ///@{
-
-
-      ///@}
-
-    protected:
-      ///@name Protected static Member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Protected member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Protected Operators
-      ///@{
-
-
-      ///@}
-      ///@name Protected Operations
-      ///@{
-
-
-      ///@}
-      ///@name Protected  Access
-      ///@{
-
-
-      ///@}
-      ///@name Protected Inquiry
-      ///@{
-
-
-      ///@}
-      ///@name Protected LifeCycle
       ///@{
 
 
@@ -203,11 +155,6 @@ namespace Kratos
 		ModelPart mSkinRepresentation;
 
       ///@}
-      ///@name Private Operators
-      ///@{
-
-
-      ///@}
       ///@name Private Operations
       ///@{
 
@@ -215,39 +162,12 @@ namespace Kratos
 		
 		double CalculateDistanceToNode(Element& rElement1, int NodeIndex, PointerVector<GeometricalObject>& rIntersectedObjects, const double Epsilon);
 
-
-      ///@}
-      ///@name Private  Access
-      ///@{
-
-
-      ///@}
-      ///@name Private Inquiry
-      ///@{
-
-
-      ///@}
-      ///@name Un accessible methods
-      ///@{
-
-      /// Assignment operator.
-      CalculateDiscontinuousDistanceToSkinProcess& operator=(CalculateDiscontinuousDistanceToSkinProcess const& rOther);
-
-      /// Copy constructor.
-      CalculateDiscontinuousDistanceToSkinProcess(CalculateDiscontinuousDistanceToSkinProcess const& rOther);
-
-
       ///@}
 
     }; // Class CalculateDiscontinuousDistanceToSkinProcess
 
   ///@}
 
-  ///@name Type Definitions
-  ///@{
-
-
-  ///@}
   ///@name Input and output
   ///@{
 

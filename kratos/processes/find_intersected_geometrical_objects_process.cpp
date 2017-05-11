@@ -36,10 +36,13 @@ namespace Kratos
 		GenerateOctree();
 
 		std::vector<OctreeType::cell_type*> leaves;
-		for (auto p_element_1 : mrModelPart1.ElementsArray()) {
+		const int number_of_elements = mrModelPart1.NumberOfElements();
+#pragma omp parallel for private(leaves)
+		for (int i = 0; i < number_of_elements; i++) {
+			auto p_element_1 = mrModelPart1.ElementsBegin() + i;
 			leaves.clear();
-			mOctree.GetIntersectedLeaves(p_element_1, leaves);
-			MarkIfIntersected(*p_element_1, leaves);
+			mOctree.GetIntersectedLeaves(*(p_element_1.base()), leaves);
+			MarkIfIntersected(**(p_element_1.base()), leaves);
 		}
 	}
 
