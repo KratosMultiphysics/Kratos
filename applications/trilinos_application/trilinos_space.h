@@ -285,7 +285,7 @@ public:
     // 	{
     // 	  return inner_prod(row(rA, i), rX);
     // 	}
-    void SetValue(VectorType& rX, IndexType i, double value)
+    static void SetValue(VectorType& rX, IndexType i, double value)
     {
         Epetra_IntSerialDenseVector indices(1);
         Epetra_SerialDenseVector values(1);
@@ -293,11 +293,10 @@ public:
         values[0] = value;
 
         int ierr = rX.ReplaceGlobalValues(indices, values);
-        if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
 
         ierr = rX.GlobalAssemble(Insert,true); //Epetra_CombineMode mode=Add);
-        if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure when attempting to insert value in function SetValue", "");
-
+        KRATOS_ERROR_IF(ierr < 0) << "Epetra failure when attempting to insert value in function SetValue" << std::endl;
     }
 
     /// rX = A

@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_UBLAS_SPACE_H_INCLUDED )
@@ -215,7 +215,7 @@ public:
 #ifndef _OPENMP
         rY.assign(rX);
 #else
-        
+
         const int size = rX.size();
         if (rY.size() != static_cast<unsigned int>(size))
             rY.resize(size, false);
@@ -239,7 +239,7 @@ public:
         #pragma omp parallel for reduction( +: total), firstprivate(size)
         for(int i =0; i<size; ++i)
             total += rX[i]*rY[i];
-        
+
         return total;
 #endif
     }
@@ -251,11 +251,11 @@ public:
     {
         return sqrt(Dot(rX, rX));
     }
-    
+
     static TDataType TwoNorm(MatrixType const& rA) // Frobenious norm
     {
-        TDataType aux_sum = TDataType(); 
-        
+        TDataType aux_sum = TDataType();
+
         for (unsigned int i = 1; i < rA.size1(); i++)
         {
             for (unsigned int j = 1; j < rA.size2(); j++)
@@ -263,7 +263,7 @@ public:
                 aux_sum += rA(i,j) * rA(i,j);
             }
         }
-        
+
         return std::sqrt(aux_sum);
     }
 
@@ -468,6 +468,11 @@ public:
     }
 
 
+    static void SetValue(VectorType& rX, IndexType i, TDataType value)
+    {
+        rX[i] = value;
+    }
+
     /// rX = A
 
     static void Set(VectorType& rX, TDataType A)
@@ -554,7 +559,7 @@ public:
 #ifndef _OPENMP
         std::fill(rX.begin(), rX.end(), TDataType());
 #else
-        const int size = rX.size(); 
+        const int size = rX.size();
         #pragma omp parallel for firstprivate(size)
         for(int i=0; i<size; ++i)
             rX[i] = TDataType();
@@ -593,7 +598,7 @@ public:
 #ifndef _OPENMP
         std::fill(rX.begin(), rX.end(), TDataType());
 #else
-        const int size = rX.size(); 
+        const int size = rX.size();
         #pragma omp parallel for firstprivate(size)
         for(int i=0; i<size; ++i)
             rX[i] = TDataType();
@@ -699,14 +704,14 @@ public:
         // Use full namespace in call to make sure we are not calling this function recursively
         return Kratos::WriteMatrixMarketMatrix(FileName,M,Symmetric);
     }
-    
+
     template< class VectorType >
     static bool WriteMatrixMarketVector(const char *FileName, VectorType& V)
     {
         // Use full namespace in call to make sure we are not calling this function recursively
         return Kratos::WriteMatrixMarketVector(FileName,V);
     }
-    
+
     ///@}
     ///@name Friends
     ///@{
@@ -904,6 +909,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_UBLAS_SPACE_H_INCLUDED  defined 
-
-
+#endif // KRATOS_UBLAS_SPACE_H_INCLUDED  defined
