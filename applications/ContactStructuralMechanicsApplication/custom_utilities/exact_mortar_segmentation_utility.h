@@ -934,7 +934,7 @@ private:
                 }
             }
             
-            if (AuxiliarXi.size() == 1)
+            if (AuxiliarXi.size() == 1 && ((AuxiliarCoordinates[0] == - 1.0 || AuxiliarCoordinates[1] == 1.0)))
             {
                 if (std::abs(AuxiliarCoordinates[0] + 1.0) < Tolerance) // NOTE: Equivalent to == -1.0
                 {
