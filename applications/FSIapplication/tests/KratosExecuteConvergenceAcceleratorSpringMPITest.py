@@ -1,9 +1,16 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
-from KratosMultiphysics.mpi import *
 import KratosMultiphysics.FSIApplication as KratosFSI
-import KratosMultiphysics.MetisApplication as KratosMetis
+
+try:
+    from KratosMultiphysics.mpi import *
+    import KratosMultiphysics.MetisApplication as KratosMetis
+    import KratosMultiphysics.TrilinosApplication as KratosTrilinos
+    print(dir(KratosTrilinos), file=sys.stderr)
+except ImportError:
+    pass
+
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import math
@@ -15,7 +22,7 @@ def GetFilePath(fileName):
 def GetPartitionedFilePath(fileName):
     return GetFilePath( "{0}_{1}".format(fileName,mpi.rank ) )
 
-class KratosExecuteConvergenceAcceleratorMPITest(KratosUnittest.TestCase):
+class KratosExecuteConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
 
     def constant_force(self,model_part,guess,k,reference_z):
         f = KratosMultiphysics.Vector(3*len(model_part.Nodes))
@@ -53,9 +60,9 @@ class KratosExecuteConvergenceAcceleratorMPITest(KratosUnittest.TestCase):
         if self.print_gid_output:
             for i,node in enumerate(model_part.Nodes):
                 j = 3*i
-                node.SetSolutionStepValue(KratosFSI.FSI_INTERFACE_RESIDUAL_X,0, f[j]  -g[j]   )
-                node.SetSolutionStepValue(KratosFSI.FSI_INTERFACE_RESIDUAL_Y,0, f[j+1]-g[j+1] )
-                node.SetSolutionStepValue(KratosFSI.FSI_INTERFACE_RESIDUAL_Z,0, f[j+2]-g[j+2] )
+                node.SetSolutionStepValue(KratosMultiphysics.FSI_INTERFACE_RESIDUAL_X,0, f[j]  -g[j]   )
+                node.SetSolutionStepValue(KratosMultiphysics.FSI_INTERFACE_RESIDUAL_Y,0, f[j+1]-g[j+1] )
+                node.SetSolutionStepValue(KratosMultiphysics.FSI_INTERFACE_RESIDUAL_Z,0, f[j+2]-g[j+2] )
 
         return f - g
 
@@ -90,7 +97,7 @@ class KratosExecuteConvergenceAcceleratorMPITest(KratosUnittest.TestCase):
 
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        model_part.AddNodalSolutionStepVariable(KratosFSI.FSI_INTERFACE_RESIDUAL)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_RESIDUAL)
         mpi.world.barrier()
 
         KratosMetis.SetMPICommunicatorProcess(model_part).Execute()
@@ -101,6 +108,12 @@ class KratosExecuteConvergenceAcceleratorMPITest(KratosUnittest.TestCase):
 
         return model_part
 
+    def InitializeNodalEpetraVector(self,model_part,rows_per_node):
+        v = TrilinosSpace.CreateEmptyVectorPointer(self.epetra_comm)
+        local_size = rows_per_node * len(model_part.GetCommunicator().LocalMesh().Nodes)
+        global_size = model_part.GetCommunicator().SumAll(local_size)
+        TrilinosSpace.ResizeVector(v,global_size)
+
     def setUp(self):
         self.print_gid_output = False
         self.aitken_tolelance = 1e-10
@@ -109,6 +122,7 @@ class KratosExecuteConvergenceAcceleratorMPITest(KratosUnittest.TestCase):
 
         self.model_part = self.ReadModelPart(GetPartitionedFilePath("box_fluid"))
 
+        self.epetra_comm = KratosTrilinos.CreateCommunicator()
 
     def tearDown(self):
         if self.print_gid_output:
@@ -130,7 +144,7 @@ class KratosExecuteConvergenceAcceleratorMPITest(KratosUnittest.TestCase):
             gid_io.InitializeResults(0.0,self.model_part.GetMesh())
             gid_io.WriteNodalResults(KratosMultiphysics.PARTITION_INDEX,self.model_part.Nodes,0.0,0)
             gid_io.WriteNodalResults(KratosMultiphysics.DISPLACEMENT,self.model_part.Nodes,0.0,0)
-            gid_io.WriteNodalResults(KratosFSI.FSI_INTERFACE_RESIDUAL,local_nodes,0.0,0)
+            gid_io.WriteNodalResults(KratosMultiphysics.FSI_INTERFACE_RESIDUAL,local_nodes,0.0,0)
             gid_io.FinalizeResults()
 
         # clean temporary files
@@ -152,7 +166,7 @@ class KratosExecuteConvergenceAcceleratorMPITest(KratosUnittest.TestCase):
         print("Testing accelerator: ",aitken_settings["solver_type"].GetString())
 
         # Construct the accelerator strategy
-        coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(aitken_settings)
+        coupling_utility = convergence_accelerator_factory.CreateTrilinosConvergenceAccelerator(aitken_settings)
 
         top_part = self.model_part.GetSubModelPart("Top")
 
