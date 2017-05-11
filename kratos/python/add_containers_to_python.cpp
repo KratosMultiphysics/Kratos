@@ -50,6 +50,7 @@
 #include "python/add_cfd_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_ale_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_dem_variables_to_python.h" //TODO: to be removed eventually
+#include "python/add_fsi_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_legacy_structural_app_vars_to_python.h" //TODO: to be removed eventually
 
 #include "includes/convection_diffusion_settings.h"
@@ -64,7 +65,7 @@
 #endif
 #define KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag) \
   scope().attr(#flag) = boost::ref(flag);		    \
- 
+
 #ifdef KRATOS_REGISTER_IN_PYTHON_FLAG
 #undef KRATOS_REGISTER_IN_PYTHON_FLAG
 #endif
@@ -299,7 +300,7 @@ void  AddContainersToPython()
     class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >, bases<VariableData>, boost::noncopyable >( "Array1DComponentVariable", no_init )
     .def( self_ns::str( self ) )
     ;
-    
+
     class_<Variable<Quaternion<double> >, boost::noncopyable >( "DoubleQuaternionVariable", no_init )
     .def( self_ns::str( self ) )
     ;
@@ -404,7 +405,8 @@ void  AddContainersToPython()
     AddC2CVariablesToPython();
     AddDEMVariablesToPython(); //TODO: move this to the DEM application
     AddCFDVariablesToPython(); ///@TODO: move variables to CFD application
-    AddALEVariablesToPython(); ///@TODO: move variables to CFD application
+    AddALEVariablesToPython(); ///@TODO: move variables to ALE application
+    AddFSIVariablesToPython(); ///@TODO: move variables to FSI application
     AddLegacyStructuralAppVarsToPython();
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( DOMAIN_SIZE )
@@ -412,7 +414,7 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(COMPUTE_LUMPED_MASS_MATRIX )
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( THERMAL_EXPANSION_COEFFICIENT )
-      
+
     // These should be moved to applications
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( POWER_LAW_N )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( POWER_LAW_K )
@@ -451,10 +453,10 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( VISCOSITY_AIR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( VISCOSITY_WATER )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( ERROR_RATIO )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( TIME_STEPS )    
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( TIME_STEPS )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( SCALAR_LAGRANGE_MULTIPLIER )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( VECTOR_LAGRANGE_MULTIPLIER )
-    
+
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( ANGULAR_ACCELERATION )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( VELOCITY_LAPLACIAN )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( VELOCITY_LAPLACIAN_RATE )
@@ -478,10 +480,10 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( EXTERNAL_FORCE )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( CONTACT_FORCE )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( CONTACT_NORMAL )
-      
+
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( LINEAR_MOMENTUM )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( ANGULAR_MOMENTUM )
-      
+
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( VOLUME_ACCELERATION )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( SEEPAGE_DRAG )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( NORMAL )
@@ -587,7 +589,7 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( SHAPE_DERIVATIVE_MATRIX_2 )
 
     //for electric application
-    
+
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( PARTITION_MASK )
 
     //for PFEM application TO BE REMOVED
@@ -709,7 +711,7 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( VEL_ART_VISC )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( PR_ART_VISC )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( SOUND_VELOCITY )
-            
+
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( SEARCH_RADIUS )
 
 
