@@ -122,9 +122,9 @@ void Push_Back_Constitutive_Laws( MaterialsContainer& ThisMaterialsContainer,
 
 void  AddCustomConstitutiveLawsToPython()
 {
-    class_< MaterialsContainer >( "MaterialsContainer", init<>() )
-    .def( "PushBack", Push_Back_Constitutive_Laws )
-    ;
+    // class_< MaterialsContainer >( "MaterialsContainer", init<>() )
+    // .def( "PushBack", Push_Back_Constitutive_Laws )
+    // ;
 
    //Linear Elastic laws
 

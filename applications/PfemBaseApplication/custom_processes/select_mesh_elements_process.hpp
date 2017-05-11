@@ -363,7 +363,12 @@ public:
 		    accepted = ModelerUtils.CheckGeometryShape(*tetrahedron,sliver);
 		
 		    if( sliver ){
-		      accepted = false;
+
+		      if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH))
+			accepted = true;
+		      else
+			accepted = false;
+		      
 		      number_of_slivers++;
 		    }
 

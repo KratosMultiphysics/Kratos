@@ -80,12 +80,12 @@ public:
     typedef ContactDomainUtilities::SurfaceBase           SurfaceBase;
 
 protected:
-
+ 
     /**
      * Parameters to be used in the Condition as they are. Direct interface to Parameters Struct
      */
 
-      typedef struct
+    typedef struct
     {
       //Geometrical surface tangent gaps:
       ScalarBaseType   CurrentGap;     //tangential gap
@@ -115,14 +115,16 @@ protected:
       
       //geometrical variables
       double EquivalentArea;
+
+      double FactorArea;
       
       double EquivalentHeigh;
       
       double ElementSize;
-
                   
     } ContactTangentParameters;
 
+  
     typedef struct
     {
         Flags           Options;               //calculation options
@@ -244,7 +246,7 @@ protected:
         //The stabilization parameter and penalty parameter
         double          StabilizationFactor;
 	double          PenaltyFactor;
-
+      
         //Geometrical gaps:
         SurfaceScalar        PreviousGap;     //effective normal and tangential gap in previous time step configuration
 

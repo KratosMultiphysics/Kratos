@@ -427,29 +427,26 @@ int RigidFace3D::CheckSide(SphericParticle *p_particle){
     return RigidFace3D::Sign(ball_to_vertices_determinant);
 }
 
-bool RigidFace3D::CheckProjectionFallsInSide(SphericParticle *p_particle)
+// The following function checks if the projection of a point onto the plane defined by this face
+// falls inside it or not. Algorithm taken from https://math.stackexchange.com/questions/544946/determine-if-projection-of-3d-point-onto-plane-is-within-a-triangle
+bool RigidFace3D::CheckProjectionFallsInside(SphericParticle *p_particle)
 {
     const array_1d<double, 3>& P = p_particle->GetGeometry()[0].Coordinates();
     const Geometry<Node<3> >& geom = GetGeometry();
-    const array_1d<double, 3> u1 = geom[1].Coordinates() - geom[0].Coordinates();
-    const array_1d<double, 3> u2 = geom[2].Coordinates() - geom[0].Coordinates();
     const array_1d<double, 3> w  = P - geom[0].Coordinates();
+    array_1d<double, 3> u1 = geom[1].Coordinates() - geom[0].Coordinates();
+    array_1d<double, 3> u2 = geom[2].Coordinates() - geom[0].Coordinates();
     array_1d<double, 3> n;
     DEM_SET_TO_CROSS_OF_FIRST_TWO_3(u1, u2, n)
-    array_1d<double, 3> cross_gamma;
-    array_1d<double, 3> cross_beta;
-    double alpha;
-    double beta;
-    double gamma;
-    DEM_SET_TO_CROSS_OF_FIRST_TWO_3(w, u2, cross_beta)
-    beta = DEM_INNER_PRODUCT_3(cross_beta, u2);
-    DEM_SET_TO_CROSS_OF_FIRST_TWO_3(u1, w, cross_gamma)
-    gamma = DEM_INNER_PRODUCT_3(cross_gamma, n);
+    DEM_SET_TO_CROSS_OF_FIRST_TWO_3(w, u2, u2)
+    const double beta = DEM_INNER_PRODUCT_3(u2, n);
+    DEM_SET_TO_CROSS_OF_FIRST_TWO_3(u1, w, u1)
+    const double gamma = DEM_INNER_PRODUCT_3(u1, n);
     const double n2 = DEM_INNER_PRODUCT_3(n, n);
-    alpha = n2 - beta - gamma;
+    const double alpha = n2 - beta - gamma;
 
-    bool falls_inside = alpha >=  0 && beta >=  0 && gamma >= 0
-                     && alpha <= n2 && beta <= n2 && gamma <= n2;
+    const bool falls_inside = alpha >=  0 && beta >=  0 && gamma >= 0
+                           && alpha <= n2 && beta <= n2 && gamma <= n2;
 
     return falls_inside;
 }

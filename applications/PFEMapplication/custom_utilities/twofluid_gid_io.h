@@ -268,6 +268,11 @@ public:
     {
     }
 
+    void PrintResults( GiD_FILE ResultFile, Variable<int> rVariable, ModelPart& r_model_part,
+                       double SolutionTag, int value_index = 0 )
+    {
+    }    
+    
     void Reset()
     {
         mMeshElements.clear();

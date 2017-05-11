@@ -33,7 +33,7 @@ namespace Kratos
 	//*******************************************************************************************
 
         //GEOMETRICAL THEORY
-        // Heron's Formula for the area of a triangle(Hero's Formula)
+        // Heron's Formula for the area of a triangle 
         // A method for calculating the area of a triangle when you know the lengths of all three sides.
         // Let a,b,c be the lengths of the sides of a triangle. The area is given by:
 
@@ -74,8 +74,8 @@ namespace Kratos
 	  PointType V2;
 	  
 	  //projection of the slave on the master plane:  
-	  PointType M1 = 0.5*(P2-P1);
-	  PointType M2 = 0.5*(PS2-PS1);
+	  PointType M1 = 0.5*(P1+P2);
+	  PointType M2 = 0.5*(PS1+PS2);
    
 	  //Comtutacion of the line bases:
 
@@ -86,6 +86,13 @@ namespace Kratos
 
 	  V1 /= norm_2(V1);
 	  V2 /= norm_2(V2);
+
+	  //projection on the master plane:
+	  PointType PlaneNormal;
+	  MathUtils<double>::CrossProduct(PlaneNormal,V1,V2);
+	  M2 -= P1;
+	  M2 -= PlaneNormal*(inner_prod(M2,PlaneNormal));
+	  M2 += P1;
 	  
 	  CalculateLineIntersection(BaseVector[0].B, P1, M2, V1, V2 );
 
@@ -94,18 +101,24 @@ namespace Kratos
 	  //BaseVector[1]:
 	  
 	  V1 = PS2-PS1;
-	  V2 = -Normal;
+	  V2 = Normal;
 
 	  V1 /= norm_2(V1);
 	  V2 /= norm_2(V2);
+
+	  //projection on the master plane:
+	  MathUtils<double>::CrossProduct(PlaneNormal,V1,V2);
+	  M1 -= PS1;
+	  M1 -= PlaneNormal*(inner_prod(M1,PlaneNormal));
+	  M1 += PS1;
 	  
-	  CalculateLineIntersection(BaseVector[1].B, PS1, M1 , V1, V2 );
+	  CalculateLineIntersection(BaseVector[1].B, PS1, M1, V1, V2 );
 
 	  BaseVector[1].A = BaseVector[1].L-BaseVector[1].B;
 
 
-	  std::cout<<" BaseVector 0-> L: "<<BaseVector[0].L<<" A: "<<BaseVector[0].A<<" B: "<<BaseVector[0].B<<std::endl;
-	  std::cout<<" BaseVector 1-> L: "<<BaseVector[1].L<<" A: "<<BaseVector[1].A<<" B: "<<BaseVector[1].B<<std::endl;
+	  //std::cout<<" BaseVector 0-> L: "<<BaseVector[0].L<<" A: "<<BaseVector[0].A<<" B: "<<BaseVector[0].B<<std::endl;
+	  //std::cout<<" BaseVector 1-> L: "<<BaseVector[1].L<<" A: "<<BaseVector[1].A<<" B: "<<BaseVector[1].B<<std::endl;
 	
 
 	}
@@ -174,13 +187,13 @@ namespace Kratos
 	  V1 /= norm_2(V1);
 	  V2 /= norm_2(V2);
 	  
-	  CalculateLineIntersection(BaseVector[1].B, P3, PPS, V1, V2 );
+	  CalculateLineIntersection(BaseVector[2].B, P3, PPS, V1, V2 );
 
 	  BaseVector[2].A = BaseVector[2].L-BaseVector[2].B;
 
-	  std::cout<<" BaseVector 0-> L: "<<BaseVector[0].L<<" A: "<<BaseVector[0].A<<" B: "<<BaseVector[0].B<<std::endl;
-	  std::cout<<" BaseVector 1-> L: "<<BaseVector[1].L<<" A: "<<BaseVector[1].A<<" B: "<<BaseVector[1].B<<std::endl;
-	  std::cout<<" BaseVector 2-> L: "<<BaseVector[2].L<<" A: "<<BaseVector[2].A<<" B: "<<BaseVector[2].B<<std::endl;
+	  // std::cout<<" BaseVector 0-> L: "<<BaseVector[0].L<<" A: "<<BaseVector[0].A<<" B: "<<BaseVector[0].B<<std::endl;
+	  // std::cout<<" BaseVector 1-> L: "<<BaseVector[1].L<<" A: "<<BaseVector[1].A<<" B: "<<BaseVector[1].B<<std::endl;
+	  // std::cout<<" BaseVector 2-> L: "<<BaseVector[2].L<<" A: "<<BaseVector[2].A<<" B: "<<BaseVector[2].B<<std::endl;
 
 	}
 
@@ -220,11 +233,11 @@ namespace Kratos
 
 	  PointType P2_P1xV2;
 	  MathUtils<double>::CrossProduct(P2_P1xV2,P2_P1,V2);
-
+	  
 	  if( norm_2(V1xV2) != 0 )   
 	    a = norm_2(P2_P1xV2)/norm_2(V1xV2);
 	  else
-	    a = 0;	  
+	    a = 0;
 	}
 
 	//*******************************************************************************************
