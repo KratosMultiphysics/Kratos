@@ -68,7 +68,7 @@ namespace Kratos
 
 		// This function assumes tetrahedra element and triangle intersected object as input at this moment
 		constexpr int number_of_tetrahedra_points = 4;
-		constexpr double epsilon = 1.0e-5; //std::numeric_limits<double>::epsilon();
+		constexpr double epsilon = std::numeric_limits<double>::epsilon();
 		int number_of_zero_distance_nodes = 0;
 		auto& element_geometry = rElement1.GetGeometry();
 		Vector& elemental_distances = rElement1.GetValue(ELEMENTAL_DISTANCES);
