@@ -12,6 +12,7 @@ from SmallTests import NonConformantOneSideMap2D_test1 as TNonConformantOneSideM
 from SmallTests import NonConformantOneSideMap2D_test2 as TNonConformantOneSideMap2D_test2
 from SmallTests import NonConformantOneSideMap3D_test1 as TNonConformantOneSideMap3D_test1
 from KratosExecuteConvergenceAcceleratorTest import KratosExecuteConvergenceAcceleratorTest as TConvergenceAcceleratorTest
+from KratosExecuteConvergenceAcceleratorSpringTest import KratosExecuteConvergenceAcceleratorSpringTest as TConvergenceAcceleratorSpringTest
 
 ## NIGTHLY TESTS
 
@@ -42,6 +43,8 @@ def AssambleTestSuites():
     smallSuite.addTest(TConvergenceAcceleratorTest('test_mvqn_recusive_accelerator'))
     smallSuite.addTest(TConvergenceAcceleratorTest('test_accelerator_with_jacobian'))
     smallSuite.addTest(TFSIProblemEmulatorTest('test_execution'))
+    smallSuite.addTest(TConvergenceAcceleratorSpringTest('test_aitken_accelerator_constant_forces'))
+    smallSuite.addTest(TConvergenceAcceleratorSpringTest('test_aitken_accelerator_variable_stiffness'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
