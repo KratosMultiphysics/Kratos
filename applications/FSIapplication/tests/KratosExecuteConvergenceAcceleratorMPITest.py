@@ -42,7 +42,7 @@ class KratosExecuteConvergenceAcceleratorMPITest(KratosUnittest.TestCase):
                 delta = reference_z - position
             f[j]   = 0.0
             f[j+1] = 0.0
-            f[j+2] = k * ( 1 + (node.X-0.5)*(node.Y-0.5) ) * delta
+            f[j+2] = k * ( 1 + node.X*node.Y ) * delta
         return f
 
     def ComputeResidual(self,model_part,guess,force1,force2):
@@ -103,7 +103,12 @@ class KratosExecuteConvergenceAcceleratorMPITest(KratosUnittest.TestCase):
 
     def setUp(self):
         self.print_gid_output = False
+        self.aitken_tolelance = 1e-10
+        self.aitken_iterations = 50
+        self.assert_delta = 1e-7
+
         self.model_part = self.ReadModelPart(GetPartitionedFilePath("box_fluid"))
+
 
     def tearDown(self):
         if self.print_gid_output:
@@ -124,7 +129,7 @@ class KratosExecuteConvergenceAcceleratorMPITest(KratosUnittest.TestCase):
 
             gid_io.InitializeResults(0.0,self.model_part.GetMesh())
             gid_io.WriteNodalResults(KratosMultiphysics.PARTITION_INDEX,self.model_part.Nodes,0.0,0)
-            gid_io.WriteNodalResults(KratosMultiphysics.DISPLACEMENT,local_nodes,0.0,0)
+            gid_io.WriteNodalResults(KratosMultiphysics.DISPLACEMENT,self.model_part.Nodes,0.0,0)
             gid_io.WriteNodalResults(KratosFSI.FSI_INTERFACE_RESIDUAL,local_nodes,0.0,0)
             gid_io.FinalizeResults()
 
@@ -151,9 +156,6 @@ class KratosExecuteConvergenceAcceleratorMPITest(KratosUnittest.TestCase):
 
         top_part = self.model_part.GetSubModelPart("Top")
 
-        tol = 1e-12
-        max_it = 100
-
         coupling_utility.Initialize()
 
         nl_it = 0
@@ -165,11 +167,11 @@ class KratosExecuteConvergenceAcceleratorMPITest(KratosUnittest.TestCase):
         residual = self.ComputeResidual(top_part,x_guess,force1,force2)
         res_norm = self.ComputeResidualNorm(residual)
 
-        while (nl_it <= max_it):
+        while (nl_it <= self.aitken_iterations):
 
             print(mpi.rank,": Iteration: ", nl_it," residual norm: ", res_norm, file=sys.stderr)
 
-            if res_norm > tol:
+            if res_norm > self.aitken_tolelance:
                 coupling_utility.InitializeNonLinearIteration()
                 coupling_utility.UpdateSolution(residual, x_guess)
                 coupling_utility.FinalizeNonLinearIteration()
@@ -189,7 +191,7 @@ class KratosExecuteConvergenceAcceleratorMPITest(KratosUnittest.TestCase):
             self.PrintGuess(top_part,x_guess)
 
         for i in range(len(expected_x)):
-            self.assertAlmostEqual(expected_x[i],x_guess[i])
+            self.assertAlmostEqual(expected_x[i],x_guess[i],delta=self.assert_delta)
 
     def test_aitken_accelerator_constant_forces(self):
 
@@ -222,10 +224,9 @@ class KratosExecuteConvergenceAcceleratorMPITest(KratosUnittest.TestCase):
         self.test_aitken_accelerator(force1,force2,solution)
 
     def test_aitken_accelerator_variable_stiffness(self):
-        self.print_gid_output = True
 
         k1 = 100
-        k2 = 100
+        k2 = 500
         z_equilibrium_1 = 0.5
         z_equilibrium_2 = 1.5
 
@@ -239,7 +240,7 @@ class KratosExecuteConvergenceAcceleratorMPITest(KratosUnittest.TestCase):
             s = KratosMultiphysics.Vector(3*len(model_part.Nodes))
             dtot = z_equilibrium_2 - z_equilibrium_1
             for i,node in enumerate(model_part.Nodes):
-                k2_variable = k2 * ( 1 + (node.X-0.5)*(node.Y-0.5) )
+                k2_variable = k2 * ( 1 + node.X*node.Y )
                 z_solution = dtot * k2_variable / (k1+k2_variable) + z_equilibrium_1
                 j = 3*i
                 s[j]   = 0.0
@@ -252,3 +253,47 @@ class KratosExecuteConvergenceAcceleratorMPITest(KratosUnittest.TestCase):
             return analytical_solution(model_part,k1,k2,z_equilibrium_1,z_equilibrium_2)
 
         self.test_aitken_accelerator(forceA,forceB,solution)
+
+    def test_aitken_accelerator_ghost_nodes(self):
+        self.print_gid_output = True
+
+        # relax tolerance requirements to force differences between processors
+        self.aitken_tolelance = 1e-2
+        self.aitken_iterations = 10
+        self.assert_delta = 1e-3
+
+        k1 = 100
+        k2 = 500
+        z_equilibrium_1 = 0.5
+        z_equilibrium_2 = 1.5
+
+        def forceA(model_part,guess):
+            return self.constant_force(model_part,guess,k1,z_equilibrium_1)
+
+        def forceB(model_part,guess):
+            return self.variable_stiffness(model_part,guess,k2,z_equilibrium_2)
+
+        def analytical_solution(model_part,k1,k2,z_equilibrium_1,z_equilibrium_2):
+            s = KratosMultiphysics.Vector(3*len(model_part.Nodes))
+            dtot = z_equilibrium_2 - z_equilibrium_1
+            for i,node in enumerate(model_part.Nodes):
+                k2_variable = k2 * ( 1 + node.X*node.Y )
+                z_solution = dtot * k2_variable / (k1+k2_variable) + z_equilibrium_1
+                j = 3*i
+                s[j]   = 0.0
+                s[j+1] = 0.0
+                s[j+2] = z_solution - node.Z
+
+            return s
+
+        def solution(model_part):
+            return analytical_solution(model_part,k1,k2,z_equilibrium_1,z_equilibrium_2)
+
+        self.test_aitken_accelerator(forceA,forceB,solution)
+
+        ghost_displacements = [ node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0) for node in self.model_part.GetCommunicator().GhostMesh(0).Nodes ]
+        self.model_part.GetCommunicator().SynchronizeNodalSolutionStepsData()
+        owner_displacements = [ node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0) for node in self.model_part.GetCommunicator().GhostMesh(0).Nodes ]
+
+        for vold,vnew in zip(ghost_displacements,owner_displacements):
+            self.assertAlmostEqual(vold,vnew,delta=1e-7)
