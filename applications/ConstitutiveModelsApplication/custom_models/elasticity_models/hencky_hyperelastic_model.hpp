@@ -1,0 +1,297 @@
+//
+//   Project Name:        KratosConstitutiveModelsApplication $
+//   Created by:          $Author:                  LMonforte $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                   April 2017 $
+//   Revision:            $Revision:                      0.0 $
+//
+//
+
+#if !defined(KRATOS_HENCKY_HYPERELASTIC_MODEL_H_INCLUDED )
+#define  KRATOS_HENCKY_HYPERELASTIC_MODEL_H_INCLUDED
+
+// System includes
+
+// External includes
+
+// Project includes
+#include "custom_models/elasticity_models/hyperelastic_model.hpp"
+
+namespace Kratos
+{
+   ///@addtogroup ConstitutiveModelsApplication
+   ///@{
+
+   ///@name Kratos Globals
+   ///@{
+
+   ///@}
+   ///@name Type Definitions
+   ///@{
+
+   ///@}
+   ///@name  Enum's
+   ///@{
+
+   ///@}
+   ///@name  Functions
+   ///@{
+
+   ///@}
+   ///@name Kratos Classes
+   ///@{
+
+   /// Short class definition.
+   /** Detail class definition.
+    */
+   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) HenckyHyperElasticModel : public HyperElasticModel
+   {
+      public:
+
+         ///@name Type Definitions
+         ///@{
+
+         /// Pointer definition of BorjaModel
+         KRATOS_CLASS_POINTER_DEFINITION( HenckyHyperElasticModel );
+
+         ///@}
+         ///@name Life Cycle
+         ///@{
+
+         /// Default constructor.    
+         HenckyHyperElasticModel(): HyperElasticModel() {}; 
+
+         /// Copy constructor.
+         HenckyHyperElasticModel(HenckyHyperElasticModel const& rOther) : HyperElasticModel( rOther) {};
+
+         /// Assignment operator.
+         HenckyHyperElasticModel& operator=(HenckyHyperElasticModel const& rOther)
+         {
+            HyperElasticModel::operator=(rOther);
+            return *this;
+         };
+
+         /// Clone.
+         virtual ConstitutiveModel::Pointer Clone() const
+         {
+            return ( HenckyHyperElasticModel::Pointer( new HenckyHyperElasticModel(*this)) );
+         };
+
+
+         /// Destructor.
+         virtual ~HenckyHyperElasticModel() {};
+
+
+         ///@}
+         ///@name Operators
+         ///@{
+
+
+         ///@}
+         ///@name Operations
+         ///@{
+
+
+         ///@}
+         ///@name Access
+         ///@{
+
+
+         ///@}
+         ///@name Inquiry
+         ///@{
+
+
+         ///@}
+         ///@name Input and output
+         ///@{
+
+         /// Turn back information as a string.
+         virtual std::string Info() const override
+         {
+            std::stringstream buffer;
+            buffer << "HenckyHyperElasticModel";
+            return buffer.str();
+         }
+
+         /// Print information about this object.
+         virtual void PrintInfo(std::ostream& rOStream) const override
+         {
+            rOStream << "HenckyHyperElasticModel";
+         }
+
+         /// Print object's data.
+         virtual void PrintData(std::ostream& rOStream) const override
+         {
+            rOStream << "HenckyHyperElasticModel Data";
+         }
+
+
+         ///@}
+         ///@name Friends
+         ///@{
+
+
+         ///@}
+
+      protected:
+         ///@name Protected static Member Variables
+         ///@{
+
+
+         ///@}
+         ///@name Protected member Variables
+         ///@{
+
+
+         ///@}
+         ///@name Protected Operators
+         ///@{
+
+
+         ///@}
+         ///@name Protected Operations
+         ///@{
+
+         virtual void CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables)    
+         {
+            KRATOS_TRY
+
+            rVariables.SetModelData(rValues);
+            rVariables.SetState(rValues.State);
+
+            //cauchy green tensor
+            const MatrixType& rStrainMatrix         = rValues.GetStrainMatrix();
+
+            const StrainMeasureType& rStrainMeasure = rValues.GetStrainMeasure();
+            const StressMeasureType& rStressMeasure = rValues.GetStressMeasure();
+
+            if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mCauchyGreenMatrix = RightCauchyGreen (C=FT*F)  C^-1=(FT*F)^-1=F^-1*FT^-1
+
+                  KRATOS_ERROR << "calling HenckyHyperelastic based method with PK2 stress. not implemented" << std::endl;
+
+            }
+            else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mCauchyGreenMatrix = LeftCauchyGreen (b=F*FT)
+
+               if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Left ){
+               
+                  MatrixType EigenVectors;
+                  MatrixType EigenValues;
+                  EigenVectors.clear();
+                  EigenValues.clear();
+
+                  MathUtils<double>::EigenSystem<3> ( rStrainMatrix, EigenVectors, EigenValues);
+
+                  rVariables.Strain.CauchyGreenMatrix.clear();
+                  for (unsigned int i = 0; i < 3; i++)
+                     rVariables.Strain.CauchyGreenMatrix(i,i) =  std::log(EigenValues(i,i)) / 2.0;
+
+                  rVariables.Strain.CauchyGreenMatrix = prod( rVariables.Strain.CauchyGreenMatrix, EigenVectors);
+                  rVariables.Strain.CauchyGreenMatrix = prod( trans(EigenVectors), rVariables.Strain.CauchyGreenMatrix);
+                  rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
+               }
+               else{
+                  KRATOS_ERROR << "calling HenckyHyperelastic based method with strange strain measure. not implemented" << std::endl;
+               }
+
+            }
+            else{
+               KRATOS_ERROR << "calling initialize HyperElasticModel .. StressMeasure required is inconsistent"  << std::endl;
+            }
+
+
+            KRATOS_CATCH("")
+         };    
+
+         ///@}
+         ///@name Protected  Access
+         ///@{
+
+
+         ///@}
+         ///@name Protected Inquiry
+         ///@{
+
+
+         ///@}
+         ///@name Protected LifeCycle
+         ///@{
+
+
+         ///@}
+
+      private:
+
+         ///@name Static Member Variables
+         ///@{
+
+
+         ///@}
+         ///@name Member Variables
+         ///@{
+
+
+         ///@}
+         ///@name Private Operators
+         ///@{
+
+
+         ///@}
+         ///@name Private Operations
+         ///@{
+
+
+         ///@}
+         ///@name Private  Access
+         ///@{
+
+
+         ///@}
+         ///@name Serialization
+         ///@{
+         friend class Serializer;
+
+
+         virtual void save(Serializer& rSerializer) const override
+         {
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticModel )
+         }
+
+         virtual void load(Serializer& rSerializer) override
+         {
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticModel )      
+         }
+
+         ///@}
+         ///@name Private Inquiry
+         ///@{
+
+
+         ///@}
+         ///@name Un accessible methods
+         ///@{
+
+         ///@}
+
+   }; // Class BorjaModel
+
+   ///@}
+
+   ///@name Type Definitions
+   ///@{
+
+
+   ///@}
+   ///@name Input and output
+   ///@{
+
+
+   ///@}
+
+   ///@} addtogroup block
+
+}  // namespace Kratos.
+
+#endif // KRATOS_HENCKY_HYPERELASTIC_MODEL_H_INCLUDED  defined 
+
+
