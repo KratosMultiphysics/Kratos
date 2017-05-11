@@ -1037,7 +1037,7 @@ void ContactDomainLM2DCondition::CalculateTangentSlipForce (double &F,GeneralVar
 //************************************************************************************
 //************************************************************************************
 
-void ContactDomainLM2DCondition::CalcContactStiffness (double &Kcont,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir)
+void ContactDomainLM2DCondition::CalculateContactStiffness (double &Kcont,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir)
 {
     Kcont=0;
 

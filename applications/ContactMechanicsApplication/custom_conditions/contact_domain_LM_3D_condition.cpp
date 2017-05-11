@@ -86,7 +86,7 @@ namespace Kratos
   {  
     KRATOS_TRY     
 
-    Element::ElementType& rMasterElement = GetValue(MASTER_ELEMENTS).back();
+      Element::ElementType& rMasterElement = GetValue(MASTER_ELEMENTS).back();
     mContactVariables.SetMasterElement(rMasterElement);
     
     Element::NodeType&    rMasterNode  = GetValue(MASTER_NODES).front();
@@ -213,7 +213,6 @@ namespace Kratos
 	    }
 	    else{
 
-	      std::cout<<" SWAP "<<std::endl;
 	      std::iter_swap(mContactVariables.slaves.begin(), mContactVariables.slaves.begin()+1);
 	      
 	      if( mContactVariables.slaves.back() == permute[mContactVariables.slaves.front()+1] ){
@@ -256,20 +255,20 @@ namespace Kratos
     
 	mContactVariables.SetMasterGeometry( rMasterElement.GetGeometry() );
        
-    }
+      }
     else{
       KRATOS_THROW_ERROR( std::invalid_argument, "MASTERNODE do not belongs to MASTER ELEMENT", "" )
-    }
+	}
     
-    if( this->Is(SELECTED) )
-      std::cout<<" CONTACT EDGE("<<GetGeometry()[0].Id()<<")("<<GetGeometry()[1].Id()<<")("<<GetGeometry()[2].Id()<<")("<<GetGeometry()[3].Id()<<")"<<std::endl;
-    else
-      std::cout<<" CONTACT ("<<GetGeometry()[0].Id()<<")("<<GetGeometry()[1].Id()<<")("<<GetGeometry()[2].Id()<<")("<<GetGeometry()[3].Id()<<")"<<std::endl;
+    // if( this->Is(SELECTED) )
+    //   std::cout<<" CONTACT EDGE("<<GetGeometry()[0].Id()<<")("<<GetGeometry()[1].Id()<<")("<<GetGeometry()[2].Id()<<")("<<GetGeometry()[3].Id()<<")"<<std::endl;
+    // else
+    //   std::cout<<" CONTACT ("<<GetGeometry()[0].Id()<<")("<<GetGeometry()[1].Id()<<")("<<GetGeometry()[2].Id()<<")("<<GetGeometry()[3].Id()<<")"<<std::endl;
     
-    std::cout<<" MASTER  ("<<rMasterElement.GetGeometry()[0].Id()<<")("<<rMasterElement.GetGeometry()[1].Id()<<")("<<rMasterElement.GetGeometry()[2].Id()<<")("<<rMasterElement.GetGeometry()[3].Id()<<")"<<std::endl;
+    // std::cout<<" MASTER  ("<<rMasterElement.GetGeometry()[0].Id()<<")("<<rMasterElement.GetGeometry()[1].Id()<<")("<<rMasterElement.GetGeometry()[2].Id()<<")("<<rMasterElement.GetGeometry()[3].Id()<<")"<<std::endl;
     
     KRATOS_CATCH(" ")    
-  }
+      }
 
   //************************************************************************************
   //************************************************************************************
@@ -759,14 +758,14 @@ namespace Kratos
     mContactVariables.SetMasterElement(rMasterElement);
     
 
-    if( this->Is(SELECTED) )
-      std::cout<<" ELEMENT ["<<this->Id()<<"] EDGE "<<std::endl;
-    else
-      std::cout<<" ELEMENT ["<<this->Id()<<"] FACE "<<std::endl;
+    // if( this->Is(SELECTED) )
+    //   std::cout<<" ELEMENT ["<<this->Id()<<"] EDGE "<<std::endl;
+    // else
+    //   std::cout<<" ELEMENT ["<<this->Id()<<"] FACE "<<std::endl;
     
-    std::cout<<" CONTACT ("<<GetGeometry()[0].Id()<<")("<<GetGeometry()[1].Id()<<")("<<GetGeometry()[2].Id()<<")("<<GetGeometry()[3].Id()<<")"<<std::endl;
-    std::cout<<" MASTER  ("<<rMasterElement.GetGeometry()[0].Id()<<")("<<rMasterElement.GetGeometry()[1].Id()<<")("<<rMasterElement.GetGeometry()[2].Id()<<")("<<rMasterElement.GetGeometry()[3].Id()<<")"<<std::endl;
-    std::cout<<" Nodes ("<<mContactVariables.nodes[0]<<" "<<mContactVariables.nodes[1]<<" "<<mContactVariables.nodes[2]<<" "<<mContactVariables.nodes[3]<<")"<<std::endl;
+    // std::cout<<" CONTACT ("<<GetGeometry()[0].Id()<<")("<<GetGeometry()[1].Id()<<")("<<GetGeometry()[2].Id()<<")("<<GetGeometry()[3].Id()<<")"<<std::endl;
+    // std::cout<<" MASTER  ("<<rMasterElement.GetGeometry()[0].Id()<<")("<<rMasterElement.GetGeometry()[1].Id()<<")("<<rMasterElement.GetGeometry()[2].Id()<<")("<<rMasterElement.GetGeometry()[3].Id()<<")"<<std::endl;
+    // std::cout<<" Nodes ("<<mContactVariables.nodes[0]<<" "<<mContactVariables.nodes[1]<<" "<<mContactVariables.nodes[2]<<" "<<mContactVariables.nodes[3]<<")"<<std::endl;
     //std::cout<<" Order ("<<mContactVariables.order[0]<<" "<<mContactVariables.order[1]<<" "<<mContactVariables.order[2]<<" "<<mContactVariables.order[3]<<")"<<std::endl;
 
     // std::cout<<" Slaves ("<<GetValue(MASTER_NODES).front().Id()<<" "<<GetValue(MASTER_NODES).back().Id()<<") ["<<mContactVariables.slaves[0]<<" "<<mContactVariables.slaves[1]<<"]"<<std::endl;
@@ -787,14 +786,14 @@ namespace Kratos
     //   ContactNormal[i] = rVariables.Contact.CurrentSurface.Normal[i];
 
 
-    std::cout<<" GapN "<<rVariables.Contact.CurrentGap.Normal<<std::endl;
-    std::cout<<" LmN "<<rVariables.Contact.Multiplier.Normal<<std::endl;
+    // std::cout<<" GapN "<<rVariables.Contact.CurrentGap.Normal<<std::endl;
+    // std::cout<<" LmN "<<rVariables.Contact.Multiplier.Normal<<std::endl;
 
 
-    if(rVariables.Contact.Options.Is(ACTIVE))
-      std::cout<<" ELEMENT ACTIVE "<<std::endl;
-    else
-      std::cout<<" ELEMENT NOT ACTIVE "<<std::endl;
+    // if(rVariables.Contact.Options.Is(ACTIVE))
+    //   std::cout<<" ELEMENT ACTIVE "<<std::endl;
+    // else
+    //   std::cout<<" ELEMENT NOT ACTIVE "<<std::endl;
 
       
     if(mContactVariables.IterationCounter < 1)
@@ -1121,11 +1120,11 @@ namespace Kratos
       distorted_2=fabs((-rVariables.Contact.ReferenceBase[2].A/rVariables.Contact.ReferenceBase[2].L));
       distorted_3=1;
 
-      double dist = 1+fabs(rVariables.Contact.CurrentGap.Normal);//1e12;
+      double dist = 1.01+fabs(rVariables.Contact.CurrentGap.Normal);//1e12;
 	      
       if(distorted_0>dist || distorted_1>dist || distorted_2>dist || distorted_3>dist){
 	rVariables.Contact.Options.Set(ACTIVE,false);
-	std::cout<<" DISTORTED ELEMENT "<<this->Id()<<" : (d0="<<distorted_0<<",d1="<<distorted_1<<",d2="<<distorted_2<<",d3="<<distorted_3<<") "<<std::endl;
+	std::cout<<" DISTORTED FACE ELEMENT "<<this->Id()<<" : (d0="<<distorted_0<<",d1="<<distorted_1<<",d2="<<distorted_2<<",d3="<<distorted_3<<") "<<std::endl;
       }
     }
 
@@ -1458,11 +1457,11 @@ namespace Kratos
       distorted_2=fabs((rVariables.Contact.ReferenceBase[1].A/rVariables.Contact.ReferenceBase[1].L));
       distorted_3=fabs((rVariables.Contact.ReferenceBase[1].B/rVariables.Contact.ReferenceBase[1].L));
 
-      double dist = 1+fabs(rVariables.Contact.CurrentGap.Normal);//1e12;
+      double dist = 1.01+fabs(rVariables.Contact.CurrentGap.Normal);//1e12;
 	
       if(distorted_0>dist || distorted_1>dist || distorted_2>dist || distorted_3>dist){
 	rVariables.Contact.Options.Set(ACTIVE,false);
-	std::cout<<" DISTORTED ELEMENT "<<this->Id()<<" : (d0="<<distorted_0<<",d1="<<distorted_1<<",d2="<<distorted_2<<",d3="<<distorted_3<<") "<<std::endl;
+	std::cout<<" DISTORTED EDGE ELEMENT "<<this->Id()<<" : (d0="<<distorted_0<<",d1="<<distorted_1<<",d2="<<distorted_2<<",d3="<<distorted_3<<") "<<std::endl;
       }
     }
 	
@@ -1619,20 +1618,20 @@ namespace Kratos
 
     //rVariables.Contact.CurTangent=(rVariables.Contact.Tangent.cvta+rVariables.Contact.Tangent.cvtb).direction();
 
-    std::cout<<" Contact Factor "<< rVariables.Contact.ContactFactor.Normal <<std::endl;
-    std::cout<<" Tau "<<mContactVariables.StabilizationFactor<<std::endl;
-    std::cout<<" Area "<<rVariables.Contact.Tangent.EquivalentArea<<std::endl;
-    std::cout<<" FactorArea "<<rVariables.Contact.Tangent.FactorArea<<std::endl;
-    std::cout<<" CHeigh "<<rVariables.Contact.Tangent.EquivalentHeigh<<std::endl;
-    std::cout<<" cvTab "<<rVariables.Contact.Tangent.CovariantBase.Metric<<std::endl; 
-    std::cout<<" cnDirectionA "<<rVariables.Contact.Tangent.ContravariantBase.DirectionA<<std::endl; 
-    std::cout<<" cvDirectionA "<<rVariables.Contact.Tangent.CovariantBase.DirectionA<<std::endl;
+    // std::cout<<" Contact Factor "<< rVariables.Contact.ContactFactor.Normal <<std::endl;
+    // std::cout<<" Tau "<<mContactVariables.StabilizationFactor<<std::endl;
+    // std::cout<<" Area "<<rVariables.Contact.Tangent.EquivalentArea<<std::endl;
+    // std::cout<<" FactorArea "<<rVariables.Contact.Tangent.FactorArea<<std::endl;
+    // std::cout<<" CHeigh "<<rVariables.Contact.Tangent.EquivalentHeigh<<std::endl;
+    // std::cout<<" cvTab "<<rVariables.Contact.Tangent.CovariantBase.Metric<<std::endl; 
+    // std::cout<<" cnDirectionA "<<rVariables.Contact.Tangent.ContravariantBase.DirectionA<<std::endl; 
+    // std::cout<<" cvDirectionA "<<rVariables.Contact.Tangent.CovariantBase.DirectionA<<std::endl;
 
     //A.TsigmaP :
     FSigmaP(rVariables,rVariables.Contact.Tangent.A.Tsigma,rVariables.Contact.Tangent.CovariantBase.DirectionA,ndi,ndj,ndk,ndl,ndm,ndn);
 
-    std::cout<<" cnDirectionB "<<rVariables.Contact.Tangent.ContravariantBase.DirectionB<<std::endl; 
-    std::cout<<" cvDirectionB "<<rVariables.Contact.Tangent.CovariantBase.DirectionB<<std::endl;
+    // std::cout<<" cnDirectionB "<<rVariables.Contact.Tangent.ContravariantBase.DirectionB<<std::endl; 
+    // std::cout<<" cvDirectionB "<<rVariables.Contact.Tangent.CovariantBase.DirectionB<<std::endl;
 
     //B.TsigmaP :
     FSigmaP(rVariables,rVariables.Contact.Tangent.B.Tsigma,rVariables.Contact.Tangent.CovariantBase.DirectionB,ndi,ndj,ndk,ndl,ndm,ndn);
@@ -1672,7 +1671,7 @@ namespace Kratos
     // 		for (unsigned int j=0; j<dimension; j++)
     // 		  {
     // 		    kcont=0;
-    // 		    this->CalcContactStiffness(kcont,rVariables,ndi,ndj,i,j);
+    // 		    this->CalculateContactStiffness(kcont,rVariables,ndi,ndj,i,j);
     // 		    std::cout<<" kcont "<<kcont * (1.0/3.0) * rVariables.Contact.Tangent.EquivalentArea<<" ndi "<<ndi<<" ndj "<<ndj<<" i "<<i<<" j "<<j<<std::endl;
     // 		  }
     // 	      }
@@ -1878,8 +1877,8 @@ namespace Kratos
 	  {
 
 	    FDB[i][j]= FD[i][0]*rVariables.F(j,0)*rVariables.DN_DX(ndi,0)+
-	               FD[i][1]*rVariables.F(j,1)*rVariables.DN_DX(ndi,1)+
-	               FD[i][2]*rVariables.F(j,2)*rVariables.DN_DX(ndi,2)+
+	      FD[i][1]*rVariables.F(j,1)*rVariables.DN_DX(ndi,1)+
+	      FD[i][2]*rVariables.F(j,2)*rVariables.DN_DX(ndi,2)+
 	      (FD[i][3]+FD[i][4])*(0.5)*(rVariables.F(j,0)*rVariables.DN_DX(ndi,1)+rVariables.F(j,1)*rVariables.DN_DX(ndi,0))+
 	      (FD[i][5]+FD[i][6])*(0.5)*(rVariables.F(j,1)*rVariables.DN_DX(ndi,2)+rVariables.F(j,2)*rVariables.DN_DX(ndi,1))+
 	      (FD[i][7]+FD[i][8])*(0.5)*(rVariables.F(j,2)*rVariables.DN_DX(ndi,0)+rVariables.F(j,0)*rVariables.DN_DX(ndi,2));
@@ -1896,16 +1895,16 @@ namespace Kratos
     for(unsigned int i=0; i<3; i++)
       {
 	rSigmaP[ndj][i]+=  rDirVector[0]*Normal[0]*(FDB[0][i])+
-  	     	    	   rDirVector[1]*Normal[1]*(FDB[1][i])+
-  	     	    	   rDirVector[2]*Normal[2]*(FDB[2][i])+
+	  rDirVector[1]*Normal[1]*(FDB[1][i])+
+	  rDirVector[2]*Normal[2]*(FDB[2][i])+
 
-	                   rDirVector[0]*Normal[1]*(FDB[3][i])+
-	                   rDirVector[1]*Normal[0]*(FDB[4][i])+
-	                   rDirVector[1]*Normal[2]*(FDB[5][i])+
+	  rDirVector[0]*Normal[1]*(FDB[3][i])+
+	  rDirVector[1]*Normal[0]*(FDB[4][i])+
+	  rDirVector[1]*Normal[2]*(FDB[5][i])+
 
-	                   rDirVector[2]*Normal[1]*(FDB[6][i])+
-	                   rDirVector[0]*Normal[2]*(FDB[7][i])+
-	                   rDirVector[2]*Normal[0]*(FDB[8][i]);
+	  rDirVector[2]*Normal[1]*(FDB[6][i])+
+	  rDirVector[0]*Normal[2]*(FDB[7][i])+
+	  rDirVector[2]*Normal[0]*(FDB[8][i]);
 
       }
 
@@ -1927,9 +1926,11 @@ namespace Kratos
 
   void ContactDomainLM3DCondition::CalculateNormalForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
   {    
+    KRATOS_TRY
 
     F  = rVariables.Contact.Multiplier.Normal*rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir];
     
+    KRATOS_CATCH(" ")	    
   }
 
   //************************************************************************************
@@ -1938,6 +1939,7 @@ namespace Kratos
 
   void ContactDomainLM3DCondition::CalculateTangentStickForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
   {
+    KRATOS_TRY
 
     if( rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) )
       {
@@ -1955,7 +1957,8 @@ namespace Kratos
     else{
       F=0.0;
     }
-	
+    
+    KRATOS_CATCH(" ")	
   }
 
   //************************************************************************************
@@ -1964,6 +1967,7 @@ namespace Kratos
 
   void ContactDomainLM3DCondition::CalculateTangentSlipForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
   {
+    KRATOS_TRY
          
     if( rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) )
       {
@@ -1981,16 +1985,17 @@ namespace Kratos
       F=0.0;
     }
 
-
-
+    KRATOS_CATCH(" ")
   }
 
 
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainLM3DCondition::CalcContactStiffness (double &Kcont,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir)
+  void ContactDomainLM3DCondition::CalculateContactStiffness (double &Kcont,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir)
   {
+    KRATOS_TRY
+      
     Kcont=0;
 
     double athird = 1.0/3.0;
@@ -2024,7 +2029,7 @@ namespace Kratos
     Kcont+= rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Nsigma[ndj][jdir];
     //std::cout<<" Kb "<<Kcont;
 
-    rVariables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS,false);
+    rVariables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS,false); //friction needs an special treatment --> correct linearization is needed.
       
     //Stick contact contribution:
     if(rVariables.Contact.Options.Is(NOT_SLIP))
@@ -2134,7 +2139,8 @@ namespace Kratos
     // std::cout<<" constant "<<athird * rVariables.Contact.Tangent.EquivalentArea<<std::endl;
         
     //std::cout<<" Ks "<<Kcont-K1<<std::endl;
-
+    
+    KRATOS_CATCH(" ")
   }
 
 
@@ -2144,6 +2150,7 @@ namespace Kratos
 
   ContactDomainUtilities::PointType & ContactDomainLM3DCondition::CalculateCurrentTangent ( PointType &rTangent )
   {
+    KRATOS_TRY
 
     unsigned int node1=mContactVariables.nodes[0];
     unsigned int node2=mContactVariables.nodes[1];
@@ -2155,7 +2162,8 @@ namespace Kratos
     rTangent=mContactUtilities.CalculateFaceTangent(rTangent,P1,P2);
   
     return rTangent;
-
+    
+    KRATOS_CATCH(" ")
   }
 
   //************************************************************************************
@@ -2164,6 +2172,7 @@ namespace Kratos
 
   inline bool ContactDomainLM3DCondition::CheckFictiousContacts(GeneralVariables& rVariables)
   {
+    KRATOS_TRY
 
     bool real_contact = false;
 
@@ -2306,8 +2315,9 @@ namespace Kratos
       std::cout<<" Shrink "<<Shrink<<" offset_factor "<<offset_factor<<" Shrink*offset_factor "<<Shrink*offset_factor<<std::endl;
     }
 
- 
     return real_contact;
+    
+    KRATOS_CATCH(" ")    
   }
 
 

@@ -1601,7 +1601,7 @@ namespace Kratos
                 for (unsigned int j=0; j<dimension; j++)
 		  {
 		    kcont=0;
-		    this->CalcContactStiffness(kcont,rVariables,ndi,ndj,i,j);
+		    this->CalculateContactStiffness(kcont,rVariables,ndi,ndj,i,j);
 		    rLeftHandSideMatrix(ndi*dimension+i,ndj*dimension+j)+=kcont;
 		  }
 	      }
