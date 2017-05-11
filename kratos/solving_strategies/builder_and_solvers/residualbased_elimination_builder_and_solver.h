@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER )
@@ -194,7 +194,7 @@ public:
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
         TSystemMatrixType& A,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 			if (!pScheme)
@@ -220,7 +220,7 @@ public:
 
 		// assemble all elements
 		double start_build = OpenMPUtils::GetCurrentTime();
-		
+
                 #pragma omp parallel firstprivate(nelements, nconditions,  LHS_Contribution, RHS_Contribution, EquationId )
                 {
                     #pragma omp  for schedule(guided, 512) nowait
@@ -247,7 +247,7 @@ public:
     #endif
                                     // clean local elemental memory
                                     pScheme->CleanMemory(*(it.base()));
-                                    
+
                             }
 
                     }
@@ -300,7 +300,7 @@ public:
     void BuildLHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
-        TSystemMatrixType& A)
+        TSystemMatrixType& A) override
     {
         KRATOS_TRY
 
@@ -357,7 +357,7 @@ public:
     void BuildLHS_CompleteOnFreeRows(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
-        TSystemMatrixType& A)
+        TSystemMatrixType& A) override
     {
         KRATOS_TRY
 
@@ -415,7 +415,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         KRATOS_TRY
 
@@ -491,7 +491,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -552,7 +552,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -568,17 +568,17 @@ public:
     void BuildRHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
-                    
+
         //resetting to zero the vector of reactions
-        
+
         if(BaseType::mCalculateReactionsFlag)
         {
             TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
         }
-        
+
 
 		//Getting the Elements
 		ElementsArrayType& pElements = r_model_part.Elements();
@@ -595,7 +595,7 @@ public:
 		Element::EquationIdVectorType EquationId;
 
 		// assemble all elements
-		
+
                 #pragma omp parallel firstprivate( RHS_Contribution, EquationId)
                 {
                     const int nelements = static_cast<int>(pElements.size());
@@ -652,7 +652,7 @@ public:
     void SetUpDofSet(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part
-    )
+    ) override
     {
         KRATOS_TRY;
 
@@ -685,7 +685,7 @@ public:
 #else
 		typedef std::unordered_set < Node<3>::DofType::Pointer, dof_iterator_hash>  set_type;
 #endif
-		//         
+		//
 
 
 		std::vector<set_type> dofs_aux_list(nthreads);
@@ -700,7 +700,7 @@ public:
 				dofs_aux_list[i].reserve(nelements);
 #endif
 			}
-		
+
 #pragma omp parallel for firstprivate(nelements, ElementalDofList)
 			for (int i = 0; i < static_cast<int>(nelements); i++)
 			{
@@ -801,7 +801,7 @@ public:
 
     void SetUpSystem(
         ModelPart& r_model_part
-    )
+    ) override
     {
         // Set equation id for degrees of freedom
         // the free degrees of freedom are positioned at the beginning of the system,
@@ -827,13 +827,14 @@ public:
     //**************************************************************************
 
     void ResizeAndInitializeVectors(
+        typename TSchemeType::Pointer pScheme,
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
         ElementsArrayType& rElements,
         ConditionsArrayType& rConditions,
         ProcessInfo& CurrentProcessInfo
-    )
+    ) override
     {
         KRATOS_TRY
         if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
@@ -865,7 +866,7 @@ public:
         if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
         {
             A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
-            ConstructMatrixStructure(A, rElements, rConditions, CurrentProcessInfo);
+            ConstructMatrixStructure(pScheme, A, rElements, rConditions, CurrentProcessInfo);
         }
         else
         {
@@ -873,7 +874,7 @@ public:
             {
                 KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
                 A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
-                ConstructMatrixStructure(A, rElements, rConditions, CurrentProcessInfo);
+                ConstructMatrixStructure(pScheme, A, rElements, rConditions, CurrentProcessInfo);
             }
         }
         if (Dx.size() != BaseType::mEquationSystemSize)
@@ -906,7 +907,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         //refresh RHS to have the correct reactions
         BuildRHS(pScheme, r_model_part, b);
@@ -939,7 +940,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
     }
 
@@ -947,7 +948,7 @@ public:
     this function is intended to be called at the end of the solution step to clean up memory
     storage not needed
      */
-    void Clear()
+    void Clear() override
     {
         this->mDofSet = DofsArrayType();
 
@@ -970,7 +971,7 @@ public:
      * @param r_model_part
      * @return 0 all ok
      */
-    virtual int Check(ModelPart& r_model_part)
+    virtual int Check(ModelPart& r_model_part) override
     {
         KRATOS_TRY
 
@@ -1015,7 +1016,7 @@ protected:
     /*@} */
     /**@name Protected Operators*/
     /*@{ */
-    
+
     void Assemble(
         TSystemMatrixType& A,
         TSystemVectorType& b,
@@ -1056,9 +1057,10 @@ protected:
         }
     }
 
-    
+
     //**************************************************************************
 	virtual void ConstructMatrixStructure(
+        typename TSchemeType::Pointer pScheme,
 		TSystemMatrixType& A,
 		ElementsContainerType& rElements,
 		ConditionsArrayType& rConditions,
@@ -1083,7 +1085,7 @@ protected:
 			indices[iii].set_empty_key(empty_key);
 #else
 			indices[iii].reserve(40);
-#endif            
+#endif
 		}
 
 		Element::EquationIdVectorType ids(3, 0);
@@ -1093,7 +1095,7 @@ protected:
 		for (int iii = 0; iii<nelements; iii++)
 		{
 			typename ElementsContainerType::iterator i_element = rElements.begin() + iii;
-			(i_element)->EquationIdVector(ids, CurrentProcessInfo);
+			pScheme->EquationId( *(i_element.base()), ids, CurrentProcessInfo);
 
 			for (std::size_t i = 0; i < ids.size(); i++)
 			{
@@ -1121,7 +1123,7 @@ protected:
 		for (int iii = 0; iii<nconditions; iii++)
 		{
 			typename ConditionsArrayType::iterator i_condition = rConditions.begin() + iii;
-			(i_condition)->EquationIdVector(ids, CurrentProcessInfo);
+			pScheme->Condition_EquationId( *(i_condition.base()) , ids, CurrentProcessInfo);
 			for (std::size_t i = 0; i < ids.size(); i++)
 			{
 				if (ids[i] < BaseType::mEquationSystemSize)
@@ -1340,7 +1342,7 @@ private:
     /*@{ */
 #ifdef _OPENMP
 	std::vector< omp_lock_t > mlock_array;
-#endif 
+#endif
     /*@} */
     /**@name Private Operators*/
     /*@{ */
@@ -1423,7 +1425,7 @@ private:
                     }
                 }
 	}
-	
+
     //**************************************************************************
 
     void AssembleLHS_CompleteOnFreeRows(
@@ -1446,7 +1448,7 @@ private:
             }
         }
     }
- 
+
 
 
 
@@ -1480,4 +1482,3 @@ private:
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER  defined */
-

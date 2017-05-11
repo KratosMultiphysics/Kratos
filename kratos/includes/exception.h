@@ -106,7 +106,7 @@ namespace Kratos
       /** This method returns the entire message with where information
       */
 
-      const char* what() const noexcept;
+      const char* what() const noexcept override;
 
       const std::string& message() const;
 

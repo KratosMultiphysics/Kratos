@@ -20,6 +20,8 @@ set( KRATOS_QUIET_WATER_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_2fluid_3d_partintegration.cpp
 	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vel_enriched_2fluid_2d.cpp
 	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vel_enriched_2fluid_2d_nopressure.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/qfluid_2d.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/qfluid_3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fixed_velocity_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fixed_velocity_3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fixed_pressure_2d.cpp

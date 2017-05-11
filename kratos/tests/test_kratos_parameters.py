@@ -3,6 +3,8 @@ from KratosMultiphysics import Parameters
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+import sys
+
 
 # input string with ugly formatting
 json_string = """
@@ -120,11 +122,14 @@ expected_validation_output = """{
 }"""
 
 
-class TestParameters(KratosUnittest.TestCase):
+class TestParameters(KratosUnittest.TestCase):    
 
     def setUp(self):
         self.kp = Parameters(json_string)
         self.compact_expected_output = """{"int_value":10,"double_value":2.0,"bool_value":true,"string_value":"hello","level1":{"list_value":[3,"hi",false],"tmp":5.0}}"""
+        
+        if (sys.version_info < (3, 2)):
+            self.assertRaisesRegex = self.assertRaisesRegexp
 
     def test_kratos_parameters(self):
         self.assertEqual(

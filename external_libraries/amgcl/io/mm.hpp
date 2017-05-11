@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -41,6 +41,7 @@ THE SOFTWARE.
 #include <boost/tuple/tuple.hpp>
 
 #include <amgcl/util.hpp>
+#include <amgcl/backend/interface.hpp>
 #include <amgcl/value_type/interface.hpp>
 #include <amgcl/detail/sort_row.hpp>
 
@@ -333,6 +334,42 @@ void mm_write(
     for(size_t j = 0; j < cols; ++j) {
         for(size_t i = 0; i < rows; ++i) {
             detail::write_value(f, data[i * cols + j]) << "\n";
+        }
+    }
+}
+
+/// Write sparse matrix in Matrix Market format.
+template <class Matrix>
+void mm_write(const std::string &fname, const Matrix &A) {
+    typedef typename backend::value_type<Matrix>::type Val;
+    typedef typename backend::row_iterator<Matrix>::type row_iterator;
+
+    const size_t rows = backend::rows(A);
+    const size_t cols = backend::cols(A);
+    const size_t nnz  = backend::nonzeros(A);
+
+    std::ofstream f(fname.c_str());
+    precondition(f, "Failed to open file \"" + fname + "\" for writing");
+
+    // Banner
+    f << "%%MatrixMarket matrix coordinate ";
+    if (boost::is_complex<Val>::value) {
+        f << "complex ";
+    } else if(boost::is_integral<Val>::value) {
+        f << "integer ";
+    } else {
+        f << "real ";
+    }
+    f << "general\n";
+
+    // Sizes
+    f << rows << " " << cols << " " << nnz << "\n";
+
+    // Data
+    for(size_t i = 0; i < rows; ++i) {
+        for(row_iterator a = backend::row_begin(A, i); a; ++a) {
+            f << i + 1 << " " << a.col() + 1 << " ";
+            detail::write_value(f, a.value()) << "\n";
         }
     }
 }

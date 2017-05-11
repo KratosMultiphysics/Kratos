@@ -18,40 +18,34 @@ def Factory(settings, Model):
     return ApplyLocalProcess(Model, settings["Parameters"])
 
 class ApplyLocalProcess(Process, KratosUnittest.TestCase):
-  
+
     def __init__(self,model_part,params):
 
         self.interface_model_part = model_part[params["model_part_name"].GetString()]
         self.params = params
 
-        
+
     def ExecuteInitialize(self):
-        
+
         # Constant pressure distribution
         for node in self.interface_model_part.Nodes:
             node.SetSolutionStepValue(PRESSURE, 0, node.Y*20)               # Linear PRESSURE variation
             node.SetSolutionStepValue(REACTION_X, 0, node.Y*30)             # Linear REACTION_X variation
             node.SetSolutionStepValue(REACTION_Y, 0, node.Y*node.Y*200)     # Parabolic REACTION_Y variation
-        
-        
+
+
     def ExecuteBeforeSolutionLoop(self):
         pass
 
-    
+
     def ExecuteInitializeSolutionStep(self):
         pass
 
 
     def ExecuteFinalizeSolutionStep(self):
-        
-        for node in self.interface_model_part.Nodes:
-            # Mapped VELOCITY check
-            obtained_velocity_value = node.GetSolutionStepValue(VELOCITY,0)
-            expected_velocity_value = [node.Y*10, node.Y*node.Y*10000, 0.0]
-            for i in range(0,3):
-                self.assertAlmostEqual(obtained_velocity_value[i], expected_velocity_value[i], delta=0.15)
-        
-              
+        pass
+                
+
     def ExecuteBeforeOutputStep(self):
         pass
 
@@ -61,5 +55,9 @@ class ApplyLocalProcess(Process, KratosUnittest.TestCase):
 
 
     def ExecuteFinalize(self):
-        pass
-
+        # Mapped VELOCITY check
+        for node in self.interface_model_part.Nodes:
+            obtained_velocity_value = node.GetSolutionStepValue(VELOCITY,0)
+            expected_velocity_value = [node.Y*10, node.Y*node.Y*10000, 0.0]
+            for i in range(0,3):
+                self.assertAlmostEqual(obtained_velocity_value[i], expected_velocity_value[i], delta=0.15)

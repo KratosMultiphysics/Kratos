@@ -82,14 +82,14 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
             self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                 {
                     "element_name":"EmbeddedNavierStokes3D4N",
-                    "condition_name": "MonolithicWallCondition3D"
+                    "condition_name": "NavierStokesWallCondition3D"
                 }
                 """)
         elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
             self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                 {
                     "element_name":"EmbeddedNavierStokes2D3N",
-                    "condition_name": "MonolithicWallCondition2D"
+                    "condition_name": "NavierStokesWallCondition2D"
                 }
                 """)
         else:

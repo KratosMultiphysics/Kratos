@@ -218,13 +218,10 @@ public:
         }
         return this->GetValue(entry);
     }
-    
-    void RemoveValue(const std::string entry)
+
+    bool RemoveValue(const std::string entry)
     {
-        if(this->Has(entry) == true)
-        {
-            this->mpvalue->RemoveMember(entry.c_str());
-        }
+        return mpvalue->RemoveMember(entry.c_str());
     }
 
     //*******************************************************************************************************

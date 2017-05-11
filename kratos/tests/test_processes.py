@@ -139,7 +139,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     {
                         "python_module"   : "assign_scalar_to_nodes_process",
                         "kratos_module" : "KratosMultiphysics",
-                        "process_name"          : "AssignValueProcess",
+                        "process_name"          : "AssignScalarVariableProcess",
                         "Parameters"            : {
                             "model_part_name" : "Main",
                             "variable_name"   : "VISCOSITY",
@@ -151,7 +151,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     {
                         "python_module"   : "assign_scalar_to_nodes_process",
                         "kratos_module" : "KratosMultiphysics",
-                        "process_name"          : "AssignValueProcess",
+                        "process_name"          : "AssignScalarVariableProcess",
                         "Parameters"            : {
                             "model_part_name" : "Main",
                             "variable_name"   : "DISPLACEMENT_X",
@@ -167,7 +167,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     {
                         "python_module"   : "assign_vector_components_to_nodes_process",
                         "kratos_module" : "KratosMultiphysics",
-                        "process_name"          : "AssignVectorProcess",
+                        "process_name"          : "AssignVectorVariableProcess",
                         "Parameters"            : {
                                 "model_part_name"      : "Main",
                                 "variable_name"        : "DISPLACEMENT",
@@ -193,7 +193,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     {
                         "python_module"   : "assign_vector_components_to_nodes_process",
                         "kratos_module" : "KratosMultiphysics",
-                        "process_name"          : "AssignVectorProcess",
+                        "process_name"          : "AssignVectorVariableProcess",
                         "Parameters"            : {
                                 "model_part_name"      : "Main",
                                 "variable_name"        : "DISPLACEMENT",
@@ -431,7 +431,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     {
                         "python_module"   : "assign_scalar_to_nodes_process",
                         "kratos_module" : "KratosMultiphysics",
-                        "process_name"          : "AssignValueProcess",
+                        "process_name"          : "AssignScalarVariableProcess",
                         "Parameters"            : {
                             "model_part_name" : "Main",
                             "variable_name"   : "VISCOSITY",

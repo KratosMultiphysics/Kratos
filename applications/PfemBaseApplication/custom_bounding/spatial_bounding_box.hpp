@@ -456,8 +456,14 @@ public:
       double max=std::numeric_limits<double>::max();
       double min=std::numeric_limits<double>::min();
       
-      ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin();
-      const unsigned int dimension = element_begin->GetGeometry().WorkingSpaceDimension();
+
+      unsigned int dimension = 2;
+      if ( rModelPart.NumberOfElements() > 0)
+         dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+      else if ( rModelPart.NumberOfConditions() > 0)
+         dimension = rModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension();
+      else
+         KRATOS_ERROR << " spatial_bounding_box: the supplied ModelPart does not have elements or conditions " << std::endl;
 
       PointType Maximum;
       PointType Minimum;

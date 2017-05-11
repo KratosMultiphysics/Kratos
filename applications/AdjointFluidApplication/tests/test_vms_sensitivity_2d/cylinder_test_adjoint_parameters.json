@@ -10,6 +10,26 @@
         "nsteps"          : 10,
         "time_step"       :-0.01
     },
+    "output_configuration" : {
+        "result_file_configuration" : {
+            "gidpost_flags" : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteUndeformed",
+                "WriteConditionsFlag"   : "WriteElementsOnly",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "time",
+            "output_control_type" : "step",
+            "output_frequency"    : 1.0,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["VELOCITY","PRESSURE","ADJOINT_VELOCITY","ADJOINT_PRESSURE","SHAPE_SENSITIVITY"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
     "solver_settings"                  : {
         "solver_type"                  : "adjoint_vmsmonolithic_solver",
         "scheme_settings" : {
@@ -111,6 +131,69 @@
             "model_part_name" : "MainModelPart",
             "file_name"       : "test_vms_sensitivity_2d/cylinder_test",
             "variable_list"   : ["VELOCITY", "ACCELERATION", "PRESSURE"]
+        }
+     },{
+        "kratos_module"   : "KratosMultiphysics",
+        "python_module"   : "point_output_process",
+        "help"            : "",
+        "process_name"    : "PointOutputProcess",
+        "Parameters" : {
+            "position"         : [0.020957, 0.0055272, 0.0],
+            "model_part_name"  : "Parts_Fluid",
+            "output_file_name" : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe1.dat",
+            "output_variables" : ["ADJOINT_VELOCITY_X", "ADJOINT_VELOCITY_Y"]
+        }
+     },{
+        "kratos_module"   : "KratosMultiphysics",
+        "python_module"   : "point_output_process",
+        "help"            : "",
+        "process_name"    : "PointOutputProcess",
+        "Parameters" : {
+            "position"         : [0.014931,-0.0034173, 0.0],
+            "model_part_name"  : "Parts_Fluid",
+            "output_file_name" : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe2.dat",
+            "output_variables" : ["ADJOINT_PRESSURE"]
+        }
+     },{
+        "kratos_module"   : "KratosMultiphysics",
+        "python_module"   : "point_output_process",
+        "help"            : "",
+        "process_name"    : "PointOutputProcess",
+        "Parameters" : {
+            "position"         : [0.023303,-0.0037623, 0.0],
+            "model_part_name"  : "Parts_Fluid",
+            "output_file_name" : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe3.dat",
+            "output_variables" : ["SHAPE_SENSITIVITY_X", "SHAPE_SENSITIVITY_Y"]
+        }
+    },{
+        "python_module"   : "compare_two_point_output_files_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "help"            : "",
+        "process_name"    : "CompareTwoPointOutputFilesProcess",
+        "Parameters" :{
+            "file_name_1"         : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe1.dat",
+            "file_name_2"         : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe1_ref.dat",
+        "decimal_places" : 5
+        }
+    },{
+        "python_module"   : "compare_two_point_output_files_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "help"            : "",
+        "process_name"    : "CompareTwoPointOutputFilesProcess",
+        "Parameters" :{
+            "file_name_1"         : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe2.dat",
+            "file_name_2"         : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe2_ref.dat",
+	    "decimal_places" : 5
+        }
+    },{
+        "python_module"   : "compare_two_point_output_files_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "help"            : "",
+        "process_name"    : "CompareTwoPointOutputFilesProcess",
+        "Parameters" :{
+            "file_name_1"         : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe3.dat",
+            "file_name_2"         : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe3_ref.dat",
+	    "decimal_places" : 9
         }
     }]
 }

@@ -28,16 +28,21 @@ typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
 typedef WeakPointerVector<Element> ParticleWeakVectorType;
 typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
 typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+typedef SphericParticle BaseType;
+typedef BaseType::ParticleDataBuffer BaseBufferType;
+typedef std::unique_ptr<BaseType::ParticleDataBuffer> BaseBufferPointerType;
 
 /// Default constructor.
-AnalyticSphericParticle( IndexType NewId, GeometryType::Pointer pGeometry );
+AnalyticSphericParticle();
+AnalyticSphericParticle( IndexType NewId, GeometryType::Pointer pGeometry);
 AnalyticSphericParticle( IndexType NewId, NodesArrayType const& ThisNodes);
-AnalyticSphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
+AnalyticSphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+AnalyticSphericParticle(Element::Pointer p_spheric_particle);
 
 Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
 /// Destructor.
-virtual ~AnalyticSphericParticle(){};
+virtual ~AnalyticSphericParticle(){}
 
 /// Turn back information as a string.
 std::string Info() const override
@@ -53,9 +58,33 @@ void PrintInfo(std::ostream& rOStream) const override {rOStream << "AnalyticSphe
 /// Print object's data.
 void PrintData(std::ostream& rOStream) const override {}
 
+int GetNumberOfCollisions();
+void GetCollidingIds(array_1d<int, 4>& colliding_ids);
+void GetCollidingNormalRelativeVelocity(array_1d<double, 4>& colliding_normal_vel);
+void GetCollidingTangentialRelativeVelocity(array_1d<double, 4>& colliding_tangential_vel);
+
 protected:
 
-AnalyticSphericParticle();
+class ParticleDataBuffer: public SphericParticle::ParticleDataBuffer
+{
+public:
+
+ParticleDataBuffer(SphericParticle* p_this_particle): SphericParticle::ParticleDataBuffer(p_this_particle){}
+
+virtual ~ParticleDataBuffer(){}
+
+std::vector<int> mCurrentContactingNeighbourIds;
+};
+
+virtual std::unique_ptr<SphericParticle::ParticleDataBuffer> CreateParticleDataBuffer(SphericParticle* p_this_particle)
+{
+    ClearImpactMemberVariables();
+    return std::unique_ptr<SphericParticle::ParticleDataBuffer>(new ParticleDataBuffer(p_this_particle));
+}
+
+void PushBackIdToContactingNeighbours(BaseBufferType &data_buffer, int id);
+
+void ClearNeighbours(BaseBufferType & data_buffer);
 
 private:
 
@@ -65,50 +94,56 @@ unsigned int mNumberOfCollidingSpheres;
 /*
 4 is taken as the maximum number of particles simultaneously coming into contact
 with this sphere. Whenever more than 4 particles happen to come into contact at
-the same time step, which should be extremely rare, the extra collisions will
-not be recorded in the present step, but will in forecomming steps (with the
-corresponding slightly increased error in measurement) unless an extraordinarily
-short contact time (of only 1 time step) takes place.
+the same time step, which should be extremely rare in collisional regime, the extra
+collisions will not be recorded in the present step, but will in forecomming steps
+(with the corresponding slightly increased error in measurement) unless an
+extraordinarily short contact time (of only 1 time step) takes place.
 */
 array_1d<int, 4> mCollidingIds;
 array_1d<double, 4> mCollidingRadii;
 array_1d<double, 4> mCollidingNormalVelocities;
 array_1d<double, 4> mCollidingTangentialVelocities;
+std::vector<int> mContactingNeighbourIds;
+std::unique_ptr<ParticleDataBuffer> mpDataBuffer;
+
+ParticleDataBuffer* GetPointerToDerivedDataBuffer(BaseBufferType& data_buffer)
+{
+  BaseBufferType *p_raw_data_buffer = &data_buffer;
+  return static_cast<ParticleDataBuffer*>(p_raw_data_buffer);
+}
+
+void ClearImpactMemberVariables();
+
+void FinalizeForceComputation(BaseBufferType & data_buffer);
+
+void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
+                                                       const ProcessInfo& r_process_info,
+                                                       double LocalElasticContactForce[3],
+                                                       double DeltDisp[3],
+                                                       double LocalDeltDisp[3],
+                                                       double RelVel[3],
+                                                       const double indentation,
+                                                       double ViscoDampingLocalContactForce[3],
+                                                       double& cohesive_force,
+                                                       SphericParticle* p_neighbour_element,
+                                                       bool& sliding,
+                                                       double LocalCoordSystem[3][3],
+                                                       double OldLocalCoordSystem[3][3],
+                                                       array_1d<double, 3>& neighbour_elastic_contact_force) override;
+
+
+bool IsNewNeighbour(const int nighbour_id);
+
+void RecordNewImpact(BaseType::ParticleDataBuffer & data_buffer);
 
 void save(Serializer& rSerializer) const override
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DiscreteElement );
-    rSerializer.save("mRadius",mRadius);
-    rSerializer.save("mSearchRadius", mSearchRadius);
-    rSerializer.save("mSearchRadiusWithFem", mSearchRadiusWithFem);
-    rSerializer.save("mRealMass",mRealMass);
-    rSerializer.save("mClusterId",mClusterId);
-    rSerializer.save("mBoundDeltaDispSq",mBoundDeltaDispSq);
-    rSerializer.save("HasStressTensor", (int)this->Is(DEMFlags::HAS_STRESS_TENSOR));
-    if (this->Is(DEMFlags::HAS_STRESS_TENSOR)){
-        rSerializer.save("mSymmStressTensor", mSymmStressTensor);
-    }
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SphericParticle);
 }
 
 void load(Serializer& rSerializer) override
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DiscreteElement );
-    rSerializer.load("mRadius",mRadius);
-    rSerializer.load("mSearchRadius", mSearchRadius);
-    rSerializer.load("mSearchRadiusWithFem", mSearchRadiusWithFem);
-    rSerializer.load("mRealMass",mRealMass);
-    rSerializer.load("mClusterId",mClusterId);
-    rSerializer.load("mBoundDeltaDispSq",mBoundDeltaDispSq); 
-    int aux_int=0;
-    rSerializer.load("HasStressTensor", aux_int);
-    if(aux_int) this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
-    if (this->Is(DEMFlags::HAS_STRESS_TENSOR)){
-        mStressTensor  = new Matrix(3,3);
-        *mStressTensor = ZeroMatrix(3,3);
-        mSymmStressTensor  = new Matrix(3,3);
-        *mSymmStressTensor = ZeroMatrix(3,3);
-        rSerializer.load("mSymmStressTensor", mSymmStressTensor);
-    }
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericParticle);
 }
 
 }; // Class AnalyticSphericParticle

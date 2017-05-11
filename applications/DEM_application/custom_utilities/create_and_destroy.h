@@ -76,7 +76,7 @@ public:
                                                       bool has_rotation,
                                                       bool initial);
         
-    Kratos::Element* ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
+    Kratos::SphericParticle* ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                               int r_Elem_Id,
                                               Node < 3 > ::Pointer reference_node, 
                                               Element::Pointer injector_element,
@@ -89,7 +89,7 @@ public:
                                               bool initial,
                                               ElementsContainerType& array_of_injector_elements);  
     
-    void ClusterCreatorWithPhysicalParameters(ModelPart& r_modelpart,
+    Kratos::Cluster3D* ClusterCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                             ModelPart& r_clusters_modelpart,
                                             int r_Elem_Id,
                                             Node < 3 > ::Pointer reference_node,
@@ -137,7 +137,8 @@ public:
                                          double scale_factor,
                                          bool automatic);
     
-    void DestroyParticles(ModelPart& r_model_part);
+    void DestroyParticles(ModelPart& r_model_part);   
+    void DestroyParticleElements(ModelPart& r_model_part, Flags flag_for_destruction);
     void DestroyParticles(ModelPart::MeshType& rMesh);
     void DestroyContactElements(ModelPart& r_model_part);
     void MarkInitialNeighboursThatAreBeingRemoved(ModelPart& r_model_part);    
@@ -150,7 +151,7 @@ public:
     void DestroyParticlesOutsideBoundingBox(ModelPart& r_model_part);
     void MoveParticlesOutsideBoundingBoxBackInside(ModelPart& r_model_part);
     void DestroyContactElementsOutsideBoundingBox(ModelPart& r_model_part, ModelPart& mcontacts_model_part);
-    
+    Element::Pointer GetAnalyticReplacement(const Element& sample_element, Geometry<Node<3> >::PointsArrayType nodelist, Element::Pointer p_elem_to_be_replaced, ModelPart& spheres_model_part);
     static double rand_normal(const double mean, const double stddev, const double max_radius, const double min_radius);
     static double rand_lognormal(const double mean, const double stddev, const double max_radius, const double min_radius);
     static void AddRandomPerpendicularVelocityToGivenVelocity(array_1d<double, 3 >& velocity, const double angle_in_degrees);

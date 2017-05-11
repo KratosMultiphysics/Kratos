@@ -182,7 +182,7 @@ namespace Kratos
       in.numberofregions = 0;
     }
     
-    //PART 2: faced list (we can have holes in facets != area holes)
+    //PART 2: facet list (we can have holes in facets != area holes)
     //*********************************************************************
     std::vector<PointType> BoxVertices;
     BoxVertices.resize(0);

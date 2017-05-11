@@ -192,7 +192,7 @@ public:
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
         TSystemMatrixType& A,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
         if (!pScheme)
@@ -308,7 +308,7 @@ public:
     void BuildLHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
-        TSystemMatrixType& A)
+        TSystemMatrixType& A) override
     {
 		KRATOS_TRY
 
@@ -325,7 +325,7 @@ public:
     void BuildLHS_CompleteOnFreeRows(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
-        TSystemMatrixType& A)
+        TSystemMatrixType& A) override
     {
         KRATOS_TRY
 
@@ -343,7 +343,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         KRATOS_TRY
 
@@ -419,7 +419,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -469,7 +469,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -485,7 +485,7 @@ public:
     void BuildRHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -513,7 +513,7 @@ public:
     void SetUpDofSet(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part
-    )
+    ) override
     {
         KRATOS_TRY;
 
@@ -701,7 +701,7 @@ public:
 
     void SetUpSystem(
         ModelPart& r_model_part
-    )
+    ) override
     {
 
         //int free_id = 0;
@@ -727,13 +727,14 @@ public:
     //**************************************************************************
 
     void ResizeAndInitializeVectors(
+        typename TSchemeType::Pointer pScheme,
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
         ElementsArrayType& rElements,
         ConditionsArrayType& rConditions,
         ProcessInfo& CurrentProcessInfo
-    )
+    ) override
     {
         KRATOS_TRY
         if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
@@ -761,7 +762,7 @@ public:
         if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
         {
             A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
-            ConstructMatrixStructure(A, rElements, rConditions, CurrentProcessInfo);
+            ConstructMatrixStructure(pScheme, A, rElements, rConditions, CurrentProcessInfo);
         }
         else
         {
@@ -769,7 +770,7 @@ public:
             {
                 KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
                 A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
-                ConstructMatrixStructure(A, rElements, rConditions, CurrentProcessInfo);
+                ConstructMatrixStructure(pScheme, A, rElements, rConditions, CurrentProcessInfo);
             }
         }
         if (Dx.size() != BaseType::mEquationSystemSize)
@@ -778,8 +779,6 @@ public:
             b.resize(BaseType::mEquationSystemSize, false);
 
         //
-
-
 
 
         KRATOS_CATCH("")
@@ -795,7 +794,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
         KRATOS_CATCH("")
@@ -808,7 +807,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
     }
 
@@ -821,7 +820,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         TSparseSpace::SetToZero(b);
 
@@ -854,7 +853,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         std::size_t system_size = A.size1();
         std::vector<double> scaling_factors (system_size, 0.0f);
@@ -932,7 +931,7 @@ public:
     this function is intended to be called at the end of the solution step to clean up memory
     storage not needed
      */
-    void Clear()
+    void Clear() override
     {
         this->mDofSet = DofsArrayType();
 
@@ -958,7 +957,7 @@ public:
      * @param r_model_part
      * @return 0 all ok
      */
-    virtual int Check(ModelPart& r_mUSE_GOOGLE_HASHodel_part)
+    virtual int Check(ModelPart& r_mUSE_GOOGLE_HASHodel_part) override
     {
         KRATOS_TRY
 
@@ -1008,6 +1007,7 @@ protected:
     //**************************************************************************
 
     virtual void ConstructMatrixStructure(
+        typename TSchemeType::Pointer pScheme,
         TSystemMatrixType& A,
         ElementsContainerType& rElements,
         ConditionsArrayType& rConditions,
@@ -1016,7 +1016,7 @@ protected:
         //filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
 
-        const std::size_t equation_size = BaseType::mDofSet.size();
+        const std::size_t equation_size = BaseType::mEquationSystemSize;
 
 #ifdef USE_GOOGLE_HASH
         std::vector<google::dense_hash_set<std::size_t> > indices(equation_size);
@@ -1042,8 +1042,7 @@ protected:
         for(int iii=0; iii<nelements; iii++)
         {
             typename ElementsContainerType::iterator i_element = rElements.begin() + iii;
-            (i_element)->EquationIdVector(ids, CurrentProcessInfo);
-
+            pScheme->EquationId( *(i_element.base()) , ids, CurrentProcessInfo);
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
@@ -1064,7 +1063,7 @@ protected:
         for (int iii = 0; iii<nconditions; iii++)
         {
             typename ConditionsArrayType::iterator i_condition = rConditions.begin() + iii;
-            (i_condition)->EquationIdVector(ids, CurrentProcessInfo);
+            pScheme->Condition_EquationId( *(i_condition.base()), ids, CurrentProcessInfo);
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
@@ -1164,8 +1163,13 @@ protected:
 
 #ifdef USE_LOCKS_IN_ASSEMBLY
             omp_set_lock(&lock_array[i_global]);
-#endif
             b[i_global] += RHS_Contribution(i_local);
+#else
+            double& r_a = b[i_global];
+            const double& v_a = RHS_Contribution(i_local);
+            #pragma omp atomic
+            r_a += v_a;
+#endif
 
             AssembleRowContribution(A, LHS_Contribution, i_global, i_local, EquationId);
 

@@ -227,3 +227,30 @@ proc WriteLoadScalarProcess {FileVar GroupNum Groups VarName TableDict NumGroups
         }
     }
 }
+
+#-------------------------------------------------------------------------------
+
+proc WritePeriodicInterfaceProcess {FileVar GroupNum Groups NumGroups} {
+    upvar $FileVar MyFileVar
+    upvar $GroupNum MyGroupNum
+
+    for {set i 0} {$i < [llength $Groups]} {incr i} {
+        if {[lindex [lindex $Groups $i] 20] eq true} {
+            incr MyGroupNum
+            puts $MyFileVar "        \"python_module\": \"periodic_interface_activation_process\","
+            puts $MyFileVar "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+            puts $MyFileVar "        \"process_name\":  \"PeriodicInterfaceActivationProcess\","
+            puts $MyFileVar "        \"Parameters\":    \{"
+            puts $MyFileVar "            \"mesh_id\":         0,"
+            puts $MyFileVar "            \"model_part_name\": \"Periodic_Bars_[lindex [lindex $Groups $i] 1]\","
+            puts $MyFileVar "            \"dimension\":       [GiD_AccessValue get gendata Domain_Size],"
+            puts $MyFileVar "            \"von_mises_limit\": [lindex [lindex $Groups $i] 21]"
+            puts $MyFileVar "        \}"
+            if {$MyGroupNum < $NumGroups} {
+                puts $MyFileVar "    \},\{"
+            } else {
+                puts $MyFileVar "    \}\]"
+            }
+        }
+    }
+}

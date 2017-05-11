@@ -151,6 +151,7 @@ proc WriteFractureData {FileVar} {
     puts $MyFileVar "        \"propagation_width\":                    [GiD_AccessValue get gendata Propagation_Width],"
     puts $MyFileVar "        \"propagation_height\":                   [GiD_AccessValue get gendata Propagation_Height],"
     puts $MyFileVar "        \"propagation_cosangle\":                 [GiD_AccessValue get gendata Propagation_CosAngle],"
+    puts $MyFileVar "        \"straight_propagation\":                 [GiD_AccessValue get gendata Straight_Propagation],"
     puts $MyFileVar "        \"propagation_frequency\":                [GiD_AccessValue get gendata Propagation_Frequency],"
     # body_domain_sub_model_part_list
     set PutStrings \[
@@ -429,15 +430,4 @@ proc AddPropagationUnionPoint {NumPropUnionGroups PointId} {
     GiD_Groups create PropagationUnion_3d_6//SG$MyNumPropUnionGroups
     GiD_EntitiesGroups assign PropagationUnion_3d_6//SG$MyNumPropUnionGroups points $PointId
     incr MyNumPropUnionGroups
-}
-
-#-------------------------------------------------------------------------------
-
-proc ComputeDistance {Point1Coord Point2Coord} {
-    
-    set Distance [expr {sqrt(([lindex $Point1Coord 0]-[lindex $Point2Coord 0])*([lindex $Point1Coord 0]-[lindex $Point2Coord 0]) + \
-        ([lindex $Point1Coord 1]-[lindex $Point2Coord 1])*([lindex $Point1Coord 1]-[lindex $Point2Coord 1]) + \
-        ([lindex $Point1Coord 2]-[lindex $Point2Coord 2])*([lindex $Point1Coord 2]-[lindex $Point2Coord 2]))}]
-    
-    return $Distance
 }

@@ -45,7 +45,7 @@ def AddDofs(model_part, config=None):
         node.AddDof(VELOCITY_X, REACTION_X)
         node.AddDof(VELOCITY_Y, REACTION_Y)
         node.AddDof(VELOCITY_Z, REACTION_Z)
-        node.AddDof(PRESSURE, REACTION_WATER_PRESSURE)
+        node.AddDof(PRESSURE, REACTION_WATER_PRESSURE)       
 
     if config is not None:
         if hasattr(config, "TurbulenceModel"):
@@ -140,6 +140,8 @@ class MonolithicSolver:
         # creating the solution strategy
         self.conv_criteria = VelPrCriteria(self.rel_vel_tol, self.abs_vel_tol,
                                            self.rel_pres_tol, self.abs_pres_tol)
+        
+        (self.conv_criteria).SetEchoLevel(self.echo_level)
 
         # custom schemes should be defined in the calling python script
         # before calling Initialize().

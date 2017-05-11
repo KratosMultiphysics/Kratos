@@ -50,25 +50,26 @@ namespace Kratos
 ///@name Kratos Classes 
 ///@{
 
-// Short class definition.
-// Detail class definition.
+/** Short class definition.
+Detail class definition.
 
-//URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
+\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
 
-//URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
+\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
 
-//URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
+\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
 
-//URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
+\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
 
 
-//URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
+\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
 
-//URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
+\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
 
-//URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
+\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
 
-//URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
+\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
+*/
 
 template<class TSparseSpace,
          class TDenseSpace
@@ -140,7 +141,7 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
         if (TSparseSpace::Size(b) != 0) //if we are solving for something
         {
@@ -202,7 +203,7 @@ public:
 
     void Initialize(
         ModelPart& r_model_part
-    )
+    ) override
     {
         BaseType::mConvergenceCriteriaIsInitialized = true;
     }
@@ -213,7 +214,7 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
         mInitialResidualIsSet = false;
     }
@@ -224,7 +225,7 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
 
     }

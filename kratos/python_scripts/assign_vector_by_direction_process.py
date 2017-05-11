@@ -125,9 +125,9 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
         import assign_scalar_to_nodes_process
 
         self.aux_processes = []
-        self.aux_processes.append( assign_scalar_to_nodes_process.AssignScalarToNodesProcess(Model, x_params) )
-        self.aux_processes.append( assign_scalar_to_nodes_process.AssignScalarToNodesProcess(Model, y_params) )
-        self.aux_processes.append( assign_scalar_to_nodes_process.AssignScalarToNodesProcess(Model, z_params) )
+        self.aux_processes.append( assign_scalar_to_nodes_process.AssignScalarVariableProcess(Model, x_params) )
+        self.aux_processes.append( assign_scalar_to_nodes_process.AssignScalarVariableProcess(Model, y_params) )
+        self.aux_processes.append( assign_scalar_to_nodes_process.AssignScalarVariableProcess(Model, z_params) )
 
         # print("Finished construction of AssignVectorByDirectionProcess")
 

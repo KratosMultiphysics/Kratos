@@ -96,8 +96,8 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
         #recover_volume_losses  = KratosPfemFluid.RecoverVolumeLosses(self.model_part, self.MeshingParameters, self.echo_level)
         #self.mesher.SetPreMeshingProcess(recover_volume_losses)
         
-        #inlet_management = KratosPfemFluid.InletManagement(self.model_part, self.MeshingParameters, self.echo_level)
-        #self.mesher.SetPreMeshingProcess(inlet_management)
+        inlet_management = KratosPfemFluid.InletManagement(self.model_part, self.MeshingParameters, self.echo_level)
+        self.mesher.SetPreMeshingProcess(inlet_management)
 
         remove_mesh_nodes = KratosPfemFluid.RemoveMeshNodesForFluids(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPreMeshingProcess(remove_mesh_nodes)
