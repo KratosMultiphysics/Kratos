@@ -57,8 +57,7 @@ namespace Kratos {
             smp_iterator_number++;
         }                
         
-        mFirstTime = true;
-        mFirstInjection = true;
+        mFirstInjectionIsDone = false;
         mBallsModelPartHasSphericity = false;  
         mBallsModelPartHasRotation   = false;
         mTotalNumberOfParticlesInjected = 0;
@@ -234,7 +233,6 @@ namespace Kratos {
                 }
             }            
         }         
-        mFirstTime = false;        
     } //Dettach
 
     void DEM_Inlet::FixInjectorConditions(Element* p_element){}
@@ -314,7 +312,6 @@ namespace Kratos {
                 }                    
             }                
         } 
-        mFirstTime=false;
     } //DettachClusters
     
     void DEM_Inlet::CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator) {                    
@@ -355,8 +352,8 @@ namespace Kratos {
             
             int number_of_particles_to_insert = 0;
             const double mass_flow = mp[MASS_FLOW];
-            const bool mass_flow_imposed_option = mp.Has(IMPOSED_MASS_FLOW) && mp[IMPOSED_MASS_FLOW];
-            if(mass_flow_imposed_option){                
+            const bool imposed_mass_flow_option = mp.Has(IMPOSED_MASS_FLOW_OPTION) && mp[IMPOSED_MASS_FLOW_OPTION];
+            if(imposed_mass_flow_option){                
                 number_of_particles_to_insert = mesh_size_elements; // The maximum possible, to increase random.                
                 
                 if(mass_flow) {
@@ -397,7 +394,7 @@ namespace Kratos {
                     number_of_particles_to_insert = valid_elements_length;
                 }
                 
-                if(!mass_flow_imposed_option){    
+                if(!imposed_mass_flow_option){    
                     ThrowWarningTooSmallInlet(mp);                                                      
                 }
                
@@ -440,7 +437,7 @@ namespace Kratos {
                 int i=0;
                 for (i = 0; i < number_of_particles_to_insert; i++) {
 
-                    if (mass_flow_imposed_option) {
+                    if (imposed_mass_flow_option) {
                         if(GetPartialMassInjectedSoFar(smp_number) >= mass_that_should_have_been_inserted_so_far ) {
                             break;
                         }
@@ -502,8 +499,8 @@ namespace Kratos {
                     valid_elements_length--; //we remove last position and next random_pos has one less option
                 }  
                 
-                if(mass_flow_imposed_option) {
-                    if (i == number_of_particles_to_insert && (GetPartialMassInjectedSoFar(smp_number) < mass_that_should_have_been_inserted_so_far ) && mFirstInjection == false) {
+                if(imposed_mass_flow_option) {
+                    if (i == number_of_particles_to_insert && (GetPartialMassInjectedSoFar(smp_number) < mass_that_should_have_been_inserted_so_far ) && mFirstInjectionIsDone == true) {
                         ThrowWarningTooSmallInletForMassFlow(mp);                                                
                     }
                 }
@@ -514,7 +511,7 @@ namespace Kratos {
         } // for smp_it
         
         creator.RemoveUnusedNodesOfTheClustersModelPart(r_clusters_modelpart);
-        mFirstInjection = false;
+        mFirstInjectionIsDone = true;
         
     }    //CreateElementsFromInletMesh   
     

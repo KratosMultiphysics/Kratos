@@ -78,8 +78,7 @@ namespace Kratos {
         Vector mPartialParticleToInsert; //array of doubles, must be resized in the constructor to the number of meshes
         Vector mLastInjectionTimes; //array of doubles, must be resized in the constructor to the number of meshes
 
-        bool mFirstTime;
-        bool mFirstInjection;
+        bool mFirstInjectionIsDone;
         bool mBallsModelPartHasSphericity;
         bool mBallsModelPartHasRotation;
         bool mStrategyForContinuum;
