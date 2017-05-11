@@ -353,7 +353,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    Kratos::Element* ParticleCreatorDestructor::ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
+    Kratos::SphericParticle* ParticleCreatorDestructor::ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                                                         int r_Elem_Id,
                                                                         Node < 3 > ::Pointer reference_node,
                                                                         Element::Pointer injector_element,
@@ -566,7 +566,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         KRATOS_CATCH("")
     }       
     
-    void ParticleCreatorDestructor::ClusterCreatorWithPhysicalParameters(ModelPart& r_spheres_modelpart,
+    Kratos::Cluster3D* ParticleCreatorDestructor::ClusterCreatorWithPhysicalParameters(ModelPart& r_spheres_modelpart,
                                                                          ModelPart& r_clusters_modelpart,                                                                         
                                                                          int r_Elem_Id,
                                                                          Node<3>::Pointer reference_node,
@@ -677,6 +677,8 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
 
         p_cluster->Set(NEW_ENTITY);
         pnew_node->Set(NEW_ENTITY);
+        
+        return p_cluster;
         KRATOS_CATCH("")
     }
 
