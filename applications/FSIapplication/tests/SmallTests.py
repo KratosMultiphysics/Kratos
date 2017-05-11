@@ -14,6 +14,7 @@ try:
     from KratosMultiphysics.StructuralMechanicsApplication import *
     from KratosMultiphysics.FluidDynamicsApplication import *
     missing_external_dependencies = False
+    missing_application = ''
 except ImportError as e:
     missing_external_dependencies = True
     # extract name of the missing application from the error message
