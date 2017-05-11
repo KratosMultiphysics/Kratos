@@ -137,7 +137,7 @@ class TestProcesses(KratosUnittest.TestCase):
             {
                 "process_list" : [
                     {
-                        "python_module"   : "assign_scalar_to_nodes_process",
+                        "python_module"   : "assign_scalar_variable_process",
                         "kratos_module" : "KratosMultiphysics",
                         "process_name"          : "AssignScalarVariableProcess",
                         "Parameters"            : {
@@ -149,7 +149,7 @@ class TestProcesses(KratosUnittest.TestCase):
                         }
                     },
                     {
-                        "python_module"   : "assign_scalar_to_nodes_process",
+                        "python_module"   : "assign_scalar_variable_process",
                         "kratos_module" : "KratosMultiphysics",
                         "process_name"          : "AssignScalarVariableProcess",
                         "Parameters"            : {
@@ -165,7 +165,7 @@ class TestProcesses(KratosUnittest.TestCase):
                         }
                     },
                     {
-                        "python_module"   : "assign_vector_components_to_nodes_process",
+                        "python_module"   : "assign_vector_variable_process",
                         "kratos_module" : "KratosMultiphysics",
                         "process_name"          : "AssignVectorVariableProcess",
                         "Parameters"            : {
@@ -191,7 +191,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             }
                     },
                     {
-                        "python_module"   : "assign_vector_components_to_nodes_process",
+                        "python_module"   : "assign_vector_variable_process",
                         "kratos_module" : "KratosMultiphysics",
                         "process_name"          : "AssignVectorVariableProcess",
                         "Parameters"            : {
@@ -218,7 +218,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             }
                     },
                     {
-                        "python_module"   : "assign_vector_components_to_nodes_process",
+                        "python_module"   : "assign_vector_variable_process",
                         "kratos_module" : "KratosMultiphysics",
                         "process_name"          : "AssignVectorProcess",
                         "Parameters"            : {
@@ -429,7 +429,7 @@ class TestProcesses(KratosUnittest.TestCase):
             {
                 "process_list" : [
                     {
-                        "python_module"   : "assign_scalar_to_nodes_process",
+                        "python_module"   : "assign_scalar_variable_process",
                         "kratos_module" : "KratosMultiphysics",
                         "process_name"          : "AssignScalarVariableProcess",
                         "Parameters"            : {
