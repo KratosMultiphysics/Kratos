@@ -134,6 +134,7 @@ namespace Kratos
 
       //deformation
       MatrixType                   DeformationGradientF;
+      MatrixType                   IncrementalDeformationGradientF;
     };
     
     

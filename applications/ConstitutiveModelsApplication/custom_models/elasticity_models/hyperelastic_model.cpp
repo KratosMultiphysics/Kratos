@@ -177,6 +177,7 @@ namespace Kratos
 
     HyperElasticDataType Variables;
     this->CalculateStrainData(rValues,Variables);
+    rStressMatrix.clear();
     this->CalculateAndAddStressTensor(Variables,rStressMatrix);
 
     rValues.StressMatrix = rStressMatrix; //store total stress as StressMatrix
@@ -353,11 +354,13 @@ namespace Kratos
     this->CalculateStrainData(rValues,Variables);
 
     //Calculate Stress Matrix
+    rStressMatrix.clear();
     this->CalculateAndAddStressTensor(Variables,rStressMatrix);
     
     rValues.StressMatrix = rStressMatrix; //store total stress as StressMatrix
     
     //Calculate Constitutive Matrix
+    rConstitutiveMatrix.clear();
     this->CalculateAndAddConstitutiveTensor(Variables,rConstitutiveMatrix);
     
     KRATOS_CATCH(" ")

@@ -235,6 +235,7 @@ namespace Kratos
     const MatrixType& rDeformationGradientF = rValues.GetDeformationGradientF(); 
     noalias(rVariables.DeformationGradientF) = ConstitutiveModelUtilities::DeformationGradientTo3D(rDeformationGradientF, rVariables.DeformationGradientF);
     rVariables.DeformationGradientF = prod(rVariables.DeformationGradientF, mInverseDeformationGradientF0); //incremental F
+    noalias(rVariables.IncrementalDeformationGradientF) = rVariables.DeformationGradientF;
 
     if( rValues.GetOptions().Is(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE) )
       rModelValues.State.Set(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES);
@@ -421,7 +422,8 @@ namespace Kratos
         Vector& rStrainVector = rValues.GetStrainVector();
 	
 	// e= 0.5*(1-inv(b))
-        ConstitutiveModelUtilities::LeftCauchyToAlmansiStrain(ModelValues.StrainMatrix,rStrainVector);
+        MatrixType TotalLeftCauchyGreen = prod( rVariables.DeformationGradientF, trans( rVariables.DeformationGradientF ));
+        ConstitutiveModelUtilities::LeftCauchyToAlmansiStrain( TotalLeftCauchyGreen, rStrainVector);
 
 	//LawDataType& rVariables = ModelValues.rConstitutiveLawData();
         //e= 0.5*(1-invFT*invF) Almansi Strain
