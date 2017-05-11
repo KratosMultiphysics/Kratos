@@ -60,8 +60,7 @@ namespace Kratos
 	}
 
 	void CalculateDiscontinuousDistanceToSkinProcess::CalculateElementalDistances(Element& rElement1, PointerVector<GeometricalObject>& rIntersectedObjects) {
-		if (rIntersectedObjects.empty())
-		{
+		if (rIntersectedObjects.empty()) {
 			rElement1.Set(TO_SPLIT, false);
 			return;
 		}
@@ -69,10 +68,10 @@ namespace Kratos
 		// This function assumes tetrahedra element and triangle intersected object as input at this moment
 		constexpr int number_of_tetrahedra_points = 4;
 		constexpr double epsilon = std::numeric_limits<double>::epsilon();
-		int number_of_zero_distance_nodes = 0;
-		auto& element_geometry = rElement1.GetGeometry();
 		Vector& elemental_distances = rElement1.GetValue(ELEMENTAL_DISTANCES);
-		elemental_distances.resize(number_of_tetrahedra_points, false);
+
+		if(elemental_distances.size() != number_of_tetrahedra_points)
+			elemental_distances.resize(number_of_tetrahedra_points, false);
 
 		for (int i = 0; i < number_of_tetrahedra_points; i++) {
 			elemental_distances[i] = CalculateDistanceToNode(rElement1, i, rIntersectedObjects, epsilon);
@@ -86,8 +85,7 @@ namespace Kratos
 			else
 				has_negative_distance = true;
 
-		if(has_positive_distance && has_negative_distance)
-			rElement1.Set(TO_SPLIT, true);
+		rElement1.Set(TO_SPLIT, has_positive_distance && has_negative_distance);
 	}
 
 	double CalculateDiscontinuousDistanceToSkinProcess::CalculateDistanceToNode(Element& rElement1, int NodeIndex, PointerVector<GeometricalObject>& rIntersectedObjects, const double Epsilon) {
