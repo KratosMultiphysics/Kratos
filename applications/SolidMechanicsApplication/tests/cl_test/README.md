@@ -1,1 +1,0 @@
-**NOTE**: Please add here some tests for the CL
