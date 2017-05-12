@@ -87,12 +87,6 @@ namespace Kratos
 
 	  ModelPart& GetSkinRepresentation() { return mSkinRepresentation; }
 
-
-      ///@}
-      ///@name Inquiry
-      ///@{
-
-
       ///@}
       ///@name Input and output
       ///@{
@@ -105,12 +99,6 @@ namespace Kratos
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const;
-
-
-      ///@}
-      ///@name Friends
-      ///@{
-
 
       ///@}
 
@@ -142,13 +130,6 @@ namespace Kratos
 			double mD;
 		};
 
-
-
-      ///@name Static Member Variables
-      ///@{
-
-
-      ///@}
       ///@name Member Variables
       ///@{
 

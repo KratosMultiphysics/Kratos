@@ -73,24 +73,10 @@ namespace Kratos {
 				  node.GetSolutionStepValue(DISTANCE) = -(fabs(node.GetSolutionStepValue(DISTANCE)));
 			  else
 				  node.GetSolutionStepValue(DISTANCE) = (fabs(node.GetSolutionStepValue(DISTANCE)));
-		  //ModelPart& skin_rpresentation_part = process.GetSkinRepresentation();
-		  //KRATOS_WATCH(skin_rpresentation_part);
+
 		  CalculateSignedDistanceTo3DSkinProcess sign_distance_process(skin_part, volume_part);
 		  ModelPart skin_rpresentation_part;
 		  sign_distance_process.GenerateSkinModelPart(skin_rpresentation_part);
-
-		  GidIO<> gid_io_fluid("C:/Temp/Tests/horizontal_plane_distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-		  gid_io_fluid.InitializeMesh(0.00);
-		  gid_io_fluid.WriteMesh(volume_part.GetMesh());
-		  gid_io_fluid.FinalizeMesh();
-		  gid_io_fluid.InitializeResults(0, volume_part.GetMesh());
-		  gid_io_fluid.WriteNodalResults(DISTANCE, volume_part.Nodes(), 0, 0);
-		  gid_io_fluid.FinalizeResults();
-
-		  GidIO<> gid_io_skin("C:/Temp/Tests/horizontal_plane_distance_test_representation_skin", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-		  gid_io_skin.InitializeMesh(0.00);
-		  gid_io_skin.WriteMesh(skin_rpresentation_part.GetMesh());
-		  gid_io_skin.FinalizeMesh();
 
 		  for (auto& node : volume_part.Nodes())
 			  if (fabs(node.GetSolutionStepValue(DISTANCE)) < 1.00e16) { // There are no propagation in this version so I avoid numeric_limit::max() one
@@ -150,25 +136,10 @@ namespace Kratos {
 				  node.GetSolutionStepValue(DISTANCE) = (fabs(node.GetSolutionStepValue(DISTANCE)));
 
 
-		  //ModelPart& skin_rpresentation_part = process.GetSkinRepresentation();
-		  //KRATOS_WATCH(skin_rpresentation_part);
 		  CalculateSignedDistanceTo3DSkinProcess sign_distance_process(skin_part, volume_part);
 		  //sign_distance_process.Execute();
 		  ModelPart skin_rpresentation_part;
 		  sign_distance_process.GenerateSkinModelPart(skin_rpresentation_part);
-
-		  GidIO<> gid_io_fluid("C:/Temp/Tests/horizontal_plane_zero_distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-		  gid_io_fluid.InitializeMesh(0.00);
-		  gid_io_fluid.WriteMesh(volume_part.GetMesh());
-		  gid_io_fluid.FinalizeMesh();
-		  gid_io_fluid.InitializeResults(0, volume_part.GetMesh());
-		  gid_io_fluid.WriteNodalResults(DISTANCE, volume_part.Nodes(), 0, 0);
-		  gid_io_fluid.FinalizeResults();
-
-		  GidIO<> gid_io_skin("C:/Temp/Tests/horizontal_plane_zero_distance_test_representation_skin", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-		  gid_io_skin.InitializeMesh(0.00);
-		  gid_io_skin.WriteMesh(skin_rpresentation_part.GetMesh());
-		  gid_io_skin.FinalizeMesh();
 
 		  for (auto& node : volume_part.Nodes())
 			  if (fabs(node.GetSolutionStepValue(DISTANCE)) < 1.00e16) { // There are no propagation in this version so I avoid numeric_limit::max() one
@@ -230,19 +201,25 @@ namespace Kratos {
 		  ModelPart skin_rpresentation_part;
 		  sign_distance_process.GenerateSkinModelPart(skin_rpresentation_part);
 
+		  KRATOS_CHECK_NEAR(volume_part.GetNode(135).GetSolutionStepValue(DISTANCE), -1.414213, 1e-6);
+		  KRATOS_CHECK_NEAR(volume_part.GetNode(136).GetSolutionStepValue(DISTANCE), -1.414213, 1e-6);
+		  KRATOS_CHECK_NEAR(volume_part.GetNode(137).GetSolutionStepValue(DISTANCE), -1.414213, 1e-6);
+		  KRATOS_CHECK_NEAR(volume_part.GetNode(256).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		  KRATOS_CHECK_NEAR(volume_part.GetNode(257).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		  KRATOS_CHECK_NEAR(volume_part.GetNode(258).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
 
-		  GidIO<> gid_io_fluid("C:/Temp/Tests/distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-		  gid_io_fluid.InitializeMesh(0.00);
-		  gid_io_fluid.WriteMesh(volume_part.GetMesh());
-		  gid_io_fluid.FinalizeMesh();
-		  gid_io_fluid.InitializeResults(0, volume_part.GetMesh());
-		  gid_io_fluid.WriteNodalResults(DISTANCE, volume_part.Nodes(), 0, 0);
-		  gid_io_fluid.FinalizeResults();
+		  //GidIO<> gid_io_fluid("C:/Temp/Tests/distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+		  //gid_io_fluid.InitializeMesh(0.00);
+		  //gid_io_fluid.WriteMesh(volume_part.GetMesh());
+		  //gid_io_fluid.FinalizeMesh();
+		  //gid_io_fluid.InitializeResults(0, volume_part.GetMesh());
+		  //gid_io_fluid.WriteNodalResults(DISTANCE, volume_part.Nodes(), 0, 0);
+		  //gid_io_fluid.FinalizeResults();
 
-		  GidIO<> gid_io_skin("C:/Temp/Tests/distance_test_representation_skin", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-		  gid_io_skin.InitializeMesh(0.00);
-		  gid_io_skin.WriteMesh(skin_rpresentation_part.GetMesh());
-		  gid_io_skin.FinalizeMesh();
+		  //GidIO<> gid_io_skin("C:/Temp/Tests/distance_test_representation_skin", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+		  //gid_io_skin.InitializeMesh(0.00);
+		  //gid_io_skin.WriteMesh(skin_rpresentation_part.GetMesh());
+		  //gid_io_skin.FinalizeMesh();
 
 	  }
 
