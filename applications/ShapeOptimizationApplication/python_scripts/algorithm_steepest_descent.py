@@ -30,15 +30,13 @@ import optimization_data_logger_factory as optimization_data_logger_factory
 class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
-    def __init__( self, designSurface, analyzer, mapper, listOfDampingRegions, communicator, optimizationSettings ):
+    def __init__( self, designSurface, dampingRegions, analyzer, mapper, communicator, optimizationSettings ):
 
         self.designSurface = designSurface
         self.analyzer = analyzer
         self.mapper = mapper
         self.communicator = communicator
         self.optimizationSettings = optimizationSettings
-
-        self.dampingUtilities = DampingUtilities( designSurface, listOfDampingRegions, self.optimizationSettings )
 
         self.maxIterations = optimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1        
         self.onlyObjective = optimizationSettings["objectives"][0]["identifier"].GetString()
@@ -47,6 +45,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
         self.geometryTools = GeometryUtilities( designSurface )
         self.optimizationTools = OptimizationUtilities( designSurface, optimizationSettings )
+        self.dampingUtilities = DampingUtilities( designSurface, dampingRegions, self.optimizationSettings )
 
         self.timer = timer_factory.CreateTimer()
         self.specificVariablesToBeLogged = { "stepSize": self.initialStepSize }
@@ -84,13 +83,9 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             self.__alignSensitivitiesToLocalSurfaceNormal()
 
             if self.performDamping:
-                self.__dampObjectiveSensitivities()
+                self.__dampSensitivities()
 
-            self.__mapSensitivitiesToDesignSpace()
-
-            self.__computeDesignUpdate()
-
-            self.__mapDesignUpdateToGeometrySpaceToGetShapeUpdate()  
+            self.__computeShapeUpdate()
 
             if self.performDamping:
                 self.__dampShapeUpdate()
@@ -138,20 +133,22 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             self.geometryTools.project_nodal_variable_on_unit_surface_normals( OBJECTIVE_SENSITIVITY )
 
     # --------------------------------------------------------------------------
-    def __dampObjectiveSensitivities( self ):
+    def __dampSensitivities( self ):
         self.dampingUtilities.DampNodalVariable( OBJECTIVE_SENSITIVITY )
+
+    # --------------------------------------------------------------------------
+    def __computeShapeUpdate( self ):
+        self.__mapSensitivitiesToDesignSpace()
+        self.optimizationTools.compute_search_direction_steepest_descent()
+        self.optimizationTools.compute_design_update()
+        self.__mapDesignUpdateToGeometrySpace() 
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace( self ):
         self.mapper.MapToDesignSpace( OBJECTIVE_SENSITIVITY, MAPPED_OBJECTIVE_SENSITIVITY )
 
     # --------------------------------------------------------------------------
-    def __computeDesignUpdate( self ):
-        self.optimizationTools.compute_search_direction_steepest_descent()
-        self.optimizationTools.compute_design_update()
-
-    # --------------------------------------------------------------------------
-    def __mapDesignUpdateToGeometrySpaceToGetShapeUpdate( self ):
+    def __mapDesignUpdateToGeometrySpace( self ):
         self.mapper.MapToGeometrySpace( DESIGN_UPDATE, SHAPE_UPDATE ) 
 
     # --------------------------------------------------------------------------

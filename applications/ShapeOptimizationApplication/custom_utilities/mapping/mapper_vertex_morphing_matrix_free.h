@@ -43,7 +43,6 @@
 #include "../../kratos/spaces/ublas_space.h"
 #include "shape_optimization_application.h"
 #include "filter_function.h"
-//#include "damping_function.h"
 
 // ==============================================================================
 
@@ -91,11 +90,6 @@ public:
     typedef std::vector<double>::iterator DoubleVectorIterator;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
-    // Type definitions for linear algebra including sparse systems
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef SparseSpaceType::MatrixType SparseMatrixType;
-    typedef SparseSpaceType::VectorType VectorType;
-
     // Type definitions for tree-search
     typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
     typedef Tree< KDTreePartition<BucketType> > KDTree;    
@@ -108,25 +102,20 @@ public:
     ///@{
 
     /// Default constructor.
-    MapperVertexMorphingMatrixFree( ModelPart& designSurface, boost::python::dict dampingRegions, Parameters& optimizationSettings )
+    MapperVertexMorphingMatrixFree( ModelPart& designSurface, Parameters& optimizationSettings )
         : mrDesignSurface( designSurface ),
           mNumberOfDesignVariables( designSurface.Nodes().size() ),
           mFilterRadius( optimizationSettings["design_variables"]["filter"]["filter_radius"].GetDouble() ),
           mFilterType( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() )
-          //mPerformDamping( optimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool() )
     {
         boost::timer timer;        
-        std::cout << "\n> Creating search tree..." << std::endl;
+        std::cout << "\n> Creating search tree to perform mapping..." << std::endl;
         CreateListOfNodesOfDesignSurface();
         CreateSearchTreeWithAllNodesOnDesignSurface();
         std::cout << "> Search tree created in: " << timer.elapsed() << " s" << std::endl;
 
         CreateFilterFunction();
         AssignMappingIds();
-
-        //InitalizeDampingFactorsToHaveNoInfluence(); 
-        //if(mPerformDamping)   
-        //    SetDampingFactorsForAllDampingRegions( dampingRegions, optimizationSettings["design_variables"]["damping"]["damping_regions"] );         
     }
 
     /// Destructor.
@@ -175,105 +164,12 @@ public:
     }
 
     // --------------------------------------------------------------------------
-/*    void initalizeDampingFactorsToHaveNoInfluence()
-
-
-    {
-        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
-        {
-            node_i->SetValue(DAMPING_FACTOR_X,1.0);    
-            node_i->SetValue(DAMPING_FACTOR_Y,1.0);  
-            node_i->SetValue(DAMPING_FACTOR_Z,1.0);  
-        } 
-    }
-*/
-    // --------------------------------------------------------------------------
-/*    void setDampingFactorsForAllDampingRegions( boost::python::dict dampingRegions, Parameters dampingSettings )
-    {
-        std::cout << "\n> Starting to prepare damping..." << std::endl;
-
-        UpdateSearchTreeIfGeometryHasChanged();        
-
-        // Loop over all regions for which damping is to be applied
-        for (unsigned int regionNumber = 0; regionNumber < len(dampingRegions); regionNumber++)
-        {
-            // Extract sub-model part for damping
-            std::string dampingRegionSubModelPartName = dampingSettings[regionNumber]["sub_model_part_name"].GetString();
-            ModelPart& dampingRegion = extractModelPart( dampingRegions[dampingRegionSubModelPartName] );
-
-            // Read settings for current edge
-            bool dampX = dampingSettings[regionNumber]["damp_X"].GetBool();
-            bool dampY = dampingSettings[regionNumber]["damp_Y"].GetBool();
-            bool dampZ = dampingSettings[regionNumber]["damp_Z"].GetBool();
-            std::string dampingFunctionType = dampingSettings[regionNumber]["damping_function_type"].GetString();
-            double dampingRadius = dampingSettings[regionNumber]["damping_radius"].GetDouble();
-            DampingFunction::Pointer mpDampingFunction = CreateDampingFunction( dampingFunctionType, dampingRadius );
-
-            // Loop over all nodes in specified damping sub-model part 
-            for ( ModelPart::NodeIterator node_itr = dampingRegion.NodesBegin(); node_itr != dampingRegion.NodesEnd(); ++node_itr )
-            {
-                ModelPart::NodeType& currentDampingNode = *node_itr;
-                NodeVector neighbor_nodes( mMaxNeighborNodes );
-                DoubleVector resulting_squared_distances( mMaxNeighborNodes,0.0 );
-                unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( currentDampingNode,
-                                                                                 mFilterRadius, 
-                                                                                 neighbor_nodes.begin(),
-                                                                                 resulting_squared_distances.begin(), 
-                                                                                 mMaxNeighborNodes );
-
-                ThrowWarningIfMaxNodeNeighborsReached( currentDampingNode, number_of_neighbors );                                                                               
-
-                // Loop over all nodes in radius (including node on damping region itself)
-                for(unsigned int j_itr = 0 ; j_itr<number_of_neighbors ; j_itr++)
-                {
-                    ModelPart::NodeType& neighbor_node = *neighbor_nodes[j_itr];
-                    double dampingFactor = mpDampingFunction->compute_damping_factor( currentDampingNode.Coordinates(), neighbor_node.Coordinates());
-
-                    // For every specified damping direction we check if new damping factor is smaller than the assigned one for current node. 
-                    // In case yes, we overwrite the value. This ensures that the damping factor of a node is computed by its closest distance to the damping region
-                    auto& damping_factor_variable = neighbor_node.GetValue(DAMPING_FACTOR);
-                    if(dampX && dampingFactor < damping_factor_variable[0])
-                        damping_factor_variable[0] = dampingFactor;
-                    if(dampY && dampingFactor < damping_factor_variable[1])       
-                        damping_factor_variable[1] = dampingFactor;   
-                    if(dampZ && dampingFactor < damping_factor_variable[2])       
-                        damping_factor_variable[2] = dampingFactor;                            
-                }
-            }
-        }
-
-        std::cout << "> Finished preparation of damping." << std::endl;
-    }
-*/
-    // --------------------------------------------------------------------------
-/*    DampingFunction::Pointer CreateDampingFunction( std::string damping_type, double damping_radius )
-    {
-        return boost::shared_ptr<DampingFunction>(new DampingFunction(damping_type, damping_radius));
-    }    
-*/
-    // --------------------------------------------------------------------------
-/*    void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
-    {
-        //if(mPerformDamping)
-        //    dampNodalVariable( rNodalVariable );
-        PerformMappingToDesignSpace( rNodalVariable, rNodalVariableInDesignSpace );
-    }
-*/
-    // --------------------------------------------------------------------------
-/*    void MapToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
-    {
-        PerformMappingToGeometrySpace( rNodalVariable, rNodalVariableInGeometrySpace );
-        //if(mPerformDamping)
-        //    dampNodalVariable( rNodalVariable );
-    }
-*/
-    // --------------------------------------------------------------------------
     void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
     {
         boost::timer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;
 
-        VectorType x_variables_in_design_space, y_variables_in_design_space, z_variables_in_design_space;
+        Vector x_variables_in_design_space, y_variables_in_design_space, z_variables_in_design_space;
         x_variables_in_design_space.resize(mNumberOfDesignVariables);
         y_variables_in_design_space.resize(mNumberOfDesignVariables);
         z_variables_in_design_space.resize(mNumberOfDesignVariables);       
@@ -299,7 +195,7 @@ public:
         boost::timer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to geometry space..." << std::endl;
 
-        VectorType x_variables_in_geometry_space, y_variables_in_geometry_space, z_variables_in_geometry_space;
+        Vector x_variables_in_geometry_space, y_variables_in_geometry_space, z_variables_in_geometry_space;
         x_variables_in_geometry_space.resize(mNumberOfDesignVariables);
         y_variables_in_geometry_space.resize(mNumberOfDesignVariables);
         z_variables_in_geometry_space.resize(mNumberOfDesignVariables);
@@ -319,20 +215,6 @@ public:
         std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
     }
 
-    // --------------------------------------------------------------------------
-/*    void dampNodalVariable( const Variable<array_3d> &rNodalVariable )
-    {
-        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
-        {   
-            auto& damping_factor = node_i->GetValue(DAMPING_FACTOR);
-            auto& nodalVariable = node_i->FastGetSolutionStepValue(rNodalVariable);
-
-            nodalVariable[0] *= damping_factor[0];
-            nodalVariable[1] *= damping_factor[1];
-            nodalVariable[2] *= damping_factor[2];  
-        }  
-    } 
-*/
     // --------------------------------------------------------------------------
     void UpdateSearchTreeIfGeometryHasChanged()
     {
@@ -357,9 +239,9 @@ public:
 
     // --------------------------------------------------------------------------
     void MapComponentwiseVariablesToDesignSpace( const Variable<array_3d>& rNodalVariable,
-                                                 VectorType& x_variables_in_design_space, 
-                                                 VectorType& y_variables_in_design_space, 
-                                                 VectorType& z_variables_in_design_space )
+                                                 Vector& x_variables_in_design_space, 
+                                                 Vector& y_variables_in_design_space, 
+                                                 Vector& z_variables_in_design_space )
     {
         for (ModelPart::NodeIterator node_itr = mrDesignSurface.NodesBegin(); node_itr != mrDesignSurface.NodesEnd(); ++node_itr)
         {
@@ -397,9 +279,9 @@ public:
 
     // --------------------------------------------------------------------------
     void MapComponentwiseVariablesToGeometrySpace( const Variable<array_3d>& rNodalVariable,
-                                                   VectorType& x_variables_in_geometry_space, 
-                                                   VectorType& y_variables_in_geometry_space, 
-                                                   VectorType& z_variables_in_geometry_space )
+                                                   Vector& x_variables_in_geometry_space, 
+                                                   Vector& y_variables_in_geometry_space, 
+                                                   Vector& z_variables_in_geometry_space )
     {
         for (ModelPart::NodeIterator node_itr = mrDesignSurface.NodesBegin(); node_itr != mrDesignSurface.NodesEnd(); ++node_itr)
         {
@@ -436,16 +318,16 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void AssignComponentwiseMappedVariablesToNodes( VectorType& vector_field_x, 
-                                                    VectorType& vector_field_y, 
-                                                    VectorType& vector_field_z,
+    void AssignComponentwiseMappedVariablesToNodes( Vector& vector_field_x, 
+                                                    Vector& vector_field_y, 
+                                                    Vector& vector_field_z,
                                                     const Variable<array_3d> &rNodalVariable )
     {
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
             int i = node_i->GetValue(MAPPING_ID);
 
-            VectorType node_vector = ZeroVector(3);
+            Vector node_vector = ZeroVector(3);
             node_vector(0) = vector_field_x[i];
             node_vector(1) = vector_field_y[i];
             node_vector(2) = vector_field_z[i];

@@ -49,18 +49,18 @@ void  AddCustomUtilitiesToPython()
     // ================================================================
     // For perfoming the mapping according to Vertex Morphing
     // ================================================================
-    class_<MapperVertexMorphing, bases<Process> >("MapperVertexMorphing", init<ModelPart&, boost::python::dict, Parameters&>())
+    class_<MapperVertexMorphing, bases<Process> >("MapperVertexMorphing", init<ModelPart&, Parameters&>())
         .def("MapToDesignSpace", &MapperVertexMorphing::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphing::MapToGeometrySpace)
         ;
 
-    class_<MapperVertexMorphingMatrixFree, bases<Process> >("MapperVertexMorphingMatrixFree", init<ModelPart&, boost::python::dict, Parameters&>())
+    class_<MapperVertexMorphingMatrixFree, bases<Process> >("MapperVertexMorphingMatrixFree", init<ModelPart&, Parameters&>())
         .def("MapToDesignSpace", &MapperVertexMorphingMatrixFree::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphingMatrixFree::MapToGeometrySpace)
         ;
     
     // ================================================================
-    // For perfoming the damping
+    // For a possible damping of nodal variables
     // ================================================================
     class_<DampingUtilities, bases<Process> >("DampingUtilities", init<ModelPart&, boost::python::dict, Parameters&>())
         .def("DampNodalVariable", &DampingUtilities::DampNodalVariable)

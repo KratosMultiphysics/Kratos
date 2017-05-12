@@ -19,11 +19,11 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 CheckForPreviousImport()
 
 # ==============================================================================
-def CreateMapper( designSurface, listOfDampingRegions, optimizationSettings ):
+def CreateMapper( designSurface, optimizationSettings ):
     isMatrixFreeMappingRequired = optimizationSettings["design_variables"]["matrix_free_mapping"].GetBool()
     if isMatrixFreeMappingRequired:
-        return MapperVertexMorphingMatrixFree( designSurface, listOfDampingRegions, optimizationSettings )  
+        return MapperVertexMorphingMatrixFree( designSurface, optimizationSettings )  
     else:
-        return MapperVertexMorphing( designSurface, listOfDampingRegions, optimizationSettings )         
+        return MapperVertexMorphing( designSurface, optimizationSettings )         
 
 # ==============================================================================
