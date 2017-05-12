@@ -49,11 +49,11 @@ public:
     ///@name Life Cycle
     ///@{
     AssignScalarFieldToConditionsProcess(ModelPart& model_part,
-                                        Parameters rParameters
+                                         Parameters rParameters
                                         ) : Process() , mr_model_part(model_part)
     {
         KRATOS_TRY
-                        
+
         Parameters default_parameters( R"(
             {
                 "model_part_name":"MODEL_PART_NAME",
@@ -64,20 +64,20 @@ public:
                 "local_axes" : {}
             }  )" );
 
-        
+
         // Validate against defaults -- this ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mmesh_id       = rParameters["mesh_id"].GetInt();
         mvariable_name = rParameters["variable_name"].GetString();
-        
+
         mpfunction = PythonGenericFunctionUtility::Pointer( new PythonGenericFunctionUtility(rParameters["value"].GetString(),  rParameters["local_axes"]));
 
 //         if( KratosComponents< Variable<Vector> >::Has( mvariable_name ) == false ) //case of Vector variable
 //         {
-//         KRATOS_THROW_ERROR(std::runtime_error,"trying to set a variable that is not in the model_part - variable name is ",mvariable_name); 
+//         KRATOS_THROW_ERROR(std::runtime_error,"trying to set a variable that is not in the model_part - variable name is ",mvariable_name);
 //         }
-        
+
         KRATOS_CATCH("");
     }
 
@@ -219,57 +219,57 @@ private:
 
     void CallFunction(const Condition::Pointer& pCondition, const double& time, Vector& rValue)
     {
-    
-    Condition::GeometryType& rConditionGeometry = pCondition->GetGeometry();
-    unsigned int size = rConditionGeometry.size();
-    
-    if(rValue.size() !=  size)
-        rValue.resize(size,false);
-        
-    for(unsigned int i=0; i<size; i++)
+
+        Condition::GeometryType& rConditionGeometry = pCondition->GetGeometry();
+        unsigned int size = rConditionGeometry.size();
+
+        if(rValue.size() !=  size)
+            rValue.resize(size,false);
+
+        for(unsigned int i=0; i<size; i++)
         {
             rValue[i] = mpfunction->CallFunction(rConditionGeometry[i].X(),rConditionGeometry[i].Y(),rConditionGeometry[i].Z(),time  );
         }
-        
+
     }
 
     void CallFunctionLocalSystem(const Condition::Pointer& pCondition, const double& time, Vector& rValue)
     {
-    
-    Condition::GeometryType& rConditionGeometry = pCondition->GetGeometry();
-    unsigned int size = rConditionGeometry.size();
-    
-    if(rValue.size() !=  size)
-        rValue.resize(size,false);
-        
-    for(unsigned int i=0; i<size; i++)
+
+        Condition::GeometryType& rConditionGeometry = pCondition->GetGeometry();
+        unsigned int size = rConditionGeometry.size();
+
+        if(rValue.size() !=  size)
+            rValue.resize(size,false);
+
+        for(unsigned int i=0; i<size; i++)
         {
             rValue[i] = mpfunction->RotateAndCallFunction(rConditionGeometry[i].X(),rConditionGeometry[i].Y(),rConditionGeometry[i].Z(),time  );
         }
     }
-    
+
     void AssignTimeDependentValue(const Condition::Pointer& pCondition, const double& time, Vector& rValue, const double value)
     {
-    
-    Condition::GeometryType& rConditionGeometry = pCondition->GetGeometry();
-    unsigned int size = rConditionGeometry.size();
-    
-    if(rValue.size() !=  size)
-        rValue.resize(size,false);
-        
-    for(unsigned int i=0; i<size; i++)
+
+        Condition::GeometryType& rConditionGeometry = pCondition->GetGeometry();
+        unsigned int size = rConditionGeometry.size();
+
+        if(rValue.size() !=  size)
+            rValue.resize(size,false);
+
+        for(unsigned int i=0; i<size; i++)
         {
             rValue[i] = value;
         }
     }
-    
+
     template< class TVarType >
     void InternalAssignValue(TVarType& rVar, const double& rTime)
     {
         const int nconditions = mr_model_part.GetMesh(mmesh_id).Conditions().size();
 
         Vector Value;
-        
+
         if(nconditions != 0)
         {
             ModelPart::ConditionsContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).ConditionsBegin();
@@ -285,7 +285,7 @@ private:
                         this->CallFunctionLocalSystem(*(it.base()), rTime, Value);
                         it->SetValue(rVar, Value);
                     }
-                } 
+                }
                 else
                 {
                     // WARNING: do not parallelize with openmp. python GIL prevents it
@@ -301,13 +301,13 @@ private:
             {
                 const double time_value = mpfunction->CallFunction(0.0, 0.0, 0.0,  rTime);
                 // WARNING: do not parallelize with openmp. python GIL prevents it
-                    for(int i = 0; i<nconditions; i++)
-                    {
-                        ModelPart::ConditionsContainerType::iterator it = it_begin + i;
-                        this->AssignTimeDependentValue(*(it.base()), rTime, Value,  time_value);
-                        it->SetValue(rVar, Value);
-                    }
-                
+                for(int i = 0; i<nconditions; i++)
+                {
+                    ModelPart::ConditionsContainerType::iterator it = it_begin + i;
+                    this->AssignTimeDependentValue(*(it.base()), rTime, Value,  time_value);
+                    it->SetValue(rVar, Value);
+                }
+
             }
         }
     }
@@ -349,11 +349,11 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                AssignScalarFieldToConditionsProcess& rThis);
+                                  AssignScalarFieldToConditionsProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                const AssignScalarFieldToConditionsProcess& rThis)
+                                  const AssignScalarFieldToConditionsProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

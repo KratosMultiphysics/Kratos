@@ -46,11 +46,11 @@ public:
     ///@name Life Cycle
     ///@{
     AssignScalarVariableToConditionsProcess(ModelPart& model_part,
-						 Parameters rParameters
-						 ) : Process(Flags()) , mr_model_part(model_part)
+                                            Parameters rParameters
+                                           ) : Process(Flags()) , mr_model_part(model_part)
     {
         KRATOS_TRY
-			 
+
         Parameters default_parameters( R"(
             {
                 "model_part_name":"MODEL_PART_NAME",
@@ -66,22 +66,23 @@ public:
         mmesh_id       = rParameters["mesh_id"].GetInt();
         mvariable_name = rParameters["variable_name"].GetString();
 
-	if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
+        if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
         {
-	  mdouble_value = rParameters["value"].GetDouble();
+            mdouble_value = rParameters["value"].GetDouble();
         }
         else if( KratosComponents< Variable<int> >::Has( mvariable_name ) ) //case of int variable
         {
-	  mint_value = rParameters["value"].GetInt();
+            mint_value = rParameters["value"].GetInt();
         }
         else if( KratosComponents< Variable<bool> >::Has( mvariable_name ) ) //case of bool variable
         {
-	  mbool_value = rParameters["value"].GetBool();
+            mbool_value = rParameters["value"].GetBool();
         }
-	else{
-	  KRATOS_THROW_ERROR(std::runtime_error,"trying to set a variable that is not in the model_part - variable name is ",mvariable_name); 
-	}
-	
+        else
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"trying to set a variable that is not in the model_part - variable name is ",mvariable_name);
+        }
+
         KRATOS_CATCH("");
     }
 
@@ -112,8 +113,8 @@ public:
     {
 
         KRATOS_TRY;
- 
-	if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
+
+        if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
         {
             InternalAssignValue<>(KratosComponents< Variable<double> >::Get(mvariable_name), mdouble_value);
         }
@@ -133,7 +134,7 @@ public:
         KRATOS_CATCH("");
 
     }
-    
+
     virtual void ExecuteInitializeSolutionStep() override
     {
         Execute();
@@ -234,7 +235,7 @@ private:
         {
             ModelPart::ConditionsContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).ConditionsBegin();
 
-             #pragma omp parallel for
+            #pragma omp parallel for
             for(int i = 0; i<nconditions; i++)
             {
                 ModelPart::ConditionsContainerType::iterator it = it_begin + i;

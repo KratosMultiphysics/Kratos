@@ -87,7 +87,7 @@ void AddUtilitiesToPython()
     .def("RotateAndCallFunction", &PythonGenericFunctionUtility::RotateAndCallFunction)
     .def("CallFunction", &PythonGenericFunctionUtility::CallFunction)
     ;
-    
+
     class_<ApplyFunctionToNodesUtility >("ApplyFunctionToNodesUtility", init<ModelPart::NodesContainerType&, PythonGenericFunctionUtility::Pointer >() )
     .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction< Variable<double> >)
     .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
@@ -329,7 +329,7 @@ void AddUtilitiesToPython()
     .def("AddSkinConditions", &CuttingUtility ::AddSkinConditions)
     .def("FindSmallestEdge", &CuttingUtility ::FindSmallestEdge)
     ;
-    
+
     class_<IntervalUtility >("IntervalUtility", init<Parameters >())
     .def("GetIntervalBegin", &IntervalUtility::GetIntervalBegin)
     .def("GetIntervalEnd", &IntervalUtility::GetIntervalEnd)
