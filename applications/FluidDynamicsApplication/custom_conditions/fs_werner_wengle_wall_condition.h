@@ -224,6 +224,14 @@ public:
 						GetGeometry().Create(ThisNodes), pProperties));
 	}
 
+	virtual Condition::Pointer Create(IndexType NewId,
+			GeometryType::Pointer pGeom,
+			PropertiesType::Pointer pProperties) const
+	{
+		return Condition::Pointer(new FSWernerWengleWallCondition(NewId,
+						pGeom, pProperties));
+	}
+
 	/// Find the condition's parent element.
 	void Initialize()
 	{

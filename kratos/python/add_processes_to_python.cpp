@@ -45,6 +45,7 @@
 #include "processes/check_skin_process.h"
 #include "processes/replace_elements_and_condition_process.h"
 #include "processes/compute_nodal_gradient_process.h"
+#include "processes/replace_conditions_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -188,6 +189,10 @@ void  AddProcessesToPython()
     ; 
         
     class_<ReplaceElementsAndConditionsProcess , bases<Process>, boost::noncopyable >("ReplaceElementsAndConditionsProcess",
+            init<ModelPart&, Parameters>())
+    ;
+
+    class_<ReplaceConditionsProcess, bases<Process>, boost::noncopyable >("ReplaceConditionsProcess",
             init<ModelPart&, Parameters>())
     ;
     
