@@ -1535,8 +1535,8 @@ public:
 
     void GenerateSkinModelPart( ModelPart& mrNewSkinModelPart )
     {
-        unsigned int id_node = 10000;
-        unsigned int id_condition = 10000;
+        unsigned int id_node = mrFluidModelPart.NumberOfNodes() + 1;
+        unsigned int id_condition = mrFluidModelPart.NumberOfConditions() + 1;
 
         mrNewSkinModelPart.Nodes().reserve(mrFluidModelPart.Nodes().size());
         mrNewSkinModelPart.Conditions().reserve(mrFluidModelPart.Elements().size());
@@ -2059,11 +2059,11 @@ public:
         double distance = DistancePositionInSpace(coord);
         double& node_distance =  rNode.GetSolutionStepValue(DISTANCE);
 
-//         const double epsilon = 1.00e-12;
-//         if(fabs(node_distance) > fabs(distance))
-//            node_distance = distance;
-//         else if (distance*node_distance < 0.00) // assigning the correct sign
-//             node_distance = -node_distance;
+        //const double epsilon = 1.00e-12;
+        //if(fabs(node_distance) > fabs(distance))
+        //    node_distance = distance;
+        /*else*/ if (distance*node_distance < 0.00) // assigning the correct sign
+            node_distance = -node_distance;
     }
 
     //      void CalculateNodeDistanceFromCell(Node<3>& rNode)

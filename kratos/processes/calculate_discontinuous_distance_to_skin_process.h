@@ -25,6 +25,7 @@
 
 // Project includes
 #include "processes/find_intersected_geometrical_objects_process.h"
+#include "includes/checks.h"
 
 
 namespace Kratos
@@ -116,7 +117,9 @@ namespace Kratos
 				VectorType v1 = Point2 - Point1;
 				VectorType v2 = Point3 - Point1;
 				MathUtils<double>::CrossProduct(mNormal, v1, v2);
-				mNormal /= norm_2(mNormal);
+				auto normal_length = norm_2(mNormal);
+				KRATOS_DEBUG_CHECK_GREATER(normal_length, std::numeric_limits<double>::epsilon());
+				mNormal /= normal_length;
 				mD = -inner_prod(mNormal, Point1);
 			}
 			VectorType const& GetNormal() { return mNormal; }
