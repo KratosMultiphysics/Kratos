@@ -73,10 +73,6 @@ public:
 
         mpfunction = PythonGenericFunctionUtility::Pointer( new PythonGenericFunctionUtility(rParameters["value"].GetString(),  rParameters["local_axes"]));
 
-//         if( KratosComponents< Variable<Vector> >::Has( mvariable_name ) == false ) //case of Vector variable
-//         {
-//         KRATOS_THROW_ERROR(std::runtime_error,"trying to set a variable that is not in the model_part - variable name is ",mvariable_name);
-//         }
 
         KRATOS_CATCH("");
     }
