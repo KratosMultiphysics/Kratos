@@ -29,17 +29,20 @@ namespace Kratos
 	}
 
 	void FindIntersectedGeometricalObjectsProcess::Initialize() {
-
+		GenerateOctree();
 	}
 
 	void FindIntersectedGeometricalObjectsProcess::Execute() {
 		GenerateOctree();
 
 		std::vector<OctreeType::cell_type*> leaves;
-		for (auto p_element_1 : mrModelPart1.ElementsArray()) {
+		const int number_of_elements = mrModelPart1.NumberOfElements();
+#pragma omp parallel for private(leaves)
+		for (int i = 0; i < number_of_elements; i++) {
+			auto p_element_1 = mrModelPart1.ElementsBegin() + i;
 			leaves.clear();
-			mOctree.GetIntersectedLeaves(p_element_1, leaves);
-			MarkIfIntersected(*p_element_1, leaves);
+			mOctree.GetIntersectedLeaves(*(p_element_1.base()), leaves);
+			MarkIfIntersected(**(p_element_1.base()), leaves);
 		}
 	}
 
@@ -57,6 +60,24 @@ namespace Kratos
 	/// Print object's data.
 	void FindIntersectedGeometricalObjectsProcess::PrintData(std::ostream& rOStream) const {
 
+	}
+
+	void FindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults) {
+		const std::size_t number_of_elements = mrModelPart1.NumberOfElements();
+		auto& r_elements = mrModelPart1.ElementsArray();
+		std::vector<OctreeType::cell_type*> leaves;
+
+		rResults.resize(number_of_elements);
+		for (std::size_t i = 0; i < number_of_elements; i++) {
+			auto p_element_1 = r_elements[i];
+			leaves.clear();
+			mOctree.GetIntersectedLeaves(p_element_1, leaves);
+			FindIntersectedSkinObjects(*p_element_1, leaves, rResults[i]);
+		}
+	}
+
+	ModelPart& FindIntersectedGeometricalObjectsProcess::GetModelPart1() {
+		return mrModelPart1;
 	}
 
 	void FindIntersectedGeometricalObjectsProcess::GenerateOctree() {
@@ -127,5 +148,17 @@ namespace Kratos
 		return false;
 	}
 
+	void FindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects(Element& rElement1, std::vector<OctreeType::cell_type*>& leaves, PointerVector<GeometricalObject>& rResults) {
+		for (auto p_leaf : leaves) {
+			for (auto p_element_2 : *(p_leaf->pGetObjects())) {
+				if (HasIntersection(rElement1.GetGeometry(), p_element_2->GetGeometry())) {
+					rElement1.Set(SELECTED);
+					if(std::find(rResults.ptr_begin(), rResults.ptr_end(), p_element_2) == rResults.ptr_end())
+						rResults.push_back(p_element_2);
+				}
+			}
+		}
+
+	}
 
 }  // namespace Kratos.
