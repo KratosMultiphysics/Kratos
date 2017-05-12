@@ -46,20 +46,6 @@ class AssignTimeDerivativeProcess(assign_vector_variable_process.AssignVectorVar
             if(step_is_active == True and is_fixed==True):
                 self.aux_processes[component].variable_utils.ApplyFixity(self.dof_components[component], fixed, self.model_part.Nodes)
             
-        ##self.velocity_application_process.ExecuteInitializeSolutionStep()
-        
-        ##current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-        
-        ##self.interval_is_active = self.interval.IsInInterval(current_time)
-        
-        #if(self.interval_is_active):
-            #fixed = True
-            #if(self.fix_x):
-                #self.variable_utils.ApplyFixity(self.x_component, fixed, self.model_part.Nodes)
-            #if(self.fix_y):
-                #self.variable_utils.ApplyFixity(self.y_component, fixed, self.model_part.Nodes)
-            #if(self.fix_z):
-                #self.variable_utils.ApplyFixity(self.z_component, fixed, self.model_part.Nodes)
 
     def ExecuteFinalizeSolutionStep(self):
         fixed = False
@@ -71,14 +57,4 @@ class AssignTimeDerivativeProcess(assign_vector_variable_process.AssignVectorVar
                 self.aux_processes[component].variable_utils.ApplyFixity(self.dof_components[component], fixed, self.model_part.Nodes)
                 
         super(AssignTimeDerivativeProcess, self).ExecuteFinalizeSolutionStep()
-        
-        #self.velocity_application_process.ExecuteFinalizeSolutionStep()
 
-        #if(self.interval_is_active):
-            #fixed = False #here we must free the velocity
-            #if(self.fix_x):
-                #self.variable_utils.ApplyFixity(KratosMultiphysics.DISPLACEMENT_X, fixed, self.model_part.Nodes)
-            #if(self.fix_y):
-                #self.variable_utils.ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, fixed, self.model_part.Nodes)
-            #if(self.fix_z):
-                #self.variable_utils.ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, fixed, self.model_part.Nodes)
