@@ -20,13 +20,10 @@
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
-
 
 namespace Kratos
 {
@@ -52,39 +49,30 @@ namespace Kratos
       ///@name Life Cycle
       ///@{
 
-      /// Default constructor.
-      CalculateDistanceToSkinProcess() = delete;;
-
-	  /// Copy constructor.
-	  CalculateDistanceToSkinProcess(CalculateDistanceToSkinProcess const& rOther) = delete;
-
 	  /// Constructor to be used.
 	  CalculateDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart);
 	  
 	  /// Destructor.
       virtual ~CalculateDistanceToSkinProcess();
 
+	  ///@}
+	  ///@name Deleted 
+	  ///@{
 
-      ///@}
-      ///@name Operators
-      ///@{
+      /// Default constructor.
+      CalculateDistanceToSkinProcess() = delete;;
 
+	  /// Copy constructor.
+	  CalculateDistanceToSkinProcess(CalculateDistanceToSkinProcess const& rOther) = delete;
 
-      ///@}
+	  /// Assignment operator.
+	  CalculateDistanceToSkinProcess& operator=(CalculateDistanceToSkinProcess const& rOther) = delete;
+
+	  ///@}
       ///@name Operations
       ///@{
 
 	  void Execute() override;
-
-      ///@}
-      ///@name Access
-      ///@{
-
-
-      ///@}
-      ///@name Inquiry
-      ///@{
-
 
       ///@}
       ///@name Input and output
@@ -98,49 +86,6 @@ namespace Kratos
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const;
-
-
-      ///@}
-      ///@name Friends
-      ///@{
-
-
-      ///@}
-
-    protected:
-      ///@name Protected static Member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Protected member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Protected Operators
-      ///@{
-
-
-      ///@}
-      ///@name Protected Operations
-      ///@{
-
-
-      ///@}
-      ///@name Protected  Access
-      ///@{
-
-
-      ///@}
-      ///@name Protected Inquiry
-      ///@{
-
-
-      ///@}
-      ///@name Protected LifeCycle
-      ///@{
-
 
       ///@}
 
@@ -177,9 +122,6 @@ namespace Kratos
       ///@}
       ///@name Un accessible methods
       ///@{
-
-      /// Assignment operator.
-      CalculateDistanceToSkinProcess& operator=(CalculateDistanceToSkinProcess const& rOther);
 
 
 

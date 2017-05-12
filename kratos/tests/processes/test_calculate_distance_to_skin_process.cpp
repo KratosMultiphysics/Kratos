@@ -251,20 +251,6 @@ namespace Kratos {
 		  KRATOS_CHECK_NEAR(volume_part.GetNode(3).GetSolutionStepValue(DISTANCE), -2.00, 1e-6);
 		  KRATOS_CHECK_NEAR(volume_part.GetNode(4).GetSolutionStepValue(DISTANCE), -2.00, 1e-6);
 
-		  GidIO<> gid_io_fluid("C:/Temp/Tests/tetrahedra_3_intersection_distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-		  gid_io_fluid.InitializeMesh(0.00);
-		  gid_io_fluid.WriteMesh(volume_part.GetMesh());
-		  gid_io_fluid.FinalizeMesh();
-		  gid_io_fluid.InitializeResults(0, volume_part.GetMesh());
-		  gid_io_fluid.WriteNodalResults(DISTANCE, volume_part.Nodes(), 0, 0);
-		  gid_io_fluid.FinalizeResults();
-
-		  GidIO<> gid_io_skin("C:/Temp/Tests/tetrahedra_3_intersection_distance_test_skin", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-		  gid_io_skin.InitializeMesh(0.00);
-		  gid_io_skin.WriteMesh(skin_part.GetMesh());
-		  gid_io_skin.FinalizeMesh();
-
-
 	  }
 
 	  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra5IntersectionDistanceProcess, KratosCoreFastSuite)
@@ -302,21 +288,6 @@ namespace Kratos {
 		  KRATOS_CHECK_NEAR(volume_part.GetNode(2).GetSolutionStepValue(DISTANCE), -0.132068, 1e-6);
 		  KRATOS_CHECK_NEAR(volume_part.GetNode(3).GetSolutionStepValue(DISTANCE), 0.968496, 1e-6);
 		  KRATOS_CHECK_NEAR(volume_part.GetNode(4).GetSolutionStepValue(DISTANCE), 0.52827, 1e-6);
-
-		  GidIO<> gid_io_fluid("C:/Temp/Tests/tetrahedra_5_intersection_distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-		  gid_io_fluid.InitializeMesh(0.00);
-		  gid_io_fluid.WriteMesh(volume_part.GetMesh());
-		  gid_io_fluid.FinalizeMesh();
-		  gid_io_fluid.InitializeResults(0, volume_part.GetMesh());
-		  gid_io_fluid.WriteNodalResults(DISTANCE, volume_part.Nodes(), 0, 0);
-		  gid_io_fluid.FinalizeResults();
-
-		  GidIO<> gid_io_skin("C:/Temp/Tests/tetrahedra_5_intersection_distance_test_skin", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-		  gid_io_skin.InitializeMesh(0.00);
-		  gid_io_skin.WriteMesh(skin_part.GetMesh());
-		  gid_io_skin.FinalizeMesh();
-
-
 	  }
   }
 }  // namespace Kratos.
