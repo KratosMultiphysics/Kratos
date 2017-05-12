@@ -173,9 +173,9 @@ proc WriteBodyVolumesList {FileVar BodyVolumesDict} {
     puts $MyFileVar "    \"body_volumes_list\": \[\{"
     dict for {Id BodyVolume} $BodyVolumesDict {
         incr iter
-        puts $MyFileVar "        \"id\":       $Id,"
+        puts $MyFileVar "        \"id\":        $Id,"
         if {[llength [dict get $BodyVolume Groups]] eq 0} {
-            puts $MyFileVar "        \"groups\":   \[\],"
+            puts $MyFileVar "        \"groups\":    \[\],"
         } else {
             set PutStrings \[
             for {set i 0} {$i < [llength [dict get $BodyVolume Groups]]} {incr i} {
@@ -183,7 +183,7 @@ proc WriteBodyVolumesList {FileVar BodyVolumesDict} {
             }
             set PutStrings [string trimright $PutStrings ,]
             append PutStrings \]
-            puts $MyFileVar "        \"groups\":   $PutStrings,"
+            puts $MyFileVar "        \"groups\":    $PutStrings,"
         }
         set PutStrings \[
         for {set i 0} {$i < [llength [dict get $BodyVolume Surfaces]]} {incr i} {
@@ -191,7 +191,8 @@ proc WriteBodyVolumesList {FileVar BodyVolumesDict} {
         }
         set PutStrings [string trimright $PutStrings ,]
         append PutStrings \]
-        puts $MyFileVar "        \"surfaces\": $PutStrings"
+        puts $MyFileVar "        \"surfaces\":  $PutStrings,"
+        puts $MyFileVar "        \"mesh_size\": [dict get $BodyVolume MeshSize]"
         if {$iter < [dict size $BodyVolumesDict]} {
             puts $MyFileVar "    \},\{"
         } else {
