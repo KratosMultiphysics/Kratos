@@ -118,7 +118,8 @@ class VertexMorphingMethod:
                 print(regionName)
                 dampingRegions[regionName] = self.inputModelPart.GetSubModelPart(regionName)
             else:
-                raise ValueError("The following sub-model part specified for damping does not exist: ",regionName)         
+                raise ValueError("The following sub-model part specified for damping does not exist: ",regionName)    
+        print("")    
         return dampingRegions               
 
 # ==============================================================================

@@ -17,7 +17,6 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include <iomanip>      // for std::setprecision
 
 // ------------------------------------------------------------------------------
 // External includes
@@ -44,7 +43,6 @@
 #include "../../kratos/spaces/ublas_space.h"
 #include "shape_optimization_application.h"
 #include "filter_function.h"
-// #include "damping_function.h"
 
 // ==============================================================================
 
@@ -57,8 +55,6 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-
-    typedef boost::python::extract<ModelPart&> extractModelPart;
 
 ///@}
 ///@name  Enum's
@@ -110,17 +106,16 @@ public:
 
     /// Default constructor.
     MapperVertexMorphing( ModelPart& designSurface, Parameters& optimizationSettings )
-        // : mrDesignSurface( designSurface ),
-        //   mNumberOfDesignVariables(designSurface.Nodes().size()),
-        //   mFilterFunction( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() ),
-        //   mFilterRadius( optimizationSettings["design_variables"]["filter"]["filter_radius"].GetDouble() ),
-        //   mPerformDamping( optimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool() )
+        : mrDesignSurface( designSurface ),
+          mNumberOfDesignVariables(designSurface.Nodes().size()),
+          mFilterRadius( optimizationSettings["design_variables"]["filter"]["filter_radius"].GetDouble() ),
+          mFilterType( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() )
     {
-        // setPrecisionForOutput();
-        // assignMappingMatrixIds();
-        // initalizeDampingFactorsToHaveNoInfluence(); 
-        // if(mPerformDamping)   
-        //     setDampingFactorsForAllDampingRegions( dampingRegions, optimizationSettings["design_variables"]["damping"]["damping_regions"] );
+        CreateListOfNodesOfDesignSurface();
+        InitializeMappingMatrix();                
+        ComputeMappingMatrix();
+        CreateFilterFunction();
+        AssignMappingIds();
     }
 
     /// Destructor.
@@ -138,130 +133,126 @@ public:
     ///@name Operations
     ///@{
 
-    // // ==============================================================================
-    // void setPrecisionForOutput()
-    // {
-    //     std::cout.precision(12);
-    // }
-
-    // // --------------------------------------------------------------------------
-    // void assignMappingMatrixIds()
-    // {
-    //     unsigned int i = 0;
-    //     for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
-    //         node_i->SetValue(MAPPING_ID,i++);
-    // }
-
-    // // --------------------------------------------------------------------------
-    // void compute_mapping_matrix()
-    // {
-    //     // Measure time
-    //     boost::timer mapping_time;
-
-    //     std::cout << "\n> Starting computation of complete mapping matrix..." << std::endl;
-
-    //     // Initialize filter matrix
-    //     mMappingMatrix.resize(mNumberOfDesignVariables,mNumberOfDesignVariables);
-
-    //     // Initialize mapping matrix (zero possible entries)
-    //     mMappingMatrix.clear();
-
-    //     // Creating an auxiliary list for the nodes to be searched on
-    //     NodeVector listOfNodes;
-
-    //     // starting calculating time of construction of the kdtree
-    //     for (ModelPart::NodesContainerType::iterator node_it = mrDesignSurface.NodesBegin(); node_it != mrDesignSurface.NodesEnd(); ++node_it)
-    //     {
-    //         NodeTypePointer pnode = *(node_it.base());
-
-    //         // Putting the nodes of interest in an auxiliary list
-    //         listOfNodes.push_back(pnode);
-    //     }
-
-    //     // Compute tree with the node positions
-    //     unsigned int bucket_size = 100;
-    //     KDTree treeOfAllOptimizationNodes(listOfNodes.begin(), listOfNodes.end(), bucket_size);
-
-    //     // Prepare Weighting function to be used in the mapping
-    //     FilterFunction filterFunction( mFilterFunction, mFilterRadius );
-
-    //     // Loop over all design variables
-    //     for (ModelPart::NodeIterator node_itr = mrDesignSurface.NodesBegin(); node_itr != mrDesignSurface.NodesEnd(); ++node_itr)
-    //     {
-    //         // Get node information
-    //         ModelPart::NodeType& node_i = *node_itr;
-    //         array_3d i_coord = node_i.Coordinates();
-
-    //         // Get tID of the node in the mapping matrix
-    //         int i = node_i.GetValue(MAPPING_ID);
-
-    //         // Arrays needed for spatial search
-    //         unsigned int maxNodesAffected = 10000;            
-    //         NodeVector nodesAffected(maxNodesAffected);
-    //         DoubleVector resulting_squared_distances(maxNodesAffected);
-
-
-    //         // Perform spatial search for current node
-    //         unsigned int numberOfNodesAffected;
-    //         numberOfNodesAffected = treeOfAllOptimizationNodes.SearchInRadius( node_i, 
-    //                                                                            mFilterRadius, 
-    //                                                                            nodesAffected.begin(),
-    //                                                                            resulting_squared_distances.begin(), 
-    //                                                                            maxNodesAffected );
-
-    //         // Throw a warning if specified (hard-coded) maximum number of neighbors is reached
-    //         if(numberOfNodesAffected >= maxNodesAffected)
-    //             std::cout << "\n> WARNING!!!!! For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << maxNodesAffected << " nodes) reached!" << std::endl;
-
-    //         // Some lists to increase efficiency in the loop later
-    //         DoubleVector list_of_weights(numberOfNodesAffected,0.0);
-    //         std::vector<int> listOfNeighborMappingIds(numberOfNodesAffected,0);
-
-    //         // Compute and assign weights in the mapping matrix
-    //         double sum_weights = 0.0;
-    //         for(unsigned int j_itr = 0 ; j_itr<numberOfNodesAffected ; j_itr++)
-    //         {
-    //             // Get node information
-    //             ModelPart::NodeType& node_j = *nodesAffected[j_itr];
-    //             array_3d j_coord = node_j.Coordinates();
-
-    //             // Get the id of the node in the mapping matrix
-    //             int j = node_j.GetValue(MAPPING_ID);
-
-    //             // Computation of weight according specified weighting function
-    //             double Aij = filterFunction.compute_weight(i_coord,j_coord);
-
-    //             // Add values to list
-    //             listOfNeighborMappingIds[j_itr] = j;
-    //             list_of_weights[j_itr] = Aij;
-
-    //             // Computed for integration of weighting function later using post-scaling
-    //             sum_weights += Aij;
-    //         }
-
-    //         // Post scaling + sort in all matrix entries in mapping matrix
-    //         // We sort in row by row using push_back. This is much more efficient than having only one loop and using a direct access
-    //         for(unsigned int j_itr = 0 ; j_itr<numberOfNodesAffected ; j_itr++)
-    //         {
-    //             int j = listOfNeighborMappingIds[j_itr];
-    //             double Aij = list_of_weights[j_itr] / sum_weights;
-    //             mMappingMatrix.push_back(i,j,Aij);               
-    //         }                          
-    //     }
-
-    //     // Console output for information
-    //     std::cout << "> Time needed for computation of mapping matrix: " << mapping_time.elapsed() << " s" << std::endl;
-    // }
+    // ==============================================================================
+    void CreateListOfNodesOfDesignSurface()
+    {
+        for (ModelPart::NodesContainerType::iterator node_it = mrDesignSurface.NodesBegin(); node_it != mrDesignSurface.NodesEnd(); ++node_it)
+        {
+            NodeTypePointer pnode = *(node_it.base());
+            mListOfNodesOfDesignSurface.push_back(pnode);
+        }
+    }
+    
+    // --------------------------------------------------------------------------
+    void InitializeMappingMatrix()
+    {
+        mMappingMatrix.resize(mNumberOfDesignVariables,mNumberOfDesignVariables);
+        mMappingMatrix.clear();    
+    }    
 
     // --------------------------------------------------------------------------
-    void MapToDesignSpace( bool constraint_given )
+    void ComputeMappingMatrix()
     {
-    //     // First we compute the new mapping matrix assuming that with each map to design space, the geometry changed
-    //     compute_mapping_matrix();
+        boost::timer timer;        
+        std::cout << "> Creating mapping matrix to perform mapping..." << std::endl;        
+        CreateSearchTreeWithAllNodesOnDesignSurface();
+        ComputeEntriesOfMappingMatrix(); 
+        std::cout << "> Mapping matrix created in: " << timer.elapsed() << " s" << std::endl;
+    }
 
-    //     // Measure time
-    //     boost::timer mapping_time;
-    //     std::cout << "\n> Starting mapping of sensitivities to design space..." << std::endl;
+    // --------------------------------------------------------------------------
+    void CreateSearchTreeWithAllNodesOnDesignSurface()
+    {
+        mpSearchTree = boost::shared_ptr<KDTree>(new KDTree(mListOfNodesOfDesignSurface.begin(), mListOfNodesOfDesignSurface.end(), mBucketSize));
+    }   
+
+    // --------------------------------------------------------------------------
+    void CreateFilterFunction()
+    {
+        mpFilterFunction = boost::shared_ptr<FilterFunction>(new FilterFunction(mFilterType, mFilterRadius));
+    }     
+
+    // --------------------------------------------------------------------------
+    void AssignMappingIds()
+    {
+        unsigned int i = 0;
+        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+            node_i->SetValue(MAPPING_ID,i++);
+    }
+
+    // --------------------------------------------------------------------------
+    void ComputeEntriesOfMappingMatrix()
+    {
+        for (ModelPart::NodeIterator node_itr = mrDesignSurface.NodesBegin(); node_itr != mrDesignSurface.NodesEnd(); ++node_itr)
+        {
+            ModelPart::NodeType& design_node = *node_itr;
+
+            NodeVector neighbor_nodes( mMaxNeighborNodes );
+            DoubleVector resulting_squared_distances( mMaxNeighborNodes );
+            unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( design_node,
+                                                                             mFilterRadius, 
+                                                                             neighbor_nodes.begin(),
+                                                                             resulting_squared_distances.begin(), 
+                                                                             mMaxNeighborNodes );
+
+            DoubleVector list_of_weights( number_of_neighbors, 0.0 );
+            double sum_of_weights = 0.0;
+            
+            ThrowWarningIfMaxNodeNeighborsReached( design_node, number_of_neighbors );                                                                               
+            ComputeWeightForAllNeighbors( design_node, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
+            FillMappingMatrixWithWeights( design_node, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
+        }
+    }
+
+    // --------------------------------------------------------------------------
+    void ThrowWarningIfMaxNodeNeighborsReached( ModelPart::NodeType& given_node, unsigned int number_of_neighbors )
+    {
+        if(number_of_neighbors >= mMaxNeighborNodes)
+            std::cout << "\n> WARNING!!!!! For node " << given_node.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << mMaxNeighborNodes << " nodes) reached!" << std::endl;
+    }
+
+    // --------------------------------------------------------------------------
+    void ComputeWeightForAllNeighbors(  ModelPart::NodeType& design_node, 
+                                        NodeVector& neighbor_nodes, 
+                                        unsigned int number_of_neighbors,
+                                        DoubleVector& list_of_weights, 
+                                        double& sum_of_weights )
+    {
+        for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
+        {
+            ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
+            double weight = mpFilterFunction->compute_weight( design_node.Coordinates(), neighbor_node.Coordinates() );
+
+            list_of_weights[neighbor_itr] = weight;
+            sum_of_weights += weight;
+        }
+    }
+
+    // --------------------------------------------------------------------------
+    void FillMappingMatrixWithWeights(  ModelPart::NodeType& design_node, 
+                                        NodeVector& neighbor_nodes, 
+                                        unsigned int number_of_neighbors,
+                                        DoubleVector& list_of_weights, 
+                                        double& sum_of_weights )
+    {
+        unsigned int row_id = design_node.GetValue(MAPPING_ID);
+        for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
+        {
+            ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
+            int collumn_id = neighbor_node.GetValue(MAPPING_ID);
+
+            double weight = list_of_weights[neighbor_itr] / sum_of_weights;
+            mMappingMatrix.push_back(row_id,collumn_id,weight);
+        }        
+    }
+
+    // --------------------------------------------------------------------------
+    void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
+    {
+        boost::timer mapping_time;
+        std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;
+
+        RecomputeMappingMatrixIfGeometryHasChanged();
 
     //     // First we apply edge damping to the sensitivities if specified
     //     if(mPerformDamping)
@@ -353,16 +344,16 @@ public:
     //         }
     //     }
 
-    //     // Console output for information
-    //     std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
+        std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
     }
 
     // --------------------------------------------------------------------------
-    void MapToGeometrySpace()
+    void MapToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
     {
-    //     // Measure time of mapping
-    //     boost::timer mapping_time;
-    //     std::cout << "\n> Starting mapping of design update to geometry space..." << std::endl;
+        boost::timer mapping_time;
+        std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to geometry space..." << std::endl;
+
+        RecomputeMappingMatrixIfGeometryHasChanged();        
 
     //     // Assign design update to vector which shall be mapped (depending specified mapping matrix )
     //     VectorType dsx, dsy, dsz;
@@ -441,8 +432,30 @@ public:
     //         noalias(node_i->FastGetSolutionStepValue(SHAPE_CHANGE_ABSOLUTE)) += shape_update;
     //     }
 
-    //     // Console output for information
-    //     std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
+        std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
+    }
+
+    // --------------------------------------------------------------------------
+    void RecomputeMappingMatrixIfGeometryHasChanged()
+    {
+        if(HasGeometryChanged())
+        {
+            ResetComputationOfMappingMatrix();
+            ComputeMappingMatrix();
+        }
+    }
+
+    // --------------------------------------------------------------------------
+    bool HasGeometryChanged()
+    {
+        return true;
+    }   
+
+    // --------------------------------------------------------------------------
+    void ResetComputationOfMappingMatrix()
+    {
+        mpSearchTree.reset();
+        mMappingMatrix.clear();
     }
 
     // ==============================================================================
@@ -535,16 +548,24 @@ private:
     // // ==============================================================================
     // // Initialized by class constructor
     // // ==============================================================================
-    // ModelPart& mrDesignSurface;
-    // const unsigned int mNumberOfDesignVariables;
-    // std::string mFilterFunction;
-    // const double mFilterRadius;
-    // bool mPerformDamping;
+    ModelPart& mrDesignSurface;
+    const unsigned int mNumberOfDesignVariables;
+    double mFilterRadius;
+    std::string mFilterType;
+    FilterFunction::Pointer mpFilterFunction;
+
+    // ==============================================================================
+    // Variables for spatial search
+    // ==============================================================================
+    unsigned int mBucketSize = 100;
+    unsigned int mMaxNeighborNodes = 10000;            
+    NodeVector mListOfNodesOfDesignSurface;
+    KDTree::Pointer mpSearchTree;
 
     // // ==============================================================================
     // // General working arrays
     // // ==============================================================================
-    // SparseMatrixType mMappingMatrix;
+    SparseMatrixType mMappingMatrix;
 
     ///@}
     ///@name Private Operators
