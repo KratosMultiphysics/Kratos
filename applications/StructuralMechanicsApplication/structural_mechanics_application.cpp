@@ -30,14 +30,26 @@
 #include "geometries/quadrilateral_3d_8.h"
 #include "geometries/quadrilateral_3d_8.h"
 #include "geometries/quadrilateral_3d_9.h"
+#include "geometries/point_3d.h"
+#include "geometries/prism_3d_6.h"
+#include "geometries/prism_3d_15.h"
+#include "geometries/tetrahedra_3d_4.h"
+#include "geometries/tetrahedra_3d_10.h"
+#include "geometries/hexahedra_3d_8.h"
+#include "geometries/hexahedra_3d_20.h"
+#include "geometries/hexahedra_3d_27.h"
+
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "geometries/line_3d_2.h"
 #include "geometries/line_3d_3.h"
 #include "geometries/point_2d.h"
-#include "geometries/point_3d.h"
-#include "geometries/prism_3d_6.h"
-
+#include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_2d_6.h"
+#include "geometries/quadrilateral_2d_4.h"
+#include "geometries/quadrilateral_2d_8.h"
+#include "geometries/quadrilateral_2d_8.h"
+#include "geometries/quadrilateral_2d_9.h"
 namespace Kratos
 {
 KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
@@ -61,7 +73,19 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     // Beam's point moment condition
     mPointMomentCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
     // Torque's point condition
-    mPointTorqueCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) )
+    mPointTorqueCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
+    mTotalLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ), //TOTAL LAGRANGIAN ELEMENTS
+    mTotalLagrangian2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+    mTotalLagrangian2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
+    mTotalLagrangian2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
+    mTotalLagrangian2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9 ) ) ) ),
+    mTotalLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+    mTotalLagrangian3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
+    mTotalLagrangian3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
+    mTotalLagrangian3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10 ) ) ) ),
+    mTotalLagrangian3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15 ) ) ) ),
+    mTotalLagrangian3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20 ) ) ) ),
+    mTotalLagrangian3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27 ) ) ) )
 {}
 
 void KratosStructuralMechanicsApplication::Register()
@@ -156,6 +180,21 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT( "ShellThickElementCorotational3D4N", mShellThickCorotationalElement3D4N )
     KRATOS_REGISTER_ELEMENT( "ShellThinElement3D3N", mShellThinElement3D3N )
     KRATOS_REGISTER_ELEMENT( "ShellThinElementCorotational3D3N", mShellThinCorotationalElement3D3N )
+    
+    //VOLUME ELEMENTS
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D3N", mTotalLagrangian2D3N )
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D4N", mTotalLagrangian2D4N )
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D6N", mTotalLagrangian2D6N )
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D8N", mTotalLagrangian2D8N )
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D9N", mTotalLagrangian2D9N )
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D4N", mTotalLagrangian3D4N )
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D6N", mTotalLagrangian3D6N )
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D8N", mTotalLagrangian3D8N )
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D10N", mTotalLagrangian3D10N )
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D15N", mTotalLagrangian3D15N )
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D20N", mTotalLagrangian3D20N )
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D27N", mTotalLagrangian3D27N )
+
 
     // Register the membrane element
     KRATOS_REGISTER_ELEMENT( "MembraneElement3D3N", mMembraneElement3D3N )

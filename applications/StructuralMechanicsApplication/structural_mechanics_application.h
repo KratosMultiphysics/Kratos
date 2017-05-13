@@ -33,17 +33,12 @@
 #include "custom_elements/membrane_element.hpp"
 #include "custom_elements/shell_thick_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
-
-/* Adding the nodal concentrated element */
+#include "custom_elements/total_lagrangian.h"
 #include "custom_elements/nodal_concentrated_element.hpp"
-
-/* Adding the SPRISM element */
 #include "custom_elements/SprismElement3D6N.hpp"
 
 /* CONDITIONS */
-// Beam moment condition
 #include "custom_conditions/point_moment_3D_condition.hpp"
-// Torque condition
 #include "custom_conditions/point_torque_3D_condition.hpp"
 
 /* UTILITIES */
@@ -231,6 +226,20 @@ private:
     // Adding the nodal concentrated element 
     const NodalConcentratedElement mNodalConcentratedElement2D1N;
     const NodalConcentratedElement mNodalConcentratedElement3D1N;
+
+    //total lagrangian
+    const TotalLagrangian mTotalLagrangian2D3N;
+    const TotalLagrangian mTotalLagrangian2D4N;
+    const TotalLagrangian mTotalLagrangian2D6N;
+    const TotalLagrangian mTotalLagrangian2D8N;
+    const TotalLagrangian mTotalLagrangian2D9N;
+    const TotalLagrangian mTotalLagrangian3D4N;
+    const TotalLagrangian mTotalLagrangian3D6N;
+    const TotalLagrangian mTotalLagrangian3D8N;
+    const TotalLagrangian mTotalLagrangian3D10N;
+    const TotalLagrangian mTotalLagrangian3D15N;
+    const TotalLagrangian mTotalLagrangian3D20N;
+    const TotalLagrangian mTotalLagrangian3D27N;
 
     /* CONDITIONS*/
     // Beam moment condition

@@ -22,6 +22,7 @@
 #include "structural_mechanics_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_cross_sections_to_python.h"
 
 namespace Kratos
@@ -44,6 +45,7 @@ BOOST_PYTHON_MODULE(KratosStructuralMechanicsApplication)
 
     AddCustomStrategiesToPython();
     AddCustomUtilitiesToPython();
+    AddCustomConstitutiveLawsToPython();
     AddCrossSectionsToPython();
 
     //registering variables in python
