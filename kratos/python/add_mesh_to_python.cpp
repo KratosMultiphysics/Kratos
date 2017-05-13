@@ -157,6 +157,18 @@ boost::python::list CalculateOnIntegrationPointsVector( ModelPart& rModelPart,
     return result;
 }
 
+boost::python::list CalculateOnIntegrationPointsMatrix(
+        Element& dummy, const Variable<Matrix>& rVariable, ProcessInfo& rProcessInfo )
+{
+    std::vector<Matrix> Output;
+    dummy.CalculateOnIntegrationPoints( rVariable, Output,
+                                        rProcessInfo );
+    boost::python::list result;
+    for( unsigned int j=0; j<Output.size(); j++ )
+        result.append( Output[j] );
+    return result;
+}
+
 template< class TObject >
 boost::python::list GetValuesOnIntegrationPointsDouble( TObject& dummy,
         const Variable<double>& rVariable, const ProcessInfo& rCurrentProcessInfo )
@@ -429,6 +441,7 @@ void  AddMeshToPython()
     .def("GetNodes", GetNodesFromElement )
     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsVector)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsMatrix)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsDouble<Element>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsArray1d<Element>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsVector<Element>)
