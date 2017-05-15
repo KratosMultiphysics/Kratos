@@ -12,8 +12,10 @@
             "design_submodel_part_name" : "design_surface",
             "domain_size"               : 3,
             "filter" : {
-                "filter_function_type" : "gaussian",
-                "filter_radius"        : 5
+                "filter_function_type"       : "gaussian",
+                "filter_radius"              : 5,
+                "max_nodes_in_filter_radius" : 100,
+                "matrix_free_filtering"      : false                  
             },
             "damping" : {
                 "perform_damping" : false,
@@ -22,7 +24,7 @@
         },
         "optimization_algorithm" : {
             "name"               : "steepest_descent",
-            "max_iterations"     : 1,
+            "max_iterations"     : 300,
             "relative_tolerance" : 1e-2
         },
         "line_search" : {

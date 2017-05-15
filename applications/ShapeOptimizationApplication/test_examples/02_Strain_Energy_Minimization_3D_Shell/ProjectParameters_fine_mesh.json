@@ -121,8 +121,10 @@
             "design_submodel_part_name" : "design_surface",
             "domain_size"               : 3,
             "filter" : {
-                "filter_function_type" : "linear",
-                "filter_radius"        : 3
+                "filter_function_type"       : "linear",
+                "filter_radius"              : 3,
+                "max_nodes_in_filter_radius" : 10000,
+                "matrix_free_filtering"      : false 
             },
             "damping" : {
                 "perform_damping" : true,

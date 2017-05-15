@@ -20,7 +20,7 @@ CheckForPreviousImport()
 
 # ==============================================================================
 def CreateMapper( designSurface, optimizationSettings ):
-    isMatrixFreeMappingRequired = optimizationSettings["design_variables"]["matrix_free_mapping"].GetBool()
+    isMatrixFreeMappingRequired = optimizationSettings["design_variables"]["filter"]["matrix_free_filtering"].GetBool()
     if isMatrixFreeMappingRequired:
         return MapperVertexMorphingMatrixFree( designSurface, optimizationSettings )  
     else:

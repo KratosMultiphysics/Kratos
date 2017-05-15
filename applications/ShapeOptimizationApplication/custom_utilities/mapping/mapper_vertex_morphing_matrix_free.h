@@ -85,7 +85,6 @@ public:
     typedef Node < 3 > ::Pointer NodeTypePointer;
     typedef std::vector<NodeType::Pointer> NodeVector;
     typedef std::vector<NodeType::Pointer>::iterator NodeIterator;
-    typedef std::vector<double> DoubleVector;
     typedef std::vector<double>::iterator DoubleVectorIterator;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
@@ -104,15 +103,15 @@ public:
     MapperVertexMorphingMatrixFree( ModelPart& designSurface, Parameters& optimizationSettings )
         : mrDesignSurface( designSurface ),
           mNumberOfDesignVariables( designSurface.Nodes().size() ),
+          mFilterType( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() ),
           mFilterRadius( optimizationSettings["design_variables"]["filter"]["filter_radius"].GetDouble() ),
-          mFilterType( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() )
+          mMaxNumberOfNeighbors( optimizationSettings["design_variables"]["filter"]["max_nodes_in_filter_radius"].GetInt() )
     {
         CreateListOfNodesOfDesignSurface();
         CreateSearchTreeWithAllNodesOnDesignSurface();
         CreateFilterFunction();
+        InitializeVectorsForMapping();
         AssignMappingIds();
-        InitializeVectorsForMappingToDesignSpace();
-        InitializeVectorsForMappingToGeometrySpace();
     }
 
     /// Destructor.
@@ -156,27 +155,22 @@ public:
     }     
 
     // --------------------------------------------------------------------------
+    void InitializeVectorsForMapping()
+    {
+        x_variables_in_design_space.resize(mNumberOfDesignVariables,0.0);
+        y_variables_in_design_space.resize(mNumberOfDesignVariables,0.0);
+        z_variables_in_design_space.resize(mNumberOfDesignVariables,0.0);
+        x_variables_in_geometry_space.resize(mNumberOfDesignVariables,0.0);
+        y_variables_in_geometry_space.resize(mNumberOfDesignVariables,0.0);
+        z_variables_in_geometry_space.resize(mNumberOfDesignVariables,0.0);
+    }
+
+    // --------------------------------------------------------------------------
     void AssignMappingIds()
     {
         unsigned int i = 0;
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
             node_i->SetValue(MAPPING_ID,i++);
-    }
-
-    // --------------------------------------------------------------------------
-    void InitializeVectorsForMappingToDesignSpace()
-    {
-        x_variables_in_design_space.resize(mNumberOfDesignVariables);
-        y_variables_in_design_space.resize(mNumberOfDesignVariables);
-        z_variables_in_design_space.resize(mNumberOfDesignVariables);
-    }   
-
-    // --------------------------------------------------------------------------
-    void InitializeVectorsForMappingToGeometrySpace()
-    {
-        x_variables_in_geometry_space.resize(mNumberOfDesignVariables);
-        y_variables_in_geometry_space.resize(mNumberOfDesignVariables);
-        z_variables_in_geometry_space.resize(mNumberOfDesignVariables);
     }
 
     // --------------------------------------------------------------------------
@@ -232,7 +226,6 @@ public:
         y_variables_in_geometry_space.clear();
         z_variables_in_geometry_space.clear();
     }
-    
 
     // --------------------------------------------------------------------------
     void MapVariableComponentwiseToDesignSpace( const Variable<array_3d>& rNodalVariable )
@@ -241,15 +234,15 @@ public:
         {
             ModelPart::NodeType& design_node = *node_itr;
 
-            NodeVector neighbor_nodes( mMaxNeighborNodes );
-            DoubleVector resulting_squared_distances( mMaxNeighborNodes );
+            NodeVector neighbor_nodes( mMaxNumberOfNeighbors );
+            std::vector<double> resulting_squared_distances( mMaxNumberOfNeighbors );
             unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( design_node,
                                                                              mFilterRadius, 
                                                                              neighbor_nodes.begin(),
                                                                              resulting_squared_distances.begin(), 
-                                                                             mMaxNeighborNodes );
+                                                                             mMaxNumberOfNeighbors );
 
-            DoubleVector list_of_weights( number_of_neighbors, 0.0 );
+            std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
             double sum_of_weights = 0.0;
 
             ThrowWarningIfMaxNodeNeighborsReached( design_node, number_of_neighbors );                                                                               
@@ -265,15 +258,15 @@ public:
         {
             ModelPart::NodeType& design_node = *node_itr;
 
-            NodeVector neighbor_nodes(mMaxNeighborNodes);
-            DoubleVector resulting_squared_distances(mMaxNeighborNodes);
+            NodeVector neighbor_nodes(mMaxNumberOfNeighbors);
+            std::vector<double> resulting_squared_distances(mMaxNumberOfNeighbors);
             unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( design_node,
                                                                              mFilterRadius, 
                                                                              neighbor_nodes.begin(),
                                                                              resulting_squared_distances.begin(), 
-                                                                             mMaxNeighborNodes );
+                                                                             mMaxNumberOfNeighbors );
 
-            DoubleVector list_of_weights( number_of_neighbors, 0.0 );
+            std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
             double sum_of_weights = 0.0;
 
             ThrowWarningIfMaxNodeNeighborsReached( design_node, number_of_neighbors );                                                                               
@@ -313,23 +306,17 @@ public:
     } 
 
     // --------------------------------------------------------------------------
-    bool HasGeometryChanged()
-    {
-        return true;
-    } 
-
-    // --------------------------------------------------------------------------
     void ThrowWarningIfMaxNodeNeighborsReached( ModelPart::NodeType& given_node, unsigned int number_of_neighbors )
     {
-        if(number_of_neighbors >= mMaxNeighborNodes)
-            std::cout << "\n> WARNING!!!!! For node " << given_node.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << mMaxNeighborNodes << " nodes) reached!" << std::endl;
+        if(number_of_neighbors >= mMaxNumberOfNeighbors)
+            std::cout << "\n> WARNING!!!!! For node " << given_node.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << mMaxNumberOfNeighbors << " nodes) reached!" << std::endl;
     }
 
     // --------------------------------------------------------------------------
     void ComputeWeightForAllNeighbors(  ModelPart::NodeType& design_node, 
                                         NodeVector& neighbor_nodes, 
                                         unsigned int number_of_neighbors,
-                                        DoubleVector& list_of_weights, 
+                                        std::vector<double>& list_of_weights, 
                                         double& sum_of_weights )
     {
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
@@ -347,7 +334,7 @@ public:
                                        ModelPart::NodeType& design_node, 
                                        NodeVector& neighbor_nodes, 
                                        unsigned int number_of_neighbors,
-                                       DoubleVector& list_of_weights, 
+                                       std::vector<double>& list_of_weights, 
                                        double& sum_of_weights )
     {
         array_3d& nodal_variable = design_node.FastGetSolutionStepValue(rNodalVariable);
@@ -369,7 +356,7 @@ public:
                               ModelPart::NodeType& design_node, 
                               NodeVector& neighbor_nodes, 
                               unsigned int number_of_neighbors,
-                              DoubleVector& list_of_weights, 
+                              std::vector<double>& list_of_weights, 
                               double& sum_of_weights )
     {
         int design_node_mapping_id = design_node.GetValue(MAPPING_ID);
@@ -385,6 +372,12 @@ public:
             z_variables_in_geometry_space[design_node_mapping_id] += weight*nodal_variable[2];
         }
     }
+
+    // --------------------------------------------------------------------------
+    bool HasGeometryChanged()
+    {
+        return true;
+    } 
 
     // ==============================================================================
 
@@ -478,15 +471,15 @@ private:
     // ==============================================================================
     ModelPart& mrDesignSurface;
     const unsigned int mNumberOfDesignVariables;
-    double mFilterRadius;
     std::string mFilterType;
+    double mFilterRadius;
+    unsigned int mMaxNumberOfNeighbors;            
     FilterFunction::Pointer mpFilterFunction;
 
     // ==============================================================================
     // Variables for spatial search
     // ==============================================================================
     unsigned int mBucketSize = 100;
-    unsigned int mMaxNeighborNodes = 10000;            
     NodeVector mListOfNodesOfDesignSurface;
     KDTree::Pointer mpSearchTree;
 
