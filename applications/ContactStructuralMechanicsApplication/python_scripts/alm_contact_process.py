@@ -29,9 +29,11 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "search_factor"               : 2.0,
             "active_check_factor"         : 0.01,
             "dual_search_check"           : false,
+            "strict_search_check"         : true,
             "max_number_results"          : 1000,
             "bucket_size"                 : 4,
             "normal_variation"            : false,
+            "pair_variation"              : true,
             "manual_ALM"                  : false,
             "stiffness_factor"            : 10.0,
             "penalty_scale_factor"        : 1.0,
@@ -62,6 +64,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             del(node)
         
         self.normal_variation  = self.params["normal_variation"].GetBool()
+        self.pair_variation  = self.params["pair_variation"].GetBool()
         self.integration_order = self.params["integration_order"].GetInt() 
         self.frictional_law = self.params["frictional_law"].GetString()
         self.debug_mode = self.params["debug_mode"].GetBool()
@@ -92,6 +95,8 @@ class ALMContactProcess(KratosMultiphysics.Process):
             
         # We recompute the normal at each iteration (false by default)
         self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.CONSIDER_NORMAL_VARIATION] = self.normal_variation
+        # We recompute the pairs at each iteration (true by default)
+        self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.CONSIDER_PAIR_VARIATION] = self.pair_variation
         
         # We set the value that scales in the tangent direction the penalty and scale parameter
         if self.params["contact_type"].GetString() == "Frictional":
@@ -184,6 +189,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
         search_parameters.AddValue("search_factor",self.params["search_factor"])
         search_parameters.AddValue("active_check_factor",self.params["active_check_factor"])
         search_parameters.AddValue("dual_search_check",self.params["dual_search_check"])
+        search_parameters.AddValue("strict_search_check",self.params["strict_search_check"])
         self.contact_search = ContactStructuralMechanicsApplication.TreeContactSearch(computing_model_part, search_parameters)
         
         # We initialize the conditions    

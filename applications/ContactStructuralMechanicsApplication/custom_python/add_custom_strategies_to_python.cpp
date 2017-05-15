@@ -30,12 +30,12 @@
 
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
-#include "custom_strategies/custom_schemes/residual_based_incremental_update_static_ALM_contact_scheme.hpp"
-#include "custom_strategies/custom_schemes/residual_based_bossak_displacement_ALM_contact_scheme.hpp"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "custom_strategies/custom_convergencecriterias/mortar_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/mesh_tying_mortar_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/alm_frictionless_mortar_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/alm_frictional_mortar_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/displacement_lagrangemultiplier_contact_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/displacement_lagrangemultiplier_residual_contact_criteria.h"
 
@@ -68,11 +68,11 @@ void  AddCustomStrategiesToPython()
     typedef LineSearchContactStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  LineSearchContactStrategyType;
     
     // Custom scheme types
-    typedef ResidualBasedIncrementalUpdateStaticALMContactScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedIncrementalUpdateStaticALMContactSchemeType;
-    typedef ResidualBasedBossakDisplacementALMContactScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementALMContactSchemeType;
 
     // Custom convergence criterion types
-    typedef MortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > MortarConvergenceCriteriaType;
+    typedef MeshTyingMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > MeshTyingMortarConvergenceCriteriaType;
+    typedef ALMFrictionlessMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ALMFrictionlessMortarConvergenceCriteriaType;
+    typedef ALMFrictionalMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ALMFrictionalMortarConvergenceCriteriaType;
     typedef DisplacementLagrangeMultiplierContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierContactCriteriaType;
     typedef DisplacementLagrangeMultiplierResidualContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierResidualContactCriteriaType;
     
@@ -106,33 +106,38 @@ void  AddCustomStrategiesToPython()
     //*************************SCHEME CLASSES*****************************
     //********************************************************************
             
-    // Residual Based Incremental Update Static Contact Scheme Type
-    class_< ResidualBasedIncrementalUpdateStaticALMContactSchemeType,
-            bases< BaseSchemeType >, boost::noncopyable >
-            (
-            "ResidualBasedIncrementalUpdateStaticALMContactScheme", init< >()
-            );
-            
-    // Residual Based Implicit Bossak DynamicContact Scheme Type 
-    class_< ResidualBasedBossakDisplacementALMContactSchemeType,
-            bases< BaseSchemeType >, boost::noncopyable >
-            (
-            "ResidualBasedBossakDisplacementALMContactScheme", init< double >())
-            .def("Initialize", &ResidualBasedBossakDisplacementALMContactScheme<SparseSpaceType, LocalSpaceType>::Initialize) 
-            ;
-     
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************
     //********************************************************************
 
-    // Dual set strategy for SSNM Convergence Criterion
-    class_< MortarConvergenceCriteriaType,
+    // Weighted residual values update
+    class_< MeshTyingMortarConvergenceCriteriaType,
             bases< ConvergenceCriteriaType >, boost::noncopyable >
             (
-            "MortarConvergenceCriteria", 
+            "MeshTyingMortarConvergenceCriteria", 
             init< >())
             .def(init< >())
-            .def("SetEchoLevel", &MortarConvergenceCriteriaType::SetEchoLevel)
+            .def("SetEchoLevel", &MeshTyingMortarConvergenceCriteriaType::SetEchoLevel)
+            ;
+
+    // Dual set strategy for SSNM Convergence Criterion (frictionless case)
+    class_< ALMFrictionlessMortarConvergenceCriteriaType,
+            bases< ConvergenceCriteriaType >, boost::noncopyable >
+            (
+            "ALMFrictionlessMortarConvergenceCriteria", 
+            init< >())
+            .def(init< >())
+            .def("SetEchoLevel", &ALMFrictionlessMortarConvergenceCriteriaType::SetEchoLevel)
+            ;
+            
+    // Dual set strategy for SSNM Convergence Criterion (frictional case)
+    class_< ALMFrictionalMortarConvergenceCriteriaType,
+            bases< ConvergenceCriteriaType >, boost::noncopyable >
+            (
+            "ALMFrictionalMortarConvergenceCriteria", 
+            init< >())
+            .def(init< >())
+            .def("SetEchoLevel", &ALMFrictionalMortarConvergenceCriteriaType::SetEchoLevel)
             ;
             
     // Displacement and lagrange multiplier Convergence Criterion

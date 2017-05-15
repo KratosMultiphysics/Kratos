@@ -146,35 +146,6 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
     def Initialize(self):
         structural_mechanics_static_solver.StaticMechanicalSolver.Initialize(self)
     
-    def _GetSolutionScheme(self, analysis_type, component_wise, compute_contact_forces):
-        if(analysis_type == "Linear"):
-            mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-            
-        elif(analysis_type == "Arc-Length"):
-            mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-            
-        elif(analysis_type == "Non-Linear" ):
-            self.settings.AddEmptyValue("damp_factor_m")  
-            self.settings.AddEmptyValue("dynamic_factor")
-            self.settings["damp_factor_m"].SetDouble(0.0)
-            self.settings["dynamic_factor"].SetDouble(0.0) # Quasi-static scheme
-            
-            if component_wise:
-                mechanical_scheme = SolidMechanicsApplication.ComponentWiseBossakScheme(
-                                                              self.settings["damp_factor_m"].GetDouble(), 
-                                                              self.settings["dynamic_factor"].GetDouble())
-            else:
-                if compute_contact_forces:
-                    raise Exception("TODO: change for one that works with contact change")
-                    #mechanical_scheme = ResidualBasedContactBossakScheme(self.settings["damp_factor_m"].GetDouble(), 
-                                                                         #self.settings["dynamic_factor"].GetDouble())
-                if  self.settings["mortar_type"].GetString() == "ALMContactFrictionless":
-                    mechanical_scheme = ContactStructuralMechanicsApplication.ResidualBasedIncrementalUpdateStaticALMContactScheme()
-                else:
-                    mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-                                
-        return mechanical_scheme
-    
     def _GetConvergenceCriterion(self):
         if "Contact" in self.settings["convergence_criterion"].GetString():
             D_RT = self.settings["displacement_relative_tolerance"].GetDouble()
@@ -204,11 +175,20 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                 Residual = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, R_RT, R_AT)
                 Residual.SetEchoLevel(echo_level)
                 convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
-                
-            Mortar = ContactStructuralMechanicsApplication.MortarConvergenceCriteria()
-            Mortar.SetEchoLevel(self.echo_level)
+            
+            # Adding the mortar criteria
+            if  (self.settings["mortar_type"].GetString() == "ALMContactFrictionless"):
+                Mortar = ContactStructuralMechanicsApplication.ALMFrictionlessMortarConvergenceCriteria()
+                Mortar.SetEchoLevel(self.echo_level)
+            elif  (self.settings["mortar_type"].GetString() == "ALMContactFrictional"):
+                Mortar = ContactStructuralMechanicsApplication.ALMFrictionalMortarConvergenceCriteria()
+                Mortar.SetEchoLevel(self.echo_level)
+            elif ("MeshTying" in self.settings["mortar_type"].GetString()):
+                Mortar = ContactStructuralMechanicsApplication.MeshTyingMortarConvergenceCriteria()
+                Mortar.SetEchoLevel(self.echo_level)
 
-            convergence_criterion = KratosMultiphysics.AndCriteria(Mortar, convergence_criterion)
+            convergence_criterion = KratosMultiphysics.AndCriteria(convergence_criterion, Mortar)
+            convergence_criterion.SetActualizeRHSFlag(True)
             
             return convergence_criterion
         
@@ -228,11 +208,22 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
             import convergence_criteria_factory
             convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params)
         
+            # Adding the mortar criteria
             if  (self.settings["mortar_type"].GetString() == "ALMContactFrictionless"):
-                Mortar = ContactStructuralMechanicsApplication.MortarConvergenceCriteria()
+                Mortar = ContactStructuralMechanicsApplication.ALMFrictionlessMortarConvergenceCriteria()
                 Mortar.SetEchoLevel(self.echo_level)
-
-                convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Mortar, convergence_criterion.mechanical_convergence_criterion)
+                convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria( convergence_criterion.mechanical_convergence_criterion, Mortar)
+                (convergence_criterion.mechanical_convergence_criterion).SetActualizeRHSFlag(True)
+            elif  (self.settings["mortar_type"].GetString() == "ALMContactFrictional"):
+                Mortar = ContactStructuralMechanicsApplication.ALMFrictionalMortarConvergenceCriteria()
+                Mortar.SetEchoLevel(self.echo_level)
+                convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria( convergence_criterion.mechanical_convergence_criterion, Mortar)
+                (convergence_criterion.mechanical_convergence_criterion).SetActualizeRHSFlag(True)
+            elif ("MeshTying" in self.settings["mortar_type"].GetString()):
+                Mortar = ContactStructuralMechanicsApplication.MeshTyingMortarConvergenceCriteria()
+                Mortar.SetEchoLevel(self.echo_level)
+                convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria( convergence_criterion.mechanical_convergence_criterion, Mortar)
+                (convergence_criterion.mechanical_convergence_criterion).SetActualizeRHSFlag(True)
             
             return convergence_criterion.mechanical_convergence_criterion
         

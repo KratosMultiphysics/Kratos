@@ -42,18 +42,28 @@
         										"DISPLACEMENT_bc_symmetry"]
     },
     "constraints_process_list" : [{
-        "python_module"   : "impose_vector_value_by_components_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "python_module" : "assign_vector_components_to_nodes_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorComponentsToNodesProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Parts_parts_plate",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
-            "value"           : [0.0,0.0,0.0]
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },{
+        "python_module" : "assign_vector_components_to_nodes_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorComponentsToNodesProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_bc_symmetry",
+            "variable_name"   : "DISPLACEMENT",
+            "value"           : [0.0,null,0.0],
+            "interval"        : [0.0,"End"]
         }
     }],
     "loads_process_list"       : [{
@@ -84,14 +94,15 @@
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
             "integration_order"           : 2,
-            "active_check_factor"         : 5.0e-02,
+            "active_check_factor"         : 1.0e-01,
             "normal_variation"            : false,
             "dual_search_check"           : false,
+            "strict_search_check"         : true,
             "stiffness_factor"            : 10.0,
             "penalty_scale_factor"        : 1.0,
             "manual_ALM"                  : true,
-            "penalty"                     : 1.0e7,
-            "scale_factor"                : 1.0e1,
+            "penalty"                     : 1.0e6,
+            "scale_factor"                : 1.0e6,
             "debug_mode"                  : false
         }
     }],
@@ -137,7 +148,7 @@
             "skin_output"         : false,
             "plane_output"        : [],
             "nodal_results"       : ["DISPLACEMENT","REACTION","NORMAL_CONTACT_STRESS","WEIGHTED_GAP"],
-            "nodal_nonhistorical_results": ["NORMAL"],
+            "nodal_nonhistorical_results": ["NORMAL","AUGMENTED_NORMAL_CONTACT_PRESSURE"],
             "nodal_flags_results": ["ACTIVE","SLAVE"],
             "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
         },

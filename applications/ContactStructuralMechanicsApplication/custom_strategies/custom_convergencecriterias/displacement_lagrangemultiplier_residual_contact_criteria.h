@@ -25,7 +25,7 @@
 
 namespace Kratos
 {
-///@addtogroup ContacStructuralMechanicsApplication
+///@addtogroup ContactStructuralMechanicsApplication
 ///@{
 
 ///@name Kratos Globals

@@ -112,7 +112,7 @@ public:
         const array_1d<double, 3> zerovector(3, 0.0);
         
         // We differentiate between frictional or frictionless
-        const bool frictional = mrThisModelPart.Is(SLIP);
+        const bool IsFrictional = mrThisModelPart.Is(SLIP);
         
         // We iterate over the node
         NodesArrayType& pNodes = mrThisModelPart.Nodes();
@@ -125,7 +125,7 @@ public:
             
             // Weighted values
             itNode->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
-            if (frictional == true)
+            if (IsFrictional == true)
             {
                 itNode->FastGetSolutionStepValue(WEIGHTED_SLIP) = 0.0;
             }
@@ -134,10 +134,8 @@ public:
             itNode->SetValue(NODAL_AREA, 0.0);
             
             // Auxiliar values
-            itNode->SetValue(AUXILIAR_ACTIVE, false);
-            itNode->SetValue(AUXILIAR_SLIP, false);
             itNode->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, 0.0);
-            if (frictional == true)
+            if (IsFrictional == true)
             {
                 itNode->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, 0.0);
             }

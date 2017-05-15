@@ -402,84 +402,83 @@ protected:
         }
     }
     
-    /**
-     * We recalculate the penalty parameter using the path following method for the frictionless case
-     */
-    
-    void CalculatePenaltyPathFollowingFrictionless()
-    {
-        // We get the penalty parameter
-        double& PenaltyParameter = StrategyBaseType::GetModelPart().GetProcessInfo()[PENALTY_PARAMETER]; 
-        
-        if (PenaltyParameter == 0.0)
-        {
-            KRATOS_ERROR << "You don't have any value assigned to PENALTY_PARAMETER" << std::endl;
-        }
-        
-//         const double Tolerance = 1.0e-4;
-        
-        // We get the scale factor
-        const double ScaleFactor = StrategyBaseType::GetModelPart().GetProcessInfo()[SCALE_FACTOR]; 
-
-        // We initialize the values for the path following
-        double Vfunction0      = 0.0;
-        double Vfunction       = 0.0;
-        double DeltaVfunction  = 0.0;
-        
-        // Now we iterate over all the nodes
-        NodesArrayType& pNode = StrategyBaseType::GetModelPart().GetSubModelPart("Contact").Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
-        
-        #pragma omp parallel for
-        for(unsigned int i = 0; i < numNodes; i++)  // TODO: ADDtangent contact
-        {
-            auto itNode = pNode.begin() + i;
-    
-            if (itNode->Is(ACTIVE) == true)
-            {
-                const double NormalPressure = (itNode)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
-                const double WeightedGap    = (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);    
-                
-                const double AugmentedNormalPressure  = (ScaleFactor * NormalPressure + PenaltyParameter * WeightedGap);
-                const double AugmentedNormalPressure0 = (ScaleFactor * NormalPressure + mInitialPenaltyParameter * WeightedGap);
-                                
-                // Initial penalized values
-                #pragma omp atomic
-                Vfunction0 +=  AugmentedNormalPressure0 * AugmentedNormalPressure0/(2.0 * mInitialPenaltyParameter);
-                
-                // Current penalized values 
-                #pragma omp atomic
-                Vfunction +=  AugmentedNormalPressure * AugmentedNormalPressure/(2.0 * PenaltyParameter);
-                #pragma omp atomic
-                DeltaVfunction += AugmentedNormalPressure * AugmentedNormalPressure/(2.0 * PenaltyParameter * PenaltyParameter) + WeightedGap/(2.0 * PenaltyParameter) * AugmentedNormalPressure;
-            }
-        }
-        
-        const double E = PenaltyParameter * PenaltyParameter * DeltaVfunction * 1.0/(Vfunction - Vfunction0 - PenaltyParameter * DeltaVfunction);
-        const double C2 = (E * (E + PenaltyParameter) * (Vfunction - Vfunction0))/PenaltyParameter;
-        const double C1 = Vfunction0 + C2/E;
-
-        const double m = C1 - C2/(E + PenaltyParameter); // NOTE: We need to calculate the new one!!!!
-        const double Beta = C1 - m;
-        PenaltyParameter = C2/Beta - E;
-
-        if (StrategyBaseType::mEchoLevel > 0)
-        {
-            std::cout << "The path following parameters: " << std::endl;
-            std::cout << "E: " << E << " C1: " << C1 << " C2: " << C2 << " m: " << m << " Beta: " << Beta << std::endl;
-            std::cout << "The new PENALTY_PARAMETER is: " << PenaltyParameter << std::endl;
-        }
-    }
-    
-    /**
-     * We recalculate the penalty parameter using the path following method for the frictional case
-     */
-    
-    void CalculatePenaltyPathFollowingFrictional()
-    {
-        // TODO: Finish me!!!
-    }
-    
+//     /**
+//      * We recalculate the penalty parameter using the path following method for the frictionless case
+//      */
+//     
+//     void CalculatePenaltyPathFollowingFrictionless()
+//     {
+//         // We get the penalty parameter
+//         double& PenaltyParameter = StrategyBaseType::GetModelPart().GetProcessInfo()[PENALTY_PARAMETER]; 
+//         
+//         if (PenaltyParameter == 0.0)
+//         {
+//             KRATOS_ERROR << "You don't have any value assigned to PENALTY_PARAMETER" << std::endl;
+//         }
+//         
+// //         const double Tolerance = 1.0e-4;
+//         
+//         // We get the scale factor
+//         const double ScaleFactor = StrategyBaseType::GetModelPart().GetProcessInfo()[SCALE_FACTOR]; 
+// 
+//         // We initialize the values for the path following
+//         double Vfunction0      = 0.0;
+//         double Vfunction       = 0.0;
+//         double DeltaVfunction  = 0.0;
+//         
+//         // Now we iterate over all the nodes
+//         NodesArrayType& pNode = StrategyBaseType::GetModelPart().GetSubModelPart("Contact").Nodes();
+//         auto numNodes = pNode.end() - pNode.begin();
+//         
+//         #pragma omp parallel for
+//         for(unsigned int i = 0; i < numNodes; i++)  // TODO: ADDtangent contact
+//         {
+//             auto itNode = pNode.begin() + i;
+//     
+//             if (itNode->Is(ACTIVE) == true)
+//             {
+//                 const double NormalPressure = (itNode)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
+//                 const double WeightedGap    = (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);    
+//                 
+//                 const double AugmentedNormalPressure  = (ScaleFactor * NormalPressure + PenaltyParameter * WeightedGap);
+//                 const double AugmentedNormalPressure0 = (ScaleFactor * NormalPressure + mInitialPenaltyParameter * WeightedGap);
+//                                 
+//                 // Initial penalized values
+//                 #pragma omp atomic
+//                 Vfunction0 +=  AugmentedNormalPressure0 * AugmentedNormalPressure0/(2.0 * mInitialPenaltyParameter);
+//                 
+//                 // Current penalized values 
+//                 #pragma omp atomic
+//                 Vfunction +=  AugmentedNormalPressure * AugmentedNormalPressure/(2.0 * PenaltyParameter);
+//                 #pragma omp atomic
+//                 DeltaVfunction += AugmentedNormalPressure * AugmentedNormalPressure/(2.0 * PenaltyParameter * PenaltyParameter) + WeightedGap/(2.0 * PenaltyParameter) * AugmentedNormalPressure;
+//             }
+//         }
+//         
+//         const double E = PenaltyParameter * PenaltyParameter * DeltaVfunction * 1.0/(Vfunction - Vfunction0 - PenaltyParameter * DeltaVfunction);
+//         const double C2 = (E * (E + PenaltyParameter) * (Vfunction - Vfunction0))/PenaltyParameter;
+//         const double C1 = Vfunction0 + C2/E;
+// 
+//         const double m = C1 - C2/(E + PenaltyParameter); // NOTE: We need to calculate the new one!!!!
+//         const double Beta = C1 - m;
+//         PenaltyParameter = C2/Beta - E;
+// 
+//         if (StrategyBaseType::mEchoLevel > 0)
+//         {
+//             std::cout << "The path following parameters: " << std::endl;
+//             std::cout << "E: " << E << " C1: " << C1 << " C2: " << C2 << " m: " << m << " Beta: " << Beta << std::endl;
+//             std::cout << "The new PENALTY_PARAMETER is: " << PenaltyParameter << std::endl;
+//         }
+//     }
+//     
+//     /**
+//      * We recalculate the penalty parameter using the path following method for the frictional case
+//      */
+//     
+//     void CalculatePenaltyPathFollowingFrictional()
+//     {
+//         // TODO: Finish me!!!
+//     }
     
     /**
      * Here the database is updated
@@ -494,7 +493,9 @@ protected:
     {
         BaseType::UpdateDatabase(A,Dx,b,MoveMesh);
         
-        CalculateContactReactions(b);
+        // First we activate all the nodes in the active conditions
+//         ReactivateNodes();
+//         CalculateContactReactions(b); // TODO: Remove this
     }
     
     /**

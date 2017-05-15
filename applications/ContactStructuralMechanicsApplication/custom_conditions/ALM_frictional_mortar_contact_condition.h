@@ -252,9 +252,9 @@ protected:
         
         for (unsigned int i_node = 0; i_node < CurrentGeometry.size(); i_node++)
         {
-            if (CurrentGeometry[i_node].Is(ACTIVE) == true)
+            if ((CurrentGeometry[i_node].Is(ACTIVE) == true) || (this->Is(VISITED) == true))
             {
-                if (CurrentGeometry[i_node].Is(SLIP) == true)
+                if ((CurrentGeometry[i_node].Is(SLIP) == true) || (this->Is(VISITED) == true))
                 {
                     value += std::pow(3, i_node);
                 }

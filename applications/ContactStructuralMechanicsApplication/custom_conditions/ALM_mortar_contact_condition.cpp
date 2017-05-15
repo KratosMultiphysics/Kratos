@@ -146,7 +146,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 {
     KRATOS_TRY;
     
-    // NOTE: Add things if necessary
+    this->Set(VISITED, true);
     
     KRATOS_CATCH( "" );
 }
@@ -593,6 +593,12 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
 //                 LOG_VECTOR_PRETTY( RHS_contact_pair );
             }
         }
+    }
+    
+    // Reseting flag
+    if ((this)->Is(VISITED) == true)
+    {
+        (this)->Set(VISITED, false);
     }
     
     KRATOS_CATCH( "" );

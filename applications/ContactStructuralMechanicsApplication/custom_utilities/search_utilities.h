@@ -86,7 +86,8 @@ public:
             const array_1d<double, 3>& ContactNormal1, // SLAVE
             const array_1d<double, 3>& ContactNormal2, // MASTER
             const double ActiveCheckLength,
-            const bool DualCheck = false
+            const bool DualCheck = false,
+            const bool StrictCheck = true
             )
     {
         // Define the basic information
@@ -113,7 +114,7 @@ public:
                 }  
                 
                 array_1d<double, 3> Result;
-                if (AuxDistance <= ActiveCheckLength && Geom2.IsInside(ProjectedPoint, Result, Tolerance)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
+                if (AuxDistance <= ActiveCheckLength && (StrictCheck == true ? Geom2.IsInside(ProjectedPoint, Result, Tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
                 {
                     ConditionIsActive = true;
                     
@@ -123,7 +124,7 @@ public:
                 else if (DualCheck == true)
                 {
                     AuxDistance = ContactUtilities::FastProjectDirection(Geom2, Geom1[iNode], ProjectedPoint, ContactNormal2, -ContactNormal2);
-                    if (AuxDistance <= ActiveCheckLength && Geom2.IsInside(ProjectedPoint, Result, Tolerance)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
+                    if (AuxDistance <= ActiveCheckLength && (StrictCheck == true ? Geom2.IsInside(ProjectedPoint, Result, Tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
                     {
                         ConditionIsActive = true;
                         
@@ -159,10 +160,11 @@ public:
         const array_1d<double, 3> & ContactNormal1, // SLAVE
         const array_1d<double, 3> & ContactNormal2, // MASTER
         const double ActiveCheckLength,
-        const bool DualCheck = false 
+        const bool DualCheck = false, 
+        const bool StrictCheck = true 
         )
     {
-        const bool ConditionIsActive = ContactChecker(pCond1->GetGeometry(), pCond2->GetGeometry(), ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck);
+        const bool ConditionIsActive = ContactChecker(pCond1->GetGeometry(), pCond2->GetGeometry(), ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck);
         
         if (ConditionIsActive == true)
         {

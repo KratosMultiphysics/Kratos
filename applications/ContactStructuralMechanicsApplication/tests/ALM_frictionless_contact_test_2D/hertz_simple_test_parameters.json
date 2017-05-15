@@ -85,9 +85,10 @@
             "dual_search_check"           : false,
             "stiffness_factor"            : 10.0,
             "penalty_scale_factor"        : 1.0,
+            "pair_variation"              : true,
             "manual_ALM"                  : true,
-            "penalty"                     : 1.0e7,
-            "scale_factor"                : 1.0e1,
+            "penalty"                     : 5.0e7,
+            "scale_factor"                : 5.0e7,
             "debug_mode"                  : false
         }
     }

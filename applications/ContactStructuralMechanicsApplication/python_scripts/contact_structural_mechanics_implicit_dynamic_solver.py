@@ -138,32 +138,6 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
     
     def Initialize(self):
         structural_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver.Initialize(self)
-        
-    def _GetSolutionScheme(self, scheme_type, component_wise, compute_contact_forces):
-
-        if(scheme_type == "Newmark") or (scheme_type == "Bossak"):
-            self.main_model_part.ProcessInfo[SolidMechanicsApplication.RAYLEIGH_ALPHA] = self.settings["rayleigh_alpha"].GetDouble()
-            self.main_model_part.ProcessInfo[SolidMechanicsApplication.RAYLEIGH_BETA ] = self.settings["rayleigh_beta" ].GetDouble()
-            
-            if  (self.settings["mortar_type"].GetString() == "ALMContactFrictionless"):
-                if (scheme_type == "Newmark"):
-                    mechanical_scheme = ContactStructuralMechanicsApplication.ResidualBasedBossakDisplacementALMContactScheme(0.0)
-                else:
-                    alpha = self.settings["damp_factor_m"].GetDouble()
-                    mechanical_scheme = ContactStructuralMechanicsApplication.ResidualBasedBossakDisplacementALMContactScheme(alpha)
-            else:
-                mechanical_scheme = super(ImplicitMechanicalSolver,self)._GetSolutionScheme(scheme_type, component_wise, compute_contact_forces)
-
-        elif(scheme_type == "Relaxation"):
-            self.settings.AddEmptyValue("damp_factor_f")  
-            self.settings.AddEmptyValue("dynamic_factor_m")
-            self.settings["damp_factor_f"].SetDouble(-0.3)
-            self.settings["dynamic_factor_m"].SetDouble(10.0) 
-            
-            mechanical_scheme = StructuralMechanicsApplication.ResidualBasedRelaxationScheme(self.settings["damp_factor_f"].GetDouble(),
-                                                                                                                self.settings["dynamic_factor_m"].GetDouble())
-                                
-        return mechanical_scheme
     
     def _GetConvergenceCriterion(self):
         if "Contact" in self.settings["convergence_criterion"].GetString():
@@ -194,11 +168,20 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                 Residual = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, R_RT, R_AT)
                 Residual.SetEchoLevel(echo_level)
                 convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
-                
-            Mortar = ContactStructuralMechanicsApplication.MortarConvergenceCriteria()
-            Mortar.SetEchoLevel(self.echo_level)
+            
+            # Adding the mortar criteria
+            if  (self.settings["mortar_type"].GetString() == "ALMContactFrictionless"):
+                Mortar = ContactStructuralMechanicsApplication.ALMFrictionlessMortarConvergenceCriteria()
+                Mortar.SetEchoLevel(self.echo_level)
+            elif  (self.settings["mortar_type"].GetString() == "ALMContactFrictional"):
+                Mortar = ContactStructuralMechanicsApplication.ALMFrictionalMortarConvergenceCriteria()
+                Mortar.SetEchoLevel(self.echo_level)
+            elif ("MeshTying" in self.settings["mortar_type"].GetString()):
+                Mortar = ContactStructuralMechanicsApplication.MeshTyingMortarConvergenceCriteria()
+                Mortar.SetEchoLevel(self.echo_level)
 
-            convergence_criterion = KratosMultiphysics.AndCriteria(Mortar, convergence_criterion)
+            convergence_criterion = KratosMultiphysics.AndCriteria(convergence_criterion, Mortar)
+            convergence_criterion.SetActualizeRHSFlag(True)
             
             return convergence_criterion
         
@@ -218,11 +201,22 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             import convergence_criteria_factory
             convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params)
         
+            # Adding the mortar criteria
             if  (self.settings["mortar_type"].GetString() == "ALMContactFrictionless"):
-                Mortar = ContactStructuralMechanicsApplication.MortarConvergenceCriteria()
+                Mortar = ContactStructuralMechanicsApplication.ALMFrictionlessMortarConvergenceCriteria()
                 Mortar.SetEchoLevel(self.echo_level)
-
-                convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Mortar, convergence_criterion.mechanical_convergence_criterion)
+                convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria( convergence_criterion.mechanical_convergence_criterion, Mortar)
+                (convergence_criterion.mechanical_convergence_criterion).SetActualizeRHSFlag(True)
+            elif  (self.settings["mortar_type"].GetString() == "ALMContactFrictional"):
+                Mortar = ContactStructuralMechanicsApplication.ALMFrictionalMortarConvergenceCriteria()
+                Mortar.SetEchoLevel(self.echo_level)
+                convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria( convergence_criterion.mechanical_convergence_criterion, Mortar)
+                (convergence_criterion.mechanical_convergence_criterion).SetActualizeRHSFlag(True)
+            elif ("MeshTying" in self.settings["mortar_type"].GetString()):
+                Mortar = ContactStructuralMechanicsApplication.MeshTyingMortarConvergenceCriteria()
+                Mortar.SetEchoLevel(self.echo_level)
+                convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria( convergence_criterion.mechanical_convergence_criterion, Mortar)
+                (convergence_criterion.mechanical_convergence_criterion).SetActualizeRHSFlag(True)
             
             return convergence_criterion.mechanical_convergence_criterion
     

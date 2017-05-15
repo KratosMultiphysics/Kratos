@@ -9,8 +9,8 @@
 //  Main authors:    Vicente Mataix Ferrándiz
 //
 
-#if !defined(KRATOS_MORTAR_CRITERIA_H)
-#define  KRATOS_MORTAR_CRITERIA_H
+#if !defined(KRATOS_BASE_MORTAR_CRITERIA_H)
+#define  KRATOS_BASE_MORTAR_CRITERIA_H
 
 /* System includes */
 
@@ -20,11 +20,10 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "custom_utilities/color_utilities.h"
 
 namespace Kratos
 {
-///@addtogroup ContacStructuralMechanicsApplication
+///@addtogroup ContactStructuralMechanicsApplication
 ///@{
     
 ///@name Kratos Globals
@@ -49,13 +48,13 @@ namespace Kratos
 /** @brief Custom convergence criteria for the mortar condition 
  */
 template<class TSparseSpace, class TDenseSpace>
-class MortarConvergenceCriteria : public virtual  ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class BaseMortarConvergenceCriteria : public virtual  ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION( MortarConvergenceCriteria );
+    KRATOS_CLASS_POINTER_DEFINITION( BaseMortarConvergenceCriteria );
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 
@@ -78,26 +77,45 @@ public:
     ///@{
     
     /// Default constructors
-    MortarConvergenceCriteria()
+    BaseMortarConvergenceCriteria()
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
     {
-        mInitialPreviousState = false;
     }
 
     ///Copy constructor 
-    MortarConvergenceCriteria( MortarConvergenceCriteria const& rOther )
+    BaseMortarConvergenceCriteria( BaseMortarConvergenceCriteria const& rOther )
       :BaseType(rOther)
-      ,mInitialPreviousState(rOther.mInitialPreviousState)
     {
     }
 
     /// Destructor
-    virtual ~MortarConvergenceCriteria() {}
+    virtual ~BaseMortarConvergenceCriteria() {}
 
     ///@}
     ///@name Operators
     ///@{
 
+    /**
+     * Criterias that need to be called before getting the solution
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     * @return true if convergence is achieved, false otherwise
+     */
+    
+    virtual bool PreCriteria(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+        ) override
+    {
+        return true;
+    }
+    
     /**
      * Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the contact problem.
@@ -108,99 +126,15 @@ public:
      * @return true if convergence is achieved, false otherwise
      */
 
-    bool PostCriteria(
+    virtual bool PostCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+        ) override
     {
-        // First we check if we are in the frictional case
-        const bool FrictionalCase = rModelPart.Is(SLIP);
-            
-        if (mInitialPreviousState == false)
-        {            
-            // We iterate over the nodes
-            NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
-            
-            auto numNodes = pNode.end() - pNode.begin();
-            
-            #pragma omp parallel for
-            for(unsigned int i = 0; i < numNodes; i++) 
-            {
-                auto itNode = pNode.begin() + i;
- 
-                itNode->SetValue(AUXILIAR_ACTIVE, itNode->Is(ACTIVE));
-
-                if (FrictionalCase == true)
-                {
-                    itNode->SetValue(AUXILIAR_SLIP, itNode->Is(SLIP));
-                }
-
-            }
-            
-            mInitialPreviousState = true;
-            return false;
-        }
-        
-        bool IsConvergedActive = true;
-        bool IsConvergedSlip = true;
-        
-        // We iterate again over the nodes
-        NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
-        
-        auto numNodes = pNode.end() - pNode.begin();
-        
-        #pragma omp parallel for
-        for(unsigned int i = 0; i < numNodes; i++) 
-        {
-            auto itNode = pNode.begin() + i;
-
-            // NORMAL DIRECTION
-            if (itNode->GetValue(AUXILIAR_ACTIVE) != itNode->Is(ACTIVE))
-            {                            
-                itNode->SetValue(AUXILIAR_ACTIVE, itNode->Is(ACTIVE));
-                #pragma omp critical
-                IsConvergedActive = false;
-            }
-            
-            if (FrictionalCase == true)
-            {
-                // TANGENT DIRECTION
-                if (itNode->GetValue(AUXILIAR_SLIP) != itNode->Is(SLIP))
-                {                            
-                    itNode->SetValue(AUXILIAR_SLIP, itNode->Is(SLIP));
-                    #pragma omp critical
-                    IsConvergedSlip = false;
-                }
-            }
-        }
-        
-        if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
-        {
-            if (IsConvergedActive == true)
-            {
-                std::cout << BOLD("\tActive set") << " convergence is " << BOLD(FGRN("achieved")) << std::endl;
-            }
-            else
-            {
-                std::cout << BOLD("\tActive set") << " convergence is " << BOLD(FRED("not achieved")) << std::endl;
-            }
-            if (FrictionalCase == true)
-            {
-                if (IsConvergedActive == true)
-                {
-                    std::cout << BOLD("\tSlip/stick set") << " convergence is " << BOLD(FGRN("achieved")) << std::endl;
-                }
-                else
-                {
-                    std::cout << BOLD("\tSlip/stick set") << " convergence is " << BOLD(FRED("not achieved")) << std::endl;
-                }
-            }
-        }
-        
-        return (IsConvergedActive && IsConvergedSlip);
+        KRATOS_ERROR << "WARNING:: YOUR ARE CALLING THE BASE MORTAR CRITERIA" << std::endl;
     }
     
     /**
@@ -208,9 +142,9 @@ public:
      * @param rModelPart: The model part of interest
      */ 
     
-    void Initialize(ModelPart& rModelPart)
+    virtual void Initialize(ModelPart& rModelPart) override
     {
-        BaseType::mConvergenceCriteriaIsInitialized = true;
+        KRATOS_ERROR << "WARNING:: YOUR ARE CALLING THE BASE MORTAR CRITERIA" << std::endl;
     }
     
     /**
@@ -222,15 +156,14 @@ public:
      * @param b RHS vector (residual)
      */
     
-    void InitializeSolutionStep(
+    virtual void InitializeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+        ) override
     {
-        mInitialPreviousState = false;        
     }
     
     /**
@@ -242,17 +175,54 @@ public:
      * @param b RHS vector (residual)
      */
     
-    void FinalizeSolutionStep(
+    virtual void FinalizeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    ) 
+        ) override 
     {
-        
     }
 
+    /**
+     * This function initializes the non linear iteration
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     */
+    
+    virtual void InitializeNonLinearIteration(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+        ) override
+    {
+    }
+    
+    /**
+     * This function finalizes the non linear iteration
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     */
+    
+    virtual void FinalizeNonLinearIteration(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+        ) override
+    {
+    }
+    
     ///@}
     ///@name Operations
     ///@{
@@ -285,7 +255,45 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
+    
+    /**
+     * This method calculates the reactions concerning the contact (residual of the contact)
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param b: The residual vector
+     */
+    
+    void CalculateContactReactions(
+        ModelPart& rModelPart,
+        const TSystemVectorType& b
+        )
+    {       
+        const double ScaleFactor = (rModelPart.GetProcessInfo()[SCALE_FACTOR] > 0.0) ? rModelPart.GetProcessInfo()[SCALE_FACTOR] : 1.0;
+        
+        // Now we iterate over all the nodes
+        NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+                          
+            for(auto itDoF = itNode->GetDofs().begin() ; itDoF != itNode->GetDofs().end() ; itDoF++)
+            {
+                const int j = (itDoF)->EquationId();
+                
+                if (((itDoF)->GetReaction().Name()).find("WEIGHTED") != std::string::npos) // Corresponding with contact
+                {                        
+                    (itDoF)->GetSolutionStepReactionValue() = b[j]/ScaleFactor;
+                }
+                else if ((itDoF)->GetReaction().Name() != "NONE") // The others
+                {                        
+                    (itDoF)->GetSolutionStepReactionValue() = -b[j];
+                }
+            }
+        }
+    }
+    
     ///@}
     ///@name Protected  Access
     ///@{
@@ -306,8 +314,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    bool mInitialPreviousState;
     
     ///@}
     ///@name Private Operators
@@ -316,11 +322,10 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
+    
     ///@}
     ///@name Private  Access
     ///@{
-    ///@}
 
     ///@}
     ///@name Serialization
@@ -334,12 +339,12 @@ private:
     ///@{
     ///@}
 
-}; // Class MortarConvergenceCriteria 
+}; // Class BaseMortarConvergenceCriteria 
 
 ///@name Explicit Specializations
 ///@{
 
 }  // namespace Kratos 
 
-#endif /* KRATOS_MORTAR_CRITERIA_H  defined */
+#endif /* KRATOS_BASE_MORTAR_CRITERIA_H  defined */
 

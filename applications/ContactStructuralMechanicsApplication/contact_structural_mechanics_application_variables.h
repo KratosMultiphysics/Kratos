@@ -108,10 +108,6 @@ KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( WEIGHTED_VECTOR_RESIDUAL )           
 /* Matrix to store the derivatives of the normal */
 KRATOS_DEFINE_VARIABLE( Matrix, DELTA_NORMAL )                                  // Directional derivative of the normal
 
-/* Auxiliar booleans to store the change in active/inactive slip/stick */
-KRATOS_DEFINE_VARIABLE( bool, AUXILIAR_ACTIVE )                                // Auxiliar boolean to check if the node is active or not
-KRATOS_DEFINE_VARIABLE( bool, AUXILIAR_SLIP )                                  // Auxiliar boolean to check if the node is stick or not
-
 /* For ALM mortar condition */
 KRATOS_DEFINE_VARIABLE( double, AUGMENTED_NORMAL_CONTACT_PRESSURE )            // The resultant augmented pressure in the normal direction
 KRATOS_DEFINE_VARIABLE( double, AUGMENTED_TANGENT_CONTACT_PRESSURE )           // The resultant augmented pressure in the tangent direction
@@ -119,6 +115,7 @@ KRATOS_DEFINE_VARIABLE( double, PENALTY_PARAMETER )                            /
 KRATOS_DEFINE_VARIABLE( double, SCALE_FACTOR )                                 // The scale factor for the ALM
 KRATOS_DEFINE_VARIABLE( double, TANGENT_FACTOR )                               // The proportion between the tangent and normal penalty
 KRATOS_DEFINE_VARIABLE( bool, CONSIDER_NORMAL_VARIATION )                      // A value used to check if consider normal variation or not
+KRATOS_DEFINE_VARIABLE( bool, CONSIDER_PAIR_VARIATION )                        // A value used to check if consider variation or not in the active inactive pairs
 
 /* For mesh tying mortar condition */
 KRATOS_DEFINE_VARIABLE( std::string, TYING_VARIABLE )                          // The variable name for the mesh tying  
