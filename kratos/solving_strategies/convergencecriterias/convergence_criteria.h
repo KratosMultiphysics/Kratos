@@ -29,51 +29,44 @@
 namespace Kratos
 {
 
-/**@name Kratos Globals */
-/*@{ */
+///@name Kratos Globals
+///@{
 
+///@}
+///@name Type Definitions
+///@{
 
-/*@} */
-/**@name Type Definitions */
-/*@{ */
+///@}
 
-/*@} */
+///@name  Enum's
+///@{
 
+///@}
+///@name  Functions
+///@{
 
-/**@name  Enum's */
-/*@{ */
-
-
-/*@} */
-/**@name  Functions */
-/*@{ */
-
-
-
-/*@} */
-/**@name Kratos Classes */
-/*@{ */
+///@}
+///@name Kratos Classes
+///@{
 
 /** Short class definition.
 Detail class definition.
 
 \URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
 
-    \URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
+\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
 
-  \URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
+\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
 
-            \URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
+\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
 
+\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
 
-                    \URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
+\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
 
-                      \URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
+\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
 
-                            \URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-                              \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
+\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
 
 */
 template<class TSparseSpace,
@@ -82,8 +75,8 @@ template<class TSparseSpace,
 class ConvergenceCriteria
 {
 public:
-    /**@name Type Definitions */
-    /*@{ */
+    ///@name Type Definitions
+    ///@{
 
     typedef typename TSparseSpace::DataType TDataType;
     typedef typename TSparseSpace::MatrixType TSystemMatrixType;
@@ -97,10 +90,9 @@ public:
 
     /** Counted pointer of ConvergenceCriteria */
     KRATOS_CLASS_POINTER_DEFINITION(ConvergenceCriteria);
-    /*@} */
-    /**@name Life Cycle
-     */
-    /*@{ */
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     /** Constructor.
      */
@@ -108,9 +100,8 @@ public:
     {
         mActualizeRHSIsNeeded = false;
         mConvergenceCriteriaIsInitialized = false;
-	SetEchoLevel(1);
+        SetEchoLevel(1);
     }
-
 
     /** Copy constructor.
      */
@@ -127,19 +118,24 @@ public:
     {
     }
 
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-    /*@} */
-    /**@name Operators
-     */
-
-    /*@{ */
+    bool mActualizeRHSIsNeeded;
+    bool mConvergenceCriteriaIsInitialized;
+    int  mEchoLevel;
+    
+    ///@}
+    ///@name Operators
+    ///@{
 
     /**
      * Get component wise element components
      */
     virtual std::vector<TSystemVectorType>&  GetRHS_Element_Components()
     { 
-      KRATOS_THROW_ERROR(std::logic_error, "Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable","")
+      KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
     } 
 
     /**
@@ -147,7 +143,7 @@ public:
      */
     virtual std::vector< Variable< LocalSystemVectorType > >&  GetRHS_Element_Variables()
     { 
-      KRATOS_THROW_ERROR(std::logic_error, "Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable","")
+      KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
     } 
 
     /**
@@ -155,7 +151,7 @@ public:
      */
     virtual std::vector<TSystemVectorType>&  GetRHS_Condition_Components()
     { 
-      KRATOS_THROW_ERROR(std::logic_error, "Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable","")
+      KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
     } 
 
     /**
@@ -163,9 +159,8 @@ public:
      */
     virtual std::vector< Variable< LocalSystemVectorType > >&  GetRHS_Condition_Variables()
     { 
-      KRATOS_THROW_ERROR(std::logic_error, "Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable","")
+      KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
     } 
-
 
     //*********************************************************************************
 
@@ -197,7 +192,7 @@ public:
 
     /*Criterias that need to be called before getting the solution */
     virtual bool PreCriteria(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
@@ -209,7 +204,7 @@ public:
 
     /*Criterias that need to be called after getting the solution */
     virtual bool PostCriteria(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
@@ -220,14 +215,14 @@ public:
     }
 
     virtual void Initialize(
-        ModelPart& r_model_part
-    )
+        ModelPart& rModelPart
+        )
     {
         mConvergenceCriteriaIsInitialized = true;
     }
 
     virtual void InitializeSolutionStep(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
@@ -237,7 +232,7 @@ public:
     }
 
     virtual void InitializeNonLinearIteration(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
@@ -247,7 +242,7 @@ public:
     }
 
     virtual void FinalizeSolutionStep(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
@@ -257,7 +252,7 @@ public:
     }
 
     virtual void FinalizeNonLinearIteration(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
@@ -270,10 +265,10 @@ public:
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
      * to catch user's errors.
-     * @param r_model_part
+     * @param rModelPart
      * @return 0 all ok
      */
-    virtual int Check(ModelPart& r_model_part)
+    virtual int Check(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
@@ -281,116 +276,92 @@ public:
         KRATOS_CATCH("");
     }
 
+    ///@}
+    ///@name Operations
+    ///@{
 
+    ///@}
+    ///@name Access
+    ///@{
 
-    bool mActualizeRHSIsNeeded;
-    bool mConvergenceCriteriaIsInitialized;
-    int  mEchoLevel;
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-    /*@} */
-    /**@name Operations */
-    /*@{ */
+    ///@}
+    ///@name Friends
+    ///@{
 
-
-    /*@} */
-    /**@name Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Friends */
-    /*@{ */
-
-
-    /*@} */
+    ///@}
 
 protected:
-    /**@name Protected static Member Variables */
-    /*@{ */
+    ///@name Protected static Member Variables
+    ///@{
 
-    /*@} */
-    /**@name Protected member Variables */
-    /*@{ */
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
+    ///@}
+    ///@name Protected LifeCycle 
+    ///@{
 
-    /*@} */
-    /**@name Protected  Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected LifeCycle */
-    /*@{ */
-
-
-
-    /*@} */
+    ///@}
 
 private:
-    /**@name Static Member Variables */
-    /*@{ */
+    ///@name Static Member Variables
+    ///@{
 
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
+    ///@}
+    ///@name Private Operations
+    ///@{
 
+    ///@}
+    ///@name Private  Access
+    ///@{
 
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
+    ///@}
+    ///@name Private Inquiry 
+    ///@{
 
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-    /*@} */
-    /**@name Private  Access */
-    /*@{ */
+    ///@}
 
+}; /* Class ConvergenceCriteria */
 
-    /*@} */
-    /**@name Private Inquiry */
-    /*@{ */
+///@}
 
+///@name Type Definitions */
+///@{
 
-    /*@} */
-    /**@name Un accessible methods */
-    /*@{ */
-
-
-    /*@} */
-
-}; /* Class ClassName */
-
-/*@} */
-
-/**@name Type Definitions */
-/*@{ */
-
-
-/*@} */
+///@}
 
 } /* namespace Kratos.*/
 
