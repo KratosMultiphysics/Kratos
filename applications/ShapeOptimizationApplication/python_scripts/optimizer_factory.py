@@ -58,10 +58,6 @@ class VertexMorphingMethod:
         inputModelPart.AddNodalSolutionStepVariable(SEARCH_DIRECTION) 
         inputModelPart.AddNodalSolutionStepVariable(SHAPE_UPDATE) 
         inputModelPart.AddNodalSolutionStepVariable(SHAPE_CHANGE_ABSOLUTE)
-        inputModelPart.AddNodalSolutionStepVariable(IS_ON_BOUNDARY)
-        inputModelPart.AddNodalSolutionStepVariable(BOUNDARY_PLANE) 
-        inputModelPart.AddNodalSolutionStepVariable(SHAPE_UPDATES_DEACTIVATED) 
-        inputModelPart.AddNodalSolutionStepVariable(SENSITIVITIES_DEACTIVATED) 
 
     # --------------------------------------------------------------------------
     def importModelPart( self ):
