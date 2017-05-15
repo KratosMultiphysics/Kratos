@@ -35,16 +35,16 @@ class LaplacianSolver:
             },
             "linear_solver_settings": {
                     "solver_type": "AMGCL",
-                    "max_iteration": 200,
+                    "max_iteration": 400,
                     "smoother_type":"ilu0",
                     "coarsening_type":"aggregation",
                     "krylov_type": "lgmres",
                     "tolerance": 1e-9,
                     "verbosity": 2,
-                    "scaling": true
+                    "scaling": false
             }
         }""")
-        
+                    
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
