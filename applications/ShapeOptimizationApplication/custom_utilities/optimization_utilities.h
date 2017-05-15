@@ -192,7 +192,7 @@ public:
     // ==============================================================================
     // For running penalized projection method
     // ==============================================================================
-    void compute_projected_search_direction( double c )
+    void compute_projected_search_direction()
     {
         KRATOS_TRY;
 

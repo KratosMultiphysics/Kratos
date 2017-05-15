@@ -116,7 +116,6 @@
         "constraints" : [],
         "design_variables" : {
             "design_variables_type"     : "vertex_morphing", 
-            "matrix_free_mapping"       : false,
             "input_model_part_name"     : "3D_Hook",
             "design_submodel_part_name" : "design_surface",
             "domain_size"               : 3,
@@ -124,7 +123,7 @@
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 30,
                 "max_nodes_in_filter_radius" : 10000,
-                "matrix_free_filtering"      : false 
+                "matrix_free_filtering"      : true 
             },
             "damping" : {
                 "perform_damping" : true,
