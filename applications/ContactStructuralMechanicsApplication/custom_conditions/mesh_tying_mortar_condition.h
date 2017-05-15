@@ -945,27 +945,6 @@ protected:
     }
     
     /*
-     * Calculates the matrix De
-     */
-    boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> ComputeMe(        
-        const array_1d<double, NumNodes> N1, 
-        const double detJ 
-        )
-    {
-        boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes>  Me;
-    
-        for (unsigned int i = 0; i < NumNodes; i++)
-        {
-            for (unsigned int j = 0; j < NumNodes; j++)
-            {
-                Me(i,j) = detJ * N1[i] * N1[j];
-            }
-        }
-        
-        return Me;
-    }
-    
-    /*
      * Calculates the matrix Ae
      */
     void CalculateAe(

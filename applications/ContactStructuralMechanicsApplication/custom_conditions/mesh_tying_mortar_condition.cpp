@@ -879,10 +879,10 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateAeComponents
 {
     /* DEFINITIONS */
     const VectorType N1 = rVariables.N_Slave;
-    const double detJ = rVariables.DetJSlave; 
+    const double DetJ = rVariables.DetJSlave; 
      
-    rAeData.De += rIntegrationWeight * (ComputeDe(N1, detJ));
-    rAeData.Me += rIntegrationWeight * (ComputeMe(N1, detJ));
+    rAeData.De += rIntegrationWeight * (ComputeDe(N1, DetJ));
+    rAeData.Me += rIntegrationWeight * DetJ * outer_prod(N1, N1);
 }
 
 /***********************************************************************************/
