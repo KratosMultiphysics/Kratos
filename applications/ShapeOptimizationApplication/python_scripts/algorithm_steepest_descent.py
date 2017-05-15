@@ -48,12 +48,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.dampingUtilities = DampingUtilities( designSurface, dampingRegions, self.optimizationSettings )
 
         self.timer = timer_factory.CreateTimer()
-        self.specificVariablesToBeLogged = { "stepSize": self.initialStepSize }
-        self.dataLogger = optimization_data_logger_factory.CreateDataLogger( designSurface, 
-                                                                             communicator, 
-                                                                             optimizationSettings, 
-                                                                             self.timer, 
-                                                                             self.specificVariablesToBeLogged  )             
+        self.dataLogger = optimization_data_logger_factory.CreateDataLogger( designSurface, communicator, optimizationSettings, self.timer )
 
     # --------------------------------------------------------------------------
     def execute( self ):

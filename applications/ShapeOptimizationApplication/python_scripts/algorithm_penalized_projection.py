@@ -51,12 +51,8 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         self.dampingUtilities = DampingUtilities( designSurface, dampingRegions, self.optimizationSettings )        
 
         self.timer = timer_factory.CreateTimer()
-        self.specificVariablesToBeLogged = { "correctionScaling": self.initialCorrectionScaling, "stepSize": self.initialStepSize }
-        self.dataLogger = optimization_data_logger_factory.CreateDataLogger( designSurface, 
-                                                                             communicator, 
-                                                                             optimizationSettings, 
-                                                                             self.timer, 
-                                                                             self.specificVariablesToBeLogged  )        
+        self.dataLogger = optimization_data_logger_factory.CreateDataLogger( designSurface, communicator, optimizationSettings, self.timer )
+
     # --------------------------------------------------------------------------
     def execute( self ):
         self.__initializeOptimizationLoop()
@@ -67,7 +63,6 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
     def __initializeOptimizationLoop( self ):   
         self.timer.startTimer()
         self.dataLogger.initializeDataLogging() 
-        self.optimizationTools.set_correction_scaling( self.initialCorrectionScaling )
 
     # --------------------------------------------------------------------------
     def __startOptimizationLoop( self ):
@@ -188,13 +183,8 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep( self, optimizationIteration ):
-        self.__updateSpecificVariablesForLog()
         self.dataLogger.logCurrentData( optimizationIteration )
 
-    # --------------------------------------------------------------------------
-    def __updateSpecificVariablesForLog( self ):
-        self.specificVariablesToBeLogged["correctionScaling"] = self.optimizationTools.get_correction_scaling()
-    
     # --------------------------------------------------------------------------
     def __timeOptimizationStep( self ):
         print("\n> Time needed for current optimization step = ", self.timer.getLapTime(), "s")

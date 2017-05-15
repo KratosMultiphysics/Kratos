@@ -69,7 +69,7 @@ void  AddCustomUtilitiesToPython()
     // ========================================================================
     // For performing individual steps of an optimization algorithm
     // ========================================================================
-    class_<OptimizationUtilities, bases<Process> >("OptimizationUtilities", init<ModelPart&, Parameters&>())
+    class_<OptimizationUtilities, bases<Process> >("OptimizationUtilities", init<ModelPart&, Parameters::Pointer>())
         // ----------------------------------------------------------------
         // For running unconstrained descent methods
         // ----------------------------------------------------------------
@@ -79,8 +79,6 @@ void  AddCustomUtilitiesToPython()
         // ----------------------------------------------------------------
         .def("compute_projected_search_direction", &OptimizationUtilities::compute_projected_search_direction)
         .def("correct_projected_search_direction", &OptimizationUtilities::correct_projected_search_direction)
-        .def("get_correction_scaling", &OptimizationUtilities::get_correction_scaling)
-        .def("set_correction_scaling", &OptimizationUtilities::set_correction_scaling)
         // ----------------------------------------------------------------
         // General optimization operations
         // ----------------------------------------------------------------
