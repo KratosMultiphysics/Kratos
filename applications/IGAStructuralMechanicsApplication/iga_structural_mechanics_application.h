@@ -50,6 +50,7 @@
 #include "custom_conditions/meshless_support_rotation_condition.h"
 #include "custom_conditions/meshless_load_condition.h"
 #include "custom_conditions/meshless_lagrange_coupling_condition.h"
+#include "custom_conditions/meshless_lagrange_coupling_condition_2.h"
 #include "custom_conditions/meshless_penalty_coupling_rotation_condition.h"
 
 namespace Kratos {
@@ -69,6 +70,7 @@ namespace Kratos {
 	//KRATOS_DEFINE_VARIABLE(Matrix, SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE)
 
 	KRATOS_DEFINE_VARIABLE(Vector, TANGENTS)
+  KRATOS_DEFINE_VARIABLE(Vector, TANGENTS_SLAVE)
 
 	KRATOS_DEFINE_VARIABLE(double, PENALTY_FACTOR)
 
@@ -211,6 +213,7 @@ private:
 	const MeshlessSupportRotationCondition mMeshlessSupportRotationCondition;
 	const MeshlessLoadCondition mMeshlessLoadCondition;
 	const MeshlessLagrangeCouplingCondition mMeshlessLagrangeCouplingCondition;
+  const MeshlessLagrangeCouplingCondition2 mMeshlessLagrangeCouplingCondition2;
 	const MeshlessPenaltyCouplingRotationCondition mMeshlessPenaltyCouplingRotationCondition;
 	///@}
 

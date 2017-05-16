@@ -58,8 +58,8 @@ public:
     ///@{
 
     /// Default constructor.
-	MeshlessShellElement(IndexType NewId, GeometryType::Pointer pGeometry);
-	MeshlessShellElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+	  MeshlessShellElement(IndexType NewId, GeometryType::Pointer pGeometry);
+	  MeshlessShellElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
     /// Destructor.
     virtual ~MeshlessShellElement();
@@ -242,7 +242,6 @@ private:
 		rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
 		rSerializer.save("ReferenceGeometry", mpReferenceGeometry);
 		rSerializer.save("DetJ0", mDetJ0);
-		rSerializer.save("TotalDomainInitialSize", mTotalDomainInitialSize);
 		rSerializer.save("density", mdensity);
 		rSerializer.save("Thickness0", mThickness0);
 		rSerializer.save("Thickness", mThickness);
@@ -263,7 +262,6 @@ private:
 		rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
 		rSerializer.load("ReferenceGeometry", mpReferenceGeometry);
 		rSerializer.load("DetJ0", mDetJ0);
-		rSerializer.load("TotalDomainInitialSize", mTotalDomainInitialSize);
 		rSerializer.load("density", mdensity);
 		rSerializer.load("Thickness0", mThickness0);
 		rSerializer.load("Thickness", mThickness);

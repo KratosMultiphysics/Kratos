@@ -74,9 +74,9 @@ namespace Kratos
 		rRightHandSideVector = ZeroVector(number_of_points * 3); //resetting RHS
 
 		const Vector& ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
-    KRATOS_WATCH(ShapeFunctionsN)
+    //KRATOS_WATCH(ShapeFunctionsN)
     const Vector& NSlave = this->GetValue(SHAPE_FUNCTION_VALUES_SLAVE);
-    KRATOS_WATCH(NSlave)
+    //KRATOS_WATCH(NSlave)
     Vector ShapeFunctions = ZeroVector(ShapeFunctionsN.size() + NSlave.size());
     for (unsigned int i = 0; i < ShapeFunctionsN.size(); i++)
     {
@@ -84,24 +84,24 @@ namespace Kratos
     }
     for (unsigned int i = 0; i < NSlave.size(); i++)
     {
-      ShapeFunctions[i + ShapeFunctionsN.size()] = NSlave[i];
+      ShapeFunctions[i + ShapeFunctionsN.size()] = -NSlave[i];
     }
-    KRATOS_WATCH(ShapeFunctions)
+    //KRATOS_WATCH(ShapeFunctions)
 		const double Penalty = this->GetValue(PENALTY_FACTOR);
-    KRATOS_WATCH(Penalty)
+    //KRATOS_WATCH(Penalty)
 		const double Weighting = this->GetValue(INTEGRATION_WEIGHT);
-    KRATOS_WATCH(Weighting)
+    //KRATOS_WATCH(Weighting)
 		const Vector& localTrimTangents = this->GetValue(TANGENTS);
-    KRATOS_WATCH(localTrimTangents)
+    //KRATOS_WATCH(localTrimTangents)
 		const Matrix& ShapeFunctionDerivativesMaster = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-    KRATOS_WATCH(ShapeFunctionDerivativesMaster)
+    //KRATOS_WATCH(ShapeFunctionDerivativesMaster)
 
 		array_1d<double, 2> localTrimTangentsMaster;
 		localTrimTangentsMaster[0] = localTrimTangents[0];
 		localTrimTangentsMaster[1] = localTrimTangents[1];
 
 		const int displacement_rotation_fix = this->GetValue(DISPLACEMENT_ROTATION_FIX);
-    KRATOS_WATCH(displacement_rotation_fix)
+    //KRATOS_WATCH(displacement_rotation_fix)
 
 		// Read out information of which elements are fixed
 		// int cheaper to store than 4 bool
@@ -119,12 +119,16 @@ namespace Kratos
 			Diff_Phi.clear();
 
 			CaculateRotationalShapeFunctions(Phi_r, Phi_r_Lambda, Phi_rs, Diff_Phi);
+      //KRATOS_WATCH(Phi_r)
+      //KRATOS_WATCH(Phi_r_Lambda)
+      //KRATOS_WATCH(Phi_rs)
+      //KRATOS_WATCH(Diff_Phi)
 
 			for (unsigned int i = 0; i < number_of_points * 3; i++)
 			{
 				for (unsigned int j = 0; j < number_of_points * 3; j++)
 				{
-					rLeftHandSideMatrix(i, j) = Phi_r(i)*Phi_r(j) +Diff_Phi(0)*Phi_rs(i, j);
+					rLeftHandSideMatrix(i, j) = Phi_r(i)*Phi_r(j) + Diff_Phi(0)*Phi_rs(i, j);
 				}
 				rRightHandSideVector[i] = Diff_Phi(0)*Phi_r(i);
 			}

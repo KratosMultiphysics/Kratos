@@ -8,7 +8,6 @@ class IGAApplyLoad(python_process.PythonProcess):
         
         for condition in model_part.Conditions:
             for variable_key in variables:
-                print(variables[variable_key])
                 condition.SetValue(eval(variable_key), variables[variable_key])
 
 
@@ -69,8 +68,6 @@ def Factory(settings, Model):
 			direction[1] = params["variables"][variable_i]["variable"]["y"].GetDouble()
 			direction[2] = params["variables"][variable_i]["variable"]["z"].GetDouble()
 			variables.update({variable_name : direction})
-
-	print(variables)
 
 
 	return IGAApplyLoad(model_part, variables)

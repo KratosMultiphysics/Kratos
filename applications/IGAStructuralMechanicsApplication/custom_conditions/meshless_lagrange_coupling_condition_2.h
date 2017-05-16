@@ -1,5 +1,5 @@
-#if !defined(KRATOS_MESHLESS_LAGRANGE_COUPLING_CONDITION_H_INCLUDED )
-#define  KRATOS_MESHLESS_LAGRANGE_COUPLING_CONDITION_H_INCLUDED
+#if !defined(KRATOS_MESHLESS_LAGRANGE_COUPLING_CONDITION_2_H_INCLUDED )
+#define  KRATOS_MESHLESS_LAGRANGE_COUPLING_CONDITION_2_H_INCLUDED
 
 
 
@@ -44,26 +44,26 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class MeshlessLagrangeCouplingCondition
+class MeshlessLagrangeCouplingCondition2
     : public MeshlessBaseCouplingCondition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of MeshlessLagrangeCouplingCondition
-    KRATOS_CLASS_POINTER_DEFINITION(MeshlessLagrangeCouplingCondition);
+    /// Counted pointer of MeshlessLagrangeCouplingCondition2
+    KRATOS_CLASS_POINTER_DEFINITION(MeshlessLagrangeCouplingCondition2);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MeshlessLagrangeCouplingCondition(IndexType NewId, GeometryType::Pointer pGeometry);
-    MeshlessLagrangeCouplingCondition(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+    MeshlessLagrangeCouplingCondition2(IndexType NewId, GeometryType::Pointer pGeometry);
+    MeshlessLagrangeCouplingCondition2(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~MeshlessLagrangeCouplingCondition();
+    virtual ~MeshlessLagrangeCouplingCondition2();
 
 
     ///@}
@@ -86,8 +86,6 @@ public:
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
     void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo) override;
-
-    void GetShapeFunctions(Vector& N, Vector& NLambda);
 
     ///@}
     ///@name Access
@@ -162,7 +160,7 @@ private:
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-    MeshlessLagrangeCouplingCondition() : MeshlessBaseCouplingCondition()
+    MeshlessLagrangeCouplingCondition2() : MeshlessBaseCouplingCondition()
     {
     }
 
@@ -191,15 +189,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    //MeshlessLagrangeCouplingCondition& operator=(const MeshlessLagrangeCouplingCondition& rOther);
+    //MeshlessLagrangeCouplingCondition2& operator=(const MeshlessLagrangeCouplingCondition2& rOther);
 
     /// Copy constructor.
-    //MeshlessLagrangeCouplingCondition(const MeshlessLagrangeCouplingCondition& rOther);
+    //MeshlessLagrangeCouplingCondition2(const MeshlessLagrangeCouplingCondition2& rOther);
 
 
     ///@}
 
-}; // Class MeshlessLagrangeCouplingCondition
+}; // Class MeshlessLagrangeCouplingCondition2
 
 ///@}
 
@@ -214,11 +212,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-				    MeshlessLagrangeCouplingCondition& rThis);
+				    MeshlessLagrangeCouplingCondition2& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const MeshlessLagrangeCouplingCondition& rThis)
+				    const MeshlessLagrangeCouplingCondition2& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -230,6 +228,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MESHLESS_LAGRANGE_COUPLING_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_MESHLESS_LAGRANGE_COUPLING_CONDITION_2_H_INCLUDED  defined 
 
 

@@ -8,7 +8,6 @@ class IGAApplyContinuity(python_process.PythonProcess):
 
         for condition in model_part.Conditions:
             for variable_key in variables:
-                print(variables[variable_key])
                 condition.SetValue(eval(variable_key), variables[variable_key])
 
         print("Finished construction of IGAApplyContinuity Process")
@@ -70,6 +69,5 @@ def Factory(settings, Model):
 			displacements[2] = params["variables"][variable_i]["variable"]["C0-Continuity"]["z"].GetDouble()
 			variables.update({variable_name : displacements})
 
-	print(variables)
 	
 	return IGAApplyContinuity(model_part, variables)

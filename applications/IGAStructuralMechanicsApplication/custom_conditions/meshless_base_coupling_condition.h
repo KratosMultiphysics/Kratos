@@ -129,7 +129,7 @@ protected:
 		Matrix &Phi_rs,
 		array_1d<double, 2> &Phi,
 		array_1d<double, 3> &TrimTangent,
-		const array_1d<double, 2> &Tangents,
+		const Vector &Tangents,
 		const bool Master);
 
 	void JacobianElement(const Matrix& DN_De,
@@ -138,6 +138,8 @@ protected:
 	void MappingGeometricToParameterMasterElement(const Matrix& DN_De_Master,
 		const array_1d<double, 2>& Tangents,
 		double& JGeometricToParameter);
+
+  void MappingGeometricToParameterOnMasterCurve(double& JGeometricToParameter);
 
     ///@}
     ///@name Protected  Access

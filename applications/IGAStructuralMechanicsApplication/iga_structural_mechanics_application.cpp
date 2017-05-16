@@ -42,6 +42,7 @@ KratosIGAStructuralMechanicsApplication::KratosIGAStructuralMechanicsApplication
 	mMeshlessShellElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
 	//mContinuityConditionLagrange(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
 	mMeshlessLagrangeCouplingCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+  mMeshlessLagrangeCouplingCondition2(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
 	//mContinuityConditionPenalty(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
 	//mLoadCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
 	//mSupportCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
@@ -75,6 +76,7 @@ void KratosIGAStructuralMechanicsApplication::Register() {
 	
 	// edge integration
 	KRATOS_REGISTER_VARIABLE( TANGENTS)
+  KRATOS_REGISTER_VARIABLE(TANGENTS_SLAVE)
 	
 	// penalty factor
 	KRATOS_REGISTER_VARIABLE( PENALTY_FACTOR)
@@ -95,6 +97,7 @@ void KratosIGAStructuralMechanicsApplication::Register() {
 	KRATOS_REGISTER_CONDITION("MeshlessSupportRotationCondition", mMeshlessSupportRotationCondition)
 	KRATOS_REGISTER_CONDITION("MeshlessLoadCondition", mMeshlessLoadCondition)
 	KRATOS_REGISTER_CONDITION("MeshlessLagrangeCouplingCondition", mMeshlessLagrangeCouplingCondition)
+  KRATOS_REGISTER_CONDITION("MeshlessLagrangeCouplingCondition2", mMeshlessLagrangeCouplingCondition2)
 	KRATOS_REGISTER_CONDITION("MeshlessPenaltyCouplingRotationCondition", mMeshlessPenaltyCouplingRotationCondition)
 
 	//// Register outdated conditions

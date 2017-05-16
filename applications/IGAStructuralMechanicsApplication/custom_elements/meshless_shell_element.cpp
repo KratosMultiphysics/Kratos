@@ -206,7 +206,7 @@ void MeshlessShellElement::Initialize()
 
 
 	//calculating the total area
-	mTotalDomainInitialSize = mDetJ0 * integration_weight; //RAUS SCHMEI?EN
+	//mTotalDomainInitialSize = mDetJ0 * integration_weight;
 
 	KRATOS_CATCH("")
 }
@@ -339,8 +339,15 @@ void MeshlessShellElement::CalculateAndAddNonlinearKm(
 					check = i + 1;
 				for (unsigned int j = 0; j < check; j++)
 				{
-					K(3*n + i, 3*m + j) += (SD[0] * B11(3*n + i, 3*m + j) + SD[1] * B22(3 * n + i, 3 * m + j) + SD[2] * B12(3 * n + i, 3 * m + j))*weight;
-					K(3*m + j, 3*n + i) += (SD[0] * B11(3 * n + i, 3 * m + j) + SD[1] * B22(3 * n + i, 3 * m + j) + SD[2] * B12(3 * n + i, 3 * m + j))*weight;
+          unsigned int nbase = 3 * n + i;
+          unsigned int mbase = 3 * m + j;
+
+					K(nbase, mbase) += (SD[0] * B11(nbase, mbase) 
+            + SD[1] * B22(nbase, mbase) 
+            + SD[2] * B12(nbase, mbase))*weight;
+					K(mbase, nbase) += (SD[0] * B11(nbase, mbase) 
+            + SD[1] * B22(nbase, mbase) 
+            + SD[2] * B12(nbase, mbase))*weight;
 				}
 			}
 		}
@@ -744,7 +751,7 @@ void MeshlessShellElement::CalculateAll(
 	bool CalculateResidualVectorFlag)
 
 {
-	KRATOS_TRY
+  KRATOS_TRY
 	// definition of problem size
 	const unsigned int number_of_nodes = GetGeometry().size();
 	unsigned int MatSize = number_of_nodes * 3;
@@ -755,12 +762,6 @@ void MeshlessShellElement::CalculateAll(
 	Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRAIN, false);
 	Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
 	Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
-	//Matrix B(3, MatSize);
-	Vector StrainVector = ZeroVector(3);
-	Vector StressVector = ZeroVector(3);
-
-	Vector CurvatureVector = ZeroVector(3);
 
 	//resizing as needed the LHS
 	if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
@@ -788,22 +789,18 @@ void MeshlessShellElement::CalculateAll(
 	// curvature covariant metric in deformed system
 	array_1d<double, 3> curvature;
 
-	// Transformation Matrix Q
-	boost::numeric::ublas::bounded_matrix<double, 3, 3>  Q = ZeroMatrix(3, 3);
-	Q = mQ;
+	// Transformation Matrix Q - 
+	boost::numeric::ublas::bounded_matrix<double, 3, 3>  Q = mQ;
 
-
+  Vector StrainVector = ZeroVector(3);
+  Vector CurvatureVector = ZeroVector(3);
 
 	// basis vectors in deformed system
 	array_1d<double, 3> g1, g2;
 	CalculateMetricDeformed(DN_De, DDN_DDe, gab, curvature, g1, g2);
 	CalculateStrain(StrainVector, gab, mGab0);
 
-  //KRATOS_WATCH(g1)
-  //KRATOS_WATCH(g2)
-
 	Vector StrainVector_in_Q_coordinates = prod(Q, StrainVector);
-
 	CalculateCurvature(CurvatureVector, curvature, mCurvature0);
 	Vector CurvatureVector_in_Q_coordinates = prod(Q, CurvatureVector);
 
@@ -812,30 +809,32 @@ void MeshlessShellElement::CalculateAll(
 	Matrix DCurvature = ZeroMatrix(3, 3);
 
 	Values.SetStrainVector(StrainVector); //this is the input parameter
+  Vector StressVector;
 	Values.SetStressVector(StressVector); //this is an ouput parameter
 	Values.SetConstitutiveMatrix(DMembrane); //this is an ouput parameter
-
+  //KRATOS_WATCH(DMembrane)
 	mConstitutiveLawVector->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
-
+  //KRATOS_WATCH(DMembrane)
 	double thickness = this->GetProperties().GetValue(THICKNESS);
 	DCurvature = DMembrane*(pow(thickness, 2) / 12);
 
 	//Local Cartesian Foreces and Moments
-	Vector ForceVector_in_Q_coordinates = ZeroVector(3);
-	Vector MomentVector_in_Q_coordinates = ZeroVector(3);
+	//Vector ForceVector_in_Q_coordinates = prod(trans(DMembrane), StrainVector_in_Q_coordinates);
+	//Vector MomentVector_in_Q_coordinates = prod(trans(DCurvature), CurvatureVector_in_Q_coordinates);
+  Vector ForceVector_in_Q_coordinates = ZeroVector(3);
+  Vector MomentVector_in_Q_coordinates = ZeroVector(3);
 
-	ForceVector_in_Q_coordinates = prod(trans(DMembrane), StrainVector_in_Q_coordinates);
-	MomentVector_in_Q_coordinates = prod( trans(DCurvature), CurvatureVector_in_Q_coordinates);
-
+  ForceVector_in_Q_coordinates = prod(trans(DMembrane), StrainVector_in_Q_coordinates);
+  MomentVector_in_Q_coordinates = prod(trans(DCurvature), CurvatureVector_in_Q_coordinates);
 
 	// calculate B MATRICES
 	//B matrices:
 	Matrix BMembrane = ZeroMatrix(3, MatSize);
   Matrix BCurvature = ZeroMatrix(3, MatSize);
 	CalculateBMembrane(BMembrane, Q, DN_De, g1, g2);
+  //KRATOS_WATCH(BMembrane)
 	CalculateBCurvature(BCurvature, Q, DN_De, DDN_DDe, g1, g2);
-	
-
+  //KRATOS_WATCH(BCurvature)
 
 	// integration on the REFERENCE CONFIGURATION
 	double DetJ0 = mDetJ0;

@@ -96,13 +96,14 @@ class IGAStructuralMechanicsSolver:
 		#	self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
 
 		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)
+		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
 		print("Added Variables: DISPLACEMENT and VECTOR_LAGRANGE_MULTIPLIER")
 
 		
 	def ImportModelPart(self, projectparameters):
 		#print ("\n------------------Import Elements--------------------")
-		
 		if(self.settings["model_import_settings"]["input_type"].GetString() == "txt"):
+			
             #here it would be the place to import restart data if required
 			ModelPartIO = ImportModelPart.Factory(self.settings["model_import_settings"]["input_filename"].GetString(), self.settings, projectparameters)
 			ModelPartIO.ReadModelPart(self.model_part)
@@ -145,6 +146,10 @@ class IGAStructuralMechanicsSolver:
 			node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_X);
 			node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Y);
 			node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Z);
+
+			node.AddDof(KratosMultiphysics.ROTATION_X);
+			node.AddDof(KratosMultiphysics.ROTATION_Y);
+			node.AddDof(KratosMultiphysics.ROTATION_Z);
 		print("Added DOFs: DISPLACEMENT and VECTOR_LAGRANGE_MULTIPLIER")
 
 	def Initialize(self):

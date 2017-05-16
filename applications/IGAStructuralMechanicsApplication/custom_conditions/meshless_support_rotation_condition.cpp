@@ -69,10 +69,13 @@ void MeshlessSupportRotationCondition::CalculateRotation(const Matrix& ShapeFunc
 	array_1d<double, 3> g1, g2, g3;
 	this->GetBasisVectors(ShapeFunctionDerivatives, g1, g2, g3);
 
+  //KRATOS_WATCH(g1)
+  //  KRATOS_WATCH(g2)
+  //  KRATOS_WATCH(g3)
+
 	// t1 normal to trim, t2 tangential to trim
 	array_1d<double, 3> t2 = Tangents(0)*g10 + Tangents(1)*g20;  
-	array_1d<double, 3> t1;
-	CrossProduct(t1, t2, g30);
+	array_1d<double, 3> t1 = CrossProduct(t2, g30);
 	t2 = t2 / norm_2(t2);
 	t1 = t1 / norm_2(t1);
 
@@ -119,14 +122,13 @@ void MeshlessSupportRotationCondition::CalculateRotation(const Matrix& ShapeFunc
 			array_1d<double, 3> tilde_3_r = CrossProduct(a1_r, g2) + CrossProduct(g1, a2_r);
 			double line_t3_r = inner_prod(t3, tilde_3_r);
 			array_1d<double, 3> t3_r = tilde_3_r / Length_t3 - line_t3_r*t3 / Length_t3;
-			array_1d<double, 3> SinusOmega_r;
-			CrossProduct(SinusOmega_r, g30, t3_r);
+			array_1d<double, 3> SinusOmega_r = CrossProduct(g30, t3_r);
 			Phi_r(n * 3 + i) = 1.0 / sqrt(1.0 - pow(SinusOmega(0), 2))*inner_prod(SinusOmega_r, t2);
 			// if needed at some point:
 			//Phi_r_2(i * 3 + j) = 1.0 / sqrt(1.0 - pow(SinusOmega(1), 2))*inner_prod(SinusOmega_r, t1);
 		}
 	}
-	//KRATOS_WATCH(Phi_r)
+	//KRATOS_WATCH(Phi_r)			
 	for (unsigned int n = 0; n < number_of_points; n++)
 	{
 		for (unsigned int i = 0; i < 3; i++)
@@ -144,10 +146,9 @@ void MeshlessSupportRotationCondition::CalculateRotation(const Matrix& ShapeFunc
 			array_1d<double, 3> tilde_3_r_n = CrossProduct(a1_r_n, g2) + CrossProduct(g1, a2_r_n);
 			double line_t3_r_n = inner_prod(t3, tilde_3_r_n);
 			array_1d<double, 3> t3_r_n = tilde_3_r_n / Length_t3 - line_t3_r_n*t3 / Length_t3;
-			array_1d<double, 3> SinusOmega_r_n;
-			CrossProduct(SinusOmega_r_n, g30, t3_r_n);
+			array_1d<double, 3> SinusOmega_r_n = CrossProduct(g30, t3_r_n);
 
-			for (unsigned int m = 0; m < 3; m++)
+			for (unsigned int m = 0; m < number_of_points; m++)
 			{
 				for (unsigned int j = 0; j < 3; j++)
 				{
@@ -155,7 +156,7 @@ void MeshlessSupportRotationCondition::CalculateRotation(const Matrix& ShapeFunc
 					array_1d<double, 3> a1_r_m;
 					a1_r_m.clear();
 					array_1d<double, 3> a2_r_m;
-					a2_r_n.clear();
+					a2_r_m.clear();
 
 					a1_r_m(j) = ShapeFunctionDerivatives(m, 0);
 					a2_r_m(j) = ShapeFunctionDerivatives(m, 1);
@@ -165,12 +166,15 @@ void MeshlessSupportRotationCondition::CalculateRotation(const Matrix& ShapeFunc
 					array_1d<double, 3> t3_r_m = tilde_3_r_m / Length_t3 - line_t3_r_m*t3 / Length_t3;
 					array_1d<double, 3> SinusOmega_r_m = CrossProduct(g30, t3_r_m);
 
-
-					array_1d<double, 3> tilde_t3_rs = CrossProduct(a1_r_n, a2_r_m) + CrossProduct(a2_r_n, a1_r_m);
-					double line_t3_rs = inner_prod(t3_r_m, tilde_3_r_n) + inner_prod(t3, tilde_t3_rs);
-					array_1d<double, 3> t3_rs = (tilde_t3_rs*Length_t3 - line_t3_r_m * tilde_3_r_n) / pow(Length_t3, 2)
+					array_1d<double, 3> tilde_t3_rs = CrossProduct(a1_r_n, a2_r_m) + CrossProduct(a1_r_m, a2_r_n);
+          //std::cout << "tilde_t3_rs: " << tilde_t3_rs << std::endl;
+          double line_t3_rs = inner_prod(t3_r_m, tilde_3_r_n) + inner_prod(t3, tilde_t3_rs);
+          //std::cout << "line_t3_rs: " << line_t3_rs << std::endl;
+          array_1d<double, 3> t3_rs = (tilde_t3_rs*Length_t3 - line_t3_r_m * tilde_3_r_n) / pow(Length_t3, 2)
 						- line_t3_rs*t3 / Length_t3 - line_t3_r_n * (t3_r_m * Length_t3 - line_t3_r_m * t3) / pow(Length_t3, 2);
-					array_1d<double, 3> SinusOmega_rs = CrossProduct(g30, t3_rs);
+          //std::cout << "t3_rs: " << t3_rs << std::endl;
+          array_1d<double, 3> SinusOmega_rs = CrossProduct(g30, t3_rs);
+          //std::cout << "SinusOmega_rs: " << SinusOmega_rs << std::endl;
 
 					Phi_rs(n * 3 + i, m * 3 + j) = inner_prod(SinusOmega_rs, t2) / sqrt(1.0 - pow(SinusOmega(0), 2))
 						+ inner_prod(SinusOmega_r_m, t2)*inner_prod(SinusOmega_r_n, t2)*SinusOmega(0) / pow(1.0
@@ -210,7 +214,7 @@ void MeshlessSupportRotationCondition::CalculateLocalSystem(MatrixType& rLeftHan
 	const array_1d<double, 3>& support = this->GetValue(DISPLACEMENT);
 
 	double Penalty = this->GetValue(PENALTY_FACTOR);
-
+  //KRATOS_WATCH(Penalty)
 	const double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
 	Vector Tangents = this->GetValue(TANGENTS);
 
@@ -238,18 +242,25 @@ void MeshlessSupportRotationCondition::CalculateLocalSystem(MatrixType& rLeftHan
 		array_1d<double, 2> TrimTangents;
 		TrimTangents[0] = Tangents[0];
 		TrimTangents[1] = Tangents[1];
+    KRATOS_WATCH(Tangents)
+      KRATOS_WATCH(DN_De)
 		CalculateRotation(DN_De, Phi_r, Phi_rs, Phi, TrimTangents);
+
+    KRATOS_WATCH(Phi_r)
+      KRATOS_WATCH(Phi_rs)
+      KRATOS_WATCH(Phi)
 
 		for (unsigned int n = 0; n < number_of_points*3; n++)
 		{
 			for (unsigned int m = 0; m < number_of_points*3; m++)
 			{
-				rLeftHandSideMatrix(n, m) += (Phi_r(n)*Phi_r(m) +Phi(0)*Phi_rs(n, m));
+				rLeftHandSideMatrix(n, m) += (Phi_r(n)*Phi_r(m) + Phi(0)*Phi_rs(n, m));
 			}
 			rRightHandSideVector(n) -= Phi(0)*Phi_r(n);
 		}
 	}
 
+  //KRATOS_WATCH(rLeftHandSideMatrix)
 	
 	// DISPLACEMENTS
 	Matrix Stiffness =  ZeroMatrix(3, ShapeFunctionsN.size()*3);
@@ -265,7 +276,7 @@ void MeshlessSupportRotationCondition::CalculateLocalSystem(MatrixType& rLeftHan
 			Stiffness(2, 3 * i + 2) = ShapeFunctionsN[i];
 	}
 
-    Vector TDisplacements(number_of_points*3);
+  Vector TDisplacements(number_of_points*3);
 	for (unsigned int i = 0; i < number_of_points; i++)
 	{
 		const array_1d<double, 3> disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
@@ -275,7 +286,7 @@ void MeshlessSupportRotationCondition::CalculateLocalSystem(MatrixType& rLeftHan
 		TDisplacements[index + 2] = (disp[2] - support[2]);
 	}
 
-    noalias(rLeftHandSideMatrix) += prod(trans(Stiffness), Stiffness);
+  noalias(rLeftHandSideMatrix) += prod(trans(Stiffness), Stiffness);
 	noalias(rRightHandSideVector) -= prod(prod(trans(Stiffness), Stiffness), TDisplacements);
 
         
@@ -283,8 +294,8 @@ void MeshlessSupportRotationCondition::CalculateLocalSystem(MatrixType& rLeftHan
 	rLeftHandSideMatrix *= integration_weight * JGeometricToParameter * Penalty;
 	rRightHandSideVector *= integration_weight * JGeometricToParameter * Penalty;
 
-        
-    KRATOS_CATCH("")
+  //KRATOS_WATCH(rLeftHandSideMatrix)
+  KRATOS_CATCH("")
 } // MeshlessSupportRotationCondition::MeshlessSupportRotationCondition
 
 
