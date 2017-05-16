@@ -143,7 +143,6 @@ namespace Kratos
 		int Check(const ProcessInfo& rCurrentProcessInfo);
 
 
-		double CalculateGreenLagrangeStrain();
 		double CalculateCurrentLength();
 		double CalculatePsi(const double I, const double A_eff);
 		double CalculateReferenceLength();
@@ -179,6 +178,7 @@ namespace Kratos
 		Vector mPhiS, mPhiA;
 
 		int mIterationCount = 0;
+		bool mIsLinearElement = false;
 
 		CrBeamElement3D2N() {};
 
