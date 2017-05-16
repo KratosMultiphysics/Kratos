@@ -34,7 +34,6 @@ THE SOFTWARE.
 #include <amgcl/relaxation/gauss_seidel.hpp>
 #include <amgcl/relaxation/multicolor_gauss_seidel.hpp>
 #include <amgcl/relaxation/ilu0.hpp>
-#include <amgcl/relaxation/parallel_ilu0.hpp>
 #include <amgcl/relaxation/iluk.hpp>
 #include <amgcl/relaxation/ilut.hpp>
 #include <amgcl/relaxation/damped_jacobi.hpp>
@@ -52,7 +51,6 @@ enum type {
     gauss_seidel,               ///< Gauss-Seidel smoothing
     multicolor_gauss_seidel,    ///< Multicolor Gauss-seidel
     ilu0,                       ///< Incomplete LU with zero fill-in
-    parallel_ilu0,              ///< Parallel version of ILU(0)
     iluk,                       ///< Level-based incomplete LU
     ilut,                       ///< Incomplete LU with thresholding
     damped_jacobi,              ///< Damped Jacobi
@@ -70,8 +68,6 @@ inline std::ostream& operator<<(std::ostream &os, type r)
             return os << "multicolor_gauss_seidel";
         case ilu0:
             return os << "ilu0";
-        case parallel_ilu0:
-            return os << "parallel_ilu0";
         case iluk:
             return os << "iluk";
         case ilut:
@@ -100,8 +96,6 @@ inline std::istream& operator>>(std::istream &in, type &r)
         r = multicolor_gauss_seidel;
     else if (val == "ilu0")
         r = ilu0;
-    else if (val == "parallel_ilu0")
-        r = parallel_ilu0;
     else if (val == "iluk")
         r = iluk;
     else if (val == "ilut")
@@ -165,11 +159,6 @@ void process_rap(runtime::relaxation::type relaxation, const Func &func) {
         case runtime::relaxation::ilu0:
             process_rap<Backend, amgcl::relaxation::ilu0>(func);
             break;
-#ifndef AMGCL_RUNTIME_DISABLE_PARALLEL_ILU0
-        case runtime::relaxation::parallel_ilu0:
-            process_rap<Backend, amgcl::relaxation::parallel_ilu0>(func);
-            break;
-#endif
         case runtime::relaxation::iluk:
             process_rap<Backend, amgcl::relaxation::iluk>(func);
             break;

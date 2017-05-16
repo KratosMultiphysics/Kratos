@@ -195,15 +195,6 @@ process_amg(
                 amgcl::relaxation::ilu0
                 >(func);
             break;
-#ifndef AMGCL_RUNTIME_DISABLE_PARALLEL_ILU0
-        case runtime::relaxation::parallel_ilu0:
-            process_amg<
-                Backend,
-                Coarsening,
-                amgcl::relaxation::parallel_ilu0
-                >(func);
-            break;
-#endif
         case runtime::relaxation::iluk:
             process_amg<
                 Backend,
