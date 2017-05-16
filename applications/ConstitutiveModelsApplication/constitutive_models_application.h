@@ -88,6 +88,7 @@
 #include "custom_models/plasticity_models/hardening_laws/baker_johnson_cook_thermal_hardening_law.hpp"
 #include "custom_models/plasticity_models/hardening_laws/exponential_damage_hardening_law.hpp"
 #include "custom_models/plasticity_models/hardening_laws/modified_exponential_damage_hardening_law.hpp"
+#include "custom_models/plasticity_models/hardening_laws/cam_clay_hardening_law.hpp"
 
 
 #include "constitutive_models_application_variables.h"
@@ -279,8 +280,8 @@ namespace Kratos {
     const MisesHuberYieldCriterion<HardeningLawType>         mMisesHuberYieldCriterion;
     const MisesHuberThermalYieldCriterion<HardeningLawType>  mMisesHuberThermalYieldCriterion;
     const SimoJuYieldCriterion<HardeningLawType>             mSimoJuYieldCriterion;
-    const ModifiedMisesYieldCriterion <HardeningLawType>     mModifiedMisesYieldCriterion;
-    const ModifiedCamClayYieldCriterion <HardeningLawType>     mModifiedCamClayYieldCriterion;
+    const ModifiedMisesYieldCriterion<HardeningLawType>     mModifiedMisesYieldCriterion;
+    const ModifiedCamClayYieldCriterion<HardeningLawType>     mModifiedCamClayYieldCriterion;
     
     //hardening laws
     const SimoExponentialHardeningLaw              mSimoExponentialHardeningLaw;

@@ -115,7 +115,8 @@ namespace Kratos
                const double ShearM = 1.0;
 
                // compute something with the hardening law
-               double PreconsolidationStress = -70.0;
+               double PreconsolidationStress;
+               PreconsolidationStress = this->mHardeningLaw.CalculateHardening( rVariables, PreconsolidationStress );
 
                const ModelDataType & rModelData = rVariables.GetModelData();
                const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
@@ -132,6 +133,7 @@ namespace Kratos
                rYieldCondition += (MeanStress * (MeanStress - PreconsolidationStress) );
 
 
+               //std::cout << " yield funciton: p " << MeanStress << " q: " << DeviatoricQ << "  pc " << PreconsolidationStress << " yield value " << rYieldCondition << std::endl;
                return rYieldCondition;
 
                KRATOS_CATCH(" ")
@@ -148,7 +150,8 @@ namespace Kratos
                const double ShearM = 1.0;
 
                // compute something with the hardening law
-               double PreconsolidationStress = -70.0;
+               double PreconsolidationStress;
+               PreconsolidationStress = this->mHardeningLaw.CalculateHardening( rVariables, PreconsolidationStress );
 
                const ModelDataType & rModelData = rVariables.GetModelData();
                const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();

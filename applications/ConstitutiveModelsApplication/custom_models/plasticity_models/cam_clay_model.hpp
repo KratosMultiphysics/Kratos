@@ -16,9 +16,8 @@
 
 // Project includes
 #include "custom_models/plasticity_models/non_associative_plasticity_model.hpp"
+#include "custom_models/plasticity_models/hardening_laws/cam_clay_hardening_law.hpp"
 #include "custom_models/plasticity_models/yield_criteria/modified_cam_clay_yield_criterion.hpp"
-#include "custom_models/plasticity_models/hardening_laws/cam_clay_hardening_law.hpp"
-#include "custom_models/plasticity_models/hardening_laws/cam_clay_hardening_law.hpp"
 #include "custom_models/elasticity_models/borja_model.hpp"
 
 namespace Kratos

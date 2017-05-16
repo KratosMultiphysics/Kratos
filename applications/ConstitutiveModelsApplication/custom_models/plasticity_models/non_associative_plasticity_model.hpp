@@ -189,14 +189,14 @@ namespace Kratos
                double InitialYieldFunction;
                this->mElasticityModel.CalculateStressTensor(rValues,rStressMatrix);
                InitialYieldFunction = this->mYieldCriterion.CalculateYieldCondition( Variables, InitialYieldFunction);
+               double H = this->mYieldCriterion.GetHardeningLaw().CalculateHardening( Variables, H);
                if ( (InitialYieldFunction < -Tolerance) && (Variables.TrialStateFunction > Tolerance) )
                {
                   // compute solution with change
                   ComputeSolutionWithChange( rValues, Variables, rIncrementalDeformationGradient);
                } else {
-                  std::cout << " doing something else " << std::endl;
                   // compute unloading condition
-               ComputeElastoPlasticProblem( rValues, Variables, rIncrementalDeformationGradient);
+                  ComputeElastoPlasticProblem( rValues, Variables, rIncrementalDeformationGradient);
                   bool UnloadingCondition = false;
                   if (UnloadingCondition) {
                      // compute solution with change
@@ -205,8 +205,10 @@ namespace Kratos
                   }
                }
 
-               double DeltaHardening = this->mYieldCriterion.GetHardeningLaw().CalculateDeltaHardening( Variables, DeltaHardening);
                noalias( rStressMatrix) = rValues.StressMatrix;
+
+               if ( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES) )
+                  this->UpdateInternalVariables( rValues, Variables);
 
                KRATOS_CATCH(" ")
             }
@@ -344,9 +346,8 @@ namespace Kratos
                this->mYieldCriterion.CalculateYieldSurfaceDerivative( rVariables, YieldSurfaceDerivative);
                VectorType PlasticPotentialDerivative;
                PlasticPotentialDerivative = YieldSurfaceDerivative; // LMV
-               std::cout << " yield surface derivative " << PlasticPotentialDerivative << std::endl;
 
-               double H = 10000.0; //LMV
+               double H = this->mYieldCriterion.GetHardeningLaw().CalculateDeltaHardening( rVariables, H);
 
                MatrixType StrainMatrix = prod( rIncrementalDeformationGradient, trans( rIncrementalDeformationGradient) );
                VectorType StrainVector; 
@@ -365,20 +366,19 @@ namespace Kratos
                   DeltaGamma = 0;
                
                MatrixType UpdateMatrix;
-               std::cout << - DeltaGamma * PlasticPotentialDerivative / 2.0 << std::endl;
                ConvertHenckyVectorToCauchyGreenTensor( -DeltaGamma * PlasticPotentialDerivative / 2.0, UpdateMatrix);
-               std::cout << " update1 " << UpdateMatrix << std::endl;
                UpdateMatrix = prod( rIncrementalDeformationGradient, UpdateMatrix);
 
-               std::cout << " previous " << rValues.StrainMatrix << std::endl;
-               std::cout << " updateMatrix " << UpdateMatrix << std::endl;
-               std::cout << " dg " << DeltaGamma << std::endl;
 
                rValues.StrainMatrix = prod( UpdateMatrix, rValues.StrainMatrix);
                rValues.StrainMatrix = prod( rValues.StrainMatrix, trans(UpdateMatrix));
 
                MatrixType StressMatrix;
                this->mElasticityModel.CalculateStressTensor( rValues, StressMatrix);
+
+               double & plasticVolDef = rVariables.Internal.Variables[1]; 
+               for (unsigned int i = 0; i < 3; i++)
+                  plasticVolDef += DeltaGamma * YieldSurfaceDerivative(i);
 
                KRATOS_CATCH("")
             }
@@ -391,12 +391,9 @@ namespace Kratos
               
                MatrixType HenckyTensor;
                HenckyTensor.clear();
-               std::cout << " input vector " << rHenckyVector << std::endl;
 
                ConstitutiveModelUtilities::StrainVectorToTensor( rHenckyVector, HenckyTensor);
-               std::cout << " matrix vector " << HenckyTensor << std::endl;
                ConvertHenckyTensorToCauchyGreenTensor( HenckyTensor, rStrainMatrix);
-               std::cout << " transformed " << std::endl;
 
 
                KRATOS_CATCH("")
@@ -414,15 +411,12 @@ namespace Kratos
                rStrainMatrix.clear();
                MathUtils<double>::EigenSystem<3> ( rHenckyTensor, EigenVectors, rStrainMatrix);
 
-               std::cout << " a1 " << rStrainMatrix << std::endl;
                for (unsigned int i = 0; i < 3; i++)
                   rStrainMatrix(i,i) = std::exp( 2.0* rStrainMatrix(i,i));
 
-               std::cout << " a2 " << rStrainMatrix << std::endl;
 
                rStrainMatrix = prod( trans(EigenVectors), MatrixType(prod(rStrainMatrix, EigenVectors)) );
 
-               std::cout << " a3 " << rStrainMatrix << std::endl;
 
                KRATOS_CATCH("")
             }
@@ -563,6 +557,21 @@ namespace Kratos
                KRATOS_CATCH(" ")
             }
 
+            //********************************************************************
+            //********************************************************************
+            // UpdateInternalVariables
+            virtual void UpdateInternalVariables(ModelDataType& rValues, PlasticDataType& rVariables)
+            {
+               KRATOS_TRY
+
+               double & plasticVolDefNew = rVariables.Internal.Variables[1]; 
+               double & plasticVolDef    =mInternal.Variables[1];
+
+               mPreviousInternal.Variables[1] = plasticVolDef;
+               plasticVolDef = plasticVolDefNew;
+
+               KRATOS_CATCH("")
+            }
 
 
             ///@}

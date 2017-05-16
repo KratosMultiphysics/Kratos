@@ -23,9 +23,6 @@ namespace Kratos
   CamClayHardeningLaw::CamClayHardeningLaw()
     :HardeningLaw()
   {
-    //Combined isotropic-kinematic 0<mTheta<1
-    //Pure isotropic hardening mTheta=1;  
-    //Pure kinematic hardening mTheta=0;    
   }
 
 
@@ -73,82 +70,20 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    rHardening = this->CalculateAndAddIsotropicHardening(rVariables,rHardening);
+    // get values
+      const double & rVolumetricPlasticDeformation = rVariables.GetInternalVariables()[1];
 
-    rHardening = this->CalculateAndAddKinematicHardening(rVariables,rHardening);
-	
+    double FirstPreconsolidationPressure = 70.0;
+    double SwellingSlope = 0.016;
+    double OtherSlope = 0.1;
+
+
+    rHardening = -FirstPreconsolidationPressure*(std::exp (-rVolumetricPlasticDeformation/(OtherSlope-SwellingSlope)) ) ;
     return rHardening;
 	
     KRATOS_CATCH(" ")
   }
   
-  //*******************************CALCULATE ISOTROPIC HARDENING************************
-  //************************************************************************************
-
-  double& CamClayHardeningLaw::CalculateAndAddIsotropicHardening(const PlasticDataType& rVariables, double& rIsotropicHardening)
-  {
-    KRATOS_TRY
-
-    const ModelDataType& rModelData = rVariables.GetModelData();
-      
-    //get values   
-    const double& rEquivalentPlasticStrain = rVariables.GetInternalVariables()[0];
-
-    //linear hardening properties
-    const Properties& rMaterialProperties  = rModelData.GetMaterialProperties();
-    double  YieldStress                    = rMaterialProperties[YIELD_STRESS];
-    double  KinematicHardeningConstant     = rMaterialProperties[KINEMATIC_HARDENING_MODULUS];
-	
-    //exponential saturation properties
-    double  K_reference         =  rMaterialProperties[REFERENCE_HARDENING_MODULUS];
-    double  K_infinity          =  rMaterialProperties[INFINITY_HARDENING_MODULUS];
-    const double& Delta         =  rMaterialProperties[HARDENING_EXPONENT];
-
-
-    double ThermalFactor        = this->CalculateThermalReferenceEffect(rVariables,ThermalFactor);
-    YieldStress                *= ThermalFactor;
-    K_reference                *= ThermalFactor;
-
-    ThermalFactor               = this->CalculateThermalCurrentEffect(rVariables,ThermalFactor);
-    K_infinity                 *= ThermalFactor;
-    KinematicHardeningConstant *= ThermalFactor;
-
-
-    //Linear Hardening law: (mTheta = 1)
-    rIsotropicHardening += YieldStress + mTheta * KinematicHardeningConstant * rEquivalentPlasticStrain;
-	
-    //Exponential Saturation:
-    rIsotropicHardening += (K_infinity-K_reference) * (1.0 - exp( (-1.0) * Delta * rEquivalentPlasticStrain ) );
-	
-    return rIsotropicHardening;	
-
-	
-    KRATOS_CATCH(" ")
-  }
-
-  //*******************************CALCULATE KINEMATIC HARDENING************************
-  //************************************************************************************
-
-  double& CamClayHardeningLaw::CalculateAndAddKinematicHardening(const PlasticDataType& rVariables, double& rKinematicHardening)
-  {
-    KRATOS_TRY
-
-    const ModelDataType& rModelData = rVariables.GetModelData();
-
-    //linear hardening properties
-    double  KinematicHardeningConstant  =  rModelData.GetMaterialProperties()[KINEMATIC_HARDENING_MODULUS];
-
-    double ThermalFactor        = this->CalculateThermalCurrentEffect(rVariables,ThermalFactor);
-    KinematicHardeningConstant *= ThermalFactor;
-
-    //Linear Hardening law:
-    rKinematicHardening  += (1.0 - mTheta) * KinematicHardeningConstant;
-	
-    return rKinematicHardening;
- 	
-    KRATOS_CATCH(" ")
-  }
-
 
 
   //*******************************CALCULATE HARDENING DERIVATIVE***********************
@@ -157,94 +92,25 @@ namespace Kratos
   double& CamClayHardeningLaw::CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening)
   {
     KRATOS_TRY
+      
+    double SwellingSlope = 0.016;
+    double OtherSlope = 0.1;
 
-    rDeltaHardening = this->CalculateAndAddDeltaIsotropicHardening(rVariables, rDeltaHardening);
+    const ModelDataType & rModelData = rVariables.GetModelData();
+    const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
 
-    rDeltaHardening = this->CalculateAndAddDeltaKinematicHardening(rVariables, rDeltaHardening);
+    double MeanStress = 0.0;
+    for (unsigned int i = 0; i <3; i++)
+       MeanStress += rStressMatrix(i,i)/3.0;
 
-   return rDeltaHardening;	
-	
-    KRATOS_CATCH(" ")
-  }
-
-  //***************************CALCULATE ISOTROPIC HARDENING DERIVATIVE*****************
-  //************************************************************************************
-
-  double& CamClayHardeningLaw::CalculateAndAddDeltaIsotropicHardening(const PlasticDataType& rVariables, double& rDeltaIsotropicHardening)
-  {
-    KRATOS_TRY
-
-    const ModelDataType& rModelData = rVariables.GetModelData();
-
-    //get values
-    const double& rEquivalentPlasticStrain = rVariables.GetInternalVariables()[0];
-
-    //linear hardening properties
-    const Properties& rMaterialProperties  =  rModelData.GetMaterialProperties();
-    double  KinematicHardeningConstant     =  rMaterialProperties[KINEMATIC_HARDENING_MODULUS];
-	
-    //exponential saturation properties
-    double  K_reference           =  rMaterialProperties[REFERENCE_HARDENING_MODULUS];
-    double  K_infinity            =  rMaterialProperties[INFINITY_HARDENING_MODULUS];
-    const double& Delta           =  rMaterialProperties[HARDENING_EXPONENT];
-
-    double ThermalFactor        = this->CalculateThermalReferenceEffect(rVariables,ThermalFactor);
-    K_reference                *= ThermalFactor;
-
-    ThermalFactor               = this->CalculateThermalCurrentEffect(rVariables,ThermalFactor);
-    K_infinity                 *= ThermalFactor;
-    KinematicHardeningConstant *= ThermalFactor;
+    double PreconsolidationStress = CalculateHardening(rVariables, PreconsolidationStress);
 
 
-    //Linear Hardening law: (mTheta = 1)
-    rDeltaIsotropicHardening += mTheta * KinematicHardeningConstant;
-	
-    //Exponential Saturation:
-    rDeltaIsotropicHardening += Delta * (K_infinity-K_reference) * ( exp( (-1.0) * Delta * rEquivalentPlasticStrain ) );
-	
-    return rDeltaIsotropicHardening;	
+    rDeltaHardening = (2.0*MeanStress-PreconsolidationStress) ;
+    rDeltaHardening *= (-MeanStress);
+    rDeltaHardening *= PreconsolidationStress/ ( OtherSlope - SwellingSlope);
+    return rDeltaHardening;	
 
-    KRATOS_CATCH(" ")
-  }
-
-
-  //***************************CALCULATE KINEMATIC HARDENING DERIVATIVE*****************
-  //************************************************************************************
-
-  double& CamClayHardeningLaw::CalculateAndAddDeltaKinematicHardening(const PlasticDataType& rVariables, double& rDeltaKinematicHardening)
-  {
-    KRATOS_TRY
-
-    return rDeltaKinematicHardening;
-	
-    KRATOS_CATCH(" ")
-  }
-
-
-  //***************************CALCULATE TEMPERATURE EVOLUTION PROPERTIES***************
-  //************************************************************************************
-
-
-  double& CamClayHardeningLaw::CalculateThermalReferenceEffect(const PlasticDataType& rVariables, double& rThermalFactor)
-  {
-    KRATOS_TRY
-
-    rThermalFactor = 1.0;  
-    return rThermalFactor;
-	
-    KRATOS_CATCH(" ")
-  }
-
-  //***************************CALCULATE TEMPERATURE EVOLUTION PROPERTIES***************
-  //************************************************************************************
-
-  double& CamClayHardeningLaw::CalculateThermalCurrentEffect(const PlasticDataType& rVariables, double& rThermalFactor)
-  {
-    KRATOS_TRY
-
-    rThermalFactor = 1.0;  
-    return rThermalFactor;
- 	
     KRATOS_CATCH(" ")
   }
 
