@@ -166,59 +166,70 @@ public:
         for(unsigned int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNodes.begin() + i;
-            const array_1d<double,3> LagrangeMultiplier = (itNode)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-            const array_1d<double,3> NodalNormal = (itNode)->GetValue(NORMAL);
-            const double NormalLagrangeMultiplier = inner_prod(NodalNormal, LagrangeMultiplier);
             
-            const double AugmentedNormalPressure = ScaleFactor * NormalLagrangeMultiplier + Epsilon * (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);     
-            
-            itNode->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, AugmentedNormalPressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
-            
-            if (AugmentedNormalPressure < - Tolerance) // NOTE: This could be conflictive (< or <=)
+            // Check if the node is slave
+            bool NodeIsSlave = true;
+            if ((itNode)->IsDefined(SLAVE))
             {
-                if ((itNode)->Is(ACTIVE) == false )
+                NodeIsSlave = (itNode)->Is(SLAVE);
+            }
+            
+            if (NodeIsSlave == true)
+            {
+                const array_1d<double,3> LagrangeMultiplier = (itNode)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                const array_1d<double,3> NodalNormal = (itNode)->GetValue(NORMAL);
+                const double NormalLagrangeMultiplier = inner_prod(NodalNormal, LagrangeMultiplier);
+                
+                const double AugmentedNormalPressure = ScaleFactor * NormalLagrangeMultiplier + Epsilon * (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);     
+                
+                itNode->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, AugmentedNormalPressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
+                
+                if (AugmentedNormalPressure < - Tolerance) // NOTE: This could be conflictive (< or <=)
                 {
-                    (itNode)->Set(ACTIVE, true);
-                    IsConvergedActive = false;
-                }
-                
-                // Computing the augmented tangent pressure
-                const array_1d<double,3> TangentLagrangeMultiplier = LagrangeMultiplier - NormalLagrangeMultiplier * NodalNormal;
-                const double LambdaTangent = norm_2(TangentLagrangeMultiplier); 
-                
-                // The friction coefficient
-                const double mu = (itNode)->GetValue(WEIGHTED_FRICTION);
-                
-                // Finally we compute the augmented tangent pressure
-                const double gt = (itNode)->FastGetSolutionStepValue(WEIGHTED_SLIP);
-                const double AugmentedTangentPressure = std::abs(ScaleFactor * LambdaTangent + TangentFactor * Epsilon * gt) + mu * AugmentedNormalPressure;
-                
-                (itNode)->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, AugmentedTangentPressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
-                
-                if (AugmentedTangentPressure <= - Tolerance) // TODO: Check if it is minor equal or just minor
-                {
-                    if ((itNode)->Is(SLIP) == true )
+                    if ((itNode)->Is(ACTIVE) == false )
                     {
-                        (itNode)->Set(SLIP, false);
-                        IsConvergedSlip = false;
+                        (itNode)->Set(ACTIVE, true);
+                        IsConvergedActive = false;
                     }
+                    
+                    // Computing the augmented tangent pressure
+                    const array_1d<double,3> TangentLagrangeMultiplier = LagrangeMultiplier - NormalLagrangeMultiplier * NodalNormal;
+                    const double LambdaTangent = norm_2(TangentLagrangeMultiplier); 
+                    
+                    // The friction coefficient
+                    const double mu = (itNode)->GetValue(WEIGHTED_FRICTION);
+                    
+                    // Finally we compute the augmented tangent pressure
+                    const double gt = (itNode)->FastGetSolutionStepValue(WEIGHTED_SLIP);
+                    const double AugmentedTangentPressure = std::abs(ScaleFactor * LambdaTangent + TangentFactor * Epsilon * gt) + mu * AugmentedNormalPressure;
+                    
+                    (itNode)->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, AugmentedTangentPressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
+                    
+                    if (AugmentedTangentPressure <= - Tolerance) // TODO: Check if it is minor equal or just minor
+                    {
+                        if ((itNode)->Is(SLIP) == true )
+                        {
+                            (itNode)->Set(SLIP, false);
+                            IsConvergedSlip = false;
+                        }
+                    }
+                    else
+                    {
+                        if ((itNode)->Is(SLIP) == false )
+                        {
+                            (itNode)->Set(SLIP, true);
+                            IsConvergedSlip = false;
+                        }
+                    }   
                 }
                 else
                 {
-                    if ((itNode)->Is(SLIP) == false )
+                    if ((itNode)->Is(ACTIVE) == true )
                     {
-                        (itNode)->Set(SLIP, true);
-                        IsConvergedSlip = false;
+                        (itNode)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector; // NOTE: To clear the value (can affect future iterations)
+                        (itNode)->Set(ACTIVE, false);
+                        IsConvergedActive = false;
                     }
-                }   
-            }
-            else
-            {
-                if ((itNode)->Is(ACTIVE) == true )
-                {
-                    (itNode)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector; // NOTE: To clear the value (can affect future iterations)
-                    (itNode)->Set(ACTIVE, false);
-                    IsConvergedActive = false;
                 }
             }
         }

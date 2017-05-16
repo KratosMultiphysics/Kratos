@@ -163,25 +163,35 @@ public:
         {
             auto itNode = pNodes.begin() + i;
             
-            const double AugmentedNormalPressure = ScaleFactor * (itNode)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + Epsilon * (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);     
-                
-            (itNode)->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, AugmentedNormalPressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
-
-            if (AugmentedNormalPressure < - Tolerance) // NOTE: This could be conflictive (< or <=)
+            // Check if the node is slave
+            bool NodeIsSlave = true;
+            if ((itNode)->IsDefined(SLAVE))
             {
-                if ((itNode)->Is(ACTIVE) == false )
-                {
-                    (itNode)->Set(ACTIVE, true);
-                    IsConverged = false;
-                }
+                NodeIsSlave = (itNode)->Is(SLAVE);
             }
-            else
+            
+            if (NodeIsSlave == true)
             {
-                if ((itNode)->Is(ACTIVE) == true )
+                const double AugmentedNormalPressure = ScaleFactor * (itNode)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + Epsilon * (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);     
+                    
+                (itNode)->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, AugmentedNormalPressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
+
+                if (AugmentedNormalPressure < - Tolerance) // NOTE: This could be conflictive (< or <=)
                 {
-                    (itNode)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0; // NOTE: To clear the value (can affect future iterations)
-                    (itNode)->Set(ACTIVE, false);
-                    IsConverged = false;
+                    if ((itNode)->Is(ACTIVE) == false )
+                    {
+                        (itNode)->Set(ACTIVE, true);
+                        IsConverged = false;
+                    }
+                }
+                else
+                {
+                    if ((itNode)->Is(ACTIVE) == true )
+                    {
+                        (itNode)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0; // NOTE: To clear the value (can affect future iterations)
+                        (itNode)->Set(ACTIVE, false);
+                        IsConverged = false;
+                    }
                 }
             }
         }
