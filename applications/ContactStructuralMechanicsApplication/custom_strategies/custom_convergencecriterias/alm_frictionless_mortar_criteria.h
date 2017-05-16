@@ -146,7 +146,7 @@ public:
         BaseType::CalculateContactReactions(rModelPart, b);
         
         // We define the tolerance
-        const double Tolerance = 1.0e-8;
+        const double Tolerance = 1.0e-6;
 //         const double Tolerance = std::numeric_limits<double>::epsilon();
         
         // Defining the convergence
