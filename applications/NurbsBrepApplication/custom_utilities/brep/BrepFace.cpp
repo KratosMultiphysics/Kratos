@@ -36,8 +36,8 @@ namespace Kratos
 
     for (unsigned int i = 0; i < vector.size(); i++)
     {
-      new_vector[i] = (int)(vector[i]*tolerance);
-      KRATOS_WATCH(new_vector[i])
+      new_vector[i] = (int)(vector[i] * tolerance);
+      //KRATOS_WATCH(new_vector[i])
     }
 
     return new_vector;
@@ -85,7 +85,7 @@ namespace Kratos
 
             KnotSpan2d knot_span(0, true, m_p, m_q, parameter_span_u, parameter_span_v);
             std::vector<array_1d<double, 3>> points = knot_span.getIntegrationPointsInParameterDomain();
-
+            //std::cout << "size of points: " << points.size() << std::endl;
             std::vector<Node<3>::Pointer> NodeVectorElement = EnhanceShapeFunctions(points, shapefunction_order);
             for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
             {
@@ -97,6 +97,63 @@ namespace Kratos
     }
     return NodeVector;
   }
+
+  std::vector<Node<3>::Pointer> BrepFace::GetQuadraturePointsTrimmed(const int& shapefunction_order)
+  {
+    //std::vector<array_1d<double, 2>> boundary_polygon;
+    //for (unsigned int loop_i = 0; loop_i < m_trimming_loops.size(); loop_i++)
+    //{
+    //  boundary_polygon = m_trimming_loops[loop_i].GetBoundaryPolygon(5);
+    //}
+    Polygon boundaries(m_trimming_loops);
+
+    std::vector<Node<3>::Pointer> NodeVector;
+
+    int tolerance = 10e7;
+
+    IntVector knot_vector_u = GetIntegerVector(m_knot_vector_u, tolerance);
+    IntVector knot_vector_v = GetIntegerVector(m_knot_vector_v, tolerance);
+
+    Vector parameter_span_u = ZeroVector(2);
+    Vector parameter_span_v = ZeroVector(2);
+
+    for (unsigned int i = 0; i < knot_vector_u.size() - 1; i++)
+    {
+      if (abs(knot_vector_u[i + 1] - knot_vector_u[i]) > 1)
+      {
+        parameter_span_u[0] = m_knot_vector_u[i];
+        parameter_span_u[1] = m_knot_vector_u[i + 1];
+
+        for (unsigned int j = 0; j < knot_vector_v.size() - 1; j++)
+        {
+          if (abs(knot_vector_v[j + 1] - knot_vector_v[j]) > 1)
+          {
+            parameter_span_v[0] = m_knot_vector_v[j];
+            parameter_span_v[1] = m_knot_vector_v[j + 1];
+
+            Polygon boundary_polygon = boundaries.clipByKnotSpan(parameter_span_u, parameter_span_v);
+
+            KnotSpan2dNIntegrate knot_span(0, true, m_p, m_q, parameter_span_u, parameter_span_v, boundary_polygon);
+            std::vector<array_1d<double, 3>> points = knot_span.getIntegrationPointsInParameterDomain();
+            //std::cout << "k: " << std::endl;
+            //for (unsigned int k = 0; k < points.size(); k++)
+            //{
+            //  std::cout << "k: " << k << std::endl;
+            //  std::cout << "points: " << points[k][0] << points[k][1] << points[k][2] << std::endl;
+            //}
+            //std::cout << "size of points: " << points.size() << std::endl;
+            std::vector<Node<3>::Pointer> NodeVectorElement = EnhanceShapeFunctions(points, shapefunction_order);
+            for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
+            {
+              NodeVector.push_back(NodeVectorElement[k]);
+            }
+          }
+        }
+      }
+    }
+    return NodeVector;
+  }
+
 
   std::vector<Node<3>::Pointer> BrepFace::GetQuadraturePointsOfTrimmingCurve(const int& shapefunction_order, const int& trim_index)
   {
@@ -152,7 +209,7 @@ namespace Kratos
     intersections.push_back(intersections_slave[0]);
     for (unsigned int i = 1; i < intersections_slave.size(); i++)
     {
-      if (intersections_slave[i-1]!= intersections_slave[i])
+      if (intersections_slave[i - 1] != intersections_slave[i])
         intersections.push_back(intersections_slave[i]);
     }
 
@@ -206,11 +263,11 @@ namespace Kratos
         }
       }
     }
-    KRATOS_ERROR << "Brep Trimming Curve with index " << trim_index << " was not found." << std::endl;
+    KRATOS_THROW_ERROR(std::runtime_error, "Brep Trimming Curve with index ", trim_index, " was not found.");
   }
 
   void BrepFace::EnhanceShapeFunctionsSlave(
-    std::vector<Node<3>::Pointer>& nodes, const int& shapefunction_order)
+    std::vector<Node<3>::Pointer>& nodes, const int& trim_index, const int& shapefunction_order)
   {
     //std::vector<Node<3>::Pointer> NodeVector;
     for (unsigned int i = 0; i < nodes.size(); i++)
@@ -220,6 +277,17 @@ namespace Kratos
       double v = 0;
       GetClosestPoint(point, u, v);
       EvaluateShapeFunctionsSlaveNode(u, v, shapefunction_order, nodes[i]);
+
+      BrepTrimmingCurve trimming_curve = GetTrimmingCurve(trim_index);
+      double parameter = 0.0;
+      Point<2> point2d(u, v);
+      trimming_curve.GetClosestPoint(point2d, parameter);
+
+      array_1d<double, 2> tangents_basis = trimming_curve.GetBaseVector(parameter);
+      Vector tangents_basis_vector(2);
+      tangents_basis_vector[0] = tangents_basis[0];
+      tangents_basis_vector[1] = tangents_basis[1];
+      nodes[i]->SetValue(TANGENTS_BASIS_VECTOR_SLAVE, tangents_basis_vector);
     }
   }
 
@@ -232,14 +300,13 @@ namespace Kratos
       Node<3>::Pointer node = EvaluateNode(points[i][0], points[i][1], shapefunction_order);
       node->SetValue(INTEGRATION_WEIGHT, points[i][2]);
       KRATOS_WATCH(points[i][2])
-      NodeVector.push_back(node);
+        NodeVector.push_back(node);
     }
     return NodeVector;
   }
 
-  void BrepFace::EvaluateShapeFunctionsSlaveNode(double const &u, double const &v, const int& shapefunction_order, Node<3>::Pointer node)
+  void BrepFace::EvaluateShapeFunctionsSlaveNode(double& const u, double& const v, const int& shapefunction_order, Node<3>::Pointer node)
   {
-    std::cout << "Shape functions slave" << std::endl;
     Point<3> new_point(0, 0, 0);
 
     int span_u = NurbsUtilities::find_knot_span(m_p, m_knot_vector_u, u);
@@ -255,9 +322,10 @@ namespace Kratos
     Matrix R;
     EvaluateNURBSFunctions(span_u, span_v, u, v, R);
 
-    for (int b = 0; b <= m_p; b++)
+    int k = 0;
+    for (int c = 0; c <= m_q; c++)
     {
-      for (int c = 0; c <= m_q; c++)
+      for (int b = 0; b <= m_p; b++)
       {
         // the control point vector is filled up by first going over u, then over v
         int ui = span_u - m_p + b;
@@ -266,33 +334,39 @@ namespace Kratos
         int control_point_index = vi*m_n_u + ui;
 
         if (shapefunction_order > -1)
-          N(b + (m_p + 1)*c) = R(b, c);
+          N(k) = R(b, c);
+        //N(c + (m_q + 1)*b) = R(b, c);
 
-        ControlPointIDs(b + (m_p + 1)*c) = m_control_points_ids[control_point_index];
+        //ControlPointIDs(c + (m_q + 1)*b) = m_control_points_ids[control_point_index];
+        ControlPointIDs(k) = m_control_points_ids[control_point_index];
+
+        //std::cout << "c + (m_q + 1)*b" << c + (m_q + 1)*b << std::endl;
+        //std::cout << "k" << k << std::endl;
+
+        k++;
       }
     }
 
     if (shapefunction_order > -1)
       node->SetValue(SHAPE_FUNCTION_SLAVE, N);
-    KRATOS_WATCH(ControlPointIDs)
-    KRATOS_WATCH(N)
+    //KRATOS_WATCH(ControlPointIDs)
+    //KRATOS_WATCH(N)
 
-      if (shapefunction_order > 0)
+    if (shapefunction_order > 0)
+    {
+      Matrix DN_De;
+      Matrix DDN_DDe;
+      EvaluateNURBSFunctionsDerivatives(span_u, span_v, u, v, DN_De, DDN_DDe);
+      //KRATOS_WATCH(DN_De)
+      //KRATOS_WATCH(DDN_DDe)
+      //  Matrix R = ZeroMatrix(4, 2);
+      node->SetValue(SHAPE_FUNCTION_DERIVATIVES_SLAVE, DN_De);
+
+      if (shapefunction_order > 1)
       {
-        Matrix DN_De;
-        Matrix DDN_DDe;
-        EvaluateNURBSFunctionsDerivatives(span_u, span_v, u, v, DN_De, DDN_DDe);
-        KRATOS_WATCH(DN_De)
-        KRATOS_WATCH(DDN_DDe)
-        //  Matrix R = ZeroMatrix(4, 2);
-        node->SetValue(SHAPE_FUNCTION_DERIVATIVES_SLAVE, DN_De);
-
-        if (shapefunction_order > 1)
-        {
-          node->SetValue(SHAPE_FUNCTION_SECOND_DERIVATIVES_SLAVE, DDN_DDe);
-        }
+        node->SetValue(SHAPE_FUNCTION_SECOND_DERIVATIVES_SLAVE, DDN_DDe);
       }
-
+    }
     node->SetValue(FACE_BREP_ID_SLAVE, this->Id());
     node->SetValue(LOCAL_PARAMETERS_SLAVE, local_parameter);
     node->SetValue(CONTROL_POINT_IDS_SLAVE, ControlPointIDs);
@@ -301,7 +375,7 @@ namespace Kratos
     //  KRATOS_WATCH(rSurfacePoint->X())
     //  KRATOS_WATCH(rSurfacePoint->Y())
     //  KRATOS_WATCH(rSurfacePoint->Z())
-      //return rSurfacePoint;
+    //return rSurfacePoint;
   }
 
   Node<3>::Pointer BrepFace::EvaluateNode(double u, double v, const int& shapefunction_order)
@@ -320,11 +394,12 @@ namespace Kratos
 
     Matrix R;
     EvaluateNURBSFunctions(span_u, span_v, u, v, R);
-
-    for (int  b = 0; b <= m_p; b++)
+    int k = 0;
+    for (int c = 0; c <= m_q; c++)
     {
-      for (int c = 0; c <= m_q; c++)
+      for (int b = 0; b <= m_p; b++)
       {
+
         // the control point vector is filled up by first going over u, then over v
         int ui = span_u - m_p + b;
         int vi = span_v - m_q + c;
@@ -332,13 +407,20 @@ namespace Kratos
         int control_point_index = vi*m_n_u + ui;
 
         if (shapefunction_order > -1)
-          N(b + (m_p + 1)*c) = R(b, c);
+          N(k) = R(b, c);
+        //N(c + (m_q + 1)*b) = R(b, c);
 
-        ControlPointIDs(b + (m_p + 1)*c) = m_control_points_ids[control_point_index];
+        ControlPointIDs(k) = m_control_points_ids[control_point_index];
+        //ControlPointIDs(c + (m_q + 1)*b) = m_control_points_ids[control_point_index];
 
         new_point[0] += R(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).X();
         new_point[1] += R(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).Y();
         new_point[2] += R(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).Z();
+
+        //std::cout << "c + (m_q + 1)*b" << c + (m_q + 1)*b << std::endl;
+        //std::cout << "k" << k << std::endl;
+
+        k++;
       }
     }
 
@@ -347,77 +429,145 @@ namespace Kratos
     if (shapefunction_order > -1)
       rSurfacePoint->SetValue(SHAPE_FUNCTION_VALUES, N);
     KRATOS_WATCH(ControlPointIDs)
-    KRATOS_WATCH(N)
+      KRATOS_WATCH(N)
 
-    if (shapefunction_order > 0)
-    {
-      Matrix DN_De;
-      Matrix DDN_DDe;
-      EvaluateNURBSFunctionsDerivatives(span_u, span_v, u, v, DN_De, DDN_DDe);
-      KRATOS_WATCH(DN_De)
-      KRATOS_WATCH(DDN_DDe)
-      //  Matrix R = ZeroMatrix(4, 2);
-      rSurfacePoint->SetValue(SHAPE_FUNCTION_DERIVATIVES, DN_De);
-
-      if (shapefunction_order > 1)
+      if (shapefunction_order > 0)
       {
-        rSurfacePoint->SetValue(SHAPE_FUNCTION_SECOND_DERIVATIVES, DDN_DDe);
+        Matrix DN_De;
+        Matrix DDN_DDe;
+        EvaluateNURBSFunctionsDerivatives(span_u, span_v, u, v, DN_De, DDN_DDe);
+        KRATOS_WATCH(DN_De)
+          KRATOS_WATCH(DDN_DDe)
+          //  Matrix R = ZeroMatrix(4, 2);
+          rSurfacePoint->SetValue(SHAPE_FUNCTION_DERIVATIVES, DN_De);
+
+        if (shapefunction_order > 1)
+        {
+          rSurfacePoint->SetValue(SHAPE_FUNCTION_SECOND_DERIVATIVES, DDN_DDe);
+        }
       }
-    }
 
     rSurfacePoint->SetValue(FACE_BREP_ID, this->Id());
     rSurfacePoint->SetValue(LOCAL_PARAMETERS, local_parameter);
     rSurfacePoint->SetValue(CONTROL_POINT_IDS, ControlPointIDs);
 
     KRATOS_WATCH(local_parameter)
-    KRATOS_WATCH(rSurfacePoint->X())
-    KRATOS_WATCH(rSurfacePoint->Y())
-    KRATOS_WATCH(rSurfacePoint->Z())
-    return rSurfacePoint;
+      KRATOS_WATCH(rSurfacePoint->X())
+      KRATOS_WATCH(rSurfacePoint->Y())
+      KRATOS_WATCH(rSurfacePoint->Z())
+      return rSurfacePoint;
+  }
+
+  void BrepFace::EnhanceNode(Node<3>::Pointer& node, const double& u, const double& v, const int& shapefunction_order)
+  {
+    Point<3> new_point(0, 0, 0);
+
+    int span_u = NurbsUtilities::find_knot_span(m_p, m_knot_vector_u, u);
+    int span_v = NurbsUtilities::find_knot_span(m_q, m_knot_vector_v, v);
+
+    Vector N = ZeroVector((m_q + 1)*(m_p + 1));
+
+    Vector ControlPointIDs = ZeroVector((m_q + 1)*(m_p + 1));
+    Vector local_parameter(2);
+    local_parameter[0] = u;
+    local_parameter[1] = v;
+
+    Matrix R;
+    EvaluateNURBSFunctions(span_u, span_v, u, v, R);
+    int k = 0;
+    for (int c = 0; c <= m_q; c++)
+    {
+      for (int b = 0; b <= m_p; b++)
+      {
+        // the control point vector is filled up by first going over u, then over v
+        int ui = span_u - m_p + b;
+        int vi = span_v - m_q + c;
+        int m_n_u = m_knot_vector_u.size() - m_p - 1;
+        int control_point_index = vi*m_n_u + ui;
+
+        if (shapefunction_order > -1)
+          N(k) = R(b, c);
+
+        ControlPointIDs(k) = m_control_points_ids[control_point_index];
+
+        new_point[0] += R(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).X();
+        new_point[1] += R(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).Y();
+        new_point[2] += R(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).Z();
+
+        k++;
+      }
+    }
+    node->X() = new_point[0];
+    node->Y() = new_point[1];
+    node->Z() = new_point[2];
+
+    if (shapefunction_order > -1)
+      node->SetValue(SHAPE_FUNCTION_VALUES, N);
+    if (shapefunction_order > 0)
+    {
+      Matrix DN_De;
+      Matrix DDN_DDe;
+      EvaluateNURBSFunctionsDerivatives(span_u, span_v, u, v, DN_De, DDN_DDe);
+      node->SetValue(SHAPE_FUNCTION_DERIVATIVES, DN_De);
+      if (shapefunction_order > 1)
+        node->SetValue(SHAPE_FUNCTION_SECOND_DERIVATIVES, DDN_DDe);
+    }
+
+    node->SetValue(FACE_BREP_ID, this->Id());
+    node->SetValue(LOCAL_PARAMETERS, local_parameter);
+    node->SetValue(CONTROL_POINT_IDS, ControlPointIDs);
   }
 
   void BrepFace::GetClosestPoint(const Point<3>& point, double& u, double& v)
   {
-    // Initialize Q_k: point on the CAD surface
-    Point<3> newton_raphson_point;
-    EvaluateSurfacePoint(newton_raphson_point, u, v);
-    // Initialize what's needed in the Newton-Raphson iteration
-    Vector Q_minus_P = ZeroVector(3); // Distance between current Q_k and P
-    Matrix myHessian = ZeroMatrix(2, 2);
-    Vector myGradient = ZeroVector(2);
-    double det_H = 0;
-    Matrix InvH = ZeroMatrix(2, 2);
-
     double norm_delta_u = 100000000;
     unsigned int k = 0;
     unsigned int max_itr = 20;
 
     while (norm_delta_u > 1e-8)
     {
-      // The distance between Q (on the CAD surface) and P (on the FE-mesh) is evaluated
-      Q_minus_P(0) = newton_raphson_point[0] - point[0];
-      Q_minus_P(1) = newton_raphson_point[1] - point[1];
-      Q_minus_P(2) = newton_raphson_point[2] - point[2];
+      // newton_raphson_point is evaluated
+      Point<3> newton_raphson_point;
+      EvaluateSurfacePoint(newton_raphson_point, u, v);
 
+      Vector difference = ZeroVector(3); // Distance between current Q_k and P
+                                         // The distance between Q (on the CAD surface) and P (on the FE-mesh) is evaluated
+      difference(0) = newton_raphson_point[0] - point[0];
+      difference(1) = newton_raphson_point[1] - point[1];
+      difference(2) = newton_raphson_point[2] - point[2];
+
+      Matrix hessian = ZeroMatrix(2, 2);
+      Vector gradient = ZeroVector(2);
       // The distance is used to compute Hessian and gradient
-      EvaluateGradientsForClosestPointSearch(Q_minus_P, myHessian, myGradient, u, v);
+      EvaluateGradientsForClosestPointSearch(difference, hessian, gradient, u, v);
 
-      // u_k and v_k are updated
-      MathUtils<double>::InvertMatrix(myHessian, InvH, det_H);
-      Vector delta_u = prod(InvH, myGradient);
+      double det_H = 0;
+      Matrix inv_H = ZeroMatrix(2, 2);
+
+      // u and v are updated
+      MathUtils<double>::InvertMatrix(hessian, inv_H, det_H);
+      Vector delta_u = prod(inv_H, gradient);
       u -= delta_u(0);
       v -= delta_u(1);
-
-      // Q is updated
-      EvaluateSurfacePoint(newton_raphson_point, u, v);
 
       norm_delta_u = norm_2(delta_u);
 
       k++;
-
       if (k>max_itr)
         KRATOS_THROW_ERROR(std::runtime_error, "Newton-Raphson to find closest point did not converge in the following number of iterations: ", k - 1);
     }
+  }
+
+  void BrepFace::GetProjectPoint(Node<3>::Pointer& node_on_geometry, const Node<3>::Pointer& node_location, const int& shapefunction_order)
+  {
+    Point<3> point(node_location->X(), node_location->Y(), node_location->Z());
+
+    Vector local_parameter = node_on_geometry->GetValue(LOCAL_PARAMETERS);
+    double u = local_parameter(0);
+    double v = local_parameter(1);
+    GetClosestPoint(point, u, v);
+
+    EnhanceNode(node_on_geometry, u, v, shapefunction_order);
   }
 
   // --------------------------------------------------------------------------
@@ -434,7 +584,7 @@ namespace Kratos
     Q_k(0) = node_on_geometry->X();
     Q_k(1) = node_on_geometry->Y();
     Q_k(2) = node_on_geometry->Z();
-    // Initialize what's needed in the Newton-Raphson iteration
+    // Initialize what's needed in the Newton-Raphson iteration				
     Vector Q_minus_P = ZeroVector(3); // Distance between current Q_k and P
     Matrix myHessian = ZeroMatrix(2, 2);
     Vector myGradient = ZeroVector(2);
@@ -473,10 +623,10 @@ namespace Kratos
 
       KRATOS_WATCH(Q_k)
 
-      //Q_k(0) = newtonRaphsonPoint[0];
-      //Q_k(1) = newtonRaphsonPoint[1];
-      //Q_k(2) = newtonRaphsonPoint[2];
-      norm_delta_u = norm_2(delta_u);
+        //Q_k(0) = newtonRaphsonPoint[0];
+        //Q_k(1) = newtonRaphsonPoint[1];
+        //Q_k(2) = newtonRaphsonPoint[2];
+        norm_delta_u = norm_2(delta_u);
 
       k++;
 
@@ -488,51 +638,57 @@ namespace Kratos
     node_on_geometry->Z() = Q_k(2);
   }
 
+
+
   bool BrepFace::CheckIfPointIsInside(Vector node_parameters)
   {
-    // Boost is used to check whether point of interest is inside given polygon or not
-    // Type definitions to use boost functionalities
-    typedef boost::geometry::model::d2::point_xy<double> point_type;
-    typedef boost::geometry::model::polygon<point_type> polygon_type;
-    // We assume point is inside, check all boundary loops if this is true. If this is not true for a single loop, then point is considered outside of this patch
-    point_type point(node_parameters[0], node_parameters[1]);
-    bool is_inside = true;
-    // Loop over all boundary loops of current patch
-    for (unsigned int loop_i = 0; loop_i < m_trimming_loops.size(); loop_i++)
-    {
-      // Initialize necessary variables
-      polygon_type poly;
-      //std::vector < array_1d <double,2> > & boundary_polygon = m_trimming_loops[loop_i].GetBoundaryPolygon(); // original, operator & has been removed as seen below
-      std::vector < array_1d <double,2> > boundary_polygon = m_trimming_loops[loop_i].GetBoundaryPolygon();
-
-
-
-      // Prepare polygon for boost
-      for (unsigned int i = 0; i<boundary_polygon.size(); i++)
-        boost::geometry::append(boost::geometry::exterior_ring(poly),
-          boost::geometry::make<point_type>(boundary_polygon[i][0], boundary_polygon[i][1]));
-      if (boundary_polygon.size()>0)
-        boost::geometry::append(boost::geometry::exterior_ring(poly),
-          boost::geometry::make<point_type>(boundary_polygon[0][0], boundary_polygon[0][1]));
-      // Check inside or outside
-      is_inside = boost::geometry::within(point, poly);
-      // Boost does not consider the polygon direction, it always assumes inside as in the interior of the closed polygon.
-      // If the CAD loop is an inner loop, however, the area which is considered inner is the unbounded side of the closed polygon.
-      // So we toggle the results from the within search to be correct.
-      if (!m_trimming_loops[loop_i].IsOuterLoop())
-        is_inside = !is_inside;
-
-      // If a point is considered outside in one loop, it is outside in general, hence we can break the loop
-      if (!is_inside)
-        break;
-    }
-    return is_inside;
+    Polygon polygon(m_trimming_loops);
+    return polygon.IsInside(node_parameters[0], node_parameters[1]);
   }
+  //// Boost is used to check whether point of interest is inside given polygon or not
+  //// Type definitions to use boost functionalities
+  ////typedef boost::geometry::model::d2::point_xy<double> point_type;
+  ////typedef boost::geometry::model::polygon<point_type> polygon_type;
+  //// We assume point is inside, check all boundary loops if this is true. If this is not true for a single loop, then point is considered outside of this patch
+  ////point_type point(node_parameters[0], node_parameters[1]);
+  //bool is_inside = false;
+  //// Loop over all boundary loops of current patch
+  //for (unsigned int loop_i = 0; loop_i < m_trimming_loops.size(); loop_i++)
+  //{
+  //  // Initialize necessary variables
+  //  //polygon_type poly;
+  //  std::vector<array_1d<double, 2>>& boundary_polygon = m_trimming_loops[loop_i].GetBoundaryPolygon(500);
+
+  //  Polygon polygon(boundary_polygon);
+
+  //  is_inside = polygon.IsInside(node_parameters[0], node_parameters[1]);
+
+  //  // Prepare polygon for boost
+  //  //for (unsigned int i = 0; i<boundary_polygon.size(); i++)
+  //  //  boost::geometry::append(boost::geometry::exterior_ring(poly),
+  //  //    boost::geometry::make<point_type>(boundary_polygon[i][0], boundary_polygon[i][1]));
+  //  //if (boundary_polygon.size()>0)
+  //  //  boost::geometry::append(boost::geometry::exterior_ring(poly),
+  //  //    boost::geometry::make<point_type>(boundary_polygon[0][0], boundary_polygon[0][1]));
+  //  // Check inside or outside
+  //  // is_inside = boost::geometry::within(point, poly);
+  //  // Boost does not consider the polygon direction, it always assumes inside as in the interior of the closed polygon.
+  //  // If the CAD loop is an inner loop, however, the area which is considered inner is the unbounded side of the closed polygon.
+  //  // So we toggle the results from the within search to be correct.
+  //  if (!m_trimming_loops[loop_i].IsOuterLoop())
+  //    is_inside = !is_inside;
+
+  //  // If a point is considered outside in one loop, it is outside in general, hence we can break the loop
+  //  if (!is_inside)
+  //    break;
+  //}
+  //return is_inside;
+  //}
 
   //GEOMETRY FUNCTIONS:
 
   /**
-  * @Author Daniel Baumg�rtner
+  * @Author Daniel Baumgaertner
   * @date   December, 2016
   * @brief   returns the cartesian coordinates (global) for a specific point
   * located on the NURBS surface S(u=fixed and v=fixed)
@@ -543,7 +699,7 @@ namespace Kratos
   * @param[in]  u  local parameter in u-direction
   * @param[in]  v  local parameter in v-direction
   */
-  void BrepFace::EvaluateSurfacePoint(Point<3>& rSurfacePoint, double u, double v)
+  void BrepFace::EvaluateSurfacePoint(Point<3>& rSurfacePoint, const double& u, const double& v)
   {
     //Point<3> new_point(0, 0, 0);
     rSurfacePoint[0] = 0;// (new_point[0], new_point[1], new_point[2]);
@@ -554,9 +710,6 @@ namespace Kratos
     int span_v = NurbsUtilities::find_knot_span(m_q, m_knot_vector_v, v);
 
     Vector ShapeFunctionsN = ZeroVector((m_q + 1)*(m_p + 1));
-    //Vector local_parameter(2);
-    //local_parameter[0] = u;
-    //local_parameter[1] = v;
     Matrix N;
     EvaluateNURBSFunctions(span_u, span_v, u, v, N);
 
@@ -570,38 +723,27 @@ namespace Kratos
         int m_n_u = m_knot_vector_u.size() - m_p - 1;
         int control_point_index = vi*m_n_u + ui;
 
-        //Matrix R;
-
-        //ShapeFunctionsN(b + (m_q + 1)*c) = R(b, c);
-        //ControlPointIDs.push_back(m_control_points_ids[control_point_index]);
-        //ControlPointIDs[b + (m_q + 1)*c] = m_control_points_ids[control_point_index];
-
         rSurfacePoint[0] += N(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).X();
         rSurfacePoint[1] += N(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).Y();
         rSurfacePoint[2] += N(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).Z();
       }
     }
-    //rSurfacePoint->X() = new_point[0];// (new_point[0], new_point[1], new_point[2]);
-    //rSurfacePoint->Y() = new_point[1];
-    //rSurfacePoint->Z() = new_point[2];
-
-    //rSurfacePoint->SetValue(CONTROL_POINT_IDS, ControlPointIDs);
   }
   // #######################################################################################
   //
-  //  \details    evaluate Hessian and Gradiend modifying the input objects
+  //  \details    evaluate Hessian and Gradient modifying the input objects
   //
   // ======================================================================================
   //  \param[in]  QminP    	 	Distance Vector
-  //  \param[in]  H		     	Hessian reference
+  //  \param[in]  H		     	Hessian reference	
   //  \param[in]  Gradient    	Gradient reference
   //  \param[in]  v    			parameter
-  //  \param[in]  u 				parameter
+  //  \param[in]  u 				parameter 
   //
   // ======================================================================================
   //  \author     Giovanni Filomeno (1/2017) && Massimo Sferza (1/2017)
   //
-  //########################################################################################
+  //########################################################################################	
   void BrepFace::EvaluateGradientsForClosestPointSearch(Vector QminP, Matrix& Hessian, Vector& Gradient, double& u, double& v)
   {
     // The derivatives of the basis functions are evaluated
@@ -679,7 +821,7 @@ namespace Kratos
   //  \param[out] R         basis func
   //
   // ======================================================================================
-  //  \author     Daniel Baumg�rtner (12/2016)
+  //  \author     Daniel Baumgärtner (12/2016)
   //
   //########################################################################################
   void BrepFace::EvaluateNURBSFunctions(int span_u, int span_v, double _u, double _v, Matrix& R)
@@ -789,23 +931,36 @@ namespace Kratos
         k++;
       }
     }
+    //double sum_2 = pow(sum, 2);
+    //double sum_3 = pow(sum, 3);
     double sum_2 = pow(sum, 2);
-    double sum_3 = pow(sum, 3);
+    double sum_3 = sum_2*sum;
+    double inv_sum = 1.0 / sum;
+    double inv_sum_2 = 1.0 / sum_2;
+    double inv_sum_3 = 1.0 / sum_3;
     // divide through by sum
     for (int k = 0; k<number_of_control_points; k++)
     {
-      DDN_DDe(k, 0) = DDN_DDe(k, 0) / sum - 2.0*DN_De(k, 0)*dsum[0] / sum_2
-        - r[k] * ddsum[0] / sum_2
-        + 2.0*r[k] * dsum[0] * dsum[0] / sum_3;
-      DDN_DDe(k, 1) = DDN_DDe(k, 1) / sum - 2.0*DN_De(k, 1)*dsum[1] / sum_2
-        - r[k] * ddsum[1] / sum_2
-        + 2.0*r[k] * dsum[1] * dsum[1] / sum_3;
-      DDN_DDe(k, 2) = DDN_DDe(k, 2) / sum - DN_De(k, 0)*dsum[1] / sum_2
-        - DN_De(k, 1)*dsum[0] / sum_2
-        - r[k] * ddsum[2] / sum_2
-        + 2.0*r[k] * dsum[0] * dsum[1] / sum_3;
-      DN_De(k, 0) = DN_De(k, 0) / sum - r[k] * dsum[0] / sum_2;
-      DN_De(k, 1) = DN_De(k, 1) / sum - r[k] * dsum[1] / sum_2;
+      DDN_DDe(k, 0) = DDN_DDe(k, 0)*inv_sum - 2.0*DN_De(k, 0)*dsum[0] * inv_sum_2
+        - r[k] * ddsum[0] * inv_sum_2 + 2.0*r[k] * dsum[0] * dsum[0] * inv_sum_3;
+      DDN_DDe(k, 1) = DDN_DDe(k, 1)*inv_sum - 2.0*DN_De(k, 1)*dsum[1] * inv_sum_2
+        - r[k] * ddsum[1] * inv_sum_2 + 2.0*r[k] * dsum[1] * dsum[1] * inv_sum_3;
+      DDN_DDe(k, 2) = DDN_DDe(k, 2)*inv_sum - DN_De(k, 0)*dsum[1] * inv_sum_2 - DN_De(k, 1)*dsum[0] * inv_sum_2
+        - r[k] * ddsum[2] * inv_sum_2 + 2.0*r[k] * dsum[0] * dsum[1] * inv_sum_3;
+      DN_De(k, 0) = DN_De(k, 0)*inv_sum - r[k] * dsum[0] * inv_sum_2;
+      DN_De(k, 1) = DN_De(k, 1)*inv_sum - r[k] * dsum[1] * inv_sum_2;
+      //DDN_DDe(k, 0) = DDN_DDe(k, 0) / sum - 2.0*DN_De(k, 0)*dsum[0] / sum_2
+      //  - r[k] * ddsum[0] / sum_2
+      //  + 2.0*r[k] * dsum[0] * dsum[0] / sum_3;
+      //DDN_DDe(k, 1) = DDN_DDe(k, 1) / sum - 2.0*DN_De(k, 1)*dsum[1] / sum_2
+      //  - r[k] * ddsum[1] / sum_2 
+      //  + 2.0*r[k] * dsum[1] * dsum[1] / sum_3;
+      //DDN_DDe(k, 2) = DDN_DDe(k, 2) / sum - DN_De(k, 0)*dsum[1] / sum_2
+      //  - DN_De(k, 1)*dsum[0] / sum_2
+      //  - r[k] * ddsum[2] / sum_2 
+      //  + 2.0*r[k] * dsum[0] * dsum[1] / sum_3;
+      //DN_De(k, 0) = DN_De(k, 0) / sum - r[k] * dsum[0] / sum_2;
+      //DN_De(k, 1) = DN_De(k, 1) / sum - r[k] * dsum[1] / sum_2;
     }
   }
 
@@ -891,18 +1046,18 @@ namespace Kratos
     unsigned int& p, unsigned int& q, IntVector& control_point_ids,
     ModelPart& model_part)
     : m_trimming_loops(trimming_loops),
-      m_knot_vector_u(knot_vector_u),
-      m_knot_vector_v(knot_vector_v),
-      m_p(p),
-      m_q(q),
-      m_model_part(model_part),
-      m_control_points_ids(control_point_ids),
-      IndexedObject(brep_id),
-      Flags()
+    m_knot_vector_u(knot_vector_u),
+    m_knot_vector_v(knot_vector_v),
+    m_p(p),
+    m_q(q),
+    m_model_part(model_part),
+    m_control_points_ids(control_point_ids),
+    IndexedObject(brep_id),
+    Flags()
   {
   }
-///Destructor
-BrepFace::~BrepFace()
-{}
+  ///Destructor
+  BrepFace::~BrepFace()
+  {}
 
-}  // namespace Kratos.
+} // namespace Kratos.
