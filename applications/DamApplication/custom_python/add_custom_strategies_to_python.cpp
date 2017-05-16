@@ -32,9 +32,7 @@
 #include "custom_strategies/schemes/dam_UP_scheme.hpp"
 #include "custom_strategies/schemes/dam_P_scheme.hpp"
 
-
 //strategies
-#include "custom_strategies/strategies/dam_eulerian_convection_diffusion_strategy.hpp"
 
 
 namespace Kratos
@@ -50,8 +48,6 @@ void  AddCustomStrategiesToPython()
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 
     //custom scheme types
     typedef IncrementalUpdateStaticSmoothingScheme< SparseSpaceType, LocalSpaceType >  IncrementalUpdateStaticSmoothingSchemeType; 
@@ -59,9 +55,6 @@ void  AddCustomStrategiesToPython()
     typedef BossakDisplacementSmoothingScheme< SparseSpaceType, LocalSpaceType >  BossakDisplacementSmoothingSchemeType;
     typedef DamUPScheme< SparseSpaceType, LocalSpaceType >  DamUPSchemeType;
     typedef DamPScheme< SparseSpaceType, LocalSpaceType >  DamPSchemeType;
-    
-    //custom strategies types
-    typedef DamEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > DamEulerianConvectionDiffusionStrategyType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -80,10 +73,6 @@ void  AddCustomStrategiesToPython()
     
     class_< DamPSchemeType, bases< BaseSchemeType >,  boost::noncopyable >("DamPScheme",
         init< double, double >());
-    // Strategies       
-    class_< DamEulerianConvectionDiffusionStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("DamEulerianConvectionDiffusionStrategy", 
-        init < ModelPart&, LinearSolverType::Pointer, Parameters&, bool, int >());
-
 }
 
 }  // namespace Python.

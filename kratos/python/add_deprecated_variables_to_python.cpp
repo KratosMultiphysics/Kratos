@@ -90,9 +90,6 @@ using namespace boost::python;
 
 void  AddDeprecatedVariablesToPython()
 {
-          
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(  IS_INACTIVE )
-
     //for Level Set application:
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(  IS_DUPLICATED )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(  SPLIT_ELEMENT )

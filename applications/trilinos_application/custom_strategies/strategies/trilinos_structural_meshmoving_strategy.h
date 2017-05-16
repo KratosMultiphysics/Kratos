@@ -5,8 +5,8 @@
  *  Revision:            $Revision: 1.4 $
  * ***************************************************************************/
 
-#if !defined(KRATOS_TRILINOS_STRUCTURAL_MESHMOVING_STRATEGY )
-#define  KRATOS_TRILINOS_STRUCTURAL_MESHMOVING_STRATEGY
+#if !defined(KRATOS_TRILINOS_STRUCTURAL_MESHMOVING_STRATEGY)
+#define KRATOS_TRILINOS_STRUCTURAL_MESHMOVING_STRATEGY
 
 /* System includes */
 
@@ -14,21 +14,19 @@
 
 /* Project includes */
 #include "includes/define.h"
+#include "includes/element.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "../ALEapplication/ale_application.h"
-#include "../ALEapplication/ale_application_variables.h"
-#include "../ALEapplication/custom_elements/structural_meshmoving_element.h"
 
 /* Trilinos includes */
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
 #include "custom_utilities/parallel_fill_communicator.h"
 
-namespace Kratos {
-
+namespace Kratos
+{
 /**@name Kratos Globals */
 /*@{ */
 
@@ -53,291 +51,332 @@ namespace Kratos {
 /**   Detail class definition.
 
  */
-template<class TSparseSpace, class TDenseSpace,  //= DenseSpace<double>,
-    class TLinearSolver  //= LinearSolver<TSparseSpace,TDenseSpace>
->
-class TrilinosStructuralMeshMovingStrategy : public SolvingStrategy<
-    TSparseSpace, TDenseSpace, TLinearSolver> {
- public:
-  /**@name Type Definitions */
-  /*@{ */
+template <class TSparseSpace,
+          class TDenseSpace,  //= DenseSpace<double>,
+          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
+          >
+class TrilinosStructuralMeshMovingStrategy
+    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+{
+public:
+    /**@name Type Definitions */
+    /*@{ */
 
-  /** Counted pointer of ClassName */
-  KRATOS_CLASS_POINTER_DEFINITION( TrilinosStructuralMeshMovingStrategy );
+    /** Counted pointer of ClassName */
+    KRATOS_CLASS_POINTER_DEFINITION(TrilinosStructuralMeshMovingStrategy);
 
-  typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
-  /*@} */
-  /**@name Life Cycle
-   */
-  /*@{ */
+    typedef Variable<array_1d<double, 3>> VariableWithComponentsType;
 
-  /** Constructor.
-   */
-  TrilinosStructuralMeshMovingStrategy(
-      Epetra_MpiComm& Comm,
-      ModelPart& model_part,
-      typename TLinearSolver::Pointer pNewLinearSolver,
-      int velocity_order = 1,
-      bool reform_dof_at_every_step = false
-  )
-  : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part)
-  {
-    KRATOS_TRY
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
 
-    // Passed variables
-    mvel_order = velocity_order;
-    mreform_dof_at_every_step = reform_dof_at_every_step;
+    /*@} */
+    /**@name Life Cycle
+     */
+    /*@{ */
 
-    // Definitions for trilinos
-    int guess_row_size;
-    guess_row_size = 15;
-
-    bool CalculateReactions = false;
-    bool ReformDofAtEachIteration = false;
-    bool CalculateNormDxFlag = false;
-
-    //Generating Mesh Part
-    GenerateMeshPart();
-
-    typedef Scheme< TSparseSpace, TDenseSpace > SchemeType;
-    typename SchemeType::Pointer pscheme = typename SchemeType::Pointer
-    ( new TrilinosResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace >() );
-
-    typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverTypePointer;
-    BuilderSolverTypePointer builderSolver = BuilderSolverTypePointer
-    (new TrilinosBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(Comm, guess_row_size, pNewLinearSolver) );
-
-    mstrategy = typename BaseType::Pointer
-    ( new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >(*mpMeshModelPart,pscheme,pNewLinearSolver,builderSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag) );
-
-    KRATOS_CATCH("")
-  }
-
-  /** Destructor.
-   */
-  virtual ~TrilinosStructuralMeshMovingStrategy() {}
-
-  /** Destructor.
-   */
-
-  //*********************************************************************************
-  //*********************************************************************************
-  double Solve()
-  {
-    KRATOS_TRY;
-
-    // Setting mesh to initial configuration
-    for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin(); i != (*mpMeshModelPart).NodesEnd(); ++i)
+    /** Constructor.
+     */
+    TrilinosStructuralMeshMovingStrategy(Epetra_MpiComm& Comm,
+                                         ModelPart& model_part,
+                                         typename TLinearSolver::Pointer pNewLinearSolver,
+                                         int velocity_order = 1,
+                                         bool reform_dof_at_every_step = false)
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part)
     {
-      (i)->X() = (i)->X0();
-      (i)->Y() = (i)->Y0();
-      (i)->Z() = (i)->Z0();
+        KRATOS_TRY
+
+        // Passed variables
+        mvel_order = velocity_order;
+        mreform_dof_at_every_step = reform_dof_at_every_step;
+
+        // Definitions for trilinos
+        int guess_row_size;
+        guess_row_size = 15;
+
+        bool CalculateReactions = false;
+        bool ReformDofAtEachIteration = false;
+        bool CalculateNormDxFlag = false;
+
+        // Generating Mesh Part
+        GenerateMeshPart();
+
+        typedef Scheme<TSparseSpace, TDenseSpace> SchemeType;
+        typename SchemeType::Pointer pscheme = typename SchemeType::Pointer(
+            new TrilinosResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>());
+
+        typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
+        BuilderSolverTypePointer builderSolver = BuilderSolverTypePointer(
+            new TrilinosBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(
+                Comm, guess_row_size, pNewLinearSolver));
+
+        mstrategy = typename BaseType::Pointer(
+            new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
+                *mpMeshModelPart,
+                pscheme,
+                pNewLinearSolver,
+                builderSolver,
+                CalculateReactions,
+                ReformDofAtEachIteration,
+                CalculateNormDxFlag)); // trailing comment
+
+        KRATOS_CATCH("")
     }
 
-    // Solve for mesh movement
-    mstrategy->Solve();
-
-    // Update FEM database
-    CalculateMeshVelocities();
-    BaseType::MoveMesh();
-
-    // Clearing the system if needed
-    if(mreform_dof_at_every_step == true)
-    mstrategy->Clear();
-
-    return 0.0;
-
-    KRATOS_CATCH("")
-  }
-
-  //*********************************************************************************
-  //*********************************************************************************
-  void CalculateMeshVelocities()
-  {
-    KRATOS_TRY;
-
-    double DeltaTime = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
-
-    if (DeltaTime <= 0.0)
-    KRATOS_THROW_ERROR(std::logic_error, "Invalid DELTA_TIME.","");
-
-    double coeff = 1/DeltaTime;
-    if( mvel_order == 1)  //mesh velocity calculated as (x(n+1)-x(n))/Dt
+    /** Destructor.
+     */
+    virtual ~TrilinosStructuralMeshMovingStrategy()
     {
-      for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin();
-          i != (*mpMeshModelPart).NodesEnd(); ++i)
-      {
-        array_1d<double,3>& mesh_v = (i)->FastGetSolutionStepValue(MESH_VELOCITY);
-        array_1d<double,3>& disp = (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
-        array_1d<double,3>& dispold = (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT,1);
-        noalias(mesh_v) = disp - dispold;
-        mesh_v *= coeff;
-      }
-    }
-    else  //mesh velocity calculated as (3*x(n+1)-4*x(n)+x(n-1))/(2*Dt)
-    {
-      double c1 = 1.50*coeff;
-      double c2 = -2.0*coeff;
-      double c3 = 0.50*coeff;
-
-      for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin();
-          i != (*mpMeshModelPart).NodesEnd(); ++i)
-      {
-        array_1d<double,3>& mesh_v = (i)->FastGetSolutionStepValue(MESH_VELOCITY);
-        noalias(mesh_v) = c1 * (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
-        noalias(mesh_v) += c2 * (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT,1);
-        noalias(mesh_v) += c3 * (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT,2);
-      }
     }
 
-    KRATOS_CATCH("")
-  }
+    /** Destructor.
+     */
 
-  virtual void SetEchoLevel(int Level)
-  {
-    mstrategy->SetEchoLevel(Level);
-  }
-
-  void MoveNodes()
-  {
-    for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();
-            i != BaseType::GetModelPart().NodesEnd(); ++i)
+    //*********************************************************************************
+    //*********************************************************************************
+    double Solve()
     {
-        (i)->X() = (i)->X0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_X);
-        (i)->Y() = (i)->Y0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_Y);
-        (i)->Z() = (i)->Z0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_Z);
+        KRATOS_TRY;
+
+        // Setting mesh to initial configuration
+        for (ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin();
+             i != (*mpMeshModelPart).NodesEnd();
+             ++i)
+        {
+            (i)->X() = (i)->X0();
+            (i)->Y() = (i)->Y0();
+            (i)->Z() = (i)->Z0();
+        }
+
+        // Solve for mesh movement
+        mstrategy->Solve();
+
+        // Update FEM database
+        CalculateMeshVelocities();
+        MoveNodes();
+
+        // Clearing the system if needed
+        if (mreform_dof_at_every_step == true)
+            mstrategy->Clear();
+
+        return 0.0;
+
+        KRATOS_CATCH("")
     }
-  }
 
-  /*@} */
-  /**@name Operators
-   */
-  /*@{ */
+    //*********************************************************************************
+    //*********************************************************************************
+    void CalculateMeshVelocities()
+    {
+        KRATOS_TRY;
 
-  /*@} */
-  /**@name Operations */
-  /*@{ */
+        double DeltaTime = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
 
-  /*@} */
-  /**@name Access */
-  /*@{ */
+        if (DeltaTime <= 0.0)
+            KRATOS_THROW_ERROR(std::logic_error, "Invalid DELTA_TIME.", "");
 
-  /*@} */
-  /**@name Inquiry */
-  /*@{ */
+        const VariableWithComponentsType& rMESH_DISPLACEMENT =
+            KratosComponents<VariableWithComponentsType>::Get(
+                "MESH_DISPLACEMENT");
+        const VariableWithComponentsType& rMESH_VELOCITY =
+            KratosComponents<VariableWithComponentsType>::Get("MESH_VELOCITY");
 
-  /*@} */
-  /**@name Friends */
-  /*@{ */
+        double coeff = 1 / DeltaTime;
+        if (mvel_order == 1) // mesh velocity calculated as (x(n+1)-x(n))/Dt
+        {
+            for (ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin();
+                 i != (*mpMeshModelPart).NodesEnd();
+                 ++i)
+            {
+                array_1d<double, 3>& mesh_v = (i)->FastGetSolutionStepValue(rMESH_VELOCITY);
+                array_1d<double, 3>& disp =
+                    (i)->FastGetSolutionStepValue(rMESH_DISPLACEMENT);
+                array_1d<double, 3>& dispold =
+                    (i)->FastGetSolutionStepValue(rMESH_DISPLACEMENT, 1);
+                noalias(mesh_v) = disp - dispold;
+                mesh_v *= coeff;
+            }
+        }
+        else // mesh velocity calculated as
+        // (3*x(n+1)-4*x(n)+x(n-1))/(2*Dt)
+        {
+            double c1 = 1.50 * coeff;
+            double c2 = -2.0 * coeff;
+            double c3 = 0.50 * coeff;
 
-  /*@} */
+            for (ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin();
+                 i != (*mpMeshModelPart).NodesEnd();
+                 ++i)
+            {
+                array_1d<double, 3>& mesh_v = (i)->FastGetSolutionStepValue(rMESH_VELOCITY);
+                noalias(mesh_v) = c1 * (i)->FastGetSolutionStepValue(rMESH_DISPLACEMENT);
+                noalias(mesh_v) +=
+                    c2 * (i)->FastGetSolutionStepValue(rMESH_DISPLACEMENT, 1);
+                noalias(mesh_v) +=
+                    c3 * (i)->FastGetSolutionStepValue(rMESH_DISPLACEMENT, 2);
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    virtual void SetEchoLevel(int Level)
+    {
+        mstrategy->SetEchoLevel(Level);
+    }
+
+    void MoveNodes()
+    {
+        const VariableComponentType& rMESH_DISPLACEMENT_X =
+            KratosComponents<VariableComponentType>::Get("MESH_DISPLACEMENT_X");
+        const VariableComponentType& rMESH_DISPLACEMENT_Y =
+            KratosComponents<VariableComponentType>::Get("MESH_DISPLACEMENT_Y");
+        const VariableComponentType& rMESH_DISPLACEMENT_Z =
+            KratosComponents<VariableComponentType>::Get("MESH_DISPLACEMENT_Z");
+
+        for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();
+             i != BaseType::GetModelPart().NodesEnd();
+             ++i)
+        {
+            (i)->X() = (i)->X0() + i->GetSolutionStepValue(rMESH_DISPLACEMENT_X);
+            (i)->Y() = (i)->Y0() + i->GetSolutionStepValue(rMESH_DISPLACEMENT_Y);
+            (i)->Z() = (i)->Z0() + i->GetSolutionStepValue(rMESH_DISPLACEMENT_Z);
+        }
+    }
+
+    /*@} */
+    /**@name Operators
+     */
+    /*@{ */
+
+    /*@} */
+    /**@name Operations */
+    /*@{ */
+
+    /*@} */
+    /**@name Access */
+    /*@{ */
+
+    /*@} */
+    /**@name Inquiry */
+    /*@{ */
+
+    /*@} */
+    /**@name Friends */
+    /*@{ */
+
+    /*@} */
 
 protected:
-  /**@name Protected static Member Variables */
-  /*@{ */
+    /**@name Protected static Member Variables */
+    /*@{ */
 
-  /*@} */
-  /**@name Protected member Variables */
-  /*@{ */
+    /*@} */
+    /**@name Protected member Variables */
+    /*@{ */
 
-  /*@} */
-  /**@name Protected Operators*/
-  /*@{ */
+    /*@} */
+    /**@name Protected Operators*/
+    /*@{ */
 
-  /*@} */
-  /**@name Protected Operations*/
-  /*@{ */
+    /*@} */
+    /**@name Protected Operations*/
+    /*@{ */
 
-  /*@} */
-  /**@name Protected  Access */
-  /*@{ */
+    /*@} */
+    /**@name Protected  Access */
+    /*@{ */
 
-  /*@} */
-  /**@name Protected Inquiry */
-  /*@{ */
+    /*@} */
+    /**@name Protected Inquiry */
+    /*@{ */
 
-  /*@} */
-  /**@name Protected LifeCycle */
-  /*@{ */
+    /*@} */
+    /**@name Protected LifeCycle */
+    /*@{ */
 
-  /*@} */
+    /*@} */
 
 private:
-  /**@name Static Member Variables */
-  /*@{ */
+    /**@name Static Member Variables */
+    /*@{ */
 
-  /*@} */
-  /**@name Member Variables */
-  /*@{ */
-  ModelPart::Pointer mpMeshModelPart;
+    /*@} */
+    /**@name Member Variables */
+    /*@{ */
+    ModelPart::Pointer mpMeshModelPart;
 
-  typename BaseType::Pointer mstrategy;
+    typename BaseType::Pointer mstrategy;
 
-  int mvel_order;
-  bool mreform_dof_at_every_step;
+    int mvel_order;
+    bool mreform_dof_at_every_step;
 
-  /*@} */
-  /**@name Private Operators*/
-  /*@{ */
+    /*@} */
+    /**@name Private Operators*/
+    /*@{ */
 
-  /*@} */
-  /**@name Private Operations*/
-  /*@{ */
+    /*@} */
+    /**@name Private Operations*/
+    /*@{ */
 
-  void GenerateMeshPart()
-  {
-    // Initialize auxiliary model part storing the mesh elements
-    mpMeshModelPart = ModelPart::Pointer( new ModelPart("MeshPart",1) );
-
-    // Initializing mesh nodes
-    mpMeshModelPart->Nodes() = BaseType::GetModelPart().Nodes();
-
-    // Setup new auxiliary model part
-    mpMeshModelPart->GetNodalSolutionStepVariablesList() = BaseType::GetModelPart().GetNodalSolutionStepVariablesList();
-    mpMeshModelPart->SetBufferSize(BaseType::GetModelPart().GetBufferSize());
-
-    // Create a communicator for the new model part and copy the partition information about nodes.
-    typename Communicator::Pointer pMeshMPIComm = typename Communicator::Pointer( new MPICommunicator( &(BaseType::GetModelPart().GetNodalSolutionStepVariablesList()) ) );
-
-    mpMeshModelPart->SetCommunicator( pMeshMPIComm );
-
-    // Creating mesh elements
-    ModelPart::ElementsContainerType& MeshElems = mpMeshModelPart->Elements();
-    Element::Pointer pElem;
-
-    for(ModelPart::ElementsContainerType::iterator it = BaseType::GetModelPart().ElementsBegin();
-        it != BaseType::GetModelPart().ElementsEnd(); ++it)
+    void GenerateMeshPart()
     {
-      pElem = Element::Pointer(new StructuralMeshMovingElement(
-              (*it).Id(),
-              (*it).pGetGeometry(),
-              (*it).pGetProperties() ) );
-      MeshElems.push_back(pElem);
+        // Initialize auxiliary model part storing the mesh elements
+        mpMeshModelPart = ModelPart::Pointer(new ModelPart("MeshPart", 1));
+
+        // Initializing mesh nodes
+        mpMeshModelPart->Nodes() = BaseType::GetModelPart().Nodes();
+
+        // Setup new auxiliary model part
+        mpMeshModelPart->GetNodalSolutionStepVariablesList() =
+            BaseType::GetModelPart().GetNodalSolutionStepVariablesList();
+        mpMeshModelPart->SetBufferSize(BaseType::GetModelPart().GetBufferSize());
+
+        // Create a communicator for the new model part and copy the
+        // partition information about nodes.
+        typename Communicator::Pointer pMeshMPIComm =
+            typename Communicator::Pointer(new MPICommunicator(
+                &(BaseType::GetModelPart().GetNodalSolutionStepVariablesList())));
+
+        mpMeshModelPart->SetCommunicator(pMeshMPIComm);
+
+        // Creating mesh elements
+        ModelPart::ElementsContainerType& MeshElems = mpMeshModelPart->Elements();
+        // this works for multiple geometries because we use the
+        // element's Create() member function that accepts a geometry
+        // pointer
+        const Element& rElem =
+            KratosComponents<Element>::Get("StructuralMeshMovingElement3D4N");
+
+        for (auto it = BaseType::GetModelPart().ElementsBegin();
+             it != BaseType::GetModelPart().ElementsEnd();
+             ++it)
+            MeshElems.push_back(rElem.Create(
+                it->Id(), it->pGetGeometry(), it->pGetProperties()));
+
+        // Optimize communicaton plan
+        ParallelFillCommunicator CommunicatorGeneration(*mpMeshModelPart);
+        CommunicatorGeneration.Execute();
     }
 
-    // Optimize communicaton plan
-    ParallelFillCommunicator CommunicatorGeneration( *mpMeshModelPart );
-    CommunicatorGeneration.Execute();
-  }
+    /*@} */
+    /**@name Private  Access */
+    /*@{ */
 
-  /*@} */
-  /**@name Private  Access */
-  /*@{ */
+    /*@} */
+    /**@name Private Inquiry */
+    /*@{ */
 
-  /*@} */
-  /**@name Private Inquiry */
-  /*@{ */
+    /*@} */
+    /**@name Un accessible methods */
+    /*@{ */
 
-  /*@} */
-  /**@name Un accessible methods */
-  /*@{ */
+    /** Copy constructor.
+     */
+    TrilinosStructuralMeshMovingStrategy(const TrilinosStructuralMeshMovingStrategy& Other);
 
-  /** Copy constructor.
-   */
-  TrilinosStructuralMeshMovingStrategy(const TrilinosStructuralMeshMovingStrategy& Other);
-
-  /*@} */
+    /*@} */
 
 }; /* Class TrilinosStructuralMeshMovingStrategy */
 
@@ -347,7 +386,6 @@ private:
 /*@{ */
 
 /*@} */
-
 }
 /* namespace Kratos.*/
 

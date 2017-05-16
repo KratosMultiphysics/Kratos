@@ -508,7 +508,11 @@ public:
 
     inline static double GetValue(const VectorType& x, std::size_t I)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "GetValue is not defined for the trilinos space", "");
+        // index must be local to this proc
+        KRATOS_ERROR_IF_NOT(x.Map().MyGID(static_cast<int>(I))) << " non-local id: " << I << ".";
+        // Epetra_MultiVector::operator[] is used here to get the pointer to
+        // the zeroth (only) local vector.
+        return x[0][x.Map().LID(static_cast<int>(I))];
     }
 
     //***********************************************************************

@@ -1,5 +1,5 @@
-//Authors: M.A. Celigueta and G. Casas (CIMNE)
-//   Date: January 2016
+// Authors: Miguel Angel Celigueta, maceli@cimne.upc.edu
+//          Guillermo Casas, gcasas@cimne.upc.edu
 
 #if !defined(DEM_D_BENTONITE_COLLOID_CL_H_INCLUDED)
 #define  DEM_D_BENTONITE_COLLOID_CL_H_INCLUDED
@@ -12,27 +12,27 @@ namespace Kratos {
     
     class SphericParticle;
 
-    class DEM_D_Bentonite_Colloid : public DEMDiscontinuumConstitutiveLaw {
+    class KRATOS_API(DEM_APPLICATION) DEM_D_Bentonite_Colloid : public DEMDiscontinuumConstitutiveLaw {
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Bentonite_Colloid);
 
         DEM_D_Bentonite_Colloid();
 
-        void Initialize(const ProcessInfo& r_process_info);
+        void Initialize(const ProcessInfo& r_process_info) override;
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
         
-        std::string GetTypeOfLaw();
+        std::string GetTypeOfLaw() override;
 
         ~DEM_D_Bentonite_Colloid() {
         }
 
-        DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;
+        DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
-        void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation);  
+        void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) override;  
 
-        void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta = 0.0);
+        void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta = 0.0) override;
 
         void CalculateForces(const ProcessInfo& r_process_info,
                              const double OldLocalContactForce[3],
@@ -45,7 +45,7 @@ namespace Kratos {
                             double& cohesive_force,
                             SphericParticle* element1,
                             SphericParticle* element2,
-                            bool& sliding, double LocalCoordSystem[3][3]);
+                            bool& sliding, double LocalCoordSystem[3][3]) override;
         
         void CalculateForcesWithFEM(ProcessInfo& r_process_info,
                                     const double OldLocalContactForce[3],
@@ -58,7 +58,7 @@ namespace Kratos {
                                     double& cohesive_force,
                                     SphericParticle* const element,
                                     DEMWall* const wall,
-                                    bool& sliding);
+                                    bool& sliding) override;
 
 
         using  DEMDiscontinuumConstitutiveLaw::CalculateNormalForce; //To avoid Clang Warning
@@ -68,11 +68,11 @@ namespace Kratos {
         
         double CalculateCohesiveNormalForce(SphericParticle* const element1,
                                             SphericParticle* const element2,
-                                            const double indentation);
+                                            const double indentation) override;
 
         double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element,
                                             DEMWall* const wall,
-                                            const double indentation);
+                                            const double indentation) override;
 
         template <class NeighbourClassType>
         void CalculateTangentialForceWithNeighbour(const double normal_contact_force,
@@ -96,9 +96,6 @@ namespace Kratos {
                                         SphericParticle* const element,
                                         DEMWall* const wall);
         
-        
-    private:
-
         double mA_H;
         double mA_p;
         double mD_p;
@@ -106,14 +103,18 @@ namespace Kratos {
         double mDDLCoefficient;
         double mEquivRadius;
         
+    private:
+
+
+        
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const {
+        virtual void save(Serializer& rSerializer) const override {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMDiscontinuumConstitutiveLaw)
                     //rSerializer.save("MyMemberName",myMember);
         }
 
-        virtual void load(Serializer& rSerializer) {
+        virtual void load(Serializer& rSerializer) override {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMDiscontinuumConstitutiveLaw)
                     //rSerializer.load("MyMemberName",myMember);
         }

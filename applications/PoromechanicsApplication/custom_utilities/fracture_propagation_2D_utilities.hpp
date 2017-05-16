@@ -731,9 +731,9 @@ protected:
         BodyGaussPointOldCellMatrix.resize(AuxVariables.NRows);
         for(int i = 0; i < AuxVariables.NRows; i++) BodyGaussPointOldCellMatrix[i].resize(AuxVariables.NColumns);
         
-        std::vector< std::vector< std::vector<GaussPointOld> > > GaussPointOldCellMatrix;
-        GaussPointOldCellMatrix.resize(AuxVariables.NRows);
-        for(int i = 0; i < AuxVariables.NRows; i++) GaussPointOldCellMatrix[i].resize(AuxVariables.NColumns);
+        std::vector< std::vector< std::vector<GaussPointOld> > > InterfaceGaussPointOldCellMatrix;
+        InterfaceGaussPointOldCellMatrix.resize(AuxVariables.NRows);
+        for(int i = 0; i < AuxVariables.NRows; i++) InterfaceGaussPointOldCellMatrix[i].resize(AuxVariables.NColumns);
 
         // Locate Old Gauss Points in cells
         GaussPointOld MyGaussPointOld;
@@ -791,7 +791,6 @@ protected:
                     #pragma omp critical
                     {
                         BodyGaussPointOldCellMatrix[Row][Column].push_back(MyGaussPointOld);
-                        GaussPointOldCellMatrix[Row][Column].push_back(MyGaussPointOld);
                     }
                 }
             }
@@ -844,7 +843,7 @@ protected:
                     Column = int((MyGaussPointOld.Coordinates[0]-AuxVariables.X_min)/AuxVariables.ColumnSize);
                     #pragma omp critical
                     {
-                        GaussPointOldCellMatrix[Row][Column].push_back(MyGaussPointOld);
+                        InterfaceGaussPointOldCellMatrix[Row][Column].push_back(MyGaussPointOld);
                     }
                 }
             }
@@ -1000,9 +999,9 @@ protected:
                     {
                         for(int l = Column_left; l<= Column_right; l++)
                         {
-                            for(unsigned int m = 0; m < GaussPointOldCellMatrix[k][l].size(); m++)
+                            for(unsigned int m = 0; m < InterfaceGaussPointOldCellMatrix[k][l].size(); m++)
                             {
-                                GaussPointOld& rOtherGaussPointOld = GaussPointOldCellMatrix[k][l][m];
+                                GaussPointOld& rOtherGaussPointOld = InterfaceGaussPointOldCellMatrix[k][l][m];
 
                                 Distance = sqrt((rOtherGaussPointOld.Coordinates[0]-X_me)*(rOtherGaussPointOld.Coordinates[0]-X_me) +
                                                 (rOtherGaussPointOld.Coordinates[1]-Y_me)*(rOtherGaussPointOld.Coordinates[1]-Y_me));
@@ -1412,11 +1411,23 @@ private:
                     }
                 }
             }
-            
+
             MyPropagation.TipCoordinates[0] = TipX/TipDen;
             MyPropagation.TipCoordinates[1] = TipY/TipDen;
             MyPropagation.TipCoordinates[2] = 0.0;
-
+            
+            const bool StraightPropagation = rParameters["fracture_data"]["straight_propagation"].GetBool();
+            if (StraightPropagation == true)
+            {
+                AuxArray2[0] = MyPropagation.TipCoordinates[0];
+                AuxArray2[1] = MyPropagation.TipCoordinates[1];
+                noalias(AuxArray1) = prod(rAuxPropagationVariables.RotationMatrix,AuxArray2);
+                AuxArray1[1] = rAuxPropagationVariables.TipLocalCoordinates[1];
+                noalias(AuxArray2) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
+                MyPropagation.TipCoordinates[0] = AuxArray2[0];
+                MyPropagation.TipCoordinates[1] = AuxArray2[1];
+            }
+            
             noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
             AuxArray1[1] += 0.5*PropagationWidth;
             noalias(AuxArray2) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
@@ -1464,8 +1475,35 @@ private:
         rRotationMatrix(0,0) = Vx[0];
         rRotationMatrix(0,1) = Vx[1];
 
-        rRotationMatrix(1,0) = -Vx[1];
-        rRotationMatrix(1,1) = Vx[0];
+        // We need to determine the unitary vector in local y direction pointing towards the TOP face of the joint
+        
+        //~ // Unitary vector in local x direction (3D)
+        array_1d<double, 3> Vx3D;
+        Vx3D[0] = Vx[0];
+        Vx3D[1] = Vx[1];
+        Vx3D[2] = 0.0;
+        
+        // Unitary vector in local y direction (first option)
+        array_1d<double, 3> Vy3D;
+        Vy3D[0] = -Vx[1];
+        Vy3D[1] = Vx[0];
+        Vy3D[2] = 0.0;
+        
+        // Vector in global z direction (first option)
+        array_1d<double, 3> Vz;
+        MathUtils<double>::CrossProduct(Vz, Vx3D, Vy3D);
+        
+        // Vz must have the same sign as vector (0,0,1)
+        if(Vz[2] > 0.0)
+        {
+            rRotationMatrix(1,0) = -Vx[1];
+            rRotationMatrix(1,1) = Vx[0];
+        }
+        else
+        {
+            rRotationMatrix(1,0) = Vx[1];
+            rRotationMatrix(1,1) = -Vx[0];
+        }
     }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

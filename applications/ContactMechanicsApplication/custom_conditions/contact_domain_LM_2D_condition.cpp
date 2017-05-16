@@ -727,18 +727,14 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
         if(fabs(EffectiveGapT)<rVariables.Contact.FrictionCoefficient*fabs(EffectiveGapN))
         {
 	    rVariables.Contact.Options.Set(SLIP,false); //contact stick case active
-	    rCurrentProcessInfo[NUMBER_OF_STICK_CONTACTS] += 1;	   
 	    
         }
         else
         {
 	    rVariables.Contact.Options.Set(SLIP,true);  //contact slip  case active
-	    rCurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS] += 1;
-
 	    //std::cout<<" EffectiveGapT ["<<this->Id()<<"] :"<<EffectiveGapT<<" Reference Gap "<<ReferenceGapT<<" mu*Fn "<<(rVariables.Contact.FrictionCoefficient*fabs(EffectiveGapN))<<std::endl;
         }
 
-	rCurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] += 1;
 	
 	//this->Set(ACTIVE); not here, if is reset is not going to enter here anymore
     }

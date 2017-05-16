@@ -21,30 +21,30 @@ namespace Kratos {
         DEM_D_Hertz_viscous_Coulomb2D() {
         }
       
-        void Initialize(const ProcessInfo& r_process_info);         
+        void Initialize(const ProcessInfo& r_process_info) override;         
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
 
         ~DEM_D_Hertz_viscous_Coulomb2D() {
         }
 
-        DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;      
+        DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;      
         
-        void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation);  
+        void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) override;  
         
-        void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta = 0.0);
+        void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta = 0.0) override;
                 
                             
     private:
 
         friend class Serializer;
         
-        virtual void save(Serializer& rSerializer) const {
+        virtual void save(Serializer& rSerializer) const override {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMDiscontinuumConstitutiveLaw)
                     //rSerializer.save("MyMemberName",myMember);
         }
 
-        virtual void load(Serializer& rSerializer) {
+        virtual void load(Serializer& rSerializer) override {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMDiscontinuumConstitutiveLaw)
                     //rSerializer.load("MyMemberName",myMember);
         }

@@ -36,6 +36,7 @@
 #include "custom_conditions/mapping_condition.h"
 #include "custom_conditions/SolidFace.h"
 #include "custom_conditions/RigidFace.h"
+#include "custom_conditions/analytic_RigidFace.h"
 #include "custom_conditions/RigidEdge.h"
 
 namespace Kratos
@@ -54,23 +55,23 @@ public:
     /// Destructor.
     virtual ~KratosDEMApplication() {}
 
-    virtual void Register();
+    virtual void Register() override;
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "KratosDEMApplication";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);
@@ -102,6 +103,7 @@ private:
     const SolidFace3D  mSolidFace3D3N;
     const SolidFace3D  mSolidFace3D4N;
     const RigidFace3D  mRigidFace3D3N;
+    const AnalyticRigidFace3D  mAnalyticRigidFace3D3N;
     const RigidFace3D  mRigidFace3D4N;
     const RigidEdge3D  mRigidEdge3D2N;
     const Cluster3D  mCluster3D;

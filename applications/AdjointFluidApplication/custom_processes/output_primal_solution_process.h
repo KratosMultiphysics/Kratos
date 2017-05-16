@@ -1,17 +1,10 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//  KratosAdjointFluidApplication
 //
-//   License:        BSD License
-//   Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 license: AdjointFluidApplication/license.txt
 //
-//   Project Name:        $AdjointFluidApplication        $
-//   Last modified by:    $Author: michael.andre@tum.de   $
-//   Date:                $Date:         November  2016   $
-//   Revision:            $Revision:                0.0   $
-
+//  Main authors:    Michael Andre, https://github.com/msandre
+//
 
 #if !defined(KRATOS_OUTPUT_PRIMAL_SOLUTION_PROCESS_H_INCLUDED )
 #define KRATOS_OUTPUT_PRIMAL_SOLUTION_PROCESS_H_INCLUDED

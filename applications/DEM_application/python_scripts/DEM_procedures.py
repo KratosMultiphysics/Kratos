@@ -10,6 +10,13 @@ import shutil
 import sys
 from glob import glob
 
+def Flush(a):
+    a.flush()
+
+def KratosPrint(*args):
+    print(*args)
+    Flush(sys.stdout)
+
 def Var_Translator(variable):
 
     if (variable == "OFF" or variable == "0" or variable == 0):
@@ -68,14 +75,48 @@ class MdpaCreator(object):
 
 
 class SetOfModelParts(object):
-    def __init__(self, spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, mapping_model_part, contact_model_part):
-        self.spheres_model_part    = spheres_model_part
-        self.rigid_face_model_part = rigid_face_model_part
-        self.cluster_model_part    = cluster_model_part
-        self.DEM_inlet_model_part  = DEM_inlet_model_part
-        self.mapping_model_part    = mapping_model_part
-        self.contact_model_part    = contact_model_part
+    def __init__(self, model_parts_list):
+        self.MaxNodeId = 0
+        self.MaxElemId = 0
+        self.MaxCondId = 0
+        
+        names = [l.Name for l in model_parts_list]
+        self.model_parts = dict()
+        self.mp_list = []
+        for mp in model_parts_list:
+            self.model_parts[mp.Name] = mp
+            self.mp_list.append(mp)
+            
+        self.spheres_model_part    = self.Get("SpheresPart")
+        self.rigid_face_model_part = self.Get("RigidFacePart")
+        self.cluster_model_part    = self.Get("ClusterPart")
+        self.DEM_inlet_model_part  = self.Get("DEMInletPart")
+        self.mapping_model_part    = self.Get("MappingPart")
+        self.contact_model_part    = self.Get("ContactPart")
 
+    def ComputeMaxIds(self):
+
+        for mp in self.mp_list:
+            self.GetMaxIds(mp)
+
+    def GetMaxIds(self, model_part):
+        
+        for node in model_part.Nodes:
+            self.MaxNodeId = max(self.MaxNodeId, node.Id)
+            
+        for elem in model_part.Elements:
+            self.MaxElemId = max(self.MaxElemId, elem.Id)
+        
+        for cond in model_part.Conditions:
+            self.MaxCondId = max(self.MaxCondId, cond.Id)  
+
+    def Get(self, name):
+        return self.model_parts[name]
+
+    def Add(self, model_part):
+        self.model_parts[model_part.Name] = model_part
+        self.mp_list.append(model_part)
+        
 class GranulometryUtils(object):
 
     def __init__(self, domain_volume, model_part):
@@ -311,10 +352,10 @@ class Procedures(object):
         
     def AddAllVariablesInAllModelParts(self, solver, scheme, all_model_parts, DEM_parameters):
         
-        spheres_model_part = all_model_parts.spheres_model_part
-        cluster_model_part = all_model_parts.cluster_model_part
-        DEM_inlet_model_part = all_model_parts.DEM_inlet_model_part
-        rigid_face_model_part = all_model_parts.rigid_face_model_part
+        spheres_model_part = all_model_parts.Get('SpheresPart')
+        cluster_model_part = all_model_parts.Get('ClusterPart')
+        DEM_inlet_model_part = all_model_parts.Get('DEMInletPart')
+        rigid_face_model_part = all_model_parts.Get('RigidFacePart')
         
         self.solver=solver
         self.scheme=scheme
@@ -322,15 +363,12 @@ class Procedures(object):
         self.AddSpheresVariables(spheres_model_part, DEM_parameters)
         self.AddMpiVariables(spheres_model_part)
         self.solver.AddAdditionalVariables(spheres_model_part, DEM_parameters)
-        #self.scheme.AddSpheresVariables(spheres_model_part)
         self.AddCommonVariables(cluster_model_part, DEM_parameters)
         self.AddClusterVariables(cluster_model_part, DEM_parameters)
         self.AddMpiVariables(cluster_model_part)
-        #self.scheme.AddClustersVariables(cluster_model_part)
         self.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
         self.AddSpheresVariables(DEM_inlet_model_part, DEM_parameters)
         self.solver.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)
-        #self.scheme.AddSpheresVariables(DEM_inlet_model_part)
         self.AddCommonVariables(rigid_face_model_part, DEM_parameters)
         self.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
         self.AddMpiVariables(rigid_face_model_part)
@@ -465,13 +503,13 @@ class Procedures(object):
 
     def FindMaxNodeIdAccrossModelParts(self, creator_destructor, all_model_parts):
         
-        max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(all_model_parts.spheres_model_part)
-        max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(all_model_parts.spheres_model_part)
-        max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(all_model_parts.rigid_face_model_part)
-        max_cluster_node_Id = creator_destructor.FindMaxNodeIdInModelPart(all_model_parts.cluster_model_part)
-        max_Id = max(max_FEM_node_Id, max_node_Id, max_elem_Id, max_cluster_node_Id)
+        max_candidates = []
+        max_candidates.append(creator_destructor.FindMaxNodeIdInModelPart(all_model_parts.Get("SpheresPart")))
+        max_candidates.append(creator_destructor.FindMaxElementIdInModelPart(all_model_parts.Get("SpheresPart")))
+        max_candidates.append(creator_destructor.FindMaxNodeIdInModelPart(all_model_parts.Get("RigidFacePart")))
+        max_candidates.append(creator_destructor.FindMaxNodeIdInModelPart(all_model_parts.Get("ClusterPart")))
         
-        return max_Id
+        return max(max_candidates)
 
     def ModelData(self, spheres_model_part, solver):
         
@@ -709,7 +747,7 @@ class Procedures(object):
         
         bounding_box_time_limits = []
         if (self.DEM_parameters.BoundingBoxOption == "ON"):
-            self.SetBoundingBox(all_model_parts.spheres_model_part, all_model_parts.cluster_model_part, all_model_parts.rigid_face_model_part, creator_destructor)
+            self.SetBoundingBox(all_model_parts.Get("SpheresPart"), all_model_parts.Get("ClusterPart"), all_model_parts.Get("RigidFacePart"), creator_destructor)
             bounding_box_time_limits = [self.solver.bounding_box_start_time, self.solver.bounding_box_stop_time]
             return bounding_box_time_limits
 
@@ -843,7 +881,8 @@ class DEMFEMProcedures(object):
                 if (self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
                     identifier = self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, IDENTIFIER)
                     self.particle_graph_forces[identifier] = open(str(self.DEM_parameters.problem_name) + "_" + str(identifier) + "_particle_force_graph.grf", 'w');
-                    self.particle_graph_forces[identifier].write(str("#time").rjust(12)+" "+str("total_force_x").rjust(13)+" "+str("total_force_y").rjust(13)+" "+str("total_force_z").rjust(13)+" "+str("total_disp_y").rjust(13)+"\n")
+                    self.particle_graph_forces[identifier].write(str("#time").rjust(12) + " " + str("total_force_x").rjust(13) + " " + str("total_force_y").rjust(13) +
+                    " " + str("total_force_z").rjust(13) + "\n")
 
         def evaluate_computation_of_fem_results():
 
@@ -892,20 +931,55 @@ class DEMFEMProcedures(object):
         
     def MoveAllMeshes(self, all_model_parts, time, dt):
         
-        spheres_model_part = all_model_parts.spheres_model_part
-        DEM_inlet_model_part = all_model_parts.DEM_inlet_model_part
-        rigid_face_model_part = all_model_parts.rigid_face_model_part
+        spheres_model_part = all_model_parts.Get("SpheresPart")
+        DEM_inlet_model_part = all_model_parts.Get("DEMInletPart")
+        rigid_face_model_part = all_model_parts.Get("RigidFacePart")
         
         self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(DEM_inlet_model_part, time, dt)
     
+    def MoveAllMeshesUsingATable(self, model_part, time, dt):
+
+        for mesh_number in range(0, model_part.NumberOfSubModelParts()):            
+
+            if not self.aux.GetIthSubModelPartData(model_part, mesh_number, TABLE_NUMBER):
+                continue
+
+            print("Info:")
+            print(self.aux.GetIthSubModelPartData(model_part, mesh_number, IDENTIFIER))
+            print(mesh_number)
+            print(self.aux.GetIthSubModelPartData(model_part, mesh_number, TABLE_NUMBER))
+
+            for node in self.aux.GetIthSubModelPartNodes(model_part, mesh_number):
+
+                old_coords = Vector(3)
+                old_coords[0] = node.X
+                old_coords[1] = node.Y
+                old_coords[2] = node.Z
+
+                velocity = Vector(3)
+                velocity[0] = model_part.GetTable(self.aux.GetIthSubModelPartData(model_part, mesh_number, TABLE_NUMBER)).GetValue(time)
+                velocity[1] = 0.0
+                velocity[2] = 0.0
+                node.SetSolutionStepValue(VELOCITY, velocity)
+
+                node.X = old_coords[0] + velocity[0] * dt
+                node.Y = old_coords[1] + velocity[1] * dt
+                node.Z = old_coords[2] + velocity[2] * dt
+
+                displacement = Vector(3)
+                displacement[0] = node.X - node.X0
+                displacement[1] = node.Y - node.Y0
+                displacement[2] = node.Z - node.Z0
+                node.SetSolutionStepValue(DISPLACEMENT, displacement)    
+
     def UpdateTimeInModelParts(self, all_model_parts, time,dt,step):  
         
-        spheres_model_part = all_model_parts.spheres_model_part
-        cluster_model_part = all_model_parts.cluster_model_part
-        DEM_inlet_model_part = all_model_parts.DEM_inlet_model_part
-        rigid_face_model_part = all_model_parts.rigid_face_model_part
+        spheres_model_part = all_model_parts.Get("SpheresPart")
+        cluster_model_part = all_model_parts.Get("ClusterPart")
+        DEM_inlet_model_part = all_model_parts.Get("DEMInletPart")
+        rigid_face_model_part = all_model_parts.Get("RigidFacePart")
         
         spheres_model_part.ProcessInfo[TIME]          = time
         spheres_model_part.ProcessInfo[DELTA_TIME]    = dt
@@ -948,35 +1022,37 @@ class DEMFEMProcedures(object):
         data = str(time) + "  " + str(poisson) + "\n"
         file_open.write(data)
     
-    
     def PrintGraph(self, time):
 
         if not hasattr(self.DEM_parameters, "TestType"):
             if (self.graph_counter == self.graph_frequency):
                 self.graph_counter = 0
-                if self.RigidFace_model_part.NumberOfSubModelParts() > 0:
 
-                    for mesh_number in range(0, self.RigidFace_model_part.NumberOfSubModelParts()):
-                        if (self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
-                            mesh_nodes = self.aux.GetIthSubModelPartNodes(self.RigidFace_model_part,mesh_number)
+                for mesh_number in range(0, self.RigidFace_model_part.NumberOfSubModelParts()):
+                    if (self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
+                        mesh_nodes = self.aux.GetIthSubModelPartNodes(self.RigidFace_model_part,mesh_number)
 
-                            total_force = Array3()
-                            total_force[0] = 0.0
-                            total_force[1] = 0.0
-                            total_force[2] = 0.0
+                        total_force = Array3()
+                        total_force[0] = 0.0
+                        total_force[1] = 0.0
+                        total_force[2] = 0.0
                             
-                            total_moment = Array3()
-                            total_moment[0] = 0.0
-                            total_moment[1] = 0.0
-                            total_moment[2] = 0.0
+                        total_moment = Array3()
+                        total_moment[0] = 0.0
+                        total_moment[1] = 0.0
+                        total_moment[2] = 0.0
 
-                            rotation_center = self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, ROTATION_CENTER)
+                        rotation_center = self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, ROTATION_CENTER)
 
-                            PostUtilities().IntegrationOfForces(mesh_nodes, total_force, rotation_center, total_moment)
+                        PostUtilities().IntegrationOfForces(mesh_nodes, total_force, rotation_center, total_moment)
 
-                            identifier = self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, IDENTIFIER)
-                            self.graph_forces[identifier].write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_force[0]).rjust(13)+" "+str("%.6g"%total_force[1]).rjust(13)+" "+str("%.6g"%total_force[2]).rjust(13)+" "+str("%.6g"%total_moment[0]).rjust(13)+" "+str("%.6g"%total_moment[1]).rjust(13)+" "+str("%.6g"%total_moment[2]).rjust(13)+"\n")
-                            self.graph_forces[identifier].flush()
+                        identifier = self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, IDENTIFIER)
+                        
+                        self.graph_forces[identifier].write(str("%.8g"%time).rjust(12) +
+                        " " + str("%.6g"%total_force[0]).rjust(13) + " " + str("%.6g"%total_force[1]).rjust(13) +
+                        " " + str("%.6g"%total_force[2]).rjust(13) + " " + str("%.6g"%total_moment[0]).rjust(13) +
+                        " " + str("%.6g"%total_moment[1]).rjust(13) + " " + str("%.6g"%total_moment[2]).rjust(13) + "\n")
+                        self.graph_forces[identifier].flush()
 
             self.graph_counter += 1
 
@@ -988,40 +1064,26 @@ class DEMFEMProcedures(object):
     def PrintBallsGraph(self, time):
 
         if not hasattr(self.DEM_parameters, "TestType"):
+            
             if (self.balls_graph_counter == self.graph_frequency):
                 self.balls_graph_counter = 0
 
-                if self.spheres_model_part.NumberOfSubModelParts() > 0:
-                    for mesh_number in range(0, self.spheres_model_part.NumberOfSubModelParts()):
+                for mesh_number in range(0, self.spheres_model_part.NumberOfSubModelParts()):
 
-                        if(self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
-                            self.mesh_nodes = self.aux.GetIthSubModelPartNodes(self.spheres_model_part,mesh_number)
-                            self.total_force_x = 0.0
-                            self.total_force_y = 0.0
-                            self.total_force_z = 0.0
-                            self.total_disp_x = 0.0
-                            self.total_disp_y = 0.0
-                            self.total_disp_z = 0.0
+                    if (self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
+                        mesh_nodes = self.aux.GetIthSubModelPartNodes(self.spheres_model_part,mesh_number)
+                        
+                        total_force = Array3()
+                        total_force[0] = 0.0
+                        total_force[1] = 0.0
+                        total_force[2] = 0.0
 
-                            for node in self.mesh_nodes:
-                                force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
-                                force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-                                force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
-                                disp_node_x = node.GetSolutionStepValue(DISPLACEMENT)[0]
-                                disp_node_y = node.GetSolutionStepValue(DISPLACEMENT)[1]
-                                disp_node_z = node.GetSolutionStepValue(DISPLACEMENT)[2]
-                                self.total_force_x += force_node_x
-                                self.total_force_y += force_node_y
-                                self.total_force_z += force_node_z
-                                self.total_disp_x += disp_node_x
-                                self.total_disp_y += disp_node_y
-                                self.total_disp_z += disp_node_z
+                        PostUtilities().IntegrationOfElasticForces(mesh_nodes, total_force)
 
-                            self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].write(str("%.8g"%time).rjust(12)+
-                            " " + str("%.6g"%self.total_force_x).rjust(13) + " " + str("%.6g"%self.total_force_y).rjust(13)+
-                            " " + str("%.6g"%self.total_force_z).rjust(13) + " " + str("%.6g"%self.total_disp_y).rjust(13)+
-                            " " + str("%.6g"%self.total_disp_y).rjust(13)  + " " + str("%.6g"%self.total_disp_z).rjust(13) + "\n")
-                            self.Flush(self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[IDENTIFIER]])
+                        identifier = self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, IDENTIFIER)
+                        self.particle_graph_forces[identifier].write(str("%.8g"%time).rjust(12) + " " + str("%.6g"%total_force[0]).rjust(13) + " " + 
+                                                                     str("%.6g"%total_force[1]).rjust(13) + " " + str("%.6g"%total_force[2]).rjust(13) + "\n")
+                        self.particle_graph_forces[identifier].flush()
 
             self.balls_graph_counter += 1
 
@@ -1323,8 +1385,8 @@ class DEMIo(object):
         
     def ShowPrintingResultsOnScreen(self, all_model_parts):
         self.KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
-        self.KRATOSprint("                        ("+ str(all_model_parts.spheres_model_part.NumberOfElements(0)) + " elements)")
-        self.KRATOSprint("                        ("+ str(all_model_parts.spheres_model_part.NumberOfNodes(0)) + " nodes)")
+        self.KRATOSprint("                        ("+ str(all_model_parts.Get("SpheresPart").NumberOfElements(0)) + " elements)")
+        self.KRATOSprint("                        ("+ str(all_model_parts.Get("SpheresPart").NumberOfNodes(0)) + " nodes)")
         self.KRATOSprint("")
         
     def Initialize(self, DEM_parameters):
@@ -1389,7 +1451,7 @@ class DEMIo(object):
             if (Var_Translator(self.DEM_parameters.PostBrokenRatio)):
                 self.PushPrintVar(self.PostBrokenRatio,       NEIGHBOUR_RATIO,              self.spheres_variables)
 
-        # NANO
+        # NANO (TODO: must be removed from here.)
         if self.DEM_parameters.ElementType == "SwimmingNanoParticle":
             self.PushPrintVar(self.PostHeatFlux, CATION_CONCENTRATION, self.spheres_variables)
 
@@ -1622,12 +1684,12 @@ class DEMIo(object):
 
     def PrintResults(self, all_model_parts, creator_destructor, dem_fem_search, time, bounding_box_time_limits):
         
-        spheres_model_part = all_model_parts.spheres_model_part
-        cluster_model_part = all_model_parts.cluster_model_part
-        DEM_inlet_model_part = all_model_parts.DEM_inlet_model_part
-        rigid_face_model_part = all_model_parts.rigid_face_model_part
-        contact_model_part = all_model_parts.contact_model_part
-        mapping_model_part = all_model_parts.mapping_model_part
+        spheres_model_part = all_model_parts.Get("SpheresPart")
+        cluster_model_part = all_model_parts.Get("ClusterPart")
+        DEM_inlet_model_part = all_model_parts.Get("DEMInletPart")
+        rigid_face_model_part =all_model_parts.Get("RigidFacePart")
+        contact_model_part = all_model_parts.Get("ContactPart")
+        mapping_model_part = all_model_parts.Get("MappingPart")
         
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             self.InitializeResults(spheres_model_part,

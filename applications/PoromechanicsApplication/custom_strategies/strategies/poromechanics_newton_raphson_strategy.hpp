@@ -70,9 +70,9 @@ public:
                     "min_radius_factor": 0.5,
                     "characteristic_length": 0.05,
                     "search_neighbours_step": false,
-                    "body_domain_sub_model_part_list": [""],
-                    "loads_sub_model_part_list": [""],
-                    "loads_variable_list" : [""]
+                    "body_domain_sub_model_part_list": [],
+                    "loads_sub_model_part_list": [],
+                    "loads_variable_list" : []
                 }  )" );
             
             // Validate agains defaults -- this also ensures no type mismatch

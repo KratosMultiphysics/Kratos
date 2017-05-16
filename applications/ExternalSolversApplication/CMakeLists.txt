@@ -3,7 +3,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosExternalSolversApplication ****")
 
 if(${INCLUDE_PASTIX} MATCHES ON)
-	set(${EXCLUDE_ITSOL} ON)
+	set(EXCLUDE_ITSOL ON)
 	message("************************** ITSOL NOT COMPILED AS IT IS INCOMPATIBLE WITH PASTIX **************** ")
 endif(${INCLUDE_PASTIX} MATCHES ON)
 

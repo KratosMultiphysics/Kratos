@@ -124,7 +124,7 @@ struct empty_params {
     empty_params() {}
     empty_params(const boost::property_tree::ptree &p) {
         //AMGCL_PARAMS_CHECK(p, );
-		AMGCL_PARAMS_CHECK(p, BOOST_PP_EMPTY());
+		//AMGCL_PARAMS_CHECK(p, BOOST_PP_EMPTY());
 	}
     void get(boost::property_tree::ptree&, const std::string&) const {}
 };

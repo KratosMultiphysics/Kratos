@@ -7,9 +7,9 @@ link_directories(${PYTHON_LIBRARIES})
 include(InstallRequiredSystemLibraries)
 
 ## generate variables with the sources
-set( EMBEDDED_PYTHON_SOURCES     
+set( EMBEDDED_PYTHON_SOURCES
  	${CMAKE_CURRENT_SOURCE_DIR}/krun_main.cpp
-     ) 
+     )
 
 
 ###############################################################
@@ -19,4 +19,3 @@ install(TARGETS runkratos DESTINATION . )
 
 message("python libraries to be installed are: " ${PYTHON_LIBRARIES} )
 install(FILES ${PYTHON_LIBRARIES} DESTINATION .)
-

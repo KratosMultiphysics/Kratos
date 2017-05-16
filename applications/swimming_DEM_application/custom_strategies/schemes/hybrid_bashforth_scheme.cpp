@@ -6,19 +6,6 @@
 
 namespace Kratos {
 
-//    void HybridBashforthScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp) const {
-//        std::cout << "Assigning HybridBashforthScheme to properties " << pProp->Id() << std::endl;
-//        pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
-//    }
-
-    /*void HybridBashforthScheme::AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption){
-        DEMIntegrationScheme::AddSpheresVariables(r_model_part, TRotationOption);
-    }
-
-    void HybridBashforthScheme::AddClustersVariables(ModelPart & r_model_part, bool TRotationOption){
-        DEMIntegrationScheme::AddClustersVariables(r_model_part, TRotationOption);
-    }*/
-
     void HybridBashforthScheme::UpdateTranslationalVariables(
             int StepFlag,
             Node < 3 > & i,

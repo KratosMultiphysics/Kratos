@@ -54,7 +54,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of TriGenCDT
+    /// Pointer definition of ModelerUtilities
     KRATOS_CLASS_POINTER_DEFINITION( ModelerUtilities );
 
 
@@ -1448,15 +1448,23 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-	return "";
+        std::stringstream buffer;
+        buffer << "ModelerUtilities";
+        return buffer.str();
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {}
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "ModelerUtilities";
+    }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
-
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+      rOStream << "ModelerUtilities Data";
+    }
+    
 
     ///@}
     ///@name Friends
@@ -1542,34 +1550,35 @@ private:
 
 }; // Class ModelerUtilities
 
-///@}
+  ///@}
 
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-
-/// input stream function
-    inline std::istream& operator >> (std::istream& rIStream,
+  ///@name Type Definitions
+  ///@{
+  
+  
+  ///@}
+  ///@name Input and output
+  ///@{
+  
+  
+  /// input stream function
+  inline std::istream& operator >> (std::istream& rIStream,
 				      ModelerUtilities& rThis);
 
-/// output stream function
-    inline std::ostream& operator << (std::ostream& rOStream,
-				      const ModelerUtilities& rThis)
-    {
-	rThis.PrintInfo(rOStream);
-	rOStream << std::endl;
-	rThis.PrintData(rOStream);
+  /// output stream function
+  inline std::ostream& operator << (std::ostream& rOStream,
+				    const ModelerUtilities& rThis)
+  {
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+    
+    return rOStream;
+  }
+  ///@}
 
-	return rOStream;
-    }
-///@}
-
-
+  ///@} addtogroup block
+  
 }  // namespace Kratos.
 
 #endif // KRATOS_MODELER_UTILITIES_H_INCLUDED  defined

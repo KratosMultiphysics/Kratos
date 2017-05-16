@@ -4,7 +4,7 @@
         "model_part_name":      "PorousDomain",
         "domain_size":          2,
         "start_time":           0.0,
-        "end_time":             2.4,
+        "end_time":             3.0,
         "time_step":            0.1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1,
@@ -51,22 +51,20 @@
             "preconditioner_type": "ILU0Preconditioner"
         },
         "problem_domain_sub_model_part_list": ["Body_Part-auto-1","Interface_Part-auto-1"],
-        "body_domain_sub_model_part_list":    ["Body_Part-auto-1"],
         "processes_sub_model_part_list":      ["Solid_Displacement-auto-2","Fluid_Pressure-auto-1","Normal_Fluid_Flux-auto-1","Interface_Normal_Fluid_Flux-auto-1"],
-        "loads_sub_model_part_list":          ["Normal_Fluid_Flux-auto-1","Interface_Normal_Fluid_Flux-auto-1"],
-        "loads_variable_list":                ["NORMAL_FLUID_FLUX","NORMAL_FLUID_FLUX"]
+        "body_domain_sub_model_part_list":    ["Body_Part-auto-1"]
     },
     "output_configuration": {
         "result_file_configuration": {
             "gidpost_flags":       {
                 "GiDPostMode":           "GiD_PostBinary",
-                "WriteDeformedMeshFlag": "WriteDeformed",
+                "WriteDeformedMeshFlag": "WriteUndeformed",
                 "WriteConditionsFlag":   "WriteElementsOnly",
                 "MultiFileFlag":         "MultipleFiles"
             },
             "file_label":          "time",
-            "output_control_type": "time",
-            "output_frequency":    0.0001,
+            "output_control_type": "step",
+            "output_frequency":    1,
             "body_output":         true,
             "node_output":         false,
             "skin_output":         false,
@@ -75,12 +73,6 @@
             "gauss_point_results": ["CAUCHY_STRESS_TENSOR","FLUID_FLUX_VECTOR","DAMAGE_VARIABLE"]
         },
         "point_data_configuration":  []
-    },
-    "restart_options": {
-        "SaveRestart":      false,
-        "RestartFrequency": 0,
-        "LoadRestart":      false,
-        "Restart_Step":     0
     },
     "constraints_process_list": [{
         "python_module": "apply_constraint_vector_table_process",

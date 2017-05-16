@@ -47,19 +47,19 @@ public:
     /// Destructor.
     virtual ~ParticleContactElement();
 
-    Element::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const;
+    Element::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const override;
 
-    void Initialize();   
+    void Initialize() override;   
 
-    void InitializeSolutionStep(ProcessInfo& r_process_info );
+    void InitializeSolutionStep(ProcessInfo& r_process_info ) override;
 
-    void FinalizeSolutionStep(ProcessInfo& r_process_info );
+    void FinalizeSolutionStep(ProcessInfo& r_process_info ) override;
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rOutput, const ProcessInfo& r_process_info);
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rOutput, const ProcessInfo& r_process_info) override;
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& r_process_info);
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& r_process_info) override;
   
-    void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info );
+    void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info ) override;
     
     void PrepareForPrinting();
     
@@ -80,19 +80,19 @@ protected:
 private:
   
     
-    std::string Info() const;
+    std::string Info() const override;
 
     friend class Serializer;
 
     // A private default constructor necessary for serialization
     ParticleContactElement() {}
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  Element );
     }
