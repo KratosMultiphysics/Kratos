@@ -101,8 +101,8 @@
             "stiffness_factor"            : 10.0,
             "penalty_scale_factor"        : 1.0,
             "manual_ALM"                  : true,
-            "penalty"                     : 1.0e6,
-            "scale_factor"                : 1.0e6,
+            "penalty"                     : 1.0e-6,
+            "scale_factor"                : 1.0e0,
             "debug_mode"                  : false
         }
     }],

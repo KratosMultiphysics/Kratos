@@ -157,6 +157,8 @@ public:
         const double ScaleFactor = rModelPart.GetProcessInfo()[SCALE_FACTOR];
         const double TangentFactor = rModelPart.GetProcessInfo()[TANGENT_FACTOR];
         
+        const array_1d<double,3> ZeroVector(0.0);
+        
         NodesArrayType& pNodes = rModelPart.GetSubModelPart("Contact").Nodes();
         auto numNodes = pNodes.end() - pNodes.begin();
 
@@ -214,6 +216,7 @@ public:
             {
                 if ((itNode)->Is(ACTIVE) == true )
                 {
+                    (itNode)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector; // NOTE: To clear the value (can affect future iterations)
                     (itNode)->Set(ACTIVE, false);
                     IsConvergedActive = false;
                 }
