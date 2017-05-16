@@ -9,7 +9,7 @@ file(GLOB KRATOS_NURBS_BREP_APPLICATION_PYTHON_SOURCES
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.h"
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp")
 file(GLOB KRATOS_NURBS_BREP_APPLICATION_BREP_SOURCES 
-                                                "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.hpp"
+                                                "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.h"
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp"
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/knot_span/*.cpp"
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep/*.cpp")
@@ -37,7 +37,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 # changing the .dylib suffix to .so (OS X)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set_target_properties(KratosNURBSBRepApplication PROPERTIES SUFFIX .so)
+  set_target_properties(KratosNurbsBrepApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # install the python files

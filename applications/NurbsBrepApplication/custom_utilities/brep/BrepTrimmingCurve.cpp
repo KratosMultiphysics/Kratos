@@ -36,10 +36,10 @@ namespace Kratos
 
     double u_min = m_knot_vector_u[0];
     double u_max = m_knot_vector_u[m_knot_vector_u.size() - 1];
-    double delta_u = (u_max - u_min) / number_polygon_points;
+    double delta_u = (u_max - u_min) / (number_polygon_points-1);
 
     // Add points of edge to polygon
-    double u_i = u_min;
+    double u_i = u_min - delta_u;
     for (unsigned int i = 0; i<number_polygon_points; i++)
     {
       u_i += delta_u;

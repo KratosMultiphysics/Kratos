@@ -54,7 +54,7 @@ namespace Kratos
     double u2 = m_parameter_u[1];
     double du = u2 - u1;
 
-    //KRATOS_WATCH(u1)
+    //  KRATOS_WATCH(u1)
     //  KRATOS_WATCH(u2)
     //  KRATOS_WATCH(du)
 

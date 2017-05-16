@@ -28,10 +28,10 @@ namespace Kratos
 // --------------------------------------------------------------------------
 
 
-  std::vector<array_1d<double, 2>> BrepBoundaryLoop::GetBoundaryPolygon()
+  std::vector<array_1d<double, 2>> BrepBoundaryLoop::GetBoundaryPolygon(unsigned int number_polygon_points)
   {
     std::vector<array_1d<double, 2>> boundary_polygon;
-    unsigned int number_polygon_points = 500;
+    //unsigned int number_polygon_points = 10;
     for (unsigned int curve_i = 0; curve_i < m_brep_trimming_curves.size(); curve_i++)
     {
       std::vector<array_1d<double, 2>> boundary_polygon_edge = m_brep_trimming_curves[curve_i].CreatePolygon(number_polygon_points);

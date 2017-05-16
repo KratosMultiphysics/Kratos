@@ -55,7 +55,7 @@ namespace Kratos
 
     BrepTrimmingCurveVector GetTrimmingCurves();
     bool& IsOuterLoop();
-    std::vector<array_1d<double, 2>> GetBoundaryPolygon();
+    std::vector<array_1d<double, 2>> BrepBoundaryLoop::GetBoundaryPolygon(unsigned int number_polygon_points);
 
     /// Constructor.
     BrepBoundaryLoop(BrepTrimmingCurveVector& brep_trimming_curves, bool is_outer_loop);

@@ -7,12 +7,13 @@
 //  License:     BSD License
 //           Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Tobias Teschmemacher
+//  Main authors:    Tobias Teschemacher
 //                   Michael Breitenberger
 //
 
 // Project includes
 #include "KnotSpan2d.h"
+
 
 
 namespace Kratos
@@ -100,13 +101,13 @@ namespace Kratos
     int p, int q,
     Vector parameter_span_u,
     Vector parameter_span_v)
-    : m_p(p),
-      m_q(q),
-      m_is_untrimmed(is_untrimmed),
-      m_parameter_span_u(parameter_span_u),
-      m_parameter_span_v(parameter_span_v),
-      IndexedObject(knot_span_2d_id),
-      Flags()
+      : m_p(p),
+        m_q(q),
+        m_is_untrimmed(is_untrimmed),
+        m_parameter_span_u(parameter_span_u),
+        m_parameter_span_v(parameter_span_v),
+        IndexedObject(knot_span_2d_id),
+        Flags()
   {
   }
 

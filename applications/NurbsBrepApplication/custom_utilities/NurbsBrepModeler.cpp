@@ -111,7 +111,7 @@ namespace Kratos
 
         ModelPart& model_part_face_id = model_part_faces.CreateSubModelPart("FACE_" + std::to_string(face.Id()));
 
-        std::vector<Node<3>::Pointer> NodeVectorElement = face.GetQuadraturePoints(shapefunction_order);
+        std::vector<Node<3>::Pointer> NodeVectorElement = face.GetQuadraturePointsTrimmed(shapefunction_order);
         for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
         {
           NodeVectorElement[k]->SetId(id_itr);
@@ -144,14 +144,14 @@ namespace Kratos
           for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
           {
             KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_VALUES))
-              KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_SLAVE))
+            KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_SLAVE))
           }
 
-          face_slave.EnhanceShapeFunctionsSlave(NodeVectorElement, 2);
+          face_slave.EnhanceShapeFunctionsSlave(NodeVectorElement, trim_index_slave, 2);
           for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
           {
             KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_VALUES))
-              KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_SLAVE))
+            KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_SLAVE))
             NodeVectorElement[k]->SetId(id_itr);
             id_itr++;
             model_part_coupling_edge_id.AddNode(NodeVectorElement[k]);
@@ -191,7 +191,7 @@ namespace Kratos
         }
       }
     }
-    KRATOS_THROW_ERROR(std::logic_error, "NurbsBrepModeler::GetFace: face_id does not exist", "");
+    KRATOS_THROW_ERROR(std::logic_error, "NurbsBrepModeler::GetFace: face with face_id " + std::to_string(face_id) + " does not exist", "");
   }
   //void NurbsBrepModeler::GetClosestPoint(const Node<3>::Pointer& node, Node<3>::Pointer& node_on_geometry)
   void NurbsBrepModeler::MapNode(const Node<3>::Pointer& node, Node<3>::Pointer& node_on_geometry)
