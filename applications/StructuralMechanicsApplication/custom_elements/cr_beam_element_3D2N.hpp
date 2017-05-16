@@ -163,6 +163,10 @@ namespace Kratos
 
 		IntegrationMethod GetIntegrationMethod() const override;
 
+		void CalculateAndAddWorkEquivalentNodalForcesLineLoad(
+			const Vector ForceInput, VectorType& rRightHandSideVector,
+			const double GeometryLength);
+
 	private:
 		double mArea, mYoungsModulus, mLength, mDensity, mInertiaX, mInertiaY;
 		double mInertiaZ, mCurrentLength, mPsiY, mPsiZ;

@@ -892,33 +892,124 @@ namespace Kratos
 	}
 
 
-	Vector CrBeamElement3D2N::CalculateBodyForces() {
-
+	Vector CrBeamElement3D2N::CalculateBodyForces() 
+	{
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
+		const int localSize = number_of_nodes * dimension;
 		const int MatSize = number_of_nodes * dimension * 2;
 
-		//getting shapefunctionvalues 
+		//getting shapefunctionvalues for linear SF
 		const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues(
 			GeometryData::GI_GAUSS_1);
 
-		//creating necessary values 
-		const double TotalMass = this->mArea * this->mLength * this->mDensity;
-		Vector BodyForcesNode = ZeroVector(dimension);
+		Vector EquivalentLineLoad = ZeroVector(dimension);
 		Vector BodyForcesGlobal = ZeroVector(MatSize);
 
-		//assemble global Vector
-		for (int i = 0; i < number_of_nodes; ++i) {
-			BodyForcesNode = TotalMass*this->GetGeometry()[i].
+		//calculating equivalent line load
+		for (int i = 0; i < number_of_nodes; ++i)
+		{
+			EquivalentLineLoad += this->mArea*this->mDensity*
+				this->GetGeometry()[i].
 				FastGetSolutionStepValue(VOLUME_ACCELERATION)*Ncontainer(0, i);
+		}
 
-			for (int j = 0; j < dimension; ++j) {
-				BodyForcesGlobal[(i*dimension * 2) + j] = BodyForcesNode[j];
+
+		// adding the nodal forces
+		for (int i = 0; i < number_of_nodes; ++i)
+		{
+			int index = i*localSize;
+			for (int j = 0; j < dimension; ++j)
+			{
+				BodyForcesGlobal[j + index] =
+					EquivalentLineLoad[j] * Ncontainer(0, i) * this->mCurrentLength;
 			}
 		}
 
+		// adding the nodal moments
+		this->CalculateAndAddWorkEquivalentNodalForcesLineLoad
+			(EquivalentLineLoad, BodyForcesGlobal, this->mCurrentLength);
+
+		// return the total ForceVector
 		return BodyForcesGlobal;
+		KRATOS_CATCH("")
+	}
+
+	void CrBeamElement3D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
+		const Vector ForceInput, VectorType& rRightHandSideVector,
+		const double GeometryLength)
+	{
+		KRATOS_TRY;
+		const int dimension = this->GetGeometry().WorkingSpaceDimension();
+		//calculate orthogonal load vector
+		Vector GeometricOrientation = ZeroVector(dimension);
+		GeometricOrientation[0] = this->GetGeometry()[1].X()
+			- this->GetGeometry()[0].X();
+		GeometricOrientation[1] = this->GetGeometry()[1].Y()
+			- this->GetGeometry()[0].Y();
+		if (dimension == 3)
+		{
+			GeometricOrientation[2] = this->GetGeometry()[1].Z()
+				- this->GetGeometry()[0].Z();
+		}
+
+		const double VectorNormA = MathUtils<double>::Norm(GeometricOrientation);
+		if (VectorNormA != 0.00) GeometricOrientation /= VectorNormA;
+
+		Vector LineLoadDir = ZeroVector(dimension);
+		for (int i = 0; i < dimension; ++i)
+		{
+			LineLoadDir[i] = ForceInput[i];
+		}
+
+		const double VectorNormB = MathUtils<double>::Norm(LineLoadDir);
+		if (VectorNormB != 0.00) LineLoadDir /= VectorNormB;
+
+		double cosAngle = 0.00;
+		for (int i = 0; i < dimension; ++i)
+		{
+			cosAngle += LineLoadDir[i] * GeometricOrientation[i];
+		}
+
+		const double sinAngle = sqrt(1.00 - (cosAngle*cosAngle));
+		const double NormForceVectorOrth = sinAngle * VectorNormB;
+
+
+		Vector NodeA = ZeroVector(dimension);
+		NodeA[0] = this->GetGeometry()[0].X();
+		NodeA[1] = this->GetGeometry()[0].Y();
+		if (dimension == 3)	NodeA[2] = this->GetGeometry()[0].Z();
+
+		Vector NodeB = ZeroVector(dimension);
+		NodeB = NodeA + LineLoadDir;
+
+		Vector NodeC = ZeroVector(dimension);
+		NodeC = NodeA + (GeometricOrientation*cosAngle);
+
+		Vector LoadOrthogonalDir = ZeroVector(dimension);
+		LoadOrthogonalDir = NodeB - NodeC;
+		const double VectorNormC = MathUtils<double>::Norm(LoadOrthogonalDir);
+		if (VectorNormC != 0.00) LoadOrthogonalDir /= VectorNormC;
+
+
+
+		// now caluclate respective work equivilent nodal moments
+
+		const double CustomMoment = NormForceVectorOrth *
+			GeometryLength*GeometryLength / 12.00;
+
+		Vector MomentNodeA = ZeroVector(dimension);
+		MomentNodeA = MathUtils<double>::CrossProduct(GeometricOrientation,
+			LoadOrthogonalDir);
+		MomentNodeA *= CustomMoment;
+
+		for (int i = 0; i < dimension; ++i)
+		{
+			rRightHandSideVector[(1 * dimension) + i] += MomentNodeA[i];
+			rRightHandSideVector[(3 * dimension) + i] -= MomentNodeA[i];
+		}
+
 		KRATOS_CATCH("")
 	}
 
