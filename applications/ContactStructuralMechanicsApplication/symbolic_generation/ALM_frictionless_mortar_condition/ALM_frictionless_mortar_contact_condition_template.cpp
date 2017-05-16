@@ -71,14 +71,14 @@ AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNor
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
-void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation>::EquationIdVector(
+void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation>::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& CurrentProcessInfo 
     )
 {
     KRATOS_TRY;   
     
-    boost::shared_ptr<ConditionMap>& AllConditionSets = this->GetValue( CONTACT_SETS );
+    boost::shared_ptr<ConditionSet>& AllConditionSets = this->GetValue( CONTACT_SETS );
     
     // Calculates the size of the system
     const unsigned int ConditionSize = (TDim * ( TNumNodes + TNumNodes) + TNumNodes)* AllConditionSets->size(); 
@@ -91,39 +91,39 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,
     unsigned int index = 0;
     
     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
-    for (auto ipair = AllConditionSets->begin(); ipair != AllConditionSets->end(); ++ipair )
+    for (auto itPair = AllConditionSets->begin(); itPair != AllConditionSets->end(); ++itPair )
     {
-        GeometryType& current_master = (ipair->first)->GetGeometry( );
+        GeometryType& CurrentMaster = (*itPair)->GetGeometry( );
         
         // Master Nodes Displacement Equation IDs
-        for ( unsigned int i_master = 0; i_master < TNumNodes; i_master++ ) // NOTE: Assuming same number of nodes for master and slave
+        for ( unsigned int iMaster = 0; iMaster < TNumNodes; iMaster++ ) // NOTE: Assuming same number of nodes for master and slave
         {
-            NodeType& master_node = current_master[i_master];
-            rResult[index++] = master_node.GetDof( DISPLACEMENT_X ).EquationId( );
-            rResult[index++] = master_node.GetDof( DISPLACEMENT_Y ).EquationId( );
+            NodeType& MasterNode = CurrentMaster[iMaster];
+            rResult[index++] = MasterNode.GetDof( DISPLACEMENT_X ).EquationId( );
+            rResult[index++] = MasterNode.GetDof( DISPLACEMENT_Y ).EquationId( );
             if (TDim == 3)
             {
-                rResult[index++] = master_node.GetDof( DISPLACEMENT_Z ).EquationId( );
+                rResult[index++] = MasterNode.GetDof( DISPLACEMENT_Z ).EquationId( );
             }
         }
 
         // Slave Nodes Displacement Equation IDs
-        for ( unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++ )
+        for ( unsigned int iSlave = 0; iSlave < TNumNodes; iSlave++ )
         {
-            NodeType& slave_node = this->GetGeometry()[ i_slave ];
-            rResult[index++] = slave_node.GetDof( DISPLACEMENT_X ).EquationId( );
-            rResult[index++] = slave_node.GetDof( DISPLACEMENT_Y ).EquationId( );
+            NodeType& SlaveNode = this->GetGeometry()[ iSlave ];
+            rResult[index++] = SlaveNode.GetDof( DISPLACEMENT_X ).EquationId( );
+            rResult[index++] = SlaveNode.GetDof( DISPLACEMENT_Y ).EquationId( );
             if (TDim == 3)
             {
-                rResult[index++] = slave_node.GetDof( DISPLACEMENT_Z ).EquationId( );
+                rResult[index++] = SlaveNode.GetDof( DISPLACEMENT_Z ).EquationId( );
             }
         }
 
         // Slave Nodes  Lambda Equation IDs
-        for ( unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++ )
+        for ( unsigned int iSlave = 0; iSlave < TNumNodes; iSlave++ )
         {
-            NodeType& slave_node = this->GetGeometry()[ i_slave ];
-            rResult[index++] = slave_node.GetDof( NORMAL_CONTACT_STRESS ).EquationId( );
+            NodeType& SlaveNode = this->GetGeometry()[ iSlave ];
+            rResult[index++] = SlaveNode.GetDof( NORMAL_CONTACT_STRESS ).EquationId( );
         }
         
     }
@@ -142,7 +142,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,
 {
     KRATOS_TRY;
     
-    boost::shared_ptr<ConditionMap>& AllConditionSets = this->GetValue( CONTACT_SETS );
+    boost::shared_ptr<ConditionSet>& AllConditionSets = this->GetValue( CONTACT_SETS );
     
     // Calculates the size of the system
     const unsigned int ConditionSize = (TDim * ( TNumNodes + TNumNodes) + TNumNodes)* AllConditionSets->size(); 
@@ -155,39 +155,39 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,
     unsigned int index = 0;
     
     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
-    for (auto ipair = AllConditionSets->begin(); ipair != AllConditionSets->end(); ++ipair )
+    for (auto itPair = AllConditionSets->begin(); itPair != AllConditionSets->end(); ++itPair )
     {
-        GeometryType& current_master = (ipair->first)->GetGeometry( );
+        GeometryType& CurrentMaster = (*itPair)->GetGeometry( );
 
         // Master Nodes Displacement Equation IDs
-        for ( unsigned int i_master = 0; i_master < TNumNodes; i_master++ ) // NOTE: Assuming same number of nodes for master and slave
+        for ( unsigned int iMaster = 0; iMaster < TNumNodes; iMaster++ ) // NOTE: Assuming same number of nodes for master and slave
         {
-            NodeType& master_node = current_master[i_master];
-            rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_X );
-            rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_Y );
+            NodeType& MasterNode = CurrentMaster[iMaster];
+            rConditionalDofList[index++] = MasterNode.pGetDof( DISPLACEMENT_X );
+            rConditionalDofList[index++] = MasterNode.pGetDof( DISPLACEMENT_Y );
             if (TDim == 3)
             {
-                rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_Z );
+                rConditionalDofList[index++] = MasterNode.pGetDof( DISPLACEMENT_Z );
             }
         }
 
         // Slave Nodes Displacement Equation IDs
-        for ( unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++ )
+        for ( unsigned int iSlave = 0; iSlave < TNumNodes; iSlave++ )
         {
-            NodeType& slave_node = this->GetGeometry()[ i_slave ];
-            rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_X );
-            rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_Y );
+            NodeType& SlaveNode = this->GetGeometry()[ iSlave ];
+            rConditionalDofList[index++] = SlaveNode.pGetDof( DISPLACEMENT_X );
+            rConditionalDofList[index++] = SlaveNode.pGetDof( DISPLACEMENT_Y );
             if (TDim == 3)
             {
-                rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_Z );
+                rConditionalDofList[index++] = SlaveNode.pGetDof( DISPLACEMENT_Z );
             }
         }
 
         // Slave Nodes Lambda Equation IDs
-        for ( unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++ )
+        for ( unsigned int iSlave = 0; iSlave < TNumNodes; iSlave++ )
         {
-            NodeType& slave_node = this->GetGeometry()[ i_slave ];
-            rConditionalDofList[index++] = slave_node.pGetDof( NORMAL_CONTACT_STRESS );
+            NodeType& SlaveNode = this->GetGeometry()[ iSlave ];
+            rConditionalDofList[index++] = SlaveNode.pGetDof( NORMAL_CONTACT_STRESS );
         }
     }
     
