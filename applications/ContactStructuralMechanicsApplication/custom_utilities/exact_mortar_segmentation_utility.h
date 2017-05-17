@@ -120,6 +120,131 @@ public:
     ///@{    
     
     /**
+     * This utility computes the exact integration of the mortar condition (just the points, not the whole integration points)
+     * @param MasterGeometry: The geometry of the master condition
+     * @param IntegrationPointsSlave: The integrations points that belong to the slave
+     * @return True if there is a common area (the geometries intersect), false otherwise
+     */
+    
+    inline bool GetExactIntegration(    
+        GeometryNodeType& OriginalSlaveGeometry,
+        const array_1d<double, 3>& SlaveNormal,
+        GeometryNodeType& OriginalMasterGeometry,
+        const array_1d<double, 3>& MasterNormal,
+        ConditionArrayListType& ConditionsPointsSlave
+        );
+    
+    /**
+     * This utility computes the exact integration of the mortar condition
+     * @param MasterGeometry: The geometry of the master condition
+     * @param IntegrationPointsSlave: The integrations points that belong to the slave
+     * @return True if there is a common area (the geometries intersect), false otherwise
+     */
+    
+    inline bool GetExactIntegration(    
+        GeometryNodeType& OriginalSlaveGeometry,
+        const array_1d<double, 3>& SlaveNormal,
+        GeometryNodeType& OriginalMasterGeometry,
+        const array_1d<double, 3>& MasterNormal,
+        IntegrationPointsType& IntegrationPointsSlave
+        )
+    {
+        ConditionArrayListType ConditionsPointsSlave;
+        
+        const bool IsInside = GetExactIntegration(OriginalSlaveGeometry,SlaveNormal,OriginalMasterGeometry,MasterNormal,ConditionsPointsSlave);
+        
+        for (unsigned int iGeom = 0; iGeom < ConditionsPointsSlave.size(); iGeom++)
+        {
+            std::vector<PointType::Pointer> PointsArray (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+            for (unsigned int iNode = 0; iNode < TDim; iNode++)
+            {
+                PointType GlobalPoint;
+                OriginalSlaveGeometry.GlobalCoordinates(GlobalPoint, ConditionsPointsSlave[iGeom][iNode]);
+                PointsArray[iNode] = boost::make_shared<PointType>(GlobalPoint);
+            }
+            
+            DecompositionType DecompGeom( PointsArray );
+            
+            const GeometryType::IntegrationPointsArrayType& LocalIntegrationPointsSlave = DecompGeom.IntegrationPoints( mAuxIntegrationMethod );
+            
+            // Integrating the mortar operators
+            for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationPointsSlave.size(); PointNumber++ )
+            {
+                const double Weight = LocalIntegrationPointsSlave[PointNumber].Weight();
+                const PointType LocalPointDecomp = LocalIntegrationPointsSlave[PointNumber].Coordinates();
+                PointType LocalPointParent;
+                PointType GPGlobal;
+                DecompGeom.GlobalCoordinates(GPGlobal, LocalPointDecomp);
+                OriginalSlaveGeometry.PointLocalCoordinates(LocalPointParent, GPGlobal);
+                
+                const double DetJ = DecompGeom.DeterminantOfJacobian( LocalPointDecomp ) * (TDim == 2 ? 2.0 : 1.0);
+                
+                IntegrationPointsSlave.push_back( IntegrationPointType( LocalPointParent.Coordinate(1), LocalPointParent.Coordinate(2), Weight * DetJ )); // TODO: Change push_back for a fic opoeration
+            }
+        }
+        
+        return IsInside;
+    }
+    
+    /**
+     * This utility computes the exact integration of the mortar condition
+     * @param SlaveCond: The slave condition
+     * @param MasterCond: The master condition
+     * @param IntegrationPointsSlave: The integrations points that belong to the slave
+     * @return True if there is a common area (the geometries intersect), false otherwise
+     */
+    
+    bool TestGetExactIntegration(     
+        Condition::Pointer& SlaveCond,
+        Condition::Pointer& MasterCond,
+        Matrix& CustomSolution
+        )
+    {
+        IntegrationPointsType IntegrationPointsSlave;
+        
+        const bool Solution = GetExactIntegration(SlaveCond->GetGeometry(), SlaveCond->GetValue(NORMAL), MasterCond->GetGeometry(), MasterCond->GetValue(NORMAL), IntegrationPointsSlave);
+        
+        CustomSolution.resize(IntegrationPointsSlave.size(), TDim, false);
+        
+//         std::cout << "The Gauss Points obtained are: " << std::endl;
+        for (unsigned int GP = 0; GP < IntegrationPointsSlave.size(); GP++)
+        {
+//             // For debug
+//             KRATOS_WATCH(IntegrationPointsSlave[GP]);
+            
+            // Solution save:
+            CustomSolution(GP, 0) = IntegrationPointsSlave[GP].Coordinate(1);
+            if (TDim == 2)
+            {
+                CustomSolution(GP, 1) = IntegrationPointsSlave[GP].Weight();
+            }
+            else
+            {
+                CustomSolution(GP, 1) = IntegrationPointsSlave[GP].Coordinate(2);
+                CustomSolution(GP, 2) = IntegrationPointsSlave[GP].Weight();
+            }
+        }
+        
+        return Solution;
+    }
+    
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    /**
      * Get the integration method to consider
      */
         
@@ -183,115 +308,6 @@ public:
         {
             return Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
         }
-    }
-    
-    /**
-     * This utility computes the exact integration of the mortar condition
-     * @param MasterGeometry: The geometry of the master condition
-     * @param IntegrationPointsSlave: The integrations points that belong to the slave
-     * @return True if there is a common area (the geometries intersect), false otherwise
-     */
-    
-    inline bool GetExactIntegration(    
-        GeometryNodeType& OriginalSlaveGeometry,
-        const array_1d<double, 3>& SlaveNormal,
-        GeometryNodeType& OriginalMasterGeometry,
-        const array_1d<double, 3>& MasterNormal,
-        IntegrationPointsType& IntegrationPointsSlave
-        )
-    {
-        ConditionArrayListType ConditionsPointsSlave;
-        
-        const bool IsInside = GetExactIntegration(OriginalSlaveGeometry,SlaveNormal,OriginalMasterGeometry,MasterNormal,ConditionsPointsSlave);
-        
-        for (unsigned int iGeom = 0; iGeom < ConditionsPointsSlave.size(); iGeom++)
-        {
-            std::vector<PointType::Pointer> PointsArray (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
-            for (unsigned int iNode = 0; iNode < TDim; iNode++)
-            {
-                PointType GlobalPoint;
-                OriginalSlaveGeometry.GlobalCoordinates(GlobalPoint, ConditionsPointsSlave[iGeom][iNode]);
-                PointsArray[iNode] = boost::make_shared<PointType>(GlobalPoint);
-            }
-            
-            DecompositionType DecompGeom( PointsArray );
-            
-            const GeometryType::IntegrationPointsArrayType& LocalIntegrationPointsSlave = DecompGeom.IntegrationPoints( mAuxIntegrationMethod );
-            
-            // Integrating the mortar operators
-            for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationPointsSlave.size(); PointNumber++ )
-            {
-                const double Weight = LocalIntegrationPointsSlave[PointNumber].Weight();
-                const PointType LocalPointDecomp = LocalIntegrationPointsSlave[PointNumber].Coordinates();
-                PointType LocalPointParent;
-                PointType GPGlobal;
-                DecompGeom.GlobalCoordinates(GPGlobal, LocalPointDecomp);
-                OriginalSlaveGeometry.PointLocalCoordinates(LocalPointParent, GPGlobal);
-                
-                const double DetJ = DecompGeom.DeterminantOfJacobian( LocalPointDecomp ) * (TDim == 2 ? 2.0 : 1.0);
-                
-                IntegrationPointsSlave.push_back( IntegrationPointType( LocalPointParent.Coordinate(1), LocalPointParent.Coordinate(2), Weight * DetJ )); // TODO: Change push_back for a fic opoeration
-            }
-        }
-        
-        return IsInside;
-    }
-    
-    /**
-     * This utility computes the exact integration of the mortar condition (just the points, not the whole integration points)
-     * @param MasterGeometry: The geometry of the master condition
-     * @param IntegrationPointsSlave: The integrations points that belong to the slave
-     * @return True if there is a common area (the geometries intersect), false otherwise
-     */
-    
-    inline bool GetExactIntegration(    
-        GeometryNodeType& OriginalSlaveGeometry,
-        const array_1d<double, 3>& SlaveNormal,
-        GeometryNodeType& OriginalMasterGeometry,
-        const array_1d<double, 3>& MasterNormal,
-        ConditionArrayListType& ConditionsPointsSlave
-        );
-    
-    /**
-     * This utility computes the exact integration of the mortar condition
-     * @param SlaveCond: The slave condition
-     * @param MasterCond: The master condition
-     * @param IntegrationPointsSlave: The integrations points that belong to the slave
-     * @return True if there is a common area (the geometries intersect), false otherwise
-     */
-    
-    bool TestGetExactIntegration(     
-        Condition::Pointer& SlaveCond,
-        Condition::Pointer& MasterCond,
-        Matrix& CustomSolution
-        )
-    {
-        IntegrationPointsType IntegrationPointsSlave;
-        
-        const bool solution = GetExactIntegration(SlaveCond->GetGeometry(), SlaveCond->GetValue(NORMAL), MasterCond->GetGeometry(), MasterCond->GetValue(NORMAL), IntegrationPointsSlave);
-        
-        CustomSolution.resize(IntegrationPointsSlave.size(), TDim, false);
-        
-//         std::cout << "The Gauss Points obtained are: " << std::endl;
-        for (unsigned int GP = 0; GP < IntegrationPointsSlave.size(); GP++)
-        {
-//             // For debug
-//             KRATOS_WATCH(IntegrationPointsSlave[GP]);
-            
-            // Solution save:
-            CustomSolution(GP, 0) = IntegrationPointsSlave[GP].Coordinate(1);
-            if (TDim == 2)
-            {
-                CustomSolution(GP, 1) = IntegrationPointsSlave[GP].Weight();
-            }
-            else
-            {
-                CustomSolution(GP, 1) = IntegrationPointsSlave[GP].Coordinate(2);
-                CustomSolution(GP, 2) = IntegrationPointsSlave[GP].Weight();
-            }
-        }
-        
-        return solution;
     }
     
     /**
@@ -808,21 +824,33 @@ public:
         return idx;
     }
     
-protected:
-    ///@name Protected static Member Variables
-    ///@{
+    /**
+     * This function calculates the matrix with the increase of displacements
+     * @param ThisGeometry: The geometry to compute the increase of displacemenents
+     * @return DeltaPosition: The matrix with the increase of displacements
+     */
+    
+    Matrix CalculateDeltaPosition(GeometryNodeType& ThisGeometry)
+    {
+        KRATOS_TRY;
 
-    ///@}
-    ///@name Protected member Variables
-    ///@{
+        Matrix DeltaPosition(TNumNodes, TDim);
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
+        for ( unsigned int i = 0; i < TNumNodes; i++ )
+        {
+            const array_1d<double, 3 > & CurrentDisplacement  = ThisGeometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 > & PreviousDisplacement = ThisGeometry[i].FastGetSolutionStepValue(DISPLACEMENT,1);
 
-    ///@}
-    ///@name Protected Operations
-    ///@{
+            for ( unsigned int j = 0; j < TDim; j++ )
+            {
+                DeltaPosition(i,j) = (CurrentDisplacement[j] - PreviousDisplacement[j]);
+            }
+        }
+
+        return DeltaPosition;
+
+        KRATOS_CATCH( "" );
+    }
     
     ///@}
     ///@name Protected  Access
