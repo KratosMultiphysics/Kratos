@@ -610,13 +610,15 @@ namespace Kratos
 		deltaX[0] = this->mTotalNodalPosistion[3] - this->mTotalNodalPosistion[0];
 		deltaX[1] = this->mTotalNodalPosistion[4] - this->mTotalNodalPosistion[1];
 		deltaX[2] = this->mTotalNodalPosistion[5] - this->mTotalNodalPosistion[2];
+
+
 		VectorNorm = MathUtils<double>::Norm(deltaX);
-		deltaX /= VectorNorm;
+		if (VectorNorm != 0.00) deltaX /= VectorNorm;
 
 		
 		n_bisectrix = rotatedNX0 + deltaX;
 		VectorNorm = MathUtils<double>::Norm(n_bisectrix);
-		n_bisectrix /= VectorNorm;
+		if (VectorNorm != 0.00) n_bisectrix /= VectorNorm;
 
 		Matrix n_xyz = ZeroMatrix(dimension);
 		for (int i = 0; i < dimension; ++i) {
@@ -930,6 +932,7 @@ namespace Kratos
 		// adding the nodal moments
 		this->CalculateAndAddWorkEquivalentNodalForcesLineLoad
 			(EquivalentLineLoad, BodyForcesGlobal, this->mCurrentLength);
+
 
 		// return the total ForceVector
 		return BodyForcesGlobal;
