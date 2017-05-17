@@ -45,6 +45,9 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
 class SimplePatchTestTwoDMeshTying(StructuralMechanichsTestFactory):
     file_name = "mesh_tying_test/simple_patch_test_2D"
     
+class SimpleSlopePatchTestTwoDMeshTying(StructuralMechanichsTestFactory):
+    file_name = "mesh_tying_test/hyper_simple_slope_patch_test_2D"
+    
 class SimplestPatchTestThreeDMeshTying(StructuralMechanichsTestFactory):
     file_name = "mesh_tying_test/3D_contact_simplest_patch_matching_test"
     
@@ -53,6 +56,9 @@ class SimplePatchTestThreeDMeshTying(StructuralMechanichsTestFactory):
     
 class ALMHyperSimplePatchTestContact(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test"
+    
+class ALMHyperSimpleSlopePatchTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/hyper_simple_slope_patch_test"
     
 class ALMSimplePatchTestContact(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_2D/simple_patch_test"

@@ -21,12 +21,14 @@ from TestExactIntegration import TestQuadrilateralExactIntegration1 as TTestQuad
 from TestExactIntegration import TestQuadrilateralExactIntegration2 as TTestQuadrilateralExactIntegration2
 
 # Mesh tying tests
-from SmallTests import SimplePatchTestTwoDMeshTying     as TSimplePatchTestTwoDMeshTying
-from SmallTests import SimplestPatchTestThreeDMeshTying as TSimplestPatchTestThreeDMeshTying
-from SmallTests import SimplePatchTestThreeDMeshTying   as TSimplePatchTestThreeDMeshTying
+from SmallTests import SimplePatchTestTwoDMeshTying      as TSimplePatchTestTwoDMeshTying
+from SmallTests import SimpleSlopePatchTestTwoDMeshTying as TSimpleSlopePatchTestTwoDMeshTying
+from SmallTests import SimplestPatchTestThreeDMeshTying  as TSimplestPatchTestThreeDMeshTying
+from SmallTests import SimplePatchTestThreeDMeshTying    as TSimplePatchTestThreeDMeshTying
 
 # ALM frictionless tests
 from SmallTests import ALMHyperSimplePatchTestContact            as TALMHyperSimplePatchTestContact
+from SmallTests import ALMHyperSimpleSlopePatchTestContact       as TALMHyperSimpleSlopePatchTestContact
 from SmallTests import ALMSimplePatchTestContact                 as TALMSimplePatchTestContact
 from SmallTests import ALMSimpleSlopePatchTestContact            as TALMSimpleSlopePatchTestContact
 from SmallTests import ALMSimplePatchNotMatchingATestContact     as TALMSimplePatchNotMatchingATestContact
@@ -76,11 +78,13 @@ def AssambleTestSuites():
     
     # Mesh tying tests 
     smallSuite.addTest(TSimplePatchTestTwoDMeshTying('test_execution'))
+    smallSuite.addTest(TSimpleSlopePatchTestTwoDMeshTying('test_execution'))
     smallSuite.addTest(TSimplestPatchTestThreeDMeshTying('test_execution'))
     smallSuite.addTest(TSimplePatchTestThreeDMeshTying('test_execution'))
     
     # ALM frictionless tests
     smallSuite.addTest(TALMHyperSimplePatchTestContact('test_execution'))
+    smallSuite.addTest(TALMHyperSimpleSlopePatchTestContact('test_execution'))
     smallSuite.addTest(TALMSimplePatchTestContact('test_execution'))
     smallSuite.addTest(TALMSimpleSlopePatchTestContact('test_execution'))
     smallSuite.addTest(TALMSimplePatchNotMatchingATestContact('test_execution'))
@@ -117,11 +121,13 @@ def AssambleTestSuites():
             TTestQuadrilateralExactIntegration1,
             TTestQuadrilateralExactIntegration2,
             TSimplePatchTestTwoDMeshTying,
+            ##TSimpleSlopePatchTestTwoDMeshTying, # FIXME: Some error in the mesh tying condition
             TSimplestPatchTestThreeDMeshTying,
             ##TSimplePatchTestThreeDMeshTying, # FIXME: Some error in the mesh tying condition
             TALMHyperSimplePatchTestContact,
+            ##TALMHyperSimpleSlopePatchTestContact, # FIXME: Some error with slopes (contact pressure not correct)
             TALMSimplePatchTestContact,
-            TALMSimpleSlopePatchTestContact,
+            TALMSimpleSlopePatchTestContact, 
             TALMSimplePatchNotMatchingATestContact,
             TALMSimplePatchNotMatchingBTestContact,
             TALMTaylorPatchTestContact,

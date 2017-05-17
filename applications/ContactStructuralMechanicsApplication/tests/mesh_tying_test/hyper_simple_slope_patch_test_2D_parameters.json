@@ -1,6 +1,6 @@
 {
     "problem_data"             : {
-        "problem_name"    : "hyper_simple_patch_test",
+        "problem_name"    : "hyper_simple_slope_patch_test_2D",
         "model_part_name" : "Structure",
         "domain_size"     : 2,
         "time_step"       : 1.1,
@@ -10,14 +10,14 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "contact_structural_mechanics_static_solver",
-        "echo_level"                         : 0,
+        "echo_level"                         : 1,
         "solution_type"                      : "Static",
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "ALM_frictionless_contact_test_2D/hyper_simple_patch_test"
+            "input_filename" : "mesh_tying_test/hyper_simple_slope_patch_test_2D"
         },
-        "mortar_type"                        : "ALMContactFrictionless",
+        "mortar_type"                        : "ComponentsMeshTying",
         "block_builder"                      : false,
         "clear_storage"                      : true,
         "line_search"                        : false,
@@ -36,7 +36,7 @@
                 "verbosity": 1
         },
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto2","Parts_Parts_Auto3"],
-        "processes_sub_model_part_list"      : ["Contact_Part","Parts_Parts_Auto2","Parts_Parts_Auto3","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","IMPOSE_DISP_Auto1"]
+        "processes_sub_model_part_list"      : ["Tying_Part","Parts_Parts_Auto2","Parts_Parts_Auto3","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","IMPOSE_LOAD_Auto1"]
     },
     "constraints_process_list" : [{
         "python_module"   : "impose_vector_value_by_components_process",
@@ -73,34 +73,75 @@
         "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
-            "model_part_name" : "IMPOSE_DISP_Auto1",
+            "model_part_name" : "Parts_Parts_Auto2",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_x"      : true,
+            "is_fixed_y"      : false,
+            "is_fixed_z"      : true,
+            "value"           : [0.0,0.0,0.0]
+        }
+    },{
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Parts_Parts_Auto3",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_x"      : true,
+            "is_fixed_y"      : false,
+            "is_fixed_z"      : true,
+            "value"           : [0.0,0.0,0.0]
+        }
+    },{
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "IMPOSE_LOAD_Auto1",
             "variable_name"   : "DISPLACEMENT",
             "is_fixed_x"      : true,
             "is_fixed_y"      : true,
             "is_fixed_z"      : false,
             "value"           : [0.0,-0.01,0.0]
         }
-    }
-    ],
-    "loads_process_list"       : [],
+    }],
+    "loads_process_list"       : [{
+        "python_module"   : "apply_vector_on_conditions_process",
+        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ApplyVaryingVectorOverTimeIntervalProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "IMPOSE_LOAD_Auto1",
+            "variable_name"   : "LINE_LOAD",
+            "modulus"         : 1.0e12,
+            "direction"       : [0.0,-1.0,0.0]
+        }
+    }],
     "list_other_processes" :[
     {
-        "python_module"   : "alm_contact_process",
-        "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "python_module"   : "mesh_tying_process",
+        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
         "help"                  : "",
-        "process_name"          : "ALMContactProcess",
+        "process_name"          : "MeshTyingProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
-            "contact_model_part"          : "Contact_Part",
-            "contact_type"                : "Frictionless",
-            "search_factor"               : 2.0,
+            "mesh_tying_model_part"       : "Tying_Part",
+            "type_variable"               : "Components",
+            "geometry_element"            : "Quadrilateral",
+            "search_factor"               : 1.5,
+            "active_check_factor"         : 0.01,
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
             "integration_order"           : 2
         }
     }
     ],
-    "json_check_process" : [
+    "_json_check_process" : [
     {
         "python_module"   : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",
@@ -108,8 +149,8 @@
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
             "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "input_file_name"      : "ALM_frictionless_contact_test_2D/hyper_simple_patch_test_results.json",
-            "model_part_name"      : "Contact_Part",
+            "input_file_name"      : "mesh_tying_test/hyper_simple_slope_patch_test_2D_results.json",
+            "model_part_name"      : "Tying_Part",
             "time_frequency"       : 1.00
         }
     }
@@ -122,13 +163,13 @@
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "output_file_name"     : "ALM_frictionless_contact_test_2D/hyper_simple_patch_test_results.json",
-            "model_part_name"      : "Contact_Part",
+            "output_file_name"     : "mesh_tying_test/hyper_simple_slope_patch_test_2D_results.json",
+            "model_part_name"      : "Tying_Part",
             "time_frequency"       : 1.00
         }
     }
     ],
-    "_output_configuration"     : {
+    "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -142,8 +183,8 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","NORMAL_CONTACT_STRESS","WEIGHTED_GAP"],
-            "nodal_nonhistorical_results": ["NORMAL","AUGMENTED_NORMAL_CONTACT_PRESSURE"],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","VECTOR_LAGRANGE_MULTIPLIER"],
+            "nodal_nonhistorical_results": ["NORMAL"],
             "nodal_flags_results": ["ACTIVE","SLAVE"],
             "gauss_point_results" : ["VON_MISES_STRESS","CAUCHY_STRESS_TENSOR"]
         },
