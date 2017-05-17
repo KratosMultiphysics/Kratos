@@ -121,7 +121,7 @@ def AssambleTestSuites():
             TTestQuadrilateralExactIntegration1,
             TTestQuadrilateralExactIntegration2,
             TSimplePatchTestTwoDMeshTying,
-            ##TSimpleSlopePatchTestTwoDMeshTying, # FIXME: Some error in the mesh tying condition
+            TSimpleSlopePatchTestTwoDMeshTying, # FIXME: I am not getting what I assume as correct (something to correct) 
             TSimplestPatchTestThreeDMeshTying,
             ##TSimplePatchTestThreeDMeshTying, # FIXME: Some error in the mesh tying condition
             TALMHyperSimplePatchTestContact,
