@@ -11,7 +11,6 @@ set( KRATOS_PURE_DIFFUSION_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/pure_diffusion_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/poisson_2d.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/projected_swe.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_source.cpp
 )
 

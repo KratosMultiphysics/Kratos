@@ -31,8 +31,9 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 #include "pure_diffusion_application_variables.h"
-#include "custom_elements/poisson_2d.h" //including the file for the element
-#include "includes/condition.h"         //we'll also need conditions for the point heat loads
+#include "custom_elements/poisson_2d.h"    //including the file for the element
+#include "custom_elements/projected_swe.h" //including the file for the second element
+#include "includes/condition.h"            //we'll also need conditions for the point heat loads
 #include "custom_conditions/point_source.h"         
 #include "includes/ublas_interface.h"
 
@@ -100,8 +101,9 @@ namespace Kratos
 
 	private:
 
-		const Poisson2D mPoisson2D;     // element
-		const PointSource mPointSource; // condition
+		const Poisson2D mPoisson2D;        // element
+		const ProjectedSWE mProjectedSWE;  // element
+		const PointSource mPointSource;    // condition
 
 		/// Assignment operator.
 		KratosPureDiffusionApplication& operator=(KratosPureDiffusionApplication const& rOther);
