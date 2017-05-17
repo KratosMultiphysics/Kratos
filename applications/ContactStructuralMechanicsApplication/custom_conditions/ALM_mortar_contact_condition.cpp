@@ -1482,15 +1482,15 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional> // NOTE: Formulation taken from Mohamed Khalil work
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaNormalMaster(DerivativeDataType& rDerivativeData)
 {
-    for ( unsigned int i_master = 0, i = 0; i_master < TNumNodes; ++i_master, i += TDim )
+    for ( unsigned int iMaster = 0, i = 0; iMaster < TNumNodes; ++iMaster, i += TDim )
     {
-//         bounded_matrix<double, TDim, TDim> DeltaNormal = GetGeometry[i_master].GetValue(DELTA_NORMAL);
-        bounded_matrix<double, TDim, TDim> DeltaNormal = this->LocalDeltaNormal(rDerivativeData.MasterGeometry, i_master);
+//         bounded_matrix<double, TDim, TDim> DeltaNormal = GetGeometry[iMaster].GetValue(DELTA_NORMAL);
+        bounded_matrix<double, TDim, TDim> DeltaNormal = this->LocalDeltaNormal(rDerivativeData.MasterGeometry, iMaster);
         for (unsigned iDoF = 0; iDoF < TDim; iDoF++) 
         {
             for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
             {
-                row(rDerivativeData.DeltaNormalMaster[i_master * TDim + iDoF], iNode) = trans(column(DeltaNormal, iDoF)); 
+                row(rDerivativeData.DeltaNormalMaster[iMaster * TDim + iDoF], iNode) = trans(column(DeltaNormal, iDoF)); 
             }
         }
     }
@@ -1508,8 +1508,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     static const unsigned int Size1 = (TNumNodes * TDim);
     
     // Shape functions
-    const VectorType  N1 = rVariables.NSlave;
-    const VectorType  N2 = rVariables.NMaster;
+    const VectorType N1 = rVariables.NSlave;
+    const VectorType N2 = rVariables.NMaster;
     
     // Coordinates
     const bounded_matrix<double, TNumNodes, TDim> u1 = rDerivativeData.u1;
@@ -1518,8 +1518,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     const bounded_matrix<double, TNumNodes, TDim> X2 = rDerivativeData.X2;
     
     // Normals
-    const array_1d<double, TDim >  NormalSlaveg = prod(trans(rDerivativeData.NormalSlave), N1);
-    const array_1d<double, TDim >  NormalMasterg = prod(trans(rDerivativeData.NormalMaster), N2);
+    const array_1d<double, TDim > NormalSlaveg = prod(trans(rDerivativeData.NormalSlave), N1);
+    const array_1d<double, TDim > NormalMasterg = prod(trans(rDerivativeData.NormalMaster), N2);
     
     const array_1d<bounded_matrix<double, TNumNodes, TDim>, Size1> DNormalSlave = rDerivativeData.DeltaNormalSlave;
     const array_1d<bounded_matrix<double, TNumNodes, TDim>, Size1> DNormalMaster = rDerivativeData.DeltaNormalMaster;
@@ -1598,11 +1598,11 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
             const unsigned int iDoF = iSlave * TDim + i_dim;
             
             const array_1d<double, TNumNodes > DNormalSlaveg = prod(trans(DNormalSlave[iDoF]), N1);
-            array_1d<double, TNumNodes > aux_vector = ZeroVector(TNumNodes);
-            aux_vector[i_dim] = 1.0;
-            const array_1d<double, TNumNodes > Deltavector_nodes = - N1[iSlave] * aux_vector;
+            array_1d<double, TNumNodes > AuxVector = ZeroVector(TNumNodes);
+            AuxVector[i_dim] = 1.0;
+            const array_1d<double, TNumNodes > Deltavector_nodes = - N1[iSlave] * AuxVector;
             const double DeltaDist = ((inner_prod(Deltavector_nodes, NormalMasterg))* inner_prod(NormalSlaveg, NormalMasterg) - inner_prod(vector_nodes, NormalMasterg) * (inner_prod(DNormalSlaveg, NormalMasterg)))/std::pow(inner_prod(NormalSlaveg, NormalMasterg) + tol, 2);
-            const array_1d<double, TNumNodes > Deltax1g = N1[iSlave] * aux_vector;
+            const array_1d<double, TNumNodes > Deltax1g = N1[iSlave] * AuxVector;
             const array_1d<double, TNumNodes > Deltax2g = Deltax1g + DeltaDist * NormalSlaveg + Dist * DNormalSlaveg;
             
             if (TDim == 2)
@@ -1626,19 +1626,19 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
       }
       
       // Derivatives master
-      for (unsigned int i_master = 0; i_master < TNumNodes; i_master++)
+      for (unsigned int iMaster = 0; iMaster < TNumNodes; iMaster++)
       {
          for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
          {
-            const unsigned int iDoF = (TNumNodes + i_master) * TDim + i_dim;
+            const unsigned int iDoF = (TNumNodes + iMaster) * TDim + i_dim;
             
             const array_1d<double, TNumNodes > DNormalMasterg = prod(trans(DNormalMaster[iDoF - TNumNodes * TDim]), N2);
-            array_1d<double, TNumNodes > aux_vector = ZeroVector(TNumNodes);
-//             if (i_master == 0) // NOTE: This is the way I considered in the symbolic
+            array_1d<double, TNumNodes > AuxVector = ZeroVector(TNumNodes);
+//             if (iMaster == 0) // NOTE: This is the way I considered in the symbolic
 //             {
-                aux_vector[i_dim] = 1.0;
+                AuxVector[i_dim] = 1.0;
 //             }
-            const array_1d<double, TNumNodes > Deltavector_nodes = N2[i_master] * aux_vector;
+            const array_1d<double, TNumNodes > Deltavector_nodes = N2[iMaster] * AuxVector;
             const double DeltaDist = ((inner_prod(Deltavector_nodes, NormalMasterg) + inner_prod(vector_nodes, DNormalMasterg))* inner_prod(NormalSlaveg, NormalMasterg) - inner_prod(vector_nodes, NormalMasterg) * (inner_prod(NormalSlaveg, DNormalMasterg)))/std::pow(inner_prod(NormalSlaveg, NormalMasterg) + tol, 2);;
             const array_1d<double, TNumNodes > x2g = prod(trans(X2 + u2), N2);
             const array_1d<double, TNumNodes > Deltax2g = DeltaDist * NormalSlaveg;
@@ -1647,7 +1647,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
             {
                if (TNumNodes == 2)
                {
-                   if (i_master == 0)
+                   if (iMaster == 0)
                    {
                        rDerivativeData.DeltaN2[iDoF][0] =  ( ((u2(1,0) + X2(1,0) + u2(1,1) + X2(1,1)) - x2g[0] - x2g[1]) + div2 * (Deltax2g[0] + Deltax2g[1]))/std::pow(div2, 2);
                    }
