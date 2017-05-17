@@ -800,8 +800,8 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateKinematics(
 //     rVariables.Phi_LagrangeMultipliers = rVariables.N_Slave; // TODO: This could be needed in the future to be different than the standart shape functions 
     
     /* CALCULATE JACOBIAN AND JACOBIAN DETERMINANT */
-//     rVariables.DetJSlave = 1.0;
-    rVariables.DetJSlave = GetGeometry( ).DeterminantOfJacobian( LocalPoint );
+    rVariables.DetJSlave = 1.0;
+//     rVariables.DetJSlave = GetGeometry( ).DeterminantOfJacobian( LocalPoint );
     
     /// MASTER CONDITION ///
     this->MasterShapeFunctionValue( rVariables, MasterNormal, LocalPoint);
