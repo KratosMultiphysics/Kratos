@@ -114,7 +114,8 @@ protected:
       SurfaceBase    ContravariantBase;
       
       //geometrical variables
-      double EquivalentArea;
+      double ReferenceArea;
+      double CurrentArea;
 
       double FactorArea;
       

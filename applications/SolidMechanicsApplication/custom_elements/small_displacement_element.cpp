@@ -2544,17 +2544,15 @@ int  SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
         //     KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" ) //if is not read from model part it will not exist
 
 
-	if ( this->GetProperties().Has( THICKNESS ) == false ){
+	if(this->GetProperties().Has( THICKNESS ) == false){
 	   
-
 	  if(LawFeatures.mOptions.Is(ConstitutiveLaw::PLANE_STRAIN_LAW) || LawFeatures.mOptions.Is(ConstitutiveLaw::AXISYMMETRIC_LAW) ){
-
+	    //this must be assigned in an initial check of the parameters of the element vs constitutive model
 	    this->GetProperties().SetValue( THICKNESS , 1.0 );
 	  }
-	  else
-	    {
-	      KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
-	    }
+	  else{
+	    KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
+	  }
 	}
 
     }
@@ -2565,12 +2563,8 @@ int  SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     }
 
     //check constitutive law
-    /*for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-    {
-        return mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
-    }*/
-	// FIXED: At this point the constitutive law vector is not set yet.
-	this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Check( this->GetProperties(), this->GetGeometry(), rCurrentProcessInfo );
+    // FIXED: At this point the constitutive law vector is not set yet.
+    this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Check( this->GetProperties(), this->GetGeometry(), rCurrentProcessInfo );
 
     //check if it is in the XY plane for 2D case
 

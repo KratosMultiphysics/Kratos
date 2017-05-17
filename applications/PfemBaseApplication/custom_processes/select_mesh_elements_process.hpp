@@ -333,7 +333,8 @@ public:
 
 		  if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH))
 		    {
-		      accepted=ModelerUtils.CheckOuterCentre(vertices,mrRemesh.OffsetFactor, self_contact);
+		      //problems in 3D:
+		      //accepted=ModelerUtils.CheckOuterCentre(vertices,mrRemesh.OffsetFactor, self_contact);
 		    }
 		  else
 		    {

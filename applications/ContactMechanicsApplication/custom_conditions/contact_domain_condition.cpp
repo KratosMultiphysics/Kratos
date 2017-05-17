@@ -1361,8 +1361,8 @@ namespace Kratos
 	double IntegrationWeight = 0.5 * Variables.Contact.CurrentBase[0].L;  //all components are multiplied by this
 
 	if(dimension == 3)
-	  IntegrationWeight = (1.0/3.0) * Variables.Contact.Tangent.EquivalentArea;
-	
+	  IntegrationWeight = (1.0/3.0) * Variables.Contact.Tangent.ReferenceArea;
+	  
         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
 
         if(Variables.Contact.Options.Is(ACTIVE))
@@ -1544,7 +1544,7 @@ namespace Kratos
 	      //TANGENT FORCE
 	      this->CalculateTangentSlipForce(Tforce[i],rVariables,ndi,i);
 	      
-	      rRightHandSideVector[index] -=(Nforce[i] + Tforce[i]);
+	      rRightHandSideVector[index] -= (Nforce[i] + Tforce[i]);
 	      
 	      // NormalForce[i]  -= (Nforce[i])*rIntegrationWeight;
 	      // TangentForce[i] -= (Tforce[i])*rIntegrationWeight;

@@ -2798,13 +2798,12 @@ int  LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
 	if ( this->GetProperties().Has( THICKNESS ) == false ){
 
 	  if(LawFeatures.mOptions.Is(ConstitutiveLaw::PLANE_STRAIN_LAW) || LawFeatures.mOptions.Is(ConstitutiveLaw::AXISYMMETRIC_LAW) ){	   
-
+	    //this must be assigned in an initial check of the parameters of the element vs constitutive model
 	    this->GetProperties().SetValue( THICKNESS , 1.0 );
 	  }
-	  else
-	    {
-	      KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
-	    }
+	  else{
+	    KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
+	  }
 	}
 
     }

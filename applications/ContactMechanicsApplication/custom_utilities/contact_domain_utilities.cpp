@@ -59,11 +59,11 @@ namespace Kratos
 	//*******************************************************************************************
 
         void ContactDomainUtilities::CalculateEdgeDistances (std::vector<BaseLengths>& BaseVector,
-							     PointType& P1,
-							     PointType& P2,
-							     PointType& PS1,
-							     PointType& PS2,
-							     PointType& Normal)
+							     const PointType& P1,
+							     const  PointType& P2,
+							     const PointType& PS1,
+							     const PointType& PS2,
+							     const PointType& Normal)
 	{
 
 	  BaseVector[0].L=norm_2(P2-P1);
@@ -127,11 +127,11 @@ namespace Kratos
 	//*******************************************************************************************
 
         void ContactDomainUtilities::CalculateBaseDistances (std::vector<BaseLengths>& BaseVector,
-							     PointType& P1,
-							     PointType& P2,
-							     PointType& P3,
-							     PointType& PS,
-							     PointType& Normal)
+							     const PointType& P1,
+							     const PointType& P2,
+							     const PointType& P3,
+							     const PointType& PS,
+							     const PointType& Normal)
 	{
 
 	  BaseVector[0].L=norm_2(P2-P1);
@@ -142,11 +142,6 @@ namespace Kratos
 	  PointType V1; 
 	  PointType V2;
 	  
-	  // V1 = P2-P1;
-	  // V2 = P3-P1;	  
-	  // MathUtils<double>::CrossProduct(Normal,V1,V2);	  
-	  // if( norm_2(Normal) != 0 )
-	  //   Normal/=norm_2(Normal);	  
 
 	  //projection of the slave on the master plane:  
 	  PointType PPS = PS-P1;
@@ -244,10 +239,10 @@ namespace Kratos
 	//*******************************************************************************************
 
 	void ContactDomainUtilities::CalculateBaseDistances (BaseLengths& Base,
-							     PointType& P1,
-							     PointType& P2,
-							     PointType& PS,
-							     PointType& Normal)
+							     const PointType& P1,
+							     const PointType& P2,
+							     const PointType& PS,
+							     const PointType& Normal)
 	{
 
 		Base.L=norm_2(P2-P1);
@@ -285,7 +280,7 @@ namespace Kratos
         //************************************************************************************
         //************************************************************************************
 
-	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateSurfaceNormal(PointType &Normal, PointType& D1, PointType& D2)
+	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateSurfaceNormal(PointType &Normal, const PointType& D1, const PointType& D2)
 	{
 
 		Normal.clear();
@@ -293,7 +288,7 @@ namespace Kratos
 		MathUtils<double>::CrossProduct(Normal, D1, D2);
 		
 		if(norm_2(Normal)!=0)
-			Normal/=norm_2(Normal);
+		  Normal/=norm_2(Normal);
 
 		return Normal;
 	}
@@ -301,9 +296,9 @@ namespace Kratos
         //************************************************************************************
         //************************************************************************************
 
-	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateFaceNormal(PointType &Normal, PointType& P1, PointType &P2)
+	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateFaceNormal(PointType &Normal, const PointType& P1, const PointType &P2)
 	{
-   	        //contact element is ouside (sign criterion)
+   	        //contact element is outside (sign criterion)
 		Normal.clear();
 		Normal[0] = - (P2[1] - P1[1]);
 		Normal[1] =   (P2[0] - P1[0]);
@@ -319,7 +314,7 @@ namespace Kratos
         //************************************************************************************
 
 
-	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateFaceTangent(PointType &Tangent ,PointType& P1, PointType &P2)
+	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateFaceTangent(PointType &Tangent, const  PointType& P1, const PointType &P2)
 	{
    	        //contact element is ouside (sign criterion)
 		Tangent.clear();
@@ -340,7 +335,7 @@ namespace Kratos
        //************************************************************************************
 
 
-	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateFaceTangent(PointType &Tangent ,PointType& Normal)
+	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateFaceTangent(PointType &Tangent, PointType& Normal)
 	{
 	        //counter clock-wise movement
 		Tangent.clear();
