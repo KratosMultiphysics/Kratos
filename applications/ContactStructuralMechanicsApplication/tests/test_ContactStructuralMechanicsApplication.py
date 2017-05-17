@@ -13,6 +13,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Exact integration tests
 from TestExactIntegration import TestLineExactIntegration1          as TTestLineExactIntegration1
 from TestExactIntegration import TestLineExactIntegration2          as TTestLineExactIntegration2
+from TestExactIntegration import TestLineExactIntegration3          as TTestLineExactIntegration3
 from TestExactIntegration import TestTriangleExactIntegration1      as TTestTriangleExactIntegration1
 from TestExactIntegration import TestTriangleExactIntegration2      as TTestTriangleExactIntegration2
 from TestExactIntegration import TestTriangleExactIntegration3      as TTestTriangleExactIntegration3
@@ -66,6 +67,7 @@ def AssambleTestSuites():
     # Exact integration tests
     smallSuite.addTest(TTestLineExactIntegration1('test_execution'))
     smallSuite.addTest(TTestLineExactIntegration2('test_execution'))
+    smallSuite.addTest(TTestLineExactIntegration3('test_execution'))
     smallSuite.addTest(TTestTriangleExactIntegration1('test_execution'))
     smallSuite.addTest(TTestTriangleExactIntegration2('test_execution'))
     smallSuite.addTest(TTestTriangleExactIntegration3('test_execution'))
@@ -108,6 +110,7 @@ def AssambleTestSuites():
         KratosUnittest.TestLoader().loadTestsFromTestCases([
             TTestLineExactIntegration1,
             TTestLineExactIntegration2,
+            TTestLineExactIntegration3,
             TTestTriangleExactIntegration1,
             TTestTriangleExactIntegration2,
             TTestTriangleExactIntegration3,

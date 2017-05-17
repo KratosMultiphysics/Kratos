@@ -98,6 +98,71 @@ class TestLineExactIntegration2(KratosUnittest.TestCase):
         self.assertTrue(solution)
         self.assertAlmostEqual(MatrixSolution[0,0], 0.5)
         self.assertAlmostEqual(MatrixSolution[0,1], 1)
+        
+class TestLineExactIntegration3(KratosUnittest.TestCase):
+    def test_execution(self):
+        model_part = KratosMultiphysics.ModelPart("Main")
+        model_part.SetBufferSize(3)
+        model_part.AddProperties(KratosMultiphysics.Properties(1))
+        
+        normal = KratosMultiphysics.Vector(3)
+        normal[0] = 0.0
+        normal[1] = 1.0
+        normal[2] = 0.0
+        
+        # Line 1
+        model_part.CreateNewNode(1, 0.00,0.00,0.00)
+        model_part.GetNode(1).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.CreateNewNode(2, 1.00,0.00,0.00)
+        model_part.GetNode(2).SetValue(KratosMultiphysics.NORMAL, normal)
+        
+        cond1 = model_part.CreateNewCondition("Condition2D2N", 1, [1,2], model_part.GetProperties()[1])
+        cond1.SetValue(KratosMultiphysics.NORMAL, normal)
+        
+        model_part.GetNode(1).Y = -0.25
+        model_part.GetNode(2).Y = +0.25
+        
+        normal[0] = 0.5
+        normal[1] = 0.8660254037844386
+        normal[2] = 0.0
+        
+        cond1.SetValue(KratosMultiphysics.NORMAL, normal)
+        
+        # Creating the utility:
+        ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility2D2N(1)
+
+        # Line 2
+        normal[0] = 0.0
+        normal[1] = -1.0
+        normal[2] = 0.0
+        model_part.CreateNewNode(3, 0.0,0.25,0.00)
+        model_part.GetNode(3).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.CreateNewNode(4, 1.0,0.25,0.00)
+        model_part.GetNode(4).SetValue(KratosMultiphysics.NORMAL, normal)
+        
+        cond2 = model_part.CreateNewCondition("Condition2D2N", 2, [3,4], model_part.GetProperties()[1])
+        cond2.SetValue(KratosMultiphysics.NORMAL, normal)
+        
+        #model_part.GetNode(3).Y = -0.25
+        #model_part.GetNode(4).Y = +0.25
+        
+        #normal[0] = 0.5
+        #normal[1] = -0.8660254037844386
+        #normal[2] = 0.0
+        
+        #cond2.SetValue(KratosMultiphysics.NORMAL, normal)
+        
+        MatrixSolution = KratosMultiphysics.Matrix()
+        
+        solution = ExactIntegration.TestGetExactIntegration(cond1, cond2, MatrixSolution)
+        
+        ## Debug
+        #if (solution == True):
+            #print("Integration accomplished", MatrixSolution)
+        
+        self.assertTrue(solution)
+        self.assertAlmostEqual(MatrixSolution[0,0], 0.0)
+        self.assertAlmostEqual(MatrixSolution[0,1], 2.23606797749979)
     
 ## Test exact integration in 3D
 # TRIANGLE
@@ -466,6 +531,7 @@ class TestQuadrilateralExactIntegration2(KratosUnittest.TestCase):
 if __name__ == '__main__':
    TestLineExactIntegration1().test_execution()
    TestLineExactIntegration2().test_execution()
+   TestLineExactIntegration3().test_execution()
    TestTriangleExactIntegration1().test_execution()
    TestTriangleExactIntegration2().test_execution()
    TestTriangleExactIntegration3().test_execution()
