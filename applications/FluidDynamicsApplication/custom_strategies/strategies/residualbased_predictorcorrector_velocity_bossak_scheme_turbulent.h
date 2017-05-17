@@ -348,8 +348,8 @@ namespace Kratos {
                              TSystemVectorType& Dv,
                              TSystemVectorType& b)
         {
-            if (rModelPart.GetCommunicator().MyPID() == 0)
-                std::cout << "prediction" << std::endl;
+            // if (rModelPart.GetCommunicator().MyPID() == 0)
+            //     std::cout << "prediction" << std::endl;
 
             int NumThreads = OpenMPUtils::GetNumThreads();
             OpenMPUtils::PartitionVector NodePartition;
@@ -404,8 +404,8 @@ namespace Kratos {
                 }
             }
 
-            if (rModelPart.GetCommunicator().MyPID() == 0)
-                std::cout << "end of prediction" << std::endl;
+            // if (rModelPart.GetCommunicator().MyPID() == 0)
+            //     std::cout << "end of prediction" << std::endl;
 
         }
 
@@ -596,9 +596,9 @@ namespace Kratos {
             if (CurrentProcessInfo[OSS_SWITCH] == 1.0) {
                 if (rModelPart.GetCommunicator().MyPID() == 0)
                     std::cout << "Computing OSS projections" << std::endl;
-                
-                
-                const int nnodes = static_cast<int>(rModelPart.Nodes().size()); 
+
+
+                const int nnodes = static_cast<int>(rModelPart.Nodes().size());
                 auto nbegin = rModelPart.NodesBegin();
                 #pragma omp parallel for firstprivate(nbegin,nnodes)
                 for(int i=0; i<nnodes; ++i)
@@ -617,7 +617,7 @@ namespace Kratos {
                 array_1d<double, 3 > output;
 
 
-                const int nel = static_cast<int>(rModelPart.Elements().size()); 
+                const int nel = static_cast<int>(rModelPart.Elements().size());
                 auto elbegin = rModelPart.ElementsBegin();
                 #pragma omp parallel for firstprivate(elbegin,nel)
                 for(int i=0; i<nel; ++i)
