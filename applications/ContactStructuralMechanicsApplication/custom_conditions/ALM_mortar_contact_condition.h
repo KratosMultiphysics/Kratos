@@ -266,7 +266,7 @@ public:
 //         MatrixType DPhi_De_LagrangeMultipliers;
 
         // Determinant of slave cell's jacobian
-        double DetJSlave;
+        double DetjSlave;
         
         /*
          * Jacobians in current configuration on all integration points of slave segment
@@ -295,7 +295,7 @@ public:
 //             DPhi_De_LagrangeMultipliers  = ZeroMatrix(TNumNodes, TDim - 1);
             
             // Jacobian of slave
-            DetJSlave = 0.0;
+            DetjSlave = 0.0;
            
             // Jacobians on all integration points
             jSlave = ZeroMatrix(TDim, TDim - 1);
@@ -318,7 +318,7 @@ public:
             KRATOS_WATCH( NMaster );
             KRATOS_WATCH( PhiLagrangeMultipliers );
             KRATOS_WATCH( jSlave );
-            KRATOS_WATCH( DetJSlave );
+            KRATOS_WATCH( DetjSlave );
         }
     };
          
@@ -911,7 +911,7 @@ protected:
     /*************** METHODS TO CALCULATE MORTAR CONDITION DERIVATIVES **************/
     /********************************************************************************/
     
-    void CalculateDeltaDetJSlave(
+    void CalculateDeltaDetjSlave(
         GeneralVariables& rVariables,
         DerivativeDataType& rDerivativeData
         );
