@@ -199,15 +199,15 @@ for normalvar in range(2):
             for slip in range(3):
                 rv_galerkin = 0
                 if (slip == 0):  
-                    rv_galerkin -=  0.5/PenaltyParameter * ScaleFactor**2.0 * LMNormal[node] * wLMNormal[node]
-                    rv_galerkin -= (0.5/(PenaltyParameter * TangentFactor) * ScaleFactor**2.0 * LMTangent.row(node) * wLMTangent.row(node).transpose())[0,0]
+                    rv_galerkin -=  ScaleFactor**2.0/PenaltyParameter * LMNormal[node] * wLMNormal[node]
+                    rv_galerkin -= (ScaleFactor**2.0/(PenaltyParameter * TangentFactor) * LMTangent.row(node) * wLMTangent.row(node).transpose())[0,0]
                 else:
                     rv_galerkin += ((((ScaleFactor * LMNormal[node] + PenaltyParameter * NormalGap[node]) * NormalSlave.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
                     rv_galerkin +=  ScaleFactor * NormalGap[node] * wLMNormal[node]
                     
                     if (slip == 1): # Slip 
                         rv_galerkin -= (((mu[node] * (ScaleFactor * LMNormal[node] + PenaltyParameter * NormalGap[node]) * HatTangentSlave.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
-                        rv_galerkin -=  (0.5/(PenaltyParameter * TangentFactor) * ScaleFactor**2.0 * (ScaleFactor * LMTangent.row(node) + mu[node] * (ScaleFactor * LMNormal[node] + PenaltyParameter * NormalGap[node]) * HatTangentSlave.row(node)) * wLMTangent.row(node).transpose())[0,0] 
+                        rv_galerkin -=  (ScaleFactor**2.0/(PenaltyParameter * TangentFactor) * (ScaleFactor * LMTangent.row(node) + mu[node] * (ScaleFactor * LMNormal[node] + PenaltyParameter * NormalGap[node]) * HatTangentSlave.row(node)) * wLMTangent.row(node).transpose())[0,0] 
                     else: # Stick 
                         rv_galerkin += (((ScaleFactor * LMTangent.row(node) + PenaltyParameter * TangentSlip.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
                         rv_galerkin +=  (ScaleFactor * TangentSlip.row(node) * wLMTangent.row(node).transpose())[0,0]

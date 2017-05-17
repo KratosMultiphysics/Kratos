@@ -146,7 +146,7 @@ for normalvar in range(2):
                     rv_galerkin += ((((ScaleFactor * LMNormal[node] + PenaltyParameter * NormalGap[node]) * NormalSlave.row(node))) * Dw1Mw2.row(node).transpose())[0,0]
                     rv_galerkin +=  ScaleFactor * NormalGap[node] * wLMNormal[node]
                 else:
-                    rv_galerkin += - 0.5/PenaltyParameter * ScaleFactor**2.0 * LMNormal[node] * wLMNormal[node]
+                    rv_galerkin += - ScaleFactor**2.0/PenaltyParameter * LMNormal[node] * wLMNormal[node]
 
             if(do_simplifications):
                 rv_galerkin = simplify(rv_galerkin)

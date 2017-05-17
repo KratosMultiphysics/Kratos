@@ -84,11 +84,10 @@ for dim, nnodeselement, tensor in zip(dim_combinations, nnodeselement_combinatio
 
     # Compute galerkin functional 
     rv_galerkin = 0
-
-    for dvalue in range(tensor):
-        # Defining the functional
-        rv_galerkin -= ((Dw1Mw2.col(dvalue)).transpose() * lm.col(dvalue))[0,0]
-        rv_galerkin -= ((Du1Mu2.col(dvalue)).transpose() * wlm.col(dvalue))[0,0]
+    # Defining the functional
+    for node in range(nnodes):
+        rv_galerkin -= (lm.row(node) * (Dw1Mw2.row(node)).transpose())[0,0]
+        rv_galerkin -= (wlm.row(node) * (Du1Mu2.row(node)).transpose())[0,0]
 
     if(do_simplifications):
         rv_galerkin = simplify(rv_galerkin)
