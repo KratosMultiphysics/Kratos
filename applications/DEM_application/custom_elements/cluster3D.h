@@ -74,8 +74,8 @@ namespace Kratos
         
         virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
         virtual DEMIntegrationScheme& GetIntegrationScheme() { return *mpIntegrationScheme; }
-   
-        double GetSqrtOfRealMass();
+           
+        virtual double GetMass();
         virtual double SlowGetDensity();
         virtual int SlowGetParticleMaterial();
 
