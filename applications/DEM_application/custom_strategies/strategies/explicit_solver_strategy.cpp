@@ -654,16 +654,12 @@ namespace Kratos {
         ModelPart& r_model_part = GetModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         const int number_of_particles = (int) mListOfSphericParticles.size();
-        double total_mass = 0.0;
         
         #pragma omp parallel for
         for (int i = 0; i < number_of_particles; i++) {
             mListOfSphericParticles[i]->Initialize(r_process_info);
-            total_mass += mListOfSphericParticles[i]->GetMass();
         }
-        
-        KRATOS_WATCH(total_mass)
-        
+                
         KRATOS_CATCH("")
     }
 

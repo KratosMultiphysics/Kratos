@@ -136,7 +136,7 @@ public:
 
     //Criterias that need to be called after getting the solution 
     bool PostCriteria(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
@@ -168,7 +168,7 @@ public:
 	    double b_size = TSparseSpace::Size(b);
 	    TDataType absolute_norm = (mCurrentResidualNorm/b_size);
 			
-            if (r_model_part.GetCommunicator().MyPID() == 0)
+            if (rModelPart.GetCommunicator().MyPID() == 0)
             {
                 if (this->GetEchoLevel() >= 1)
                 {
@@ -176,12 +176,12 @@ public:
                 }
             }
 
-            r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
-            r_model_part.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
+            rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
+            rModelPart.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
 
             if (ratio <= mRatioTolerance || absolute_norm < mAlwaysConvergedNorm)
             {
-                if (r_model_part.GetCommunicator().MyPID() == 0)
+                if (rModelPart.GetCommunicator().MyPID() == 0)
                 {
                     if (this->GetEchoLevel() >= 1)
                     {
@@ -202,14 +202,14 @@ public:
     }
 
     void Initialize(
-        ModelPart& r_model_part
+        ModelPart& rModelPart
     ) override
     {
         BaseType::mConvergenceCriteriaIsInitialized = true;
     }
 
     void InitializeSolutionStep(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
@@ -220,7 +220,7 @@ public:
     }
 
     void FinalizeSolutionStep(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,

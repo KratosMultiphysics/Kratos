@@ -115,6 +115,13 @@ HELP: Cohesive strength of the joint. Units in IS: N/m2
 QUESTION: Friction_Coefficient
 VALUE: 0.4
 HELP: Mohr-Coulomb's friction coefficient in contact cases.
+QUESTION: Joint_Activation#CB#(true,false)
+VALUE: false
+HELP: True means that the joint is initially inactive, but can be activated during the calculation. False means that the joint is active from the beginning.
+DEPENDENCIES: (true,RESTORE,Von_Mises_Limit,#CURRENT#)(false,HIDE,Von_Mises_Limit,#CURRENT#)
+QUESTION: Von_Mises_Limit
+VALUE: 100.0e6
+HELP: Von Mises stress after which the joint is activated.
 END CONDITION
 BOOK:Dirichlet_Constraints
 NUMBER: 3 CONDITION: Solid_Displacement

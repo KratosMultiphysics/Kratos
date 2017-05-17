@@ -73,25 +73,30 @@ struct ilut {
         /// Damping factor.
         scalar_type damping;
 
+        /// Use serial version of the algorithm
+        bool serial;
+
         /// Number of Jacobi iterations.
         /** \note Used for approximate solution of triangular systems on parallel backends */
         unsigned jacobi_iters;
 
-        params() : p(2), tau(1e-2f), damping(1), jacobi_iters(2) {}
+        params() : p(2), tau(1e-2f), damping(1), serial(false), jacobi_iters(2) {}
 
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, p)
             , AMGCL_PARAMS_IMPORT_VALUE(p, tau)
             , AMGCL_PARAMS_IMPORT_VALUE(p, damping)
+            , AMGCL_PARAMS_IMPORT_VALUE(p, serial)
             , AMGCL_PARAMS_IMPORT_VALUE(p, jacobi_iters)
         {
-            AMGCL_PARAMS_CHECK(p, (p)(tau)(damping)(jacobi_iters));
+            AMGCL_PARAMS_CHECK(p, (p)(tau)(damping)(serial)(jacobi_iters));
         }
 
         void get(boost::property_tree::ptree &p, const std::string &path) const {
             AMGCL_PARAMS_EXPORT_VALUE(p, path, p);
             AMGCL_PARAMS_EXPORT_VALUE(p, path, tau);
             AMGCL_PARAMS_EXPORT_VALUE(p, path, damping);
+            AMGCL_PARAMS_EXPORT_VALUE(p, path, serial);
             AMGCL_PARAMS_EXPORT_VALUE(p, path, jacobi_iters);
         }
     };
@@ -128,8 +133,8 @@ struct ilut {
         L->set_size(n, n); L->set_nonzeros(Lnz); L->ptr[0] = 0;
         U->set_size(n, n); U->set_nonzeros(Unz); U->ptr[0] = 0;
 
-        std::vector<value_type> D;
-        D.reserve(n);
+        boost::shared_ptr<backend::numa_vector<value_type> > D =
+            boost::make_shared<backend::numa_vector<value_type> >(n, false);
 
         sparse_vector w(n);
 
@@ -152,7 +157,7 @@ struct ilut {
 
             while(!w.q.empty()) {
                 ptrdiff_t k = w.next_nonzero();
-                w[k] = w[k] * D[k];
+                w[k] = w[k] * (*D)[k];
                 value_type wk = w[k];
 
                 if (math::norm(wk) > tol) {
@@ -164,7 +169,7 @@ struct ilut {
             w.move_to(
                     static_cast<int>(lenL * prm.p),
                     static_cast<int>(lenU * prm.p),
-                    tol, Lhead, *L, Uhead, *U, D
+                    tol, Lhead, *L, Uhead, *U, *D
                     );
 
             L->ptr[i+1] = Lhead;
@@ -174,14 +179,7 @@ struct ilut {
         L->nnz = L->ptr[n];
         U->nnz = U->ptr[n];
 
-        this->D = Backend::copy_vector(D, bprm);
-        this->L = Backend::copy_matrix(L, bprm);
-        this->U = Backend::copy_matrix(U, bprm);
-
-        if (!serial_backend::value) {
-            t1 = Backend::create_vector(n, bprm);
-            t2 = Backend::create_vector(n, bprm);
-        }
+        ilu = boost::make_shared<ilu_solve>(L, U, D, prm, bprm);
     }
 
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_pre
@@ -192,7 +190,7 @@ struct ilut {
             ) const
     {
         backend::residual(rhs, A, x, tmp);
-        solve(tmp, prm, serial_backend());
+        ilu->solve(tmp);
         backend::axpby(prm.damping, tmp, math::identity<scalar_type>(), x);
     }
 
@@ -204,27 +202,21 @@ struct ilut {
             ) const
     {
         backend::residual(rhs, A, x, tmp);
-        solve(tmp, prm, serial_backend());
+        ilu->solve(tmp);
         backend::axpby(prm.damping, tmp, math::identity<scalar_type>(), x);
     }
 
     template <class Matrix, class VectorRHS, class VectorX>
-    void apply(const Matrix&, const VectorRHS &rhs, VectorX &x, const params &prm) const
+    void apply(const Matrix&, const VectorRHS &rhs, VectorX &x, const params&) const
     {
         backend::copy(rhs, x);
-        solve(x, prm, serial_backend());
+        ilu->solve(x);
     }
 
     private:
-        typedef typename boost::is_same<
-                Backend, backend::builtin<value_type>
-            >::type serial_backend;
-
         typedef typename backend::builtin<value_type>::matrix build_matrix;
-
-        boost::shared_ptr<matrix> L, U;
-        boost::shared_ptr<matrix_diagonal> D;
-        boost::shared_ptr<vector> t1, t2;
+        typedef detail::ilu_solve<Backend> ilu_solve;
+        boost::shared_ptr<ilu_solve> ilu;
 
         struct sparse_vector {
             struct nonzero {
@@ -335,7 +327,7 @@ struct ilut {
                     int lp, int up, scalar_type tol,
                     ptrdiff_t &Lhead, build_matrix &L,
                     ptrdiff_t &Uhead, build_matrix &U,
-                    std::vector<value_type> &D
+                    backend::numa_vector<value_type> &D
                     )
             {
                 typedef typename std::vector<nonzero>::iterator ptr;
@@ -369,7 +361,7 @@ struct ilut {
                 }
 
                 // Store inverted diagonal.
-                D.push_back(math::inverse(m->val));
+                D[dia] = math::inverse(m->val);
 
                 if (m != uend) {
                     ++m;
@@ -387,20 +379,6 @@ struct ilut {
                 nz.clear();
             }
         };
-
-        template <class VectorX>
-        void solve(VectorX &x, const params&, boost::true_type) const
-        {
-            relaxation::detail::serial_ilu_solve(*L, *U, *D, x);
-        }
-
-        template <class VectorX>
-        void solve(VectorX &x, const params &prm, boost::false_type) const
-        {
-            relaxation::detail::parallel_ilu_solve(
-                    *L, *U, *D, x, *t1, *t2, prm.jacobi_iters
-                    );
-        }
 };
 
 } // namespace relaxation
