@@ -110,7 +110,7 @@ public:
         CreateListOfNodesOfDesignSurface();
         CreateSearchTreeWithAllNodesOnDesignSurface();
         CreateFilterFunction();
-        InitializeVectorsForMapping();
+        InitializeMappingVariables();
         AssignMappingIds();
     }
 
@@ -155,7 +155,7 @@ public:
     }     
 
     // --------------------------------------------------------------------------
-    void InitializeVectorsForMapping()
+    void InitializeMappingVariables()
     {
         x_variables_in_design_space.resize(mNumberOfDesignVariables,0.0);
         y_variables_in_design_space.resize(mNumberOfDesignVariables,0.0);
@@ -379,21 +379,32 @@ public:
         double sumOfAllCoordinates = 0.0;
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
-            ModelPart::NodeType& design_node = *node_i;
-            array_3d coord = node_i->Coordinates();
+            array_3d& coord = node_i->Coordinates();
             sumOfAllCoordinates += coord[0] + coord[1] + coord[2];
         }
 
-        if (mControlSum == sumOfAllCoordinates)
+        if(IsFirstMappingOperation())
         {
+            mControlSum = sumOfAllCoordinates;
             return false;
-        } 
-        else {
+        }
+        else if (mControlSum == sumOfAllCoordinates)
+            return false;
+        else 
+        {
             mControlSum = sumOfAllCoordinates;
             return true;
         }
-        return true;
     } 
+
+    // --------------------------------------------------------------------------
+    bool IsFirstMappingOperation()
+    {
+        if(mControlSum == 0.0)
+            return true;
+        else 
+             return false;
+    }   
 
     // ==============================================================================
 

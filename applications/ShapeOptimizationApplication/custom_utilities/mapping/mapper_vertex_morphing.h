@@ -114,8 +114,8 @@ public:
         CreateListOfNodesOfDesignSurface();
         CreateFilterFunction();
         InitializeMappingVariables();
+        AssignMappingIds();        
         ComputeMappingMatrix();
-        AssignMappingIds();
     }
 
     /// Destructor.
@@ -144,6 +144,12 @@ public:
     }
     
     // --------------------------------------------------------------------------
+    void CreateFilterFunction()
+    {
+        mpFilterFunction = boost::shared_ptr<FilterFunction>(new FilterFunction(mFilterType, mFilterRadius));
+    }     
+
+    // --------------------------------------------------------------------------
     void InitializeMappingVariables()
     {
         mMappingMatrix.resize(mNumberOfDesignVariables,mNumberOfDesignVariables);
@@ -156,14 +162,7 @@ public:
         x_variables_in_geometry_space.resize(mNumberOfDesignVariables,0.0);
         y_variables_in_geometry_space.resize(mNumberOfDesignVariables,0.0);
         z_variables_in_geometry_space.resize(mNumberOfDesignVariables,0.0);
-    } 
-
-    // --------------------------------------------------------------------------
-    void CreateFilterFunction()
-    {
-        mpFilterFunction = boost::shared_ptr<FilterFunction>(new FilterFunction(mFilterType, mFilterRadius));
-    }     
-
+    }
 
     // --------------------------------------------------------------------------
     void AssignMappingIds()
@@ -171,7 +170,7 @@ public:
         unsigned int i = 0;
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
             node_i->SetValue(MAPPING_ID,i++);
-    }    
+    }        
 
     // --------------------------------------------------------------------------
     void ComputeMappingMatrix()
@@ -263,11 +262,7 @@ public:
         boost::timer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;
 
-        if(HasGeometryChanged())
-        {
-            InitializeComputationOfMappingMatrix();
-            ComputeMappingMatrix();
-        }
+        RecomputeMappingMatrixIfGeometryHasChanged();
         PrepareVectorsForMappingToDesignSpace( rNodalVariable );
         MultiplyVectorsWithTransposeMappingMatrix();
         AssignResultingDesignVectorsToNodalVariable( rNodalVariableInDesignSpace );
@@ -339,7 +334,6 @@ public:
         }
     }
  
-
     // --------------------------------------------------------------------------
     void MultiplyVectorsWithTransposeMappingMatrix()
     {
@@ -389,15 +383,43 @@ public:
     // --------------------------------------------------------------------------
     bool HasGeometryChanged()
     {
-        return true;
-    }
+        double sumOfAllCoordinates = 0.0;
+        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+        {
+            array_3d& coord = node_i->Coordinates();
+            sumOfAllCoordinates += coord[0] + coord[1] + coord[2];
+        }
+
+        if(IsFirstMappingOperation())
+        {
+            mControlSum = sumOfAllCoordinates;
+            return false;
+        }
+        else if (mControlSum == sumOfAllCoordinates)
+            return false;
+        else 
+        {
+            mControlSum = sumOfAllCoordinates;
+            return true;
+        }
+    } 
 
     // --------------------------------------------------------------------------
     void InitializeComputationOfMappingMatrix()
     {
         mpSearchTree.reset();        
         mMappingMatrix.clear();                
-    }    
+    }  
+
+
+    // --------------------------------------------------------------------------
+    bool IsFirstMappingOperation()
+    {
+        if(mControlSum == 0.0)
+            return true;
+        else 
+             return false;
+    }      
 
     // ==============================================================================
 
@@ -509,6 +531,7 @@ private:
     SparseMatrixType mMappingMatrix;
     Vector x_variables_in_design_space, y_variables_in_design_space, z_variables_in_design_space;    
     Vector x_variables_in_geometry_space, y_variables_in_geometry_space, z_variables_in_geometry_space;
+    double mControlSum = 0.0;    
 
     ///@}
     ///@name Private Operators
