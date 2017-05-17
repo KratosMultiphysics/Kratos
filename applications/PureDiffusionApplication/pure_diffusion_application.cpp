@@ -34,8 +34,9 @@ namespace Kratos
 {
 
 	KratosPureDiffusionApplication::KratosPureDiffusionApplication():
-		mPoisson2D   ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) ),
-		mPointSource ( 0, Element::GeometryType::Pointer (new Point2D <Node<3>    >( Element::GeometryType::PointsArrayType (1) ) ) )
+		mPoisson2D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) ),
+		mProjectedSWE ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) ),
+		mPointSource  ( 0, Element::GeometryType::Pointer (new Point2D <Node<3>    >( Element::GeometryType::PointsArrayType (1) ) ) )
 	{}
 	
 	void KratosPureDiffusionApplication::Register()
@@ -45,10 +46,14 @@ namespace Kratos
 		std::cout << "Initializing KratosPureDiffusionApplication... " << std::endl;
 
 		KRATOS_REGISTER_VARIABLE( POINT_HEAT_SOURCE )
+		KRATOS_REGISTER_VARIABLE( HEIGHT )
+		KRATOS_REGISTER_VARIABLE( PROJECTED_HEIGHT )
+		KRATOS_REGISTER_VARIABLE( PROJECTED_VELOCITY )
 
 		// Registering elements and conditions here
-		KRATOS_REGISTER_ELEMENT("Poisson2D", mPoisson2D);  // here is our element
-		KRATOS_REGISTER_CONDITION( "PointSource", mPointSource ) //and our condition
+		KRATOS_REGISTER_ELEMENT("Poisson2D", mPoisson2D)         // here is our element
+		KRATOS_REGISTER_ELEMENT("ProjectedSWE", mProjectedSWE)   // here is another element
+		KRATOS_REGISTER_CONDITION( "PointSource", mPointSource ) // and our condition
 
 	}
 
