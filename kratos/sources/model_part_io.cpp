@@ -310,10 +310,7 @@ namespace Kratos
 
                     for(auto i_comp = ElementsComponents.begin(); i_comp != ElementsComponents.end() ; i_comp++)
                     {
-                        const auto i_comp_value = *(i_comp->second);
-                        const auto itElemCurrent_value = *itElemCurrent;
-
-                        if (std::type_index(typeid(itElemCurrent_value)) == std::type_index(typeid(i_comp_value)) &&
+                        if (isTypeIndexEq(*(i_comp->second), *itElemCurrent) &&
                             (element_num_nodes == (i_comp->second)->GetGeometry().size()) &&
                             (element_dimension == (i_comp->second)->GetGeometry().WorkingSpaceDimension())
                         )
