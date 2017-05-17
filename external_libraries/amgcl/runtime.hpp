@@ -179,15 +179,6 @@ process_amg(
                 amgcl::relaxation::gauss_seidel
                 >(func);
             break;
-#ifndef AMGCL_RUNTIME_DISABLE_MULTICOLOR_GS
-        case runtime::relaxation::multicolor_gauss_seidel:
-            process_amg<
-                Backend,
-                Coarsening,
-                amgcl::relaxation::multicolor_gauss_seidel
-                >(func);
-            break;
-#endif
         case runtime::relaxation::ilu0:
             process_amg<
                 Backend,
