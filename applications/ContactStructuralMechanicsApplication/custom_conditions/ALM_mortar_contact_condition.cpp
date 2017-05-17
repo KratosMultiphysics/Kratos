@@ -722,23 +722,21 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     const PointType& LocalPointParent,
     GeometryPointType& GeometryDecomp
     )
-{   
+{  
+    /// SLAVE CONDITION ///
     /* CALCULATE JACOBIAN AND JACOBIAN DETERMINANT */
-
     rVariables.jSlave = GeometryDecomp.Jacobian( rVariables.jSlave, LocalPointDecomp.Coordinates() );
     rVariables.DetjSlave = GeometryDecomp.DeterminantOfJacobian( LocalPointDecomp );
     
-    /// SLAVE CONDITION ///
-    
-    // SHAPE FUNCTIONS 
+    /* SHAPE FUNCTIONS */
     GetGeometry().ShapeFunctionsValues( rVariables.NSlave, LocalPointParent.Coordinates() );
     rVariables.PhiLagrangeMultipliers = prod(rDerivativeData.Ae, rVariables.NSlave);
-//     rVariables.PhiLagrangeMultipliers = rVariables.NSlave; // TODO: This could be needed in the future to be different than the standart shape functions 
+//     rVariables.PhiLagrangeMultipliers = rVariables.NSlave;
     
-    // SHAPE FUNCTION DERIVATIVES
+    /* SHAPE FUNCTION DERIVATIVES */
     GetGeometry().ShapeFunctionsLocalGradients( rVariables.DNDeSlave, LocalPointParent );
     
-    // MASTER CONDITION
+    /// MASTER CONDITION ///
     this->MasterShapeFunctionValue( rVariables, MasterNormal, LocalPointParent);
 }
  

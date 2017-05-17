@@ -96,7 +96,7 @@ namespace Kratos
             // We calculate the integral of the mass matrix (assuming constant density)
             GeometryNodeType::IntegrationPointsArrayType IntegrationPoints = Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
             
-            boost::numeric::ublas::bounded_matrix<double, 3, 3> MassMatrix0 = ZeroMatrix(3, 3);
+            bounded_matrix<double, 3, 3> MassMatrix0 = ZeroMatrix(3, 3);
             
             for (unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++)
             {
@@ -115,7 +115,7 @@ namespace Kratos
                 }
             }
      
-            boost::numeric::ublas::bounded_matrix<double, 3, 3> MassMatrix1 = ZeroMatrix(3, 3);
+            bounded_matrix<double, 3, 3> MassMatrix1 = ZeroMatrix(3, 3);
             
             for (unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++)
             {
@@ -143,9 +143,9 @@ namespace Kratos
                 triangle0.ShapeFunctionsValues( N2, LocalPoint2 );
                 triangle0.ShapeFunctionsValues( N3, LocalPoint3 );
                 
-                const double DetJ1  = triangle1.DeterminantOfJacobian( LocalPoint0 );
-                const double DetJ2  = triangle2.DeterminantOfJacobian( LocalPoint0 );
-                const double DetJ3  = triangle3.DeterminantOfJacobian( LocalPoint0 );
+                const double DetJ1 = triangle1.DeterminantOfJacobian( LocalPoint0 );
+                const double DetJ2 = triangle2.DeterminantOfJacobian( LocalPoint0 );
+                const double DetJ3 = triangle3.DeterminantOfJacobian( LocalPoint0 );
                 
                 const double weight = IntegrationPoints[PointNumber].Weight();
                 
@@ -215,7 +215,7 @@ namespace Kratos
             GeometryNodeType::IntegrationPointsArrayType IntegrationPointsQuadrilateral = Quadrature<QuadrilateralGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
             GeometryNodeType::IntegrationPointsArrayType IntegrationPointsTriangle = Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
             
-            boost::numeric::ublas::bounded_matrix<double, 4, 4> MassMatrix0 = ZeroMatrix(4, 4);
+            bounded_matrix<double, 4, 4> MassMatrix0 = ZeroMatrix(4, 4);
             
             for (unsigned int PointNumber = 0; PointNumber < IntegrationPointsQuadrilateral.size(); PointNumber++)
             {
@@ -234,7 +234,7 @@ namespace Kratos
                 }
             }
      
-            boost::numeric::ublas::bounded_matrix<double, 4, 4> MassMatrix1 = ZeroMatrix(4, 4);
+            bounded_matrix<double, 4, 4> MassMatrix1 = ZeroMatrix(4, 4);
             
             for (unsigned int PointNumber = 0; PointNumber < IntegrationPointsTriangle.size(); PointNumber++)
             {
@@ -348,7 +348,7 @@ namespace Kratos
             GeometryNodeType::IntegrationPointsArrayType IntegrationPointsQuadrilateral = Quadrature<QuadrilateralGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
             GeometryNodeType::IntegrationPointsArrayType IntegrationPointsTriangle = Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
             
-            boost::numeric::ublas::bounded_matrix<double, 4, 4> MassMatrix0 = ZeroMatrix(4, 4);
+            bounded_matrix<double, 4, 4> MassMatrix0 = ZeroMatrix(4, 4);
             
             for (unsigned int PointNumber = 0; PointNumber < IntegrationPointsQuadrilateral.size(); PointNumber++)
             {
@@ -367,7 +367,7 @@ namespace Kratos
                 }
             }
      
-            boost::numeric::ublas::bounded_matrix<double, 4, 4> MassMatrix1 = ZeroMatrix(4, 4);
+            bounded_matrix<double, 4, 4> MassMatrix1 = ZeroMatrix(4, 4);
             
             for (unsigned int PointNumber = 0; PointNumber < IntegrationPointsTriangle.size(); PointNumber++)
             {
@@ -574,7 +574,7 @@ namespace Kratos
 //             GeometryNodeType::IntegrationPointsArrayType IntegrationPointsQuadrilateral = Quadrature<QuadrilateralGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
 //             GeometryNodeType::IntegrationPointsArrayType IntegrationPointsTriangle = Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
 //             
-//             boost::numeric::ublas::bounded_matrix<double, 4, 4> MassMatrix0 = ZeroMatrix(4, 4);
+//             bounded_matrix<double, 4, 4> MassMatrix0 = ZeroMatrix(4, 4);
 //             
 //             for (unsigned int PointNumber = 0; PointNumber < IntegrationPointsQuadrilateral.size(); PointNumber++)
 //             {
@@ -593,7 +593,7 @@ namespace Kratos
 //                 }
 //             }
 //      
-//             boost::numeric::ublas::bounded_matrix<double, 4, 4> MassMatrix1 = ZeroMatrix(4, 4);
+//             bounded_matrix<double, 4, 4> MassMatrix1 = ZeroMatrix(4, 4);
 //             
 //             array_1d<Point<3>, 3> LocalPointsList1;
 //             array_1d<Point<3>, 3> LocalPointsList2;
