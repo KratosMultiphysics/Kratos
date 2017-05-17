@@ -121,11 +121,11 @@ def AssambleTestSuites():
             TTestQuadrilateralExactIntegration1,
             TTestQuadrilateralExactIntegration2,
             TSimplePatchTestTwoDMeshTying,
-            TSimpleSlopePatchTestTwoDMeshTying, # FIXME: I am not getting what I assume as correct (something to correct) 
+            TSimpleSlopePatchTestTwoDMeshTying,
             TSimplestPatchTestThreeDMeshTying,
             ##TSimplePatchTestThreeDMeshTying, # FIXME: Some error in the mesh tying condition
             TALMHyperSimplePatchTestContact,
-            ##TALMHyperSimpleSlopePatchTestContact, # FIXME: Some error with slopes (contact pressure not correct)
+            #TALMHyperSimpleSlopePatchTestContact, # FIXME: Some error with slopes (contact pressure not correct)
             TALMSimplePatchTestContact,
             TALMSimpleSlopePatchTestContact, 
             TALMSimplePatchNotMatchingATestContact,
