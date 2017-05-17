@@ -376,6 +376,22 @@ public:
     // --------------------------------------------------------------------------
     bool HasGeometryChanged()
     {
+        double sumOfAllCoordinates = 0.0;
+        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+        {
+            ModelPart::NodeType& design_node = *node_i;
+            array_3d coord = node_i->Coordinates();
+            sumOfAllCoordinates += coord[0] + coord[1] + coord[2];
+        }
+
+        if (mControlSum == sumOfAllCoordinates)
+        {
+            return false;
+        } 
+        else {
+            mControlSum = sumOfAllCoordinates;
+            return true;
+        }
         return true;
     } 
 
@@ -488,6 +504,7 @@ private:
     // ==============================================================================
     Vector x_variables_in_design_space, y_variables_in_design_space, z_variables_in_design_space;    
     Vector x_variables_in_geometry_space, y_variables_in_geometry_space, z_variables_in_geometry_space;
+    double mControlSum = 0.0;
 
 
     ///@}
