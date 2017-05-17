@@ -94,7 +94,6 @@ main_model_part.AddNodalSolutionStepVariable(NODAL_H)
 main_model_part.AddNodalSolutionStepVariable(SHRINK_FACTOR)
 main_model_part.AddNodalSolutionStepVariable(MEAN_ERROR)
 main_model_part.AddNodalSolutionStepVariable(CONTACT_FORCE)
-main_model_part.AddNodalSolutionStepVariable(RIGID_WALL)
 
 for node in main_model_part.Nodes:
     node.SetNodalStepVariables(FREESURFACE, 0)

@@ -61,28 +61,33 @@ struct ilu0 {
         /// Damping factor.
         scalar_type damping;
 
+        /// Use serial version of the algorithm
+        bool serial;
+
         /// Number of Jacobi iterations.
         /** \note Used for approximate solution of triangular systems on parallel backends */
         unsigned jacobi_iters;
 
-        params() : damping(1), jacobi_iters(2) {}
+        params() : damping(1), serial(false), jacobi_iters(2) {}
 
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, damping)
+            , AMGCL_PARAMS_IMPORT_VALUE(p, serial)
             , AMGCL_PARAMS_IMPORT_VALUE(p, jacobi_iters)
         {
-            AMGCL_PARAMS_CHECK(p, (damping)(jacobi_iters));
+            AMGCL_PARAMS_CHECK(p, (damping)(serial)(jacobi_iters));
         }
 
         void get(boost::property_tree::ptree &p, const std::string &path) const {
             AMGCL_PARAMS_EXPORT_VALUE(p, path, damping);
+            AMGCL_PARAMS_EXPORT_VALUE(p, path, serial);
             AMGCL_PARAMS_EXPORT_VALUE(p, path, jacobi_iters);
         }
     };
 
     /// \copydoc amgcl::relaxation::damped_jacobi::damped_jacobi
     template <class Matrix>
-    ilu0( const Matrix &A, const params &, const typename Backend::params &bprm)
+    ilu0( const Matrix &A, const params &prm, const typename Backend::params &bprm)
     {
         typedef typename backend::builtin<value_type>::matrix build_matrix;
         const size_t n = backend::rows(A);
@@ -111,8 +116,8 @@ struct ilu0 {
         size_t Lhead = 0;
         size_t Uhead = 0;
 
-        std::vector<value_type> D;
-        D.reserve(n);
+        boost::shared_ptr<backend::numa_vector<value_type> > D =
+            boost::make_shared<backend::numa_vector<value_type> >(n, false);
 
         std::vector<value_type*> work(n, NULL);
 
@@ -130,8 +135,8 @@ struct ilu0 {
                     work[c] = L->val + Lhead;
                     ++Lhead;
                 } else if (c == i) {
-                    D.push_back(v);
-                    work[c] = &D.back();
+                    (*D)[i] = v;
+                    work[c] = &(*D)[i];
                 } else {
                     U->col[Uhead] = c;
                     U->val[Uhead] = v;
@@ -149,14 +154,14 @@ struct ilu0 {
                 // Exit if diagonal is reached
                 if (c >= i) {
                     precondition(c == i, "No diagonal value in system matrix");
-                    precondition(!math::is_zero(D[i]), "Zero pivot in ILU");
+                    precondition(!math::is_zero((*D)[i]), "Zero pivot in ILU");
 
-                    D[i] = math::inverse(D[i]);
+                    (*D)[i] = math::inverse((*D)[i]);
                     break;
                 }
 
                 // Compute the multiplier for jrow
-                value_type tl = (*work[c]) * D[c];
+                value_type tl = (*work[c]) * (*D)[c];
                 *work[c] = tl;
 
                 // Perform linear combination
@@ -171,14 +176,7 @@ struct ilu0 {
                 work[A.col[j]] = NULL;
         }
 
-        this->D = Backend::copy_vector(D, bprm);
-        this->L = Backend::copy_matrix(L, bprm);
-        this->U = Backend::copy_matrix(U, bprm);
-
-        if (!serial_backend::value) {
-            t1 = Backend::create_vector(n, bprm);
-            t2 = Backend::create_vector(n, bprm);
-        }
+        ilu = boost::make_shared<ilu_solve>(L, U, D, prm, bprm);
     }
 
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_pre
@@ -189,7 +187,7 @@ struct ilu0 {
             ) const
     {
         backend::residual(rhs, A, x, tmp);
-        solve(tmp, prm, serial_backend());
+        ilu->solve(tmp);
         backend::axpby(prm.damping, tmp, math::identity<scalar_type>(), x);
     }
 
@@ -201,39 +199,21 @@ struct ilu0 {
             ) const
     {
         backend::residual(rhs, A, x, tmp);
-        solve(tmp, prm, serial_backend());
+        ilu->solve(tmp);
         backend::axpby(prm.damping, tmp, math::identity<scalar_type>(), x);
     }
 
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_post
     template <class Matrix, class VectorRHS, class VectorX>
-    void apply(const Matrix&, const VectorRHS &rhs, VectorX &x, const params &prm) const
+    void apply(const Matrix&, const VectorRHS &rhs, VectorX &x, const params&) const
     {
         backend::copy(rhs, x);
-        solve(x, prm, serial_backend());
+        ilu->solve(x);
     }
 
     private:
-        typedef typename boost::is_same<
-                Backend, backend::builtin<value_type>
-            >::type serial_backend;
-
-        boost::shared_ptr<matrix> L, U;
-        boost::shared_ptr<matrix_diagonal> D;
-        boost::shared_ptr<vector> t1, t2;
-
-        template <class VectorX>
-        void solve(VectorX &x, const params&, boost::true_type) const
-        {
-            relaxation::detail::serial_ilu_solve(*L, *U, *D, x);
-        }
-
-        template <class VectorX>
-        void solve(VectorX &x, const params &prm, boost::false_type) const
-        {
-            relaxation::detail::parallel_ilu_solve(
-                    *L, *U, *D, x, *t1, *t2, prm.jacobi_iters);
-        }
+        typedef detail::ilu_solve<Backend> ilu_solve;
+        boost::shared_ptr<ilu_solve> ilu;
 
 };
 

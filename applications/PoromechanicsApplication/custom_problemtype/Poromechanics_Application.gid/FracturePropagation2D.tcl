@@ -17,9 +17,25 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
                 lappend Lines [lindex [lindex $BodySurface [expr { 9+$m }]] 0]
             }
             dict set BodySurfacesDict [lindex $BodyEntities $l] Lines $Lines
+            if {[lindex [GiD_Info list_entities Surfaces [lindex $BodyEntities $l]] 11] eq "Meshing"} {
+                set ElemType [lindex [GiD_Info list_entities Surfaces [lindex $BodyEntities $l]] 14]
+                if {$ElemType eq "Elemtype=0" || $ElemType eq "Elemtype=2"} {
+                    dict set BodySurfacesDict [lindex $BodyEntities $l] ElemType Triangle
+                } elseif {$ElemType eq "Elemtype=3"} {
+                    dict set BodySurfacesDict [lindex $BodyEntities $l] ElemType Quadrilateral
+                } else {
+                    dict set BodySurfacesDict [lindex $BodyEntities $l] ElemType Triangle
+                }
+                set MeshSize [lindex [GiD_Info list_entities Surfaces [lindex $BodyEntities $l]] 17]
+                set MeshSize [string trimleft $MeshSize "size="]
+                dict set BodySurfacesDict [lindex $BodyEntities $l] MeshSize $MeshSize
+            } else {
+                dict set BodySurfacesDict [lindex $BodyEntities $l] ElemType Triangle
+                dict set BodySurfacesDict [lindex $BodyEntities $l] MeshSize 0
+            }
         }
     }
-    
+
     ## Set FracturesDict
     set FracturesDict [dict create]
     set FractureId -1
@@ -120,7 +136,7 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
 
     ## body_surfaces_list
     WriteBodySurfacesList FileVar1 $BodySurfacesDict
-        
+
     ## fractures_list
     WriteFracturesList FileVar1 $FracturesDict
     
@@ -417,10 +433,17 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
             GiD_EntitiesGroups assign [lindex $BodySurfaceGroups $i] surfaces $NewBodySurfaceId
         }
         
+        GiD_Process Mescape Meshing ElemType [dict get $BodySurface ElemType] $NewBodySurfaceId escape
+        if {[dict get $BodySurface MeshSize] > 0.0} {
+            GiD_Process Mescape Meshing AssignSizes Surfaces [dict get $BodySurface MeshSize] $NewBodySurfaceId escape
+        }
+
         dict set BodySurfacesDict $NewBodySurfaceId Groups [dict get $BodySurface Groups]
         dict set BodySurfacesDict $NewBodySurfaceId Lines [dict get $BodySurface Lines]
+        dict set BodySurfacesDict $NewBodySurfaceId ElemType [dict get $BodySurface ElemType]
+        dict set BodySurfacesDict $NewBodySurfaceId MeshSize [dict get $BodySurface MeshSize]
     }
-        
+
     dict for {Id Fracture} $FracturesDict {
         set BodySurfaces [list]
         dict for {BodyId BodySurface} $BodySurfacesDict {
