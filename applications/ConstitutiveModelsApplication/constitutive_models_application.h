@@ -66,17 +66,20 @@
 #include "custom_models/elasticity_models/compressible_neo_hookean_model.hpp"
 #include "custom_models/elasticity_models/isochoric_neo_hookean_model.hpp"
 #include "custom_models/elasticity_models/incompressible_neo_hookean_model.hpp"
+#include "custom_models/elasticity_models/borja_model.hpp"
 
 //plasticity models
 #include "custom_models/plasticity_models/von_mises_neo_hookean_plasticity_model.hpp"
 #include "custom_models/plasticity_models/simo_J2_thermo_plasticity_model.hpp"
 #include "custom_models/plasticity_models/johnson_cook_J2_thermo_plasticity_model.hpp"
 #include "custom_models/plasticity_models/baker_johnson_cook_J2_thermo_plasticity_model.hpp"
+#include "custom_models/plasticity_models/cam_clay_model.hpp"
 
 //yield criteria
 #include "custom_models/plasticity_models/yield_criteria/mises_huber_thermal_yield_criterion.hpp"
 #include "custom_models/plasticity_models/yield_criteria/simo_ju_yield_criterion.hpp"
 #include "custom_models/plasticity_models/yield_criteria/modified_mises_yield_criterion.hpp"
+#include "custom_models/plasticity_models/yield_criteria/modified_cam_clay_yield_criterion.hpp"
 
 //hardening laws
 #include "custom_models/plasticity_models/hardening_laws/simo_linear_hardening_law.hpp"
@@ -85,6 +88,7 @@
 #include "custom_models/plasticity_models/hardening_laws/baker_johnson_cook_thermal_hardening_law.hpp"
 #include "custom_models/plasticity_models/hardening_laws/exponential_damage_hardening_law.hpp"
 #include "custom_models/plasticity_models/hardening_laws/modified_exponential_damage_hardening_law.hpp"
+#include "custom_models/plasticity_models/hardening_laws/cam_clay_hardening_law.hpp"
 
 
 #include "constitutive_models_application_variables.h"
@@ -263,18 +267,21 @@ namespace Kratos {
     const NeoHookeanModel                          mCompressibleNeoHookeanModel;
     const IsochoricNeoHookeanModel                 mIsochoricNeoHookeanModel;
     const IncompressibleNeoHookeanModel            mIncompressibleNeoHookeanModel;
+    const BorjaModel                               mBorjaModel;
 
     //plasticity models
     const VonMisesNeoHookeanPlasticityModel        mVonMisesNeoHookeanPlasticityModel;
     const SimoJ2ThermoPlasticityModel              mSimoJ2ThermoPlasticityModel;
     const JohnsonCookJ2ThermoPlasticityModel       mJohnsonCookJ2ThermoPlasticityModel;
     const BakerJohnsonCookJ2ThermoPlasticityModel  mBakerJohnsonCookJ2ThermoPlasticityModel;
+    const CamClayModel                             mCamClayModel;
     
     //yield criteria
     const MisesHuberYieldCriterion<HardeningLawType>         mMisesHuberYieldCriterion;
     const MisesHuberThermalYieldCriterion<HardeningLawType>  mMisesHuberThermalYieldCriterion;
     const SimoJuYieldCriterion<HardeningLawType>             mSimoJuYieldCriterion;
-    const ModifiedMisesYieldCriterion <HardeningLawType>     mModifiedMisesYieldCriterion;
+    const ModifiedMisesYieldCriterion<HardeningLawType>     mModifiedMisesYieldCriterion;
+    const ModifiedCamClayYieldCriterion<HardeningLawType>     mModifiedCamClayYieldCriterion;
     
     //hardening laws
     const SimoExponentialHardeningLaw              mSimoExponentialHardeningLaw;
@@ -284,6 +291,7 @@ namespace Kratos {
     const BakerJohnsonCookThermalHardeningLaw      mBakerJohnsonCookThermalHardeningLaw;
     const ExponentialDamageHardeningLaw            mExponentialDamageHardeningLaw;
     const ModifiedExponentialDamageHardeningLaw    mModifiedExponentialDamageHardeningLaw;
+    const CamClayHardeningLaw                      mCamClayHardeningLaw;
     
     
        

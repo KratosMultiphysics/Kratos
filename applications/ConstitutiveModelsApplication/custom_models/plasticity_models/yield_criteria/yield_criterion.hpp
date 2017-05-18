@@ -337,12 +337,12 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const
     {
-      rSerializer.save("mpHardeningLaw", mHardeningLaw);
+      rSerializer.save("mHardeningLaw", mHardeningLaw);
     }
 
     virtual void load(Serializer& rSerializer)
     {
-      rSerializer.load("mpHardeningLaw", mHardeningLaw);
+      rSerializer.load("mHardeningLaw", mHardeningLaw);
     }
 
     ///@}

@@ -317,7 +317,7 @@ namespace Kratos
     //************// Strain Data
     
 
-    void CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables);    
+    virtual void CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables);    
         
     virtual void CalculateInvariants(HyperElasticDataType& rVariables);
         

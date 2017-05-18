@@ -134,6 +134,7 @@ namespace Kratos
 
       //deformation
       MatrixType                   DeformationGradientF;
+      MatrixType                   IncrementalDeformationGradientF;
     };
     
     
@@ -190,6 +191,7 @@ namespace Kratos
       const StrainMeasureType& GetStrainMeasure            () const {return mConstitutiveLawData.StrainMeasure;};
 
       const MatrixType&    GetDeformationGradientF         () const {return mConstitutiveLawData.DeformationGradientF;}; 
+      const MatrixType&    GetIncrementalDeformationGradientF() const{return mConstitutiveLawData.IncrementalDeformationGradientF;};
 
       const ConstitutiveLawData&   GetConstitutiveLawData  () const {return mConstitutiveLawData;};
       
