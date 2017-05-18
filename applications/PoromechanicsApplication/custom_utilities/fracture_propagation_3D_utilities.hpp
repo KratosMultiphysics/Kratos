@@ -367,6 +367,7 @@ protected:
                 PropDataFile << "lappend Surfaces " << rParameters["body_volumes_list"][i]["surfaces"][j].GetInt() << std::endl;
             }
             PropDataFile << "dict set BodyVolumesDict " << Id << " Surfaces $Surfaces" << std::endl;
+            PropDataFile << "dict set BodyVolumesDict " << Id << " MeshSize " << rParameters["body_volumes_list"][i]["mesh_size"].GetDouble() << std::endl;
         }
         PropDataFile << "lappend PropagationData $BodyVolumesDict" << std::endl;
                 
