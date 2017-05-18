@@ -850,8 +850,8 @@ namespace Kratos
     KRATOS_TRY
 
     rDerivative  = GetFourthOrderUnitTensor(rDerivative,a,b,c,d);
-    rDerivative -= rData.InverseCauchyGreenMatrix(a,b)*(rData.CauchyGreenMatrix(c,d) / rData.Invariants.J_13 / rData.Invariants.J_13) /3.0;
     rDerivative *= rData.Invariants.J_13 * rData.Invariants.J_13;
+    rDerivative -= rData.InverseCauchyGreenMatrix(a,b) * rData.CauchyGreenMatrix(c,d) /3.0;
 
     return rDerivative;
 
