@@ -229,6 +229,7 @@ namespace Kratos
 	StressPartMatrix = GetI3RightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
 	noalias(StressMatrix) += rVariables.Factors.Alpha3 * StressPartMatrix;
 
+   Matrix FirstStress = StressMatrix;
 	StressPartMatrix = GetIsochoricRightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
    std::cout << " stressPartMastrix to multiply " << StressPartMatrix << std::endl;
 	StressMatrix = prod(StressMatrix, StressPartMatrix);
@@ -241,7 +242,7 @@ namespace Kratos
          for (unsigned int k = 0; k < 3; k++) {
             for (unsigned int l = 0; l < 3; l++) {
                double derivative = GetIsochoricRightCauchyGreenDerivative( rVariables.Strain, derivative, i, j, k, l);
-               StressMatrix(i,j) += derivative * StressPartMatrix(k, l);
+               StressMatrix(i,j) += derivative * FirstStress(k, l);
             }
          }
       }
