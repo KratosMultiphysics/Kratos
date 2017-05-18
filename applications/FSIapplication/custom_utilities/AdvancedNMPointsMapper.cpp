@@ -1941,24 +1941,6 @@ void AdvancedNMPointsMapper::ComputeNodalLengthArea()
             }
         }
     }
-
-    // Store the computed NODAL_MAUX in the historical buffer so GiD can paint it later (debugging purposes only)
-    // OriginModelPart
-    #pragma omp parallel for
-    for (int k = 0; k < static_cast<int>(rOriginModelPartNodes.size()); ++k)
-    {
-        ModelPart::NodesContainerType::iterator itNode = rOriginModelPartNodes.begin() + k;
-        itNode->FastGetSolutionStepValue(NODAL_MAUX) = itNode->GetValue(NODAL_MAUX);
-    }
-
-    // DestinationModelPart
-    #pragma omp parallel for
-    for (int k = 0; k < static_cast<int>(rDestinationModelPartNodes.size()); ++k)
-    {
-        ModelPart::NodesContainerType::iterator itNode = rDestinationModelPartNodes.begin() + k;
-        itNode->FastGetSolutionStepValue(NODAL_MAUX) = itNode->GetValue(NODAL_MAUX);
-    }
-
 }
 
 /**
