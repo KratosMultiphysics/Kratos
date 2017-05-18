@@ -1,26 +1,26 @@
 {
     "structure_solver_settings" : {
         "problem_data" : {
-            "problem_name"    : "NonConformantTwoSideMap3D_test1",
+            "problem_name"    : "NonConformantOneSideMapTwoFaces3D_test1",
             "model_part_name" : "Structure",
             "domain_size"     : 3
         },
         "solver_settings" : {
             "model_import_settings" : {
                 "input_type"     : "mdpa",
-                "input_filename" : "NonConformantTwoSideMap3D_test1/solid_mesh"
+                "input_filename" : "NonConformantOneSideMapTwoFaces3D_test1/solid_mesh"
             },
             "problem_domain_sub_model_part_list" : ["Parts_Structure"],
             "processes_sub_model_part_list"      : ["Structure_interface"]
         },
         "constraints_process_list" : [{
-            "python_module"         : "NonConformantTwoSideMap3D_test1_structure_local_process",
+            "python_module"         : "NonConformantOneSideMapTwoFaces3D_test1_structure_local_process",
             "kratos_module"         : "KratosMultiphysics.FSIApplication",
             "help"                  : [],
             "process_name"          : "ApplyLocalProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Structure_interface"
+                "mesh_id"                            : 0,
+                "structure_interface_modelpart_name" : "Structure_interface"
             }
         }],
         "output_configuration"     : {
@@ -38,7 +38,7 @@
                 "node_output"         : false,
                 "skin_output"         : false,
                 "plane_output"        : [],
-                "nodal_results"       : ["VELOCITY","PRESSURE","POINT_LOAD"],
+                "nodal_results"       : ["VELOCITY","POSITIVE_FACE_PRESSURE","NEGATIVE_FACE_PRESSURE"],
                 "gauss_point_results" : []
             },
             "point_data_configuration"  : []
@@ -46,7 +46,7 @@
     },
     "fluid_solver_settings" : {
         "problem_data" : {
-            "problem_name"    : "NonConformantTwoSideMap3D_test1",
+            "problem_name"    : "NonConformantOneSideMapTwoFaces3D_test1",
             "model_part_name" : "MainModelPart",
             "domain_size"     : 3
         },
@@ -65,7 +65,7 @@
                 "node_output"         : false,
                 "skin_output"         : false,
                 "plane_output"        : [],
-                "nodal_results"       : ["VELOCITY","PRESSURE","REACTION"],
+                "nodal_results"       : ["VELOCITY","PRESSURE"],
                 "gauss_point_results" : []
             },
             "point_data_configuration"  : []
@@ -73,20 +73,21 @@
         "solver_settings"                  : {
             "model_import_settings"           : {
                 "input_type"     : "mdpa",
-                "input_filename" : "NonConformantTwoSideMap3D_test1/fluid_mesh"
+                "input_filename" : "NonConformantOneSideMapTwoFaces3D_test1/fluid_mesh"
             },
             "volume_model_part_name"          : "Parts_Fluid",
             "skin_parts"                      : ["Fluid_interface_pos","Fluid_interface_neg"],
             "no_skin_parts"                   : []
         },
         "boundary_conditions_process_list" : [{
-            "python_module"         : "NonConformantTwoSideMap3D_test1_fluid_local_process",
+            "python_module"         : "NonConformantOneSideMapTwoFaces3D_test1_fluid_local_process",
             "kratos_module"         : "KratosMultiphysics.FSIApplication",
             "help"                  : [],
             "process_name"          : "ApplyLocalProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Fluid_interface"
+                "mesh_id"                                 : 0,
+                "positive_fluid_interface_modelpart_name" : "Fluid_interface_pos",
+                "negative_fluid_interfacemodelpart_name"  : "Fluid_interface_neg"
             }
         }]
     }
