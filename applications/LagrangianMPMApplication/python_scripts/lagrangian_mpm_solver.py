@@ -4,7 +4,7 @@ import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.ExternalSolversApplication 
 import KratosMultiphysics.LagrangianMPMApplication 
 #import KratosMultiphysics.SolidMechanicsApplication 
-
+import KratosMultiphysics.ParticleMechanicsApplication 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
@@ -66,6 +66,10 @@ class LagrangianMPMSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.LAGRANGE_DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE);
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE);
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_BOUNDARY);
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.LagrangianMPMApplication.NODAL_RADIUS);
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.LagrangianMPMApplication.NODAL_SPACING);
         
         print("variables for the lagrangian MPM solver added correctly")
 
@@ -176,13 +180,11 @@ class LagrangianMPMSolver:
 
         #KratosMultiphysics.LagrangianMPMApplication.NodeAndElementEraseProcess(self.main_model_part).Execute()
 
-        for node in self.main_model_part.Nodes:
-            node.X = node.X0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-            node.Y = node.Y0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
         
 
         #recompute the cloud of nodes - this refle
         KratosMultiphysics.LagrangianMPMApplication.RecomputeNeighboursProcess(self.main_model_part).Execute()
+        #print('recompute neighbours finished')
         #KratosMultiphysics.LagrangianMPMApplication.Gauss_Coordinates_Update_Process(self.main_model_part).Execute()         
         #for elem in self.main_model_part.Elements:
             #for node in elem.GetNodes():
@@ -191,8 +193,11 @@ class LagrangianMPMSolver:
 
             
         #compute the shape functions on the geometry. Note that the node position is still the one at the end of the previous step, so it is 0!!
-        KratosMultiphysics.LagrangianMPMApplication.ComputeMLSShapeFunctionsProcess(self.main_model_part).Execute()
+        #KratosMultiphysics.LagrangianMPMApplication.ComputeMLSShapeFunctionsProcess(self.main_model_part).Execute()
         
+
+        KratosMultiphysics.LagrangianMPMApplication.ComputeLMEShapeFunctionsProcess(self.main_model_part).Execute()
+        #print('compute shape functions finished')
         self._CheckShapeFunctions()
         
         #ensure that the system graph is to be reformed
@@ -201,6 +206,13 @@ class LagrangianMPMSolver:
         
         self.solver.Solve()
         
+        for node in self.main_model_part.Nodes:
+            node.X = node.X0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+            node.Y = node.Y0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+        
+            
+        #KratosMultiphysics.LagrangianMPMApplication.RecomputeNeighboursProcess(self.main_model_part).EliminateNodes()
+
 
     def SetEchoLevel(self, level):
         self.solver.SetEchoLevel(level)

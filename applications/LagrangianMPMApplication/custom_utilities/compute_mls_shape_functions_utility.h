@@ -46,7 +46,7 @@ namespace Kratos
 class LinearMLSKernel
 {
 public:
-    //KernelGaussian
+
     static void ComputeKernel(double r, double h, double& kernel)
     {
 
@@ -153,6 +153,7 @@ public:
 
         //return w;
     }*/
+
 
     ///A is the area we associate to the point
     ///N is a vector such that N(j) is the shape function associated to node j

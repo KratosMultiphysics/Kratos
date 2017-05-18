@@ -326,13 +326,13 @@ public:
 
                 i_elem->SetId( i_elem->GetGeometry()(0)->Id() );
 
-//                i_elem->SetId( setid ); //****
+//                i_elem->SetId( setid ); 
 
                 (mr_model_part.Elements()).push_back(*(i_elem.base()));
 
                 ModelPart::NodeType::Pointer i_node = (*i_elem).GetGeometry()(0) ;
 
-//                i_node->SetId(setid); //****
+//                i_node->SetId(setid); 
 
                 //(*particle_pointer_it)->GetGeometry().pGetPoint(i)
                 (mr_model_part.Nodes()).push_back(i_node);

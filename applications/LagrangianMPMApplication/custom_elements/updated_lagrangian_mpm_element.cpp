@@ -167,12 +167,18 @@ void UpdatedLagrangianMPMElement::FinalizeSolutionStep( ProcessInfo& rCurrentPro
 
     //****************** update the postion of the MPM particle
     array_1d<double,3> delta_displacement = ZeroVector(3);
+    array_1d<double,3> previous_displacement = this->GetValue(GAUSS_DISPLACEMENT);
     for(unsigned int i=0; i<GetGeometry().size(); i++)
     {
         delta_displacement += Variables.N[i]*(GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1));
 
     }
     noalias(this->GetValue(GAUSS_POINT_COORDINATES)) += delta_displacement;
+    array_1d<double,3> new_displacement = delta_displacement + previous_displacement;
+    this->SetValue(GAUSS_DISPLACEMENT, new_displacement);
+    
+    
+    
     //this->GetValue(GAUSS_POINT_COORDINATES) += delta_displacement;
 
 
@@ -918,7 +924,7 @@ void UpdatedLagrangianMPMElement::CalculateMassMatrix(MatrixType& rMassMatrix, P
     rMassMatrix.clear();
     GeneralVariables Variables;
     this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
-    const double initial_density = GetProperties()[DENSITY];
+    double density = 1.0 / (Variables.detFT) * GetProperties()[DENSITY];
 
 
 
@@ -929,7 +935,7 @@ void UpdatedLagrangianMPMElement::CalculateMassMatrix(MatrixType& rMassMatrix, P
         {
             for(unsigned int k=0; k<dim; k++)
             {
-                rMassMatrix(i*dim+k, j*dim+k) += initial_density*Variables.integration_weight*Variables.N[i]*Variables.N[j]; //consistent matrix??
+                rMassMatrix(i*dim+k, j*dim+k) += density*Variables.integration_weight*Variables.N[i]*Variables.N[j]; //consistent matrix??
             }
         }
     }
@@ -988,6 +994,17 @@ void UpdatedLagrangianMPMElement::CalculateMassMatrix(MatrixType& rMassMatrix, P
         //set general variables to constitutivelaw parameters
         this->SetGeneralVariables(Variables,Values);
     //KRATOS_WATCH(__LINE__);
+        Matrix I=identity_matrix<double>( dim );
+		Matrix InvI;
+		double det;
+        MathUtils<double>::InvertMatrix( I, InvI, det );
+    
+		Variables.FT = prod(mDeformationGradientF0, InvI);
+    
+		Variables.detFT = mDeterminantF0 / det;
+    
+        Values.SetDeterminantF(Variables.detFT);
+        Values.SetDeformationGradientF(Variables.FT);
         mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
 
          //displacements Vector values;
@@ -1081,29 +1098,28 @@ void UpdatedLagrangianMPMElement::CalculateMassMatrix(MatrixType& rMassMatrix, P
         this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
 
         //create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        //ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
 
-        //set constitutive law flags:
-        Flags &ConstitutiveLawOptions=Values.GetOptions();
+        ////set constitutive law flags:
+        //Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-        //std::cout<<"in CalculateElementalSystem 5"<<std::endl;
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+        ////std::cout<<"in CalculateElementalSystem 5"<<std::endl;
+        //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
 
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
 
+        ////compute element kinematics B, F, DN_DX ...
+        //this->CalculateKinematics(Variables,rCurrentProcessInfo);
 
-        //compute element kinematics B, F, DN_DX ...
-        this->CalculateKinematics(Variables,rCurrentProcessInfo);
-
-    //KRATOS_WATCH(__LINE__);
-        //set general variables to constitutivelaw parameters
-        this->SetGeneralVariables(Variables,Values);
-    //KRATOS_WATCH(__LINE__);
-        mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
+    ////KRATOS_WATCH(__LINE__);
+        ////set general variables to constitutivelaw parameters
+        //this->SetGeneralVariables(Variables,Values);
+    ////KRATOS_WATCH(__LINE__);
+        //mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
 
 
 

@@ -106,7 +106,7 @@ public:
             iel!=mr_model_part.ElementsEnd(); iel++)
         {
 
-            const unsigned int number_of_nodes = iel->GetGeometry().size();
+            //const unsigned int number_of_nodes = iel->GetGeometry().size();
             //const double& h = iel->GetValue(EFFECTIVE_RADIUS);
 
 /*
