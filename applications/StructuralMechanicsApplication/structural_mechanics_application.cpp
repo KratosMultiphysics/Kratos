@@ -105,6 +105,7 @@ void KratosStructuralMechanicsApplication::Register()
 
     // Nodal stiffness
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_STIFFNESS )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_DAMPING_RATIO )
 
     // CONDITIONS
     /* Moment condition */

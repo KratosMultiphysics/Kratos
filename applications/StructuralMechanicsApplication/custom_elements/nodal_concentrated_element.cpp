@@ -297,6 +297,8 @@ void NodalConcentratedElement::CalculateRightHandSide(VectorType& rRightHandSide
     {
         Volume_Acceleration = GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     }
+    // KRATOS_WATCH(Volume_Acceleration);
+    // KRATOS_WATCH(Current_Displacement);
 
     // Compute and add external forces
     double Nodal_Mass = Element::GetValue(NODAL_MASS);
@@ -311,6 +313,7 @@ void NodalConcentratedElement::CalculateRightHandSide(VectorType& rRightHandSide
     {
         rRightHandSideVector[j]  -= Nodal_Stiffness[j] * Current_Displacement[j];
     }
+    // KRATOS_WATCH(rRightHandSideVector);
 
 }
 
@@ -336,6 +339,7 @@ void NodalConcentratedElement::CalculateLeftHandSide( MatrixType& rLeftHandSideM
     {
         rLeftHandSideMatrix(j, j) += Nodal_Stiffness[j];
     }
+    // KRATOS_WATCH(rLeftHandSideMatrix);
 }
 
 //***********************************************************************************
@@ -458,6 +462,7 @@ void NodalConcentratedElement::CalculateMassMatrix( MatrixType& rMassMatrix, Pro
 
     rMassMatrix = ZeroMatrix( system_size, system_size );
 
+    // KRATOS_WATCH(Element::GetValue(NODAL_MASS));
     double &Nodal_Mass = Element::GetValue(NODAL_MASS);
 
     for ( unsigned int j = 0; j < dimension; j++ )
@@ -483,48 +488,61 @@ void NodalConcentratedElement::CalculateDampingMatrix( MatrixType& rDampingMatri
 
     rDampingMatrix = ZeroMatrix( system_size, system_size );
 
-    //1.-Calculate StiffnessMatrix:
-
-    MatrixType StiffnessMatrix     = ZeroMatrix( system_size, system_size );
-    VectorType RightHandSideVector = ZeroVector( system_size ); 
-
-    this->CalculateLocalSystem( StiffnessMatrix, RightHandSideVector, rCurrentProcessInfo );
-
-    //2.-Calculate MassMatrix:
-
-    MatrixType MassMatrix  = ZeroMatrix( system_size, system_size );
-
-    this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
-    
-    //3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
-    double alpha = 0;
-    if( GetProperties().Has(RAYLEIGH_ALPHA) )
-    { 
-	alpha = GetProperties()[RAYLEIGH_ALPHA];
-    }
-    else if( rCurrentProcessInfo.Has(RAYLEIGH_ALPHA) )
-    { 
-	alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
-    }
-
-    double beta  = 0;
-    if( GetProperties().Has(RAYLEIGH_BETA) )
+    bool has_rayleigh_damping = false;
+    //Check, if Rayleigh damping is available; use discrete damping, if not
+    if( has_rayleigh_damping )
     {
-	beta = GetProperties()[RAYLEIGH_BETA];
-    }
-    else if( rCurrentProcessInfo.Has(RAYLEIGH_BETA) )
-    { 
-	beta = rCurrentProcessInfo[RAYLEIGH_BETA];
-    }
+        //1.-Calculate StiffnessMatrix:
 
-    //4.-Compose the Damping Matrix:
-   
-    //Rayleigh Damping Matrix: alpha*M + beta*K
-    MassMatrix      *= alpha;
-    StiffnessMatrix *= beta;
+        MatrixType StiffnessMatrix     = ZeroMatrix( system_size, system_size );
+        VectorType RightHandSideVector = ZeroVector( system_size ); 
 
-    rDampingMatrix  = MassMatrix;
-    rDampingMatrix += StiffnessMatrix;
+        this->CalculateLocalSystem( StiffnessMatrix, RightHandSideVector, rCurrentProcessInfo );
+
+        //2.-Calculate MassMatrix:
+
+        MatrixType MassMatrix  = ZeroMatrix( system_size, system_size );
+
+        this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
+        
+        //3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+        double alpha = 0;
+        if( GetProperties().Has(RAYLEIGH_ALPHA) )
+        { 
+        alpha = GetProperties()[RAYLEIGH_ALPHA];
+        }
+        else if( rCurrentProcessInfo.Has(RAYLEIGH_ALPHA) )
+        { 
+        alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
+        }
+
+        double beta  = 0;
+        if( GetProperties().Has(RAYLEIGH_BETA) )
+        {
+        beta = GetProperties()[RAYLEIGH_BETA];
+        }
+        else if( rCurrentProcessInfo.Has(RAYLEIGH_BETA) )
+        { 
+        beta = rCurrentProcessInfo[RAYLEIGH_BETA];
+        }
+
+        //4.-Compose the Damping Matrix:
+    
+        //Rayleigh Damping Matrix: alpha*M + beta*K
+        MassMatrix      *= alpha;
+        StiffnessMatrix *= beta;
+
+        rDampingMatrix  = MassMatrix;
+        rDampingMatrix += StiffnessMatrix;
+    }
+    else
+    {
+        array_1d<double, 3 > Nodal_Damping_Ratio = Element::GetValue(NODAL_DAMPING_RATIO);
+        for ( unsigned int j = 0; j < dimension; j++ )
+        {
+            rDampingMatrix(j, j) += Nodal_Damping_Ratio[j];
+        }
+    }
 
     KRATOS_CATCH( "" );
 }
@@ -561,6 +579,11 @@ int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo )
     if ( NODAL_STIFFNESS.Key() == 0 )
     {
         KRATOS_THROW_ERROR( std::invalid_argument, "NODAL_STIFFNESS has Key zero! (check if the application is correctly registered", "" );
+    }
+
+    if ( NODAL_DAMPING_RATIO.Key() == 0 )
+    {
+        KRATOS_THROW_ERROR( std::invalid_argument, "NODAL_DAMPING_RATIO has Key zero! (check if the application is correctly registered", "" );
     }
 
     if ( VOLUME_ACCELERATION.Key() == 0 )
