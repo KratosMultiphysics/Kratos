@@ -428,8 +428,13 @@ namespace Kratos
       if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){	
 	const MatrixType& rDeformationGradientF = rModelData.GetDeformationGradientF();
 	MatrixType StressMatrixPart;
-	noalias( StressMatrixPart ) = prod( rDeformationGradientF, rStressMatrix );
-	noalias( rStressMatrix )  = prod( StressMatrixPart, trans(rDeformationGradientF) );
+   MatrixType InverseDeformationGradient;
+   InverseDeformationGradient.clear();
+   double det;
+   ConstitutiveModelUtilities::InvertMatrix3( rDeformationGradientF, InverseDeformationGradient, det);
+	noalias( StressMatrixPart ) = prod( InverseDeformationGradient, rStressMatrix );
+	noalias( rStressMatrix )  = prod( StressMatrixPart, trans(InverseDeformationGradient) );
+   std::cout << " this transformation " << rStressMatrix << std::endl;
       }	
    
       KRATOS_CATCH(" ")    
