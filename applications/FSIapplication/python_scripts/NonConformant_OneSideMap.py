@@ -7,7 +7,6 @@ CheckForPreviousImport()
 
 
 def AddVariables(fluid_model_part, structure_model_part):
-    fluid_model_part.AddNodalSolutionStepVariable(NODAL_MAUX)  # Stores Nodal Area
     fluid_model_part.AddNodalSolutionStepVariable(PRESSURE)
     fluid_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     fluid_model_part.AddNodalSolutionStepVariable(MAPPER_SCALAR_PROJECTION_RHS)
@@ -18,7 +17,6 @@ def AddVariables(fluid_model_part, structure_model_part):
     fluid_model_part.AddNodalSolutionStepVariable(SCALAR_PROJECTED)
     fluid_model_part.AddNodalSolutionStepVariable(VECTOR_PROJECTED)
 
-    structure_model_part.AddNodalSolutionStepVariable(NODAL_MAUX)  # Stores Nodal Area
     structure_model_part.AddNodalSolutionStepVariable(PRESSURE)
     structure_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     structure_model_part.AddNodalSolutionStepVariable(MAPPER_SCALAR_PROJECTION_RHS)
