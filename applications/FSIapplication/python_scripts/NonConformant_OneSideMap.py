@@ -7,7 +7,6 @@ CheckForPreviousImport()
 
 
 def AddVariables(fluid_model_part, structure_model_part):
-    fluid_model_part.AddNodalSolutionStepVariable(NODAL_MAUX)  # Stores Nodal Area
     fluid_model_part.AddNodalSolutionStepVariable(PRESSURE)
     fluid_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     fluid_model_part.AddNodalSolutionStepVariable(MAPPER_SCALAR_PROJECTION_RHS)
@@ -18,7 +17,6 @@ def AddVariables(fluid_model_part, structure_model_part):
     fluid_model_part.AddNodalSolutionStepVariable(SCALAR_PROJECTED)
     fluid_model_part.AddNodalSolutionStepVariable(VECTOR_PROJECTED)
 
-    structure_model_part.AddNodalSolutionStepVariable(NODAL_MAUX)  # Stores Nodal Area
     structure_model_part.AddNodalSolutionStepVariable(PRESSURE)
     structure_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     structure_model_part.AddNodalSolutionStepVariable(MAPPER_SCALAR_PROJECTION_RHS)
@@ -50,10 +48,10 @@ class NonConformant_OneSideMap:
         self.Preprocess = InterfacePreprocess()
         self.fl_interface = ModelPart("fluid_interface")
         self.str_interface = ModelPart("structure_interface")
-        
+
         domain_size_fl = fluid_model_part.ProcessInfo[DOMAIN_SIZE]
         domain_size_str = structure_model_part.ProcessInfo[DOMAIN_SIZE]
-        
+
         if (domain_size_fl != domain_size_fl):
           raise ValueError("Domain sizes from two model parts are not compatible")
 
@@ -69,7 +67,7 @@ class NonConformant_OneSideMap:
         else:
           self.Preprocess.GenerateLineInterfacePart(structure_model_part, self.str_interface)
         print("Fluid and structure interfaces identified.")
-        
+
         # Interface mappers construction
         self.FluidToStructureMapper = AdvancedNMPointsMapper\
             (self.fl_interface, self.str_interface)
@@ -98,7 +96,7 @@ class NonConformant_OneSideMap:
 
     def FluidToStructure_ScalarMap(self, ScalarVar_Origin, ScalarVar_Destination, sign_pos):
         (self.FluidToStructureMapper).ScalarMap(ScalarVar_Origin, ScalarVar_Destination, self.it_max, self.tol, sign_pos)
-        
+
     # Normal vectors
     def StructureToFluid_ScalarToNormalVectorMap(self, ScalarVar_Origin, VectorVar_Destination, sign_pos):
         (self.StructureToFluidMapper).ScalarToNormalVectorMap(ScalarVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos)
