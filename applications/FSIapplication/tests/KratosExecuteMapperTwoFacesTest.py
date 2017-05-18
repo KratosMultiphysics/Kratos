@@ -95,7 +95,7 @@ class KratosExecuteTwoFacesMapperTest:
                                                                                 mapper_tolerance)
 
         # Output settings
-        self.output_post = True # Set this variable to True if it is need to print the results for debugging purposes
+        self.output_post = False # Set this variable to True if it is need to print the results for debugging purposes
         self.problem_path = os.getcwd()
 
         if (self.output_post == True):

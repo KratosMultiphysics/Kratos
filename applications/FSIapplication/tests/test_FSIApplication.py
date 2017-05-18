@@ -57,12 +57,12 @@ def AssambleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            # TNonConformantOneSideMap2D_test1,
-            # TNonConformantOneSideMap2D_test2,
-            # TNonConformantOneSideMap3D_test1,
-            TNonConformantOneSideMapTwoFaces3D_test1
-            # TConvergenceAcceleratorTest,
-            # TFSIProblemEmulatorTest
+            TNonConformantOneSideMap2D_test1,
+            TNonConformantOneSideMap2D_test2,
+            TNonConformantOneSideMap3D_test1,
+            TNonConformantOneSideMapTwoFaces3D_test1,
+            TConvergenceAcceleratorTest,
+            TFSIProblemEmulatorTest
         ])
     )
 

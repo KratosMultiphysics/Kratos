@@ -31,8 +31,8 @@ class ApplyLocalProcess(Process, KratosUnittest.TestCase):
             if (node_neg.Id == node_pos.Id):
                 node_pos.SetSolutionStepValue(PRESSURE, 0, 0.0) # If the node is shared, set a unique value
             else:
-                node_pos.SetSolutionStepValue(PRESSURE, 0, -(-36.07*node_pos.Y*node_pos.Y+36.04*node_pos.Y+8)*(8*node_pos.Z-16*node_pos.Z*node_pos.Z)) # Positive face nodal values
-                node_neg.SetSolutionStepValue(PRESSURE, 0, (-36.07*node_neg.Y*node_neg.Y+36.04*node_neg.Y+8)*(8*node_neg.Z-16*node_neg.Z*node_neg.Z))  # Negative face nodal values
+                node_pos.SetSolutionStepValue(PRESSURE, 0, -(-36.07*node_pos.Y*node_pos.Y+36.04*node_pos.Y-8)*(8*node_pos.Z-16*node_pos.Z*node_pos.Z)) # Positive face nodal values
+                node_neg.SetSolutionStepValue(PRESSURE, 0, (-36.07*node_neg.Y*node_neg.Y+36.04*node_neg.Y-8)*(8*node_neg.Z-16*node_neg.Z*node_neg.Z))  # Negative face nodal values
 
 
     def ExecuteBeforeSolutionLoop(self):

@@ -56,10 +56,10 @@ class ApplyLocalProcess(Process, KratosUnittest.TestCase):
         # Mapped PRESSURE check
         for node in self.structure_interface_model_part.Nodes:
             obtained_pressure_value = node.GetSolutionStepValue(POSITIVE_FACE_PRESSURE,0)
-            expected_pressure_value = -(-36.07*node.Y*node.Y+36.04*node.Y+8)*(8*node.Z-16*node.Z*node.Z)
-            self.assertAlmostEqual(obtained_pressure_value, expected_pressure_value, delta=5e-3)
+            expected_pressure_value = -(-36.07*node.Y*node.Y+36.04*node.Y-8)*(8*node.Z-16*node.Z*node.Z)
+            self.assertAlmostEqual(obtained_pressure_value, expected_pressure_value, delta=2.5e-2)
 
         for node in self.structure_interface_model_part.Nodes:
             obtained_pressure_value = node.GetSolutionStepValue(NEGATIVE_FACE_PRESSURE,0)
-            expected_pressure_value = (-36.07*node.Y*node.Y+36.04*node.Y+8)*(8*node.Z-16*node.Z*node.Z)
-            self.assertAlmostEqual(obtained_pressure_value, expected_pressure_value, delta=5e-3)
+            expected_pressure_value = (-36.07*node.Y*node.Y+36.04*node.Y-8)*(8*node.Z-16*node.Z*node.Z)
+            self.assertAlmostEqual(obtained_pressure_value, expected_pressure_value, delta=2.5e-2)
