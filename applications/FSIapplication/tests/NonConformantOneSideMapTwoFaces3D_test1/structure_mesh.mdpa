@@ -1,0 +1,123 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Properties 2
+    THICKNESS   1.00000E-01
+    DENSITY   7.85000E+03
+    YOUNG_MODULUS   2.06900E+11
+    POISSON_RATIO   2.90000E-01
+End Properties
+
+Begin Nodes
+  249        0.50000        0.66667        0.00000
+  271        0.50000        0.66667        0.16667
+  358        0.50000        0.66667        0.33333
+  397        0.50000        0.50000        0.00000
+  429        0.50000        0.50000        0.16667
+  527        0.50000        0.66667        0.50000
+  528        0.50000        0.50000        0.33333
+  643        0.50000        0.33333        0.00000
+  680        0.50000        0.33333        0.16667
+  726        0.50000        0.50000        0.50000
+  801        0.50000        0.33333        0.33333
+ 1010        0.50000        0.33333        0.50000
+End Nodes
+
+
+Begin Elements ShellThinElement3D3N// GUI group identifier: Structure
+     11370          2        397        429        643
+     11371          2        429        680        643
+     11372          2        249        271        397
+     11373          2        271        429        397
+     11374          2        429        528        680
+     11375          2        528        801        680
+     11376          2        271        358        429
+     11377          2        358        528        429
+     11378          2        528        726        801
+     11379          2        726       1010        801
+     11380          2        358        527        528
+     11381          2        527        726        528
+End Elements
+
+Begin Conditions Condition3D3N// GUI group identifier: Structure_interface
+1 0 397 429 643
+2 0 429 680 643
+3 0 249 271 397
+4 0 271 429 397
+5 0 429 528 680
+6 0 528 801 680
+7 0 271 358 429
+8 0 358 528 429
+9 0 528 726 801
+10 0 726 1010 801
+11 0 358 527 528
+12 0 527 726 528
+End Conditions
+
+Begin SubModelPart Parts_Structure // Group Structure // Subtree Parts
+    Begin SubModelPartNodes
+       249
+       271
+       358
+       397
+       429
+       527
+       528
+       643
+       680
+       726
+       801
+      1010
+    End SubModelPartNodes
+    Begin SubModelPartElements
+     11370
+     11371
+     11372
+     11373
+     11374
+     11375
+     11376
+     11377
+     11378
+     11379
+     11380
+     11381
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Structure_interface // Group Structure_interface // Subtree StructureInterface3D
+    Begin SubModelPartNodes
+       249
+       271
+       358
+       397
+       429
+       527
+       528
+       643
+       680
+       726
+       801
+      1010
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+         1
+         2
+         3
+         4
+         5
+         6
+         7
+         8
+         9
+        10
+        11
+        12
+    End SubModelPartConditions
+End SubModelPart
