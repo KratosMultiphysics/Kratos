@@ -216,13 +216,11 @@ namespace Kratos
       MatrixType StressPartMatrix;
       MatrixType StressMatrix;
 
-      std::cout << " strain in here " << rVariables.Strain.CauchyGreenMatrix << std::endl;
       if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Variables.Strain.CauchyGreenMatrix = RightCauchyGreen (C)
 
 	StressPartMatrix = GetI1RightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
 	noalias(StressMatrix)  = rVariables.Factors.Alpha1 * StressPartMatrix;
 
-   std::cout << " stressMatrix 1 " << StressMatrix << " part " << StressPartMatrix << std::endl;
 	StressPartMatrix = GetI2RightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
 	noalias(StressMatrix) += rVariables.Factors.Alpha2 * StressPartMatrix;
 
@@ -230,10 +228,9 @@ namespace Kratos
 	noalias(StressMatrix) += rVariables.Factors.Alpha3 * StressPartMatrix;
 
    Matrix FirstStress = StressMatrix;
-	StressPartMatrix = GetIsochoricRightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
-   std::cout << " stressPartMastrix to multiply " << StressPartMatrix << std::endl;
-	StressMatrix = prod(StressMatrix, StressPartMatrix);
-   std::cout << " stressMatrix " << StressMatrix << std::endl;
+
+   //StressPartMatrix = GetIsochoricRightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
+   //StressMatrix = prod(StressMatrix, StressPartMatrix);
 	
 
    StressMatrix.clear();
@@ -250,29 +247,32 @@ namespace Kratos
 
 
 	StressMatrix *= 2.0;
-   std::cout << " stressMatrix2 " << StressMatrix << std::endl;
 
 	rStressMatrix += StressMatrix;
-   std::cout << " stressMatrix3 " << rStressMatrix << std::endl;
 	
       }
       else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.CauchyGreenMatrix = LeftCauchyGreen (b)
 
-	StressPartMatrix = GetI1LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
-	noalias(StressMatrix)  = rVariables.Factors.Alpha1 * StressPartMatrix;
+         StressPartMatrix = GetI1LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
+         noalias(StressMatrix)  = rVariables.Factors.Alpha1 * StressPartMatrix;
 
-	StressPartMatrix = GetI2LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
-	noalias(StressMatrix) += rVariables.Factors.Alpha2 * StressPartMatrix;
+         StressPartMatrix = GetI2LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
+         noalias(StressMatrix) += rVariables.Factors.Alpha2 * StressPartMatrix;
 
-	StressPartMatrix = GetI3LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
-	noalias(StressMatrix) += rVariables.Factors.Alpha3 * StressPartMatrix;
+         StressPartMatrix = GetI3LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
+         noalias(StressMatrix) += rVariables.Factors.Alpha3 * StressPartMatrix;
 
-	StressPartMatrix = GetIsochoricLeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
-	StressMatrix = prod(StressMatrix, StressPartMatrix);
+         //StressPartMatrix = GetIsochoricLeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
+         //StressMatrix = prod(StressMatrix, StressPartMatrix);
+         // Apply deviatoric tensor (3.129)
+         double MeanPressure = 0;
+         for (unsigned int i = 0; i < 3; i++)
+            MeanPressure += StressMatrix(i,i)/3.0;
+         for (unsigned int i = 0; i < 3; i++)
+            StressMatrix(i,i)-=MeanPressure;
 
-	StressMatrix *= 2.0 * rVariables.Strain.Invariants.J;
-
-	rStressMatrix += StressMatrix;
+         StressMatrix *= 2.0;
+         rStressMatrix += StressMatrix;
       }
 
        
@@ -303,7 +303,7 @@ namespace Kratos
 	StressMatrix  = GetJLeftCauchyGreenDerivative(rVariables.Strain,StressMatrix);
 	StressMatrix *= rVariables.Factors.Alpha4;
 	
-	StressMatrix *= 2.0 * rVariables.Strain.Invariants.J;
+	StressMatrix *= 2.0; 
 
 	rStressMatrix += StressMatrix;
       }

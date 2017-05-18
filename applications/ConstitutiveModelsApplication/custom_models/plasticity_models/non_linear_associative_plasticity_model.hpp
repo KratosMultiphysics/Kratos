@@ -383,8 +383,8 @@ namespace Kratos
       if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){	
 	const MatrixType& rDeformationGradientF = rModelData.GetDeformationGradientF();
 	MatrixType StressMatrixPart;
-	noalias( StressMatrixPart ) = prod( trans(rDeformationGradientF), rStressMatrix );
-	noalias( rStressMatrix )  = prod( StressMatrixPart, rDeformationGradientF );
+	noalias( StressMatrixPart ) = prod( rDeformationGradientF, rStressMatrix );
+	noalias( rStressMatrix )  = prod( StressMatrixPart, trans(rDeformationGradientF) );
 
 	if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Right || rStrainMeasure == ConstitutiveModelData::CauchyGreen_None){
 	  double I3 = 0;
@@ -434,7 +434,6 @@ namespace Kratos
    ConstitutiveModelUtilities::InvertMatrix3( rDeformationGradientF, InverseDeformationGradient, det);
 	noalias( StressMatrixPart ) = prod( InverseDeformationGradient, rStressMatrix );
 	noalias( rStressMatrix )  = prod( StressMatrixPart, trans(InverseDeformationGradient) );
-   std::cout << " this transformation " << rStressMatrix << std::endl;
       }	
    
       KRATOS_CATCH(" ")    
