@@ -54,6 +54,8 @@ class DynamicBossakTests(StructuralMechanichsTestFactory):
 class DynamicNewmarkTests(StructuralMechanichsTestFactory):
     file_name = "dynamic_test/dynamic_newmark_test"
 
+class DynamicNodalDampingTests(StructuralMechanichsTestFactory):
+    file_name = "dynamic_test/dynamic_nodal_damping_test"
 
 class SprismMembranePatchTests(StructuralMechanichsTestFactory):
     file_name = "sprism_test/patch_membrane_test"

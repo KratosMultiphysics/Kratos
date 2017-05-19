@@ -12,6 +12,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from SmallTests import SimpleMeshMovingTest as TSimpleMeshMovingTest
 from SmallTests import DynamicBossakTests as TDynamicBossakTests
 from SmallTests import DynamicNewmarkTests as TDynamicNewmarkTests
+from SmallTests import DynamicNodalDampingTests as TDynamicNodalDampingTests
 from SmallTests import SprismMembranePatchTests as TSprismMembranePatchTests
 from SmallTests import SprismBendingPatchTests as TSprismBendingPatchTests
 from SmallTests import ShellQ4ThickBendingRollUpTests as TShellQ4ThickBendingRollUpTests
@@ -47,6 +48,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
     smallSuite.addTest(TDynamicBossakTests('test_execution'))
     smallSuite.addTest(TDynamicNewmarkTests('test_execution'))
+    smallSuite.addTest(TDynamicNodalDampingTests('test_execution'))
     smallSuite.addTest(TSprismMembranePatchTests('test_execution'))
     smallSuite.addTest(TSprismBendingPatchTests('test_execution'))
     smallSuite.addTest(TShellQ4ThickBendingRollUpTests('test_execution'))
@@ -73,6 +75,7 @@ def AssambleTestSuites():
             TSimpleMeshMovingTest,
             TDynamicBossakTests,
             TDynamicNewmarkTests,
+            TDynamicNodalDampingTests,
             TSprismMembranePatchTests,
             TSprismBendingPatchTests,
             TShellQ4ThickBendingRollUpTests,

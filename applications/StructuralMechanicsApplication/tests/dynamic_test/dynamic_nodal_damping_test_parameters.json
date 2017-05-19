@@ -1,0 +1,96 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "dynamic_nodal_damping_test",
+        "model_part_name" : "Structure",
+        "domain_size"     : 2,
+        "time_step"       : 0.001,
+        "start_time"      : 0.001,
+        "end_time"        : 0.10,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "solid_mechanics_implicit_dynamic_solver",
+        "echo_level"                         : 0,
+        "solution_type"                      : "Dynamic",
+        "time_integration_method"            : "Implicit",
+        "scheme_type"                        : "Bossak",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "dynamic_test/dynamic_nodal_damping_test"
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "Residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "linear_solver_settings"             : {
+                "solver_type": "SuperLUSolver",
+                "max_iteration": 500,
+                "tolerance": 1e-9,
+                "scaling": false,
+                "verbosity": 1
+        },
+        "problem_domain_sub_model_part_list" : ["model"],
+        "processes_sub_model_part_list"      : ["model"]
+    },
+    "constraints_process_list" : [
+    {
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "model",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_x"      : true,
+            "is_fixed_y"      : false,
+            "is_fixed_z"      : true,
+            "value"           : [0.0, 0.1, 0.0]
+        }
+    }
+    ],
+    "loads_process_list" : [{
+        "python_module" : "assign_modulus_and_direction_to_nodes_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "help"          : "This process fixes all the components of a given vector variable",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "AssignModulusAndDirectionToNodesProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "model",
+            "variable_name"   : "VOLUME_ACCELERATION",
+            "modulus"         : 9.81,
+            "direction"       : [0.0,-0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "list_other_processes" :[
+    {
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables" : ["DISPLACEMENT_Y"],
+            "input_file_name" : "dynamic_test/dynamic_nodal_damping_test_results.json",
+            "model_part_name"  : "model",
+            "time_frequency"   : 0.1,
+            "tolerance"        : 5e-3
+        }
+    }
+    ],
+    "apply_custom_function_process" : [],
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    }
+}
