@@ -174,6 +174,11 @@ namespace Kratos
       	  init<>() )
        	;
 
+      class_< IsochoricNeoHookeanModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
+      	( "IsochoricNeoHookeanModel",
+      	  init<>() )
+       	;
+
       class_< IncompressibleNeoHookeanModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
       	( "IncompressibleNeoHookeanModel",
       	  init<>() )
@@ -203,6 +208,7 @@ namespace Kratos
        	( "BakerJohnsonCookJ2ThermoPlasticityModel",
        	  init<>() )
        	;
+      
       class_< CamClayModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
        	( "CamClayModel",
        	  init<>() )

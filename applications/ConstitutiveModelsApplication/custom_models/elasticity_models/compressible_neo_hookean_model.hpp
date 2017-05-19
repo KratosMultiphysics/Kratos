@@ -197,18 +197,18 @@ namespace Kratos
       
     //   const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
       
-    //   if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mCauchyGreenMatrix = RightCauchyGreen (C)
+    //   if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mStrainMatrix = RightCauchyGreen (C)
 
-    // 	StressMatrix  = rMaterial.GetLameLambda() * std::log( rVariables.Strain.Invariants.J ) * rVariables.Strain.InverseCauchyGreenMatrix;
-    //     StressMatrix += rMaterial.GetLameMu() * ( msIdentityMatrix - rVariables.Strain.InverseCauchyGreenMatrix);
+    // 	StressMatrix  = rMaterial.GetLameLambda() * std::log( rVariables.Strain.Invariants.J ) * rVariables.Strain.InverseMatrix;
+    //     StressMatrix += rMaterial.GetLameMu() * ( msIdentityMatrix - rVariables.Strain.InverseMatrix);
 
     // 	rStressMatrix += StressMatrix;
       
     //   }
-    //   else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mCauchyGreenMatrix = LeftCauchyGreen (b)
+    //   else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mStrainMatrix = LeftCauchyGreen (b)
 
     // 	StressMatrix  = rMaterial.GetLameLambda() * std::log( rVariables.Strain.Invariants.J ) * msIdentityMatrix;
-    //     StressMatrix += rMaterial.GetLameMu() * ( rVariables.Strain.CauchyGreenMatrix - msIdentityMatrix );
+    //     StressMatrix += rMaterial.GetLameMu() * ( rVariables.Strain.Matrix - msIdentityMatrix );
 	
     // 	rStressMatrix += StressMatrix;      
     //   }
@@ -234,11 +234,11 @@ namespace Kratos
     //   const ModelDataType&  rModelData        = rVariables.GetModelData();
     //   const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
          
-    //   if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mCauchyGreenMatrix = RightCauchyGreen (C)
-    // 	Cabcd  = rMaterial.GetLameLambda() * (rVariables.Strain.InverseCauchyGreenMatrix(a,b)*rVariables.Strain.InverseCauchyGreenMatrix(c,d));
-    // 	Cabcd += (rMaterial.GetLameMu() - rMaterial.GetLameLambda() * std::log(rVariables.Strain.Invariants.J)) * (rVariables.Strain.InverseCauchyGreenMatrix(a,c)*rVariables.Strain.InverseCauchyGreenMatrix(b,d)+rVariables.Strain.InverseCauchyGreenMatrix(a,d)*rVariables.Strain.InverseCauchyGreenMatrix(b,c));
+    //   if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mStrainMatrix = RightCauchyGreen (C)
+    // 	Cabcd  = rMaterial.GetLameLambda() * (rVariables.Strain.InverseMatrix(a,b)*rVariables.Strain.InverseMatrix(c,d));
+    // 	Cabcd += (rMaterial.GetLameMu() - rMaterial.GetLameLambda() * std::log(rVariables.Strain.Invariants.J)) * (rVariables.Strain.InverseMatrix(a,c)*rVariables.Strain.InverseMatrix(b,d)+rVariables.Strain.InverseMatrix(a,d)*rVariables.Strain.InverseMatrix(b,c));
     //   }
-    //   else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mCauchyGreenMatrix = LeftCauchyGreen (b)
+    //   else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mStrainMatrix = LeftCauchyGreen (b)
     // 	Cabcd  = rMaterial.GetLameLambda() * (msIdentityMatrix(a,b)*msIdentityMatrix(c,d));
     // 	Cabcd += (rMaterial.GetLameMu() - rMaterial.GetLameLambda() * std::log(rVariables.Strain.Invariants.J)) * (msIdentityMatrix(a,c)*msIdentityMatrix(b,d)+msIdentityMatrix(a,d)*msIdentityMatrix(b,c));  
     //   }

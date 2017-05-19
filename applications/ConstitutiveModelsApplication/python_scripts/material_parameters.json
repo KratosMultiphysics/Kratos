@@ -9,7 +9,7 @@
             "material_name"   : "steel",
 	    "constitutive_law": {
                 "law_name"   : "KratosMultiphysics.ConstitutiveModelsApplication.LargeStrain3DLaw",
-		"model_name" : "KratosMultiphysics.ConstitutiveModelsApplication.VonMisesNeoHookeanPlasticityModel"
+		"model_name" : "KratosMultiphysics.ConstitutiveModelsApplication.IsochoricNeoHookeanModel"
             },
 	    "variables": {
 		"KratosMultiphysics.ConstitutiveModelsApplication.C10": 3.84615384615384615385e10,
