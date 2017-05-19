@@ -12,7 +12,7 @@
         "solver_type"                        : "contact_structural_mechanics_static_solver",
         "echo_level"                         : 1,
         "solution_type"                      : "Static",
-        "analysis_type"                      : "Non-Linear",
+        "analysis_type"                      : "Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "ALM_frictionless_contact_test_2D/hyper_simple_slope_patch_test"
@@ -27,7 +27,7 @@
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 1,
+        "max_iteration"                      : 10,
         "linear_solver_settings"             : {
                 "solver_type": "SuperLUSolver",
                 "max_iteration": 500,
@@ -123,19 +123,19 @@
             "type_search"                 : "InRadius",
             "integration_order"           : 2,
             "manual_ALM"                  : true,
-            "penalty"                     : 1.0e-6,
+            "penalty"                     : 0.0e0,
             "scale_factor"                : 1.0e0
         }
     }
     ],
-    "_json_check_process" : [
+    "json_check_process" : [
     {
         "python_module"   : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
-            "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y","NORMAL_CONTACT_STRESS"],
             "input_file_name"      : "ALM_frictionless_contact_test_2D/hyper_simple_slope_patch_test_results.json",
             "model_part_name"      : "Contact_Part",
             "time_frequency"       : 1.00
@@ -149,14 +149,14 @@
         "help"                  : "",
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
-            "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y","NORMAL_CONTACT_STRESS"],
             "output_file_name"     : "ALM_frictionless_contact_test_2D/hyper_simple_slope_patch_test_results.json",
             "model_part_name"      : "Contact_Part",
             "time_frequency"       : 1.00
         }
     }
     ],
-    "output_configuration"     : {
+    "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
