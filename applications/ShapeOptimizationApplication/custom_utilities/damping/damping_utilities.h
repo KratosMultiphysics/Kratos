@@ -82,16 +82,16 @@ public:
 
     // Type definitions for better reading later
     typedef array_1d<double,3> array_3d;
-    typedef Node < 3 > NodeType;
-    typedef Node < 3 > ::Pointer NodeTypePointer;
-    typedef std::vector<NodeType::Pointer> NodeVector;
-    typedef std::vector<NodeType::Pointer>::iterator NodeIterator;
+    typedef ModelPart::NodeType NodeType;
+    typedef ModelPart::NodeType::Pointer NodeTypePointer;
+    typedef std::vector<NodeTypePointer> NodeVector;
+    typedef std::vector<NodeTypePointer>::iterator NodeVectorIterator;
     typedef std::vector<double> DoubleVector;
     typedef std::vector<double>::iterator DoubleVectorIterator;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
     // Type definitions for tree-search
-    typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
+    typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeVectorIterator, DoubleVectorIterator > BucketType;
     typedef Tree< KDTreePartition<BucketType> > KDTree;    
 
     /// Pointer definition of DampingUtilities
@@ -151,11 +151,11 @@ public:
     // --------------------------------------------------------------------------
     void InitalizeDampingFactorsToHaveNoInfluence()
     {
-        for (ModelPart::NodeIterator node_i = mrModelPartToDamp.NodesBegin(); node_i != mrModelPartToDamp.NodesEnd(); ++node_i)
+        for(auto& node_i : mrModelPartToDamp.Nodes())
         {
-            node_i->SetValue(DAMPING_FACTOR_X,1.0);    
-            node_i->SetValue(DAMPING_FACTOR_Y,1.0);  
-            node_i->SetValue(DAMPING_FACTOR_Z,1.0);  
+            node_i.SetValue(DAMPING_FACTOR_X,1.0);    
+            node_i.SetValue(DAMPING_FACTOR_Y,1.0);  
+            node_i.SetValue(DAMPING_FACTOR_Z,1.0);  
         } 
     }
 
@@ -179,9 +179,9 @@ public:
             DampingFunction::Pointer mpDampingFunction = CreateDampingFunction( dampingFunctionType, dampingRadius );
 
             // Loop over all nodes in specified damping sub-model part 
-            for ( ModelPart::NodeIterator node_itr = dampingRegion.NodesBegin(); node_itr != dampingRegion.NodesEnd(); ++node_itr )
+            for(auto& node_i : dampingRegion.Nodes())
             {
-                ModelPart::NodeType& currentDampingNode = *node_itr;
+                ModelPart::NodeType& currentDampingNode = node_i;
                 NodeVector neighbor_nodes( mMaxNeighborNodes );
                 DoubleVector resulting_squared_distances( mMaxNeighborNodes,0.0 );
                 unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( currentDampingNode,
@@ -230,10 +230,10 @@ public:
     // --------------------------------------------------------------------------
     void DampNodalVariable( const Variable<array_3d> &rNodalVariable )
     {
-        for (ModelPart::NodeIterator node_i = mrModelPartToDamp.NodesBegin(); node_i != mrModelPartToDamp.NodesEnd(); ++node_i)
+        for(auto& node_i : mrModelPartToDamp.Nodes())
         {   
-            auto& damping_factor = node_i->GetValue(DAMPING_FACTOR);
-            auto& nodalVariable = node_i->FastGetSolutionStepValue(rNodalVariable);
+            auto& damping_factor = node_i.GetValue(DAMPING_FACTOR);
+            auto& nodalVariable = node_i.FastGetSolutionStepValue(rNodalVariable);
 
             nodalVariable[0] *= damping_factor[0];
             nodalVariable[1] *= damping_factor[1];
