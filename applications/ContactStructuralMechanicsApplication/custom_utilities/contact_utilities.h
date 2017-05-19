@@ -938,7 +938,7 @@ public:
     }
 
     /**
-     * It calculates the vector of a variable of a geometry
+     * It calculates the vector of an historical variable of a geometry
      * @param nodes: The geometry to calculate
      * @param rVarName: The name of the variable to calculate
      * @param step: The step where calculate
@@ -963,6 +963,14 @@ public:
         return VarVector;
     }
     
+    /**
+     * It calculates the vector of an historical variable of a geometry
+     * @param nodes: The geometry to calculate
+     * @param rVarName: The name of the variable to calculate
+     * @param step: The step where calculate
+     * @return VarVector: The vector containing the variables of the geometry
+     */
+        
     template< unsigned int TNumNodes >
     static inline bounded_matrix<double, TNumNodes, 1> GetVariableVectorMatrix(
         const GeometryType& nodes,
@@ -981,6 +989,13 @@ public:
         return VarVector;
     }
 
+    /**
+     * It calculates the vector of a non-historical variable of a geometry
+     * @param nodes: The geometry to calculate
+     * @param rVarName: The name of the variable to calculate
+     * @return VarVector: The vector containing the variables of the geometry
+     */
+        
     template< unsigned int TNumNodes >
     static inline array_1d<double, TNumNodes> GetVariableVector(
         const GeometryType& nodes,
@@ -997,6 +1012,13 @@ public:
         
         return VarVector;
     }
+    
+    /**
+     * It calculates the vector of a non-historical variable of a geometry
+     * @param nodes: The geometry to calculate
+     * @param rVarName: The name of the variable to calculate
+     * @return VarVector: The vector containing the variables of the geometry
+     */
     
     template< unsigned int TNumNodes >
     static inline bounded_matrix<double, TNumNodes, 1> GetVariableVectorMatrix(
@@ -1017,7 +1039,7 @@ public:
     
     /**
      * It calculates the matrix of a variable of a geometry
-     * @param nodes: The geometry to calculate
+     * @param Nodes: The geometry to calculate
      * @param rVarName: The name of the variable to calculate
      * @param step: The step where calculate
      * @return VarMatrix: The matrix containing the variables of the geometry
@@ -1025,17 +1047,17 @@ public:
     
     template< unsigned int TDim, unsigned int TNumNodes>
     static inline Matrix GetVariableMatrix(
-        const GeometryType& nodes,
+        const GeometryType& Nodes,
         const Variable<array_1d<double,3> >& rVarName,
         unsigned int step
         )
     {
         /* DEFINITIONS */        
-        bounded_matrix<double, TNumNodes, TDim> VarMatrix;
+        Matrix VarMatrix(TNumNodes, TDim);
         
         for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
         {
-            const array_1d<double, 3> Value = nodes[iNode].FastGetSolutionStepValue(rVarName, step);
+            const array_1d<double, 3> Value = Nodes[iNode].FastGetSolutionStepValue(rVarName, step);
             for (unsigned int iDof = 0; iDof < TDim; iDof++)
             {
                 VarMatrix(iNode, iDof) = Value[iDof];
@@ -1045,18 +1067,25 @@ public:
         return VarMatrix;
     }
 
+    /**
+     * It calculates the matrix of a non-historical variable of a geometry
+     * @param Nodes: The geometry to calculate
+     * @param rVarName: The name of the variable to calculate
+     * @return VarMatrix: The matrix containing the variables of the geometry
+     */
+        
     template< unsigned int TDim, unsigned int TNumNodes>
     static inline Matrix GetVariableMatrix(
-        const GeometryType& nodes,
+        const GeometryType& Nodes,
         const Variable<array_1d<double,3> >& rVarName
         )
     {
         /* DEFINITIONS */        
-        bounded_matrix<double, TNumNodes, TDim> VarMatrix;
+        Matrix VarMatrix(TNumNodes, TDim);
         
         for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
         {
-            const array_1d<double, 3> Value = nodes[iNode].GetValue(rVarName);
+            const array_1d<double, 3> Value = Nodes[iNode].GetValue(rVarName);
             for (unsigned int iDof = 0; iDof < TDim; iDof++)
             {
                 VarMatrix(iNode, iDof) = Value[iDof];
@@ -1064,6 +1093,29 @@ public:
         }
         
         return VarMatrix;
+    }
+    
+    /**
+     * It calculates the matrix containing the absolute value of another matrix
+     * @param InputMatrix: The original matrix
+     * @return AbsMatrix: The matrix containing the absolute value of another matrix
+     */
+        
+    template< unsigned int TDim, unsigned int TNumNodes>
+    static inline bounded_matrix<double, TNumNodes, TDim>  GetAbsMatrix(const bounded_matrix<double, TNumNodes, TDim> InputMatrix)
+    {
+        /* DEFINITIONS */        
+        bounded_matrix<double, TNumNodes, TDim> AbsMatrix;
+        
+        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        {
+            for (unsigned int iDof = 0; iDof < TDim; iDof++)
+            {
+                AbsMatrix(iNode, iDof) = std::abs(InputMatrix(iNode, iDof));
+            }
+        }
+        
+        return AbsMatrix;
     }
     
 private:
