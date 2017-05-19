@@ -281,7 +281,7 @@ protected:
             
             if (((itDoF)->GetReaction().Name()).find("WEIGHTED") != std::string::npos) // Corresponding with contact
             {                        
-                (itDoF)->GetSolutionStepReactionValue() = b[j]/ScaleFactor;
+                (itDoF)->GetSolutionStepReactionValue() = -b[j]/ScaleFactor;
             }
             else if ((itDoF)->GetReaction().Name() != "NONE") // The others
             {                        

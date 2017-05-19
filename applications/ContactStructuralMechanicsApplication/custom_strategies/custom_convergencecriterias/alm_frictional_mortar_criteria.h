@@ -224,9 +224,10 @@ public:
                 }
                 else
                 {
+                    (itNode)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector; // NOTE: To clear the value (can affect future iterations)
+                    
                     if ((itNode)->Is(ACTIVE) == true )
                     {
-                        (itNode)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector; // NOTE: To clear the value (can affect future iterations)
                         (itNode)->Set(ACTIVE, false);
                         IsConvergedActive = false;
                     }

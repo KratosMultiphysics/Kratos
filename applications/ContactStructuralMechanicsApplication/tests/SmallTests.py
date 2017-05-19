@@ -93,6 +93,9 @@ class ALMHertzCompleteTestContact(StructuralMechanichsTestFactory):
 class ALMThreeDSimplestPatchMatchingTestContact(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test"
     
+class ALMThreeDSimplestPatchMatchingSlopeTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_slope_test"
+    
 class ALMThreeDPatchMatchingTestContact(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_matching_test"
 

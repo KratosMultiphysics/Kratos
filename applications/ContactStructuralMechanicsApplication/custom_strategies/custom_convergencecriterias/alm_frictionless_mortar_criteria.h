@@ -186,9 +186,10 @@ public:
                 }
                 else
                 {
+                    (itNode)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0; // NOTE: To clear the value (can affect future iterations)
+                    
                     if ((itNode)->Is(ACTIVE) == true )
                     {
-                        (itNode)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0; // NOTE: To clear the value (can affect future iterations)
                         (itNode)->Set(ACTIVE, false);
                         IsConverged = false;
                     }

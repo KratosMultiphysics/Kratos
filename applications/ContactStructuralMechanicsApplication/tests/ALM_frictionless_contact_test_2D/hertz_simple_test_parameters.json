@@ -87,8 +87,8 @@
             "penalty_scale_factor"        : 1.0,
             "pair_variation"              : true,
             "manual_ALM"                  : true,
-            "penalty"                     : 5.0e7,
-            "scale_factor"                : 5.0e7,
+            "penalty"                     : 1.0e3,
+            "scale_factor"                : 1.0e0,
             "debug_mode"                  : false
         }
     }

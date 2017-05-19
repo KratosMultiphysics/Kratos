@@ -27,21 +27,22 @@ from SmallTests import SimplestPatchTestThreeDMeshTying  as TSimplestPatchTestTh
 from SmallTests import SimplePatchTestThreeDMeshTying    as TSimplePatchTestThreeDMeshTying
 
 # ALM frictionless tests
-from SmallTests import ALMHyperSimplePatchTestContact            as TALMHyperSimplePatchTestContact
-from SmallTests import ALMHyperSimpleSlopePatchTestContact       as TALMHyperSimpleSlopePatchTestContact
-from SmallTests import ALMSimplePatchTestContact                 as TALMSimplePatchTestContact
-from SmallTests import ALMSimpleSlopePatchTestContact            as TALMSimpleSlopePatchTestContact
-from SmallTests import ALMSimplePatchNotMatchingATestContact     as TALMSimplePatchNotMatchingATestContact
-from SmallTests import ALMSimplePatchNotMatchingBTestContact     as TALMSimplePatchNotMatchingBTestContact
-from SmallTests import ALMTaylorPatchTestContact                 as TALMTaylorPatchTestContact
-from SmallTests import ALMTaylorPatchDynamicTestContact          as TALMTaylorPatchDynamicTestContact
-from SmallTests import ALMHertzSimpleTestContact                 as TALMHertzSimpleTestContact
-from SmallTests import ALMHertzSimpleSphereTestContact           as TALMHertzSimpleSphereTestContact
-from SmallTests import ALMHertzSphereTestContact                 as TALMHertzSphereTestContact
-from SmallTests import ALMHertzCompleteTestContact               as TALMHertzCompleteTestContact
-from SmallTests import ALMThreeDSimplestPatchMatchingTestContact as TALMThreeDSimplestPatchMatchingTestContact
-from SmallTests import ALMThreeDPatchMatchingTestContact         as TALMTThreeDPatchMatchingTestContact
-from SmallTests import ALMThreeDPatchNotMatchingTestContact      as TALMThreeDPatchNotMatchingTestContact
+from SmallTests import ALMHyperSimplePatchTestContact                 as TALMHyperSimplePatchTestContact
+from SmallTests import ALMHyperSimpleSlopePatchTestContact            as TALMHyperSimpleSlopePatchTestContact
+from SmallTests import ALMSimplePatchTestContact                      as TALMSimplePatchTestContact
+from SmallTests import ALMSimpleSlopePatchTestContact                 as TALMSimpleSlopePatchTestContact
+from SmallTests import ALMSimplePatchNotMatchingATestContact          as TALMSimplePatchNotMatchingATestContact
+from SmallTests import ALMSimplePatchNotMatchingBTestContact          as TALMSimplePatchNotMatchingBTestContact
+from SmallTests import ALMTaylorPatchTestContact                      as TALMTaylorPatchTestContact
+from SmallTests import ALMTaylorPatchDynamicTestContact               as TALMTaylorPatchDynamicTestContact
+from SmallTests import ALMHertzSimpleTestContact                      as TALMHertzSimpleTestContact
+from SmallTests import ALMHertzSimpleSphereTestContact                as TALMHertzSimpleSphereTestContact
+from SmallTests import ALMHertzSphereTestContact                      as TALMHertzSphereTestContact
+from SmallTests import ALMHertzCompleteTestContact                    as TALMHertzCompleteTestContact
+from SmallTests import ALMThreeDSimplestPatchMatchingTestContact      as TALMThreeDSimplestPatchMatchingTestContact
+from SmallTests import ALMThreeDSimplestPatchMatchingSlopeTestContact as TALMThreeDSimplestPatchMatchingSlopeTestContact
+from SmallTests import ALMThreeDPatchMatchingTestContact              as TALMTThreeDPatchMatchingTestContact
+from SmallTests import ALMThreeDPatchNotMatchingTestContact           as TALMThreeDPatchNotMatchingTestContact
 
 ## NIGTHLY TESTS
 # ALM frictionless tests
@@ -96,6 +97,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TALMHertzSimpleTestContact('test_execution'))
     smallSuite.addTest(TALMHertzCompleteTestContact('test_execution'))
     smallSuite.addTest(TALMThreeDSimplestPatchMatchingTestContact('test_execution'))
+    smallSuite.addTest(TALMThreeDSimplestPatchMatchingSlopeTestContact('test_execution'))
     smallSuite.addTest(TALMTThreeDPatchMatchingTestContact('test_execution'))
     smallSuite.addTest(TALMThreeDPatchNotMatchingTestContact('test_execution'))
 
@@ -125,7 +127,7 @@ def AssambleTestSuites():
             TSimplestPatchTestThreeDMeshTying,
             ##TSimplePatchTestThreeDMeshTying, # FIXME: Some error in the mesh tying condition
             TALMHyperSimplePatchTestContact,
-            #TALMHyperSimpleSlopePatchTestContact, # FIXME: Some error with slopes (contact pressure not correct)
+            TALMHyperSimpleSlopePatchTestContact, # FIXME: Some error with slopes (contact pressure not correct)
             TALMSimplePatchTestContact,
             TALMSimpleSlopePatchTestContact, 
             TALMSimplePatchNotMatchingATestContact,
@@ -137,6 +139,7 @@ def AssambleTestSuites():
             TALMHertzSphereTestContact,
             TALMHertzCompleteTestContact,
             TALMThreeDSimplestPatchMatchingTestContact,
+            TALMThreeDSimplestPatchMatchingSlopeTestContact,
             TALMTThreeDPatchMatchingTestContact,
             TALMThreeDPatchNotMatchingTestContact,
             ############# JUST TESTING ###########
