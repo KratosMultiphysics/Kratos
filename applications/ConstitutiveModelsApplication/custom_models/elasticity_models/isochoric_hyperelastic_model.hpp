@@ -216,7 +216,7 @@ namespace Kratos
       MatrixType StressPartMatrix;
       MatrixType StressMatrix;
 
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Variables.Strain.CauchyGreenMatrix = RightCauchyGreen (C)
+      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Variables.Strain.Matrix = RightCauchyGreen (C)
 
 	StressPartMatrix = GetI1RightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
 	noalias(StressMatrix)  = rVariables.Factors.Alpha1 * StressPartMatrix;
@@ -227,31 +227,31 @@ namespace Kratos
 	StressPartMatrix = GetI3RightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
 	noalias(StressMatrix) += rVariables.Factors.Alpha3 * StressPartMatrix;
 
-   Matrix FirstStress = StressMatrix;
+	//option a:
+	StressPartMatrix = GetIsochoricRightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
+	StressMatrix = prod(StressMatrix, StressPartMatrix);
 
-   //StressPartMatrix = GetIsochoricRightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
-   //StressMatrix = prod(StressMatrix, StressPartMatrix);
+	//option b:
+	// StressPartMatrix = StressMatrix;
+	// StressMatrix.clear();
+	// double Derivative = 0;
+	// for (unsigned int i = 0; i < 3; i++) { 
+	//   for (unsigned int j = 0; j < 3; j++) { 
+	//     for (unsigned int k = 0; k < 3; k++) { 
+	//       for (unsigned int l = 0; l < 3; l++) { 
+	// 	Derivative = GetIsochoricRightCauchyGreenDerivative( rVariables.Strain, Derivative, i, j, k, l); 
+	// 	StressMatrix(i,j) += Derivative * StressPartMatrix(k, l); 
+	//       } 
+	//     } 
+	//   } 
+	// } 
 	
-
-   StressMatrix.clear();
-   for (unsigned int i = 0; i < 3; i++) {
-      for (unsigned int j = 0; j < 3; j++) {
-         for (unsigned int k = 0; k < 3; k++) {
-            for (unsigned int l = 0; l < 3; l++) {
-               double derivative = GetIsochoricRightCauchyGreenDerivative( rVariables.Strain, derivative, i, j, k, l);
-               StressMatrix(i,j) += derivative * FirstStress(k, l);
-            }
-         }
-      }
-   }
-
-
 	StressMatrix *= 2.0;
 
 	rStressMatrix += StressMatrix;
 	
       }
-      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.CauchyGreenMatrix = LeftCauchyGreen (b)
+      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.Matrix = LeftCauchyGreen (b)
 
          StressPartMatrix = GetI1LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
          noalias(StressMatrix)  = rVariables.Factors.Alpha1 * StressPartMatrix;
@@ -262,16 +262,27 @@ namespace Kratos
          StressPartMatrix = GetI3LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
          noalias(StressMatrix) += rVariables.Factors.Alpha3 * StressPartMatrix;
 
-         //StressPartMatrix = GetIsochoricLeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
-         //StressMatrix = prod(StressMatrix, StressPartMatrix);
-         // Apply deviatoric tensor (3.129)
-         double MeanPressure = 0;
-         for (unsigned int i = 0; i < 3; i++)
-            MeanPressure += StressMatrix(i,i)/3.0;
-         for (unsigned int i = 0; i < 3; i++)
-            StressMatrix(i,i)-=MeanPressure;
+	 //option a:	
+         StressPartMatrix = GetIsochoricLeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
+         StressMatrix = prod(StressMatrix, StressPartMatrix);
 
+	 //option b:
+	 // StressPartMatrix = StressMatrix;
+	 // StressMatrix.clear();
+	 // double Derivative = 0;
+	 // for (unsigned int i = 0; i < 3; i++) { 
+	 //   for (unsigned int j = 0; j < 3; j++) { 
+	 //     for (unsigned int k = 0; k < 3; k++) { 
+	 //       for (unsigned int l = 0; l < 3; l++) { 
+	 // 	Derivative = GetIsochoricLeftCauchyGreenDerivative( rVariables.Strain, Derivative, i, j, k, l); 
+	 // 	StressMatrix(i,j) += Derivative * StressPartMatrix(k, l); 
+	 //       } 
+	 //     } 
+	 //   } 
+	 // } 
+	 	 
          StressMatrix *= 2.0;
+
          rStressMatrix += StressMatrix;
       }
 
@@ -289,22 +300,22 @@ namespace Kratos
 	
       MatrixType StressMatrix;
             
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Variables.Strain.CauchyGreenMatrix = RightCauchyGreen (C)
+      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Variables.Strain.Matrix = RightCauchyGreen (C)
 
 	StressMatrix  = GetJRightCauchyGreenDerivative(rVariables.Strain,StressMatrix);
 	StressMatrix *= rVariables.Factors.Alpha4;
 
 	StressMatrix *= 2.0;
-
+	
 	rStressMatrix += StressMatrix;
       }
-      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.CauchyGreenMatrix = LeftCauchyGreen (b)
+      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.Matrix = LeftCauchyGreen (b)
 
 	StressMatrix  = GetJLeftCauchyGreenDerivative(rVariables.Strain,StressMatrix);
 	StressMatrix *= rVariables.Factors.Alpha4;
 	
 	StressMatrix *= 2.0; 
-
+	
 	rStressMatrix += StressMatrix;
       }
       	
@@ -319,12 +330,13 @@ namespace Kratos
       KRATOS_TRY
      
       rCabcd = this->AddIsochoricConstitutiveComponent(rVariables,rCabcd,a,b,c,d);
-      rCabcd = this->AddVolumetricConstitutiveComponent(rVariables,rCabcd,a,b,c,d);
+      //rCabcd = this->AddVolumetricConstitutiveComponent(rVariables,rCabcd,a,b,c,d);
 
       return rCabcd;
 	
       KRATOS_CATCH(" ")
     }
+
 
 
     
@@ -343,22 +355,24 @@ namespace Kratos
       double Cefmn = 0;
       double Ccdmn = 0;
 
-      MatrixType PseudoStress;
+      MatrixType StressMatrix;
       MatrixType StressPartMatrix;
 
       
       if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Variables.Strain.CauchyGreenMatrix = RightCauchyGreen (C)
 
-      StressPartMatrix = GetI1RightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
-      noalias(PseudoStress)  = rVariables.Factors.Alpha1 * StressPartMatrix;
+	//constitutive tensor for PK2 still not giving the correct numbers in the 4 and 5 row, something is wrong 
+	
+	StressPartMatrix = GetI1RightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
+	noalias(StressMatrix)  = rVariables.Factors.Alpha1 * StressPartMatrix;
 
-      StressPartMatrix = GetI2RightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
-      noalias(PseudoStress) += rVariables.Factors.Alpha2 * StressPartMatrix;
+	StressPartMatrix = GetI2RightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
+	noalias(StressMatrix) += rVariables.Factors.Alpha2 * StressPartMatrix;
 
-      StressPartMatrix = GetI3RightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
-      noalias(PseudoStress) += rVariables.Factors.Alpha3 * StressPartMatrix;
+	StressPartMatrix = GetI3RightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
+	noalias(StressMatrix) += rVariables.Factors.Alpha3 * StressPartMatrix;
 
-      PseudoStress *= 2.0;
+	StressMatrix *= 2.0;
 	
 	for(unsigned int e=0; e<3; e++)
 	  {
@@ -368,7 +382,7 @@ namespace Kratos
 		Cabef = GetIsochoricRightCauchyGreenDerivative(rVariables.Strain,Cabef,a,b,e,f);
 		Ccdef = GetIsochoricRightCauchyGreenDerivative(rVariables.Strain,Ccdef,c,d,e,f);
 
-		rCabcd -= ( rVariables.Strain.InverseCauchyGreenMatrix(c,d) * Cabef + rVariables.Strain.InverseCauchyGreenMatrix(a,b) * Ccdef + rVariables.Strain.Invariants.J_13 * rVariables.Strain.Invariants.J_13 * ( (rVariables.Strain.InverseCauchyGreenMatrix(a,b)*rVariables.Strain.InverseCauchyGreenMatrix(d,c)/3) - rVariables.Strain.InverseCauchyGreenMatrix(a,c)*rVariables.Strain.InverseCauchyGreenMatrix(b,d) ) * rVariables.Strain.CauchyGreenMatrix(e,f) ) * (2.0/3.0) * PseudoStress(e,f);
+		rCabcd -= ( rVariables.Strain.InverseMatrix(c,d) * Cabef + rVariables.Strain.InverseMatrix(a,b) * Ccdef + rVariables.Strain.Invariants.J_13 * rVariables.Strain.Invariants.J_13 * ( (rVariables.Strain.InverseMatrix(a,b)*rVariables.Strain.InverseMatrix(d,c)/3.0) - rVariables.Strain.InverseMatrix(a,c)*rVariables.Strain.InverseMatrix(b,d) ) * rVariables.Strain.Matrix(e,f) ) * (2.0/3.0) * StressMatrix(e,f);
 
 		for(unsigned int m=0; m<3; m++)
 		  {
@@ -405,41 +419,57 @@ namespace Kratos
 	rCabcd += Cefmn * 4;
 	
       }
-      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.CauchyGreenMatrix = LeftCauchyGreen (b)
+      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.Matrix = LeftCauchyGreen (b)
+
+	//constitutive tensor for kirchhoff still not giving the correct numbers, something is wrong 
+	
+	StressPartMatrix = GetI1LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
+	noalias(StressMatrix)  = rVariables.Factors.Alpha1 * StressPartMatrix;
+
+	StressPartMatrix = GetI2LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
+	noalias(StressMatrix) += rVariables.Factors.Alpha2 * StressPartMatrix;
+
+	StressPartMatrix = GetI3LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
+	noalias(StressMatrix) += rVariables.Factors.Alpha3 * StressPartMatrix;
+
+	StressMatrix *= 2.0;
+
 	
 	for(unsigned int e=0; e<3; e++)
 	  {
 	    for(unsigned int f=0; f<3; f++)
 	      {
 
-		Cabef = GetIsochoricLeftCauchyGreenDerivative(rVariables.Strain,Cabef,a,b,e,f);
+		Cabef = GetIsochoricLeftCauchyGreenDerivative(rVariables.Strain,Cabef,a,b,e,f); //is it correct ?
 		Ccdef = GetIsochoricLeftCauchyGreenDerivative(rVariables.Strain,Ccdef,c,d,e,f);
 
-		rCabcd -= ( msIdentityMatrix(c,d) * Cabef + msIdentityMatrix(a,b) * Ccdef + rVariables.Strain.Invariants.J_13 * rVariables.Strain.Invariants.J_13 * ( (msIdentityMatrix(a,b)*msIdentityMatrix(d,c)/3) - msIdentityMatrix(a,c)*msIdentityMatrix(b,d) ) * rVariables.Strain.CauchyGreenMatrix(e,f) ) * (2.0/3.0) * rModelData.GetStressMatrix()(e,f);
+		rCabcd -= ( msIdentityMatrix(c,d) * Cabef + msIdentityMatrix(a,b) * Ccdef + rVariables.Strain.Invariants.J_13 * rVariables.Strain.Invariants.J_13 * ( (msIdentityMatrix(a,b)*msIdentityMatrix(d,c)/3.0) - msIdentityMatrix(a,c)*msIdentityMatrix(b,d) ) * msIdentityMatrix(e,f) ) * (2.0/3.0) * rModelData.GetStressMatrix()(e,f);
 
 		for(unsigned int m=0; m<3; m++)
 		  {
 		    for(unsigned int n=0; n<3; n++)
 		      {
+                        Ccdmn = GetIsochoricLeftCauchyGreenDerivative( rVariables.Strain, Ccdmn,c,d,m,n);
+
 			//2nd derivatives
 			Cabcd = GetI1LeftCauchyGreen2ndDerivative(rVariables.Strain,Cabcd,e,f,m,n);
-			Cefmn += rVariables.Factors.Alpha1 * Cabcd;
+			Cefmn += rVariables.Factors.Alpha1 * Cabcd * Cabef * Ccdmn;
 			
 			Cabcd = GetI2LeftCauchyGreen2ndDerivative(rVariables.Strain,Cabcd,e,f,m,n);
-			Cefmn += rVariables.Factors.Alpha2 * Cabcd;
+			Cefmn += rVariables.Factors.Alpha2 * Cabcd * Cabef * Ccdmn;
 			
 			Cabcd = GetI3LeftCauchyGreen2ndDerivative(rVariables.Strain,Cabcd,e,f,m,n);
-			Cefmn += rVariables.Factors.Alpha3 * Cabcd;
+			Cefmn += rVariables.Factors.Alpha3 * Cabcd * Cabef * Ccdmn;
 			
 			//1st derivatives
 			Cabcd = GetI1LeftCauchyGreenSquare1stDerivative(rVariables.Strain,Cabcd,e,f,m,n);
-			Cefmn += rVariables.Factors.Beta1 * Cabcd;
+			Cefmn += rVariables.Factors.Beta1 * Cabcd * Cabef * Ccdmn;
 			
 			Cabcd = GetI2LeftCauchyGreenSquare1stDerivative(rVariables.Strain,Cabcd,e,f,m,n);
-			Cefmn += rVariables.Factors.Beta2 * Cabcd;
+			Cefmn += rVariables.Factors.Beta2 * Cabcd * Cabef * Ccdmn;
 			
 			Cabcd = GetI3LeftCauchyGreenSquare1stDerivative(rVariables.Strain,Cabcd,e,f,m,n);
-			Cefmn += rVariables.Factors.Beta3 * Cabcd;
+			Cefmn += rVariables.Factors.Beta3 * Cabcd * Cabef * Ccdmn;
 			
 		      }
 		  }
@@ -469,7 +499,7 @@ namespace Kratos
       double Cabcd = 0;
       double nCabcd = 0;
       
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Variables.Strain.CauchyGreenMatrix = RightCauchyGreen (C)
+      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Variables.Strain.Matrix = RightCauchyGreen (C)
 
 	//2nd derivatives
 	Cabcd = GetJRightCauchyGreen2ndDerivative(rVariables.Strain,Cabcd,a,b,c,d);
@@ -483,7 +513,7 @@ namespace Kratos
 
 	rCabcd += nCabcd;
       }
-      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.CauchyGreenMatrix = LeftCauchyGreen (b)
+      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.Matrix = LeftCauchyGreen (b)
 	//2nd derivatives
 	Cabcd = GetJLeftCauchyGreen2ndDerivative(rVariables.Strain,Cabcd,a,b,c,d);
 	nCabcd += rVariables.Factors.Alpha4 * Cabcd;
@@ -492,7 +522,7 @@ namespace Kratos
 	Cabcd = GetJLeftCauchyGreenSquare1stDerivative(rVariables.Strain,Cabcd,a,b,c,d);
 	nCabcd += rVariables.Factors.Beta4 * Cabcd;
 
-	nCabcd *= 4.0 * rVariables.Strain.Invariants.J;
+	nCabcd *= 4.0;
 	
 	rCabcd += nCabcd;
       }	
@@ -516,27 +546,6 @@ namespace Kratos
     }
     
 
-    virtual void CalculateInvariants(HyperElasticDataType& rVariables) override
-    {
-      KRATOS_TRY
-
-      //jacobian
-      rVariables.Strain.Invariants.J    = rVariables.GetModelData().GetDeterminantF();
-      rVariables.Strain.Invariants.J_13 = pow(rVariables.Strain.Invariants.J,(-1.0/3.0));
-	
-      //isochoric-volumetric splitted law
-      rVariables.Strain.CauchyGreenMatrix *=  rVariables.Strain.Invariants.J_13 * rVariables.Strain.Invariants.J_13;
-      
-      //invariants
-      this->CalculateStrainInvariants( rVariables.Strain.CauchyGreenMatrix, rVariables.Strain.Invariants.I1, rVariables.Strain.Invariants.I2, rVariables.Strain.Invariants.I3 );
-
-      rVariables.Strain.Invariants.I3 = rVariables.Strain.Invariants.J_13 * rVariables.Strain.Invariants.J_13; //for volumetric consistency in splitted law
-
-      
-      KRATOS_CATCH(" ")
-    }
-
-    
     virtual void CalculateScalingFactors(HyperElasticDataType& rVariables) override
     {
       KRATOS_TRY

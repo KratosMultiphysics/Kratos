@@ -166,12 +166,12 @@ namespace Kratos
             const StrainMeasureType& rStrainMeasure = rValues.GetStrainMeasure();
             const StressMeasureType& rStressMeasure = rValues.GetStressMeasure();
 
-            if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mCauchyGreenMatrix = RightCauchyGreen (C=FT*F)  C^-1=(FT*F)^-1=F^-1*FT^-1
+            if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mStrainMatrix = RightCauchyGreen (C=FT*F)  C^-1=(FT*F)^-1=F^-1*FT^-1
 
                   KRATOS_ERROR << "calling HenckyHyperelastic based method with PK2 stress. not implemented" << std::endl;
 
             }
-            else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mCauchyGreenMatrix = LeftCauchyGreen (b=F*FT)
+            else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mStrainMatrix = LeftCauchyGreen (b=F*FT)
 
                if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Left ){
                
@@ -182,12 +182,12 @@ namespace Kratos
 
                   MathUtils<double>::EigenSystem<3> ( rStrainMatrix, EigenVectors, EigenValues);
 
-                  rVariables.Strain.CauchyGreenMatrix.clear();
+                  rVariables.Strain.Matrix.clear();
                   for (unsigned int i = 0; i < 3; i++)
-                     rVariables.Strain.CauchyGreenMatrix(i,i) =  std::log(EigenValues(i,i)) / 2.0;
+                     rVariables.Strain.Matrix(i,i) =  std::log(EigenValues(i,i)) / 2.0;
 
-                  rVariables.Strain.CauchyGreenMatrix = prod( rVariables.Strain.CauchyGreenMatrix, EigenVectors);
-                  rVariables.Strain.CauchyGreenMatrix = prod( trans(EigenVectors), rVariables.Strain.CauchyGreenMatrix);
+                  rVariables.Strain.Matrix = prod( rVariables.Strain.Matrix, EigenVectors);
+                  rVariables.Strain.Matrix = prod( trans(EigenVectors), rVariables.Strain.Matrix);
                   rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
                }
                else{

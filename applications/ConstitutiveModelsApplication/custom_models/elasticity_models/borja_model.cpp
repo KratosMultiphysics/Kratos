@@ -14,8 +14,6 @@
 // Project includes
 #include "custom_models/elasticity_models/borja_model.hpp"
 
-// OBS: HEModelData::CauchyGreenData::CauchyGreenMatrix is the HenckyStrain
-// I should suggest JMC to change the name to StrainMatrix (as in the other structures)
 
 namespace Kratos
 {
@@ -101,7 +99,7 @@ namespace Kratos
       double ReferencePressure = 10.0;
       double ConstantShearModulus = 400.0;
 
-      const MatrixType& HenckyStrain = rVariables.Strain.CauchyGreenMatrix;
+      const MatrixType& HenckyStrain = rVariables.Strain.Matrix;
 
       // 2.a Separate Volumetric and deviatoric part
       double VolumetricHencky;
@@ -153,7 +151,7 @@ namespace Kratos
       }
 
       // 2. Get Elastic Left Cauchy Green tensor
-      const MatrixType& HenckyStrain = rVariables.Strain.CauchyGreenMatrix;
+      const MatrixType& HenckyStrain = rVariables.Strain.Matrix;
 
       // 2.a Separate Volumetric and deviatoric part
       double VolumetricHencky;

@@ -552,18 +552,18 @@ namespace Kratos
       const MaterialDataType& rMaterial        = rVariables.GetMaterialParameters();
 
       const MatrixType& rIsochoricStressMatrix = rModelData.GetStressMatrix(); //isochoric stress stored as StressMatrix
-      const MatrixType& rCauchyGreenMatrix     = rVariables.GetStrainMatrix(); // C^-1 or Id
+      const MatrixType& rStrainMatrix          = rVariables.GetStrainMatrix(); // C^-1 or Id
 
       //TODO: this constitutive part must be revised, depending on the working strain/stress measure C^-1 or Id must be supplied
 
      
-      double Cabcd = (1.0/3.0) * ( rCauchyGreenMatrix(a,b) * rCauchyGreenMatrix(c,d) );
+      double Cabcd = (1.0/3.0) * ( rStrainMatrix(a,b) * rStrainMatrix(c,d) );
     
-      Cabcd -= (0.5 * ( rCauchyGreenMatrix(a,c) * rCauchyGreenMatrix(b,d) + rCauchyGreenMatrix(a,d) * rCauchyGreenMatrix(b,c) ) );
+      Cabcd -= (0.5 * ( rStrainMatrix(a,c) * rStrainMatrix(b,d) + rStrainMatrix(a,d) * rStrainMatrix(b,c) ) );
     
       Cabcd *= 3.0 * rMaterial.GetLameMuBar();
 
-      Cabcd += ( rCauchyGreenMatrix(c,d) * rIsochoricStressMatrix(a,b) + rIsochoricStressMatrix(c,d) * rCauchyGreenMatrix(a,b) );
+      Cabcd += ( rStrainMatrix(c,d) * rIsochoricStressMatrix(a,b) + rIsochoricStressMatrix(c,d) * rStrainMatrix(a,b) );
  
       Cabcd *= (-2.0/3.0) * ( (-1) * rFactors.Beta1 );
     

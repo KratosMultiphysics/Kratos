@@ -105,19 +105,19 @@ namespace Kratos
       const double& rLameLambda = rMaterial.GetLameLambda();
       const double& rLameMu     = rMaterial.GetLameMu();
 
-      double trace = (Variables.Strain.CauchyGreenMatrix(0,0)+Variables.Strain.CauchyGreenMatrix(1,1)+Variables.Strain.CauchyGreenMatrix(2,2));
+      double trace = (Variables.Strain.Matrix(0,0)+Variables.Strain.Matrix(1,1)+Variables.Strain.Matrix(2,2));
 
       rDensityFunction = 0.5*rLameLambda*trace;
       
-      trace = Variables.Strain.CauchyGreenMatrix(0,0)*Variables.Strain.CauchyGreenMatrix(0,0)
-	    + Variables.Strain.CauchyGreenMatrix(0,1)*Variables.Strain.CauchyGreenMatrix(1,0)
-	    + Variables.Strain.CauchyGreenMatrix(0,2)*Variables.Strain.CauchyGreenMatrix(2,0)
-	    + Variables.Strain.CauchyGreenMatrix(1,0)*Variables.Strain.CauchyGreenMatrix(0,1)
-	    + Variables.Strain.CauchyGreenMatrix(1,1)*Variables.Strain.CauchyGreenMatrix(1,1)
-	    + Variables.Strain.CauchyGreenMatrix(1,2)*Variables.Strain.CauchyGreenMatrix(2,1)
-	    + Variables.Strain.CauchyGreenMatrix(2,0)*Variables.Strain.CauchyGreenMatrix(0,2)
-	    + Variables.Strain.CauchyGreenMatrix(2,1)*Variables.Strain.CauchyGreenMatrix(1,2)
-	    + Variables.Strain.CauchyGreenMatrix(2,2)*Variables.Strain.CauchyGreenMatrix(2,2);
+      trace = Variables.Strain.Matrix(0,0)*Variables.Strain.Matrix(0,0)
+	    + Variables.Strain.Matrix(0,1)*Variables.Strain.Matrix(1,0)
+	    + Variables.Strain.Matrix(0,2)*Variables.Strain.Matrix(2,0)
+	    + Variables.Strain.Matrix(1,0)*Variables.Strain.Matrix(0,1)
+	    + Variables.Strain.Matrix(1,1)*Variables.Strain.Matrix(1,1)
+	    + Variables.Strain.Matrix(1,2)*Variables.Strain.Matrix(2,1)
+	    + Variables.Strain.Matrix(2,0)*Variables.Strain.Matrix(0,2)
+	    + Variables.Strain.Matrix(2,1)*Variables.Strain.Matrix(1,2)
+	    + Variables.Strain.Matrix(2,2)*Variables.Strain.Matrix(2,2);
       
       trace *= trace;
       
@@ -138,7 +138,7 @@ namespace Kratos
       // this->CalculateAndAddConstitutiveTensor(Variables,ConstitutiveTensor);
 
       // VectorType StrainVector;
-      // StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(Variables.Strain.CauchyGreenMatrix,StrainVector);
+      // StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(Variables.Strain.Matrix,StrainVector);
 
       // VectorType StressVector;
       // this->CalculateAndAddStressTensor(Variables,ConstitutiveTensor,StrainVector,StressVector);
@@ -153,9 +153,9 @@ namespace Kratos
 	
 	const MatrixType& rDeformationGradientF = rValues.GetDeformationGradientF();
 
-	//Variables.Strain.InverseCauchyGreenMatrix used as an auxiliar matrix (contravariant push forward)
-	noalias( Variables.Strain.InverseCauchyGreenMatrix ) = prod( trans(rDeformationGradientF), rStressMatrix );
-	noalias( rStressMatrix )  = prod( Variables.Strain.InverseCauchyGreenMatrix, rDeformationGradientF );
+	//Variables.Strain.InverseMatrix used as an auxiliar matrix (contravariant push forward)
+	noalias( Variables.Strain.InverseMatrix ) = prod( trans(rDeformationGradientF), rStressMatrix );
+	noalias( rStressMatrix )  = prod( Variables.Strain.InverseMatrix, rDeformationGradientF );
 	
       }
       
@@ -193,7 +193,7 @@ namespace Kratos
       this->CalculateAndAddConstitutiveTensor(Variables,ConstitutiveTensor);
 
       VectorType StrainVector;
-      StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(Variables.Strain.CauchyGreenMatrix,StrainVector);
+      StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(Variables.Strain.Matrix,StrainVector);
     
       VectorType StressVector;
       this->CalculateAndAddStressTensor(Variables,ConstitutiveTensor,StrainVector,StressVector);
@@ -306,37 +306,37 @@ namespace Kratos
       const StrainMeasureType& rStrainMeasure = rValues.GetStrainMeasure();
       const StressMeasureType& rStressMeasure = rValues.GetStressMeasure();
     
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mCauchyGreenMatrix = GreenLagrangeTensor
+      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mStrainMatrix = GreenLagrangeTensor
 	
 	if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Right ){
-	  ConstitutiveModelUtilities::RightCauchyToGreenLagrangeStrain( rStrainMatrix, rVariables.Strain.CauchyGreenMatrix);  
+	  ConstitutiveModelUtilities::RightCauchyToGreenLagrangeStrain( rStrainMatrix, rVariables.Strain.Matrix);  
 	  rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
 	}
 	else if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_None ){
-	  ConstitutiveModelUtilities::CalculateGreenLagrangeStrain( rDeformationGradientF, rVariables.Strain.CauchyGreenMatrix);
+	  ConstitutiveModelUtilities::CalculateGreenLagrangeStrain( rDeformationGradientF, rVariables.Strain.Matrix);
 	  rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
 	}
 	else{
 	  KRATOS_ERROR << "calling initialize HyperElasticModel .. StrainMeasure provided is inconsistent" << std::endl;
 	}
 
-	rValues.StrainMatrix = rVariables.Strain.CauchyGreenMatrix;
+	rValues.StrainMatrix = rVariables.Strain.Matrix;
 	
       }
-      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mCauchyGreenMatrix = GreenLagrangeTensor
+      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mStrainMatrix = GreenLagrangeTensor
 
 	if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Left ){
-	  ConstitutiveModelUtilities::LeftCauchyToAlmansiStrain( rStrainMatrix , rVariables.Strain.CauchyGreenMatrix);
+	  ConstitutiveModelUtilities::LeftCauchyToAlmansiStrain( rStrainMatrix , rVariables.Strain.Matrix);
 
-	  //rVariables.Strain.InverseCauchyGreenMatrix used as an auxiliar matrix (covariant pull back)
-	  noalias( rVariables.Strain.InverseCauchyGreenMatrix ) = prod( trans(rDeformationGradientF), rVariables.Strain.CauchyGreenMatrix );
-	  noalias( rVariables.Strain.CauchyGreenMatrix)  = prod( rVariables.Strain.InverseCauchyGreenMatrix, rDeformationGradientF );
+	  //rVariables.Strain.InverseMatrix used as an auxiliar matrix (covariant pull back)
+	  noalias( rVariables.Strain.InverseMatrix ) = prod( trans(rDeformationGradientF), rVariables.Strain.Matrix );
+	  noalias( rVariables.Strain.Matrix)  = prod( rVariables.Strain.InverseMatrix, rDeformationGradientF );
 
 	  rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
 	}
 	else if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_None ){
-	  ConstitutiveModelUtilities::CalculateGreenLagrangeStrain( rDeformationGradientF, rVariables.Strain.CauchyGreenMatrix);
-	  rValues.StrainMatrix = rVariables.Strain.CauchyGreenMatrix;
+	  ConstitutiveModelUtilities::CalculateGreenLagrangeStrain( rDeformationGradientF, rVariables.Strain.Matrix);
+	  rValues.StrainMatrix = rVariables.Strain.Matrix;
 	  rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
 	}
 	else{
@@ -376,10 +376,10 @@ namespace Kratos
       const double& rLameLambda = rMaterial.GetLameLambda();
       const double& rLameMu     = rMaterial.GetLameMu();
 	
-      rStressMatrix  = rVariables.Strain.CauchyGreenMatrix;
+      rStressMatrix  = rVariables.Strain.Matrix;
       rStressMatrix *= 2.0 * rLameMu;
       
-      double trace = (rVariables.Strain.CauchyGreenMatrix(0,0)+rVariables.Strain.CauchyGreenMatrix(1,1)+rVariables.Strain.CauchyGreenMatrix(2,2));
+      double trace = (rVariables.Strain.Matrix(0,0)+rVariables.Strain.Matrix(1,1)+rVariables.Strain.Matrix(2,2));
       trace *= rLameLambda;
 
       rStressMatrix(0,0) += trace;
