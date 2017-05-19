@@ -112,7 +112,7 @@ namespace Kratos
 		this->mLength = this->CalculateReferenceLength();
 		this->mCurrentLength = this->CalculateCurrentLength();
 		this->mDensity = this->GetProperties()[DENSITY];
-		this->mInertiaX = this->GetProperties()[IX];
+		this->mInertiaX = this->GetProperties()[IT];
 		this->mInertiaY = this->GetProperties()[IY];
 		this->mInertiaZ = this->GetProperties()[IZ];
 		//effecive shear Area
@@ -632,6 +632,17 @@ namespace Kratos
 		Identity -= 2.0 * outer_prod(n_bisectrix, n_bisectrix);
 		n_xyz = prod(Identity, n_xyz);
 
+
+		//save current CS for GID OUTPUT
+		this->mNX = ZeroVector(dimension);
+		this->mNY = ZeroVector(dimension);
+		this->mNZ = ZeroVector(dimension);
+		for (int i = 0; i < dimension; ++i)
+		{
+			this->mNX[i] = n_xyz(i, 0);
+			this->mNY[i] = n_xyz(i, 1);
+			this->mNZ[i] = n_xyz(i, 2);
+		}
 
 		//calculating deformation modes
 		this->mPhiS = ZeroVector(dimension);
@@ -1363,12 +1374,49 @@ namespace Kratos
 		std::vector< array_1d<double, 3 > >& rOutput,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
-		KRATOS_TRY
+		KRATOS_TRY;
 		this->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
 		KRATOS_CATCH("")
 	}
 
 
+
+	void CrBeamElement3D2N::CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
+		std::vector< Vector >& rOutput,
+		const ProcessInfo& rCurrentProcessInfo)
+	{
+		KRATOS_TRY;
+
+		if (rVariable == LOCAL_AXES_VECTOR)
+		{
+			rOutput.resize(3);
+			for (int i = 0; i < 3; ++i) rOutput[i] = ZeroVector(3);
+
+			if (this->mIsLinearElement == true)
+			{
+				rOutput[0] = this->mNX0;
+				rOutput[1] = this->mNY0;
+				rOutput[2] = this->mNZ0;
+			}
+			else 
+			{
+				rOutput[0] = this->mNX;
+				rOutput[1] = this->mNY;
+				rOutput[2] = this->mNZ;
+			}
+		}
+
+		KRATOS_CATCH("");
+	}
+
+	void CrBeamElement3D2N::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+		std::vector<Vector>& rValues,
+		const ProcessInfo& rCurrentProcessInfo)
+	{
+		KRATOS_TRY;
+		this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+		KRATOS_CATCH("")
+	}
 
 	void CrBeamElement3D2N::AssembleSmallInBigMatrix(Matrix SmallMatrix,
 		Matrix& BigMatrix) {
