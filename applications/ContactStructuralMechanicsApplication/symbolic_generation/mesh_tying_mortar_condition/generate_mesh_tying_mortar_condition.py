@@ -5,7 +5,6 @@ import operator
 do_simplifications = False
 mode = "c" #to output to a c++ file
 
-separate_derivatives = True
 impose_partion_of_unity = False
 
 dim_combinations = [2,2,2,2,3,3,3,3]

@@ -7,7 +7,6 @@ import operator
 do_simplifications = False
 mode = "c" #to output to a c++ file
 
-separate_derivatives = True
 impose_partion_of_unity = False
 
 def convert_chain_int_int(list_slip_stick):
@@ -291,17 +290,8 @@ for normalvar in range(2):
         rhs_string = rhs_string.replace("//subsvar_", "")
 
         for index in range(len(der_var_strings)):
-            if (separate_derivatives == True):
-                lhs_string = lhs_string.replace(der_var_strings[index], der_var_list[index])
-                rhs_string = rhs_string.replace(der_var_strings[index], der_var_list[index])
-            else:
-                aux_out = ccode(der_var_strings_subs[index])
-                if ("// Not supported in C:") in aux_out:
-                    print("WARNING")
-                    print(der_var_strings[index])
-                    print(der_var_strings_subs[index])
-                lhs_string = lhs_string.replace(der_var_strings[index], aux_out)
-                rhs_string = rhs_string.replace(der_var_strings[index], aux_out)
+            lhs_string = lhs_string.replace(der_var_strings[index], der_var_list[index])
+            rhs_string = rhs_string.replace(der_var_strings[index], der_var_list[index])
                 
         for index in range(len(var_strings)):
             lhs_string = lhs_string.replace(var_strings[index], var_strings_subs[index])
