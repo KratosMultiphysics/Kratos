@@ -370,9 +370,8 @@ public:
         delete [] local_comm_list;
         delete [] local_memory_size_array;
     }
-
     void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
-                              std::function<double(InterfaceObject*, const std::vector<double>&)> FunctionPointer) override
+                              const Variable<double>& rVariable, Kratos::Flags& rOptions) override
     {
         int i = 0;
         std::vector<InterfaceObject::Pointer> interface_objects;
@@ -383,7 +382,14 @@ public:
 
         for (auto interface_obj : interface_objects)
         {
-            pBuffer[i] = FunctionPointer(boost::get_pointer(interface_obj), mShapeFunctionValues.at(CommPartner)[i]);
+            if (rOptions.Is(MapperFlags::INTERPOLATE_VALUES))
+            {
+                pBuffer[i] = interface_obj->GetObjectValueInterpolated(rVariable, mShapeFunctionValues.at(CommPartner)[i]);
+            }
+            else
+            {
+                pBuffer[i] = interface_obj->GetObjectValue(rVariable, rOptions);
+            }
             ++i;
         }
 
@@ -397,7 +403,8 @@ public:
     }
 
     void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
-                              std::function<array_1d<double, 3>(InterfaceObject*, const std::vector<double>&)> FunctionPointer) override
+                              const Variable< array_1d<double, 3> >& rVariable,
+                              Kratos::Flags& rOptions) override
     {
         int i = 0;
         std::vector<InterfaceObject::Pointer> interface_objects;
@@ -406,16 +413,20 @@ public:
             interface_objects = mReceiveObjects.at(CommPartner);
         }
 
-        array_1d<double, 3> value;
-
         for (auto interface_obj : interface_objects)
-        {   
-            value = FunctionPointer(boost::get_pointer(interface_obj), mShapeFunctionValues.at(CommPartner)[i]);
-
-            pBuffer[(i * 3) + 0] = value[0];
-            pBuffer[(i * 3) + 1] = value[1];
-            pBuffer[(i * 3) + 2] = value[2];
-
+        {
+            if (rOptions.Is(MapperFlags::INTERPOLATE_VALUES))
+            {
+                pBuffer[(i * 3) + 0] = interface_obj->GetObjectValueInterpolated(rVariable, mShapeFunctionValues.at(CommPartner)[i])[0];
+                pBuffer[(i * 3) + 1] = interface_obj->GetObjectValueInterpolated(rVariable, mShapeFunctionValues.at(CommPartner)[i])[1];
+                pBuffer[(i * 3) + 2] = interface_obj->GetObjectValueInterpolated(rVariable, mShapeFunctionValues.at(CommPartner)[i])[2];
+            }
+            else
+            {
+                pBuffer[(i * 3) + 0] = interface_obj->GetObjectValue(rVariable, rOptions)[0];
+                pBuffer[(i * 3) + 1] = interface_obj->GetObjectValue(rVariable, rOptions)[1];
+                pBuffer[(i * 3) + 2] = interface_obj->GetObjectValue(rVariable, rOptions)[2];
+            }
             ++i;
         }
 
@@ -429,7 +440,8 @@ public:
     }
 
     void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
-                       std::function<void(InterfaceObject*, double)> FunctionPointer) override
+                       const Variable<double>& rVariable,
+                       Kratos::Flags& rOptions, const double Factor) override
     {
         std::vector<InterfaceObject::Pointer> interface_objects;
         if (mSendObjects.count(CommPartner) > 0)
@@ -447,13 +459,16 @@ public:
 
         for (int i = 0; i < BufferSize; ++i)
         {
-            FunctionPointer(boost::get_pointer(interface_objects[i]), pBuffer[i]);
+            interface_objects[i]->SetObjectValue(rVariable, pBuffer[i],
+                                                 rOptions, Factor);
         }
     }
 
     void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
-                       std::function<void(InterfaceObject*, array_1d<double, 3>)> FunctionPointer) override
+                       const Variable< array_1d<double, 3> >& rVariable,
+                       Kratos::Flags& rOptions, const double Factor) override
     {
+
         // Debug Check
         if (BufferSize % 3 != 0)
         {
@@ -487,7 +502,8 @@ public:
             value[1] = pBuffer[(i * 3) + 1];
             value[2] = pBuffer[(i * 3) + 2];
 
-            FunctionPointer(boost::get_pointer(interface_objects[i]), value);
+            interface_objects[i]->SetObjectValue(rVariable, value,
+                                                 rOptions, Factor);
         }
     }
 
