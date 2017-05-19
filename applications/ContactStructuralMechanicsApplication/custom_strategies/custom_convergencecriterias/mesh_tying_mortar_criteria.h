@@ -114,7 +114,7 @@ public:
         const TSystemVectorType& b
         ) override
     {
-        BaseType::CalculateContactReactions(rModelPart, b);
+        BaseType::CalculateContactReactions(rModelPart, rDofSet, b);
         
         return true;
     }

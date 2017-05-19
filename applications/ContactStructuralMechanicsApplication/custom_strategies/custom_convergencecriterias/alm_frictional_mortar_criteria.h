@@ -143,7 +143,7 @@ public:
         const TSystemVectorType& b
         ) override
     {
-        BaseType::CalculateContactReactions(rModelPart, b);
+        BaseType::CalculateContactReactions(rModelPart, rDofSet, b);
         
         // We define the tolerance
         const double Tolerance = 1.0e-6;

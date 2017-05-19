@@ -264,32 +264,28 @@ protected:
     
     void CalculateContactReactions(
         ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
         const TSystemVectorType& b
         )
     {       
         const double ScaleFactor = (rModelPart.GetProcessInfo()[SCALE_FACTOR] > 0.0) ? rModelPart.GetProcessInfo()[SCALE_FACTOR] : 1.0;
+              
+        int numDof = rDofSet.end() - rDofSet.begin();
         
-        // Now we iterate over all the nodes
-        NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
-        
-        #pragma omp parallel for
-        for(unsigned int i = 0; i < numNodes; i++) 
+//         #pragma omp parallel for
+        for(int i = 0; i < numDof; i++) 
         {
-            auto itNode = pNode.begin() + i;
-                          
-            for(auto itDoF = itNode->GetDofs().begin() ; itDoF != itNode->GetDofs().end() ; itDoF++)
-            {
-                const int j = (itDoF)->EquationId();
-                
-                if (((itDoF)->GetReaction().Name()).find("WEIGHTED") != std::string::npos) // Corresponding with contact
-                {                        
-                    (itDoF)->GetSolutionStepReactionValue() = b[j]/ScaleFactor;
-                }
-                else if ((itDoF)->GetReaction().Name() != "NONE") // The others
-                {                        
-                    (itDoF)->GetSolutionStepReactionValue() = -b[j];
-                }
+            typename DofsArrayType::iterator itDoF = rDofSet.begin() + i;
+        
+            const std::size_t j = (itDoF)->EquationId();
+            
+            if (((itDoF)->GetReaction().Name()).find("WEIGHTED") != std::string::npos) // Corresponding with contact
+            {                        
+                (itDoF)->GetSolutionStepReactionValue() = b[j]/ScaleFactor;
+            }
+            else if ((itDoF)->GetReaction().Name() != "NONE") // The others
+            {                        
+                (itDoF)->GetSolutionStepReactionValue() = -b[j];
             }
         }
     }
