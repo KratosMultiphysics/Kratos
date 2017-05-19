@@ -109,3 +109,92 @@ class NonConformant_OneSideMap:
 
     def FluidToStructure_NormalVectorToScalarMap(self, VectorVar_Origin, ScalarVar_Destination, sign_pos):
         (self.FluidToStructureMapper).NormalVectorToScalarMap(VectorVar_Origin, ScalarVar_Destination, self.it_max, self.tol, sign_pos)
+
+
+class NonConformantTwoFaces_OneSideMap:
+
+    def __init__(self, fluid_model_part_positive, fluid_model_part_negative, structure_model_part,
+                 search_radius_factor=2.0, it_max=25, tol=1e-5):
+
+        # Error check
+        if fluid_model_part_positive.NumberOfConditions(0) < 1:
+            raise ValueError("No conditions found in the positive interface fluid model part, please check that the interface is meshed.")
+        if fluid_model_part_negative.NumberOfConditions(0) < 1:
+            raise ValueError("No conditions found in the negative interface fluid model part, please check that the interface is meshed.")
+        if structure_model_part.NumberOfConditions(0) < 1:
+            raise ValueError("No conditions found in the structure interface model part, please check that the interface is meshed.")
+
+        self.search_radius_factor = search_radius_factor
+        self.it_max = it_max
+        self.tol = tol
+
+        self.PositiveFluidToStructureMapper = AdvancedNMPointsMapper(fluid_model_part_positive, structure_model_part)
+        self.NegativeFluidToStructureMapper = AdvancedNMPointsMapper(fluid_model_part_negative, structure_model_part)
+        self.StructureToPositiveFluidMapper = AdvancedNMPointsMapper(structure_model_part, fluid_model_part_positive)
+        self.StructureToNegativeFluidMapper = AdvancedNMPointsMapper(structure_model_part, fluid_model_part_negative)
+        print("Interface Mappers created.")
+
+        # Neighbour search
+        (self.PositiveFluidToStructureMapper).FindNeighbours(self.search_radius_factor)
+        (self.NegativeFluidToStructureMapper).FindNeighbours(self.search_radius_factor)
+        (self.StructureToPositiveFluidMapper).FindNeighbours(self.search_radius_factor)
+        (self.StructureToNegativeFluidMapper).FindNeighbours(self.search_radius_factor)
+        print("Neighbours search finished.")
+
+    def RecomputeTransferPairs(self, search_radius_factor=2.0):
+        (self.PositiveFluidToStructureMapper).FindNeighbours(search_radius_factor)
+        (self.NegativeFluidToStructureMapper).FindNeighbours(search_radius_factor)
+        (self.StructureToPositiveFluidMapper).FindNeighbours(search_radius_factor)
+        (self.StructureToNegativeFluidMapper).FindNeighbours(search_radius_factor)
+
+    # Standard mappers for positive fluid face
+    def StructureToPositiveFluid_VectorMap(self, VectorVar_Origin, VectorVar_Destination, sign_pos, distributed):
+        (self.StructureToPositiveFluidMapper).VectorMap(VectorVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos, distributed)
+
+    def StructureToPositiveFluid_ScalarMap(self, ScalarVar_Origin, ScalarVar_Destination, sign_pos):
+        (self.StructureToPositiveFluidMapper).ScalarMap(ScalarVar_Origin, ScalarVar_Destination, self.it_max, self.tol, sign_pos)
+
+    def PositiveFluidToStructure_VectorMap(self, VectorVar_Origin, VectorVar_Destination, sign_pos, distributed):
+        (self.PositiveFluidToStructureMapper).VectorMap(VectorVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos, distributed)
+
+    def PositiveFluidToStructure_ScalarMap(self, ScalarVar_Origin, ScalarVar_Destination, sign_pos):
+        (self.PositiveFluidToStructureMapper).ScalarMap(ScalarVar_Origin, ScalarVar_Destination, self.it_max, self.tol, sign_pos)
+
+    # Standard mappers for negative fluid face
+    def StructureToNegativeFluid_VectorMap(self, VectorVar_Origin, VectorVar_Destination, sign_pos, distributed):
+        (self.StructureToNegativeFluidMapper).VectorMap(VectorVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos, distributed)
+
+    def StructureToNegativeFluid_ScalarMap(self, ScalarVar_Origin, ScalarVar_Destination, sign_pos):
+        (self.StructureToNegativeFluidMapper).ScalarMap(ScalarVar_Origin, ScalarVar_Destination, self.it_max, self.tol, sign_pos)
+
+    def NegativeFluidToStructure_VectorMap(self, VectorVar_Origin, VectorVar_Destination, sign_pos, distributed):
+        (self.NegativeFluidToStructureMapper).VectorMap(VectorVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos, distributed)
+
+    def NegativeFluidToStructure_ScalarMap(self, ScalarVar_Origin, ScalarVar_Destination, sign_pos):
+        (self.NegativeFluidToStructureMapper).ScalarMap(ScalarVar_Origin, ScalarVar_Destination, self.it_max, self.tol, sign_pos)
+
+    # Normal vectors mappers for positive fluid face
+    def StructureToPositiveFluid_ScalarToNormalVectorMap(self, ScalarVar_Origin, VectorVar_Destination, sign_pos):
+        (self.StructureToPositiveFluidMapper).ScalarToNormalVectorMap(ScalarVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos)
+
+    def StructureToPositiveFluid_NormalVectorToScalarMap(self, VectorVar_Origin, ScalarVar_Destination, sign_pos):
+        (self.StructureToPositiveFluidMapper).NormalVectorToScalarMap(VectorVar_Origin, ScalarVar_Destination, self.it_max, self.tol, sign_pos)
+
+    def PositiveFluidToStructure_ScalarToNormalVectorMap(self, ScalarVar_Origin, VectorVar_Destination, sign_pos):
+        (self.PositiveFluidToStructureMapper).ScalarToNormalVectorMap(ScalarVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos)
+
+    def PositiveFluidToStructure_NormalVectorToScalarMap(self, VectorVar_Origin, ScalarVar_Destination, sign_pos):
+        (self.PositiveFluidToStructureMapper).NormalVectorToScalarMap(VectorVar_Origin, ScalarVar_Destination, self.it_max, self.tol, sign_pos)
+
+    # Normal vectors mappers for negative fluid face
+    def StructureToNegativeFluid_ScalarToNormalVectorMap(self, ScalarVar_Origin, VectorVar_Destination, sign_pos):
+        (self.StructureToNegativeFluidMapper).ScalarToNormalVectorMap(ScalarVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos)
+
+    def StructureToNegativeFluid_NormalVectorToScalarMap(self, VectorVar_Origin, ScalarVar_Destination, sign_pos):
+        (self.StructureToNegativeFluidMapper).NormalVectorToScalarMap(VectorVar_Origin, ScalarVar_Destination, self.it_max, self.tol, sign_pos)
+
+    def NegativeFluidToStructure_ScalarToNormalVectorMap(self, ScalarVar_Origin, VectorVar_Destination, sign_pos):
+        (self.NegativeFluidToStructureMapper).ScalarToNormalVectorMap(ScalarVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos)
+
+    def NegativeFluidToStructure_NormalVectorToScalarMap(self, VectorVar_Origin, ScalarVar_Destination, sign_pos):
+        (self.NegativeFluidToStructureMapper).NormalVectorToScalarMap(VectorVar_Origin, ScalarVar_Destination, self.it_max, self.tol, sign_pos)
