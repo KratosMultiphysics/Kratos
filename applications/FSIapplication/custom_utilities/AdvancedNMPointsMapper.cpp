@@ -1619,14 +1619,14 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
 
                 IV_iter++;
             }
-
+            
             // Solve
             array_1d<double,3> dVal = ZeroVector(3);
             double dValNorm      = 0.0;
             double ValNorm       = 0.0;
             const unsigned int NodeNum = mrDestinationModelPart.NumberOfNodes();
 
-            #pragma omp parallel for reduction(+ : dValNorm, ValNorm)
+            #pragma omp parallel for reduction(+ : dValNorm, ValNorm) private(dVal)
             for (int i=0; i<static_cast<int>(mrDestinationModelPart.NumberOfNodes()); ++i)
             {
                 ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin() + i;
@@ -1764,7 +1764,7 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
             double ValNorm       = 0.0;
             const unsigned int NodeNum = mrDestinationModelPart.NumberOfNodes();
 
-            #pragma omp parallel for reduction(+ : dValNorm, ValNorm)
+            #pragma omp parallel for reduction(+ : dValNorm, ValNorm) private(dVal)
             for (int i=0; i<static_cast<int>(mrDestinationModelPart.NumberOfNodes()); ++i)
             {
                 ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin() + i;
@@ -2048,7 +2048,7 @@ void AdvancedNMPointsMapper::ComputeEquivalentTractions(const Variable<array_1d<
             double ValNorm       = 0.0;
             const unsigned int NodeNum = mrOriginModelPart.NumberOfNodes();
 
-            #pragma omp parallel for reduction(+ : dValNorm, ValNorm)
+            #pragma omp parallel for reduction(+ : dValNorm, ValNorm) private(dVal)
             for (int i=0; i<static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
             {
                 ModelPart::NodesContainerType::const_iterator node_it = mrOriginModelPart.NodesBegin() + i;
@@ -2164,7 +2164,7 @@ void AdvancedNMPointsMapper::ComputeEquivalentTractions(const Variable<array_1d<
             double ValNorm       = 0.0;
             const unsigned int NodeNum = mrOriginModelPart.NumberOfNodes();
 
-            #pragma omp parallel for reduction(+ : dValNorm, ValNorm)
+            #pragma omp parallel for reduction(+ : dValNorm, ValNorm) private(dVal)
             for (int i=0; i<static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
             {
                 ModelPart::NodesContainerType::const_iterator node_it = mrOriginModelPart.NodesBegin() + i;
