@@ -20,20 +20,27 @@ namespace Kratos
 {
 
 	CrBeamElement3D2N::CrBeamElement3D2N(IndexType NewId,
-		GeometryType::Pointer pGeometry)
-		: Element(NewId, pGeometry) {}
+		GeometryType::Pointer pGeometry, bool rLinear)
+		: Element(NewId, pGeometry) 
+	{
+		this->mIsLinearElement = rLinear;
+	}
 
 	CrBeamElement3D2N::CrBeamElement3D2N(IndexType NewId,
 		GeometryType::Pointer pGeometry,
-		PropertiesType::Pointer pProperties)
-		: Element(NewId, pGeometry, pProperties) {}
+		PropertiesType::Pointer pProperties, bool rLinear)
+		: Element(NewId, pGeometry, pProperties) 
+	{
+		this->mIsLinearElement = rLinear;
+	}
 
 	Element::Pointer CrBeamElement3D2N::Create(IndexType NewId,
 		NodesArrayType const& rThisNodes,
 		PropertiesType::Pointer pProperties) const {
 		const GeometryType& rGeom = this->GetGeometry();
+
 		return BaseType::Pointer(new CrBeamElement3D2N(
-			NewId, rGeom.Create(rThisNodes), pProperties));
+			NewId, rGeom.Create(rThisNodes), pProperties, this->mIsLinearElement));
 	}
 
 	CrBeamElement3D2N::~CrBeamElement3D2N() {}
@@ -100,11 +107,6 @@ namespace Kratos
 	void CrBeamElement3D2N::Initialize() {
 
 		KRATOS_TRY;
-
-		//test Linear exchange that with a flag in the .json file
-		this->mIsLinearElement = false;
-		//test Linear
-
 		this->mPoisson = this->GetProperties()[POISSON_RATIO];
 		this->mArea = this->GetProperties()[CROSS_AREA];
 		this->mYoungsModulus = this->GetProperties()[YOUNG_MODULUS];

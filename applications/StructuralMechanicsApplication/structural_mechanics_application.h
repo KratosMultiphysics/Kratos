@@ -223,6 +223,7 @@ private:
     // Adding the beam element 
     const SmallDisplacementBeamElement3D2N   mSmallDisplacementBeamElement3D2N;
 	const CrBeamElement3D2N mCrBeamElement3D2N;
+	const CrBeamElement3D2N mCrLinearBeamElement3D2N;
 
 	// Adding the truss element
 	const TrussElement3D2N mTrussElement3D2N;    

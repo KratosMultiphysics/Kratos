@@ -64,9 +64,11 @@ namespace Kratos
 		typedef BaseType::DofsVectorType DofsVectorType;
 
 
-		CrBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry);
 		CrBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry,
-						PropertiesType::Pointer pProperties);
+						bool rLinear = false);
+		CrBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry,
+						PropertiesType::Pointer pProperties,
+						bool rLinear = false);
 
 
 		virtual ~CrBeamElement3D2N();
