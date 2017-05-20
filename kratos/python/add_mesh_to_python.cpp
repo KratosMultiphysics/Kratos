@@ -145,12 +145,11 @@ boost::python::list GetIntegrationPointsFromElement( Element& dummy )
     return( integration_points_list );
 }
 
-boost::python::list CalculateOnIntegrationPointsVector( ModelPart& rModelPart,
-        Element& dummy, const Variable<Vector>& rVariable )
+boost::python::list CalculateOnIntegrationPointsVector(
+        Element& dummy, const Variable<Vector>& rVariable, ProcessInfo& rProcessInfo )
 {
     std::vector<Vector> Output;
-    dummy.CalculateOnIntegrationPoints( rVariable, Output,
-                                        rModelPart.GetProcessInfo() );
+    dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
     boost::python::list result;
     for( unsigned int j=0; j<Output.size(); j++ )
         result.append( Output[j] );
@@ -161,8 +160,7 @@ boost::python::list CalculateOnIntegrationPointsMatrix(
         Element& dummy, const Variable<Matrix>& rVariable, ProcessInfo& rProcessInfo )
 {
     std::vector<Matrix> Output;
-    dummy.CalculateOnIntegrationPoints( rVariable, Output,
-                                        rProcessInfo );
+    dummy.CalculateOnIntegrationPoints( rVariable, Output,rProcessInfo );
     boost::python::list result;
     for( unsigned int j=0; j<Output.size(); j++ )
         result.append( Output[j] );
