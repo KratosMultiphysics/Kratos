@@ -206,8 +206,8 @@ namespace Kratos
             if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
             {
                 //contributions to stiffness matrix calculated on the reference config
-                //TODO! extremely inefficient
-                noalias( rLeftHandSideMatrix ) += prod( trans( B ), ( IntToReferenceWeight ) * Matrix( prod( D, B ) ) ); //to be optimized to remove the temporary
+                auto tmp = ( IntToReferenceWeight ) * Matrix( prod( D, B ) );
+                noalias( rLeftHandSideMatrix ) += prod( trans( B ), tmp ); //to be optimized to remove the temporary
                 CalculateAndAddKg( rLeftHandSideMatrix, DN_DX, StressVector, IntToReferenceWeight );
             }
 
@@ -844,19 +844,18 @@ namespace Kratos
     {
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int MatSize = number_of_nodes * dim;
+        const unsigned int MatSize = number_of_nodes * dim;
 
         if ( values.size() != MatSize ) values.resize( MatSize, false );
 
-        //TODO: OPTIMIZE!!!
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            unsigned int index = i * dim;
-            values[index] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
-            values[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
-
-            if ( dim == 3 )
-                values[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
+            const unsigned int index = i * dim;
+            
+            const auto& d  = GetGeometry()[i].FastGetSolutionStepValue( DISPLACEMENT, Step );
+            
+            for(unsigned int k=0; k<dim;k++)
+                values[index+k] = d[k];
         }
     }
 
@@ -872,15 +871,14 @@ namespace Kratos
 
         if ( values.size() != MatSize ) values.resize( MatSize, false );
 
-        //TODO: OPTIMIZE!!!
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            unsigned int index = i * dim;
-            values[index] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
-            values[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
-
-            if ( dim == 3 )
-                values[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
+            const unsigned int index = i * dim;
+            
+            const auto& d  = GetGeometry()[i].FastGetSolutionStepValue( VELOCITY, Step );
+            
+            for(unsigned int k=0; k<dim;k++)
+                values[index+k] = d[k];
         }
     }
 
@@ -894,18 +892,15 @@ namespace Kratos
         unsigned int MatSize = number_of_nodes * dim;
 
         if ( values.size() != MatSize ) values.resize( MatSize, false );
-
-        //TODO: OPTIMIZE!!!
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            unsigned int index = i * dim;
-            values[index] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
-            values[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
-
-            if ( dim == 3 )
-                values[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
-        }
-    }
+            const unsigned int index = i * dim;
+            
+            const auto& d  = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION, Step );
+            
+            for(unsigned int k=0; k<dim;k++)
+                values[index+k] = d[k];
+        }    }
 
 //************************************************************************************
 //************************************************************************************
@@ -994,8 +989,6 @@ namespace Kratos
         {
             if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
                 KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() );
-             if ( this->GetGeometry()[i].SolutionStepsDataHas( VOLUME_ACCELERATION ) == false )
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable VOLUME_ACCELERATION on node ", this->GetGeometry()[i].Id() );
 
             if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
                 KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() );
@@ -1013,6 +1006,8 @@ namespace Kratos
         {
             if ( this->GetProperties().Has( THICKNESS ) == false )
                 KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() );
+            if ( this->GetProperties().Has( VOLUME_ACCELERATION ) == false )
+                KRATOS_THROW_ERROR( std::logic_error, "VOLUME_ACCELERATION not provided for element ", this->Id() );
 
             if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
                 KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() );

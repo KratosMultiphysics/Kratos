@@ -143,12 +143,12 @@ namespace Kratos
             ComputeDerivatives(J0, InvJ0, DN_DX, detJ0, PointNumber);
             
             //Compute B and strain
-            CalculateB( B, DN_DX, StrainVector.size() );
+            CalculateB( B, DN_DX );
             noalias(StrainVector) = prod(B,displacements);
 
             //compute equivalent F
             Matrix F = ComputeEquivalentF(StrainVector);
-            
+
             //here we essentially set the input parameters
             double detF = MathUtils<double>::Det(F);
             Values.SetDeterminantF(detF); //assuming the determinant is computed somewhere else
@@ -163,12 +163,13 @@ namespace Kratos
 
             //calculating weights for integration on the reference configuration
             double IntToReferenceWeight = integration_points[PointNumber].Weight() * detJ0;
+
             if ( dim == 2 ) IntToReferenceWeight *= GetProperties()[THICKNESS];
 
             if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
             {
                 //contributions to stiffness matrix calculated on the reference config
-                auto tmp = ( IntToReferenceWeight ) * Matrix( prod( D, B ) );
+                Matrix tmp =  IntToReferenceWeight *  prod( D, B );
                 noalias( rLeftHandSideMatrix ) += prod( trans( B ), tmp ); //to be optimized to remove the temporary
             }
 
@@ -185,7 +186,7 @@ namespace Kratos
             }
         }
 
-
+        
         KRATOS_CATCH( "" )
     }
 
@@ -323,8 +324,7 @@ namespace Kratos
 
     void KinematicLinear::CalculateB(
         Matrix& B,
-        const Matrix& DN_DX,
-        const unsigned int StrainSize )
+        const Matrix& DN_DX )
     {
         KRATOS_TRY
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -573,7 +573,7 @@ namespace Kratos
             
             //Compute B and strain
             
-            CalculateB( B, DN_DX, StrainVector.size() );
+            CalculateB( B, DN_DX );
             noalias(StrainVector) = prod(B,displacements);
             F = ComputeEquivalentF(StrainVector);
             
@@ -902,8 +902,6 @@ namespace Kratos
         {
             if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
                 KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() );
-             if ( this->GetGeometry()[i].SolutionStepsDataHas( VOLUME_ACCELERATION ) == false )
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable VOLUME_ACCELERATION on node ", this->GetGeometry()[i].Id() );
 
             if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
                 KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() );
@@ -921,6 +919,9 @@ namespace Kratos
         {
             if ( this->GetProperties().Has( THICKNESS ) == false )
                 KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() );
+            
+            if ( this->GetProperties().Has( VOLUME_ACCELERATION ) == false )
+                KRATOS_THROW_ERROR( std::logic_error, "VOLUME_ACCELERATION not provided for element ", this->Id() );
 
             if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
                 KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() );
@@ -956,7 +957,7 @@ namespace Kratos
         J0.clear();
         for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
         {
-            const auto& coords = GetGeometry()[i].Coordinates();
+            const auto& coords = GetGeometry()[i].GetInitialPosition(); //NOTE: here we refer to the original, undeformed position!!
             for(unsigned int k=0; k<GetGeometry().WorkingSpaceDimension(); k++)
             {
                 for(unsigned int m=0; m<GetGeometry().LocalSpaceDimension(); m++)

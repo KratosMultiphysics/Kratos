@@ -34,6 +34,7 @@
 #include "custom_elements/shell_thick_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
 #include "custom_elements/total_lagrangian.h"
+#include "custom_elements/kinematic_linear.h"
 #include "custom_elements/nodal_concentrated_element.hpp"
 #include "custom_elements/SprismElement3D6N.hpp"
 
@@ -226,6 +227,13 @@ private:
     // Adding the nodal concentrated element 
     const NodalConcentratedElement mNodalConcentratedElement2D1N;
     const NodalConcentratedElement mNodalConcentratedElement3D1N;
+    
+    
+    /* CONDITIONS*/
+    // Beam moment condition
+    const PointMoment3DCondition   mPointMomentCondition3D1N;
+    // Torque condition
+    const PointTorque3DCondition   mPointTorqueCondition3D1N;
 
     //total lagrangian
     const TotalLagrangian mTotalLagrangian2D3N;
@@ -241,11 +249,20 @@ private:
     const TotalLagrangian mTotalLagrangian3D20N;
     const TotalLagrangian mTotalLagrangian3D27N;
 
-    /* CONDITIONS*/
-    // Beam moment condition
-    const PointMoment3DCondition   mPointMomentCondition3D1N;
-    // Torque condition
-    const PointTorque3DCondition   mPointTorqueCondition3D1N;
+    const KinematicLinear mKinematicLinear2D3N;
+    const KinematicLinear mKinematicLinear2D4N;
+    const KinematicLinear mKinematicLinear2D6N;
+    const KinematicLinear mKinematicLinear2D8N;
+    const KinematicLinear mKinematicLinear2D9N;
+    const KinematicLinear mKinematicLinear3D4N;
+    const KinematicLinear mKinematicLinear3D6N;
+    const KinematicLinear mKinematicLinear3D8N;
+    const KinematicLinear mKinematicLinear3D10N;
+    const KinematicLinear mKinematicLinear3D15N;
+    const KinematicLinear mKinematicLinear3D20N;
+    const KinematicLinear mKinematicLinear3D27N;
+
+    
 
     ///@}
     ///@name Private Operators

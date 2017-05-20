@@ -269,8 +269,7 @@ private:
                          Vector& StrainVector);
 
     void CalculateB(Matrix& B,
-        const Matrix& DN_DX,
-        const unsigned int StrainSize);
+        const Matrix& DN_DX);
 
     void  ComputeDerivatives(Matrix& J0, 
                              Matrix& InvJ0, 
