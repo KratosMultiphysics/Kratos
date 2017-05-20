@@ -272,7 +272,7 @@ namespace Kratos
     // 	Cabcd *= rMaterial.GetLameMu() * ( rVariables.Strain.Matrix(0,0) + rVariables.Strain.Matrix(1,1) + rVariables.Strain.Matrix(2,2) ) * rVariables.Strain.Invariants.J_13 * rVariables.Strain.Invariants.J_13;
 	
     // 	Cabcd += (rVariables.Strain.InverseMatrix(c,d)*rIsochoricStressMatrix(a,b)+rIsochoricStressMatrix(c,d)*rVariables.Strain.InverseMatrix(a,b));
-
+	
     // 	Cabcd *= (-2.0/3.0);
 	
     //   }
@@ -360,7 +360,8 @@ namespace Kratos
       KRATOS_TRY
 
       const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
-      
+
+      //energy function "U(J) = (K/4)*(J²-1) - (K/2)*lnJ"
       rVolumetricDensityFunction += rMaterial.GetBulkModulus() * 0.25 * ( rVariables.Strain.Invariants.J * rVariables.Strain.Invariants.J - 1.0);
       rVolumetricDensityFunction -= rMaterial.GetBulkModulus() * 0.5 * std::log( rVariables.Strain.Invariants.J );
 	
@@ -410,7 +411,9 @@ namespace Kratos
       KRATOS_TRY
 	
       const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
-      
+
+      //derivative of "U(J) = (K/4)*(J²-1) - (K/2)*lnJ"
+      //dU(J)/dJ = (K/2)*(J-1/J)
       rDerivative = 0.5 * rMaterial.GetBulkModulus() * ( rVariables.Strain.Invariants.J * rVariables.Strain.Invariants.J - 1.0 );
 
       rDerivative /= rVariables.Strain.Invariants.J;
@@ -461,6 +464,8 @@ namespace Kratos
 
       const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
       
+      //derivative of "dU(J)/dJ = (K/2)*(J-1/J)"
+      //ddU(J)/dJdJ = (K/2)*(1-1/J²)
       rDerivative = 0.5 * rMaterial.GetBulkModulus() * (rVariables.Strain.Invariants.J * rVariables.Strain.Invariants.J + 1.0 );
 
       rDerivative /= rVariables.Strain.Invariants.J * rVariables.Strain.Invariants.J ;
