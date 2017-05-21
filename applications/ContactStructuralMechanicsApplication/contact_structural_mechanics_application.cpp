@@ -52,6 +52,8 @@ KratosContactStructuralMechanicsApplication::KratosContactStructuralMechanicsApp
     // 2D
     mALMFrictionlessMortarContactCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
     mALMNVFrictionlessMortarContactCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mALMFrictionlessAxisymMortarContactCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mALMNVFrictionlessAxisymMortarContactCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
     // 3D
     mALMFrictionlessMortarContactCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
     mALMNVFrictionlessMortarContactCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -118,6 +120,8 @@ void KratosContactStructuralMechanicsApplication::Register()
     // Frictionless cases
     KRATOS_REGISTER_CONDITION( "ALMFrictionlessMortarContactCondition2D2N", mALMFrictionlessMortarContactCondition2D2N );
     KRATOS_REGISTER_CONDITION( "ALMNVFrictionlessMortarContactCondition2D2N", mALMNVFrictionlessMortarContactCondition2D2N );
+    KRATOS_REGISTER_CONDITION( "ALMFrictionlessAxisymMortarContactCondition2D2N", mALMFrictionlessAxisymMortarContactCondition2D2N );
+    KRATOS_REGISTER_CONDITION( "ALMNVFrictionlessAxisymMortarContactCondition2D2N", mALMNVFrictionlessAxisymMortarContactCondition2D2N );
     KRATOS_REGISTER_CONDITION( "ALMFrictionlessMortarContactCondition3D3N", mALMFrictionlessMortarContactCondition3D3N );
     KRATOS_REGISTER_CONDITION( "ALMNVFrictionlessMortarContactCondition3D3N", mALMNVFrictionlessMortarContactCondition3D3N );
     KRATOS_REGISTER_CONDITION( "ALMFrictionlessMortarContactCondition3D4N", mALMFrictionlessMortarContactCondition3D4N );

@@ -404,8 +404,8 @@ public:
         );
     
     /**
-    * Initialize Damping Matrix
-    */
+     * Initialize Damping Matrix
+     */
     
     void CalculateDampingMatrix( 
         MatrixType& rDampingMatrix,
@@ -468,6 +468,9 @@ public:
 
     /**
      * Get on rVariable a double Value
+     * @param rVariable: Internal values
+     * @param rCurrentProcessInfo: The current process information
+     * @return rValues: The values of interest (doubles)
      */
     
     void GetValueOnIntegrationPoints( 
@@ -478,7 +481,11 @@ public:
     
     /**
      * Get on rVariable a array_1d Value
+     * @param rVariable: Internal values
+     * @param rCurrentProcessInfo: The current process information
+     * @return rValues: The values of interest (array_1d)
      */
+    
     void GetValueOnIntegrationPoints( 
         const Variable<array_1d<double, 3 > >& rVariable,
         std::vector<array_1d<double, 3 > >& rValues,
@@ -487,7 +494,11 @@ public:
     
     /**
      * Get on rVariable a Vector Value
+     * @param rVariable: Internal values
+     * @param rCurrentProcessInfo: The current process information
+     * @return rValues: The values of interest (vector)
      */
+    
     void GetValueOnIntegrationPoints( 
         const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
@@ -496,7 +507,11 @@ public:
 
     /**
      * Calculate a double Variable
+     * @param rVariable: Internal values
+     * @param rCurrentProcessInfo: The current process information
+     * @return rOutput: The values of interest (doubles)
      */
+    
     void CalculateOnIntegrationPoints( 
         const Variable<double>& rVariable,
         std::vector<double>& rOutput,
@@ -505,7 +520,11 @@ public:
     
     /**
      * Calculate a array_1d Variable
+     * @param rVariable: Internal values
+     * @param rCurrentProcessInfo: The current process information
+     * @return rOutput: The values of interest (array_1d)
      */
+    
     void CalculateOnIntegrationPoints( 
         const Variable<array_1d<double, 3 > >& rVariable,
         std::vector< array_1d<double, 3 > >& rOutput,
@@ -514,7 +533,11 @@ public:
     
     /**
      * Calculate a Vector Variable
+     * @param rVariable: Internal values
+     * @param rCurrentProcessInfo: The current process information
+     * @return rOutput: The values of interest (vector)
      */
+    
     void CalculateOnIntegrationPoints( 
         const Variable<Vector>& rVariable, 
         std::vector<Vector>& rOutput, 
@@ -847,7 +870,7 @@ protected:
     /**************** METHODS TO CALCULATE MORTAR CONDITION MATRICES ****************/
     /********************************************************************************/
 
-    /*
+    /**
      * Calculation and addition of the matrices of the LHS of a contact pair
      */
 
@@ -857,7 +880,7 @@ protected:
         const unsigned int rPairIndex
         );
 
-    /*
+    /**
      * Assembles the contact pair LHS block into the condition's LHS
      */
     
@@ -867,7 +890,7 @@ protected:
         const unsigned int rPairIndex
         );
 
-    /*
+    /**
      * Calculates the local contibution of the LHS
      */
     
@@ -877,7 +900,7 @@ protected:
         const unsigned int& rActiveInactive
         );
     
-    /*
+    /**
      * Calculation and addition fo the vectors of the RHS of a contact pair
      */
     
@@ -887,7 +910,7 @@ protected:
         const unsigned int rPairIndex
         );
     
-    /*
+    /**
      * Assembles the contact pair RHS block into the condition's RHS
      */
     
@@ -897,7 +920,7 @@ protected:
         const unsigned int rPairIndex
         );
     
-    /*
+    /**
      * Calculates the local contibution of the LHS
      */
     
@@ -921,19 +944,19 @@ protected:
         const unsigned int node_index
         );
 
-    /*
+    /**
      * Calculates the increment of the normal in the slave condition
      */
     
     void CalculateDeltaNormalSlave(DerivativeDataType& rDerivativeData);
     
-    /*
+    /**
      * Calculates the increment of the normal and in the master condition
      */
     
     void CalculateDeltaNormalMaster(DerivativeDataType& rDerivativeData);
     
-    /*
+    /**
      * Calculates the increment of the shape functions and the gap
      */
     
@@ -942,7 +965,7 @@ protected:
         DerivativeDataType& rDerivativeData
         );
     
-    /*
+    /**
      * Calculates the increment of Phi
      */
     
@@ -955,7 +978,7 @@ protected:
     /**************** AUXILLIARY METHODS FOR CONDITION LHS CONTRIBUTION ****************/
     /***********************************************************************************/
 
-    /*
+    /**
      * Calculates the values of the shape functions for the master element
      */
     
@@ -965,35 +988,50 @@ protected:
         const PointType& local_point 
     );
     
-    /*
+    /**
      * Calculates the componets necessaries to compute the mortar operators and its derivatives
+     * @param rVariables: Internal values
+     * @param rDerivativeData: The derivative data
+     * @param rIntegrationWeight: The integration weight
+     * @return rThisMortarConditionMatrices: The mortar operators
      */
     
-    void CalculateMortarOperators(
+    virtual void CalculateMortarOperators(
         MortarConditionMatrices& rThisMortarConditionMatrices,
         GeneralVariables& rVariables,
         DerivativeDataType& rDerivativeData,
         const double& rIntegrationWeight
-    );
+        );
 
-    void CalculateMortarOperators(
+    /**
+     * Calculates the componets necessaries to compute the mortar operators
+     * @param rVariables: Internal values
+     * @param rIntegrationWeight: The integration weight
+     * @return rThisMortarConditionMatrices: The mortar operators
+     */
+        
+    virtual void CalculateMortarOperators(
         MortarConditionMatrices& rThisMortarConditionMatrices,
         GeneralVariables& rVariables,
         const double& rIntegrationWeight
-    );
+        );
     
-    /*
+    /**
      * Calculates the componets necessaries to compute the derivatives of Phi
+     * @param rVariables: Internal values
+     * @param rDerivativeData: The derivative data
+     * @param rIntegrationWeight: The integration weight
+     * @return AeData: The Ae matrix and derivatives
      */
     
-    void CalculateDeltaAeComponents(
+    virtual void CalculateDeltaAeComponents(
         GeneralVariables& rVariables,
         DerivativeDataType& rDerivativeData,
         AeData& rAeData,
         const double& rIntegrationWeight
-    );
+        );
     
-    /*
+    /**
      * Calculates the matrix De
      */
     
@@ -1002,7 +1040,7 @@ protected:
         const double detJ 
         );
     
-    /*
+    /**
      * Calculates the matrix DeltaAe
      */
     
@@ -1015,7 +1053,7 @@ protected:
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
     /******************************************************************/
     
-    /*
+    /**
      * Returns a value depending of the active/inactive set
      */
     
@@ -1026,7 +1064,7 @@ protected:
         return 0;
     }
 
-    /*
+    /**
      * It returns theintegration method considered
      */
     
@@ -1058,7 +1096,7 @@ protected:
         }
     }
     
-    /*
+    /**
      * Returns a matrix with the increment of displacements, that can be used for compute the Jacobian "perturbed"
      */
     

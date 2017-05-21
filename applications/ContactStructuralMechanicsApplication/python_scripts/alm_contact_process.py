@@ -23,6 +23,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "model_part_name"             : "Structure",
             "computing_model_part_name"   : "computing_domain",
             "contact_model_part"          : "Contact_Part",
+            "axisymmetric"                : false,
             "assume_master_slave"         : "",
             "contact_type"                : "Frictionless",
             "frictional_law"              : "Coulomb",
@@ -64,6 +65,9 @@ class ALMContactProcess(KratosMultiphysics.Process):
             del(node)
         
         self.normal_variation  = self.params["normal_variation"].GetBool()
+        self.axisymmetric  = self.params["axisymmetric"].GetBool()
+        if (self.axisymmetric == True) and (self.dimension == 3):
+            raise NameError("3D and axisymmetric makes no sense")
         self.pair_variation  = self.params["pair_variation"].GetBool()
         self.integration_order = self.params["integration_order"].GetInt() 
         self.frictional_law = self.params["frictional_law"].GetString()
@@ -117,9 +121,15 @@ class ALMContactProcess(KratosMultiphysics.Process):
         
         if self.params["contact_type"].GetString() == "Frictionless":
             if self.normal_variation == True:
-                condition_name = "ALMNVFrictionlessMortarContact"
+                if self.axisymmetric == True:
+                    condition_name = "ALMNVFrictionlessAxisymMortarContact"
+                else:
+                    condition_name = "ALMNVFrictionlessMortarContact"
             else:
-                condition_name = "ALMFrictionlessMortarContact"
+                if self.axisymmetric == True:
+                    condition_name = "ALMFrictionlessAxisymMortarContact"
+                else:
+                    condition_name = "ALMFrictionlessMortarContact"
         elif self.params["contact_type"].GetString() == "Frictional":
             if self.normal_variation == True:
                 condition_name = "ALMNVFrictionalMortarContact"
