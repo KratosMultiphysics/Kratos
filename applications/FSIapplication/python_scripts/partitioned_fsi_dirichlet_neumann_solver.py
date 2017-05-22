@@ -155,9 +155,9 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
 
 
     def _InitializeDirichletNeumannInterface(self):
-        # Fix the VELOCITY and MESH_VELOCITY variables in all the fluid interface submodelparts
-        # MESH_DISPLACEMENT variable is supposed to be already fixed by the set_interface_process
-        num_fl_interfaces = self.settings["coupling_solver_settings"]["structure_interfaces_list"].size()
+        # Fix the VELOCITY, MESH_DISPLACEMENT and MESH_VELOCITY variables in all the fluid interface submodelparts
+        # TODO: This method allows to supress the set_interface_process
+        num_fl_interfaces = self.settings["coupling_solver_settings"]["fluid_interfaces_list"].size()
         for fl_interface_id in range(num_fl_interfaces):
             fl_interface_name = self.settings["coupling_solver_settings"]["fluid_interfaces_list"][fl_interface_id].GetString()
             fl_interface_submodelpart = self.fluid_solver.main_model_part.GetSubModelPart(fl_interface_name)
@@ -166,16 +166,19 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_Y, True, fl_interface_submodelpart.Nodes)
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_VELOCITY_X, True, fl_interface_submodelpart.Nodes)
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_VELOCITY_Y, True, fl_interface_submodelpart.Nodes)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_DISPLACEMENT_X, True, fl_interface_submodelpart.Nodes)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_DISPLACEMENT_Y, True, fl_interface_submodelpart.Nodes)
             if (self.domain_size == 3):
                 KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_Z, True, fl_interface_submodelpart.Nodes)
                 KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_VELOCITY_Z, True, fl_interface_submodelpart.Nodes)
+                KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_DISPLACEMENT_Z, True, fl_interface_submodelpart.Nodes)
 
 
 
     def _SolveMeshAndFluid(self):
 
         # Set the mesh displacement as the iteration_value displacement
-        num_fl_interfaces = self.settings["coupling_solver_settings"]["structure_interfaces_list"].size()
+        num_fl_interfaces = self.settings["coupling_solver_settings"]["fluid_interfaces_list"].size()
         for fl_interface_id in range(num_fl_interfaces):
             fl_interface_name = self.settings["coupling_solver_settings"]["fluid_interfaces_list"][fl_interface_id].GetString()
             fl_interface_submodelpart = self.fluid_solver.main_model_part.GetSubModelPart(fl_interface_name)
