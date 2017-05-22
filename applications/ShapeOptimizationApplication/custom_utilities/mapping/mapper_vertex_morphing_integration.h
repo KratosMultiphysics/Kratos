@@ -264,7 +264,10 @@ public:
     // --------------------------------------------------------------------------
     void setIntegrationMethod(int integrationMethod)
     {
-        if (integrationMethod == 1)
+        mAreaWeightedNodeSum = false;
+        if (integrationMethod == 0)
+            mAreaWeightedNodeSum = true;
+        else if (integrationMethod == 1)
             mIntegrationMethod = GeometryData::GI_GAUSS_1;
         else if (integrationMethod == 2)
             mIntegrationMethod = GeometryData::GI_GAUSS_2;
@@ -365,66 +368,16 @@ public:
                 // loop conditions
                 for(unsigned int c_itr=0; c_itr<rConditions.size(); c_itr++)
                 {
-                    // Get geometry information of current condition
+                    // Get geometry of current condition
                     Condition rCondition = rConditions[c_itr];
                     Condition::GeometryType& geom_i = rCondition.GetGeometry();
-                    unsigned int n_nodes = geom_i.size();
-                    int localNodeIndex = -1;
-                    for (unsigned int node_ctr=0; node_ctr<n_nodes; node_ctr++)
-                    {
-                        if (geom_i[node_ctr].Id() == node_j.Id())
-                            localNodeIndex = node_ctr;
-                    }
 
-                    // Evaluate shape functions of design surface according specified integration method
-                    const Condition::GeometryType::IntegrationPointsArrayType& integrationPoints = geom_i.IntegrationPoints(mIntegrationMethod);
-                    const unsigned int numberOfIntegrationPoints = integrationPoints.size();
-                    const Matrix& N_container = geom_i.ShapeFunctionsValues(mIntegrationMethod);
-
-                    // TODO determinant is not defined for elements im able to use
-                    //Kratos::Vector det_J;
-                    //geom_i.DeterminantOfJacobian(det_J, mIntegrationMethod);
-
-                    for ( unsigned int pointNumber = 0; pointNumber < numberOfIntegrationPoints; pointNumber++ )
-                    {
-                        // Get weight for integration
-                        double integrationWeight = integrationPoints[pointNumber].Weight();
-
-                        // Get FEM-shape-function-value for current integration point
-                        Vector N_FEM_GPi = row( N_container, pointNumber);
-
-                        // Get node information
-                        NodeType::CoordinatesArrayType gp_i_coord;
-                        geom_i.GlobalCoordinates(gp_i_coord, integrationPoints[pointNumber].Coordinates());
-
-                        // evaluate shape function at gauss point
-                        double N_j_gpi = geom_i.ShapeFunctionValue(pointNumber,localNodeIndex,mIntegrationMethod);
+                    if (mAreaWeightedNodeSum){
 
                         // Computation of weight according specified weighting function
                         // Note that we did not compute the square root of the distances to save this expensive computation (it is not needed here)
-                        double Aij = filterFunction.compute_weight(gp_i_coord,node_i.Coordinates());
-                        Aij *= N_j_gpi;
-                        Aij *= integrationWeight;
-
-                        // scale filter function with 1/r for the 2D case - could be omitted because anyway we are normalizing
-                        // ANYWAY WE APLLY THE POST NORMALIZATION
-                        //if (mrDesignSurface.GetProcessInfo()[DOMAIN_SIZE] == 2)
-                        //    Aij /= mFilterRadius;
-
-                        // consider jacobian
-                        double det_J = geom_i.DeterminantOfJacobian(pointNumber,mIntegrationMethod);
-                        // TODO use gramian to determine det_J
-                        //Kratos::Matrix J_Ti = trans(J[pointNumber]);
-                        //Kratos::Matrix JJ_T = prod(J_Ti,J[pointNumber] );
-                        // double detGram;
-                        //if (mrDesignSurface.GetProcessInfo()[DOMAIN_SIZE] == 2)
-                        //    Condition::GeometryType::JacobiansType J;
-                        //    geom_i.Jacobian(J,mIntegrationMethod);
-                        //    detGram = JJ_T(0,0);
-                        //else
-                        //    detGram = MathUtils<double>::Det(JJ_T);
-                        //double det_J = sqrt(detGram);
-                        Aij *= det_J;
+                        double Aij = filterFunction.compute_weight(node_j.Coordinates(),node_i.Coordinates());
+                        Aij *= geom_i.DomainSize();
 
                         // Add values to list
                         listOfNeighborMappingIds[j_itr] = j;
@@ -432,6 +385,53 @@ public:
 
                         // Computed for integration of weighting function later using post-scaling
                         sum_weights += Aij;
+                    }
+                    else
+                    {
+                        // Get geometry information of current condition
+                        unsigned int n_nodes = geom_i.size();
+                        int localNodeIndex = -1;
+                        for (unsigned int node_ctr=0; node_ctr<n_nodes; node_ctr++)
+                        {
+                            if (geom_i[node_ctr].Id() == node_j.Id())
+                                localNodeIndex = node_ctr;
+                        }
+
+                        // Evaluate shape functions of design surface according specified integration method
+                        const Condition::GeometryType::IntegrationPointsArrayType& integrationPoints = geom_i.IntegrationPoints(mIntegrationMethod);
+                        const unsigned int numberOfIntegrationPoints = integrationPoints.size();
+                        const Matrix& N_container = geom_i.ShapeFunctionsValues(mIntegrationMethod);
+
+                        for ( unsigned int pointNumber = 0; pointNumber < numberOfIntegrationPoints; pointNumber++ )
+                        {
+
+                            // Get FEM-shape-function-value for current integration point
+                            Vector N_FEM_GPi = row( N_container, pointNumber);
+
+                            // Get gp coordinates
+                            NodeType::CoordinatesArrayType gp_i_coord;
+                            geom_i.GlobalCoordinates(gp_i_coord, integrationPoints[pointNumber].Coordinates());
+
+                            // Computation of weight according specified weighting function
+                            // Note that we did not compute the square root of the distances to save this expensive computation (it is not needed here)
+                            double Aij = filterFunction.compute_weight(gp_i_coord,node_i.Coordinates());
+
+                            // multiply with evaluation of shape function at gauss point
+                            Aij *= geom_i.ShapeFunctionValue(pointNumber,localNodeIndex,mIntegrationMethod);;
+
+                            // Get weight for integration
+                            Aij *= integrationPoints[pointNumber].Weight();
+
+                            // consider jacobian
+                            Aij *= geom_i.DeterminantOfJacobian(pointNumber,mIntegrationMethod);
+
+                            // Add values to list
+                            listOfNeighborMappingIds[j_itr] = j;
+                            list_of_weights[j_itr] += Aij;
+
+                            // Computed for integration of weighting function later using post-scaling
+                            sum_weights += Aij;
+                        }
                     }
                 }
             }
@@ -707,6 +707,7 @@ private:
     const double mFilterRadius;
     bool mPerformDamping;
     Element::IntegrationMethod mIntegrationMethod;
+    bool mAreaWeightedNodeSum;
     bool mUseTranspose;
 
     // ==============================================================================
