@@ -30,6 +30,7 @@
 #include "custom_conditions/ALM_frictionless_mortar_contact_condition.h"
 #include "custom_conditions/ALM_frictionless_mortar_contact_axisym_condition.h"
 #include "custom_conditions/ALM_frictional_mortar_contact_condition.h"
+#include "custom_conditions/ALM_frictional_mortar_contact_axisym_condition.h"
 
 namespace Kratos
 {
@@ -216,6 +217,8 @@ private:
     // Frictional cases
     const AugmentedLagrangianMethodFrictionalMortarContactCondition<2, 2, false> mALMFrictionalMortarContactCondition2D2N;
     const AugmentedLagrangianMethodFrictionalMortarContactCondition<2, 2, true> mALMNVFrictionalMortarContactCondition2D2N;
+    const AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition<2, false> mALMFrictionalAxisymMortarContactCondition2D2N;
+    const AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition<2, true> mALMNVFrictionalAxisymMortarContactCondition2D2N;
     const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 3, false> mALMFrictionalMortarContactCondition3D3N;
     const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 3, true> mALMNVFrictionalMortarContactCondition3D3N;
     const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 4, false> mALMFrictionalMortarContactCondition3D4N;

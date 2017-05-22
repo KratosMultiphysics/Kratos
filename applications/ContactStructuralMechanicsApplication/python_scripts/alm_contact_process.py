@@ -132,9 +132,15 @@ class ALMContactProcess(KratosMultiphysics.Process):
                     condition_name = "ALMFrictionlessMortarContact"
         elif self.params["contact_type"].GetString() == "Frictional":
             if self.normal_variation == True:
-                condition_name = "ALMNVFrictionalMortarContact"
+                if self.axisymmetric == True:
+                    condition_name = "ALMNVFrictionalAxisymMortarContact"
+                else:
+                    condition_name = "ALMNVFrictionalMortarContact"
             else:
-                condition_name = "ALMFrictionalMortarContact"
+                if self.axisymmetric == True:
+                    condition_name = "ALMFrictionalAxisymMortarContact"
+                else:
+                    condition_name = "ALMFrictionalMortarContact"
         
         #print("MODEL PART BEFORE CREATING INTERFACE")
         #print(computing_model_part) 
