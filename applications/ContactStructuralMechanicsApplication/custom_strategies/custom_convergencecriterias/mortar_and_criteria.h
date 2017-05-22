@@ -158,6 +158,14 @@ public:
         
         bool CriterionResult = BaseType::PostCriteria(rModelPart,rDofSet,A,Dx,b);
         
+        if (CriterionResult == true && rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
+        {
+            if (mpTable != nullptr)
+            {
+                mpTable->PrintFooter();
+            }
+        }
+        
         return CriterionResult;
     }
 
@@ -191,7 +199,7 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    ) override
+        ) override
     {
         if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
         {
@@ -222,17 +230,9 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    ) override
+        ) override
     {
         BaseType::FinalizeSolutionStep(rModelPart,rDofSet,A,Dx,b);
-        
-        if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
-        {
-            if (mpTable != nullptr)
-            {
-                mpTable->PrintFooter();
-            }
-        }
     }
 
     ///@}

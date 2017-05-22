@@ -254,14 +254,17 @@ public:
             {
                 if (mpTable != nullptr)
                 {
-                    mpTable->AddToRow<double>(ResidualDispRatio);
-                    mpTable->AddToRow<double>(mDispRatioTolerance);
-                    mpTable->AddToRow<double>(ResidualDispAbs);
-                    mpTable->AddToRow<double>(mDispAbsTolerance);
-                    mpTable->AddToRow<double>(ResidualLMRatio);
-                    mpTable->AddToRow<double>(mLMRatioTolerance);
-                    mpTable->AddToRow<double>(ResidualLMAbs);
-                    mpTable->AddToRow<double>(mLMAbsTolerance);
+                    std::cout.precision(4);
+                    auto Table = mpTable->GetTable();
+                    Table << std::scientific << ResidualDispRatio << std::scientific << mDispRatioTolerance << std::scientific << ResidualDispAbs << std::scientific << mDispAbsTolerance << std::scientific << ResidualLMRatio << std::scientific << mLMRatioTolerance << std::scientific << ResidualLMAbs << std::scientific << mLMAbsTolerance;
+//                     mpTable->AddToRow<double>(ResidualDispRatio);
+//                     mpTable->AddToRow<double>(mDispRatioTolerance);
+//                     mpTable->AddToRow<double>(ResidualDispAbs);
+//                     mpTable->AddToRow<double>(mDispAbsTolerance);
+//                     mpTable->AddToRow<double>(ResidualLMRatio);
+//                     mpTable->AddToRow<double>(mLMRatioTolerance);
+//                     mpTable->AddToRow<double>(ResidualLMAbs);
+//                     mpTable->AddToRow<double>(mLMAbsTolerance);
                 }
                 else
                 {

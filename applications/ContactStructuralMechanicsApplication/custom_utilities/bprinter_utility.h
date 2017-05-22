@@ -28,6 +28,8 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
+    typedef typename bprinter::TablePrinter TablePrinterType;
+    
 ///@}
 ///@name  Enum's
 ///@{
@@ -77,7 +79,7 @@ public:
     ///@name Operations
     ///@{
     
-    /*
+    /**
      * It prints the header of the table
      */
     
@@ -86,7 +88,7 @@ public:
         mTable.PrintHeader();
     }
     
-    /*
+    /**
      * It prints the footer of the table 
      */
     
@@ -95,7 +97,7 @@ public:
         mTable.PrintFooter();
     }
     
-    /*
+    /**
      * It adds a value to the ouput of the current row 
      */
     
@@ -105,8 +107,10 @@ public:
         mTable << ThisClass;
     }
     
-    /*
+    /**
      * It adds a column to the table
+     * @param ThisName: The name of the variable
+     * @param ThisSpaces: The number of spaces to consider
      */
         
     void AddColumn(std::string ThisName, unsigned int ThisSpaces)
@@ -115,6 +119,16 @@ public:
         ThisNameBold.append(ThisName);
         ThisNameBold.append("\e[0m");
         mTable.AddColumn(ThisNameBold, ThisSpaces);
+    }
+    
+    /**
+     * It returns the table of BPrinter
+     * @return mTable: The bprinter table
+     */
+        
+    TablePrinterType GetTable()
+    {
+        return mTable;
     }
     
 protected:
@@ -154,7 +168,7 @@ private:
     ///@name Member Variables
     ///@{      
     
-    bprinter::TablePrinter mTable{&std::cout, "|"};
+    TablePrinterType mTable{&std::cout, "|"};
     
     ///@}
     ///@name Private Operators

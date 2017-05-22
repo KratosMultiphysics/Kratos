@@ -225,14 +225,17 @@ public:
             {
                 if (mpTable != nullptr)
                 {
-                    mpTable->AddToRow<double>(DispRatio);
-                    mpTable->AddToRow<double>(mDispRatioTolerance);
-                    mpTable->AddToRow<double>(DispAbs);
-                    mpTable->AddToRow<double>(mDispAbsTolerance);
-                    mpTable->AddToRow<double>(LMRatio);
-                    mpTable->AddToRow<double>(mLMRatioTolerance);
-                    mpTable->AddToRow<double>(LMAbs);
-                    mpTable->AddToRow<double>(mLMAbsTolerance);
+                    std::cout.precision(4);
+                    auto Table = mpTable->GetTable();
+                    Table << std::scientific << DispRatio << std::scientific << mDispRatioTolerance << std::scientific << DispAbs << std::scientific << mDispAbsTolerance << std::scientific << LMRatio << std::scientific << mLMRatioTolerance << std::scientific << LMAbs << std::scientific << mLMAbsTolerance;
+//                     mpTable->AddToRow<double>(DispRatio);
+//                     mpTable->AddToRow<double>(mDispRatioTolerance);
+//                     mpTable->AddToRow<double>(DispAbs);
+//                     mpTable->AddToRow<double>(mDispAbsTolerance);
+//                     mpTable->AddToRow<double>(LMRatio);
+//                     mpTable->AddToRow<double>(mLMRatioTolerance);
+//                     mpTable->AddToRow<double>(LMAbs);
+//                     mpTable->AddToRow<double>(mLMAbsTolerance);
                 }
                 else
                 {
