@@ -11,7 +11,7 @@ Begin Nodes
     1   0.0000000000   0.0000000000   0.0000000000
 End Nodes
 
-Begin Elements NodalConcentratedElement3D1N
+Begin Elements NodalConcentratedDampedElement3D1N
        1     1    1 
 End Elements
 
