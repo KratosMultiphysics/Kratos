@@ -16,11 +16,10 @@
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/timer.hpp>
 
-
 // Project includes
 #include "includes/define.h"
+#include "custom_utilities/bprinter_utility.h"
 #include "custom_python/add_custom_strategies_to_python.h"
-
 #include "spaces/ublas_space.h"
 
 // Strategies
@@ -33,6 +32,7 @@
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/mortar_and_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/mesh_tying_mortar_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/alm_frictionless_mortar_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/alm_frictional_mortar_criteria.h"
@@ -53,6 +53,8 @@ using namespace boost::python;
 
 void  AddCustomStrategiesToPython()
 {
+    typedef boost::shared_ptr<BprinterUtility> TablePrinterPointerType;
+    
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
@@ -61,6 +63,7 @@ void  AddCustomStrategiesToPython()
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
+    typedef ConvergenceCriteriaType::Pointer ConvergenceCriteriaPointer;
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
         
     // Custom strategy types
@@ -70,6 +73,7 @@ void  AddCustomStrategiesToPython()
     // Custom scheme types
 
     // Custom convergence criterion types
+    typedef MortarAndConvergenceCriteria< SparseSpaceType,  LocalSpaceType > MortarAndConvergenceCriteriaType;
     typedef MeshTyingMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > MeshTyingMortarConvergenceCriteriaType;
     typedef ALMFrictionlessMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ALMFrictionlessMortarConvergenceCriteriaType;
     typedef ALMFrictionalMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ALMFrictionalMortarConvergenceCriteriaType;
@@ -110,13 +114,24 @@ void  AddCustomStrategiesToPython()
     //*******************CONVERGENCE CRITERIA CLASSES*********************
     //********************************************************************
 
+    // Custom mortar and criteria
+    class_< MortarAndConvergenceCriteriaType,
+            bases< ConvergenceCriteriaType >, boost::noncopyable >
+            (
+            "MortarAndConvergenceCriteria", 
+            init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer>())
+            .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer,TablePrinterPointerType>())
+            .def("SetEchoLevel", &MortarAndConvergenceCriteriaType::SetEchoLevel)
+            .def("SetActualizeRHSFlag", &MortarAndConvergenceCriteriaType::SetActualizeRHSFlag)
+            ;
+            
     // Weighted residual values update
     class_< MeshTyingMortarConvergenceCriteriaType,
             bases< ConvergenceCriteriaType >, boost::noncopyable >
             (
             "MeshTyingMortarConvergenceCriteria", 
             init< >())
-            .def(init< >())
+//             .def(init<TablePrinterPointerType>()) // TODO: Add this
             .def("SetEchoLevel", &MeshTyingMortarConvergenceCriteriaType::SetEchoLevel)
             ;
 
@@ -126,7 +141,7 @@ void  AddCustomStrategiesToPython()
             (
             "ALMFrictionlessMortarConvergenceCriteria", 
             init< >())
-            .def(init< >())
+            .def(init<TablePrinterPointerType>())
             .def("SetEchoLevel", &ALMFrictionlessMortarConvergenceCriteriaType::SetEchoLevel)
             ;
             
@@ -136,7 +151,7 @@ void  AddCustomStrategiesToPython()
             (
             "ALMFrictionalMortarConvergenceCriteria", 
             init< >())
-            .def(init< >())
+            .def(init<TablePrinterPointerType>())
             .def("SetEchoLevel", &ALMFrictionalMortarConvergenceCriteriaType::SetEchoLevel)
             ;
             
@@ -147,6 +162,7 @@ void  AddCustomStrategiesToPython()
             "DisplacementLagrangeMultiplierContactCriteria", 
             init< double, double, double, double >())
             .def(init< double, double, double, double, bool >())
+            .def(init< double, double, double, double, bool, TablePrinterPointerType >())
             .def("SetEchoLevel", &DisplacementLagrangeMultiplierContactCriteriaType::SetEchoLevel)
             ;
             
@@ -157,6 +173,7 @@ void  AddCustomStrategiesToPython()
             "DisplacementLagrangeMultiplierResidualContactCriteria", 
             init< double, double, double, double >())
             .def(init< double, double, double, double, bool >())
+            .def(init< double, double, double, double, bool, TablePrinterPointerType >())
             .def("SetEchoLevel", &DisplacementLagrangeMultiplierResidualContactCriteriaType::SetEchoLevel)
             ;
             

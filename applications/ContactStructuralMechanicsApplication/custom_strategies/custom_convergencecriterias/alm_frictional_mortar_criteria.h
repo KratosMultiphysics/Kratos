@@ -18,6 +18,7 @@
 
 /* Project includes */
 #include "custom_utilities/contact_utilities.h"
+#include "custom_utilities/bprinter_utility.h"
 #include "custom_strategies/custom_convergencecriterias/base_mortar_criteria.h"
 #include "custom_utilities/color_utilities.h"
 
@@ -73,14 +74,17 @@ public:
     typedef ModelPart::ConditionsContainerType                       ConditionsArrayType;
     
     typedef ModelPart::NodesContainerType                                 NodesArrayType;
+    
+    typedef boost::shared_ptr<BprinterUtility>                   TablePrinterPointerType;
 
     ///@}
     ///@name Life Cycle
     ///@{
     
     /// Default constructors
-    ALMFrictionalMortarConvergenceCriteria()
-        : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >()
+    ALMFrictionalMortarConvergenceCriteria(TablePrinterPointerType pTable = nullptr)
+        : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >(),
+        mpTable(pTable)
     {
     }
 
@@ -269,22 +273,44 @@ public:
         
         if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
         {
-            if (IsConvergedActive == true)
+            if (mpTable != nullptr)
             {
-                std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
+                if (IsConvergedActive == true)
+                {
+                    mpTable->AddToRow<std::string>(BOLDFONT(FGRN("Archieved")));
+                }
+                else
+                {
+                    mpTable->AddToRow<std::string>(BOLDFONT(FGRN("Not archieved")));
+                }
+                if (IsConvergedSlip == true)
+                {
+                    mpTable->AddToRow<std::string>(BOLDFONT(FGRN("Archieved")));
+                }
+                else
+                {
+                    mpTable->AddToRow<std::string>(BOLDFONT(FGRN("Not archieved")));
+                }
             }
             else
             {
-                std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
-            }
-            
-            if (IsConvergedSlip == true)
-            {
-                std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
-            }
-            else
-            {
-                std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
+                if (IsConvergedActive == true)
+                {
+                    std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
+                }
+                else
+                {
+                    std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
+                }
+                
+                if (IsConvergedSlip == true)
+                {
+                    std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
+                }
+                else
+                {
+                    std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
+                }
             }
         }
         
@@ -299,6 +325,12 @@ public:
     void Initialize(ModelPart& rModelPart) override
     {
         ConvergenceCriteriaBaseType::mConvergenceCriteriaIsInitialized = true;
+        
+        if (mpTable != nullptr)
+        {
+            mpTable->AddColumn("ACTIVE SET CONV.", 16);
+            mpTable->AddColumn("SLIP/STICK CONV.", 16);
+        }
     }
     
     /**
@@ -432,6 +464,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    
+    TablePrinterPointerType mpTable;
     
     ///@}
     ///@name Private Operators

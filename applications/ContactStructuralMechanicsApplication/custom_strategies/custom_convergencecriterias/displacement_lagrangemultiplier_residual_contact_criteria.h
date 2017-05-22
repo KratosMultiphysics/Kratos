@@ -20,6 +20,7 @@
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
 #include "includes/define.h"
+#include "custom_utilities/bprinter_utility.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "custom_utilities/color_utilities.h"
 
@@ -63,21 +64,23 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementLagrangeMultiplierResidualContactCriteria );
 
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >  BaseType;
 
-    typedef TSparseSpace SparseSpaceType;
+    typedef TSparseSpace                               SparseSpaceType;
 
-    typedef typename BaseType::TDataType TDataType;
+    typedef typename BaseType::TDataType                     TDataType;
 
-    typedef typename BaseType::DofsArrayType DofsArrayType;
+    typedef typename BaseType::DofsArrayType             DofsArrayType;
 
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+    typedef typename BaseType::TSystemMatrixType     TSystemMatrixType;
 
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
+    typedef typename BaseType::TSystemVectorType     TSystemVectorType;
 
-    typedef OpenMPUtils::PartitionVector PartitionVector;
+    typedef OpenMPUtils::PartitionVector               PartitionVector;
 
-    typedef std::size_t KeyType;
+    typedef std::size_t                                        KeyType;
+    
+    typedef boost::shared_ptr<BprinterUtility> TablePrinterPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -97,10 +100,12 @@ public:
         TDataType DispAbsTolerance,
         TDataType LMRatioTolerance,
         TDataType LMAbsTolerance,
-        bool EnsureContact = false 
+        bool EnsureContact = false,
+        TablePrinterPointerType pTable = nullptr
         )
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
-          mEnsureContact(EnsureContact)
+          mEnsureContact(EnsureContact),
+          mpTable(pTable)
     {
         mDispRatioTolerance = DispRatioTolerance;
         mDispAbsTolerance = DispAbsTolerance;
@@ -247,10 +252,24 @@ public:
             // We print the results
             if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
             {
-                std::cout.precision(4);
-                std::cout << BOLDFONT("RESIDUAL CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
-                std::cout << BOLDFONT("\tDISPLACEMENT: RATIO = ") << ResidualDispRatio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << ResidualDispAbs  << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
-                std::cout << BOLDFONT("\tLAGRANGE MUL: RATIO = ") << ResidualLMRatio  << BOLDFONT(" EXP.RATIO = ") << mLMRatioTolerance << BOLDFONT(" ABS = ") << ResidualLMAbs << BOLDFONT(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
+                if (mpTable != nullptr)
+                {
+                    mpTable->AddToRow<double>(ResidualDispRatio);
+                    mpTable->AddToRow<double>(mDispRatioTolerance);
+                    mpTable->AddToRow<double>(ResidualDispAbs);
+                    mpTable->AddToRow<double>(mDispAbsTolerance);
+                    mpTable->AddToRow<double>(ResidualLMRatio);
+                    mpTable->AddToRow<double>(mLMRatioTolerance);
+                    mpTable->AddToRow<double>(ResidualLMAbs);
+                    mpTable->AddToRow<double>(mLMAbsTolerance);
+                }
+                else
+                {
+                    std::cout.precision(4);
+                    std::cout << BOLDFONT("RESIDUAL CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
+                    std::cout << BOLDFONT("\tDISPLACEMENT: RATIO = ") << ResidualDispRatio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << ResidualDispAbs  << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
+                    std::cout << BOLDFONT("\tLAGRANGE MUL: RATIO = ") << ResidualLMRatio  << BOLDFONT(" EXP.RATIO = ") << mLMRatioTolerance << BOLDFONT(" ABS = ") << ResidualLMAbs << BOLDFONT(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
+                }
             }
 
             rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = (ResidualDispRatio > ResidualLMRatio) ? ResidualDispRatio : ResidualLMRatio;
@@ -261,7 +280,14 @@ public:
             {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
                 {
-                    std::cout << BOLDFONT("\tResidual") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
+                    if (mpTable != nullptr)
+                    {
+                        mpTable->AddToRow<std::string>(BOLDFONT(FGRN("Archieved")));
+                    }
+                    else
+                    {
+                        std::cout << BOLDFONT("\tResidual") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
+                    }
                 }
                 return true;
             }
@@ -269,7 +295,14 @@ public:
             {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
                 {
-                    std::cout << BOLDFONT("\tResidual") << " convergence is " << BOLDFONT(FRED(" not achieved")) << std::endl;
+                    if (mpTable != nullptr)
+                    {
+                        mpTable->AddToRow<std::string>(BOLDFONT(FGRN("Not archieved")));
+                    }
+                    else
+                    {
+                        std::cout << BOLDFONT("\tResidual") << " convergence is " << BOLDFONT(FRED(" not achieved")) << std::endl;
+                    }
                 }
                 return false;
             }
@@ -288,6 +321,19 @@ public:
     void Initialize( ModelPart& rModelPart) override
     {
         BaseType::mConvergenceCriteriaIsInitialized = true;
+        
+        if (mpTable != nullptr)
+        {
+            mpTable->AddColumn("DISP: RATIO", 15);
+            mpTable->AddColumn("EXP.RATIO", 9);
+            mpTable->AddColumn("ABS", 9);
+            mpTable->AddColumn("EXP.ABS", 9);
+            mpTable->AddColumn("LM:   RATIO", 15);
+            mpTable->AddColumn("EXP.RATIO", 9);
+            mpTable->AddColumn("ABS", 9);
+            mpTable->AddColumn("EXP.ABS", 9);
+            mpTable->AddColumn("CONVERGENCE", 11);
+        }
     }
 
     /**
@@ -387,6 +433,8 @@ private:
     bool mInitialResidualIsSet;
     
     const bool mEnsureContact;
+    
+    TablePrinterPointerType mpTable;
     
     TDataType mDispRatioTolerance;
     TDataType mDispAbsTolerance;
