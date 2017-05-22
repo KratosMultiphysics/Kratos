@@ -5,14 +5,14 @@ End ModelPartData
 Begin Properties 0
 End Properties
 Begin Properties 1
-    DENSITY   7.85000E+0
-    YOUNG_MODULUS   1.00000E+02 
+    DENSITY   1.0000E+1
+    YOUNG_MODULUS   1.00000E+03 
     POISSON_RATIO   3.00000E-01 
 End Properties
 
 Begin Properties 2
-    DENSITY   7.85000E+0 
-    YOUNG_MODULUS   1.00000E+03
+    DENSITY   1.0000E+1 
+    YOUNG_MODULUS   1.00000E+04
     POISSON_RATIO   3.00000E-01 
 End Properties
 
@@ -2432,7 +2432,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UpdatedLagrangianElement2D4N// GUI group identifier: part_slab
+Begin Elements SmallDisplacementElement2D4N// GUI group identifier: part_slab
          1          1       2324       2325       2354       2352 
          2          1       2295       2296       2325       2324 
          3          1       2267       2268       2296       2295 
@@ -4595,7 +4595,7 @@ Begin Elements UpdatedLagrangianElement2D4N// GUI group identifier: part_slab
       2160          1        549        590        593        552 
 End Elements
 
-Begin Elements UpdatedLagrangianElement2D4N// GUI group identifier: part_block
+Begin Elements SmallDisplacementElement2D4N// GUI group identifier: part_block
       2161          2       1774       1799       1789       1766 
       2162          2       1784       1809       1799       1774 
       2163          2       1797       1819       1809       1784 

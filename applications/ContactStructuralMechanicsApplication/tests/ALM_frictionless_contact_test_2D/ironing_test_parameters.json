@@ -3,15 +3,17 @@
         "problem_name"    : "ironing_test",
         "model_part_name" : "Structure",
         "domain_size"     : 2,
-        "time_step"       : 0.001,
+        "time_step"       : 0.05,
         "start_time"      : 0.0,
-        "end_time"        : 10.0,
+        "end_time"        : 20.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "contact_structural_mechanics_static_solver",
+        "solver_type"                        : "contact_structural_mechanics_implicit_dynamic_solver",
         "echo_level"                         : 1,
-        "solution_type"                      : "Static",
+        "solution_type"                      : "Dynamic",
+        "scheme_type"			             : "Bossak",
+        "damp_factor_m"	         	         : -0.1,
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
@@ -21,15 +23,14 @@
         "block_builder"                      : true,
         "line_search"                        : false,
         "clear_storage"                      : false,
+        "ensure_contact"                     : true,
         "reform_dofs_at_each_step"           : true,
         "convergence_criterion"              : "Contact_Residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 10,
-        "split_factor"                       : 10.0,
-        "max_number_splits"                  : 3,
+        "max_iteration"                      : 20,
         "linear_solver_settings"             : {
             "solver_type" : "SuperLUSolver",
             "scaling"     : false,
@@ -67,6 +68,18 @@
             "is_fixed_z"      : true,
             "value"           : [0.0,0.0,0.0]
         }
+    },{
+        "python_module" : "assign_vector_components_to_nodes_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorComponentsToNodesProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "LineLoad2D_load_press",
+            "variable_name"   : "DISPLACEMENT",
+            "value"           : [0.0,null,null],
+            "interval"        : [0.0,1.0]
+        }
     }],
     "loads_process_list"       : [
     {
@@ -101,6 +114,18 @@
             "direction"       : [1.0,0.0,0.0],
             "step_type"		  : "linear"
         }
+    },{
+        "python_module" : "assign_vector_components_to_nodes_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorComponentsToNodesProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "LineLoad2D_load_press",
+            "variable_name"   : "LINE_LOAD",
+            "value"           : [0.0,-20.0,0.0],
+            "interval"        : [1.0,20.0]
+        }
     }],
     "list_other_processes" :[
     {
@@ -116,11 +141,20 @@
             "search_factor"               : 2.0,
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
-            "integration_order"           : 2
+            "integration_order"           : 2,
+            "active_check_factor"         : 1.0e-3,
+            "normal_variation"            : false,
+            "dual_search_check"           : false,
+            "stiffness_factor"            : 10.0,
+            "penalty_scale_factor"        : 1.0,
+            "manual_ALM"                  : true,
+            "penalty"                     : 1.0e6,
+            "scale_factor"                : 1.0e6,
+            "debug_mode"                  : false
         }
     }
     ],
-    "_output_configuration"     : {
+    "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -135,7 +169,7 @@
             "skin_output"         : false,
             "plane_output"        : [],
             "nodal_results"       : ["DISPLACEMENT","REACTION","NORMAL_CONTACT_STRESS","WEIGHTED_GAP"],
-            "nodal_nonhistorical_results": ["NORMAL"],
+            "nodal_nonhistorical_results": ["NORMAL","AUGMENTED_NORMAL_CONTACT_PRESSURE"],
             "nodal_flags_results": ["ACTIVE","SLAVE"],
             "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
         },
