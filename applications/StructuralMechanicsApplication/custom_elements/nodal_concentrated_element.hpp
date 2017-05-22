@@ -57,9 +57,9 @@ public:
     ///@{
 
     /// Default constructors
-    NodalConcentratedElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    NodalConcentratedElement(IndexType NewId, GeometryType::Pointer pGeometry, bool UseRayleighDamping = true);
 
-    NodalConcentratedElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    NodalConcentratedElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, bool UseRayleighDamping = true);
 
     ///Copy constructor
     NodalConcentratedElement(NodalConcentratedElement const& rOther);
@@ -253,8 +253,10 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
     ///@}
+
+    bool mUseRayleighDamping;
+
     ///@name Protected Operators
     ///@{
     NodalConcentratedElement() : Element()

@@ -25,8 +25,9 @@ namespace Kratos
 //***********************DEFAULT CONSTRUCTOR******************************************
 //************************************************************************************
 
-NodalConcentratedElement::NodalConcentratedElement( IndexType NewId, GeometryType::Pointer pGeometry )
+NodalConcentratedElement::NodalConcentratedElement( IndexType NewId, GeometryType::Pointer pGeometry, bool UseRayleighDamping )
     : Element( NewId, pGeometry )
+    , mUseRayleighDamping( UseRayleighDamping )
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -35,10 +36,11 @@ NodalConcentratedElement::NodalConcentratedElement( IndexType NewId, GeometryTyp
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-NodalConcentratedElement::NodalConcentratedElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+NodalConcentratedElement::NodalConcentratedElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, bool UseRayleighDamping )
     : Element( NewId, pGeometry, pProperties )
+    , mUseRayleighDamping( UseRayleighDamping )
 {
-  
+
 }
 
 //******************************COPY CONSTRUCTOR**************************************
@@ -46,6 +48,7 @@ NodalConcentratedElement::NodalConcentratedElement( IndexType NewId, GeometryTyp
 
 NodalConcentratedElement::NodalConcentratedElement( NodalConcentratedElement const& rOther)
     :Element(rOther)
+    ,mUseRayleighDamping(rOther.mUseRayleighDamping)
 {
 
 }
@@ -69,7 +72,7 @@ NodalConcentratedElement&  NodalConcentratedElement::operator=(NodalConcentrated
 Element::Pointer NodalConcentratedElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
     //NEEDED TO CREATE AN ELEMENT   
-    return Element::Pointer( new NodalConcentratedElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+    return Element::Pointer( new NodalConcentratedElement( NewId, GetGeometry().Create( rThisNodes ), pProperties, mUseRayleighDamping ) );
 }
 
 
@@ -81,7 +84,7 @@ Element::Pointer NodalConcentratedElement::Clone( IndexType NewId, NodesArrayTyp
     //YOU CREATE A NEW ELEMENT CLONING THEIR VARIABLES
     //ALL MEMBER VARIABLES THAT MUST BE CLONED HAVE TO BE DEFINED HERE
 
-    NodalConcentratedElement NewElement(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+    NodalConcentratedElement NewElement(NewId, GetGeometry().Create( rThisNodes ), pGetProperties(), mUseRayleighDamping );
 
     return Element::Pointer( new NodalConcentratedElement(NewElement) );
 }
@@ -297,8 +300,6 @@ void NodalConcentratedElement::CalculateRightHandSide(VectorType& rRightHandSide
     {
         Volume_Acceleration = GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     }
-    // KRATOS_WATCH(Volume_Acceleration);
-    // KRATOS_WATCH(Current_Displacement);
 
     // Compute and add external forces
     double Nodal_Mass = Element::GetValue(NODAL_MASS);
@@ -313,7 +314,6 @@ void NodalConcentratedElement::CalculateRightHandSide(VectorType& rRightHandSide
     {
         rRightHandSideVector[j]  -= Nodal_Stiffness[j] * Current_Displacement[j];
     }
-    // KRATOS_WATCH(rRightHandSideVector);
 
 }
 
@@ -339,7 +339,7 @@ void NodalConcentratedElement::CalculateLeftHandSide( MatrixType& rLeftHandSideM
     {
         rLeftHandSideMatrix(j, j) += Nodal_Stiffness[j];
     }
-    // KRATOS_WATCH(rLeftHandSideMatrix);
+    
 }
 
 //***********************************************************************************
@@ -462,7 +462,6 @@ void NodalConcentratedElement::CalculateMassMatrix( MatrixType& rMassMatrix, Pro
 
     rMassMatrix = ZeroMatrix( system_size, system_size );
 
-    // KRATOS_WATCH(Element::GetValue(NODAL_MASS));
     double &Nodal_Mass = Element::GetValue(NODAL_MASS);
 
     for ( unsigned int j = 0; j < dimension; j++ )
@@ -488,9 +487,8 @@ void NodalConcentratedElement::CalculateDampingMatrix( MatrixType& rDampingMatri
 
     rDampingMatrix = ZeroMatrix( system_size, system_size );
 
-    bool has_rayleigh_damping = false;
-    //Check, if Rayleigh damping is available; use discrete damping, if not
-    if( has_rayleigh_damping )
+    //Check, if Rayleigh damping is available; use nodal damping, if not
+    if( mUseRayleighDamping )
     {
         //1.-Calculate StiffnessMatrix:
 
