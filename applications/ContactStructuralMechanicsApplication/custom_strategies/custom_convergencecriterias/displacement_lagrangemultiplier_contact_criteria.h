@@ -268,7 +268,7 @@ public:
                 {
                     if (mpTable != nullptr)
                     {
-                        mpTable->AddToRow<std::string>(BOLDFONT(FGRN("Not archieved")));
+                        mpTable->AddToRow<std::string>(BOLDFONT(FRED("Not archieved")));
                     }
                     else
                     {
