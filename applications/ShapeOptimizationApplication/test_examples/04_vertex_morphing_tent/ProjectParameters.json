@@ -1,13 +1,16 @@
 {
     "optimization_settings" : {
-        "objectives" : [{ 
+        "objectives" : [{
                 "identifier"    : "targetDeviation",
                 "use_kratos"    : false
         }],
         "constraints" : [],
         "design_variables" : {
-            "design_variables_type"     : "vertex_morphing", 
-            "iterative_mapping"         : false,
+            "design_variables_type"     : "vertex_morphing",
+            "iterative_mapping"         : true,
+            "integration"               : false,
+            "integration_method"        : 2,
+            "use_transpose"             : false,
             "input_model_part_name"     : "vertex_morphing_tent",
             "design_submodel_part_name" : "design_surface",
             "domain_size"               : 3,
@@ -37,7 +40,7 @@
             "nodal_results"           : [ "OBJECTIVE_SENSITIVITY",
                                           "MAPPED_OBJECTIVE_SENSITIVITY",
                                           "DESIGN_UPDATE",
-                                          "SHAPE_UPDATE" ],           
+                                          "SHAPE_UPDATE" ],
             "output_format" : {
                 "name"                   : "gid",
                 "VolumeOutput"           : true,
@@ -45,7 +48,7 @@
                 "GiDWriteMeshFlag"       : true,
                 "GiDWriteConditionsFlag" : true,
                 "GiDMultiFileFlag"       : "Single"
-            }      
-        }                  
+            }
+        }
     }
 }

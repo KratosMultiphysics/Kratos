@@ -584,6 +584,43 @@ protected:
 		KRATOS_CATCH("");
 	}
 
+	// --------------------------------------------------------------------------
+  	virtual void consider_discretization(){
+
+		std::cout<< "> Considering discretization size!" << std::endl;
+		for(NodesContainerType::iterator node_i=mr_model_part.NodesBegin(); node_i!=mr_model_part.NodesEnd(); node_i++)
+		{
+			// Get all neighbor elements of current node
+			WeakPointerVector<Element >& ng_elem = node_i->GetValue(NEIGHBOUR_ELEMENTS);
+
+			// Compute total mass of all neighbor elements before finite differencing
+			double scaling_factor = 0.0;
+			for(unsigned int i = 0; i < ng_elem.size(); i++)
+			{
+				Kratos::Element& ng_elem_i = ng_elem[i];
+				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
+
+				// Compute mass according to element dimension
+				if( isElementOfTypeShell(element_geometry) )
+					scaling_factor += element_geometry.Area();
+				else
+					scaling_factor += element_geometry.Volume();
+			}
+
+			// apply scaling
+			node_i->FastGetSolutionStepValue(MASS_SHAPE_GRADIENT) /= scaling_factor;
+		}
+	}
+
+	// --------------------------------------------------------------------------
+	bool isElementOfTypeShell( Element::GeometryType& given_element_geometry )
+	{
+		if(given_element_geometry.WorkingSpaceDimension() != given_element_geometry.LocalSpaceDimension())
+			return true;
+		else
+		    return false;
+	}
+
 	// ==============================================================================
 
 	///@}

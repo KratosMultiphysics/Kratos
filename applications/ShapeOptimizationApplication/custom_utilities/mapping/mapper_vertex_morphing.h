@@ -99,7 +99,7 @@ public:
 
     // Type definitions for tree-search
     typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
-    typedef Tree< KDTreePartition<BucketType> > KDTree;    
+    typedef Tree< KDTreePartition<BucketType> > KDTree;
 
     /// Pointer definition of MapperVertexMorphing
     KRATOS_CLASS_POINTER_DEFINITION(MapperVertexMorphing);
@@ -118,9 +118,17 @@ public:
     {
         setPrecisionForOutput();
         assignMappingMatrixIds();
-        initalizeDampingFactorsToHaveNoInfluence(); 
-        if(mPerformDamping)   
+        initalizeDampingFactorsToHaveNoInfluence();
+        if(mPerformDamping)
             setDampingFactorsForAllDampingRegions( dampingRegions, optimizationSettings["design_variables"]["damping"]["damping_regions"] );
+
+        try {
+            mUseTranspose = optimizationSettings["design_variables"]["use_transpose"].GetBool();
+        }
+        catch (...) {
+            mUseTranspose = true;
+        }
+
     }
 
     /// Destructor.
@@ -157,10 +165,10 @@ public:
     {
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
-            node_i->SetValue(DAMPING_FACTOR_X,1.0);    
-            node_i->SetValue(DAMPING_FACTOR_Y,1.0);  
-            node_i->SetValue(DAMPING_FACTOR_Z,1.0);  
-        } 
+            node_i->SetValue(DAMPING_FACTOR_X,1.0);
+            node_i->SetValue(DAMPING_FACTOR_Y,1.0);
+            node_i->SetValue(DAMPING_FACTOR_Z,1.0);
+        }
     }
 
     // --------------------------------------------------------------------------
@@ -199,7 +207,7 @@ public:
             // Prepare damping function
             DampingFunction dampingFunction( dampingFunctionType, dampingRadius );
 
-            // Loop over all nodes in specified damping sub-model part 
+            // Loop over all nodes in specified damping sub-model part
             for ( ModelPart::NodeIterator node_itr = dampingRegion.NodesBegin(); node_itr != dampingRegion.NodesEnd(); ++node_itr )
             {
                 // Get node information
@@ -213,12 +221,12 @@ public:
 
                 // Perform spatial search for current node
                 unsigned int numberOfNodesAffected;
-                numberOfNodesAffected = treeOfAllOptimizationNodes.SearchInRadius( currentDampingNode, 
-                                                                                   dampingRadius, 
+                numberOfNodesAffected = treeOfAllOptimizationNodes.SearchInRadius( currentDampingNode,
+                                                                                   dampingRadius,
                                                                                    nodesAffected.begin(),
-                                                                                   resulting_squared_distances.begin(), 
-                                                                                   maxNodesAffected ); 
-                
+                                                                                   resulting_squared_distances.begin(),
+                                                                                   maxNodesAffected );
+
                 // Throw a warning if specified (hard-coded) maximum number of neighbors is reached
                 if(numberOfNodesAffected == maxNodesAffected)
                     std::cout << "\n> WARNING!!!!! For node " << currentDampingNode.Id() << " and specified damping radius, maximum number of neighbor nodes (=" << maxNodesAffected << " nodes) reached!" << std::endl;
@@ -233,15 +241,15 @@ public:
                     // Computation of damping factor
                     double dampingFactor = dampingFunction.compute_damping_factor(i_coord,j_coord);
 
-                    // For every specified damping direction we check if new damping factor is smaller than the assigned one for current node. 
+                    // For every specified damping direction we check if new damping factor is smaller than the assigned one for current node.
                     // In case yes, we overwrite the value. This ensures that the damping factor of a node is computed by its closest distance to the damping region
                     auto& damping_factor_variable = node_j.GetValue(DAMPING_FACTOR);
                     if(dampX && dampingFactor < damping_factor_variable[0])
                         damping_factor_variable[0] = dampingFactor;
-                    if(dampY && dampingFactor < damping_factor_variable[1])       
-                        damping_factor_variable[1] = dampingFactor;   
-                    if(dampZ && dampingFactor < damping_factor_variable[2])       
-                        damping_factor_variable[2] = dampingFactor;                            
+                    if(dampY && dampingFactor < damping_factor_variable[1])
+                        damping_factor_variable[1] = dampingFactor;
+                    if(dampZ && dampingFactor < damping_factor_variable[2])
+                        damping_factor_variable[2] = dampingFactor;
                 }
             }
         }
@@ -293,17 +301,17 @@ public:
             int i = node_i.GetValue(MAPPING_ID);
 
             // Arrays needed for spatial search
-            unsigned int maxNodesAffected = 10000;            
+            unsigned int maxNodesAffected = 10000;
             NodeVector nodesAffected(maxNodesAffected);
             DoubleVector resulting_squared_distances(maxNodesAffected);
 
 
             // Perform spatial search for current node
             unsigned int numberOfNodesAffected;
-            numberOfNodesAffected = treeOfAllOptimizationNodes.SearchInRadius( node_i, 
-                                                                               mFilterRadius, 
+            numberOfNodesAffected = treeOfAllOptimizationNodes.SearchInRadius( node_i,
+                                                                               mFilterRadius,
                                                                                nodesAffected.begin(),
-                                                                               resulting_squared_distances.begin(), 
+                                                                               resulting_squared_distances.begin(),
                                                                                maxNodesAffected );
 
             // Throw a warning if specified (hard-coded) maximum number of neighbors is reached
@@ -342,8 +350,8 @@ public:
             {
                 int j = listOfNeighborMappingIds[j_itr];
                 double Aij = list_of_weights[j_itr] / sum_weights;
-                mMappingMatrix.push_back(i,j,Aij);               
-            }                          
+                mMappingMatrix.push_back(i,j,Aij);
+            }
         }
 
         // Console output for information
@@ -351,14 +359,17 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void MapToDesignSpace( bool constraint_given )
+    void MapToDesignSpace(  const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace  )
     {
         // First we compute the new mapping matrix assuming that with each map to design space, the geometry changed
         compute_mapping_matrix();
 
+        bool constraint_given = false;
+
         // Measure time
         boost::timer mapping_time;
         std::cout << "\n> Starting mapping of sensitivities to design space..." << std::endl;
+        std::cout << "\n> ## WARNING ARMIN INCOMPLETE FOR CONSTRAINTS ..." << std::endl;
 
         // First we apply edge damping to the sensitivities if specified
         if(mPerformDamping)
@@ -371,8 +382,8 @@ public:
                 {
                     node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY_X) *= node_i->GetValue(DAMPING_FACTOR_X);
                     node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY_Y) *= node_i->GetValue(DAMPING_FACTOR_Y);
-                    node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY_Z) *= node_i->GetValue(DAMPING_FACTOR_Z);                    
-                }                
+                    node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY_Z) *= node_i->GetValue(DAMPING_FACTOR_Z);
+                }
             }
 
         // Map objective sensitivities
@@ -411,9 +422,20 @@ public:
         dJdsx.resize(mNumberOfDesignVariables);
         dJdsy.resize(mNumberOfDesignVariables);
         dJdsz.resize(mNumberOfDesignVariables);
-        SparseSpaceType::TransposeMult(mMappingMatrix,dJdX,dJdsx);
-        SparseSpaceType::TransposeMult(mMappingMatrix,dJdY,dJdsy);
-        SparseSpaceType::TransposeMult(mMappingMatrix,dJdZ,dJdsz);
+        if (mUseTranspose)
+        {
+            std::cout << "> Use transpose matrix ARMIN" << std::endl;
+            SparseSpaceType::TransposeMult(mMappingMatrix,dJdX,dJdsx);
+            SparseSpaceType::TransposeMult(mMappingMatrix,dJdY,dJdsy);
+            SparseSpaceType::TransposeMult(mMappingMatrix,dJdZ,dJdsz);
+        }
+        else
+        {
+            std::cout << "> Use correct matrix ARMIN" << std::endl;
+            SparseSpaceType::Mult(mMappingMatrix,dJdX,dJdsx);
+            SparseSpaceType::Mult(mMappingMatrix,dJdY,dJdsy);
+            SparseSpaceType::Mult(mMappingMatrix,dJdZ,dJdsz);
+        }
 
         // Assign results to nodal variables
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
@@ -434,9 +456,20 @@ public:
             dCdsx.resize(mNumberOfDesignVariables);
             dCdsy.resize(mNumberOfDesignVariables);
             dCdsz.resize(mNumberOfDesignVariables);
-            SparseSpaceType::TransposeMult(mMappingMatrix,dCdX,dCdsx);
-            SparseSpaceType::TransposeMult(mMappingMatrix,dCdY,dCdsy);
-            SparseSpaceType::TransposeMult(mMappingMatrix,dCdZ,dCdsz);
+            if (mUseTranspose)
+            {
+                std::cout << "> Use transpose matrix ARMIN" << std::endl;
+                SparseSpaceType::TransposeMult(mMappingMatrix,dCdX,dCdsx);
+                SparseSpaceType::TransposeMult(mMappingMatrix,dCdY,dCdsy);
+                SparseSpaceType::TransposeMult(mMappingMatrix,dCdZ,dCdsz);
+            }
+            else
+            {
+                std::cout << "> Use correct matrix ARMIN" << std::endl;
+                SparseSpaceType::Mult(mMappingMatrix,dCdX,dCdsx);
+                SparseSpaceType::Mult(mMappingMatrix,dCdY,dCdsy);
+                SparseSpaceType::Mult(mMappingMatrix,dCdZ,dCdsz);
+            }
 
             // Assign results to nodal variables
             for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
@@ -455,7 +488,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void MapToGeometrySpace()
+    void MapToGeometrySpace(const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace)
     {
         // Measure time of mapping
         boost::timer mapping_time;
@@ -518,17 +551,17 @@ public:
         // Apply edge damping if specified
         if(mPerformDamping)
             for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
-            {   
+            {
                 node_i->FastGetSolutionStepValue(SHAPE_UPDATE_X) *= node_i->GetValue(DAMPING_FACTOR_X);
                 node_i->FastGetSolutionStepValue(SHAPE_UPDATE_Y) *= node_i->GetValue(DAMPING_FACTOR_Y);
                 node_i->FastGetSolutionStepValue(SHAPE_UPDATE_Z) *= node_i->GetValue(DAMPING_FACTOR_Z);
             }
-
-        // Update model part and record absolute shape change 
+/*
+        // Update model part and record absolute shape change
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
             array_3d& shape_update = node_i->FastGetSolutionStepValue(SHAPE_UPDATE);
-                
+
             // Update coordinates
             node_i->X() += shape_update[0];
             node_i->Y() += shape_update[1];
@@ -537,7 +570,7 @@ public:
             // Add shape update to previous updates
             noalias(node_i->FastGetSolutionStepValue(SHAPE_CHANGE_ABSOLUTE)) += shape_update;
         }
-
+*/
         // Console output for information
         std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
     }
@@ -637,6 +670,7 @@ private:
     std::string mFilterFunction;
     const double mFilterRadius;
     bool mPerformDamping;
+    bool mUseTranspose;
 
     // ==============================================================================
     // General working arrays
