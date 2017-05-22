@@ -271,20 +271,20 @@ public:
         {
             if (IsConvergedActive == true)
             {
-                std::cout << BOLD("\tActive set") << " convergence is " << BOLD(FGRN("achieved")) << std::endl;
+                std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
             }
             else
             {
-                std::cout << BOLD("\tActive set") << " convergence is " << BOLD(FRED("not achieved")) << std::endl;
+                std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
             }
             
             if (IsConvergedSlip == true)
             {
-                std::cout << BOLD("\tSlip/stick set") << " convergence is " << BOLD(FGRN("achieved")) << std::endl;
+                std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
             }
             else
             {
-                std::cout << BOLD("\tSlip/stick set") << " convergence is " << BOLD(FRED("not achieved")) << std::endl;
+                std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
             }
         }
         

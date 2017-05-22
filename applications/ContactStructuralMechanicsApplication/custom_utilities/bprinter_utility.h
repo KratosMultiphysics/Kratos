@@ -17,7 +17,6 @@
 // External includes
 
 // Project includes
-// #include "custom_utilities/color_utilities.h"
 #include "custom_external_libraries/bprinter/table_printer.h"
 
 namespace Kratos
@@ -112,8 +111,10 @@ public:
         
     void AddColumn(std::string ThisName, unsigned int ThisSpaces)
     {
-//         ThisName = BOLD(ThisName);
-        mTable.AddColumn(ThisName, ThisSpaces);
+        std::string ThisNameBold = "\e[1m";
+        ThisNameBold.append(ThisName);
+        ThisNameBold.append("\e[0m");
+        mTable.AddColumn(ThisNameBold, ThisSpaces);
     }
     
 protected:

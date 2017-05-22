@@ -19,7 +19,7 @@
 #define FCYN(x) KCYN x RST
 #define FWHT(x) KWHT x RST
 
-#define BOLD(x) "\x1B[1m" x RST
+#define BOLDFONT(x) "\x1B[1m" x RST
 #define UNDL(x) "\x1B[4m" x RST
 
 #endif  /* _COLORS_ */

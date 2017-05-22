@@ -248,9 +248,9 @@ public:
             if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
             {
                 std::cout.precision(4);
-                std::cout << BOLD("RESIDUAL CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
-                std::cout << BOLD("\tDISPLACEMENT: RATIO = ") << ResidualDispRatio << BOLD(" EXP.RATIO = ") << mDispRatioTolerance << BOLD(" ABS = ") << ResidualDispAbs  << BOLD(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
-                std::cout << BOLD("\tLAGRANGE MUL: RATIO = ") << ResidualLMRatio  << BOLD(" EXP.RATIO = ") << mLMRatioTolerance << BOLD(" ABS = ") << ResidualLMAbs << BOLD(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
+                std::cout << BOLDFONT("RESIDUAL CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
+                std::cout << BOLDFONT("\tDISPLACEMENT: RATIO = ") << ResidualDispRatio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << ResidualDispAbs  << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
+                std::cout << BOLDFONT("\tLAGRANGE MUL: RATIO = ") << ResidualLMRatio  << BOLDFONT(" EXP.RATIO = ") << mLMRatioTolerance << BOLDFONT(" ABS = ") << ResidualLMAbs << BOLDFONT(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
             }
 
             rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = (ResidualDispRatio > ResidualLMRatio) ? ResidualDispRatio : ResidualLMRatio;
@@ -261,7 +261,7 @@ public:
             {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
                 {
-                    std::cout << BOLD("\tResidual") << " convergence is " << BOLD(FGRN("achieved")) << std::endl;
+                    std::cout << BOLDFONT("\tResidual") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
                 }
                 return true;
             }
@@ -269,7 +269,7 @@ public:
             {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
                 {
-                    std::cout << BOLD("\tResidual") << " convergence is " << BOLD(FRED(" not achieved")) << std::endl;
+                    std::cout << BOLDFONT("\tResidual") << " convergence is " << BOLDFONT(FRED(" not achieved")) << std::endl;
                 }
                 return false;
             }

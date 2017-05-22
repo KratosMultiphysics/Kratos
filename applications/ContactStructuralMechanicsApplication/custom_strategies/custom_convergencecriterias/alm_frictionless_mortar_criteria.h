@@ -233,11 +233,11 @@ public:
         {
             if (IsConverged == true)
             {
-                std::cout << BOLD("\tActive set") << " convergence is " << BOLD(FGRN("achieved")) << std::endl;
+                std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
             }
             else
             {
-                std::cout << BOLD("\tActive set") << " convergence is " << BOLD(FRED("not achieved")) << std::endl;
+                std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
             }
         }
         
