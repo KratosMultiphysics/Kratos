@@ -127,7 +127,7 @@ def AssambleTestSuites():
             TSimplestPatchTestThreeDMeshTying,
             ##TSimplePatchTestThreeDMeshTying, # FIXME: Some error in the mesh tying condition
             TALMHyperSimplePatchTestContact,
-            TALMHyperSimpleSlopePatchTestContact, # FIXME: Some error with slopes (contact pressure not correct)
+            TALMHyperSimpleSlopePatchTestContact,
             TALMSimplePatchTestContact,
             TALMSimpleSlopePatchTestContact, 
             TALMSimplePatchNotMatchingATestContact,
