@@ -28,12 +28,6 @@
 #include "utilities/openmp_utils.h"
 #include "utilities/variable_utils.h"
 
-// Convergence criterias
-#include "solving_strategies/convergencecriterias/convergence_criteria.h"
-
-// Default builder and solver
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-
 // TODO: Extend the descriptions
 
 namespace Kratos {
