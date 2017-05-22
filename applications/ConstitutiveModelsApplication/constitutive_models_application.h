@@ -63,8 +63,10 @@
 #include "custom_models/elasticity_models/linear_elastic_model.hpp"
 #include "custom_models/elasticity_models/saint_venant_kirchhoff_model.hpp"
 #include "custom_models/elasticity_models/neo_hookean_model.hpp"
-#include "custom_models/elasticity_models/compressible_neo_hookean_model.hpp"
+#include "custom_models/elasticity_models/neo_hookean_lnJ_squared_model.hpp"
+#include "custom_models/elasticity_models/neo_hookean_J_1_squared_model.hpp"
 #include "custom_models/elasticity_models/isochoric_neo_hookean_model.hpp"
+#include "custom_models/elasticity_models/isochoric_neo_hookean_lnJ_squared_model.hpp"
 #include "custom_models/elasticity_models/incompressible_neo_hookean_model.hpp"
 #include "custom_models/elasticity_models/borja_model.hpp"
 
@@ -264,8 +266,10 @@ namespace Kratos {
     const LinearElasticModel                       mLinearElasticModel;
     const SaintVenantKirchhoffModel                mSaintVenantKirchhoffModel;
     const NeoHookeanModel                          mNeoHookeanModel;
-    const NeoHookeanModel                          mCompressibleNeoHookeanModel;
+    const NeoHookeanLnJSquaredModel                mNeoHookeanLnJSquaredModel;
+    const NeoHookeanJ_1SquaredModel                mNeoHookeanJ_1SquaredModel;
     const IsochoricNeoHookeanModel                 mIsochoricNeoHookeanModel;
+    const IsochoricNeoHookeanLnJSquaredModel       mIsochoricNeoHookeanLnJSquaredModel;
     const IncompressibleNeoHookeanModel            mIncompressibleNeoHookeanModel;
     const BorjaModel                               mBorjaModel;
 
@@ -280,8 +284,8 @@ namespace Kratos {
     const MisesHuberYieldCriterion<HardeningLawType>         mMisesHuberYieldCriterion;
     const MisesHuberThermalYieldCriterion<HardeningLawType>  mMisesHuberThermalYieldCriterion;
     const SimoJuYieldCriterion<HardeningLawType>             mSimoJuYieldCriterion;
-    const ModifiedMisesYieldCriterion<HardeningLawType>     mModifiedMisesYieldCriterion;
-    const ModifiedCamClayYieldCriterion<HardeningLawType>     mModifiedCamClayYieldCriterion;
+    const ModifiedMisesYieldCriterion<HardeningLawType>      mModifiedMisesYieldCriterion;
+    const ModifiedCamClayYieldCriterion<HardeningLawType>    mModifiedCamClayYieldCriterion;
     
     //hardening laws
     const SimoExponentialHardeningLaw              mSimoExponentialHardeningLaw;

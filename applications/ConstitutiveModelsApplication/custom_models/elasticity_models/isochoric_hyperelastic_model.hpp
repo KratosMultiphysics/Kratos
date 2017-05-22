@@ -470,8 +470,9 @@ namespace Kratos
                 //         Ccdmn = GetIsochoricLeftCauchyGreenDerivative( rVariables.Strain, Ccdmn,c,d,m,n);
 
 		// 	//2nd derivatives
-		// 	Cabcd = GetI1LeftCauchyGreen2ndDerivative(rVariables.Strain,Cabcd,e,f,m,n);			
-		// 	Cefmn += rVariables.Factors.Alpha1 * Cabcd * Cabef * Ccdmn;
+		//      //check why this term is not needed
+		// 	//Cabcd = GetI1LeftCauchyGreen2ndDerivative(rVariables.Strain,Cabcd,e,f,m,n);			
+		// 	//Cefmn += rVariables.Factors.Alpha1 * Cabcd * Cabef * Ccdmn;
 						
 		// 	Cabcd = GetI2LeftCauchyGreen2ndDerivative(rVariables.Strain,Cabcd,e,f,m,n);
 		// 	Cefmn += rVariables.Factors.Alpha2 * Cabcd * Cabef * Ccdmn;
