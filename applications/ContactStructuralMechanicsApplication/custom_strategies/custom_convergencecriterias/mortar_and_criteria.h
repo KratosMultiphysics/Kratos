@@ -178,7 +178,7 @@ public:
     {
         if (mpTable != nullptr)
         {
-            mpTable->AddColumn("NL ITERATION", 4);
+            mpTable->AddColumn("NL ITERATION", 18);
         }
         
          BaseType::Initialize(rModelPart);
