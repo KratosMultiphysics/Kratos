@@ -89,14 +89,18 @@ public:
      * @param DispAbsTolerance Absolute tolerance for displacement residual error
      * @param LMRatioTolerance Relative tolerance for lagrange multiplier residual  error
      * @param LMAbsTolerance Absolute tolerance for lagrange multiplier residual error
+     * @param EnsureContact: To check if the contact is lost
      */
     
     DisplacementLagrangeMultiplierResidualContactCriteria(  
-                    TDataType DispRatioTolerance,
-                    TDataType DispAbsTolerance,
-                    TDataType LMRatioTolerance,
-                    TDataType LMAbsTolerance)
-        : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
+        TDataType DispRatioTolerance,
+        TDataType DispAbsTolerance,
+        TDataType LMRatioTolerance,
+        TDataType LMAbsTolerance,
+        bool EnsureContact = false 
+        )
+        : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
+          mEnsureContact(EnsureContact)
     {
         mDispRatioTolerance = DispRatioTolerance;
         mDispAbsTolerance = DispAbsTolerance;
@@ -209,9 +213,9 @@ public:
             }
             
             // We calculate the ratio of the displacements
-            if(mDispInitialResidualNorm == 0.00)
+            if(mDispInitialResidualNorm == 0.0)
             {
-                ResidualDispRatio = 0.00;
+                ResidualDispRatio = 0.0;
             }
             else
             {
@@ -219,15 +223,23 @@ public:
             }
             
             // We calculate the ratio of the LM
-            if(mLMInitialResidualNorm == 0.00)
+            if(mLMInitialResidualNorm == 0.0)
             {
-                ResidualLMRatio = 0.00;
+                ResidualLMRatio = 0.0;
             }
             else
             {
                 ResidualLMRatio = mLMCurrentResidualNorm/mLMInitialResidualNorm;
             }
 
+            if (mEnsureContact == true)
+            {
+                if (ResidualLMRatio == 0.0)
+                {
+                    KRATOS_ERROR << "WARNING::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
+                }
+            }
+            
             // We calculate the absolute norms
             TDataType ResidualDispAbs = mDispCurrentResidualNorm/DispDofNum;
             TDataType ResidualLMAbs = mLMCurrentResidualNorm/LMDofNum;
@@ -373,6 +385,8 @@ private:
     ///@{
     
     bool mInitialResidualIsSet;
+    
+    const bool mEnsureContact;
     
     TDataType mDispRatioTolerance;
     TDataType mDispAbsTolerance;

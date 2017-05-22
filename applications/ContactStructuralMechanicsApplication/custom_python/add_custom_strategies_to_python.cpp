@@ -146,6 +146,7 @@ void  AddCustomStrategiesToPython()
             (
             "DisplacementLagrangeMultiplierContactCriteria", 
             init< double, double, double, double >())
+            .def(init< double, double, double, double, bool >())
             .def("SetEchoLevel", &DisplacementLagrangeMultiplierContactCriteriaType::SetEchoLevel)
             ;
             
@@ -155,6 +156,7 @@ void  AddCustomStrategiesToPython()
             (
             "DisplacementLagrangeMultiplierResidualContactCriteria", 
             init< double, double, double, double >())
+            .def(init< double, double, double, double, bool >())
             .def("SetEchoLevel", &DisplacementLagrangeMultiplierResidualContactCriteriaType::SetEchoLevel)
             ;
             

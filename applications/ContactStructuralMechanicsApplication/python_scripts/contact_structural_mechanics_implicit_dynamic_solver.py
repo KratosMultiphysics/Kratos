@@ -66,6 +66,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             "residual_relative_tolerance": 1.0e-4,
             "residual_absolute_tolerance": 1.0e-9,
             "max_iteration": 10,
+            "ensure_contact": false,
             "split_factor": 10.0,
             "max_number_splits": 3,
             "rescale_factor": false,
@@ -145,27 +146,28 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             D_AT = self.settings["displacement_absolute_tolerance"].GetDouble()
             R_RT = self.settings["residual_relative_tolerance"].GetDouble()
             R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
+            ensure_contact = self.settings["ensure_contact"].GetBool()
             echo_level = self.settings["echo_level"].GetInt()
             
             if(self.settings["convergence_criterion"].GetString() == "Contact_Displacement_criterion"):
-                convergence_criterion = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT,D_RT, D_AT)
+                convergence_criterion = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, D_RT, D_AT, ensure_contact)
                 convergence_criterion.SetEchoLevel(echo_level)
                 
             elif(self.settings["convergence_criterion"].GetString() == "Contact_Residual_criterion"):
-                convergence_criterion = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, R_RT, R_AT)
+                convergence_criterion = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, R_RT, R_AT, ensure_contact)
                 convergence_criterion.SetEchoLevel(echo_level)
                     
             elif(self.settings["convergence_criterion"].GetString() == "Contact_And_criterion"):
-                Displacement = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, D_RT, D_AT)
+                Displacement = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, D_RT, D_AT, ensure_contact)
                 Displacement.SetEchoLevel(echo_level)
-                Residual = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, R_RT, R_AT)
+                Residual = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, R_RT, R_AT, ensure_contact)
                 Residual.SetEchoLevel(echo_level)
                 convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
                 
             elif(self.settings["convergence_criterion"].GetString() == "Contact_Or_criterion"):
-                Displacement = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, D_RT, D_AT)
+                Displacement = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, D_RT, D_AT,ensure_contact)
                 Displacement.SetEchoLevel(echo_level)
-                Residual = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, R_RT, R_AT)
+                Residual = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, R_RT, R_AT, ensure_contact)
                 Residual.SetEchoLevel(echo_level)
                 convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
             

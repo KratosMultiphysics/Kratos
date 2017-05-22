@@ -85,17 +85,22 @@ public:
 
     /// Constructor.
     /**
-     * @param DispRatioTolerance Relative tolerance for displacement error
-     * @param DispAbsTolerance Absolute tolerance for displacement error
-     * @param LMRatioTolerance Relative tolerance for lagrange multiplier error
-     * @param LMAbsTolerance Absolute tolerance for lagrange multiplier error
+     * @param DispRatioTolerance: Relative tolerance for displacement error
+     * @param DispAbsTolerance: Absolute tolerance for displacement error
+     * @param LMRatioTolerance: Relative tolerance for lagrange multiplier error
+     * @param LMAbsTolerance: Absolute tolerance for lagrange multiplier error
+     * @param EnsureContact: To check if the contact is lost
      */
+    
     DisplacementLagrangeMultiplierContactCriteria(  
-                    TDataType DispRatioTolerance,
-                    TDataType DispAbsTolerance,
-                    TDataType LMRatioTolerance,
-                    TDataType LMAbsTolerance)
-        : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
+        TDataType DispRatioTolerance,
+        TDataType DispAbsTolerance,
+        TDataType LMRatioTolerance,
+        TDataType LMAbsTolerance,
+        bool EnsureContact = false
+        )
+        : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
+        mEnsureContact(EnsureContact)
     {
         mDispRatioTolerance = DispRatioTolerance;
         mDispAbsTolerance = DispAbsTolerance;
@@ -198,8 +203,12 @@ public:
             if(LMSolutionNorm == 0.0)
             {
                 LMSolutionNorm = 1.0;
+                if (mEnsureContact == true)
+                {
+                    KRATOS_ERROR << "WARNING::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
+                }
             }
-
+            
             TDataType DispRatio = std::sqrt(DispIncreaseNorm/DispSolutionNorm);
             TDataType LMRatio = std::sqrt(LMIncreaseNorm/LMSolutionNorm);
 
@@ -342,6 +351,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    
+    const bool mEnsureContact;
     
     TDataType mDispRatioTolerance;
     TDataType mDispAbsTolerance;
