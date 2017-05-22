@@ -24,6 +24,9 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 
   ## UTILITIES
   
+  ## EXTERNAL LIBRARIES
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/bprinter/table_printer.cpp
+  
   ## CONDITIONS
   # Mortar condition
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mesh_tying_mortar_condition.cpp

@@ -23,6 +23,7 @@
 #include "linear_solvers/linear_solver.h"
 
 //Utilities
+#include "custom_utilities/bprinter_utility.h"
 #include "custom_utilities/tree_contact_search.h"
 #include "custom_utilities/exact_mortar_segmentation_utility.h"
 
@@ -34,6 +35,10 @@ void  AddCustomUtilitiesToPython()
 {
     using namespace boost::python;
     
+    // Adding table from bprinter to python
+    class_<BprinterUtility>("BprinterUtility", init<>());
+    
+    // Tree contact search
     class_<TreeContactSearch>("TreeContactSearch", init<ModelPart&>())
     .def(init<ModelPart&, Parameters>())
     .def("InitializeMortarConditions",&TreeContactSearch::InitializeMortarConditions)
