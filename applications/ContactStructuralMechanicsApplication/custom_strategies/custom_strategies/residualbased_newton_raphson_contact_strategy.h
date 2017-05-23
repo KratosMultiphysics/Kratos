@@ -207,9 +207,9 @@ public:
      * Solves the current step. This function returns true if a solution has been found, false otherwise.
      */
     
-    bool SolveSolutionStep() override
+    virtual bool SolveSolutionStep() override
     {
-        bool is_converged = BaseType::SolveSolutionStep();
+        bool IsConverged = BaseType::SolveSolutionStep();
         
 //         // We update the contact reactions
 //         TSystemVectorType& b = *BaseType::mpb;
@@ -217,12 +217,12 @@ public:
         
 //         // TODO: Finish this!!!
 //         Plots a warning if the maximum number of iterations is exceeded
-//         if (is_converged == false)
+//         if (IsConverged == false)
 //         {
 //             double original_delta_time = StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]; // We save the delta time to restore later
 //             
 //             // We iterate until we reach the convergence or we split more than desired
-//             while (is_converged == false && split_number <= mMaxNumberSplits)
+//             while (IsConverged == false && split_number <= mMaxNumberSplits)
 //             {   
 //                 // Expliting time step as a way to try improve the convergence
 //                 split_number += 1;
@@ -239,7 +239,7 @@ public:
 //                 CoutSplittingTime(aux_delta_time);
 //                 
 //                 unsigned int aux_cout = 0;
-//                 while (is_converged == false && StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] <= aux_time && iteration_number < BaseType::mMaxIterationNumber)
+//                 while (IsConverged == false && StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] <= aux_time && iteration_number < BaseType::mMaxIterationNumber)
 //                 {      
 //                     iteration_number = 1;
 //                     current_time += aux_delta_time;
@@ -256,17 +256,17 @@ public:
 //                     // We repeat the predict with the new DELTA_TIME
 //                     Predict();
 //                     
-//                     BaseType::InitiliazeCycle(is_converged, ResidualIsUpdated, iteration_number, pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb);
-//                     BaseType::IterationCycle(is_converged, ResidualIsUpdated, iteration_number, pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb); 
+//                     BaseType::InitiliazeCycle(IsConverged, ResidualIsUpdated, iteration_number, pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb);
+//                     BaseType::IterationCycle(IsConverged, ResidualIsUpdated, iteration_number, pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb); 
 //                 
 //                     // Plots a warning if the maximum number of iterations is exceeded
-//                     if (is_converged == false  && iteration_number >= BaseType::mMaxIterationNumber && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+//                     if (IsConverged == false  && iteration_number >= BaseType::mMaxIterationNumber && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0)
 //                     {
 //                         MaxIterationsExceeded();
 //                     }
 //                 }
 //                 
-//                 if (is_converged == true)
+//                 if (IsConverged == true)
 //                 {
 //                     // Restoring original DELTA_TIME
 //                     StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME] = original_delta_time;
@@ -274,13 +274,13 @@ public:
 //             }
 //             
 //             // Plots a warning if the maximum number of iterations and splits are exceeded
-//             if (is_converged == false  && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+//             if (IsConverged == false  && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0)
 //             {
 //                 MaxIterationsAndSplitsExceeded();
 //             }
 //         }
 
-        return is_converged;
+        return IsConverged;
     }
         
     ///@}
@@ -324,7 +324,7 @@ protected:
      * A member variable should be used as a flag to make sure this function is called only once per step.
      */
         
-    void InitializeSolutionStep() override
+    virtual void InitializeSolutionStep() override
     {
         BaseType::InitializeSolutionStep();
         
@@ -478,7 +478,7 @@ protected:
      * Here the database is updated
      */
      
-    void UpdateDatabase(
+    virtual void UpdateDatabase(
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b,

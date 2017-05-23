@@ -124,12 +124,21 @@ public:
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = true,
-        typename TConvergenceAcceleratorType::Pointer pConvergenceAccelerator = nullptr
-    )
+        typename TConvergenceAcceleratorType::Pointer pConvergenceAccelerator = nullptr,
+        Parameters ThisParameters =  Parameters(R"({})"
+        )
         : ResidualBasedNewtonRaphsonContactStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
     {
         KRATOS_TRY;
 
+        Parameters DefaultParameters = Parameters(R"(
+        {
+            "max_number_accel_iterations" : 10
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        mMaxNumberAccelerationIterations = ThisParameters["max_number_accel_iterations"].GetInt();
+        
         // Saving convergence accelerator
         mpConvergenceAccelerator = pConvergenceAccelerator;
 
@@ -181,7 +190,26 @@ public:
     
     /******************** OPERATIONS ACCESSIBLE FROM THE INPUT: ************************/
     /***********************************************************************************/
-
+    
+    /**
+     * Solves the current step. This function returns true if a solution has been found, false otherwise.
+     */
+    
+    bool SolveSolutionStep() override
+    {
+        bool IsConverged = BaseType::SolveSolutionStep();
+    
+        TSystemMatrixType& A = *NewtonBaseType::mpA;
+        TSystemVectorType& Dx = *NewtonBaseType::mpDx;
+        TSystemVectorType& b = *NewtonBaseType::mpb;
+        
+        ResidualIsUpdated = false;
+            
+        ApplyAcceleration(A, Dx, b, StrategyBaseType::MoveMeshFlag(), IsConverged, ResidualIsUpdated);
+        
+        return IsConverged;
+    }
+    
     /**
      * Initialization of member variables and prior operations
      */
@@ -255,7 +283,6 @@ public:
     {
         BaseType::UpdateDatabase(A, Dx, b, MoveMesh);
         
-        // TODO: add ApplyAcceleration
         // TODO: Separate residual by DoF type
     }
 
@@ -303,6 +330,7 @@ protected:
     ///@{
     
     typename TConvergenceAcceleratorType::Pointer mpConvergenceAccelerator;
+    unsigned int mMaxNumberAccelerationIterations;
 
     ///@}
     ///@name Protected Operators
@@ -318,39 +346,36 @@ protected:
         TSystemVectorType& b,
         const bool MoveMesh,
         bool& IsConverged,
-        bool& ResidualIsUpdated,
-        const unsigned IterationNumber
+        bool& ResidualIsUpdated
     )
     {
         typename TSchemeType::Pointer pScheme = StrategyBaseType::GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = StrategyBaseType::GetBuilderAndSolver();
         
-//         unsigned int iAccel = 0;
-//         unsigned int MaxNumberAccel = 5;
-//         while (IsConverged == false && iAccel++ < MaxNumberAccel)
-        if (IsConverged == false)// && IsIteration == true)
+        if (this->GetEchoLevel() != 0)
         {
-//             if (iAccel == 0)
+            std::cout << "  Applying the convergence accelerator" << std::endl;
+        }
+        
+        while (IsConverged == false && iAccel++ < mMaxNumberAccelerationIterations)
+        {
+            pBuilderAndSolver->BuildRHS(pScheme, StrategyBaseType::GetModelPart(), b);
+            
             if (this->GetEchoLevel() != 0)
             {
-                std::cout << "  Applying the convergence accelerator" << std::endl;
+                std::cout << "  CONV_IT: " << iAccel << " RESIDUAL NORM: " << norm_2(b) << std::endl;
             }
-//             std::cout << "  CONV_IT: " << iAccel << " RESIDUAL NORM: " << norm_2(b) << std::endl;
-           
-//             pBuilderAndSolver->BuildRHS(pScheme, StrategyBaseType::GetModelPart(), b);
         
-            Vector UpdatedX( Dx.size() ); //UpdatedX
+            Vector UpdatedX( Dx.size() ); //UpdatedX // TODO: Divide residual
             UpdatedX.clear();
-            for(typename DofsArrayType::iterator iDof = this->GetBuilderAndSolver()->GetDofSet().begin() ; iDof != this->GetBuilderAndSolver()->GetDofSet().end() ; ++iDof)
+            DofsArrayType DofsArray = pBuilderAndSolver->GetDofSet();
+            for(typename DofsArrayType::iterator iDof = DofsArray.begin() ; iDof != DofsArray.end() ; ++iDof)
             {
                 if (iDof->IsFree() == true)
                 {
                     UpdatedX[ iDof->EquationId() ] = iDof->GetSolutionStepValue();
                 }
             }
-            
-            // We calculate the norm of b
-//             const double normA = SparseSpaceType::TwoNorm(A);
 
             // Calculate the new displacement
             Vector tmp = UpdatedX;
@@ -358,15 +383,12 @@ protected:
             pScheme->InitializeNonLinIteration(StrategyBaseType::GetModelPart(), A, Dx, b);
 //             IsConverged = StrategyBaseType::mpConvergenceCriteria->PreCriteria(StrategyBaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
             mpConvergenceAccelerator->UpdateSolution(Dx, UpdatedX);
-//             mpConvergenceAccelerator->UpdateSolution(b/normA, UpdatedX);
             mpConvergenceAccelerator->FinalizeNonLinearIteration();   
             
             // Update residual variables
             Dx = UpdatedX - tmp;
-            
-//             const unsigned int IterationThreshold = 10;
-//             if (IterationNumber > IterationThreshold) // NOTE: think about this, just accelerate when not converging  
-            NewtonBaseType::UpdateDatabase(A, Dx, b, MoveMesh);
+             
+            BaseType::UpdateDatabase(A, Dx, b, MoveMesh);
             
             pScheme->FinalizeNonLinIteration(StrategyBaseType::GetModelPart(), A, Dx, b);
 
@@ -384,12 +406,11 @@ protected:
                                     
                 IsConverged = StrategyBaseType::mpConvergenceCriteria->PostCriteria(StrategyBaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
             }
-            
-            if (this->GetEchoLevel() != 0)
-//             if (IsConverged == true || iAccel == MaxNumberAccel)
-            {
-                std::cout << "  Finishing the convergence accelerator" << std::endl;
-            }
+        }
+        
+        if (this->GetEchoLevel() != 0)
+        {
+            std::cout << "  Finishing the convergence accelerator" << std::endl;
         }
     }
     
