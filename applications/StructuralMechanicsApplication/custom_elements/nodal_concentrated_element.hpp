@@ -57,9 +57,9 @@ public:
     ///@{
 
     /// Default constructors
-    NodalConcentratedElement(IndexType NewId, GeometryType::Pointer pGeometry, bool UseRayleighDamping = true);
+    NodalConcentratedElement(IndexType NewId, GeometryType::Pointer pGeometry, bool UseRayleighDamping = false);
 
-    NodalConcentratedElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, bool UseRayleighDamping = true);
+    NodalConcentratedElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, bool UseRayleighDamping = false);
 
     ///Copy constructor
     NodalConcentratedElement(NodalConcentratedElement const& rOther);
