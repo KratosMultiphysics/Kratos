@@ -28,6 +28,9 @@
 #include "geometries/prism_3d_6.h"
 #include "geometries/hexahedra_3d_8.h"
 
+#ifdef KRATOS_USING_MPI
+#include "mpi.h"
+#endif
 
 namespace Kratos
 {
@@ -39,14 +42,26 @@ void KratosMappingApplication::Register()
     // calling base class register to register Kratos components
     KratosApplication::Register();
 
-    std::cout << "    KRATOS ______  ___                      _____  "                          << std::endl;
-    std::cout << "           ___   |/  /_____ ___________________(_)_____________ _  "          << std::endl;
-    std::cout << "           __  /|_/ /_  __ `/__  __ \\__  __ \\_  /__  __ \\_  __ `/  "       << std::endl;
-    std::cout << "           _  /  / / / /_/ /__  /_/ /_  /_/ /  / _  / / /  /_/ /  "           << std::endl;
-    std::cout << "           /_/  /_/  \\__,_/ _  .___/_  .___//_/  /_/ /_/_\\__, /  "          << std::endl;
-    std::cout << "                            /_/     /_/                 /____/ Application"   << std::endl;
+    std::stringstream banner;
+    banner << "    KRATOS ______  ___                      _____  "                          << std::endl;
+    banner << "           ___   |/  /_____ ___________________(_)_____________ _  "          << std::endl;
+    banner << "           __  /|_/ /_  __ `/__  __ \\__  __ \\_  /__  __ \\_  __ `/  "       << std::endl;
+    banner << "           _  /  / / / /_/ /__  /_/ /_  /_/ /  / _  / / /  /_/ /  "           << std::endl;
+    banner << "           /_/  /_/  \\__,_/ _  .___/_  .___//_/  /_/ /_/_\\__, /  "          << std::endl;
+    banner << "                            /_/     /_/                 /____/ Application"   << std::endl;
 
-    std::cout << "Initializing KratosMappingApplication... " << std::endl;
+    banner << "Initializing KratosMappingApplication... " << std::endl;
+
+    int rank = 0;
+
+    #ifdef KRATOS_USING_MPI // mpi-parallel compilation
+        int mpi_initialized = 0;
+        MPI_Initialized(&mpi_initialized);
+        std::cout << mpi_initialized << std::endl;
+        if (mpi_initialized)   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    #endif
+
+    if (rank == 0) std::cout << banner.str();
 
     // Needed to exchange Information abt the found neighbors (i.e. only for debugging)
     KRATOS_REGISTER_VARIABLE( NEIGHBOR_RANK )
