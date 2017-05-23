@@ -73,7 +73,15 @@ namespace Kratos
       double Beta2;   //2nd derivative I2
       double Beta3;   //2nd derivative I3
       double Beta4;   //2nd derivative J
- 
+
+      // the implementation of the crossed derivatives have to be added for a more general form (usually they are zero)
+      // double Gamma21;  //2nd derivative ddW/dI2dI1
+      // double Gamma31;  //2nd derivative ddW/dI3dI1
+      // double Gamma12;  //2nd derivative ddW/dI1dI2
+      // double Gamma32;  //2nd derivative ddW/dI3dI2
+      // double Gamma13;  //2nd derivative ddW/dI1dI3
+      // double Gamma23;  //2nd derivative ddW/dI2dI3
+      
     };
    
     struct StrainData
@@ -352,7 +360,15 @@ namespace Kratos
     
     virtual double& GetVolumetricFunction2ndJDerivative(HyperElasticDataType& rVariables, double& rDerivative); //ddU/dJdJ
 
-    
+    // the implementation of the crossed derivatives have to be added for a more general form (usually they are zero)
+    // virtual double& GetFunction2ndI2I1Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI2dI1
+    // virtual double& GetFunction2ndI3I1Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI3dI1
+    // virtual double& GetFunction2ndI1I2Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI1dI2
+    // virtual double& GetFunction2ndI3I2Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI3dI2
+    // virtual double& GetFunction2ndI1I3Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI1dI3
+    // virtual double& GetFunction2ndI2I3Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI2dI3
+
+        
     double& GetFourthOrderUnitTensor(double& rValue,
 				     const double& a,
 				     const double& b,
