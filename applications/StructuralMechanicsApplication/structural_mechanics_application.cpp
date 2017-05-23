@@ -53,8 +53,8 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     // Adding the membrane element
     mMembraneElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
 	mMembraneElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ), false ),	
-	mMembrane1Element3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
-	mMembrane1Element3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ), false ),	
+	mPreStressMembraneElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mPreStressMembraneElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ), false ),
     // Adding the SPRISM element
     mSprismElement3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
     // Adding the nodal concentrated element
@@ -169,8 +169,8 @@ void KratosStructuralMechanicsApplication::Register()
     // Register the membrane element
     KRATOS_REGISTER_ELEMENT( "MembraneElement3D3N", mMembraneElement3D3N )
 	KRATOS_REGISTER_ELEMENT( "MembraneElement3D4N", mMembraneElement3D4N )
-	KRATOS_REGISTER_ELEMENT( "Membrane1Element3D3N", mMembrane1Element3D3N )
-	KRATOS_REGISTER_ELEMENT( "Membrane1Element3D4N", mMembrane1Element3D4N )	
+	KRATOS_REGISTER_ELEMENT( "PreStressMembraneElement3D3N", mPreStressMembraneElement3D3N)
+	KRATOS_REGISTER_ELEMENT( "PreStressMembraneElement3D4N", mPreStressMembraneElement3D4N)
 
     // Register the SPRISM element
     KRATOS_REGISTER_ELEMENT("SprismElement3D6N", mSprismElement3D6N);

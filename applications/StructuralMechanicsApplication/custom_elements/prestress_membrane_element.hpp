@@ -25,28 +25,28 @@
 namespace Kratos
 {
 
-/** \brief MembraneElement3D
+/** \brief PrestressMembraneElement
 * This is a 3D nonlinear isoparametric membrane element, which deals with large displacements.
 * Its functionalities for Formfinding (using Updated Reference Strategy) and Cutting Pattern are
 * implemented based on the dissertations of Roland Wuechner, Johannes Linhard, and Falko Dieringer
 * at TUM
 */
-  class MembraneElement3D
+  class PrestressMembraneElement
     : public Element
   {
   public:
 
     // Counted pointer of MembraneElement
-    KRATOS_CLASS_POINTER_DEFINITION(MembraneElement3D);
+    KRATOS_CLASS_POINTER_DEFINITION(PrestressMembraneElement);
 
     // Constructor using an array of nodes
-    MembraneElement3D(IndexType NewId, GeometryType::Pointer pGeometry);
+    PrestressMembraneElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
     // Constructor using an array of nodes with properties
-    MembraneElement3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    PrestressMembraneElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     // Destructor
-    virtual ~MembraneElement3D();
+    virtual ~PrestressMembraneElement();
 
 
     // Name Operations
@@ -211,7 +211,7 @@ namespace Kratos
       boost::numeric::ublas::bounded_matrix<double, 3, 3>& msQ,
       Matrix& msG);
 
-    void MembraneElement3D::CalculateB(
+    void PrestressMembraneElement::CalculateB(
         Matrix& B,
         boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
         const Matrix& DN_De,
@@ -296,7 +296,7 @@ namespace Kratos
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-    MembraneElement3D() {}
+    PrestressMembraneElement() {}
 
     void save(Serializer& rSerializer) const
     {
