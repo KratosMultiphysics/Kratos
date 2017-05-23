@@ -41,15 +41,22 @@ namespace Kratos
         {
             KRATOS_TRY
 
-            //reorder nodes Ids so that they start in 1
+            //reorder nodes,elements and conditions so that their Id start in 1 and is consecutive
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(mrModelPart.Nodes().size()); ++i)
-            {
-                auto pnode = *(mrModelPart.NodesBegin() + i).base();
-                pnode->SetId(i+1);
-            }
+                (mrModelPart.NodesBegin() + i)->SetId(i+1);
+            
+            #pragma omp parallel for
+            for(int i=0; i<static_cast<int>(mrModelPart.Elements().size()); ++i)
+                (mrModelPart.ElementsBegin() + i)->SetId(i+1);
+
+            #pragma omp parallel for
+            for(int i=0; i<static_cast<int>(mrModelPart.Conditions().size()); ++i)
+                (mrModelPart.ConditionsBegin() + i)->SetId(i+1);
             
             //optimize ordering
+            OptimizeOrdering();
+            
             
             //make a parallel clone of all the nodes
             #pragma omp parallel for
@@ -60,6 +67,7 @@ namespace Kratos
                 pnode.swap(paux);
             }
             
+            KRATOS_WATCH(&mrModelPart.Elements()[1])
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(mrModelPart.Elements().size()); ++i)
             {
@@ -79,6 +87,7 @@ namespace Kratos
                 
                 pelem.swap(paux);
             }
+KRATOS_WATCH(&mrModelPart.Elements()[1])
 
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(mrModelPart.Conditions().size()); ++i)
@@ -154,7 +163,7 @@ namespace Kratos
                 const auto& geom = elem->GetGeometry();
                 for(unsigned int k=0; k<geom.size(); ++k)
                     for(unsigned int l=0; l<geom.size(); ++l)
-                        graph[geom[k].Id()].insert(geom[l].Id());
+                        graph[geom[k].Id()-1].insert(geom[l].Id()-1); //the -1 is because the ids of our nodes start in 1
             }
             
             for(int i=0; i<static_cast<int>(mrModelPart.Conditions().size()); ++i)
@@ -163,7 +172,7 @@ namespace Kratos
                 const auto& geom = cond->GetGeometry();
                 for(unsigned int k=0; k<geom.size(); ++k)
                     for(unsigned int l=0; l<geom.size(); ++l)
-                        graph[geom[k].Id()].insert(geom[l].Id());
+                        graph[geom[k].Id()-1].insert(geom[l].Id()-1); //the -1 is because the ids of our nodes start in 1
             }
             
              
@@ -171,15 +180,28 @@ namespace Kratos
             for(unsigned int i=0; i<n; ++i)
                 nnz += graph[i].size();
             
-//             compress_matrix<std::size_t> graph_csr(n,n);
-//             for(unsigned int i=0; i<n; ++i)
-//                 for(const auto& k : graph[i])
-//                     graph_csr.push_back(i,k,0);
+            KRATOS_WATCH(nnz)
+            
+            CompressedMatrix graph_csr(n,n);
+            for(unsigned int i=0; i<n; ++i)
+                for(const auto& k : graph[i])
+                    graph_csr.push_back(i,k,1);
+                
+            KRATOS_WATCH(graph_csr)
                 
             //here must do the ordering!!
-        
+            std::vector<int> perm(graph_csr.size1());
+            CuthillMcKee<false>().get<CompressedMatrix>(graph_csr,perm);     
             
+            for(auto i : perm)
+                std::cout << i << std::endl;
             
+            #pragma omp parallel for
+            for(int i=0; i<static_cast<int>(mrModelPart.Nodes().size()); ++i)
+                (mrModelPart.NodesBegin() + i)->SetId(perm[i]+1);
+            
+            //reorder
+            mrModelPart.Nodes().Sort();
         }
         
 	std::string ReorderAndOptimizeModelPartProcess::Info() const {
