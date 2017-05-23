@@ -7,6 +7,8 @@
 #include <string>
 #include <sstream>
 #include <cmath>
+#include <boost/spirit/include/karma.hpp>
+namespace karma = boost::spirit::karma;
 
 namespace bprinter {
 class endl{};
@@ -81,23 +83,43 @@ public:
   }
 
 private:
-  void PrintHorizontalLine();
+    void PrintHorizontalLine();
+    
+    template<typename T> 
+    void OutputDecimalNumber(T input)
+    {
+        *out_stream_ << karma::format(
+                    karma::maxwidth(column_widths_.at(j_))[
+                    karma::right_align(column_widths_.at(j_))[
+                        karma::double_
+                    ]
+                    ], input
+                );
+        
+        if (j_ == get_num_columns()-1)
+        {
+            *out_stream_ << "|\n";
+            i_ = i_ + 1;
+            j_ = 0;
+        } 
+        else 
+        {
+            *out_stream_ << separator_;
+            j_ = j_ + 1;
+        }
+    }
+    
+    std::ostream * out_stream_;
+    std::vector<std::string> column_headers_;
+    std::vector<int> column_widths_;
+    std::string separator_;
 
-  template<typename T> void OutputDecimalNumber(T input);
+    int i_; // index of current row
+    int j_; // index of current column
 
-  std::ostream * out_stream_;
-  std::vector<std::string> column_headers_;
-  std::vector<int> column_widths_;
-  std::string separator_;
-
-  int i_; // index of current row
-  int j_; // index of current column
-
-  int table_width_;
-  bool flush_left_;
+    int table_width_;
+    bool flush_left_;
 };
 
 }
-
-#include "impl/table_printer.tpp.h"
 #endif

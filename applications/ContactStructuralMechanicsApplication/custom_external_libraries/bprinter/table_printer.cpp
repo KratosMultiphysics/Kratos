@@ -64,7 +64,7 @@ void TablePrinter::PrintHorizontalLine() {
 
 void TablePrinter::PrintHeader(){
   PrintHorizontalLine();
-  *out_stream_ << "|";
+  *out_stream_ << "\e[1m|";
 
   for (int i=0; i<get_num_columns(); ++i){
 
@@ -79,7 +79,7 @@ void TablePrinter::PrintHeader(){
     }
   }
 
-  *out_stream_ << "|\n";
+  *out_stream_ << "|\e[0m\n";
   PrintHorizontalLine();
 }
 
