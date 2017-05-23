@@ -1754,7 +1754,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UpdatedLagrangianElement2D4N// GUI group identifier: parts_die
+Begin Elements SmallDisplacementElement2D4N// GUI group identifier: parts_die
        751          1       1676       1694       1701       1689 
        752          1       1662       1683       1694       1676 
        753          1       1648       1670       1683       1662 
@@ -2607,7 +2607,7 @@ Begin Elements UpdatedLagrangianElement2D4N// GUI group identifier: parts_die
       1600          1        746        728        738        757 
 End Elements
 
-Begin Elements UpdatedLagrangianElement2D4N// GUI group identifier: parts_slab
+Begin Elements SmallDisplacementElement2D4N// GUI group identifier: parts_slab
          1          2       1624       1627       1671       1668 
          2          2       1562       1570       1627       1624 
          3          2       1490       1492       1570       1562 

@@ -3,9 +3,9 @@
         "problem_name"    : "ironing_die_test",
         "model_part_name" : "Structure",
         "domain_size"     : 2,
-        "time_step"       : 0.11,
+        "time_step"       : 0.1,
         "start_time"      : 0.0,
-        "end_time"        : 0.2,
+        "end_time"        : 15.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
@@ -20,6 +20,7 @@
         "mortar_type"                        : "ALMContactFrictionless",
         "block_builder"                      : true,
         "line_search"                        : false,
+        "ensure_contact"                     : false,
         "clear_storage"                      : false,
         "reform_dofs_at_each_step"           : true,
         "convergence_criterion"              : "Contact_Residual_criterion",
@@ -27,9 +28,7 @@
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 10,
-        "split_factor"                       : 10.0,
-        "max_number_splits"                  : 3,
+        "max_iteration"                      : 20,
         "linear_solver_settings"             : {
             "solver_type" : "SuperLUSolver",
             "scaling"     : false,
@@ -78,8 +77,8 @@
             "variable_name"   : "DISPLACEMENT",
             "step_type"       : "smooth",
             "vectors"         : [ [ 0.0, 0.0, 0.0],
-                                  [ 0.0,-1.8, 0.0],
-                                  [10.0,-1.8, 0.0]
+                                  [ 0.0,-0.5, 0.0],
+                                  [10.0,-0.5, 0.0]
             					],
             "intervals"       : [ 0.0,1.0,15.0]
         }
@@ -99,7 +98,16 @@
             "search_factor"               : 2.0,
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
-            "integration_order"           : 2
+            "integration_order"           : 2,
+            "active_check_factor"         : 1.0e-3,
+            "normal_variation"            : false,
+            "dual_search_check"           : false,
+            "stiffness_factor"            : 10.0,
+            "penalty_scale_factor"        : 1.0,
+            "manual_ALM"                  : true,
+            "penalty"                     : 1.0e3,
+            "scale_factor"                : 1.0e3,
+            "debug_mode"                  : false
         }
     }
     ],
