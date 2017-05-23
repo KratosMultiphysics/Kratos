@@ -240,11 +240,11 @@ public:
                 auto& Table = mpTable->GetTable();
                 if (IsConverged == true)
                 {
-                    Table << "Archieved";
+                    Table << BOLDFONT(FGRN("       Achieved"));
                 }
                 else
                 {
-                    Table << "Not archieved";
+                    Table << BOLDFONT(FRED("   Not achieved"));
                 }
             }
             else

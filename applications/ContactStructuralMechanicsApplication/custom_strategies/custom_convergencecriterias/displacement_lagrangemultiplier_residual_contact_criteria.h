@@ -278,7 +278,7 @@ public:
                     if (mpTable != nullptr)
                     {
                         auto& Table = mpTable->GetTable();
-                        Table << "Archieved";
+                        Table << BOLDFONT(FGRN("       Achieved"));
                     }
                     else
                     {
@@ -294,7 +294,7 @@ public:
                     if (mpTable != nullptr)
                     {
                         auto& Table = mpTable->GetTable();
-                        Table << "Not archieved";
+                        Table << BOLDFONT(FRED("   Not achieved"));
                     }
                     else
                     {
@@ -330,7 +330,7 @@ public:
             Table.AddColumn("EXP. RAT", 8);
             Table.AddColumn("ABS", 8);
             Table.AddColumn("EXP. ABS", 8);
-            Table.AddColumn("CONVERGENCE  ", 15);
+            Table.AddColumn("CONVERGENCE", 15);
         }
     }
 

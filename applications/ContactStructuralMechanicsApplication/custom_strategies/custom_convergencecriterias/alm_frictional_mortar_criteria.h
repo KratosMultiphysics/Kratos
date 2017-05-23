@@ -278,19 +278,19 @@ public:
                 auto& Table = mpTable->GetTable();
                 if (IsConvergedActive == true)
                 {
-                    Table << "Archieved";
+                    Table << BOLDFONT(FGRN("       Achieved"));
                 }
                 else
                 {
-                    Table << "Not archieved";
+                    Table << BOLDFONT(FRED("   Not achieved"));
                 }
                 if (IsConvergedSlip == true)
                 {
-                    Table << "Archieved";
+                    Table << BOLDFONT(FGRN("       Achieved"));
                 }
                 else
                 {
-                    Table << "Not archieved";
+                    Table << BOLDFONT(FRED("   Not achieved"));
                 }
             }
             else

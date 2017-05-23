@@ -115,10 +115,7 @@ public:
         
     void AddColumn(std::string ThisName, unsigned int ThisSpaces)
     {
-        std::string ThisNameBold = "\e[1m";
-        ThisNameBold.append(ThisName);
-        ThisNameBold.append("\e[0m");
-        mTable.AddColumn(ThisNameBold, ThisSpaces);
+        mTable.AddColumn(ThisName, ThisSpaces);
     }
     
     /**
