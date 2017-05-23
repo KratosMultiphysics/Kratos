@@ -30,10 +30,10 @@ namespace Kratos
 
     MatrixType Identity = identity_matrix<double>(3);   
     noalias(mInverseDeformationGradientF0) = Identity;
-    mCauchyGreenVector.clear();
-    mCauchyGreenVector[0] = 1.0;
-    mCauchyGreenVector[1] = 1.0;    
-    mCauchyGreenVector[2] = 1.0;
+    mStrainVector.clear();
+    mStrainVector[0] = 1.0;
+    mStrainVector[1] = 1.0;    
+    mStrainVector[2] = 1.0;
     
     KRATOS_CATCH(" ")    
   }
@@ -54,10 +54,10 @@ namespace Kratos
 
     MatrixType Identity = identity_matrix<double>(3);    
     noalias(mInverseDeformationGradientF0) = Identity;
-    mCauchyGreenVector.clear();
-    mCauchyGreenVector[0] = 1.0;
-    mCauchyGreenVector[1] = 1.0;    
-    mCauchyGreenVector[2] = 1.0;
+    mStrainVector.clear();
+    mStrainVector[0] = 1.0;
+    mStrainVector[1] = 1.0;    
+    mStrainVector[2] = 1.0;
     
     KRATOS_CATCH(" ")    
   }
@@ -69,7 +69,7 @@ namespace Kratos
     : Constitutive3DLaw(rOther)
     ,mDeterminantF0(rOther.mDeterminantF0)
     ,mInverseDeformationGradientF0(rOther.mInverseDeformationGradientF0)
-    ,mCauchyGreenVector(rOther.mCauchyGreenVector)
+    ,mStrainVector(rOther.mStrainVector)
   {
     mpModel = rOther.mpModel->Clone();
   }
@@ -83,7 +83,7 @@ namespace Kratos
     mpModel = rOther.mpModel->Clone();
     mDeterminantF0 = rOther.mDeterminantF0;
     mInverseDeformationGradientF0 = rOther.mInverseDeformationGradientF0;
-    mCauchyGreenVector = rOther.mCauchyGreenVector;    
+    mStrainVector = rOther.mStrainVector;    
     return *this;
   } 
   
@@ -151,7 +151,7 @@ namespace Kratos
 
     // A method to compute the initial linear strain from the stress is needed
     // if(rThisVariable == INITIAL_STRAIN_VECTOR){
-    //   mCauchyGreenVector = rValue;
+    //   mStrainVector = rValue;
     // }
          
     KRATOS_CATCH(" ")
@@ -232,11 +232,12 @@ namespace Kratos
     rVariables.DeterminantF /= mDeterminantF0; //determinant incremental F
         
     //b.- Calculate incremental deformation gradient
-    const MatrixType& rDeformationGradientF = rValues.GetDeformationGradientF(); 
+    const MatrixType& rDeformationGradientF = rValues.GetDeformationGradientF();
+
     noalias(rVariables.DeformationGradientF) = ConstitutiveModelUtilities::DeformationGradientTo3D(rDeformationGradientF, rVariables.DeformationGradientF);
     rVariables.DeformationGradientF = prod(rVariables.DeformationGradientF, mInverseDeformationGradientF0); //incremental F
     noalias(rVariables.IncrementalDeformationGradientF) = rVariables.DeformationGradientF;
-
+    
     if( rValues.GetOptions().Is(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE) )
       rModelValues.State.Set(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES);
     
@@ -263,24 +264,24 @@ namespace Kratos
       mDeterminantF0 = rDeterminantF; //special treatment of the determinant
 	
       //update total strain measure
-      mCauchyGreenVector = ConstitutiveModelUtilities::SymmetricTensorToVector(rModelValues.StrainMatrix, mCauchyGreenVector);
+      mStrainVector = ConstitutiveModelUtilities::SymmetricTensorToVector(rModelValues.StrainMatrix, mStrainVector);
 
       // //update total strain measure ( in the UpdateInternalVariables method of the plasticity model )
-      // mCauchyGreenVector[0] = rModelValues.StressMatrix(0,0);
-      // mCauchyGreenVector[1] = rModelValues.StressMatrix(1,1);
-      // mCauchyGreenVector[2] = rModelValues.StressMatrix(2,2);
+      // mStrainVector[0] = rModelValues.StressMatrix(0,0);
+      // mStrainVector[1] = rModelValues.StressMatrix(1,1);
+      // mStrainVector[2] = rModelValues.StressMatrix(2,2);
       
-      // mCauchyGreenVector[3] = rModelValues.StressMatrix(0,1);
-      // mCauchyGreenVector[4] = rModelValues.StressMatrix(1,2);
-      // mCauchyGreenVector[5] = rModelValues.StressMatrix(2,0);
+      // mStrainVector[3] = rModelValues.StressMatrix(0,1);
+      // mStrainVector[4] = rModelValues.StressMatrix(1,2);
+      // mStrainVector[5] = rModelValues.StressMatrix(2,0);
       
-      // mCauchyGreenVector   *=  ( 1.0 / rModelValues.MaterialParameters.LameMu );
+      // mStrainVector   *=  ( 1.0 / rModelValues.MaterialParameters.LameMu );
       
       // double VolumetricPart = (rModelValues.StrainMatrix(0,0)+rModelValues.StrainMatrix(1,1)+rModelValues.StrainMatrix(2,2))/3.0;
       
-      // mCauchyGreenVector[0] += VolumetricPart;
-      // mCauchyGreenVector[1] += VolumetricPart;
-      // mCauchyGreenVector[2] += VolumetricPart;
+      // mStrainVector[0] += VolumetricPart;
+      // mStrainVector[1] += VolumetricPart;
+      // mStrainVector[2] += VolumetricPart;
 
       
     }
@@ -312,7 +313,8 @@ namespace Kratos
     rVariables.StressMeasure = ConstitutiveModelData::StressMeasure_PK2; //required stress measure
     rVariables.StrainMeasure = ConstitutiveModelData::CauchyGreen_Right;  //provided strain measure
 
-    ModelValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(mCauchyGreenVector, ModelValues.StrainMatrix);    
+    ModelValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(mStrainVector, ModelValues.StrainMatrix);
+
     ModelValues.StrainMatrix = prod(ModelValues.StrainMatrix,rVariables.DeformationGradientF);
     ModelValues.StrainMatrix = prod(trans(rVariables.DeformationGradientF),ModelValues.StrainMatrix);
 
@@ -402,9 +404,11 @@ namespace Kratos
     rVariables.StressMeasure = ConstitutiveModelData::StressMeasure_Kirchhoff; //required stress measure
     rVariables.StrainMeasure = ConstitutiveModelData::CauchyGreen_Left;  //provided strain measure
 
-    ModelValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(mCauchyGreenVector,ModelValues.StrainMatrix);    
+    ModelValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(mStrainVector,ModelValues.StrainMatrix);
+    
     ModelValues.StrainMatrix = prod(ModelValues.StrainMatrix,trans(rVariables.DeformationGradientF));
     ModelValues.StrainMatrix = prod(rVariables.DeformationGradientF,ModelValues.StrainMatrix);
+
     
     // Set Total DeterminantF and DeformationGradientF
     rVariables.DeterminantF         = rValues.GetDeterminantF();

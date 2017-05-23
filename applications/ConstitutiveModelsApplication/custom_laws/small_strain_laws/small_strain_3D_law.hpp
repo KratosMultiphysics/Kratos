@@ -159,7 +159,7 @@ namespace Kratos
     ModelTypePointer mpModel;
 
     //internal elastic variables
-    VectorType  mInitialStrainVector;
+    VectorType  mStrainVector;
     
     ///@}
     ///@name Protected Operators
@@ -199,7 +199,7 @@ namespace Kratos
      * Adds Initial Strain to Strain Vector
      * @param rStrainVector
      */
-    void AddInitialStrainVector(Vector& rStrainVector);
+    void AddPreviousStrainVector(Vector& rStrainVector);
 
     
     
