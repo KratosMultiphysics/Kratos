@@ -255,16 +255,8 @@ public:
                 if (mpTable != nullptr)
                 {
                     std::cout.precision(4);
-                    auto Table = mpTable->GetTable();
-                    Table << std::scientific << ResidualDispRatio << std::scientific << mDispRatioTolerance << std::scientific << ResidualDispAbs << std::scientific << mDispAbsTolerance << std::scientific << ResidualLMRatio << std::scientific << mLMRatioTolerance << std::scientific << ResidualLMAbs << std::scientific << mLMAbsTolerance;
-//                     mpTable->AddToRow<double>(ResidualDispRatio);
-//                     mpTable->AddToRow<double>(mDispRatioTolerance);
-//                     mpTable->AddToRow<double>(ResidualDispAbs);
-//                     mpTable->AddToRow<double>(mDispAbsTolerance);
-//                     mpTable->AddToRow<double>(ResidualLMRatio);
-//                     mpTable->AddToRow<double>(mLMRatioTolerance);
-//                     mpTable->AddToRow<double>(ResidualLMAbs);
-//                     mpTable->AddToRow<double>(mLMAbsTolerance);
+                    auto& Table = mpTable->GetTable();
+                    Table << ResidualDispRatio << mDispRatioTolerance << ResidualDispAbs << mDispAbsTolerance << ResidualLMRatio << mLMRatioTolerance << ResidualLMAbs << mLMAbsTolerance;
                 }
                 else
                 {
@@ -285,7 +277,8 @@ public:
                 {
                     if (mpTable != nullptr)
                     {
-                        mpTable->AddToRow<std::string>(BOLDFONT(FGRN("Archieved")));
+                        auto& Table = mpTable->GetTable();
+                        Table << "Archieved";
                     }
                     else
                     {
@@ -300,7 +293,8 @@ public:
                 {
                     if (mpTable != nullptr)
                     {
-                        mpTable->AddToRow<std::string>(BOLDFONT(FRED("Not archieved")));
+                        auto& Table = mpTable->GetTable();
+                        Table << "Not archieved";
                     }
                     else
                     {
@@ -327,15 +321,25 @@ public:
         
         if (mpTable != nullptr)
         {
-            mpTable->AddColumn("DISP: RATIO", 15);
-            mpTable->AddColumn("EXP.RATIO", 9);
-            mpTable->AddColumn("ABS", 9);
-            mpTable->AddColumn("EXP.ABS", 9);
-            mpTable->AddColumn("LM:   RATIO", 15);
-            mpTable->AddColumn("EXP.RATIO", 9);
-            mpTable->AddColumn("ABS", 9);
-            mpTable->AddColumn("EXP.ABS", 9);
-            mpTable->AddColumn("CONVERGENCE", 11);
+            auto& Table = mpTable->GetTable();
+            Table.AddColumn("DP RATIO", 8);
+            Table.AddColumn("EXP. RAT", 8);
+            Table.AddColumn("ABS", 8);
+            Table.AddColumn("EXP. ABS", 8);
+            Table.AddColumn("LM RATIO", 8);
+            Table.AddColumn("EXP. RAT", 8);
+            Table.AddColumn("ABS", 8);
+            Table.AddColumn("EXP. ABS", 8);
+            Table.AddColumn("CONVERGENCE  ", 15);
+//             mpTable->AddColumn("DP RATIO", 8);
+//             mpTable->AddColumn("EXP. RAT", 8);
+//             mpTable->AddColumn("  ABS   ", 8);
+//             mpTable->AddColumn("EXP. ABS", 8);
+//             mpTable->AddColumn("LM RATIO", 8);
+//             mpTable->AddColumn("EXP. RAT", 8);
+//             mpTable->AddColumn("  ABS   ", 8);
+//             mpTable->AddColumn("EXP. ABS", 8);
+//             mpTable->AddColumn("  CONVERGENCE  ", 15);
         }
     }
 

@@ -226,21 +226,13 @@ public:
                 if (mpTable != nullptr)
                 {
                     std::cout.precision(4);
-                    auto Table = mpTable->GetTable();
-                    Table << std::scientific << DispRatio << std::scientific << mDispRatioTolerance << std::scientific << DispAbs << std::scientific << mDispAbsTolerance << std::scientific << LMRatio << std::scientific << mLMRatioTolerance << std::scientific << LMAbs << std::scientific << mLMAbsTolerance;
-//                     mpTable->AddToRow<double>(DispRatio);
-//                     mpTable->AddToRow<double>(mDispRatioTolerance);
-//                     mpTable->AddToRow<double>(DispAbs);
-//                     mpTable->AddToRow<double>(mDispAbsTolerance);
-//                     mpTable->AddToRow<double>(LMRatio);
-//                     mpTable->AddToRow<double>(mLMRatioTolerance);
-//                     mpTable->AddToRow<double>(LMAbs);
-//                     mpTable->AddToRow<double>(mLMAbsTolerance);
+                    auto& Table = mpTable->GetTable();
+                    Table  << DispRatio  << mDispRatioTolerance  << DispAbs  << mDispAbsTolerance  << LMRatio  << mLMRatioTolerance  << LMAbs  << mLMAbsTolerance;
                 }
                 else
                 {
                     std::cout.precision(4);
-                    std::cout << BOLDFONT("DoF ONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
+                    std::cout << BOLDFONT("DoF ONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl ;
                     std::cout << BOLDFONT("\tDISPLACEMENT: RATIO = ") << DispRatio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << DispAbs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
                     std::cout << BOLDFONT(" LAGRANGE MUL:\tRATIO = ") << LMRatio << BOLDFONT(" EXP.RATIO = ") << mLMRatioTolerance << BOLDFONT(" ABS = ") << LMAbs << BOLDFONT(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
                 }
@@ -253,7 +245,8 @@ public:
                 {
                     if (mpTable != nullptr)
                     {
-                        mpTable->AddToRow<std::string>(BOLDFONT(FGRN("Archieved")));
+                        auto& Table = mpTable->GetTable();
+                        Table << "Archieved";
                     }
                     else
                     {
@@ -268,7 +261,8 @@ public:
                 {
                     if (mpTable != nullptr)
                     {
-                        mpTable->AddToRow<std::string>(BOLDFONT(FRED("Not archieved")));
+                        auto& Table = mpTable->GetTable();
+                        Table << "Not archieved";
                     }
                     else
                     {
@@ -298,9 +292,9 @@ public:
             mpTable->AddColumn("DISP: RATIO", 15);
             mpTable->AddColumn("EXP.RATIO", 9);
             mpTable->AddColumn("ABS", 9);
-            mpTable->AddColumn("EXP.ABS", 9);
+            mpTable->AddColumn("EXP. ABS", 9);
             mpTable->AddColumn("LM:   RATIO", 15);
-            mpTable->AddColumn("EXP.RATIO", 9);
+            mpTable->AddColumn("EXP. RATIO", 9);
             mpTable->AddColumn("ABS", 9);
             mpTable->AddColumn("EXP.ABS", 9);
             mpTable->AddColumn("CONVERGENCE", 11);

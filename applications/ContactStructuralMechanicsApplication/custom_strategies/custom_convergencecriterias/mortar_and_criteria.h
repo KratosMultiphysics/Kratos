@@ -178,7 +178,9 @@ public:
     {
         if (mpTable != nullptr)
         {
-            mpTable->AddColumn("NL ITERATION", 18);
+            auto& Table = mpTable->GetTable();
+            Table.AddColumn("ITER", 4);
+//             mpTable->AddColumn("ITER", 4);
         }
         
          BaseType::Initialize(rModelPart);

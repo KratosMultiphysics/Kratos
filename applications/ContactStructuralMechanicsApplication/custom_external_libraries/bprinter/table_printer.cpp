@@ -40,7 +40,7 @@ void TablePrinter::set_flush_right(){
 /** \brief Add a column to our table
  ** 
  ** \param header_name Name to be print for the header
- ** \param column_width the width of the column (has to be >=5)
+ ** \param column_width the width of the column (has to be >=4)
  ** */
 void TablePrinter::AddColumn(const std::string & header_name, int column_width){
   if (column_width < 4){

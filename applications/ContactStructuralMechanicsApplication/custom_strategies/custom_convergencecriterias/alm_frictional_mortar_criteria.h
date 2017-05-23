@@ -275,21 +275,22 @@ public:
         {
             if (mpTable != nullptr)
             {
+                auto& Table = mpTable->GetTable();
                 if (IsConvergedActive == true)
                 {
-                    mpTable->AddToRow<std::string>(BOLDFONT(FGRN("Archieved")));
+                    Table << "Archieved";
                 }
                 else
                 {
-                    mpTable->AddToRow<std::string>(BOLDFONT(FRED("Not archieved")));
+                    Table << "Not archieved";
                 }
                 if (IsConvergedSlip == true)
                 {
-                    mpTable->AddToRow<std::string>(BOLDFONT(FGRN("Archieved")));
+                    Table << "Archieved";
                 }
                 else
                 {
-                    mpTable->AddToRow<std::string>(BOLDFONT(FRED("Not archieved")));
+                    Table << "Not archieved";
                 }
             }
             else

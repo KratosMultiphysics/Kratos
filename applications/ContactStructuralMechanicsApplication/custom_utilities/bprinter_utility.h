@@ -126,7 +126,7 @@ public:
      * @return mTable: The bprinter table
      */
         
-    TablePrinterType GetTable()
+    TablePrinterType& GetTable()
     {
         return mTable;
     }

@@ -237,13 +237,14 @@ public:
         {
             if (mpTable != nullptr)
             {
+                auto& Table = mpTable->GetTable();
                 if (IsConverged == true)
                 {
-                    mpTable->AddToRow<std::string>(BOLDFONT(FGRN("Archieved")));
+                    Table << "Archieved";
                 }
                 else
                 {
-                    mpTable->AddToRow<std::string>(BOLDFONT(FRED("Not archieved")));
+                    Table << "Not archieved";
                 }
             }
             else
@@ -273,7 +274,8 @@ public:
         
         if (mpTable != nullptr)
         {
-            mpTable->AddColumn("ACTIVE SET CONV.", 16);
+            auto& Table = mpTable->GetTable();
+            Table.AddColumn("ACTIVE SET CONV", 15);
         }
     }
     
