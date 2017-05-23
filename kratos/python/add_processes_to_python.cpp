@@ -46,6 +46,7 @@
 #include "processes/replace_elements_and_condition_process.h"
 #include "processes/compute_nodal_gradient_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
+#include "processes/reorder_and_optimize_modelpart_process.h"
 
 #include "includes/node.h"
 
@@ -211,10 +212,13 @@ void  AddProcessesToPython()
             init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
 
-	class_<CalculateDiscontinuousDistanceToSkinProcess, bases<Process>, boost::noncopyable >("CalculateDiscontinuousDistanceToSkinProcess",
-		init<ModelPart&, ModelPart&>())
-		;
-
+    class_<CalculateDiscontinuousDistanceToSkinProcess, bases<Process>, boost::noncopyable >("CalculateDiscontinuousDistanceToSkinProcess",
+            init<ModelPart&, ModelPart&>())
+            ;
+    class_<ReorderAndOptimizeModelPartProcess, bases<Process>, boost::noncopyable >("ReorderAndOptimizeModelPartProcess",
+            init<ModelPart&, Parameters>())
+            ;
+            
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
     //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;
 
