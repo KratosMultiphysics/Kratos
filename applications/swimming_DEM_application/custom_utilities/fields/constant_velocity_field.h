@@ -46,7 +46,7 @@ ConstantVelocityField(const double vx, const double vy, const double vz):Velocit
 virtual ~ConstantVelocityField(){}
 
 
-void Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector, const int i_thread);
+void Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector, const int i_thread) override;
 
 
 virtual std::string Info() const override
