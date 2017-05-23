@@ -57,7 +57,6 @@ void KratosMappingApplication::Register()
     #ifdef KRATOS_USING_MPI // mpi-parallel compilation
         int mpi_initialized = 0;
         MPI_Initialized(&mpi_initialized);
-        std::cout << mpi_initialized << std::endl;
         if (mpi_initialized)   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     #endif
 
