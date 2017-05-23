@@ -36,21 +36,8 @@
     },
     "constraints_process_list" : [],
     "loads_process_list" : [],
-    "list_other_processes" :[
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"  : ["DISPLACEMENT_X","REACTION_X"],
-            "input_file_name"  : "shell_test/Shell_Q4_Thick__DrillingRollUp_test_results.json",
-            "model_part_name"  : "DISPLACEMENT_Displacement_Auto1",
-            "time_frequency"   : 0.01
-        }
-    }
-    ],
-    "print_output_process" : [
+    "list_other_processes" :[],
+    "_json_output_process" : [
     {
         "python_module"   : "json_output_process",
         "kratos_module" : "KratosMultiphysics",
@@ -64,7 +51,7 @@
         }
     }
     ],
-    "check_json_results_process" : [
+    "json_check_process" : [
     {
         "python_module"   : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",
