@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   
+//
 //
 
 #if !defined(KRATOS_REORDER_AND_OPTIMIZE_MODELPART_PROCESS_H_INCLUDED )
@@ -32,248 +32,258 @@
 
 namespace Kratos
 {
-  ///@addtogroup KratosCore
-  ///@{
+///@addtogroup KratosCore
+///@{
 
-  ///@name Kratos Classes
-  ///@{
+///@name Kratos Classes
+///@{
 
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class ReorderAndOptimizeModelPartProcess : public Process
+/// Short class definition.
+/** Detail class definition.
+*/
+class ReorderAndOptimizeModelPartProcess : public Process
+{
+public:
+    using GeometryType = Geometry<Point<3> >;
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of ReorderAndOptimizeModelPartProcess
+    KRATOS_CLASS_POINTER_DEFINITION(ReorderAndOptimizeModelPartProcess);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor is deleted.
+    ReorderAndOptimizeModelPartProcess() = delete;
+
+    /// Constructor to be used. Takes the geometry to be meshed and ModelPart to be filled
+    ReorderAndOptimizeModelPartProcess( ModelPart& rOutputModelPart, Parameters settings);
+
+    /// The object is not copyable.
+    ReorderAndOptimizeModelPartProcess(ReorderAndOptimizeModelPartProcess const& rOther) = delete;
+
+    /// Destructor.
+    virtual ~ReorderAndOptimizeModelPartProcess() ;
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    /// It is not assignable.
+    ReorderAndOptimizeModelPartProcess& operator=(ReorderAndOptimizeModelPartProcess const& rOther) = delete;
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    void Execute() override;
+
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const override;
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const override;
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const override;
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+    ModelPart& mrModelPart;
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+    void ActualizeSubModelPart(ModelPart& subpart);
+    void OptimizeOrdering();
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+    template <bool reverse = false>
+    struct CuthillMcKee
     {
-    public:
-		using GeometryType = Geometry<Point<3> >;
-      ///@name Type Definitions
-      ///@{
+        template <class Matrix>
+        static void get(const Matrix &A, std::vector<int> &perm)
+        {
+            const int n = A.size1();
 
-      /// Pointer definition of ReorderAndOptimizeModelPartProcess
-      KRATOS_CLASS_POINTER_DEFINITION(ReorderAndOptimizeModelPartProcess);
+            /* The data structure used to sort and traverse the level sets:
+             *
+             * The current level set is currentLevelSet;
+             * In this level set, there are nodes with degrees from 0 (not really
+             * useful) to maxDegreeInCurrentLevelSet.
+             * firstWithDegree[i] points to a node with degree i, or to -1 if it
+             * does not exist. nextSameDegree[firstWithDegree[i]] points to the
+             * second node with that degree, etc.
+             * While the level set is being traversed, the structure for the next
+             * level set is generated; nMDICLS will be the next
+             * maxDegreeInCurrentLevelSet and nFirstWithDegree will be
+             * firstWithDegree.
+             */
+            int initialNode = 0; // node to start search
+            int maxDegree   = 0;
 
-      ///@}
-      ///@name Life Cycle
-      ///@{
+            std::vector<int> degree(n);
+            std::vector<int> levelSet(n, 0);
+            std::vector<int> nextSameDegree(n, -1);
 
-      /// Default constructor is deleted.
-      ReorderAndOptimizeModelPartProcess() = delete;
-
-	  /// Constructor to be used. Takes the geometry to be meshed and ModelPart to be filled
-	  ReorderAndOptimizeModelPartProcess( ModelPart& rOutputModelPart, Parameters settings);
-
-	  /// The object is not copyable.
-	  ReorderAndOptimizeModelPartProcess(ReorderAndOptimizeModelPartProcess const& rOther) = delete;
-
-      /// Destructor.
-      virtual ~ReorderAndOptimizeModelPartProcess() ;
-
-      ///@}
-      ///@name Operators
-      ///@{
-
-	  /// It is not assignable.
-	  ReorderAndOptimizeModelPartProcess& operator=(ReorderAndOptimizeModelPartProcess const& rOther) = delete;
-
-      ///@}
-      ///@name Operations
-      ///@{
-
-	  void Execute() override;
-
-
-      ///@}
-      ///@name Access
-      ///@{
-
-
-      ///@}
-      ///@name Inquiry
-      ///@{
-
-
-      ///@}
-      ///@name Input and output
-      ///@{
-
-      /// Turn back information as a string.
-      virtual std::string Info() const override;
-
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const override;
-
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const override;
-
-
-      ///@}
-      ///@name Friends
-      ///@{
-
-
-      ///@}
-
-      protected:
-      ///@name Static Member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Member Variables
-      ///@{
-		  ModelPart& mrModelPart;
-
-
-      ///@}
-      ///@name Private Operations
-      ///@{
-      void ActualizeSubModelPart(ModelPart& subpart);
-      void OptimizeOrdering();
-      
-      ///@}
-      ///@name Private  Access
-      ///@{
-
-
-      ///@}
-      ///@name Private Inquiry
-      ///@{
-
-template <bool reverse = false>
-struct CuthillMcKee {
-    template <class Matrix>
-    static void get(const Matrix &A, std::vector<int> &perm) {
-        const int n = A.size1();
-
-        /* The data structure used to sort and traverse the level sets:
-         *
-         * The current level set is currentLevelSet;
-         * In this level set, there are nodes with degrees from 0 (not really
-         * useful) to maxDegreeInCurrentLevelSet.
-         * firstWithDegree[i] points to a node with degree i, or to -1 if it
-         * does not exist. nextSameDegree[firstWithDegree[i]] points to the
-         * second node with that degree, etc.
-         * While the level set is being traversed, the structure for the next
-         * level set is generated; nMDICLS will be the next
-         * maxDegreeInCurrentLevelSet and nFirstWithDegree will be
-         * firstWithDegree.
-         */
-        int initialNode = 0; // node to start search
-        int maxDegree   = 0;
-
-        std::vector<int> degree(n);
-        std::vector<int> levelSet(n, 0);
-        std::vector<int> nextSameDegree(n, -1);
-
-        for(int i = 0; i < n; ++i) {
-            degree[i] = A.index1_data()[i+1] - A.index1_data()[i]; //backend::row_nonzeros(A, i);
-            maxDegree = std::max(maxDegree, degree[i]);
-        }
-
-        std::vector<int> firstWithDegree(maxDegree + 1, -1);
-        std::vector<int> nFirstWithDegree(maxDegree + 1);
-
-        // Initialize the first level set, made up by initialNode alone
-        perm[0] = initialNode;
-        int currentLevelSet = 1;
-        levelSet[initialNode] = currentLevelSet;
-        int maxDegreeInCurrentLevelSet = degree[initialNode];
-        firstWithDegree[maxDegreeInCurrentLevelSet] = initialNode;
-
-        // Main loop
-        for (int next = 1; next < n; ) {
-            int nMDICLS = 0;
-            std::fill(nFirstWithDegree.begin(), nFirstWithDegree.end(), -1);
-            bool empty = true; // used to detect different connected components
-
-            int firstVal  = reverse ? maxDegreeInCurrentLevelSet : 0;
-            int finalVal  = reverse ? -1 : maxDegreeInCurrentLevelSet + 1;
-            int increment = reverse ? -1 : 1;
-
-            for(int soughtDegree = firstVal; soughtDegree != finalVal; soughtDegree += increment)
+            for(int i = 0; i < n; ++i)
             {
-                int node = firstWithDegree[soughtDegree];
-                while (node > 0) {
-                    // Visit neighbors
-                    for(auto a = A.index1_data()[node] /*backend::row_begin(A, node)*/; a<A.index1_data()[node+1]; ++a) {
-                        int c = A.index2_data()[a]; //a.col();
-                        if (levelSet[c] == 0) {
-                            levelSet[c] = currentLevelSet + 1;
-                            perm[next] = c;
+                degree[i] = A.index1_data()[i+1] - A.index1_data()[i]; //backend::row_nonzeros(A, i);
+                maxDegree = std::max(maxDegree, degree[i]);
+            }
+
+            std::vector<int> firstWithDegree(maxDegree + 1, -1);
+            std::vector<int> nFirstWithDegree(maxDegree + 1);
+
+            // Initialize the first level set, made up by initialNode alone
+            perm[0] = initialNode;
+            int currentLevelSet = 1;
+            levelSet[initialNode] = currentLevelSet;
+            int maxDegreeInCurrentLevelSet = degree[initialNode];
+            firstWithDegree[maxDegreeInCurrentLevelSet] = initialNode;
+
+            // Main loop
+            for (int next = 1; next < n; )
+            {
+                int nMDICLS = 0;
+                std::fill(nFirstWithDegree.begin(), nFirstWithDegree.end(), -1);
+                bool empty = true; // used to detect different connected components
+
+                int firstVal  = reverse ? maxDegreeInCurrentLevelSet : 0;
+                int finalVal  = reverse ? -1 : maxDegreeInCurrentLevelSet + 1;
+                int increment = reverse ? -1 : 1;
+
+                for(int soughtDegree = firstVal; soughtDegree != finalVal; soughtDegree += increment)
+                {
+                    int node = firstWithDegree[soughtDegree];
+                    while (node > 0)
+                    {
+                        // Visit neighbors
+                        for(auto a = A.index1_data()[node] /*backend::row_begin(A, node)*/; a<A.index1_data()[node+1]; ++a)
+                        {
+                            int c = A.index2_data()[a]; //a.col();
+                            if (levelSet[c] == 0)
+                            {
+                                levelSet[c] = currentLevelSet + 1;
+                                perm[next] = c;
+                                ++next;
+                                empty = false; // this level set is not empty
+                                nextSameDegree[c] = nFirstWithDegree[degree[c]];
+                                nFirstWithDegree[degree[c]] = c;
+                                nMDICLS = std::max(nMDICLS, degree[c]);
+                            }
+                        }
+                        node = nextSameDegree[node];
+                    }
+                }
+
+                ++currentLevelSet;
+                maxDegreeInCurrentLevelSet = nMDICLS;
+                for(int i = 0; i <= nMDICLS; ++i)
+                    firstWithDegree[i] = nFirstWithDegree[i];
+
+                if (empty)
+                {
+                    // The graph contains another connected component that we
+                    // cannot reach.  Search for a node that has not yet been
+                    // included in a level set, and start exploring from it.
+                    bool found = false;
+                    for(int i = 0; i < n; ++i)
+                    {
+                        if (levelSet[i] == 0)
+                        {
+                            perm[next] = i;
                             ++next;
-                            empty = false; // this level set is not empty
-                            nextSameDegree[c] = nFirstWithDegree[degree[c]];
-                            nFirstWithDegree[degree[c]] = c;
-                            nMDICLS = std::max(nMDICLS, degree[c]);
+                            levelSet[i] = currentLevelSet;
+                            maxDegreeInCurrentLevelSet = degree[i];
+                            firstWithDegree[maxDegreeInCurrentLevelSet] = i;
+                            found = true;
+                            break;
                         }
                     }
-                    node = nextSameDegree[node];
-                }
-            }
-
-            ++currentLevelSet;
-            maxDegreeInCurrentLevelSet = nMDICLS;
-            for(int i = 0; i <= nMDICLS; ++i)
-                firstWithDegree[i] = nFirstWithDegree[i];
-
-            if (empty) {
-                // The graph contains another connected component that we
-                // cannot reach.  Search for a node that has not yet been
-                // included in a level set, and start exploring from it.
-                bool found = false;
-                for(int i = 0; i < n; ++i) {
-                    if (levelSet[i] == 0) {
-                        perm[next] = i;
-                        ++next;
-                        levelSet[i] = currentLevelSet;
-                        maxDegreeInCurrentLevelSet = degree[i];
-                        firstWithDegree[maxDegreeInCurrentLevelSet] = i;
-                        found = true;
-                        break;
-                    }
                 }
             }
         }
-    }
-};
+    };
 
-      ///@}
-      ///@name Un accessible methods
-      ///@{
-
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
 
-      ///@}
 
-    }; // Class ReorderAndOptimizeModelPartProcess
+    ///@}
 
-  ///@}
+}; // Class ReorderAndOptimizeModelPartProcess
 
-  ///@name Type Definitions
-  ///@{
+///@}
 
-
-  ///@}
-  ///@name Input and output
-  ///@{
+///@name Type Definitions
+///@{
 
 
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream,
-				    ReorderAndOptimizeModelPartProcess& rThis);
+///@}
+///@name Input and output
+///@{
 
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream,
-				    const ReorderAndOptimizeModelPartProcess& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
 
-      return rOStream;
-    }
-  ///@}
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  ReorderAndOptimizeModelPartProcess& rThis);
 
-  ///@} addtogroup block
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const ReorderAndOptimizeModelPartProcess& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
+
+///@} addtogroup block
 
 }  // namespace Kratos.
 
