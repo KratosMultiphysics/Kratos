@@ -258,15 +258,6 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
         for i in range(0, 10):
             print(" --  ")
 
-        self.material_law.CalculateMaterialResponseCauchy( self.parameters )
-        if( self.echo_level > 0 ):
-            print("\n Cauchy Material Response")
-            print( "stress = ", self.parameters.GetStressVector() )
-            print( "strain = ", self.parameters.GetStrainVector() )
-            print( "C      = ", self.parameters.GetConstitutiveMatrix() )
-        
-        self.material_law.FinalizeMaterialResponseCauchy( self.parameters )
-        self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
 
 
         

@@ -189,14 +189,14 @@ namespace Kratos
                double InitialYieldFunction;
                this->mElasticityModel.CalculateStressTensor(rValues,rStressMatrix);
                InitialYieldFunction = this->mYieldCriterion.CalculateYieldCondition( Variables, InitialYieldFunction);
-               double H = this->mYieldCriterion.GetHardeningLaw().CalculateHardening( Variables, H);
+
                if ( (InitialYieldFunction < -Tolerance) && (Variables.TrialStateFunction > Tolerance) )
                {
                   // compute solution with change
                   ComputeSolutionWithChange( rValues, Variables, rIncrementalDeformationGradient);
                } else {
                   // compute unloading condition
-                  ComputeElastoPlasticProblem( rValues, Variables, rIncrementalDeformationGradient);
+                  ComputeSubsteppingElastoPlasticProblem( rValues, Variables, rIncrementalDeformationGradient);
                   bool UnloadingCondition = false;
                   if (UnloadingCondition) {
                      // compute solution with change
@@ -204,8 +204,13 @@ namespace Kratos
                      // compute plastic problem
                   }
                }
+              
+               ReturnStressToYieldSurface( rValues, Variables);
 
                noalias( rStressMatrix) = rValues.StressMatrix;
+
+               this->mElasticityModel.CalculateConstitutiveTensor(rValues,rConstitutiveMatrix);
+               ComputeElastoPlasticTangentMatrix( rValues, Variables, rConstitutiveMatrix);
 
                if ( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES) )
                   this->UpdateInternalVariables( rValues, Variables);
@@ -276,7 +281,94 @@ namespace Kratos
             ///@name Protected Operations
             ///@{
 
+            //***************************************************************************************
+            //***************************************************************************************
+            // Correct Yield Surface Drift According to 
+            void ReturnStressToYieldSurface( ModelDataType & rValues, PlasticDataType & rVariables)
+            {
+               KRATOS_TRY
+               
+               double Tolerance = 1e-6;
 
+               double YieldSurface = this->mYieldCriterion.CalculateYieldCondition( rVariables, YieldSurface);
+
+               if ( fabs(YieldSurface) < Tolerance)
+                  return;
+
+               for (unsigned int i = 0; i < 150; i++) {
+
+                  Matrix ElasticMatrix = ZeroMatrix(6);
+                  this->mElasticityModel.CalculateConstitutiveTensor( rValues, ElasticMatrix);
+
+                  VectorType YieldSurfaceDerivative;
+                  this->mYieldCriterion.CalculateYieldSurfaceDerivative( rVariables, YieldSurfaceDerivative);
+                  VectorType PlasticPotentialDerivative;
+                  PlasticPotentialDerivative = YieldSurfaceDerivative; // LMV
+
+                  double H = this->mYieldCriterion.GetHardeningLaw().CalculateDeltaHardening( rVariables, H);
+
+                  double DeltaGamma = YieldSurface;
+                  DeltaGamma /= ( H + MathUtils<double>::Dot( YieldSurfaceDerivative, prod(ElasticMatrix, PlasticPotentialDerivative) ) );
+
+                  MatrixType UpdateMatrix;
+                  ConvertHenckyVectorToCauchyGreenTensor( -DeltaGamma * PlasticPotentialDerivative / 2.0, UpdateMatrix);
+
+                  rValues.StrainMatrix = prod( UpdateMatrix, rValues.StrainMatrix);
+                  rValues.StrainMatrix = prod( rValues.StrainMatrix, trans(UpdateMatrix));
+
+                  MatrixType StressMatrix;
+                  this->mElasticityModel.CalculateStressTensor( rValues, StressMatrix);
+
+                  double & plasticVolDef = rVariables.Internal.Variables[1]; 
+                  for (unsigned int i = 0; i < 3; i++)
+                     plasticVolDef += DeltaGamma * YieldSurfaceDerivative(i);
+
+                  std::cout <<  i << " , " << YieldSurface; 
+                  YieldSurface = this->mYieldCriterion.CalculateYieldCondition( rVariables, YieldSurface);
+                  std::cout << " , " << YieldSurface << std::endl;
+
+                  if ( fabs( YieldSurface) < Tolerance) {
+                     return;
+                  }
+               }
+            
+               KRATOS_CATCH("")
+            }
+
+            //***************************************************************************************
+            //***************************************************************************************
+            // Compute Elasto Plastic Matrix
+            void ComputeElastoPlasticTangentMatrix( ModelDataType & rValues, PlasticDataType & rVariables, Matrix & rEPMatrix) 
+            {
+               KRATOS_TRY
+
+               // evaluate constitutive matrix and plastic flow
+               Matrix ElasticMatrix = ZeroMatrix(6);
+               this->mElasticityModel.CalculateConstitutiveTensor( rValues, ElasticMatrix);
+
+               VectorType YieldSurfaceDerivative;
+               this->mYieldCriterion.CalculateYieldSurfaceDerivative( rVariables, YieldSurfaceDerivative);
+               VectorType PlasticPotentialDerivative;
+               PlasticPotentialDerivative = YieldSurfaceDerivative; // LMV
+
+               double H = this->mYieldCriterion.GetHardeningLaw().CalculateDeltaHardening( rVariables, H);
+
+               VectorType AuxF = prod( trans(YieldSurfaceDerivative), rEPMatrix);
+               VectorType AuxG = prod( rEPMatrix, PlasticPotentialDerivative);
+
+               Matrix PlasticUpdate = ZeroMatrix(6);
+               double denom = 0;
+               for (unsigned int i = 0; i < 6; i++) {
+                  denom += AuxF(i)*PlasticPotentialDerivative(i);
+                  for (unsigned int j = 0; j < 6; j++) {
+                     PlasticUpdate(i,j) = AuxF(i) * AuxG(j);
+                  }
+               }
+
+               rEPMatrix -= PlasticUpdate / ( H + denom);
+
+               KRATOS_CATCH("")
+            }
             //***************************************************************************************
             //***************************************************************************************
             // Advance the solution first in elastic regime and then in elastoplastic
@@ -324,7 +416,63 @@ namespace Kratos
                MatrixType RemainingDeformationGradient;
                ComputeSubstepIncrementalDeformationGradient( rIncrementalDeformationGradient, HalfTime, 1,RemainingDeformationGradient);
 
-               ComputeElastoPlasticProblem( rValues, rVariables, RemainingDeformationGradient);
+               ComputeSubsteppingElastoPlasticProblem( rValues, rVariables, RemainingDeformationGradient);
+
+
+
+               KRATOS_CATCH("")
+            }
+
+
+            //***********************************************************************************
+            //***********************************************************************************
+            // Compute  the elasto-plastic problem
+            void ComputeSubsteppingElastoPlasticProblem( ModelDataType & rValues, PlasticDataType & rVariables, const MatrixType & rIncrementalDeformationGradient)
+            {
+               KRATOS_TRY
+
+               //ComputeOneStepElastoPlasticProblem( rValues, rVariables, rIncrementalDeformationGradient);
+
+
+               double Tolerance = 1.0E-5;
+               double TimeStep = 0.25;
+               double MinTimeStep = 1.0e-4;
+               double DoneTimeStep = 0.0;
+               double MaxTimeStep = 0.5;
+
+               MatrixType SubstepDeformationGradient;
+
+               double ErrorMeasure;
+
+               while (DoneTimeStep < 1.0) {
+
+                  MatrixType InitialStress = rValues.StrainMatrix;
+                  InternalVariablesType InitialInternalVariables = rVariables.Internal; 
+
+                  if ( DoneTimeStep + TimeStep >= 1.0) {
+                     TimeStep = 1.0 - DoneTimeStep;
+                  }
+
+                  ComputeSubstepIncrementalDeformationGradient( rIncrementalDeformationGradient, DoneTimeStep, DoneTimeStep + TimeStep, SubstepDeformationGradient);
+
+
+                  ErrorMeasure = ComputeElastoPlasticProblem( rValues, rVariables, SubstepDeformationGradient);
+                  //std::cout << " time " << DoneTimeStep << " TimeStep " << TimeStep << " error " << ErrorMeasure  << std::endl;
+                  if ( ErrorMeasure < Tolerance) {
+                     DoneTimeStep += TimeStep;
+                  } else if ( TimeStep <= MinTimeStep) {
+                     std::cout << " ExplicitStressIntegrationDidNotConvege: StressError: " << ErrorMeasure << std::endl;
+                     DoneTimeStep += TimeStep; 
+                  } else {
+                     rValues.StrainMatrix = InitialStress;
+                     rVariables.Internal = InitialInternalVariables;
+                  }
+
+                  TimeStep *= pow( Tolerance / ( ErrorMeasure + 1e-8), 0.5);
+                  TimeStep = std::max(TimeStep, MinTimeStep);
+                  TimeStep = std::min(TimeStep, MaxTimeStep);
+
+               }
 
 
 
@@ -333,12 +481,59 @@ namespace Kratos
 
             //***********************************************************************************
             //***********************************************************************************
-            // Compute the elasto-plastic problem
-            void ComputeElastoPlasticProblem( ModelDataType & rValues, PlasticDataType & rVariables, const MatrixType & rIncrementalDeformationGradient)
+            // Compute one elasto-plastic problem with two discretizations and then compute some 
+            // sort of error measure
+            double ComputeElastoPlasticProblem( ModelDataType & rValues, PlasticDataType & rVariables, const MatrixType &  rSubstepDeformationGradient)
+            {
+               KRATOS_TRY
+
+               MatrixType InitialStress = rValues.StrainMatrix;
+               InternalVariablesType InitialInternalVariables = rVariables.Internal; 
+
+               // 1. Compute with one discretization
+               ComputeOneStepElastoPlasticProblem( rValues, rVariables, rSubstepDeformationGradient);
+               MatrixType Stress1 = rValues.StressMatrix;
+
+               // 2. Compute with two steps
+               rValues.StrainMatrix = InitialStress;
+               rVariables.Internal = InitialInternalVariables;
+
+               MatrixType IncrementalDefGradient;
+               ComputeSubstepIncrementalDeformationGradient( rSubstepDeformationGradient, 0.0, 0.5, IncrementalDefGradient);
+               ComputeOneStepElastoPlasticProblem( rValues, rVariables, rSubstepDeformationGradient);
+               ComputeSubstepIncrementalDeformationGradient( rSubstepDeformationGradient, 0.5, 1.0, IncrementalDefGradient);
+
+               double ErrorMeasure = 0;
+               double Denom = 0;
+               for (unsigned int i = 0; i < 3; i++) {
+                  for (unsigned int j = 0; j < 3; j++) {
+                     ErrorMeasure += pow( Stress1(i,j) - rValues.StressMatrix(i,j) , 2);
+                     Denom += pow( rValues.StressMatrix(i,j), 2);
+                  }
+               }
+
+               if ( fabs(Denom) > 1.0E-5) 
+                  ErrorMeasure /= Denom;
+               ErrorMeasure = sqrt(ErrorMeasure);
+
+
+               return ErrorMeasure;
+
+               KRATOS_CATCH("")
+            }
+
+
+            //***********************************************************************************
+            //***********************************************************************************
+            // Compute one step of the elasto-plastic problem
+            void ComputeOneStepElastoPlasticProblem( ModelDataType & rValues, PlasticDataType & rVariables, const MatrixType & rIncrementalDeformationGradient)
             {
                KRATOS_TRY
 
                // evaluate constitutive matrix and plastic flow
+               double & rPlasticVolDef = rVariables.Internal.Variables[1]; 
+               double & rPlasticMultiplier = rVariables.Internal.Variables[0];
+
                Matrix ElasticMatrix = ZeroMatrix(6);
                this->mElasticityModel.CalculateConstitutiveTensor( rValues, ElasticMatrix);
 
@@ -376,12 +571,13 @@ namespace Kratos
                MatrixType StressMatrix;
                this->mElasticityModel.CalculateStressTensor( rValues, StressMatrix);
 
-               double & plasticVolDef = rVariables.Internal.Variables[1]; 
+               rPlasticMultiplier += DeltaGamma;
                for (unsigned int i = 0; i < 3; i++)
-                  plasticVolDef += DeltaGamma * YieldSurfaceDerivative(i);
+                  rPlasticVolDef += DeltaGamma * YieldSurfaceDerivative(i);
 
                KRATOS_CATCH("")
             }
+
             //**************************************************************************************
             //**************************************************************************************
             // Convert epsilon (vector) to b
@@ -471,7 +667,7 @@ namespace Kratos
                DeformationGradientFinal     =     rFinalConfiguration*rIncrementalDeformationGradient  + (1.0 -     rFinalConfiguration)*IdentityMatrix;
 
                double det;
-               //rSubstepDeformationGradient.clear();
+               rSubstepDeformationGradient.clear();
                ConstitutiveModelUtilities::InvertMatrix3( DeformationGradientReference, rSubstepDeformationGradient, det);
                rSubstepDeformationGradient = prod( DeformationGradientFinal, rSubstepDeformationGradient);
                
@@ -564,11 +760,13 @@ namespace Kratos
             {
                KRATOS_TRY
 
-               double & plasticVolDefNew = rVariables.Internal.Variables[1]; 
-               double & plasticVolDef    =mInternal.Variables[1];
+               for ( unsigned int i = 0; i < 2; i++) {
+                  double & plasticVolDefNew = rVariables.Internal.Variables[i]; 
+                  double & plasticVolDef    = mInternal.Variables[i];
 
-               mPreviousInternal.Variables[1] = plasticVolDef;
-               plasticVolDef = plasticVolDefNew;
+                  mPreviousInternal.Variables[i] = plasticVolDef;
+                  plasticVolDef = plasticVolDefNew;
+               }
 
                KRATOS_CATCH("")
             }
