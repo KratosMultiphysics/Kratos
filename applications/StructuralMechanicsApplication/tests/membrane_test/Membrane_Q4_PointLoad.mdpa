@@ -139,7 +139,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements Membrane1Element3D4N// GUI group identifier: Membrane
+Begin Elements PreStressMembraneElement3D4N// GUI group identifier: Membrane
         42          2         92         75         72         88 
         43          2         93         77         75         92 
         44          2         98         83         77         93 

@@ -52,8 +52,9 @@ from SmallTests import ShellT3ThinDrillingRollUpTests   as TShellT3ThinDrillingR
 # Eigenvalues tests
 from SmallTests import EigenQ4Thick2x2PlateTests        as TEigenQ4Thick2x2PlateTests
 from SmallTests import EigenTL3D8NCubeTests             as TEigenTL3D8NCubeTests
-from SmallTests import Fofi4PointTentnoCableTests as TFofi4PointTentnoCableTests
-from SmallTests import MembraneQ4PointLoadTests as TMembraneQ4PointLoadTests
+# Membrane tests
+from SmallTests import Fofi4PointTentnoCableTests       as TFofi4PointTentnoCableTests
+from SmallTests import MembraneQ4PointLoadTests         as TMembraneQ4PointLoadTests
 
 ## NIGTHLY TESTS
 # Shell test
@@ -150,7 +151,7 @@ def AssambleTestSuites():
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
             TFofi4PointTentnoCableTests,
-            TMembraneQ4PointLoadTests,
+            #TMembraneQ4PointLoadTests,
             TSimpleMeshMovingTest,
             TDynamicBossakTests,
             TDynamicNewmarkTests,

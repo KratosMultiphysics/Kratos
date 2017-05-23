@@ -437,11 +437,20 @@ namespace Kratos
 
         virtual double Solve() override
         {
+            //std::cout << "fofi::Solve() started" << std::endl;
             Initialize();
+            //std::cout << "fofi::Solve() initialized" << std::endl;
+
             InitializeSolutionStep();
+            //std::cout << "fofi::Solve() solutionstep initialized" << std::endl;
+
             Predict();
+            //std::cout << "fofi::Solve() predicted" << std::endl;
+
             SolveSolutionStep();
+            //std::cout << "fofi::Solve() Solution done" << std::endl;
             FinalizeSolutionStep();
+            //std::cout << "fofi::Solve() FinalizeSolutionStep done" << std::endl;
             return 0.00;
         }
 
