@@ -977,7 +977,8 @@ double& ContactDomainLM2DCondition::CalculateIntegrationWeight(double& rIntegrat
 
     if ( dimension == 2 ){   
       ElementType& MasterElement = mContactVariables.GetMasterElement();
-      rIntegrationWeight *= MasterElement.GetProperties()[THICKNESS];
+      if ( MasterElement.GetProperties()[THICKNESS] > 0)
+	rIntegrationWeight *= MasterElement.GetProperties()[THICKNESS];
     }
 	
     return rIntegrationWeight;

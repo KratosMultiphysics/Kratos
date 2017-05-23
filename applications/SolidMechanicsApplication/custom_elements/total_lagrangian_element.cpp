@@ -322,9 +322,11 @@ double& TotalLagrangianElement::CalculateTotalMass( double& rTotalMass, const Pr
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     rTotalMass = mTotalDomainInitialSize * GetProperties()[DENSITY];
-    
-    if( dimension == 2 )
-        rTotalMass *= GetProperties()[THICKNESS];
+
+    if( dimension == 2 ){
+      if ( this->GetProperties().Has( THICKNESS ) )
+	rTotalMass *= GetProperties()[THICKNESS];
+    }
 
     return rTotalMass;
 
