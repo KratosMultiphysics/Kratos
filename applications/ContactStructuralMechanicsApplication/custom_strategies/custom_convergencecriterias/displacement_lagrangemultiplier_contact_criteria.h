@@ -289,15 +289,16 @@ public:
         
         if (mpTable != nullptr)
         {
-            mpTable->AddColumn("DISP: RATIO", 15);
-            mpTable->AddColumn("EXP.RATIO", 9);
-            mpTable->AddColumn("ABS", 9);
-            mpTable->AddColumn("EXP. ABS", 9);
-            mpTable->AddColumn("LM:   RATIO", 15);
-            mpTable->AddColumn("EXP. RATIO", 9);
-            mpTable->AddColumn("ABS", 9);
-            mpTable->AddColumn("EXP.ABS", 9);
-            mpTable->AddColumn("CONVERGENCE", 11);
+            auto& Table = mpTable->GetTable();
+            Table.AddColumn("DP RATIO", 8);
+            Table.AddColumn("EXP. RAT", 8);
+            Table.AddColumn("ABS", 8);
+            Table.AddColumn("EXP. ABS", 8);
+            Table.AddColumn("LM RATIO", 8);
+            Table.AddColumn("EXP. RAT", 8);
+            Table.AddColumn("ABS", 8);
+            Table.AddColumn("EXP. ABS", 8);
+            Table.AddColumn("CONVERGENCE  ", 15);
         }
     }
 

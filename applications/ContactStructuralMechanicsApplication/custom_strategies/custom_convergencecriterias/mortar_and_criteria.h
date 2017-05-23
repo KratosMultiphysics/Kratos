@@ -180,7 +180,6 @@ public:
         {
             auto& Table = mpTable->GetTable();
             Table.AddColumn("ITER", 4);
-//             mpTable->AddColumn("ITER", 4);
         }
         
          BaseType::Initialize(rModelPart);

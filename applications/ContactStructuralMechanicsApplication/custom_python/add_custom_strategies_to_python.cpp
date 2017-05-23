@@ -131,7 +131,7 @@ void  AddCustomStrategiesToPython()
             (
             "MeshTyingMortarConvergenceCriteria", 
             init< >())
-//             .def(init<TablePrinterPointerType>()) // TODO: Add this
+            .def(init<TablePrinterPointerType>())
             .def("SetEchoLevel", &MeshTyingMortarConvergenceCriteriaType::SetEchoLevel)
             ;
 

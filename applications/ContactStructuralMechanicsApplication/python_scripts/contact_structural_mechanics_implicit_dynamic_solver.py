@@ -215,6 +215,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                 convergence_criterion = ContactStructuralMechanicsApplication.MortarAndConvergenceCriteria(convergence_criterion, Mortar, table)
             else:
                 convergence_criterion = ContactStructuralMechanicsApplication.MortarAndConvergenceCriteria(convergence_criterion, Mortar)
+            convergence_criterion.SetEchoLevel(self.echo_level)
             convergence_criterion.SetActualizeRHSFlag(True)
             
             return convergence_criterion

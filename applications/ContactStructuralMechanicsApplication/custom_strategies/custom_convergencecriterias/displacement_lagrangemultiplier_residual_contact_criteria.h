@@ -331,15 +331,6 @@ public:
             Table.AddColumn("ABS", 8);
             Table.AddColumn("EXP. ABS", 8);
             Table.AddColumn("CONVERGENCE  ", 15);
-//             mpTable->AddColumn("DP RATIO", 8);
-//             mpTable->AddColumn("EXP. RAT", 8);
-//             mpTable->AddColumn("  ABS   ", 8);
-//             mpTable->AddColumn("EXP. ABS", 8);
-//             mpTable->AddColumn("LM RATIO", 8);
-//             mpTable->AddColumn("EXP. RAT", 8);
-//             mpTable->AddColumn("  ABS   ", 8);
-//             mpTable->AddColumn("EXP. ABS", 8);
-//             mpTable->AddColumn("  CONVERGENCE  ", 15);
         }
     }
 

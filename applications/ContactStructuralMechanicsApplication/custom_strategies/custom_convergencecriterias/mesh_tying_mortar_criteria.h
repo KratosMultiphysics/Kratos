@@ -19,6 +19,7 @@
 /* Project includes */
 #include "custom_strategies/custom_convergencecriterias/base_mortar_criteria.h"
 #include "custom_utilities/color_utilities.h"
+#include "custom_utilities/bprinter_utility.h"
 
 namespace Kratos
 {
@@ -72,14 +73,17 @@ public:
     typedef ModelPart::ConditionsContainerType                       ConditionsArrayType;
     
     typedef ModelPart::NodesContainerType                                 NodesArrayType;
+    
+    typedef boost::shared_ptr<BprinterUtility>                   TablePrinterPointerType;
 
     ///@}
     ///@name Life Cycle
     ///@{
     
     /// Default constructors
-    MeshTyingMortarConvergenceCriteria()
-        : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >()
+    MeshTyingMortarConvergenceCriteria(TablePrinterPointerType pTable = nullptr)
+        : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >(),
+        mpTable(pTable)
     {
     }
 
@@ -116,6 +120,11 @@ public:
     {
         BaseType::CalculateContactReactions(rModelPart, rDofSet, b);
         
+        if (mpTable != nullptr)
+        {
+            // TODO: Add somethig if necessary
+        }
+        
         return true;
     }
     
@@ -127,6 +136,11 @@ public:
     void Initialize(ModelPart& rModelPart) override
     {
         ConvergenceCriteriaBaseType::mConvergenceCriteriaIsInitialized = true;
+        
+        if (mpTable != nullptr)
+        {
+            // TODO: Add somethig if necessary
+        }
     }
 
     ///@}
@@ -182,6 +196,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    
+    TablePrinterPointerType mpTable;
     
     ///@}
     ///@name Private Operators
