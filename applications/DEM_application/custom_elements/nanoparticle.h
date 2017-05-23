@@ -68,7 +68,7 @@ public:
     double CalculateVolume() override;
 
     double GetInteractionRadius(const int radius_index = 0) override;
-    void SetInteractionRadius(const double radius, const int radius_index = 0);
+    void SetInteractionRadius(const double radius, const int radius_index = 0) override;
     void SetDefaultRadiiHierarchy(const double radius) override;
 
     double GetCationConcentration();

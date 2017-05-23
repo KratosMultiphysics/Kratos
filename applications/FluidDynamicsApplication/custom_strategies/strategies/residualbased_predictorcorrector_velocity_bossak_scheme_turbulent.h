@@ -348,8 +348,8 @@ namespace Kratos {
                              TSystemVectorType& Dv,
                              TSystemVectorType& b)
         {
-            if (rModelPart.GetCommunicator().MyPID() == 0)
-                std::cout << "prediction" << std::endl;
+            // if (rModelPart.GetCommunicator().MyPID() == 0)
+            //     std::cout << "prediction" << std::endl;
 
             int NumThreads = OpenMPUtils::GetNumThreads();
             OpenMPUtils::PartitionVector NodePartition;
@@ -404,8 +404,8 @@ namespace Kratos {
                 }
             }
 
-            if (rModelPart.GetCommunicator().MyPID() == 0)
-                std::cout << "end of prediction" << std::endl;
+            // if (rModelPart.GetCommunicator().MyPID() == 0)
+            //     std::cout << "end of prediction" << std::endl;
 
         }
 
@@ -596,8 +596,14 @@ namespace Kratos {
             if (CurrentProcessInfo[OSS_SWITCH] == 1.0) {
                 if (rModelPart.GetCommunicator().MyPID() == 0)
                     std::cout << "Computing OSS projections" << std::endl;
-                for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++) {
 
+
+                const int nnodes = static_cast<int>(rModelPart.Nodes().size());
+                auto nbegin = rModelPart.NodesBegin();
+                #pragma omp parallel for firstprivate(nbegin,nnodes)
+                for(int i=0; i<nnodes; ++i)
+                {
+                    auto ind = nbegin + i;
                     noalias(ind->FastGetSolutionStepValue(ADVPROJ)) = ZeroVector(3);
 
                     ind->FastGetSolutionStepValue(DIVPROJ) = 0.0;
@@ -611,8 +617,12 @@ namespace Kratos {
                 array_1d<double, 3 > output;
 
 
-                for (typename ModelPart::ElementsContainerType::iterator elem = rModelPart.ElementsBegin(); elem != rModelPart.ElementsEnd(); elem++)
+                const int nel = static_cast<int>(rModelPart.Elements().size());
+                auto elbegin = rModelPart.ElementsBegin();
+                #pragma omp parallel for firstprivate(elbegin,nel)
+                for(int i=0; i<nel; ++i)
                 {
+                    auto elem = elbegin + i;
                     elem->Calculate(ADVPROJ, output, CurrentProcessInfo);
                 }
 
@@ -623,8 +633,10 @@ namespace Kratos {
                 // Correction for periodic conditions
                 this->PeriodicConditionProjectionCorrection(rModelPart);
 
-                for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++)
+                #pragma omp parallel for firstprivate(nbegin,nnodes)
+                for(int i=0; i<nnodes; ++i)
                 {
+                    auto ind = nbegin + i;
                     if (ind->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
                     {
                         ind->FastGetSolutionStepValue(NODAL_AREA) = 1.0;

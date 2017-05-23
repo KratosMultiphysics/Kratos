@@ -9,7 +9,7 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <cmath>
 
 // Kratos includes
@@ -40,14 +40,14 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-    
+
 template <std::size_t TDimension>
 class DiscreteParticleConfigure
 {
 
 public:
-  
-    enum { 
+
+    enum {
         Dimension = TDimension,
         DIMENSION = TDimension,
         MAX_LEVEL = 16,
@@ -56,25 +56,25 @@ public:
 
     /// Pointer definition of SpatialContainersConfigure
     KRATOS_CLASS_POINTER_DEFINITION(DiscreteParticleConfigure);
-    
+
     typedef SpatialSearch                                           SearchType;
 
     typedef SearchType::PointType                                   PointType;
     typedef SearchType::ElementsContainerType::ContainerType        ContainerType;
     typedef SearchType::ElementsContainerType                       ElementsContainerType;
     typedef SearchType::NodesContainerType                          NodesContainerType;
-    
+
     typedef SearchType::ElementType                                 ElementType;
     typedef ContainerType::value_type                               PointerType;
     typedef ContainerType::iterator                                 IteratorType;
     typedef ElementsContainerType::iterator                         ElementIteratorType;
-    
+
     typedef SearchType::ElementsContainerType::ContainerType        ResultContainerType;
 //     typedef SearchType::ResultDistanceType::ContainerType             ResultDistanceType;
-    
+
     typedef ResultContainerType::iterator                           ResultIteratorType;
     typedef std::vector<double>::iterator                           DistanceIteratorType;
-    
+
     typedef ContactPair<PointerType>                                ContactPairType;
     typedef std::vector<ContactPairType>                            ContainerContactType;
     typedef ContainerContactType::iterator                          IteratorContactType;
@@ -105,12 +105,12 @@ public:
         mDomainPeriods[2] = domain_period_z;
     }
 
-    static void GetMinPoint()
+    static double* GetMinPoint()
     {
         return mDomainMin;
     }
 
-    static void GetMaxPoint()
+    static double* GetMaxPoint()
     {
         return mDomainMax;
     }
@@ -119,7 +119,7 @@ public:
     {
         periods[0] = mDomainPeriods[0];
         periods[1] = mDomainPeriods[1];
-        periods[2] = mDomainPeriods[2];        
+        periods[2] = mDomainPeriods[2];
     }
 
     static bool GetDomainPeriodicity()
@@ -193,7 +193,7 @@ public:
     {
         double rObj_2_to_rObj_1[3];
         PeriodicSubstract(rObj_1->GetGeometry()[0], rObj_2->GetGeometry()[0], rObj_2_to_rObj_1);
-        
+
         double distance_2 = DEM_INNER_PRODUCT_3(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
 
         SphericParticle* p_particle1 = static_cast<SphericParticle*>(&*rObj_1);
@@ -218,20 +218,20 @@ public:
     }
 
     //******************************************************************************************************************
-    
+
     static inline bool IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
     {
         const array_1d<double, 3>& center_of_particle = rObject->GetGeometry()[0];
- 
+
         SphericParticle* p_particle = static_cast<SphericParticle*>(&*rObject);
         const double& radius = p_particle->GetSearchRadius();
 
         bool intersect = (
-          floatle(rLowPoint[0]  - radius,center_of_particle[0]) && 
-          floatle(rLowPoint[1]  - radius,center_of_particle[1]) && 
+          floatle(rLowPoint[0]  - radius,center_of_particle[0]) &&
+          floatle(rLowPoint[1]  - radius,center_of_particle[1]) &&
           floatle(rLowPoint[2]  - radius,center_of_particle[2]) &&
-          floatge(rHighPoint[0] + radius,center_of_particle[0]) && 
-          floatge(rHighPoint[1] + radius,center_of_particle[1]) && 
+          floatge(rHighPoint[0] + radius,center_of_particle[0]) &&
+          floatge(rHighPoint[1] + radius,center_of_particle[1]) &&
           floatge(rHighPoint[2] + radius,center_of_particle[2]));
 
         if (mDomainIsPeriodic && !intersect){
@@ -256,7 +256,7 @@ public:
 
         SphericParticle* p_particle = static_cast<SphericParticle*>(&*rObject);
         const double& radius = p_particle->GetSearchRadius();
-        
+
         bool intersect = (
             floatle(rLowPoint[0]  - radius,center_of_particle[0]) &&
             floatle(rLowPoint[1]  - radius,center_of_particle[1]) &&
@@ -287,16 +287,16 @@ public:
         PeriodicSubstract(rObj_1->GetGeometry()[0], rObj_2->GetGeometry()[0], rObj_2_to_rObj_1);
         distance = DEM_MODULUS_3(rObj_2_to_rObj_1);
     }
-    
+
     static inline double GetObjectRadius(const PointerType& rObject, const double& Radius)
     {
-        return GetObjectRadius(rObject);       
+        return GetObjectRadius(rObject);
     }
-    
+
     static inline double GetObjectRadius(const PointerType& rObject)
     {
         SphericParticle* p_particle = static_cast<SphericParticle*>(&*rObject);
-        return p_particle->GetSearchRadius();        
+        return p_particle->GetSearchRadius();
     }
 
     static double mDomainPeriods[3];
@@ -375,7 +375,7 @@ private:
         for (unsigned int i = 0; i < 3; ++i){
                 c[i] = a[i] - b[i];
         }
-        
+
         if (mDomainIsPeriodic){ // Periods have been set (the domain is periodic)
             for (unsigned int i = 0; i < 3; ++i){
                 if (fabs(c[i]) > 0.5 * mDomainPeriods[i]){ // the objects are closer through the boundary
@@ -388,11 +388,11 @@ private:
     static inline bool floateq(double a, double b) {
         return std::fabs(a - b) < std::numeric_limits<double>::epsilon();
     }
-    
+
     static inline bool floatle(double a, double b) {
         return a < b || std::fabs(a - b) < std::numeric_limits<double>::epsilon();
     }
-    
+
     static inline bool floatge(double a, double b) {
         return a > b || std::fabs(a - b) < std::numeric_limits<double>::epsilon();
     }

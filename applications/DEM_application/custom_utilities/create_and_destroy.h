@@ -76,7 +76,7 @@ public:
                                                       bool has_rotation,
                                                       bool initial);
         
-    Kratos::Element* ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
+    Kratos::SphericParticle* ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                               int r_Elem_Id,
                                               Node < 3 > ::Pointer reference_node, 
                                               Element::Pointer injector_element,
@@ -89,7 +89,7 @@ public:
                                               bool initial,
                                               ElementsContainerType& array_of_injector_elements);  
     
-    void ClusterCreatorWithPhysicalParameters(ModelPart& r_modelpart,
+    Kratos::Cluster3D* ClusterCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                             ModelPart& r_clusters_modelpart,
                                             int r_Elem_Id,
                                             Node < 3 > ::Pointer reference_node,
