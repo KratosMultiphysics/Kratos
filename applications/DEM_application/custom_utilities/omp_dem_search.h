@@ -92,6 +92,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
       //Bin Types
       typedef BinsObjectDynamic<ElementConfigureType>               BinsType;
       typedef BinsObjectDynamicPeriodic<ElementConfigureType>       BinsTypePeriodic;
+      typedef std::unique_ptr<BinsType>                             BinsUniquePointerType;
       typedef BinsObjectDynamic<NodeConfigureType>                  NodeBinsType;
       typedef BinsObjectDynamic<GeometricalConfigureType>           GeometricalBinsType;
       
@@ -183,10 +184,9 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           KRATOS_TRY
           
           int MaxNumberOfElements = rStructureElements.size();
-          
           ElementsContainerType::ContainerType& elements_array     = const_cast<ElementsContainerType::ContainerType&>(rElements.GetContainer());
           ElementsContainerType::ContainerType& elements_ModelPart = const_cast<ElementsContainerType::ContainerType&>(rStructureElements.GetContainer());
-          BinsType bins = GetBins(elements_ModelPart);
+          BinsUniquePointerType p_bins = GetBins(elements_ModelPart);
 
           #pragma omp parallel
           {
@@ -203,7 +203,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
                   SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*elements_array[i]);
                   const double radius = p_particle->GetSearchRadius();
                 
-                  NumberOfResults = bins.SearchObjectsInRadiusExclusive(elements_array[i],radius,ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
+                  NumberOfResults = p_bins->SearchObjectsInRadiusExclusive(elements_array[i],radius,ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
                   
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
                   rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
@@ -226,9 +226,8 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           
           ElementsContainerType::ContainerType& elements_array     = const_cast<ElementsContainerType::ContainerType&>(rElements.GetContainer());
           ElementsContainerType::ContainerType& elements_ModelPart = const_cast<ElementsContainerType::ContainerType&>(rStructureElements.GetContainer());
-        
-          BinsType bins(elements_ModelPart.begin(), elements_ModelPart.end());
-          
+          BinsUniquePointerType p_bins = GetBins(elements_ModelPart);
+
           #pragma omp parallel
           {
               ResultElementsContainerType   localResults(MaxNumberOfElements);
@@ -244,7 +243,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
                   SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*elements_array[i]);
                   const double radius = p_particle->GetSearchRadius();
                 
-                  NumberOfResults = bins.SearchObjectsInRadius(elements_array[i],radius,ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
+                  NumberOfResults = p_bins->SearchObjectsInRadius(elements_array[i],radius,ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
                   
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
                   rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
@@ -266,9 +265,8 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           
           ElementsContainerType::ContainerType& elements_array     = const_cast<ElementsContainerType::ContainerType&>(rElements.GetContainer());
           ElementsContainerType::ContainerType& elements_ModelPart = const_cast<ElementsContainerType::ContainerType&>(rStructureElements.GetContainer());
+          BinsUniquePointerType p_bins = GetBins(elements_ModelPart);
 
-          BinsType bins = GetBins(elements_ModelPart);
-          
           #pragma omp parallel
           {
               ResultElementsContainerType   localResults(MaxNumberOfElements);
@@ -282,7 +280,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
                   SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*elements_array[i]);
                   const double radius = p_particle->GetSearchRadius();
                         
-                  NumberOfResults = bins.SearchObjectsInRadiusExclusive(elements_array[i],radius,ResultsPointer,MaxNumberOfElements);
+                  NumberOfResults = p_bins->SearchObjectsInRadiusExclusive(elements_array[i],radius,ResultsPointer,MaxNumberOfElements);
   
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);    
               } 
@@ -303,7 +301,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           
           ElementsContainerType::ContainerType& elements_array     = const_cast<ElementsContainerType::ContainerType&>(rElements.GetContainer());
           ElementsContainerType::ContainerType& elements_ModelPart = const_cast<ElementsContainerType::ContainerType&>(rStructureElements.GetContainer());
-        
+
           BinsType bins(elements_ModelPart.begin(), elements_ModelPart.end());
           
           #pragma omp parallel
@@ -590,7 +588,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           const RadiusArrayType & Radius, 
           VectorResultElementsContainerType& rResults, 
           VectorDistanceType& rResultsDistance )
-      {     
+      {
           KRATOS_TRY
           
           int MaxNumberOfElements = rStructureElements.size();
@@ -800,16 +798,15 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
       ///@name Private Inquiry 
       ///@{ 
       ///
-        BinsType GetBins(ElementsContainerType::ContainerType& r_model_part_container)
+        BinsUniquePointerType GetBins(ElementsContainerType::ContainerType& r_model_part_container)
         {
             if (mDomainPeriodicity){
-                BinsTypePeriodic bins(r_model_part_container.begin(), r_model_part_container.end(), this->mDomainMin, this->mDomainMax);
-                return bins;
+                return std::unique_ptr<BinsType>(new BinsTypePeriodic(r_model_part_container.begin(), r_model_part_container.end(), this->mDomainMin, this->mDomainMax));
+
             }
 
             else {
-                BinsType bins(r_model_part_container.begin(), r_model_part_container.end());
-                return bins;
+                return std::unique_ptr<BinsType>(new BinsType(r_model_part_container.begin(), r_model_part_container.end()));
             }
         }
         
