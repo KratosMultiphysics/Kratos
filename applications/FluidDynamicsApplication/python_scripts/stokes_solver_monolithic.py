@@ -149,8 +149,8 @@ class StokesSolver:
                                                                     self.settings["pressure_tolerance"].GetDouble(),
                                                                     self.settings["absolute_pressure_tolerance"].GetDouble()
                                                                     )
-            
         
+        (convergence_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
         
         builder_and_solver = kratoscore.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         

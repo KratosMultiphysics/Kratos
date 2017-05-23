@@ -45,6 +45,8 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/processes/structured_mesh_generator_process.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/processes/tetrahedra_mesh_edge_swapping_process.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/processes/find_intersected_geometrical_objects_process.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_discontinuous_distance_to_skin_process.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_distance_to_skin_process.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/exception.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/code_location.cpp;
@@ -123,7 +125,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ###############################################################
 ## define library KratosCore to be included in all of the others
 add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_SOURCES} ${KRATOS_TESTING_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES})
-target_link_libraries(KratosCore ${Boost_PYTHON_LIBRARIES} ${PYTHON_LIBRARIES} gidpost )
+target_link_libraries(KratosCore ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} gidpost )
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
 install(TARGETS KratosCore DESTINATION libs )
 

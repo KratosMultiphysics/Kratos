@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,6 @@ THE SOFTWARE.
  * \brief  Sparse matrix in CRS format.
  */
 
-#include <boost/typeof/typeof.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
@@ -78,16 +77,12 @@ struct eigen {
     {
         const typename builtin<real>::matrix &a = *A;
 
-        BOOST_AUTO(Aptr, a.ptr_data());
-        BOOST_AUTO(Acol, a.col_data());
-        BOOST_AUTO(Aval, a.val_data());
-
         return boost::shared_ptr<matrix>(
                 new matrix(
                     rows(*A), cols(*A), nonzeros(*A),
-                    const_cast<index_type*>(Aptr),
-                    const_cast<index_type*>(Acol),
-                    const_cast<value_type*>(Aval)
+                    const_cast<index_type*>(a.ptr),
+                    const_cast<index_type*>(a.col),
+                    const_cast<value_type*>(a.val)
                     ),
                 hold_host(A)
                 );
@@ -98,7 +93,7 @@ struct eigen {
     copy_vector(typename builtin<real>::vector const &x, const params&)
     {
         return boost::make_shared<vector>(
-                Eigen::Map<const vector>(&x[0], x.size())
+                Eigen::Map<const vector>(x.data(), x.size())
                 );
     }
 
@@ -146,15 +141,15 @@ struct is_eigen_sparse_matrix : boost::false_type {};
 template <class T, class Enable = void>
 struct is_eigen_type : boost::false_type {};
 
-template <class T>
+template <typename Scalar, int Flags, typename Storage>
 struct is_eigen_sparse_matrix<
-    T,
-    typename boost::enable_if<
-            typename boost::mpl::and_<
-                typename boost::is_arithmetic<typename T::Scalar>::type,
-                typename boost::is_base_of<Eigen::SparseMatrixBase<T>, T>::type
-            >::type
-        >::type
+    Eigen::MappedSparseMatrix<Scalar, Flags, Storage>
+    > : boost::true_type
+{};
+
+template <typename Scalar, int Flags, typename Storage>
+struct is_eigen_sparse_matrix<
+    Eigen::SparseMatrix<Scalar, Flags, Storage>
     > : boost::true_type
 {};
 
@@ -205,7 +200,7 @@ struct cols_impl<
 template <class T>
 struct nonzeros_impl<
     T,
-    typename boost::enable_if<typename is_eigen_type<T>::type>::type
+    typename boost::enable_if<typename is_eigen_sparse_matrix<T>::type>::type
     >
 {
     static size_t get(const T &matrix) {
