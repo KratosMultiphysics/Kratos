@@ -290,14 +290,14 @@ public:
         if (mpTable != nullptr)
         {
             auto& Table = mpTable->GetTable();
-            Table.AddColumn("DP RATIO", 8);
-            Table.AddColumn("EXP. RAT", 8);
-            Table.AddColumn("ABS", 8);
-            Table.AddColumn("EXP. ABS", 8);
-            Table.AddColumn("LM RATIO", 8);
-            Table.AddColumn("EXP. RAT", 8);
-            Table.AddColumn("ABS", 8);
-            Table.AddColumn("EXP. ABS", 8);
+            Table.AddColumn("DP RATIO", 9);
+            Table.AddColumn("EXP. RAT", 9);
+            Table.AddColumn("ABS", 9);
+            Table.AddColumn("EXP. ABS", 9);
+            Table.AddColumn("LM RATIO", 9);
+            Table.AddColumn("EXP. RAT", 9);
+            Table.AddColumn("ABS", 9);
+            Table.AddColumn("EXP. ABS", 9);
             Table.AddColumn("CONVERGENCE", 15);
         }
     }
