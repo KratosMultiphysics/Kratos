@@ -45,8 +45,10 @@
 #include "custom_models/elasticity_models/linear_elastic_model.hpp"
 #include "custom_models/elasticity_models/saint_venant_kirchhoff_model.hpp"
 #include "custom_models/elasticity_models/neo_hookean_model.hpp"
-#include "custom_models/elasticity_models/compressible_neo_hookean_model.hpp"
+#include "custom_models/elasticity_models/neo_hookean_lnJ_squared_model.hpp"
+#include "custom_models/elasticity_models/neo_hookean_J_1_squared_model.hpp"
 #include "custom_models/elasticity_models/isochoric_neo_hookean_model.hpp"
+#include "custom_models/elasticity_models/isochoric_neo_hookean_lnJ_squared_model.hpp"
 #include "custom_models/elasticity_models/incompressible_neo_hookean_model.hpp"
 #include "custom_models/elasticity_models/borja_model.hpp"
 
@@ -169,8 +171,13 @@ namespace Kratos
       	  init<>() )
        	;
       
-      class_< CompressibleNeoHookeanModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
-      	( "CompressibleNeoHookeanModel",
+      class_< NeoHookeanLnJSquaredModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
+      	( "NeoHookeanLnJSquaredModel",
+      	  init<>() )
+       	;
+
+      class_< NeoHookeanJ_1SquaredModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
+      	( "NeoHookeanJ_1SquaredModel",
       	  init<>() )
        	;
 
@@ -179,6 +186,11 @@ namespace Kratos
       	  init<>() )
        	;
 
+      class_< IsochoricNeoHookeanLnJSquaredModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
+      	( "IsochoricNeoHookeanLnJSquaredModel",
+      	  init<>() )
+       	;
+      
       class_< IncompressibleNeoHookeanModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
       	( "IncompressibleNeoHookeanModel",
       	  init<>() )

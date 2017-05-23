@@ -183,6 +183,25 @@ namespace Kratos
 
 
     // specialized methods:
+
+    virtual void CalculateVolumetricFactor(HyperElasticDataType& rVariables, double& rFactor)
+    {
+      KRATOS_TRY
+
+      rFactor = 0.5 * (rVariables.Strain.Invariants.I3-1.0);
+	
+      KRATOS_CATCH(" ")
+    }
+
+    virtual void CalculateConstitutiveMatrixFactor(HyperElasticDataType& rVariables, double& rFactor)
+    {
+      KRATOS_TRY
+
+      rFactor = rVariables.Strain.Invariants.I3;
+	
+      KRATOS_CATCH(" ")
+    }
+    
     
     // virtual void CalculateAndAddStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override
     // {
@@ -194,10 +213,13 @@ namespace Kratos
     //   MatrixType StressMatrix;
       
     //   const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
+
+    //   double Factor = 0;
+    //   this->CalculateVolumetricFactor(rVariables,Factor);
       
     //   if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mStrainMatrix = RightCauchyGreen (C)
 
-    // 	StressMatrix  = rMaterial.GetLameLambda() * (rVariables.Strain.Invariants.I3-1.0) * rVariables.Strain.InverseMatrix;
+    // 	StressMatrix  = rMaterial.GetLameLambda() * Factor * rVariables.Strain.InverseMatrix;
     //     StressMatrix += rMaterial.GetLameMu() * ( msIdentityMatrix - rVariables.Strain.InverseMatrix);
 
     // 	rStressMatrix += StressMatrix;
@@ -205,7 +227,7 @@ namespace Kratos
     //   }
     //   else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mStrainMatrix = LeftCauchyGreen (b)
 
-    // 	StressMatrix  = rMaterial.GetLameLambda() * (rVariables.Strain.Invariants.I3-1.0) * msIdentityMatrix;
+    // 	StressMatrix  = rMaterial.GetLameLambda() * Factor * msIdentityMatrix;
     //     StressMatrix += rMaterial.GetLameMu() * ( rVariables.Strain.Matrix - msIdentityMatrix );
 	
     // 	rStressMatrix += StressMatrix;      
@@ -230,14 +252,20 @@ namespace Kratos
 
     //   const ModelDataType&  rModelData        = rVariables.GetModelData();
     //   const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
-         
+
+    //   double FactorA = 0;
+    //   this->CalculateConstitutiveMatrixFactor(rVariables,FactorA);
+
+    //   double FactorB = 0;
+    //   this->CalculateVolumetricFactor(rVariables,FactorB);
+    
     //   if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mStrainMatrix = RightCauchyGreen (C)
-    // 	Cabcd  = rVariables.Strain.Invariants.I3 * rMaterial.GetLameLambda() * (rVariables.Strain.InverseMatrix(a,b)*rVariables.Strain.InverseMatrix(c,d));
-    // 	Cabcd += (rMaterial.GetLameMu() - 0.5 * rMaterial.GetLameLambda() * (rVariables.Strain.Invariants.I3-1.0)) * (rVariables.Strain.InverseMatrix(a,c)*rVariables.Strain.InverseMatrix(b,d)+rVariables.Strain.InverseMatrix(a,d)*rVariables.Strain.InverseMatrix(b,c));
+    // 	Cabcd  = FactorA * rMaterial.GetLameLambda() * (rVariables.Strain.InverseMatrix(a,b)*rVariables.Strain.InverseMatrix(c,d));
+    // 	Cabcd += (rMaterial.GetLameMu() - rMaterial.GetLameLambda() * FactorB) * (rVariables.Strain.InverseMatrix(a,c)*rVariables.Strain.InverseMatrix(b,d)+rVariables.Strain.InverseMatrix(a,d)*rVariables.Strain.InverseMatrix(b,c));
     //   }
     //   else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mStrainMatrix = LeftCauchyGreen (b)
-    // 	Cabcd  = rMaterial.GetLameLambda() * (msIdentityMatrix(a,b)*msIdentityMatrix(c,d));
-    // 	Cabcd += (rMaterial.GetLameMu() - 0.5 * rMaterial.GetLameLambda() * (rVariables.Strain.Invariants.I3-1.0)) * (msIdentityMatrix(a,c)*msIdentityMatrix(b,d)+msIdentityMatrix(a,d)*msIdentityMatrix(b,c));  
+    // 	Cabcd  = FactorA * rMaterial.GetLameLambda() * (msIdentityMatrix(a,b)*msIdentityMatrix(c,d));
+    // 	Cabcd += (rMaterial.GetLameMu() - rMaterial.GetLameLambda() * FactorB) * (msIdentityMatrix(a,c)*msIdentityMatrix(b,d)+msIdentityMatrix(a,d)*msIdentityMatrix(b,c));  
     //   }
       
     //   rCabcd += Cabcd;
@@ -251,6 +279,8 @@ namespace Kratos
 
     
     //************// W
+
+    //option: g(J) = (lambda/4)*(J²-1) - (lamda/2)*lnJ - (mu)*lnJ  (default implemented)
     
     virtual void CalculateAndAddVolumetricStrainEnergy(HyperElasticDataType& rVariables, double& rVolumetricDensityFunction)
     {
@@ -298,7 +328,7 @@ namespace Kratos
       const MaterialDataType&  rMaterial = rVariables.GetMaterialParameters();
 
       //derivative of "g(J) = (lambda/4)*(J²-1) - (lamda/2)*lnJ - (mu)*lnJ"
-      //dg(J)/dI3 = (lambda/4) - (lambda/2)*(1/J²)/2 - mu*(1/J²)/2
+      //dg(J)/dI3 = (lambda/4) - (lambda/2)*(1/J²)/2 - (mu)*(1/J²)/2
       rDerivative  = rMaterial.GetLameLambda();
       rDerivative += 2.0 * rMaterial.GetLameMu();
       rDerivative /= -rVariables.Strain.Invariants.I3;
@@ -338,6 +368,7 @@ namespace Kratos
       KRATOS_TRY
 
       const MaterialDataType&   rMaterial = rVariables.GetMaterialParameters();
+      
       //ddg(J)/dI3dI3 = (lambda/4)*(1/J⁴) + (mu/2)*(1/J⁴)
       rDerivative  = 0.25 * rMaterial.GetLameLambda();
       rDerivative += 0.5  * rMaterial.GetLameMu();

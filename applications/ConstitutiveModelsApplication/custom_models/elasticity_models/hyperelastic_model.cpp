@@ -553,8 +553,10 @@ namespace Kratos
     else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Strain.Matrix = LeftCauchyGreen (b)
      
       //2nd derivatives
-      Dabcd = GetI1LeftCauchyGreen2ndDerivative(rVariables.Strain,Dabcd,a,b,c,d);
-      Cabcd += rVariables.Factors.Alpha1 * Dabcd;
+
+      // check why this term is not needed
+      // Dabcd = GetI1LeftCauchyGreen2ndDerivative(rVariables.Strain,Dabcd,a,b,c,d);
+      // Cabcd += rVariables.Factors.Alpha1 * Dabcd;
       
       Dabcd = GetI2LeftCauchyGreen2ndDerivative(rVariables.Strain,Dabcd,a,b,c,d);
       Cabcd += rVariables.Factors.Alpha2 * Dabcd;
@@ -1364,7 +1366,7 @@ namespace Kratos
     KRATOS_TRY
       
     rDerivative = GetFourthOrderUnitTensor(rDerivative,a,b,c,d);
-    
+        
     return rDerivative;
 
     KRATOS_CATCH(" ")
@@ -1397,7 +1399,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    rDerivative  = msIdentityMatrix(a,b)*msIdentityMatrix(c,d);
+    rDerivative  = (-1.0) * GetFourthOrderUnitTensor(rDerivative,a,b,c,d);
+    rDerivative += msIdentityMatrix(a,b)*msIdentityMatrix(c,d);
     rDerivative *= rStrain.Invariants.I3;
       
     return rDerivative;

@@ -189,112 +189,27 @@ namespace Kratos
     ///@}
     ///@name Protected Operators
     ///@{
-
     
     ///@}
     ///@name Protected Operations
     ///@{
 
-    //************// W
-    
-    virtual void CalculateAndAddIsochoricStrainEnergy(HyperElasticDataType& rVariables, double& rIsochoricDensityFunction)
-    {
-      KRATOS_TRY
 
-      const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
-      
-      rIsochoricDensityFunction += rMaterial.GetModelParameters()[0] * ( rVariables.Strain.Invariants.J_13 * rVariables.Strain.Invariants.I1 - 3.0);
-	
-      KRATOS_CATCH(" ")
-    }
-
-
-    
     //************// dW
-    
-    virtual double& GetFunction1stI1Derivative(HyperElasticDataType& rVariables, double& rDerivative) //dW/dI1
-    {
-      KRATOS_TRY
-	
-      const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
-
-      rDerivative = rMaterial.GetModelParameters()[0];
-
-      return rDerivative;
-
-      KRATOS_CATCH(" ")
-    };
-
-    virtual double& GetFunction1stI2Derivative(HyperElasticDataType& rVariables, double& rDerivative) //dW/dI2
-    {
-      KRATOS_TRY
-	
-      rDerivative = 0.0;
-
-      return rDerivative;
-
-      KRATOS_CATCH(" ")
-    };
-
-    virtual double& GetFunction1stI3Derivative(HyperElasticDataType& rVariables, double& rDerivative) //dW/dI3
-    {
-      KRATOS_TRY
-
-      rDerivative = 0.0;
-
-      return rDerivative;
-
-      KRATOS_CATCH(" ")
-    };
-
-    
+        
     virtual double& GetVolumetricFunctionJDerivative(HyperElasticDataType& rVariables, double& rDerivative) //dU/dJ
     {
       KRATOS_TRY
 
       const ModelDataType&  rValues = rVariables.GetModelData();
 	
-      rDerivative = rValues.GetDeterminantF();
+      rDerivative = rValues.GetPressure();
       
       return rDerivative;
 
       KRATOS_CATCH(" ")
     };
-
-
-    virtual double& GetFunction2ndI1Derivative(HyperElasticDataType& rVariables, double& rDerivative) //ddW/dI1dI1
-    {
-      KRATOS_TRY
-	
-      rDerivative = 0.0;
-      
-      return rDerivative;
-
-      KRATOS_CATCH(" ")
-    };
-
-    virtual double& GetFunction2ndI2Derivative(HyperElasticDataType& rVariables, double& rDerivative) //ddW/dI2dI2
-    {
-      KRATOS_TRY
-
-      rDerivative = 0.0;
-
-      return rDerivative;
-
-      KRATOS_CATCH(" ")
-    };
-
-    virtual double& GetFunction2ndI3Derivative(HyperElasticDataType& rVariables, double& rDerivative) //ddW/dI3dI3
-    {
-      KRATOS_TRY
-	
-      rDerivative = 0.0;
-
-      return rDerivative;
-
-      KRATOS_CATCH(" ")
-    };
-    
+   
 
     virtual double& GetVolumetricFunction2ndJDerivative(HyperElasticDataType& rVariables, double& rDerivative) //ddU/dJdJ
     {
