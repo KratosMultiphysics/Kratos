@@ -640,7 +640,7 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(const Variable<double> & rO
             for (int k=0; k < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); ++k)
             {
                 ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin() + k;
-                node_it->GetValue(MAPPER_SCALAR_PROJECTION_RHS) = 0.0;
+                node_it->SetValue(MAPPER_SCALAR_PROJECTION_RHS, 0.0);
             }
 
             double LocalRHS0, LocalRHS1; // Local RHS for each node
@@ -765,7 +765,7 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(const Variable<double> & rO
             for (int k=0; k<static_cast<int>(mrDestinationModelPart.NumberOfNodes()); ++k)
             {
                 ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin() + k;
-                node_it->GetValue(MAPPER_SCALAR_PROJECTION_RHS) = 0.0;
+                node_it->SetValue(MAPPER_SCALAR_PROJECTION_RHS, 0.0);
             }
 
             array_1d<double, 3> LocalRHS;
@@ -956,7 +956,7 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap(const Variable<array_1d<dou
                     node_it != mrDestinationModelPart.NodesEnd();
                     node_it++)
             {
-                node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS) = ZeroVector(3);
+                node_it->SetValue(MAPPER_VECTOR_PROJECTION_RHS, ZeroVector(3));
             }
 
             array_1d<double, 3> LocalRHS0, LocalRHS1; // Local RHS for each node
@@ -1107,7 +1107,7 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap(const Variable<array_1d<dou
             for (k=0; k<static_cast<int>(mrDestinationModelPart.NumberOfNodes()); ++k)
             {
                 ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin() + k;
-                node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS) = ZeroVector(3);
+                node_it->SetValue(MAPPER_VECTOR_PROJECTION_RHS, ZeroVector(3));
             }
 
             array_1d<double, 3> LocalRHS0, LocalRHS1, LocalRHS2; // Local RHS for each node
@@ -1283,7 +1283,7 @@ void AdvancedNMPointsMapper::ScalarMap(const Variable<double> & rOriginVar,
             for (int i=0; i<static_cast<int>(mrDestinationModelPart.NumberOfNodes()); ++i)
             {
                 ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin() + i;
-                node_it->GetValue(MAPPER_SCALAR_PROJECTION_RHS) = 0.0;
+                node_it->SetValue(MAPPER_SCALAR_PROJECTION_RHS, 0.0);
             }
 
             double LocalRHS0, LocalRHS1; // Local RHS for each node
@@ -1399,7 +1399,7 @@ void AdvancedNMPointsMapper::ScalarMap(const Variable<double> & rOriginVar,
             for (int i=0; i<static_cast<int>(mrDestinationModelPart.NumberOfNodes()); ++i)
             {
                 ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin() + i;
-                node_it->GetValue(MAPPER_SCALAR_PROJECTION_RHS) = 0.0;
+                node_it->SetValue(MAPPER_SCALAR_PROJECTION_RHS, 0.0);
             }
 
             array_1d<double, 3> LocalRHS;
@@ -1580,7 +1580,7 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
             for (int i=0; i<static_cast<int>(mrDestinationModelPart.NumberOfNodes()); ++i)
             {
                 ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin() + i;
-                node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS) = ZeroVector(3);
+                node_it->SetValue(MAPPER_VECTOR_PROJECTION_RHS, ZeroVector(3));
             }
 
             array_1d<double, 3> LocalRHS0, LocalRHS1; // Local RHS for each node
@@ -1619,14 +1619,14 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
 
                 IV_iter++;
             }
-
+            
             // Solve
             array_1d<double,3> dVal = ZeroVector(3);
             double dValNorm      = 0.0;
             double ValNorm       = 0.0;
             const unsigned int NodeNum = mrDestinationModelPart.NumberOfNodes();
 
-            #pragma omp parallel for reduction(+ : dValNorm, ValNorm)
+            #pragma omp parallel for reduction(+ : dValNorm, ValNorm) private(dVal)
             for (int i=0; i<static_cast<int>(mrDestinationModelPart.NumberOfNodes()); ++i)
             {
                 ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin() + i;
@@ -1714,7 +1714,7 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
             for (k=0; k<static_cast<int>(mrDestinationModelPart.NumberOfNodes()); ++k)
             {
                 ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin() + k;
-                node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS) = ZeroVector(3);
+                node_it->SetValue(MAPPER_VECTOR_PROJECTION_RHS, ZeroVector(3));
             }
 
             array_1d<double, 3> LocalRHS0, LocalRHS1, LocalRHS2; // Local RHS for each node
@@ -1764,7 +1764,7 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
             double ValNorm       = 0.0;
             const unsigned int NodeNum = mrDestinationModelPart.NumberOfNodes();
 
-            #pragma omp parallel for reduction(+ : dValNorm, ValNorm)
+            #pragma omp parallel for reduction(+ : dValNorm, ValNorm) private(dVal)
             for (int i=0; i<static_cast<int>(mrDestinationModelPart.NumberOfNodes()); ++i)
             {
                 ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin() + i;
@@ -1861,7 +1861,7 @@ void AdvancedNMPointsMapper::ComputeNodalLengthArea()
     for (int k = 0; k < static_cast<int>(rOriginModelPartNodes.size()); ++k)
     {
         ModelPart::NodesContainerType::iterator itNode = rOriginModelPartNodes.begin() + k;
-        itNode->GetValue(NODAL_MAUX) = 0.0;
+        itNode->SetValue(NODAL_MAUX, 0.0);
     }
 
     // DestinationModelPart
@@ -1869,7 +1869,7 @@ void AdvancedNMPointsMapper::ComputeNodalLengthArea()
     for (int k = 0; k < static_cast<int>(rDestinationModelPartNodes.size()); ++k)
     {
         ModelPart::NodesContainerType::iterator itNode = rDestinationModelPartNodes.begin() + k;
-        itNode->GetValue(NODAL_MAUX) = 0.0;
+        itNode->SetValue(NODAL_MAUX, 0.0);
     }
 
     // NODAL_MAUX computation
@@ -1941,24 +1941,6 @@ void AdvancedNMPointsMapper::ComputeNodalLengthArea()
             }
         }
     }
-
-    // Store the computed NODAL_MAUX in the historical buffer so GiD can paint it later (debugging purposes only)
-    // OriginModelPart
-    #pragma omp parallel for
-    for (int k = 0; k < static_cast<int>(rOriginModelPartNodes.size()); ++k)
-    {
-        ModelPart::NodesContainerType::iterator itNode = rOriginModelPartNodes.begin() + k;
-        itNode->FastGetSolutionStepValue(NODAL_MAUX) = itNode->GetValue(NODAL_MAUX);
-    }
-
-    // DestinationModelPart
-    #pragma omp parallel for
-    for (int k = 0; k < static_cast<int>(rDestinationModelPartNodes.size()); ++k)
-    {
-        ModelPart::NodesContainerType::iterator itNode = rDestinationModelPartNodes.begin() + k;
-        itNode->FastGetSolutionStepValue(NODAL_MAUX) = itNode->GetValue(NODAL_MAUX);
-    }
-
 }
 
 /**
@@ -2004,7 +1986,7 @@ void AdvancedNMPointsMapper::ComputeEquivalentTractions(const Variable<array_1d<
             for (int i=0; i<static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
             {
                 ModelPart::NodesContainerType::const_iterator node_it = mrOriginModelPart.NodesBegin() + i;
-                node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS) = ZeroVector(3);
+                node_it->SetValue(MAPPER_VECTOR_PROJECTION_RHS, ZeroVector(3));
             }
 
             array_1d<double, 3> LocalRHS0, LocalRHS1; // Local RHS for each node
@@ -2066,7 +2048,7 @@ void AdvancedNMPointsMapper::ComputeEquivalentTractions(const Variable<array_1d<
             double ValNorm       = 0.0;
             const unsigned int NodeNum = mrOriginModelPart.NumberOfNodes();
 
-            #pragma omp parallel for reduction(+ : dValNorm, ValNorm)
+            #pragma omp parallel for reduction(+ : dValNorm, ValNorm) private(dVal)
             for (int i=0; i<static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
             {
                 ModelPart::NodesContainerType::const_iterator node_it = mrOriginModelPart.NodesBegin() + i;
@@ -2126,7 +2108,7 @@ void AdvancedNMPointsMapper::ComputeEquivalentTractions(const Variable<array_1d<
             for (int i=0; i<static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
             {
                 ModelPart::NodesContainerType::const_iterator node_it = mrOriginModelPart.NodesBegin() + i;
-                node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS) = ZeroVector(3);
+                node_it->SetValue(MAPPER_VECTOR_PROJECTION_RHS, ZeroVector(3));
             }
 
             array_1d<double, 3> LocalRHS0, LocalRHS1, LocalRHS2; // Local RHS for each node
@@ -2182,7 +2164,7 @@ void AdvancedNMPointsMapper::ComputeEquivalentTractions(const Variable<array_1d<
             double ValNorm       = 0.0;
             const unsigned int NodeNum = mrOriginModelPart.NumberOfNodes();
 
-            #pragma omp parallel for reduction(+ : dValNorm, ValNorm)
+            #pragma omp parallel for reduction(+ : dValNorm, ValNorm) private(dVal)
             for (int i=0; i<static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
             {
                 ModelPart::NodesContainerType::const_iterator node_it = mrOriginModelPart.NodesBegin() + i;

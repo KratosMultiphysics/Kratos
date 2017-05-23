@@ -42,7 +42,6 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
     def tearDown(self):
         pass
 
-
 class SimpleMeshMovingTest(StructuralMechanichsTestFactory):
     file_name = "mesh_moving_test/simple_mesh_moving_test"
 
@@ -50,12 +49,83 @@ class SimpleMeshMovingTest(StructuralMechanichsTestFactory):
 class DynamicBossakTests(StructuralMechanichsTestFactory):
     file_name = "dynamic_test/dynamic_bossak_test"
 
-
 class DynamicNewmarkTests(StructuralMechanichsTestFactory):
     file_name = "dynamic_test/dynamic_newmark_test"
 
 class DynamicNodalDampingTests(StructuralMechanichsTestFactory):
     file_name = "dynamic_test/dynamic_nodal_damping_test"
+
+class SDTwoDShearQuaPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/small_disp/patch_test_2D_shear_qua"
+    
+class SDTwoDShearTriPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/small_disp/patch_test_2D_shear_tri"
+    
+class SDTwoDTensionQuaPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/small_disp/patch_test_2D_tension_qua"
+    
+class SDTwoDTensionTriPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/small_disp/patch_test_2D_tension_tri"
+    
+class SDThreeDShearHexaPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/small_disp/patch_test_3D_shear_hexa"
+    
+class SDThreeDShearTetraPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/small_disp/patch_test_3D_shear_tetra"
+    
+class SDThreeDTensionHexaPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/small_disp/patch_test_3D_tension_hexa"
+    
+class SDThreeDTensionTetraPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/small_disp/patch_test_3D_tension_tetra"
+    
+class TLTwoDShearQuaPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/total_lagrangian/patch_test_2D_shear_qua"
+    
+class TLTwoDShearTriPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/total_lagrangian/patch_test_2D_shear_tri"
+    
+class TLTwoDTensionQuaPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/total_lagrangian/patch_test_2D_tension_qua"
+    
+class TLTwoDTensionTriPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/total_lagrangian/patch_test_2D_tension_tri"
+    
+class TLThreeDShearHexaPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/total_lagrangian/patch_test_3D_shear_hexa"
+    
+class TLThreeDShearTetraPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/total_lagrangian/patch_test_3D_shear_tetra"
+    
+class TLThreeDTensionHexaPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/total_lagrangian/patch_test_3D_tension_hexa"
+    
+class TLThreeDTensionTetraPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/total_lagrangian/patch_test_3D_tension_tetra"
+    
+class ULTwoDShearQuaPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/updated_lagrangian/patch_test_2D_shear_qua"
+    
+class ULTwoDShearTriPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/updated_lagrangian/patch_test_2D_shear_tri"
+    
+class ULTwoDTensionQuaPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/updated_lagrangian/patch_test_2D_tension_qua"
+    
+class ULTwoDTensionTriPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/updated_lagrangian/patch_test_2D_tension_tri"
+    
+class ULThreeDShearHexaPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/updated_lagrangian/patch_test_3D_shear_hexa"
+    
+class ULThreeDShearTetraPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/updated_lagrangian/patch_test_3D_shear_tetra"
+    
+class ULThreeDTensionHexaPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/updated_lagrangian/patch_test_3D_tension_hexa"
+    
+class ULThreeDTensionTetraPatchTest(StructuralMechanichsTestFactory):
+    file_name = "patch_test/updated_lagrangian/patch_test_3D_tension_tetra"
 
 class SprismMembranePatchTests(StructuralMechanichsTestFactory):
     file_name = "sprism_test/patch_membrane_test"

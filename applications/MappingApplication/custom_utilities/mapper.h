@@ -86,27 +86,27 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void UpdateInterface(Kratos::Flags Options, double SearchRadius) = 0;
+    virtual void UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius) = 0;
 
     /* This function maps from Origin to Destination */
     virtual void Map(const Variable<double>& rOriginVariable,
                      const Variable<double>& rDestinationVariable,
-                     Kratos::Flags Options) = 0;
+                     Kratos::Flags MappingOptions) = 0;
 
     /* This function maps from Origin to Destination */
     virtual void Map(const Variable< array_1d<double, 3> >& rOriginVariable,
                      const Variable< array_1d<double, 3> >& rDestinationVariable,
-                     Kratos::Flags Options) = 0;
+                     Kratos::Flags MappingOptions) = 0;
 
     /* This function maps from Destination to Origin */
     virtual void InverseMap(const Variable<double>& rOriginVariable,
                             const Variable<double>& rDestinationVariable,
-                            Kratos::Flags Options) = 0;
+                            Kratos::Flags MappingOptions) = 0;
 
     /* This function maps from Destination to Origin */
     virtual void InverseMap(const Variable< array_1d<double, 3> >& rOriginVariable,
                             const Variable< array_1d<double, 3> >& rDestinationVariable,
-                            Kratos::Flags Options) = 0;
+                            Kratos::Flags MappingOptions) = 0;
 
     MapperCommunicator::Pointer pGetMapperCommunicator()
     {
@@ -237,6 +237,14 @@ protected:
 
         mModelPartOrigin.GetCommunicator().SumAll(mNumNodesOrigin);
         mModelPartDestination.GetCommunicator().SumAll(mNumNodesDestination);
+    }
+
+    void ProcessMappingOptions(const Kratos::Flags& rMappingOptions,
+                               double& Factor) {
+        if (rMappingOptions.Is(MapperFlags::SWAP_SIGN))
+        {
+            Factor *= (-1);
+        }
     }
 
     ///@}
