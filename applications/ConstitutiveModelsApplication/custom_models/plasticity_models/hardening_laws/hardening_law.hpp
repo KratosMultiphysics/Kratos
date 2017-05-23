@@ -55,7 +55,9 @@ namespace Kratos
   {
   protected:
 
-    constexpr static std::size_t VarSize = 1;
+    //warning::this variable is going to be shadowed by they derived classes
+    //if any problem is detected an alternative method must be used instead
+    constexpr static std::size_t VarSize = 1; 
     
   public:
     

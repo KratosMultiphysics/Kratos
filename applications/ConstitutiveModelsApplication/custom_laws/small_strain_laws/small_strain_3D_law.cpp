@@ -27,7 +27,7 @@ namespace Kratos
     KRATOS_TRY
 
     //member variables initialization
-    mInitialStrainVector.clear();
+    mStrainVector.clear();
 
     KRATOS_CATCH(" ")
   }
@@ -44,7 +44,7 @@ namespace Kratos
     mpModel = pModel->Clone();
       
     //member variables initialization
-    mInitialStrainVector.clear();
+    mStrainVector.clear();
     
     KRATOS_CATCH(" ")    
   }
@@ -54,7 +54,7 @@ namespace Kratos
 
   SmallStrain3DLaw::SmallStrain3DLaw(const SmallStrain3DLaw& rOther)
     : Constitutive3DLaw(rOther)
-    ,mInitialStrainVector(rOther.mInitialStrainVector)
+    ,mStrainVector(rOther.mStrainVector)
   {
     mpModel = rOther.mpModel->Clone();
   }
@@ -66,7 +66,7 @@ namespace Kratos
   {
     Constitutive3DLaw::operator=(rOther);
     mpModel = rOther.mpModel->Clone();
-    mInitialStrainVector = rOther.mInitialStrainVector;
+    mStrainVector = rOther.mStrainVector;
     return *this;
   } 
   
@@ -102,7 +102,7 @@ namespace Kratos
 
     // A method to compute the initial linear strain from the stress is needed
     // if(rThisVariable == INITIAL_STRAIN_VECTOR){
-    //   mInitialStrainVector = rValue;
+    //   mStrainVector = rValue;
     // }
          
     KRATOS_CATCH(" ")
@@ -136,7 +136,7 @@ namespace Kratos
     Vector& rStrainVector                  = rValues.GetStrainVector();
     Vector& rStressVector                  = rValues.GetStressVector();
 
-    AddInitialStrainVector(rStrainVector);
+    AddPreviousStrainVector(rStrainVector);
     
     //-----------------------------//
 
@@ -185,7 +185,7 @@ namespace Kratos
     Vector& rStrainVector                  = rValues.GetStrainVector();
     Vector& rStressVector                  = rValues.GetStressVector();
 
-    AddInitialStrainVector(rStrainVector);
+    AddPreviousStrainVector(rStrainVector);
     
     //-----------------------------//
 
@@ -276,13 +276,13 @@ namespace Kratos
   //************************************************************************************
 
 
-  void SmallStrain3DLaw::AddInitialStrainVector(Vector & rStrainVector)
+  void SmallStrain3DLaw::AddPreviousStrainVector(Vector & rStrainVector)
   {
     KRATOS_TRY
           
     for(unsigned int i=0; i<rStrainVector.size(); i++)
       {
-	rStrainVector[i] += mInitialStrainVector[i];
+	rStrainVector[i] += mStrainVector[i];
       }
           
     KRATOS_CATCH(" ")
