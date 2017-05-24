@@ -17,7 +17,6 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include <iomanip> // for std::setprecision
 
 // ------------------------------------------------------------------------------
 // External includes
@@ -30,12 +29,12 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "../../kratos/includes/define.h"
-#include "../../kratos/processes/process.h"
-#include "../../kratos/includes/node.h"
-#include "../../kratos/includes/element.h"
-#include "../../kratos/includes/model_part.h"
-#include "../../kratos/includes/kratos_flags.h"
+#include "includes/define.h"
+#include "processes/process.h"
+#include "includes/node.h"
+#include "includes/element.h"
+#include "includes/model_part.h"
+#include "includes/kratos_flags.h"
 #include "shape_optimization_application.h"
 
 // ==============================================================================
@@ -89,9 +88,6 @@ class FilterFunction
     FilterFunction(std::string filter_function_type, double filter_size)
         : m_filter_size(filter_size)
     {
-        // Set precision for output
-        std::cout.precision(12);
-
         // Create strings to compare to
         std::string gaussian("gaussian");
         std::string linear("linear");

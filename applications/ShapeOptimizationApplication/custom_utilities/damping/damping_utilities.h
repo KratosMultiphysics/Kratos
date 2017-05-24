@@ -30,17 +30,17 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "../../kratos/includes/define.h"
-#include "../../kratos/processes/process.h"
-#include "../../kratos/includes/node.h"
-#include "../../kratos/includes/element.h"
-#include "../../kratos/includes/model_part.h"
-#include "../../kratos/includes/kratos_flags.h"
-#include "../../kratos/spatial_containers/spatial_containers.h"
-#include "../../kratos/utilities/timer.h"
-#include "../../kratos/processes/node_erase_process.h"
-#include "../../kratos/utilities/binbased_fast_point_locator.h"
-#include "../../kratos/utilities/normal_calculation_utils.h"
+#include "includes/define.h"
+#include "processes/process.h"
+#include "includes/node.h"
+#include "includes/element.h"
+#include "includes/model_part.h"
+#include "includes/kratos_flags.h"
+#include "spatial_containers/spatial_containers.h"
+#include "utilities/timer.h"
+#include "processes/node_erase_process.h"
+#include "utilities/binbased_fast_point_locator.h"
+#include "utilities/normal_calculation_utils.h"
 #include "shape_optimization_application.h"
 #include "damping_function.h"
 
@@ -135,10 +135,12 @@ public:
     // ==============================================================================
     void CreateListOfNodesOfModelPart()
     {
+        mListOfNodesOfModelPart.resize(mrModelPartToDamp.Nodes().size());
+        std::size_t counter = 0;
         for (ModelPart::NodesContainerType::iterator node_it = mrModelPartToDamp.NodesBegin(); node_it != mrModelPartToDamp.NodesEnd(); ++node_it)
         {
             NodeTypePointer pnode = *(node_it.base());
-            mListOfNodesOfModelPart.push_back(pnode);
+            mListOfNodesOfModelPart[counter++] = pnode;
         }
     }
 
