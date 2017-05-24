@@ -19,116 +19,46 @@ class TestModelPartIO(KratosUnittest.TestCase):
 
     def test_reorder(self):
         model_part = KratosMultiphysics.ModelPart("Main")
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_read"))
-        model_part_io.ReadModelPart(model_part)
-                
+        model_part.CreateNewNode(1,0,0,0)
+        model_part.CreateNewNode(2,1,0,0)                
+        model_part.CreateNewNode(3,2,0,0)
+        model_part.CreateNewNode(4,3,0,0)
+        model_part.CreateNewNode(5,0,1,0)
+        model_part.CreateNewNode(6,1,1,0)
+        model_part.CreateNewNode(7,2,1,0)
+        model_part.CreateNewNode(8,3,1,0)
+        model_part.CreateNewNode(9,0,2,0)
+        model_part.CreateNewNode(10,1,2,0)
+        model_part.CreateNewNode(11,2,2,0)
+        model_part.CreateNewNode(12,3,2,0)        
+        #nodes are numbered as
+        #9 10 11 12
+        #5 6  7  8
+        #1 2  3  4
+        model_part.CreateNewElement("Element2D4N",1,[1,2,6,5], model_part.GetProperties()[1])
+        model_part.CreateNewElement("Element2D4N",2,[2,3,7,6], model_part.GetProperties()[1])
+        model_part.CreateNewElement("Element2D4N",3,[3,4,8,7], model_part.GetProperties()[1])
+        model_part.CreateNewElement("Element2D4N",4,[5,6,10,9], model_part.GetProperties()[1])
+        model_part.CreateNewElement("Element2D4N",5,[6,7,11,10], model_part.GetProperties()[1])
+        model_part.CreateNewElement("Element2D4N",6,[7,8,12,11], model_part.GetProperties()[1])
+        
         tmp = KratosMultiphysics.Parameters("{}")
         KratosMultiphysics.ReorderAndOptimizeModelPartProcess(model_part,tmp).Execute()
         
+        #output is
+        #10 11 12 9
+        #6   7  4 8
+        #1   2  3 5
+
+        
         for node in model_part.Nodes:
-            print(node.Id, node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y))
+            print(node.Id, node.X,node.Y)
             
-        self.assertEqual(model_part.NumberOfSubModelParts(), 2)
-
-        self.assertEqual(model_part.NumberOfTables(), 1)
-        self.assertEqual(model_part.NumberOfProperties(), 1)
-        self.assertEqual(model_part.NumberOfNodes(), 6)
-        self.assertEqual(model_part.NumberOfProperties(), 1)
-        self.assertEqual(model_part.NumberOfElements(), 4)
-        self.assertEqual(model_part.NumberOfConditions(), 5)
-
-        self.assertTrue(model_part.GetNode(1).IsFixed(KratosMultiphysics.DISPLACEMENT_X))
-        self.assertTrue(model_part.GetNode(2).IsFixed(KratosMultiphysics.DISPLACEMENT_X))
-        self.assertFalse(model_part.GetNode(3).IsFixed(KratosMultiphysics.DISPLACEMENT_X))
-        self.assertFalse(model_part.GetNode(4).IsFixed(KratosMultiphysics.DISPLACEMENT_X))
-        self.assertTrue(model_part.GetNode(5).IsFixed(KratosMultiphysics.DISPLACEMENT_X))
-        self.assertTrue(model_part.GetNode(6).IsFixed(KratosMultiphysics.DISPLACEMENT_X))
-
-        self.assertTrue(model_part.GetNode(1).IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
-        self.assertTrue(model_part.GetNode(2).IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
-        self.assertFalse(model_part.GetNode(3).IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
-        self.assertFalse(model_part.GetNode(4).IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
-        self.assertTrue(model_part.GetNode(5).IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
-        self.assertTrue(model_part.GetNode(6).IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
-
-        self.assertTrue(model_part.GetNode(1).IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
-        self.assertTrue(model_part.GetNode(2).IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
-        self.assertFalse(model_part.GetNode(3).IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
-        self.assertFalse(model_part.GetNode(4).IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
-        self.assertTrue(model_part.GetNode(5).IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
-        self.assertTrue(model_part.GetNode(6).IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
-
-        self.assertEqual(model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X),0.1)
-        self.assertEqual(model_part.GetNode(2).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X),0.2)
-        self.assertEqual(model_part.GetNode(3).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X),0.0)
-        self.assertEqual(model_part.GetNode(4).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X),0.0)
-        self.assertEqual(model_part.GetNode(5).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X),0.0)
-        self.assertEqual(model_part.GetNode(6).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X),0.0)
-
-        self.assertEqual(model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y),0.0)
-        self.assertEqual(model_part.GetNode(2).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y),0.0)
-        self.assertEqual(model_part.GetNode(3).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y),0.0)
-        self.assertEqual(model_part.GetNode(4).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y),0.0)
-        self.assertEqual(model_part.GetNode(5).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y),0.000973)
-        self.assertEqual(model_part.GetNode(6).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y),0.000974)
-
-        self.assertEqual(model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z),0.0)
-        self.assertEqual(model_part.GetNode(2).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z),0.0)
-        self.assertEqual(model_part.GetNode(3).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z),0.0)
-        self.assertEqual(model_part.GetNode(4).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z),0.0)
-        self.assertEqual(model_part.GetNode(5).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z),0.0)
-        self.assertEqual(model_part.GetNode(6).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z),0.0)
-
-        self.assertEqual(model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VISCOSITY),0.01)
-        self.assertEqual(model_part.GetNode(2).GetSolutionStepValue(KratosMultiphysics.VISCOSITY),0.01)
-        self.assertEqual(model_part.GetNode(3).GetSolutionStepValue(KratosMultiphysics.VISCOSITY),0.0)
-        self.assertEqual(model_part.GetNode(4).GetSolutionStepValue(KratosMultiphysics.VISCOSITY),0.0)
-        self.assertEqual(model_part.GetNode(5).GetSolutionStepValue(KratosMultiphysics.VISCOSITY),0.01)
-        self.assertEqual(model_part.GetNode(6).GetSolutionStepValue(KratosMultiphysics.VISCOSITY),0.01)
-
-        self.assertTrue(model_part.HasSubModelPart("Inlets"))
-
-        inlets_model_part = model_part.GetSubModelPart("Inlets")
-
-        self.assertEqual(inlets_model_part.NumberOfTables(), 1)
-        self.assertEqual(inlets_model_part.NumberOfProperties(), 0)
-        self.assertEqual(inlets_model_part.NumberOfNodes(), 3)
-        self.assertEqual(inlets_model_part.NumberOfElements(), 1)
-        self.assertEqual(inlets_model_part.NumberOfConditions(), 3)
-        self.assertEqual(inlets_model_part.NumberOfSubModelParts(), 2)
-        self.assertTrue(inlets_model_part.HasSubModelPart("Inlet1"))
-        self.assertTrue(inlets_model_part.HasSubModelPart("Inlet2"))
-
-        inlet1_model_part = inlets_model_part.GetSubModelPart("Inlet1")
-
-        self.assertEqual(inlet1_model_part.NumberOfTables(), 0)
-        self.assertEqual(inlet1_model_part.NumberOfProperties(), 0)
-        self.assertEqual(inlet1_model_part.NumberOfNodes(), 2)
-        self.assertEqual(inlet1_model_part.NumberOfElements(), 0)
-        self.assertEqual(inlet1_model_part.NumberOfConditions(), 2)
-        self.assertEqual(inlet1_model_part.NumberOfSubModelParts(), 0)
-
-        inlet2_model_part = inlets_model_part.GetSubModelPart("Inlet2")
-
-        self.assertEqual(inlet2_model_part.NumberOfTables(), 0)
-        self.assertEqual(inlet2_model_part.NumberOfProperties(), 0)
-        self.assertEqual(inlet2_model_part.NumberOfNodes(), 0)
-        self.assertEqual(inlet2_model_part.NumberOfElements(), 0)
-        self.assertEqual(inlet2_model_part.NumberOfConditions(), 2)
-        self.assertEqual(inlet2_model_part.NumberOfSubModelParts(), 0)
-
-        self.assertTrue(model_part.HasSubModelPart("Outlet"))
-
-        outlet_model_part = model_part.GetSubModelPart("Outlet")
-
-        self.assertEqual(outlet_model_part.NumberOfTables(), 0)
-        self.assertEqual(outlet_model_part.NumberOfProperties(), 1)
-        self.assertEqual(outlet_model_part.NumberOfNodes(), 0)
-        self.assertEqual(outlet_model_part.NumberOfElements(), 0)
-        self.assertEqual(outlet_model_part.NumberOfConditions(), 1)
-        self.assertEqual(outlet_model_part.NumberOfSubModelParts(), 0)
+        for elem in model_part.Elements:
+            tmp = []
+            for node in elem.GetNodes():
+                tmp.append(node.Id)
+            print(elem.Id,tmp)
 
 
 if __name__ == '__main__':

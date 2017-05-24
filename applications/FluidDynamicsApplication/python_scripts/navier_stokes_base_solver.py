@@ -222,6 +222,9 @@ class NavierStokesBaseSolver(object):
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
         # KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
 
+        tmp = KratosMultiphysics.Parameters("{}")
+        KratosMultiphysics.ReorderAndOptimizeModelPartProcess(model_part,tmp).Execute()
+        
     def _SetBufferSize(self):
         ## Set the buffer size
         current_buffer_size = self.main_model_part.GetBufferSize()
