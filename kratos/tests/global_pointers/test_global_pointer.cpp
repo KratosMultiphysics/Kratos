@@ -108,28 +108,6 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyBoostSharedPtr, KratosCoreFastSuit)
   KRATOS_CHECK_EQUAL((*fromBoost).getVar(), sampleVar->getVar());
 }
 
-// Make sure if no one references the pointer, the global pointer does NOT
-// interfeer with the share_ptr de-allocation mechanism
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerExpiredPointer, KratosCoreFastSuit)
-{
-  typedef boost::shared_ptr<TestClass> BoostPtrType;
-
-  BoostPtrType * sampleVar = new BoostPtrType(new TestClass(1337));
-	auto fromBoost = GlobalPointer<BoostPtrType>(*sampleVar);
-
-  auto realPtr = &*fromBoost;
-
-  KRATOS_CHECK_EQUAL(fromBoost->getVar(), (*sampleVar)->getVar());
-
-  delete sampleVar;
-  // KRATOS_CHECK_EXCEPTION_RAISED((*sampleVar)->getVar(), Exception);
-  KRATOS_CHECK_EXCEPTION_RAISED(fromBoost->getVar(), Exception);
-
-  // This is not a tests but a warning
-  // Beware that, while possible, this line is incorrect:
-  KRATOS_CHECK_EQUAL(realPtr->getVar(), (*sampleVar)->getVar());
-}
-
 // Test shared_ptr<global_ptr>
 
 } // namespace Testing
