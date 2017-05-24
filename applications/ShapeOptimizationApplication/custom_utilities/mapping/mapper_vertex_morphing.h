@@ -115,7 +115,6 @@ public:
         CreateFilterFunction();
         InitializeMappingVariables();
         AssignMappingIds();
-        ComputeMappingMatrix();
 
         // optional flags
         try {
@@ -125,6 +124,8 @@ public:
         {
             mConsistentBackwardMapping = false;
         }
+
+        ComputeMappingMatrix();
     }
 
     /// Destructor.
