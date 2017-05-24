@@ -3,7 +3,7 @@
         "problem_name"    : "ironing_test",
         "model_part_name" : "Structure",
         "domain_size"     : 2,
-        "time_step"       : 0.05,
+        "time_step"       : 0.025,
         "start_time"      : 0.0,
         "end_time"        : 20.0,
         "echo_level"      : 0
@@ -25,6 +25,7 @@
         "clear_storage"                      : false,
         "ensure_contact"                     : true,
         "reform_dofs_at_each_step"           : true,
+        "contact_tolerance"                  : 1.0e-4,
         "convergence_criterion"              : "Contact_Residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
