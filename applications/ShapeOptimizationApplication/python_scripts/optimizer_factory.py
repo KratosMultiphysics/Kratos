@@ -58,10 +58,6 @@ class VertexMorphingMethod:
         inputModelPart.AddNodalSolutionStepVariable(SEARCH_DIRECTION) 
         inputModelPart.AddNodalSolutionStepVariable(SHAPE_UPDATE) 
         inputModelPart.AddNodalSolutionStepVariable(SHAPE_CHANGE_ABSOLUTE)
-        inputModelPart.AddNodalSolutionStepVariable(IS_ON_BOUNDARY)
-        inputModelPart.AddNodalSolutionStepVariable(BOUNDARY_PLANE) 
-        inputModelPart.AddNodalSolutionStepVariable(SHAPE_UPDATES_DEACTIVATED) 
-        inputModelPart.AddNodalSolutionStepVariable(SENSITIVITIES_DEACTIVATED) 
 
     # --------------------------------------------------------------------------
     def importModelPart( self ):
@@ -86,12 +82,12 @@ class VertexMorphingMethod:
         print("> ==============================================================================================================\n")
     
         designSurface = self.__getDesignSurfaceFromInputModelPart()
-        listOfDampingRegions = self.__getListOfDampingRegionsFromInputModelPart()
+        dampingRegions = self.__getdampingRegionsFromInputModelPart()
 
-        mapper = mapper_factory.CreateMapper( designSurface, listOfDampingRegions, self.optimizationSettings ) 
+        mapper = mapper_factory.CreateMapper( designSurface, self.optimizationSettings ) 
         communicator = communicator_factory.CreateCommunicator( self.optimizationSettings )
-            
-        algorithm = algorithm_factory.CreateAlgorithm( designSurface, self.analyzer, mapper, communicator, self.optimizationSettings )
+
+        algorithm = algorithm_factory.CreateAlgorithm( designSurface, dampingRegions, self.analyzer, mapper, communicator, self.optimizationSettings )
         algorithm.execute()       
 
         print("\n> ==============================================================================================================")
@@ -109,16 +105,17 @@ class VertexMorphingMethod:
             raise ValueError("The following sub-model part (design surface) specified for shape optimization does not exist: ",nameOfDesingSurface)         
 
     # --------------------------------------------------------------------------
-    def __getListOfDampingRegionsFromInputModelPart( self ):
-        listOfDampingRegions = {}
+    def __getdampingRegionsFromInputModelPart( self ):
+        dampingRegions = {}
         print("> The following damping regions are defined: \n")
         for regionNumber in range(self.optimizationSettings["design_variables"]["damping"]["damping_regions"].size()):
             regionName = self.optimizationSettings["design_variables"]["damping"]["damping_regions"][regionNumber]["sub_model_part_name"].GetString()
             if self.inputModelPart.HasSubModelPart(regionName):
                 print(regionName)
-                listOfDampingRegions[regionName] = self.inputModelPart.GetSubModelPart(regionName)
+                dampingRegions[regionName] = self.inputModelPart.GetSubModelPart(regionName)
             else:
-                raise ValueError("The following sub-model part specified for damping does not exist: ",regionName)         
-        return listOfDampingRegions               
+                raise ValueError("The following sub-model part specified for damping does not exist: ",regionName)    
+        print("")    
+        return dampingRegions               
 
 # ==============================================================================

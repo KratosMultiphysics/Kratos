@@ -27,8 +27,9 @@
 #include "custom_utilities/optimization_utilities.h"
 #include "custom_utilities/geometry_utilities.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing.h"
-#include "custom_utilities/mapping/mapper_vertex_morphing_iterative.h"
-#include "custom_utilities/mapping/mapper_vertex_morphing_integration.h"
+#include "custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h"
+//#include "custom_utilities/mapping/mapper_vertex_morphing_integration.h"
+#include "custom_utilities/damping/damping_utilities.h"
 #include "custom_utilities/response_functions/strain_energy_response_function.h"
 #include "custom_utilities/response_functions/mass_response_function.h"
 #include "custom_utilities/input_output/universal_file_io.h"
@@ -49,23 +50,32 @@ void  AddCustomUtilitiesToPython()
     // ================================================================
     // For perfoming the mapping according to Vertex Morphing
     // ================================================================
-    class_<MapperVertexMorphing, bases<Process> >("MapperVertexMorphing", init<ModelPart&, boost::python::dict, Parameters&>())
+    class_<MapperVertexMorphing, bases<Process> >("MapperVertexMorphing", init<ModelPart&, Parameters&>())
         .def("MapToDesignSpace", &MapperVertexMorphing::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphing::MapToGeometrySpace)
         ;
-    class_<MapperVertexMorphingIterative, bases<Process> >("MapperVertexMorphingIterative", init<ModelPart&, boost::python::dict, Parameters&>())
-        .def("MapToDesignSpace", &MapperVertexMorphingIterative::MapToDesignSpace)
-        .def("MapToGeometrySpace", &MapperVertexMorphingIterative::MapToGeometrySpace)
+
+    class_<MapperVertexMorphingMatrixFree, bases<Process> >("MapperVertexMorphingMatrixFree", init<ModelPart&, Parameters&>())
+        .def("MapToDesignSpace", &MapperVertexMorphingMatrixFree::MapToDesignSpace)
+        .def("MapToGeometrySpace", &MapperVertexMorphingMatrixFree::MapToGeometrySpace)
         ;
-    class_<MapperVertexMorphingIntegration, bases<Process> >("MapperVertexMorphingIntegration", init<ModelPart&, boost::python::dict, Parameters&>())
-        .def("MapToDesignSpace", &MapperVertexMorphingIntegration::MapToDesignSpace)
-        .def("MapToGeometrySpace", &MapperVertexMorphingIntegration::MapToGeometrySpace)
+    //class_<MapperVertexMorphingIntegration, bases<Process> >("MapperVertexMorphingIntegration", init<ModelPart&, boost::python::dict, Parameters&>())
+    //    .def("MapToDesignSpace", &MapperVertexMorphingIntegration::MapToDesignSpace)
+    //    .def("MapToGeometrySpace", &MapperVertexMorphingIntegration::MapToGeometrySpace)
+        ;
+
+
+    // ================================================================
+    // For a possible damping of nodal variables
+    // ================================================================
+    class_<DampingUtilities, bases<Process> >("DampingUtilities", init<ModelPart&, boost::python::dict, Parameters&>())
+        .def("DampNodalVariable", &DampingUtilities::DampNodalVariable)
         ;
 
     // ========================================================================
     // For performing individual steps of an optimization algorithm
     // ========================================================================
-    class_<OptimizationUtilities, bases<Process> >("OptimizationUtilities", init<ModelPart&, Parameters&>())
+    class_<OptimizationUtilities, bases<Process> >("OptimizationUtilities", init<ModelPart&, Parameters::Pointer>())
         // ----------------------------------------------------------------
         // For running unconstrained descent methods
         // ----------------------------------------------------------------
@@ -75,8 +85,6 @@ void  AddCustomUtilitiesToPython()
         // ----------------------------------------------------------------
         .def("compute_projected_search_direction", &OptimizationUtilities::compute_projected_search_direction)
         .def("correct_projected_search_direction", &OptimizationUtilities::correct_projected_search_direction)
-        .def("get_correction_scaling", &OptimizationUtilities::get_correction_scaling)
-        .def("set_correction_scaling", &OptimizationUtilities::set_correction_scaling)
         // ----------------------------------------------------------------
         // General optimization operations
         // ----------------------------------------------------------------

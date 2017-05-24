@@ -7,13 +7,14 @@
         "constraints" : [],
         "design_variables" : {
             "design_variables_type"     : "vertex_morphing", 
-            "iterative_mapping"         : false,
             "input_model_part_name"     : "multiple_local_minima",
             "design_submodel_part_name" : "design_surface",
             "domain_size"               : 3,
             "filter" : {
-                "filter_function_type" : "linear",
-                "filter_radius"        : 4
+                "filter_function_type"       : "linear",
+                "filter_radius"              : 4,
+                "max_nodes_in_filter_radius" : 100,
+                "matrix_free_filtering"      : false                 
             },
             "damping" : {
                 "perform_damping" : false,

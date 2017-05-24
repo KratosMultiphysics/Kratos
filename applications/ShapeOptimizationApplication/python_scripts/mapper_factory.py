@@ -19,9 +19,10 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 CheckForPreviousImport()
 
 # ==============================================================================
-def CreateMapper( designSurface, listOfDampingRegions, optimizationSettings ):
-    isIterativeMappingRequired = optimizationSettings["design_variables"]["iterative_mapping"].GetBool()
-
+def CreateMapper( designSurface, optimizationSettings ):
+    isMatrixFreeMappingRequired = optimizationSettings["design_variables"]["filter"]["matrix_free_filtering"].GetBool()
+    if isMatrixFreeMappingRequired:
+        return MapperVertexMorphingMatrixFree( designSurface, optimizationSettings )  
     try:
         isIntegrationMappingRequired = optimizationSettings["design_variables"]["integration"].GetBool()
         if isIntegrationMappingRequired:
@@ -32,9 +33,7 @@ def CreateMapper( designSurface, listOfDampingRegions, optimizationSettings ):
     except:
         pass
 
-    if isIterativeMappingRequired:
-        return MapperVertexMorphingIterative( designSurface, listOfDampingRegions, optimizationSettings )
     else:
-        return MapperVertexMorphing( designSurface, listOfDampingRegions, optimizationSettings )
+        return MapperVertexMorphing( designSurface, optimizationSettings )         
 
 # ==============================================================================

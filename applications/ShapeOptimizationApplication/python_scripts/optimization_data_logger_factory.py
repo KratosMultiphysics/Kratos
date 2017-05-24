@@ -29,20 +29,20 @@ from response_logger_steepest_descent import ResponseLoggerSteepestDescent
 from response_logger_penalized_projection import ResponseLoggerPenalizedProjection
 
 # ==============================================================================
-def CreateDataLogger( designSurface, communicator, optimizationSettings, timer, specificVariablesToBeLogged ):
-    responseLogger = createResponseLogger( communicator,  optimizationSettings, timer, specificVariablesToBeLogged )
+def CreateDataLogger( designSurface, communicator, optimizationSettings, timer ):
+    responseLogger = createResponseLogger( communicator,  optimizationSettings, timer )
     designLogger = createDesignLogger( designSurface, optimizationSettings )
     return optimizationDataLogger( responseLogger, designLogger, optimizationSettings )
 
 # -----------------------------------------------------------------------------
-def createResponseLogger( communicator, optimizationSettings, timer, specificVariablesToBeLogged ):
+def createResponseLogger( communicator, optimizationSettings, timer ):
 
     optimizationAlgorithm = optimizationSettings["optimization_algorithm"]["name"].GetString()
 
     if optimizationAlgorithm == "steepest_descent":
-        return ResponseLoggerSteepestDescent( communicator, optimizationSettings, timer, specificVariablesToBeLogged )
+        return ResponseLoggerSteepestDescent( communicator, optimizationSettings, timer )
     elif optimizationAlgorithm == "penalized_projection":
-        return ResponseLoggerPenalizedProjection( communicator, optimizationSettings, timer, specificVariablesToBeLogged )   
+        return ResponseLoggerPenalizedProjection( communicator, optimizationSettings, timer )   
     else:
         raise NameError("The following optimization algorithm not supported by the response logger (name may be a misspelling): " + optimizationAlgorithm)
 

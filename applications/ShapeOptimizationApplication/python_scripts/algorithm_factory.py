@@ -22,14 +22,14 @@ from algorithm_steepest_descent import AlgorithmSteepestDescent
 from algorithm_penalized_projection import AlgorithmPenalizedProjection
 
 # ==============================================================================
-def CreateAlgorithm( designSurface, analyzer, mapper, communicator, optimizationSettings ):
+def CreateAlgorithm( designSurface, listOfDampingRegions, analyzer, mapper, communicator, optimizationSettings ):
 
     optimizationAlgorithm = optimizationSettings["optimization_algorithm"]["name"].GetString()
 
     if optimizationAlgorithm == "steepest_descent":
-        return AlgorithmSteepestDescent( designSurface, analyzer, mapper, communicator, optimizationSettings )
+        return AlgorithmSteepestDescent( designSurface, listOfDampingRegions, analyzer, mapper, communicator, optimizationSettings )
     elif optimizationAlgorithm == "penalized_projection":
-        return AlgorithmPenalizedProjection( designSurface, analyzer, mapper, communicator, optimizationSettings )  
+        return AlgorithmPenalizedProjection( designSurface, listOfDampingRegions, analyzer, mapper, communicator, optimizationSettings )  
     else:
         raise NameError("The following optimization algorithm not supported by the algorithm driver (name may be misspelled): " + optimizationAlgorithm)              
 
