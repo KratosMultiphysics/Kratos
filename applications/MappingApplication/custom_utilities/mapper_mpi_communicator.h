@@ -129,8 +129,8 @@ public:
     }
 
     void TransferVariableData(std::function<double(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
-                      std::function<void(InterfaceObject*, double)> FunctionPointerDestination,
-                      const Variable<double>& rOriginVariable) override
+                              std::function<void(InterfaceObject*, double)> FunctionPointerDestination,
+                              const Variable<double>& rOriginVariable) override
     {
         mrModelPartOrigin.GetCommunicator().SynchronizeVariable(rOriginVariable); // required bcs
         // data interpolation can also involve ghost nodes
@@ -141,8 +141,8 @@ public:
     }
 
     void TransferVariableData(std::function<array_1d<double, 3>(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
-                      std::function<void(InterfaceObject*, array_1d<double, 3>)> FunctionPointerDestination,
-                      const Variable< array_1d<double, 3> >& rOriginVariable) override
+                              std::function<void(InterfaceObject*, array_1d<double, 3>)> FunctionPointerDestination,
+                              const Variable< array_1d<double, 3> >& rOriginVariable) override
     {
         mrModelPartOrigin.GetCommunicator().SynchronizeVariable(rOriginVariable); // required bcs
         // data interpolation can also involve ghost nodes
@@ -181,7 +181,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "MapperMPICommunicator" ;
@@ -189,13 +189,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MapperMPICommunicator";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    virtual void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
@@ -292,7 +292,7 @@ private:
 
     template <typename T>
     void ExchangeDataRemote(std::function<T(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
-                           std::function<void(InterfaceObject*, T)> FunctionPointerDestination)
+                            std::function<void(InterfaceObject*, T)> FunctionPointerDestination)
     {
         int send_buffer_size = 0;
         int receive_buffer_size = 0;
@@ -313,14 +313,14 @@ private:
             int comm_partner = mColoredGraph(MyPID(), i); // get the partner rank
             if (comm_partner != -1)   // check if rank is communicating in this communication step (aka. colour)
             {
-                mpInterfaceObjectManagerOrigin->FillBufferWithValues(send_buffer, send_buffer_size, 
-                                                                     comm_partner, FunctionPointerOrigin);
+                mpInterfaceObjectManagerOrigin->FillBufferWithValues(send_buffer, send_buffer_size,
+                        comm_partner, FunctionPointerOrigin);
 
                 MapperUtilitiesMPI::MpiSendRecv(send_buffer, receive_buffer, send_buffer_size, receive_buffer_size,
                                                 max_send_buffer_size, max_receive_buffer_size, comm_partner);
 
-                mpInterfaceObjectManagerDestination->ProcessValues(receive_buffer, receive_buffer_size, 
-                                                                   comm_partner, FunctionPointerDestination);
+                mpInterfaceObjectManagerDestination->ProcessValues(receive_buffer, receive_buffer_size,
+                        comm_partner, FunctionPointerDestination);
 
             } // if I am communicating in this loop (comm_partner != -1)
         } // loop colors
