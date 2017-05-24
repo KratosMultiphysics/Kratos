@@ -119,22 +119,22 @@ public:
         ProcessMappingOptions(MappingOptions, factor);
 
         // Creating the function pointers for the InterfaceObjects
-        auto function_pointer_origin = std::bind(&GetInterpolatedValueFromGeometryScalar, 
-                                      std::placeholders::_1, 
-                                      rOriginVariable,  
-                                      MappingOptions, 
-                                      std::placeholders::_2);
+        auto function_pointer_origin = std::bind(&GetInterpolatedValueFromGeometryScalar,
+                                       std::placeholders::_1,
+                                       rOriginVariable,
+                                       MappingOptions,
+                                       std::placeholders::_2);
 
-        auto function_pointer_destination = std::bind(&SetValueOfNode<double>, 
-                                              std::placeholders::_1, 
-                                              std::placeholders::_2,
-                                              rDestinationVariable,  
-                                              MappingOptions,
-                                              factor);
+        auto function_pointer_destination = std::bind(&SetValueOfNode<double>,
+                                            std::placeholders::_1,
+                                            std::placeholders::_2,
+                                            rDestinationVariable,
+                                            MappingOptions,
+                                            factor);
 
         mpMapperCommunicator->TransferVariableData(function_pointer_origin,
-                                           function_pointer_destination,
-                                           rOriginVariable);
+                function_pointer_destination,
+                rOriginVariable);
     }
 
     /* This function maps from Origin to Destination */
@@ -154,22 +154,22 @@ public:
         ProcessMappingOptions(MappingOptions, factor);
 
         // Creating the function pointers for the InterfaceObjects
-        auto function_pointer_origin = std::bind(&GetInterpolatedValueFromGeometryVector, 
-                                      std::placeholders::_1, 
-                                      rOriginVariable,  
-                                      MappingOptions, 
-                                      std::placeholders::_2);
+        auto function_pointer_origin = std::bind(&GetInterpolatedValueFromGeometryVector,
+                                       std::placeholders::_1,
+                                       rOriginVariable,
+                                       MappingOptions,
+                                       std::placeholders::_2);
 
-        auto function_pointer_destination = std::bind(&SetValueOfNode< array_1d<double, 3> >, 
-                                              std::placeholders::_1, 
-                                              std::placeholders::_2,
-                                              rDestinationVariable,  
-                                              MappingOptions,
-                                              factor);
+        auto function_pointer_destination = std::bind(&SetValueOfNode< array_1d<double, 3> >,
+                                            std::placeholders::_1,
+                                            std::placeholders::_2,
+                                            rDestinationVariable,
+                                            MappingOptions,
+                                            factor);
 
         mpMapperCommunicator->TransferVariableData(function_pointer_origin,
-                                           function_pointer_destination,
-                                           rOriginVariable);
+                function_pointer_destination,
+                rOriginVariable);
     }
 
     /* This function maps from Destination to Origin */
@@ -302,9 +302,9 @@ private:
     ///@{
 
     static double GetInterpolatedValueFromGeometryScalar(InterfaceObject* pInterfaceObject, //TODO const
-                                                   const Variable<double>& rVariable,
-                                                   const Kratos::Flags& rOptions,
-                                                   const std::vector<double>& rShapeFunctionValues) 
+            const Variable<double>& rVariable,
+            const Kratos::Flags& rOptions,
+            const std::vector<double>& rShapeFunctionValues)
     {
         Geometry<Node<3>>* p_base_geometry = static_cast<InterfaceGeometryObject*>(pInterfaceObject)->pGetBase();
         KRATOS_ERROR_IF_NOT(p_base_geometry) << "Base Pointer is nullptr!!!" << std::endl;
@@ -319,9 +319,9 @@ private:
     }
 
     static array_1d<double, 3> GetInterpolatedValueFromGeometryVector(InterfaceObject* pInterfaceObject, //TODO const
-                                const Variable< array_1d<double, 3> >& rVariable,
-                                const Kratos::Flags& rOptions,
-                                const std::vector<double>& rShapeFunctionValues) 
+            const Variable< array_1d<double, 3> >& rVariable,
+            const Kratos::Flags& rOptions,
+            const std::vector<double>& rShapeFunctionValues)
     {
         Geometry<Node<3>>* p_base_geometry = static_cast<InterfaceGeometryObject*>(pInterfaceObject)->pGetBase();
         KRATOS_ERROR_IF_NOT(p_base_geometry) << "Base Pointer is nullptr!!!" << std::endl;
@@ -342,10 +342,10 @@ private:
 
     template <typename T>
     static void SetValueOfNode(InterfaceObject* pInterfaceObject,
-                                const T& rValue,
-                                const Variable< T >& rVariable,
-                                const Kratos::Flags& rOptions,
-                                const double Factor)
+                               const T& rValue,
+                               const Variable< T >& rVariable,
+                               const Kratos::Flags& rOptions,
+                               const double Factor)
     {
         Node<3>* p_base_node = static_cast<InterfaceNode*>(pInterfaceObject)->pGetBase();
         KRATOS_ERROR_IF_NOT(p_base_node) << "Base Pointer is nullptr!!!" << std::endl;

@@ -409,7 +409,7 @@ public:
         array_1d<double, 3> value;
 
         for (auto interface_obj : interface_objects)
-        {   
+        {
             value = FunctionPointer(boost::get_pointer(interface_obj), mShapeFunctionValues.at(CommPartner)[i]);
 
             pBuffer[(i * 3) + 0] = value[0];
