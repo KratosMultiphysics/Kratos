@@ -7,7 +7,6 @@ try:
     from KratosMultiphysics.mpi import *
     import KratosMultiphysics.MetisApplication as KratosMetis
     import KratosMultiphysics.TrilinosApplication as KratosTrilinos
-    print(dir(KratosTrilinos), file=sys.stderr)
 except ImportError:
     pass
 
@@ -17,79 +16,53 @@ import math
 import convergence_accelerator_factory
 
 def GetFilePath(fileName):
-    return os.path.dirname(os.path.realpath(__file__)) + "/AcceleratorMPITests/" + fileName
+    return os.path.dirname(os.path.realpath(__file__)) + "/AcceleratorSpringTests/" + fileName
 
 def GetPartitionedFilePath(fileName):
     return GetFilePath( "{0}_{1}".format(fileName,mpi.rank ) )
 
 class KratosExecuteConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
 
-    def constant_force(self,model_part,guess,k,reference_z):
-        f = KratosMultiphysics.Vector(3*len(model_part.Nodes))
+    def constant_force(self,model_part,variable,k,reference_z):
         for i,node in enumerate(model_part.Nodes):
             j = 3*i
-            position = guess[j+2] + node.Z
+            position = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0) + node.Z
             if node.Z > reference_z:
                 delta = position - reference_z
             else:
                 delta = reference_z - position
-            f[j]   = 0.0
-            f[j+1] = 0.0
-            f[j+2] = k*delta
-        return f
+            forces = KratosMultiphysics.Array3()
+            forces[0] = 0.0
+            forces[1] = 0.0
+            forces[2] = k*delta
+            node.SetSolutionStepValue(variable,0,forces)
 
-    def variable_stiffness(self,model_part,guess,k,reference_z):
-        f = KratosMultiphysics.Vector(3*len(model_part.Nodes))
+    def variable_stiffness(self,model_part,variable,k,reference_z):
         for i,node in enumerate(model_part.Nodes):
             j = 3*i
-            position = guess[j+2] + node.Z
+            position = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0) + node.Z
             if node.Z > reference_z:
                 delta = position - reference_z
             else:
                 delta = reference_z - position
-            f[j]   = 0.0
-            f[j+1] = 0.0
-            f[j+2] = k * ( 1 + node.X*node.Y ) * delta
-        return f
+            forces = KratosMultiphysics.Array3()
+            forces[0] = 0.0
+            forces[1] = 0.0
+            forces[2] = k * ( 1 + node.X*node.Y ) * delta
+            node.SetSolutionStepValue(variable,0,forces)
+
 
     def ComputeResidual(self,model_part,guess,force1,force2):
 
-        f = force1(model_part,guess)
-        g = force2(model_part,guess)
+        force1(model_part,KratosMultiphysics.FORCE)
+        force2(model_part,KratosMultiphysics.REACTION)
 
-        if self.print_gid_output:
-            for i,node in enumerate(model_part.Nodes):
-                j = 3*i
-                node.SetSolutionStepValue(KratosMultiphysics.FSI_INTERFACE_RESIDUAL_X,0, f[j]  -g[j]   )
-                node.SetSolutionStepValue(KratosMultiphysics.FSI_INTERFACE_RESIDUAL_Y,0, f[j+1]-g[j+1] )
-                node.SetSolutionStepValue(KratosMultiphysics.FSI_INTERFACE_RESIDUAL_Z,0, f[j+2]-g[j+2] )
-
-        return f - g
-
-    def InitializeGuess(self,model_part):
-        guess = KratosMultiphysics.Vector(3*len(model_part.Nodes))
-        for i,node in enumerate(model_part.Nodes):
-            j = 3*i
-            guess[j]   = 0.0
-            guess[j+1] = 0.0
-            guess[j+2] = 0.0
-
-        return guess
-
-    def PrintGuess(self,model_part,guess):
-        if self.print_gid_output:
-            for i,node in enumerate(model_part.Nodes):
-                j = 3*i
-                node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0, guess[j]   )
-                node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0, guess[j+1] )
-                node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0, guess[j+2] )
+        residual = self.space.CreateEmptyVectorPointer(self.epetra_comm)
+        self.partitioned_utilities.ComputeInterfaceVectorResidual(model_part,KratosMultiphysics.FORCE,KratosMultiphysics.REACTION,residual.GetReference())
+        return residual
 
     def ComputeResidualNorm(self,residual):
-        norm = 0.0
-        for r in residual:
-            norm += r*r
-
-        return norm**0.5
+        return self.space.TwoNorm(residual.GetReference())
 
     def ReadModelPart(self,filename):
 
@@ -97,6 +70,8 @@ class KratosExecuteConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
 
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_RESIDUAL)
         mpi.world.barrier()
 
@@ -109,10 +84,11 @@ class KratosExecuteConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         return model_part
 
     def InitializeNodalEpetraVector(self,model_part,rows_per_node):
-        v = TrilinosSpace.CreateEmptyVectorPointer(self.epetra_comm)
+        v = self.space.CreateEmptyVectorPointer(self.epetra_comm)
         local_size = rows_per_node * len(model_part.GetCommunicator().LocalMesh().Nodes)
         global_size = model_part.GetCommunicator().SumAll(local_size)
-        TrilinosSpace.ResizeVector(v,global_size)
+        self.space.ResizeVector(v,int(global_size))
+        return v
 
     def setUp(self):
         self.print_gid_output = False
@@ -122,7 +98,10 @@ class KratosExecuteConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
 
         self.model_part = self.ReadModelPart(GetPartitionedFilePath("box_fluid"))
 
+        self.space = KratosTrilinos.TrilinosSparseSpace()
         self.epetra_comm = KratosTrilinos.CreateCommunicator()
+
+        self.partitioned_utilities = KratosTrilinos.TrilinosPartitionedFSIUtilities3D()
 
     def tearDown(self):
         if self.print_gid_output:
@@ -177,7 +156,8 @@ class KratosExecuteConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
 
         coupling_utility.InitializeSolutionStep()
 
-        x_guess = self.InitializeGuess(top_part)
+        x_guess = self.space.CreateEmptyVectorPointer(self.epetra_comm)
+        self.partitioned_utilities.SetUpInterfaceVector(top_part,x_guess)
         residual = self.ComputeResidual(top_part,x_guess,force1,force2)
         res_norm = self.ComputeResidualNorm(residual)
 
@@ -201,11 +181,12 @@ class KratosExecuteConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         # Check the obtained solution
         expected_x = solution(top_part)
 
-        if self.print_gid_output:
-            self.PrintGuess(top_part,x_guess)
+        self.partitioned_utilities.UpdateInterfaceValues(top_part,KratosMultiphysics.DISPLACEMENT,x_guess.GetReference())
 
-        for i in range(len(expected_x)):
-            self.assertAlmostEqual(expected_x[i],x_guess[i],delta=self.assert_delta)
+        for i,node in enumerate(top_part.Nodes):
+            expected = expected_x[3*i+2]
+            obtained = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0)
+            self.assertAlmostEqual(expected,obtained,delta=self.assert_delta)
 
     def test_aitken_accelerator_constant_forces(self):
 
@@ -214,11 +195,11 @@ class KratosExecuteConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         z_equilibrium_1 = 0.5
         z_equilibrium_2 = 1.5
 
-        def force1(model_part,guess):
-            return self.constant_force(model_part,guess,k1,z_equilibrium_1)
+        def force1(model_part,variable):
+            return self.constant_force(model_part,variable,k1,z_equilibrium_1)
 
-        def force2(model_part,guess):
-            return self.constant_force(model_part,guess,k2,z_equilibrium_2)
+        def force2(model_part,variable):
+            return self.constant_force(model_part,variable,k2,z_equilibrium_2)
 
         def analytical_solution(model_part,k1,k2,z_equilibrium_1,z_equilibrium_2):
             s = KratosMultiphysics.Vector(3*len(model_part.Nodes))
@@ -244,11 +225,11 @@ class KratosExecuteConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         z_equilibrium_1 = 0.5
         z_equilibrium_2 = 1.5
 
-        def forceA(model_part,guess):
-            return self.constant_force(model_part,guess,k1,z_equilibrium_1)
+        def forceA(model_part,variable):
+            return self.constant_force(model_part,variable,k1,z_equilibrium_1)
 
-        def forceB(model_part,guess):
-            return self.variable_stiffness(model_part,guess,k2,z_equilibrium_2)
+        def forceB(model_part,variable):
+            return self.variable_stiffness(model_part,variable,k2,z_equilibrium_2)
 
         def analytical_solution(model_part,k1,k2,z_equilibrium_1,z_equilibrium_2):
             s = KratosMultiphysics.Vector(3*len(model_part.Nodes))
@@ -281,11 +262,11 @@ class KratosExecuteConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         z_equilibrium_1 = 0.5
         z_equilibrium_2 = 1.5
 
-        def forceA(model_part,guess):
-            return self.constant_force(model_part,guess,k1,z_equilibrium_1)
+        def forceA(model_part,variable):
+            return self.constant_force(model_part,variable,k1,z_equilibrium_1)
 
-        def forceB(model_part,guess):
-            return self.variable_stiffness(model_part,guess,k2,z_equilibrium_2)
+        def forceB(model_part,variable):
+            return self.variable_stiffness(model_part,variable,k2,z_equilibrium_2)
 
         def analytical_solution(model_part,k1,k2,z_equilibrium_1,z_equilibrium_2):
             s = KratosMultiphysics.Vector(3*len(model_part.Nodes))

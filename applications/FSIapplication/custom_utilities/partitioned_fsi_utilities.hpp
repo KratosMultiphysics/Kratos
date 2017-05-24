@@ -18,8 +18,9 @@
 /* External includes */
 
 /* Project includes */
-#include "fsi_application.h"
 #include "includes/define.h"
+#include "includes/variables.h"
+#include "includes/fsi_variables.h"
 #include "containers/array_1d.h"
 #include "includes/model_part.h"
 #include "includes/communicator.h"
@@ -68,6 +69,9 @@ public:
     typedef typename TSpace::VectorType                     VectorType;
     typedef typename TSpace::MatrixType                     MatrixType;
 
+    typedef typename TSpace::VectorPointerType              VectorPointerType;
+    typedef typename TSpace::MatrixPointerType              MatrixPointerType;
+
     //~ /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION( PartitionedFSIUtilities );
     /*@} */
@@ -95,7 +99,7 @@ public:
      */
 
     /*@{ */
-    ~PartitionedFSIUtilities()
+    virtual ~PartitionedFSIUtilities()
     {
     }
 
@@ -108,7 +112,7 @@ public:
      * number of interface nodes times the problem domain size.
      * @return the model part residual size
      */
-    unsigned int GetInterfaceResidualSize(const ModelPart& rInterfaceModelPart)
+    inline unsigned int GetInterfaceResidualSize(const ModelPart& rInterfaceModelPart)
     {
         return (rInterfaceModelPart.NumberOfNodes())*TDim;
     }
@@ -197,6 +201,18 @@ public:
         }
     }
 
+    virtual void SetUpInterfaceVector(const ModelPart& rInterfaceModelPart,
+                                      VectorPointerType& pInterfaceVector)
+    {
+        unsigned int ResidualSize = this->GetInterfaceResidualSize(rInterfaceModelPart);
+        if ( TSpace::Size(*pInterfaceVector) != ResidualSize )
+        {
+            TSpace::Resize(pInterfaceVector,ResidualSize);
+        }
+
+        TSpace::SetToZero(*pInterfaceVector);
+    }
+
     /**
      * This function computes (and stores in a vector) the residual of a vector variable over the fluid interface.
      * The residual is defined as the OriginalVariable value minus the ModifiedVariable value.
@@ -206,12 +222,12 @@ public:
      * @param rInterfaceModelPart: interface modelpart in where the residual is computed
      * @param interface_residual: reference to the residual vector
      */
-    void ComputeInterfaceVectorResidual(ModelPart& rInterfaceModelPart,
-                                        const Variable<array_1d<double, 3 > >& rOriginalVariable,
-                                        const Variable<array_1d<double, 3 > >& rModifiedVariable,
-                                        VectorType& interface_residual) // TODO: MPI parallelization
+    virtual void ComputeInterfaceVectorResidual(ModelPart& rInterfaceModelPart,
+                                                const Variable<array_1d<double, 3 > >& rOriginalVariable,
+                                                const Variable<array_1d<double, 3 > >& rModifiedVariable,
+                                                VectorType& interface_residual) // TODO: MPI parallelization
     {
-        interface_residual = ZeroVector(this->GetInterfaceResidualSize(rInterfaceModelPart));
+        TSpace::SetToZero(interface_residual);
 
         // Compute node-by-node residual
         this->ComputeNodeByNodeResidual(rInterfaceModelPart, rOriginalVariable, rModifiedVariable, FSI_INTERFACE_RESIDUAL);
@@ -229,7 +245,7 @@ public:
             const array_1d<double,3>& fsi_res = it_node->FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL);
             for (unsigned int jj=0; jj<TDim; ++jj)
             {
-                interface_residual[base_i+jj] = fsi_res[jj];
+                TSpace::SetValue(interface_residual, base_i+jj, fsi_res[jj]);
             }
         }
 
@@ -249,8 +265,9 @@ public:
      */
     void ComputeFluidInterfaceMeshVelocityResidualNorm(ModelPart& rFluidInterfaceModelPart) // TODO: MPI parallelization
     {
-
-        VectorType fluid_interface_mesh_residual = ZeroVector(this->GetInterfaceResidualSize(rFluidInterfaceModelPart));
+        VectorPointerType pFluidInterfaceMeshResidual;
+        this->SetUpInterfaceVector(rFluidInterfaceModelPart, pFluidInterfaceMeshResidual);
+        VectorType& fluid_interface_mesh_residual = *pFluidInterfaceMeshResidual;
 
         // Compute node-by-node residual
         // this->ComputeNodeByNodeResidual(rFluidInterfaceModelPart, VELOCITY, MESH_VELOCITY, FSI_INTERFACE_MESH_RESIDUAL);
@@ -268,13 +285,31 @@ public:
             const array_1d<double,3>& fsi_mesh_res = it_node->FastGetSolutionStepValue(FSI_INTERFACE_MESH_RESIDUAL);
             for (unsigned int jj=0; jj<TDim; ++jj)
             {
-                fluid_interface_mesh_residual[base_i+jj]   = fsi_mesh_res[jj];
+                TSpace::SetValue( fluid_interface_mesh_residual, base_i+jj, fsi_mesh_res[jj]);
             }
         }
 
         // Store the L2 norm of the error in the fluid process info
         rFluidInterfaceModelPart.GetProcessInfo().GetValue(FSI_INTERFACE_MESH_RESIDUAL_NORM) = TSpace::TwoNorm(fluid_interface_mesh_residual);
 
+    }
+
+    virtual void UpdateInterfaceValues(ModelPart& rInterfaceModelPart,
+                                       const Variable<array_1d<double, 3 > >& rSolutionVariable,
+                                       VectorType& rCorrectedGuess)
+    {
+        #pragma omp parallel for
+        for(int k=0; k<static_cast<int>(rInterfaceModelPart.NumberOfNodes()); ++k)
+        {
+            const ModelPart::NodeIterator it_node = rInterfaceModelPart.NodesBegin()+k;
+            const unsigned int base_i = k*TDim;
+
+            array_1d<double,3>& updated_value = it_node->FastGetSolutionStepValue(rSolutionVariable);
+            for (unsigned int jj=0; jj<TDim; ++jj)
+            {
+                updated_value[jj] = TSpace::GetValue( rCorrectedGuess, base_i+jj );
+            }
+        }
     }
 
     /*@} */
@@ -299,41 +334,6 @@ protected:
     /**@name Protected Operations*/
     /*@{ */
 
-
-    /*@} */
-    /**@name Protected  Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected LifeCycle */
-    /*@{ */
-
-private:
-
-    /*@} */
-    /**@name Static Member Variables */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
 
     /**
      * This function computes the nodal error of a vector magnitude. The error is defined
@@ -455,6 +455,42 @@ private:
             }
         }
     }
+
+    /**@} */
+    /**@name Protected  Access */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Protected Inquiry */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Protected LifeCycle */
+    /*@{ */
+
+private:
+
+    /*@} */
+    /**@name Static Member Variables */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Member Variables */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Private Operators*/
+    /*@{ */
+
+
+    /*@} */
+    /**@name Private Operations*/
+    /*@{ */
+
 
     /*@} */
     /**@name Private  Access */
