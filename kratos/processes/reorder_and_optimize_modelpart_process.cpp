@@ -42,6 +42,8 @@ namespace Kratos
 	void ReorderAndOptimizeModelPartProcess::Execute() 
         {
             KRATOS_TRY
+            
+// KRATOS_WATCH(mrModelPart.Nodes()[13245])
 
             //reorder nodes,#include "spaces/ublas_space.h"elements and conditions so that their Id start in 1 and is consecutive
             #pragma omp parallel for
@@ -56,18 +58,19 @@ namespace Kratos
             for(int i=0; i<static_cast<int>(mrModelPart.Conditions().size()); ++i)
                 (mrModelPart.ConditionsBegin() + i)->SetId(i+1);
             
+            KRATOS_WATCH(__LINE__)
             //optimize ordering
-            OptimizeOrdering();
-            
+//             OptimizeOrdering();
+            KRATOS_WATCH(__LINE__)
             
             //make a parallel clone of all the nodes
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(mrModelPart.Nodes().size()); ++i)
             {
                 Node<3>::Pointer& pnode = *(mrModelPart.Nodes().ptr_begin() + i);
-                auto paux = (*pnode).Clone();
-                pnode.swap(paux);
+                pnode = pnode->Clone();
             }
+            KRATOS_WATCH(__LINE__)
             
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(mrModelPart.Elements().size()); ++i)
@@ -85,9 +88,10 @@ namespace Kratos
                 auto paux = pelem->Create(pelem->Id(), tmp, pelem->pGetProperties());
                 
                 paux->Data() = pelem->Data();
-                pelem.swap(paux);
+                
+                pelem = paux;
             }
-
+KRATOS_WATCH(__LINE__)
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(mrModelPart.Conditions().size()); ++i)
             {
@@ -103,15 +107,22 @@ namespace Kratos
                 
                 paux->Data() = pcond->Data();
                 
-                pcond.swap(paux);
+                pcond = paux;
             }
-            
+            KRATOS_WATCH(__LINE__)
+// KRATOS_WATCH(mrModelPart.Nodes()[13245])
+// KRATOS_ERROR << " " << std::endl;
+
             //actualize pointers within submodelparts
             for(auto& subpart : mrModelPart.SubModelParts())
             {
                 ActualizeSubModelPart(subpart);
             }
+            KRATOS_WATCH(__LINE__)
             
+
+
+
             KRATOS_CATCH("")
             
         }
@@ -119,31 +130,35 @@ namespace Kratos
         
         void ReorderAndOptimizeModelPartProcess::ActualizeSubModelPart(ModelPart& subpart)
         {
+            std::cout << "------------------ root part is " << mrModelPart << std::endl;
+KRATOS_WATCH(subpart)
+KRATOS_WATCH(__LINE__) 
             //make a parallel clone of all the nodes
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(subpart.Nodes().size()); ++i)
             {
                 Node<3>::Pointer& pnode = *(subpart.NodesBegin() + i).base();
-                auto paux = mrModelPart.Nodes()(pnode->Id());
-                pnode.swap(paux);
+                std::cout << "doing node " << pnode->Id() << std::endl;
+                pnode = mrModelPart.Nodes()(pnode->Id());
+                std::cout << "finished node " << pnode->Id() << std::endl;
             }
-            
+            mrModelPart.Nodes().Sort();
+KRATOS_WATCH(__LINE__)
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(subpart.Elements().size()); ++i)
             {
                 Element::Pointer& pelem = *(subpart.ElementsBegin() + i).base();              
-                auto paux = mrModelPart.Elements()(pelem->Id());
-                pelem.swap(paux);
+                pelem = mrModelPart.Elements()(pelem->Id());
+
             }
-            
+KRATOS_WATCH(__LINE__)
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(subpart.Conditions().size()); ++i)
             {
                 Condition::Pointer& pcond = *(subpart.ConditionsBegin() + i).base();            
-                auto paux = mrModelPart.Conditions()(pcond->Id());
-                pcond.swap(paux);
+                pcond = mrModelPart.Conditions()(pcond->Id());
             }
-            
+KRATOS_WATCH(__LINE__)
              //actualize pointers within submodelparts
             for(auto& part : subpart.SubModelParts())
             {
@@ -177,7 +192,10 @@ namespace Kratos
              
             unsigned int nnz = 0;
             for(unsigned int i=0; i<n; ++i)
+            {
+                //if(graph[i].size() == 0) KRATOS_ERROR << "node with Id " << i+1 << "has zero neighbours " << std::endl;
                 nnz += graph[i].size();
+            }
             
             
             CompressedMatrix graph_csr(n,n);
@@ -188,7 +206,7 @@ namespace Kratos
                 
             //here must do the ordering!!
             std::vector<int> perm(graph_csr.size1());
-            CuthillMcKee<true>().get<CompressedMatrix>(graph_csr,perm);     
+            CuthillMcKee<true>().get<CompressedMatrix>(graph_csr,perm);      
 
 //             typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
 //             typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;

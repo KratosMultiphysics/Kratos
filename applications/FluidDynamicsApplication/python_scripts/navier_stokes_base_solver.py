@@ -115,6 +115,13 @@ class NavierStokesBaseSolver(object):
         self._ExecuteAfterReading()
         ## Set buffer size
         self._SetBufferSize()
+        
+        print("******************************")
+        print(self.main_model_part.Nodes[1])
+        tmp = KratosMultiphysics.Parameters("{}")
+        #KratosMultiphysics.ReorderAndOptimizeModelPartProcess(self.main_model_part,tmp).Execute()
+        print(self.main_model_part.Nodes[1])
+        print("******************************")
 
         print ("Base class model reading finished.")
 
@@ -200,6 +207,8 @@ class NavierStokesBaseSolver(object):
             KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
         else:
             raise Exception("Other input options are not yet implemented.")
+        
+
 
     def _ExecuteAfterReading(self):
         ## Replace element and conditions
@@ -222,8 +231,7 @@ class NavierStokesBaseSolver(object):
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
         # KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
 
-        tmp = KratosMultiphysics.Parameters("{}")
-        KratosMultiphysics.ReorderAndOptimizeModelPartProcess(model_part,tmp).Execute()
+
         
     def _SetBufferSize(self):
         ## Set the buffer size
