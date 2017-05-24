@@ -126,7 +126,13 @@ public:
         IO::ConnectivitiesContainerType KratosFormatNodeConnectivities;
 
         SizeType NumNodes = BaseType::mrIO.ReadNodalGraph(KratosFormatNodeConnectivities);
-       
+
+        SizeType NumNodesInMesh = BaseType::mrIO.ReadNodesNumber();
+        if (NumNodes < NumNodesInMesh)
+            KRATOS_ERROR << "Found " << (NumNodesInMesh - NumNodes) << " orphaned nodes in input mesh." << std::endl;
+        else if (NumNodes > NumNodesInMesh)
+            KRATOS_ERROR << "Found " (NumNodes - NumNodesInMesh) << " missing nodes in input mesh." << std::endl;
+
         // Write connectivity data in CSR format
         idxtype* NodeIndices = 0;
         idxtype* NodeConnectivities = 0;
