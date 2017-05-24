@@ -34,6 +34,7 @@ from SmallTests import ALMSimpleSlopePatchTestContact                 as TALMSim
 from SmallTests import ALMSimplePatchNotMatchingATestContact          as TALMSimplePatchNotMatchingATestContact
 from SmallTests import ALMSimplePatchNotMatchingBTestContact          as TALMSimplePatchNotMatchingBTestContact
 from SmallTests import ALMMeshMovingMatchingTestContact               as TALMMeshMovingMatchingTestContact
+from SmallTests import ALMMeshMovingNotMatchingTestContact               as TALMMeshMovingNotMatchingTestContact
 from SmallTests import ALMTaylorPatchTestContact                      as TALMTaylorPatchTestContact
 from SmallTests import ALMTaylorPatchDynamicTestContact               as TALMTaylorPatchDynamicTestContact
 from SmallTests import ALMHertzSimpleTestContact                      as TALMHertzSimpleTestContact
@@ -92,6 +93,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TALMSimplePatchNotMatchingATestContact('test_execution'))
     smallSuite.addTest(TALMSimplePatchNotMatchingBTestContact('test_execution'))
     smallSuite.addTest(TALMMeshMovingMatchingTestContact('test_execution'))
+    smallSuite.addTest(TALMMeshMovingNotMatchingTestContact('test_execution'))
     smallSuite.addTest(TALMTaylorPatchTestContact('test_execution'))
     smallSuite.addTest(TALMTaylorPatchDynamicTestContact('test_execution'))
     smallSuite.addTest(TALMHertzSimpleSphereTestContact('test_execution'))
@@ -135,6 +137,7 @@ def AssambleTestSuites():
             TALMSimplePatchNotMatchingATestContact,
             TALMSimplePatchNotMatchingBTestContact,
             TALMMeshMovingMatchingTestContact,
+            TALMMeshMovingNotMatchingTestContact,
             TALMTaylorPatchTestContact,
             TALMTaylorPatchDynamicTestContact, # NOTE: Check that in debug dynamic gives an error
             TALMHertzSimpleTestContact,
