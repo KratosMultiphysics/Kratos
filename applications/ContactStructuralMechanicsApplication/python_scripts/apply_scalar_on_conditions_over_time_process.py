@@ -1,19 +1,19 @@
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KSM
-import apply_vector_on_conditions_process
+import apply_scalar_on_conditions_process
 
 import math
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return ApplyVaryingVectorOverTimeIntervalProcess(Model, settings["Parameters"])
+    return ApplyVaryingScalarOverTimeIntervalProcess(Model, settings["Parameters"])
 
-from apply_vector_on_conditions_process import ApplyVectorOnConditionsProcess as parent_process
+from apply_scalar_on_conditions_process import ApplyScalarOnConditionsProcess as parent_process
 from KratosMultiphysics import Process as base_process
 
 ##all the processes python processes should be derived from "python_process"
-class ApplyVaryingVectorOverTimeIntervalProcess(parent_process):
+class ApplyVaryingScalarOverTimeIntervalProcess(parent_process):
     def __init__(self, Model, settings ):
         base_process.__init__(self)
 ##### 
@@ -21,8 +21,7 @@ class ApplyVaryingVectorOverTimeIntervalProcess(parent_process):
 #        "Parameters"            : {
 #            "mesh_id"         : 0,
 #            "model_part_name" : "LineLoad2D_bc_pressure",
-#            "variable_name"   : "LINE_LOAD",
-#            "direction"       : [0.0, -1.0, 0.0]
+#            "variable_name"   : "LINE_LOAD_X",
 #            "factor1"         : 0.0,
 #            "factor2"         : 0.2,
 #            "interval"        : [0.0, 1.0]
@@ -39,7 +38,6 @@ class ApplyVaryingVectorOverTimeIntervalProcess(parent_process):
         self.curr_factor    = KratosMultiphysics.Parameters('{ "factor": 0.0 }');
         self.factor1        = settings["factor1"];
         self.factor2        = settings["factor2"];
-        self.curr_direction = settings["direction"];
         self.interval       = settings["interval"]
         self.step_type      = settings["step_type"]
          
@@ -78,7 +76,6 @@ class ApplyVaryingVectorOverTimeIntervalProcess(parent_process):
         curr_step_params.AddValue("mesh_id",self.mesh_id)
         curr_step_params.AddValue("variable_name",self.variable_name)
         curr_step_params.AddValue("modulus",self.curr_factor)
-        curr_step_params.AddValue("direction",self.curr_direction)
 
         if( self.curr_factor.GetDouble() > 1e-9 ):
             parent_process.__init__(self, self.Model, curr_step_params)
