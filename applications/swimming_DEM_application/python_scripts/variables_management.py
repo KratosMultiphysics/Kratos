@@ -114,6 +114,9 @@ def ConstructListsOfVariables(pp):
         pp.fluid_vars += [YIELD_STRESS]
         pp.fluid_vars += [BINGHAM_SMOOTHER]
 
+    if pp.CFD_DEM.calculate_diffusivity_option:
+        pp.fluid_vars += [CONDUCTIVITY]
+
     # dem variables
     pp.dem_vars = []
     pp.dem_vars += pp.dem_printing_vars
@@ -216,6 +219,9 @@ def ConstructListsOfResultsToPrint(pp):
         if pp.CFD_DEM.print_FLUID_FRACTION_PROJECTED_option:
             pp.dem_nodal_results += ["FLUID_FRACTION_PROJECTED"]
 
+        if pp.CFD_DEM.print_FLUID_FRACTION_GRADIENT_PROJECTED_option:
+            pp.dem_nodal_results += ["FLUID_FRACTION_GRADIENT_PROJECTED"]
+
         if pp.CFD_DEM.print_FLUID_VISCOSITY_PROJECTED_option:
             pp.dem_nodal_results += ["FLUID_VISCOSITY_PROJECTED"]
 
@@ -273,7 +279,7 @@ def ConstructListsOfResultsToPrint(pp):
         if var in pp.nodal_results:
             pp.nodal_results.remove(var)
             
-    if (not pp.CFD_DEM.print_PRESSURE_option):
+    if not pp.CFD_DEM.print_PRESSURE_option:
         if "PRESSURE" in pp.nodal_results:
             pp.nodal_results.remove("PRESSURE")
 
@@ -300,6 +306,10 @@ def ConstructListsOfVariablesForCoupling(pp):
         
         if pp.CFD_DEM.print_SOLID_FRACTION_option:
             pp.coupling_fluid_vars += [SOLID_FRACTION]
+
+        if pp.CFD_DEM.filter_velocity_option:
+            pp.coupling_fluid_vars += [PARTICLE_VEL_FILTERED]
+            pp.coupling_fluid_vars += [PHASE_FRACTION]
 
     if pp.CFD_DEM.fluid_model_type >= 1:
         pp.coupling_fluid_vars += [FLUID_FRACTION_GRADIENT]
@@ -345,6 +355,9 @@ def ConstructListsOfVariablesForCoupling(pp):
     if pp.CFD_DEM.coupling_level_type >= 1 or pp.CFD_DEM.fluid_model_type == 0:
         pp.coupling_dem_vars += [FLUID_FRACTION_PROJECTED]
 
+    if pp.CFD_DEM.coupling_level_type >= 1 and pp.CFD_DEM.print_FLUID_FRACTION_GRADIENT_PROJECTED_option:
+        pp.coupling_dem_vars += [FLUID_FRACTION_GRADIENT_PROJECTED]
+
     if pp.CFD_DEM.lift_force_type == 1:
         pp.coupling_dem_vars += [FLUID_VORTICITY_PROJECTED]
         pp.coupling_dem_vars += [SHEAR_RATE_PROJECTED]
@@ -376,6 +389,12 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
 
     if pp.CFD_DEM.print_FLUID_FRACTION_option:
         pp.nodal_results += ["FLUID_FRACTION"]
+
+    if pp.CFD_DEM.print_PARTICLE_VEL_option:
+        pp.nodal_results += ["PARTICLE_VEL_FILTERED"]
+
+    if pp.CFD_DEM.print_FLUID_FRACTION_GRADIENT_option:
+        pp.nodal_results += ["FLUID_FRACTION_GRADIENT"]
 
     if pp.CFD_DEM.print_SOLID_FRACTION_option:
         pp.nodal_results += ["SOLID_FRACTION"]
@@ -409,6 +428,9 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
 
     if pp.CFD_DEM.print_VELOCITY_LAPLACIAN_RATE_option:
         pp.nodal_results += ["VELOCITY_LAPLACIAN_RATE"]
+
+    if pp.CFD_DEM.print_CONDUCTIVITY_option:
+        pp.nodal_results += ["CONDUCTIVITY"]
 
 def ChangeInputDataForConsistency(pp):
     pp.CFD_DEM.project_at_every_substep_option *= (pp.CFD_DEM.coupling_level_type > 0)

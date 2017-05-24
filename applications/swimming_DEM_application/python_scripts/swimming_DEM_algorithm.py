@@ -54,6 +54,7 @@ class Algorithm(BaseAlgorithm):
         self.pp.CFD_DEM.recovery_echo_level = 1
         self.pp.CFD_DEM.gradient_calculation_type = 1
         self.pp.CFD_DEM.pressure_grad_recovery_type = 1
+        self.pp.CFD_DEM.fluid_fraction_grad_type = 0
         self.pp.CFD_DEM.store_full_gradient = 0
         self.pp.CFD_DEM.laplacian_calculation_type = 0
         self.pp.CFD_DEM.do_search_neighbours = True
@@ -79,8 +80,14 @@ class Algorithm(BaseAlgorithm):
         self.pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
         self.pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = False
         self.pp.CFD_DEM.print_VELOCITY_GRADIENT_option = 1
+        self.pp.CFD_DEM.print_FLUID_FRACTION_GRADIENT_option = 0
+        self.pp.CFD_DEM.print_FLUID_FRACTION_GRADIENT_PROJECTED_option = 0
         self.pp.CFD_DEM.print_VORTICITY_option = 1
         self.pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
+        self.pp.CFD_DEM.calculate_diffusivity_option = False
+        self.pp.CFD_DEM.print_CONDUCTIVITY_option = False
+        self.pp.CFD_DEM.filter_velocity_option = False
+        self.pp.CFD_DEM.print_PARTICLE_VEL_option = False        
         # Making the fluid step an exact multiple of the DEM step
         self.pp.Dt = int(self.pp.Dt / self.pp.CFD_DEM.MaxTimeStep) * self.pp.CFD_DEM.MaxTimeStep
         self.pp.viscosity_modification_type = 0.0

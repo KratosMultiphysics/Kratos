@@ -392,7 +392,7 @@ class Solution:
 
         post_utils.Writeresults(time)
 
-        while (time <= final_time):
+        while time <= final_time:
 
             time = time + Dt
             step += 1
@@ -527,6 +527,7 @@ class Solution:
             os.chdir(post_path)
 
             # applying DEM-to-fluid coupling
+
             if DEM_to_fluid_counter.Tick() and time >= self.pp.CFD_DEM.interaction_start_time:
                 self.alg.projection_module.ProjectFromParticles()
 
