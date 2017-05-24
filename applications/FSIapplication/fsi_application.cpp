@@ -23,7 +23,6 @@
 namespace Kratos
 {
 
-
 void KratosFSIApplication::Register()
 {
     // calling base class register to register Kratos components

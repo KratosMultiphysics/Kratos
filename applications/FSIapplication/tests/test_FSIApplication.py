@@ -11,6 +11,7 @@ from SmallTests import FSIProblemEmulatorTest as TFSIProblemEmulatorTest
 from SmallTests import NonConformantOneSideMap2D_test1 as TNonConformantOneSideMap2D_test1
 from SmallTests import NonConformantOneSideMap2D_test2 as TNonConformantOneSideMap2D_test2
 from SmallTests import NonConformantOneSideMap3D_test1 as TNonConformantOneSideMap3D_test1
+from SmallTests import NonConformantOneSideMapTwoFaces3D_test1 as TNonConformantOneSideMapTwoFaces3D_test1
 from KratosExecuteConvergenceAcceleratorTest import KratosExecuteConvergenceAcceleratorTest as TConvergenceAcceleratorTest
 from KratosExecuteConvergenceAcceleratorSpringTest import KratosExecuteConvergenceAcceleratorSpringTest as TConvergenceAcceleratorSpringTest
 
@@ -38,6 +39,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TNonConformantOneSideMap2D_test1('test_execution'))
     smallSuite.addTest(TNonConformantOneSideMap2D_test2('test_execution'))
     smallSuite.addTest(TNonConformantOneSideMap3D_test1('test_execution'))
+    smallSuite.addTest(TNonConformantOneSideMapTwoFaces3D_test1('test_execution'))
     smallSuite.addTest(TConvergenceAcceleratorTest('test_aitken_accelerator'))
     smallSuite.addTest(TConvergenceAcceleratorTest('test_mvqn_accelerator'))
     smallSuite.addTest(TConvergenceAcceleratorTest('test_mvqn_recusive_accelerator'))
@@ -61,6 +63,7 @@ def AssambleTestSuites():
             TNonConformantOneSideMap2D_test1,
             TNonConformantOneSideMap2D_test2,
             TNonConformantOneSideMap3D_test1,
+            TNonConformantOneSideMapTwoFaces3D_test1,
             TConvergenceAcceleratorTest,
             TFSIProblemEmulatorTest
         ])
