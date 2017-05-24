@@ -60,7 +60,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             "clear_storage": false,
             "component_wise": false,
             "move_mesh_flag": true,
-            "contact_tolerance": 1.0e-10,
+            "contact_tolerance": 0.0e0,
             "fancy_convergence_criterion": true,
             "convergence_criterion": "Residual_criteria",
             "displacement_relative_tolerance": 1.0e-4,

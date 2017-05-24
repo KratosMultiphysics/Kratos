@@ -83,7 +83,7 @@ public:
     
     /// Default constructors
     ALMFrictionlessMortarConvergenceCriteria(
-        double Tolerance = 1.0e-10,
+        double Tolerance = std::numeric_limits<double>::epsilon(),
         TablePrinterPointerType pTable = nullptr
         ) : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >(),
         mTolerance(Tolerance),
@@ -179,7 +179,7 @@ public:
                     
                 (itNode)->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, AugmentedNormalPressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
 
-                if (AugmentedNormalPressure < - mTolerance * ScaleFactor) // NOTE: This could be conflictive (< or <=)
+                if (AugmentedNormalPressure < mTolerance * ScaleFactor) // NOTE: This could be conflictive (< or <=)
                 {
                     if ((itNode)->Is(ACTIVE) == false )
                     {
