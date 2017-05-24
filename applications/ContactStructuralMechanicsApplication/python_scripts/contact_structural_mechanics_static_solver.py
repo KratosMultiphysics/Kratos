@@ -51,6 +51,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
             "clear_storage": false,
             "component_wise": false,
             "move_mesh_flag": true,
+            "contact_tolerance": 1.0e-10,
             "fancy_convergence_criterion": true,
             "convergence_criterion": "Residual_criteria",
             "displacement_relative_tolerance": 1.0e-4,
@@ -154,6 +155,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
             D_AT = self.settings["displacement_absolute_tolerance"].GetDouble()
             R_RT = self.settings["residual_relative_tolerance"].GetDouble()
             R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
+            contact_tolerance = self.settings["contact_tolerance"].GetDouble()
             fancy_convergence_criterion = self.settings["fancy_convergence_criterion"].GetBool()
             ensure_contact = self.settings["ensure_contact"].GetBool()
             echo_level = self.settings["echo_level"].GetInt()
@@ -202,14 +204,14 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
             # Adding the mortar criteria
             if  (self.settings["mortar_type"].GetString() == "ALMContactFrictionless"):
                 if (fancy_convergence_criterion == True):
-                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionlessMortarConvergenceCriteria(table)
+                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionlessMortarConvergenceCriteria(contact_tolerance, table)
                 else:
-                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionlessMortarConvergenceCriteria()
+                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionlessMortarConvergenceCriteria(contact_tolerance)
             elif  (self.settings["mortar_type"].GetString() == "ALMContactFrictional"):
                 if (fancy_convergence_criterion == True):
-                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionalMortarConvergenceCriteria(table)
+                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionalMortarConvergenceCriteria(contact_tolerance, table)
                 else:
-                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionalMortarConvergenceCriteria()
+                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionalMortarConvergenceCriteria(contact_tolerance)
             elif ("MeshTying" in self.settings["mortar_type"].GetString()):
                 if (fancy_convergence_criterion == True):
                     Mortar = ContactStructuralMechanicsApplication.MeshTyingMortarConvergenceCriteria(table)

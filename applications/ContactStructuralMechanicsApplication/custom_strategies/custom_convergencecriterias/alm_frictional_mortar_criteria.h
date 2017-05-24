@@ -82,8 +82,11 @@ public:
     ///@{
     
     /// Default constructors
-    ALMFrictionalMortarConvergenceCriteria(TablePrinterPointerType pTable = nullptr)
-        : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >(),
+    ALMFrictionalMortarConvergenceCriteria(        
+        double Tolerance = 1.0e-10,
+        TablePrinterPointerType pTable = nullptr
+        ) : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >(),
+        mTolerance(Tolerance),
         mpTable(pTable)
     {
     }
@@ -149,10 +152,6 @@ public:
     {
         BaseType::CalculateContactReactions(rModelPart, rDofSet, b);
         
-        // We define the tolerance
-        const double Tolerance = 1.0e-6;
-//         const double Tolerance = std::numeric_limits<double>::epsilon();
-        
         // Defining the convergence
         bool IsConvergedActive = true;
         bool IsConvergedSlip = true;
@@ -188,7 +187,7 @@ public:
                 
                 itNode->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, AugmentedNormalPressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
                 
-                if (AugmentedNormalPressure < - Tolerance) // NOTE: This could be conflictive (< or <=)
+                if (AugmentedNormalPressure < - mTolerance * ScaleFactor) // NOTE: This could be conflictive (< or <=)
                 {
                     if ((itNode)->Is(ACTIVE) == false )
                     {
@@ -209,7 +208,7 @@ public:
                     
                     (itNode)->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, AugmentedTangentPressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
                     
-                    if (AugmentedTangentPressure <= - Tolerance) // TODO: Check if it is minor equal or just minor
+                    if (AugmentedTangentPressure <= 0.0) // TODO: Check if it is minor equal or just minor
                     {
                         if ((itNode)->Is(SLIP) == true )
                         {
@@ -466,7 +465,9 @@ private:
     ///@name Member Variables
     ///@{
     
-    TablePrinterPointerType mpTable;
+    double mTolerance;               // Tolerance considered in contact check
+    
+    TablePrinterPointerType mpTable; // Pointer to the fancy table 
     
     ///@}
     ///@name Private Operators

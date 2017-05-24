@@ -141,7 +141,8 @@ void  AddCustomStrategiesToPython()
             (
             "ALMFrictionlessMortarConvergenceCriteria", 
             init< >())
-            .def(init<TablePrinterPointerType>())
+            .def(init<double>())
+            .def(init<double, TablePrinterPointerType>())
             .def("SetEchoLevel", &ALMFrictionlessMortarConvergenceCriteriaType::SetEchoLevel)
             ;
             
@@ -151,7 +152,8 @@ void  AddCustomStrategiesToPython()
             (
             "ALMFrictionalMortarConvergenceCriteria", 
             init< >())
-            .def(init<TablePrinterPointerType>())
+            .def(init<double>())
+            .def(init<double, TablePrinterPointerType>())
             .def("SetEchoLevel", &ALMFrictionalMortarConvergenceCriteriaType::SetEchoLevel)
             ;
             
