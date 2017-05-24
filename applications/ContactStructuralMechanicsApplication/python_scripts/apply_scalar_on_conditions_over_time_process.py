@@ -16,19 +16,25 @@ from KratosMultiphysics import Process as base_process
 class ApplyVaryingScalarOverTimeIntervalProcess(parent_process):
     def __init__(self, Model, settings ):
         base_process.__init__(self)
-##### 
-#        -- SAMPLE --
-#        "Parameters"            : {
-#            "mesh_id"         : 0,
-#            "model_part_name" : "LineLoad2D_bc_pressure",
-#            "variable_name"   : "LINE_LOAD_X",
-#            "factor1"         : 0.0,
-#            "factor2"         : 0.2,
-#            "interval"        : [0.0, 1.0]
-#            "step_type"       : "linear"
-#           }
-#####
 
+        ## Settings string in json format
+        default_parameters = KratosMultiphysics.Parameters("""
+        {
+           "mesh_id"         : 0,
+           "model_part_name" : "LineLoad2D_bc_pressure",
+           "variable_name"   : "LINE_LOAD_X",
+           "factor1"         : 0.0,
+           "factor2"         : 0.2,
+           "interval"        : [0.0, 1.0],
+           "step_type"       : "linear",
+           "echo_level"      : 0
+        }
+        """)
+
+        ## Overwrite the default settings with user-provided parameters
+        self.settings = settings
+        self.settings.ValidateAndAssignDefaults(default_parameters)
+        
         self.Model = Model
  
         self.computation_model_part    = settings["model_part_name"]
@@ -40,6 +46,7 @@ class ApplyVaryingScalarOverTimeIntervalProcess(parent_process):
         self.factor2        = settings["factor2"];
         self.interval       = settings["interval"]
         self.step_type      = settings["step_type"]
+        self.echo_level     = settings["echo_level"]
          
     def ExecuteInitialize(self):
         pass
@@ -67,9 +74,10 @@ class ApplyVaryingScalarOverTimeIntervalProcess(parent_process):
             else:
                 raise Exception("Only constant and linear variation is implemented")
         
-        print( "#####################################################" )
-        print( "\033[92m", "::: Time: ", current_time, " :::", "\033[0m" )
-        print( "#####################################################" )
+        if self.echo_level.GetInt() > 0:
+            print( "#####################################################" )
+            print( "\033[92m", "::: Time: ", current_time, " :::", "\033[0m" )
+            print( "#####################################################" )
 
         curr_step_params = KratosMultiphysics.Parameters("{}")
         curr_step_params.AddValue("model_part_name",self.computation_model_part)

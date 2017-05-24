@@ -16,18 +16,24 @@ from KratosMultiphysics import Process as base_process
 class ImposeScalarValueOverTimeProcess(parent_process):
     def __init__(self, Model, settings ):
         base_process.__init__(self)
-##### 
-#        -- SAMPLE --
-#       "Parameters"            : {
-#            "model_part_name"  : "el_model_part",
-#            "mesh_id"          : 0,
-#            "variable_name"    : "DISPLACEMENT_X",
-#            "values"          :  [0.0,-0.14,0.0 ],
-#            "intervals"        : [0.0, 1.0],
-#            "step_type"        : "linear"
-#           }
-#####
 
+        ## Settings string in json format
+        default_parameters = KratosMultiphysics.Parameters("""
+        {
+           "model_part_name"  : "el_model_part",
+           "mesh_id"          : 0,
+           "variable_name"    : "DISPLACEMENT_X",
+           "values"           : [0.0,-0.14,0.0 ],
+           "intervals"        : [0.0, 1.0],
+           "step_type"        : "linear",
+           "echo_level"       : 0
+        }
+        """)
+
+        ## Overwrite the default settings with user-provided parameters
+        self.settings = settings
+        self.settings.ValidateAndAssignDefaults(default_parameters)
+        
         self.Model = Model
 
         self.model_part    = settings["model_part_name"]
@@ -37,6 +43,7 @@ class ImposeScalarValueOverTimeProcess(parent_process):
         self.values   = settings["values"]
         self.intervals = settings["intervals"]
         self.step_type = settings["step_type"]
+        self.echo_level = settings["echo_level"]
         
         # checks
         assert( self.values.size( ) == self.intervals.size( ) )
@@ -91,17 +98,18 @@ class ImposeScalarValueOverTimeProcess(parent_process):
                 else:
                     raise Exception("Only linear and smooth are valid inputs")
                 
-        print( "#####################################################" )
-        print( "\033[92m" )
-        print( "::: Time: ", current_time, " :::" )
-        print( curr_value["value"].PrettyPrintJsonString() )
-        print( "t_{n-1} = ", self.intervals[n-1].PrettyPrintJsonString() )
-        print( "t_{n}   = ", self.intervals[n  ].PrettyPrintJsonString() )
-        print( "v_{n-1} = ", self.values[n-1].PrettyPrintJsonString() )
-        print( "v_{n}   = ", self.values[n  ].PrettyPrintJsonString() )
-        print( "\033[0m" )
-        print( "#####################################################" )
-        
+        if self.echo_level.GetInt() > 0:  
+            print( "#####################################################" )
+            print( "\033[92m" )
+            print( "::: Time: ", current_time, " :::" )
+            print( curr_value["value"].PrettyPrintJsonString() )
+            print( "t_{n-1} = ", self.intervals[n-1].PrettyPrintJsonString() )
+            print( "t_{n}   = ", self.intervals[n  ].PrettyPrintJsonString() )
+            print( "v_{n-1} = ", self.values[n-1].PrettyPrintJsonString() )
+            print( "v_{n}   = ", self.values[n  ].PrettyPrintJsonString() )
+            print( "\033[0m" )
+            print( "#####################################################" )
+            
         curr_step_params = KratosMultiphysics.Parameters("{}")
         curr_step_params.AddValue("model_part_name",self.model_part)
         curr_step_params.AddValue("mesh_id",self.mesh_id)
