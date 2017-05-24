@@ -72,6 +72,9 @@ class ALMSimplePatchNotMatchingATestContact(StructuralMechanichsTestFactory):
 class ALMSimplePatchNotMatchingBTestContact(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_2D/simple_patch_notmatching_b_test"
     
+class ALMMeshMovingMatchingTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/mesh_moving_matching_test"
+    
 class ALMTaylorPatchTestContact(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_2D/taylor_patch_test"
 
