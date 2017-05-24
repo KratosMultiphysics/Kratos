@@ -174,15 +174,15 @@ public:
     }
 
     virtual void TransferVariableData(std::function<double(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
-                              std::function<void(InterfaceObject*, double)> FunctionPointerDestination,
-                              const Variable<double>& rOriginVariable) 
+                                      std::function<void(InterfaceObject*, double)> FunctionPointerDestination,
+                                      const Variable<double>& rOriginVariable)
     {
         ExchangeDataLocal(FunctionPointerOrigin, FunctionPointerDestination);
     }
 
     virtual void TransferVariableData(std::function<array_1d<double, 3>(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
-                              std::function<void(InterfaceObject*, array_1d<double, 3>)> FunctionPointerDestination,
-                              const Variable< array_1d<double, 3> >& rOriginVariable) 
+                                      std::function<void(InterfaceObject*, array_1d<double, 3>)> FunctionPointerDestination,
+                                      const Variable< array_1d<double, 3> >& rOriginVariable)
     {
         ExchangeDataLocal(FunctionPointerOrigin, FunctionPointerDestination);
     }
