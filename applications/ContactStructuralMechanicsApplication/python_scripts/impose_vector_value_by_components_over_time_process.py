@@ -90,7 +90,7 @@ class ImposeVectorValueByComponentsOverTimeProcess(parent_process):
                         curr_value["value"][i].SetDouble( y1  + ( t - t1 ) * ( dy/dt ) )
                         
                     elif( self.step_type.GetString() == "smooth" ):
-                        from numpy import tanh as tanh  # we use hyperbolic tan to define a smooth step
+                        from math import tanh as tanh  # we use hyperbolic tan to define a smooth step
                         t_av = 0.5 * (t1 + t2);
                         y_av = 0.5 * (y1 + y2);
                         c_slope = 0.15;
