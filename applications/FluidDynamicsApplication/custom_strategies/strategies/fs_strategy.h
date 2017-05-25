@@ -1,3 +1,16 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Jordi Cotela
+//
+
+
 #ifndef KRATOS_FS_STRATEGY_H
 #define KRATOS_FS_STRATEGY_H
 
@@ -554,7 +567,7 @@ protected:
         if (BaseType::GetEchoLevel() > 0 && Rank == 0)
             std::cout << "Calculating Pressure." << std::endl;
         double NormDp = mpPressureStrategy->Solve();
-        
+
 #pragma omp parallel
         {
             ModelPart::NodeIterator NodesBegin;
@@ -1062,9 +1075,9 @@ private:
             bool PredictorCorrector)
     {
         KRATOS_TRY;
-        
+
         mTimeOrder = rSolverConfig.GetTimeOrder();
-        
+
         // Check that input parameters are reasonable and sufficient.
         this->Check();
 

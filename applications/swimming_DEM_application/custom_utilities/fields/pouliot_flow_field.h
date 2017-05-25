@@ -39,7 +39,7 @@ KRATOS_CLASS_POINTER_DEFINITION(PouliotFlowField);
 
 PouliotFlowField():VelocityField()
 {
-    unsigned int number_of_threads = omp_get_max_threads();
+    unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
     ResizeVectorsForParallelism(number_of_threads);
 }
 

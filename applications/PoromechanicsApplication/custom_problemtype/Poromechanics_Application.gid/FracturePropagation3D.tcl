@@ -17,6 +17,13 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
                 lappend Surfaces [lindex [lindex $BodyVolume [expr {2+$k}]] 0]
             }
             dict set BodyVolumesDict [lindex $BodyEntities $j] Surfaces $Surfaces
+            if {[lindex [GiD_Info list_entities Volumes [lindex $BodyEntities $j]] 11] eq "Meshing"} {
+                set MeshSize [lindex [GiD_Info list_entities Volumes [lindex $BodyEntities $j]] 17]
+                set MeshSize [string trimleft $MeshSize "size="]
+                dict set BodyVolumesDict [lindex $BodyEntities $j] MeshSize $MeshSize
+            } else {
+                dict set BodyVolumesDict [lindex $BodyEntities $j] MeshSize 0
+            }
         }
     }
     
@@ -1038,9 +1045,14 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
         for {set i 0} {$i < [llength $BodyVolumeGroups]} {incr i} {
             GiD_EntitiesGroups assign [lindex $BodyVolumeGroups $i] volumes $NewBodyVolumeId
         }
-        
+
+        if {[dict get $BodyVolume MeshSize] > 0.0} {
+            GiD_Process Mescape Meshing AssignSizes Volumes [dict get $BodyVolume MeshSize] $NewBodyVolumeId escape
+        }
+
         dict set BodyVolumesDict $NewBodyVolumeId Groups [dict get $BodyVolume Groups]
         dict set BodyVolumesDict $NewBodyVolumeId Surfaces [dict get $BodyVolume Surfaces]
+        dict set BodyVolumesDict $NewBodyVolumeId MeshSize [dict get $BodyVolume MeshSize]
     }
 
     dict for {Id Fracture} $FracturesDict {

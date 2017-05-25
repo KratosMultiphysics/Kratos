@@ -35,29 +35,37 @@ class MeshingTestFactory(KratosUnittest.TestCase):
             self.test = Execute_Test.Kratos_Execute_Test(ProjectParameters)
 
     def test_execution(self):
-        pass
-        ## Within this location context:
-        #with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            #self.test.Solve()
+        # Within this location context:
+        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            self.test.Solve()
 
     def tearDown(self):
         pass
     
 #class TwoDLevelSetTest(MeshingTestFactory):
-    #file_name = "mmg_test/2D_levelset_test"
+    #file_name = "mmg_eulerian_test/2D_levelset_test"
     
 #class ThreeDLevelSetTest(MeshingTestFactory):
-    #file_name = "mmg_test/3D_levelset_test"
+    #file_name = "mmg_eulerian_test/3D_levelset_test"
     
 class TwoDHessianTest(MeshingTestFactory):
-    file_name = "mmg_test/2D_hessian_test"
+    file_name = "mmg_eulerian_test/2D_hessian_test"
     
 class ThreeDHessianTest(MeshingTestFactory):
-    file_name = "mmg_test/3D_hessian_test"
+    file_name = "mmg_eulerian_test/3D_hessian_test"
     
 class TwoDCavityTest(MeshingTestFactory):
-    file_name = "mmg_test/2D_cavity_test"
+    file_name = "mmg_eulerian_test/2D_cavity_test"
     
 class CoarseSphereTest(MeshingTestFactory):
-    file_name = "mmg_test/coarse_sphere_test"
+    file_name = "mmg_eulerian_test/coarse_sphere_test"
+    
+class TwoDDynamicBeamTest(MeshingTestFactory):
+    file_name = "mmg_lagrangian_test/beam2D_test"
+    
+class ThreeDDynamicBeamTest(MeshingTestFactory):
+    file_name = "mmg_lagrangian_test/beam3D_test"
+    
+class TwoDDynamicPlasticBeamTest(MeshingTestFactory):
+    file_name = "mmg_lagrangian_test/beam2D_internal_variables_interpolation_test"
     

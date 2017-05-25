@@ -59,15 +59,15 @@ namespace Kratos {
     /*@{ */
 
     /// BDF2 time scheme for the incompressible flow problem.
-    /** This scheme implements update operations and the calculation of the BDF coefficients for variable time step sizes. 
-     *  
-     * WARNING: this scheme assumes that the element internally implements the BDF2 scheme and is hence NOT compatible with the 
+    /** This scheme implements update operations and the calculation of the BDF coefficients for variable time step sizes.
+     *
+     * WARNING: this scheme assumes that the element internally implements the BDF2 scheme and is hence NOT compatible with the
      * elements ASGS2D, ASGS3D, VMS, MonolithicWallConditon
-     * 
-     * the compatible element so far is 
+     *
+     * the compatible element so far is
      *   @see TwoFluidVMS
-     * 
-     * note also that in the prediction step only the velocity, and NOT the pressure is extrapolated in time.  
+     *
+     * note also that in the prediction step only the velocity, and NOT the pressure is extrapolated in time.
      */
     template<class TSparseSpace,
     class TDenseSpace //= DenseSpace<double>
@@ -219,37 +219,37 @@ namespace Kratos {
             ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
             double Dt = rCurrentProcessInfo[DELTA_TIME];
             double OldDt = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
-            
+
             if(Dt != 0.0 && OldDt != 0)
             {
                 //estimate acceleration from velocity in the past and predict the future. Note that pressure is NOT predicted
                 const ModelPart::NodesContainerType::iterator it_begin = rModelPart.NodesBegin();
-                    
+
                 array_1d<double,3> dv;
-                
+
                 //in the next loop we do for each node
                 //vn+1 = vn + dt*(vn - vn-1)/oldDt
                 #pragma omp parallel for private(dv)
                 for(int i=0; i< static_cast<int>(rModelPart.Nodes().size()); i++)
                 {
-                    
+
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    
-                    
-                    
-                    
+
+
+
+
                     const array_1d<double,3>& aux = it->FastGetSolutionStepValue(VELOCITY,1);
-                    
+
                     noalias(dv) = aux;
                     noalias(dv) -= it->FastGetSolutionStepValue(VELOCITY,2);
-                    
+
                     array_1d<double,3>& v = it->FastGetSolutionStepValue(VELOCITY);
-                    
+
                     const double dt_ratio = Dt/OldDt;
                     if(it->IsFixed(VELOCITY_X) == false) v[0] = aux[0] + dt_ratio*dv[0];
                     if(it->IsFixed(VELOCITY_Y) == false) v[1] = aux[1] + dt_ratio*dv[1];
                     if(it->IsFixed(VELOCITY_Z) == false) v[2] = aux[2] + dt_ratio*dv[2];
-                    
+
                     //noalias(v) = aux;
                     //noalias( v ) += () * dv;
                 }
@@ -259,10 +259,10 @@ namespace Kratos {
                 if (rModelPart.GetCommunicator().MyPID() == 0)
                     std::cout << "predict is doing nothing since OldDt = " << OldDt << "and Dt = " << Dt << std::endl;
             }
-            
-            
-            if (rModelPart.GetCommunicator().MyPID() == 0)
-                std::cout << "end of prediction" << std::endl;
+
+
+            // if (rModelPart.GetCommunicator().MyPID() == 0)
+            //     std::cout << "end of prediction" << std::endl;
         }
 
 
@@ -274,7 +274,7 @@ namespace Kratos {
         the element and
         performs the operations needed to introduce the seected time
         integration scheme.
-		
+
           this function calculates at the same time the contribution to the
         LHS and to the RHS
           of the system
@@ -381,14 +381,14 @@ namespace Kratos {
 
             if (r_model_part.GetBufferSize() != 3)
                 KRATOS_THROW_ERROR(std::logic_error, "wrong buffer size. Expects 3, currently: ", r_model_part.GetBufferSize());
-                
+
             //calculate the BDF coefficients
             double Dt = rCurrentProcessInfo[DELTA_TIME];
             double OldDt = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
 
-            if(OldDt == 0.0) 
+            if(OldDt == 0.0)
                 KRATOS_THROW_ERROR(std::logic_error,"found an OldDt = 0.0 in InitializeSolutionStep","");
-            
+
             double Rho = OldDt / Dt;
             double TimeCoeff = 1.0 / (Dt * Rho * Rho + Dt * Rho);
 
@@ -399,7 +399,7 @@ namespace Kratos {
             BDFcoeffs[0] = TimeCoeff * (Rho * Rho + 2.0 * Rho); //coefficient for step n+1 (3/2Dt if Dt is constant)
             BDFcoeffs[1] = -TimeCoeff * (Rho * Rho + 2.0 * Rho + 1.0); //coefficient for step n (-4/2Dt if Dt is constant)
             BDFcoeffs[2] = TimeCoeff; //coefficient for step n-1 (1/2Dt if Dt is constant)
-            
+
 
 
             Scheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(r_model_part, A, Dx, b);
@@ -494,7 +494,7 @@ namespace Kratos {
             //for(int i=0; i<nelems; i++)
             //{
             //    ModelPart::ElementsContainerType::iterator itElem = itelem_begin + i;
-            //    
+            //
             //    (itElem)->InitializeNonLinearIteration(CurrentProcessInfo);
             //    (itElem)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo); //TODO: call CalculateRHS instead
 
@@ -503,10 +503,10 @@ namespace Kratos {
             //    unsigned int Dimension = rGeom.WorkingSpaceDimension();
             //    unsigned int index = 0;
 
-            //    
+            //
             //    for (int i = 0; i < NumNodes; i++)
             //    {
-            //        
+            //
             //        array_1d<double,3>& rReaction = rGeom[i].FastGetSolutionStepValue(REACTION);
             //        rGeom[i].SetLock();
             //        rReaction[0] -= RHS_Contribution[index++];
@@ -514,7 +514,7 @@ namespace Kratos {
             //        if (Dimension == 3) rReaction[2] -= RHS_Contribution[index++];
             //        rGeom[i].UnSetLock();
             //        index++; // skip pressure dof
-            //        
+            //
             //    }
             //}
             //
@@ -526,7 +526,7 @@ namespace Kratos {
             //    ModelPart::ElementsContainerType::iterator itElem = itelem_begin + i;
             //    (itElem)->FinalizeSolutionStep(CurrentProcessInfo);
             //}
-            
+
         }
 		virtual void ComputeReactions(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b)
 		{
@@ -680,7 +680,7 @@ namespace Kratos {
         /*@} */
         /**@name Un accessible methods */
         /*@{ */
-		
+
 
         /*@} */
 
@@ -697,4 +697,3 @@ namespace Kratos {
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_VELOCITY_BDF_TURBULENT_SCHEME  defined */
-

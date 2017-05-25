@@ -58,7 +58,8 @@ class TestGidIO(KratosUnittest.TestCase):
 
     def __Check(self,output_file,reference_file):
         import filecmp
-        self.assertTrue( filecmp.cmp(os.path.dirname(os.path.realpath(__file__)) + "/" +output_file, os.path.dirname(os.path.realpath(__file__)) + "/" +reference_file))
+        self.assertTrue( filecmp.cmp(os.path.dirname(os.path.realpath(__file__)) + "\\" 
+            +output_file, os.path.dirname(os.path.realpath(__file__)) + "\\" +reference_file))
 
     def test_gid_io_all(self):
         model_part = self.__InitialRead()

@@ -330,6 +330,7 @@ namespace Kratos {
         const bool is_time_to_search_neighbours = (time_step + 1) % mNStepSearch == 0 && (time_step > 0); //Neighboring search. Every N times.
         const bool is_time_to_mark_and_remove = is_time_to_search_neighbours && (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]);
         BoundingBoxUtility(is_time_to_mark_and_remove);
+
         if (is_time_to_search_neighbours) {
             if (!is_time_to_mark_and_remove) { //Just in case that some entities were marked as TO_ERASE without a bounding box (manual removal)
                 mpParticleCreatorDestructor->DestroyParticles(*mpCluster_model_part);
@@ -577,6 +578,16 @@ namespace Kratos {
             (it)->InitializeSolutionStep(r_process_info);
         }
 
+        ModelPart& r_fem_model_part = GetFemModelPart();
+        ProcessInfo& r_fem_process_info = r_fem_model_part.GetProcessInfo();
+        ConditionsArrayType& pConditions = r_fem_model_part.GetCommunicator().LocalMesh().Conditions();
+
+        #pragma omp parallel for
+        for (int k = 0; k < (int) pConditions.size(); k++) {
+            ConditionsArrayType::iterator it = pConditions.ptr_begin() + k;
+            (it)->InitializeSolutionStep(r_fem_process_info);
+        }
+
         ApplyPrescribedBoundaryConditions();
         KRATOS_CATCH("")
     }
@@ -643,16 +654,12 @@ namespace Kratos {
         ModelPart& r_model_part = GetModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         const int number_of_particles = (int) mListOfSphericParticles.size();
-        double total_mass = 0.0;
         
         #pragma omp parallel for
         for (int i = 0; i < number_of_particles; i++) {
             mListOfSphericParticles[i]->Initialize(r_process_info);
-            total_mass += mListOfSphericParticles[i]->GetMass();
         }
-        
-        KRATOS_WATCH(total_mass)
-        
+                
         KRATOS_CATCH("")
     }
 

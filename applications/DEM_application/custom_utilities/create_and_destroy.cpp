@@ -5,6 +5,7 @@
 
 #include "create_and_destroy.h"
 #include "../custom_elements/spheric_continuum_particle.h"
+#include "../custom_elements/analytic_spheric_particle.h"
 #include "../custom_elements/cluster3D.h"
 #include "../custom_utilities/GeometryFunctions.h"
 #include "../custom_utilities/AuxiliaryFunctions.h"
@@ -117,10 +118,10 @@ namespace Kratos {
             do {
                 x = 2.0 * rand() / RAND_MAX - 1;
                 y = 2.0 * rand() / RAND_MAX - 1;
-                r = x * x + y*y;
+                r = x*x + y*y;
             } while (r == 0.0 || r > 1.0);
 
-            double d = sqrt(-2.0 * log(r) / r);
+            double d = sqrt(- 2.0 * log(r) / r);
             return_value = x * d * stddev + mean;
 
         } while (return_value < min_radius || return_value > max_radius);
@@ -255,19 +256,21 @@ namespace Kratos {
         pnew_node->AddDof(ANGULAR_VELOCITY_Y, REACTION_Y);
         pnew_node->AddDof(ANGULAR_VELOCITY_Z, REACTION_Z);
 
-        pnew_node->pGetDof(VELOCITY_X)->FixDof();
-        pnew_node->pGetDof(VELOCITY_Y)->FixDof();
-        pnew_node->pGetDof(VELOCITY_Z)->FixDof();
-        pnew_node->pGetDof(ANGULAR_VELOCITY_X)->FixDof();
-        pnew_node->pGetDof(ANGULAR_VELOCITY_Y)->FixDof();
-        pnew_node->pGetDof(ANGULAR_VELOCITY_Z)->FixDof();
+        if (initial) {
+            pnew_node->pGetDof(VELOCITY_X)->FixDof();
+            pnew_node->pGetDof(VELOCITY_Y)->FixDof();
+            pnew_node->pGetDof(VELOCITY_Z)->FixDof();
+            pnew_node->pGetDof(ANGULAR_VELOCITY_X)->FixDof();
+            pnew_node->pGetDof(ANGULAR_VELOCITY_Y)->FixDof();
+            pnew_node->pGetDof(ANGULAR_VELOCITY_Z)->FixDof();
 
-        pnew_node->Set(DEMFlags::FIXED_VEL_X, true);
-        pnew_node->Set(DEMFlags::FIXED_VEL_Y, true);
-        pnew_node->Set(DEMFlags::FIXED_VEL_Z, true);
-        pnew_node->Set(DEMFlags::FIXED_ANG_VEL_X, true);
-        pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Y, true);
-        pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Z, true);
+            pnew_node->Set(DEMFlags::FIXED_VEL_X, true);
+            pnew_node->Set(DEMFlags::FIXED_VEL_Y, true);
+            pnew_node->Set(DEMFlags::FIXED_VEL_Z, true);
+            pnew_node->Set(DEMFlags::FIXED_ANG_VEL_X, true);
+            pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Y, true);
+            pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Z, true);
+        }
         KRATOS_CATCH("")
     }
     
@@ -325,6 +328,7 @@ namespace Kratos {
   
         pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY) = null_vector;
 
+
         pnew_node->AddDof(VELOCITY_X, REACTION_X);
         pnew_node->AddDof(VELOCITY_Y, REACTION_Y);
         pnew_node->AddDof(VELOCITY_Z, REACTION_Z);
@@ -345,10 +349,11 @@ namespace Kratos {
         pnew_node->Set(DEMFlags::FIXED_ANG_VEL_X, true);
         pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Y, true);
         pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Z, true);
+
         KRATOS_CATCH("")
     }
 
-    Kratos::Element* ParticleCreatorDestructor::ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
+    Kratos::SphericParticle* ParticleCreatorDestructor::ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                                                         int r_Elem_Id,
                                                                         Node < 3 > ::Pointer reference_node,
                                                                         Element::Pointer injector_element,
@@ -380,8 +385,7 @@ namespace Kratos {
 
         NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node, radius, *r_params, r_sub_model_part_with_parameters, has_sphericity, has_rotation, initial);
 
-        Geometry<Node<3> >::PointsArrayType nodelist;
-        
+        Geometry<Node<3> >::PointsArrayType nodelist;       
         nodelist.push_back(pnew_node);
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
         SphericParticle* spheric_p_particle = dynamic_cast<SphericParticle*> (p_particle.get());
@@ -412,9 +416,7 @@ namespace Kratos {
         spheric_p_particle->SetFastProperties(p_fast_properties);
 
         double density = spheric_p_particle->GetDensity();
-        spheric_p_particle->SetRadius(radius);
-        spheric_p_particle->SetSearchRadius(radius);
-        spheric_p_particle->SetSearchRadiusWithFem(radius);
+        spheric_p_particle->SetDefaultRadiiHierarchy(radius);
         double mass = 4.0 / 3.0 * KRATOS_M_PI * density * radius * radius * radius;
         spheric_p_particle->SetMass(mass);
 
@@ -543,7 +545,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*> (p_particle.get());
 
         spheric_p_particle->SetFastProperties(p_fast_properties);
-        spheric_p_particle->Initialize(r_modelpart.GetProcessInfo()); 
+        spheric_p_particle->Initialize(r_modelpart.GetProcessInfo());
         spheric_p_particle->SetRadius(radius);
         spheric_p_particle->SetSearchRadius(radius);
         spheric_p_particle->SetSearchRadiusWithFem(radius);        
@@ -564,7 +566,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         KRATOS_CATCH("")
     }       
     
-    void ParticleCreatorDestructor::ClusterCreatorWithPhysicalParameters(ModelPart& r_spheres_modelpart,
+    Kratos::Cluster3D* ParticleCreatorDestructor::ClusterCreatorWithPhysicalParameters(ModelPart& r_spheres_modelpart,
                                                                          ModelPart& r_clusters_modelpart,                                                                         
                                                                          int r_Elem_Id,
                                                                          Node<3>::Pointer reference_node,
@@ -675,6 +677,8 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
 
         p_cluster->Set(NEW_ENTITY);
         pnew_node->Set(NEW_ENTITY);
+        
+        return p_cluster;
         KRATOS_CATCH("")
     }
 
@@ -796,17 +800,25 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         KRATOS_CATCH("")
     }    
     
-    void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
-
+    void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part)
+    {
         KRATOS_TRY
         
-
         DestroyParticles(r_model_part.GetCommunicator().LocalMesh());
         DestroyParticles(r_model_part.GetCommunicator().GhostMesh());
           
         KRATOS_CATCH("")
     }    
     
+    void ParticleCreatorDestructor::DestroyParticleElements(ModelPart& r_model_part, Flags flag_for_destruction)
+    {
+        KRATOS_TRY
+
+        r_model_part.RemoveElements(flag_for_destruction);
+
+        KRATOS_CATCH("")
+    }
+
     void ParticleCreatorDestructor::DestroyParticles(ModelPart::MeshType& rMesh) {
 
         KRATOS_TRY
@@ -1123,6 +1135,30 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
             }
         }
         KRATOS_CATCH("")
+    }
+
+    Element::Pointer ParticleCreatorDestructor::GetAnalyticReplacement(const Element& sample_element,
+                                                                       Geometry<Node<3> >::PointsArrayType nodelist,
+                                                                       Element::Pointer p_elem_to_be_replaced,
+                                                                       ModelPart& spheres_model_part)
+    {
+        Element::Pointer p_elem = sample_element.Create(p_elem_to_be_replaced->Id(), nodelist, p_elem_to_be_replaced->pGetProperties());
+        AnalyticSphericParticle* analytic_sample_element = dynamic_cast<AnalyticSphericParticle*> (p_elem.get());
+        SphericParticle* regular_sample_element = dynamic_cast<SphericParticle*>(p_elem_to_be_replaced.get());
+
+        analytic_sample_element->SetFastProperties(regular_sample_element->GetFastProperties());
+        analytic_sample_element->SetDefaultRadiiHierarchy(nodelist[0].FastGetSolutionStepValue(RADIUS));
+        analytic_sample_element->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
+        analytic_sample_element->Set(DEMFlags::BELONGS_TO_A_CLUSTER, false);
+        analytic_sample_element->CreateDiscontinuumConstitutiveLaws(spheres_model_part.GetProcessInfo());
+
+        for (int i_neigh = 0; i_neigh < int(regular_sample_element->mNeighbourElements.size()); ++i_neigh){
+            analytic_sample_element->mNeighbourElements.push_back(regular_sample_element->mNeighbourElements[i_neigh]);
+            analytic_sample_element->mNeighbourElasticContactForces.push_back(regular_sample_element->mNeighbourElasticContactForces[i_neigh]);
+            analytic_sample_element->mNeighbourElasticExtraContactForces.push_back(regular_sample_element->mNeighbourElasticExtraContactForces[i_neigh]);
+        }
+        analytic_sample_element->Initialize(spheres_model_part.GetProcessInfo());
+        return p_elem;
     }
 
     void ParticleCreatorDestructor::ClearVariables(ModelPart::NodesContainerType::iterator node_it, Variable<array_1d<double, 3 > >& rVariable) {

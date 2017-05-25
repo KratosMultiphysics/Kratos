@@ -1,20 +1,17 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 from KratosMultiphysics import *
-from KratosMultiphysics.MappingApplication import *
-
-import os
-import process_factory
-import KratosMultiphysics.KratosUnittest as KratosUnittest
-
 try: # test to import the modules for the parallel execution
     from KratosMultiphysics.mpi import *
     from KratosMultiphysics.MetisApplication import *
     from KratosMultiphysics.TrilinosApplication import *
 except:
     pass
+from KratosMultiphysics.MappingApplication import *
 
-# from random import uniform # needed to set up test (with random values)
+CheckForPreviousImport()
+
+import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 class NearestNeighborMapperTest(KratosUnittest.TestCase):
 
@@ -65,7 +62,7 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         if (self.GiD_output):
             self.InitializeGiD()
 
-        # self.PrintValuesToPrescribe()
+        # self.PrintValuesToPrescribe() # needed to set up the test
 
         self.SetPrescribedValues()
 
@@ -597,6 +594,7 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         gid_io.FinalizeMesh()
 
     def PrintValuesToPrescribe(self):
+        from random import uniform
         values_range = [-100, 100]
         values_precision = 4
         print("Origin ModelPart; Scalar Values")

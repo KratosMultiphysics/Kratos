@@ -149,7 +149,8 @@ class PfemFluidSolver:
         # PFEM fluid variables
         # self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NORMVELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FREESURFACE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INTERF)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION)
 
         print("::[Pfem Fluid Solver]:: Variables ADDED")
                 
@@ -272,8 +273,8 @@ class PfemFluidSolver:
         #self.fluid_solver.Initialize()
 
     def InitializeSolutionStep(self):
-        pass
-        #self.fluid_solver.InitializeSolutionStep()
+        #pass
+        self.fluid_solver.InitializeSolutionStep()
 
     def Predict(self):
         pass

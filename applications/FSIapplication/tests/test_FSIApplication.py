@@ -1,9 +1,5 @@
 # import Kratos
 from KratosMultiphysics import *
-from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.ExternalSolversApplication import *
-from KratosMultiphysics.StructuralMechanicsApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.FSIApplication import *
 
 # Import Kratos "wrapper" for unittests
@@ -14,6 +10,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from SmallTests import FSIProblemEmulatorTest as TFSIProblemEmulatorTest
 from SmallTests import NonConformantOneSideMap2D_test1 as TNonConformantOneSideMap2D_test1
 from SmallTests import NonConformantOneSideMap2D_test2 as TNonConformantOneSideMap2D_test2
+from SmallTests import NonConformantOneSideMap3D_test1 as TNonConformantOneSideMap3D_test1
+from SmallTests import NonConformantOneSideMapTwoFaces3D_test1 as TNonConformantOneSideMapTwoFaces3D_test1
 from KratosExecuteConvergenceAcceleratorTest import KratosExecuteConvergenceAcceleratorTest as TConvergenceAcceleratorTest
 
 ## NIGTHLY TESTS
@@ -39,6 +37,8 @@ def AssambleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTest(TNonConformantOneSideMap2D_test1('test_execution'))
     smallSuite.addTest(TNonConformantOneSideMap2D_test2('test_execution'))
+    smallSuite.addTest(TNonConformantOneSideMap3D_test1('test_execution'))
+    smallSuite.addTest(TNonConformantOneSideMapTwoFaces3D_test1('test_execution'))
     smallSuite.addTest(TConvergenceAcceleratorTest('test_aitken_accelerator'))
     smallSuite.addTest(TConvergenceAcceleratorTest('test_mvqn_accelerator'))
     smallSuite.addTest(TConvergenceAcceleratorTest('test_mvqn_recusive_accelerator'))
@@ -59,6 +59,8 @@ def AssambleTestSuites():
         KratosUnittest.TestLoader().loadTestsFromTestCases([
             TNonConformantOneSideMap2D_test1,
             TNonConformantOneSideMap2D_test2,
+            TNonConformantOneSideMap3D_test1,
+            TNonConformantOneSideMapTwoFaces3D_test1,
             TConvergenceAcceleratorTest,
             TFSIProblemEmulatorTest
         ])
