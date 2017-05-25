@@ -109,7 +109,6 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)                                           # Add normal
             if  self.settings["mortar_type"].GetString() == "ALMContactFrictionless":
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_CONTACT_STRESS)                        # Add normal contact stress
-                self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_SCALAR_RESIDUAL)  # Add normal contact gap
                 self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_GAP)              # Add normal contact gap
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)                                      # Add nodal size variable
             elif  self.settings["mortar_type"].GetString() == "ScalarMeshTying":
