@@ -613,7 +613,7 @@ public:
         auto numNodes = pNode.end() - pNode.begin();
         
         #pragma omp parallel for
-        for(unsigned int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
             itNode->GetValue(NODAL_AREA)      = 0.0;
@@ -625,7 +625,7 @@ public:
         auto numConditions = pCond.end() - pCond.begin();
         
         #pragma omp parallel for
-        for(unsigned int i = 0; i < numConditions; i++) 
+        for(int i = 0; i < numConditions; i++) 
         {
             auto itCond = pCond.begin() + i;
             
@@ -648,7 +648,7 @@ public:
         }
         
         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
 
@@ -666,7 +666,7 @@ public:
         }
 
         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
 
@@ -710,7 +710,7 @@ public:
         auto numNodes = pNode.end() - pNode.begin();
         
         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
             itNode->GetValue(DELTA_NORMAL) = ZeroDeltaNormal;
@@ -875,7 +875,7 @@ public:
         }
         
         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
             const array_1d<double, 3> & nj = itNode->GetValue(NORMAL); // nodal non-normalized normal (this function is called before normalization)
