@@ -34,6 +34,7 @@
 #include "../../kratos/includes/element.h"
 #include "../../kratos/includes/model_part.h"
 #include "../../kratos/includes/kratos_flags.h"
+#include "processes/find_nodal_neighbours_process.h"
 #include "response_function.h"
 
 // ==============================================================================
@@ -102,6 +103,22 @@ public:
 		// Throw error message in case of wrong specification
 		else
 			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. Options are: analytic , semi_analytic. Specified gradient_mode: ", gradientMode);
+
+		try{
+			mConsiderDiscretization =  responseSettings["consider_discretization"].GetBool();
+		}
+		catch (...)
+		{
+			mConsiderDiscretization = false;
+		}
+
+		try{
+			mConsiderDiscretizationDirect =  responseSettings["consider_discretization_direct"].GetBool();
+		}
+		catch (...)
+		{
+			mConsiderDiscretizationDirect = false;
+		}
 
 		// Initialize member variables to NULL
 		m_initial_value = 0.0;
@@ -248,6 +265,9 @@ public:
 			break;
 		}
 		}
+
+		if (mConsiderDiscretization)
+			this->consider_discretization();
 
 		KRATOS_CATCH("");
 	}
@@ -417,6 +437,13 @@ protected:
 			// Get adjoint variables (Corresponds to 1/2*u)
 			lambda = 0.5*u;
 
+			double scaling_factor = 1.0;
+			if (mConsiderDiscretizationDirect)
+			{
+				Element::GeometryType& element_geometry = elem_i->GetGeometry();
+				scaling_factor = 1.0/element_geometry.DomainSize();
+			}
+
 			// Semi-analytic computation of partial derivative of state equation w.r.t. node coordinates
 			elem_i->CalculateRightHandSide(RHS, CurrentProcessInfo);
 			for (ModelPart::NodeIterator node_i = elem_i->GetGeometry().begin(); node_i != elem_i->GetGeometry().end(); ++node_i)
@@ -427,7 +454,7 @@ protected:
 				// Pertubation, gradient analysis and recovery of x
 				node_i->X0() += mDelta;
 				elem_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-				gradient_contribution[0] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
+				gradient_contribution[0] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta)*scaling_factor;
 				node_i->X0() -= mDelta;
 
 				// Reset pertubed vector
@@ -436,7 +463,7 @@ protected:
 				// Pertubation, gradient analysis and recovery of y
 				node_i->Y0() += mDelta;
 				elem_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-				gradient_contribution[1] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
+				gradient_contribution[1] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta)*scaling_factor;
 				node_i->Y0() -= mDelta;
 
 				// Reset pertubed vector
@@ -445,7 +472,7 @@ protected:
 				// Pertubation, gradient analysis and recovery of z
 				node_i->Z0() += mDelta;
 				elem_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-				gradient_contribution[2] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
+				gradient_contribution[2] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta)*scaling_factor;
 				node_i->Z0() -= mDelta;
 
 				// Assemble sensitivity to node
@@ -587,6 +614,11 @@ protected:
 	// --------------------------------------------------------------------------
   	virtual void consider_discretization(){
 
+
+		// Start process to identify element neighbors for every node
+		FindNodalNeighboursProcess neigbhorFinder = FindNodalNeighboursProcess(mr_model_part, 10, 10);
+		neigbhorFinder.Execute();
+
 		std::cout<< "> Considering discretization size!" << std::endl;
 		for(ModelPart::NodeIterator node_i=mr_model_part.NodesBegin(); node_i!=mr_model_part.NodesEnd(); node_i++)
 		{
@@ -608,7 +640,7 @@ protected:
 			}
 
 			// apply scaling
-			node_i->FastGetSolutionStepValue(MASS_SHAPE_GRADIENT) /= scaling_factor;
+			node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT) /= scaling_factor;
 		}
 	}
 
@@ -651,6 +683,8 @@ private:
 	double mDelta;
 	double m_initial_value;
 	bool m_initial_value_defined;
+	bool mConsiderDiscretization;
+	bool mConsiderDiscretizationDirect;
 
 	///@}
 ///@name Private Operators
