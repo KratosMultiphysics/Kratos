@@ -33,14 +33,6 @@ from SmallTests import ALMSimplePatchTestContact                      as TALMSim
 from SmallTests import ALMSimpleSlopePatchTestContact                 as TALMSimpleSlopePatchTestContact
 from SmallTests import ALMSimplePatchNotMatchingATestContact          as TALMSimplePatchNotMatchingATestContact
 from SmallTests import ALMSimplePatchNotMatchingBTestContact          as TALMSimplePatchNotMatchingBTestContact
-from SmallTests import ALMMeshMovingMatchingTestContact               as TALMMeshMovingMatchingTestContact
-from SmallTests import ALMMeshMovingNotMatchingTestContact               as TALMMeshMovingNotMatchingTestContact
-from SmallTests import ALMTaylorPatchTestContact                      as TALMTaylorPatchTestContact
-from SmallTests import ALMTaylorPatchDynamicTestContact               as TALMTaylorPatchDynamicTestContact
-from SmallTests import ALMHertzSimpleTestContact                      as TALMHertzSimpleTestContact
-from SmallTests import ALMHertzSimpleSphereTestContact                as TALMHertzSimpleSphereTestContact
-from SmallTests import ALMHertzSphereTestContact                      as TALMHertzSphereTestContact
-from SmallTests import ALMHertzCompleteTestContact                    as TALMHertzCompleteTestContact
 from SmallTests import ALMThreeDSimplestPatchMatchingTestContact      as TALMThreeDSimplestPatchMatchingTestContact
 from SmallTests import ALMThreeDSimplestPatchMatchingSlopeTestContact as TALMThreeDSimplestPatchMatchingSlopeTestContact
 from SmallTests import ALMThreeDPatchMatchingTestContact              as TALMTThreeDPatchMatchingTestContact
@@ -48,10 +40,19 @@ from SmallTests import ALMThreeDPatchNotMatchingTestContact           as TALMThr
 
 ## NIGTHLY TESTS
 # ALM frictionless tests
-from NightlyTests import ALMIroningTestContact    as TALMIroningTestContact
-from NightlyTests import ALMIroningDieTestContact as TALMIroningDieTestContact
+from NightlyTests import ALMMeshMovingMatchingTestContact    as TALMMeshMovingMatchingTestContact
+from NightlyTests import ALMMeshMovingNotMatchingTestContact as TALMMeshMovingNotMatchingTestContact
+from NightlyTests import ALMTaylorPatchTestContact           as TALMTaylorPatchTestContact
+from NightlyTests import ALMTaylorPatchDynamicTestContact    as TALMTaylorPatchDynamicTestContact
+from NightlyTests import ALMHertzSimpleTestContact           as TALMHertzSimpleTestContact
+from NightlyTests import ALMHertzSimpleSphereTestContact     as TALMHertzSimpleSphereTestContact
+from NightlyTests import ALMHertzSphereTestContact           as TALMHertzSphereTestContact
+from NightlyTests import ALMHertzCompleteTestContact         as TALMHertzCompleteTestContact
 
 ## VALIDATION TESTS
+# ALM frictionless tests
+from ValidationTests import ALMIroningTestContact    as TALMIroningTestContact
+from ValidationTests import ALMIroningDieTestContact as TALMIroningDieTestContact
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -92,14 +93,6 @@ def AssambleTestSuites():
     smallSuite.addTest(TALMSimpleSlopePatchTestContact('test_execution'))
     smallSuite.addTest(TALMSimplePatchNotMatchingATestContact('test_execution'))
     smallSuite.addTest(TALMSimplePatchNotMatchingBTestContact('test_execution'))
-    smallSuite.addTest(TALMMeshMovingMatchingTestContact('test_execution'))
-    smallSuite.addTest(TALMMeshMovingNotMatchingTestContact('test_execution'))
-    smallSuite.addTest(TALMTaylorPatchTestContact('test_execution'))
-    smallSuite.addTest(TALMTaylorPatchDynamicTestContact('test_execution'))
-    smallSuite.addTest(TALMHertzSimpleSphereTestContact('test_execution'))
-    smallSuite.addTest(TALMHertzSphereTestContact('test_execution'))
-    smallSuite.addTest(TALMHertzSimpleTestContact('test_execution'))
-    smallSuite.addTest(TALMHertzCompleteTestContact('test_execution'))
     smallSuite.addTest(TALMThreeDSimplestPatchMatchingTestContact('test_execution'))
     smallSuite.addTest(TALMThreeDSimplestPatchMatchingSlopeTestContact('test_execution'))
     smallSuite.addTest(TALMTThreeDPatchMatchingTestContact('test_execution'))
@@ -108,16 +101,26 @@ def AssambleTestSuites():
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-    #nightSuite.addTest(TALMIroningTestContact('test_execution'))
-    #nightSuite.addTest(TALMIroningDieTestContact('test_execution'))
+    nightSuite.addTest(TALMMeshMovingMatchingTestContact('test_execution'))
+    nightSuite.addTest(TALMMeshMovingNotMatchingTestContact('test_execution'))
+    nightSuite.addTest(TALMTaylorPatchTestContact('test_execution'))
+    nightSuite.addTest(TALMTaylorPatchDynamicTestContact('test_execution'))
+    nightSuite.addTest(TALMHertzSimpleSphereTestContact('test_execution'))
+    nightSuite.addTest(TALMHertzSphereTestContact('test_execution'))
+    nightSuite.addTest(TALMHertzSimpleTestContact('test_execution'))
+    nightSuite.addTest(TALMHertzCompleteTestContact('test_execution'))
     
     # For very long tests that should not be in nighly and you can use to validate 
     validationSuite = suites['validation']
+    validationSuite.addTests(nightSuite)
+    #validationSuite.addTest(TALMIroningTestContact('test_execution'))
+    #validationSuite.addTest(TALMIroningDieTestContact('test_execution'))
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
+            # SMALL
             TTestLineExactIntegration1,
             TTestLineExactIntegration2,
             TTestLineExactIntegration3,
@@ -136,6 +139,11 @@ def AssambleTestSuites():
             TALMSimpleSlopePatchTestContact, 
             TALMSimplePatchNotMatchingATestContact,
             TALMSimplePatchNotMatchingBTestContact,
+            TALMThreeDSimplestPatchMatchingTestContact,
+            TALMThreeDSimplestPatchMatchingSlopeTestContact,
+            TALMTThreeDPatchMatchingTestContact,
+            TALMThreeDPatchNotMatchingTestContact,
+            # NIGTHLY
             TALMMeshMovingMatchingTestContact,
             TALMMeshMovingNotMatchingTestContact,
             TALMTaylorPatchTestContact,
@@ -144,11 +152,7 @@ def AssambleTestSuites():
             TALMHertzSimpleSphereTestContact,
             TALMHertzSphereTestContact,
             TALMHertzCompleteTestContact,
-            TALMThreeDSimplestPatchMatchingTestContact,
-            TALMThreeDSimplestPatchMatchingSlopeTestContact,
-            TALMTThreeDPatchMatchingTestContact,
-            TALMThreeDPatchNotMatchingTestContact,
-            ############# JUST TESTING ###########
+            # VALIDATION
             ##TALMIroningTestContact,
             ##TALMIroningDieTestContact,
         ])
