@@ -92,6 +92,9 @@ class Simple3D2NTrussTest(StructuralMechanichsTestFactory):
 class Simple3D2NBeamCrTest(StructuralMechanichsTestFactory):
     file_name = "3D2N_BEAMCR_test/nonlinear_3D2NBeamCr_test"
      
+class Simple3D2NBeamCrLinearTest(StructuralMechanichsTestFactory):
+    file_name = "3D2N_BEAMCR_test/linear_3D2NBeamCr_test"
+    
 #class MPCSmallDisplacementElementTests(StructuralMechanichsTestFactory):
     #file_name = "mpc_test/Mpc_Small_Disp_Elem_test"
 

@@ -22,6 +22,7 @@ from SmallTests import EigenQ4Thick2x2PlateTests as TEigenQ4Thick2x2PlateTests
 from SmallTests import EigenTL3D8NCubeTests as TEigenTL3D8NCubeTests
 from SmallTests import Simple3D2NTrussTest as T3D2NTrussTest
 from SmallTests import Simple3D2NBeamCrTest as T3D2NBeamCrTest
+from SmallTests import Simple3D2NBeamCrLinearTest as T3D2NBeamCrLinearTest
 #from SmallTests import MPCSmallDisplacementElementTests as TMPCSmallDisplacementElementTests
 
 
@@ -60,6 +61,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TEigenTL3D8NCubeTests('test_execution'))
     smallSuite.addTest(T3D2NTrussTest('test_execution'))  
     smallSuite.addTest(T3D2NBeamCrTest('test_execution'))    
+    smallSuite.addTest(T3D2NBeamCrLinearTest('test_execution'))  
     #smallSuite.addTest(TMPCSmallDisplacementElementTests('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
@@ -87,6 +89,7 @@ def AssambleTestSuites():
             TShellT3IsotropicScordelisTests,
             T3D2NTrussTest,
             T3D2NBeamCrTest,
+            T3D2NBeamCrLinearTest,
             #TMPCSmallDisplacementElementTests
             ######TSprismPanTests
         ])

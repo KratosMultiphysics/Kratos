@@ -44,17 +44,17 @@ class ApplyLocalProcess(Process, KratosUnittest.TestCase):
         
         for node in self.model_part.Nodes:
             sum_loadfy = sum_loadfy + node.GetSolutionStepValue(REACTION_Y,0)
-        self.assertAlmostEqual(sum_loadfy,0, places = 5)
+        self.assertAlmostEqual(sum_loadfy,0, places = 6)
 
         for node in self.model_part.Nodes:
             sum_loadfx = sum_loadfx + node.GetSolutionStepValue(REACTION_X,0)
-        self.assertAlmostEqual(sum_loadfx,0, places = 4)
+        self.assertAlmostEqual(sum_loadfx,0)
         
        
         # #comparing nodal displacement to analytical solution
         disp_y_N2_FE = -Fy * L*L*L / (3*EI)
         disp_y_N2_model = self.model_part.Nodes[11].GetSolutionStepValue(DISPLACEMENT_Y,0)
-        self.assertAlmostEqual(disp_y_N2_model,disp_y_N2_FE, places = 3)
+        self.assertAlmostEqual(disp_y_N2_model,disp_y_N2_FE)
         
         # #comparing KRATOS internal displacement values
         for node in self.model_part.Nodes:
