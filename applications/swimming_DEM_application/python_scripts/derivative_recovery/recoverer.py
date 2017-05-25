@@ -21,6 +21,8 @@ class EmptyGradientRecoverer(DerivativesRecoverer):
         pass
     def RecoverGradientOfVelocity(self):
         pass
+    def RecoverFluidFractionGradient(self):
+        pass
 
 class EmptyMaterialAccelerationRecoverer(DerivativesRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
@@ -30,8 +32,6 @@ class EmptyMaterialAccelerationRecoverer(DerivativesRecoverer):
     def RecoverMaterialAccelerationFromGradient(self):
         pass
     def RecoverPressureGradient(self):
-        pass
-    def RecoverFluidFractionGradient(self):
         pass
 
 class EmptyVorticityRecoverer(DerivativesRecoverer):

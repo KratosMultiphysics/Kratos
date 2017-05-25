@@ -304,11 +304,12 @@ def ConstructListsOfVariablesForCoupling(pp):
     if pp.CFD_DEM.fluid_model_type == 0 or pp.CFD_DEM.coupling_level_type >= 1 or pp.CFD_DEM.drag_force_type == 4:
         pp.coupling_fluid_vars += [FLUID_FRACTION]
         
-        if pp.CFD_DEM.print_SOLID_FRACTION_option:
-            pp.coupling_fluid_vars += [SOLID_FRACTION]
+        if pp.CFD_DEM.print_DISPERSE_FRACTION_option:
+            pp.coupling_fluid_vars += [DISPERSE_FRACTION]
 
         if pp.CFD_DEM.filter_velocity_option:
             pp.coupling_fluid_vars += [PARTICLE_VEL_FILTERED]
+            pp.coupling_fluid_vars += [TIME_AVERAGED_ARRAY_3]
             pp.coupling_fluid_vars += [PHASE_FRACTION]
 
     if pp.CFD_DEM.fluid_model_type >= 1:
@@ -396,8 +397,9 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
     if pp.CFD_DEM.print_FLUID_FRACTION_GRADIENT_option:
         pp.nodal_results += ["FLUID_FRACTION_GRADIENT"]
 
-    if pp.CFD_DEM.print_SOLID_FRACTION_option:
-        pp.nodal_results += ["SOLID_FRACTION"]
+    if pp.CFD_DEM.print_DISPERSE_FRACTION_option:
+        pp.nodal_results += ["DISPERSE_FRACTION"]
+        pp.nodal_results += ["PHASE_FRACTION"]
 
     if pp.CFD_DEM.fluid_model_type == 0 and pp.CFD_DEM.print_AVERAGED_FLUID_VELOCITY_option:
         pp.nodal_results += ["AVERAGED_FLUID_VELOCITY"]

@@ -126,6 +126,7 @@ KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMFluidCoupledMapping_TDim_TBaseTypeOfS
 // 3:   Linear         Filtered            Filtered
 //----------------------------------------------------------------
 
+
 BinBasedDEMFluidCoupledMapping(double min_fluid_fraction,
                                const int coupling_type,
                                const int time_averaging_type,
@@ -137,7 +138,7 @@ BinBasedDEMFluidCoupledMapping(double min_fluid_fraction,
                                mMinFluidFraction(min_fluid_fraction),
                                mMaxNodalAreaInv(0.0),
                                mCouplingType(coupling_type),
-                               mTimeAveragingTipe(time_averaging_type),
+                               mTimeAveragingType(time_averaging_type),
                                mViscosityModificationType(viscosity_modification_type),
                                mParticlesPerDepthDistance(n_particles_per_depth_distance),
                                mNumberOfDEMSamplesSoFarInTheCurrentFluidStep(0)
@@ -261,7 +262,7 @@ double mFluidLastCouplingFromDEMTime;
 double mMinFluidFraction;
 double mMaxNodalAreaInv;
 int mCouplingType;
-int mTimeAveragingTipe;
+int mTimeAveragingType;
 int mViscosityModificationType;
 int mParticlesPerDepthDistance;
 int mNumberOfDEMSamplesSoFarInTheCurrentFluidStep;
