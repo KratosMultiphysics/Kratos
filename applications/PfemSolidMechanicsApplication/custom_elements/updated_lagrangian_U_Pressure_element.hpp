@@ -1,20 +1,21 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:              LMonforte $
-//   Date:                $Date:                July 2015 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Created by:          $Author:                  LMonforte $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                    July 2015 $
+//   Revision:            $Revision:                      0.0 $
 //
 //
 
-#if !defined(KRATOS_AXISYM_UPDATED_LAGRANGIAN_U_J_ELEMENT_H_INCLUDED )
-#define  KRATOS_AXISYM_UPDATED_LAGRANGIAN_U_J_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_UPDATED_LAGRANGIAN_UP_SECOND_ELEMENT_H_INCLUDED )
+#define  KRATOS_UPDATED_LAGRANGIAN_UP_SECOND_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/updated_lagrangian_U_J_element.hpp"
+#include "custom_elements/updated_lagrangian_U_P_element.hpp"
 
 namespace Kratos
 {
@@ -33,11 +34,31 @@ namespace Kratos
    ///@name Kratos Classes
    ///@{
 
+   /// Large Displacement Lagrangian U-P Element for 3D and 2D geometries. Linear Triangles and Tetrahedra (base class)
+
+   // THIS IS THE SECOND VERSION OF THE UP-ELEMENT FOR ANY CONSTITUTIVE EQUATION. 
+   // In this version, the pressure is the pressure and it is not some "2D" invented pressure,..
+   // the constitutive equation should not be the UP version
 
 
-   class AxisymUpdatedLagrangianUJElement
-      : public UpdatedLagrangianUJElement
+   class UpdatedLagrangianUPressureElement
+      : public UpdatedLagrangianUPElement
    {
+
+      protected:
+         typedef struct
+         {
+            unsigned int voigtsize; 
+
+            double NodalMeanStress;
+            double ElementalMeanStress;
+
+            Vector StressVector;
+
+            Matrix DeviatoricTensor; 
+            
+         } ThisElementGeneralVariables;
+      
       public:
 
          ///@name Type Definitions
@@ -52,33 +73,33 @@ namespace Kratos
          typedef GeometryData::IntegrationMethod IntegrationMethod;
 
          /// Counted pointer of LargeDisplacementUPElement
-         KRATOS_CLASS_POINTER_DEFINITION( AxisymUpdatedLagrangianUJElement );
+         KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianUPressureElement );
          ///@}
 
          ///@name Life Cycle
          ///@{
 
          /// Empty constructor needed for serialization
-         AxisymUpdatedLagrangianUJElement();
+         UpdatedLagrangianUPressureElement();
 
          /// Default constructors
-         AxisymUpdatedLagrangianUJElement(IndexType NewId, GeometryType::Pointer pGeometry);
+         UpdatedLagrangianUPressureElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-         AxisymUpdatedLagrangianUJElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+         UpdatedLagrangianUPressureElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
          ///Copy constructor
-         AxisymUpdatedLagrangianUJElement(AxisymUpdatedLagrangianUJElement const& rOther);
+         UpdatedLagrangianUPressureElement(UpdatedLagrangianUPressureElement const& rOther);
 
 
          /// Destructor.
-         virtual ~AxisymUpdatedLagrangianUJElement();
+         virtual ~UpdatedLagrangianUPressureElement();
 
          ///@}
          ///@name Operators
          ///@{
 
          /// Assignment operator.
-         AxisymUpdatedLagrangianUJElement& operator=(AxisymUpdatedLagrangianUJElement const& rOther);
+         UpdatedLagrangianUPressureElement& operator=(UpdatedLagrangianUPressureElement const& rOther);
 
 
          ///@}
@@ -106,27 +127,7 @@ namespace Kratos
           */
          Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
 
-         //************* GETTING METHODS
 
-
-         //************* STARTING - ENDING  METHODS
-
-         /**
-          * Called to initialize the element.
-          * Must be called before any calculation is done
-          */
-         void Initialize();
-
-         //************* COMPUTING  METHODS
-
-         /**
-          * this is called during the assembling process in order
-          * to calculate the elemental mass matrix
-          * @param rMassMatrix: the elemental mass matrix
-          * @param rCurrentProcessInfo: the current process info instance
-          */
-         void CalculateMassMatrix(MatrixType& rMassMatrix, 
-               ProcessInfo& rCurrentProcessInfo);
 
 
          //************************************************************************************
@@ -140,32 +141,16 @@ namespace Kratos
           */
          int Check(const ProcessInfo& rCurrentProcessInfo);
 
-         /**
-          * Calculate Element Kinematics
+         /*
+          * Get on rVariable a Matrix Value from the Element Constitutive Law
           */
-         virtual void CalculateKinematics(GeneralVariables& rVariables,
-               const double& rPointNumber);
-
+         virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
          /**
-          * Calculation of the Deformation Gradient F
+          * Calculate a Matrix Variable on the Element Constitutive Law
           */
-         void CalculateDeformationGradient(const Matrix& rDN_DX,
-               Matrix& rF,
-               Matrix& rDeltaPosition, 
-               double & rCurrentRadius, 
-               double & rReferenceRadius);
+         void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
-         /**
-          * Calculation of the Deformation Matrix  BL
-          */
-         virtual void CalculateDeformationMatrix(Matrix& rB,
-                                            Matrix& rF,
-                                            Vector& rN,
-                                            double& rCurrentRadius);
-
-         
-         virtual void CalculateRadius(double & rCurrentRadius, double & rReferenceRadius, const Vector& rN);
 
          ///@}
          ///@name Access
@@ -174,25 +159,31 @@ namespace Kratos
          ///@}
          ///@name Inquiry
          ///@{
+
          ///@}
          ///@name Input and output
          ///@{
+
          ///@}
          ///@name Friends
          ///@{
+
          ///@}
       protected:
          ///@name Protected static Member Variables
          ///@{
+
          ///@}
          ///@name Protected member Variables
          ///@{
 
+         double mElementStabilizationNumber;
+
+         double mElementScalingNumber; 
 
          ///@}
          ///@name Protected Operators
          ///@{
-
 
          ///@}
          ///@name Protected Operations
@@ -218,8 +209,8 @@ namespace Kratos
          /**
           * Initialize Element General Variables
           */
-         virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
-
+         virtual void InitializeGeneralVariables(GeneralVariables & rVariables, 
+               const ProcessInfo& rCurrentProcessInfo);
 
 
 
@@ -228,6 +219,7 @@ namespace Kratos
           */
          virtual void CalculateAndAddKuum(MatrixType& rK,
                GeneralVariables & rVariables,
+               ThisElementGeneralVariables & rElementVariables,
                double& rIntegrationWeight
                );
 
@@ -236,73 +228,81 @@ namespace Kratos
           */
          virtual void CalculateAndAddKuug(MatrixType& rK,
                GeneralVariables & rVariables,
+               ThisElementGeneralVariables & rElementVariables,
                double& rIntegrationWeight
                );
 
          /**
           * Calculation of the Kup matrix
           */
-         virtual void CalculateAndAddKuJ (MatrixType& rK,
+         virtual void CalculateAndAddKup (MatrixType& rK,
                GeneralVariables & rVariables,
+               ThisElementGeneralVariables & rElementVariables,
                double& rIntegrationWeight
                );
 
          /**
           * Calculation of the Kpu matrix
           */
-         virtual void CalculateAndAddKJu(MatrixType& rK,
+         virtual void CalculateAndAddKpu(MatrixType& rK,
                GeneralVariables & rVariables,
+               ThisElementGeneralVariables & rElementVariables,
                double& rIntegrationWeight
                );
-
 
 
          /**
           * Calculation of the Kpp matrix
           */
-         virtual void CalculateAndAddKJJ(MatrixType& rK,
+         virtual void CalculateAndAddKpp(MatrixType& rK,
                GeneralVariables & rVariables,
+               ThisElementGeneralVariables & rElementVariables,
                double& rIntegrationWeight
                );
+
 
          /**
           * Calculation of the Kpp Stabilization Term matrix
           */
-         virtual void CalculateAndAddKJJStab(MatrixType& rK, GeneralVariables & rVariables,
-               double& rIntegrationWeight
-               );
-
-
-         /**
-          * Calculation of the Internal Forces due to Pressure-Balance
-          */
-         virtual void CalculateAndAddJacobianForces(VectorType& rRightHandSideVector,
+         virtual void CalculateAndAddKppStab(MatrixType& rK,
                GeneralVariables & rVariables,
+               ThisElementGeneralVariables & rElementVariables,
                double& rIntegrationWeight
                );
-
-         /**
-          * Calculation of the Internal Forces due to Pressure-Balance
-          */
-         virtual void CalculateAndAddStabilizedJacobian(VectorType& rRightHandSideVector,
-               GeneralVariables & rVariables,
-               double& rIntegrationWeight
-               );
-
-
-
-
-         /**
-          * Get the Historical Deformation Gradient to calculate after finalize the step
-          */
-         virtual void GetHistoricalVariables( GeneralVariables& rVariables, 
-               const double& rPointNumber );
-
 
          /*
-          * Function to modify the deformation gradient to the constitutitve equation
+          * Calculation of the Internal Forces due to sigma. Fi = B * sigma
           */
-         virtual void ComputeConstitutiveVariables( GeneralVariables& rVariables, Matrix& rFT, double& rdetFT); 
+         void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+               GeneralVariables & rVariables,
+               ThisElementGeneralVariables & rElementVariables,
+               double& rIntegrationWeight
+               );
+
+         /**
+          * Calculation of the Internal Forces due to Pressure-Balance
+          */
+         virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
+               GeneralVariables & rVariables,
+               ThisElementGeneralVariables & rElementVariables,
+               double& rIntegrationWeight
+               );
+
+
+         /**
+          * Calculation of the Internal Forces due to Pressure-Balance
+          */
+         virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
+               GeneralVariables & rVariables,
+               ThisElementGeneralVariables & rElementVariables,
+               double& rIntegrationWeight
+               );
+
+         /**
+           * Calculate ThisElementGeneralVariables ( variables that are easy computations that are performed several times 
+           */
+         virtual void CalculateThisElementGeneralVariables( ThisElementGeneralVariables& rElementGeneralVariables, const GeneralVariables & rVariables);
+
 
          ///@}
          ///@name Protected  Access
@@ -359,10 +359,10 @@ namespace Kratos
          ///@}
 
 
-}; // Class AxisymUpdatedLagrangianUJElement
+}; // Class UpdatedLagrangianUPressureElement
 
 
 
 } // namespace Kratos
-#endif // KRATOS_UPDATED_LAGRANGIAN_U_J_ELEMENT_H_INCLUDED
+#endif // KRATOS_____
 

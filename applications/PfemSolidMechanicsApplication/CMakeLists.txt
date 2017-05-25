@@ -53,10 +53,20 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_updated_lagrangian_U_P_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_wP_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_wP_Stab_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_wP_FIC_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_wP_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_wP_Stab_element.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_wP_weight_element.cpp
+
+	## mixed elements
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_J_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_J_wP_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_J_P_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_Pressure_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_P_wP_element.cpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_J_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_J_wP_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_Pressure_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_P_wP_element.cpp
 
 	##conditions
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_point_rigid_contact_penalty_water_2D_condition.cpp
@@ -85,10 +95,6 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mohr_coulomb_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_Tresca_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_Tresca_plane_strain_2D_law.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_cam_clay_plane_strain_2D_law.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_cam_clay_axisym_2D_law.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_hencky_cam_clay_plane_strain_2D_law.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_hencky_cam_clay_axisym_2D_law.cpp
 
 
         ##hardening laws
@@ -107,10 +113,6 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/J2_explicit_plastic_flow_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/tresca_explicit_plastic_flow_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/mohr_coulomb_explicit_plastic_flow_rule.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/cam_clay_explicit_plastic_flow_rule.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/linear_cam_clay_explicit_plastic_flow_rule.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/non_associative_plastic_flow_rule.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/matsuoka_nakai_flow_rule.cpp
 
 
 	##friction laws
@@ -119,6 +121,11 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/set_mechanical_initial_state_process.cpp
 
 	##utilities
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/contact_domain_utilities.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/water_pressure_utilities.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/water_pressure_utilities_Jacobian.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/axisym_water_pressure_utilities.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/axisym_water_pressure_utilities_Jacobian.cpp
 	##${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/advanced_mesh_data_transfer_utilities.cpp
 
 
