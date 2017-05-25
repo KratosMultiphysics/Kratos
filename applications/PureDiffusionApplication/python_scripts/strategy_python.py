@@ -133,7 +133,7 @@ class SolvingStrategyPython:
             self.b = (self.pb).GetReference()
 
 
-            
+
         self.builder_and_solver.InitializeSolutionStep(self.model_part,self.A,self.Dx,self.b)
         self.scheme.InitializeSolutionStep(self.model_part,self.A,self.Dx,self.b)
 
