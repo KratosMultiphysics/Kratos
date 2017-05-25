@@ -19,7 +19,7 @@ END MATERIAL
 MATERIAL: Damage
 QUESTION: Type#CB#(Damage)
 VALUE: Damage
-QUESTION: CONSTITUTIVE_LAW_NAME#CB#(IsotropicDamageSimoJu3DLaw, IsotropicDamageSimoJuPlaneStrain2DLaw, IsotropicDamageSimoJuPlaneStress2DLaw)
+QUESTION: CONSTITUTIVE_LAW_NAME#CB#(IsotropicDamageSimoJu3DLaw,IsotropicDamageSimoJuPlaneStrain2DLaw,IsotropicDamageSimoJuPlaneStress2DLaw)
 VALUE: IsotropicDamageSimoJu3DLaw
 QUESTION: DENSITY
 VALUE: 2500
