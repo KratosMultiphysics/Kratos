@@ -124,7 +124,7 @@ public:
         {
             // Loop along the elements to find which ones have a unique selected node
             #pragma omp parallel for
-            for (int k = 0; k < static_cast<int>(rNodes.size()); ++k)
+            for (int k = 0; k < static_cast<int>(rElements.size()); ++k)
             {
                 unsigned int NewNodes = 0;
                 ModelPart::ElementsContainerType::iterator itElement = rElements.begin() + k;
