@@ -183,11 +183,7 @@ namespace Kratos
 
 
     //Register Constitutive Laws
-    //Serializer::Register("NonLinearHenckyCamClayPlasticPlaneStrain2DLaw", mNonLinearHenckyCamClayPlasticPlaneStrain2DLaw);
-    //Serializer::Register("NonLinearHenckyCamClayPlasticAxisym2DLaw", mNonLinearHenckyCamClayPlasticAxisym2DLaw);
-    //Serializer::Register("LinearHenckyCamClayPlasticPlaneStrain2DLaw", mLinearHenckyCamClayPlasticPlaneStrain2DLaw);
-    //Serializer::Register("LinearHenckyCamClayPlasticAxisym2DLaw", mLinearHenckyCamClayPlasticAxisym2DLaw);
-    Serializer::Register("BorjaHenckyCamClayPlasticAxisym2DLaw", mBorjaHenckyCamClayPlasticAxisym2DLaw);
+    /*Serializer::Register("BorjaHenckyCamClayPlasticAxisym2DLaw", mBorjaHenckyCamClayPlasticAxisym2DLaw);
     Serializer::Register("BorjaHenckyCamClayPlasticPlaneStrain2DLaw", mBorjaHenckyCamClayPlasticPlaneStrain2DLaw);
     Serializer::Register("HenckyJ2PlasticPlaneStrain2DLaw", mHenckyJ2PlasticPlaneStrain2DLaw);
     Serializer::Register("HenckyJ2PlasticAxisym2DLaw", mHenckyJ2PlasticAxisym2DLaw);
@@ -205,8 +201,6 @@ namespace Kratos
     Serializer::Register("TrescaExplicitFlowRule", mTrescaExplicitFlowRule);
     Serializer::Register("J2ExplicitFlowRule", mJ2ExplicitFlowRule);
     Serializer::Register("MohrCoulombExplicitFlowRule", mMohrCoulombExplicitFlowRule);
-    //Serializer::Register("CamClayExplicitFlowRule", mCamClayExplicitFlowRule);
-    //Serializer::Register("LinearCamClayExplicitFlowRule", mLinearCamClayExplicitFlowRule);
     Serializer::Register("BorjaCamClayExplicitFlowRule", mBorjaCamClayExplicitFlowRule);
 
     //Register Yield Criterion
@@ -216,7 +210,7 @@ namespace Kratos
     Serializer::Register("CamClayYieldCriterion", mCamClayYieldCriterion);
 
     //Register Hardening Laws
-    Serializer::Register("CamClayKinematicHardeningLaw", mCamClayKinematicHardeningLaw); 
+    Serializer::Register("CamClayKinematicHardeningLaw", mCamClayKinematicHardeningLaw);*/ 
 
   }
   

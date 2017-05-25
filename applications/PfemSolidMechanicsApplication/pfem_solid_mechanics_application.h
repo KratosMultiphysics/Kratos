@@ -48,6 +48,7 @@
 #include "includes/variables.h"
 #include "includes/ublas_interface.h"
 
+/*
 // yield Criteria
 #include "custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.hpp"
 #include "custom_constitutive/custom_yield_criteria/J2_yield_criterion.hpp"
@@ -83,7 +84,7 @@
 #include "custom_constitutive/hencky_U_P_J2_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_Tresca_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_Tresca_plane_strain_2D_law.hpp"
-
+*/
 #include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
@@ -265,12 +266,7 @@ namespace Kratos
     const AxisymUpdatedLagrangianUwPElement          mAxisymUpdatedLagrangianUwPElement2D3N;
     const AxisymUpdatedLagrangianUwPStabElement  mAxisymUpdatedLagrangianUwPStabElement2D3N;
 
-
-    //const NonLinearHenckyCamClayPlasticPlaneStrain2DLaw      mNonLinearHenckyCamClayPlasticPlaneStrain2DLaw;
-    //const NonLinearHenckyCamClayPlasticAxisym2DLaw                mNonLinearHenckyCamClayPlasticAxisym2DLaw;
-    //const LinearHenckyCamClayPlasticPlaneStrain2DLaw            mLinearHenckyCamClayPlasticPlaneStrain2DLaw;
-    //const LinearHenckyCamClayPlasticAxisym2DLaw                      mLinearHenckyCamClayPlasticAxisym2DLaw;
-    const BorjaHenckyCamClayPlasticAxisym2DLaw                        mBorjaHenckyCamClayPlasticAxisym2DLaw;
+    /*const BorjaHenckyCamClayPlasticAxisym2DLaw                        mBorjaHenckyCamClayPlasticAxisym2DLaw;
     const BorjaHenckyCamClayPlasticPlaneStrain2DLaw              mBorjaHenckyCamClayPlasticPlaneStrain2DLaw;
     const HenckyJ2PlasticPlaneStrain2DLaw                                  mHenckyJ2PlasticPlaneStrain2DLaw;
     const HenckyJ2PlasticAxisym2DLaw                                            mHenckyJ2PlasticAxisym2DLaw;
@@ -288,8 +284,6 @@ namespace Kratos
     const J2ExplicitFlowRule                 mJ2ExplicitFlowRule; 
     const TrescaExplicitFlowRule             mTrescaExplicitFlowRule; 
     const MohrCoulombExplicitFlowRule        mMohrCoulombExplicitFlowRule; 
-    //const CamClayExplicitFlowRule            mCamClayExplicitFlowRule;
-    //const LinearCamClayExplicitFlowRule      mLinearCamClayExplicitFlowRule;
     const BorjaCamClayExplicitFlowRule       mBorjaCamClayExplicitFlowRule;
 
 
@@ -299,7 +293,7 @@ namespace Kratos
     const MohrCoulombYieldCriterion          mMohrCoulombYieldCriterion;
     const CamClayYieldCriterion              mCamClayYieldCriterion;
 
-    const CamClayKinematicHardeningLaw       mCamClayKinematicHardeningLaw;
+    const CamClayKinematicHardeningLaw       mCamClayKinematicHardeningLaw;*/
 
 
     ///@} 

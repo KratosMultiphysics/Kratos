@@ -77,45 +77,42 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 
 
 	##constitutive laws
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_3D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_plane_strain_2D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_axisym_2D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_U_P_3D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_U_P_axisym_2D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_U_P_plane_strain_2D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/borja_hencky_cam_clay_axisym_2D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/borja_hencky_cam_clay_plane_strain_2D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_J2_plane_strain_2D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_J2_axisym_2D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_J2_axisym_2D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_J2_plane_strain_2D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_tresca_axisym_2D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_tresca_plane_strain_2D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mohr_coulomb_axisym_2D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mohr_coulomb_plane_strain_2D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_Tresca_axisym_2D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_Tresca_plane_strain_2D_law.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_3D_law.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_plane_strain_2D_law.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_axisym_2D_law.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_U_P_3D_law.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_U_P_axisym_2D_law.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_U_P_plane_strain_2D_law.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/borja_hencky_cam_clay_axisym_2D_law.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/borja_hencky_cam_clay_plane_strain_2D_law.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_J2_plane_strain_2D_law.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_J2_axisym_2D_law.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_J2_axisym_2D_law.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_J2_plane_strain_2D_law.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_tresca_axisym_2D_law.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_tresca_plane_strain_2D_law.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mohr_coulomb_axisym_2D_law.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mohr_coulomb_plane_strain_2D_law.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_Tresca_axisym_2D_law.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_Tresca_plane_strain_2D_law.cpp
 
 
         ##hardening laws
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.cpp
 
 	##yield criteria
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/J2_yield_criterion.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/tresca_yield_criterion.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/mohr_coulomb_yield_criterion.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/matsuoka_nakai_yield_criterion.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/J2_yield_criterion.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/tresca_yield_criterion.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/mohr_coulomb_yield_criterion.cpp
 
 	##flow rules
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/borja_cam_clay_explicit_plastic_flow_rule.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/J2_explicit_plastic_flow_rule.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/tresca_explicit_plastic_flow_rule.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/mohr_coulomb_explicit_plastic_flow_rule.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/borja_cam_clay_explicit_plastic_flow_rule.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/J2_explicit_plastic_flow_rule.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/tresca_explicit_plastic_flow_rule.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/mohr_coulomb_explicit_plastic_flow_rule.cpp
 
-
-	##friction laws
 
 	##processes
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/set_mechanical_initial_state_process.cpp
