@@ -83,6 +83,11 @@ public:
     ///@name Operations
     ///@{
 
+    Node<3>* pGetBase()
+    {
+        return mpNode;
+    }
+
     bool EvaluateResult(const array_1d<double, 3>& GlobalCooords,
                         double& rMinDistance, const double Distance,
                         std::vector<double>& rShapeFunctionValues) override   // I am an object in the bins
@@ -96,94 +101,6 @@ public:
         }
 
         return is_closer;
-    }
-
-    // Scalars
-    double GetObjectValue(const Variable<double>& rVariable,
-                          const Kratos::Flags& rOptions) override
-    {
-        if (rOptions.Is(MapperFlags::NON_HISTORICAL_DATA))
-        {
-            return mpNode->GetValue(rVariable);
-        }
-        else
-        {
-            return mpNode->FastGetSolutionStepValue(rVariable);
-        }
-    }
-
-    void SetObjectValue(const Variable<double>& rVariable,
-                        const double& rValue,
-                        const Kratos::Flags& rOptions,
-                        const double Factor) override
-    {
-        if (rOptions.Is(MapperFlags::NON_HISTORICAL_DATA))
-        {
-            if (rOptions.Is(MapperFlags::ADD_VALUES))
-            {
-                double old_value = mpNode->GetValue(rVariable);
-                mpNode->SetValue(rVariable, old_value + rValue * Factor);
-            }
-            else
-            {
-                mpNode->SetValue(rVariable, rValue * Factor);
-            }
-        }
-        else     // Variable with history
-        {
-            if (rOptions.Is(MapperFlags::ADD_VALUES))
-            {
-                mpNode->FastGetSolutionStepValue(rVariable) += rValue * Factor;
-            }
-            else
-            {
-                mpNode->FastGetSolutionStepValue(rVariable) = rValue * Factor;
-            }
-        }
-    }
-
-    // Vectors
-    array_1d<double, 3> GetObjectValue(const Variable< array_1d<double, 3> >& rVariable,
-                                       const Kratos::Flags& rOptions) override
-    {
-        if (rOptions.Is(MapperFlags::NON_HISTORICAL_DATA))
-        {
-            return mpNode->GetValue(rVariable);
-        }
-        else
-        {
-            return mpNode->FastGetSolutionStepValue(rVariable);
-        }
-    }
-
-    void SetObjectValue(const Variable< array_1d<double, 3> >& rVariable,
-                        const array_1d<double, 3>& rValue,
-                        const Kratos::Flags& rOptions,
-                        const double Factor) override
-    {
-        if (rOptions.Is(MapperFlags::NON_HISTORICAL_DATA))
-        {
-            if (rOptions.Is(MapperFlags::ADD_VALUES))
-            {
-                array_1d<double, 3> old_value = mpNode->GetValue(rVariable);
-                mpNode->SetValue(rVariable, old_value + rValue * Factor);
-            }
-            else
-            {
-                mpNode->SetValue(rVariable, rValue * Factor);
-            }
-        }
-        else
-        {
-            if (rOptions.Is(MapperFlags::ADD_VALUES))
-            {
-                mpNode->FastGetSolutionStepValue(rVariable) += rValue * Factor;
-            }
-            else
-            {
-                mpNode->FastGetSolutionStepValue(rVariable) = rValue * Factor;
-            }
-        }
     }
 
     // Functions used for Debugging
@@ -225,7 +142,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "InterfaceNode" ;
@@ -233,13 +150,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "InterfaceNode";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    virtual void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
