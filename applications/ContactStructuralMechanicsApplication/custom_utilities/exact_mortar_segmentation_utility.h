@@ -824,34 +824,6 @@ protected:
         return idx;
     }
     
-    /**
-     * This function calculates the matrix with the increase of displacements
-     * @param ThisGeometry: The geometry to compute the increase of displacemenents
-     * @return DeltaPosition: The matrix with the increase of displacements
-     */
-    
-    Matrix CalculateDeltaPosition(GeometryNodeType& ThisGeometry)
-    {
-        KRATOS_TRY;
-
-        Matrix DeltaPosition(TNumNodes, TDim);
-
-        for ( unsigned int i = 0; i < TNumNodes; i++ )
-        {
-            const array_1d<double, 3 > & CurrentDisplacement  = ThisGeometry[i].FastGetSolutionStepValue(DISPLACEMENT);
-            const array_1d<double, 3 > & PreviousDisplacement = ThisGeometry[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-
-            for ( unsigned int j = 0; j < TDim; j++ )
-            {
-                DeltaPosition(i,j) = (CurrentDisplacement[j] - PreviousDisplacement[j]);
-            }
-        }
-
-        return DeltaPosition;
-
-        KRATOS_CATCH( "" );
-    }
-    
     ///@}
     ///@name Protected  Access
     ///@{
@@ -954,7 +926,9 @@ private:
             std::vector<double> AuxiliarXi;
             for (unsigned int iMaster = 0; iMaster < 2; iMaster++)
             {
-                const bool IsInside = ContactUtilities::ProjectIterativeLine2D(OriginalSlaveGeometry, OriginalMasterGeometry[iMaster].Coordinates(), ProjectedGPLocal, SlaveNormal, Tolerance);
+                ProjectedGPLocal[0] = (iMaster == 0) ? -1.0 : 1.0;
+                double DeltaXi = (iMaster == 0) ? 0.5 : -0.5;
+                const bool IsInside = ContactUtilities::ProjectIterativeLine2D(OriginalSlaveGeometry, OriginalMasterGeometry[iMaster].Coordinates(), ProjectedGPLocal, SlaveNormal, Tolerance, DeltaXi);
                 
                 if (IsInside == true)
                 {

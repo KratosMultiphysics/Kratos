@@ -181,13 +181,13 @@ public:
         const GeometryType::CoordinatesArrayType& PointDestiny,
         GeometryType::CoordinatesArrayType& ResultingPoint,
         const array_1d<double, 3> Normal,
-        const double Tolerance = 1.0e-8
+        const double Tolerance = 1.0e-8,
+        double DeltaXi = 0.5
         )
     {
-        ResultingPoint.clear();
+//         ResultingPoint.clear();
         
         double OldDeltaXi = 0.0;
-        double DeltaXi    = 0.5;
 
         array_1d<double, 3> CurrentGlobalCoords;
 
@@ -207,9 +207,9 @@ public:
         
         //Newton iteration:
 
-        unsigned int maxiter = 15;
+        unsigned int MaxIter = 20;
 
-        for ( unsigned int k = 0; k < maxiter; k++ )
+        for ( unsigned int k = 0; k < MaxIter; k++ )
         {
             array_1d<double, 2> NOrigin;
             NOrigin[0] = 0.5 * ( 1.0 - ResultingPoint[0]);
