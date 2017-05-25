@@ -131,7 +131,7 @@ namespace Kratos
 		unsigned int number_of_nodes = GetGeometry().PointsNumber();
 		if(rResult.size() != number_of_nodes)
 			rResult.resize(number_of_nodes,false);	
-
+		
 		for (unsigned int i=0;i<number_of_nodes;i++)
 				rResult[i] = GetGeometry()[i].GetDof(TEMPERATURE).EquationId();
 	}
