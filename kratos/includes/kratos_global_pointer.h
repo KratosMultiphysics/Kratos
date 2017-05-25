@@ -82,7 +82,7 @@ public:
    * Returns the rank of the BasePointer owner
    * @return Rank of the BasePointer owner
    */
-  int GetRank() {
+  int GetRank() const {
     return mRank;
   }
 
@@ -90,7 +90,7 @@ public:
    * Returns the number of ranks
    * @return Number of ranks
    */
-  int GetSize() {
+  int GetSize() const {
 #ifdef KRATOS_USING_MPI
     int mpi_size;
 
@@ -106,7 +106,7 @@ public:
    * Returns the rank of the current process
    * @return Rank of the current process
    */
-  int GetLocalRank() {
+  int GetLocalRank() const {
 #ifdef KRATOS_USING_MPI
     int mpi_rank;
 
