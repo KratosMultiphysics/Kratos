@@ -112,7 +112,7 @@ public:
 
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
-    return mpi_size;
+    return mpi_rank;
 #else
     return 0;
 #endif
