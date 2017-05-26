@@ -195,7 +195,9 @@ namespace Kratos {
                               equiv_visco_damp_coeff_normal,
                               equiv_visco_damp_coeff_tangential,
                               sliding,
-                              element1->mIniNeighbourFailureId[i_neighbour_count]);
+                              i_neighbour_count,
+                              element1,
+                              element2);
         
         KRATOS_CATCH("")      
     }
@@ -211,14 +213,20 @@ namespace Kratos {
             int i_neighbour_count,
             int time_steps) {
 
-        KRATOS_TRY       
+        KRATOS_TRY     
       
-        if (indentation >= 0.0) { //COMPRESSION
+        if (indentation >= 0.0) { // COMPRESSION
             LocalElasticContactForce[2] = kn_el * indentation;  
         }
-        else { //tension   
-            int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
-            if (failure_type == 0) {  
+        else { // TENSION              
+            bool no_bond_or_broken_bond = true;
+            if (i_neighbour_count < (int)element1->mIniNeighbourFailureId.size()) {
+                if ( element1->mIniNeighbourFailureId[i_neighbour_count] == 0 ) {
+                    no_bond_or_broken_bond = false;
+                }
+            }
+            if (no_bond_or_broken_bond == false) {            
+                int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
                 double mTensionLimit = 0.5 * 1e6 * (element1->GetFastProperties()->GetContactSigmaMin() + element2->GetFastProperties()->GetContactSigmaMin()); //N/m2
                 const double limit_force = mTensionLimit * calculation_area;
                 LocalElasticContactForce[2] = kn_el * indentation;
@@ -230,8 +238,7 @@ namespace Kratos {
             else {
                 LocalElasticContactForce[2] = 0.0; 
             }
-        }
-        
+        }        
         KRATOS_CATCH("")      
     }
 
@@ -257,35 +264,41 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];                
+                    
         LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - kt_el * LocalDeltDisp[0]; // 0: first tangential
         LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - kt_el * LocalDeltDisp[1]; // 1: second tangential        
         
         double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
-                                  + LocalElasticContactForce[1] * LocalElasticContactForce[1]);        
+                                  + LocalElasticContactForce[1] * LocalElasticContactForce[1]); 
         
-        if (failure_type == 0) { // This means it has not broken 
-            //Properties& element1_props = element1->GetProperties();
-            //Properties& element2_props = element2->GetProperties();
-            if (r_process_info[SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION]) { //TODO: use this only for intact bonds (not broken))
-                AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, element1->mNeighbourElasticExtraContactForces[i_neighbour_count], LocalCoordSystem, kt_el, calculation_area,  element1, element2);
+        bool no_bond_or_broken_bond = true;
+        if (i_neighbour_count < (int)element1->mIniNeighbourFailureId.size()) {
+            if ( element1->mIniNeighbourFailureId[i_neighbour_count] == 0 ) {
+                no_bond_or_broken_bond = false;
             }
-            
-            const double mTauZero = 0.5 * 1e6 * (element1->GetFastProperties()->GetContactTauZero() + element2->GetFastProperties()->GetContactTauZero());
-            const double mInternalFriction = 0.5 * (element1->GetFastProperties()->GetContactInternalFricc() + element2->GetFastProperties()->GetContactInternalFricc());
+        }
+        
+        if (no_bond_or_broken_bond == false) {
+            int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];    
+                if (r_process_info[SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION]) { //TODO: use this only for intact bonds (not broken))
+                    AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, element1->mNeighbourElasticExtraContactForces[i_neighbour_count], LocalCoordSystem, kt_el, calculation_area,  element1, element2);
+                }
 
-            contact_tau = ShearForceNow / calculation_area;
-            contact_sigma = LocalElasticContactForce[2] / calculation_area;
+                const double mTauZero = 0.5 * 1e6 * (element1->GetFastProperties()->GetContactTauZero() + element2->GetFastProperties()->GetContactTauZero());
+                const double mInternalFriction = 0.5 * (element1->GetFastProperties()->GetContactInternalFricc() + element2->GetFastProperties()->GetContactInternalFricc());
 
-            double tau_strength = mTauZero;
+                contact_tau = ShearForceNow / calculation_area;
+                contact_sigma = LocalElasticContactForce[2] / calculation_area;
 
-            if (contact_sigma >= 0) {
-                tau_strength = mTauZero + mInternalFriction * contact_sigma;
-            }
+                double tau_strength = mTauZero;
 
-            if (contact_tau > tau_strength) {                                
-                failure_type = 2; // shear
-            }
+                if (contact_sigma >= 0) {
+                    tau_strength = mTauZero + mInternalFriction * contact_sigma;
+                }
+
+                if (contact_tau > tau_strength && i_neighbour_count < (int)element1->mIniNeighbourFailureId.size()) {                                
+                    failure_type = 2; // shear
+                }
         }
         else {
             const double equiv_tg_of_fri_ang = 0.5 * (element1->GetTgOfFrictionAngle() + element2->GetTgOfFrictionAngle());  
@@ -311,16 +324,25 @@ namespace Kratos {
                                          double equiv_visco_damp_coeff_normal,
                                          double equiv_visco_damp_coeff_tangential,
                                          bool& sliding,
-                                         int failure_id) {
+                                         const int i_neighbour_count,
+                                         SphericContinuumParticle* element1,
+                                         SphericContinuumParticle* element2) {
 
         KRATOS_TRY  
-                
-        if ((indentation > 0) || (failure_id == 0)) {
-            ViscoDampingLocalContactForce[2] = -equiv_visco_damp_coeff_normal * LocalRelVel[2];
+        
+        bool no_bond_or_broken_bond = true;
+        if (i_neighbour_count < (int)element1->mIniNeighbourFailureId.size()) {
+            if ( element1->mIniNeighbourFailureId[i_neighbour_count] == 0 ) {
+                no_bond_or_broken_bond = false;
+            }
         }
-        if (((indentation > 0) || (failure_id == 0)) && (sliding == false)) {    
-            ViscoDampingLocalContactForce[0] = -equiv_visco_damp_coeff_tangential * LocalRelVel[0];
-            ViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
+                        
+        if ( indentation > 0 || no_bond_or_broken_bond == false ) {
+            ViscoDampingLocalContactForce[2] = -equiv_visco_damp_coeff_normal * LocalRelVel[2];
+            if ( sliding == false ) {
+                ViscoDampingLocalContactForce[0] = -equiv_visco_damp_coeff_tangential * LocalRelVel[0];
+                ViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
+            }
         }
         
         KRATOS_CATCH("")

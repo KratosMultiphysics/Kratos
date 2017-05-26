@@ -204,7 +204,9 @@ namespace Kratos {
                               equiv_visco_damp_coeff_normal,
                               equiv_visco_damp_coeff_tangential,
                               sliding,
-                              element1->mIniNeighbourFailureId[i_neighbour_count]);
+                              i_neighbour_count,
+                              element1,
+                              element2);
 
         KRATOS_CATCH("")  
     }

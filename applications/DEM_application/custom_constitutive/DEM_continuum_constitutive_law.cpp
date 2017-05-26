@@ -40,14 +40,18 @@ namespace Kratos {
                                                             double equiv_visco_damp_coeff_normal,
                                                             double equiv_visco_damp_coeff_tangential,
                                                             bool& sliding,
-                                                            int failure_id) {
+                                                            const int i_neighbour_count,
+                                                            SphericContinuumParticle* element1,
+                                                            SphericContinuumParticle* element2) {
 
         KRATOS_TRY  
+                
+        int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
 
-         if ((indentation > 0) || (failure_id == 0)) {
+         if ((indentation > 0) || (failure_type == 0 && i_neighbour_count < (int)element1->mIniNeighbourFailureId.size() )) {
              ViscoDampingLocalContactForce[2] = -equiv_visco_damp_coeff_normal * LocalRelVel[2];
          }
-         if (((indentation > 0) || (failure_id == 0)) && (sliding == false)) {
+         if (((indentation > 0) || (failure_type == 0 && i_neighbour_count < (int)element1->mIniNeighbourFailureId.size() )) && (sliding == false)) {
              ViscoDampingLocalContactForce[0] = -equiv_visco_damp_coeff_tangential * LocalRelVel[0];
              ViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
          }

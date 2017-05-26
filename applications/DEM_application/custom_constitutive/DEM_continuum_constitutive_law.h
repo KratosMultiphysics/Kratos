@@ -49,7 +49,9 @@ namespace Kratos {
                 double equiv_visco_damp_coeff_normal,
                 double equiv_visco_damp_coeff_tangential,
                 bool& sliding,
-                int failure_id);
+                const int i_neighbour_count,
+                SphericContinuumParticle* element1,
+                SphericContinuumParticle* element2);
 
         virtual void CalculateContactArea(double radius,
                 double other_radius,

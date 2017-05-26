@@ -32,11 +32,7 @@ namespace Kratos
         TBaseElement::Initialize(r_process_info);
          // We can put here UpdateTemperatureDependentRadius()
         mSpecificHeat = GetProperties()[SPECIFIC_HEAT];
-        mThermalConductivity = GetProperties()[THERMAL_CONDUCTIVITY];         
-        //mPreviousTemperature = 250;	// initial temperature in the first time step
-        //SetTemperature(mPreviousTemperature);// initial temperature in the first time step
-        if (GetGeometry()[0].Coordinates()[1] > 2){ GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE)    = 200.0; }
-        else{ GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE)    = 0.0;}
+        mThermalConductivity = GetProperties()[THERMAL_CONDUCTIVITY];                 
     }
 
     template< class TBaseElement >

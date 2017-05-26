@@ -16,8 +16,8 @@ namespace Kratos {
 
 	void DEM_sintering_continuum::Initialize() {
 
-		KRATOS_TRY
-			KRATOS_CATCH("")
+            KRATOS_TRY
+            KRATOS_CATCH("")
 	}
 
 	DEMContinuumConstitutiveLaw::Pointer DEM_sintering_continuum::Clone() const {
@@ -71,62 +71,45 @@ namespace Kratos {
 		dihedral_angle = dihedral_angle * (KRATOS_M_PI / 180); //// ZMIANY
 		//double final_neck_radius = minimal_radius * sin((dihedral_angle * (KRATOS_M_PI / 180)) / 2);
 		double final_neck_radius = minimal_radius * sin(dihedral_angle / 2); //// ZMIANY
-		//KRATOS_WATCH(indentation);
-		//KRATOS_WATCH(actual_neck_radius);
-		//KRATOS_WATCH(final_neck_radius);
-
 
 		CalculateDampingCoeff(equiv_visco_damp_coeff_normal, kn, element1, element2);
 
 		sintering_displ_old = sintering_displ;
-		//KRATOS_WATCH(sintering_displ_old);
 		double elastic_contact_force;
 		double elastic_contact_force_old = - OldLocalElasticContactForce[2];
-		//KRATOS_WATCH(elastic_contact_force_old);
 
 		if (actual_neck_radius < final_neck_radius)
 		{
-			double k_const = 1.3806504e-23; //Boltzmann constant
-			double R_const = 8.3144621; //Gas constant
+			const double k_const = 1.3806504e-23; //Boltzmann constant
+			const double R_const = 8.3144621; //Gas constant
 
-			double atomic_volume = element1->GetProperties()[ATOMIC_VOLUME];
-			double surface_energy = element1->GetProperties()[SURFACE_ENERGY];
+			const double atomic_volume = element1->GetProperties()[ATOMIC_VOLUME];
+			const double surface_energy = element1->GetProperties()[SURFACE_ENERGY];
 
 			//double relaxation_time = element1->GetProperties()[RELAXATION_TIME];
 			//double large_visco_coeff = element1->GetProperties()[LARGE_VISCOSITY_COEFFICIENT];
 			//double thermal_alpha = element1->GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
-			double pre_Dgb = element1->GetProperties()[PRE_EXP_DIFFUSION_COEFFICIENT];
-			double gb_width = element1->GetProperties()[GB_WIDTH];
-			double enth_activ = element1->GetProperties()[ENTHAPLY_ACTIVATION];
-			double temperature_element1 = element1->GetGeometry()[0].GetSolutionStepValue(TEMPERATURE);
-			double temperature_element2 = element2->GetGeometry()[0].GetSolutionStepValue(TEMPERATURE);
-			double temperature = (temperature_element1 + temperature_element2) / 2;
-			double D_gb = pre_Dgb * std::exp(-enth_activ / (R_const * temperature));
-			double D_eff = (D_gb * gb_width * atomic_volume) / (k_const * temperature);
-			//KRATOS_WATCH(D_eff);
-			double visco_coeff = (KRATOS_M_PI * actual_neck_radius*actual_neck_radius*actual_neck_radius*actual_neck_radius) / (8 * D_eff);
-			//KRATOS_WATCH(visco_coeff);
+			const double pre_Dgb = element1->GetProperties()[PRE_EXP_DIFFUSION_COEFFICIENT];
+			const double gb_width = element1->GetProperties()[GRAIN_BOUNDARY_WIDTH];
+			const double enth_activ = element1->GetProperties()[ENTHALPY_ACTIVATION];
+			const double temperature_element1 = element1->GetGeometry()[0].GetSolutionStepValue(TEMPERATURE);
+			const double temperature_element2 = element2->GetGeometry()[0].GetSolutionStepValue(TEMPERATURE);
+			const double temperature = (temperature_element1 + temperature_element2) / 2;
+			const double D_gb = pre_Dgb * std::exp(-enth_activ / (R_const * temperature));
+			const double D_eff = (D_gb * gb_width * atomic_volume) / (k_const * temperature);
+			const double visco_coeff = (KRATOS_M_PI * actual_neck_radius*actual_neck_radius*actual_neck_radius*actual_neck_radius) / (8 * D_eff);
 			sinter_driv_force = KRATOS_M_PI*surface_energy*(4 * minimal_radius*(1 - cos(dihedral_angle / 2)) + actual_neck_radius * sin(dihedral_angle / 2));
-			//KRATOS_WATCH(sinter_driv_force);
 			elastic_contact_force = elastic_contact_force_old *(1 / kn - delta_time * 0.5 / visco_coeff) + rel_vel * delta_time;
-			elastic_contact_force = elastic_contact_force / (1 / kn + delta_time * 0.5 / visco_coeff);
-			//KRATOS_WATCH(elastic_contact_force);
-			double sinter_vel = (elastic_contact_force + elastic_contact_force_old) / (2 * visco_coeff);
+			elastic_contact_force /= (1 / kn + delta_time * 0.5 / visco_coeff);
+			const double sinter_vel = (elastic_contact_force + elastic_contact_force_old) / (2 * visco_coeff);
 			sintering_displ = sintering_displ_old + sinter_vel * delta_time;
-			//KRATOS_WATCH(sintering_displ);
 			damping_force = equiv_visco_damp_coeff_normal * (rel_vel - sinter_vel);
-			//KRATOS_WATCH(equiv_visco_damp_coeff_normal);
-			//KRATOS_WATCH(sinter_vel);
-			//KRATOS_WATCH(damping_force);
-			//KRATOS_WATCH(damping_force);
 		}
 		else //equilibrium state achieved
 		{
 			sinter_driv_force = 0;
 			damping_force = equiv_visco_damp_coeff_normal * rel_vel;
 			elastic_contact_force = kn * (indentation - sintering_displ) * 0.666666666666666;
-			//KRATOS_WATCH(kn);
-			//KRATOS_WATCH(elastic_contact_force);
 		}
 		//sintering_displ = - sintering_displ;
 		LocalElasticContactForce[2] = - elastic_contact_force;

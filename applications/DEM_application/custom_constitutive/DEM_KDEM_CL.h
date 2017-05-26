@@ -121,7 +121,9 @@ namespace Kratos {
                                    double equiv_visco_damp_coeff_normal,
                                    double equiv_visco_damp_coeff_tangential,
                                    bool& sliding,
-                                   int failure_id) override;
+                                   const int i_neighbour_count,
+                                   SphericContinuumParticle* element1,
+                                   SphericContinuumParticle* element2) override;
         
 
         virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
