@@ -366,7 +366,7 @@ protected:
         auto numNodes = pNode.end() - pNode.begin();
         
         #pragma omp parallel for
-        for(unsigned int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < static_cast<int>(numNodes); i++) 
         {
             auto itNode = pNode.begin() + i;
     
