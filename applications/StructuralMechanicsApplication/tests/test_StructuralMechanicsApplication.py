@@ -54,7 +54,7 @@ from SmallTests import ShellT3ThinDrillingRollUpTests   as TShellT3ThinDrillingR
 from SmallTests import EigenQ4Thick2x2PlateTests        as TEigenQ4Thick2x2PlateTests
 from SmallTests import EigenTL3D8NCubeTests             as TEigenTL3D8NCubeTests
 # Nodal damping test
-from SmallTests import DynamicNodalDampingTests         as TDynamicNodalDampingTests
+from test_nodal_damping import NodalDampingTests        as TNodalDampingTests
 
 ## NIGTHLY TESTS
 # Shell test
@@ -128,7 +128,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TEigenQ4Thick2x2PlateTests('test_execution'))
     smallSuite.addTest(TEigenTL3D8NCubeTests('test_execution'))
     # Nodal damping test
-    smallSuite.addTest(TDynamicNodalDampingTests('test_execution'))
+    smallSuite.addTest(TNodalDampingTests('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -184,7 +184,7 @@ def AssambleTestSuites():
             TShellT3ThinDrillingRollUpTests,
             TShellT3IsotropicScordelisTests,
             TIsotropicDamageSimoJuPSTest,
-            TDynamicNodalDampingTests,
+            TNodalDampingTests
             ######TSprismPanTests
         ])
     )
