@@ -22,7 +22,7 @@
         "mortar_type"                        : "ALMContactFrictionless",
         "block_builder"                      : true,
         "line_search"                        : false,
-        "clear_storage"                      : false,
+        "clear_storage"                      : true,
         "ensure_contact"                     : true,
         "reform_dofs_at_each_step"           : true,
         "contact_tolerance"                  : 0.0e0,

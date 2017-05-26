@@ -21,7 +21,7 @@
         "mortar_type"                        : "ComponentsMeshTying",
         "block_builder"                      : true,
         "line_search"                        : false,
-        "clear_storage"                      : false,
+        "clear_storage"                      : true,
         "reform_dofs_at_each_step"           : true,
         "convergence_criterion"              : "Contact_Residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,

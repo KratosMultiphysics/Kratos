@@ -3576,7 +3576,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UpdatedLagrangianElement2D4N// GUI group identifier: parts_hemisphere
+Begin Elements SmallDisplacementElement2D4N// GUI group identifier: parts_hemisphere
          1          1        671        334        276        580 
          2          1        798        418        334        671 
          3          1        967        539        418        798 
@@ -6879,7 +6879,7 @@ Begin Elements UpdatedLagrangianElement2D4N// GUI group identifier: parts_hemisp
       3400          1       2058       2055       2012       2015 
 End Elements
 
-Begin Elements UpdatedLagrangianElement2D4N// GUI group identifier: parts_plate
+Begin Elements SmallDisplacementElement2D4N// GUI group identifier: parts_plate
       1001          2          2          5          4          1 
       1002          2          3          6          5          2 
       1003          2          5          8          7          4 

@@ -9,11 +9,8 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "contact_structural_mechanics_implicit_dynamic_solver",
+        "solver_type"                        : "contact_structural_mechanics_static_solver",
         "echo_level"                         : 1,
-        "solution_type"                      : "Dynamic",
-        "scheme_type"			             : "Bossak",
-        "damp_factor_m"	         	         : -0.1,
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
@@ -22,11 +19,11 @@
         "mortar_type"                        : "ALMContactFrictionless",
         "block_builder"                      : true,
         "line_search"                        : false,
-        "clear_storage"                      : false,
+        "clear_storage"                      : true,
         "ensure_contact"                     : true,
         "reform_dofs_at_each_step"           : true,
-        "contact_tolerance"                  : 1.0e-4,
-        "convergence_criterion"              : "Contact_Residual_criterion",
+        "contact_tolerance"                  : 0.0e-4,
+        "convergence_criterion"              : "Contact_Displacement_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
@@ -70,16 +67,16 @@
             "value"           : [0.0,0.0,0.0]
         }
     },{
-        "python_module" : "assign_vector_components_to_nodes_process",
-        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorComponentsToNodesProcess",
-        "Parameters"    : {
+        "python_module"   : "impose_scalar_value_over_time_process",
+        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "process_name"          : "ImposeScalarValueOverTimeProcess",
+        "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_load_press",
-            "variable_name"   : "DISPLACEMENT",
-            "value"           : [0.0,null,null],
-            "interval"        : [0.0,1.0]
+            "variable_name"   : "DISPLACEMENT_X",
+            "step_type"       : "smooth",
+            "values"          : [0.0, 0.0,8.0],
+            "intervals"       : [0.0,1.0,20.0]
         }
     }],
     "loads_process_list"       : [
@@ -98,34 +95,6 @@
             "interval"        : [0.0, 1.0],
             "direction"       : [0.0,-1.0,0.0],
             "step_type"		  : "linear"
-        }
-    },{
-        "python_module"   : "apply_vector_on_conditions_over_time_process",
-        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
-        "help"                  : "This process sets a vector variable value over a condition",
-        "check"                 : "DirectorVectorNonZero direction",
-        "process_name"          : "ApplyVectorOnConditionsProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "LineLoad2D_load_slide",
-            "variable_name"   : "LINE_LOAD",
-            "factor1"         : 0,
-            "factor2"         : 2.0,
-            "interval"        : [1.1, 20.1],
-            "direction"       : [1.0,0.0,0.0],
-            "step_type"		  : "linear"
-        }
-    },{
-        "python_module" : "assign_vector_components_to_nodes_process",
-        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorComponentsToNodesProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "LineLoad2D_load_press",
-            "variable_name"   : "LINE_LOAD",
-            "value"           : [0.0,-20.0,0.0],
-            "interval"        : [1.0,20.0]
         }
     }],
     "list_other_processes" :[

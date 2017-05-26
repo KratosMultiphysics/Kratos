@@ -3,7 +3,7 @@
         "problem_name"    : "hertz_simple_test",
         "model_part_name" : "Structure",
         "domain_size"     : 2,
-        "time_step"       : 0.55,
+        "time_step"       : 1.01,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -20,14 +20,14 @@
         "mortar_type"                        : "ALMContactFrictionless",
         "block_builder"                      : true,
         "line_search"                        : false,
-        "clear_storage"                      : false,
+        "clear_storage"                      : true,
         "reform_dofs_at_each_step"           : true,
         "convergence_criterion"              : "Contact_Residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 10,
+        "max_iteration"                      : 20,
         "linear_solver_settings"             : {
             "solver_type" : "SuperLUSolver",
             "scaling"     : false,
@@ -85,9 +85,8 @@
             "dual_search_check"           : false,
             "stiffness_factor"            : 10.0,
             "penalty_scale_factor"        : 1.0,
-            "pair_variation"              : true,
             "manual_ALM"                  : true,
-            "penalty"                     : 1.0e3,
+            "penalty"                     : 1.0e-6,
             "scale_factor"                : 1.0e0,
             "debug_mode"                  : false
         }
@@ -121,7 +120,7 @@
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
-            "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y","NORMAL_CONTACT_STRESS"],
             "input_file_name"      : "ALM_frictionless_contact_test_2D/hertz_simple_test_results.json",
             "model_part_name"      : "Contact_Part",
             "time_frequency"       : 1.01
@@ -135,7 +134,7 @@
         "help"                  : "",
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
-            "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y","NORMAL_CONTACT_STRESS"],
             "output_file_name"     : "ALM_frictionless_contact_test_2D/hertz_simple_test_results.json",
             "model_part_name"      : "Contact_Part",
             "time_frequency"       : 1.01
