@@ -823,11 +823,11 @@ public:
             }
             if (it->SolutionStepsDataHas(VELOCITY) == false)
             {
-                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() );
+                KRATOS_THROW_ERROR( std::logic_error, "VELOCITY variable is not allocated for node ", it->Id() );
             }
             if (it->SolutionStepsDataHas(ACCELERATION) == false)
             {
-                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() );
+                KRATOS_THROW_ERROR( std::logic_error, "ACCELERATION variable is not allocated for node ", it->Id() );
             }
         }
 
