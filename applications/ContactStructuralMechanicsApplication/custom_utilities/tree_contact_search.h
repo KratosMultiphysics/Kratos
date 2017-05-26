@@ -346,9 +346,10 @@ public:
         #pragma omp parallel for 
         for(int i = 0; i < numPoints; i++) 
         {
-            auto itPoint = mPointListDestination.begin() + i;
+            //auto& itPoint = mPointListDestination.begin() + i;
             
-            (*itPoint.base())->UpdatePoint();
+            //itPoint.UpdatePoint();
+			mPointListDestination[i]->UpdatePoint();
         }
 
     }
