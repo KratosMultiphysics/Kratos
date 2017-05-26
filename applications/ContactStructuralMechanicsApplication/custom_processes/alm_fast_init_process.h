@@ -114,6 +114,15 @@ public:
         // We differentiate between frictional or frictionless
         const bool IsFrictional = mrThisModelPart.Is(SLIP);
         
+        bool InitDeltaNormal = false;
+        Matrix ZeroDeltaNormal;
+        if (mrThisModelPart.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] == true)
+        {
+            InitDeltaNormal = true;
+            const unsigned int Dimension = mrThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
+            ZeroDeltaNormal = ZeroMatrix( Dimension, Dimension );
+        }
+        
         // We iterate over the node
         NodesArrayType& pNodes = mrThisModelPart.Nodes();
         auto numNodes = pNodes.end() - pNodes.begin();
@@ -142,6 +151,14 @@ public:
             
             // The normal and tangents vectors
             itNode->SetValue(NORMAL, zerovector);
+            
+            // The delta normal if necessary
+            if (InitDeltaNormal == true)
+            {
+                itNode->SetValue(DELTA_NORMAL, ZeroDeltaNormal);
+            }
+            
+            
         }
         
         // Now we iterate over the conditions
