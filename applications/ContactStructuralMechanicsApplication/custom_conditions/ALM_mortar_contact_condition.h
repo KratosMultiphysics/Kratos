@@ -73,7 +73,7 @@ class DerivativeData
 public:
     
     // Auxiliar types
-    typedef int zero[0];
+//     typedef int zero[0]; // NOTE: Problems in Windows
     typedef array_1d<double, TNumNodes> Type1;
     typedef bounded_matrix<double, TNumNodes, TDim> Type2;
     typedef bounded_matrix<double, TNumNodes, TNumNodes> Type3;
@@ -90,7 +90,7 @@ public:
     double PenaltyParameter;
     double ScaleFactor;
     
-    typename std::conditional< TFrictional,double,zero >::type TangentFactor;
+    typename std::conditional< TFrictional,double,int >::type TangentFactor;
     
     // The normals of the nodes
     Type2 NormalMaster;
@@ -101,8 +101,9 @@ public:
     Type2 X2;
     Type2 u1;
     Type2 u2;
-    typename std::conditional< TFrictional,Type2,zero >::type u1old;
-    typename std::conditional< TFrictional,Type2,zero >::type u2old;
+    
+    typename std::conditional< TFrictional,Type2,int >::type u1old;
+    typename std::conditional< TFrictional,Type2,int >::type u2old;
     
     // Derivatives    
     array_1d<double, Size1> DeltaJSlave;
