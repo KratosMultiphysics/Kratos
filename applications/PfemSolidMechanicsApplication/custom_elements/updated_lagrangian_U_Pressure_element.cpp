@@ -170,6 +170,14 @@ namespace Kratos
          KRATOS_THROW_ERROR( std::invalid_argument, " since I do not know how to do it correctly, I try to have a 3D law in here ", this->Id() );
       }
 
+      unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+      if ( dimension == 2 )
+      {
+         if ( this->GetProperties().Has( THICKNESS ) == false ){
+            this->GetProperties().SetValue( THICKNESS , 1.0 );
+         }
+      }
+
 
       return correct;
 
@@ -410,9 +418,6 @@ namespace Kratos
 
       // operation performed: rRightHandSideVector -= PressureForceBalance*IntegrationWeight
       CalculateAndAddPressureForces( rRightHandSideVector, rVariables, ElementVariables, rIntegrationWeight);
-            std::cout << " this->Id() " << this->Id() << std::endl;
-            std::cout << rVariables.StressVector << std::endl;
-            std::cout << rVariables.ConstitutiveMatrix << std::endl;
 
       // operation performed: rRightHandSideVector -= Stabilized Pressure Forces
       CalculateAndAddStabilizedPressure( rRightHandSideVector, rVariables, ElementVariables, rIntegrationWeight);

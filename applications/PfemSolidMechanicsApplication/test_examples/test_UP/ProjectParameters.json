@@ -1,6 +1,6 @@
 {
     "problem_data"             : {
-        "problem_name"    : "try_uj",
+        "problem_name"    : "try_up",
         "model_part_name" : "Main Domain",
         "domain_size"     : 2,
         "time_step"       : 0.1,
@@ -19,7 +19,7 @@
         "pressure_dofs"                      : true,
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "try_uj",
+            "input_filename"   : "try_up",
             "input_file_label" : 0
         },
         "line_search"                        : true,
@@ -167,7 +167,7 @@
         "Parameters"    : {
             "model_part_name"     : "Main Domain",
             "save_restart"        : false,
-            "restart_file_name"   : "try_uj",
+            "restart_file_name"   : "try_up",
             "restart_file_label"  : "step",
             "output_control_type" : "step",
             "output_frequency"    : 1,
