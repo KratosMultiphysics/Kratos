@@ -42,27 +42,26 @@ namespace Kratos
 	void ReorderAndOptimizeModelPartProcess::Execute() 
         {
             KRATOS_TRY
-            
-// KRATOS_WATCH(mrModelPart.Nodes()[13245])
+
 
             //reorder nodes,#include "spaces/ublas_space.h"elements and conditions so that their Id start in 1 and is consecutive
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(mrModelPart.Nodes().size()); ++i)
                 (mrModelPart.NodesBegin() + i)->SetId(i+1);
+            mrModelPart.Nodes().Sort();
             
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(mrModelPart.Elements().size()); ++i)
                 (mrModelPart.ElementsBegin() + i)->SetId(i+1);
-
+            mrModelPart.Elements().Sort();
+            
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(mrModelPart.Conditions().size()); ++i)
                 (mrModelPart.ConditionsBegin() + i)->SetId(i+1);
+            mrModelPart.Conditions().Sort();
             
-            KRATOS_WATCH(__LINE__)
-            //optimize ordering
-//             OptimizeOrdering();
-            KRATOS_WATCH(__LINE__)
-            
+            OptimizeOrdering();
+
             //make a parallel clone of all the nodes
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(mrModelPart.Nodes().size()); ++i)
@@ -70,7 +69,6 @@ namespace Kratos
                 Node<3>::Pointer& pnode = *(mrModelPart.Nodes().ptr_begin() + i);
                 pnode = pnode->Clone();
             }
-            KRATOS_WATCH(__LINE__)
             
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(mrModelPart.Elements().size()); ++i)
@@ -81,21 +79,19 @@ namespace Kratos
                 const auto& geom = pelem->GetGeometry();
                 tmp.reserve(geom.size());
                 for(unsigned int k=0; k<geom.size(); ++k)
-                {
-                    Node<3>::Pointer pn = mrModelPart.Nodes()(geom[k].Id());
-                    tmp.push_back( pn );
-                }
+                    tmp.push_back( mrModelPart.Nodes()(geom[k].Id()) );
+
                 auto paux = pelem->Create(pelem->Id(), tmp, pelem->pGetProperties());
                 
                 paux->Data() = pelem->Data();
                 
                 pelem = paux;
             }
-KRATOS_WATCH(__LINE__)
+
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(mrModelPart.Conditions().size()); ++i)
             {
-                Condition::Pointer pcond = *(mrModelPart.Conditions().ptr_begin() + i);
+                Condition::Pointer& pcond = *(mrModelPart.Conditions().ptr_begin() + i);
                 
                 PointerVector< Node<3> > tmp;
                 const auto& geom = pcond->GetGeometry();
@@ -109,18 +105,46 @@ KRATOS_WATCH(__LINE__)
                 
                 pcond = paux;
             }
-            KRATOS_WATCH(__LINE__)
-// KRATOS_WATCH(mrModelPart.Nodes()[13245])
-// KRATOS_ERROR << " " << std::endl;
 
             //actualize pointers within submodelparts
             for(auto& subpart : mrModelPart.SubModelParts())
             {
                 ActualizeSubModelPart(subpart);
             }
-            KRATOS_WATCH(__LINE__)
-            
 
+            //here i do a check
+//             for(auto& subpart : mrModelPart.SubModelParts())
+//             {
+//                 for(const auto& node: subpart.Nodes() )
+//                     if(node != mrModelPart.Nodes()[node.Id()])
+//                         KRATOS_ERROR << "node in submodelpart with Id " << node.Id() << " is not in the main model part" << std::endl;
+//                 
+//                 for(auto it = subpart.Elements().ptr_begin(); it!=subpart.Elements().ptr_end(); it++)
+//                 {
+//                     for(unsigned int k=0; k<(*it)->GetGeometry().size(); k++)
+//                         if(&(*it)->GetGeometry()[k] != &mrModelPart.Nodes()[(*it)->GetGeometry()[k].Id()])
+//                             KRATOS_ERROR << *it << " node in element " << (*it)->GetGeometry()[k].Id() << " is not in the main model part" << std::endl;
+//                 }
+//                 
+//                 for(auto it = subpart.Conditions().ptr_begin(); it!=subpart.Conditions().ptr_end(); it++)
+//                 {
+//                     for(unsigned int k=0; k<(*it)->GetGeometry().size(); k++)
+//                     {
+//                         if(&(*it)->GetGeometry()[k] != &mrModelPart.Nodes()[(*it)->GetGeometry()[k].Id()])
+//                         {
+//                             
+//                             std::cout << "problematic condition Id = " << (*it)->Id() <<std::endl;
+//                             std::cout << "problematic condition pointer " << *it << std::endl;
+//                             std::cout << "pointer in main model part    " << mrModelPart.Conditions()((*it)->Id());
+//                             std::cout << "problematic condition geometry = " << (*it)->GetGeometry() << std::endl;
+//                             KRATOS_ERROR << (*it) << "node in condition " << (*it)->GetGeometry()[k].Id() << " is not in the main model part" << std::endl;
+//                         }
+//                     }
+//                 }
+//             }
+            
+            
+            
 
 
             KRATOS_CATCH("")
@@ -130,35 +154,30 @@ KRATOS_WATCH(__LINE__)
         
         void ReorderAndOptimizeModelPartProcess::ActualizeSubModelPart(ModelPart& subpart)
         {
-            std::cout << "------------------ root part is " << mrModelPart << std::endl;
-KRATOS_WATCH(subpart)
-KRATOS_WATCH(__LINE__) 
             //make a parallel clone of all the nodes
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(subpart.Nodes().size()); ++i)
             {
                 Node<3>::Pointer& pnode = *(subpart.NodesBegin() + i).base();
-                std::cout << "doing node " << pnode->Id() << std::endl;
                 pnode = mrModelPart.Nodes()(pnode->Id());
-                std::cout << "finished node " << pnode->Id() << std::endl;
             }
-            mrModelPart.Nodes().Sort();
-KRATOS_WATCH(__LINE__)
+            subpart.Nodes().Sort();
+
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(subpart.Elements().size()); ++i)
             {
-                Element::Pointer& pelem = *(subpart.ElementsBegin() + i).base();              
+                Element::Pointer& pelem = *(subpart.ElementsBegin() + i).base();  
                 pelem = mrModelPart.Elements()(pelem->Id());
 
             }
-KRATOS_WATCH(__LINE__)
+
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(subpart.Conditions().size()); ++i)
             {
                 Condition::Pointer& pcond = *(subpart.ConditionsBegin() + i).base();            
                 pcond = mrModelPart.Conditions()(pcond->Id());
             }
-KRATOS_WATCH(__LINE__)
+            
              //actualize pointers within submodelparts
             for(auto& part : subpart.SubModelParts())
             {
@@ -207,13 +226,6 @@ KRATOS_WATCH(__LINE__)
             //here must do the ordering!!
             std::vector<int> perm(graph_csr.size1());
             CuthillMcKee<true>().get<CompressedMatrix>(graph_csr,perm);      
-
-//             typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
-//             typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-//             auto perm = CuthillMcKeeReorderer<SpaceType,LocalSpaceType>().CalculateIndexPermutation(graph_csr,0);
-            
-//             for(auto i : perm)
-//                 std::cout << i << std::endl;
             
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(mrModelPart.Nodes().size()); ++i)
@@ -222,6 +234,9 @@ KRATOS_WATCH(__LINE__)
             //reorder
             mrModelPart.Nodes().Sort();
         }
+        
+
+        
         
 	std::string ReorderAndOptimizeModelPartProcess::Info() const {
 		return "ReorderAndOptimizeModelPartProcess";
@@ -235,7 +250,7 @@ KRATOS_WATCH(__LINE__)
 
 	}
 
-
+        
 
 
 

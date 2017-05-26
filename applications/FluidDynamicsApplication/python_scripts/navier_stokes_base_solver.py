@@ -51,7 +51,8 @@ class NavierStokesBaseSolver(object):
             "MoveMeshFlag": false,
             "use_slip_conditions": false,
             "turbulence_model": "None",
-            "use_spalart_allmaras": false
+            "use_spalart_allmaras": false,
+            "reorder": false
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -116,12 +117,7 @@ class NavierStokesBaseSolver(object):
         ## Set buffer size
         self._SetBufferSize()
         
-        print("******************************")
-        print(self.main_model_part.Nodes[1])
-        tmp = KratosMultiphysics.Parameters("{}")
-        #KratosMultiphysics.ReorderAndOptimizeModelPartProcess(self.main_model_part,tmp).Execute()
-        print(self.main_model_part.Nodes[1])
-        print("******************************")
+
 
         print ("Base class model reading finished.")
 
@@ -138,6 +134,10 @@ class NavierStokesBaseSolver(object):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
+        
+        #print("main",self.main_model_part.Nodes[12091])
+        #print("compute",self.main_model_part.GetSubModelPart("fluid_computational_model_part").Nodes[12091])
+        #err
 
         print("Base class fluid solver DOFs added correctly.")
 
@@ -205,6 +205,11 @@ class NavierStokesBaseSolver(object):
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             ## Here it would be the place to import restart data if required
             KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
+            
+            if(self.settings["reorder"].GetBool()):
+                print("******************************************************* REORDERING ********************************************************")
+                tmp = KratosMultiphysics.Parameters("{}")
+                KratosMultiphysics.ReorderAndOptimizeModelPartProcess(self.main_model_part,tmp).Execute()
         else:
             raise Exception("Other input options are not yet implemented.")
         
