@@ -43,6 +43,20 @@
 #include "custom_elements/axisym_updated_lagrangian_U_wP_element.hpp"
 #include "custom_elements/axisym_updated_lagrangian_U_wP_Stab_element.hpp"
 
+
+#include "custom_elements/updated_lagrangian_U_J_element.hpp"
+#include "custom_elements/updated_lagrangian_U_J_P_element.hpp"
+#include "custom_elements/updated_lagrangian_U_Pressure_element.hpp"
+
+#include "custom_elements/updated_lagrangian_U_P_wP_element.hpp"
+#include "custom_elements/updated_lagrangian_U_J_wP_element.hpp"
+
+#include "custom_elements/axisym_updated_lagrangian_U_J_element.hpp"
+#include "custom_elements/axisym_updated_lagrangian_U_J_wP_element.hpp"
+
+#include "custom_elements/axisym_updated_lagrangian_U_Pressure_element.hpp"
+#include "custom_elements/axisym_updated_lagrangian_U_P_wP_element.hpp"
+
 //constitutive laws
 #include "containers/flags.h"
 #include "includes/variables.h"
@@ -53,25 +67,17 @@
 #include "custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.hpp"
 #include "custom_constitutive/custom_yield_criteria/J2_yield_criterion.hpp"
 #include "custom_constitutive/custom_yield_criteria/tresca_yield_criterion.hpp"
-#include "custom_constitutive/custom_yield_criteria/mohr_coulomb_yield_criterion.hpp"
 
 //flow rule
 #include "custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
-//#include "custom_constitutive/custom_flow_rules/cam_clay_explicit_plastic_flow_rule.hpp"
-//#include "custom_constitutive/custom_flow_rules/linear_cam_clay_explicit_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/borja_cam_clay_explicit_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/J2_explicit_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/tresca_explicit_plastic_flow_rule.hpp"
-#include "custom_constitutive/custom_flow_rules/mohr_coulomb_explicit_plastic_flow_rule.hpp"
 
 //hardening laws
 #include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
 
 //constitutive laws
-//#include "custom_constitutive/hencky_cam_clay_plane_strain_2D_law.hpp"
-//#include "custom_constitutive/hencky_cam_clay_axisym_2D_law.hpp"
-//#include "custom_constitutive/linear_hencky_cam_clay_plane_strain_2D_law.hpp"
-//#include "custom_constitutive/linear_hencky_cam_clay_axisym_2D_law.hpp"
 #include "custom_constitutive/borja_hencky_cam_clay_axisym_2D_law.hpp"
 #include "custom_constitutive/borja_hencky_cam_clay_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_J2_plane_strain_2D_law.hpp"
@@ -262,9 +268,28 @@ namespace Kratos
 
     //updated lagrangian
     const UpdatedLagrangianUwPElement                      mUpdatedLagrangianUwPElement2D3N;
+    const UpdatedLagrangianUwPElement                      mUpdatedLagrangianUwPElement3D4N;
     const UpdatedLagrangianUwPStabElement              mUpdatedLagrangianUwPStabElement2D3N;
+    const UpdatedLagrangianUwPStabElement              mUpdatedLagrangianUwPStabElement3D4N;
+
     const AxisymUpdatedLagrangianUwPElement          mAxisymUpdatedLagrangianUwPElement2D3N;
     const AxisymUpdatedLagrangianUwPStabElement  mAxisymUpdatedLagrangianUwPStabElement2D3N;
+
+    const UpdatedLagrangianUJElement         mUpdatedLagrangianUJElement2D3N;
+    const UpdatedLagrangianUJElement         mUpdatedLagrangianUJElement3D4N;
+    const UpdatedLagrangianUJPElement        mUpdatedLagrangianUJPElement2D3N;
+    const UpdatedLagrangianUPressureElement mUpdatedLagrangianUPressureElement2D3N;
+
+
+    const UpdatedLagrangianUJwPElement   mUpdatedLagrangianUJwPElement2D3N;
+    const UpdatedLagrangianUJwPElement   mUpdatedLagrangianUJwPElement3D4N;
+    const UpdatedLagrangianUPwPElement mUpdatedLagrangianUPwPElement2D3N;
+
+    const AxisymUpdatedLagrangianUJElement      mAxisymUpdatedLagrangianUJElement2D3N; 
+    const AxisymUpdatedLagrangianUJwPElement    mAxisymUpdatedLagrangianUJwPElement2D3N; 
+
+    const AxisymUpdatedLagrangianUPressureElement mAxisymUpdatedLagrangianUPressureElement2D3N; 
+    const AxisymUpdatedLagrangianUPwPElement mAxisymUpdatedLagrangianUPwPElement2D3N; 
 
     /*const BorjaHenckyCamClayPlasticAxisym2DLaw                        mBorjaHenckyCamClayPlasticAxisym2DLaw;
     const BorjaHenckyCamClayPlasticPlaneStrain2DLaw              mBorjaHenckyCamClayPlasticPlaneStrain2DLaw;

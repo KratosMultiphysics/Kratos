@@ -594,16 +594,12 @@ namespace Kratos
 
    void AxisymUpdatedLagrangianUJwPElement::save( Serializer& rSerializer ) const
    {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement )
-         rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
-      rSerializer.save("DeterminantF0",mDeterminantF0);
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, AxisymUpdatedLagrangianUJElement )
    }
 
    void AxisymUpdatedLagrangianUJwPElement::load( Serializer& rSerializer )
    {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement )
-         rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
-      rSerializer.load("DeterminantF0",mDeterminantF0);
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, AxisymUpdatedLagrangianUJElement )
    }
 
 

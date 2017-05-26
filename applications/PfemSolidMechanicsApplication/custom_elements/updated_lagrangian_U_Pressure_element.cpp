@@ -150,7 +150,9 @@ namespace Kratos
 
       int correct = 0;
 
-      correct = LargeDisplacementElement::Check(rCurrentProcessInfo);
+      //correct = LargeDisplacementElement::Check(rCurrentProcessInfo);
+      // check abreviat. Intento fer servir una llei 3D en tots els casos, a veure què passa
+
 
       //verify compatibility with the constitutive law
       ConstitutiveLaw::Features LawFeatures;
@@ -163,6 +165,10 @@ namespace Kratos
 
       if ( PRESSURE.Key() == 0 )
          KRATOS_THROW_ERROR( std::invalid_argument, "PRESSURE has Key zero! (check if the application is correctly registered", "" );
+
+      if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW)->GetStrainSize() != 6) {
+         KRATOS_THROW_ERROR( std::invalid_argument, " since I do not know how to do it correctly, I try to have a 3D law in here ", this->Id() );
+      }
 
 
       return correct;
@@ -404,6 +410,9 @@ namespace Kratos
 
       // operation performed: rRightHandSideVector -= PressureForceBalance*IntegrationWeight
       CalculateAndAddPressureForces( rRightHandSideVector, rVariables, ElementVariables, rIntegrationWeight);
+            std::cout << " this->Id() " << this->Id() << std::endl;
+            std::cout << rVariables.StressVector << std::endl;
+            std::cout << rVariables.ConstitutiveMatrix << std::endl;
 
       // operation performed: rRightHandSideVector -= Stabilized Pressure Forces
       CalculateAndAddStabilizedPressure( rRightHandSideVector, rVariables, ElementVariables, rIntegrationWeight);

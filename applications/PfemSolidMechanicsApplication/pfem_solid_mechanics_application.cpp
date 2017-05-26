@@ -69,9 +69,31 @@ namespace Kratos
 
     // Hydro-mechanical elements
     mUpdatedLagrangianUwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mUpdatedLagrangianUwPElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+
     mUpdatedLagrangianUwPStabElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mUpdatedLagrangianUwPStabElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+
     mAxisymUpdatedLagrangianUwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
-    mAxisymUpdatedLagrangianUwPStabElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) )
+    mAxisymUpdatedLagrangianUwPStabElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+
+
+    // mixed elements
+    mUpdatedLagrangianUJElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mUpdatedLagrangianUJElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+    mUpdatedLagrangianUJPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mUpdatedLagrangianUPressureElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+
+
+    mUpdatedLagrangianUJwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mUpdatedLagrangianUJwPElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+    mUpdatedLagrangianUPwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+
+    mAxisymUpdatedLagrangianUJElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mAxisymUpdatedLagrangianUJwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mAxisymUpdatedLagrangianUPressureElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mAxisymUpdatedLagrangianUPwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) )
+   
   {}
   
   void KratosPfemSolidMechanicsApplication::Register()
@@ -175,9 +197,33 @@ namespace Kratos
 
     //Register updated lagrangian U wP elements
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUwPElement2D3N", mUpdatedLagrangianUwPElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUwPElement3D4N", mUpdatedLagrangianUwPElement3D4N )
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUwPStabElement2D3N", mUpdatedLagrangianUwPStabElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUwPStabElement3D4N", mUpdatedLagrangianUwPStabElement3D4N )
+
     KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUwPElement2D3N", mAxisymUpdatedLagrangianUwPElement2D3N )
     KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUwPStabElement2D3N", mAxisymUpdatedLagrangianUwPStabElement2D3N )
+
+    // New Mixed elements. One-Phase. PS
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUJElement2D3N", mUpdatedLagrangianUJElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUJElement3D4N", mUpdatedLagrangianUJElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUJPElement2D3N", mUpdatedLagrangianUJPElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPressureElement2D3N", mUpdatedLagrangianUPressureElement2D3N )
+
+
+    //New Mixed elements. Two-phase. PS
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUJwPElement2D3N", mUpdatedLagrangianUJwPElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUJwPElement3D4N", mUpdatedLagrangianUJwPElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPwPElement2D3N", mUpdatedLagrangianUPwPElement2D3N )
+
+    //New Mixed elements. One-Phase. Ax
+    KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUJElement2D3N", mAxisymUpdatedLagrangianUJElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUPressureElement2D3N", mAxisymUpdatedLagrangianUPressureElement2D3N )
+
+    //New Mixed elements. Two-phase. Ax
+    KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUJwPElement2D3N", mAxisymUpdatedLagrangianUJwPElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUPwPElement2D3N", mAxisymUpdatedLagrangianUPwPElement2D3N )
+
 
     //Register Conditions
 

@@ -742,7 +742,7 @@ namespace Kratos
 
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-         unsigned int indexup = i * ( dimension + 2);
+         //unsigned int indexup = i * ( dimension + 2);
 
          for ( unsigned int j = 0; j < dimension; j++ )
          {
@@ -789,15 +789,13 @@ namespace Kratos
 
    void UpdatedLagrangianUJwPElement::save( Serializer& rSerializer ) const
    {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement )
-         rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
-      rSerializer.save("DeterminantF0",mDeterminantF0);
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UpdatedLagrangianUJElement )
    }
 
    void UpdatedLagrangianUJwPElement::load( Serializer& rSerializer )
    {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement )
-         rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UpdatedLagrangianUJElement )
+      rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
       rSerializer.load("DeterminantF0",mDeterminantF0);
    }
 
