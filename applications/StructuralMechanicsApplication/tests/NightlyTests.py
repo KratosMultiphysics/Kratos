@@ -44,7 +44,7 @@ class StructrualMechanichsTestFactory(KratosUnittest.TestCase):
         pass
     
 class IsotropicDamageSimoJuPSTest(StructrualMechanichsTestFactory):
-    file_name = "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test"
+    file_name = "cl_test//IsotropicDamageSimoJu//PlaneStress_FourPointShear_test"
 
 class ShellT3IsotropicScordelisTests(StructrualMechanichsTestFactory):
-    file_name = "shell_test/Shell_T3_Isotropic_Scordelis_test"
+    file_name = "shell_test//Shell_T3_Isotropic_Scordelis_test"
