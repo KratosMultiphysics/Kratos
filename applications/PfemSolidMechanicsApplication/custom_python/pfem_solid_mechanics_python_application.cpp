@@ -44,6 +44,8 @@ namespace Kratos
       AddCustomStrategiesToPython();
       AddCustomConstitutiveLawsToPython();
 
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE( JACOBIAN )
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE( REACTION_JACOBIAN )
      
       //registering variables in python ( if must to be seen from python )
       KRATOS_REGISTER_IN_PYTHON_VARIABLE( TOTAL_CAUCHY_STRESS )

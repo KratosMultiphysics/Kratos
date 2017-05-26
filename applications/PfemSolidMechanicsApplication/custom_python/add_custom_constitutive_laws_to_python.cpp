@@ -116,8 +116,9 @@ namespace Kratos
        return;
       // class_< MaterialsContainer >( "MaterialsContainer", init<>() )
       // 	.def( "PushBack", Push_Back_Constitutive_Laws )
+       return;
 
-    class_<BorjaHenckyCamClayPlasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+   /* class_<BorjaHenckyCamClayPlasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "BorjaHenckyCamClayPlasticAxisym2DLaw",
       init<>() )
       .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
@@ -184,7 +185,7 @@ namespace Kratos
     ( "HenckyMohrCoulombPlasticPlaneStrain2DLaw",
       init<>() )
       .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
-    ;
+    ;*/
     }
     
   }  // namespace Python.
