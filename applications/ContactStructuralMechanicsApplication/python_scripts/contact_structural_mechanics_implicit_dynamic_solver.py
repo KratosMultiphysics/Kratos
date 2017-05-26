@@ -168,6 +168,13 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                 else:
                     convergence_criterion = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, R_RT, R_AT, ensure_contact)
                 convergence_criterion.SetEchoLevel(echo_level)
+                
+            elif(self.settings["convergence_criterion"].GetString() == "Contact_Mixed_criterion"):
+                if (fancy_convergence_criterion == True):
+                    convergence_criterion = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierMixedContactCriteria(R_RT, R_AT, R_RT, R_AT, ensure_contact, table)
+                else:
+                    convergence_criterion = ContactStructuralMechanicsApplication.DisplacementLagrangeMultiplierMixedContactCriteria(R_RT, R_AT, R_RT, R_AT, ensure_contact)
+                convergence_criterion.SetEchoLevel(echo_level)
                     
             elif(self.settings["convergence_criterion"].GetString() == "Contact_And_criterion"):
                 if (fancy_convergence_criterion == True):

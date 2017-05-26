@@ -37,6 +37,7 @@
 #include "custom_strategies/custom_convergencecriterias/alm_frictionless_mortar_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/alm_frictional_mortar_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/displacement_lagrangemultiplier_contact_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/displacement_lagrangemultiplier_mixed_contact_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/displacement_lagrangemultiplier_residual_contact_criteria.h"
 
 // Builders and solvers
@@ -78,6 +79,7 @@ void  AddCustomStrategiesToPython()
     typedef ALMFrictionlessMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ALMFrictionlessMortarConvergenceCriteriaType;
     typedef ALMFrictionalMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ALMFrictionalMortarConvergenceCriteriaType;
     typedef DisplacementLagrangeMultiplierContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierContactCriteriaType;
+    typedef DisplacementLagrangeMultiplierMixedContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierMixedContactCriteriaType;
     typedef DisplacementLagrangeMultiplierResidualContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierResidualContactCriteriaType;
     
     // Custom builder and solvers types
@@ -166,6 +168,17 @@ void  AddCustomStrategiesToPython()
             .def(init< double, double, double, double, bool >())
             .def(init< double, double, double, double, bool, TablePrinterPointerType >())
             .def("SetEchoLevel", &DisplacementLagrangeMultiplierContactCriteriaType::SetEchoLevel)
+            ;
+            
+    // Displacement and lagrange multiplier mixed Convergence Criterion
+    class_< DisplacementLagrangeMultiplierMixedContactCriteriaType,
+            bases< ConvergenceCriteriaType >, boost::noncopyable >
+            (
+            "DisplacementLagrangeMultiplierMixedContactCriteria", 
+            init< double, double, double, double >())
+            .def(init< double, double, double, double, bool >())
+            .def(init< double, double, double, double, bool, TablePrinterPointerType >())
+            .def("SetEchoLevel", &DisplacementLagrangeMultiplierMixedContactCriteriaType::SetEchoLevel)
             ;
             
     // Displacement and lagrange multiplier residual Convergence Criterion
