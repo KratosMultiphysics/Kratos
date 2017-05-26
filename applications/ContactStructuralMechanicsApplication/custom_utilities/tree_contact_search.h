@@ -135,7 +135,7 @@ public:
         auto numNodes = pNode.end() - pNode.begin();
         
         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
             itNode->Set(ACTIVE, false);
@@ -146,7 +146,7 @@ public:
         auto numConditions = pConditions.end() - pConditions.begin();
 
         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numConditions; i++) 
+        for(int i = 0; i < numConditions; i++) 
         {
             auto itCond = pConditions.begin() + i;
             
@@ -175,7 +175,7 @@ public:
         auto numConditions = pConditions.end() - pConditions.begin();
 
 //         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numConditions; i++) 
+        for(int i = 0; i < numConditions; i++) 
         {
             auto itCond = pConditions.begin() + i;
 
@@ -196,7 +196,7 @@ public:
         auto numNodes = pNode.end() - pNode.begin();
         
         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
             
@@ -216,7 +216,7 @@ public:
         auto numNodes = pNode.end() - pNode.begin();
         
         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
             
@@ -240,7 +240,7 @@ public:
         auto numNodes = pNode.end() - pNode.begin();
         
         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
             
@@ -253,7 +253,7 @@ public:
     }
     
     /**
-     * This function clears the mortar conditions already created 
+     * This function clears the mortar conditions already created (scalar version)
      */
     
     void PartialClearScalarMortarConditions()
@@ -262,7 +262,7 @@ public:
         auto numNodes = pNode.end() - pNode.begin();
         
         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
             if (itNode->Is(ACTIVE) == false)
@@ -272,13 +272,17 @@ public:
         } 
     }
     
+    /**
+     * This function clears the mortar conditions already created (components version)
+     */
+        
     void PartialClearComponentsMortarConditions()
     {
         NodesArrayType& pNode = mrMainModelPart.Nodes();
         auto numNodes = pNode.end() - pNode.begin();
         
         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
             if (itNode->Is(ACTIVE) == false)
@@ -298,7 +302,7 @@ public:
         auto numNodes = pNode.end() - pNode.begin();
         
         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
             if (itNode->Is(ACTIVE) == false)
@@ -319,7 +323,7 @@ public:
         auto numConditions = pConditions.end() - pConditions.begin();
 
         #pragma omp for nowait schedule(static)
-        for(unsigned int i = 0; i < numConditions; i++) 
+        for(int i = 0; i < numConditions; i++) 
         {
             auto itCond = pConditions.begin() + i;
             
@@ -340,7 +344,7 @@ public:
         auto numPoints = mPointListDestination.end() - mPointListDestination.begin();
         
         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numPoints; i++) 
+        for(int i = 0; i < numPoints; i++) 
         {
             auto itPoint = mPointListDestination.begin() + i;
             
@@ -443,7 +447,7 @@ public:
         auto numConditions = pConditions.end() - pConditions.begin();
 
 //         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numConditions; i++) 
+        for(int i = 0; i < numConditions; i++) 
         {
             auto itCond = pConditions.begin() + i;
             
@@ -467,7 +471,7 @@ public:
         auto numNodes = pNode.end() - pNode.begin();
         
 //         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
             
@@ -581,7 +585,7 @@ protected:
         auto numConditions = pCond.end() - pCond.begin();
         
         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numConditions; i++) 
+        for(int i = 0; i < numConditions; i++) 
         {
             auto itCond = pCond.begin() + i;
             if (itCond->Is(SLAVE) == true && itCond->Is(ACTIVE) == true)

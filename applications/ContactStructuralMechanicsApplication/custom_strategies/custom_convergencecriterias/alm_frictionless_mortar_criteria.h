@@ -162,7 +162,7 @@ public:
         auto numNodes = pNodes.end() - pNodes.begin();
 
         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNodes.begin() + i;
             
@@ -207,7 +207,7 @@ public:
             auto numConditions = pConditions.end() - pConditions.begin();
 
             #pragma omp parallel for 
-            for(unsigned int i = 0; i < numConditions; i++) 
+            for(int i = 0; i < numConditions; i++) 
             {
                 auto itCond = pConditions.begin() + i;
                 if ( (itCond)->Is(ACTIVE) == true )

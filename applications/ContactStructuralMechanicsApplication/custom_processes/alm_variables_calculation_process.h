@@ -154,7 +154,7 @@ public:
         auto numConditions = pConditions.end() - pConditions.begin();
         
         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numConditions; i++) 
+        for(int i = 0; i < numConditions; i++) 
         {
             auto itCond = pConditions.begin() + i;
             
@@ -190,7 +190,6 @@ public:
             
             if (itCond->Is(MASTER) == true)
             {
-
                 #pragma omp atomic
                 TotalVolumeMaster += ElementVolume;
                 #pragma omp atomic
