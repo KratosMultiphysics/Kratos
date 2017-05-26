@@ -18,7 +18,7 @@
             "input_filename" : "ALM_frictionless_contact_test_2D/hyper_simple_patch_test"
         },
         "mortar_type"                        : "ALMContactFrictionless",
-        "block_builder"                      : false,
+        "block_builder"                      : true,
         "clear_storage"                      : true,
         "line_search"                        : false,
         "compute_reactions"                  : false,

@@ -18,7 +18,7 @@
             "input_filename" : "mesh_tying_test/hyper_simple_slope_patch_test_2D"
         },
         "mortar_type"                        : "ComponentsMeshTying",
-        "block_builder"                      : false,
+        "block_builder"                      : true,
         "clear_storage"                      : true,
         "line_search"                        : false,
         "compute_reactions"                  : false,
@@ -52,22 +52,20 @@
             "is_fixed_z"      : true,
             "value"           : [0.0,0.0,0.0]
         }
-    },{
-        "python_module"   : "impose_vector_value_by_components_process",
-        "kratos_module" : "KratosMultiphysics",
+    }],
+    "loads_process_list"       : [{
+    "python_module"   : "apply_vector_on_conditions_process",
+        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
         "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "process_name"          : "ApplyVaryingVectorOverTimeIntervalProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "IMPOSE_LOAD_Auto1",
             "variable_name"   : "LINE_LOAD",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : false,
-            "value"           : [0.0,-1.0e10,0.0]
+            "modulus"         : 1.0e10,
+            "direction"       : [0.0,-1.0,0.0]
         }
     }],
-    "loads_process_list"       : [],
     "list_other_processes" :[
     {
         "python_module"   : "mesh_tying_process",
