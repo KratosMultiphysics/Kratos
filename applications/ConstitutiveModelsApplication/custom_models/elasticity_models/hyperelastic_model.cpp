@@ -120,12 +120,12 @@ namespace Kratos
       KRATOS_ERROR << "calling initialize HyperElasticModel .. StressMeasure required is inconsistent"  << std::endl;
     }
 
-    rValues.MaterialParameters.LameMuBar =  rValues.MaterialParameters.LameMu * ( rVariables.Strain.Matrix(0,0) + rVariables.Strain.Matrix(1,1) + rVariables.Strain.Matrix(2,2) ) * 1.0/3.0;
-
-    //std::cout<<" CauchyGreeMatrix "<<rVariables.Strain.Matrix<<std::endl;
-    
+    //Calculate Invariants
     this->CalculateInvariants(rVariables);
 
+    //Calculate LameMuBar
+    rValues.MaterialParameters.LameMuBar =  rValues.MaterialParameters.LameMu * ( rVariables.Strain.Matrix(0,0) + rVariables.Strain.Matrix(1,1) + rVariables.Strain.Matrix(2,2) ) * rVariables.Strain.Invariants.J_13 * rVariables.Strain.Invariants.J_13 * (1.0/3.0) ;    
+    
     //Algorithmic moduli factors
     this->CalculateScalingFactors(rVariables);
 
@@ -340,7 +340,7 @@ namespace Kratos
 	
       }
 
-    rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX);
+    rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX,true);
     
     KRATOS_CATCH(" ")
   }
@@ -454,7 +454,7 @@ namespace Kratos
 	
       }
 
-    //rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX);
+    rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX,true);
     
     KRATOS_CATCH(" ")
   }
@@ -502,7 +502,7 @@ namespace Kratos
 	
       }
 
-    //rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX);
+    rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX,true);
     
     KRATOS_CATCH(" ")
   }
@@ -580,9 +580,7 @@ namespace Kratos
     }
 
     rCabcd += Cabcd;
-    
-    rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX);
-    
+        
     return rCabcd;
 
     

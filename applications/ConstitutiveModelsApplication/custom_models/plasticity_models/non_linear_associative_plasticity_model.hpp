@@ -195,12 +195,12 @@ namespace Kratos
 
       // calculate elastic isochoric stress
       this->mElasticityModel.CalculateIsochoricStressTensor(rValues,rStressMatrix);
-
-
       
       // calculate plastic isochoric stress
       this->CalculateAndAddIsochoricStressTensor(Variables,rStressMatrix);      
 
+      rValues.StressMatrix = rStressMatrix;  //store isochoric stress as StressMatrix
+	    
       if( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES ) )
 	this->UpdateInternalVariables(rValues, Variables);
 
@@ -237,8 +237,11 @@ namespace Kratos
       this->mElasticityModel.CalculateConstitutiveTensor(rValues,rConstitutiveMatrix);
     
       // calculate plastic constitutive tensor
-      this->CalculateAndAddPlasticConstitutiveTensor(Variables,rConstitutiveMatrix);
-
+      if( Variables.State().Is(ConstitutiveModelData::PLASTIC_REGION) )
+      	this->CalculateAndAddPlasticConstitutiveTensor(Variables,rConstitutiveMatrix);
+              
+      Variables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX,true);
+      
       rValues.StressMatrix = StressMatrix;
     
       KRATOS_CATCH(" ")
@@ -270,17 +273,23 @@ namespace Kratos
       this->CalculateAndAddIsochoricStressTensor(Variables,rStressMatrix);
       
       rValues.StressMatrix = rStressMatrix;  //store isochoric stress as StressMatrix
-   
+     
+      if( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES ) )
+	this->UpdateInternalVariables(rValues, Variables);
+      
       //Calculate Constitutive Matrix
     
       // calculate elastic constitutive tensor
       this->mElasticityModel.CalculateConstitutiveTensor(rValues,rConstitutiveMatrix);
-    
-      // calculate plastic constitutive tensor
-      this->CalculateAndAddPlasticConstitutiveTensor(Variables,rConstitutiveMatrix);
 
-    
-      rStressMatrix += VolumetricStressMatrix;
+      
+      // calculate plastic constitutive tensor
+      if( Variables.State().Is(ConstitutiveModelData::PLASTIC_REGION) )
+      	this->CalculateAndAddPlasticConstitutiveTensor(Variables,rConstitutiveMatrix);
+
+      Variables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX,true);
+      
+      rStressMatrix += VolumetricStressMatrix;      
         
       KRATOS_CATCH(" ")
     }
@@ -365,10 +374,9 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
-
-    
+     
     /**
-     * Calculate Stresses
+     * Set Working Measures
      */
     virtual void SetWorkingMeasures(PlasticDataType& rVariables, MatrixType& rStressMatrix)
     {
@@ -380,7 +388,8 @@ namespace Kratos
       const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
       const StrainMeasureType& rStrainMeasure = rModelData.GetStrainMeasure();
       
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){	
+      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){
+	
 	const MatrixType& rDeformationGradientF = rModelData.GetDeformationGradientF();
 	MatrixType StressMatrixPart;
 	noalias( StressMatrixPart ) = prod( rDeformationGradientF, rStressMatrix );
@@ -393,11 +402,12 @@ namespace Kratos
 	else{
 	  KRATOS_ERROR << "calling initialize PlasticityModel .. StrainMeasure provided is inconsistent" << std::endl;
 	}
+	
       }
       else if(  rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){
 
 	if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Left || rStrainMeasure == ConstitutiveModelData::CauchyGreen_None){
-	  rVariables.StrainMatrix = identity_matrix<double>(3);
+	  rVariables.StrainMatrix = identity_matrix<double>(3);;
 	}
 	else{
 	  KRATOS_ERROR << "calling initialize PlasticityModel .. StrainMeasure provided is inconsistent" << std::endl;
@@ -414,7 +424,7 @@ namespace Kratos
 
 
     /**
-     * Calculate Stresses
+     * Get Working Measures
      */
     virtual void GetWorkingMeasures(PlasticDataType& rVariables, MatrixType& rStressMatrix)
     {
@@ -422,26 +432,30 @@ namespace Kratos
 	
       const ModelDataType&  rModelData = rVariables.GetModelData();
 
-      //working stress is Kirchhoff by default : transform stresses is working stress is PK2
+      //working stress is Kirchhoff by default : transform stresses if working stress is PK2
       const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
       
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){	
+      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){
+	
 	const MatrixType& rDeformationGradientF = rModelData.GetDeformationGradientF();
 	MatrixType StressMatrixPart;
-   MatrixType InverseDeformationGradient;
-   InverseDeformationGradient.clear();
-   double det;
-   ConstitutiveModelUtilities::InvertMatrix3( rDeformationGradientF, InverseDeformationGradient, det);
-	noalias( StressMatrixPart ) = prod( InverseDeformationGradient, rStressMatrix );
-	noalias( rStressMatrix )  = prod( StressMatrixPart, trans(InverseDeformationGradient) );
+	
+	MatrixType InverseDeformationGradientF;
+	InverseDeformationGradientF.clear();
+	double det;
+	ConstitutiveModelUtilities::InvertMatrix3( rDeformationGradientF, InverseDeformationGradientF, det);
+	noalias( StressMatrixPart ) = prod( InverseDeformationGradientF, rStressMatrix );
+	noalias( rStressMatrix ) = prod( StressMatrixPart, trans(InverseDeformationGradientF) );
+	
       }	
    
       KRATOS_CATCH(" ")    
     }
     
+
     /**
      * Calculate Stresses
-     */
+     */    
     virtual void CalculateAndAddIsochoricStressTensor(PlasticDataType& rVariables, MatrixType& rStressMatrix)
     {
       KRATOS_TRY
@@ -504,12 +518,8 @@ namespace Kratos
     
       //Compute radial return
       if( rVariables.State().IsNot(ConstitutiveModelData::COMPUTED_RETURN_MAPPING) )
-	KRATOS_ERROR << "ReturnMapping has to be computed to perform the calculati" << std::endl;
-      if (rVariables.State().IsNot(ConstitutiveModelData::PLASTIC_REGION) ) {
-          rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX);
-          return;
-      }
-    
+	KRATOS_ERROR << "ReturnMapping has to be computed to perform the calculation" << std::endl;
+      
       //Algorithmic moduli factors
       PlasticFactors Factors;    
       this->CalculateScalingFactors(rVariables,Factors);
@@ -533,7 +543,7 @@ namespace Kratos
 	}
 
       
-      rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX);
+      rVariables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX,true);
     
       KRATOS_CATCH(" ")
     }
@@ -553,23 +563,26 @@ namespace Kratos
 
       const MatrixType& rIsochoricStressMatrix = rModelData.GetStressMatrix(); //isochoric stress stored as StressMatrix
       const MatrixType& rStrainMatrix          = rVariables.GetStrainMatrix(); // C^-1 or Id
+      
+      //TODO: this constitutive part must be revised, depending on the working strain/stress measure C^-1 or I must be supplied
 
-      //TODO: this constitutive part must be revised, depending on the working strain/stress measure C^-1 or Id must be supplied
-
-     
-      double Cabcd = (1.0/3.0) * ( rStrainMatrix(a,b) * rStrainMatrix(c,d) );
-    
+      
+      double Cabcd = 0;
+      
+      Cabcd = (1.0/3.0) * ( rStrainMatrix(a,b) * rStrainMatrix(c,d) );
+      
       Cabcd -= (0.5 * ( rStrainMatrix(a,c) * rStrainMatrix(b,d) + rStrainMatrix(a,d) * rStrainMatrix(b,c) ) );
-    
+      
       Cabcd *= 3.0 * rMaterial.GetLameMuBar();
-
+      
       Cabcd += ( rStrainMatrix(c,d) * rIsochoricStressMatrix(a,b) + rIsochoricStressMatrix(c,d) * rStrainMatrix(a,b) );
- 
+      
       Cabcd *= (-2.0/3.0) * ( (-1) * rFactors.Beta1 );
-    
+      
       Cabcd -= rFactors.Beta3 * 2.0 * rMaterial.GetLameMuBar() * ( rFactors.Normal(a,b) * rFactors.Normal(c,d) );
-
+      
       Cabcd -= rFactors.Beta4 * 2.0 * rMaterial.GetLameMuBar() * ( rFactors.Normal(a,b) * rFactors.Dev_Normal(c,d) );
+      
 
       rCabcd += Cabcd;
     
@@ -687,7 +700,7 @@ namespace Kratos
       // EquivalentPlasticStrain    
       rVariables.Internal = mInternal;
 
-      // DeltaGamma / DeltaPlasticStrain (asociative plasticity)
+      // DeltaGamma / DeltaPlasticStrain (associative plasticity)
       rVariables.DeltaInternal.Variables.clear();
 
       // Flow Rule local variables
@@ -700,7 +713,7 @@ namespace Kratos
     virtual void UpdateStressConfiguration(PlasticDataType& rVariables, MatrixType& rStressMatrix)
     {
       KRATOS_TRY
-          
+	
       //Plastic Strain and Back Stress update
       if( rVariables.StressNorm > 0 ){
 
@@ -711,18 +724,18 @@ namespace Kratos
 	rStressMatrix -= ( rStressMatrix * ( ( 2.0 * rMaterial.GetLameMuBar() * DeltaGamma ) / rVariables.StressNorm ) );
 	
       }
-
+      
       KRATOS_CATCH(" ")    
     }
 
     virtual void UpdateInternalVariables(ModelDataType& rValues, PlasticDataType& rVariables)
     {
       KRATOS_TRY
-    
+      
       double& rEquivalentPlasticStrainOld  = mPreviousInternal.Variables[0];
       double& rEquivalentPlasticStrain     = mInternal.Variables[0];
       double& rDeltaGamma                  = rVariables.DeltaInternal.Variables[0];
-
+      
       //update mechanical variables
       rEquivalentPlasticStrainOld  = rEquivalentPlasticStrain;
       rEquivalentPlasticStrain    += sqrt(2.0/3.0) * rDeltaGamma;
@@ -731,16 +744,16 @@ namespace Kratos
       //mThermalVariables = rVariables.Thermal;
 
       //update total strain measure
-      double VolumetricPart = (rValues.StrainMatrix(0,0)+rValues.StrainMatrix(1,1)+rValues.StrainMatrix(2,2))/3.0;
-      
+      double VolumetricPart = (rValues.StrainMatrix(0,0)+rValues.StrainMatrix(1,1)+rValues.StrainMatrix(2,2)) / (3.0*pow(rValues.GetDeterminantF(),(2.0/3.0)));
+
       rValues.StrainMatrix  = rValues.StressMatrix;
-      rValues.StrainMatrix *=  ( 1.0 / rValues.MaterialParameters.LameMu );
+      rValues.StrainMatrix *= ( 1.0 / rValues.MaterialParameters.LameMu );
             
       rValues.StrainMatrix(0,0) += VolumetricPart;
       rValues.StrainMatrix(1,1) += VolumetricPart;
       rValues.StrainMatrix(2,2) += VolumetricPart;
       
-    
+      
       KRATOS_CATCH(" ")    
     }
     
@@ -820,7 +833,7 @@ namespace Kratos
       KRATOS_TRY
       
       //1.- Thermal Dissipation:
-       mThermalVariables.PlasticDissipation = this->mYieldCriterion.CalculatePlasticDissipation( rVariables, mThermalVariables.PlasticDissipation );
+      mThermalVariables.PlasticDissipation = this->mYieldCriterion.CalculatePlasticDissipation( rVariables, mThermalVariables.PlasticDissipation );
   
 
       //std::cout<<" PlasticDissipation "<<mThermalVariables.PlasticDissipation<<std::endl;
