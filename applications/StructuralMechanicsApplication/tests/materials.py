@@ -1,7 +1,7 @@
 
 # Importing the Kratos Library
 from KratosMultiphysics import *
-from KratosMultiphysics.SolidMechanicsApplication import *
+from KratosMultiphysics.StructuralMechanicsApplication import *
 #from beam_sections_python_utility import SetProperties
 def AssignMaterial(Properties):
     
