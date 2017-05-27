@@ -1,0 +1,149 @@
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//
+//  License:		 BSD License
+//					 license: structural_mechanics_application/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//
+
+#if !defined(KRATOS_SURFACE_LOAD_CONDITION_3D_H_INCLUDED )
+#define  KRATOS_SURFACE_LOAD_CONDITION_3D_H_INCLUDED
+
+
+
+// System includes
+
+
+// External includes
+#include "boost/smart_ptr.hpp"
+
+
+// Project includes
+#include "includes/define.h"
+#include "includes/serializer.h"
+#include "custom_conditions/base_load_condition.h"
+#include "includes/ublas_interface.h"
+
+
+namespace Kratos
+{
+
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  SurfaceLoadCondition3D
+    : public BaseLoadCondition
+{
+public:
+
+    // Counted pointer of SurfaceLoadCondition3D
+    KRATOS_CLASS_POINTER_DEFINITION( SurfaceLoadCondition3D );
+
+
+    // Constructor void
+    SurfaceLoadCondition3D();
+
+    // Constructor using an array of nodes
+    SurfaceLoadCondition3D( IndexType NewId, GeometryType::Pointer pGeometry );
+
+    // Constructor using an array of nodes with properties
+    SurfaceLoadCondition3D( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+
+    // Destructor
+    virtual ~SurfaceLoadCondition3D();
+
+
+    // Name Operations
+    Condition::Pointer Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const;
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties ) const;
+
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo );
+
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo );
+
+
+protected:
+
+
+private:
+    ///@name Static Member Variables
+
+    /// privat variables
+
+
+    // privat name Operations
+
+    void CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo,
+        bool CalculateStiffnessMatrixFlag,
+        bool CalculateResidualVectorFlag );
+
+    void CalculateAndSubKp(
+        Matrix& K,
+        array_1d<double, 3>& ge,
+        array_1d<double, 3>& gn,
+        const Matrix& DN_De,
+        const Vector& N,
+        double pressure,
+        double weight );
+
+    void MakeCrossMatrix(
+        boost::numeric::ublas::bounded_matrix<double, 3, 3>& M,
+        array_1d<double, 3>& U );
+
+    void CrossProduct(
+        array_1d<double, 3>& cross,
+        array_1d<double, 3>& a,
+        array_1d<double, 3>& b );
+
+    void SubtractMatrix(
+        MatrixType& Destination,
+        boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
+        int InitialRow,
+        int InitialCol );
+
+    void ExpandReducedMatrix(
+        Matrix& Destination,
+        Matrix& ReducedMatrix );
+
+    void CalculateAndAdd_PressureForce(
+        VectorType& residualvector,
+        const Vector& N,
+        const array_1d<double, 3>& v3,
+        double pressure,
+        double weight,
+        const ProcessInfo& rCurrentProcessInfo );
+
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    virtual void save( Serializer& rSerializer ) const
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseLoadCondition );
+    }
+
+    virtual void load( Serializer& rSerializer )
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseLoadCondition );
+    }
+
+
+}; // class SurfaceLoadCondition3D.
+
+} // namespace Kratos.
+
+#endif // KRATOS_SURFACE_LOAD_CONDITION_3D_H_INCLUDED  defined 
