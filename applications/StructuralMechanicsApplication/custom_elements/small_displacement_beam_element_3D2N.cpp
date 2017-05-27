@@ -16,8 +16,9 @@
 // External includes
 
 // Project includes
+#include <math.h>
 #include "custom_elements/small_displacement_beam_element_3D2N.hpp"
-#include "custom_utilities/solid_mechanics_math_utilities.hpp"
+// #include "custom_utilities/solid_mechanics_math_utilities.hpp"
 
 #include "structural_mechanics_application_variables.h"
 
@@ -880,7 +881,7 @@ void SmallDisplacementBeamElement3D2N::CalculateLocalBodyForce( Vector& rLocalFo
         }
         if( norm_2(NormalPlaneProjection)==0 || norm_2(LocalBeamAxis)==0  )
         {
-            alpha = sign * PI * 0.5;
+            alpha = sign * M_PI * 0.5;
         }
         else
         {
@@ -930,7 +931,7 @@ void SmallDisplacementBeamElement3D2N::CalculateLocalBodyForce( Vector& rLocalFo
         }
         if( norm_2(NormalPlaneProjection)==0 || norm_2(LocalBeamAxis)==0  )
         {
-            alpha = sign * PI * 0.5;
+            alpha = sign * M_PI * 0.5;
         }
         else
         {
@@ -981,7 +982,7 @@ void SmallDisplacementBeamElement3D2N::CalculateLocalBodyForce( Vector& rLocalFo
         }
         if( norm_2(NormalPlaneProjection)==0 || norm_2(LocalBeamAxis)==0  )
         {
-            alpha = sign * PI * 0.5;
+            alpha = sign * M_PI * 0.5;
         }
         else
         {
@@ -1164,7 +1165,7 @@ void SmallDisplacementBeamElement3D2N::CalculateDistributedBodyForce(const int D
         }
         if( norm_2(NormalPlaneProjection)==0 || norm_2(LocalBeamAxis)==0  )
         {
-            alpha = sign * PI * 0.5;
+            alpha = sign * M_PI * 0.5;
         }
         else
         {
@@ -1196,7 +1197,7 @@ void SmallDisplacementBeamElement3D2N::CalculateDistributedBodyForce(const int D
         }
         if( norm_2(NormalPlaneProjection)==0 || norm_2(LocalBeamAxis)==0  )
         {
-            alpha = sign * PI * 0.5;
+            alpha = sign * M_PI * 0.5;
         }
         else
         {
@@ -1228,7 +1229,7 @@ void SmallDisplacementBeamElement3D2N::CalculateDistributedBodyForce(const int D
         }
         if( norm_2(NormalPlaneProjection)==0 || norm_2(LocalBeamAxis)==0  )
         {
-            alpha = sign * PI * 0.5;
+            alpha = sign * M_PI * 0.5;
         }
         else
         {
