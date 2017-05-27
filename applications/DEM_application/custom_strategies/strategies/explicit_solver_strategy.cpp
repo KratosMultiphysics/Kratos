@@ -595,8 +595,9 @@ namespace Kratos {
     void ExplicitSolverStrategy::BoundingBoxUtility(bool is_time_to_mark_and_remove) {
         KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
+        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
 
-        if (ElementConfigureType::GetDomainPeriodicity()) {
+        if (r_process_info[DOMAIN_IS_PERIODIC]) {
             mpParticleCreatorDestructor->MoveParticlesOutsideBoundingBoxBackInside(r_model_part);
         } else if (is_time_to_mark_and_remove) {
             mpParticleCreatorDestructor->DestroyParticlesOutsideBoundingBox(*mpCluster_model_part);

@@ -232,7 +232,7 @@ void SearchInRadiusExclusivePeriodic(PointerType& ThisObject, CoordinateType con
 
   for(SizeType i = 0; i < 3; i++)
   {
-      MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * this->mCellSize[i] + this->mMinPoint[i];  //
+      MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * this->mCellSize[i] + this->mMinPoint[i];
       MaxBox[i] = MinBox[i] + this->mCellSize[i];
   }
 
@@ -280,10 +280,12 @@ void SearchInRadiusExclusivePeriodic(PointerType& ThisObject, CoordinateType con
 
     for(SizeType i = 0; i < 3; i++)
     {
-        MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * this->mCellSize[i] + this->mMinPoint[i];  //
+        MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * this->mCellSize[i] + this->mMinPoint[i];
         MaxBox[i] = MinBox[i] + this->mCellSize[i];
     }
 
+    MinCell[2] = MinBox[2];
+    MaxCell[2] = MaxBox[2];
     IndexType I_begin = Box.Axis[0].BeginIndex();
     IndexType II_begin = Box.Axis[1].BeginIndex();
     IndexType III_begin = Box.Axis[2].BeginIndex();
