@@ -183,7 +183,7 @@ class ExplicitStrategy:
         self.spheres_model_part.ProcessInfo.SetValue(CONTINUUM_OPTION, self.continuum_type)
 
         # GLOBAL PHYSICAL ASPECTS
-        self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, self.Parameters.PeriodicDomainOption)
+        self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, self.Var_Translator(self.Parameters.PeriodicDomainOption))
         self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_MIN_CORNER, self.bottom_corner)
         self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_MAX_CORNER, self.top_corner)
         self.spheres_model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
