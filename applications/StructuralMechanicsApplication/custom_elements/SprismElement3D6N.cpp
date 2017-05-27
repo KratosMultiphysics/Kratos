@@ -1023,9 +1023,22 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
 
             // Call the constitutive law to update material variables
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy (Values);
+            
+            Matrix StressTensor  = MathUtils<double>::StressVectorToTensor(Variables.StressVector); //reduced dimension stress tensor
 
-            ComparisonUtilities EquivalentStress;
-            rOutput[PointNumber] =  EquivalentStress.CalculateVonMises(Variables.StressVector);
+
+            //in general coordinates:
+            double SigmaEquivalent =  (0.5)*((StressTensor(0,0)-StressTensor(1,1))*((StressTensor(0,0)-StressTensor(1,1)))+
+                                            (StressTensor(1,1)-StressTensor(2,2))*((StressTensor(1,1)-StressTensor(2,2)))+
+                                            (StressTensor(2,2)-StressTensor(0,0))*((StressTensor(2,2)-StressTensor(0,0)))+
+                                            6*(StressTensor(0,1)*StressTensor(1,0)+StressTensor(1,2)*StressTensor(2,1)+StressTensor(2,0)*StressTensor(0,2)));
+
+            if( SigmaEquivalent < 0 )
+                SigmaEquivalent = 0;
+
+            SigmaEquivalent = sqrt(SigmaEquivalent);
+
+            rOutput[PointNumber] =  SigmaEquivalent;
         }
     }
     else if ( rVariable == NORM_ISOCHORIC_STRESS )
@@ -1077,9 +1090,16 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
 
             // Call the constitutive law to update material variables
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy (Values);
+            
+            Matrix StressTensor  = MathUtils<double>::StressVectorToTensor(Variables.StressVector); //reduced dimension stress tensor
 
-            ComparisonUtilities EquivalentStress;
-            rOutput[PointNumber] =  EquivalentStress.CalculateStressNorm(Variables.StressVector);
+            double StressNorm =  ((StressTensor(0,0)*StressTensor(0,0))+(StressTensor(1,1)*StressTensor(1,1))+(StressTensor(2,2)*StressTensor(2,2))+
+                                (StressTensor(0,1)*StressTensor(0,1))+(StressTensor(0,2)*StressTensor(0,2))+(StressTensor(1,2)*StressTensor(1,2))+
+                                (StressTensor(1,0)*StressTensor(1,0))+(StressTensor(2,0)*StressTensor(2,0))+(StressTensor(2,1)*StressTensor(2,1)));
+
+            StressNorm = sqrt(StressNorm);
+
+            rOutput[PointNumber] =  StressNorm;
         }
     }
     else if ( rVariable == STRAIN_ENERGY )
