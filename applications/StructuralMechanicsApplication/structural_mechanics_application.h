@@ -22,7 +22,7 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 
-#include "includes/variables.h"
+#include "structural_mechanics_application_variables.h"
 
 /* ELEMENTS */
 /* Adding beam element */
@@ -41,6 +41,9 @@
 /* CONDITIONS */
 #include "custom_conditions/point_moment_3D_condition.hpp"
 #include "custom_conditions/point_torque_3D_condition.hpp"
+#include "custom_conditions/base_load_condition.h"
+#include "custom_conditions/line_load_condition_2d.h"
+#include "custom_conditions/surface_load_condition_3d.h"
 
 /* UTILITIES */
 // Cross sections
@@ -261,6 +264,16 @@ private:
     const KinematicLinear mKinematicLinear3D15N;
     const KinematicLinear mKinematicLinear3D20N;
     const KinematicLinear mKinematicLinear3D27N;
+    
+
+   const LineLoadCondition2D              mLineLoadCondition2D2N;
+   const LineLoadCondition2D              mLineLoadCondition2D3N;
+
+   const SurfaceLoadCondition3D    mSurfaceLoadCondition3D3N;
+   const SurfaceLoadCondition3D    mSurfaceLoadCondition3D4N;
+   const SurfaceLoadCondition3D    mSurfaceLoadCondition3D6N;
+   const SurfaceLoadCondition3D    mSurfaceLoadCondition3D8N;
+   const SurfaceLoadCondition3D    mSurfaceLoadCondition3D9N;
 
     
 
