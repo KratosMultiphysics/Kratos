@@ -179,35 +179,35 @@ void PointMoment3DCondition::GetDofList(DofsVectorType& ConditionalDofList,Proce
 //***********************************************************************************
 //***********************************************************************************
 
-void PointMoment3DCondition::AddExplicitContribution(const VectorType& rRHS, 
-						     const Variable<VectorType>& rRHSVariable, 
-						     Variable<array_1d<double,3> >& rDestinationVariable, 
-						     const ProcessInfo& rCurrentProcessInfo)
+void PointMoment3DCondition::AddExplicitContribution(const VectorType& rRHS,
+        const Variable<VectorType>& rRHSVariable,
+        Variable<array_1d<double,3> >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-    
+
     if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == MOMENT_RESIDUAL )
-      {
+    {
 
-	for(unsigned int i=0; i< number_of_nodes; i++)
-	  {
-	    int index = dimension * i;
+        for(unsigned int i=0; i< number_of_nodes; i++)
+        {
+            int index = dimension * i;
 
-	    GetGeometry()[i].SetLock();
+            GetGeometry()[i].SetLock();
 
-	    array_1d<double, 3 > &MomentResidual = GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
-	    for(unsigned int j=0; j<dimension; j++)
-	      {
-		MomentResidual[j] += rRHS[index + j];
-	      }
+            array_1d<double, 3 > &MomentResidual = GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
+            for(unsigned int j=0; j<dimension; j++)
+            {
+                MomentResidual[j] += rRHS[index + j];
+            }
 
-	    GetGeometry()[i].UnSetLock();
-	  }
-      }
+            GetGeometry()[i].UnSetLock();
+        }
+    }
 
     KRATOS_CATCH( "" )
 }
@@ -216,9 +216,9 @@ void PointMoment3DCondition::AddExplicitContribution(const VectorType& rRHS,
 //************************************************************************************
 
 void PointMoment3DCondition::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
-							  std::vector<double>& rValues,
-							  const ProcessInfo& rCurrentProcessInfo )
-{ 
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo )
+{
     this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 }
 
@@ -237,11 +237,11 @@ void PointMoment3DCondition::CalculateOnIntegrationPoints( const Variable<double
 
     if ( rVariable == EXTERNAL_ENERGY )
     {
-      //reading integration points
-      for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
+        //reading integration points
+        for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
         {
-	  rOutput[PointNumber] = mEnergy; //fabs(mEnergy);
-	}
+            rOutput[PointNumber] = mEnergy; //fabs(mEnergy);
+        }
     }
 
     KRATOS_CATCH( "" )

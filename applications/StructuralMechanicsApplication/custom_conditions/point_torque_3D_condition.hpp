@@ -103,19 +103,19 @@ public:
 
     void GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo);
 
-    /** 
+    /**
      * this function is designed to make the element to assemble an rRHS vector
      * identified by a variable rRHSVariable by assembling it to the nodes on the variable
      * rDestinationVariable.
      * @param rRHSVector: input variable containing the RHS vector to be assembled
      * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled
      * @param rCurrentProcessInfo: the current process info instance
-     */      
-    void AddExplicitContribution(const VectorType& rRHSVector, 
-				 const Variable<VectorType>& rRHSVariable, 
-				 Variable<array_1d<double,3> >& rDestinationVariable, 
-				 const ProcessInfo& rCurrentProcessInfo);
+     */
+    void AddExplicitContribution(const VectorType& rRHSVector,
+                                 const Variable<VectorType>& rRHSVariable,
+                                 Variable<array_1d<double,3> >& rDestinationVariable,
+                                 const ProcessInfo& rCurrentProcessInfo);
 
 
 
@@ -123,16 +123,16 @@ public:
     /**
      * Get on rVariable a double Value
      */
-    void GetValueOnIntegrationPoints( const Variable<double>& rVariable, 
-				      std::vector<double>& rValues, 
-				      const ProcessInfo& rCurrentProcessInfo );
+    void GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+                                      std::vector<double>& rValues,
+                                      const ProcessInfo& rCurrentProcessInfo );
 
     /**
      * Calculate a double Variable
      */
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, 
-				      std::vector<double>& rOutput, 
-				      const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                      std::vector<double>& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo);
 
 
     ///@}
@@ -178,7 +178,7 @@ protected:
     /**
      * Energy variable for loads
      */
-    double mEnergy; 
+    double mEnergy;
 
     ///@}
     ///@name Protected Operators
