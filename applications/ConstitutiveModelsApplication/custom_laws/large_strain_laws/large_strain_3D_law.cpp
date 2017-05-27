@@ -266,6 +266,7 @@ namespace Kratos
       //update total strain measure
       mStrainVector = ConstitutiveModelUtilities::SymmetricTensorToVector(rModelValues.StrainMatrix, mStrainVector);
 
+      
       // //update total strain measure ( in the UpdateInternalVariables method of the plasticity model )
       // mStrainVector[0] = rModelValues.StressMatrix(0,0);
       // mStrainVector[1] = rModelValues.StressMatrix(1,1);
@@ -432,7 +433,7 @@ namespace Kratos
 	//LawDataType& rVariables = ModelValues.rConstitutiveLawData();
         //e= 0.5*(1-invFT*invF) Almansi Strain
         //ConstitutiveModelUtilities::CalculateAlmansiStrain(rVariables.DeformationGradientF,StrainVector);
-
+	
       }
 
     //4.-Calculate Total kirchhoff stress and  Constitutive Matrix related to Total Kirchhoff stress
@@ -480,6 +481,7 @@ namespace Kratos
     // std::cout<<" StrainVector "<<rValues.GetStrainVector()<<std::endl;
     // std::cout<<" StressVector "<<rValues.GetStressVector()<<std::endl;
     // std::cout<<" ConstitutiveMatrix "<<rValues.GetConstitutiveMatrix()<<std::endl;
+
     
     KRATOS_CATCH(" ")
       
@@ -582,6 +584,28 @@ namespace Kratos
     rFeatures.mOptions.Set( FINITE_STRAINS );
     rFeatures.mOptions.Set( ISOTROPIC );
 
+    //Get model features
+    GetModelFeatures(rFeatures);
+      
+    //Set strain measure required by the consitutive law
+    rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
+	
+    //Set the strain size
+    rFeatures.mStrainSize = GetStrainSize();
+
+    //Set the spacedimension
+    rFeatures.mSpaceDimension = WorkingSpaceDimension();
+
+    KRATOS_CATCH(" ")
+  }
+
+  //************************************************************************************
+  //************************************************************************************
+  
+  void LargeStrain3DLaw::GetModelFeatures(Features& rFeatures)
+  {
+    KRATOS_TRY
+
     //Get model variables and set law characteristics
     if( mpModel != NULL ){
 
@@ -611,18 +635,11 @@ namespace Kratos
       //...
     }
       
-    //Set strain measure required by the consitutive law
-    rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-	
-    //Set the strain size
-    rFeatures.mStrainSize = GetStrainSize();
 
-    //Set the spacedimension
-    rFeatures.mSpaceDimension = WorkingSpaceDimension();
 
     KRATOS_CATCH(" ")
   }
-
+  
   //************************************************************************************
   //************************************************************************************
 

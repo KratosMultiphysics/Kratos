@@ -140,7 +140,7 @@ namespace Kratos
 
       //Calculate Constitutive Matrix
       this->CalculateAndAddConstitutiveTensor(Variables,rConstitutiveMatrix);
-    
+      
       KRATOS_CATCH(" ")
     }
   
@@ -330,10 +330,11 @@ namespace Kratos
       KRATOS_TRY
      
       rCabcd = this->AddIsochoricConstitutiveComponent(rVariables,rCabcd,a,b,c,d);
+
       rCabcd = this->AddVolumetricConstitutiveComponent(rVariables,rCabcd,a,b,c,d);
 
       //std::cout<<" Cabcd ["<<a<<","<<b<<","<<c<<","<<d<<"] :"<<rCabcd<<std::endl;
-
+            
       return rCabcd;
 	
       KRATOS_CATCH(" ")
@@ -499,7 +500,6 @@ namespace Kratos
 	//rCabcd += Cefmn * 4;
 	
       }
-
       
       return rCabcd;
 	
@@ -546,7 +546,7 @@ namespace Kratos
 	
 	rCabcd += nCabcd;
       }	
-	
+      
       return rCabcd;
       
       KRATOS_CATCH(" ")

@@ -97,6 +97,13 @@ namespace Kratos
      */
     void GetLawFeatures(Features& rFeatures);
 
+
+    /**
+     * This function is designed to be called once to check compatibility with element and the model
+     * @param rFeatures
+     */
+    void GetModelFeatures(Features& rFeatures);
+    
     ///@}
     ///@name Access
     ///@{

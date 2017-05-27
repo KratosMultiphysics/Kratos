@@ -570,7 +570,7 @@ namespace Kratos
     
 
     //Set strain measure required by the consitutive law
-	
+    
     //Set the strain size
     rFeatures.mStrainSize = GetStrainSize();
 
@@ -580,6 +580,7 @@ namespace Kratos
     KRATOS_CATCH(" ")
   }
 
+  
   //******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW*************************
   //************************************************************************************
 

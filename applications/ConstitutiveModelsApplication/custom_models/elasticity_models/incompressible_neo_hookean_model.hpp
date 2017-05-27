@@ -195,6 +195,17 @@ namespace Kratos
     ///@{
 
 
+    virtual double& AddVolumetricConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
+						       const unsigned int& a, const unsigned int& b,
+						       const unsigned int& c, const unsigned int& d) override
+    {
+      KRATOS_TRY
+
+      return IsochoricHyperElasticModel::AddVolumetricConstitutiveComponent(rVariables,rCabcd,a,b,c,d);
+           
+      KRATOS_CATCH(" ")
+    }
+    
     //************// dW
         
     virtual double& GetVolumetricFunctionJDerivative(HyperElasticDataType& rVariables, double& rDerivative) //dU/dJ

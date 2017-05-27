@@ -301,35 +301,6 @@ namespace Kratos
     rFeatures.mOptions.Set( THREE_DIMENSIONAL_LAW );
     rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
     rFeatures.mOptions.Set( ISOTROPIC );
-
-    //Get model variables and set law characteristics
-    if( mpModel != NULL ){
-
-      std::vector<Variable<double> > ScalarVariables;
-      std::vector<Variable<array_1d<double,3> > > ComponentVariables;
-
-      mpModel->GetDomainVariablesList(ScalarVariables, ComponentVariables);
-      
-      for(std::vector<Variable<array_1d<double,3> > >::iterator cv_it=ComponentVariables.begin(); cv_it != ComponentVariables.end(); )
-	{
-	  if( *cv_it == DISPLACEMENT ){
-	    for(std::vector<Variable<double> >::iterator sv_it=ScalarVariables.begin(); sv_it != ScalarVariables.end(); )
-	      {
-		if( *sv_it == PRESSURE )
-		  rFeatures.mOptions.Set( U_P_LAW );
-	      }
-	  }
-	  // if( *cv_it == VELOCITY ){
-	  //   for(std::vector<Variable<double> >::iterator sv_it=ScalarVariables.begin(); sv_it != ScalarVariables.end(); )
-	  //     {
-	  // 	if( *sv_it == PRESSURE )
-	  // 	  rFeatures.mOptions.Set( V_P_LAW );
-	  //     }
-	  // }
-	}
-
-      //...
-    }
     
     //Set strain measure required by the consitutive law
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
@@ -344,6 +315,46 @@ namespace Kratos
     KRATOS_CATCH(" ")
   }
 
+  //************************************************************************************
+  //************************************************************************************
+  
+  void SmallStrain3DLaw::GetModelFeatures(Features& rFeatures)
+  {
+    KRATOS_TRY
 
+    //Get model variables and set law characteristics
+    if( mpModel != NULL ){
+
+      std::vector<Variable<double> > ScalarVariables;
+      std::vector<Variable<array_1d<double,3> > > ComponentVariables;
+
+      mpModel->GetDomainVariablesList(ScalarVariables, ComponentVariables);
+      
+      for(std::vector<Variable<array_1d<double,3> > >::iterator cv_it=ComponentVariables.begin(); cv_it != ComponentVariables.end(); cv_it++)
+	{
+	  if( *cv_it == DISPLACEMENT ){
+	    for(std::vector<Variable<double> >::iterator sv_it=ScalarVariables.begin(); sv_it != ScalarVariables.end(); sv_it++)
+	      {
+
+		if( *sv_it == PRESSURE )
+		  rFeatures.mOptions.Set( U_P_LAW );
+	      }
+	  }
+	  // if( *cv_it == VELOCITY ){
+	  //   for(std::vector<Variables<double> >::iterator sv_it=ScalarVariables.begin(); sv_it != ScalarVariables.end(); )
+	  //     {
+	  // 	if( *sv_it == PRESSURE )
+	  // 	  rFeatures.mOptions.Set( V_P_LAW );
+	  //     }
+	  // }
+	}
+
+      //...
+    }
+      
+
+
+    KRATOS_CATCH(" ")
+  }
 
 } // Namespace Kratos
