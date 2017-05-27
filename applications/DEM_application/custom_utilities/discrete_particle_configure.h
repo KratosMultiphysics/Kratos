@@ -129,27 +129,39 @@ public:
 
     static inline void TransformToClosestPeriodicCoordinates(const double target[3], double base_coordinates[3])
     {
-        for (unsigned int i = 0; i < 3; ++i){
-            double incr_i = target[i] - base_coordinates[i];
-
-            if (fabs(incr_i) > 0.5 * mDomainPeriods[i]){
-                base_coordinates[i] += GetSign(incr_i) * mDomainPeriods[i];
-            }
-        }
-
+        TransformToClosestPeriodicCoordinates(target, base_coordinates, mDomainPeriods);
     }
 
     static inline void TransformToClosestPeriodicCoordinates(const array_1d<double,3>& target, array_1d<double,3>& base_coordinates)
     {
+        TransformToClosestPeriodicCoordinates(target, base_coordinates, mDomainPeriods);
+    }
+
+    static inline void TransformToClosestPeriodicCoordinates(const double target[3], double base_coordinates[3], const double periods[3])
+    {
         for (unsigned int i = 0; i < 3; ++i){
             double incr_i = target[i] - base_coordinates[i];
 
-            if (fabs(incr_i) > 0.5 * mDomainPeriods[i]){
-                base_coordinates[i] += GetSign(incr_i) * mDomainPeriods[i];
+            if (fabs(incr_i) > 0.5 * periods[i]){
+                base_coordinates[i] += GetSign(incr_i) * periods[i];
             }
         }
 
     }
+
+    static inline void TransformToClosestPeriodicCoordinates(const array_1d<double,3>& target, array_1d<double,3>& base_coordinates, const double periods[3])
+    {
+        for (unsigned int i = 0; i < 3; ++i){
+            double incr_i = target[i] - base_coordinates[i];
+
+            if (fabs(incr_i) > 0.5 * periods[i]){
+                base_coordinates[i] += GetSign(incr_i) * periods[i];
+            }
+        }
+
+    }
+
+
     ///@}
     ///@name Operators
     ///@{

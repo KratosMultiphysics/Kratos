@@ -41,7 +41,6 @@ void DEM_Force_Based_Inlet::FixInjectorConditions(Element* p_element)
 
 array_1d<double, 3> DEM_Force_Based_Inlet::GetInjectionForce(Element* p_element)
 {
-    AddRandomPerpendicularComponentToGivenVector(mInjectionForce, 60); // the max angle should be an INPUT
     return mInjectionForce;
 }
 
