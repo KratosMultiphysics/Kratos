@@ -6,7 +6,6 @@ import sys
 import os
 import os.path
 from KratosMultiphysics import *
-from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.StructuralMechanicsApplication import * 
 CheckForPreviousImport()
 
