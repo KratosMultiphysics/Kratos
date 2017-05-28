@@ -114,7 +114,8 @@ namespace Kratos
       const double& rStressNorm = rVariables.GetStressNorm();
 
       Hardening = this->mHardeningLaw.CalculateHardening(rVariables,Hardening);
-		
+
+      std::cout<<" Hardening "<< Hardening <<" StressNorm "<<rStressNorm<<std::endl;      
       rYieldCondition = rStressNorm - sqrt(2.0/3.0) * Hardening;
 		
       return rYieldCondition;

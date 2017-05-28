@@ -266,6 +266,8 @@ namespace Kratos
       MatrixType VolumetricStressMatrix;
       VolumetricStressMatrix.clear();
       this->mElasticityModel.CalculateVolumetricStressTensor(rValues,VolumetricStressMatrix);
+
+      std::cout<<" sc Volumetric Stress "<<VolumetricStressMatrix<<std::endl;
       
       // calculate isochoric stress
 
@@ -583,15 +585,22 @@ namespace Kratos
       Cabcd -= (0.5 * ( rStrainMatrix(a,c) * rStrainMatrix(b,d) + rStrainMatrix(a,d) * rStrainMatrix(b,c) ) );
       
       Cabcd *= 3.0 * rMaterial.GetLameMuBar();
+
+      std::cout<<" Cabcd 1 "<<Cabcd<<std::endl;
       
       Cabcd += ( rStrainMatrix(c,d) * rIsochoricStressMatrix(a,b) + rIsochoricStressMatrix(c,d) * rStrainMatrix(a,b) );
       
       Cabcd *= (-2.0/3.0) * ( (-1) * rFactors.Beta1 );
-      
+
+      std::cout<<" Cabcd 2 "<<Cabcd<<std::endl;
+	    
       Cabcd -= rFactors.Beta3 * 2.0 * rMaterial.GetLameMuBar() * ( rFactors.Normal(a,b) * rFactors.Normal(c,d) );
+
+      std::cout<<" Cabcd 3 "<<Cabcd<<std::endl;
       
       Cabcd -= rFactors.Beta4 * 2.0 * rMaterial.GetLameMuBar() * ( rFactors.Normal(a,b) * rFactors.Dev_Normal(c,d) );
-      
+
+      std::cout<<" Cabcd 4 "<<Cabcd<<std::endl;
 
       rCabcd += Cabcd;
     
@@ -834,7 +843,10 @@ namespace Kratos
 
 	}
 	
-      //std::cout<<"FACTORS:: Beta0 "<<rFactors.Beta0<<" Beta 1 "<<rFactors.Beta1<<" Beta2 "<<rFactors.Beta2<<" Beta 3 "<<rFactors.Beta3<<" Beta4 "<<rFactors.Beta4<<std::endl;
+      std::cout<<"FACTORS:: Beta0 "<<rFactors.Beta0<<" Beta 1 "<<rFactors.Beta1<<" Beta2 "<<rFactors.Beta2<<" Beta3 "<<rFactors.Beta3<<" Beta4 "<<rFactors.Beta4<<std::endl;
+
+      std::cout<<" Normal "<<rFactors.Normal<<std::endl;
+      std::cout<<" Dev_Normal "<<rFactors.Dev_Normal<<std::endl;
 
       KRATOS_CATCH(" ")    
 	  
