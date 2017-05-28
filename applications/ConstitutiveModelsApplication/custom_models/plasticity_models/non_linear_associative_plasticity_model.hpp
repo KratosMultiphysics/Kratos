@@ -201,7 +201,7 @@ namespace Kratos
 
       rValues.StressMatrix = rStressMatrix;  //store isochoric stress as StressMatrix
 
-      //std::cout<<" Isochoric Stress "<<rValues.StressMatrix<<std::endl;
+      std::cout<<" s Isochoric Stress "<<rValues.StressMatrix<<std::endl;
       
       if( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES ) )
 	this->UpdateInternalVariables(rValues, Variables);
@@ -277,7 +277,7 @@ namespace Kratos
       
       rValues.StressMatrix = rStressMatrix;  //store isochoric stress as StressMatrix
 
-      //std::cout<<" Isochoric Stress "<<rValues.StressMatrix<<std::endl;
+      std::cout<<" sc Isochoric Stress "<<rValues.StressMatrix<<std::endl;
       
       if( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES ) )
 	this->UpdateInternalVariables(rValues, Variables);
@@ -475,7 +475,9 @@ namespace Kratos
 
       //2.-Check yield condition
       rVariables.TrialStateFunction = this->mYieldCriterion.CalculateYieldCondition(rVariables, rVariables.TrialStateFunction);
-    
+
+      std::cout<<" TrialStateFunction "<<rVariables.TrialStateFunction<<" StressNorm "<<rVariables.StressNorm<<std::endl;
+      
       if( rVariables.State().Is(ConstitutiveModelData::IMPLEX_ACTIVE) ) 
 	{
 	  //3.- Calculate the implex radial return
@@ -622,7 +624,7 @@ namespace Kratos
       rEquivalentPlasticStrain = 0;
       rDeltaGamma = 0;
 
-      double StateFunction                = rVariables.TrialStateFunction;
+      double StateFunction                 = rVariables.TrialStateFunction;
     
       while ( fabs(StateFunction)>=Tolerance && iter<=MaxIterations)
 	{
@@ -642,7 +644,13 @@ namespace Kratos
 
 	  iter++;
 	}
-	   
+
+      std::cout<<" iter "<<iter<<std::endl;
+      std::cout<<" mInternal "<<mInternal.Variables<<std::endl;
+      std::cout<<" mPreviousInternal "<<mPreviousInternal.Variables<<std::endl;
+
+      std::cout<<" LocalInternal "<<rVariables.Internal.Variables<<std::endl;
+      std::cout<<" LocalDeltaInternal "<<rVariables.DeltaInternal.Variables<<std::endl;
 
       if(iter>MaxIterations)
 	return false;
