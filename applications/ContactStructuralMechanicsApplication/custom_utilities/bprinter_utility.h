@@ -28,7 +28,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
-    typedef typename bprinter::TablePrinter TablePrinterType;
+    typedef bprinter::TablePrinter TablePrinterType;
     
 ///@}
 ///@name  Enum's
