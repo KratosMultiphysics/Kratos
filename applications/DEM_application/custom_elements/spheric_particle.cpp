@@ -173,6 +173,19 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
 
     double RollingResistance = 0.0;
 
+//    KRATOS_WATCH("*****************************");
+//    KRATOS_WATCH(this->GetGeometry()[0].Id());
+//    KRATOS_WATCH(GetRadius());
+//    KRATOS_WATCH(GetSearchRadius());
+//    KRATOS_WATCH(GetInteractionRadius());
+//    KRATOS_WATCH("*****************************");
+
+//    for (unsigned int i = 0; i < mNeighbourElements.size(); ++i){
+
+//         KRATOS_WATCH(mNeighbourElements[i]->GetGeometry()[0].Id())
+
+//    }
+
     ComputeBallToBallContactForce(data_buffer, r_process_info, elastic_force, contact_force, RollingResistance);
 
     ComputeBallToRigidFaceContactForce(elastic_force, contact_force, RollingResistance, rigid_element_force, r_process_info, data_buffer.mDt, search_control);
@@ -666,6 +679,15 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
         if (data_buffer.mMultiStageRHS  &&  this->Id() > data_buffer.mpOtherParticle->Id()) continue;
 
         CalculateRelativePositions(data_buffer);
+//        KRATOS_WATCH(this->GetGeometry()[0].Id());
+
+//        for (unsigned int i = 0; i < 3; ++i){
+//            KRATOS_WATCH(i);
+//            KRATOS_WATCH(data_buffer.mMyCoors[i]);
+//            KRATOS_WATCH(data_buffer.mOtherCoors[i]);
+//        }
+//        KRATOS_WATCH(data_buffer.mOtherToMeVector);
+//        KRATOS_WATCH(data_buffer.mOtherToMeVector);
         
         if(data_buffer.mDistance < std::numeric_limits<double>::epsilon()) continue;
 
@@ -1556,27 +1578,21 @@ void SphericParticle::RotateOldContactForces(const double OldLocalCoordSystem[3]
 
 void SphericParticle::CalculateRelativePositions(ParticleDataBuffer & data_buffer)
 {
-    if (!data_buffer.mDomainIsPeriodic){ // default infinite-domain case
-        noalias(data_buffer.mOtherToMeVector) = this->GetGeometry()[0].Coordinates() - data_buffer.mpOtherParticle->GetGeometry()[0].Coordinates();
-    }
+    NodeType& this_node = this->GetGeometry()[0];
+    DEM_COPY_SECOND_TO_FIRST_3(data_buffer.mMyCoors, this_node)
+    NodeType& other_node = data_buffer.mpOtherParticle->GetGeometry()[0];
+    DEM_COPY_SECOND_TO_FIRST_3(data_buffer.mOtherCoors, other_node)
 
-    else { // periodic domain
-        NodeType& this_node = this->GetGeometry()[0];
-        data_buffer.mMyCoors[0] = this_node[0];
-        data_buffer.mMyCoors[1] = this_node[1];
-        data_buffer.mMyCoors[2] = this_node[2];
-        NodeType& other_node = data_buffer.mpOtherParticle->GetGeometry()[0];
-        data_buffer.mOtherCoors[0] = other_node[0];
-        data_buffer.mOtherCoors[1] = other_node[1];
-        data_buffer.mOtherCoors[2] = other_node[2];
+    if (data_buffer.mDomainIsPeriodic){
         TransformNeighbourCoorsToClosestInPeriodicDomain(data_buffer);
-        data_buffer.mOtherToMeVector[0] = data_buffer.mMyCoors[0] - data_buffer.mOtherCoors[0];
-        data_buffer.mOtherToMeVector[1] = data_buffer.mMyCoors[1] - data_buffer.mOtherCoors[1];
-        data_buffer.mOtherToMeVector[2] = data_buffer.mMyCoors[2] - data_buffer.mOtherCoors[2];
     }
 
-    data_buffer.mOtherRadius = data_buffer.mpOtherParticle->GetInteractionRadius();
+    data_buffer.mOtherToMeVector[0] = data_buffer.mMyCoors[0] - data_buffer.mOtherCoors[0];
+    data_buffer.mOtherToMeVector[1] = data_buffer.mMyCoors[1] - data_buffer.mOtherCoors[1];
+    data_buffer.mOtherToMeVector[2] = data_buffer.mMyCoors[2] - data_buffer.mOtherCoors[2];
+
     data_buffer.mDistance    = DEM_MODULUS_3(data_buffer.mOtherToMeVector);
+    data_buffer.mOtherRadius = data_buffer.mpOtherParticle->GetInteractionRadius();
     data_buffer.mRadiusSum   = this->GetInteractionRadius() + data_buffer.mOtherRadius;
     data_buffer.mIndentation = data_buffer.mRadiusSum - data_buffer.mDistance;
 }
