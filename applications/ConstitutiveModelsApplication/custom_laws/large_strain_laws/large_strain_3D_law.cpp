@@ -219,24 +219,23 @@ namespace Kratos
     // rVariables.StressMeasure = ConstitutiveModelData::StressMeasure_PK2;        //required stress measure
     // rVariables.StrainMeasure = ConstitutiveModelData::CauchyGreen_None;         //provided strain measure
 
-    // const Matrix& rDeformationGradientF = rValues.GetDeformationGradientF();   //total deformation gradient    
-    // noalias(rVariables.DeformationGradientF) = ConstitutiveModelUtilities::DeformationGradientTo3D(rDeformationGradientF,rVariables.DeformationGradientF);
-    // rVariables.DeterminantF  = rValues.GetDeterminantF();
+    // const Matrix& rDeformationGradientF0 = rValues.GetDeformationGradientF();   //total deformation gradient    
+    // noalias(rVariables.DeformationGradientF0) = ConstitutiveModelUtilities::DeformationGradientTo3D(rDeformationGradientF0,rVariables.DeformationGradientF0);
+    // rVariables.DeterminantF0  = rValues.GetDeterminantF();
     
 
     rVariables.StressMeasure = ConstitutiveModelData::StressMeasure_Kirchhoff; //required stress measure
     rVariables.StrainMeasure = ConstitutiveModelData::CauchyGreen_Left;        //provided strain measure
    
     //a.- Calculate incremental deformation gradient determinant
-    rVariables.DeterminantF  = rValues.GetDeterminantF();    
-    rVariables.DeterminantF /= mDeterminantF0; //determinant incremental F
+    rVariables.DeterminantF0 = rValues.GetDeterminantF();    
+    rVariables.DeterminantF  = rVariables.DeterminantF0/mDeterminantF0; //determinant incremental F
         
     //b.- Calculate incremental deformation gradient
-    const MatrixType& rDeformationGradientF = rValues.GetDeformationGradientF();
+    const MatrixType& rDeformationGradientF0 = rValues.GetDeformationGradientF();
 
-    noalias(rVariables.DeformationGradientF) = ConstitutiveModelUtilities::DeformationGradientTo3D(rDeformationGradientF, rVariables.DeformationGradientF);
-    rVariables.DeformationGradientF = prod(rVariables.DeformationGradientF, mInverseDeformationGradientF0); //incremental F
-    noalias(rVariables.IncrementalDeformationGradientF) = rVariables.DeformationGradientF;
+    noalias(rVariables.DeformationGradientF0) = ConstitutiveModelUtilities::DeformationGradientTo3D(rDeformationGradientF0, rVariables.DeformationGradientF0);
+    rVariables.DeformationGradientF = prod(rVariables.DeformationGradientF0, mInverseDeformationGradientF0); //incremental F
     
     if( rValues.GetOptions().Is(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE) )
       rModelValues.State.Set(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES);
@@ -266,25 +265,7 @@ namespace Kratos
       //update total strain measure
       mStrainVector = ConstitutiveModelUtilities::SymmetricTensorToVector(rModelValues.StrainMatrix, mStrainVector);
 
-      
-      // //update total strain measure ( in the UpdateInternalVariables method of the plasticity model )
-      // mStrainVector[0] = rModelValues.StressMatrix(0,0);
-      // mStrainVector[1] = rModelValues.StressMatrix(1,1);
-      // mStrainVector[2] = rModelValues.StressMatrix(2,2);
-      
-      // mStrainVector[3] = rModelValues.StressMatrix(0,1);
-      // mStrainVector[4] = rModelValues.StressMatrix(1,2);
-      // mStrainVector[5] = rModelValues.StressMatrix(2,0);
-      
-      // mStrainVector   *=  ( 1.0 / rModelValues.MaterialParameters.LameMu );
-      
-      // double VolumetricPart = (rModelValues.StrainMatrix(0,0)+rModelValues.StrainMatrix(1,1)+rModelValues.StrainMatrix(2,2))/3.0;
-      
-      // mStrainVector[0] += VolumetricPart;
-      // mStrainVector[1] += VolumetricPart;
-      // mStrainVector[2] += VolumetricPart;
-
-      
+      //std::cout<<" Finalize be "<<mStrainVector<<std::endl;
     }
     
     KRATOS_CATCH(" ")      
@@ -318,10 +299,6 @@ namespace Kratos
 
     ModelValues.StrainMatrix = prod(ModelValues.StrainMatrix,rVariables.DeformationGradientF);
     ModelValues.StrainMatrix = prod(trans(rVariables.DeformationGradientF),ModelValues.StrainMatrix);
-
-    // Set Total DeterminantF and DeformationGradientF
-    rVariables.DeterminantF         = rValues.GetDeterminantF();
-    rVariables.DeformationGradientF = rValues.GetDeformationGradientF();   
     
     //2.-Get problem variables (Temperature, Pressure, Size) and calculate material parameters
     this->CalculateDomainVariables(rValues, ModelValues);
@@ -339,7 +316,7 @@ namespace Kratos
 
 	//LawDataType& rVariables = ModelValues.rConstitutiveLawData();
 	//E= 0.5*(FT*F-1) Green-Lagrange Strain
-	//ConstitutiveModelUtilities::CalculateGreenLagrangeStrain(rVariables.DeformationGradientF,rStrainVector);
+	//ConstitutiveModelUtilities::CalculateGreenLagrangeStrain(rVariables.DeformationGradientF0,rStrainVector);
       }
 
     //4.-Calculate Total PK2 stress and  Constitutive Matrix related to Total PK2 stress
@@ -410,10 +387,9 @@ namespace Kratos
     ModelValues.StrainMatrix = prod(ModelValues.StrainMatrix,trans(rVariables.DeformationGradientF));
     ModelValues.StrainMatrix = prod(rVariables.DeformationGradientF,ModelValues.StrainMatrix);
 
-    
-    // Set Total DeterminantF and DeformationGradientF
-    rVariables.DeterminantF         = rValues.GetDeterminantF();
-    rVariables.DeformationGradientF = rValues.GetDeformationGradientF();   
+    // std::cout<<" F0 "<<rVariables.DeformationGradientF0<<std::endl;
+    // std::cout<<" F "<<rVariables.DeformationGradientF<<std::endl;
+    // std::cout<<" b "<<ModelValues.StrainMatrix<<std::endl;
     
     //2.-Calculate domain variables (Temperature, Pressure, Size) and calculate material parameters
     this->CalculateDomainVariables(rValues, ModelValues);

@@ -151,11 +151,11 @@ namespace Kratos
    
       if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){
 	
-	const MatrixType& rDeformationGradientF = rValues.GetDeformationGradientF();
+	const MatrixType& rDeformationGradientF0 = rValues.GetDeformationGradientF0();
 
 	//Variables.Strain.InverseMatrix used as an auxiliar matrix (contravariant push forward)
-	noalias( Variables.Strain.InverseMatrix ) = prod( trans(rDeformationGradientF), rStressMatrix );
-	noalias( rStressMatrix )  = prod( Variables.Strain.InverseMatrix, rDeformationGradientF );
+	noalias( Variables.Strain.InverseMatrix ) = prod( trans(rDeformationGradientF0), rStressMatrix );
+	noalias( rStressMatrix )  = prod( Variables.Strain.InverseMatrix, rDeformationGradientF0 );
 	
       }
       
@@ -300,11 +300,11 @@ namespace Kratos
       rVariables.SetState(rValues.State);
     
       //cauchy green tensor
-      const MatrixType& rStrainMatrix         = rValues.GetStrainMatrix();
-      const MatrixType& rDeformationGradientF = rValues.GetDeformationGradientF();
+      const MatrixType& rStrainMatrix          = rValues.GetStrainMatrix();
+      const MatrixType& rDeformationGradientF0 = rValues.GetDeformationGradientF0();
       
-      const StrainMeasureType& rStrainMeasure = rValues.GetStrainMeasure();
-      const StressMeasureType& rStressMeasure = rValues.GetStressMeasure();
+      const StrainMeasureType& rStrainMeasure  = rValues.GetStrainMeasure();
+      const StressMeasureType& rStressMeasure  = rValues.GetStressMeasure();
     
       if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mStrainMatrix = GreenLagrangeTensor
 	
@@ -313,7 +313,7 @@ namespace Kratos
 	  rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
 	}
 	else if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_None ){
-	  ConstitutiveModelUtilities::CalculateGreenLagrangeStrain( rDeformationGradientF, rVariables.Strain.Matrix);
+	  ConstitutiveModelUtilities::CalculateGreenLagrangeStrain( rDeformationGradientF0, rVariables.Strain.Matrix);
 	  rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
 	}
 	else{
@@ -329,13 +329,13 @@ namespace Kratos
 	  ConstitutiveModelUtilities::LeftCauchyToAlmansiStrain( rStrainMatrix , rVariables.Strain.Matrix);
 
 	  //rVariables.Strain.InverseMatrix used as an auxiliar matrix (covariant pull back)
-	  noalias( rVariables.Strain.InverseMatrix ) = prod( trans(rDeformationGradientF), rVariables.Strain.Matrix );
-	  noalias( rVariables.Strain.Matrix)  = prod( rVariables.Strain.InverseMatrix, rDeformationGradientF );
+	  noalias( rVariables.Strain.InverseMatrix ) = prod( trans(rDeformationGradientF0), rVariables.Strain.Matrix );
+	  noalias( rVariables.Strain.Matrix)  = prod( rVariables.Strain.InverseMatrix, rDeformationGradientF0 );
 
 	  rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
 	}
 	else if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_None ){
-	  ConstitutiveModelUtilities::CalculateGreenLagrangeStrain( rDeformationGradientF, rVariables.Strain.Matrix);
+	  ConstitutiveModelUtilities::CalculateGreenLagrangeStrain( rDeformationGradientF0, rVariables.Strain.Matrix);
 	  rValues.StrainMatrix = rVariables.Strain.Matrix;
 	  rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
 	}
