@@ -127,14 +127,15 @@ namespace Kratos
       double                       Temperature;
       double                       CharacteristicSize;      
       double                       DeterminantF;
-
+      double                       DeterminantF0;
+      
       //model data
       StressMeasureType            StressMeasure;       //stress measure requested
       StrainMeasureType            StrainMeasure;       //strain measure provided
 
       //deformation
-      MatrixType                   DeformationGradientF;
-      MatrixType                   IncrementalDeformationGradientF;
+      MatrixType                   DeformationGradientF;   //incremental F
+      MatrixType                   DeformationGradientF0;  //total F
     };
     
     
@@ -184,14 +185,15 @@ namespace Kratos
       //Get const Data
       const double&        GetPressure                     () const {return mConstitutiveLawData.Pressure;}; 
       const double&        GetTemperature                  () const {return mConstitutiveLawData.Temperature;}; 
-      const double&        GetDeterminantF                 () const {return mConstitutiveLawData.DeterminantF;}; 
+      const double&        GetDeterminantF                 () const {return mConstitutiveLawData.DeterminantF;};
+      const double&        GetDeterminantF0                () const {return mConstitutiveLawData.DeterminantF0;}; 
       const double&        GetCharacteristicSize           () const {return mConstitutiveLawData.CharacteristicSize;}; 
 
       const StressMeasureType& GetStressMeasure            () const {return mConstitutiveLawData.StressMeasure;}; 
       const StrainMeasureType& GetStrainMeasure            () const {return mConstitutiveLawData.StrainMeasure;};
 
       const MatrixType&    GetDeformationGradientF         () const {return mConstitutiveLawData.DeformationGradientF;}; 
-      const MatrixType&    GetIncrementalDeformationGradientF() const{return mConstitutiveLawData.IncrementalDeformationGradientF;};
+      const MatrixType&    GetDeformationGradientF0        () const {return mConstitutiveLawData.DeformationGradientF0;};
 
       const ConstitutiveLawData&   GetConstitutiveLawData  () const {return mConstitutiveLawData;};
       

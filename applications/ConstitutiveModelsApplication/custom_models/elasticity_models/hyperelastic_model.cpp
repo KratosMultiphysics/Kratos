@@ -72,8 +72,8 @@ namespace Kratos
     rVariables.SetState(rValues.State);
     
     //cauchy green tensor
-    const MatrixType& rStrainMatrix         = rValues.GetStrainMatrix();
-    const MatrixType& rDeformationGradientF = rValues.GetDeformationGradientF();
+    const MatrixType& rStrainMatrix          = rValues.GetStrainMatrix();
+    const MatrixType& rDeformationGradientF0 = rValues.GetDeformationGradientF0();
 
     const StrainMeasureType& rStrainMeasure = rValues.GetStrainMeasure();
     const StressMeasureType& rStressMeasure = rValues.GetStressMeasure();
@@ -86,7 +86,7 @@ namespace Kratos
 	rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
       }
       else if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_None ){
-	noalias(rVariables.Strain.Matrix) = prod(trans(rDeformationGradientF), rDeformationGradientF);
+	noalias(rVariables.Strain.Matrix) = prod(trans(rDeformationGradientF0), rDeformationGradientF0);
 	ConstitutiveModelUtilities::InvertMatrix3( rVariables.Strain.Matrix, rVariables.Strain.InverseMatrix, rVariables.Strain.Invariants.I3 );
 
 	rValues.StrainMatrix = rVariables.Strain.Matrix;
@@ -105,7 +105,7 @@ namespace Kratos
 	rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
       }
       else if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_None ){
-	noalias(rVariables.Strain.Matrix) = prod(rDeformationGradientF,trans(rDeformationGradientF));
+	noalias(rVariables.Strain.Matrix) = prod(rDeformationGradientF0,trans(rDeformationGradientF0));
 	ConstitutiveModelUtilities::InvertMatrix3( rVariables.Strain.Matrix, rVariables.Strain.InverseMatrix, rVariables.Strain.Invariants.I3 );
 
 	rValues.StrainMatrix = rVariables.Strain.Matrix;
@@ -125,6 +125,8 @@ namespace Kratos
 
     //Calculate LameMuBar
     rValues.MaterialParameters.LameMuBar =  rValues.MaterialParameters.LameMu * ( rVariables.Strain.Matrix(0,0) + rVariables.Strain.Matrix(1,1) + rVariables.Strain.Matrix(2,2) ) * rVariables.Strain.Invariants.J_13 * rVariables.Strain.Invariants.J_13 * (1.0/3.0) ;    
+
+    //std::cout<<" LameMuBar "<<rValues.MaterialParameters.LameMuBar<<std::endl;
     
     //Algorithmic moduli factors
     this->CalculateScalingFactors(rVariables);
@@ -660,7 +662,7 @@ namespace Kratos
     this->CalculateStrainInvariants( rVariables.Strain.Matrix, rVariables.Strain.Invariants.I1, rVariables.Strain.Invariants.I2, rVariables.Strain.Invariants.I3 );
  
     //jacobian
-    rVariables.Strain.Invariants.J    = rVariables.GetModelData().GetDeterminantF();
+    rVariables.Strain.Invariants.J    = rVariables.GetModelData().GetDeterminantF0();
     rVariables.Strain.Invariants.J_13 = pow(rVariables.Strain.Invariants.J,(-1.0/3.0));
 
     //std::cout<<" Strain.Invariants [I1:"<<rVariables.Strain.Invariants.I1<<" I2:"<<rVariables.Strain.Invariants.I2<<" I3:"<<rVariables.Strain.Invariants.I3<<"] J:"<<rVariables.Strain.Invariants.J<<std::endl;
