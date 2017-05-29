@@ -9,6 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
+
 # Basic moving mesh test
 from SmallTests import SimpleMeshMovingTest             as TSimpleMeshMovingTest
 # Dynamic basic tests
@@ -55,6 +56,8 @@ from SmallTests import EigenTL3D8NCubeTests             as TEigenTL3D8NCubeTests
 # Membrane tests
 from SmallTests import Fofi4PointTentnoCableTests       as TFofi4PointTentnoCableTests
 from SmallTests import MembraneQ4PointLoadTests         as TMembraneQ4PointLoadTests
+# Nodal damping test
+from test_nodal_damping import NodalDampingTests        as TNodalDampingTests
 
 ## NIGTHLY TESTS
 # Shell test
@@ -130,6 +133,8 @@ def AssambleTestSuites():
     # Membrane tests
     smallSuite.addTest(TFofi4PointTentnoCableTests('test_execution'))
     smallSuite.addTest(TMembraneQ4PointLoadTests('test_execution'))
+    # Nodal damping test
+    smallSuite.addTest(TNodalDampingTests('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -187,6 +192,7 @@ def AssambleTestSuites():
             TShellT3ThinDrillingRollUpTests,
             TShellT3IsotropicScordelisTests,
             TIsotropicDamageSimoJuPSTest,
+            TNodalDampingTests
             ######TSprismPanTests
         ])
     )

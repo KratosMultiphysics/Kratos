@@ -165,7 +165,7 @@ public:
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
         TSystemMatrixType& A,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
         if(!pScheme)
@@ -308,7 +308,7 @@ public:
     void SetUpDofSet(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part
-    )
+    ) override 
     {
         KRATOS_TRY
 
@@ -436,7 +436,7 @@ public:
 
     //**************************************************************************
     //**************************************************************************
-    void Clear()
+    void Clear() override
     {
         this->mDofSet = DofsArrayType();
 

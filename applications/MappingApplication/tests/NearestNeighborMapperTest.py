@@ -1,18 +1,17 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 from KratosMultiphysics import *
-from KratosMultiphysics.MappingApplication import *
-
-import os
-import process_factory
-import KratosMultiphysics.KratosUnittest as KratosUnittest
-
 try: # test to import the modules for the parallel execution
     from KratosMultiphysics.mpi import *
     from KratosMultiphysics.MetisApplication import *
     from KratosMultiphysics.TrilinosApplication import *
 except:
     pass
+from KratosMultiphysics.MappingApplication import *
+
+CheckForPreviousImport()
+
+import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 class NearestNeighborMapperTest(KratosUnittest.TestCase):
 
