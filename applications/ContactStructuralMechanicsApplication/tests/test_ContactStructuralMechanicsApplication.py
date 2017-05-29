@@ -132,7 +132,7 @@ def AssambleTestSuites():
             TSimplePatchTestTwoDMeshTying,
             TSimpleSlopePatchTestTwoDMeshTying,
             TSimplestPatchTestThreeDMeshTying,
-            ##TSimplePatchTestThreeDMeshTying, # FIXME: Some error in the mesh tying condition
+            # ##TSimplePatchTestThreeDMeshTying, # FIXME: Some error in the mesh tying condition
             TALMHyperSimplePatchTestContact,
             TALMHyperSimpleSlopePatchTestContact,
             TALMSimplePatchTestContact,
@@ -141,8 +141,8 @@ def AssambleTestSuites():
             TALMSimplePatchNotMatchingBTestContact,
             TALMThreeDSimplestPatchMatchingTestContact,
             TALMThreeDSimplestPatchMatchingSlopeTestContact,
-            TALMTThreeDPatchMatchingTestContact,
-            TALMThreeDPatchNotMatchingTestContact,
+            TALMTThreeDPatchMatchingTestContact, # TODO: Debug in Windows
+            TALMThreeDPatchNotMatchingTestContact, # TODO: Debug in Windows
             # NIGTHLY
             TALMMeshMovingMatchingTestContact,
             TALMMeshMovingNotMatchingTestContact,
@@ -151,7 +151,7 @@ def AssambleTestSuites():
             TALMHertzSimpleTestContact,
             TALMHertzSimpleSphereTestContact,
             TALMHertzSphereTestContact,
-            TALMHertzCompleteTestContact,
+            TALMHertzCompleteTestContact, # TODO: Debug in Windows
             # VALIDATION
             ##TALMIroningTestContact,
             ##TALMIroningDieTestContact,
