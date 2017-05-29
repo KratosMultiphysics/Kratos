@@ -852,12 +852,13 @@ private:
 
 
             if(number_of_structure_nodes!=3) //if it is = 3 it is a completely fixed element -> do not add it
-            {
-
-                if (nfs != 0 || nfluid != 3)  //in this case it is close to the surface so i should use alpha shape
+            {	
+		
+//                if ((nfs != 0 || nfluid != 3) && n_int==0) //in this case it is close to the surface so i should use alpha shape
+                if (nfs != 0 || nfluid != 3) //in this case it is close to the surface so i should use alpha shape
                 {
 
-                    if( AlphaShape(my_alpha,temp) && number_of_structure_nodes!=3) //if alpha shape says to preserve
+                    if( AlphaShape(my_alpha,temp)) //if alpha shape says to preserve
                     {
 // 							if(nboundary==3 && number_of_structure_nodes > 1 && nfs > 0) //if it is = 3 pressure problems -> do not add it
 // 							{
@@ -871,9 +872,10 @@ private:
                     }
                 }
 		//FOR GLASS FORMING: we keep the contact elements as much as possible
+		/*
 		else if (n_int!=0 && number_of_structure_nodes!=0)
 		{
-		double bigger_alpha = my_alpha*10.0;
+		double bigger_alpha = my_alpha*2.0;
 		    if( AlphaShape(bigger_alpha,temp) && number_of_structure_nodes!=3)
                     {
 			//KRATOS_WATCH ("PRESRVING INTERFACE ELEMENT")			  	
@@ -884,24 +886,20 @@ private:
 
 
 		}
-
+		*/
                 else //internal triangle --- should be ALWAYS preserved
                 {
                     double bigger_alpha = my_alpha*10.0;
                     if( AlphaShape(bigger_alpha,temp) && number_of_structure_nodes!=3)
                     {
-// 						  	if(nboundary==3 && number_of_structure_nodes > 1 && nfs > 0) //if it is = 3 pressure problems -> do not add it
-// 							{
-// 							      preserved_list1[el] = false;
-// 							}
-// 							else
-// 							{
+ 						  	
                         preserved_list1[el] = true;
                         number_of_preserved_elems += 1;
-// 							}
+// 							
                     }
                 }
             }
+		
             else
                 preserved_list1[el] = false;
 

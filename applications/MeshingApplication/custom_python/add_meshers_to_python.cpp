@@ -219,8 +219,8 @@ void  AddMeshersToPython()
     //class that allows 2D adaptive remeshing (inserting and erasing nodes) as well as preserving the topology (avoiding "holes" at the boundaries). made for glass simulation
     class_<TriGenGLASSModeler >("TriGenGLASSModeler",
                                init< >())
-    .def("ReGenerateMesh",TriRegenerateMeshGLASS)
-    .def("ReGenerateMesh",&TriGenGLASSModeler::ReGenerateMesh)
+    .def("ReGenerateMeshGlass",TriRegenerateMeshGLASS)
+    .def("ReGenerateMeshGlass",&TriGenGLASSModeler::ReGenerateMesh)
     ;
 
 
