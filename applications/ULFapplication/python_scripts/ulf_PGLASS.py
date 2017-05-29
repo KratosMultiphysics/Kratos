@@ -141,11 +141,6 @@ class ULF_FSISolver:
         self.ResetNodalHAtLonelyNodes()
         #assigning average nodal h to lonely nodes
         self.AssignHtoLonelyStructureNodes()
-        
-	  
-    
-
-       
     #######################################################################
     #delta time estimation based on the non-negativity of the jacobian
     def EstimateDeltaTime(self,max_dt,domain_size):
@@ -383,23 +378,19 @@ class ULF_FSISolver:
     #and then computes the correct value only for the nodes of elements. Thus lonely nodes remain with this enormous values
     def ResetNodalHAtLonelyNodes(self):
        for node in self.fluid_model_part.Nodes:
-	 if (node.GetSolutionStepValue(NODAL_H)>100000000.0):
-	   node.SetSolutionStepValue(NODAL_H,0,0.0)
+          if (node.GetSolutionStepValue(NODAL_H)>100000000.0):
+            node.SetSolutionStepValue(NODAL_H,0,0.0)
     ######################################################################
     def AssignHtoLonelyStructureNodes(self):
         nnodes=0
         nodal_h=0.0
         av_nodal_h=0.0
         for node in self.fluid_model_part.Nodes:
-	  if (node.GetSolutionStepValue(NODAL_H)!=0.0):
-	    nnodes=nnodes+1;	    
-	    nodal_h=nodal_h+node.GetSolutionStepValue(NODAL_H);
-	    #print (node.GetSolutionStepValue(NODAL_H))
-	
-	av_nodal_h=nodal_h/nnodes
-	#print("av_nodal_h")
-	#print(av_nodal_h)
-	
+            if (node.GetSolutionStepValue(NODAL_H)!=0.0):
+               nnodes=nnodes+1;	    
+               nodal_h=nodal_h+node.GetSolutionStepValue(NODAL_H);
+
+        av_nodal_h=nodal_h/nnodes
         for node in self.fluid_model_part.Nodes:
-	  if (node.GetSolutionStepValue(IS_STRUCTURE)==1.0 and node.GetSolutionStepValue(IS_FLUID)==0.0):
-	    node.SetSolutionStepValue(NODAL_H, av_nodal_h)
+           if (node.GetSolutionStepValue(IS_STRUCTURE)==1.0 and node.GetSolutionStepValue(IS_FLUID)==0.0):
+              node.SetSolutionStepValue(NODAL_H, av_nodal_h)
