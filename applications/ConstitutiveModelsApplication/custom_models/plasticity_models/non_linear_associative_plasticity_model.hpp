@@ -176,9 +176,7 @@ namespace Kratos
 
       // calculate isochoric stress
       this->CalculateIsochoricStressTensor(rValues,rStressMatrix);
-
-      rValues.StressMatrix = rStressMatrix;  //store isochoric stress as StressMatrix
-      
+     
       rStressMatrix += VolumetricStressMatrix;
 		
       KRATOS_CATCH(" ")
@@ -196,12 +194,11 @@ namespace Kratos
       // calculate elastic isochoric stress
       this->mElasticityModel.CalculateIsochoricStressTensor(rValues,rStressMatrix);
       
+      rValues.StressMatrix = rStressMatrix;  //store trial isochoric stress to ModelData StressMatrix
+
       // calculate plastic isochoric stress
       this->CalculateAndAddIsochoricStressTensor(Variables,rStressMatrix);      
 
-      rValues.StressMatrix = rStressMatrix;  //store isochoric stress as StressMatrix
-
-      std::cout<<" s Isochoric Stress "<<rValues.StressMatrix<<std::endl;
       
       if( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES ) )
 	this->UpdateInternalVariables(rValues, Variables);
@@ -226,13 +223,16 @@ namespace Kratos
 
       // calculate isochoric stress (radial return is needed)
 
-      MatrixType StressMatrix = rValues.StressMatrix;
+      //MatrixType StoredStressMatrix = rValues.StressMatrix; //store to recover later
+
+      MatrixType StressMatrix;
       //1.-Elastic Isochoric Stress Matrix
-      this->mElasticityModel.CalculateIsochoricStressTensor(rValues,rValues.StressMatrix);
+      this->mElasticityModel.CalculateIsochoricStressTensor(rValues,StressMatrix);
 
+      rValues.StressMatrix = StressMatrix;  //store trial isochoric stress to ModelData StressMatrix
+      
       //2.-Calculate and Add Plastic Isochoric Stress Matrix
-      this->CalculateAndAddIsochoricStressTensor(Variables,rValues.StressMatrix);
-
+      this->CalculateAndAddIsochoricStressTensor(Variables,StressMatrix);
       
       //Calculate Constitutive Matrix
 
@@ -245,7 +245,7 @@ namespace Kratos
               
       Variables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX,true);
       
-      rValues.StressMatrix = StressMatrix;
+      //rValues.StressMatrix = StoredStressMatrix; //recovered (commented because it is the same)
     
       KRATOS_CATCH(" ")
     }
@@ -272,12 +272,11 @@ namespace Kratos
       // calculate elastic isochoric stress
       this->mElasticityModel.CalculateIsochoricStressTensor(rValues,rStressMatrix);
       
+      rValues.StressMatrix = rStressMatrix;  //store trial isochoric stress to ModelData StressMatrix
+
       // calculate plastic isochoric stress
       this->CalculateAndAddIsochoricStressTensor(Variables,rStressMatrix);
       
-      rValues.StressMatrix = rStressMatrix;  //store isochoric stress as StressMatrix
-
-      std::cout<<" sc Isochoric Stress "<<rValues.StressMatrix<<std::endl;
       
       if( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES ) )
 	this->UpdateInternalVariables(rValues, Variables);
