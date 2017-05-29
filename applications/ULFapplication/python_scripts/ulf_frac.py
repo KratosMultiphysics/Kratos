@@ -148,6 +148,10 @@ class ULF_FSISolver:
         (self.fluid_neigh_finder).Execute();
         self.Hfinder = FindNodalHProcess(fluid_model_part);
         self.Hfinder.Execute();
+        
+        self.ResetNodalHAtLonelyNodes()
+        #assigning average nodal h to lonely nodes
+        self.AssignHtoLonelyStructureNodes()
 
     #
     # delta time estimation based on the non-negativity of the jacobian
@@ -317,3 +321,23 @@ class ULF_FSISolver:
     #
     def FindNeighbours(self):
         (self.neigh_finder).Execute();
+    #this function is included since at the findNodalHProcess of Kratos core assigns max value (1.7*e^309) to all nodes
+    #and then computes the correct value only for the nodes of elements. Thus lonely nodes remain with this enormous values
+    def ResetNodalHAtLonelyNodes(self):
+       for node in self.fluid_model_part.Nodes:
+          if (node.GetSolutionStepValue(NODAL_H)>100000000.0):
+            node.SetSolutionStepValue(NODAL_H,0,0.0)
+    ######################################################################
+    def AssignHtoLonelyStructureNodes(self):
+        nnodes=0
+        nodal_h=0.0
+        av_nodal_h=0.0
+        for node in self.fluid_model_part.Nodes:
+            if (node.GetSolutionStepValue(NODAL_H)!=0.0):
+               nnodes=nnodes+1;	    
+               nodal_h=nodal_h+node.GetSolutionStepValue(NODAL_H);
+
+        av_nodal_h=nodal_h/nnodes
+        for node in self.fluid_model_part.Nodes:
+           if (node.GetSolutionStepValue(IS_STRUCTURE)==1.0 and node.GetSolutionStepValue(IS_FLUID)==0.0):
+              node.SetSolutionStepValue(NODAL_H, av_nodal_h)
