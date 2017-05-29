@@ -132,7 +132,7 @@ def AssambleTestSuites():
             TSimplePatchTestTwoDMeshTying,
             TSimpleSlopePatchTestTwoDMeshTying,
             TSimplestPatchTestThreeDMeshTying,
-            # ##TSimplePatchTestThreeDMeshTying, # FIXME: Some error in the mesh tying condition
+            ##TSimplePatchTestThreeDMeshTying, # FIXME: Some error in the mesh tying condition
             TALMHyperSimplePatchTestContact,
             TALMHyperSimpleSlopePatchTestContact,
             TALMSimplePatchTestContact,
@@ -144,8 +144,8 @@ def AssambleTestSuites():
             TALMTThreeDPatchMatchingTestContact, # TODO: Debug in Windows
             TALMThreeDPatchNotMatchingTestContact, # TODO: Debug in Windows
             # NIGTHLY
-            TALMMeshMovingMatchingTestContact,
-            TALMMeshMovingNotMatchingTestContact,
+            TALMMeshMovingMatchingTestContact, # TODO: Debug in Windows (it works in Release)
+            TALMMeshMovingNotMatchingTestContact, # TODO: Debug in Windows (it works in Release)
             TALMTaylorPatchTestContact,
             TALMTaylorPatchDynamicTestContact, # NOTE: Check that in debug dynamic gives an error
             TALMHertzSimpleTestContact,
