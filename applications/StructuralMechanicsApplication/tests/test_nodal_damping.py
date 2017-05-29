@@ -26,6 +26,7 @@ class NodalDampingTests(KratosUnittest.TestCase):
         scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
         # convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
         convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-4,1e-9)
+        convergence_criterion.SetEchoLevel(0)
         
         max_iters = 20
         compute_reactions = False
