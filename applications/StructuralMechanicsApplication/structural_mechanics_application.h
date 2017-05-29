@@ -225,9 +225,9 @@ private:
 
     // Adding the membrane element 
     const MembraneElement mMembraneElement3D3N;
-	const MembraneElement mMembraneElement3D4N;
-	const PrestressMembraneElement mPreStressMembraneElement3D3N;
-	const PrestressMembraneElement mPreStressMembraneElement3D4N;
+    const MembraneElement mMembraneElement3D4N;
+    const PrestressMembraneElement mPreStressMembraneElement3D3N;
+    const PrestressMembraneElement mPreStressMembraneElement3D4N;
     
     // Adding the SPRISM element 
     const SprismElement3D6N mSprismElement3D6N;
