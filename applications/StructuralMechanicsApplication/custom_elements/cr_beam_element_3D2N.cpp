@@ -107,6 +107,11 @@ namespace Kratos
 	void CrBeamElement3D2N::Initialize() {
 
 		KRATOS_TRY;
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
+		const int dimension = this->GetGeometry().WorkingSpaceDimension();
+		const int local_size = number_of_nodes * dimension;
+
+
 		this->mPoisson = this->GetProperties()[POISSON_RATIO];
 		this->mArea = this->GetProperties()[CROSS_AREA];
 		this->mYoungsModulus = this->GetProperties()[YOUNG_MODULUS];
@@ -150,6 +155,10 @@ namespace Kratos
 				std::endl;
 		}
 
+		if (this->mIterationCount == 0)
+		{
+			this->mNodalForces = ZeroVector(local_size * 2);
+		}
 		KRATOS_CATCH("")
 	}
 
@@ -381,6 +390,35 @@ namespace Kratos
 		Kd(4, 4) = 3.0 * E * Iy * Psi_y / L;
 		Kd(5, 5) = 3.0 * E * Iz * Psi_z / L;
 
+
+		//add geometric stiffness part
+		if (this->mIsLinearElement == false)
+		{
+			const double l = this->mCurrentLength;
+			const double N = this->mNodalForces[6];
+
+			const double Qy = -1.00 * (this->mNodalForces[5]+
+				this->mNodalForces[11])/l;
+
+			const double Qz = 1.00 * (this->mNodalForces[4] +
+				this->mNodalForces[10]) / l;
+
+			const double N1 = l*N / 12.00;
+			const double N2 = l*N / 20.00;
+			const double Qy1 = -l*Qy / 6.00;
+			const double Qz1 = -l*Qz / 6.00;
+
+			Kd(1, 1) += N1;
+			Kd(2, 2) += N1;
+			Kd(4, 4) += N2;
+			Kd(5, 5) += N2;
+
+			Kd(0, 1) += Qy1;
+			Kd(0, 2) += Qz1;
+			Kd(1, 0) += Qy1;
+			Kd(2, 0) += Qz1;
+
+		}
 		return Kd;
 		KRATOS_CATCH("")
 	}
@@ -1059,6 +1097,10 @@ namespace Kratos
 		TransformationMatrixS = this->CalculateTransformationS();
 		nodalForcesLocal_qe = prod(TransformationMatrixS, elementForces_t);
 
+		//save local nodal forces
+		this->mNodalForces = ZeroVector(LocalSize);
+		this->mNodalForces = nodalForcesLocal_qe;
+
 		//resizing the matrices + create memory for LHS
 		rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 		//creating LHS
@@ -1140,6 +1182,11 @@ namespace Kratos
 		TransformationMatrixS = this->CalculateTransformationS();
 		nodalForcesLocal_qe = prod(TransformationMatrixS,
 			elementForces_t);
+
+		//save local nodal forces
+		this->mNodalForces = ZeroVector(LocalSize);
+		this->mNodalForces = nodalForcesLocal_qe;
+
 		Vector nodalForcesGlobal_q = ZeroVector(LocalSize);
 		nodalForcesGlobal_q = prod(TransformationMatrix, nodalForcesLocal_qe);
 		rRightHandSideVector -= nodalForcesGlobal_q;

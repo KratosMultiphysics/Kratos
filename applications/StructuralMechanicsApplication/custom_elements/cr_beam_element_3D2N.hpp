@@ -192,6 +192,7 @@ namespace Kratos
 		Vector mQuaternionVEC_A, mQuaternionVEC_B;
 		double mQuaternionSCA_A, mQuaternionSCA_B;
 		Vector mPhiS, mPhiA;
+		Vector mNodalForces;
 
 		int mIterationCount = 0;
 		bool mIsLinearElement = false;
