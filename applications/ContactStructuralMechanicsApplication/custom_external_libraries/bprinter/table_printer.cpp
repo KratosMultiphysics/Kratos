@@ -75,8 +75,13 @@ namespace bprinter
     void TablePrinter::PrintHeader()
     {
         PrintHorizontalLine();
-        *out_stream_ << "\e[1m|";
+		
+		#if !defined(_WIN32)
+			*out_stream_ << "\e[1m";
+		#endif
 
+		*out_stream_ << "|";
+		
         for (unsigned int i = 0; i < get_num_columns(); ++i)
         {
             if(flush_left_)
@@ -96,7 +101,14 @@ namespace bprinter
             }
         }
 
-        *out_stream_ << "|\e[0m\n";
+		*out_stream_ << "|";
+
+		#if !defined(_WIN32)
+			*out_stream_ << "\e[0m";
+		#endif
+
+		*out_stream_ << "\n";
+		
         PrintHorizontalLine();
     }
 

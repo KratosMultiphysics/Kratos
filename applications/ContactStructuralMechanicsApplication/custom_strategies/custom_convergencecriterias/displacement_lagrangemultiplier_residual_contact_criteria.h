@@ -22,7 +22,9 @@
 #include "includes/define.h"
 #include "custom_utilities/bprinter_utility.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "custom_utilities/color_utilities.h"
+#if !defined(_WIN32)
+	#include "custom_utilities/color_utilities.h"
+#endif
 
 namespace Kratos
 {
@@ -261,9 +263,15 @@ public:
                 else
                 {
                     std::cout.precision(4);
-                    std::cout << BOLDFONT("RESIDUAL CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
-                    std::cout << BOLDFONT("\tDISPLACEMENT: RATIO = ") << ResidualDispRatio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << ResidualDispAbs  << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
-                    std::cout << BOLDFONT("\tLAGRANGE MUL: RATIO = ") << ResidualLMRatio  << BOLDFONT(" EXP.RATIO = ") << mLMRatioTolerance << BOLDFONT(" ABS = ") << ResidualLMAbs << BOLDFONT(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
+					#if !defined(_WIN32)
+						std::cout << BOLDFONT("RESIDUAL CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
+						std::cout << BOLDFONT("\tDISPLACEMENT: RATIO = ") << ResidualDispRatio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << ResidualDispAbs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
+						std::cout << BOLDFONT("\tLAGRANGE MUL: RATIO = ") << ResidualLMRatio << BOLDFONT(" EXP.RATIO = ") << mLMRatioTolerance << BOLDFONT(" ABS = ") << ResidualLMAbs << BOLDFONT(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
+					#else
+						std::cout << "RESIDUAL CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
+						std::cout << "\tDISPLACEMENT: RATIO = " << ResidualDispRatio << " EXP.RATIO = " << mDispRatioTolerance << " ABS = " << ResidualDispAbs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
+						std::cout << "\tLAGRANGE MUL: RATIO = " << ResidualLMRatio << " EXP.RATIO = " << mLMRatioTolerance << " ABS = " << ResidualLMAbs << " EXP.ABS = " << mLMAbsTolerance << std::endl;
+					#endif
                 }
             }
 
@@ -278,11 +286,19 @@ public:
                     if (mpTable != nullptr)
                     {
                         auto& Table = mpTable->GetTable();
-                        Table << BOLDFONT(FGRN("       Achieved"));
+						#if !defined(_WIN32)
+							Table << BOLDFONT(FGRN("       Achieved"));
+						#else
+							Table << "Achieved";
+						#endif
                     }
                     else
                     {
-                        std::cout << BOLDFONT("\tResidual") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
+						#if !defined(_WIN32)
+							std::cout << BOLDFONT("\tResidual") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
+						#else
+							std::cout << "\tResidual convergence is achieved" << std::endl;
+						#endif
                     }
                 }
                 return true;
@@ -294,11 +310,19 @@ public:
                     if (mpTable != nullptr)
                     {
                         auto& Table = mpTable->GetTable();
-                        Table << BOLDFONT(FRED("   Not achieved"));
+						#if !defined(_WIN32)
+							Table << BOLDFONT(FRED("   Not achieved"));
+						#else
+							Table << "Not achieved";
+						#endif
                     }
                     else
                     {
-                        std::cout << BOLDFONT("\tResidual") << " convergence is " << BOLDFONT(FRED(" not achieved")) << std::endl;
+						#if !defined(_WIN32)
+							std::cout << BOLDFONT("\tResidual") << " convergence is " << BOLDFONT(FRED(" not achieved")) << std::endl;
+						#else
+							std::cout << "\tResidual convergence is not achieved" << std::endl;
+						#endif
                     }
                 }
                 return false;

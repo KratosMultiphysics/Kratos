@@ -19,9 +19,11 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "custom_utilities/color_utilities.h"
 #include "custom_utilities/bprinter_utility.h"
 #include "solving_strategies/convergencecriterias/and_criteria.h"
+#if !defined(_WIN32)
+	#include "custom_utilities/color_utilities.h"
+#endif
 
 namespace Kratos
 {
@@ -205,7 +207,11 @@ public:
         if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
         {
             std::cout.precision(4);
-            std::cout << "\n\n" << BOLDFONT("CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl << std::scientific;
+			#if !defined(_WIN32)
+				std::cout << "\n\n" << BOLDFONT("CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl << std::scientific;
+			#else
+				std::cout << "\n\n" << "CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl << std::scientific;
+			#endif
                 
             if (mpTable != nullptr)
             {
