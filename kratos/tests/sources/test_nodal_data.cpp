@@ -32,14 +32,14 @@ namespace Kratos {
 
 			for (int i = 0; i < repeat; i++) {
 				for (auto i_node = model_part.NodesBegin(); i_node != model_part.NodesEnd(); i_node++) {
-					i_node->GetSolutionStepValue(PRESSURE) = static_cast<double>(i);
-					i_node->GetSolutionStepValue(VELOCITY_X) = static_cast<double>(i);
+					i_node->FastGetSolutionStepValue(PRESSURE) = static_cast<double>(i);
+					i_node->FastGetSolutionStepValue(VELOCITY_X) = static_cast<double>(i);
 				}
 				double pressure_sum = 0;
 				double velocity_x_sum = 0;
 				for (auto i_node = model_part.NodesBegin(); i_node != model_part.NodesEnd(); i_node++) {
-					pressure_sum += i_node->GetSolutionStepValue(PRESSURE);
-					velocity_x_sum += i_node->GetSolutionStepValue(VELOCITY_X) * 2;
+					pressure_sum += i_node->FastGetSolutionStepValue(PRESSURE);
+					velocity_x_sum += i_node->FastGetSolutionStepValue(VELOCITY_X) * 2;
 				}
 				KRATOS_CHECK_DOUBLE_EQUAL(pressure_sum, i * size);
 				KRATOS_CHECK_DOUBLE_EQUAL(velocity_x_sum, i * size * 2);
@@ -68,16 +68,16 @@ namespace Kratos {
 
 			for (int i = 0; i < repeat; i++) {
 				for (auto i_node = model_part.NodesBegin(); i_node != model_part.NodesEnd(); i_node++) {
-					i_node->GetSolutionStepValue(PRESSURE) = static_cast<double>(i);
-					i_node->GetSolutionStepValue(VELOCITY_X) = static_cast<double>(i);
+					i_node->FastGetSolutionStepValue(PRESSURE) = static_cast<double>(i);
+					i_node->FastGetSolutionStepValue(VELOCITY_X) = static_cast<double>(i);
 				}
 				double pressure_sum = 0;
 				double velocity_x_sum = 0;
 				double velocity_y_sum = 0;
 				for (auto i_node = model_part.NodesBegin(); i_node != model_part.NodesEnd(); i_node++) {
-					pressure_sum += i_node->GetSolutionStepValue(PRESSURE);
-					velocity_x_sum += i_node->GetSolutionStepValue(VELOCITY_X);
-					velocity_y_sum += i_node->GetSolutionStepValue(VELOCITY_Y);
+					pressure_sum += i_node->FastGetSolutionStepValue(PRESSURE);
+					velocity_x_sum += i_node->FastGetSolutionStepValue(VELOCITY_X);
+					velocity_y_sum += i_node->FastGetSolutionStepValue(VELOCITY_Y);
 				}
 				KRATOS_CHECK_DOUBLE_EQUAL(pressure_sum, i * size);
 				KRATOS_CHECK_DOUBLE_EQUAL(velocity_x_sum, i * size);
