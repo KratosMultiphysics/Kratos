@@ -87,7 +87,7 @@ class Algorithm(BaseAlgorithm):
         self.pp.CFD_DEM.calculate_diffusivity_option = False
         self.pp.CFD_DEM.print_CONDUCTIVITY_option = False
         self.pp.CFD_DEM.filter_velocity_option = False
-        self.pp.CFD_DEM.print_PARTICLE_VEL_option = False        
+        self.pp.CFD_DEM.print_PARTICLE_VEL_option = False
         # Making the fluid step an exact multiple of the DEM step
         self.pp.Dt = int(self.pp.Dt / self.pp.CFD_DEM.MaxTimeStep) * self.pp.CFD_DEM.MaxTimeStep
         self.pp.viscosity_modification_type = 0.0
@@ -156,22 +156,6 @@ class Algorithm(BaseAlgorithm):
         import variables_management as vars_man
 
         vars_man.ConstructListsOfVariables(self.pp)
-        #_____________________________________________________________________________________________________________________________________
-        #
-        #                               F L U I D    B L O C K    B E G I N S
-        #_____________________________________________________________________________________________________________________________________
-
-        # defining variables to be used
-        # GID IO IS NOT USING THIS NOW. TO BE REMOVED ONCE THE "PRINT IN POINTS"
-        # CODE IS NOT USING IT
-
-        variables_dictionary = {"PRESSURE"   : PRESSURE,
-                                "VELOCITY"   : VELOCITY,
-                                "MU"         : MU,         #    MOD.
-                                "BUOYANCY"   : BUOYANCY,   #    MOD.
-                                "DRAG_FORCE" : DRAG_FORCE,  #    MOD.
-                                "LIFT_FORCE" : LIFT_FORCE} #    MOD.
-
         fluid_model_part = self.all_model_parts.Get('FluidPart')
 
         if "REACTION" in self.pp.nodal_results:
@@ -190,13 +174,6 @@ class Algorithm(BaseAlgorithm):
         # self.ReadFluidModelPart()
         # Creating necessary directories
         [post_path, data_and_results, graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(self.pp.CFD_DEM.problem_name))
-
-        #_____________________________________________________________________________________________________________________________________
-        #
-        #                               F L U I D    B L O C K    E N D S
-        #_____________________________________________________________________________________________________________________________________
-
-        # Add variables
 
         vars_man.AddNodalVariables(spheres_model_part, self.pp.dem_vars)
         vars_man.AddNodalVariables(self.rigid_face_model_part, self.pp.rigid_faces_vars)

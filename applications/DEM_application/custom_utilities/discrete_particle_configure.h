@@ -223,13 +223,15 @@ public:
         const double coors_1[3] = {point_1[0], point_1[1], point_1[2]};
         PointType& point_2 = rObj_2->GetGeometry()[0];
         const double coors_2[3] = {point_2[0], point_2[1], point_2[2]};
+
         PeriodicSubstract(coors_1, coors_2, rObj_2_to_rObj_1);
-        double distance_2 = DEM_INNER_PRODUCT_3(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
+
+        const double distance_2 = DEM_INNER_PRODUCT_3(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
 
         SphericParticle* p_particle1 = static_cast<SphericParticle*>(&*rObj_1);
         SphericParticle* p_particle2 = static_cast<SphericParticle*>(&*rObj_2);
-        double radius_sum      = p_particle1->GetSearchRadius() + p_particle2->GetSearchRadius();
-        bool intersect         = floatle((distance_2 - radius_sum * radius_sum),0);
+        const double radius_sum      = p_particle1->GetSearchRadius() + p_particle2->GetSearchRadius();
+        const bool intersect         = floatle((distance_2 - radius_sum * radius_sum),0);
         return intersect;
     }
 
@@ -397,7 +399,7 @@ private:
 
         if (mDomainIsPeriodic){ // Periods have been set (the domain is periodic)
             for (unsigned int i = 0; i < 3; ++i){
-                if (fabs(c[i]) > 0.5 * mDomainPeriods[i]){ // the objects are closer through the boundary
+                if (std::fabs(c[i]) > 0.5 * mDomainPeriods[i]){ // the objects are closer through the boundary
                     c[i] -= GetSign(c[i]) * mDomainPeriods[i];
                 }
             }

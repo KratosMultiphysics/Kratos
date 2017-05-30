@@ -182,7 +182,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
 //           KRATOS_CATCH("")
 
           KRATOS_TRY
-          
+
           int MaxNumberOfElements = rStructureElements.size();
           ElementsContainerType::ContainerType& elements_array     = const_cast<ElementsContainerType::ContainerType&>(rElements.GetContainer());
           ElementsContainerType::ContainerType& elements_ModelPart = const_cast<ElementsContainerType::ContainerType&>(rStructureElements.GetContainer());
@@ -202,9 +202,9 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
                   
                   SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*elements_array[i]);
                   const double radius = p_particle->GetSearchRadius();
-                
+
                   NumberOfResults = p_bins->SearchObjectsInRadiusExclusive(elements_array[i],radius,ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
-                  
+
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
                   rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
               }
@@ -221,7 +221,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           VectorDistanceType& rResultsDistance )
       {     
           KRATOS_TRY
-          
+
           int MaxNumberOfElements = rStructureElements.size();
           
           ElementsContainerType::ContainerType& elements_array     = const_cast<ElementsContainerType::ContainerType&>(rElements.GetContainer());
@@ -260,7 +260,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           VectorResultElementsContainerType& rResults )
       {     
           KRATOS_TRY
-          
+
           int MaxNumberOfElements = rStructureElements.size();
           
           ElementsContainerType::ContainerType& elements_array     = const_cast<ElementsContainerType::ContainerType&>(rElements.GetContainer());
@@ -279,10 +279,10 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
                   
                   SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*elements_array[i]);
                   const double radius = p_particle->GetSearchRadius();
-                        
+
                   NumberOfResults = p_bins->SearchObjectsInRadiusExclusive(elements_array[i],radius,ResultsPointer,MaxNumberOfElements);
-  
-                  rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);    
+
+                  rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
               } 
           }
           
@@ -296,7 +296,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           VectorResultElementsContainerType& rResults )
       {     
           KRATOS_TRY
-          
+
           int MaxNumberOfElements = rStructureElements.size();
           
           ElementsContainerType::ContainerType& elements_array     = const_cast<ElementsContainerType::ContainerType&>(rElements.GetContainer());
@@ -334,7 +334,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           VectorDistanceType& rResultsDistance )
       {     
           KRATOS_TRY
-          
+
           int MaxNumberOfNodes = rStructureNodes.size();
           
           NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(rNodes.GetContainer());
@@ -372,7 +372,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           VectorDistanceType& rResultsDistance )
       {     
           KRATOS_TRY
-          
+
           int MaxNumberOfNodes = rStructureNodes.size();
       
           NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(rNodes.GetContainer());
@@ -409,7 +409,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           VectorResultNodesContainerType& rResults )
       {     
           KRATOS_TRY
-          
+
           int MaxNumberOfNodes = rStructureNodes.size();
           
           NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(rNodes.GetContainer());
@@ -443,7 +443,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           VectorResultNodesContainerType& rResults )
       {     
           KRATOS_TRY
-          
+
           int MaxNumberOfNodes = rStructureNodes.size();
           
           NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(rNodes.GetContainer());
@@ -478,7 +478,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           VectorDistanceType& rResultsDistance )
       {     
           KRATOS_TRY
-          
+
           int MaxNumberOfElements = rStructureElements.size();
 
           ElementsContainerType::ContainerType& elements_bins   = const_cast<ElementsContainerType::ContainerType&>  (rStructureElements.GetContainer());
@@ -534,7 +534,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           VectorDistanceType& rResultsDistance )
       {     
           KRATOS_TRY
-          
+
           int MaxNumberOfElements = rStructureElements.size();
 
           ElementsContainerType::ContainerType& elements_bins   = const_cast<ElementsContainerType::ContainerType&>  (rStructureElements.GetContainer());
@@ -590,7 +590,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           VectorDistanceType& rResultsDistance )
       {
           KRATOS_TRY
-          
+
           int MaxNumberOfElements = rStructureElements.size();
 
           ConditionsContainerType::ContainerType& elements_bins = const_cast<ConditionsContainerType::ContainerType&>(rStructureElements.GetContainer());
@@ -802,7 +802,6 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
         {
             if (mDomainPeriodicity){
                 return std::unique_ptr<BinsType>(new BinsTypePeriodic(r_model_part_container.begin(), r_model_part_container.end(), this->mDomainMin, this->mDomainMax));
-
             }
 
             else {

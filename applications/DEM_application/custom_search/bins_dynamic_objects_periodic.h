@@ -298,10 +298,10 @@ void FillObjectPeriodic(SearchStructureType& Box, const PointerType& i_object)
             for (IndexType I = I_begin; I_size > 0; NextIndex(I, I_size, MinCell, MaxCell, Box.Axis, 0))
             {
                 IndexType GlobalIndex = III * Box.Axis[2].Block + II * Box.Axis[1].Block + I * Box.Axis[0].Block;
-                //this->mCells[GlobalIndex].Add(i_object);
-                if(TConfigure::IntersectionBox(i_object,MinCell,MaxCell)){
-                    this->mCells[GlobalIndex].Add(i_object);
-                }
+                this->mCells[GlobalIndex].Add(i_object);
+//                if(TConfigure::IntersectionBox(i_object,MinCell,MaxCell)){
+//                    this->mCells[GlobalIndex].Add(i_object);
+//                }
             }
         }
     }
@@ -379,8 +379,8 @@ public:
     /// Assignment operator.
     BinsObjectDynamicPeriodic<TConfigure> & operator=(const BinsObjectDynamicPeriodic<TConfigure> & rOther)
     {
-        this-> mMinPoint            = rOther.mMinPoint;
-        this-> mMaxPoint            = rOther.mMaxPoint;
+        this-> mMinPoint           = rOther.mMinPoint;
+        this-> mMaxPoint           = rOther.mMaxPoint;
         this->mObjectsBegin        = rOther.mObjectsBegin;
         this->mObjectsEnd          = rOther.mObjectsEnd;
         this->mObjectsSize         = rOther.mObjectsSize;
