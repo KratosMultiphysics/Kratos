@@ -29,6 +29,7 @@
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "geometries/geometry_data.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos {
 
@@ -111,6 +112,11 @@ public:
         pdistance_calculator->FindIntersections();
         pdistance_calculator->ComputeDistances(pdistance_calculator->GetIntersections());
 
+        // TODO: Raycasting
+
+        // Distance positive and negative peak values correction
+        this->PeakValuesCorrection(); //TODO: Check the correct behaviour of this method once the raycasting has been implemented
+
         // Compute the embedded velocity
         this->ComputeEmbeddedVelocity(pdistance_calculator->GetIntersections());
 
@@ -177,7 +183,7 @@ public:
     void ComputeEmbeddedVelocity(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
     {
         #pragma omp for
-        for (int k = 0; k < static_cast<int>(mrFluidModelPart.NumberOfElements()); k++)
+        for (int k = 0; k < static_cast<int>(mrFluidModelPart.NumberOfElements()); ++k)
         {
             ModelPart::ElementsContainerType::iterator itFluidElement = mrFluidModelPart.ElementsBegin() + k;
             PointerVector<GeometricalObject> intersected_skin_elems = rIntersectedObjects[itFluidElement->Id()];
@@ -200,6 +206,84 @@ public:
             {
                 itFluidElement->GetValue(EMBEDDED_VELOCITY) /= intersection_counter;
             }
+        }
+    }
+
+    void PeakValuesCorrection()
+    {
+        // Obtain the maximum and minimum distance values to be set
+        double max_distance, min_distance;
+        this->SetMaximumAndMinimumDistanceValues(max_distance, min_distance);
+
+        // Bound the distance value in the non splitted nodes
+        #pragma omp parallel for
+        for (int k = 0; k < static_cast<int>(mrFluidModelPart.NumberOfNodes()); ++k)
+        {
+            ModelPart::NodesContainerType::iterator itFluidNode = mrFluidModelPart.NodesBegin() + k;
+            if(itFluidNode->IsNot(TO_SPLIT))
+            {
+                double& rnode_distance = itFluidNode->FastGetSolutionStepValue(DISTANCE);
+                rnode_distance = (rnode_distance > 0.0) ? max_distance : min_distance;
+            }
+        }
+    }
+
+    void SetMaximumAndMinimumDistanceValues(double& max_distance, double& min_distance)
+    {
+        // Flag the nodes belonging to the splitted elements
+        for (int k = 0; k < static_cast<int>(mrFluidModelPart.NumberOfElements()); ++k)
+        {
+            ModelPart::ElementsContainerType::iterator itFluidElement = mrFluidModelPart.ElementsBegin() + k;
+
+            if(itFluidElement->Is(TO_SPLIT))
+            {
+                Geometry<Node<3>>& rGeom = itFluidElement->GetGeometry();
+                for (unsigned int i=0; i<rGeom.size(); ++i)
+                {
+                    rGeom[i].Set(TO_SPLIT, true);
+                }
+            }
+        }
+
+        // Obtain the maximum and minimum nodal distance values of the nodes flagged as TO_SPLIT
+        const unsigned int num_threads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector nodes_partition;
+        OpenMPUtils::DivideInPartitions(mrFluidModelPart.NumberOfNodes(), num_threads, nodes_partition);
+
+        std::vector<double> max_distance_vect(num_threads, 1.0);
+        std::vector<double> min_distance_vect(num_threads, 1.0);
+
+        #pragma omp parallel shared(max_distance_vect, min_distance_vect)
+        {
+            const int k = OpenMPUtils::ThisThread();
+            ModelPart::NodeIterator nodes_begin = mrFluidModelPart.NodesBegin() + nodes_partition[k];
+            ModelPart::NodeIterator nodes_end   = mrFluidModelPart.NodesBegin() + nodes_partition[k+1];
+
+            double max_local_distance = 1.0;
+            double min_local_distance = 1.0;
+
+            for( ModelPart::NodeIterator itFluidNode = nodes_begin; itFluidNode != nodes_end; ++itFluidNode)
+            {
+                if(itFluidNode->Is(TO_SPLIT))
+                {
+                    const double node_distance = itFluidNode->FastGetSolutionStepValue(DISTANCE);
+                    max_local_distance = (node_distance>max_local_distance) ? node_distance : max_local_distance;
+                    min_local_distance = (node_distance<min_local_distance) ? node_distance : min_local_distance;
+                }
+            }
+
+            max_distance_vect[k] = max_local_distance;
+            min_distance_vect[k] = min_local_distance;
+        }
+
+        // Reduce to maximum and minimum the thread results
+        // Note that MSVC14 does not support max reductions, which are part of OpenMP 3.1
+        max_distance = max_distance_vect[0];
+        min_distance = min_distance_vect[0];
+        for (unsigned int k = 1; k < num_threads; k++)
+        {
+             max_distance = (max_distance > max_distance_vect[k]) ?  max_distance : max_distance_vect[k];
+             min_distance = (min_distance < min_distance_vect[k]) ?  min_distance : min_distance_vect[k];
         }
     }
 
