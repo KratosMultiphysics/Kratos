@@ -34,7 +34,35 @@ namespace Kratos
 
 	void CalculateDiscontinuousDistanceToSkinProcess::Initialize()
 	{
+		// Initialize the intersected objects process
 		mFindIntersectedObjectsProcess.Initialize();
+
+		// Reset the nodal distance values
+		const double initial_distance = 1.0;
+
+		#pragma omp parallel for
+		for (int k = 0; k< static_cast<int> (mrVolumePart.NumberOfNodes()); ++k)
+		{
+			ModelPart::NodesContainerType::iterator itNode = mrVolumePart.NodesBegin() + k;
+			itNode->GetSolutionStepValue(DISTANCE) = initial_distance;
+		}
+
+		// Reset the Elemental distance to 1.0 which is the maximum distance in our normalized space.
+		// Also initialize the embedded velocity of the fluid element and the TO_SPLIT flag.
+		array_1d<double,4> ElementalDistances;
+		ElementalDistances[0] = initial_distance;
+		ElementalDistances[1] = initial_distance;
+		ElementalDistances[2] = initial_distance;
+		ElementalDistances[3] = initial_distance;
+
+		#pragma omp parallel for
+		for (int k = 0; k< static_cast<int> (mrVolumePart.NumberOfElements()); ++k)
+		{
+			ModelPart::ElementsContainerType::iterator itElement = mrVolumePart.ElementsBegin() + k;
+			itElement->Set(TO_SPLIT, false);
+			itElement->SetValue(EMBEDDED_VELOCITY, ZeroVector(3));
+			itElement->SetValue(ELEMENTAL_DISTANCES,ElementalDistances);
+		}
 	}
 
 	void CalculateDiscontinuousDistanceToSkinProcess::FindIntersections()

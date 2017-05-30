@@ -59,8 +59,6 @@ namespace Kratos
 	{
 		ModelPart& ModelPart1 = (CalculateDiscontinuousDistanceToSkinProcess::mFindIntersectedObjectsProcess).GetModelPart1();
 
-		CalculateDiscontinuousDistanceToSkinProcess::Execute();
-
 		constexpr int number_of_tetrahedra_points = 4;
 		for (auto& element : ModelPart1.Elements())
 		{
