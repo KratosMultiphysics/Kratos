@@ -118,8 +118,9 @@ public:
                 {
                     ConditionIsActive = true;
                     
-//                     #pragma omp critical
+					// Geom1[iNode].SetLock();
                     Geom1[iNode].Set(ACTIVE, true);
+					// Geom1[iNode].UnSetLock();
                 }
                 else if (DualCheck == true)
                 {
@@ -128,8 +129,9 @@ public:
                     {
                         ConditionIsActive = true;
                         
-    //                     #pragma omp critical
-                        Geom1[iNode].Set(ACTIVE, true);
+						// Geom1[iNode].SetLock();
+						Geom1[iNode].Set(ACTIVE, true);
+						// Geom1[iNode].UnSetLock();
                     }
                 }
              }

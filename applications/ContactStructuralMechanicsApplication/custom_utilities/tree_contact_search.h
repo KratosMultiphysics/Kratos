@@ -408,7 +408,7 @@ public:
                     {
                         KRATOS_ERROR << " The type search is not implemented yet does not exist!!!!. SearchTreeType = " << mSearchTreeType << std::endl;
                     }
-                    
+
                     if (NumberPointsFound > 0)
                     {                           
                         boost::shared_ptr<ConditionSet>& ConditionPointersDestination = itCond->GetValue(CONTACT_SETS);
@@ -417,7 +417,9 @@ public:
                         {   
                             Condition::Pointer pCondOrigin = PointsFound[i]->GetCondition();
                             
-                            if (CheckCondition(ConditionPointersDestination, (*itCond.base()), pCondOrigin) == true) 
+							const bool ConditionCheckedRight = CheckCondition(ConditionPointersDestination, (*itCond.base()), pCondOrigin);
+
+                            if (ConditionCheckedRight == true)
                             {    
                                 // If not active we check if can be potentially in contact
                                 SearchUtilities::ContactContainerFiller(ConditionPointersDestination, (*itCond.base()), pCondOrigin, itCond->GetValue(NORMAL), pCondOrigin->GetValue(NORMAL), mActiveCheckFactor, mDualSearchCheck, mStrictSearchCheck); 
@@ -545,19 +547,20 @@ protected:
         {
             return false;
         }
-        
+
         // Avoid conditions oriented in the same direction
         const double Tolerance = 1.0e-16;
         if (norm_2(pCond1->GetValue(NORMAL) - pCond2->GetValue(NORMAL)) < Tolerance)
         {
             return false;
         }
-        
-        if (ConditionPointers1->find(pCond2) != ConditionPointers1->end())
-        {
-            return false;
-        }
-        
+
+		// To avoid to repeat twice the same condition 
+		if (ConditionPointers1->find(pCond2) != ConditionPointers1->end())
+		{
+			return false;
+		}
+
         if (pCond2->Is(SLAVE) == true) // Otherwise will not be necessary to check
         {
             auto& ConditionPointers2 = pCond2->GetValue(CONTACT_SETS);
@@ -567,7 +570,7 @@ protected:
                 return false;
             }
         }
-        
+
         return true;
     }
     

@@ -21,7 +21,7 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
-#include <unordered_set>
+#include <boost/unordered_set.hpp>
 
 namespace Kratos
 {
@@ -51,11 +51,11 @@ struct SharedPointerComparator
 
 typedef array_1d<double,3> Vector3;
 
-struct ConditionSet : std::unordered_set<Condition::Pointer, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> >
+struct ConditionSet : boost::unordered_set<Condition::Pointer, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> >
 {
     ~ConditionSet(){}
     
-    typedef std::unordered_set<Condition::Pointer, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> > BaseType;
+    typedef boost::unordered_set<Condition::Pointer, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> > BaseType;
     
     void RemoveCondition(Condition::Pointer pCond)
     {
@@ -73,7 +73,7 @@ struct ConditionSet : std::unordered_set<Condition::Pointer, SharedPointerHasher
     
     void print()
     {
-        for ( auto it = begin(); it != end(); ++it )
+        for (auto it = begin(); it != end(); ++it )
         {            
             KRATOS_WATCH((*it)->GetGeometry());
         }
@@ -92,7 +92,7 @@ struct ConditionSet : std::unordered_set<Condition::Pointer, SharedPointerHasher
 
 // CONDITIONS
 /* Mortar method */ 
-KRATOS_DEFINE_VARIABLE( boost::shared_ptr<ConditionSet>, CONTACT_SETS )                           // An unordened map of which contains the structure which defines the contact conditions
+KRATOS_DEFINE_VARIABLE( boost::shared_ptr<ConditionSet>, CONTACT_SETS )         // An unordened map of which contains the structure which defines the contact conditions
 KRATOS_DEFINE_VARIABLE( Element::Pointer, ELEMENT_POINTER )                     // A pointer to the element belonging to this condition
 KRATOS_DEFINE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                       // The integration order computed in the contact
 KRATOS_DEFINE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                       // Mortar Contact Operator
