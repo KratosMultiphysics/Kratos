@@ -288,7 +288,7 @@ public:
                 else
                 {
 					#if !defined(_WIN32)
-						Table << BOLDFONT(FGRN("   Not achieved"));
+						Table << BOLDFONT(FRED("   Not achieved"));
 					#else
 						Table << "Not achieved";
 					#endif
@@ -304,7 +304,7 @@ public:
                 else
                 {
 					#if !defined(_WIN32)
-						Table << BOLDFONT(FGRN("   Not achieved"));
+						Table << BOLDFONT(FRED("   Not achieved"));
 					#else
 						Table << "Not achieved";
 					#endif

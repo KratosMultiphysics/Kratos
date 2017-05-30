@@ -254,7 +254,7 @@ public:
                 else
                 {
 					#if !defined(_WIN32)
-						Table << BOLDFONT(FGRN("   Not achieved"));
+						Table << BOLDFONT(FRED("   Not achieved"));
 					#else
 						Table << "Not achieved";
 					    //std::basic_ostream<char, std::char_traits<char>>& ThisStream = std::cout << colorwin::color(colorwin::red) << "   Not achieved";
