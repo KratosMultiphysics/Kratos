@@ -123,7 +123,8 @@ void  AddProcessesToPython()
     ;
 
     class_<CalculateEmbeddedSignedDistanceTo3DSkinProcess, bases<Process>, boost::noncopyable >("CalculateEmbeddedSignedDistanceTo3DSkinProcess",
-            init<ModelPart&, ModelPart&, bool>())
+            init< ModelPart&, ModelPart& >())
+    .def(init< ModelPart&, ModelPart&, bool>())
     ;
 
    class_<CalculateSignedDistanceTo3DConditionSkinProcess, bases<Process> >("CalculateSignedDistanceTo3DConditionSkinProcess",
