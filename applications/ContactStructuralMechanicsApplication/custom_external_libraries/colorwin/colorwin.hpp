@@ -76,6 +76,20 @@ namespace colorwin
                 }
             }
         }
+		
+		color(std::string stringcolor) : m_color(ConvertString(stringcolor)), m_console_handle(INVALID_HANDLE_VALUE)
+        {
+            CONSOLE_SCREEN_BUFFER_INFO console_info;
+            m_console_handle = GetStdHandle(STD_OUTPUT_HANDLE);
+            if (!GetConsoleScreenBufferInfo(m_console_handle, &console_info))
+            {
+                m_console_handle = GetStdHandle(STD_ERROR_HANDLE);
+                if (!GetConsoleScreenBufferInfo(m_console_handle, &console_info)) // maybe standard output device has been redirected, try the standard error device
+                {
+                    m_console_handle = INVALID_HANDLE_VALUE;
+                }
+            }
+        }
 
         ~color()
         {
@@ -109,6 +123,62 @@ namespace colorwin
             return color_stack;
         }
 
+		CW_COLORS ConvertString(const std::string colorstring)
+        {
+			if(colorstring == "red") 
+			{
+				return red;
+			}
+			else if(colorstring == "green") 
+			{
+				return green;
+			}
+			else if(colorstring == "yellow") 
+			{
+				return yellow;
+			}
+			else if(colorstring == "cyan") 
+			{
+				return cyan;
+			}
+			else if(colorstring == "blue") 
+			{
+				return blue;
+			}
+			else if(colorstring == "magenta") 
+			{
+				return magenta;
+			}
+			else if(colorstring == "white") 
+			{
+				return white;
+			}
+			else if(colorstring == "gray") 
+			{
+				return gray;
+			}
+			else if(colorstring == "grey") 
+			{
+				return grey;
+			}			
+			else if(colorstring == "gray") 
+			{
+				return gray;
+			}			
+			else if(colorstring == "dark_grey") 
+			{
+				return dark_grey;
+			}
+			else if(colorstring == "dark_gray") 
+			{
+				return dark_gray;
+			}
+			else
+			{
+				return white;
+			}
+        }
+		
         HANDLE m_console_handle;
         const CW_COLORS m_color;
 

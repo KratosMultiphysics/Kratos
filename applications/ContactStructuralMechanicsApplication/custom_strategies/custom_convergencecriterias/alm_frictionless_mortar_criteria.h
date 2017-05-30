@@ -22,6 +22,8 @@
 #include "custom_strategies/custom_convergencecriterias/base_mortar_criteria.h"
 #if !defined(_WIN32)
 	#include "custom_utilities/color_utilities.h"
+//#else
+//	#include "custom_external_libraries/colorwin/colorwin.hpp"
 #endif
 
 namespace Kratos
@@ -245,6 +247,8 @@ public:
 						Table << BOLDFONT(FGRN("       Achieved"));
 					#else
 						Table << "Achieved";
+						//const std::basic_ostream<char, std::char_traits<char>>& ThisStream = std::cout << colorwin::color(colorwin::green) << "Achieved";
+						//Table << &ThisStream;
 					#endif
                 }
                 else
@@ -253,6 +257,8 @@ public:
 						Table << BOLDFONT(FGRN("   Not achieved"));
 					#else
 						Table << "Not achieved";
+					    //std::basic_ostream<char, std::char_traits<char>>& ThisStream = std::cout << colorwin::color(colorwin::red) << "   Not achieved";
+						//Table << (&ThisStream);
 					#endif
                 }
             }
