@@ -22,28 +22,42 @@ namespace Kratos
    {
       KRATOS_TRY
 
+      HydroMechanicalVariables rVariables( rGeometry, rProperties);
+      rVariables.number_of_variables = number_of_variables;
+      rVariables.SetBMatrix( rB);
+      rVariables.SetShapeFunctionsDerivatives( rDN_DX);
+      rVariables.SetDeformationGradient( rTotalF);
+      rVariables.SetVolumeForce( rVolumeForce);
+      rVariables.SetShapeFunctions( rN);
+
+      rVariables.DeltaTime = rTimeStep;
+      rVariables.detF0 = rDetF0;
+
+
       Vector Previous = rRightHandSide; 
-      const unsigned int number_of_nodes = rGeometry.PointsNumber();
-      unsigned int dimension = rGeometry.WorkingSpaceDimension();
+      const unsigned int number_of_nodes = rVariables.GetGeometry().PointsNumber();
+      unsigned int dimension = rVariables.GetGeometry().WorkingSpaceDimension();
+
+
 
 
       // Check water pressure and bulk modulus
 
       // 1. Reshape BaseClass RHS
-      rRightHandSide = AddReshapeBaseClassRHS( rRightHandSide, rBaseClassRHS, number_of_variables, number_of_nodes);
+      rRightHandSide = AddReshapeBaseClassRHS( rRightHandSide, rBaseClassRHS, rVariables.number_of_variables, number_of_nodes);
 
       // 2a. Compute and Addmechanical forces contribution to internal forces
       Vector LocalRHS; 
-      LocalRHS = CalculateWaterInternalForcesContribution( LocalRHS, rGeometry, rProperties, rB, rN, rIntegrationWeight); 
-      rRightHandSide = AddReshapeWaterInternalForcesContribution( rRightHandSide, LocalRHS, number_of_variables, number_of_nodes, dimension); // change the name because induces to error of thinking
+      LocalRHS = CalculateWaterInternalForcesContribution( rVariables, LocalRHS, rIntegrationWeight); 
+      rRightHandSide = AddReshapeWaterInternalForcesContribution( rRightHandSide, LocalRHS, rVariables.number_of_variables, number_of_nodes, dimension); 
 
 
-      LocalRHS = CalculateVolumeForcesContribution( LocalRHS, rGeometry, rProperties, rVolumeForce, rN, rDetF0, rIntegrationWeight);
-      rRightHandSide = AddReshapeWaterInternalForcesContribution( rRightHandSide, LocalRHS, number_of_variables, number_of_nodes, dimension);
+      LocalRHS = CalculateVolumeForcesContribution( rVariables, LocalRHS, rIntegrationWeight);
+      rRightHandSide = AddReshapeWaterInternalForcesContribution( rRightHandSide, LocalRHS, rVariables.number_of_variables, number_of_nodes, dimension);
 
       // 2b. Compute the balance of mixture
-      LocalRHS = CalculateWaterPressureForces( LocalRHS, rGeometry, rProperties, rDN_DX, rN, rDetF0, rTotalF, rTimeStep, rIntegrationWeight);
-      LocalRHS = CalculateAndAddWaterPressureForcesDisplacement(LocalRHS, rGeometry, rProperties, rDN_DX, rN, rDetF0, rTotalF, rTimeStep, rIntegrationWeight, rCurrentRadius);
+      LocalRHS = CalculateMassBalance_WaterPressurePart( rVariables, LocalRHS, rIntegrationWeight);
+      LocalRHS = this->CalculateAndAddWaterPressureForcesDisplacement(LocalRHS, rGeometry, rProperties, rDN_DX, rN, rDetF0, rTotalF, rTimeStep, rIntegrationWeight, rCurrentRadius);
       rRightHandSide = AddReshapeWaterPressureForces ( rRightHandSide, LocalRHS, number_of_variables, number_of_nodes);
 
 
@@ -581,7 +595,7 @@ namespace Kratos
    }
 
    // ******************************* RESHAPE BASE CLASS RHS **********************************************
-   Vector & WaterPressureUtilities::AddReshapeBaseClassRHS( VectorType & rRightHandSideVector, const VectorType& rBaseClassRHS, const unsigned int number_of_variables, const unsigned int number_of_nodes )
+   Vector & WaterPressureUtilities::AddReshapeBaseClassRHS( VectorType & rRightHandSideVector, const VectorType& rBaseClassRHS, const unsigned int & number_of_variables, const unsigned int & number_of_nodes )
    {
       KRATOS_TRY
 
@@ -763,19 +777,20 @@ namespace Kratos
 
    // ****************** COMPUTE THE FORCES DUE TO GRAVITY WITH THE DIFFERENT DEN *********************
    // *************************************************************************************************
-   Vector & WaterPressureUtilities::CalculateVolumeForcesContribution( Vector & rLocalRHS, GeometryType & rGeometry, const PropertiesType & rProperties, const Vector & rVolumeForce, const Vector & rN, const double & rDetF0,  const double & rIntegrationWeight)
+   Vector & WaterPressureUtilities::CalculateVolumeForcesContribution( HydroMechanicalVariables & rVariables, VectorType & rLocalRHS, const double & rIntegrationWeight)
    {
       KRATOS_TRY
 
-      const unsigned int number_of_nodes = rGeometry.PointsNumber();
-      unsigned int dimension = rGeometry.WorkingSpaceDimension();
+      const unsigned int number_of_nodes = rVariables.GetGeometry().PointsNumber();
+      unsigned int dimension = rVariables.GetGeometry().WorkingSpaceDimension();
 
-      Vector VolumeForce = rVolumeForce;
-      VolumeForce *= rDetF0; // due to the volumechange
+      Vector VolumeForce = rVariables.GetVolumeForce();
+      VolumeForce *= rVariables.detF0; 
 
-      rLocalRHS = ZeroVector ( number_of_nodes*dimension);
+      rLocalRHS.resize( number_of_nodes*dimension, false);
+      noalias( rLocalRHS ) = ZeroVector( number_of_nodes*dimension);
 
-      double density_mixture0 = rProperties.GetValue(DENSITY);
+      double density_mixture0 = rVariables.GetProperties().GetValue(DENSITY);
       if ( density_mixture0 > 0) {
          VolumeForce /= density_mixture0; 
       }
@@ -783,14 +798,15 @@ namespace Kratos
          return rLocalRHS; 
       }
 
-      double density_water = rProperties.GetValue(DENSITY_WATER);
-      double porosity0 = rProperties.GetValue( INITIAL_POROSITY);
-      double porosity = 1.0 - (1.0-porosity0) / rDetF0; 
-      double density_solid = (density_mixture0 - porosity0*density_water) / ( 1.0 - porosity0);
+      double density_water = rVariables.GetProperties().GetValue(DENSITY_WATER);
+      double porosity0 = rVariables.GetProperties().GetValue( INITIAL_POROSITY);
 
+      double porosity = 1.0 - (1.0-porosity0) / rVariables.detF0; 
+      double density_solid = (density_mixture0 - porosity0*density_water) / ( 1.0 - porosity0);
       double density_mixture = ( 1.0 - porosity) * density_solid + porosity * density_water;
 
 
+      const VectorType & rN = rVariables.GetShapeFunctions();
       for (unsigned int i = 0; i < number_of_nodes; i++) {
          for (unsigned int iDim = 0; iDim < dimension; iDim++) {
             rLocalRHS(i*dimension + iDim) += rIntegrationWeight * density_mixture *  rN(i) * VolumeForce(iDim);
@@ -798,17 +814,20 @@ namespace Kratos
       }
 
       return rLocalRHS;
+
       KRATOS_CATCH("")
    }
    // ****************** COMPUTE WATER PRESSURE CONTRIBUTION TO THE LINEAR MOMENTUM EQUATION ***********
    // **************************************************************************************************
-   Vector & WaterPressureUtilities::CalculateWaterInternalForcesContribution( Vector & rRightHandSideVector, GeometryType & rGeometry, const PropertiesType & rProperties, const Matrix & rB, const Vector & rN, const double & rIntegrationWeight)
+   Vector & WaterPressureUtilities::CalculateWaterInternalForcesContribution( HydroMechanicalVariables& rVariables, Vector & rRightHandSideVector, const double & rIntegrationWeight)  
    {
       KRATOS_TRY
 
+      const GeometryType & rGeometry = rVariables.GetGeometry();
+      const VectorType & rN = rVariables.GetShapeFunctions();
+
       const unsigned int number_of_nodes = rGeometry.PointsNumber();
       unsigned int dimension = rGeometry.WorkingSpaceDimension();
-
 
       double WaterPressure = 0.0;
       for (unsigned int i = 0; i < number_of_nodes; i++)
@@ -817,14 +836,16 @@ namespace Kratos
       }
 
       unsigned int voigtsize, principal_dimension;
-      GetVoigtSize( dimension, voigtsize, principal_dimension);
+      this->GetVoigtSize( dimension, voigtsize, principal_dimension);
       Vector  WaterPressureVector = ZeroVector( voigtsize);
 
       for (unsigned int i = 0; i < principal_dimension; i++) // something must be placed here for the axisym ...
          WaterPressureVector(i) = 1.0;
       WaterPressureVector *= WaterPressure;
 
-      rRightHandSideVector = -rIntegrationWeight * prod( trans( rB), WaterPressureVector );
+      const MatrixType rB = rVariables.GetBMatrix();
+      rRightHandSideVector.resize( number_of_nodes*dimension, false);
+      noalias(rRightHandSideVector) = -rIntegrationWeight * prod( trans( rB), WaterPressureVector );
 
       return rRightHandSideVector; 
 
@@ -835,27 +856,29 @@ namespace Kratos
 
    // ***************** COMPUTE WATER PRESSURE RHS (mass balance equation, without solid skeleton deformation) ************
    // *********************************************************************************************************************
-   Vector &  WaterPressureUtilities::CalculateWaterPressureForces( Vector & rRightHandSideVector, GeometryType & rGeometry,  const PropertiesType & rProperties, const Matrix & rDN_DX, const Vector & rN, const double & rDetF0, const Matrix & rTotalF, const double& rDeltaTime,  const double & rIntegrationWeight)
+   Vector &  WaterPressureUtilities::CalculateMassBalance_WaterPressurePart( HydroMechanicalVariables & rVariables, VectorType & rRightHandSideVector, const double & rIntegrationWeight)
    {
 
       KRATOS_TRY
 
-
       // 1. Some constants
       double ScalingConstant;
-      GetScalingConstant( ScalingConstant, rProperties);
-      double WaterBulk = rProperties.GetValue(WATER_BULK_MODULUS);
+      GetScalingConstant( ScalingConstant, rVariables.GetProperties() );
+      double WaterBulk = rVariables.GetProperties().GetValue(WATER_BULK_MODULUS);
+      const VectorType & rN = rVariables.GetShapeFunctions();
+      const MatrixType & rDN_DX = rVariables.GetShapeFunctionsDerivatives();
 
       // 2. Geometric
+      const GeometryType & rGeometry = rVariables.GetGeometry();
       const unsigned int number_of_nodes = rGeometry.PointsNumber();
       unsigned int dimension = rGeometry.WorkingSpaceDimension();
 
       bool density_considered  = false; 
       if ( rGeometry[0].SolutionStepsDataHas( VOLUME_ACCELERATION) ) {
-           const array_1d < double, 3 > VolAcc = rGeometry[0].FastGetSolutionStepValue( VOLUME_ACCELERATION) ;
-           if (  ( fabs( VolAcc[0] ) + fabs( VolAcc[1]) + fabs(VolAcc[2] ) ) > 1.0e-12) {
-              density_considered = true;
-           }
+         const array_1d < double, 3 > VolAcc = rGeometry[0].FastGetSolutionStepValue( VOLUME_ACCELERATION) ;
+         if (  ( fabs( VolAcc[0] ) + fabs( VolAcc[1]) + fabs(VolAcc[2] ) ) > 1.0e-12) {
+            density_considered = true;
+         }
       }
 
 
@@ -863,22 +886,24 @@ namespace Kratos
       Vector b = ZeroVector(dimension);
       double WaterDensity = 0.0;
       if ( density_considered) 
-         WaterDensity = rProperties.GetValue(DENSITY_WATER);
+         WaterDensity = rVariables.GetProperties().GetValue(DENSITY_WATER);
       b(dimension-1) = -10.0*WaterDensity;
+
+      double initial_porosity = rVariables.GetProperties().GetValue(INITIAL_POROSITY);
+      double VolumeChange = this->CalculateVolumeChange(rGeometry, rN, rVariables.GetDeformationGradient() );
+
       Matrix K;
-
-      double initial_porosity = rProperties.GetValue(INITIAL_POROSITY);
-      double VolumeChange = this->CalculateVolumeChange(rGeometry, rN, rTotalF );
-      GetPermeabilityTensor( rProperties, rTotalF, K, initial_porosity, VolumeChange);
+      GetPermeabilityTensor( rVariables.GetProperties(), rVariables.GetDeformationGradient(), K, initial_porosity, VolumeChange);
 
 
-      rRightHandSideVector = ZeroVector( number_of_nodes); 
+      rRightHandSideVector.resize( number_of_nodes);
+      noalias( rRightHandSideVector ) = ZeroVector( number_of_nodes); 
+
 
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
          for ( unsigned int j = 0; j < number_of_nodes; j++ )
          {
-
 
             // DeltaPressure
             const double& CurrentPressure   = rGeometry[j].FastGetSolutionStepValue( WATER_PRESSURE );
@@ -886,30 +911,25 @@ namespace Kratos
             double DeltaPressure = CurrentPressure - PreviousPressure;
 
             // WaterCompressibilityTerm
-            rRightHandSideVector(i) += (1.0/WaterBulk) * rN(i) * rN(j) * DeltaPressure * rIntegrationWeight * ScalingConstant / rDetF0;
+            rRightHandSideVector(i) += (1.0/WaterBulk) * rN(i) * rN(j) * DeltaPressure * rIntegrationWeight * ScalingConstant / rVariables.detF0;
 
             for ( unsigned int p = 0; p < dimension; ++p )
             {
 
-               // Solid Skeleton volumetric deformation
-               //rRightHandSideVector(i) -= rN(i)*DeltaDisplacement[p] * rDN_DX(j,p) * rIntegrationWeight * ScalingConstant / rDetF0; // AnotherFunction
                for ( unsigned int q = 0; q < dimension; ++q )
                {
 
                   // Darcy flow
-                  rRightHandSideVector(i) += rDeltaTime * rDN_DX(i, p) * K( p, q) * rDN_DX(j,q)* CurrentPressure *rIntegrationWeight * ScalingConstant / rDetF0;
+                  rRightHandSideVector(i) += rVariables.DeltaTime * rDN_DX(i, p) * K( p, q) * rDN_DX(j,q)* CurrentPressure *rIntegrationWeight * ScalingConstant / rVariables.detF0;
 
                   if (j == 0) {
                      // Gravity term of the DARCY FLOW.
-                     rRightHandSideVector(i) += rDeltaTime * rDN_DX(i,p) * K(p,q)*b(q)*rIntegrationWeight* ScalingConstant / rDetF0;
+                     rRightHandSideVector(i) += rVariables.DeltaTime * rDN_DX(i,p) * K(p,q)*b(q)*rIntegrationWeight* ScalingConstant / rVariables.detF0;
+
                   }
-
                }
-
             }
-
          }
-
       }
 
       return rRightHandSideVector; 
@@ -1044,12 +1064,12 @@ namespace Kratos
       }
    }
 
-   double WaterPressureUtilities::CalculateVolumeChange( GeometryType & rGeometry, const Vector & rN, const Matrix & rTotalF)
+   double WaterPressureUtilities::CalculateVolumeChange(const GeometryType & rGeometry, const Vector & rN, const Matrix & rTotalF)
    {
       double VolumeChange = MathUtils<double>::Det( rTotalF);
       return VolumeChange; 
    }
-   void WaterPressureUtilities::GetVoigtSize( const unsigned int dimension, unsigned int & voigtsize, unsigned int & principal_dimension)
+   void WaterPressureUtilities::GetVoigtSize( const unsigned int & dimension, unsigned int & voigtsize, unsigned int & principal_dimension)
    {
       voigtsize = 3; 
       principal_dimension = dimension;

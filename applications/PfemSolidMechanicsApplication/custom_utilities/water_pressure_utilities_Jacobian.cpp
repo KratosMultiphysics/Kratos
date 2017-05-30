@@ -128,7 +128,7 @@ namespace Kratos
       KRATOS_CATCH("")
    }
 
-   double WaterPressureJacobianUtilities::CalculateVolumeChange( GeometryType & rGeometry, const Vector & rN, const Matrix & rTotalF)
+   double WaterPressureJacobianUtilities::CalculateVolumeChange( const GeometryType & rGeometry, const Vector & rN, const Matrix & rTotalF)
    {
       const unsigned int number_of_nodes = rGeometry.PointsNumber();
 

@@ -699,6 +699,23 @@ namespace Kratos
 
       int number_of_variables = dimension+1; 
 
+
+      // 1. Create (make pointers) variables
+      WaterPressureUtilities::HydroMechanicalVariables HMVariables(GetGeometry(), GetProperties() );
+
+      HMVariables.number_of_variables = number_of_variables;
+      HMVariables.SetBMatrix( rVariables.B);
+      HMVariables.SetShapeFunctionsDerivatives( rVariables.DN_DX);
+      HMVariables.SetDeformationGradient( TotalF);
+      HMVariables.SetVolumeForce( rVolumeForce);
+      HMVariables.SetShapeFunctions( rVariables.N);
+
+      HMVariables.DeltaTime = mTimeStep;
+      HMVariables.detF0 = rVariables.detF0;
+
+
+      //rRightHandSideVector = WaterUtility.CalculateAndAddHydromechanicalRHS( HMVariables, rRightHandSideVector, BaseClassRightHandSideVector, rIntegrationWeight);
+
       rRightHandSideVector = WaterUtility.CalculateAndAddHydroProblem( rRightHandSideVector, BaseClassRightHandSideVector, rVolumeForce, number_of_variables,  GetGeometry(), GetProperties(), rVariables.B, rVariables.DN_DX, rVariables.N, rVariables.detF0, mTimeStep, TotalF, rIntegrationWeight); 
 
 

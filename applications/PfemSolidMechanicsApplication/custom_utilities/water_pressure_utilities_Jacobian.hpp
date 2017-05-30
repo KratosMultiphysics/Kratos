@@ -53,7 +53,7 @@ namespace Kratos
 
          virtual VectorType& CalculateAndAddWaterPressureForcesDisplacement( VectorType& rRightHandSide , GeometryType & rGeometry,  const PropertiesType & rProperties, const MatrixType & rDN_DX, const Vector & rN, const double & rDetF0, const Matrix & rTotalF, const double & rDeltaTime, const double & rIntegrationWeight, const double rCurrentRadius);
 
-         virtual double CalculateVolumeChange( GeometryType & rGeometry, const Vector & rN, const Matrix & rTotalF);
+         virtual double CalculateVolumeChange( const GeometryType & rGeometry, const Vector & rN, const Matrix & rTotalF);
 
          // CALCULATE LHS
 

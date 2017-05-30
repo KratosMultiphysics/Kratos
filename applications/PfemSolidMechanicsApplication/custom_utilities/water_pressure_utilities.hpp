@@ -46,13 +46,77 @@ namespace Kratos
          typedef Node < 3 > NodeType; 
          typedef Geometry <NodeType>   GeometryType; 
 
+
+         struct HydroMechanicalVariables {
+
+            private:
+               const GeometryType*   mpGeometry;
+               const PropertiesType* mpProperties;
+
+               const MatrixType* mpB;
+               const MatrixType* mpF0;
+               const MatrixType* mpDN_DX;
+               const VectorType* mpN;
+               const VectorType* mpVolumeForce;
+
+            public:
+               double DeltaTime;
+               double detF0;
+               double CurrentRadius;
+
+               unsigned int number_of_variables;
+
+               HydroMechanicalVariables() 
+               {
+                  mpProperties=NULL;
+                  mpGeometry=NULL;
+
+                  mpB = NULL;
+                  mpF0 = NULL;
+                  mpDN_DX = NULL;
+                  mpN = NULL;
+                  mpVolumeForce = NULL;
+
+                  number_of_variables = 0;
+               };
+
+               HydroMechanicalVariables( const GeometryType & rElementGeometry, const PropertiesType & rMaterialProperties) : mpGeometry(&rElementGeometry) , mpProperties(&rMaterialProperties)
+               {
+                  mpB = NULL;
+                  mpF0 = NULL;
+                  mpDN_DX = NULL;
+                  mpN = NULL;
+                  mpVolumeForce = NULL;
+                  number_of_variables = 0;
+               };
+
+               // set pointers
+               void SetBMatrix                   (const MatrixType& rBMatrix) {mpB=&rBMatrix;};
+               void SetDeformationGradient       (const MatrixType& rF0)      {mpF0=&rF0;};
+               void SetShapeFunctionsDerivatives (const MatrixType& rDN_DX)   {mpDN_DX=&rDN_DX;};
+               void SetShapeFunctions            (const VectorType& rN)       {mpN = & rN; };
+               void SetVolumeForce               (const VectorType& rVolumeForce){mpVolumeForce = & rVolumeForce; };
+
+               // get const reference
+               const GeometryType& GetGeometry()                {return *mpGeometry; };
+               const PropertiesType& GetProperties()            {return *mpProperties; };
+               const MatrixType& GetBMatrix()                   {return *mpB;};
+               const MatrixType& GetDeformationGradient()       {return *mpF0;};
+               const MatrixType& GetShapeFunctionsDerivatives() {return *mpDN_DX;};
+               const VectorType& GetShapeFunctions()            {return *mpN; };
+               const VectorType& GetVolumeForce()               {return *mpVolumeForce; };
+
+         };
+
+      public:
+
          WaterPressureUtilities();
 
          virtual ~WaterPressureUtilities() {};
 
 
          VectorType& CalculateAndAddHydroProblem( VectorType & rRightHandSide, const VectorType & rBaseClassRHS, const VectorType & rVolumeForce, const int number_of_variables, GeometryType & rGeometry, const Properties & rProperties, const MatrixType & rB, const MatrixType & rDN_DX, const VectorType & rN, const double & rDetF0, const double & rTimeStep, const Matrix & rTotalF, const double & rIntegrationWeight, const double rCurrentRadius = 0.0);
-
+         
          VectorType & CalculateAndAddStabilization( Vector & rRightHandSide, const int number_of_variables, GeometryType & rGeometry, const PropertiesType & rProperties, const Matrix & rDN_DX, const double & rConstrainedModulus, const double & rDetF0, const double & rTimeStep, const double & rIntegrationWeight);
 
          MatrixType& CalculateAndAddHydroProblemLHS( MatrixType & rLeftHandSide, const MatrixType & rBaseClassLHS, const VectorType & rVolumeForce, const int number_of_variables, GeometryType & rGeometry, const Properties & rProperties, const MatrixType & rB, const MatrixType & rDN_DX, const VectorType & rN, const double & rDetF0, const double & rTimeStep, const Matrix & rTotalF, const double & rIntegrationWeight, const double rCurrentRadius = 0.0);
@@ -72,26 +136,26 @@ namespace Kratos
          void GetPermeabilityTensor( const PropertiesType & rProperties, const Matrix & rTotalF, Matrix & rK , const double & rInitial_porosity, const double & rVolume);
 
 
-         virtual void GetVoigtSize( const unsigned int dimension, unsigned int & voigtsize, unsigned int & principal_dimension); 
+         virtual void GetVoigtSize( const unsigned int & dimension, unsigned int & voigtsize, unsigned int & principal_dimension); 
 
          double & ComputeStabilizationFactor ( double & rAlphaStabilization, const PropertiesType & rProperties, const Matrix & rDN_DX, const double & rTimeStep, const double & rConstrainedModulus);
 
-         virtual double CalculateVolumeChange( GeometryType & rGeometry, const Vector & rN, const Matrix & rTotalF);
-         
+         virtual double CalculateVolumeChange( const GeometryType & rGeometry, const Vector & rN, const Matrix & rTotalF);
+
          // CALCULATE RHS 
-         VectorType& CalculateWaterPressureForces( VectorType& rRightHandSide , GeometryType & rGeometry,  const PropertiesType & rProperties, const MatrixType & rDN_DX, const Vector & rN, const double & rDetF0, const Matrix & rTotalF, const double & rDeltaTime, const double & rIntegrationWeight);
+         VectorType & CalculateMassBalance_WaterPressurePart( HydroMechanicalVariables & rVariables, VectorType & rLocalRHS, const double & rIntegrationWeight);
 
          virtual VectorType& CalculateAndAddWaterPressureForcesDisplacement( VectorType& rRightHandSide , GeometryType & rGeometry,  const PropertiesType & rProperties, const MatrixType & rDN_DX, const Vector & rN, const double & rDetF0, const Matrix & rTotalF, const double & rDeltaTime, const double & rIntegrationWeight, const double & rCurrentRadius);
 
 
-         VectorType& CalculateWaterInternalForcesContribution( VectorType& rRightHandSideVector, GeometryType& rGeometry, const PropertiesType & rProperties, const Matrix & rB, const Vector & rN, const double & rIntegrationWeight);
+         VectorType& CalculateWaterInternalForcesContribution( HydroMechanicalVariables & rVariables, VectorType& rRightHandSideVector, const double & rIntegrationWeight);
 
-         VectorType & CalculateVolumeForcesContribution( VectorType & rRightHandSideVector, GeometryType& rGeometry, const PropertiesType & rProperties, const Vector & rVolumeForce, const Vector & rN, const double & rDetF0, const double & rIntegrationWeight);
+         VectorType & CalculateVolumeForcesContribution( HydroMechanicalVariables & rVariables, VectorType & rRightHandSideVector, const double & rIntegrationWeight);
 
          VectorType & CalculateStabilization( VectorType & rLocalRHS, GeometryType & rGeometry,  const PropertiesType & rProperties, const Matrix & rDN_DX, const double & rTimeStep, const double & rConstrainedModulus, const double & rIntegrationWeight);
 
          // RESHAPCE RHS
-         VectorType& AddReshapeBaseClassRHS( VectorType & rRightHandSideVector, const VectorType& rBaseClassRHS, const unsigned int number_of_variables, const unsigned int number_of_nodes);
+         VectorType& AddReshapeBaseClassRHS( VectorType & rRightHandSideVector, const VectorType& rBaseClassRHS, const unsigned int & number_of_variables, const unsigned int & number_of_nodes);
 
          VectorType& AddReshapeWaterPressureForces( VectorType & rRightHandSide, const VectorType& rPartialRHS, const unsigned int number_of_variables, const unsigned int number_of_points);
 

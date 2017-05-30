@@ -126,7 +126,7 @@ namespace Kratos
    }
 
    
-   double AxisymWaterPressureJacobianUtilities::CalculateVolumeChange( GeometryType & rGeometry, const Vector & rN, const Matrix & rTotalF)
+   double AxisymWaterPressureJacobianUtilities::CalculateVolumeChange( const GeometryType & rGeometry, const Vector & rN, const Matrix & rTotalF)
    {
       const unsigned int number_of_nodes = rGeometry.PointsNumber();
 
