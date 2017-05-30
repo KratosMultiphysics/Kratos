@@ -44,6 +44,7 @@ namespace Kratos
 		for (int k = 0; k< static_cast<int> (mrVolumePart.NumberOfNodes()); ++k)
 		{
 			ModelPart::NodesContainerType::iterator itNode = mrVolumePart.NodesBegin() + k;
+			itNode->Set(TO_SPLIT, false);
 			itNode->GetSolutionStepValue(DISTANCE) = initial_distance;
 		}
 
