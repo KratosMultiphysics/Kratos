@@ -142,9 +142,10 @@ protected:
     struct CuthillMcKee
     {
         template <class Matrix>
-        static void get(const Matrix &A, std::vector<int> &perm)
+        static void get(const Matrix &A, std::vector<int>& invperm)
         {
             const int n = A.size1();
+            std::vector<int> perm(n);
 
             /* The data structure used to sort and traverse the level sets:
              *
@@ -243,6 +244,10 @@ protected:
                     }
                 }
             }
+            
+            //computing the inverse permutation
+            for(int i = 0; i < n; ++i) invperm[perm[i]] = i;
+            
         }
     };
 

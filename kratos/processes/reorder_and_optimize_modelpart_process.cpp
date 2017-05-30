@@ -224,12 +224,12 @@ namespace Kratos
                 
                 
             //here must do the ordering!!
-            std::vector<int> perm(graph_csr.size1());
-            CuthillMcKee<true>().get<CompressedMatrix>(graph_csr,perm);      
+            std::vector<int> invperm(graph_csr.size1());
+            CuthillMcKee<false>().get<CompressedMatrix>(graph_csr,invperm);      
             
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(mrModelPart.Nodes().size()); ++i)
-                (mrModelPart.NodesBegin() + i)->SetId(perm[i]+1);
+                (mrModelPart.NodesBegin() + i)->SetId(invperm[i]+1);
             
             //reorder
             mrModelPart.Nodes().Sort();
