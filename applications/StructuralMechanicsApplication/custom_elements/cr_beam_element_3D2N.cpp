@@ -1789,6 +1789,49 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
+
+	void CrBeamElement3D2N::save(Serializer& rSerializer) const
+	{
+		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+		rSerializer.save("DeformationModes", this->mDeformationModes);
+		rSerializer.save("NodalPosition", this->mTotalNodalPosistion);
+		rSerializer.save("NodalDeformation", this->mTotalNodalDeformation);
+		rSerializer.save("IterationCounter", this->mIterationCount);
+		rSerializer.save("NodalForces", this->mNodalForces);
+		
+
+		rSerializer.save("LocalInitalAxisX", this->mNX0);
+		rSerializer.save("LocalInitalAxisY", this->mNY0);
+		rSerializer.save("LocalInitalAxisZ", this->mNZ0);
+
+
+		rSerializer.save("QuaternionVecA", this->mQuaternionVEC_A);
+		rSerializer.save("QuaternionVecB", this->mQuaternionVEC_B);
+		rSerializer.save("QuaternionScaA", this->mQuaternionSCA_A);
+		rSerializer.save("QuaternionScaB", this->mQuaternionSCA_B);
+	}
+
+	void CrBeamElement3D2N::load(Serializer& rSerializer)
+	{
+		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+		rSerializer.load("DeformationModes", this->mDeformationModes);
+		rSerializer.load("NodalPosition", this->mTotalNodalPosistion);
+		rSerializer.load("NodalDeformation", this->mTotalNodalDeformation);
+		rSerializer.load("IterationCounter", this->mIterationCount);
+		rSerializer.load("NodalForces", this->mNodalForces);
+
+		rSerializer.load("LocalInitalAxisX", this->mNX0);
+		rSerializer.load("LocalInitalAxisY", this->mNY0);
+		rSerializer.load("LocalInitalAxisZ", this->mNZ0);
+
+
+		rSerializer.load("QuaternionVecA", this->mQuaternionVEC_A);
+		rSerializer.load("QuaternionVecB", this->mQuaternionVEC_B);
+		rSerializer.load("QuaternionScaA", this->mQuaternionSCA_A);
+		rSerializer.load("QuaternionScaB", this->mQuaternionSCA_B);
+
+	}
+
 } // namespace Kratos.
 
 

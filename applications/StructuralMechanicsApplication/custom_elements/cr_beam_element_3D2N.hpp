@@ -42,6 +42,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "includes/define.h"
 #include "includes/variables.h"
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -199,7 +200,11 @@ namespace Kratos
 
 		CrBeamElement3D2N() {};
 
+
+
 		friend class Serializer;
+		virtual void save(Serializer& rSerializer) const;
+		virtual void load(Serializer& rSerializer);
 	};
 
 
