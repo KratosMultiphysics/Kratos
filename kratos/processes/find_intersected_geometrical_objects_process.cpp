@@ -24,28 +24,66 @@ namespace Kratos
 {
 
 	FindIntersectedGeometricalObjectsProcess::FindIntersectedGeometricalObjectsProcess(ModelPart& rPart1, ModelPart& rPart2)
-	:mrModelPart1(rPart1), mrModelPart2(rPart2) {
-
+		: mrModelPart1(rPart1), mrModelPart2(rPart2)
+	{
 	}
 
-	void FindIntersectedGeometricalObjectsProcess::Initialize() {
+	void FindIntersectedGeometricalObjectsProcess::Initialize()
+	{
 		GenerateOctree();
 	}
 
-	void FindIntersectedGeometricalObjectsProcess::Execute() {
+	void FindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults)
+	{
+		const std::size_t number_of_elements = mrModelPart1.NumberOfElements();
+		auto& r_elements = mrModelPart1.ElementsArray();
+		std::vector<OctreeType::cell_type*> leaves;
+
+		rResults.resize(number_of_elements);
+		for (std::size_t i = 0; i < number_of_elements; i++) {
+			auto p_element_1 = r_elements[i];
+			leaves.clear();
+			mOctree.GetIntersectedLeaves(p_element_1, leaves);
+			FindIntersectedSkinObjects(*p_element_1, leaves, rResults[i]);
+		}
+	}
+
+	void FindIntersectedGeometricalObjectsProcess::FindIntersections()
+	{
+		this->FindIntersectedSkinObjects(mIntersectedObjects);
+	}
+
+	std::vector<PointerVector<GeometricalObject>>& FindIntersectedGeometricalObjectsProcess::GetIntersections()
+	{
+		return mIntersectedObjects;
+	}
+
+	ModelPart& FindIntersectedGeometricalObjectsProcess::GetModelPart1()
+	{
+		return mrModelPart1;
+	}
+
+	void FindIntersectedGeometricalObjectsProcess::Clear()
+	{
+		mIntersectedObjects.clear();
+	}
+
+	void FindIntersectedGeometricalObjectsProcess::Execute()
+	{
 		GenerateOctree();
 
 		std::vector<OctreeType::cell_type*> leaves;
 		const int number_of_elements = mrModelPart1.NumberOfElements();
-#pragma omp parallel for private(leaves)
-		for (int i = 0; i < number_of_elements; i++) {
+
+		#pragma omp parallel for private(leaves)
+		for (int i = 0; i < number_of_elements; i++)
+		{
 			auto p_element_1 = mrModelPart1.ElementsBegin() + i;
 			leaves.clear();
 			mOctree.GetIntersectedLeaves(*(p_element_1.base()), leaves);
 			MarkIfIntersected(**(p_element_1.base()), leaves);
 		}
 	}
-
 
 	/// Turn back information as a string.
 	std::string FindIntersectedGeometricalObjectsProcess::Info() const {
@@ -60,24 +98,6 @@ namespace Kratos
 	/// Print object's data.
 	void FindIntersectedGeometricalObjectsProcess::PrintData(std::ostream& rOStream) const {
 
-	}
-
-	void FindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults) {
-		const std::size_t number_of_elements = mrModelPart1.NumberOfElements();
-		auto& r_elements = mrModelPart1.ElementsArray();
-		std::vector<OctreeType::cell_type*> leaves;
-
-		rResults.resize(number_of_elements);
-		for (std::size_t i = 0; i < number_of_elements; i++) {
-			auto p_element_1 = r_elements[i];
-			leaves.clear();
-			mOctree.GetIntersectedLeaves(p_element_1, leaves);
-			FindIntersectedSkinObjects(*p_element_1, leaves, rResults[i]);
-		}
-	}
-
-	ModelPart& FindIntersectedGeometricalObjectsProcess::GetModelPart1() {
-		return mrModelPart1;
 	}
 
 	void FindIntersectedGeometricalObjectsProcess::GenerateOctree() {
