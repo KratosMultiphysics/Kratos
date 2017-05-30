@@ -128,6 +128,7 @@ public:
 
         Parameters DefaultParameters = Parameters(R"(
         {
+            "adaptative_strategy"              : false,
             "split_factor"                     : 10.0,
             "max_number_splits"                : 3,
             "rescale_factor"                   : false,
@@ -136,6 +137,7 @@ public:
 
         ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
         
+        mAdaptativeStrategy = ThisParameters["adaptative_strategy"].GetBool();
         mSplitFactor = ThisParameters["split_factor"].GetDouble();
         mMaxNumberSplits = ThisParameters["max_number_splits"].GetInt();
         mRecalculateFactor = ThisParameters["rescale_factor"].GetBool();
@@ -175,6 +177,7 @@ public:
 
         Parameters DefaultParameters = Parameters(R"(
         {
+            "adaptative_strategy"              : false,
             "split_factor"                     : 10.0,
             "max_number_splits"                : 3,
             "rescale_factor"                   : false,
@@ -183,6 +186,7 @@ public:
 
         ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
         
+        mAdaptativeStrategy = ThisParameters["adaptative_strategy"].GetBool();
         mSplitFactor = ThisParameters["split_factor"].GetDouble();
         mMaxNumberSplits = ThisParameters["max_number_splits"].GetInt();
         mRecalculateFactor = ThisParameters["rescale_factor"].GetBool();
@@ -211,74 +215,66 @@ public:
     {
         bool IsConverged = BaseType::SolveSolutionStep();
         
-//         // We update the contact reactions
-//         TSystemVectorType& b = *BaseType::mpb;
-//         CalculateContactReactions(b);
-        
-//         // TODO: Finish this!!!
-//         Plots a warning if the maximum number of iterations is exceeded
-//         if (IsConverged == false)
-//         {
-//             double original_delta_time = StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]; // We save the delta time to restore later
-//             
-//             // We iterate until we reach the convergence or we split more than desired
-//             while (IsConverged == false && split_number <= mMaxNumberSplits)
-//             {   
-//                 // Expliting time step as a way to try improve the convergence
-//                 split_number += 1;
-//                 iteration_number = 1;
-//                 
-//                 double aux_time       = StrategyBaseType::GetModelPart().GetProcessInfo()[TIME];
-//                 double aux_delta_time = StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]; // FIXME: The DELTA_TIME is set to 0 for some reason!!!!
-//                 double current_time   = aux_time - aux_delta_time;
-//                 
-//                 StrategyBaseType::GetModelPart().GetProcessInfo()[TIME]       =   current_time; // Restore time to the previous one
-//                 aux_delta_time /= mSplitFactor;
-//                 StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME] = aux_delta_time; // Change delta time
-//                 
-//                 CoutSplittingTime(aux_delta_time);
-//                 
-//                 unsigned int aux_cout = 0;
-//                 while (IsConverged == false && StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] <= aux_time && iteration_number < BaseType::mMaxIterationNumber)
-//                 {      
-//                     iteration_number = 1;
-//                     current_time += aux_delta_time;
-//          
-//                     aux_cout += 1;
-//                     if (aux_cout > 1) // We avoid to restore the database if we create the new step just after the first iteration
-//                     {
-//                         StrategyBaseType::GetModelPart().GetProcessInfo()[TIME_STEPS] += 1;
-//                     }
-// 
-//                     StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] = current_time; // Increase the time in the new delta time        
-//                     StrategyBaseType::GetModelPart().CloneTimeStep(current_time);
-//                     
-//                     // We repeat the predict with the new DELTA_TIME
-//                     Predict();
-//                     
-//                     BaseType::InitiliazeCycle(IsConverged, ResidualIsUpdated, iteration_number, pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb);
-//                     BaseType::IterationCycle(IsConverged, ResidualIsUpdated, iteration_number, pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb); 
-//                 
-//                     // Plots a warning if the maximum number of iterations is exceeded
-//                     if (IsConverged == false  && iteration_number >= BaseType::mMaxIterationNumber && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0)
-//                     {
-//                         MaxIterationsExceeded();
-//                     }
-//                 }
-//                 
-//                 if (IsConverged == true)
-//                 {
-//                     // Restoring original DELTA_TIME
-//                     StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME] = original_delta_time;
-//                 }
-//             }
-//             
-//             // Plots a warning if the maximum number of iterations and splits are exceeded
-//             if (IsConverged == false  && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0)
-//             {
-//                 MaxIterationsAndSplitsExceeded();
-//             }
-//         }
+        // Plots a warning if the maximum number of iterations is exceeded
+        if ((mAdaptativeStrategy == true) && (IsConverged == false))
+        {
+            const double OriginalDeltaTime = StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]; // We save the delta time to restore later
+            
+            unsigned int SplitNumber = 0;
+            
+            // We iterate until we reach the convergence or we split more than desired
+            while (IsConverged == false && SplitNumber <= mMaxNumberSplits)
+            {   
+                // Expliting time step as a way to try improve the convergence
+                SplitNumber += 1;
+                
+                double AuxTime      = StrategyBaseType::GetModelPart().GetProcessInfo()[TIME];
+                double AuxDeltaTime = StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]; // FIXME: The DELTA_TIME is set to 0 for some reason!!!!
+                double CurrentTime   = AuxTime - AuxDeltaTime;
+                
+                StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] =   CurrentTime; // Restore time to the previous one
+                AuxDeltaTime /= mSplitFactor;
+                StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME] = AuxDeltaTime; // Change delta time
+                
+                CoutSplittingTime(AuxDeltaTime);
+                
+                unsigned int AuxCout = 0;
+                while (IsConverged == false && StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] <= AuxTime)
+                {      
+                    CurrentTime += AuxDeltaTime;
+         
+                    AuxCout += 1;
+                    if (AuxCout > 1) // We avoid to restore the database if we create the new step just after the first iteration
+                    {
+                        StrategyBaseType::GetModelPart().GetProcessInfo()[TIME_STEPS] += 1;
+                    }
+
+                    StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] = CurrentTime; // Increase the time in the new delta time        
+                    
+                    // We repeat the predict and solve with the new DELTA_TIME
+                    BaseType::Predict();
+                    IsConverged = BaseType::SolveSolutionStep();
+                    
+                    // Plots a warning if the maximum number of iterations is exceeded
+                    if (IsConverged == false)
+                    {
+                        MaxIterationsExceeded();
+                    }
+                }
+                
+                if (IsConverged == true)
+                {
+                    // Restoring original DELTA_TIME
+                    StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME] = OriginalDeltaTime;
+                }
+            }
+            
+            // Plots a warning if the maximum number of iterations and splits are exceeded
+            if (IsConverged == false)
+            {
+                MaxIterationsAndSplitsExceeded();
+            }
+        }
 
         return IsConverged;
     }
@@ -308,6 +304,7 @@ protected:
     ///@name Protected member Variables
     ///@{
     
+    bool mAdaptativeStrategy;        // If consider time split
     double mSplitFactor;             // Number by one the delta time is split
     unsigned int mMaxNumberSplits;   // Maximum number of splits
     bool mRecalculateFactor;         // To check if we recalculate or not the scale factor
@@ -522,14 +519,14 @@ protected:
      * This method prints information after split the increment of time
      */
         
-    void CoutSplittingTime(const double aux_delta_time)
+    void CoutSplittingTime(const double AuxDeltaTime)
     {
         if (this->GetEchoLevel() != 0)
         {
             std::cout << "***************************************************" << std::endl;
             std::cout << "**** Max. iter. exceeded: SPLITTING TIME STEP *****" << std::endl;
             std::cout << "***\t\t COMING BACK TO TIME: " << StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] << "\t\t ***" << std::endl;
-            std::cout << "***\t\t NEW TIME STEP: "<< aux_delta_time << "\t\t ***" << std::endl;
+            std::cout << "***\t\t NEW TIME STEP: "<< AuxDeltaTime << "\t\t ***" << std::endl;
             std::cout << "***************************************************" << std::endl;
         }
     }

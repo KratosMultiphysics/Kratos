@@ -207,11 +207,11 @@ public:
         if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
         {
             std::cout.precision(4);
-			#if !defined(_WIN32)
-				std::cout << "\n\n" << BOLDFONT("CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl << std::scientific;
-			#else
-				std::cout << "\n\n" << "CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl << std::scientific;
-			#endif
+            #if !defined(_WIN32)
+                std::cout << "\n\n" << BOLDFONT("CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
+            #else
+                std::cout << "\n\n" << "CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
+            #endif
                 
             if (mpTable != nullptr)
             {
