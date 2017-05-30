@@ -51,12 +51,12 @@ namespace Kratos
 
 	  /// Constructor to be used.
 	  CalculateDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart);
-	  
+
 	  /// Destructor.
       virtual ~CalculateDistanceToSkinProcess();
 
 	  ///@}
-	  ///@name Deleted 
+	  ///@name Deleted
 	  ///@{
 
       /// Default constructor.
@@ -71,6 +71,13 @@ namespace Kratos
 	  ///@}
       ///@name Operations
       ///@{
+      void Initialize() override;
+
+      void ComputeDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects) override;
+
+      void InitializeNodalDistances();
+
+      void ComputeNodalDistances();
 
 	  void Execute() override;
 

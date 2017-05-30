@@ -2,19 +2,19 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
-	           
+
 
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -25,32 +25,62 @@ namespace Kratos
 {
 
 	CalculateDistanceToSkinProcess::CalculateDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart)
-		: CalculateDiscontinuousDistanceToSkinProcess(rVolumePart, rSkinPart) {
-
+		: CalculateDiscontinuousDistanceToSkinProcess(rVolumePart, rSkinPart)
+	{
 	}
 
-	CalculateDistanceToSkinProcess::~CalculateDistanceToSkinProcess() {}
+	CalculateDistanceToSkinProcess::~CalculateDistanceToSkinProcess()
+	{
+	}
 
+	void CalculateDistanceToSkinProcess::Initialize()
+	{
+		CalculateDiscontinuousDistanceToSkinProcess::Initialize();
+		InitializeNodalDistances();
+	}
 
-	void CalculateDistanceToSkinProcess::Execute() {
-		for (auto& node : GetModelPart1().Nodes()) {
-			node.GetSolutionStepValue(DISTANCE) =  std::numeric_limits<double>::max();
+	void CalculateDistanceToSkinProcess::InitializeNodalDistances()
+	{
+		ModelPart& ModelPart1 = (CalculateDiscontinuousDistanceToSkinProcess::mFindIntersectedObjectsProcess).GetModelPart1();
+
+		for (auto& node : ModelPart1.Nodes())
+		{
+			node.GetSolutionStepValue(DISTANCE) = std::numeric_limits<double>::max();
 		}
+	}
+
+	void CalculateDistanceToSkinProcess::ComputeDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
+	{
+		CalculateDiscontinuousDistanceToSkinProcess::ComputeDistances(rIntersectedObjects);
+		ComputeNodalDistances();
+	}
+
+	void CalculateDistanceToSkinProcess::ComputeNodalDistances()
+	{
+		ModelPart& ModelPart1 = (CalculateDiscontinuousDistanceToSkinProcess::mFindIntersectedObjectsProcess).GetModelPart1();
 
 		CalculateDiscontinuousDistanceToSkinProcess::Execute();
 
 		constexpr int number_of_tetrahedra_points = 4;
-		for (auto& element : GetModelPart1().Elements()) {
+		for (auto& element : ModelPart1.Elements())
+		{
 			if (element.Is(TO_SPLIT)) {
 				auto& r_elemental_distances = element.GetValue(ELEMENTAL_DISTANCES);
 				for (int i = 0; i < number_of_tetrahedra_points; i++) {
 					Node<3>& r_node = element.GetGeometry()[i];
 					double& r_distance = r_node.GetSolutionStepValue(DISTANCE);
 					if (fabs(r_distance) > fabs(r_elemental_distances[i]))
-						r_distance = r_elemental_distances[i];
+					r_distance = r_elemental_distances[i];
 				}
 			}
 		}
+	}
+
+	void CalculateDistanceToSkinProcess::Execute()
+	{
+		this->Initialize();
+		this->FindIntersections();
+		this->ComputeDistances(this->GetIntersections());
 	}
 
 	/// Turn back information as a string.
@@ -67,8 +97,6 @@ namespace Kratos
 	void CalculateDistanceToSkinProcess::PrintData(std::ostream& rOStream) const {
 	}
 
-  
-  
+
+
 }  // namespace Kratos.
-
-
