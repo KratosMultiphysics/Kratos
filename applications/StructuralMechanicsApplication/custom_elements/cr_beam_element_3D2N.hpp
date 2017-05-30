@@ -91,7 +91,7 @@ namespace Kratos
 
 		Matrix CreateElementStiffnessMatrix_Material();
 		Matrix CreateElementStiffnessMatrix_Geometry(const Vector qe);
-		Matrix CalculateMaterialStiffness();
+		Matrix CalculateDeformationStiffness();
 		Matrix CalculateTransformationS();
 
 		Vector CalculateElementForces();

@@ -364,7 +364,7 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	Matrix CrBeamElement3D2N::CalculateMaterialStiffness() {
+	Matrix CrBeamElement3D2N::CalculateDeformationStiffness() {
 
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
@@ -1238,10 +1238,10 @@ namespace Kratos
 		for (int i = 0; i < 2; ++i) deformation_modes_total_V[i + 4] = this->mPhiA[i + 1];
 		//calculate element forces
 		Vector element_forces_t = ZeroVector(LocalSize);
-		Matrix material_stiffness_Kd = ZeroMatrix(LocalSize);
+		Matrix deformation_stiffness_Kd = ZeroMatrix(LocalSize);
 
-		material_stiffness_Kd = this->CalculateMaterialStiffness();
-		element_forces_t = prod(material_stiffness_Kd,
+		deformation_stiffness_Kd = this->CalculateDeformationStiffness();
+		element_forces_t = prod(deformation_stiffness_Kd,
 			deformation_modes_total_V);
 
 		return element_forces_t;

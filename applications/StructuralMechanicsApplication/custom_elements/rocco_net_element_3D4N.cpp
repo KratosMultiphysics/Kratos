@@ -361,17 +361,19 @@ void RoccoNetElement3D4N::AddDiagonalRHSForces(Vector& rInternalForces)
 		this->mNormalResistanceReached = true; // true
 	}
 
-	//create diagonal RHS local
+	//create diagonal RHS local   ---> changed N due to Axel's Email
 	double N1, N2;
 	// Diagonal 1
 	if (u1 <= 0.00) N1 = 0.00;
 	else if (u1 > 0.00 && mNormalResistanceReached == false) N1 = StiffnessKb * u1;
-	else N1 = StiffnessKb * this->mdN1;
+	//else N1 = StiffnessKb * this->mdN1;
+	else N1 = StiffnessKb * u1;
 
 	// Diagonal 1
 	if (u2 <= 0.00) N2 = 0.00;
 	else if (u2 > 0.00 && mNormalResistanceReached == false) N2 = StiffnessKb * u2;
-	else N2 = StiffnessKb * this->mdN2;
+	//else N2 = StiffnessKb * this->mdN2;
+	else N2 = StiffnessKb * u2;
 
 	Vector InnerForces1 = ZeroVector(spring_size);
 	Vector InnerForces2 = ZeroVector(spring_size);
