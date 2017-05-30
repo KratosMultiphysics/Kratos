@@ -21,7 +21,7 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
-#include <boost/unordered_set.hpp>
+#include <unordered_set>
 
 namespace Kratos
 {
@@ -33,7 +33,7 @@ struct SharedPointerHasher
 {
     size_t operator()(const TSharedPointer& pCond) const
     {
-        return (size_t)pCond.get(); 
+        return reinterpret_cast<size_t>(pCond.get());
     }
 };
 #endif
@@ -44,18 +44,18 @@ struct SharedPointerComparator
 {
     bool operator()(const TSharedPointer& first, const TSharedPointer& second) const
     {
-        return *first == *second;
+		return first.get() == second.get();
     }
 };
 #endif
 
 typedef array_1d<double,3> Vector3;
 
-struct ConditionSet : boost::unordered_set<Condition::Pointer, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> >
+struct ConditionSet : std::unordered_set<Condition::Pointer, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> >
 {
     ~ConditionSet(){}
     
-    typedef boost::unordered_set<Condition::Pointer, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> > BaseType;
+    typedef std::unordered_set<Condition::Pointer, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> > BaseType;
     
     void RemoveCondition(Condition::Pointer pCond)
     {
