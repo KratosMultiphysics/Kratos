@@ -2,18 +2,18 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
-	           
+
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -24,25 +24,51 @@
 namespace Kratos
 {
 	CalculateDiscontinuousDistanceToSkinProcess::CalculateDiscontinuousDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart)
-	: FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart) {
-		
+		: mrSkinPart(rSkinPart), mrVolumePart(rVolumePart), mFindIntersectedObjectsProcess(rVolumePart, rSkinPart)
+	{
 	}
 
-	CalculateDiscontinuousDistanceToSkinProcess::~CalculateDiscontinuousDistanceToSkinProcess(){}
+	CalculateDiscontinuousDistanceToSkinProcess::~CalculateDiscontinuousDistanceToSkinProcess()
+	{
+	}
 
+	void CalculateDiscontinuousDistanceToSkinProcess::Initialize()
+	{
+		mFindIntersectedObjectsProcess.Initialize();
+	}
 
-	void CalculateDiscontinuousDistanceToSkinProcess::Execute() {
-		Initialize(); // Now the spatial container should be created
+	void CalculateDiscontinuousDistanceToSkinProcess::FindIntersections()
+	{
+		mFindIntersectedObjectsProcess.FindIntersections();
+	}
 
-		std::vector<PointerVector<GeometricalObject>> intersected_objects;
-		FindIntersectedSkinObjects(intersected_objects);
+	std::vector<PointerVector<GeometricalObject>>& CalculateDiscontinuousDistanceToSkinProcess::GetIntersections()
+	{
+		return mFindIntersectedObjectsProcess.GetIntersections();
+	}
 
-		const int number_of_elements = GetModelPart1().NumberOfElements();
-		auto& r_elements = GetModelPart1().ElementsArray();
-#pragma omp parallel for 
-		for (int i = 0; i < number_of_elements; i++) {
-			CalculateElementalDistances(*(r_elements[i]), intersected_objects[i]);
+	void CalculateDiscontinuousDistanceToSkinProcess::ComputeDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
+	{
+		const int number_of_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).NumberOfElements();
+		auto& r_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).ElementsArray();
+
+		#pragma omp parallel for
+		for (int i = 0; i < number_of_elements; ++i)
+		{
+			CalculateElementalDistances(*(r_elements[i]), rIntersectedObjects[i]);
 		}
+	}
+
+	void CalculateDiscontinuousDistanceToSkinProcess::Clear()
+	{
+		mFindIntersectedObjectsProcess.Clear();
+	}
+
+	void CalculateDiscontinuousDistanceToSkinProcess::Execute()
+	{
+		this->Initialize();
+		this->FindIntersections();
+		this->ComputeDistances(this->GetIntersections());
 	}
 
 	/// Turn back information as a string.
@@ -51,15 +77,18 @@ namespace Kratos
 	}
 
 	/// Print information about this object.
-	void CalculateDiscontinuousDistanceToSkinProcess::PrintInfo(std::ostream& rOStream) const {
+	void CalculateDiscontinuousDistanceToSkinProcess::PrintInfo(std::ostream& rOStream) const
+	{
 		rOStream << Info();
 	}
 
 	/// Print object's data.
-	void CalculateDiscontinuousDistanceToSkinProcess::PrintData(std::ostream& rOStream) const {
+	void CalculateDiscontinuousDistanceToSkinProcess::PrintData(std::ostream& rOStream) const
+	{
 	}
 
-	void CalculateDiscontinuousDistanceToSkinProcess::CalculateElementalDistances(Element& rElement1, PointerVector<GeometricalObject>& rIntersectedObjects) {
+	void CalculateDiscontinuousDistanceToSkinProcess::CalculateElementalDistances(Element& rElement1, PointerVector<GeometricalObject>& rIntersectedObjects)
+	{
 		if (rIntersectedObjects.empty()) {
 			rElement1.Set(TO_SPLIT, false);
 			return;
@@ -76,7 +105,7 @@ namespace Kratos
 		for (int i = 0; i < number_of_tetrahedra_points; i++) {
 			elemental_distances[i] = CalculateDistanceToNode(rElement1, i, rIntersectedObjects, epsilon);
 		}
-		
+
 		bool has_positive_distance = false;
 		bool has_negative_distance = false;
 		for (int i = 0; i < number_of_tetrahedra_points; i++)
@@ -88,27 +117,25 @@ namespace Kratos
 		rElement1.Set(TO_SPLIT, has_positive_distance && has_negative_distance);
 	}
 
-	double CalculateDiscontinuousDistanceToSkinProcess::CalculateDistanceToNode(Element& rElement1, int NodeIndex, PointerVector<GeometricalObject>& rIntersectedObjects, const double Epsilon) {
-			double result_distance = std::numeric_limits<double>::max();
-			for (auto triangle : rIntersectedObjects.GetContainer()) {
-				auto distance = GeometryUtils::PointDistanceToTriangle3D(triangle->GetGeometry()[0], triangle->GetGeometry()[1], triangle->GetGeometry()[2], rElement1.GetGeometry()[NodeIndex]);
-				if (fabs(result_distance) > distance)
-				{
-					if (distance < Epsilon) {
-						result_distance = -Epsilon;
-					}
-					else {
-						result_distance = distance;
-						Plane3D plane(triangle->GetGeometry()[0], triangle->GetGeometry()[1], triangle->GetGeometry()[2]);
-						if (plane.CalculateSignedDistance(rElement1.GetGeometry()[NodeIndex]) < 0)
-							result_distance = -result_distance;
-					}
+	double CalculateDiscontinuousDistanceToSkinProcess::CalculateDistanceToNode(Element& rElement1, int NodeIndex, PointerVector<GeometricalObject>& rIntersectedObjects, const double Epsilon)
+	{
+		double result_distance = std::numeric_limits<double>::max();
+		for (auto triangle : rIntersectedObjects.GetContainer()) {
+			auto distance = GeometryUtils::PointDistanceToTriangle3D(triangle->GetGeometry()[0], triangle->GetGeometry()[1], triangle->GetGeometry()[2], rElement1.GetGeometry()[NodeIndex]);
+			if (fabs(result_distance) > distance)
+			{
+				if (distance < Epsilon) {
+					result_distance = -Epsilon;
+				}
+				else {
+					result_distance = distance;
+					Plane3D plane(triangle->GetGeometry()[0], triangle->GetGeometry()[1], triangle->GetGeometry()[2]);
+					if (plane.CalculateSignedDistance(rElement1.GetGeometry()[NodeIndex]) < 0)
+						result_distance = -result_distance;
 				}
 			}
-			return result_distance;
+		}
+		return result_distance;
 	}
 
-
 }  // namespace Kratos.
-
-
