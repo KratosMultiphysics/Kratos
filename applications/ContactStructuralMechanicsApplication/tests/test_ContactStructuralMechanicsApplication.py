@@ -141,17 +141,17 @@ def AssambleTestSuites():
             TALMSimplePatchNotMatchingBTestContact,
             TALMThreeDSimplestPatchMatchingTestContact,
             TALMThreeDSimplestPatchMatchingSlopeTestContact,
-            TALMTThreeDPatchMatchingTestContact, # TODO: Debug in Windows
-            TALMThreeDPatchNotMatchingTestContact, # TODO: Debug in Windows
+            TALMTThreeDPatchMatchingTestContact,
+            TALMThreeDPatchNotMatchingTestContact,
             # NIGTHLY
-            TALMMeshMovingMatchingTestContact, # TODO: Debug in Windows (it works in Release)
-            TALMMeshMovingNotMatchingTestContact, # TODO: Debug in Windows (it works in Release)
+            TALMMeshMovingMatchingTestContact,
+            TALMMeshMovingNotMatchingTestContact,
             TALMTaylorPatchTestContact,
             TALMTaylorPatchDynamicTestContact, # NOTE: Check that in debug dynamic gives an error
             TALMHertzSimpleTestContact,
             TALMHertzSimpleSphereTestContact,
             TALMHertzSphereTestContact,
-            TALMHertzCompleteTestContact, # TODO: Debug in Windows
+            TALMHertzCompleteTestContact,
             # VALIDATION
             ##TALMIroningTestContact,
             ##TALMIroningDieTestContact,
