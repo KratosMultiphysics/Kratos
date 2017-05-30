@@ -27,7 +27,7 @@ class WatcherAnalyzer:
         length = len(times)
         assert length == len(number_flux) == len(mass_flux)
         shape = (length, )
-        number_flux, mass_flux = self.CalculateAccumulated(length, number_flux, mass_flux)
+        number_flux, mass_flux = self.CalculateAccumulatedVectors(length, number_flux, mass_flux)
         if self.inlet is not None:
             self.inlet_accumulated_mass.append(self.inlet.GetMassInjectedSoFar())
             self.inlet_accumulated_number_of_particles.append(self.inlet.GetNumberOfParticlesInjectedSoFar())
@@ -56,7 +56,7 @@ class WatcherAnalyzer:
 
         return joint_list
 
-    def CalculateAccumulated(self, length, number_flux, mass_flux):
+    def CalculateAccumulatedVectors(self, length, number_flux, mass_flux):
         acc_number_flux = self.CalculateAccumulated(original_list = number_flux, old_accumulated = self.n_particles_accumulated)
         acc_mass_flux = self.CalculateAccumulated(original_list = mass_flux, old_accumulated = self.mass_accumulated)
 
