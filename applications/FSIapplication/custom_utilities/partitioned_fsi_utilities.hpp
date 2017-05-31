@@ -266,6 +266,8 @@ public:
      */
     void ComputeFluidInterfaceMeshVelocityResidualNorm(ModelPart& rFluidInterfaceModelPart) // TODO: MPI parallelization
     {
+        KRATOS_ERROR << "This function must be reimplemented" << std::endl;
+        /*
         VectorPointerType pFluidInterfaceMeshResidual;
         this->SetUpInterfaceVector(rFluidInterfaceModelPart, pFluidInterfaceMeshResidual);
         VectorType& fluid_interface_mesh_residual = *pFluidInterfaceMeshResidual;
@@ -292,17 +294,18 @@ public:
 
         // Store the L2 norm of the error in the fluid process info
         rFluidInterfaceModelPart.GetProcessInfo().GetValue(FSI_INTERFACE_MESH_RESIDUAL_NORM) = TSpace::TwoNorm(fluid_interface_mesh_residual);
-
+*/
     }
 
     virtual void UpdateInterfaceValues(ModelPart& rInterfaceModelPart,
                                        const Variable<array_1d<double, 3 > >& rSolutionVariable,
                                        VectorType& rCorrectedGuess)
     {
-        #pragma omp parallel for
-        for(int k=0; k<static_cast<int>(rInterfaceModelPart.NumberOfNodes()); ++k)
+        auto& rLocalMesh = rInterfaceModelPart.GetCommunicator().LocalMesh();
+        #pragma omp parallel for firstprivate(rLocalMesh)
+        for(int k=0; k<static_cast<int>(rLocalMesh.NumberOfNodes()); ++k)
         {
-            const ModelPart::NodeIterator it_node = rInterfaceModelPart.NodesBegin()+k;
+            const ModelPart::NodeIterator it_node = rLocalMesh.NodesBegin()+k;
             const unsigned int base_i = k*TDim;
 
             array_1d<double,3>& updated_value = it_node->FastGetSolutionStepValue(rSolutionVariable);
@@ -311,6 +314,8 @@ public:
                 updated_value[jj] = this->GetLocalValue( rCorrectedGuess, base_i+jj );
             }
         }
+
+        rInterfaceModelPart.GetCommunicator().SynchronizeVariable(rSolutionVariable);
     }
 
     /*@} */

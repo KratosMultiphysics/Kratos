@@ -111,16 +111,6 @@ namespace Kratos
 
           // Set interface vector to zero
           pInterfaceVector->PutScalar(0.0);
-
-          std::cout << rInterfaceModelPart.GetCommunicator().MyPID() << ": ";
-          KRATOS_WATCH(InterfaceMap.NumGlobalPoints())
-          KRATOS_WATCH(InterfaceMap.NumMyPoints())
-          KRATOS_WATCH(InterfaceMap.MinAllGID())
-          KRATOS_WATCH(InterfaceMap.MaxAllGID())
-          KRATOS_WATCH(InterfaceMap.MinMyGID())
-          KRATOS_WATCH(InterfaceMap.MaxMyGID())
-          KRATOS_WATCH(InterfaceMap.MinLID())
-          KRATOS_WATCH(InterfaceMap.MaxLID())
       }
 
       ///@}
@@ -167,18 +157,11 @@ namespace Kratos
       virtual void SetLocalValue(VectorType& rVector, int LocalRow, double Value) const override
       {
           // Note: We don't go through TSpace because TrilinosSpace forces a GlobalAssemble after each SetValue
-          //KRATOS_ERROR_IF_NOT(rVector.Map().MyGID(LocalRow)) << " non-local id: " << LocalRow << ".";
-          std::cout << "set: " << LocalRow << " " << Value << std::endl;
-          int ierr = rVector.ReplaceMyValue(LocalRow,0,Value);
-          KRATOS_ERROR_IF(ierr != 0) << "ReplaceMyValue returns " << ierr << " for row " << LocalRow << " of " << rVector.Map().MaxLID() << std::endl;
-          //rVector.GlobalAssemble();
-          //KRATOS_WATCH(rVector[0][LocalRow])
+          rVector.ReplaceMyValue(LocalRow,0,Value);
       }
 
       virtual double GetLocalValue(VectorType& rVector, int LocalRow) const override
       {
-          std::cout << "get: " << LocalRow << " " << rVector[0][LocalRow] << std::endl;
-          //KRATOS_WATCH(rVector[0][LocalRow])
           return rVector[0][LocalRow];
       }
 

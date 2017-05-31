@@ -173,6 +173,7 @@ class KratosExecuteConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
             if res_norm > self.aitken_tolelance:
                 coupling_utility.InitializeNonLinearIteration()
                 coupling_utility.UpdateSolution(residual.GetReference(), x_guess.GetReference())
+                self.partitioned_utilities.UpdateInterfaceValues(top_part,KratosMultiphysics.DISPLACEMENT,x_guess.GetReference())
                 coupling_utility.FinalizeNonLinearIteration()
             else:
                 coupling_utility.FinalizeSolutionStep()
@@ -186,15 +187,13 @@ class KratosExecuteConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         # Check the obtained solution
         expected_x = solution(top_part)
 
-        self.partitioned_utilities.UpdateInterfaceValues(top_part,KratosMultiphysics.DISPLACEMENT,x_guess.GetReference())
-
         for i,node in enumerate(top_part.Nodes):
             expected = expected_x[3*i+2]
             obtained = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0)
             self.assertAlmostEqual(expected,obtained,delta=self.assert_delta)
 
     def test_aitken_accelerator_constant_forces(self):
-        self.print_gid_output = True
+        self.print_gid_output = False
 
         k1 = 100
         k2 = 500
@@ -256,7 +255,7 @@ class KratosExecuteConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         self.test_aitken_accelerator(forceA,forceB,solution)
 
     def test_aitken_accelerator_ghost_nodes(self):
-        self.print_gid_output = True
+        self.print_gid_output = False
 
         # relax tolerance requirements to force differences between processors
         self.aitken_tolelance = 1e-2
