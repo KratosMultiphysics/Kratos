@@ -17,9 +17,13 @@
 
 #include "includes/define.h"
 
+#ifdef KRATOS_USING_MPI
+#include "mpi.h"
+#endif
+
 namespace Kratos {
 
-template<class T>
+template<class TDataType>
 class GlobalPointer {
 private:
 
@@ -27,55 +31,53 @@ private:
    * Default constructor
    * This should never be called as we need a local pointer to exists
    */
-  GlobalPointer() {}
+  GlobalPointer() = delete;
 
-  T GetPointer() { return mBasePointer; }
+  TDataType GetPointer() { return mBaseDataPtr; }
 
   /// Local pointer and its rank. This must never be seen outside this class.
   /// Do not make it protected if you derive from this class.
-  T mBasePointer;
+  TDataType * mBaseDataPtr;
   int mRank;
 
 public:
 
-  /** Constructor by a local BasePointer
+  /** Constructor by a local BaseData
    * Constructor by a local pointer
-   * @param BasePointer BasePointer of the local variable.
+   * @param BaseData BaseData of the local variable.
    */
-  GlobalPointer(const T & BasePointer) {
-    mBasePointer = BasePointer;
-    mRank = GetLocalRank();
+  GlobalPointer(TDataType * BaseDataPtr)
+    : mBaseDataPtr(BaseDataPtr)
+    , mRank(GetLocalRank()) {
+  }
+
+  /** Constructor by boost::shared_ptr
+   * Constructor by boost::shared_ptr
+   * @param BaseData BaseData of the local variable.
+   */
+  GlobalPointer(boost::shared_ptr<TDataType> BaseSharedPtr)
+    : mBaseDataPtr(&*BaseSharedPtr)
+    , mRank(GetLocalRank()) {
   }
 
   /** Default Destructor
    * Default Destructor.
-   * The descturctor DOES NOT free the local pointer.
    */
   ~GlobalPointer() {
-    mBasePointer = nullptr;
-    mRank = -1;
   }
 
   /**
    * Pointer Operator
    */
-  auto operator*() -> decltype(*mBasePointer) {
-    if(GetLocalRank() == mRank) {
-      return *mBasePointer;
-    }
-
-    KRATOS_ERROR << "Trying to access invalid memory space" << std::endl;
+  TDataType & operator*() {
+    return *mBaseDataPtr;
   }
 
   /**
    * Arrow Operator
    */
-  auto operator->() -> decltype(mBasePointer) {
-    if(GetLocalRank() == mRank) {
-      return mBasePointer;
-    }
-
-    KRATOS_ERROR << "Trying to access invalid memory space" << std::endl;
+  TDataType * operator->() {
+    return mBaseDataPtr;
   }
 
   /** Returns the rank of the BasePointer owner
@@ -84,22 +86,6 @@ public:
    */
   int GetRank() const {
     return mRank;
-  }
-
-  /** Returns the number of ranks
-   * Returns the number of ranks
-   * @return Number of ranks
-   */
-  int GetSize() const {
-#ifdef KRATOS_USING_MPI
-    int mpi_size;
-
-    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-
-    return mpi_size;
-#else
-    return 0;
-#endif
   }
 
   /** Returns the rank of the current process
