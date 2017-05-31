@@ -35,6 +35,7 @@ from SmallTests import ALMSimplePatchNotMatchingATestContact          as TALMSim
 from SmallTests import ALMSimplePatchNotMatchingBTestContact          as TALMSimplePatchNotMatchingBTestContact
 from SmallTests import ALMThreeDSimplestPatchMatchingTestContact      as TALMThreeDSimplestPatchMatchingTestContact
 from SmallTests import ALMThreeDSimplestPatchMatchingSlopeTestContact as TALMThreeDSimplestPatchMatchingSlopeTestContact
+from SmallTests import ALMThreeDPatchComplexGeomTestContact           as TALMThreeDPatchComplexGeomTestContact
 from SmallTests import ALMThreeDPatchMatchingTestContact              as TALMTThreeDPatchMatchingTestContact
 from SmallTests import ALMThreeDPatchNotMatchingTestContact           as TALMThreeDPatchNotMatchingTestContact
 
@@ -95,6 +96,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TALMSimplePatchNotMatchingBTestContact('test_execution'))
     smallSuite.addTest(TALMThreeDSimplestPatchMatchingTestContact('test_execution'))
     smallSuite.addTest(TALMThreeDSimplestPatchMatchingSlopeTestContact('test_execution'))
+    smallSuite.addTest(TALMThreeDPatchComplexGeomTestContact('test_execution'))
     smallSuite.addTest(TALMTThreeDPatchMatchingTestContact('test_execution'))
     smallSuite.addTest(TALMThreeDPatchNotMatchingTestContact('test_execution'))
 
@@ -141,6 +143,7 @@ def AssambleTestSuites():
             TALMSimplePatchNotMatchingBTestContact,
             TALMThreeDSimplestPatchMatchingTestContact,
             TALMThreeDSimplestPatchMatchingSlopeTestContact,
+            TALMThreeDPatchComplexGeomTestContact,
             TALMTThreeDPatchMatchingTestContact,
             TALMThreeDPatchNotMatchingTestContact,
             # NIGTHLY
