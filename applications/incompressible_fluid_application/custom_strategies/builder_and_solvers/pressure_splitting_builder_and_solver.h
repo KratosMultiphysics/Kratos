@@ -1021,7 +1021,7 @@ public:
      * @param rConditions Reference to the container of the model's conditions.
      * @param rCurrentProcessInfo Reference to the ProcessInfo of the ModelPart.
      */
-    void ResizeAndInitializeVectors(
+    void ResizeAndInitializeVectors( typename TSchemeType::Pointer pScheme,
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
@@ -1102,7 +1102,7 @@ public:
             D.resize(mPressFreeDofs, mVelFreeDofs, false);
             L.resize(mPressFreeDofs, mPressFreeDofs, false);
 
-            ConstructMatrixStructure(S, D, G, L, rElements, rConditions, rCurrentProcessInfo);
+            ConstructMatrixStructure(pScheme, S, D, G, L, rElements, rConditions, rCurrentProcessInfo);
 
             A.resize(mPressFreeDofs, mPressFreeDofs, false);
             IDiagS.resize(mVelFreeDofs);
@@ -1280,7 +1280,7 @@ public:
 protected:
 
     /// Compute graphs for the different matrices involved in the problem
-    virtual void ConstructMatrixStructure(
+    virtual void ConstructMatrixStructure( typename TSchemeType::Pointer pScheme,
         TSystemMatrixType& S,
         TSystemMatrixType& D,
         TSystemMatrixType& G,
@@ -1301,7 +1301,7 @@ protected:
         for (typename ElementsContainerType::const_iterator itElem = rElements.begin();
                 itElem != rElements.end(); itElem++)
         {
-            itElem->EquationIdVector(ids, CurrentProcessInfo);
+            pScheme->EquationId( *(itElem.base()) , ids, CurrentProcessInfo);
 
             for (std::size_t i = 0; i < ids.size(); i++)
                 if (ids[i] < mVelFreeDofs)
@@ -1335,8 +1335,8 @@ protected:
         // Do the same for conditions
         for (typename ConditionsArrayType::const_iterator itCond = rConditions.begin();
                 itCond != rConditions.end(); itCond++)
-        {
-            itCond->EquationIdVector(ids, CurrentProcessInfo);
+        {            
+            pScheme->Condition_EquationId( *(itCond.base()), ids, CurrentProcessInfo);
 
             for (std::size_t i = 0; i < ids.size(); i++)
                 if (ids[i] < mVelFreeDofs)

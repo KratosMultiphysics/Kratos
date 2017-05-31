@@ -6,8 +6,21 @@ from KratosMultiphysics import *
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosExecuteMapperTest as ExecuteMapperTest
+import KratosExecuteMapperTwoFacesTest as ExecuteMapperTwoFacesTest
 import KratosExecuteConvergenceAcceleratorTest as ExecuteConvergenceAcceleratorTest
 import KratosExecuteFSIProblemEmulatorTest as ExecuteFSIProblemEmulatorTest
+
+try:
+    from KratosMultiphysics.SolidMechanicsApplication import *
+    from KratosMultiphysics.StructuralMechanicsApplication import *
+    from KratosMultiphysics.FluidDynamicsApplication import *
+    missing_external_dependencies = False
+    missing_application = ''
+except ImportError as e:
+    missing_external_dependencies = True
+    # extract name of the missing application from the error message
+    import re
+    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''','{0}'.format(e)).group(1)
 
 # This utiltiy will control the execution scope in case we need to acces files or we depend
 # on specific relative locations of the files.
@@ -46,11 +59,32 @@ class MapperTestFactory(KratosUnittest.TestCase):
         pass
 
 
+class TwoFacesMapperTestFactory(KratosUnittest.TestCase):
+
+    def setUp(self):
+        # Within this location context:
+        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            # Get the ProjectParameters file
+            parameter_file = open(self.file_name + "_parameters.json", 'r')
+            ProjectParameters = Parameters(parameter_file.read())
+
+            # Create the test
+            self.test = ExecuteMapperTwoFacesTest.KratosExecuteTwoFacesMapperTest(ProjectParameters)
+
+    def test_execution(self):
+        # Within this location context:
+        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            self.test.Solve()
+
+    def tearDown(self):
+        pass
+
+
 class FSIProblemEmulatorTestFactory(KratosUnittest.TestCase):
 
     def setUp(self):
         self.test_list = []
-        
+
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             # Iterate in the convergence accelerators test list
@@ -71,19 +105,27 @@ class FSIProblemEmulatorTestFactory(KratosUnittest.TestCase):
 
     def tearDown(self):
         pass
-        
 
+@KratosUnittest.skipIf(missing_external_dependencies, "Missing required application: {0}".format(missing_application))
 class NonConformantOneSideMap2D_test1(MapperTestFactory):
     file_name = "NonConformantOneSideMap2D_test1/NonConformantOneSideMap2D_test1"
 
-
+@KratosUnittest.skipIf(missing_external_dependencies, "Missing required application: {0}".format(missing_application))
 class NonConformantOneSideMap2D_test2(MapperTestFactory):
     file_name = "NonConformantOneSideMap2D_test2/NonConformantOneSideMap2D_test2"
-                      
-                
+
+@KratosUnittest.skipIf(missing_external_dependencies, "Missing required application: {0}".format(missing_application))
+class NonConformantOneSideMap3D_test1(MapperTestFactory):
+    file_name = "NonConformantOneSideMap3D_test1/NonConformantOneSideMap3D_test1"
+
+@KratosUnittest.skipIf(missing_external_dependencies, "Missing required application: {0}".format(missing_application))
+class NonConformantOneSideMapTwoFaces3D_test1(TwoFacesMapperTestFactory):
+    file_name = "NonConformantOneSideMapTwoFaces3D_test1/NonConformantOneSideMapTwoFaces3D_test1"
+
+@KratosUnittest.skipIf(missing_external_dependencies, "Missing required application: {0}".format(missing_application))
 class FSIProblemEmulatorTest(FSIProblemEmulatorTestFactory):
     file_name_1 = "FSIProblemEmulatorTest/FSIProblemEmulatorTest_Aitken"
     file_name_2 = "FSIProblemEmulatorTest/FSIProblemEmulatorTest_MVQN"
     file_name_3 = "FSIProblemEmulatorTest/FSIProblemEmulatorTest_MVQN_recursive"
-    
+
     file_name_list = [file_name_1, file_name_2, file_name_3]

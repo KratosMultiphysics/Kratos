@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,6 @@ THE SOFTWARE.
  * \brief  Implementation of ILU0 smoother for CUDA backend.
  */
 
-#include <boost/typeof/typeof.hpp>
 #include <thrust/device_vector.h>
 #include <cusparse_v2.h>
 
@@ -69,9 +68,9 @@ struct ilu0< backend::cuda<real> > {
     ilu0( const Matrix &A, const params &, const typename Backend::params &bprm)
         : handle(bprm.cusparse_handle),
           n(backend::rows(A)), nnz(backend::nonzeros(A)),
-          ptr(A.ptr_data(), A.ptr_data() + n+1),
-          col(A.col_data(), A.col_data() + nnz),
-          val(A.val_data(), A.val_data() + nnz),
+          ptr(A.ptr, A.ptr + n+1),
+          col(A.col, A.col + nnz),
+          val(A.val, A.val + nnz),
           y(n)
     {
         // Create matrix descriptors.

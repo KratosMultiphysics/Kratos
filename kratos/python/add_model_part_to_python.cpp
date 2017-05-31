@@ -542,7 +542,7 @@ bool CommunicatorAssembleNonHistoricalData(Communicator& rCommunicator, Variable
 }
 
 template<class TDataType>
-TDataType CommunicatorSumAll(Communicator& rCommunicator, TDataType rValue)
+TDataType CommunicatorSumAll(Communicator& rCommunicator, const TDataType& rValue)
 {
     TDataType Value = rValue;
     rCommunicator.SumAll(Value);
@@ -550,7 +550,7 @@ TDataType CommunicatorSumAll(Communicator& rCommunicator, TDataType rValue)
 }
 
 template<class TDataType>
-TDataType CommunicatorMinAll(Communicator& rCommunicator, TDataType rValue)
+TDataType CommunicatorMinAll(Communicator& rCommunicator, const TDataType& rValue)
 {
     TDataType Value = rValue;
     rCommunicator.MinAll(Value);
@@ -558,7 +558,7 @@ TDataType CommunicatorMinAll(Communicator& rCommunicator, TDataType rValue)
 }
 
 template<class TDataType>
-TDataType CommunicatorMaxAll(Communicator& rCommunicator, TDataType rValue)
+TDataType CommunicatorMaxAll(Communicator& rCommunicator, const TDataType& rValue)
 {
     TDataType Value = rValue;
     rCommunicator.MaxAll(Value);
@@ -581,6 +581,7 @@ void AddModelPartToPython()
     class_<Communicator > ("Communicator")
         .def(init<>())
         .def("MyPID", &Communicator::MyPID)
+        .def("Barrier", &Communicator::Barrier)
         .def("TotalProcesses", &Communicator::TotalProcesses)
         .def("GetNumberOfColors", &Communicator::GetNumberOfColors)
         .def("NeighbourIndices", NeighbourIndicesConst, return_internal_reference<>())

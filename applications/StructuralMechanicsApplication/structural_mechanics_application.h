@@ -246,7 +246,9 @@ private:
     
     // Adding the nodal concentrated element 
     const NodalConcentratedElement mNodalConcentratedElement2D1N;
+    const NodalConcentratedElement mNodalConcentratedDampedElement2D1N;
     const NodalConcentratedElement mNodalConcentratedElement3D1N;
+    const NodalConcentratedElement mNodalConcentratedDampedElement3D1N;
 
     /* CONDITIONS*/
     // Beam moment condition

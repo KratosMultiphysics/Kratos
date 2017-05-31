@@ -9,9 +9,6 @@
 #
 # ==============================================================================
 
-# ------------------------------------------------------------------------------
-# Imports
-# ------------------------------------------------------------------------------
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
@@ -23,35 +20,74 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 CheckForPreviousImport()
 
 # ==============================================================================
-def CreateSolver(model_part, opt_settings):
+def CreateListOfResponseFunctions( inputModelPart, optimizationSettings ):
+    listOfResponseFunctions = {}
+    responseCreator = ResponseFunctionCreator( inputModelPart, optimizationSettings )
+    responseCreator.AddSpecifiedKratosResponseFunctionsToList( listOfResponseFunctions )
+    return listOfResponseFunctions
 
-    # Dictionary to store solvers of all response functions defined in the optimization settings
-    solver = {}
+# ==============================================================================
+class ResponseFunctionCreator: 
 
-    # Collect all responses
-    specified_responses = {}
-    for response_id in opt_settings.objectives:
-        specified_responses[response_id] = opt_settings.objectives[response_id]
+    # --------------------------------------------------------------------------
+    def __init__( self, inputModelPart, optimizationSettings ):
+        self.inputModelPart = inputModelPart
+        self.optimizationSettings = optimizationSettings
 
-    if not specified_responses:
-        raise ValueError("No objective function specified!")
+     # --------------------------------------------------------------------------
+    def AddSpecifiedKratosResponseFunctionsToList( self, listOfResponseFunctions ):        
+        self.listOfResponseFunctions = listOfResponseFunctions
+        self.__addObjectivesToListOfResponseFunctions()
+        self.__addConstraintsToListOfResponseFunctions()
+        
+    # --------------------------------------------------------------------------
+    def __addObjectivesToListOfResponseFunctions( self ):
 
-    for response_id in opt_settings.constraints:
-        specified_responses[response_id] = opt_settings.constraints[response_id]
+        numberOfObjectives = self.optimizationSettings["objectives"].size()
 
-    # Creat response function solver according to specified settings and add relevant variables
-    in_active_responses = True
-    if "strain_energy" in specified_responses.keys():
-        in_active_responses = False
-        model_part.AddNodalSolutionStepVariable(STRAIN_ENERGY_SHAPE_GRADIENT)
-        solver["strain_energy"] = StrainEnergyResponseFunction(model_part, specified_responses["strain_energy"])
-    if "mass" in specified_responses.keys():
-        in_active_responses = False
-        model_part.AddNodalSolutionStepVariable(MASS_SHAPE_GRADIENT)
-        solver["mass"] = MassResponseFunction(model_part, specified_responses["mass"])        
-    if in_active_responses:
-        raise ValueError("Specified response function not implemented. Implemented response functions are: \"strain_energy\", \"mass\"")
+        for objectiveNumber in range(numberOfObjectives):
 
-    return solver
+            objectiveId = self.optimizationSettings["objectives"][objectiveNumber]["identifier"].GetString()
+            useKratos = self.optimizationSettings["objectives"][objectiveNumber]["use_kratos"].GetBool()
+
+            if useKratos:
+                self.__checkIfGivenResponseFunctionIsAlreadyDefined( objectiveId )
+                self.__createAndAddGivenResponse( objectiveId, self.optimizationSettings["objectives"][objectiveNumber] )
+
+        if not self.listOfResponseFunctions:
+            raise ValueError("No objective function specified!")
+
+    # --------------------------------------------------------------------------
+    def __addConstraintsToListOfResponseFunctions( self ):
+
+        numberOfConstraints = self.optimizationSettings["constraints"].size()
+
+        for constraintNumber in range(numberOfConstraints):
+
+            constraintId = self.optimizationSettings["constraints"][constraintNumber]["identifier"].GetString()
+            useKratos = self.optimizationSettings["constraints"][constraintNumber]["use_kratos"].GetBool()
+
+            if useKratos:
+                self.__checkIfGivenResponseFunctionIsAlreadyDefined( constraintId )
+                self.__createAndAddGivenResponse( constraintId, self.optimizationSettings["constraints"][constraintNumber] )         
+
+    # --------------------------------------------------------------------------
+    def __checkIfGivenResponseFunctionIsAlreadyDefined( self, responseId ):
+        if responseId in self.listOfResponseFunctions.keys():
+            raise NameError("There are multiple response functions with the following identifier: " + responseId)
+
+    # --------------------------------------------------------------------------
+    def __createAndAddGivenResponse( self, responseId, solverSettings ):
+
+        if responseId == "strain_energy":
+            responseFunctionSolverIsNotImplemented = False
+            self.inputModelPart.AddNodalSolutionStepVariable(STRAIN_ENERGY_SHAPE_GRADIENT)
+            self.listOfResponseFunctions["strain_energy"] = StrainEnergyResponseFunction( self.inputModelPart, solverSettings )
+        elif responseId == "mass":
+            responseFunctionSolverIsNotImplemented = False
+            self.inputModelPart.AddNodalSolutionStepVariable(MASS_SHAPE_GRADIENT)
+            self.listOfResponseFunctions["mass"] = MassResponseFunction( self.inputModelPart, solverSettings )   
+        else:
+            raise NameError("The following response function is not specified: " + responseId)
 
 # ==============================================================================

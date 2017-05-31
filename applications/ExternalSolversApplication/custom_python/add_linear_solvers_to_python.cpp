@@ -14,6 +14,7 @@
 
 // External includes
 #include <boost/python.hpp>
+#include <complex>
 
 
 // Project includes
@@ -33,12 +34,9 @@
   #include "external_includes/feast_solver.h"
 #endif
 
-#ifndef EXCLUDE_ITSOL
-  #include "external_includes/itsol_arms_solver.h"
-#endif
-
 #ifdef INCLUDE_PASTIX
   #include "external_includes/pastix_solver.h"
+  #include "external_includes/pastix_complex_solver.h"
 #endif
   
 
@@ -47,6 +45,15 @@ namespace Kratos
 
 namespace Python
 {
+template <class TDataType>
+using TSpaceType = UblasSpace<TDataType, boost::numeric::ublas::compressed_matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
+template <class TDataType>
+using TLocalSpaceType = UblasSpace<TDataType, boost::numeric::ublas::matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
+template <class TDataType>
+using TLinearSolverType = LinearSolver<TSpaceType<TDataType>, TLocalSpaceType<TDataType>>;
+template <class TDataType>
+using TDirectSolverType = DirectSolver<TSpaceType<TDataType>, TLocalSpaceType<TDataType>>;
+
 void  AddLinearSolversToPython()
 {
     typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
@@ -61,6 +68,13 @@ void  AddLinearSolversToPython()
 
     using namespace boost::python;
 
+    class_<TLinearSolverType<std::complex<double>>, TLinearSolverType<std::complex<double>>::Pointer, boost::noncopyable>(
+        "ComplexLinearSolver").def(self_ns::str(self));
+    class_<TDirectSolverType<std::complex<double>>,
+           TDirectSolverType<std::complex<double>>::Pointer,
+           bases<TLinearSolverType<std::complex<double>>>,
+           boost::noncopyable>("ComplexDirectSolver").def(self_ns::str(self));
+
     //***************************************************************************
     //linear solvers
     //***************************************************************************
@@ -68,6 +82,7 @@ void  AddLinearSolversToPython()
     typedef FEASTSolver<SpaceType, LocalSpaceType> FEASTSolverType;
     class_<FEASTSolverType, FEASTSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >
         ( "FEASTSolver", init<Parameters::Pointer>() )
+        .def(init<Parameters::Pointer, TLinearSolverType<std::complex<double>>::Pointer>())
         ;
 #endif    
           
@@ -82,14 +97,6 @@ void  AddLinearSolversToPython()
     .def(init<double,int,int,double,double,double>())
     .def(init<Parameters>())
     ;
-    
-#ifndef EXCLUDE_ITSOL
-    typedef ITSOL_ARMS_Solver<SpaceType,  LocalSpaceType> ITSOL_ARMS_SolverType;
-    class_<ITSOL_ARMS_SolverType, bases<LinearSolverType>, boost::noncopyable >
-    ( "ITSOL_ARMS_Solver",init<>() )
-    .def(init<double,int,int>())
-    ;
-#endif
 
 #ifdef INCLUDE_PASTIX
     typedef PastixSolver<SpaceType,  LocalSpaceType> PastixSolverType;
@@ -97,6 +104,10 @@ void  AddLinearSolversToPython()
     ( "PastixSolver",init<int,bool>() )
     .def(init<double,int,int,int,bool>())
     .def(init<Parameters>());
+    ;
+    typedef PastixComplexSolver<TSpaceType<std::complex<double>>, TLocalSpaceType<std::complex<double>>> PastixComplexSolverType;
+    class_<PastixComplexSolverType, bases<TDirectSolverType<std::complex<double>>>, boost::noncopyable >
+    ("PastixComplexSolver",init<Parameters&>())
     ;
 #endif
     

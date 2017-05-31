@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -39,9 +39,6 @@ See http://pastix.gforge.inria.fr
 
 #include <boost/static_assert.hpp>
 #include <boost/type_traits.hpp>
-#include <boost/range/algorithm.hpp>
-#include <boost/range/numeric.hpp>
-#include <boost/range/irange.hpp>
 #include <boost/foreach.hpp>
 
 #include <amgcl/util.hpp>
@@ -120,15 +117,12 @@ class PaStiX {
         {
             std::vector<int> domain = mpi::exclusive_sum(comm, nrows);
 
-            boost::copy(
-                    boost::irange(domain[comm.rank], domain[comm.rank + 1]),
-                    row.begin()
-                    );
-
             // PaStiX needs 1-based matrices:
             BOOST_FOREACH(pastix_int_t &p, ptr) ++p;
             BOOST_FOREACH(pastix_int_t &c, col) ++c;
-            BOOST_FOREACH(pastix_int_t &r, row) ++r;
+
+            for(int i = 0, j = domain[comm.rank]; i < nrows; ++i)
+                row[i] = ++j;
 
             // Initialize parameters with default values:
             iparm[IPARM_MODIFY_PARAMETER] = API_NO;
@@ -158,7 +152,7 @@ class PaStiX {
          */
         template <class Vec1, class Vec2>
         void operator()(const Vec1 &rhs, Vec2 &x) const {
-            boost::copy(rhs, &x[0]);
+            for(int i = 0; i < nrows; ++i) x[i] = rhs[i];
             call_pastix(API_TASK_SOLVE, API_TASK_SOLVE, &x[0]);
         }
     private:

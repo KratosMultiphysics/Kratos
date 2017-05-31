@@ -119,6 +119,7 @@ public:
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
+    
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
 
@@ -575,7 +576,7 @@ public:
 
             //setting up the Vectors involved to the correct size
             double system_matrix_resize_begin = OpenMPUtils::GetCurrentTime();
-            pBuilderAndSolver->ResizeAndInitializeVectors(mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
+            pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
             if (this->GetEchoLevel() > 0 && rank == 0)
             {
                 double system_matrix_resize_end = OpenMPUtils::GetCurrentTime();
@@ -1003,10 +1004,11 @@ protected:
         }
     }
     
-    //**********************************************************************
-    //**********************************************************************
-
-    void MaxIterationsExceeded()
+    /**
+     * This method prints information after reach the max number of interations
+     */
+    
+    virtual void MaxIterationsExceeded()
     {
         if (this->GetEchoLevel() != 0 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {

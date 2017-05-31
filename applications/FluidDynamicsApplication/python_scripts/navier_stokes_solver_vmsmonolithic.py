@@ -28,7 +28,7 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
                 "input_filename": "unknown_name"
             },
             "maximum_iterations": 10,
-            "dynamic_tau": 0.0,
+            "dynamic_tau": 0.01,
             "oss_switch": 0,
             "echo_level": 0,
             "consider_periodic_conditions": false,
@@ -123,6 +123,8 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
                                                      self.settings["absolute_velocity_tolerance"].GetDouble(),
                                                      self.settings["relative_pressure_tolerance"].GetDouble(),
                                                      self.settings["absolute_pressure_tolerance"].GetDouble())
+        
+        (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
 
         if (self.settings["turbulence_model"].GetString() == "None"):
             if self.settings["consider_periodic_conditions"].GetBool() == True:

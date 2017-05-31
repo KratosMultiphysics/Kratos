@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
+from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.MeshingApplication import *
 
 import os
@@ -19,14 +20,25 @@ class Kratos_Execute_Test:
 
         self.Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString(): self.main_model_part}
 
-        ## Solver construction
-        import python_solvers_wrapper_fluid
-        self.solver = python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.ProjectParameters)
+        self.problem_type = self.ProjectParameters["problem_data"]["problem_type"].GetString() 
+    
+        self.solve_problem = self.ProjectParameters["problem_data"]["solve_problem"].GetBool()
+    
+        if self.problem_type  == "fluid":
+            ## Solver construction
+            import python_solvers_wrapper_fluid
+            self.solver = python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.ProjectParameters)
+        elif self.problem_type  == "solid":
+            # Construct the solver (main setting methods are located in the solver_module)
+            solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())
+            self.solver = solver_module.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
 
         # Add variables (always before importing the model part) (it must be integrated in the ImportModelPart)
         # If we integrate it in the model part we cannot use combined solvers
         self.solver.AddVariables()
         
+        self.main_model_part.AddNodalSolutionStepVariable(NODAL_H) 
+        self.main_model_part.AddNodalSolutionStepVariable(NODAL_AREA) 
         self.main_model_part.AddNodalSolutionStepVariable(AUXILIAR_GRADIENT) 
         self.main_model_part.AddNodalSolutionStepVariable(AUXILIAR_HESSIAN) 
         self.main_model_part.AddNodalSolutionStepVariable(ANISOTROPIC_RATIO) 
@@ -57,22 +69,30 @@ class Kratos_Execute_Test:
         self.solver.Initialize()
         self.solver.SetEchoLevel(0) # Avoid to print anything 
         
-        # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
-        # #Get the list of the submodel part in the object Model
-        for i in range(self.ProjectParameters["solver_settings"]["skin_parts"].size()):
-            skin_part_name = self.ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
-            self.Model.update({skin_part_name: self.main_model_part.GetSubModelPart(skin_part_name)})
+        if self.problem_type  == "fluid":
+            # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
+            # #Get the list of the submodel part in the object Model
+            for i in range(self.ProjectParameters["solver_settings"]["skin_parts"].size()):
+                skin_part_name = self.ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
+                self.Model.update({skin_part_name: self.main_model_part.GetSubModelPart(skin_part_name)})
 
-        ## Get the list of the initial conditions submodel parts in the object Model
-        for i in range(self.ProjectParameters["initial_conditions_process_list"].size()):
-            initial_cond_part_name = self.ProjectParameters["initial_conditions_process_list"][i]["Parameters"]["model_part_name"].GetString()
-            self.Model.update({initial_cond_part_name: self.main_model_part.GetSubModelPart(initial_cond_part_name)})
+            ## Get the list of the initial conditions submodel parts in the object Model
+            for i in range(self.ProjectParameters["initial_conditions_process_list"].size()):
+                initial_cond_part_name = self.ProjectParameters["initial_conditions_process_list"][i]["Parameters"]["model_part_name"].GetString()
+                self.Model.update({initial_cond_part_name: self.main_model_part.GetSubModelPart(initial_cond_part_name)})
 
-        ## Get the gravity submodel part in the object Model
-        for i in range(self.ProjectParameters["gravity"].size()):
-            gravity_part_name = self.ProjectParameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
-            self.Model.update({gravity_part_name: self.main_model_part.GetSubModelPart(gravity_part_name)})
-    
+            ## Get the gravity submodel part in the object Model
+            for i in range(self.ProjectParameters["gravity"].size()):
+                gravity_part_name = self.ProjectParameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
+                self.Model.update({gravity_part_name: self.main_model_part.GetSubModelPart(gravity_part_name)})
+        
+        elif self.problem_type  == "solid":        
+            # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
+            # #Get the list of the submodel part in the object Model
+            for i in range(self.ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
+                part_name = self.ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
+                self.Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
+        
         ## Remeshing processes construction
         if (self.ProjectParameters.Has("initial_remeshing_process") == True):
             remeshing_processes = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["initial_remeshing_process"])
@@ -91,9 +111,13 @@ class Kratos_Execute_Test:
                     process.ExecuteInitialize()
 
         # Obtain the list of the processes to be applied
-        self.list_of_processes = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["gravity"] )
-        self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["initial_conditions_process_list"] )
-        self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["boundary_conditions_process_list"] )
+        if self.problem_type  == "fluid":
+            self.list_of_processes = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["gravity"] )
+            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["initial_conditions_process_list"] )
+            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["boundary_conditions_process_list"] )
+        elif self.problem_type  == "solid":
+            self.list_of_processes = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["constraints_process_list"])
+            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["loads_process_list"])
         if (self.ProjectParameters.Has("list_other_processes") == True):
             self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["list_other_processes"])
         if (self.ProjectParameters.Has("json_check_process") == True):
@@ -116,69 +140,75 @@ class Kratos_Execute_Test:
             self.gid_output.ExecuteBeforeSolutionLoop()
 
     def Solve(self):
-        for process in self.list_of_processes:
-            process.ExecuteBeforeSolutionLoop()
-
-        # #Stepping and time settings (get from process info or solving info)
-        # Delta time
-        delta_time = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
-        # Start step
-        self.main_model_part.ProcessInfo[TIME_STEPS] = 0
-        # Start time
-        time = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
-        # End time
-        end_time = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
-        step = 0
-
-        # Solving the problem (time integration)
-        while(time <= end_time):
-            time = time + delta_time
-            self.main_model_part.ProcessInfo[TIME_STEPS] += 1
-            self.main_model_part.CloneTimeStep(time)
-            step = step + 1
+        if self.solve_problem == True:
+            for process in self.list_of_processes:
+                process.ExecuteBeforeSolutionLoop()
             
-            if(step >= 3):
-                for process in self.list_of_processes:
-                    process.ExecuteInitializeSolutionStep()
-                    
-                if (self.main_model_part.Is(MODIFIED) == True):
-                    # WE INITIALIZE THE SOLVER
-                    self.solver.Initialize()
-                    # WE RECOMPUTE THE PROCESSES AGAIN
-                    ## Processes initialization
-                    for process in self.list_of_processes:
-                        process.ExecuteInitialize()
-                    ## Processes before the loop
-                    for process in self.list_of_processes:
-                        process.ExecuteBeforeSolutionLoop()
-                    ## Processes of initialize the solution step
+            # #Stepping and time settings (get from process info or solving info)
+            # Delta time
+            delta_time = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
+            # Start step
+            self.main_model_part.ProcessInfo[TIME_STEPS] = 0
+            # Start time
+            time = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
+            # End time
+            end_time = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
+            step = 0
+
+            if self.problem_type  == "fluid":
+                init_step = 3
+            elif self.problem_type  == "solid":
+                init_step = 1
+
+            # Solving the problem (time integration)
+            while(time <= end_time):
+                time = time + delta_time
+                self.main_model_part.ProcessInfo[TIME_STEPS] += 1
+                self.main_model_part.CloneTimeStep(time)
+                step = step + 1
+                
+                if(step >= init_step):
                     for process in self.list_of_processes:
                         process.ExecuteInitializeSolutionStep()
-                    
-                if (self.output_post == True):
-                    self.gid_output.ExecuteInitializeSolutionStep()
-                            
-                self.solver.Clear()
-                self.solver.Solve()
-                
-                if (self.output_post == True):
-                    self.gid_output.ExecuteFinalizeSolutionStep()
-
-                for process in self.list_of_processes:
-                    process.ExecuteFinalizeSolutionStep()
-
-                for process in self.list_of_processes:
-                    process.ExecuteBeforeOutputStep()
-
-                if (self.output_post == True):
-                    if self.gid_output.IsOutputStep():
-                        self.gid_output.PrintOutput()
                         
-                for process in self.list_of_processes:
-                    process.ExecuteAfterOutputStep()
+                    if (self.main_model_part.Is(MODIFIED) == True):
+                        # WE INITIALIZE THE SOLVER
+                        self.solver.Initialize()
+                        # WE RECOMPUTE THE PROCESSES AGAIN
+                        ## Processes initialization
+                        for process in self.list_of_processes:
+                            process.ExecuteInitialize()
+                        ## Processes before the loop
+                        for process in self.list_of_processes:
+                            process.ExecuteBeforeSolutionLoop()
+                        ## Processes of initialize the solution step
+                        for process in self.list_of_processes:
+                            process.ExecuteInitializeSolutionStep()
+                        
+                    if (self.output_post == True):
+                        self.gid_output.ExecuteInitializeSolutionStep()
+                                
+                    self.solver.Clear()
+                    self.solver.Solve()
+                    
+                    if (self.output_post == True):
+                        self.gid_output.ExecuteFinalizeSolutionStep()
 
-        if (self.output_post == True):
-            self.gid_output.ExecuteFinalize()
+                    for process in self.list_of_processes:
+                        process.ExecuteFinalizeSolutionStep()
 
-        for process in self.list_of_processes:
-            process.ExecuteFinalize()
+                    for process in self.list_of_processes:
+                        process.ExecuteBeforeOutputStep()
+
+                    if (self.output_post == True):
+                        if self.gid_output.IsOutputStep():
+                            self.gid_output.PrintOutput()
+                            
+                    for process in self.list_of_processes:
+                        process.ExecuteAfterOutputStep()
+
+            if (self.output_post == True):
+                self.gid_output.ExecuteFinalize()
+
+            for process in self.list_of_processes:
+                process.ExecuteFinalize()

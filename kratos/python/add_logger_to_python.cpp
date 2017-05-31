@@ -28,7 +28,8 @@ namespace Python
 /**
  * Prints the arguments from the python script using the Kratos Logger class
  * @args: tuple boost::python::object representing the arguments of the function
- * @kwargs: dictionary of boost::python::objects resenting key-value pairs for name arguments
+ * @kwargs: dictionary of boost::python::objects resenting key-value pairs for
+ * name arguments
  **/
 object print(tuple args, dict kwargs) {
   std::stringstream buffer;

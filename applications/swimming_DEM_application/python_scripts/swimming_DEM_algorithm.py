@@ -54,6 +54,7 @@ class Algorithm(BaseAlgorithm):
         self.pp.CFD_DEM.recovery_echo_level = 1
         self.pp.CFD_DEM.gradient_calculation_type = 1
         self.pp.CFD_DEM.pressure_grad_recovery_type = 1
+        self.pp.CFD_DEM.fluid_fraction_grad_type = 0
         self.pp.CFD_DEM.store_full_gradient = 0
         self.pp.CFD_DEM.laplacian_calculation_type = 0
         self.pp.CFD_DEM.do_search_neighbours = True
@@ -79,12 +80,23 @@ class Algorithm(BaseAlgorithm):
         self.pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
         self.pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = False
         self.pp.CFD_DEM.print_VELOCITY_GRADIENT_option = 1
+        self.pp.CFD_DEM.print_FLUID_FRACTION_GRADIENT_option = 0
+        self.pp.CFD_DEM.print_FLUID_FRACTION_GRADIENT_PROJECTED_option = 0
         self.pp.CFD_DEM.print_VORTICITY_option = 1
         self.pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
+        self.pp.CFD_DEM.calculate_diffusivity_option = False
+        self.pp.CFD_DEM.print_CONDUCTIVITY_option = False
+        self.pp.CFD_DEM.filter_velocity_option = False
+        self.pp.CFD_DEM.print_PARTICLE_VEL_option = False
         # Making the fluid step an exact multiple of the DEM step
         self.pp.Dt = int(self.pp.Dt / self.pp.CFD_DEM.MaxTimeStep) * self.pp.CFD_DEM.MaxTimeStep
         self.pp.viscosity_modification_type = 0.0
         self.domain_size = 3
+        self.pp.type_of_inlet = 'VelocityImposed' # 'VelocityImposed' or 'ForceImposed'
+        self.pp.force = Vector(3)
+        self.pp.force[0] = 0
+        self.pp.force[1] = 0
+        self.pp.force[2] = 1e-10
 
         # defining and adding imposed porosity fields
         import swimming_DEM_procedures as SDP
@@ -144,22 +156,6 @@ class Algorithm(BaseAlgorithm):
         import variables_management as vars_man
 
         vars_man.ConstructListsOfVariables(self.pp)
-        #_____________________________________________________________________________________________________________________________________
-        #
-        #                               F L U I D    B L O C K    B E G I N S
-        #_____________________________________________________________________________________________________________________________________
-
-        # defining variables to be used
-        # GID IO IS NOT USING THIS NOW. TO BE REMOVED ONCE THE "PRINT IN POINTS"
-        # CODE IS NOT USING IT
-
-        variables_dictionary = {"PRESSURE"   : PRESSURE,
-                                "VELOCITY"   : VELOCITY,
-                                "MU"         : MU,         #    MOD.
-                                "BUOYANCY"   : BUOYANCY,   #    MOD.
-                                "DRAG_FORCE" : DRAG_FORCE,  #    MOD.
-                                "LIFT_FORCE" : LIFT_FORCE} #    MOD.
-
         fluid_model_part = self.all_model_parts.Get('FluidPart')
 
         if "REACTION" in self.pp.nodal_results:
@@ -178,13 +174,6 @@ class Algorithm(BaseAlgorithm):
         # self.ReadFluidModelPart()
         # Creating necessary directories
         [post_path, data_and_results, graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(self.pp.CFD_DEM.problem_name))
-
-        #_____________________________________________________________________________________________________________________________________
-        #
-        #                               F L U I D    B L O C K    E N D S
-        #_____________________________________________________________________________________________________________________________________
-
-        # Add variables
 
         vars_man.AddNodalVariables(spheres_model_part, self.pp.dem_vars)
         vars_man.AddNodalVariables(self.rigid_face_model_part, self.pp.rigid_faces_vars)
@@ -215,6 +204,25 @@ class Algorithm(BaseAlgorithm):
 
     def PerformInitialDEMStepOperations(self, time = None):
         pass
+
+    def SetInlet(self):
+        if DEM_parameters.dem_inlet_option:
+            #Constructing the inlet and initializing it (must be done AFTER the self.spheres_model_part Initialize)
+            # Note that right now only inlets of a single type are possible. This should be generalized.
+            if self.pp.type_of_inlet == 'VelocityImposed':
+                self.DEM_inlet = DEM_Inlet(self.DEM_inlet_model_part)
+            elif self.pp.type_of_inlet == 'ForceImposed':
+                self.DEM_inlet = DEM_Force_Based_Inlet(self.DEM_inlet_model_part, self.pp.force)
+
+            self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.creator_destructor)
+
+    def SetAnalyticFaceWatcher(self):
+        from analytic_tools import analytic_data_procedures
+        self.watcher = AnalyticFaceWatcher()
+        self.watcher_analyser = analytic_data_procedures.WatcherAnalyzer(analytic_face_watcher = self.watcher, path = self.main_path)
+
+    def SetInletWatcher(self):
+        self.watcher_analyser.SetInlet(self.DEM_inlet)
 
     def SetSolverStrategy(self):
         import swimming_sphere_strategy as SolverStrategy
@@ -330,14 +338,7 @@ class Algorithm(BaseAlgorithm):
                     node.Fix(TURBULENT_VISCOSITY)
 
     def GetFieldUtility(self):
-        field_utility = None
-
-        if self.pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
-            flow_field = ConstantVelocityField(0.00001, 0, 0)
-            space_time_set = SpaceTimeSet()
-            field_utility = FluidFieldUtility(space_time_set, flow_field, 1000.0, 1e-6)
-
-        return field_utility
+        return None
 
     def GetResultsCreator(self):
         return None
