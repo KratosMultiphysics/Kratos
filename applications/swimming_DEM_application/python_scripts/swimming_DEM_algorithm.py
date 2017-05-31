@@ -1,5 +1,8 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
+#TODO: set self.SolverSettings only once! 
+#TODO: the same for self.fluid_model_part
+
 import os
 import sys
 from KratosMultiphysics import *
@@ -149,49 +152,50 @@ class Algorithm(BaseAlgorithm):
 
     def AddExtraVariables(self):
         spheres_model_part = self.all_model_parts.Get('SpheresPart')
-        fluid_model_part = self.all_model_parts.Get('FluidPart')
+        self.fluid_model_part = self.all_model_parts.Get('FluidPart')
 
                 # building lists of variables for which memory is to be allocated
         # TEMPORARY, HORRIBLE !!!
         import variables_management as vars_man
+        self.vars_man = vars_man
 
-        vars_man.ConstructListsOfVariables(self.pp)
-        fluid_model_part = self.all_model_parts.Get('FluidPart')
+        self.vars_man.ConstructListsOfVariables(self.pp)
+        self.fluid_model_part = self.all_model_parts.Get('FluidPart')
 
         if "REACTION" in self.pp.nodal_results:
-            fluid_model_part.AddNodalSolutionStepVariable(REACTION)
+            self.fluid_model_part.AddNodalSolutionStepVariable(REACTION)
         if "DISTANCE" in self.pp.nodal_results:
-            fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
+            self.fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
 
-        SetFluidSolverModule()        
+        self.SetFluidSolverModule()        
 
-        AddExtraFluidVariables()        
+        self.AddExtraFluidVariables()        
 
         [post_path, data_and_results, graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(self.pp.CFD_DEM.problem_name))
 
-        vars_man.AddNodalVariables(spheres_model_part, self.pp.dem_vars)
-        vars_man.AddNodalVariables(self.rigid_face_model_part, self.pp.rigid_faces_vars)
-        vars_man.AddNodalVariables(self.DEM_inlet_model_part, self.pp.inlet_vars)
+        self.vars_man.AddNodalVariables(spheres_model_part, self.pp.dem_vars)
+        self.vars_man.AddNodalVariables(self.rigid_face_model_part, self.pp.rigid_faces_vars)
+        self.vars_man.AddNodalVariables(self.DEM_inlet_model_part, self.pp.inlet_vars)
         # adding extra process info variables
-        vars_man.AddingExtraProcessInfoVariables(self.pp, fluid_model_part, spheres_model_part)
+        self.vars_man.AddingExtraProcessInfoVariables(self.pp, self.fluid_model_part, spheres_model_part)
         
     def SetFluidSolverModule(self):
-        SolverSettings = self.pp.FluidSolverConfiguration
-        self.solver_module = import_solver(SolverSettings)
+        self.SolverSettings = self.pp.FluidSolverConfiguration
+        self.solver_module = import_solver(self.SolverSettings)
         
     def AddExtraFluidVariables(self):
         # caution with breaking up this block (memory allocation)! {
-        self.solver_module.AddVariables(fluid_model_part, SolverSettings)
-        vars_man.AddNodalVariables(fluid_model_part, self.pp.fluid_vars)  #     MOD.
+        self.solver_module.AddVariables(self.fluid_model_part, self.SolverSettings)
+        self.vars_man.AddNodalVariables(self.fluid_model_part, self.pp.fluid_vars)  #     MOD.
 
     def SetFluidBufferSizeAndAddAdditionalDofs(self):
         spheres_model_part = self.all_model_parts.Get('SpheresPart')
-        fluid_model_part = self.all_model_parts.Get('FluidPart')
-        SolverSettings = self.pp.FluidSolverConfiguration
+        self.fluid_model_part = self.all_model_parts.Get('FluidPart')
+        self.SolverSettings = self.pp.FluidSolverConfiguration
 
-        fluid_model_part.SetBufferSize(3)
-        self.solver_module.AddDofs(fluid_model_part, SolverSettings)
-        SDP.AddExtraDofs(self.pp, fluid_model_part, spheres_model_part, self.cluster_model_part, self.DEM_inlet_model_part)
+        self.fluid_model_part.SetBufferSize(3)
+        self.solver_module.AddDofs(self.fluid_model_part, self.SolverSettings)
+        SDP.AddExtraDofs(self.pp, self.fluid_model_part, spheres_model_part, self.cluster_model_part, self.DEM_inlet_model_part)
         os.chdir(self.main_path)
 
         self.KRATOSprint("\nInitializing Problem...")
@@ -316,12 +320,12 @@ class Algorithm(BaseAlgorithm):
         self.basset_force_tool = SDP.BassetForceTools()
 
     def ActivateTurbulenceModel(self):
-        fluid_model_part = self.all_model_parts.Get('FluidPart')
+        self.fluid_model_part = self.all_model_parts.Get('FluidPart')
 
         if self.pp.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras":
             # apply the initial turbulent viscosity on all of the nodes
             turb_visc = self.pp.FluidSolverConfiguration.TurbulentViscosity
-            for node in fluid_model_part.Nodes:
+            for node in self.fluid_model_part.Nodes:
                 node.SetSolutionStepValue(TURBULENT_VISCOSITY, 0, turb_visc)
                 visc = node.GetSolutionStepValue(VISCOSITY)
                 node.SetSolutionStepValue(MOLECULAR_VISCOSITY, 0, visc)
@@ -332,9 +336,9 @@ class Algorithm(BaseAlgorithm):
 
             # select nodes on the wall
             self.fluid_solver.wall_nodes = []
-            for i in SolverSettings.SA_wall_group_ids:
+            for i in self.SolverSettings.SA_wall_group_ids:
                 # get the nodes of the wall for SA.
-                nodes = fluid_model_part.GetNodes(i)
+                nodes = self.fluid_model_part.GetNodes(i)
                 for node in nodes:
                     self.fluid_solver.wall_nodes.append(node)
                     node.SetSolutionStepValue(TURBULENT_VISCOSITY, 0, 0.0)
