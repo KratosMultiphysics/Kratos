@@ -3,6 +3,11 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+try:
+    import KratosMultiphysics.ExternalSolversApplication
+    have_external_solvers = True
+except ImportError as e:
+    have_external_solvers = False
 
 import process_factory
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -119,6 +124,10 @@ class ManufacturedSolutionProblem:
         ## Fluid model part definition
         self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
+
+        ## Do not use SuperLUSolver if it is not available
+        if not have_external_solvers:
+            self.ProjectParameters["solver_settings"]["linear_solver_settings"]["solver_type"].SetString("AMGCL")
 
         ###TODO replace this "model" for real one once available
         Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString() : self.main_model_part}
