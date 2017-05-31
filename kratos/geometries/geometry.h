@@ -664,24 +664,38 @@ public:
     */
     virtual Point<3> Center() const
     {
-        const SizeType points_number = this->size();
+        const SizeType PointsNumber = this->size();
 
-        if ( points_number == 0 )
+        if ( PointsNumber == 0 )
+        {
             KRATOS_ERROR << "can not compute the ceneter of a geometry of zero points" << std::endl;
             // return PointType();
+        }
 
         Point<3> result = ( *this )[0];
 
-        for ( IndexType i = 1 ; i < points_number ; i++ )
+        for ( IndexType i = 1 ; i < PointsNumber ; i++ )
+        {
             result.Coordinates() += ( *this )[i];
+        }
 
-        double temp = 1.0 / double( points_number );
+        const double temp = 1.0 / double( PointsNumber );
 
         result.Coordinates() *= temp;
 
         return result;
     }
 
+    /**
+     * It computes the normal of the geometry, if possible
+     * @return The normal of the geometry
+     */
+    virtual array_1d<double, 3> Normal()
+    {
+        KRATOS_ERROR << "Calling base class Normal method instead of derived class one. Please check the definition of derived class." << *this << "Remember the normal can be computed just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;
+        return ZeroVector(3);
+    }
+    
     /** Calculates the quality of the geometry according to a given criteria.
      *
      * Calculates the quality of the geometry according to a given criteria. In General
@@ -815,10 +829,15 @@ public:
     }
 
     /**
-    * Returns the local coordinates of a given arbitrary point
-    */
-    virtual CoordinatesArrayType& PointLocalCoordinates( CoordinatesArrayType& rResult,
-            const CoordinatesArrayType& rPoint )
+     * Returns the local coordinates of a given arbitrary point
+     * @param rResult: The vector containing the local coordinates of the point
+     * @param rPoint: The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    virtual CoordinatesArrayType& PointLocalCoordinates( 
+            CoordinatesArrayType& rResult,
+            const CoordinatesArrayType& rPoint 
+            )
     {
         Matrix J = ZeroMatrix( LocalSpaceDimension(), LocalSpaceDimension() );
 
@@ -829,11 +848,11 @@ public:
         CoordinatesArrayType CurrentGlobalCoords( ZeroVector( 3 ) );
 
         //Newton iteration:
-        double tol = 1.0e-8;
+        const double tol = 1.0e-8;
 
-        int maxiter = 1000;
+        unsigned int maxiter = 1000;
 
-        for ( int k = 0; k < maxiter; k++ )
+        for ( unsigned int k = 0; k < maxiter; k++ )
         {
             CurrentGlobalCoords = ZeroVector( 3 );
             GlobalCoordinates( CurrentGlobalCoords, rResult );
@@ -857,14 +876,57 @@ public:
 
         return( rResult );
     }
+    
+    /**
+     * Returns the local coordinates of a given arbitrary point, once this node has been projected if possible
+     * @param rResult: The vector containing the local coordinates of the point
+     * @param rPoint: The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    virtual CoordinatesArrayType& PointLocalCoordinatesWhenProjected( 
+            CoordinatesArrayType& rResult,
+            const CoordinatesArrayType& rPoint 
+            )
+    {
+        KRATOS_ERROR << "Calling base class PointLocalCoordinatesWhenProjected method instead of derived class one. Please check the definition of derived class. " << *this << "Remember the normal can be computed (necessary to project) just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;
+        
+        rResult.clear();
+        return rResult;
+    }
 
     /**
-    * Returns whether given arbitrary point is inside the Geometry and the respective
-        * local point for the given global point
-    */
-    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() )
+     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * local point for the given global point
+     * @param rPoint: The point to be checked if is inside o note in global coordinates
+     * @param rResult: The local coordinates of the point
+     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @return True if the point is inside, false otherwise
+     */
+    virtual bool IsInside( 
+        const CoordinatesArrayType& rPoint, 
+        CoordinatesArrayType& rResult, 
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        )
     {
         KRATOS_ERROR << "Calling base class IsInside method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return false;
+    }
+    
+    /**
+     * Returns whether given arbitrary point is inside, once this node has been projected if possible,
+     * the Geometry and the respective local point for the given global point
+     * @param rPoint: The point to be checked if is inside o note in global coordinates
+     * @param rResult: The local coordinates of the point
+     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @return True if the point is inside, false otherwise
+     */
+    virtual bool IsInsideWhenProjected( 
+        const CoordinatesArrayType& rPoint, 
+        CoordinatesArrayType& rResult, 
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        )
+    {
+        KRATOS_ERROR << "Calling base class IsInsideWhenProjected method instead of derived class one. Please check the definition of derived class. " << *this << "Remember the normal can be computed (necessary to project) just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;
         return false;
     }
 
@@ -1920,12 +1982,12 @@ public:
         ShapeFunctionsGradientsType& rResult,
         IntegrationMethod ThisMethod ) const
     {
-        const unsigned int integration_points_number = this->IntegrationPointsNumber( ThisMethod );
+        const unsigned int integration_PointsNumber = this->IntegrationPointsNumber( ThisMethod );
 
-        if ( integration_points_number == 0 )
+        if ( integration_PointsNumber == 0 )
             KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
 
-        if ( rResult.size() != integration_points_number )
+        if ( rResult.size() != integration_PointsNumber )
             rResult.resize(  this->IntegrationPointsNumber( ThisMethod ), false  );
 
         //calculating the local gradients
@@ -1934,7 +1996,7 @@ public:
         //loop over all integration points
         Matrix J(this->WorkingSpaceDimension(),this->LocalSpaceDimension()),Jinv(this->WorkingSpaceDimension(),this->LocalSpaceDimension());
         double DetJ;
-        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
+        for ( unsigned int pnt = 0; pnt < integration_PointsNumber; pnt++ )
         {
             if(rResult[pnt].size1() != this->WorkingSpaceDimension() ||  rResult[pnt].size2() != this->LocalSpaceDimension())
                 rResult[pnt].resize( (*this).size(), this->LocalSpaceDimension(), false );
@@ -1948,14 +2010,14 @@ public:
 
     virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, Vector& determinants_of_jacobian, IntegrationMethod ThisMethod ) const
     {
-        const unsigned int integration_points_number = this->IntegrationPointsNumber( ThisMethod );
+        const unsigned int integration_PointsNumber = this->IntegrationPointsNumber( ThisMethod );
 
-        if ( integration_points_number == 0 )
+        if ( integration_PointsNumber == 0 )
             KRATOS_ERROR << "This integration method is not supported " << *this << std::endl;
 
-        if ( rResult.size() != integration_points_number )
+        if ( rResult.size() != integration_PointsNumber )
             rResult.resize(  this->IntegrationPointsNumber( ThisMethod ), false  );
-        if ( determinants_of_jacobian.size() != integration_points_number )
+        if ( determinants_of_jacobian.size() != integration_PointsNumber )
             determinants_of_jacobian.resize(  this->IntegrationPointsNumber( ThisMethod ), false  );
 
         //calculating the local gradients
@@ -1965,7 +2027,7 @@ public:
         Matrix J(this->WorkingSpaceDimension(),this->LocalSpaceDimension());
         Matrix Jinv(this->WorkingSpaceDimension(),this->LocalSpaceDimension());
         double DetJ;
-        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
+        for ( unsigned int pnt = 0; pnt < integration_PointsNumber; pnt++ )
         {
             if(rResult[pnt].size1() != this->WorkingSpaceDimension() ||  rResult[pnt].size2() != this->LocalSpaceDimension())
                 rResult[pnt].resize( (*this).size(), this->LocalSpaceDimension(), false );
