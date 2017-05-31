@@ -94,7 +94,7 @@ namespace Kratos
             class_< HybridBashforthScheme, bases<SymplecticEulerScheme>, boost::noncopyable>
             ("HybridBashforthScheme", init<>());
 
-            class_< TerminalVelocityScheme, bases<SymplecticEulerScheme>, boost::noncopyable>
+            class_< TerminalVelocityScheme, bases<HybridBashforthScheme>, boost::noncopyable>
             ("TerminalVelocityScheme", init<>());
 
             class_< SymplecticEulerOldVelocityScheme, bases<SymplecticEulerScheme>, boost::noncopyable>

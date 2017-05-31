@@ -1,3 +1,16 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Jordi Cotela
+//
+
+
 #ifndef KRATOS_RESIDUALBASED_BLOCK_BUILDER_AND_SOLVER_PERIODIC_H
 #define KRATOS_RESIDUALBASED_BLOCK_BUILDER_AND_SOLVER_PERIODIC_H
 
@@ -132,7 +145,7 @@ public:
         {
             // PeriodicCondition always have exactly 2 nodes
             ModelPart::ConditionType::GeometryType& rGeom = itCond->GetGeometry();
-            if (rGeom.PointsNumber() == 2)
+            if ( (itCond->Is(PERIODIC)) && (rGeom.PointsNumber() == 2) )
             {
                 int Node0 = rGeom[0].Id();
                 int Node0Pair = rGeom[0].FastGetSolutionStepValue(mPeriodicIdVar);

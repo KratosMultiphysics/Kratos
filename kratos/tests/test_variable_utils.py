@@ -35,6 +35,38 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 3.0)
             self.assertEqual(node.GetSolutionStepValue(VISCOSITY), viscosity)
 
+    def test_set_flag(self):
+        ##set the model part
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        VariableUtils().SetFlag(VISITED, True, model_part.Nodes)
+        VariableUtils().SetFlag(VISITED, True, model_part.Conditions)
+        VariableUtils().SetFlag(VISITED, True, model_part.Elements)
+
+        VariableUtils().SetFlag(INLET, True, model_part.GetSubModelPart("Inlets").Nodes)
+        VariableUtils().SetFlag(INLET, True, model_part.GetSubModelPart("Inlets").Conditions)
+        VariableUtils().SetFlag(OUTLET, False, model_part.GetSubModelPart("Inlets").Nodes)
+        VariableUtils().SetFlag(OUTLET, False, model_part.GetSubModelPart("Inlets").Conditions)
+
+        ##verify the main modelpart flags set
+        for node in model_part.Nodes:
+            self.assertTrue(node.Is(VISITED))
+        for condition in model_part.Conditions:
+            self.assertTrue(condition.Is(VISITED))
+        for element in model_part.Elements:
+            self.assertTrue(element.Is(VISITED))
+        ##verify the inlet submodelpart flag set
+        for node in model_part.GetSubModelPart("Inlets").Nodes:
+            self.assertTrue(node.Is(INLET))
+            self.assertTrue(node.IsNot(OUTLET))
+        for condition in model_part.GetSubModelPart("Inlets").Conditions:
+            self.assertTrue(condition.Is(INLET))
+            self.assertTrue(condition.IsNot(OUTLET))
+
     def test_copy_var(self):
         ##set the model part
         model_part = ModelPart("Main")

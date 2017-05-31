@@ -257,9 +257,25 @@ public:
       return false;
     }//FastIntersection3D
 
+    static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2) //rObj_1 is sphere, rObj_2 is FE
+    {
+        const GeometryType& DE_Geom = rObj_1->GetGeometry();
+        const GeometryType& FE_Geom = rObj_2->GetGeometry();
+        SphericParticle* p_particle = static_cast<SphericParticle*>(&*rObj_2);
+        const double Radius = p_particle->GetSearchRadius();
 
-    static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2,  const double& Radius) { //rObj_1 is sphere, rObj_2 is FE
+        int facet_size = FE_Geom.size();
 
+        if (facet_size==2) {
+           return FastIntersection2D(DE_Geom, FE_Geom, Radius);//, NewContactType);
+        }
+        else {
+           return FastIntersection3D(DE_Geom, FE_Geom, Radius);//, NewContactType);
+        }
+      }
+
+    static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2,  const double& Radius)
+    { 
       const GeometryType& DE_Geom = rObj_1->GetGeometry();
       const GeometryType& FE_Geom = rObj_2->GetGeometry();
 

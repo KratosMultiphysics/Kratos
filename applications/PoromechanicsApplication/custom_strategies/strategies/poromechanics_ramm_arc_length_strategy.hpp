@@ -99,7 +99,7 @@ public:
             }
             
             // Compute initial radius (mRadius_0)
-            mpBuilderAndSolver->ResizeAndInitializeVectors(mpA, mpDx, mpb, BaseType::GetModelPart().Elements(),
+            mpBuilderAndSolver->ResizeAndInitializeVectors(mpScheme, mpA, mpDx, mpb, BaseType::GetModelPart().Elements(),
                                                             BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
             TSystemMatrixType& mA = *mpA;
             TSystemVectorType& mDx = *mpDx;
@@ -143,7 +143,7 @@ public:
 		{
             GrandMotherType::InitializeSolutionStep();
             
-            this->InitializeSystemVector(mpf);
+            this->SaveInitializeSystemVector(mpf);
             this->InitializeSystemVector(mpDxf);
             this->InitializeSystemVector(mpDxb);
             this->InitializeSystemVector(mpDxPred);
@@ -182,7 +182,7 @@ public:
         this->BuildWithDirichlet(mA, mDxf, mb);
         noalias(mb) = mf;
         mpBuilderAndSolver->SystemSolve(mA, mDxf, mb);
-        
+
         //update results
         double DLambda = mRadius/TSparseSpace::TwoNorm(mDxf);
         mDLambdaStep = DLambda;
@@ -473,7 +473,23 @@ protected:
         if (v.size() != mpBuilderAndSolver->GetEquationSystemSize())
             v.resize(mpBuilderAndSolver->GetEquationSystemSize(), false);
     }
-    
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void SaveInitializeSystemVector(TSystemVectorPointerType& pv)
+    {
+        if (pv == NULL)
+        {
+            TSystemVectorPointerType pNewv = TSystemVectorPointerType(new TSystemVectorType(0));
+            pv.swap(pNewv);
+        }
+
+        TSystemVectorType& v = *pv;
+
+        if (v.size() != mpBuilderAndSolver->GetEquationSystemSize())
+            v.resize(mpBuilderAndSolver->GetEquationSystemSize(), true);
+    }
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void BuildWithDirichlet(TSystemMatrixType& mA, TSystemVectorType& mDx, TSystemVectorType& mb)

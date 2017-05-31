@@ -816,18 +816,18 @@ void SphericSwimmingParticle<TBaseElement>::ComputeHydrodynamicTorque(NodeType& 
         const array_1d<double, 3> slip_rot = 0.5 * node.FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED) - node.FastGetSolutionStepValue(ANGULAR_VELOCITY);
         const double norm_of_slip_rot = SWIMMING_MODULUS_3(slip_rot);
         double rot_reynolds;
-        ComputeParticleRotationReynoldsNumber(norm_of_slip_rot, rot_reynolds);
+        ComputeParticleRotationReynoldsNumberOverNormOfSlipRot(rot_reynolds);
         double rotational_coeff;
 
         if (rot_reynolds > 32){ // Rubinow and Keller, 1961 (Re_rot ~ 32 - 1000)
-            rotational_coeff = 12.9 / sqrt(rot_reynolds) + 128.4 / rot_reynolds;
+            rotational_coeff = 12.9 * std::sqrt(norm_of_slip_rot * rot_reynolds) + 128.4 / rot_reynolds;
         }
 
         else { // Rubinow and Keller, 1961 (Re_rot < 32)
             rotational_coeff = 64 * KRATOS_M_PI / rot_reynolds;
         }
 
-        noalias(hydro_torque) = 0.5 * mFluidDensity * SWIMMING_POW_5(mRadius) * rotational_coeff * norm_of_slip_rot * slip_rot;
+        noalias(hydro_torque) = 0.5 * mFluidDensity * SWIMMING_POW_5(mRadius) * rotational_coeff * slip_rot;
     }
 
     else {
@@ -876,6 +876,13 @@ template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ComputeParticleRotationReynoldsNumber(double norm_of_slip_rot, double& reynolds)
 {
     reynolds = 4 * SWIMMING_POW_2(mRadius) * norm_of_slip_rot / mKinematicViscosity;
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+template < class TBaseElement >
+void SphericSwimmingParticle<TBaseElement>::ComputeParticleRotationReynoldsNumberOverNormOfSlipRot(double& reynolds)
+{
+    reynolds = 4 * SWIMMING_POW_2(mRadius) / mKinematicViscosity;
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -1020,29 +1027,19 @@ double SphericSwimmingParticle<TBaseElement>::ComputeWeatherfordDragCoefficient(
     const array_1d<double, 3>& gravity         = r_current_process_info[GRAVITY];
     const int manually_imposed_drag_law_option = r_current_process_info[MANUALLY_IMPOSED_DRAG_LAW_OPTION];
     const int drag_modifier_type               = r_current_process_info[DRAG_MODIFIER_TYPE];
-    const double gel_strength                  = GetGeometry()[0].FastGetSolutionStepValue(YIELD_STRESS);
-    const double power_law_n                   = GetGeometry()[0].FastGetSolutionStepValue(POWER_LAW_N);
-    const double power_law_K                   = GetGeometry()[0].FastGetSolutionStepValue(POWER_LAW_K);
-    const double yield_stress                  = GetGeometry()[0].FastGetSolutionStepValue(YIELD_STRESS);
 
     int non_newtonian_option = 1;
-
+    const double yield_stress                  = GetGeometry()[0].FastGetSolutionStepValue(YIELD_STRESS);
+    const double power_law_n                   = GetGeometry()[0].FastGetSolutionStepValue(POWER_LAW_N);
+    
     if (fabs(power_law_n - 1.0) < 0.00001  ||  fabs(yield_stress) < 0.00001) {
         non_newtonian_option = 0;
     }
 
-    const double initial_drag_force            = r_current_process_info[INIT_DRAG_FORCE];
-    const double drag_law_slope                = r_current_process_info[DRAG_LAW_SLOPE];
-    const double power_law_tol                 = r_current_process_info[POWER_LAW_TOLERANCE];
-
     const double area                          = KRATOS_M_PI * SWIMMING_POW_2(mRadius);
     const array_1d<double, 3> weight           = mRealMass * gravity;
     const array_1d<double, 3> buoyancy         = mFluidDensity / particle_density * weight; // hydrostatic case!! (only for Weatherford)
-
-    double shahs_term_vel                      = 0.0;
-    double beta                                = 0.0;
-    double F0                                  = 0.0;
-    double regularization_v                    = 0.02 * mRadius;
+    
     double reynolds;
     double drag_coeff;
 
@@ -1058,14 +1055,24 @@ double SphericSwimmingParticle<TBaseElement>::ComputeWeatherfordDragCoefficient(
     }
 
     else {
-        shahs_term_vel = CalculateShahsTerm(power_law_n, power_law_K, power_law_tol, particle_density, mSphericity, drag_modifier_type);
+        const double gel_strength                  = GetGeometry()[0].FastGetSolutionStepValue(YIELD_STRESS);       
+        const double power_law_K                   = GetGeometry()[0].FastGetSolutionStepValue(POWER_LAW_K);
+        
+        double beta                                = 0.0;
+        double F0                                  = 0.0;
+        double regularization_v                    = 0.02 * mRadius;
+        const double power_law_tol                 = r_current_process_info[POWER_LAW_TOLERANCE];
+        
+        double shahs_term_vel = CalculateShahsTerm(power_law_n, power_law_K, power_law_tol, particle_density, mSphericity, drag_modifier_type);
 
-        if (!manually_imposed_drag_law_option){
+        if (!manually_imposed_drag_law_option){            
             F0 = 4.0 * gel_strength * area; //initial value
             beta = (SWIMMING_MODULUS_3(weight) - SWIMMING_MODULUS_3(buoyancy) - F0) / shahs_term_vel; //S
         }
 
         else {
+            const double initial_drag_force            = r_current_process_info[INIT_DRAG_FORCE];
+            const double drag_law_slope                = r_current_process_info[DRAG_LAW_SLOPE];
             F0 = initial_drag_force; //initial value
             beta = drag_law_slope; //slope
         }
@@ -1417,7 +1424,14 @@ void SphericSwimmingParticle<TBaseElement>::Initialize(const ProcessInfo& r_proc
     mHasVirtualMassForceNodalVar = node.SolutionStepsDataHas(VIRTUAL_MASS_FORCE);
     mHasBassetForceNodalVar      = node.SolutionStepsDataHas(BASSET_FORCE);
     mHasLiftForceNodalVar        = node.SolutionStepsDataHas(LIFT_FORCE);
-    mSphericity                  = node.SolutionStepsDataHas(PARTICLE_SPHERICITY);
+    
+    if (node.SolutionStepsDataHas(PARTICLE_SPHERICITY)){
+        mSphericity = node.FastGetSolutionStepValue(PARTICLE_SPHERICITY);
+    }
+    else {
+        mSphericity = 1.0;
+    }
+    
     mHasDragCoefficientVar       = node.SolutionStepsDataHas(DRAG_COEFFICIENT);
     mHasOldAdditionalForceVar    = node.SolutionStepsDataHas(ADDITIONAL_FORCE_OLD);
     mLastVirtualMassAddedMass    = 0.0;

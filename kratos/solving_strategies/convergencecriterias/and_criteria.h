@@ -29,50 +29,44 @@
 namespace Kratos
 {
 
-/**@name Kratos Globals */
-/*@{ */
+///@name Kratos Globals 
+///@{
 
+///@} 
+///@name Type Definitions 
+///@{
 
-/*@} */
-/**@name Type Definitions */
-/*@{ */
+///@} 
+///@name  Enum's 
+///@{
 
-/*@} */
+///@} 
+///@name  Functions 
+///@{
 
-
-/**@name  Enum's */
-/*@{ */
-
-
-/*@} */
-/**@name  Functions */
-/*@{ */
-
-
-
-/*@} */
-/**@name Kratos Classes */
-/*@{ */
+///@} 
+///@name Kratos Classes 
+///@{
 
 /** Short class definition.
 Detail class definition.
 
-      \URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
+\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
 
-      \URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
+\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
 
-      \URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
+\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
 
-      \URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
+\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
 
 
-      \URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
+\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
 
-      \URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
+\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
 
-      \URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
+\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
 
-      \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
+\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
 
 */
 
@@ -82,8 +76,8 @@ template<class TSparseSpace,
 class And_Criteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
-    /**@name Type Definitions */
-    /*@{ */
+    ///@name Type Definitions
+    ///@{
 
     /** Counted pointer of And_Criteria */
 
@@ -103,21 +97,20 @@ public:
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
 
-    /*@} */
-    /**@name Life Cycle
-    */
-    /*@{ */
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     /** Constructor.
     */
     And_Criteria
     (
-        typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer first_criterion,
-        typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer second_criterion)
+        typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pFirstCriterion,
+        typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pSecondCriterion)
         :ConvergenceCriteria< TSparseSpace, TDenseSpace >()
     {
-        mpfirst_criterion   =  first_criterion;
-        mpsecond_criterion  =  second_criterion;
+        mpFirstCriterion   =  pFirstCriterion;
+        mpSecondCriterion  =  pSecondCriterion;
     }
 
     /** Copy constructor.
@@ -125,20 +118,17 @@ public:
     And_Criteria(And_Criteria const& rOther)
       :BaseType(rOther)
      {
-       mpfirst_criterion   =  rOther.mpfirst_criterion;
-       mpsecond_criterion  =  rOther.mpsecond_criterion;      
+       mpFirstCriterion   =  rOther.mpFirstCriterion;
+       mpSecondCriterion  =  rOther.mpSecondCriterion;      
      }
 
     /** Destructor.
     */
     virtual ~And_Criteria () {}
 
-
-    /*@} */
-    /**@name Operators
-    */
-    /*@{ */
-
+    ///@}
+    ///@name Operators
+    ///@{
 
     /**level of echo for the convergence criterion
     0 -> mute... no echo at all
@@ -148,166 +138,148 @@ public:
     void SetEchoLevel(int Level) override
     {
       BaseType::SetEchoLevel(Level);
-      mpfirst_criterion->SetEchoLevel(Level);
-      mpsecond_criterion->SetEchoLevel(Level);
+      mpFirstCriterion->SetEchoLevel(Level);
+      mpSecondCriterion->SetEchoLevel(Level);
     }
 
 
     /*Criteria that need to be called after getting the solution */
     bool PostCriteria(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
     ) override
     {
-        bool first_criterion_result  = mpfirst_criterion ->PostCriteria(r_model_part,rDofSet,A,Dx,b);
-        bool second_criterion_result = mpsecond_criterion ->PostCriteria(r_model_part,rDofSet,A,Dx,b);
+        bool pFirstCriterionResult  = mpFirstCriterion ->PostCriteria(rModelPart,rDofSet,A,Dx,b);
+        bool pSecondCriterionResult = mpSecondCriterion ->PostCriteria(rModelPart,rDofSet,A,Dx,b);
 
-        return (first_criterion_result && second_criterion_result);
+        return (pFirstCriterionResult && pSecondCriterionResult);
 
     }
 
 
-    void Initialize(ModelPart& r_model_part) override
+    void Initialize(ModelPart& rModelPart) override
     {
-        mpfirst_criterion->Initialize(r_model_part);
-        mpsecond_criterion->Initialize(r_model_part);
+        mpFirstCriterion->Initialize(rModelPart);
+        mpSecondCriterion->Initialize(rModelPart);
     }
 
     void InitializeSolutionStep(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
     ) override
     {
-        mpfirst_criterion->InitializeSolutionStep(r_model_part,rDofSet,A,Dx,b);
-        mpsecond_criterion->InitializeSolutionStep(r_model_part,rDofSet,A,Dx,b);
+        mpFirstCriterion->InitializeSolutionStep(rModelPart,rDofSet,A,Dx,b);
+        mpSecondCriterion->InitializeSolutionStep(rModelPart,rDofSet,A,Dx,b);
     }
 
     void FinalizeSolutionStep(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
     ) override
     {
-        mpfirst_criterion->FinalizeSolutionStep(r_model_part,rDofSet,A,Dx,b);
-        mpsecond_criterion->FinalizeSolutionStep(r_model_part,rDofSet,A,Dx,b);
+        mpFirstCriterion->FinalizeSolutionStep(rModelPart,rDofSet,A,Dx,b);
+        mpSecondCriterion->FinalizeSolutionStep(rModelPart,rDofSet,A,Dx,b);
     }
 
-    /*@} */
-    /**@name Operations */
-    /*@{ */
+    ///@}
+    ///@name Operations
+    ///@{
 
+    ///@}
+    ///@name Access 
+    ///@{
 
-    /*@} */
-    /**@name Access */
-    /*@{ */
+    ///@}
+    ///@name Inquiry
+    ///@{
 
+    ///@}
+    ///@name Friends
+    ///@{
 
-    /*@} */
-    /**@name Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Friends */
-    /*@{ */
-
-
-    /*@} */
+    ///@}
 
 protected:
-    /**@name Protected static Member Variables */
-    /*@{ */
+    ///@name Protected static Member Variables
+    ///@{
 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
-    /*@} */
-    /**@name Protected member Variables */
-    /*@{ */
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected  Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected LifeCycle */
-    /*@{ */
-
-
-
-    /*@} */
-
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+    
+    ///@}
+    
 private:
-    /**@name Static Member Variables */
-    /*@{ */
+    ///@name Static Member Variables
+    ///@{
 
 
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
-    typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer mpfirst_criterion;
-    typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer mpsecond_criterion;
+    ///@}
+    ///@name Member Variables
+    ///@{
+    
+    typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer mpFirstCriterion;
+    typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer mpSecondCriterion;
 
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
+    ///@}
+    ///@name Private Operations
+    ///@{
 
+    ///@}
+    ///@name Private  Access
+    ///@{
 
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-    /*@} */
-    /**@name Private  Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Un accessible methods */
-    /*@{ */
-
-
-    /*@} */
+    ///@}
 
 }; /* Class ClassName */
 
-/*@} */
+///@}
 
-/**@name Type Definitions */
-/*@{ */
+///@name Type Definitions */
+///@{
 
-
-/*@} */
+///@}
 
 }  /* namespace Kratos.*/
 

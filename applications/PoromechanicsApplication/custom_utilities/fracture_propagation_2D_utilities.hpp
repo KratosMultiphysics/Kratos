@@ -336,6 +336,8 @@ protected:
                 PropDataFile << "lappend Lines " << rParameters["body_surfaces_list"][i]["lines"][j].GetInt() << std::endl;
             }
             PropDataFile << "dict set BodySurfacesDict " << Id << " Lines $Lines" << std::endl;
+            PropDataFile << "dict set BodySurfacesDict " << Id << " ElemType " << rParameters["body_surfaces_list"][i]["elem_type"].GetString() << std::endl;
+            PropDataFile << "dict set BodySurfacesDict " << Id << " MeshSize " << rParameters["body_surfaces_list"][i]["mesh_size"].GetDouble() << std::endl;
         }
         PropDataFile << "lappend PropagationData $BodySurfacesDict" << std::endl;
 
@@ -731,9 +733,9 @@ protected:
         BodyGaussPointOldCellMatrix.resize(AuxVariables.NRows);
         for(int i = 0; i < AuxVariables.NRows; i++) BodyGaussPointOldCellMatrix[i].resize(AuxVariables.NColumns);
         
-        std::vector< std::vector< std::vector<GaussPointOld> > > GaussPointOldCellMatrix;
-        GaussPointOldCellMatrix.resize(AuxVariables.NRows);
-        for(int i = 0; i < AuxVariables.NRows; i++) GaussPointOldCellMatrix[i].resize(AuxVariables.NColumns);
+        std::vector< std::vector< std::vector<GaussPointOld> > > InterfaceGaussPointOldCellMatrix;
+        InterfaceGaussPointOldCellMatrix.resize(AuxVariables.NRows);
+        for(int i = 0; i < AuxVariables.NRows; i++) InterfaceGaussPointOldCellMatrix[i].resize(AuxVariables.NColumns);
 
         // Locate Old Gauss Points in cells
         GaussPointOld MyGaussPointOld;
@@ -791,7 +793,6 @@ protected:
                     #pragma omp critical
                     {
                         BodyGaussPointOldCellMatrix[Row][Column].push_back(MyGaussPointOld);
-                        GaussPointOldCellMatrix[Row][Column].push_back(MyGaussPointOld);
                     }
                 }
             }
@@ -844,7 +845,7 @@ protected:
                     Column = int((MyGaussPointOld.Coordinates[0]-AuxVariables.X_min)/AuxVariables.ColumnSize);
                     #pragma omp critical
                     {
-                        GaussPointOldCellMatrix[Row][Column].push_back(MyGaussPointOld);
+                        InterfaceGaussPointOldCellMatrix[Row][Column].push_back(MyGaussPointOld);
                     }
                 }
             }
@@ -1000,9 +1001,9 @@ protected:
                     {
                         for(int l = Column_left; l<= Column_right; l++)
                         {
-                            for(unsigned int m = 0; m < GaussPointOldCellMatrix[k][l].size(); m++)
+                            for(unsigned int m = 0; m < InterfaceGaussPointOldCellMatrix[k][l].size(); m++)
                             {
-                                GaussPointOld& rOtherGaussPointOld = GaussPointOldCellMatrix[k][l][m];
+                                GaussPointOld& rOtherGaussPointOld = InterfaceGaussPointOldCellMatrix[k][l][m];
 
                                 Distance = sqrt((rOtherGaussPointOld.Coordinates[0]-X_me)*(rOtherGaussPointOld.Coordinates[0]-X_me) +
                                                 (rOtherGaussPointOld.Coordinates[1]-Y_me)*(rOtherGaussPointOld.Coordinates[1]-Y_me));
@@ -1412,11 +1413,23 @@ private:
                     }
                 }
             }
-            
+
             MyPropagation.TipCoordinates[0] = TipX/TipDen;
             MyPropagation.TipCoordinates[1] = TipY/TipDen;
             MyPropagation.TipCoordinates[2] = 0.0;
-
+            
+            const bool StraightPropagation = rParameters["fracture_data"]["straight_propagation"].GetBool();
+            if (StraightPropagation == true)
+            {
+                AuxArray2[0] = MyPropagation.TipCoordinates[0];
+                AuxArray2[1] = MyPropagation.TipCoordinates[1];
+                noalias(AuxArray1) = prod(rAuxPropagationVariables.RotationMatrix,AuxArray2);
+                AuxArray1[1] = rAuxPropagationVariables.TipLocalCoordinates[1];
+                noalias(AuxArray2) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
+                MyPropagation.TipCoordinates[0] = AuxArray2[0];
+                MyPropagation.TipCoordinates[1] = AuxArray2[1];
+            }
+            
             noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
             AuxArray1[1] += 0.5*PropagationWidth;
             noalias(AuxArray2) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);

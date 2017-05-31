@@ -268,6 +268,14 @@ public:
     {
         return Max*Block;
     }
+    IndexType BeginIndex()
+    {
+        return Min;
+    }
+    IndexType EndIndex()
+    {
+        return Max;
+    }
     SizeType Size()
     {
         return static_cast<SizeType>(Max-Min);

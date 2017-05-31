@@ -81,27 +81,27 @@ public:
 	///@{
 
 	/// Default constructor.
-	StrainEnergyResponseFunction(ModelPart &model_part, boost::python::dict response_settings)
+	StrainEnergyResponseFunction(ModelPart& model_part, Parameters& responseSettings)
 	: mr_model_part(model_part)
 	{
 		// Set gradient mode
-		boost::python::extract<const char *> grad_mode(response_settings["gradient_mode"]);
+		std::string gradientMode = responseSettings["gradient_mode"].GetString();
 
 		// Mode 1: analytic sensitivities
-		if (std::strcmp(grad_mode, "analytic") == 0)
-			m_gradient_mode = 1;
+		if (gradientMode.compare("analytic") == 0)
+			mGradientMode = 1;
 
 		// Mode 2: semi-analytic sensitivities
-		else if (std::strcmp(grad_mode, "semi_analytic") == 0)
+		else if (gradientMode.compare("semi_analytic") == 0)
 		{
-			m_gradient_mode = 2;
-			boost::python::extract<double> delta(response_settings["step_size"]);
-			m_delta = delta;
+			mGradientMode = 2;
+			double delta = responseSettings["step_size"].GetDouble();
+			mDelta = delta;
 		}
 
 		// Throw error message in case of wrong specification
 		else
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. Options are: analytic , semi_analytic. Specified gradient_mode: ", grad_mode);
+			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. Options are: analytic , semi_analytic. Specified gradient_mode: ", gradientMode);
 
 		// Initialize member variables to NULL
 		m_initial_value = 0.0;
@@ -130,7 +130,7 @@ public:
 		// that provide the required sensitivity information (reference elements)
 		// The reference class type is: "SmallDisplacementAnalyticSensitivityElement"
 
-		if(m_gradient_mode==1)
+		if(mGradientMode==1)
 		{
 			const char element_name[] = "SmallDisplacementAnalyticSensitivityElement3D4N";
 			Element const &reference_element = KratosComponents<Element>::Get(element_name);
@@ -227,7 +227,7 @@ public:
 		// 2nd step: Calculate adjoint field
 		// 3rd step: Calculate partial derivative of state equation w.r.t. node coordinates and multiply with adjoint field
 
-		switch (m_gradient_mode)
+		switch (mGradientMode)
 		{
 		// analytic sensitivities
 		case 1:
@@ -425,28 +425,28 @@ protected:
 				Vector perturbed_RHS = Vector(0);
 
 				// Pertubation, gradient analysis and recovery of x
-				node_i->X0() += m_delta;
+				node_i->X0() += mDelta;
 				elem_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-				gradient_contribution[0] = inner_prod(lambda, (perturbed_RHS - RHS) / m_delta);
-				node_i->X0() -= m_delta;
+				gradient_contribution[0] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
+				node_i->X0() -= mDelta;
 
 				// Reset pertubed vector
 				perturbed_RHS = Vector(0);
 
 				// Pertubation, gradient analysis and recovery of y
-				node_i->Y0() += m_delta;
+				node_i->Y0() += mDelta;
 				elem_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-				gradient_contribution[1] = inner_prod(lambda, (perturbed_RHS - RHS) / m_delta);
-				node_i->Y0() -= m_delta;
+				gradient_contribution[1] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
+				node_i->Y0() -= mDelta;
 
 				// Reset pertubed vector
 				perturbed_RHS = Vector(0);
 
 				// Pertubation, gradient analysis and recovery of z
-				node_i->Z0() += m_delta;
+				node_i->Z0() += mDelta;
 				elem_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-				gradient_contribution[2] = inner_prod(lambda, (perturbed_RHS - RHS) / m_delta);
-				node_i->Z0() -= m_delta;
+				gradient_contribution[2] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
+				node_i->Z0() -= mDelta;
 
 				// Assemble sensitivity to node
 				noalias(node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT)) += gradient_contribution;
@@ -484,28 +484,28 @@ protected:
 					Vector perturbed_RHS = Vector(0);
 
 					// Pertubation, gradient analysis and recovery of x
-					node_i->X0() += m_delta;
+					node_i->X0() += mDelta;
 					cond_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-					gradient_contribution[0] = inner_prod(lambda, (perturbed_RHS - RHS) / m_delta);
-					node_i->X0() -= m_delta;
+					gradient_contribution[0] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
+					node_i->X0() -= mDelta;
 
 					// Reset pertubed vector
 					perturbed_RHS = Vector(0);
 
 					// Pertubation, gradient analysis and recovery of y
-					node_i->Y0() += m_delta;
+					node_i->Y0() += mDelta;
 					cond_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-					gradient_contribution[1] = inner_prod(lambda, (perturbed_RHS - RHS) / m_delta);
-					node_i->Y0() -= m_delta;
+					gradient_contribution[1] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
+					node_i->Y0() -= mDelta;
 
 					// Reset pertubed vector
 					perturbed_RHS = Vector(0);
 
 					// Pertubation, gradient analysis and recovery of z
-					node_i->Z0() += m_delta;
+					node_i->Z0() += mDelta;
 					cond_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-					gradient_contribution[2] = inner_prod(lambda, (perturbed_RHS - RHS) / m_delta);
-					node_i->Z0() -= m_delta;
+					gradient_contribution[2] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
+					node_i->Z0() -= mDelta;
 
 					// Assemble shape gradient to node
 					noalias(node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT)) += gradient_contribution;
@@ -553,28 +553,28 @@ protected:
 					Vector perturbed_RHS = Vector(0);
 
 					// Pertubation, gradient analysis and recovery of x
-					node_i->X0() += m_delta;
+					node_i->X0() += mDelta;
 					cond_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-					gradient_contribution[0] = inner_prod(0.5*u, (perturbed_RHS - RHS) / m_delta);
-					node_i->X0() -= m_delta;
+					gradient_contribution[0] = inner_prod(0.5*u, (perturbed_RHS - RHS) / mDelta);
+					node_i->X0() -= mDelta;
 
 					// Reset pertubed vector
 					perturbed_RHS = Vector(0);
 
 					// Pertubation, gradient analysis and recovery of y
-					node_i->Y0() += m_delta;
+					node_i->Y0() += mDelta;
 					cond_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-					gradient_contribution[1] = inner_prod(0.5*u, (perturbed_RHS - RHS) / m_delta);
-					node_i->Y0() -= m_delta;
+					gradient_contribution[1] = inner_prod(0.5*u, (perturbed_RHS - RHS) / mDelta);
+					node_i->Y0() -= mDelta;
 
 					// Reset pertubed vector
 					perturbed_RHS = Vector(0);
 
 					// Pertubation, gradient analysis and recovery of z
-					node_i->Z0() += m_delta;
+					node_i->Z0() += mDelta;
 					cond_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-					gradient_contribution[2] = inner_prod(0.5*u, (perturbed_RHS - RHS) / m_delta);
-					node_i->Z0() -= m_delta;
+					gradient_contribution[2] = inner_prod(0.5*u, (perturbed_RHS - RHS) / mDelta);
+					node_i->Z0() -= mDelta;
 
 					// Assemble shape gradient to node
 					noalias(node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT)) += gradient_contribution;
@@ -609,9 +609,9 @@ private:
 	///@{
 
 	ModelPart &mr_model_part;
-	unsigned int m_gradient_mode;
+	unsigned int mGradientMode;
 	double m_strain_energy;
-	double m_delta;
+	double mDelta;
 	double m_initial_value;
 	bool m_initial_value_defined;
 

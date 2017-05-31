@@ -123,20 +123,21 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
 
 
     def _ComputeOutletCharacteristicVelocity(self):
-        # Compute the current process average velocity
+        # Compute the outlet average velocity
         outlet_avg_vel_norm = 0.0
         for node in self.outlet_model_part.GetCommunicator().LocalMesh().Nodes:
             vnode = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
             outlet_avg_vel_norm += math.sqrt(vnode[0]*vnode[0] + vnode[1]*vnode[1] + vnode[2]*vnode[2])
-            outlet_avg_vel_norm /= len(self.outlet_model_part.GetCommunicator().LocalMesh().Nodes)
+        outlet_avg_vel_norm = self.outlet_model_part.GetCommunicator().SumAll(outlet_avg_vel_norm)
 
-            # Perform MPI communication
-            self.outlet_model_part.GetCommunicator().SumAll(outlet_avg_vel_norm)                 # Accumulate the average velocity in each processor
-            outlet_avg_vel_norm /= self.outlet_model_part.GetCommunicator().TotalProcesses()     # Compute the average between processors
+        tot_len = len(self.outlet_model_part.GetCommunicator().LocalMesh().Nodes)   # Partition outlet model part number of nodes
+        tot_len = self.outlet_model_part.GetCommunicator().SumAll(tot_len)          # Get the total outlet model part nodes
 
-            # Store the average velocity in the ProcessInfo to be used in the outlet inflow prevention condition
-            min_outlet_avg_vel_norm = 1.0
-            if (outlet_avg_vel_norm >= min_outlet_avg_vel_norm):
-                self.outlet_model_part.GetRootModelPart().ProcessInfo[KratosFluid.CHARACTERISTIC_VELOCITY] = outlet_avg_vel_norm
-            else:
-                self.outlet_model_part.GetRootModelPart().ProcessInfo[KratosFluid.CHARACTERISTIC_VELOCITY] = min_outlet_avg_vel_norm
+        outlet_avg_vel_norm /= tot_len;
+
+        # Store the average velocity in the ProcessInfo to be used in the outlet inflow prevention condition
+        min_outlet_avg_vel_norm = 1.0
+        if (outlet_avg_vel_norm >= min_outlet_avg_vel_norm):
+            self.outlet_model_part.ProcessInfo[KratosFluid.CHARACTERISTIC_VELOCITY] = outlet_avg_vel_norm
+        else:
+            self.outlet_model_part.ProcessInfo[KratosFluid.CHARACTERISTIC_VELOCITY] = min_outlet_avg_vel_norm

@@ -1,28 +1,14 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
-
-
-
-
-
-
-
-
-
-
-
-
-// This define must be HERE
-#define DKRATOS_EXPORT_INTERFACE_2 1
 
 // System includes
 #include <string>
@@ -84,7 +70,7 @@ namespace Kratos
 
 
     //for Structural application:
- 
+
     //for Level Set application:
     KRATOS_CREATE_VARIABLE( bool, IS_DUPLICATED )
     KRATOS_CREATE_VARIABLE( bool, SPLIT_ELEMENT )
@@ -100,7 +86,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( int, IMPOSED_ANGULAR_VELOCITY_X )
     KRATOS_CREATE_VARIABLE( int, IMPOSED_ANGULAR_VELOCITY_Y )
     KRATOS_CREATE_VARIABLE( int, IMPOSED_ANGULAR_VELOCITY_Z )
-    
+
     //For the DEM Application:
     KRATOS_CREATE_VARIABLE(double, IMPOSED_VELOCITY_X_VALUE)
     KRATOS_CREATE_VARIABLE(double, IMPOSED_VELOCITY_Y_VALUE)
@@ -177,11 +163,11 @@ namespace Kratos
 
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( xi_c )
 
-  
+
 
   void KratosApplication::RegisterDeprecatedVariables()
   {
-      
+
     //for Level Set application:
     KRATOS_REGISTER_VARIABLE(  IS_DUPLICATED )
     KRATOS_REGISTER_VARIABLE(  SPLIT_ELEMENT )
@@ -196,7 +182,7 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( IMPOSED_ANGULAR_VELOCITY_X )
     KRATOS_REGISTER_VARIABLE( IMPOSED_ANGULAR_VELOCITY_Y )
     KRATOS_REGISTER_VARIABLE( IMPOSED_ANGULAR_VELOCITY_Z )
-    
+
     //For the DEM Application:
     KRATOS_REGISTER_VARIABLE(IMPOSED_VELOCITY_X_VALUE)
     KRATOS_REGISTER_VARIABLE(IMPOSED_VELOCITY_Y_VALUE)
@@ -273,14 +259,5 @@ namespace Kratos
 
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( xi_c )
 
-
   }
-
-
 }  // namespace Kratos.
-
-// This define must be HERE
-#undef DKRATOS_EXPORT_INTERFACE_2
-
-
-

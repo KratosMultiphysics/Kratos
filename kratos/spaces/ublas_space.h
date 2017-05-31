@@ -235,7 +235,7 @@ public:
 #else
         const int size = static_cast<int>(rX.size());
 
-        TDataType total = 0.0;
+        TDataType total = TDataType();
         #pragma omp parallel for reduction( +: total), firstprivate(size)
         for(int i =0; i<size; ++i)
             total += rX[i]*rY[i];
@@ -247,14 +247,14 @@ public:
 
     /// ||rX||2
 
-    static double TwoNorm(VectorType const& rX)
+    static TDataType TwoNorm(VectorType const& rX)
     {
         return sqrt(Dot(rX, rX));
     }
     
-    static double TwoNorm(MatrixType const& rA) // Frobenious norm
+    static TDataType TwoNorm(MatrixType const& rA) // Frobenious norm
     {
-        double aux_sum = 0.0; 
+        TDataType aux_sum = TDataType(); 
         
         for (unsigned int i = 1; i < rA.size1(); i++)
         {
@@ -342,7 +342,7 @@ public:
 #else
              const int size = rX.size();
 
-            #pragma omp parallel for
+            #pragma omp parallel for firstprivate(size)
             for (int i = 0; i < size; i++)
                 rX[i] = -rX[i];
 
@@ -355,7 +355,7 @@ public:
 #else
             const int size = rX.size();
 
-            #pragma omp parallel for
+            #pragma omp parallel for firstprivate(size)
             for (int i = 0; i < size; i++)
                 rX[i] *= A;
 #endif
@@ -528,8 +528,10 @@ public:
 #ifndef _OPENMP
         std::fill(rA.begin(), rA.end(), TDataType());
 #else
-        ParallelFill(rA.begin(), rA.end(), TDataType());
-
+        DataType* vals = rA.value_data().begin();
+        #pragma omp parallel for firstprivate(m)
+        for(int i=0; i<m; ++i)
+            vals[i] = TDataType();
 #endif
     }
 
@@ -539,7 +541,10 @@ public:
 #ifndef _OPENMP
         std::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());
 #else
-        ParallelFill(rA.value_data().begin(), rA.value_data().end(), TDataType());
+        TDataType* vals = rA.value_data().begin();
+        #pragma omp parallel for firstprivate(m)
+        for(int i=0; i<m; ++i)
+            vals[i] = TDataType();
 #endif
     }
 
@@ -549,7 +554,10 @@ public:
 #ifndef _OPENMP
         std::fill(rX.begin(), rX.end(), TDataType());
 #else
-        ParallelFill(rX.begin(), rX.end(), TDataType());
+        const int size = rX.size(); 
+        #pragma omp parallel for firstprivate(size)
+        for(int i=0; i<size; ++i)
+            rX[i] = TDataType();
 #endif
     }
 
@@ -559,7 +567,11 @@ public:
 #ifndef _OPENMP
         std::fill(rA.begin(), rA.end(), TDataType());
 #else
-        ParallelFill(rA.begin(), rA.end(), TDataType());
+        TDataType* vals = rA.value_data().begin();
+        const int size = rA.value_data().end() - rA.value_data().begin();
+        #pragma omp parallel for firstprivate(size)
+        for(int i=0; i<size; ++i)
+            vals[i] = TDataType();
 #endif
     }
 
@@ -568,7 +580,11 @@ public:
 #ifndef _OPENMP
         std::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());
 #else
-        ParallelFill(rA.value_data().begin(), rA.value_data().end(), TDataType());
+        TDataType* vals = rA.value_data().begin();
+        const int size = rA.value_data().end() - rA.value_data().begin();
+        #pragma omp parallel for firstprivate(size)
+        for(int i=0; i<size; ++i)
+            vals[i] = TDataType();
 #endif
     }
 
@@ -577,7 +593,10 @@ public:
 #ifndef _OPENMP
         std::fill(rX.begin(), rX.end(), TDataType());
 #else
-        ParallelFill(rX.begin(), rX.end(), TDataType());
+        const int size = rX.size(); 
+        #pragma omp parallel for firstprivate(size)
+        for(int i=0; i<size; ++i)
+            rX[i] = TDataType();
 #endif
     }
 
@@ -788,21 +807,6 @@ private:
             partitions[i] = partitions[i - 1] + partition_size;
     }
 
-    template <class TIterartorType>
-    static void ParallelFill(TIterartorType Begin, TIterartorType End, TDataType const& Value)
-    {
-#ifndef _OPENMP
-        std::fill(Begin, End, Value);
-#else
-        int size = End-Begin;
-        //#pragma omp parallel for
-        for (int i = 0; i < size; i++)
-        {
-            *(Begin+i) = Value;
-        }
-#endif
-
-    }
 
     /**
      * calculates partial product resetting to Zero the output before
