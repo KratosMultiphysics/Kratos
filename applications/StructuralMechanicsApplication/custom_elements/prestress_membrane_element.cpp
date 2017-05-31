@@ -945,7 +945,7 @@ void PrestressMembraneElement::CalculateAll(
         Values.SetStressVector(StressVector);       // this is an output parameter
         Values.SetConstitutiveMatrix(D);            // this is an output parameter
 
-        //mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);     // Why is the curviliear strains are used here?
+        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);     // Why is the curviliear strains are used here?
         /**/
         //KRATOS_WATCH(StressVector);
 
@@ -959,6 +959,8 @@ void PrestressMembraneElement::CalculateAll(
         //}
 
         StrainDeformation = prod(trans(D), CartesianStrainVector);
+
+        //KRATOS_WATCH(D);
 
         //KRATOS_WATCH(StrainDeformation);
         array_1d<double,3> pre_stress_tensor;   // Vector with the Cauchy Pre-Stress components in local cartesian frame
@@ -983,6 +985,7 @@ void PrestressMembraneElement::CalculateAll(
         // !!!! the thickness is considered at the end by the IntToReferenceWeight !!!
         // pre-integration with thickness
         //pre_stress_tensor *= mThickness0;
+        //KRATOS_WATCH(mThickness0);
 
         //KRATOS_WATCH(pre_stress_tensor);
         //KRATOS_WATCH(StrainDeformation);
@@ -990,7 +993,10 @@ void PrestressMembraneElement::CalculateAll(
 
         // taking out the pre-stress
         // Adding the pre-stress values as forces over length
-        StrainDeformation += pre_stress_tensor;
+        for (int i = 0; i < 3; ++i)
+        {
+            StrainDeformation[i] += pre_stress_tensor[i];
+        }
 
 
         //std::cout << "After adding the pre-stress tensor" << std::endl;

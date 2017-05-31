@@ -155,7 +155,7 @@ def AssambleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            #TFofi4PointTentnoCableTests,
+            TFofi4PointTentnoCableTests,
             TMembraneQ4PointLoadTests,
             TSimpleMeshMovingTest,
             TDynamicBossakTests,
