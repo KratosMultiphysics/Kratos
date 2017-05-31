@@ -5,7 +5,7 @@ import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
-import main_script as DEM_algorithm
+import dem_main_script_ready_for_coupling as DEM_algorithm
 import swimming_DEM_procedures as SDP
 
 sys.path.insert(0,'')
@@ -64,7 +64,7 @@ class Algorithm(BaseAlgorithm):
         self.pp.CFD_DEM.vorticity_calculation_type = 5
         self.pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
         self.pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
-        self.pp.CFD_DEM.basset_force_type = 4
+        self.pp.CFD_DEM.basset_force_type = 0
         self.pp.CFD_DEM.print_BASSET_FORCE_option = 1
         self.pp.CFD_DEM.basset_force_integration_type = 2
         self.pp.CFD_DEM.n_init_basset_steps = 0
@@ -163,16 +163,10 @@ class Algorithm(BaseAlgorithm):
         if "DISTANCE" in self.pp.nodal_results:
             fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
 
-        # importing the solvers needed
-        SolverSettings = self.pp.FluidSolverConfiguration
-        self.solver_module = import_solver(SolverSettings)
+        SetFluidSolverModule()        
 
-        # caution with breaking up this block (memory allocation)! {
-        self.solver_module.AddVariables(fluid_model_part, SolverSettings)
-        vars_man.AddNodalVariables(fluid_model_part, self.pp.fluid_vars)  #     MOD.
-        # }
-        # self.ReadFluidModelPart()
-        # Creating necessary directories
+        AddExtraFluidVariables()        
+
         [post_path, data_and_results, graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(self.pp.CFD_DEM.problem_name))
 
         vars_man.AddNodalVariables(spheres_model_part, self.pp.dem_vars)
@@ -180,6 +174,15 @@ class Algorithm(BaseAlgorithm):
         vars_man.AddNodalVariables(self.DEM_inlet_model_part, self.pp.inlet_vars)
         # adding extra process info variables
         vars_man.AddingExtraProcessInfoVariables(self.pp, fluid_model_part, spheres_model_part)
+        
+    def SetFluidSolverModule(self):
+        SolverSettings = self.pp.FluidSolverConfiguration
+        self.solver_module = import_solver(SolverSettings)
+        
+    def AddExtraFluidVariables(self):
+        # caution with breaking up this block (memory allocation)! {
+        self.solver_module.AddVariables(fluid_model_part, SolverSettings)
+        vars_man.AddNodalVariables(fluid_model_part, self.pp.fluid_vars)  #     MOD.
 
     def SetFluidBufferSizeAndAddAdditionalDofs(self):
         spheres_model_part = self.all_model_parts.Get('SpheresPart')
