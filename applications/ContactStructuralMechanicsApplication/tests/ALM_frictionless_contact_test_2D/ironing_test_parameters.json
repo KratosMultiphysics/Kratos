@@ -3,7 +3,7 @@
         "problem_name"    : "ironing_test",
         "model_part_name" : "Structure",
         "domain_size"     : 2,
-        "time_step"       : 0.025,
+        "time_step"       : 0.0025,
         "start_time"      : 0.0,
         "end_time"        : 20.0,
         "echo_level"      : 0
@@ -17,12 +17,12 @@
             "input_filename" : "ALM_frictionless_contact_test_2D/ironing_test"
         },
         "mortar_type"                        : "ALMContactFrictionless",
-        "block_builder"                      : true,
+        "block_builder"                      : false,
         "line_search"                        : false,
         "clear_storage"                      : true,
         "ensure_contact"                     : true,
         "reform_dofs_at_each_step"           : true,
-        "contact_tolerance"                  : 0.0e-4,
+        "contact_tolerance"                  : 0.0e0,
         "convergence_criterion"              : "Contact_Displacement_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
@@ -74,7 +74,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_load_press",
             "variable_name"   : "DISPLACEMENT_X",
-            "step_type"       : "smooth",
+            "step_type"       : "linear",
             "values"          : [0.0, 0.0,8.0],
             "intervals"       : [0.0,1.0,20.0]
         }
@@ -131,9 +131,9 @@
                 "WriteDeformedMeshFlag" : "WriteDeformed",
                 "MultiFileFlag"         : "SingleFile"
             },
-            "file_label"          : "step",
-            "output_control_type" : "step",
-            "output_frequency"    : 1.0,
+            "file_label"          : "time",
+            "output_control_type" : "time",
+            "output_frequency"    : 0.05,
             "body_output"         : true,
             "node_output"         : false,
             "skin_output"         : false,
@@ -155,11 +155,11 @@
             "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "input_file_name"      : "ALM_frictionless_contact_test_2D/ironing_test_results.json",
             "model_part_name"      : "Contact_Part",
-            "time_frequency"       : 1.00
+            "time_frequency"       : 0.50
         }
     }
     ],
-    "_json_output_process" : [
+    "json_output_process" : [
     {
         "python_module"   : "json_output_process",
         "kratos_module" : "KratosMultiphysics",
@@ -169,7 +169,7 @@
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictionless_contact_test_2D/ironing_test_results.json",
             "model_part_name"      : "Contact_Part",
-            "time_frequency"       : 1.00
+            "time_frequency"       : 0.50
         }
     }
     ],
