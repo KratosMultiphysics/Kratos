@@ -4,6 +4,9 @@ message("**** configuring KratosPureDiffusionApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
+#dependecies on other applications
+include_directories( ${CMAKE_SOURCE_DIR}/applications/convection_diffusion_application )
+
 ## generate variables with the sources
 set( KRATOS_PURE_DIFFUSION_APPLICATION_SOURCES     
 	${CMAKE_CURRENT_SOURCE_DIR}/pure_diffusion_application.cpp

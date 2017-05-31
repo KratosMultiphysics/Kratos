@@ -41,9 +41,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author:  $
-//   Date:                $Date:  $
-//   Revision:            $Revision: 1.1 $
+//   Last Modified by:    $Author: Miguel Masó Sotomayor$
+//   Date:                $Date:                May 2017$
+//   Revision:            $Revision:                 1.1$
 //
 //
 
