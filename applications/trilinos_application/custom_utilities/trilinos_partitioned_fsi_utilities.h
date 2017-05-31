@@ -22,7 +22,9 @@
 
 
 // External includes
-
+#include "Epetra_MpiComm.h"
+#include "Epetra_Map.h"
+#include "Epetra_Vector.h"
 
 // Project includes
 #include "includes/define.h"
@@ -76,7 +78,9 @@ namespace Kratos
       ///@{
 
       /// Default constructor.
-      TrilinosPartitionedFSIUtilities(){}
+      TrilinosPartitionedFSIUtilities(const Epetra_MpiComm& EpetraCommunicator):
+        mrEpetraComm(EpetraCommunicator)
+      {}
 
       /// Destructor.
       virtual ~TrilinosPartitionedFSIUtilities() override {}
@@ -91,48 +95,33 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      virtual void SetUpInterfaceVector(const ModelPart& rInterfaceModelPart,
+      virtual void SetUpInterfaceVector(ModelPart& rInterfaceModelPart,
                                         VectorPointerType& pInterfaceVector) override
       {
+          // Initialize Epetra_Map for the vector
+          int NumLocalInterfaceDofs = rInterfaceModelPart.GetCommunicator().LocalMesh().NumberOfNodes() * TDim;
+          int NumGlobalInterfaceDofs = NumLocalInterfaceDofs;
+          rInterfaceModelPart.GetCommunicator().SumAll(NumGlobalInterfaceDofs);
+          int IndexBase = 0; // 0 for C-style vectors, 1 for Fortran numbering
+          Epetra_Map InterfaceMap(NumGlobalInterfaceDofs,NumLocalInterfaceDofs,IndexBase,mrEpetraComm);
 
+          // Create new vector using given map
+          VectorPointerType Temp = VectorPointerType(new Epetra_FEVector(InterfaceMap));
+          pInterfaceVector.swap(Temp);
+
+          // Set interface vector to zero
+          pInterfaceVector->PutScalar(0.0);
+
+          std::cout << rInterfaceModelPart.GetCommunicator().MyPID() << ": ";
+          KRATOS_WATCH(InterfaceMap.NumGlobalPoints())
+          KRATOS_WATCH(InterfaceMap.NumMyPoints())
+          KRATOS_WATCH(InterfaceMap.MinAllGID())
+          KRATOS_WATCH(InterfaceMap.MaxAllGID())
+          KRATOS_WATCH(InterfaceMap.MinMyGID())
+          KRATOS_WATCH(InterfaceMap.MaxMyGID())
+          KRATOS_WATCH(InterfaceMap.MinLID())
+          KRATOS_WATCH(InterfaceMap.MaxLID())
       }
-
-      virtual void ComputeInterfaceVectorResidual(ModelPart& rInterfaceModelPart,
-                                                  const Variable<array_1d<double, 3 > >& rOriginalVariable,
-                                                  const Variable<array_1d<double, 3 > >& rModifiedVariable,
-                                                  VectorType& interface_residual) override
-      {
-          TSpace::SetToZero(interface_residual);
-
-          // Compute node-by-node residual
-          this->ComputeNodeByNodeResidual(rInterfaceModelPart, rOriginalVariable, rModifiedVariable, FSI_INTERFACE_RESIDUAL);
-
-          // Compute consitent residual
-          // this->ComputeConsistentResidual(rInterfaceModelPart, rOriginalVariable, rModifiedVariable, FSI_INTERFACE_RESIDUAL);
-
-          // Assemble the final consistent residual values
-          #pragma omp parallel for
-          for(int k=0; k<static_cast<int>(rInterfaceModelPart.NumberOfNodes()); ++k)
-          {
-              const ModelPart::NodeIterator it_node = rInterfaceModelPart.NodesBegin()+k;
-              const unsigned int base_i = k*TDim;
-
-              const array_1d<double,3>& fsi_res = it_node->FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL);
-              for (unsigned int jj=0; jj<TDim; ++jj)
-              {
-                  //interface_residual[base_i+jj] = fsi_res[jj];
-              }
-          }
-
-          // Store the L2 norm of the error in the fluid process info
-          rInterfaceModelPart.GetProcessInfo().GetValue(FSI_INTERFACE_RESIDUAL_NORM) = TSpace::TwoNorm(interface_residual);
-
-      }
-
-      virtual void UpdateInterfaceValues(ModelPart& rInterfaceModelPart,
-                                         const Variable<array_1d<double, 3 > >& rSolutionVariable,
-                                         VectorType& rCorrectedGuess) override
-      {}
 
       ///@}
       ///@name Access
@@ -175,6 +164,24 @@ namespace Kratos
       ///@name Protected Operations
       ///@{
 
+      virtual void SetLocalValue(VectorType& rVector, int LocalRow, double Value) const override
+      {
+          // Note: We don't go through TSpace because TrilinosSpace forces a GlobalAssemble after each SetValue
+          //KRATOS_ERROR_IF_NOT(rVector.Map().MyGID(LocalRow)) << " non-local id: " << LocalRow << ".";
+          std::cout << "set: " << LocalRow << " " << Value << std::endl;
+          int ierr = rVector.ReplaceMyValue(LocalRow,0,Value);
+          KRATOS_ERROR_IF(ierr != 0) << "ReplaceMyValue returns " << ierr << " for row " << LocalRow << " of " << rVector.Map().MaxLID() << std::endl;
+          //rVector.GlobalAssemble();
+          //KRATOS_WATCH(rVector[0][LocalRow])
+      }
+
+      virtual double GetLocalValue(VectorType& rVector, int LocalRow) const override
+      {
+          std::cout << "get: " << LocalRow << " " << rVector[0][LocalRow] << std::endl;
+          //KRATOS_WATCH(rVector[0][LocalRow])
+          return rVector[0][LocalRow];
+      }
+
 
       ///@}
       ///@name Protected  Access
@@ -201,6 +208,8 @@ namespace Kratos
       ///@}
       ///@name Member Variables
       ///@{
+
+      const Epetra_MpiComm& mrEpetraComm;
 
 
       ///@}

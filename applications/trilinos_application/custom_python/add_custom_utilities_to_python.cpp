@@ -162,13 +162,13 @@ void  AddCustomUtilitiesToPython()
     typedef TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType,2> TrilinosPartitionedFSIUtilities2DType;
     typedef TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType,3> TrilinosPartitionedFSIUtilities3DType;
 
-    class_< TrilinosPartitionedFSIUtilities2DType, boost::noncopyable > ("TrilinosPartitionedFSIUtilities2D", init < >())
+    class_< TrilinosPartitionedFSIUtilities2DType, boost::noncopyable > ("TrilinosPartitionedFSIUtilities2D", init < const Epetra_MpiComm& >())
       .def("SetUpInterfaceVector", &TrilinosPartitionedFSIUtilities2DType::SetUpInterfaceVector)
       .def("ComputeInterfaceVectorResidual", &TrilinosPartitionedFSIUtilities2DType::ComputeInterfaceVectorResidual)
       .def("UpdateInterfaceValues", &TrilinosPartitionedFSIUtilities2DType::UpdateInterfaceValues)
     ;
 
-    class_< TrilinosPartitionedFSIUtilities3DType, boost::noncopyable > ("TrilinosPartitionedFSIUtilities3D", init < >())
+    class_< TrilinosPartitionedFSIUtilities3DType, boost::noncopyable > ("TrilinosPartitionedFSIUtilities3D", init < const Epetra_MpiComm& >())
       .def("SetUpInterfaceVector", &TrilinosPartitionedFSIUtilities3DType::SetUpInterfaceVector)
       .def("ComputeInterfaceVectorResidual", &TrilinosPartitionedFSIUtilities3DType::ComputeInterfaceVectorResidual)
       .def("UpdateInterfaceValues", &TrilinosPartitionedFSIUtilities3DType::UpdateInterfaceValues)

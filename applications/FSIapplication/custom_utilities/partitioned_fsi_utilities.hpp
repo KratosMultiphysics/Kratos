@@ -201,7 +201,7 @@ public:
         }
     }
 
-    virtual void SetUpInterfaceVector(const ModelPart& rInterfaceModelPart,
+    virtual void SetUpInterfaceVector(ModelPart& rInterfaceModelPart,
                                       VectorPointerType& pInterfaceVector)
     {
         unsigned int ResidualSize = this->GetInterfaceResidualSize(rInterfaceModelPart);
@@ -236,16 +236,17 @@ public:
         // this->ComputeConsistentResidual(rInterfaceModelPart, rOriginalVariable, rModifiedVariable, FSI_INTERFACE_RESIDUAL);
 
         // Assemble the final consistent residual values
-        #pragma omp parallel for
-        for(int k=0; k<static_cast<int>(rInterfaceModelPart.NumberOfNodes()); ++k)
+        auto& rLocalMesh = rInterfaceModelPart.GetCommunicator().LocalMesh();
+        #pragma omp parallel for firstprivate(rLocalMesh)
+        for(int k=0; k<static_cast<int>(rLocalMesh.NumberOfNodes()); ++k)
         {
-            const ModelPart::NodeIterator it_node = rInterfaceModelPart.NodesBegin()+k;
+            const ModelPart::NodeIterator it_node = rLocalMesh.NodesBegin()+k;
             const unsigned int base_i = k*TDim;
 
             const array_1d<double,3>& fsi_res = it_node->FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL);
             for (unsigned int jj=0; jj<TDim; ++jj)
             {
-                TSpace::SetValue(interface_residual, base_i+jj, fsi_res[jj]);
+                this->SetLocalValue(interface_residual, base_i+jj, fsi_res[jj]);
             }
         }
 
@@ -307,7 +308,7 @@ public:
             array_1d<double,3>& updated_value = it_node->FastGetSolutionStepValue(rSolutionVariable);
             for (unsigned int jj=0; jj<TDim; ++jj)
             {
-                updated_value[jj] = TSpace::GetValue( rCorrectedGuess, base_i+jj );
+                updated_value[jj] = this->GetLocalValue( rCorrectedGuess, base_i+jj );
             }
         }
     }
@@ -454,6 +455,16 @@ protected:
                 it_cond->GetGeometry()[ii].UnSetLock(); // Free the condition node for other threads
             }
         }
+    }
+
+    virtual void SetLocalValue(VectorType& rVector, int LocalRow, double Value) const
+    {
+        TSpace::SetValue(rVector,LocalRow,Value);
+    }
+
+    virtual double GetLocalValue(VectorType& rVector, int LocalRow) const
+    {
+        return TSpace::GetValue(rVector,LocalRow);
     }
 
     /**@} */

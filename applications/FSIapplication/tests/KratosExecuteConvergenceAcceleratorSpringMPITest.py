@@ -58,6 +58,7 @@ class KratosExecuteConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         force2(model_part,KratosMultiphysics.REACTION)
 
         residual = self.space.CreateEmptyVectorPointer(self.epetra_comm)
+        self.partitioned_utilities.SetUpInterfaceVector(model_part,residual)
         self.partitioned_utilities.ComputeInterfaceVectorResidual(model_part,KratosMultiphysics.FORCE,KratosMultiphysics.REACTION,residual.GetReference())
         return residual
 
@@ -81,6 +82,8 @@ class KratosExecuteConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         model_part_io.ReadModelPart(model_part)
         model_part.SetBufferSize(2)
 
+        KratosTrilinos.ParallelFillCommunicator(model_part).Execute()
+
         return model_part
 
     def InitializeNodalEpetraVector(self,model_part,rows_per_node):
@@ -101,7 +104,7 @@ class KratosExecuteConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         self.space = KratosTrilinos.TrilinosSparseSpace()
         self.epetra_comm = KratosTrilinos.CreateCommunicator()
 
-        self.partitioned_utilities = KratosTrilinos.TrilinosPartitionedFSIUtilities3D()
+        self.partitioned_utilities = KratosTrilinos.TrilinosPartitionedFSIUtilities3D(self.epetra_comm)
 
     def tearDown(self):
         if self.print_gid_output:
@@ -124,6 +127,8 @@ class KratosExecuteConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
             gid_io.WriteNodalResults(KratosMultiphysics.PARTITION_INDEX,self.model_part.Nodes,0.0,0)
             gid_io.WriteNodalResults(KratosMultiphysics.DISPLACEMENT,self.model_part.Nodes,0.0,0)
             gid_io.WriteNodalResults(KratosMultiphysics.FSI_INTERFACE_RESIDUAL,local_nodes,0.0,0)
+            gid_io.WriteNodalResults(KratosMultiphysics.FORCE,local_nodes,0.0,0)
+            gid_io.WriteNodalResults(KratosMultiphysics.REACTION,local_nodes,0.0,0)
             gid_io.FinalizeResults()
 
         # clean temporary files
@@ -167,7 +172,7 @@ class KratosExecuteConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
 
             if res_norm > self.aitken_tolelance:
                 coupling_utility.InitializeNonLinearIteration()
-                coupling_utility.UpdateSolution(residual, x_guess)
+                coupling_utility.UpdateSolution(residual.GetReference(), x_guess.GetReference())
                 coupling_utility.FinalizeNonLinearIteration()
             else:
                 coupling_utility.FinalizeSolutionStep()
@@ -189,6 +194,7 @@ class KratosExecuteConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
             self.assertAlmostEqual(expected,obtained,delta=self.assert_delta)
 
     def test_aitken_accelerator_constant_forces(self):
+        self.print_gid_output = True
 
         k1 = 100
         k2 = 500
