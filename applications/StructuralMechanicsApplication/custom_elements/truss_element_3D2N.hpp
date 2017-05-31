@@ -169,10 +169,13 @@ namespace Kratos
 		int mIterCount = 0; 
 		bool mIsCable;
 		bool mIsCompressed;
+		bool mIsLinearElement = false;
 
 		TrussElement3D2N() {};
 
 		friend class Serializer;
+		virtual void save(Serializer& rSerializer) const;
+		virtual void load(Serializer& rSerializer);
 	};
 
 
