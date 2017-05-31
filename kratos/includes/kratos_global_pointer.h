@@ -27,12 +27,6 @@ template<class TDataType>
 class GlobalPointer {
 private:
 
-  /** Default constructor
-   * Default constructor
-   * This should never be called as we need a local pointer to exists
-   */
-  GlobalPointer() = delete;
-
   TDataType GetPointer() { return mBaseDataPtr; }
 
   /// Local pointer and its rank. This must never be seen outside this class.
@@ -41,6 +35,12 @@ private:
   int mRank;
 
 public:
+
+	/** Default constructor
+	* Default constructor
+	* This should never be called as we need a local pointer to exists
+	*/
+	GlobalPointer() = delete;
 
   /** Constructor by a local BaseData
    * Constructor by a local pointer
