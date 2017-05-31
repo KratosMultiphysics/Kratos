@@ -482,7 +482,7 @@ class Solution:
 
                 # applying DEM-to-fluid coupling
 
-                if self.DEM_to_fluid_counter.Tick() and time >= self.pp.CFD_DEM.interaction_start_time:
+                if self.DEM_to_fluid_counter.Tick() and self.time >= self.pp.CFD_DEM.interaction_start_time:
                     self.alg.projection_module.ProjectFromParticles()
 
             #### PRINTING GRAPHS ####
