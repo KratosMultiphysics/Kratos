@@ -27,11 +27,11 @@ template<class TDataType>
 class GlobalPointer {
 private:
 
-  TDataType GetPointer() { return mBaseDataPtr; }
+  TDataType GetPointer() { return mDataPointer; }
 
   /// Local pointer and its rank. This must never be seen outside this class.
   /// Do not make it protected if you derive from this class.
-  TDataType * mBaseDataPtr;
+  TDataType * mDataPointer;
   int mRank;
 
 public:
@@ -46,8 +46,8 @@ public:
    * Constructor by a local pointer
    * @param BaseData BaseData of the local variable.
    */
-  GlobalPointer(TDataType * BaseDataPtr)
-    : mBaseDataPtr(BaseDataPtr)
+  GlobalPointer(TDataType * DataPointer)
+    : mDataPointer(DataPointer)
     , mRank(GetLocalRank()) {
   }
 
@@ -55,8 +55,8 @@ public:
    * Constructor by boost::shared_ptr
    * @param BaseData BaseData of the local variable.
    */
-  GlobalPointer(boost::shared_ptr<TDataType> BaseSharedPtr)
-    : mBaseDataPtr(&*BaseSharedPtr)
+  GlobalPointer(boost::shared_ptr<TDataType> DataPointer)
+    : mDataPointer(DataPointer.Get())
     , mRank(GetLocalRank()) {
   }
 
@@ -67,17 +67,24 @@ public:
   }
 
   /**
-   * Pointer Operator
-   */
+  * Pointer Operator
+  */
   TDataType & operator*() {
-    return *mBaseDataPtr;
+	  return *mDataPointer;
+  }
+
+  /**
+  * Pointer Operator
+  */
+  TDataType const& operator*() const {
+	  return *mDataPointer;
   }
 
   /**
    * Arrow Operator
    */
   TDataType * operator->() {
-    return mBaseDataPtr;
+    return mDataPointer;
   }
 
   /** Returns the rank of the BasePointer owner
@@ -88,6 +95,7 @@ public:
     return mRank;
   }
 
+private:
   /** Returns the rank of the current process
    * Returns the rank of the current process
    * @return Rank of the current process
