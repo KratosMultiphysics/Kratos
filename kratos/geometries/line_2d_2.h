@@ -792,6 +792,31 @@ public:
     }
 
     /**
+     * It computes the normal of the geometry, if possible
+     * @return The normal of the geometry
+     */
+    virtual array_1d<double, 3> Normal() override
+    {
+        // We define the normal
+        array_1d<double,3> Normal;
+        
+        // We get the local points
+        const TPointType& FirstPoint  = BaseType::GetPoint(0);
+        const TPointType& SecondPoint = BaseType::GetPoint(1);
+        
+        // We compute the normal
+        Normal[0] = SecondPoint[1] -  FirstPoint[1];
+        Normal[1] =  FirstPoint[0] - SecondPoint[0];
+        Normal[2] = 0.0;
+        
+        // We normalize
+        const double Norm = std::sqrt(Normal[0] * Normal[0] + Normal[1] * Normal[1]);
+        Normal /= Norm;
+        
+        return Normal;
+    }
+
+    /**
      * returns the local coordinates of all nodes of the current geometry
      * @param rResult a Matrix object that will be overwritten by the result
      * @return the local coordinates of all nodes
@@ -830,30 +855,63 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective
+     * Returns whether given arbitrary point is inside the Geometry and the respective 
      * local point for the given global point
+     * @param rPoint: The point to be checked if is inside o note in global coordinates
+     * @param rResult: The local coordinates of the point
+     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() ) override
+    virtual bool IsInside( 
+        const CoordinatesArrayType& rPoint, 
+        CoordinatesArrayType& rResult, 
+        const double Tolerance = std::numeric_limits<double>::epsilon() 
+        ) override
     {
         PointLocalCoordinates( rResult, rPoint );
 
-        if ( (rResult[0] >= (-1.0 - Tolerance)) && (rResult[0] <= (1.0 + Tolerance)) )
+        if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) )
         {
             return true;
         }
-        else
+        
+        return false;
+    }
+    
+    /**
+     * Returns whether given arbitrary point is inside, once this node has been projected if possible,
+     * the Geometry and the respective local point for the given global point
+     * @param rPoint: The point to be checked if is inside o note in global coordinates
+     * @param rResult: The local coordinates of the point
+     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @return True if the point is inside, false otherwise
+     */
+    virtual bool IsInsideWhenProjected( 
+        const CoordinatesArrayType& rPoint, 
+        CoordinatesArrayType& rResult, 
+        const double Tolerance = std::numeric_limits<double>::epsilon() 
+        ) override
+    {
+        PointLocalCoordinatesWhenProjected( rResult, rPoint );
+
+        if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) )
         {
-            return false;
+            return true;
         }
+        
+        return false;
     }
 
-
     /**
-      * Returns the local coordinates of a given arbitrary point
-      */
+     * Returns the local coordinates of a given arbitrary point
+     * @param rResult: The vector containing the local coordinates of the point
+     * @param rPoint: The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
     virtual CoordinatesArrayType& PointLocalCoordinates(
             CoordinatesArrayType& rResult,
-            const CoordinatesArrayType& rPoint ) override
+            const CoordinatesArrayType& rPoint 
+            ) override
     {
         rResult.clear();
 
@@ -861,54 +919,27 @@ public:
         const TPointType& SecondPoint = BaseType::GetPoint(1);
 
         // Project point
-        const double tol = 1e-14; // Tolerance
+        const double Tolerance = 1e-14; // Tolerance
 
-        // Normal
-        array_1d<double,2> Normal = ZeroVector(2);
-        Normal[0] = SecondPoint[1] -  FirstPoint[1];
-        Normal[1] =  FirstPoint[0] - SecondPoint[0];
-        const double norm = std::sqrt(Normal[0] * Normal[0] + Normal[1] * Normal[1]);
-        Normal /= norm;
+        const double Length = this->Length();
 
-        // Vector point and distance
-        array_1d<double,2> VectorPoint = ZeroVector(2);
-        VectorPoint[0] = rPoint[0] - FirstPoint[0];
-        VectorPoint[1] = rPoint[1] - FirstPoint[1];
-        const double dist_proy = VectorPoint[0] * Normal[0] + VectorPoint[1] * Normal[1];
+        const double Length1 = std::sqrt((rPoint[0] - FirstPoint[0]) * (rPoint[0] - FirstPoint[0])
+                    + (rPoint[1] - FirstPoint[1]) * (rPoint[1] - FirstPoint[1]));
 
-//        KRATOS_WATCH(rPoint);
-//        KRATOS_WATCH(Point_projected);
-//        KRATOS_WATCH(dist_proy);
+        const double Length2 = std::sqrt((rPoint[0] - SecondPoint[0]) * (rPoint[0] - SecondPoint[0])
+                    + (rPoint[1] - SecondPoint[1]) * (rPoint[1] - SecondPoint[1]));
 
-        if (dist_proy < tol)
+        if (Length1 <= (Length + Tolerance) && Length2 <= (Length + Tolerance))
         {
-            const double L  = Length();
-
-            const double l1 = std::sqrt((rPoint[0] - FirstPoint[0]) * (rPoint[0] - FirstPoint[0])
-                      + (rPoint[1] - FirstPoint[1]) * (rPoint[1] - FirstPoint[1]));
-
-            const double l2 = std::sqrt((rPoint[0] - SecondPoint[0]) * (rPoint[0] - SecondPoint[0])
-                      + (rPoint[1] - SecondPoint[1]) * (rPoint[1] - SecondPoint[1]));
-
-//            std::cout << "L: " << L << " l1: " << l1 << " l2: " << l2 << std::endl;
-
-            if (l1 <= (L + tol) && l2 <= (L + tol))
-            {
-                rResult[0] = 2.0 * l1/(L + tol) - 1.0;
-            }
-            else if (l1 > (L + tol))
-            {
-                rResult[0] = 2.0 * l1/(L + tol) - 1.0; // NOTE: The same value as before, but it will be > than 1
-            }
-            else if (l2 > (L + tol))
-            {
-                rResult[0] = 1.0 - 2.0 * l2/(L + tol);
-            }
-            else
-            {
-                rResult[0] = 2.0; // Out of the line!!! TODO: Check if this value gives problems
-            }
-
+            rResult[0] = 2.0 * Length1/(Length + Tolerance) - 1.0;
+        }
+        else if (Length1 > (Length + Tolerance))
+        {
+            rResult[0] = 2.0 * Length1/(Length + Tolerance) - 1.0; // NOTE: The same value as before, but it will be > than 1
+        }
+        else if (Length2 > (Length + Tolerance))
+        {
+            rResult[0] = 1.0 - 2.0 * Length2/(Length + Tolerance);
         }
         else
         {
@@ -916,6 +947,34 @@ public:
         }
 
         return( rResult );
+    }
+    
+    /**
+     * Returns the local coordinates of a given arbitrary point, once this node has been projected if possible
+     * @param rResult: The vector containing the local coordinates of the point
+     * @param rPoint: The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    virtual CoordinatesArrayType& PointLocalCoordinatesWhenProjected(
+            CoordinatesArrayType& rResult,
+            const CoordinatesArrayType& rPoint 
+            ) override
+    {
+        // We compute the normal
+        const array_1d<double, 3> Normal = this->Normal();
+        
+        // We define the points
+        const Point<3>& Center = this->Center();
+        
+        // Vector point and distance
+        array_1d<double,2> VectorPoint = ZeroVector(2);
+        VectorPoint[0] = rPoint[0] - Center[0];
+        VectorPoint[1] = rPoint[1] - Center[1];
+        const double DistanceProjected = VectorPoint[0] * Normal[0] + VectorPoint[1] * Normal[1];
+
+        const CoordinatesArrayType ProjectedPoint = rPoint - Normal * DistanceProjected; // NOTE: We take the negative normal
+        
+        return PointLocalCoordinates(rResult, ProjectedPoint);
     }
 
     ///@}
