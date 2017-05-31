@@ -22,11 +22,12 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
-#include "custom_utilities/contact_utilities.h"
-#include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-#include "utilities/openmp_utils.h"
 #include "utilities/variable_utils.h"
+
+#if !defined(_WIN32)
+	#include "custom_utilities/color_utilities.h"
+#endif
 
 // TODO: Extend the descriptions
 
@@ -204,8 +205,8 @@ public:
     {
     }
     
-    /******************** OPERATIONS ACCESSIBLE FROM THE INPUT: ************************/
-    /***********************************************************************************/
+    //******************** OPERATIONS ACCESSIBLE FROM THE INPUT: ************************//
+    //***********************************************************************************//
     
     /**
      * Solves the current step. This function returns true if a solution has been found, false otherwise.
@@ -218,6 +219,8 @@ public:
         // Plots a warning if the maximum number of iterations is exceeded
         if ((mAdaptativeStrategy == true) && (IsConverged == false))
         {
+            std::cout << "WARNING:: If you have not implemented any method to recalculate BC or loads in function of time, this strategy will be USELESS" << std::endl; // FIXME: Solve this
+            
             const double OriginalDeltaTime = StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]; // We save the delta time to restore later
             
             unsigned int SplitNumber = 0;
@@ -228,7 +231,7 @@ public:
                 // Expliting time step as a way to try improve the convergence
                 SplitNumber += 1;
                 
-                double AuxTime      = StrategyBaseType::GetModelPart().GetProcessInfo()[TIME];
+                const double AuxTime      = StrategyBaseType::GetModelPart().GetProcessInfo()[TIME];
                 double AuxDeltaTime = StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]; // FIXME: The DELTA_TIME is set to 0 for some reason!!!!
                 double CurrentTime   = AuxTime - AuxDeltaTime;
                 
@@ -254,18 +257,6 @@ public:
                     // We repeat the predict and solve with the new DELTA_TIME
                     BaseType::Predict();
                     IsConverged = BaseType::SolveSolutionStep();
-                    
-                    // Plots a warning if the maximum number of iterations is exceeded
-                    if (IsConverged == false)
-                    {
-                        MaxIterationsExceeded();
-                    }
-                }
-                
-                if (IsConverged == true)
-                {
-                    // Restoring original DELTA_TIME
-                    StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME] = OriginalDeltaTime;
                 }
             }
             
@@ -274,6 +265,9 @@ public:
             {
                 MaxIterationsAndSplitsExceeded();
             }
+            
+            // Restoring original DELTA_TIME
+            StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME] = OriginalDeltaTime;
         }
 
         return IsConverged;
@@ -521,13 +515,21 @@ protected:
         
     void CoutSplittingTime(const double AuxDeltaTime)
     {
-        if (this->GetEchoLevel() != 0)
+        if (this->GetEchoLevel() > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
-            std::cout << "***************************************************" << std::endl;
-            std::cout << "**** Max. iter. exceeded: SPLITTING TIME STEP *****" << std::endl;
-            std::cout << "***\t\t COMING BACK TO TIME: " << StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] << "\t\t ***" << std::endl;
-            std::cout << "***\t\t NEW TIME STEP: "<< AuxDeltaTime << "\t\t ***" << std::endl;
-            std::cout << "***************************************************" << std::endl;
+            const double Time = StrategyBaseType::GetModelPart().GetProcessInfo()[TIME];
+            std::cout.precision(4);
+            std::cout << "|----------------------------------------------------|" << std::endl;
+            #if !defined(_WIN32)
+                std::cout << "|     " << BOLDFONT("Max. iter. exceeded: SPLITTING TIME STEP") << "       |" << std::endl;
+                std::cout << "| " << BOLDFONT("COMING BACK TO TIME: ") << std::scientific << Time << "                    |" << std::endl;
+                std::cout << "| " << BOLDFONT("      NEW TIME STEP: ") << std::scientific << AuxDeltaTime << "                    |" << std::endl;
+            #else
+                std::cout << "|     Max. iter. exceeded: SPLITTING TIME STEP       |" << std::endl;
+                std::cout << "| COMING BACK TO TIME: " << std::scientific << Time << "                    |" << std::endl;
+                std::cout << "|       NEW TIME STEP: " << std::scientific << AuxDeltaTime << "                    |" << std::endl;
+            #endif
+            std::cout << "|----------------------------------------------------|" << std::endl;
         }
     }
     
@@ -535,13 +537,17 @@ protected:
      * This method prints information after reach the max number of interations
      */
     
-    void MaxIterationsExceeded()
+    void MaxIterationsExceeded() override
     {
-        if (this->GetEchoLevel() != 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
+        if (this->GetEchoLevel() > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
-            std::cout << "***************************************************" << std::endl;
-            std::cout << "******* ATTENTION: max iterations exceeded ********" << std::endl;
-            std::cout << "***************************************************" << std::endl;
+            std::cout << "|----------------------------------------------------|" << std::endl;
+            #if !defined(_WIN32)
+                std::cout << "|        " << BOLDFONT(FRED("ATTENTION: Max iterations exceeded")) << "          |" << std::endl;
+            #else
+                std::cout << "|        ATTENTION: Max iterations exceeded          |" << std::endl;
+            #endif
+            std::cout << "|----------------------------------------------------|" << std::endl;
         }
     }
     
@@ -551,12 +557,17 @@ protected:
         
     void MaxIterationsAndSplitsExceeded()
     {
-        if (this->GetEchoLevel() != 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
+        if (this->GetEchoLevel() > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
-            std::cout << "***************************************************" << std::endl;
-            std::cout << "******* ATTENTION: max iterations exceeded ********" << std::endl;
-            std::cout << "********** Max number of splits exceeded **********" << std::endl;
-            std::cout << "***************************************************" << std::endl;
+            std::cout << "|----------------------------------------------------|" << std::endl;
+            #if !defined(_WIN32)
+                std::cout << "|        " << BOLDFONT(FRED("ATTENTION: Max iterations exceeded")) << "          |" << std::endl;
+                std::cout << "|        " << BOLDFONT(FRED("   Max number of splits exceeded  ")) << "          |" << std::endl;
+            #else
+                std::cout << "|        ATTENTION: Max iterations exceeded          |" << std::endl;
+                std::cout << "|           Max number of splits exceeded            |" << std::endl;
+            #endif
+            std::cout << "|----------------------------------------------------|" << std::endl;
         }
     }
 
