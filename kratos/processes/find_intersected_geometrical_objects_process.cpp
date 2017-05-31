@@ -63,6 +63,11 @@ namespace Kratos
 		return mrModelPart1;
 	}
 
+	OctreeBinary<OctreeBinaryCell<Internals::DistanceSpatialContainersConfigure>>* FindIntersectedGeometricalObjectsProcess::GetOctreePointer()
+	{
+		return &mOctree;
+	}
+
 	void FindIntersectedGeometricalObjectsProcess::Clear()
 	{
 		mIntersectedObjects.clear();
@@ -101,7 +106,7 @@ namespace Kratos
 	}
 
 	void FindIntersectedGeometricalObjectsProcess::GenerateOctree() {
-		SetOctreeBoundingBox();
+		this->SetOctreeBoundingBox();
 
 		// Adding mrModelPart2 to the octree
 		for (auto i_node = mrModelPart2.NodesBegin(); i_node != mrModelPart2.NodesEnd(); i_node++) {

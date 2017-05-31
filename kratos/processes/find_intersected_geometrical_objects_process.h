@@ -269,6 +269,8 @@ namespace Kratos
 
 	  virtual ModelPart& GetModelPart1();
 
+	  virtual OctreeBinary<OctreeBinaryCell<Internals::DistanceSpatialContainersConfigure>>* GetOctreePointer();
+
 	  virtual void Clear();
 
 	  virtual void Execute() override;
