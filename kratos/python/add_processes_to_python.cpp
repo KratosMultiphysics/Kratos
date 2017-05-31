@@ -47,6 +47,7 @@
 #include "processes/compute_nodal_gradient_process.h"
 #include "processes/assign_scalar_variable_to_conditions_process.h"
 #include "processes/assign_scalar_field_to_conditions_process.h"
+#include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -214,6 +215,7 @@ void  AddProcessesToPython()
             init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
 
+
     class_<AssignScalarVariableToConditionsProcess, bases<Process>, boost::noncopyable >("AssignScalarVariableToConditionsProcess",
             init<ModelPart&, Parameters >())
     ;
@@ -221,6 +223,11 @@ void  AddProcessesToPython()
     class_<AssignScalarFieldToConditionsProcess , bases<Process>, boost::noncopyable >("AssignScalarFieldToConditionsProcess",
             init<ModelPart&, Parameters >())
     ;
+
+	class_<CalculateDiscontinuousDistanceToSkinProcess, bases<Process>, boost::noncopyable >("CalculateDiscontinuousDistanceToSkinProcess",
+		init<ModelPart&, ModelPart&>())
+		;
+
 
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
     //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;

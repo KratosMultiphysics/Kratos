@@ -761,7 +761,6 @@ class Procedures(object):
         b_box_high[0] = self.b_box_maxX
         b_box_high[1] = self.b_box_maxY
         b_box_high[2] = self.b_box_maxZ
-
         creator_destructor.SetLowNode(b_box_low)
         creator_destructor.SetHighNode(b_box_high)
         creator_destructor.CalculateSurroundingBoundingBox(spheres_model_part, clusters_model_part, rigid_faces_model_part, self.bounding_box_enlargement_factor, self.automatic_bounding_box_OPTION)

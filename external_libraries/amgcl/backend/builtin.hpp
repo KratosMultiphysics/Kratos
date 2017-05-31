@@ -414,6 +414,19 @@ class numa_vector {
             }
         }
 
+        void resize(size_t size, bool init = true) {
+            delete[] p; p = 0;
+
+            n = size;
+            p = new T[n];
+
+            if (init) {
+#pragma omp parallel for
+                for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i)
+                    p[i] = math::zero<T>();
+            }
+        }
+
         template <class Vector>
         numa_vector(const Vector &other) : n(other.size()), p(new T[n]) {
 #pragma omp parallel for

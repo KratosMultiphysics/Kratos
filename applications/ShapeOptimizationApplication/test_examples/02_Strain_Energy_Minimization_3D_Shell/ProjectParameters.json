@@ -115,13 +115,15 @@
         }],
         "constraints" : [],
         "design_variables" : {
-            "variable_type"             : "vertex_morphing", 
+            "design_variables_type"     : "vertex_morphing", 
             "input_model_part_name"     : "3D_Shell",
             "design_submodel_part_name" : "design_surface",
             "domain_size"               : 3,
             "filter" : {
-                "filter_function_type" : "linear",
-                "filter_radius"        : 3
+                "filter_function_type"       : "linear",
+                "filter_radius"              : 3,
+                "max_nodes_in_filter_radius" : 10000,
+                "matrix_free_filtering"      : false 
             },
             "damping" : {
                 "perform_damping" : true,
@@ -144,7 +146,7 @@
         },
         "optimization_algorithm" : {
             "name"               : "steepest_descent",
-            "max_iterations"     : 300,
+            "max_iterations"     : 100,
             "relative_tolerance" : 1e-1
         },
         "line_search" : {

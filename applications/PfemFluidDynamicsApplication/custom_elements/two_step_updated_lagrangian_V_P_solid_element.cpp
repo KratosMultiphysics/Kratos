@@ -161,8 +161,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
   void TwoStepUpdatedLagrangianVPSolidElement<TDim>::ComputeMaterialParameters(double& Density,
 									       double& DeviatoricCoeff,
 									       double& VolumetricCoeff,
-									       double timeStep,
-									       const ShapeFunctionsType& N)
+									       double timeStep)
   {
 
     Density=this->GetProperties()[DENSITY];
@@ -181,7 +180,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
     // YoungModulus=100000000;
     // PoissonRatio=0;
 
- 
     // FirstLame = timeStep*PoissonRatio*YoungModulus/((1.0+PoissonRatio)*(1.0-2.0*PoissonRatio)); 
     DeviatoricCoeff = timeStep*YoungModulus/(1.0+PoissonRatio)*0.5;
     // BulkModulus = FirstLame + 2.0*SecondLame/3.0;
@@ -301,15 +299,15 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 template< unsigned int TDim>
 bool TwoStepUpdatedLagrangianVPSolidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
 									const ProcessInfo& rCurrentProcessInfo,
-									unsigned int g,
-									const ShapeFunctionsType& N)
+									unsigned int g)
 {
 
   bool computeElement=false;
-  double theta=0.5;
+  double theta=this->GetThetaMomentum();
   computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,g,theta);
-  const double TimeStep=0.5/rCurrentProcessInfo[BDF_COEFFICIENTS][2];
-  this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g,N);
+  const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
+
+  this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
   return computeElement;
 } 
 
@@ -317,6 +315,7 @@ bool TwoStepUpdatedLagrangianVPSolidElement<TDim>::CalcMechanicsUpdated(Elementa
   template<>
   void TwoStepUpdatedLagrangianVPSolidElement<2>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
   {
+
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
     const SizeType LocalSize = 2*NumNodes;
@@ -327,8 +326,10 @@ bool TwoStepUpdatedLagrangianVPSolidElement<TDim>::CalcMechanicsUpdated(Elementa
 
     for (SizeType i = 0; i < NumNodes; ++i)
       {
-	rValues[Index++] = rGeom[i].X0();
-	rValues[Index++] = rGeom[i].Y0();
+    	rValues[Index++] = rGeom[i].X();
+    	rValues[Index++] = rGeom[i].Y();
+    	// rValues[Index++] = rGeom[i].X0();
+    	// rValues[Index++] = rGeom[i].Y0();
       }
   }
 
@@ -346,9 +347,12 @@ bool TwoStepUpdatedLagrangianVPSolidElement<TDim>::CalcMechanicsUpdated(Elementa
 
     for (SizeType i = 0; i < NumNodes; ++i)
       {
- 	rValues[Index++] = rGeom[i].X0();
-        rValues[Index++] = rGeom[i].Y0();
-        rValues[Index++] = rGeom[i].Z0();
+ 	rValues[Index++] = rGeom[i].X();
+        rValues[Index++] = rGeom[i].Y();
+        rValues[Index++] = rGeom[i].Z();
+	// rValues[Index++] = rGeom[i].X0();
+        // rValues[Index++] = rGeom[i].Y0();
+        // rValues[Index++] = rGeom[i].Z0();
       }
   }
 
@@ -386,7 +390,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: InitializeElementalVariables
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPSolidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,double TimeStep, unsigned int g,const ShapeFunctionsType& N)
+void TwoStepUpdatedLagrangianVPSolidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,double TimeStep, unsigned int g)
 {
 
   rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
@@ -396,7 +400,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<2>:: CalcElasticPlasticCauchySplitte
   double CurrSecondLame  = 0;
   double CurrBulkModulus = 0;
 
-  this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep,N);
+  this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep);
  
   double CurrFirstLame  = 0;
   CurrFirstLame  =CurrBulkModulus - 2.0*CurrSecondLame/3.0;
@@ -415,17 +419,17 @@ void TwoStepUpdatedLagrangianVPSolidElement<2>:: CalcElasticPlasticCauchySplitte
   double sigmaTot_yy= CurrFirstLame*DefVol + 2.0*CurrSecondLame*DefY;
   double sigmaTot_xy= 2.0*CurrSecondLame*DefXY;
 
+  // sigmaTot_xx=rElementalVariables.CurrentTotalCauchyStress[0] + rElementalVariables.MeanPressure + sigmaDev_xx;
+  // sigmaTot_yy=rElementalVariables.CurrentTotalCauchyStress[1] + rElementalVariables.MeanPressure + sigmaDev_yy;
+  // sigmaTot_xy=rElementalVariables.CurrentTotalCauchyStress[2] + sigmaDev_xy;
+
   sigmaDev_xx+=rElementalVariables.CurrentDeviatoricCauchyStress[0];
   sigmaDev_yy+=rElementalVariables.CurrentDeviatoricCauchyStress[1];
   sigmaDev_xy+=rElementalVariables.CurrentDeviatoricCauchyStress[2];
-  // std::cout<<"  sxx:"<<rElementalVariables.CurrentDeviatoricCauchyStress[0];
-  sigmaTot_xx+=rElementalVariables.CurrentTotalCauchyStress[0];
-  sigmaTot_yy+=rElementalVariables.CurrentTotalCauchyStress[1];
-  sigmaTot_xy+=rElementalVariables.CurrentTotalCauchyStress[2];
 
-  // sigmaDev_xx= sigmaTot_xx - rElementalVariables.MeanPressure;
-  // sigmaDev_yy= sigmaTot_yy - rElementalVariables.MeanPressure;
-  // sigmaDev_xy= sigmaTot_xy;
+  // sigmaTot_xx+=rElementalVariables.CurrentTotalCauchyStress[0];
+  // sigmaTot_yy+=rElementalVariables.CurrentTotalCauchyStress[1];
+  // sigmaTot_xy+=rElementalVariables.CurrentTotalCauchyStress[2];
 
   sigmaTot_xx= sigmaDev_xx + rElementalVariables.MeanPressure;
   sigmaTot_yy= sigmaDev_yy + rElementalVariables.MeanPressure;
@@ -439,43 +443,6 @@ void TwoStepUpdatedLagrangianVPSolidElement<2>:: CalcElasticPlasticCauchySplitte
   rElementalVariables.UpdatedTotalCauchyStress[1]=sigmaTot_yy;
   rElementalVariables.UpdatedTotalCauchyStress[2]=sigmaTot_xy;
 
-
-   //     // //SIGMA(2D)=(F·S·Ft)/J --> already checked -> ok!
-   // double SigmaXX= (  rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedTotalCauchyStress[0]*rElementalVariables.Fgrad(0,0) +
-   // 		    2*rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedTotalCauchyStress[2]*rElementalVariables.Fgrad(0,1) +
-   // 		      rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedTotalCauchyStress[1]*rElementalVariables.Fgrad(0,1))/rElementalVariables.DetFgrad ;
-
-   // double SigmaYY= (  rElementalVariables.Fgrad(1,0)*rElementalVariables.UpdatedTotalCauchyStress[0]*rElementalVariables.Fgrad(1,0) +
-   // 		    2*rElementalVariables.Fgrad(1,1)*rElementalVariables.UpdatedTotalCauchyStress[2]*rElementalVariables.Fgrad(1,0) +
-   // 		      rElementalVariables.Fgrad(1,1)*rElementalVariables.UpdatedTotalCauchyStress[1]*rElementalVariables.Fgrad(1,1))/rElementalVariables.DetFgrad ;
-
-   // double SigmaXY= (rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedTotalCauchyStress[0]*rElementalVariables.Fgrad(1,0) +
-   // 		    rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedTotalCauchyStress[2]*rElementalVariables.Fgrad(1,1) +
-   // 		    rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedTotalCauchyStress[2]*rElementalVariables.Fgrad(1,0) +
-   // 		    rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedTotalCauchyStress[1]*rElementalVariables.Fgrad(1,1))/rElementalVariables.DetFgrad;
-
-   // rElementalVariables.UpdatedTotalCauchyStress[0]=SigmaXX;
-   // rElementalVariables.UpdatedTotalCauchyStress[1]=SigmaYY;
-   // rElementalVariables.UpdatedTotalCauchyStress[2]=SigmaXY;
-   
-   // SigmaXX= (  rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedDeviatoricCauchyStress[0]*rElementalVariables.Fgrad(0,0) +
-   // 	       2*rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedDeviatoricCauchyStress[2]*rElementalVariables.Fgrad(0,1) +
-   // 	       rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedDeviatoricCauchyStress[1]*rElementalVariables.Fgrad(0,1))/rElementalVariables.DetFgrad ;
-
-   // SigmaYY= (  rElementalVariables.Fgrad(1,0)*rElementalVariables.UpdatedDeviatoricCauchyStress[0]*rElementalVariables.Fgrad(1,0) +
-   // 	       2*rElementalVariables.Fgrad(1,1)*rElementalVariables.UpdatedDeviatoricCauchyStress[2]*rElementalVariables.Fgrad(1,0) +
-   // 	       rElementalVariables.Fgrad(1,1)*rElementalVariables.UpdatedDeviatoricCauchyStress[1]*rElementalVariables.Fgrad(1,1))/rElementalVariables.DetFgrad ;
-
-   // SigmaXY= (rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedDeviatoricCauchyStress[0]*rElementalVariables.Fgrad(1,0) +
-   // 	     rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedDeviatoricCauchyStress[2]*rElementalVariables.Fgrad(1,1) +
-   // 	     rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedDeviatoricCauchyStress[2]*rElementalVariables.Fgrad(1,0) +
-   // 	     rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedDeviatoricCauchyStress[1]*rElementalVariables.Fgrad(1,1))/rElementalVariables.DetFgrad;
-
-   // rElementalVariables.UpdatedDeviatoricCauchyStress[0]=SigmaXX;
-   // rElementalVariables.UpdatedDeviatoricCauchyStress[1]=SigmaYY;
-   // rElementalVariables.UpdatedDeviatoricCauchyStress[2]=SigmaXY;
-   
-
   // this->mCurrentTotalCauchyStress[g]=rElementalVariables.CurrentTotalCauchyStress;
   this->mUpdatedTotalCauchyStress[g]=rElementalVariables.UpdatedTotalCauchyStress;
   // this->mCurrentDeviatoricCauchyStress[g]=rElementalVariables.CurrentDeviatoricCauchyStress;
@@ -486,7 +453,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<2>:: CalcElasticPlasticCauchySplitte
 }
 
 template < > 
-void TwoStepUpdatedLagrangianVPSolidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g,const ShapeFunctionsType& N)
+void TwoStepUpdatedLagrangianVPSolidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
 {
 
   rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
@@ -496,7 +463,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<3>:: CalcElasticPlasticCauchySplitte
   double CurrSecondLame  = 0;
   double CurrBulkModulus = 0;
 
-  this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep,N);
+  this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep);
  
   double CurrFirstLame   = 0;
   CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
@@ -524,7 +491,6 @@ void TwoStepUpdatedLagrangianVPSolidElement<3>:: CalcElasticPlasticCauchySplitte
   double sigmaTot_xz= 2*CurrSecondLame*DefXZ;
   double sigmaTot_yz= 2*CurrSecondLame*DefYZ;
 
-
   sigmaDev_xx+=rElementalVariables.CurrentDeviatoricCauchyStress[0];
   sigmaDev_yy+=rElementalVariables.CurrentDeviatoricCauchyStress[1];
   sigmaDev_zz+=rElementalVariables.CurrentDeviatoricCauchyStress[2];
@@ -538,21 +504,6 @@ void TwoStepUpdatedLagrangianVPSolidElement<3>:: CalcElasticPlasticCauchySplitte
   sigmaTot_xy= sigmaDev_xy;
   sigmaTot_xz= sigmaDev_xz;
   sigmaTot_yz= sigmaDev_yz;
-
-  // sigmaTot_xx+=rElementalVariables.CurrentTotalCauchyStress[0];
-  // sigmaTot_yy+=rElementalVariables.CurrentTotalCauchyStress[1];
-  // sigmaTot_zz+=rElementalVariables.CurrentTotalCauchyStress[2];
-  // sigmaTot_xy+=rElementalVariables.CurrentTotalCauchyStress[3];
-  // sigmaTot_xz+=rElementalVariables.CurrentTotalCauchyStress[4];
-  // sigmaTot_yz+=rElementalVariables.CurrentTotalCauchyStress[5];
-
-  // sigmaDev_xx= sigmaTot_xx - rElementalVariables.MeanPressure;
-  // sigmaDev_yy= sigmaTot_yy - rElementalVariables.MeanPressure;
-  // sigmaDev_zz= sigmaTot_zz - rElementalVariables.MeanPressure;
-  // sigmaDev_xy= sigmaTot_xy;
-  // sigmaDev_xz= sigmaTot_xz;
-  // sigmaDev_yz= sigmaTot_yz;
-
 
   rElementalVariables.UpdatedDeviatoricCauchyStress[0]=sigmaDev_xx;
   rElementalVariables.UpdatedDeviatoricCauchyStress[1]=sigmaDev_yy;
@@ -579,60 +530,69 @@ void TwoStepUpdatedLagrangianVPSolidElement<3>:: CalcElasticPlasticCauchySplitte
 
 template < unsigned int TDim > 
 void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned int g,ProcessInfo &rCurrentProcessInfo)
- {
-
-   // ElementalVariables rElementalVariables;
-   // this->InitializeElementalVariables(rElementalVariables);
-
-   // double theta=0;
-   // bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,g,theta);
-
-   //     // //SIGMA(2D)=(F·S·Ft)/J --> already checked -> ok!
-   // double SigmaXX= (  rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedTotalCauchyStress[0]*rElementalVariables.Fgrad(0,0) +
-   // 		    2*rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedTotalCauchyStress[2]*rElementalVariables.Fgrad(0,1) +
-   // 		      rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedTotalCauchyStress[1]*rElementalVariables.Fgrad(0,1))/rElementalVariables.DetFgrad ;
-
-   // double SigmaYY= (  rElementalVariables.Fgrad(1,0)*rElementalVariables.UpdatedTotalCauchyStress[0]*rElementalVariables.Fgrad(1,0) +
-   // 		    2*rElementalVariables.Fgrad(1,1)*rElementalVariables.UpdatedTotalCauchyStress[2]*rElementalVariables.Fgrad(1,0) +
-   // 		      rElementalVariables.Fgrad(1,1)*rElementalVariables.UpdatedTotalCauchyStress[1]*rElementalVariables.Fgrad(1,1))/rElementalVariables.DetFgrad ;
-
-   // double SigmaXY= (rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedTotalCauchyStress[0]*rElementalVariables.Fgrad(1,0) +
-   // 		    rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedTotalCauchyStress[2]*rElementalVariables.Fgrad(1,1) +
-   // 		    rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedTotalCauchyStress[2]*rElementalVariables.Fgrad(1,0) +
-   // 		    rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedTotalCauchyStress[1]*rElementalVariables.Fgrad(1,1))/rElementalVariables.DetFgrad;
-
-   // rElementalVariables.UpdatedTotalCauchyStress[0]=SigmaXX;
-   // rElementalVariables.UpdatedTotalCauchyStress[1]=SigmaYY;
-   // rElementalVariables.UpdatedTotalCauchyStress[2]=SigmaXY;
+{
    
-   // this->mUpdatedTotalCauchyStress[g]=rElementalVariables.UpdatedTotalCauchyStress;
+  double theta=this->GetThetaContinuity();
+  ElementalVariables rElementalVariables;
+  this->InitializeElementalVariables(rElementalVariables);
+  bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,g,theta);
+  const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
+  if(computeElement==true){
+    this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
+  }
+
+  // ElementalVariables rElementalVariables;
+  // this->InitializeElementalVariables(rElementalVariables);
+
+  // double theta=0;
+  // bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,g,theta);
+
+  //     // //SIGMA(2D)=(F·S·Ft)/J --> already checked -> ok!
+  // double SigmaXX= (  rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedTotalCauchyStress[0]*rElementalVariables.Fgrad(0,0) +
+  // 		    2*rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedTotalCauchyStress[2]*rElementalVariables.Fgrad(0,1) +
+  // 		      rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedTotalCauchyStress[1]*rElementalVariables.Fgrad(0,1))/rElementalVariables.DetFgrad ;
+
+  // double SigmaYY= (  rElementalVariables.Fgrad(1,0)*rElementalVariables.UpdatedTotalCauchyStress[0]*rElementalVariables.Fgrad(1,0) +
+  // 		    2*rElementalVariables.Fgrad(1,1)*rElementalVariables.UpdatedTotalCauchyStress[2]*rElementalVariables.Fgrad(1,0) +
+  // 		      rElementalVariables.Fgrad(1,1)*rElementalVariables.UpdatedTotalCauchyStress[1]*rElementalVariables.Fgrad(1,1))/rElementalVariables.DetFgrad ;
+
+  // double SigmaXY= (rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedTotalCauchyStress[0]*rElementalVariables.Fgrad(1,0) +
+  // 		    rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedTotalCauchyStress[2]*rElementalVariables.Fgrad(1,1) +
+  // 		    rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedTotalCauchyStress[2]*rElementalVariables.Fgrad(1,0) +
+  // 		    rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedTotalCauchyStress[1]*rElementalVariables.Fgrad(1,1))/rElementalVariables.DetFgrad;
+
+  // rElementalVariables.UpdatedTotalCauchyStress[0]=SigmaXX;
+  // rElementalVariables.UpdatedTotalCauchyStress[1]=SigmaYY;
+  // rElementalVariables.UpdatedTotalCauchyStress[2]=SigmaXY;
    
-   //     // //SIGMA(2D)=(F·S·Ft)/J --> already checked -> ok!
-   // SigmaXX= (  rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedDeviatoricCauchyStress[0]*rElementalVariables.Fgrad(0,0) +
-   // 	       2*rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedDeviatoricCauchyStress[2]*rElementalVariables.Fgrad(0,1) +
-   // 	       rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedDeviatoricCauchyStress[1]*rElementalVariables.Fgrad(0,1))/rElementalVariables.DetFgrad ;
-
-   // SigmaYY= (  rElementalVariables.Fgrad(1,0)*rElementalVariables.UpdatedDeviatoricCauchyStress[0]*rElementalVariables.Fgrad(1,0) +
-   // 	       2*rElementalVariables.Fgrad(1,1)*rElementalVariables.UpdatedDeviatoricCauchyStress[2]*rElementalVariables.Fgrad(1,0) +
-   // 	       rElementalVariables.Fgrad(1,1)*rElementalVariables.UpdatedDeviatoricCauchyStress[1]*rElementalVariables.Fgrad(1,1))/rElementalVariables.DetFgrad ;
-
-   // SigmaXY= (rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedDeviatoricCauchyStress[0]*rElementalVariables.Fgrad(1,0) +
-   // 	     rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedDeviatoricCauchyStress[2]*rElementalVariables.Fgrad(1,1) +
-   // 	     rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedDeviatoricCauchyStress[2]*rElementalVariables.Fgrad(1,0) +
-   // 	     rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedDeviatoricCauchyStress[1]*rElementalVariables.Fgrad(1,1))/rElementalVariables.DetFgrad;
-
-   // rElementalVariables.UpdatedDeviatoricCauchyStress[0]=SigmaXX;
-   // rElementalVariables.UpdatedDeviatoricCauchyStress[1]=SigmaYY;
-   // rElementalVariables.UpdatedDeviatoricCauchyStress[2]=SigmaXY;
+  // this->mUpdatedTotalCauchyStress[g]=rElementalVariables.UpdatedTotalCauchyStress;
    
-   // this->mUpdatedDeviatoricCauchyStress[g]=rElementalVariables.UpdatedDeviatoricCauchyStress;
+  //     // //SIGMA(2D)=(F·S·Ft)/J --> already checked -> ok!
+  // SigmaXX= (  rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedDeviatoricCauchyStress[0]*rElementalVariables.Fgrad(0,0) +
+  // 	       2*rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedDeviatoricCauchyStress[2]*rElementalVariables.Fgrad(0,1) +
+  // 	       rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedDeviatoricCauchyStress[1]*rElementalVariables.Fgrad(0,1))/rElementalVariables.DetFgrad ;
 
-      // std::cout<<"  UpdateCauchyStress ";
-   this->mCurrentTotalCauchyStress[g]=this->mUpdatedTotalCauchyStress[g];
-   this->mCurrentDeviatoricCauchyStress[g]=this->mUpdatedDeviatoricCauchyStress[g];
+  // SigmaYY= (  rElementalVariables.Fgrad(1,0)*rElementalVariables.UpdatedDeviatoricCauchyStress[0]*rElementalVariables.Fgrad(1,0) +
+  // 	       2*rElementalVariables.Fgrad(1,1)*rElementalVariables.UpdatedDeviatoricCauchyStress[2]*rElementalVariables.Fgrad(1,0) +
+  // 	       rElementalVariables.Fgrad(1,1)*rElementalVariables.UpdatedDeviatoricCauchyStress[1]*rElementalVariables.Fgrad(1,1))/rElementalVariables.DetFgrad ;
+
+  // SigmaXY= (rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedDeviatoricCauchyStress[0]*rElementalVariables.Fgrad(1,0) +
+  // 	     rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedDeviatoricCauchyStress[2]*rElementalVariables.Fgrad(1,1) +
+  // 	     rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedDeviatoricCauchyStress[2]*rElementalVariables.Fgrad(1,0) +
+  // 	     rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedDeviatoricCauchyStress[1]*rElementalVariables.Fgrad(1,1))/rElementalVariables.DetFgrad;
+
+  // rElementalVariables.UpdatedDeviatoricCauchyStress[0]=SigmaXX;
+  // rElementalVariables.UpdatedDeviatoricCauchyStress[1]=SigmaYY;
+  // rElementalVariables.UpdatedDeviatoricCauchyStress[2]=SigmaXY;
+   
+  // this->mUpdatedDeviatoricCauchyStress[g]=rElementalVariables.UpdatedDeviatoricCauchyStress;
+
+  // std::cout<<"  UpdateCauchyStress ";
+  this->mCurrentTotalCauchyStress[g]=this->mUpdatedTotalCauchyStress[g];
+  this->mCurrentDeviatoricCauchyStress[g]=this->mUpdatedDeviatoricCauchyStress[g];
 
 
- }
+}
 
 
   template< unsigned int TDim >
@@ -676,11 +636,10 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
 
       // Stabilization parameters
 
-      // MatrixType BulkVelMatrix = ZeroMatrix(NumNodes,NumNodes);
+      MatrixType BulkVelMatrix = ZeroMatrix(NumNodes,NumNodes);
       MatrixType BulkVelMatrixLump = ZeroMatrix(NumNodes,NumNodes);
 
-
-      const double TimeStep=0.5/rCurrentProcessInfo[BDF_COEFFICIENTS][2];
+      const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
 
       double Density  = 0;
       double DeviatoricCoeff = 0;
@@ -694,18 +653,20 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
       for (unsigned int g = 0; g < NumGauss; g++)
 	{
 
-	  double theta=0;
+	  double theta=this->GetThetaContinuity();
 	  computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,g,theta);
 	  if(computeElement==true){
 	    // this->UpdateCauchyStress(g);
 	    const double GaussWeight = fabs(GaussWeights[g]);
 	    const ShapeFunctionsType& N = row(NContainer,g);
 	    const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
-	    this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep,N);
+	    this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep);
 
 	    double BulkCoeff =GaussWeight/(VolumetricCoeff);
 	    if(rCurrentProcessInfo[STEP]>-1){
 	      // this->ComputeBulkMatrixForPressureVel(BulkVelMatrix,N,BulkCoeff);
+	      // rLeftHandSideMatrix+=BulkVelMatrix;	
+
 	      this->ComputeBulkMatrixForPressureVelLump(BulkVelMatrixLump,N,BulkCoeff);
 	      rLeftHandSideMatrix+=BulkVelMatrixLump;	
 	    }
@@ -722,6 +683,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
 	    VectorType DeltaPressure = UpdatedPressure-CurrentPressure;
 
 	    rRightHandSideVector -= prod(BulkVelMatrixLump,DeltaPressure);
+	    // rRightHandSideVector -= prod(BulkVelMatrix,DeltaPressure);
 	    double DivU=0;
 	    this->EvaluateDivergenceInPoint(DivU,VELOCITY,rDN_DX);
 	    DivU=rElementalVariables.VolumetricDefRate;
