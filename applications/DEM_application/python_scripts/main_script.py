@@ -44,7 +44,8 @@ class Solution(object):
         self.main_path = os.getcwd()
         [self.post_path, self.data_and_results, self.graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(DEM_parameters.problem_name))
 
-        self.demio         = DEM_procedures.DEMIo(DEM_parameters, self.post_path)
+        self.SetGraphicalOutput()
+        
         self.report        = DEM_procedures.Report()
         self.parallelutils = DEM_procedures.ParallelUtils()
         self.materialTest  = DEM_procedures.MaterialTest()
@@ -158,11 +159,10 @@ class Solution(object):
         os.chdir(self.main_path)
 
         self.KRATOSprint("\nInitializing Problem...")
+        
+        self.GraphicalOutputInitialize()
 
-        self.demio.Initialize(DEM_parameters)
-
-        os.chdir(self.post_path)
-        self.demio.InitializeMesh(self.all_model_parts)
+        
 
         # Perform a partition to balance the problem
         self.solver.search_strategy = self.parallelutils.GetSearchStrategy(self.solver, self.spheres_model_part)
@@ -315,27 +315,6 @@ class Solution(object):
             self.FinalizeTimeStep()
 
 
-    def PrintResultsForGid(self, time):
-
-        if self.solver.poisson_ratio_option:
-            self.DEMFEMProcedures.PrintPoisson(self.spheres_model_part, DEM_parameters, "Poisson_ratio.txt", time)
-
-        if DEM_parameters.PostEulerAngles:
-            self.post_utils.PrintEulerAngles(self.spheres_model_part, self.cluster_model_part)
-
-        self.demio.ShowPrintingResultsOnScreen(self.all_model_parts)
-
-        os.chdir(self.data_and_results)
-        self.demio.PrintMultifileLists(time, self.post_path)
-        os.chdir(self.post_path)
-
-        self.solver.PrepareElementsForPrinting()
-        if (DEM_parameters.ContactMeshOption == "ON"):
-            self.solver.PrepareContactElementsForPrinting()
-
-        self.demio.PrintResults(self.all_model_parts, self.creator_destructor, self.dem_fem_search, time, self.bounding_box_time_limits)
-        os.chdir(self.main_path)
-
     def SetInlet(self):
         if DEM_parameters.dem_inlet_option:
             #Constructing the inlet and initializing it (must be done AFTER the self.spheres_model_part Initialize)
@@ -362,12 +341,13 @@ class Solution(object):
 
         self.KRATOSprint("Finalizing execution...")
 
-        self.demio.FinalizeMesh()
+        self.GraphicalOutputFinalize()
+        
         self.materialTest.FinalizeGraphs()
         self.DEMFEMProcedures.FinalizeGraphs(self.rigid_face_model_part)
         self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
         self.DEMEnergyCalculator.FinalizeEnergyPlot()
-        self.demio.CloseMultifiles()
+        
 
         os.chdir(self.main_path)
 
@@ -383,7 +363,41 @@ class Solution(object):
         self.procedures.DeleteFiles()
 
         self.KRATOSprint(self.report.FinalReport(timer))
+        
+    
+    def SetGraphicalOutput(self):
+        self.demio         = DEM_procedures.DEMIo(DEM_parameters, self.post_path)
+        
+    def GraphicalOutputInitialize(self):
+        self.demio.Initialize(DEM_parameters)
 
+        os.chdir(self.post_path)
+        self.demio.InitializeMesh(self.all_model_parts)
+        
+    def PrintResultsForGid(self, time):
+
+        if self.solver.poisson_ratio_option:
+            self.DEMFEMProcedures.PrintPoisson(self.spheres_model_part, DEM_parameters, "Poisson_ratio.txt", time)
+
+        if DEM_parameters.PostEulerAngles:
+            self.post_utils.PrintEulerAngles(self.spheres_model_part, self.cluster_model_part)
+
+        self.demio.ShowPrintingResultsOnScreen(self.all_model_parts)
+
+        os.chdir(self.data_and_results)
+        self.demio.PrintMultifileLists(time, self.post_path)
+        os.chdir(self.post_path)
+
+        self.solver.PrepareElementsForPrinting()
+        if (DEM_parameters.ContactMeshOption == "ON"):
+            self.solver.PrepareContactElementsForPrinting()
+
+        self.demio.PrintResults(self.all_model_parts, self.creator_destructor, self.dem_fem_search, time, self.bounding_box_time_limits)
+        os.chdir(self.main_path)
+        
+    def GraphicalOutputFinalize(self):
+        self.demio.FinalizeMesh()
+        self.demio.CloseMultifiles()
 
 if __name__ == "__main__":
     Solution().Run()
