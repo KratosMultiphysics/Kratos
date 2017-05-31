@@ -65,10 +65,12 @@ namespace Kratos
 
 
 		TrussElement3D2N(IndexType NewId, 
-						GeometryType::Pointer pGeometry);
+						GeometryType::Pointer pGeometry,
+						bool rLinear = false);
 		TrussElement3D2N(IndexType NewId,
 						GeometryType::Pointer pGeometry,
-						PropertiesType::Pointer pProperties);
+						PropertiesType::Pointer pProperties,
+						bool rLinear = false);
 
 
 		virtual ~TrussElement3D2N();

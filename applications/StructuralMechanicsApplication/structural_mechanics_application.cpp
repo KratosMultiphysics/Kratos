@@ -47,7 +47,8 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
 	mCrBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), false),
 	mCrLinearBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), true),
 	// Adding the truss elements
-	mTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2)))),    
+	mTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), false),    
+	mTrussLinearElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), true),
 	// Adding RoccoNet element
 	mRoccoNetElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     // Adding the shells elements
@@ -173,6 +174,7 @@ void KratosStructuralMechanicsApplication::Register()
     
 	//Register the bar element
 	KRATOS_REGISTER_ELEMENT("TrussElement3D2N",mTrussElement3D2N)
+	KRATOS_REGISTER_ELEMENT("TrussLinearElement3D2N", mTrussLinearElement3D2N)
 
 	//Register Rocco element
 	KRATOS_REGISTER_ELEMENT("RoccoNetElement3D4N", mRoccoNetElement3D4N)

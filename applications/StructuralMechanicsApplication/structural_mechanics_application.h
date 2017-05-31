@@ -226,7 +226,8 @@ private:
 	const CrBeamElement3D2N mCrLinearBeamElement3D2N;
 
 	// Adding the truss element
-	const TrussElement3D2N mTrussElement3D2N;    
+	const TrussElement3D2N mTrussElement3D2N; 
+	const TrussElement3D2N mTrussLinearElement3D2N;
 
 	// Adding the Rocco element
 	const RoccoNetElement3D4N mRoccoNetElement3D4N;

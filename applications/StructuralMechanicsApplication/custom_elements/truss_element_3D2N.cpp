@@ -18,20 +18,29 @@
 namespace Kratos
 {
 	TrussElement3D2N::TrussElement3D2N(IndexType NewId, 
-									GeometryType::Pointer pGeometry)
-									: Element(NewId, pGeometry) {}
+									GeometryType::Pointer pGeometry,
+									bool rLinear)
+									: Element(NewId, pGeometry)
+	{
+		this->mIsLinearElement = rLinear;
+	}
 
 	TrussElement3D2N::TrussElement3D2N(IndexType NewId,
 									GeometryType::Pointer pGeometry,
-									PropertiesType::Pointer pProperties) 
-									: Element(NewId, pGeometry, pProperties) {}
+									PropertiesType::Pointer pProperties,
+									bool rLinear) 
+									: Element(NewId, pGeometry, pProperties) 
+	{
+		this->mIsLinearElement = rLinear;
+	}
 
 	Element::Pointer TrussElement3D2N::Create(IndexType NewId,
 									NodesArrayType const& rThisNodes,
-									PropertiesType::Pointer pProperties) const{
+									PropertiesType::Pointer pProperties) const
+	{
 		const GeometryType& rGeom = this->GetGeometry();
 		return BaseType::Pointer(new TrussElement3D2N(
-			NewId, rGeom.Create(rThisNodes),pProperties));
+			NewId, rGeom.Create(rThisNodes),pProperties, this->mIsLinearElement));
 	}
 
 	TrussElement3D2N::~TrussElement3D2N(){}
@@ -103,7 +112,7 @@ namespace Kratos
 			KRATOS_ERROR << ("Zero length found in element #", this->Id()) <<
 				std::endl;
 		}
-
+		KRATOS_WATCH(this->mIsLinearElement)
 		KRATOS_CATCH("")
 	}
 

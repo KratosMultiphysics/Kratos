@@ -36,9 +36,9 @@ namespace Kratos
 
 	Element::Pointer CrBeamElement3D2N::Create(IndexType NewId,
 		NodesArrayType const& rThisNodes,
-		PropertiesType::Pointer pProperties) const {
+		PropertiesType::Pointer pProperties) const 
+	{
 		const GeometryType& rGeom = this->GetGeometry();
-
 		return BaseType::Pointer(new CrBeamElement3D2N(
 			NewId, rGeom.Create(rThisNodes), pProperties, this->mIsLinearElement));
 	}
