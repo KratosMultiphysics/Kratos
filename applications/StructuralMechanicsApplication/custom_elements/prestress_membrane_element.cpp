@@ -160,9 +160,9 @@ void PrestressMembraneElement::Initialize()
     // reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
 
-    const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = GetGeometry().ShapeFunctionsLocalGradients();
+    //const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = GetGeometry().ShapeFunctionsLocalGradients();
 
-    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues();
+    //const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues();
 
     // Initialize Variables
     mdensity = GetProperties()[DENSITY];
@@ -594,7 +594,7 @@ void PrestressMembraneElement::CalculateAndAddNonlinearKm(
         {
             for (unsigned int m = 0; m <= n; m++)
             {
-                int check = 3;
+                unsigned int check = 3;
                 if (m == n)
                     check = i + 1;
                 for (unsigned int j = 0; j < check; j++)
@@ -875,15 +875,15 @@ void PrestressMembraneElement::CalculateAll(
     J = GetGeometry().Jacobian(J);
    
     //KRATOS_WATCH(integration_points.size());
-    bool is_initialized = false;
+    //bool is_initialized = false;
     for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
     {
         // reading integration weight, shape function value and its gradients at this integration point
         double IntegrationWeight = GetGeometry().IntegrationPoints()[PointNumber].Weight();
 
-        double coord0 = GetGeometry().IntegrationPoints()[PointNumber].Coordinate(0);
-        double coord1 = GetGeometry().IntegrationPoints()[PointNumber].Coordinate(1);
-        double coord2 = GetGeometry().IntegrationPoints()[PointNumber].Coordinate(2);
+        // double coord0 = GetGeometry().IntegrationPoints()[PointNumber].Coordinate(0);
+        // double coord1 = GetGeometry().IntegrationPoints()[PointNumber].Coordinate(1);
+        // double coord2 = GetGeometry().IntegrationPoints()[PointNumber].Coordinate(2);
 
         /*
         KRATOS_WATCH(integration_points.size());
@@ -905,7 +905,7 @@ void PrestressMembraneElement::CalculateAll(
         // covariant metric in deformed system
         array_1d<double, 3> gab;
         
-        bool formfingding_flag = true;
+        //bool formfingding_flag = true;
 
         // Transformation Matrix Q
         boost::numeric::ublas::bounded_matrix<double, 3, 3> Q = ZeroMatrix(3, 3);
@@ -945,7 +945,7 @@ void PrestressMembraneElement::CalculateAll(
         Values.SetStressVector(StressVector);       // this is an output parameter
         Values.SetConstitutiveMatrix(D);            // this is an output parameter
 
-        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);     // Why is the curviliear strains are used here?
+        //mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);     // Why is the curviliear strains are used here?
         /**/
         //KRATOS_WATCH(StressVector);
 
@@ -1219,7 +1219,7 @@ void PrestressMembraneElement::CalculateSecondVariationStrain(Matrix DN_De,
             for (unsigned int m = 0; m <= n; m++)
             {
 
-                int limit = i + 1;
+                unsigned int limit = i + 1;
                 if (m < n)
                     limit = 3;
                 for (unsigned int j = 0; j < limit; j++)
@@ -1340,7 +1340,7 @@ void PrestressMembraneElement::CalculateTransMatrixToLocalCartesian(
 
     // array_1d<double,3> n_pre_pk2=    // Integration of the PreStress over the thickness
 
-    // the Pre-Stress tensor is defined according to the projection definition proposed by Dr. Wüchner
+    // the Pre-Stress tensor is defined according to the projection definition proposed by Dr. Wï¿½chner
 
     // creation of T1 ==> Projection of A on the tangential plane
     CrossProduct(t1, b, g3);

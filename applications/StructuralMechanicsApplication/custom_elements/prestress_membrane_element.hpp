@@ -211,7 +211,7 @@ namespace Kratos
       boost::numeric::ublas::bounded_matrix<double, 3, 3>& msQ,
       Matrix& msG);
 
-    void PrestressMembraneElement::CalculateB(
+    void CalculateB(
         Matrix& B,
         boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
         const Matrix& DN_De,

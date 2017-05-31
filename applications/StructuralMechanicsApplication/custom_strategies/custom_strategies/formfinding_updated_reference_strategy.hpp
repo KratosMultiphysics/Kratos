@@ -274,7 +274,7 @@ namespace Kratos
 
         void SetScheme(typename TSchemeType::Pointer SetScheme)
         {
-            mpScheme = pScheme;
+            mpScheme = SetScheme;
         };
 
         typename TSchemeType::Pointer GetScheme()
