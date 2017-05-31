@@ -126,20 +126,30 @@ namespace Kratos
 		// l... deformed member length
 		// e_gl... green_lagrange strain
 
-		const double du = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X)
+	    double du = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X)
 			- this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-		const double dv = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y)
+	    double dv = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y)
 			- this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
-		const double dw = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Z)
+	    double dw = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Z)
 			- this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
 		const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
 		const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
 		const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
 		const double L = this->mLength;
 		const double l = this->mCurrentLength;
-		const double e_gL = (l*l - L*L) / (2.00 * L*L);
+	    double e_gL = (l*l - L*L) / (2.00 * L*L);
 		const double L2 = L*L;
 		const double L4 = L2*L2;
+
+
+		if (this->mIsLinearElement == true)
+		{
+			du = 0.00;
+			dv = 0.00;
+			dw = 0.00;
+			e_gL = 0.00;
+		}
+
 
 		const double K_1 = e_gL*E + S_pre;
 
@@ -410,6 +420,16 @@ namespace Kratos
 		//add bodyforces 
 		rRightHandSideVector += this->CalculateBodyForces();
 
+
+		if (this->mIsLinearElement == true)
+		{
+			Vector NodalDeformation = ZeroVector(LocalSize);
+			this->GetValuesVector(NodalDeformation, 0);
+			rRightHandSideVector = ZeroVector(LocalSize);
+			rRightHandSideVector -= prod(rLeftHandSideMatrix, NodalDeformation);
+			rRightHandSideVector += this->CalculateBodyForces();
+		}
+
 		if (this->mIsCable == true && this->mIsCompressed == true) {
 			rRightHandSideVector = ZeroVector(LocalSize);
 		}
@@ -432,11 +452,25 @@ namespace Kratos
 		this->UpdateInternalForces(InternalForces);
 		rRightHandSideVector -= InternalForces;
 
+
+		if (this->mIsLinearElement == true)
+		{
+			Matrix LeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
+			LeftHandSideMatrix = this->mLHS;
+
+			Vector NodalDeformation = ZeroVector(LocalSize);
+			this->GetValuesVector(NodalDeformation);
+			rRightHandSideVector = ZeroVector(LocalSize);
+			rRightHandSideVector -= prod(LeftHandSideMatrix, NodalDeformation);
+		}
+
 		//add bodyforces 
 		rRightHandSideVector += this->CalculateBodyForces();
+
 		if (this->mIsCable == true && this->mIsCompressed == true) {
 			rRightHandSideVector = ZeroVector(LocalSize);
 		}
+
 		KRATOS_CATCH("")
 	}
 
@@ -712,6 +746,21 @@ namespace Kratos
 
 	}	
 
+
+
+	void TrussElement3D2N::save(Serializer& rSerializer) const
+	{
+		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+		rSerializer.save("mIscompressed", this->mIsCompressed);
+		rSerializer.save("mIsCable", this->mIsCable);
+
+	}
+	void TrussElement3D2N::load(Serializer& rSerializer)
+	{
+		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+		rSerializer.load("mIscompressed", this->mIsCompressed);
+		rSerializer.load("mIsCable", this->mIsCable);
+	}
 } // namespace Kratos.
 
 
