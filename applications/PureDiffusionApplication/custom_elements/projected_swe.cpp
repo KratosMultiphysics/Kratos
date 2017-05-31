@@ -54,14 +54,14 @@ namespace Kratos
 					rMassMatrix(k+3*i, k+3*j) += 1.0;
 			}
 		}
-		rMassMatrix *= 1.0/(number_of_nodes*3.0*2.0);
+		rMassMatrix *= 1.0/(12);
 	}
 
 	void ProjectedSWE::CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix) 
 	{
 		const unsigned int number_of_nodes = 3;
 		rMassMatrix = IdentityMatrix(number_of_nodes*3, number_of_nodes*3);
-		rMassMatrix *= 1.0/(number_of_nodes*3.0);
+		rMassMatrix *= 1.0/(3.0);
 	}
 
 	//************************************************************************************
@@ -85,13 +85,13 @@ namespace Kratos
 		boost::numeric::ublas::bounded_matrix<double,9,9> msC     = ZeroMatrix(9,9);     // Nt*A*B (LHS)
 		boost::numeric::ublas::bounded_matrix<double,3,9> msN     = ZeroMatrix(3,9);     // Shape functions matrix
 		array_1d<double,3> msNGauss;                                    // Dimension = number of nodes . Position of the gauss point
-		array_1d<double,3> ms_prev_height;
+		array_1d<double,3> ms_step_height;
 		array_1d<double,9> ms_proj_unknown;
 		array_1d<double,9> ms_depth;
 		array_1d<double,9> ms_unknown;
 		int counter, counter1, counter2;
-		
-		array_1d<double,9> h_valor_arb;
+
+//		array_1d<double,9> h_valor_arb;  // TODO: remove h_valor_arb once finished debugging
 
 		const unsigned int number_of_points = GetGeometry().size();
 		if(rLeftHandSideMatrix.size1() != number_of_points*3)
@@ -115,9 +115,9 @@ namespace Kratos
 			ms_depth[counter1++] = 0;
 			ms_depth[counter1++]   = GetGeometry()[iii].FastGetSolutionStepValue(BATHYMETRY);
 
-			h_valor_arb[iii*3+2]   = GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT,1);
+//			h_valor_arb[iii*3+2]   = GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT,1);
 
-			ms_prev_height[iii] = GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT,1);
+			ms_step_height[iii] = GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT);
 
 			ms_proj_unknown[counter2++] = GetGeometry()[iii].FastGetSolutionStepValue(PROJECTED_VELOCITY_X);
 			ms_proj_unknown[counter2++] = GetGeometry()[iii].FastGetSolutionStepValue(PROJECTED_VELOCITY_Y);
@@ -136,8 +136,7 @@ namespace Kratos
 		msA(0,0) = gravity;
 		msA(1,1) = gravity;
 		for (unsigned int iii = 0; iii < number_of_points; iii++)  // One Gauss point
-			msA(2,2) += ms_prev_height(iii) * msNGauss(iii);
-		//msA(2,2) *= Area;
+			msA(2,2) += ms_step_height(iii) * msNGauss(iii);
 
 		// B matrix: shape functions derivatives
 		msB(0,2) = msDN_DX(0,0);
@@ -164,7 +163,7 @@ namespace Kratos
 		// Main loop
 		// LHS
 		// const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
-		msC = prod(trans(msN),Matrix(prod(msA,msB)));  // Nt*A*B
+		noalias(msC) = prod(trans(msN),Matrix(prod(msA,msB)));  // Nt*A*B
 		noalias(rLeftHandSideMatrix) = msC;
 		//~ noalias(rLeftHandSideMatrix) = prod(trans(msN),Matrix(prod(msA,msB)));  // Nt*A*B
 		//~ KRATOS_WATCH(msN)
@@ -172,7 +171,7 @@ namespace Kratos
 		//~ KRATOS_WATCH(msB)
 		//~ KRATOS_WATCH(msC)
 		//~ KRATOS_WATCH(h_valor_arb)
-		//~ KRATOS_WATCH(prod(msC,h_valor_arb))
+		//~ KRATOS_WATCH(prod(msB,h_valor_arb))
 
 		// Inertia terms
 		// LHS += bdf*M
