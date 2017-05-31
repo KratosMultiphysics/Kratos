@@ -110,14 +110,14 @@ public:
      */
     
     template<bool check>// = false>
-    static inline double Heron(
-        double a, 
-        double b, 
-        double c
+    static inline TDataType Heron(
+        TDataType a, 
+        TDataType b, 
+        TDataType c
         )
     {
-        const double s = 0.5 * (a + b + c);
-        const double A2 = s * (s - a) * (s - b) * (s - c);
+        const TDataType s = 0.5 * (a + b + c);
+        const TDataType A2 = s * (s - a) * (s - b) * (s - c);
         if(check == true)
         {
             if(A2 < 0.0)
