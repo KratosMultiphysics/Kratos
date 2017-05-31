@@ -30,6 +30,7 @@ from SmallTests import SimplePatchTestThreeDMeshTying    as TSimplePatchTestThre
 from SmallTests import ALMHyperSimplePatchTestContact                 as TALMHyperSimplePatchTestContact
 from SmallTests import ALMHyperSimpleSlopePatchTestContact            as TALMHyperSimpleSlopePatchTestContact
 from SmallTests import ALMTwoDPatchComplexGeomTestContact             as TALMTwoDPatchComplexGeomTestContact
+from SmallTests import ALMTwoDPatchComplexGeomSlopeTestContact        as TALMTwoDPatchComplexGeomSlopeTestContact
 from SmallTests import ALMSimplePatchTestContact                      as TALMSimplePatchTestContact
 from SmallTests import ALMSimpleSlopePatchTestContact                 as TALMSimpleSlopePatchTestContact
 from SmallTests import ALMSimplePatchNotMatchingATestContact          as TALMSimplePatchNotMatchingATestContact
@@ -92,6 +93,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TALMHyperSimplePatchTestContact('test_execution'))
     smallSuite.addTest(TALMHyperSimpleSlopePatchTestContact('test_execution'))
     smallSuite.addTest(TALMTwoDPatchComplexGeomTestContact('test_execution'))
+    smallSuite.addTest(TALMTwoDPatchComplexGeomSlopeTestContact('test_execution'))
     smallSuite.addTest(TALMSimplePatchTestContact('test_execution'))
     smallSuite.addTest(TALMSimpleSlopePatchTestContact('test_execution'))
     smallSuite.addTest(TALMSimplePatchNotMatchingATestContact('test_execution'))
@@ -140,6 +142,7 @@ def AssambleTestSuites():
             TALMHyperSimplePatchTestContact,
             TALMHyperSimpleSlopePatchTestContact,
             TALMTwoDPatchComplexGeomTestContact,
+            TALMTwoDPatchComplexGeomSlopeTestContact,
             TALMSimplePatchTestContact,
             TALMSimpleSlopePatchTestContact, 
             TALMSimplePatchNotMatchingATestContact,
