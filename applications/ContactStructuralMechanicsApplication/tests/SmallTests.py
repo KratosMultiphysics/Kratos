@@ -60,6 +60,9 @@ class ALMHyperSimplePatchTestContact(StructuralMechanichsTestFactory):
 class ALMHyperSimpleSlopePatchTestContact(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_2D/hyper_simple_slope_patch_test"
     
+class ALMTwoDPatchComplexGeomTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/contact_patch_complex_geom_test"
+    
 class ALMSimplePatchTestContact(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_2D/simple_patch_test"
     
