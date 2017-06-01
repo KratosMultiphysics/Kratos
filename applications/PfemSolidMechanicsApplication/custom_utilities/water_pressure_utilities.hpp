@@ -116,13 +116,13 @@ namespace Kratos
          virtual ~WaterPressureUtilities() {};
 
 
-         VectorType& CalculateAndAddHydroProblem( VectorType & rRightHandSide, const VectorType & rBaseClassRHS, const VectorType & rVolumeForce, const int number_of_variables, GeometryType & rGeometry, const Properties & rProperties, const MatrixType & rB, const MatrixType & rDN_DX, const VectorType & rN, const double & rDetF0, const double & rTimeStep, const Matrix & rTotalF, const double & rIntegrationWeight, const double rCurrentRadius = 0.0);
+         VectorType& CalculateAndAddHydromechanicalRHS( HydroMechanicalVariables & rVariables, VectorType & rRightHandSide, const VectorType & rBaseClassRHS, const double & rIntegrationWeight);
          
-         VectorType & CalculateAndAddStabilization( Vector & rRightHandSide, const int number_of_variables, GeometryType & rGeometry, const PropertiesType & rProperties, const Matrix & rDN_DX, const double & rConstrainedModulus, const double & rDetF0, const double & rTimeStep, const double & rIntegrationWeight);
+         VectorType & CalculateAndAddStabilization( HydroMechanicalVariables & rVariables, Vector & rRightHandSide, const double & rIntegrationWeight);
 
-         MatrixType& CalculateAndAddHydroProblemLHS( MatrixType & rLeftHandSide, const MatrixType & rBaseClassLHS, const VectorType & rVolumeForce, const int number_of_variables, GeometryType & rGeometry, const Properties & rProperties, const MatrixType & rB, const MatrixType & rDN_DX, const VectorType & rN, const double & rDetF0, const double & rTimeStep, const Matrix & rTotalF, const double & rIntegrationWeight, const double rCurrentRadius = 0.0);
+         MatrixType& CalculateAndAddHydromechanicalLHS( HydroMechanicalVariables & rVariables, MatrixType & rLeftHandSide, const MatrixType & rBaseClassLHS, const double & rIntegrationWeight);
 
-         MatrixType & CalculateAndAddStabilizationLHS( Matrix & rLeftHandSide, const int number_of_variables, GeometryType & rGeometry, const PropertiesType & rProperties, const Matrix & rDN_DX, const double & rConstrainedModulus, const double & rDetF0, const double & rTimeStep, const double & rIntegrationWeight);
+         MatrixType & CalculateAndAddStabilizationLHS( HydroMechanicalVariables & rVariables, Matrix & rLeftHandSide, const double & rIntegrationWeight);
 
          void GetPermeabilityTensor( const PropertiesType & rProperties, const Matrix & rTotalF, Matrix & rK,  const double & rInitial_porosity, const unsigned int & rDimension, const double & rVolume );
 

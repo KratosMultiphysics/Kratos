@@ -535,8 +535,9 @@ namespace Kratos
 
       KRATOS_TRY
 
+      // define some variables
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-      unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
       rVariables.detF0 *= rVariables.detF;
       double DeterminantF = rVariables.detF;
       rVariables.detF = 1.0;
@@ -544,29 +545,40 @@ namespace Kratos
       //contributions of the stiffness matrix calculated on the reference configuration
       MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
 
-
       // ComputeBaseClass LHS
       LocalSystemComponents UJLocalSystem; 
       unsigned int MatSize = number_of_nodes * ( dimension+1);
       MatrixType  LocalLeftHandSideMatrix = ZeroMatrix(MatSize,MatSize) ;
       UJLocalSystem.SetLeftHandSideMatrix( LocalLeftHandSideMatrix);
 
+      // LHS. base class
       UpdatedLagrangianUJElement::CalculateAndAddLHS( UJLocalSystem, rVariables, rIntegrationWeight);
 
 
       // Reshape the BaseClass LHS and Add the Hydro Part
       WaterPressureJacobianUtilities WaterUtility;
       Matrix TotalF = prod ( rVariables.F, rVariables.F0);
-
       int number_of_variables = dimension + 2; // displ - Jacobian - waterPressure
-
       Vector VolumeForce;
-
       VolumeForce= this->CalculateVolumeForce( VolumeForce, rVariables);
+      // 1. Create (make pointers) variables
+      WaterPressureUtilities::HydroMechanicalVariables HMVariables(GetGeometry(), GetProperties() );
 
-      rLeftHandSideMatrix = WaterUtility.CalculateAndAddHydroProblemLHS( rLeftHandSideMatrix, LocalLeftHandSideMatrix, VolumeForce, number_of_variables, GetGeometry(), GetProperties(), rVariables.B, rVariables.DN_DX, rVariables.N, rVariables.detF0, mTimeStep, TotalF, rIntegrationWeight);
+      HMVariables.SetBMatrix( rVariables.B);
+      HMVariables.SetShapeFunctionsDerivatives( rVariables.DN_DX);
+      HMVariables.SetDeformationGradient( TotalF);
+      HMVariables.SetVolumeForce( VolumeForce);
+      HMVariables.SetShapeFunctions( rVariables.N);
 
-      // LHS
+      HMVariables.DeltaTime = mTimeStep;
+      HMVariables.detF0 = rVariables.detF0;
+      //HMVariables.CurrentRadius
+      //HMVariables.ConstrainedModulus
+      HMVariables.number_of_variables = number_of_variables;
+
+      rLeftHandSideMatrix = WaterUtility.CalculateAndAddHydromechanicalLHS( HMVariables, rLeftHandSideMatrix, LocalLeftHandSideMatrix, rIntegrationWeight);
+
+     // LHS. water pressure stabilization
       ProcessInfo SomeProcessInfo; 
       std::vector< double> Mmodulus;
       GetValueOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
@@ -577,7 +589,9 @@ namespace Kratos
          const double& nu    = GetProperties()[POISSON_RATIO];
          ConstrainedModulus =  YoungModulus * ( 1.0-nu)/(1.0+nu) / (1.0-2.0*nu);
       }
-      rLeftHandSideMatrix = WaterUtility.CalculateAndAddStabilizationLHS( rLeftHandSideMatrix, number_of_variables, GetGeometry(), GetProperties(), rVariables.DN_DX, ConstrainedModulus, rVariables.detF0, mTimeStep, rIntegrationWeight);
+      HMVariables.ConstrainedModulus = ConstrainedModulus;
+
+      rLeftHandSideMatrix = WaterUtility.CalculateAndAddStabilizationLHS( HMVariables, rLeftHandSideMatrix, rIntegrationWeight);
 
       rVariables.detF = DeterminantF;
       rVariables.detF0 /= rVariables.detF;
@@ -615,10 +629,24 @@ namespace Kratos
       // Reshape the BaseClass RHS and Add the Hydro Part
       WaterPressureJacobianUtilities WaterUtility;
       Matrix TotalF = prod( rVariables.F, rVariables.F0);
-
       int number_of_variables = dimension+2; // displacement - Jacobian - waterPressure
 
-      rRightHandSideVector = WaterUtility.CalculateAndAddHydroProblem( rRightHandSideVector, BaseClassRightHandSideVector, rVolumeForce, number_of_variables,  GetGeometry(), GetProperties(), rVariables.B, rVariables.DN_DX, rVariables.N, rVariables.detF0, mTimeStep, TotalF, rIntegrationWeight); 
+      // 1. Create (make pointers) variables
+      WaterPressureUtilities::HydroMechanicalVariables HMVariables(GetGeometry(), GetProperties() );
+
+      HMVariables.SetBMatrix( rVariables.B);
+      HMVariables.SetShapeFunctionsDerivatives( rVariables.DN_DX);
+      HMVariables.SetDeformationGradient( TotalF);
+      HMVariables.SetVolumeForce( rVolumeForce);
+      HMVariables.SetShapeFunctions( rVariables.N);
+
+      HMVariables.DeltaTime = mTimeStep;
+      HMVariables.detF0 = rVariables.detF0;
+      //HMVariables.CurrentRadius
+      //HMVariables.ConstrainedModulus
+      HMVariables.number_of_variables = number_of_variables;
+
+      rRightHandSideVector = WaterUtility.CalculateAndAddHydromechanicalRHS( HMVariables, rRightHandSideVector, BaseClassRightHandSideVector, rIntegrationWeight); 
 
       // Add Stab term
       ProcessInfo SomeProcessInfo; 
@@ -631,7 +659,8 @@ namespace Kratos
          const double& nu    = GetProperties()[POISSON_RATIO];
          ConstrainedModulus =  YoungModulus * ( 1.0-nu)/(1.0+nu) / (1.0-2.0*nu);
       }
-      rRightHandSideVector = WaterUtility.CalculateAndAddStabilization( rRightHandSideVector, number_of_variables, GetGeometry(), GetProperties(), rVariables.DN_DX, ConstrainedModulus, rVariables.detF0, mTimeStep, rIntegrationWeight); 
+      HMVariables.ConstrainedModulus = ConstrainedModulus;
+      rRightHandSideVector = WaterUtility.CalculateAndAddStabilization( HMVariables, rRightHandSideVector, rIntegrationWeight); 
 
 
       rVariables.detF = DeterminantF;

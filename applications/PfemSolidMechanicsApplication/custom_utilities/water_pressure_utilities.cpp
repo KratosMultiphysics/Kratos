@@ -18,22 +18,9 @@ namespace Kratos
 
    // ****************** CALCULATE AND ADD RHS VECTOR *********************************************************
    // ******************************** Add water pressure to Internal and add mass balance equation ***********
-   Vector &  WaterPressureUtilities::CalculateAndAddHydroProblem( Vector & rRightHandSide,  const Vector & rBaseClassRHS, const Vector & rVolumeForce, const int number_of_variables, GeometryType &  rGeometry, const PropertiesType & rProperties, const Matrix & rB, const Matrix & rDN_DX, const Vector  & rN, const double & rDetF0, const double & rTimeStep, const Matrix & rTotalF, const double & rIntegrationWeight, const double rCurrentRadius)
+   Vector & WaterPressureUtilities::CalculateAndAddHydromechanicalRHS( HydroMechanicalVariables & rVariables, Vector & rRightHandSide, const Vector & rBaseClassRHS, const double & rIntegrationWeight)
    {
       KRATOS_TRY
-
-      // to be placed int he element and then..... you know
-      HydroMechanicalVariables rVariables( rGeometry, rProperties);
-      rVariables.number_of_variables = number_of_variables;
-      rVariables.SetBMatrix( rB);
-      rVariables.SetShapeFunctionsDerivatives( rDN_DX);
-      rVariables.SetDeformationGradient( rTotalF);
-      rVariables.SetVolumeForce( rVolumeForce);
-      rVariables.SetShapeFunctions( rN);
-
-      rVariables.DeltaTime = rTimeStep;
-      rVariables.detF0 = rDetF0;
-      rVariables.CurrentRadius = rCurrentRadius;
 
       const unsigned int number_of_nodes = rVariables.GetGeometry().PointsNumber();
       const unsigned int dimension = rVariables.GetGeometry().WorkingSpaceDimension();
@@ -65,24 +52,16 @@ namespace Kratos
 
    // ************************** CALCULATE AND ADD rhs STABILIZATION PART. Matrix ***************************
    // ***********************************************************************************************
-   Matrix & WaterPressureUtilities::CalculateAndAddStabilizationLHS( Matrix & rLeftHandSide, const int number_of_variables, GeometryType & rGeometry, const PropertiesType & rProperties, const Matrix & rDN_DX, const double & rConstrainedModulus, const double & rDetF0, const double & rTimeStep, const double & rIntegrationWeight)
+   Matrix & WaterPressureUtilities::CalculateAndAddStabilizationLHS( HydroMechanicalVariables & rVariables, Matrix & rLeftHandSide, const double & rIntegrationWeight)
    {
       KRATOS_TRY
-      // to be placed int he element and then..... you know
-      HydroMechanicalVariables rVariables( rGeometry, rProperties);
-      rVariables.number_of_variables = number_of_variables;
-      rVariables.SetShapeFunctionsDerivatives( rDN_DX);
-
-      rVariables.DeltaTime = rTimeStep;
-      rVariables.detF0 = rDetF0;
-      rVariables.ConstrainedModulus = rConstrainedModulus;
 
       const unsigned int number_of_nodes = rVariables.GetGeometry().PointsNumber();
       const unsigned int dimension = rVariables.GetGeometry().WorkingSpaceDimension();
 
       // 1. Compute Stabilization LHS
       MatrixType LocalLHS; 
-      double IntegrationWeight = rIntegrationWeight / rDetF0; 
+      double IntegrationWeight = rIntegrationWeight / rVariables.detF0; 
 
       LocalLHS = CalculateStabilizationLHS( rVariables, LocalLHS, IntegrationWeight);
       rLeftHandSide = AddReshapeKwPwP( rLeftHandSide, LocalLHS, dimension, rVariables.number_of_variables, number_of_nodes);   
@@ -93,25 +72,15 @@ namespace Kratos
 
    // ************************** CALCULATE AND ADD rhs STABILIZATION PART ***************************
    // ***********************************************************************************************
-   Vector & WaterPressureUtilities::CalculateAndAddStabilization( Vector & rRightHandSide, const int number_of_variables, GeometryType & rGeometry, const PropertiesType & rProperties, const Matrix & rDN_DX, const double & rConstrainedModulus, const double & rDetF0, const double & rTimeStep, const double & rIntegrationWeight)
+   Vector & WaterPressureUtilities::CalculateAndAddStabilization( HydroMechanicalVariables & rVariables, Vector & rRightHandSide, const double & rIntegrationWeight)
    {
       KRATOS_TRY
-
-      // to be placed int he element and then..... you know
-      HydroMechanicalVariables rVariables( rGeometry, rProperties);
-      rVariables.number_of_variables = number_of_variables;
-      rVariables.SetShapeFunctionsDerivatives( rDN_DX);
-
-      rVariables.DeltaTime = rTimeStep;
-      rVariables.detF0 = rDetF0;
-      rVariables.ConstrainedModulus = rConstrainedModulus;
-
 
       const unsigned int number_of_nodes = rVariables.GetGeometry().PointsNumber();
 
       // 1. Compute Stabilization RHS
       Vector LocalRHS; 
-      double IntegrationWeight = rIntegrationWeight / rDetF0; 
+      double IntegrationWeight = rIntegrationWeight / rVariables.detF0; 
       LocalRHS = CalculateStabilizationRHS( rVariables, LocalRHS, IntegrationWeight);
 
       rRightHandSide = AddReshapeWaterPressureForces( rRightHandSide, LocalRHS, rVariables.number_of_variables, number_of_nodes);   
@@ -299,22 +268,9 @@ namespace Kratos
 
    // ******************************  CALCULATE AND ADD LHS MATRIX *************************************
    // ***************************************************************************************************
-   Matrix &  WaterPressureUtilities::CalculateAndAddHydroProblemLHS( Matrix & rLeftHandSide,  const Matrix & rBaseClassLHS, const Vector & rVolumeForce, const int number_of_variables, GeometryType &  rGeometry, const PropertiesType & rProperties, const Matrix & rB, const Matrix & rDN_DX, const Vector  & rN, const double & rDetF0, const double & rTimeStep, const Matrix & rTotalF, const double & rIntegrationWeight, const double rCurrentRadius)
+   Matrix &  WaterPressureUtilities::CalculateAndAddHydromechanicalLHS( HydroMechanicalVariables & rVariables, Matrix & rLeftHandSide, const Matrix & rBaseClassLHS, const double & rIntegrationWeight)
    {
       KRATOS_TRY
-
-      // to be placed int he element and then..... you know
-      HydroMechanicalVariables rVariables( rGeometry, rProperties);
-      rVariables.number_of_variables = number_of_variables;
-      rVariables.SetBMatrix( rB);
-      rVariables.SetShapeFunctionsDerivatives( rDN_DX);
-      rVariables.SetDeformationGradient( rTotalF);
-      rVariables.SetVolumeForce( rVolumeForce);
-      rVariables.SetShapeFunctions( rN);
-
-      rVariables.DeltaTime = rTimeStep;
-      rVariables.detF0 = rDetF0;
-      rVariables.CurrentRadius = rCurrentRadius;
 
       const unsigned int number_of_nodes = rVariables.GetGeometry().PointsNumber();
       const unsigned int dimension = rVariables.GetGeometry().WorkingSpaceDimension();
