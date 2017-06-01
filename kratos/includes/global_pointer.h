@@ -62,7 +62,7 @@ public:
    * @param BaseData BaseData of the local variable.
    */
   GlobalPointer(boost::shared_ptr<TDataType> DataPointer)
-    : mDataPointer(DataPointer.Get())
+    : mDataPointer(DataPointer.get())
 #ifdef KRATOS_USING_MPI
     , mRank(GetLocalRank())
 #endif
