@@ -31,6 +31,7 @@
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
 #include "custom_elements/membrane_element.hpp"
+#include "custom_elements/prestress_membrane_element.hpp"
 #include "custom_elements/shell_thick_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
 
@@ -224,13 +225,18 @@ private:
 
     // Adding the membrane element 
     const MembraneElement mMembraneElement3D3N;
+    const MembraneElement mMembraneElement3D4N;
+    const PrestressMembraneElement mPreStressMembraneElement3D3N;
+    const PrestressMembraneElement mPreStressMembraneElement3D4N;
     
     // Adding the SPRISM element 
     const SprismElement3D6N mSprismElement3D6N;
     
     // Adding the nodal concentrated element 
     const NodalConcentratedElement mNodalConcentratedElement2D1N;
+    const NodalConcentratedElement mNodalConcentratedDampedElement2D1N;
     const NodalConcentratedElement mNodalConcentratedElement3D1N;
+    const NodalConcentratedElement mNodalConcentratedDampedElement3D1N;
 
     /* CONDITIONS*/
     // Beam moment condition

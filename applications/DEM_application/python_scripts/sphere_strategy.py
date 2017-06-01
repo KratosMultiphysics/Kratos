@@ -144,6 +144,8 @@ class ExplicitStrategy:
             if self.Var_Translator(Param.PeriodicDomainOption):
                 self.search_strategy = OMP_DEMSearch(Param.BoundingBoxMinX, Param.BoundingBoxMinY, Param.BoundingBoxMinZ,
                                                      Param.BoundingBoxMaxX, Param.BoundingBoxMaxY, Param.BoundingBoxMaxZ)
+        else:
+            Param.PeriodicDomainOption = False
 
         self.SetContinuumType()
 
@@ -181,7 +183,11 @@ class ExplicitStrategy:
         self.spheres_model_part.ProcessInfo.SetValue(CONTINUUM_OPTION, self.continuum_type)
 
         # GLOBAL PHYSICAL ASPECTS
+        self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, self.Var_Translator(self.Parameters.PeriodicDomainOption))
+        self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_MIN_CORNER, self.bottom_corner)
+        self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_MAX_CORNER, self.top_corner)
         self.spheres_model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
+
 
         # GLOBAL MATERIAL PROPERTIES
         self.spheres_model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
@@ -265,10 +271,9 @@ class ExplicitStrategy:
         self.SetNormalRadiiOnAllParticles()
         self.SetSearchRadiiOnAllParticles()
         
-    def Initialize(self):                                                                     
+    def Initialize(self):
         self.CheckMomentumConservation()
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy (C++) Initialize function (initializes all elements and performs other necessary tasks before starting the time loop in Python)
-
 
     def Solve(self):
         time = self.spheres_model_part.ProcessInfo[TIME]

@@ -65,6 +65,8 @@ namespace Kratos {
         int GetTotalNumberOfParticlesInjectedSoFar();
         double GetPartialMassInjectedSoFar(const int i);
         double GetTotalMassInjectedSoFar();
+    protected:
+        virtual void AddRandomPerpendicularComponentToGivenVector(array_1d<double, 3 >& vector, const double angle_in_degrees);
 
     private:
         virtual void FixInjectorConditions(Element* p_element);

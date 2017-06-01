@@ -88,7 +88,7 @@ public:
             return static_cast<SizeType>(Max-Min);
         }
         else {
-            return static_cast<SizeType>(MaxSize + (Max - Min));
+            return static_cast<SizeType>(MaxSize - 1 + (Max - Min));
         }
     }
     SubBinAxisPeriodic const& operator++()

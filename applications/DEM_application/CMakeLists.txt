@@ -78,6 +78,7 @@ set(KRATOS_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/create_and_destroy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/properties_proxies.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/dem_fem_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/excavator_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/AuxiliaryUtilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_model_part_filler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_particle_watcher.cpp
@@ -104,6 +105,8 @@ install(TARGETS KratosDEMApplication DESTINATION libs )
 if(${ACTIVATE_DEBUG_MACRO} MATCHES ON)        #MSI: Flag defined for debug Macro
     add_definitions(-DDEBUG_MACRO)
 endif(${ACTIVATE_DEBUG_MACRO} MATCHES ON)
+
+add_definitions( -Wsuggest-override )
 
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
