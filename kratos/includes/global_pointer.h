@@ -32,7 +32,10 @@ private:
   /// Local pointer and its rank. This must never be seen outside this class.
   /// Do not make it protected if you derive from this class.
   TDataType * mDataPointer;
+
+#ifdef KRATOS_USING_MPI
   int mRank;
+#endif
 
 public:
 
@@ -48,7 +51,10 @@ public:
    */
   GlobalPointer(TDataType * DataPointer)
     : mDataPointer(DataPointer)
-    , mRank(GetLocalRank()) {
+#ifdef KRATOS_USING_MPI
+    , mRank(GetLocalRank())
+#endif
+    {
   }
 
   /** Constructor by boost::shared_ptr
@@ -57,7 +63,10 @@ public:
    */
   GlobalPointer(boost::shared_ptr<TDataType> DataPointer)
     : mDataPointer(DataPointer.Get())
-    , mRank(GetLocalRank()) {
+#ifdef KRATOS_USING_MPI
+    , mRank(GetLocalRank())
+#endif
+    {
   }
 
   /** Default Destructor
@@ -92,7 +101,11 @@ public:
    * @return Rank of the BasePointer owner
    */
   int GetRank() const {
+#ifdef KRATOS_USING_MPI
     return mRank;
+#else
+    return 0;
+#endif
   }
 
 private:
