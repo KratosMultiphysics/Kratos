@@ -205,7 +205,7 @@ namespace Kratos
 
 		int mIterationCount = 0;
 		bool mIsLinearElement = false;
-		bool mLumpedMassMatrix = false;
+		bool mIsLumpedMassMatrix = false;
 
 		CrBeamElement3D2N() {};
 

@@ -811,7 +811,7 @@ namespace Kratos
 		}
 		rMassMatrix = ZeroMatrix(MatSize, MatSize);
 
-		if (this->mLumpedMassMatrix == true)
+		if (this->mIsLumpedMassMatrix == true)
 		{
 			this->CalculateLumpedMassMatrix(rMassMatrix, rCurrentProcessInfo);
 		}
@@ -1878,6 +1878,7 @@ namespace Kratos
 		rSerializer.save("PsiY", this->mPsiY);
 		rSerializer.save("PsiZ", this->mPsiZ);
 		rSerializer.save("ThetaInitialRot", this->mtheta);
+		rSerializer.save("mIsLumpedMassMatrix", this->mIsLumpedMassMatrix);
 	}
 
 	void CrBeamElement3D2N::load(Serializer& rSerializer)
@@ -1916,6 +1917,7 @@ namespace Kratos
 		rSerializer.load("PsiY", this->mPsiY);
 		rSerializer.load("PsiZ", this->mPsiZ);
 		rSerializer.load("ThetaInitialRot", this->mtheta);
+		rSerializer.load("mIsLumpedMassMatrix", this->mIsLumpedMassMatrix);
 	}
 
 } // namespace Kratos.
