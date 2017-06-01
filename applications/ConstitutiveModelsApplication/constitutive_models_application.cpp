@@ -126,18 +126,23 @@ namespace Kratos {
       Serializer::Register( "LinearElasticModel", mLinearElasticModel );
       Serializer::Register( "SaintVenantKirchhoffModel", mSaintVenantKirchhoffModel );
       Serializer::Register( "NeoHookeanModel", mNeoHookeanModel );
-      Serializer::Register( "CompressibleNeoHookeanModel", mCompressibleNeoHookeanModel );
+      Serializer::Register( "NeoHookeanLnJSquaredModel", mNeoHookeanLnJSquaredModel );
+      Serializer::Register( "NeoHookeanJ_1SquaredModel", mNeoHookeanJ_1SquaredModel );
       Serializer::Register( "IsochoricNeoHookeanModel", mIsochoricNeoHookeanModel );
+      Serializer::Register( "IsochoricNeoHookeanLnJSquaredModel", mIsochoricNeoHookeanLnJSquaredModel );
       Serializer::Register( "IncompressibleNeoHookeanModel", mIncompressibleNeoHookeanModel );
+      Serializer::Register( "BorjaModel", mBorjaModel );
       
       //plasticity models
       Serializer::Register( "VonMisesNeoHookeanPlasticityModel", mVonMisesNeoHookeanPlasticityModel );
+      Serializer::Register( "CamClayModel", mCamClayModel );
       
       //yield criteria
       Serializer::Register( "MisesHuberYieldCriterion", mMisesHuberYieldCriterion );
       Serializer::Register( "MisesHuberThermalYieldCriterion", mMisesHuberThermalYieldCriterion );      
       Serializer::Register( "SimoJuYieldCriterion", mSimoJuYieldCriterion );
       Serializer::Register( "ModifiedMisesYieldCriterion", mModifiedMisesYieldCriterion );
+      Serializer::Register( "ModifiedCamClayCriterion", mModifiedCamClayYieldCriterion );
     
       //hardening laws
       Serializer::Register( "SimoExponentialHardeningLaw", mSimoExponentialHardeningLaw );
@@ -147,6 +152,8 @@ namespace Kratos {
       Serializer::Register( "BakerJohnsonCookThermalHardeningLaw", mBakerJohnsonCookThermalHardeningLaw );
       Serializer::Register( "ExponentialDamageHardeningLaw", mExponentialDamageHardeningLaw );
       Serializer::Register( "ModifiedExponentialDamageHardeningLaw", mModifiedExponentialDamageHardeningLaw );
+      Serializer::Register( "CamClayHardeningLaw", mCamClayHardeningLaw );
+      
 
 
   }

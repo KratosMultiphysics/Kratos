@@ -67,7 +67,6 @@ namespace Kratos
     typedef ConstitutiveModelData::ModelData                         ModelDataType;
     typedef typename TYieldCriterion::PlasticDataType              PlasticDataType;
     typedef typename TYieldCriterion::InternalVariablesType  InternalVariablesType;
-
     
     /// Pointer definition of PlasticityModel
     KRATOS_CLASS_POINTER_DEFINITION( PlasticityModel );
@@ -110,6 +109,31 @@ namespace Kratos
     ///@name Operations
     ///@{
 
+    /**
+     * Initialize member data
+     */    
+    void InitializeModel(ModelDataType& rValues) override
+    {
+      KRATOS_TRY
+
+      mElasticityModel.InitializeModel(rValues);
+	
+      KRATOS_CATCH(" ")
+    }
+    
+    /**
+     * Finalize member data
+     */      
+    void FinalizeModel(ModelDataType& rValues) override
+    {
+      KRATOS_TRY
+
+      mElasticityModel.FinalizeModel(rValues);
+      
+      KRATOS_CATCH(" ")
+    }
+
+    
     /**
      * Calculate Stresses
      */
@@ -201,6 +225,22 @@ namespace Kratos
     ///@{
 
     /**
+     * method to ask the plasticity model the list of variables (dofs) needed from the domain
+     * @param rScalarVariables : list of scalar dofs
+     * @param rComponentVariables :  list of vector dofs
+     */
+    virtual void GetDomainVariablesList(std::vector<Variable<double> >& rScalarVariables,
+					std::vector<Variable<array_1d<double,3> > >& rComponentVariables) override
+    {
+      KRATOS_TRY
+
+      mElasticityModel.GetDomainVariablesList(rScalarVariables, rComponentVariables);
+ 	
+      KRATOS_CATCH(" ")
+    }
+
+    
+    /**
      * Has Values
      */   
     virtual bool Has(const Variable<double>& rThisVariable) override {return false;}
@@ -217,21 +257,6 @@ namespace Kratos
     virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) override { rValue=0; return rValue;}
 
     
-    /**
-     * method to ask the plasticity model the list of variables (dofs) needed from the domain
-     * @param rScalarVariables : list of scalar dofs
-     * @param rComponentVariables :  list of vector dofs
-     */
-    virtual void GetDomainVariablesList(std::vector<Variable<double> >& rScalarVariables,
-					std::vector<Variable<array_1d<double,3> > >& rComponentVariables) override
-    {
-      KRATOS_TRY
-
-      mElasticityModel.GetDomainVariablesList(rScalarVariables, rComponentVariables);
- 	
-      KRATOS_CATCH(" ")
-    }
-
     
     ElasticityModelType& GetElasticityModel() {return mElasticityModel;};    
     

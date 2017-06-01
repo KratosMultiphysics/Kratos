@@ -168,11 +168,11 @@ namespace Kratos
 
 
     /**
-     * This function is designed to be called once to check compatibility with element
+     * This function is designed to be called once to check compatibility with element and the constitutive law
      * @param rFeatures
      */
     void GetLawFeatures(Features& rFeatures) override;
-    
+
 
     /**
      * This function is designed to be called once to perform all the checks needed
