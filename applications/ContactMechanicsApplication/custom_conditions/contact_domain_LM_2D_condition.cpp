@@ -977,7 +977,8 @@ double& ContactDomainLM2DCondition::CalculateIntegrationWeight(double& rIntegrat
 
     if ( dimension == 2 ){   
       ElementType& MasterElement = mContactVariables.GetMasterElement();
-      rIntegrationWeight *= MasterElement.GetProperties()[THICKNESS];
+      if ( MasterElement.GetProperties()[THICKNESS] > 0)
+	rIntegrationWeight *= MasterElement.GetProperties()[THICKNESS];
     }
 	
     return rIntegrationWeight;
@@ -1037,7 +1038,7 @@ void ContactDomainLM2DCondition::CalculateTangentSlipForce (double &F,GeneralVar
 //************************************************************************************
 //************************************************************************************
 
-void ContactDomainLM2DCondition::CalcContactStiffness (double &Kcont,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir)
+void ContactDomainLM2DCondition::CalculateContactStiffness (double &Kcont,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir)
 {
     Kcont=0;
 

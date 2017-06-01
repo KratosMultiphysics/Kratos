@@ -55,7 +55,9 @@ namespace Kratos
   {
   protected:
 
-    constexpr static std::size_t VarSize = 1;
+    //warning::this variable is going to be shadowed by they derived classes
+    //if any problem is detected an alternative method must be used instead
+    constexpr static std::size_t VarSize = 1; 
     
   public:
     
@@ -94,7 +96,7 @@ namespace Kratos
       
     };
     
-
+    
     template<std::size_t TVarSize>
     struct PlasticModelData
     {
@@ -115,7 +117,7 @@ namespace Kratos
       //internal variables
       InternalVariables<TVarSize>      Internal;
       InternalVariables<TVarSize> DeltaInternal;
-
+      
       //strain matrix
       MatrixType StrainMatrix; //wildcard strain (cauchy green tensors or infinitessimal tensor)
       

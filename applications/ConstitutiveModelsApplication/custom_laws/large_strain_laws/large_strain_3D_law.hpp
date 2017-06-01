@@ -92,6 +92,14 @@ namespace Kratos
      */
     void GetLawFeatures(Features& rFeatures) override;
 
+
+    /**
+     * This function is designed to be called once to check compatibility with element and the model
+     * @param rFeatures
+     */
+    void GetModelFeatures(Features& rFeatures);
+
+    
     /**
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
@@ -190,9 +198,6 @@ namespace Kratos
     //stored total deformation gradient for incremental strain update
     double        mDeterminantF0;
     MatrixType    mInverseDeformationGradientF0;
-
-    //elastic cauchy green tensor / including initial strains
-    VectorType    mCauchyGreenVector;
     
     ///@}
     ///@name Protected Operators
@@ -273,7 +278,6 @@ namespace Kratos
       rSerializer.save("mpModel",mpModel);
       rSerializer.save("mDeterminantF0",mDeterminantF0);
       rSerializer.save("mInverseDeformationGradientF0",mInverseDeformationGradientF0);
-      rSerializer.save("mCauchyGreenVector",mCauchyGreenVector);
     }
 
     virtual void load(Serializer& rSerializer) override
@@ -283,7 +287,6 @@ namespace Kratos
       rSerializer.load("mpModel",mpModel);
       rSerializer.load("mDeterminantF0",mDeterminantF0);
       rSerializer.load("mInverseDeformationGradientF0",mInverseDeformationGradientF0);
-      rSerializer.load("mCauchyGreenVector",mCauchyGreenVector);
     }
 
 

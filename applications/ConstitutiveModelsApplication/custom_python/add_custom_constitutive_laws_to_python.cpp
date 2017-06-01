@@ -45,15 +45,19 @@
 #include "custom_models/elasticity_models/linear_elastic_model.hpp"
 #include "custom_models/elasticity_models/saint_venant_kirchhoff_model.hpp"
 #include "custom_models/elasticity_models/neo_hookean_model.hpp"
-#include "custom_models/elasticity_models/compressible_neo_hookean_model.hpp"
+#include "custom_models/elasticity_models/neo_hookean_lnJ_squared_model.hpp"
+#include "custom_models/elasticity_models/neo_hookean_J_1_squared_model.hpp"
 #include "custom_models/elasticity_models/isochoric_neo_hookean_model.hpp"
+#include "custom_models/elasticity_models/isochoric_neo_hookean_lnJ_squared_model.hpp"
 #include "custom_models/elasticity_models/incompressible_neo_hookean_model.hpp"
+#include "custom_models/elasticity_models/borja_model.hpp"
 
 //plasticity models
 #include "custom_models/plasticity_models/von_mises_neo_hookean_plasticity_model.hpp"
 #include "custom_models/plasticity_models/simo_J2_thermo_plasticity_model.hpp"
 #include "custom_models/plasticity_models/johnson_cook_J2_thermo_plasticity_model.hpp"
 #include "custom_models/plasticity_models/baker_johnson_cook_J2_thermo_plasticity_model.hpp"
+#include "custom_models/plasticity_models/cam_clay_model.hpp"
 
 
 
@@ -167,13 +171,32 @@ namespace Kratos
       	  init<>() )
        	;
       
-      class_< CompressibleNeoHookeanModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
-      	( "CompressibleNeoHookeanModel",
+      class_< NeoHookeanLnJSquaredModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
+      	( "NeoHookeanLnJSquaredModel",
       	  init<>() )
        	;
 
+      class_< NeoHookeanJ_1SquaredModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
+      	( "NeoHookeanJ_1SquaredModel",
+      	  init<>() )
+       	;
+
+      class_< IsochoricNeoHookeanModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
+      	( "IsochoricNeoHookeanModel",
+      	  init<>() )
+       	;
+
+      class_< IsochoricNeoHookeanLnJSquaredModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
+      	( "IsochoricNeoHookeanLnJSquaredModel",
+      	  init<>() )
+       	;
+      
       class_< IncompressibleNeoHookeanModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
       	( "IncompressibleNeoHookeanModel",
+      	  init<>() )
+       	;
+      class_< BorjaModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
+      	( "BorjaModel",
       	  init<>() )
        	;
       
@@ -195,6 +218,11 @@ namespace Kratos
 
       class_< BakerJohnsonCookJ2ThermoPlasticityModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
        	( "BakerJohnsonCookJ2ThermoPlasticityModel",
+       	  init<>() )
+       	;
+      
+      class_< CamClayModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
+       	( "CamClayModel",
        	  init<>() )
        	;
 

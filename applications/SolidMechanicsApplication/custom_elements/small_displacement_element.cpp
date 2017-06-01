@@ -645,8 +645,6 @@ void SmallDisplacementElement::CalculateElementalSystem( LocalSystemComponents& 
         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
 
 
-        //if ( dimension == 2 ) IntegrationWeight *= GetProperties()[THICKNESS];
-
         if ( rLocalSystem.CalculationFlags.Is(SmallDisplacementElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
             //contributions to stiffness matrix calculated on the reference config
@@ -931,8 +929,10 @@ double& SmallDisplacementElement::CalculateIntegrationWeight(double& rIntegratio
 {
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    if( dimension == 2 )
+    if( dimension == 2 ){
+      if ( this->GetProperties().Has( THICKNESS ) )
         rIntegrationWeight *= GetProperties()[THICKNESS];
+    }
 
     return rIntegrationWeight;
 }
@@ -1748,8 +1748,10 @@ double& SmallDisplacementElement::CalculateTotalMass( double& rTotalMass, const 
 	rTotalMass += GetProperties()[DENSITY] * IntegrationWeight;
       }
 
-    if( dimension == 2 )
+    if( dimension == 2 ){
+      if ( this->GetProperties().Has( THICKNESS ) )
         rTotalMass *= GetProperties()[THICKNESS];
+    }
 
     return rTotalMass;
 
@@ -2185,7 +2187,8 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
       if( dimension == 2){
-        Thickness = GetProperties()[THICKNESS];
+	if ( this->GetProperties().Has( THICKNESS ) )
+	  Thickness = GetProperties()[THICKNESS];
       }
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -2198,7 +2201,6 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
       //set constitutive law flags:
       Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-      //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN); it would return 0.0 strain since in small def. F = Identity
       ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
       ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY);
    
@@ -2481,8 +2483,7 @@ int  SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
 
     unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
 
-    //verify that the variables are correctly initialized
-
+    //verify that the nodal variables are correctly initialized
     if ( VELOCITY.Key() == 0 )
         KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" )
 
@@ -2495,8 +2496,6 @@ int  SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     if ( DENSITY.Key() == 0 )
         KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" )
 
-    // if ( BODY_FORCE.Key() == 0 )
-    //     KRATOS_THROW_ERROR( std::invalid_argument, "BODY_FORCE has Key zero! (check if the application is correctly registered", "" );
 
     //verify that the dofs exist
     for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
@@ -2514,7 +2513,7 @@ int  SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
         KRATOS_THROW_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() )
     }
 
-	//verify compatibility with the constitutive law
+    //verify compatibility with the constitutive law
     ConstitutiveLaw::Features LawFeatures;
     this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
@@ -2528,11 +2527,6 @@ int  SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     if( correct_strain_measure == false )
 	    KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the element type ", " Small Displacements " );
 
-    //Verify that the body force is defined
-    // if ( this->GetProperties().Has( BODY_FORCE ) == false )
-    // {
-    //     KRATOS_THROW_ERROR( std::logic_error, "BODY_FORCE not provided for property ", this->GetProperties().Id() )
-    // }
 
     //verify that the constitutive law has the correct dimension
     if ( dimension == 2 )
@@ -2541,21 +2535,10 @@ int  SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
 	   KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element expected plane state or axisymmetric ", this->Id() )	      
 	
         // if ( THICKNESS.Key() == 0 )
-        //     KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" ) //if is not read from model part it will not exist
+        //   KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" ) //if is not read from model part it will not exist
 
-
-	if ( this->GetProperties().Has( THICKNESS ) == false ){
-	   
-
-	  if(LawFeatures.mOptions.Is(ConstitutiveLaw::PLANE_STRAIN_LAW) || LawFeatures.mOptions.Is(ConstitutiveLaw::AXISYMMETRIC_LAW) ){
-
-	    this->GetProperties().SetValue( THICKNESS , 1.0 );
-	  }
-	  else
-	    {
-	      KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
-	    }
-	}
+	// if ( this->GetProperties().Has( THICKNESS ) == false )
+	//   KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
 
     }
     else
@@ -2565,12 +2548,8 @@ int  SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     }
 
     //check constitutive law
-    /*for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-    {
-        return mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
-    }*/
-	// FIXED: At this point the constitutive law vector is not set yet.
-	this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Check( this->GetProperties(), this->GetGeometry(), rCurrentProcessInfo );
+    // FIXED: At this point the constitutive law vector is not set yet.
+    this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Check( this->GetProperties(), this->GetGeometry(), rCurrentProcessInfo );
 
     //check if it is in the XY plane for 2D case
 

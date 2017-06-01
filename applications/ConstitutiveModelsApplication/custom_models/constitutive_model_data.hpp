@@ -127,13 +127,15 @@ namespace Kratos
       double                       Temperature;
       double                       CharacteristicSize;      
       double                       DeterminantF;
-
+      double                       DeterminantF0;
+      
       //model data
       StressMeasureType            StressMeasure;       //stress measure requested
       StrainMeasureType            StrainMeasure;       //strain measure provided
 
       //deformation
-      MatrixType                   DeformationGradientF;
+      MatrixType                   DeformationGradientF;   //incremental F
+      MatrixType                   DeformationGradientF0;  //total F
     };
     
     
@@ -165,8 +167,11 @@ namespace Kratos
       void SetMaterialProperties           (const Properties&  rMaterialProperties) {mpMaterialProperties = &rMaterialProperties;};
       void SetProcessInfo                  (const ProcessInfo& rProcessInfo)        {mpProcessInfo = &rProcessInfo;};
       void SetVoigtSize                    (const SizeType& rVoigtSize)             {mVoigtSize = rVoigtSize;};
-      void SetVoigtIndexTensor             (VoigtIndexType rIndexVoigtTensor)      {mIndexVoigtTensor = rIndexVoigtTensor;};
-      
+      void SetVoigtIndexTensor             (VoigtIndexType rIndexVoigtTensor)       {mIndexVoigtTensor = rIndexVoigtTensor;};
+
+      void  SetStressMeasure               (StressMeasureType Measure)              {mConstitutiveLawData.StressMeasure = Measure;}; 
+      void  SetStrainMeasure               (StrainMeasureType Measure)              {mConstitutiveLawData.StrainMeasure = Measure;};
+
       //Get Data Pointers
       const Flags&          GetOptions                     () const {return *mpOptions;};
       const Properties&     GetMaterialProperties          () const {return *mpMaterialProperties;};
@@ -183,13 +188,15 @@ namespace Kratos
       //Get const Data
       const double&        GetPressure                     () const {return mConstitutiveLawData.Pressure;}; 
       const double&        GetTemperature                  () const {return mConstitutiveLawData.Temperature;}; 
-      const double&        GetDeterminantF                 () const {return mConstitutiveLawData.DeterminantF;}; 
+      const double&        GetDeterminantF                 () const {return mConstitutiveLawData.DeterminantF;};
+      const double&        GetDeterminantF0                () const {return mConstitutiveLawData.DeterminantF0;}; 
       const double&        GetCharacteristicSize           () const {return mConstitutiveLawData.CharacteristicSize;}; 
 
       const StressMeasureType& GetStressMeasure            () const {return mConstitutiveLawData.StressMeasure;}; 
       const StrainMeasureType& GetStrainMeasure            () const {return mConstitutiveLawData.StrainMeasure;};
 
       const MatrixType&    GetDeformationGradientF         () const {return mConstitutiveLawData.DeformationGradientF;}; 
+      const MatrixType&    GetDeformationGradientF0        () const {return mConstitutiveLawData.DeformationGradientF0;};
 
       const ConstitutiveLawData&   GetConstitutiveLawData  () const {return mConstitutiveLawData;};
       

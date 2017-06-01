@@ -70,9 +70,9 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
             condition.Set(KratosMultiphysics.OUTLET, True)
 
         # Construct the base process AssignValueProcess
-        import experimental_assign_value_process
-        self.aux_pressure_process = experimental_assign_value_process.AssignValueProcess(Model, pres_settings)
-        self.aux_external_pressure_process = experimental_assign_value_process.AssignValueProcess(Model, ext_pres_settings)
+        import assign_scalar_variable_process
+        self.aux_pressure_process = assign_scalar_variable_process.AssignScalarVariableProcess(Model, pres_settings)
+        self.aux_external_pressure_process = assign_scalar_variable_process.AssignScalarVariableProcess(Model, ext_pres_settings)
 
 
     def ExecuteInitializeSolutionStep(self):

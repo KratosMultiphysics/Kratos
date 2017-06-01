@@ -136,9 +136,8 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         for part in processes_parts:
             part.Set(KratosMultiphysics.BOUNDARY)
             entity_type = "Conditions"
-            assign_flags = KratosSolid.FlagsContainer()
-            assign_flags.PushBack(KratosMultiphysics.BOUNDARY)
-            transfer_process = KratosSolid.TransferEntitiesProcess(computing_model_part,part,entity_type,void_flags,assign_flags)
+            #condition flags as BOUNDARY or CONTACT are reserved to composite or contact conditions (do not set it here)
+            transfer_process = KratosSolid.TransferEntitiesProcess(computing_model_part,part,entity_type)
             transfer_process.Execute()
 
         '''
