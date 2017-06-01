@@ -1,0 +1,42 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/rzorrilla/Kratos/applications/MeshingApplication/custom_external_libraries/tetgen/tetgen1.4.3/predicates.cxx
+stdio.h
+-
+stdlib.h
+-
+math.h
+-
+float.h
+-
+fpu_control.h
+-
+tetgen.h
+/home/rzorrilla/Kratos/applications/MeshingApplication/custom_external_libraries/tetgen/tetgen1.4.3/tetgen.h
+
+/home/rzorrilla/Kratos/applications/MeshingApplication/custom_external_libraries/tetgen/tetgen1.4.3/tetgen.cxx
+tetgen.h
+/home/rzorrilla/Kratos/applications/MeshingApplication/custom_external_libraries/tetgen/tetgen1.4.3/tetgen.h
+
+/home/rzorrilla/Kratos/applications/MeshingApplication/custom_external_libraries/tetgen/tetgen1.4.3/tetgen.h
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+math.h
+-
+time.h
+-
+assert.h
+-
+stdint.h
+-
+
