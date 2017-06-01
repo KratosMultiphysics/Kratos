@@ -141,7 +141,7 @@ namespace Kratos
     //-----------------------------//
 
     
-    // Calculate total PK2 stress
+    //2.-Calculate total Kirchhoff stress
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
       

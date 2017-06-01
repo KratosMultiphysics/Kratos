@@ -159,11 +159,12 @@ namespace Kratos
 
             rVariables.SetModelData(rValues);
             rVariables.SetState(rValues.State);
-	    
-	    //deformation gradient
-	    const MatrixType& rDeformationGradientF  = rValues.GetDeformationGradientF();
-	    
-            const StressMeasureType& rStressMeasure  = rValues.GetStressMeasure();
+
+            //cauchy green tensor
+            const MatrixType& rStrainMatrix         = rValues.GetStrainMatrix();
+
+            const StrainMeasureType& rStrainMeasure = rValues.GetStrainMeasure();
+            const StressMeasureType& rStressMeasure = rValues.GetStressMeasure();
 
             if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mStrainMatrix = RightCauchyGreen (C=FT*F)  C^-1=(FT*F)^-1=F^-1*FT^-1
 
@@ -172,33 +173,27 @@ namespace Kratos
             }
             else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mStrainMatrix = LeftCauchyGreen (b=F*FT)
 
-	      //set working strain measure
-	      rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_Left);
-     
-	      //historical strain matrix
-	      rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(mStrainVector,rValues.StrainMatrix);
-	      
-	      //current strain matrix
-	      noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,trans(rDeformationGradientF));
-	      noalias(rValues.StrainMatrix) = prod(rDeformationGradientF, rVariables.Strain.Matrix);
-	      
-	      MatrixType EigenVectors;
-	      MatrixType EigenValues;
-	      EigenVectors.clear();
-	      EigenValues.clear();
+               if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Left ){
+               
+                  MatrixType EigenVectors;
+                  MatrixType EigenValues;
+                  EigenVectors.clear();
+                  EigenValues.clear();
 
-	      MathUtils<double>::EigenSystem<3> ( rValues.StrainMatrix, EigenVectors, EigenValues);
-	      
-	      rVariables.Strain.Matrix.clear();
-	      for (unsigned int i = 0; i < 3; i++)
-		rVariables.Strain.Matrix(i,i) =  std::log(EigenValues(i,i)) / 2.0;
-	      
-	      rVariables.Strain.Matrix = prod( rVariables.Strain.Matrix, EigenVectors);
-	      rVariables.Strain.Matrix = prod( trans(EigenVectors), rVariables.Strain.Matrix);
+                  MathUtils<double>::EigenSystem<3> ( rStrainMatrix, EigenVectors, EigenValues);
 
+                  rVariables.Strain.Matrix.clear();
+                  for (unsigned int i = 0; i < 3; i++)
+                     rVariables.Strain.Matrix(i,i) =  std::log(EigenValues(i,i)) / 2.0;
 
-	      rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
-   
+                  rVariables.Strain.Matrix = prod( rVariables.Strain.Matrix, EigenVectors);
+                  rVariables.Strain.Matrix = prod( trans(EigenVectors), rVariables.Strain.Matrix);
+                  rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
+               }
+               else{
+                  KRATOS_ERROR << "calling HenckyHyperelastic based method with strange strain measure. not implemented" << std::endl;
+               }
+
             }
             else{
                KRATOS_ERROR << "calling initialize HyperElasticModel .. StressMeasure required is inconsistent"  << std::endl;

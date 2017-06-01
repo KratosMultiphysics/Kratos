@@ -67,6 +67,7 @@ namespace Kratos
     typedef ConstitutiveModelData::ModelData                         ModelDataType;
     typedef typename TYieldCriterion::PlasticDataType              PlasticDataType;
     typedef typename TYieldCriterion::InternalVariablesType  InternalVariablesType;
+
     
     /// Pointer definition of PlasticityModel
     KRATOS_CLASS_POINTER_DEFINITION( PlasticityModel );
@@ -109,31 +110,6 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    /**
-     * Initialize member data
-     */    
-    void InitializeModel(ModelDataType& rValues) override
-    {
-      KRATOS_TRY
-
-      mElasticityModel.InitializeModel(rValues);
-	
-      KRATOS_CATCH(" ")
-    }
-    
-    /**
-     * Finalize member data
-     */      
-    void FinalizeModel(ModelDataType& rValues) override
-    {
-      KRATOS_TRY
-
-      mElasticityModel.FinalizeModel(rValues);
-      
-      KRATOS_CATCH(" ")
-    }
-
-    
     /**
      * Calculate Stresses
      */

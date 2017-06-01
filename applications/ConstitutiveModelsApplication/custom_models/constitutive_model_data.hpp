@@ -167,11 +167,8 @@ namespace Kratos
       void SetMaterialProperties           (const Properties&  rMaterialProperties) {mpMaterialProperties = &rMaterialProperties;};
       void SetProcessInfo                  (const ProcessInfo& rProcessInfo)        {mpProcessInfo = &rProcessInfo;};
       void SetVoigtSize                    (const SizeType& rVoigtSize)             {mVoigtSize = rVoigtSize;};
-      void SetVoigtIndexTensor             (VoigtIndexType rIndexVoigtTensor)       {mIndexVoigtTensor = rIndexVoigtTensor;};
-
-      void  SetStressMeasure               (StressMeasureType Measure)              {mConstitutiveLawData.StressMeasure = Measure;}; 
-      void  SetStrainMeasure               (StrainMeasureType Measure)              {mConstitutiveLawData.StrainMeasure = Measure;};
-
+      void SetVoigtIndexTensor             (VoigtIndexType rIndexVoigtTensor)      {mIndexVoigtTensor = rIndexVoigtTensor;};
+      
       //Get Data Pointers
       const Flags&          GetOptions                     () const {return *mpOptions;};
       const Properties&     GetMaterialProperties          () const {return *mpMaterialProperties;};

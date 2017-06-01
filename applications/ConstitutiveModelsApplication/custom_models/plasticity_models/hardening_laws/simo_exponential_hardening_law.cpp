@@ -74,6 +74,12 @@ namespace Kratos
     KRATOS_TRY
 
     rHardening = this->CalculateAndAddIsotropicHardening(rVariables,rHardening);
+
+<<<<<<< HEAD
+    rHardening = this->CalculateAndAddKinematicHardening(rVariables,rHardening);
+	
+=======
+    double IsoHardening = rHardening;
     
     rHardening = this->CalculateAndAddKinematicHardening(rVariables,rHardening);
     

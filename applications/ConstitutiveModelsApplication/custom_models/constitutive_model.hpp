@@ -102,32 +102,8 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
-
-    /**
-     * Initialize member data
-     */    
-    virtual void InitializeModel(ModelDataType& rValues)
-    {
-      KRATOS_TRY
-	
-      KRATOS_ERROR << "calling ConstitutiveModel Initialize base class " << std::endl;
-
-      KRATOS_CATCH(" ")
-    }
-
-    /**
-     * Finalize member data
-     */    
-    virtual void FinalizeModel(ModelDataType& rValues)
-    {
-      KRATOS_TRY
-
-      KRATOS_ERROR << "calling ConstitutiveModel Finalize base class " << std::endl;	
-
-      KRATOS_CATCH(" ")
-    }
-
     
+
     /**
      * Calculate Strain Energy Density Functions
      */
@@ -215,20 +191,14 @@ namespace Kratos
     /**
      * Set Values
      */
-    virtual void SetValue(const Variable<double>& rVariable, const double& rValue,
+    virtual void SetValue(const Variable<double>& rVariable,
+			  const double& rValue,
 			  const ProcessInfo& rCurrentProcessInfo) {}
-
-    virtual void SetValue(const Variable<Vector>& rThisVariable, const Vector& rValue,
-			  const ProcessInfo& rCurrentProcessInfo ) {}
-
-    virtual void SetValue(const Variable<Matrix>& rThisVariable, const Matrix& rValue,
-			  const ProcessInfo& rCurrentProcessInfo ) {}
-    
     /**
      * Get Values
      */
-    virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) { rValue=0; return rValue;}   
-
+    virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) { rValue=0; return rValue;}
+    
     
     /**
      * method to ask the constituitve model the list of variables (dofs) needed from the domain

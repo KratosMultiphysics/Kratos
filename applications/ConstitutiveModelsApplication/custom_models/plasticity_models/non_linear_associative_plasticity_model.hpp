@@ -375,7 +375,7 @@ namespace Kratos
     InternalVariablesType  mInternal;
     InternalVariablesType  mPreviousInternal;
 
-    ThermalVariables       mThermalVariables;
+    ThermalVariables  mThermalVariables;
 	
     ///@}
     ///@name Protected Operators
@@ -632,12 +632,12 @@ namespace Kratos
       double& rEquivalentPlasticStrainOld  = mPreviousInternal.Variables[0];
       double& rEquivalentPlasticStrain     = rVariables.Internal.Variables[0];
       double& rDeltaGamma                  = rVariables.DeltaInternal.Variables[0];
-     
-      double StateFunction                 = rVariables.TrialStateFunction;
 
       rEquivalentPlasticStrain = 0;
       rDeltaGamma = 0;
-	
+
+      double StateFunction                 = rVariables.TrialStateFunction;
+    
       while ( fabs(StateFunction)>=Tolerance && iter<=MaxIterations)
 	{
 	  //Calculate Delta State Function:
@@ -857,8 +857,7 @@ namespace Kratos
     void CalculateThermalDissipation(PlasticDataType& rVariables)
     {
       KRATOS_TRY
-
-	
+      
       //1.- Thermal Dissipation:
       mThermalVariables.PlasticDissipation = this->mYieldCriterion.CalculatePlasticDissipation( rVariables, mThermalVariables.PlasticDissipation );
   

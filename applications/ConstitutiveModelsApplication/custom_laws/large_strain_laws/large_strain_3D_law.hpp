@@ -198,6 +198,9 @@ namespace Kratos
     //stored total deformation gradient for incremental strain update
     double        mDeterminantF0;
     MatrixType    mInverseDeformationGradientF0;
+
+    //elastic cauchy green tensor / including initial strains
+    VectorType    mStrainVector;
     
     ///@}
     ///@name Protected Operators
@@ -278,6 +281,7 @@ namespace Kratos
       rSerializer.save("mpModel",mpModel);
       rSerializer.save("mDeterminantF0",mDeterminantF0);
       rSerializer.save("mInverseDeformationGradientF0",mInverseDeformationGradientF0);
+      rSerializer.save("mStrainVector",mStrainVector);
     }
 
     virtual void load(Serializer& rSerializer) override
@@ -287,6 +291,7 @@ namespace Kratos
       rSerializer.load("mpModel",mpModel);
       rSerializer.load("mDeterminantF0",mDeterminantF0);
       rSerializer.load("mInverseDeformationGradientF0",mInverseDeformationGradientF0);
+      rSerializer.load("mStrainVector",mStrainVector);
     }
 
 

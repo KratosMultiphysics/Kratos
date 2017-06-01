@@ -280,20 +280,26 @@ namespace Kratos
     Flags & Options                    = rValues.GetOptions();    
 
     Vector& StressVector               = rValues.GetStressVector();
+    Vector& StrainVector               = rValues.GetStrainVector();
 
     const Matrix& DeformationGradientF = rValues.GetDeformationGradientF();
     const double& DeterminantF         = rValues.GetDeterminantF();
 
     Matrix& ConstitutiveMatrix         = rValues.GetConstitutiveMatrix();
 
+    //2.-Green-Lagrange Strain:
+    if(Options.Is(ConstitutiveLaw::COMPUTE_STRAIN))
+      {
+	TransformStrains(StrainVector, DeformationGradientF, StrainMeasure_Almansi, StrainMeasure_GreenLagrange);
+      }
 
-    //2.-Calculate Total PK2 stress
+    //3.-Calculate Total PK2 stress
     if(Options.Is(ConstitutiveLaw::COMPUTE_STRESS))
       {
 	TransformStresses(StressVector, DeformationGradientF, DeterminantF, StressMeasure_Kirchhoff, StressMeasure_PK2);
       }
 
-    //3.-Calculate PK2 constitutive tensor
+    //4.-Calculate PK2 constitutive tensor
     if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
       {
 	PullBackConstitutiveMatrix(ConstitutiveMatrix, DeformationGradientF);
@@ -336,20 +342,26 @@ namespace Kratos
     Flags & Options                    = rValues.GetOptions();    
 
     Vector& StressVector               = rValues.GetStressVector();
+    Vector& StrainVector               = rValues.GetStrainVector();
 
     const Matrix& DeformationGradientF = rValues.GetDeformationGradientF();
     const double& DeterminantF         = rValues.GetDeterminantF();
 
     Matrix& ConstitutiveMatrix         = rValues.GetConstitutiveMatrix();
 
+    //2.-Almansi Strain:
+    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+      {
+        TransformStrains(StrainVector, DeformationGradientF, StrainMeasure_GreenLagrange, StrainMeasure_Almansi);
+      }
 
-    //2.-Calculate Total Kirchhoff stress
+    //3.-Calculate Total Kirchhoff stress
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
       {
         TransformStresses(StressVector, DeformationGradientF, DeterminantF, StressMeasure_PK2, StressMeasure_Kirchhoff);
       }
 
-    //3.-Calculate Kirchhoff constitutive tensor
+    //4.-Calculate Kirchhoff constitutive tensor
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
       {
         PushForwardConstitutiveMatrix(ConstitutiveMatrix, DeformationGradientF);

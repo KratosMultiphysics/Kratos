@@ -2198,6 +2198,7 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
       //set constitutive law flags:
       Flags &ConstitutiveLawOptions=Values.GetOptions();
 
+      //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN); it would return 0.0 strain since in small def. F = Identity
       ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
       ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY);
    
