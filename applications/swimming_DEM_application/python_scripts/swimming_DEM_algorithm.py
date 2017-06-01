@@ -145,7 +145,13 @@ class Algorithm(BaseAlgorithm):
         BaseAlgorithm.ReadModelParts(self, starting_node_Id, starting_elem_Id, starting_cond_Id)
 
     def Initialize(self):
+        
         BaseAlgorithm.Initialize(self)
+        
+        self.SetFluidBufferSizeAndAddAdditionalDofs()        
+        self.SetFluidSolver()        
+        self.FluidInitialize()        
+        self.ActivateTurbulenceModel()
 
     def FluidInitialize(self):
         self.fluid_solver.Initialize()
@@ -182,6 +188,9 @@ class Algorithm(BaseAlgorithm):
     def SetFluidSolverModule(self):
         self.SolverSettings = self.pp.FluidSolverConfiguration
         self.solver_module = import_solver(self.SolverSettings)
+    
+    def SetFluidSolver(self):
+        self.fluid_solver = self.solver_module.CreateSolver(self.fluid_model_part, self.SolverSettings)
         
     def AddExtraFluidVariables(self):
         # caution with breaking up this block (memory allocation)! {

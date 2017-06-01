@@ -100,8 +100,6 @@ class Solution:
         swim_proc.CopyInputFilesIntoFolder(self.main_path, self.post_path)
 
         self.alg.AddExtraVariables()
-        [self.post_path, data_and_results, self.graphs_path, MPI_results] = self.alg.procedures.CreateDirectories(str(self.main_path), str(self.pp.CFD_DEM.problem_name))
-
 
         #Setting up the BoundingBox
         bounding_box_time_limits = []
@@ -120,14 +118,7 @@ class Solution:
         # reading the fluid part
         self.alg.Initialize()
 
-        self.alg.SetFluidBufferSizeAndAddAdditionalDofs()
-
-        self.alg.fluid_solver = self.alg.solver_module.CreateSolver(self.fluid_model_part, SolverSettings)
-
-        self.alg.FluidInitialize()
-
-        # activate turbulence model
-        self.alg.ActivateTurbulenceModel()
+        
 
         # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation
         # Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
