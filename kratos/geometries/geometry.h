@@ -885,7 +885,8 @@ public:
      */
     virtual CoordinatesArrayType& PointLocalCoordinatesWhenProjected( 
             CoordinatesArrayType& rResult,
-            const CoordinatesArrayType& rPoint 
+            const CoordinatesArrayType& rPoint,
+            const array_1d<double,3> Direction = ZeroVector(3) 
             )
     {
         KRATOS_ERROR << "Calling base class PointLocalCoordinatesWhenProjected method instead of derived class one. Please check the definition of derived class. " << *this << "Remember the normal can be computed (necessary to project) just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;
@@ -923,7 +924,8 @@ public:
     virtual bool IsInsideWhenProjected( 
         const CoordinatesArrayType& rPoint, 
         CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon()
+        const double Tolerance = std::numeric_limits<double>::epsilon(),
+        const array_1d<double,3> Direction = ZeroVector(3) 
         )
     {
         KRATOS_ERROR << "Calling base class IsInsideWhenProjected method instead of derived class one. Please check the definition of derived class. " << *this << "Remember the normal can be computed (necessary to project) just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;

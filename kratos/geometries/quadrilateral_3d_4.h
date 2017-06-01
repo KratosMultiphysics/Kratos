@@ -591,10 +591,11 @@ public:
     virtual bool IsInsideWhenProjected( 
         const CoordinatesArrayType& rPoint, 
         CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
+        const double Tolerance = std::numeric_limits<double>::epsilon(),
+        const array_1d<double,3> Direction = ZeroVector(3) 
         ) override
     {
-        PointLocalCoordinatesWhenProjected( rResult, rPoint );
+        PointLocalCoordinatesWhenProjected( rResult, rPoint, Direction );
 
         if ( std::abs(rResult[0]) <= (1.0+Tolerance) )
         {
@@ -699,24 +700,39 @@ public:
      */
     virtual CoordinatesArrayType& PointLocalCoordinatesWhenProjected(
             CoordinatesArrayType& rResult,
-            const CoordinatesArrayType& rPoint 
+            const CoordinatesArrayType& rPoint,
+            const array_1d<double,3> Direction = ZeroVector(3)
             ) override
     {
+        // We define the tolerance
+        const double Tolerance = std::numeric_limits<double>::epsilon();
+        
         // We compute the normal
         const array_1d<double, 3> Normal = this->Normal();
         
-        // We define the points
-        const Point<3>& Center = this->Center();
-        
         // Vector point and distance
-        array_1d<double,3> VectorPoint;
-        VectorPoint[0] = rPoint[0] - Center[0];
-        VectorPoint[1] = rPoint[1] - Center[1];
-        VectorPoint[2] = rPoint[2] - Center[2];
-        const double DistanceProjected = VectorPoint[0] * Normal[0] + VectorPoint[1] * Normal[1] + VectorPoint[2] * Normal[2];
-
-        const CoordinatesArrayType ProjectedPoint = rPoint - Normal * DistanceProjected; // NOTE: We take the negative normal
+        const array_1d<double,3> VectorPoints = this->Center().Coordinates() - rPoint;
         
+        // We define the distance and the projected point
+        double DistanceProjected;
+        CoordinatesArrayType ProjectedPoint;
+        
+        if( norm_2( Direction ) < Tolerance && norm_2( Normal ) > Tolerance )
+        {
+            DistanceProjected = inner_prod(VectorPoints, Normal)/norm_2(Normal);
+            ProjectedPoint = rPoint + Direction * DistanceProjected;
+        }
+        else if (std::abs(inner_prod(Direction, Normal) ) > Tolerance)
+        {
+            DistanceProjected = inner_prod(VectorPoints, Normal)/inner_prod(Direction, Normal); 
+            ProjectedPoint = rPoint + Direction * DistanceProjected;
+        }
+        else
+        {
+            ProjectedPoint = rPoint;
+            std::cout << " The line and the plane are coplanar, something wrong happened " << std::endl;
+        }
+
         return PointLocalCoordinates(rResult, ProjectedPoint);
     }
 
