@@ -63,6 +63,7 @@ namespace Kratos
                double DeltaTime;
                double detF0;
                double CurrentRadius;
+               double ConstrainedModulus;
 
                unsigned int number_of_variables;
 
@@ -129,7 +130,6 @@ namespace Kratos
 
 
          // Get Properties 
-         void GetConstants( double& rScalingConstant, double & rWaterBulk, double & rDeltaTime, double & rPermeability, const PropertiesType& rProperties);
 
          void GetScalingConstant( double& rScalingConstant, const PropertiesType& pProperties);
 
@@ -138,21 +138,20 @@ namespace Kratos
 
          virtual void GetVoigtSize( const unsigned int & dimension, unsigned int & voigtsize, unsigned int & principal_dimension); 
 
-         double & ComputeStabilizationFactor ( double & rAlphaStabilization, const PropertiesType & rProperties, const Matrix & rDN_DX, const double & rTimeStep, const double & rConstrainedModulus);
+         double & CalculateStabilizationFactor( HydroMechanicalVariables & rVariables, double & rAlphaStabilization);
 
          virtual double CalculateVolumeChange( const GeometryType & rGeometry, const Vector & rN, const Matrix & rTotalF);
 
          // CALCULATE RHS 
          VectorType & CalculateMassBalance_WaterPressurePart( HydroMechanicalVariables & rVariables, VectorType & rLocalRHS, const double & rIntegrationWeight);
 
-         virtual VectorType& CalculateAndAddWaterPressureForcesDisplacement( VectorType& rRightHandSide , GeometryType & rGeometry,  const PropertiesType & rProperties, const MatrixType & rDN_DX, const Vector & rN, const double & rDetF0, const Matrix & rTotalF, const double & rDeltaTime, const double & rIntegrationWeight, const double & rCurrentRadius);
-
+         virtual VectorType& CalculateMassBalance_AddDisplacementPart( HydroMechanicalVariables & rVariables, VectorType & rLocalRHS, const double & rIntegrationWeight);
 
          VectorType& CalculateWaterInternalForcesContribution( HydroMechanicalVariables & rVariables, VectorType& rRightHandSideVector, const double & rIntegrationWeight);
 
          VectorType & CalculateVolumeForcesContribution( HydroMechanicalVariables & rVariables, VectorType & rRightHandSideVector, const double & rIntegrationWeight);
 
-         VectorType & CalculateStabilization( VectorType & rLocalRHS, GeometryType & rGeometry,  const PropertiesType & rProperties, const Matrix & rDN_DX, const double & rTimeStep, const double & rConstrainedModulus, const double & rIntegrationWeight);
+         VectorType & CalculateStabilizationRHS( HydroMechanicalVariables & rVariables, VectorType & rRightHandSideVector, const double & rIntegrationWeight);
 
          // RESHAPCE RHS
          VectorType& AddReshapeBaseClassRHS( VectorType & rRightHandSideVector, const VectorType& rBaseClassRHS, const unsigned int & number_of_variables, const unsigned int & number_of_nodes);
@@ -163,19 +162,19 @@ namespace Kratos
 
 
          // CALCULATE LHS
-         MatrixType & ComputeWaterPressureKuug( MatrixType & LocalLHS, GeometryType & rGeometry, const Matrix & rB, const Vector & rN, const double & rIntegrationWeight);
+         MatrixType & ComputeWaterPressureKuug( HydroMechanicalVariables & rVariables, MatrixType & rLocalLHS, const double & rIntegrationWeight);
 
-         virtual MatrixType & ComputeWaterPressureKUwP( MatrixType & LocalLHS, GeometryType & rGeometry, const Matrix & rDN_DX, const VectorType & rN, const double & rIntegrationWeight, const double & rCurrentRadius);
+         virtual MatrixType & ComputeWaterPressureKUwP( HydroMechanicalVariables & rVariables, MatrixType & rLocalLHS, const double & rIntegrationWeight);
 
-         MatrixType & ComputeWaterPressureKwPwP( MatrixType & rLocalLHS, GeometryType & rGeometry, const PropertiesType & rProperties, const Matrix & rDN_DX, const Matrix & rTotalF, const Vector & rN, const double & rTimeStep, const double & rIntegrationWeight);
+         MatrixType & ComputeWaterPressureKwPwP( HydroMechanicalVariables & rVariables, MatrixType & rLocalLHS, const double & rIntegrationWeight);
 
-         virtual MatrixType & ComputeSolidSkeletonDeformationMatrix(MatrixType & rLocalLHS, GeometryType & rGeometry, const PropertiesType & rProperties, const Matrix & rDN_DX, const Vector & rN, const double & rIntegrationWeight, const double & rCurrentRadius);
+         virtual MatrixType & ComputeSolidSkeletonDeformationMatrix(HydroMechanicalVariables & rVariables, MatrixType & rLocalLHS, const double & rIntegrationWeight);
 
-         MatrixType & ComputeDarcyFlowGeometricTerms(MatrixType & rLocalLHS, GeometryType & rGeometry, const PropertiesType & rProperties, const Matrix & rB,  const Matrix & rDN_DX, const Matrix & rTotalF, const Vector & rN, const double & rDeltaTime, const double & rIntegrationWeight);
+         MatrixType & ComputeDarcyFlowGeometricTerms(HydroMechanicalVariables & rVariables, MatrixType & rLocalLHS, const double & rIntegrationWeight);
 
-         virtual MatrixType & ComputeDensityChangeTerm( MatrixType & rLocalLHS, GeometryType & rGeometry, const PropertiesType & rProperties, const Vector & rVolumeForce,  const Matrix & rDN_DX, const Vector & rN, const double & rDetF0, const double & rIntegrationWeight, const double & rCurrentRadius);
+         virtual MatrixType & ComputeDensityChangeTerm( HydroMechanicalVariables & rVariables, MatrixType & rLocalLHS, const double & rIntegrationWeight);
 
-         MatrixType & CalculateStabilizationLHS( MatrixType & rLocalLHS, GeometryType & rGeometry,  const PropertiesType & rProperties, const Matrix & rDN_DX, const double & rTimeStep, const double & rConstrainedModulus, const double & rIntegrationWeight);
+         MatrixType & CalculateStabilizationLHS( HydroMechanicalVariables & rVariables, MatrixType & rLocalLHS, const double & rIntegrationWeight);
 
 
          // RESHAPE LHS

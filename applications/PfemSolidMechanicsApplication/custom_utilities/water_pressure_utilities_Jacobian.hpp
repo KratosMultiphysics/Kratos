@@ -50,19 +50,17 @@ namespace Kratos
       protected:
 
 
+         virtual VectorType& CalculateMassBalance_AddDisplacementPart( HydroMechanicalVariables & rVariables, VectorType & rLocalLHS, const double & rIntegrationWeight) override;
 
-         virtual VectorType& CalculateAndAddWaterPressureForcesDisplacement( VectorType& rRightHandSide , GeometryType & rGeometry,  const PropertiesType & rProperties, const MatrixType & rDN_DX, const Vector & rN, const double & rDetF0, const Matrix & rTotalF, const double & rDeltaTime, const double & rIntegrationWeight, const double rCurrentRadius);
-
-         virtual double CalculateVolumeChange( const GeometryType & rGeometry, const Vector & rN, const Matrix & rTotalF);
+         virtual double CalculateVolumeChange( const GeometryType & rGeometry, const Vector & rN, const Matrix & rTotalF) override;
 
          // CALCULATE LHS
 
-         MatrixType & ComputeSolidSkeletonDeformationMatrix(MatrixType & rLocalLHS, GeometryType & rGeometry, const PropertiesType & rProperties, const Matrix & rDN_DX, const Vector & rN, const double & rIntegrationWeight, const double & rCurrentRadius);
-
+         virtual MatrixType & ComputeSolidSkeletonDeformationMatrix(HydroMechanicalVariables & rVariables, MatrixType & rLocalLHS, const double & rIntegrationWeight) override;
 
          // RESHAPE LHS
 
-         virtual MatrixType & AddReshapeSolidSkeletonDeformationMatrix( MatrixType & rLeftHandSide, const MatrixType & rBaseClassLHS, const unsigned int dimension, const unsigned int number_of_variables, const unsigned int number_of_nodes);
+         virtual MatrixType & AddReshapeSolidSkeletonDeformationMatrix( MatrixType & rLeftHandSide, const MatrixType & rBaseClassLHS, const unsigned int dimension, const unsigned int number_of_variables, const unsigned int number_of_nodes) override;
 
    }; // end Class WaterPressureJacobianUtilities
 
