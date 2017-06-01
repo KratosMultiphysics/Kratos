@@ -112,7 +112,6 @@ namespace Kratos
 			KRATOS_ERROR << ("Zero length found in element #", this->Id()) <<
 				std::endl;
 		}
-		KRATOS_WATCH(this->mIsLinearElement)
 		KRATOS_CATCH("")
 	}
 
@@ -762,6 +761,13 @@ namespace Kratos
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 		rSerializer.save("mIscompressed", this->mIsCompressed);
 		rSerializer.save("mIsCable", this->mIsCable);
+		rSerializer.save("Area", this->mArea);
+		rSerializer.save("Density", this->mDensity);
+		rSerializer.save("YoungsModulus", this->mYoungsModulus);
+		rSerializer.save("LengthRef", this->mLength);
+		rSerializer.save("LengthCur", this->mCurrentLength);
+		rSerializer.save("Prestress", this->mPreStress);
+		rSerializer.save("LinerEle", this->mIsLinearElement);
 
 	}
 	void TrussElement3D2N::load(Serializer& rSerializer)
@@ -769,6 +775,13 @@ namespace Kratos
 		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
 		rSerializer.load("mIscompressed", this->mIsCompressed);
 		rSerializer.load("mIsCable", this->mIsCable);
+		rSerializer.load("Area", this->mArea);
+		rSerializer.load("Density", this->mDensity);
+		rSerializer.load("YoungsModulus", this->mYoungsModulus);
+		rSerializer.load("LengthRef", this->mLength);
+		rSerializer.load("LengthCur", this->mCurrentLength);
+		rSerializer.load("Prestress", this->mPreStress);
+		rSerializer.load("LinerEle", this->mIsLinearElement);
 	}
 } // namespace Kratos.
 

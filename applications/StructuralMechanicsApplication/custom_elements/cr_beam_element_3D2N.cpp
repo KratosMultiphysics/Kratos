@@ -1809,6 +1809,24 @@ namespace Kratos
 		rSerializer.save("QuaternionVecB", this->mQuaternionVEC_B);
 		rSerializer.save("QuaternionScaA", this->mQuaternionSCA_A);
 		rSerializer.save("QuaternionScaB", this->mQuaternionSCA_B);
+
+		rSerializer.save("Poisson", this->mPoisson);
+		rSerializer.save("Area", this->mArea);
+		rSerializer.save("YoungsModulus", this->mYoungsModulus);
+		rSerializer.save("ShearModulus", this->mShearModulus);
+		rSerializer.save("LengthRef", this->mLength);
+		rSerializer.save("LengthCurr", this->mCurrentLength);
+		rSerializer.save("Density", this->mDensity);
+		rSerializer.save("InertiaIT", this->mInertiaX);
+		rSerializer.save("InertiaIY", this->mInertiaY);
+		rSerializer.save("InertiaIZ", this->mInertiaZ);
+		rSerializer.save("EffAreaY", this->mEffAreaY);
+		rSerializer.save("EffAreaZ", this->mEffAreaZ);
+		rSerializer.save("RotInertiaY", this->mRotInertiaY);
+		rSerializer.save("RotInertiaZ", this->mRotInertiaZ);
+		rSerializer.save("PsiY", this->mPsiY);
+		rSerializer.save("PsiZ", this->mPsiZ);
+		rSerializer.save("ThetaInitialRot", this->mtheta);
 	}
 
 	void CrBeamElement3D2N::load(Serializer& rSerializer)
@@ -1830,6 +1848,23 @@ namespace Kratos
 		rSerializer.load("QuaternionScaA", this->mQuaternionSCA_A);
 		rSerializer.load("QuaternionScaB", this->mQuaternionSCA_B);
 
+		rSerializer.load("Poisson", this->mPoisson);
+		rSerializer.load("Area", this->mArea);
+		rSerializer.load("YoungsModulus", this->mYoungsModulus);
+		rSerializer.load("ShearModulus", this->mShearModulus);
+		rSerializer.load("LengthRef", this->mLength);
+		rSerializer.load("LengthCurr", this->mCurrentLength);
+		rSerializer.load("Density", this->mDensity);
+		rSerializer.load("InertiaIT", this->mInertiaX);
+		rSerializer.load("InertiaIY", this->mInertiaY);
+		rSerializer.load("InertiaIZ", this->mInertiaZ);
+		rSerializer.load("EffAreaY", this->mEffAreaY);
+		rSerializer.load("EffAreaZ", this->mEffAreaZ);
+		rSerializer.load("RotInertiaY", this->mRotInertiaY);
+		rSerializer.load("RotInertiaZ", this->mRotInertiaZ);
+		rSerializer.load("PsiY", this->mPsiY);
+		rSerializer.load("PsiZ", this->mPsiZ);
+		rSerializer.load("ThetaInitialRot", this->mtheta);
 	}
 
 } // namespace Kratos.

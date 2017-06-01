@@ -13,6 +13,7 @@
 namespace Kratos
 {
 typedef array_1d<double,3> Vector3;
+typedef std::string string;
 
 // Generalized eigenvalue problem
 KRATOS_CREATE_VARIABLE( int, BUILD_LEVEL )
@@ -55,6 +56,8 @@ KRATOS_CREATE_VARIABLE(double, AREA_EFFECTIVE_Z)
 KRATOS_CREATE_VARIABLE(double, INERTIA_ROT_Y)
 KRATOS_CREATE_VARIABLE(double, INERTIA_ROT_Z)
 KRATOS_CREATE_VARIABLE(Vector, LOCAL_AXES_VECTOR)
+KRATOS_CREATE_VARIABLE(string, HINGE_START)
+KRATOS_CREATE_VARIABLE(string, HINGE_END)
 
 
 // Shell generalized variables
