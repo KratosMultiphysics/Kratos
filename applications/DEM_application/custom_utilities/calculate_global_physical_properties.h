@@ -492,7 +492,35 @@ class SphericElementGlobalPhysicsCalculator
 
       //***************************************************************************************************************
       //***************************************************************************************************************
+      // Check by how much Newton's Third Law is violated
+      array_1d<double, 3> CalculateSumOfInternalForces(ModelPart& r_model_part)
+      {
+            OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(),r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+            double sum_of_contact_forces_x = 0.0;
+            double sum_of_contact_forces_y = 0.0;
+            double sum_of_contact_forces_z = 0.0;
 
+            #pragma omp parallel for reduction(+ : sum_of_contact_forces_x, sum_of_contact_forces_y, sum_of_contact_forces_z)
+            for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
+
+                for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
+                    if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)){
+                        const array_1d<double, 3>& contact_force = (it)->GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCES);
+                        sum_of_contact_forces_x += contact_force[0];
+                        sum_of_contact_forces_y += contact_force[1];
+                        sum_of_contact_forces_z += contact_force[2];
+                    }
+                }
+            }
+
+            array_1d<double, 3> sum_of_contact_forces;
+            sum_of_contact_forces[0] = sum_of_contact_forces_x;
+            sum_of_contact_forces[1] = sum_of_contact_forces_y;
+            sum_of_contact_forces[2] = sum_of_contact_forces_z;
+            return sum_of_contact_forces;
+      }
+      //***************************************************************************************************************
+      //***************************************************************************************************************
         ///@}
         ///@name Access
         ///@{

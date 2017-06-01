@@ -96,27 +96,19 @@ KRATOS_CLASS_POINTER_DEFINITION(BinsObjectDynamicPeriodic);
 BinsObjectDynamicPeriodic(){}
 /// Constructor de bins a bounding box
 
-BinsObjectDynamicPeriodic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd)
-  : BinsObjectDynamic<TConfigure>(ObjectsBegin, ObjectsEnd)
-{}
-
 BinsObjectDynamicPeriodic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd, const array_1d<double, 3> domain_min, const array_1d<double, 3> domain_max)
-  : BinsObjectDynamic<TConfigure>(ObjectsBegin, ObjectsEnd)
 {
+    // : BinsObjectDynamic<TConfigure>(ObjectsBegin, ObjectsEnd)
+
+    // we must repeat these operations here if we want to still derive from the regular BinsObjectDynamic (template) class
+    this->mObjectsBegin = ObjectsBegin;
+    this->mObjectsEnd = ObjectsEnd;
+    this->mObjectsSize = SearchUtils::PointerDistance(this->mObjectsBegin, this->mObjectsEnd);
     SetDomainLimits(domain_min, domain_max);
+    this->CalculateCellSize(this->mObjectsSize);
+    this->AllocateContainer();
+    GenerateBins();
 }
-
-BinsObjectDynamicPeriodic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd, CoordinateType CellSize)
-  : BinsObjectDynamic<TConfigure>(ObjectsBegin, ObjectsEnd, CellSize)
-{}
-
-BinsObjectDynamicPeriodic (const PointType& MinPoint, const PointType& MaxPoint, CoordinateType CellSize)
-  : BinsObjectDynamic<TConfigure>(MinPoint, MaxPoint, CellSize)
-{}
-
-BinsObjectDynamicPeriodic (const PointType& MinPoint, const PointType& MaxPoint, SizeType NumPoints)
-  : BinsObjectDynamic<TConfigure>(MinPoint, MaxPoint, NumPoints)
-{}
 
 /// Destructor.
 virtual ~BinsObjectDynamicPeriodic(){}
@@ -163,63 +155,18 @@ SizeType SearchObjectsInRadiusExclusive(PointerType& ThisObject, const double& R
 
 protected:
 
-void CalculateBoundingBox() override
+void GenerateBins() override
 {
     PointType Low, High;
-    TConfigure::CalculateBoundingBox(*this->mObjectsBegin, this->mMinPoint, this->mMaxPoint);
-
-#ifdef _OPENMP
-    SizeType number_of_threads = omp_get_max_threads();
-#else
-    SizeType number_of_threads = 1;
-#endif
-
-    std::vector<SizeType> node_partition;
-    this->CreatePartition(number_of_threads, this->mObjectsSize, node_partition);
-
-    std::vector<PointType> Max(number_of_threads);
-    std::vector<PointType> Min(number_of_threads);
-
-    for(SizeType k=0; k<number_of_threads; k++ )
+    SearchStructureType Box;
+    /// Fill container with objects
+    int i = 0;
+    for(IteratorType i_object = this->mObjectsBegin ; i_object != this->mObjectsEnd ; i_object++)
     {
-        Max[k] = this->mMaxPoint;
-        Min[k] = this->mMinPoint;
-    }
-
-    IteratorType i_begin = this->mObjectsBegin;
-    IteratorType i_end   = this->mObjectsEnd;
-
-    for (IteratorType i_object = i_begin ; i_object != i_end ; i_object++ )
-    {
+        ++i;
         TConfigure::CalculateBoundingBox(*i_object, Low, High);
-        for(SizeType i = 0 ; i < Dimension ; i++)
-        {
-            this->mMaxPoint[i] = (this->mMaxPoint[i] < High[i]) ? High[i] : this->mMaxPoint[i];
-            this->mMinPoint[i] = (this->mMinPoint[i] > Low[i])  ? Low[i]  : this->mMinPoint[i];
-        }
-    }
-
-    PointType Epsilon = this->mMaxPoint - this->mMinPoint;
-
-    for(SizeType i = 0 ; i < Dimension ; i++)
-    {
-        this->mMaxPoint[i] += Epsilon[i] * 0.01;
-        this->mMinPoint[i] -= Epsilon[i] * 0.01;
-    }
-
-//    PointType mid_box;
-//    PointType spans;
-
-//    for(SizeType i = 0 ; i < Dimension ; i++){
-//        mid_box[i] = 0.5 * (this->mDomainMax[i] + this->mDomainMin[i]);
-//        spans[i] = std::max(mid_box[i] - this->mMinPoint[i], this->mMaxPoint[i] - mid_box[i]);
-//        this->mMaxPoint[i] = std::min(this->mDomainMax[i], mid_box[i] + spans[i]);
-//        this->mMinPoint[i] = std::max(this->mDomainMin[i], mid_box[i] - spans[i]);
-//    }
-
-    for(SizeType i = 0 ; i < Dimension ; i++){
-        this->mMaxPoint[i] = this->mDomainMax[i];
-        this->mMinPoint[i] = this->mDomainMin[i];
+        Box.Set( this->CalculateCell(Low), this->CalculateCell(High), this->mN );
+        FillObjectPeriodic(Box, *i_object);
     }
 }
 
@@ -232,7 +179,7 @@ void SearchInRadiusExclusivePeriodic(PointerType& ThisObject, CoordinateType con
 
   for(SizeType i = 0; i < 3; i++)
   {
-      MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * this->mCellSize[i] + this->mMinPoint[i];  //
+      MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * this->mCellSize[i] + this->mMinPoint[i];
       MaxBox[i] = MinBox[i] + this->mCellSize[i];
   }
 
@@ -259,12 +206,12 @@ void SearchInRadiusExclusivePeriodic(PointerType& ThisObject, CoordinateType con
           for (IndexType I = I_begin; I_size > 0; NextIndex(I, I_size, MinCell, MaxCell, Box.Axis, 0))
           {
               IndexType GlobalIndex = III * Box.Axis[2].Block + II * Box.Axis[1].Block + I * Box.Axis[0].Block;
-              this->mCells[GlobalIndex].SearchObjectsInRadiusExclusive(ThisObject, Radius, Result, NumberOfResults, MaxNumberOfResults);
+              //this->mCells[GlobalIndex].SearchObjectsInRadiusExclusive(ThisObject, Radius, Result, NumberOfResults, MaxNumberOfResults);
 
-//              if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell, Radius))
-//              {
-//                  this->mCells[GlobalIndex].SearchObjectsInRadiusExclusive(ThisObject, Radius, Result, NumberOfResults, MaxNumberOfResults);
-//              }
+              if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell, Radius))
+              {
+                  this->mCells[GlobalIndex].SearchObjectsInRadiusExclusive(ThisObject, Radius, Result, NumberOfResults, MaxNumberOfResults);
+              }
           }
       }
    }
@@ -280,10 +227,12 @@ void SearchInRadiusExclusivePeriodic(PointerType& ThisObject, CoordinateType con
 
     for(SizeType i = 0; i < 3; i++)
     {
-        MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * this->mCellSize[i] + this->mMinPoint[i];  //
+        MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * this->mCellSize[i] + this->mMinPoint[i];
         MaxBox[i] = MinBox[i] + this->mCellSize[i];
     }
 
+    MinCell[2] = MinBox[2];
+    MaxCell[2] = MaxBox[2];
     IndexType I_begin = Box.Axis[0].BeginIndex();
     IndexType II_begin = Box.Axis[1].BeginIndex();
     IndexType III_begin = Box.Axis[2].BeginIndex();
@@ -305,11 +254,11 @@ void SearchInRadiusExclusivePeriodic(PointerType& ThisObject, CoordinateType con
             for (IndexType I = I_begin; I_size > 0; NextIndex(I, I_size, MinCell, MaxCell, Box.Axis, 0))
             {
                 IndexType GlobalIndex = III * Box.Axis[2].Block + II * Box.Axis[1].Block + I * Box.Axis[0].Block;
-                this->mCells[GlobalIndex].SearchObjectsInRadiusExclusive(ThisObject, Radius, Result, ResultDistances, NumberOfResults, MaxNumberOfResults);
-//                if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell, Radius))
-//                {
-//                    this->mCells[GlobalIndex].SSearchObjectsInRadiusExclusiveearchObjectsInRadiusExclusive(ThisObject, Radius, Result, ResultDistances, NumberOfResults, MaxNumberOfResults);
-//                }
+                //this->mCells[GlobalIndex].SearchObjectsInRadiusExclusive(ThisObject, Radius, Result, ResultDistances, NumberOfResults, MaxNumberOfResults);
+                if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell, Radius))
+                {
+                    this->mCells[GlobalIndex].SearchObjectsInRadiusExclusive(ThisObject, Radius, Result, ResultDistances, NumberOfResults, MaxNumberOfResults);
+                }
             }
         }
     }
@@ -350,8 +299,9 @@ void FillObjectPeriodic(SearchStructureType& Box, const PointerType& i_object)
             {
                 IndexType GlobalIndex = III * Box.Axis[2].Block + II * Box.Axis[1].Block + I * Box.Axis[0].Block;
                 this->mCells[GlobalIndex].Add(i_object);
-//                if(TConfigure::IntersectionBox(i_object,MinCell,MaxCell))
+//                if(TConfigure::IntersectionBox(i_object,MinCell,MaxCell)){
 //                    this->mCells[GlobalIndex].Add(i_object);
+//                }
             }
         }
     }
@@ -372,9 +322,14 @@ void SetDomainLimits(const array_1d<double, 3> domain_min, const array_1d<double
     mDomainMax[1] = domain_max[1];
     mDomainMax[2] = domain_max[2];
 
+//    for (SizeType i = 0 ; i < Dimension ; i++){
+//        this->mMaxPoint[i] = std::min(this->mMaxPoint[i], mDomainMax[i]);
+//        this->mMinPoint[i] = std::max(this->mMinPoint[i], mDomainMin[i]);
+//    }
+
     for (SizeType i = 0 ; i < Dimension ; i++){
-        this->mMaxPoint[i] = std::min(this->mMaxPoint[i], mDomainMax[i]);
-        this->mMinPoint[i] = std::max(this->mMinPoint[i], mDomainMin[i]);
+        this->mMaxPoint[i] = mDomainMax[i];
+        this->mMinPoint[i] = mDomainMin[i];
     }
 }
 
@@ -424,8 +379,8 @@ public:
     /// Assignment operator.
     BinsObjectDynamicPeriodic<TConfigure> & operator=(const BinsObjectDynamicPeriodic<TConfigure> & rOther)
     {
-        this-> mMinPoint            = rOther.mMinPoint;
-        this-> mMaxPoint            = rOther.mMaxPoint;
+        this-> mMinPoint           = rOther.mMinPoint;
+        this-> mMaxPoint           = rOther.mMaxPoint;
         this->mObjectsBegin        = rOther.mObjectsBegin;
         this->mObjectsEnd          = rOther.mObjectsEnd;
         this->mObjectsSize         = rOther.mObjectsSize;

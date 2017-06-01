@@ -383,3 +383,8 @@ class Solution(object):
         self.procedures.DeleteFiles()
 
         self.KRATOSprint(self.report.FinalReport(timer))
+
+
+if __name__ == "__main__":
+    Solution().Run()
+    
