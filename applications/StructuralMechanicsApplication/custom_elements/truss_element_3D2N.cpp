@@ -411,7 +411,6 @@ namespace Kratos
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const int LocalSize = NumNodes * dimension;
 
-		this->Initialize();
 		//calculate internal forces
 		VectorType InternalForces = ZeroVector(LocalSize);
 		this->UpdateInternalForces(InternalForces);
@@ -666,7 +665,9 @@ namespace Kratos
 		VectorType f_local = ZeroVector(LocalSize);
 		f_local[0] = -1.00 * N;
 		f_local[3] = 1.00 * N;
+		
 
+		this->mCurrentLength = l;
 		rinternalForces = ZeroVector(LocalSize);
 		noalias(rinternalForces) = prod(TransformationMatrix, f_local);
 		KRATOS_CATCH("");

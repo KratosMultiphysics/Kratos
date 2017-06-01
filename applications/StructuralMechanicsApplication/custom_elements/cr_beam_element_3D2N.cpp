@@ -1078,7 +1078,6 @@ namespace Kratos
 		const int LocalSize = NumNodes * dimension * 2;
 
 		//update displacement_delta
-		this->Initialize();
 		this->UpdateIncrementDeformation();
 
 		//calculate Transformation Matrix
