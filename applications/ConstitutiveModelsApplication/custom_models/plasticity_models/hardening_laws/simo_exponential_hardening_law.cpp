@@ -75,12 +75,9 @@ namespace Kratos
 
     rHardening = this->CalculateAndAddIsotropicHardening(rVariables,rHardening);
 
-    std::cout<<" IsoHardening "<<rHardening;
     double IsoHardening = rHardening;
     
     rHardening = this->CalculateAndAddKinematicHardening(rVariables,rHardening);
-
-    std::cout<<" KinHardening "<<rHardening-IsoHardening<<std::endl;
     
     return rHardening;
 	

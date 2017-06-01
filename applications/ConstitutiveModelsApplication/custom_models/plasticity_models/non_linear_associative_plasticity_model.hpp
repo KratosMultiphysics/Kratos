@@ -198,11 +198,9 @@ namespace Kratos
 
       // calculate plastic isochoric stress
       this->CalculateAndAddIsochoricStressTensor(Variables,rStressMatrix);      
-
-      std::cout<<" s Isochoric Stress "<<rStressMatrix<<std::endl;
       
       if( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES ) )
-	this->UpdateInternalVariables(rValues, Variables);
+	this->UpdateInternalVariables(rValues, Variables, rStressMatrix);
 
     
       KRATOS_CATCH(" ")
@@ -267,8 +265,6 @@ namespace Kratos
       MatrixType VolumetricStressMatrix;
       VolumetricStressMatrix.clear();
       this->mElasticityModel.CalculateVolumetricStressTensor(rValues,VolumetricStressMatrix);
-
-      std::cout<<" sc Volumetric Stress "<<VolumetricStressMatrix<<std::endl;
       
       // calculate isochoric stress
 
@@ -279,22 +275,18 @@ namespace Kratos
 
       // calculate plastic isochoric stress
       this->CalculateAndAddIsochoricStressTensor(Variables,rStressMatrix);
-      
-      std::cout<<" sc Isochoric Stress "<<rStressMatrix<<std::endl;
-      
+            
       if( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES ) )
-	this->UpdateInternalVariables(rValues, Variables);
+	this->UpdateInternalVariables(rValues, Variables, rStressMatrix);
       
       //Calculate Constitutive Matrix
     
       // calculate elastic constitutive tensor
       this->mElasticityModel.CalculateConstitutiveTensor(rValues,rConstitutiveMatrix);
 
-      Matrix PlasticCM = rConstitutiveMatrix;
       // calculate plastic constitutive tensor
       if( Variables.State().Is(ConstitutiveModelData::PLASTIC_REGION) ){
       	this->CalculateAndAddPlasticConstitutiveTensor(Variables,rConstitutiveMatrix);
-	std::cout<<" Plastic Constitutive "<<rConstitutiveMatrix-PlasticCM<<std::endl;
       }
 
       Variables.State().Set(ConstitutiveModelData::COMPUTED_CONSTITUTIVE_MATRIX,true);
@@ -428,6 +420,9 @@ namespace Kratos
 	KRATOS_ERROR << "calling initialize PlasticityModel .. StressMeasure provided is inconsistent" << std::endl;
       }
 
+      //initialize thermal variables
+      mThermalVariables.PlasticDissipation = 0;
+      mThermalVariables.DeltaPlasticDissipation = 0;	
       
       KRATOS_CATCH(" ")    
     }
@@ -479,8 +474,6 @@ namespace Kratos
       //2.-Check yield condition
       rVariables.TrialStateFunction = this->mYieldCriterion.CalculateYieldCondition(rVariables, rVariables.TrialStateFunction);
 
-      std::cout<<" TrialStateFunction "<<rVariables.TrialStateFunction<<" StressNorm "<<rVariables.StressNorm<<std::endl;
-      
       if( rVariables.State().Is(ConstitutiveModelData::IMPLEX_ACTIVE) ) 
 	{
 	  //3.- Calculate the implex radial return
@@ -586,22 +579,14 @@ namespace Kratos
       Cabcd -= (0.5 * ( rStrainMatrix(a,c) * rStrainMatrix(b,d) + rStrainMatrix(a,d) * rStrainMatrix(b,c) ) );
       
       Cabcd *= 3.0 * rMaterial.GetLameMuBar();
-
-      std::cout<<" Cabcd 1 "<<Cabcd<<std::endl;
       
       Cabcd += ( rStrainMatrix(c,d) * rIsochoricStressMatrix(a,b) + rIsochoricStressMatrix(c,d) * rStrainMatrix(a,b) );
       
       Cabcd *= (-2.0/3.0) * ( (-1) * rFactors.Beta1 );
-
-      std::cout<<" Cabcd 2 "<<Cabcd<<std::endl;
 	    
       Cabcd -= rFactors.Beta3 * 2.0 * rMaterial.GetLameMuBar() * ( rFactors.Normal(a,b) * rFactors.Normal(c,d) );
 
-      std::cout<<" Cabcd 3 "<<Cabcd<<std::endl;
-      
       Cabcd -= rFactors.Beta4 * 2.0 * rMaterial.GetLameMuBar() * ( rFactors.Normal(a,b) * rFactors.Dev_Normal(c,d) );
-
-      std::cout<<" Cabcd 4 "<<Cabcd<<std::endl;
 
       rCabcd += Cabcd;
     
@@ -655,12 +640,6 @@ namespace Kratos
 	  iter++;
 	}
 
-      std::cout<<" iter "<<iter<<std::endl;
-      std::cout<<" mInternal "<<mInternal.Variables<<std::endl;
-      std::cout<<" mPreviousInternal "<<mPreviousInternal.Variables<<std::endl;
-
-      std::cout<<" LocalInternal "<<rVariables.Internal.Variables<<std::endl;
-      std::cout<<" LocalDeltaInternal "<<rVariables.DeltaInternal.Variables<<std::endl;
 
       if(iter>MaxIterations)
 	return false;
@@ -738,7 +717,7 @@ namespace Kratos
     virtual void UpdateStressConfiguration(PlasticDataType& rVariables, MatrixType& rStressMatrix)
     {
       KRATOS_TRY
-	
+
       //Plastic Strain and Back Stress update
       if( rVariables.StressNorm > 0 ){
 
@@ -753,7 +732,7 @@ namespace Kratos
       KRATOS_CATCH(" ")    
     }
 
-    virtual void UpdateInternalVariables(ModelDataType& rValues, PlasticDataType& rVariables)
+    virtual void UpdateInternalVariables(ModelDataType& rValues, PlasticDataType& rVariables, const MatrixType& rStressMatrix)
     {
       KRATOS_TRY
       
@@ -764,14 +743,12 @@ namespace Kratos
       //update mechanical variables
       rEquivalentPlasticStrainOld  = rEquivalentPlasticStrain;
       rEquivalentPlasticStrain    += sqrt(2.0/3.0) * rDeltaGamma;
-	
-      //update thermal variables
-      //mThermalVariables = rVariables.Thermal;
 
+	
       //update total strain measure
       double VolumetricPart = (rValues.StrainMatrix(0,0)+rValues.StrainMatrix(1,1)+rValues.StrainMatrix(2,2)) / (3.0);
 
-      rValues.StrainMatrix  = rValues.StressMatrix;
+      rValues.StrainMatrix  = rStressMatrix;
       rValues.StrainMatrix *= ( 1.0 / rValues.MaterialParameters.LameMu * pow(rValues.GetDeterminantF0(),(2.0/3.0)) );
             
       rValues.StrainMatrix(0,0) += VolumetricPart;
@@ -844,10 +821,10 @@ namespace Kratos
 
 	}
 	
-      std::cout<<"FACTORS:: Beta0 "<<rFactors.Beta0<<" Beta 1 "<<rFactors.Beta1<<" Beta2 "<<rFactors.Beta2<<" Beta3 "<<rFactors.Beta3<<" Beta4 "<<rFactors.Beta4<<std::endl;
+      // std::cout<<"FACTORS:: Beta0 "<<rFactors.Beta0<<" Beta 1 "<<rFactors.Beta1<<" Beta2 "<<rFactors.Beta2<<" Beta3 "<<rFactors.Beta3<<" Beta4 "<<rFactors.Beta4<<std::endl;
 
-      std::cout<<" Normal "<<rFactors.Normal<<std::endl;
-      std::cout<<" Dev_Normal "<<rFactors.Dev_Normal<<std::endl;
+      // std::cout<<" Normal "<<rFactors.Normal<<std::endl;
+      // std::cout<<" Dev_Normal "<<rFactors.Dev_Normal<<std::endl;
 
       KRATOS_CATCH(" ")    
 	  
@@ -864,12 +841,12 @@ namespace Kratos
       mThermalVariables.PlasticDissipation = this->mYieldCriterion.CalculatePlasticDissipation( rVariables, mThermalVariables.PlasticDissipation );
   
 
-      std::cout<<" PlasticDissipation "<<mThermalVariables.PlasticDissipation<<std::endl;
+      //std::cout<<" PlasticDissipation "<<mThermalVariables.PlasticDissipation<<std::endl;
 
       //2.- Thermal Dissipation Increment:
       mThermalVariables.DeltaPlasticDissipation = this->mYieldCriterion.CalculateDeltaPlasticDissipation( rVariables, mThermalVariables.DeltaPlasticDissipation );
 		    		    
-      std::cout<<" DeltaPlasticDissipation "<<mThermalVariables.DeltaPlasticDissipation<<std::endl;
+      //std::cout<<" DeltaPlasticDissipation "<<mThermalVariables.DeltaPlasticDissipation<<std::endl;
 
       KRATOS_CATCH(" ")    
     }
