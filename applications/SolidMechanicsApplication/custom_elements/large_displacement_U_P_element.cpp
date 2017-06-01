@@ -1096,7 +1096,10 @@ void LargeDisplacementUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, P
 
     // this->CalculateTotalMass( TotalMass, rCurrentProcessInfo );
 
-    // if ( dimension == 2 ) TotalMass *= GetProperties()[THICKNESS];
+    // if ( dimension == 2 ){
+    //   if ( this->GetProperties().Has( THICKNESS ) )
+    // 	TotalMass *= GetProperties()[THICKNESS];
+    // }
 
     // Vector LumpFact(number_of_nodes);
     // noalias(LumpFact) = ZeroVector(number_of_nodes);

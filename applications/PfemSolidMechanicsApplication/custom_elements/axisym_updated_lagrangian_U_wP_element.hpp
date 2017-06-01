@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/updated_lagrangian_U_wP_element.hpp"
+#include "custom_elements/axisym_updated_lagrangian_element.hpp"
 
 namespace Kratos
 {
@@ -38,7 +38,7 @@ namespace Kratos
 
 
 class AxisymUpdatedLagrangianUwPElement
-    : public UpdatedLagrangianUwPElement
+    : public AxisymUpdatedLagrangianElement
 {
 public:
 
@@ -108,37 +108,48 @@ public:
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
 
+    //************* GETTING METHODS
+
+    //GET:
+
+    /**
+     * Get on rVariable a double Value from the Element Constitutive Law
+     */
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+    void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo);
+
+    //************* STARTING - ENDING  METHODS
 
 
     /**
-     * Calculate Element Kinematics
+    * Sets on rElementalDofList the degrees of freedom of the considered element geometry
      */
-    virtual void CalculateKinematics(GeneralVariables& rVariables,
-                                     const double& rPointNumber);
-
+    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
 
     /**
-     * Calculation of the Deformation Gradient F
+     * Sets on rResult the ID's of the element degrees of freedom
      */
-    void CalculateDeformationGradient(const Matrix& rDN_DX,
-                                      Matrix& rF,
-                                      Matrix& rDeltaPosition,
-                                      double& rCurrentRadius,
-                                      double& rReferenceRadius);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
     /**
-     * Calculation of the Deformation Matrix  BL
+     * Sets on rValues the nodal displacements
      */
-    using UpdatedLagrangianUwPElement::CalculateDeformationMatrix; //We put this because the compiler complains: AxisymUpdatedLagrangianUwPElement::CalculateDeformationMatrix' hides overloaded virtual function
-    virtual void CalculateDeformationMatrix(Matrix& rB,
-                                            Matrix& rF,
-                                            Vector& rN,
-                                            double& rCurrentRadius);
+    void GetValuesVector(Vector& rValues, int Step = 0);
+
+    /**
+     * Sets on rValues the nodal velocities
+     */
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
+
+    /**
+     * Sets on rValues the nodal accelerations
+     */
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
 
 
-    virtual void CalculateRadius(double & rCurrentRadius, double & rReferenceRadius, const Vector& rN);
-
-    virtual void Initialize();
 
     ///@}
     ///@name Access
@@ -162,27 +173,10 @@ protected:
     ///@{
 
 
-    /**
-     * Container for historical total elastic deformation measure F0 = dx/dX
-     */
-    //std::vector< Matrix > mDeformationGradientF0;
-
-
-    /**
-     * Container for the total deformation gradient determinants
-     */
-    //Vector mDeterminantF0;
-
-
     /**** 
        the time step (requiered). It shall be somewhere else.
     ****/    
-    //double mTimeStep;
-
-    /*** 
-        Just to check a few things
-     ***/
-    //bool mCompressibleWater;
+    double mTimeStep;
 
     ///@}
     ///@name Protected Operators
@@ -191,6 +185,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
 
     /**
      * Calculation and addition of the matrices of the LHS
@@ -214,87 +209,24 @@ protected:
      */
     virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
-   /**
-     * Finalize Element Internal Variables
-     */
-    //virtual void FinalizeStepVariables(GeneralVariables & rVariables, const double& rPointNumber);
-
-
+ 
 
     /**
-     * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
+     * Initialize System Matrices
      */
-    virtual void CalculateAndAddKuum(MatrixType& rK,
-                                     GeneralVariables & rVariables,
-                                     double& rIntegrationWeight
-                                    );
+    void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
+                                  VectorType& rRightHandSideVector,
+                                  Flags& rCalculationFlags);
 
+    //on integration points:
     /**
-     * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
+     * Calculate a double Variable on the Element Constitutive Law
      */
-    virtual void CalculateAndAddKuug(MatrixType& rK,
-                                     GeneralVariables & rVariables,
-                                     double& rIntegrationWeight
-                                    );
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
-    /**
-     * Calculation of the Kup matrix
-     */
-    virtual void CalculateAndAddKup (MatrixType& rK,
-                                     GeneralVariables & rVariables,
-                                     double& rIntegrationWeight
-                                    );
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
-    /**
-     * Calculation of the Kpu matrix
-     */
-    virtual void CalculateAndAddKpu(MatrixType& rK,
-                                    GeneralVariables & rVariables,
-                                    double& rIntegrationWeight
-                                   );
-
-
-    /**
-     * Calculation of the Kpp matrix
-     */
-    virtual void CalculateAndAddKpp(MatrixType& rK,
-                                    GeneralVariables & rVariables,
-                                    double& rIntegrationWeight
-                                   );
-
-
-    /**
-     * Calculation of the Kpp Stabilization Term matrix
-     */
-    virtual void CalculateAndAddKppStab(MatrixType& rK,
-                                        GeneralVariables & rVariables,
-                                        double& rIntegrationWeight
-                                       );
-
-    /**
-     * Calculation of the Internal Forces due to Pressure-Balance
-     */
-    virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-            GeneralVariables & rVariables,
-            double& rIntegrationWeight
-                                              );
-
-
-    /**
-     * Calculation of the Internal Forces due to Pressure-Balance
-     */
-    virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-            GeneralVariables & rVariables,
-            double& rIntegrationWeight
-                                                  );
-
-    /**
-      * Calculation of the Internal Forces due to sigma. Fi = B * sigma
-      */
-    virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-                                       GeneralVariables & rVariables,
-                                       double& rIntegrationWeight
-                                      );
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Protected  Access

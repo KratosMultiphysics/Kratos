@@ -117,6 +117,16 @@ namespace Kratos
           */
          void Initialize();
 
+         //************* COMPUTING  METHODS
+
+         /**
+          * this is called during the assembling process in order
+          * to calculate the elemental mass matrix
+          * @param rMassMatrix: the elemental mass matrix
+          * @param rCurrentProcessInfo: the current process info instance
+          */
+         void CalculateMassMatrix(MatrixType& rMassMatrix, 
+               ProcessInfo& rCurrentProcessInfo);
 
 
          //************************************************************************************

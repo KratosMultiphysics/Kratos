@@ -706,12 +706,10 @@ namespace Kratos
 
          ProcessInfo SomeProcessInfo;
          std::vector<double> Values;
-         //this->GetValueOnIntegrationPoints( SIMILAR_SHEAR_MODULUS, Values, SomeProcessInfo);
-         LargeDisplacementElement::GetValueOnIntegrationPoints( SIMILAR_SHEAR_MODULUS, Values, SomeProcessInfo);
+         LargeDisplacementElement::GetValueOnIntegrationPoints( SHEAR_MODULUS, Values, SomeProcessInfo);
          AlphaStabilization /= Values[0];
 
-         //GetValueOnIntegrationPoints( SIMILAR_BULK_MODULUS, Values, SomeProcessInfo);
-         LargeDisplacementElement::GetValueOnIntegrationPoints( SIMILAR_BULK_MODULUS, Values, SomeProcessInfo);
+         LargeDisplacementElement::GetValueOnIntegrationPoints( BULK_MODULUS, Values, SomeProcessInfo);
          AlphaStabilization *= Values[0];
 
       }
@@ -1147,10 +1145,6 @@ namespace Kratos
    {
       //double ScalingConstant = GetProperties()[YOUNG_MODULUS]/(3*(1-2*GetProperties()[POISSON_RATIO]));
       rScalingConstant = 1.0;
-      double Something = GetProperties()[MY_SCALING_CONSTANT];
-      if ( Something > 1e-6) {
-         rScalingConstant = Something; 
-      }
       rDeltaTime  = GetProperties()[DELTA_TIME];
       rDeltaTime = mTimeStep;
       rPermeability = GetProperties()[PERMEABILITY];
@@ -1163,16 +1157,12 @@ namespace Kratos
 
    void AxisymUpdatedLagrangianUPwPElement::save( Serializer& rSerializer ) const
    {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement )
-         rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
-      rSerializer.save("DeterminantF0",mDeterminantF0);
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, AxisymUpdatedLagrangianUPressureElement )
    }
 
    void AxisymUpdatedLagrangianUPwPElement::load( Serializer& rSerializer )
    {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement )
-         rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
-      rSerializer.load("DeterminantF0",mDeterminantF0);
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, AxisymUpdatedLagrangianUPressureElement )
    }
 
 

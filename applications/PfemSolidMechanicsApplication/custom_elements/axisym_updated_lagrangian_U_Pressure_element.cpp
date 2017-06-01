@@ -19,6 +19,7 @@
 
 
 // axisym UP Element ( with coupled volumetric and deviatoric behaviour)
+// (some part of the code is copied from AxisymUpdatedLagrangianUPElement (since it is not derived, I copy code)
 
 namespace Kratos
 {
@@ -28,7 +29,7 @@ namespace Kratos
    //************************************************************************************
    // Aquest a l'altre no hi és....
    AxisymUpdatedLagrangianUPressureElement::AxisymUpdatedLagrangianUPressureElement()
-      : UpdatedLagrangianUPSecondElement()
+      : UpdatedLagrangianUPressureElement()
    {
       //DO NOT CALL IT: only needed for Register and Serialization!!!
    }
@@ -38,7 +39,7 @@ namespace Kratos
    //************************************************************************************
 
    AxisymUpdatedLagrangianUPressureElement::AxisymUpdatedLagrangianUPressureElement( IndexType NewId, GeometryType::Pointer pGeometry )
-      : UpdatedLagrangianUPSecondElement( NewId, pGeometry )
+      : UpdatedLagrangianUPressureElement( NewId, pGeometry )
    {
       //DO NOT ADD DOFS HERE!!!
    }
@@ -48,7 +49,7 @@ namespace Kratos
    //************************************************************************************
 
    AxisymUpdatedLagrangianUPressureElement::AxisymUpdatedLagrangianUPressureElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-      : UpdatedLagrangianUPSecondElement( NewId, pGeometry, pProperties )
+      : UpdatedLagrangianUPressureElement( NewId, pGeometry, pProperties )
    {
    }
 
@@ -57,7 +58,7 @@ namespace Kratos
    //************************************************************************************
 
    AxisymUpdatedLagrangianUPressureElement::AxisymUpdatedLagrangianUPressureElement( AxisymUpdatedLagrangianUPressureElement const& rOther)
-      :UpdatedLagrangianUPSecondElement(rOther)
+      :UpdatedLagrangianUPressureElement(rOther)
    {
    }
 
@@ -67,7 +68,7 @@ namespace Kratos
 
    AxisymUpdatedLagrangianUPressureElement&  AxisymUpdatedLagrangianUPressureElement::operator=(AxisymUpdatedLagrangianUPressureElement const& rOther)
    {
-      UpdatedLagrangianUPSecondElement::operator=(rOther);
+      UpdatedLagrangianUPressureElement::operator=(rOther);
 
       return *this;
    }
@@ -153,7 +154,7 @@ namespace Kratos
       this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
       if(LawFeatures.mOptions.Is(ConstitutiveLaw::U_P_LAW))
-         KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the U-P element type ", " UpdatedLagrangianUPSecondElement" );
+         KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the U-P element type ", " UpdatedLagrangianUPressureElement" );
 
       //verify that the variables are correctly initialized
 
@@ -174,7 +175,7 @@ namespace Kratos
 
       double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
 
-      UpdatedLagrangianUPSecondElement::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight);
+      UpdatedLagrangianUPressureElement::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight);
    }
 
 
@@ -185,7 +186,7 @@ namespace Kratos
    {
       double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
 
-      UpdatedLagrangianUPSecondElement::CalculateAndAddRHS( rLocalSystem, rVariables, rVolumeForce, IntegrationWeight);
+      UpdatedLagrangianUPressureElement::CalculateAndAddRHS( rLocalSystem, rVariables, rVolumeForce, IntegrationWeight);
 
    }
 
@@ -266,12 +267,10 @@ namespace Kratos
 
          ProcessInfo SomeProcessInfo;
          std::vector<double> Values;
-         //this->GetValueOnIntegrationPoints( SIMILAR_SHEAR_MODULUS, Values, SomeProcessInfo);
-         LargeDisplacementElement::GetValueOnIntegrationPoints( SIMILAR_SHEAR_MODULUS, Values, SomeProcessInfo);
+         LargeDisplacementElement::GetValueOnIntegrationPoints( SHEAR_MODULUS, Values, SomeProcessInfo);
          AlphaStabilization /= Values[0];
 
-         //GetValueOnIntegrationPoints( SIMILAR_BULK_MODULUS, Values, SomeProcessInfo);
-         LargeDisplacementElement::GetValueOnIntegrationPoints( SIMILAR_BULK_MODULUS, Values, SomeProcessInfo);
+         LargeDisplacementElement::GetValueOnIntegrationPoints( BULK_MODULUS, Values, SomeProcessInfo);
          AlphaStabilization *= Values[0];
 
       }
@@ -352,7 +351,17 @@ namespace Kratos
             double voigtnumber = 1.0;
             if ( j > 2)
                voigtnumber = 1.00;
-            ECConstitutiveMatrix(i,j) -= (2.0/3.0) *voigtnumber* rVariables.StressVector(j);
+            ECConstitutiveMatrix(i,j) -= (2.0/6.0) *voigtnumber* rVariables.StressVector(j);
+         }
+      }
+
+      // LMV: try to put the sim part
+      for (unsigned int i = 0; i < 3; i++) {
+         for (unsigned int j = 0; j < 6; j++) {
+           double voigtnumber = 1.0;
+           if ( j > 2)
+              voigtnumber = 1.00;
+           ECConstitutiveMatrix(j,i) -= (2.0/6.0) *voigtnumber* rVariables.StressVector(j);
          }
       }
 
@@ -692,12 +701,10 @@ namespace Kratos
 
          ProcessInfo SomeProcessInfo;
          std::vector<double> Values;
-         //this->GetValueOnIntegrationPoints( SIMILAR_SHEAR_MODULUS, Values, SomeProcessInfo);
-         LargeDisplacementElement::GetValueOnIntegrationPoints( SIMILAR_SHEAR_MODULUS, Values, SomeProcessInfo);
+         LargeDisplacementElement::GetValueOnIntegrationPoints( SHEAR_MODULUS, Values, SomeProcessInfo);
          AlphaStabilization /= Values[0];
 
-         //GetValueOnIntegrationPoints( SIMILAR_BULK_MODULUS, Values, SomeProcessInfo);
-         LargeDisplacementElement::GetValueOnIntegrationPoints( SIMILAR_BULK_MODULUS, Values, SomeProcessInfo);
+         LargeDisplacementElement::GetValueOnIntegrationPoints( BULK_MODULUS, Values, SomeProcessInfo);
          AlphaStabilization *= Values[0];
 
 
@@ -726,34 +733,6 @@ namespace Kratos
 
 
       KRATOS_CATCH( "" )
-   }
-
-
-
-   // CHARACTERISTIC ELEMENT SIZE ACCORDING TO SOME PAPER
-   double AxisymUpdatedLagrangianUPressureElement::GetElementSize( const Matrix& rDN_DX)
-   {
-      double he = 0.0;
-
-      unsigned int number_of_nodes = rDN_DX.size1();
-      unsigned int dimension = rDN_DX.size2();
-
-      double aux;
-      for (unsigned int i = 0; i < number_of_nodes; i++)
-      {
-         aux = 0;
-         for (unsigned int p = 0; p < dimension ; p++)
-         {
-            aux += rDN_DX(i,p);
-         }
-         he += fabs(aux);
-      }
-      he *= sqrt( double(dimension) );
-      he = 4.0/he;
-
-      return he;
-      // this size is recomended from Sun, Ostien and Salinger (IJNAMG, 2013)
-      // the same multiplied by two in order to...
    }
 
    //*************************COMPUTE DEFORMATION GRADIENT*******************************
@@ -1002,7 +981,7 @@ namespace Kratos
       KRATOS_TRY
 
 
-      UpdatedLagrangianUPSecondElement::Initialize();
+      LargeDisplacementElement::Initialize();
 
       SizeType integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
 
@@ -1178,16 +1157,12 @@ namespace Kratos
 
    void AxisymUpdatedLagrangianUPressureElement::save( Serializer& rSerializer ) const
    {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement )
-         rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
-      rSerializer.save("DeterminantF0",mDeterminantF0);
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UpdatedLagrangianUPressureElement )
    }
 
    void AxisymUpdatedLagrangianUPressureElement::load( Serializer& rSerializer )
    {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement )
-         rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
-      rSerializer.load("DeterminantF0",mDeterminantF0);
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UpdatedLagrangianUPressureElement )
    }
 
 
