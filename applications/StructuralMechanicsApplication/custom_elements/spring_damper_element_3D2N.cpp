@@ -349,9 +349,9 @@ void SpringDamperElement3D2N::CalculateRightHandSide(VectorType& rRightHandSideV
 
         if ( iNode.SolutionStepsDataHas( VOLUME_ACCELERATION ) && iNode.Has( NODAL_MASS ) )
         {
-            external_forces[index]   = iNode.FastGetSolutionStepValue( VOLUME_ACCELERATION_X ) * iNode.GetValue( NODAL_MASS );
-            external_forces[index+1] = iNode.FastGetSolutionStepValue( VOLUME_ACCELERATION_Y ) * iNode.GetValue( NODAL_MASS );
-            external_forces[index+2] = iNode.FastGetSolutionStepValue( VOLUME_ACCELERATION_Z ) * iNode.GetValue( NODAL_MASS );
+            // external_forces[index]   = iNode.FastGetSolutionStepValue( VOLUME_ACCELERATION_X ) * iNode.GetValue( NODAL_MASS );
+            // external_forces[index+1] = iNode.FastGetSolutionStepValue( VOLUME_ACCELERATION_Y ) * iNode.GetValue( NODAL_MASS );
+            // external_forces[index+2] = iNode.FastGetSolutionStepValue( VOLUME_ACCELERATION_Z ) * iNode.GetValue( NODAL_MASS );
         }
 
         // if ( iNode.Has( NODAL_MASS ) )
@@ -374,7 +374,8 @@ void SpringDamperElement3D2N::CalculateRightHandSide(VectorType& rRightHandSideV
     //     rRightHandSideVector[i] += external_forces[i] * nodal_mass[i/OPT_NUM_DIMS];
     //     // rRightHandSideVector[j]  += external_forces[j] * Nodal_Mass;
     // }
-    noalias( rRightHandSideVector ) += external_forces;
+    rRightHandSideVector += external_forces;
+    // noalias( rRightHandSideVector ) += external_forces;
 
     // Compute and add internal forces
     // Calculate current length of the element
