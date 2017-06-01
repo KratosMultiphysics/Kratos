@@ -1,8 +1,8 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-from KratosMultiphysics import *
-from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.StructuralMechanicsApplication import * # TODO: Just import!!!!
+import KratosMultiphysics
+import KratosMultiphysics.SolidMechanicsApplication as SolidMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 import os
 import process_factory
@@ -13,8 +13,8 @@ class Kratos_Execute_Test:
 
         self.ProjectParameters = ProjectParameters
 
-        self.main_model_part = ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
-        self.main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
+        self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
 
         self.Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString(): self.main_model_part}
 
@@ -65,7 +65,7 @@ class Kratos_Execute_Test:
         if (self.output_post == True):
             from gid_output_process import GiDOutputProcess
             output_settings = ProjectParameters["output_configuration"]
-            self.gid_output = GiDOutputProcess(self.computing_model_part,
+            self.gid_output = KratosMultiphysics.GiDOutputProcess(self.computing_model_part,
                                                self.problem_name,
                                                output_settings)
             self.gid_output.ExecuteInitialize()
@@ -85,7 +85,7 @@ class Kratos_Execute_Test:
         # Delta time
         delta_time = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
         # Start step
-        self.main_model_part.ProcessInfo[TIME_STEPS] = 0
+        self.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS] = 0
         # Start time
         time = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
         # End time
@@ -94,7 +94,7 @@ class Kratos_Execute_Test:
         # Solving the problem (time integration)
         while(time <= end_time):
             time = time + delta_time
-            self.main_model_part.ProcessInfo[TIME_STEPS] += 1
+            self.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS] += 1
             self.main_model_part.CloneTimeStep(time)
 
             for process in self.list_of_processes:
