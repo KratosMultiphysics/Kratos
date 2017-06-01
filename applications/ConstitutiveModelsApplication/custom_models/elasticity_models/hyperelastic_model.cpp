@@ -26,6 +26,15 @@ namespace Kratos
     : ConstitutiveModel()
     , msIdentityMatrix( identity_matrix<double>(3) )
   {
+    KRATOS_TRY
+
+    mStrainVector.clear();
+    
+    mStrainVector[0] = 1.0;
+    mStrainVector[1] = 1.0;    
+    mStrainVector[2] = 1.0;
+
+    KRATOS_CATCH(" ")    
   }
 
   //******************************COPY CONSTRUCTOR**************************************
@@ -34,6 +43,7 @@ namespace Kratos
   HyperElasticModel::HyperElasticModel(const HyperElasticModel& rOther)
     : ConstitutiveModel(rOther)
     , msIdentityMatrix(rOther.msIdentityMatrix)
+    , mStrainVector(rOther.mStrainVector)
   {
   }
 
@@ -50,6 +60,7 @@ namespace Kratos
   HyperElasticModel& HyperElasticModel::operator=(HyperElasticModel const& rOther)
   {
     ConstitutiveModel::operator=(rOther);
+    mStrainVector = rOther.mStrainVector; 
     return *this;
   }
   
@@ -60,86 +71,34 @@ namespace Kratos
   {
   }
 
+
   //***********************PUBLIC OPERATIONS FROM BASE CLASS****************************
   //************************************************************************************
 
-  void HyperElasticModel::CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables)
+  void HyperElasticModel::InitializeModel(ModelDataType& rValues)
   {
     KRATOS_TRY
-
-    //set model data pointer
-    rVariables.SetModelData(rValues);
-    rVariables.SetState(rValues.State);
-    
-    //cauchy green tensor
-    const MatrixType& rStrainMatrix          = rValues.GetStrainMatrix();
-    const MatrixType& rDeformationGradientF0 = rValues.GetDeformationGradientF0();
-
-    const StrainMeasureType& rStrainMeasure = rValues.GetStrainMeasure();
-    const StressMeasureType& rStressMeasure = rValues.GetStressMeasure();
-    
-    if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Strain.Matrix = RightCauchyGreen (C=FT*F)  C^-1=(FT*F)^-1=F^-1*FT^-1
-      
-      if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Right ){
-	noalias(rVariables.Strain.Matrix) = rStrainMatrix;
-	ConstitutiveModelUtilities::InvertMatrix3( rVariables.Strain.Matrix, rVariables.Strain.InverseMatrix, rVariables.Strain.Invariants.I3 );
-	rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
-      }
-      else if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_None ){
-	noalias(rVariables.Strain.Matrix) = prod(trans(rDeformationGradientF0), rDeformationGradientF0);
-	ConstitutiveModelUtilities::InvertMatrix3( rVariables.Strain.Matrix, rVariables.Strain.InverseMatrix, rVariables.Strain.Invariants.I3 );
-
-	rValues.StrainMatrix = rVariables.Strain.Matrix;
-	rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
-      }
-      else{
-	KRATOS_ERROR << "calling initialize HyperElasticModel .. StrainMeasure provided is inconsistent" << std::endl;
-      }
-      
-    }
-    else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Strain.Matrix = LeftCauchyGreen (b=F*FT)
-
-      if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Left ){
-	noalias(rVariables.Strain.Matrix) = rStrainMatrix;
-	ConstitutiveModelUtilities::InvertMatrix3( rVariables.Strain.Matrix, rVariables.Strain.InverseMatrix, rVariables.Strain.Invariants.I3 );
-	rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
-      }
-      else if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_None ){
-	noalias(rVariables.Strain.Matrix) = prod(rDeformationGradientF0,trans(rDeformationGradientF0));
-	ConstitutiveModelUtilities::InvertMatrix3( rVariables.Strain.Matrix, rVariables.Strain.InverseMatrix, rVariables.Strain.Invariants.I3 );
-
-	rValues.StrainMatrix = rVariables.Strain.Matrix;
-	rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
-      }
-      else{
-	KRATOS_ERROR << "calling initialize HyperElasticModel .. StrainMeasure provided is inconsistent" << std::endl;
-      }
-           
-    }
-    else{
-      KRATOS_ERROR << "calling initialize HyperElasticModel .. StressMeasure required is inconsistent"  << std::endl;
-    }
-
-    //Calculate Invariants
-    this->CalculateInvariants(rVariables);
-
-    //Calculate LameMuBar
-    rValues.MaterialParameters.LameMuBar =  rValues.MaterialParameters.LameMu * ( rVariables.Strain.Matrix(0,0) + rVariables.Strain.Matrix(1,1) + rVariables.Strain.Matrix(2,2) ) * rVariables.Strain.Invariants.J_13 * rVariables.Strain.Invariants.J_13 * (1.0/3.0) ;    
-
-    //std::cout<<" LameMuBar "<<rValues.MaterialParameters.LameMuBar<<std::endl;
-    
-    //Algorithmic moduli factors
-    this->CalculateScalingFactors(rVariables);
 
       
     KRATOS_CATCH(" ")
   }
 
-
-
   //************************************************************************************
   //************************************************************************************
 
+  void HyperElasticModel::FinalizeModel(ModelDataType& rValues)
+  {
+    KRATOS_TRY
+      
+    //update total strain measure
+    mStrainVector = ConstitutiveModelUtilities::SymmetricTensorToVector(rValues.StrainMatrix, mStrainVector);
+    
+    KRATOS_CATCH(" ")
+  }
+
+  //************************************************************************************
+  //************************************************************************************
+  
   void HyperElasticModel::CalculateStrainEnergy(ModelDataType& rValues, double& rDensityFunction)
   {
     KRATOS_TRY
@@ -432,6 +391,86 @@ namespace Kratos
   }
 
 
+
+  //***********************PROTECTED OPERATIONS FROM BASE CLASS*************************
+  //************************************************************************************
+
+  void HyperElasticModel::CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables)
+  {
+    KRATOS_TRY
+
+    //set model data pointer
+    rVariables.SetModelData(rValues);
+    rVariables.SetState(rValues.State);
+    
+    //deformation gradient
+    const MatrixType& rDeformationGradientF = rValues.GetDeformationGradientF();
+    
+    const StressMeasureType& rStressMeasure = rValues.GetStressMeasure();
+    
+    if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Strain.Matrix = RightCauchyGreen (C=FT*F)  C^-1=(FT*F)^-1=F^-1*FT^-1
+
+      //set working strain measure
+      rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_Right);
+      
+      //historical strain matrix
+      rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(mStrainVector,rValues.StrainMatrix);
+
+      //current strain matrix
+      noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,rDeformationGradientF);
+      noalias(rValues.StrainMatrix) = prod(trans(rDeformationGradientF), rVariables.Strain.Matrix);
+
+      noalias(rVariables.Strain.Matrix) = rValues.StrainMatrix;     
+      
+      //inverted strain measure
+      ConstitutiveModelUtilities::InvertMatrix3( rVariables.Strain.Matrix, rVariables.Strain.InverseMatrix, rVariables.Strain.Invariants.I3 );
+      
+      rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
+      
+      
+    }
+    else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Strain.Matrix = LeftCauchyGreen (b=F*FT)
+
+      //set working strain measure
+      rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_Left);
+     
+      //historical strain matrix
+      rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(mStrainVector,rValues.StrainMatrix);
+
+      //current strain matrix
+      noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,trans(rDeformationGradientF));
+      noalias(rValues.StrainMatrix) = prod(rDeformationGradientF, rVariables.Strain.Matrix);
+
+      noalias(rVariables.Strain.Matrix) = rValues.StrainMatrix;
+
+      //inverted strain measure
+      ConstitutiveModelUtilities::InvertMatrix3( rVariables.Strain.Matrix, rVariables.Strain.InverseMatrix, rVariables.Strain.Invariants.I3 );
+      rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
+      
+    }
+    else{
+
+      //set working strain measure
+      rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_None);
+      KRATOS_ERROR << "calling initialize HyperElasticModel .. StressMeasure is inconsistent"  << std::endl;
+      
+    }
+
+    //Calculate Invariants
+    this->CalculateInvariants(rVariables);
+
+    //Calculate LameMuBar
+    rValues.MaterialParameters.LameMuBar =  rValues.MaterialParameters.LameMu * ( rVariables.Strain.Matrix(0,0) + rVariables.Strain.Matrix(1,1) + rVariables.Strain.Matrix(2,2) ) * rVariables.Strain.Invariants.J_13 * rVariables.Strain.Invariants.J_13 * (1.0/3.0) ;    
+
+    //std::cout<<" LameMuBar "<<rValues.MaterialParameters.LameMuBar<<std::endl;
+    
+    //Algorithmic moduli factors
+    this->CalculateScalingFactors(rVariables);
+
+      
+    KRATOS_CATCH(" ")
+  }
+  
   //************************************************************************************
   //************************************************************************************
   

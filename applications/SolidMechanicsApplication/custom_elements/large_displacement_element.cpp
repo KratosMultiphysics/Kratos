@@ -646,7 +646,6 @@ void LargeDisplacementElement::CalculateElementalSystem( LocalSystemComponents& 
     //set constitutive law flags:
     Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
@@ -1375,7 +1374,6 @@ void LargeDisplacementElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
     //set constitutive law flags:
     Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
 
@@ -2325,7 +2323,6 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
         //reading integration points
@@ -2362,7 +2359,6 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY);
 
@@ -2400,7 +2396,6 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
         //reading integration points
@@ -2465,7 +2460,6 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
         //reading integration points
