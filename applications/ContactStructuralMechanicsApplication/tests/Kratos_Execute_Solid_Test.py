@@ -65,7 +65,7 @@ class Kratos_Execute_Test:
         if (self.output_post == True):
             from gid_output_process import GiDOutputProcess
             output_settings = ProjectParameters["output_configuration"]
-            self.gid_output = KratosMultiphysics.GiDOutputProcess(self.computing_model_part,
+            self.gid_output = GiDOutputProcess(self.computing_model_part,
                                                self.problem_name,
                                                output_settings)
             self.gid_output.ExecuteInitialize()
