@@ -114,7 +114,8 @@ protected:
       SurfaceBase    ContravariantBase;
       
       //geometrical variables
-      double EquivalentArea;
+      double ReferenceArea;
+      double CurrentArea;
 
       double FactorArea;
       
@@ -851,9 +852,9 @@ protected:
     /**
      * Calculation of the Material Stiffness Matrix by components
      */
-    virtual void CalcContactStiffness (double &Kcont,GeneralVariables& rVariables,
-				       unsigned int& ndi,unsigned int& ndj,
-				       unsigned int& idir,unsigned int& jdir)
+    virtual void CalculateContactStiffness (double &Kcont,GeneralVariables& rVariables,
+					    unsigned int& ndi,unsigned int& ndj,
+					    unsigned int& idir,unsigned int& jdir)
 	{
 		KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
 

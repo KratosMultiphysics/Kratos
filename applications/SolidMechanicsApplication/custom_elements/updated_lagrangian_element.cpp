@@ -465,6 +465,7 @@ void UpdatedLagrangianElement::CalculateOnIntegrationPoints( const Variable<doub
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
         if( dimension == 2){
+	  if ( this->GetProperties().Has( THICKNESS ) )
             Thickness = GetProperties()[THICKNESS];
         }
 

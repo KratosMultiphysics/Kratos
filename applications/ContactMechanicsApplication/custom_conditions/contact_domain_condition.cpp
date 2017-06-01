@@ -497,8 +497,8 @@ namespace Kratos
   {
     KRATOS_TRY
     
-      //Store historical variables
-      MeshDataTransferUtilities::TransferParameters TransferVariables;
+    //Store historical variables
+    MeshDataTransferUtilities::TransferParameters TransferVariables;
     TransferVariables.SetVariable(CAUCHY_STRESS_VECTOR);
     TransferVariables.SetVariable(DEFORMATION_GRADIENT);
   
@@ -812,7 +812,8 @@ namespace Kratos
 
   void ContactDomainCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
   {
-    
+    //std::cout<<" CalculateRightHandSide "<<std::endl;
+	
     //create local system components   
     LocalSystemComponents LocalSystem;
 
@@ -863,8 +864,6 @@ namespace Kratos
     LocalSystem.SetRightHandSideVariables(rRHSVariables);
 
     //Calculate condition system
-    // std::cout<<" RightHandSide "<<std::endl;
-
     this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
 
 
@@ -877,6 +876,7 @@ namespace Kratos
 
   void ContactDomainCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
   {
+    //std::cout<<" CalculateLocalSystem "<<std::endl;
     
     //create local system components
     LocalSystemComponents LocalSystem;
@@ -1050,7 +1050,8 @@ namespace Kratos
 
   void ContactDomainCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
   {
- 
+    //std::cout<<" CalculateLeftHandSide "<<std::endl;
+     
     //create local system components
     LocalSystemComponents LocalSystem;
 
@@ -1067,8 +1068,6 @@ namespace Kratos
     LocalSystem.SetRightHandSideVector(RightHandSideVector);
 
     //Calculate condition system
-    //std::cout<<" LeftHandSide "<<std::endl;
-
     this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
 
   }
@@ -1334,6 +1333,8 @@ namespace Kratos
 
     //std::cout<<"//******** CONTACT ELEMENT "<<this->Id()<<" ********// "<<std::endl;
     //std::cout<<" ["<<GetGeometry()[0].Id()<<","<<GetGeometry()[1].Id()<<","<<GetGeometry()[2].Id()<<"]"<<std::endl;
+    //std::cout<<" ["<<GetGeometry()[0].Coordinates()<<","<<GetGeometry()[1].Coordinates()<<","<<GetGeometry()[2].Coordinates()<<"]"<<std::endl;
+    
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     
     GeneralVariables Variables;
@@ -1361,8 +1362,8 @@ namespace Kratos
 	double IntegrationWeight = 0.5 * Variables.Contact.CurrentBase[0].L;  //all components are multiplied by this
 
 	if(dimension == 3)
-	  IntegrationWeight = (1.0/3.0) * Variables.Contact.Tangent.EquivalentArea;
-	
+	  IntegrationWeight = (1.0/3.0) * Variables.Contact.Tangent.ReferenceArea;
+	  
         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
 
         if(Variables.Contact.Options.Is(ACTIVE))
@@ -1544,7 +1545,7 @@ namespace Kratos
 	      //TANGENT FORCE
 	      this->CalculateTangentSlipForce(Tforce[i],rVariables,ndi,i);
 	      
-	      rRightHandSideVector[index] -=(Nforce[i] + Tforce[i]);
+	      rRightHandSideVector[index] -= (Nforce[i] + Tforce[i]);
 	      
 	      // NormalForce[i]  -= (Nforce[i])*rIntegrationWeight;
 	      // TangentForce[i] -= (Tforce[i])*rIntegrationWeight;
@@ -1601,7 +1602,7 @@ namespace Kratos
                 for (unsigned int j=0; j<dimension; j++)
 		  {
 		    kcont=0;
-		    this->CalcContactStiffness(kcont,rVariables,ndi,ndj,i,j);
+		    this->CalculateContactStiffness(kcont,rVariables,ndi,ndj,i,j);
 		    rLeftHandSideMatrix(ndi*dimension+i,ndj*dimension+j)+=kcont;
 		  }
 	      }
@@ -1609,7 +1610,7 @@ namespace Kratos
       }
 
     rLeftHandSideMatrix *= rIntegrationWeight;
-
+    
     // std::cout<<std::endl;
     // std::cout<<" Kcontact ["<<this->Id()<<"]"<<rLeftHandSideMatrix<<std::endl;
 

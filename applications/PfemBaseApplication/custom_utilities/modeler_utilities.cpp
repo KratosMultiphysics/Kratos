@@ -421,8 +421,6 @@ namespace Kratos
 
 	  }
 
-	// std::cout<<std::endl;
-	// std::cout<<"  [ no:"<<numouter<<";ne:"<<numextra<<";nc:"<<numcoplanar<<";ns: "<<numsamedirection<<";nor:"<<numorthogonal<<"]"<<std::endl;
 	
 	int num = (int)size;
 
@@ -451,7 +449,8 @@ namespace Kratos
 	// if(numorthogonal>=1)
 	//   outer=false;
 	    
-
+	std::cout<<std::endl;
+	std::cout<<"  [ no:"<<numouter<<";ne:"<<numextra<<";nc:"<<numcoplanar<<";ns: "<<numsamedirection<<";nor:"<<numorthogonal<<"] ACCEPTED: "<<outer<<std::endl;
       }
 
     return outer; //if is outside the body domain returns true

@@ -200,12 +200,14 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      const int& Step = mrModelPart.GetProcessInfo()[STEP];
-
+      const int& step = mrModelPart.GetProcessInfo()[STEP];
+      
+      const int& dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
+      
       std::string FileName;
       FileName += mrModelPart.Name();
       FileName += "_points_output_";
-      FileName += std::to_string(Step);
+      FileName += std::to_string(step);
       FileName += ".txt";
       
       std::ofstream File;
@@ -215,11 +217,12 @@ namespace Kratos
       double* OutPointList   = mrRemesh.OutMesh.GetPointList();
       int& OutNumberOfPoints = mrRemesh.OutMesh.GetNumberOfPoints();
 
+      
       unsigned int base = 0;
       for(unsigned int pn=0; pn<OutNumberOfPoints; pn++)
 	{
 	  std::string Point;
-	  for(unsigned int i=0; i<3; i++)
+	  for(unsigned int i=0; i<dimension; i++)
 	    {	      
 	      Point += " ";
 	      Point += std::to_string(OutPointList[base]);
@@ -241,12 +244,12 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      const int& Step = mrModelPart.GetProcessInfo()[STEP];
+      const int& step = mrModelPart.GetProcessInfo()[STEP];
 
       std::string FileName;
       FileName += mrModelPart.Name();
       FileName += "_mesh_output_";
-      FileName += std::to_string(Step);
+      FileName += std::to_string(step);
       FileName += ".msh";
       
       std::ofstream File;
@@ -284,12 +287,14 @@ namespace Kratos
       double* OutPointList   = mrRemesh.OutMesh.GetPointList();
       int& OutNumberOfPoints = mrRemesh.OutMesh.GetNumberOfPoints();
 
+      const int& dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
+      
       unsigned int base = 0;
       for(unsigned int pn=0; pn<OutNumberOfPoints; pn++)
 	{
 	  std::string Point(std::to_string( pn+1 ));
 	  
-	  for(unsigned int i=0; i<3; i++)
+	  for(unsigned int i=0; i<dimension; i++)
 	    {	      
 	      Point += " ";
 	      Point += std::to_string(OutPointList[base]);
