@@ -29,11 +29,11 @@ private:
 
   TDataType GetPointer() { return mDataPointer; }
 
-  /// Local pointer and its rank. This must never be seen outside this class.
-  /// Do not make it protected if you derive from this class.
+  /// Pointer to the data
   TDataType * mDataPointer;
 
 #ifdef KRATOS_USING_MPI
+  /// Rank is enabled only under mpi
   int mRank;
 #endif
 
@@ -45,9 +45,9 @@ public:
 	*/
 	GlobalPointer() = delete;
 
-  /** Constructor by a local BaseData
-   * Constructor by a local pointer
-   * @param BaseData BaseData of the local variable.
+  /** Constructor by Data Pointer
+   * Constructor by Data Pointer
+   * @param DataPointer Pointer to the data.
    */
   GlobalPointer(TDataType * DataPointer)
     : mDataPointer(DataPointer)
@@ -59,7 +59,7 @@ public:
 
   /** Constructor by boost::shared_ptr
    * Constructor by boost::shared_ptr
-   * @param BaseData BaseData of the local variable.
+   * @param DataPointer Boost Shared Pointer to the Data.
    */
   GlobalPointer(boost::shared_ptr<TDataType> DataPointer)
     : mDataPointer(DataPointer.get())
@@ -96,9 +96,9 @@ public:
     return mDataPointer;
   }
 
-  /** Returns the rank of the BasePointer owner
-   * Returns the rank of the BasePointer owner
-   * @return Rank of the BasePointer owner
+  /** Returns the rank of the data owner
+   * Returns the rank of the data owner
+   * @return rank of the data owner
    */
   int GetRank() const {
 #ifdef KRATOS_USING_MPI
