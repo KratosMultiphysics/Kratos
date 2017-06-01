@@ -147,22 +147,21 @@ namespace Kratos
           * Calculation and addition of the matrices of the LHS
           */
 
+    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+                                    GeneralVariables& rVariables,
+                                    double& rIntegrationWeight);
 
          /**
-          * Calculation of the Kpp Stabilization Term matrix
+     * Calculation and addition of the vectors of the RHS
           */
-         virtual void CalculateAndAddKppStab(MatrixType& rK,
-               GeneralVariables & rVariables,
-               double& rIntegrationWeight
-               );
 
-         /**
-          * Calculation of the Internal Forces due to Pressure-Balance
-          */
-         virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
+    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                GeneralVariables & rVariables,
-               double& rIntegrationWeight
-               );
+                                    Vector& rVolumeForce,
+                                    double& rIntegrationWeight);
+
+
+
 
          /**
 	  * Initialize Element General Variables

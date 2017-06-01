@@ -21,21 +21,8 @@
 //
 // APPROXIMATED VERSION WITHOUT THE TERM NodalJ/ElemJ
 //
-// (TOT I QUE SIGUI PLANE STRAIN I TAL, S'HA DE POSAR UNA MATRIU CONST (6X6) I TENSIÓ (1X6) 
+// (even in plane strain it requeres the constitutive tensor in 3D (6X6) and the stress (1X6) 
 //
-// LA CONVERGÈNCIA ÉS DOLENTA, O SIGUI, QUE HI HA ALGU REGULAR
-//
-// VALEEEE. HE MIRAT LA DERIVADA "NUMèRICA" I LES MATRIUS DEL jACOBIÀ I DE LA pRESSIÓ LES TINC BÉ, 
-// LES DELS DESPLAÇAMENTS ES PODEN REPASSAR, (PERQUè NO SE TROBAR LA DERIVADA NUMÈRICA,...)
-//
-//
-// IMPORTANT: EM QUEDA POSAR QUE SI ÉS CAM CLAY, NO BUSQUI EL MODULO VOLUMÈTRICO NORMAL, PERQUÈ NO EXISTEIX.
-// ÉS UN TEMA MOLT IMPORTANT PQ LLAVORS EM SURTEN NANS QUE TARDO LA VIDA A TROBARLOS....
-
-// EN TOTS ELS ELEMENTS QUE HE FET EM FALTA UN CONSTRUCTOR QUE ESTÀ AMAGAT AL MIG!!!
-//      no passa res per posar-lo
-//
-// NO TÉ MOLT SENTIT ALGUNES COSES. HO FAIG COM A DERIVADA A UpdatedLagrangianUJElement
 
 //
 namespace Kratos
@@ -382,7 +369,7 @@ namespace Kratos
    void UpdatedLagrangianUJPElement::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo)
    {
       
-      if ( rVariable == EQ_CAUCHY_STRESS ) {
+      if ( rVariable == CAUCHY_STRESS_TENSOR ) {
          const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
          //create and initialize element variables:
@@ -478,7 +465,7 @@ namespace Kratos
 
    void UpdatedLagrangianUJPElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo)
    {
-      if ( rVariable == EQ_CAUCHY_STRESS)
+      if ( rVariable == CAUCHY_STRESS_TENSOR)
       {
          CalculateOnIntegrationPoints( rVariable, rValue, rCurrentProcessInfo);
       }
