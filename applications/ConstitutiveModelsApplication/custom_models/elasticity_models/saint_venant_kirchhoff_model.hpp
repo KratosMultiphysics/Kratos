@@ -299,53 +299,58 @@ namespace Kratos
       rVariables.SetModelData(rValues);
       rVariables.SetState(rValues.State);
     
-      //cauchy green tensor
-      const MatrixType& rStrainMatrix          = rValues.GetStrainMatrix();
+      //deformation gradient
+      const MatrixType& rDeformationGradientF  = rValues.GetDeformationGradientF();
       const MatrixType& rDeformationGradientF0 = rValues.GetDeformationGradientF0();
-      
-      const StrainMeasureType& rStrainMeasure  = rValues.GetStrainMeasure();
+
       const StressMeasureType& rStressMeasure  = rValues.GetStressMeasure();
     
       if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mStrainMatrix = GreenLagrangeTensor
-	
-	if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Right ){
-	  ConstitutiveModelUtilities::RightCauchyToGreenLagrangeStrain( rStrainMatrix, rVariables.Strain.Matrix);  
-	  rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
-	}
-	else if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_None ){
-	  ConstitutiveModelUtilities::CalculateGreenLagrangeStrain( rDeformationGradientF0, rVariables.Strain.Matrix);
-	  rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
-	}
-	else{
-	  KRATOS_ERROR << "calling initialize HyperElasticModel .. StrainMeasure provided is inconsistent" << std::endl;
-	}
 
-	rValues.StrainMatrix = rVariables.Strain.Matrix;
+	//set working strain measure
+	rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_Right);
+	
+	//historical strain matrix
+	rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(mStrainVector,rValues.StrainMatrix);
+	
+	//current strain matrix
+	noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,rDeformationGradientF);
+	noalias(rValues.StrainMatrix) = prod(trans(rDeformationGradientF), rVariables.Strain.Matrix);
+
+	ConstitutiveModelUtilities::RightCauchyToGreenLagrangeStrain( rValues.StrainMatrix, rVariables.Strain.Matrix);  
+
+	rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);       
 	
       }
       else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mStrainMatrix = GreenLagrangeTensor
 
-	if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Left ){
-	  ConstitutiveModelUtilities::LeftCauchyToAlmansiStrain( rStrainMatrix , rVariables.Strain.Matrix);
+	//set working strain measure
+	rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_Left);
+	
+	//historical strain matrix
+	rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(mStrainVector,rValues.StrainMatrix);
+	
+	//current strain matrix
+	noalias(rVariables.Strain.Matrix) = prod(rValues.StrainMatrix,trans(rDeformationGradientF));
+	noalias(rValues.StrainMatrix) = prod(rDeformationGradientF, rVariables.Strain.Matrix);
+	
+	ConstitutiveModelUtilities::LeftCauchyToAlmansiStrain( rValues.StrainMatrix , rVariables.Strain.Matrix);
+	
+	//rVariables.Strain.InverseMatrix used as an auxiliar matrix (covariant pull back)
+	noalias( rVariables.Strain.InverseMatrix ) = prod( trans(rDeformationGradientF0), rVariables.Strain.Matrix );
+	noalias( rVariables.Strain.Matrix)  = prod( rVariables.Strain.InverseMatrix, rDeformationGradientF0 );
 
-	  //rVariables.Strain.InverseMatrix used as an auxiliar matrix (covariant pull back)
-	  noalias( rVariables.Strain.InverseMatrix ) = prod( trans(rDeformationGradientF0), rVariables.Strain.Matrix );
-	  noalias( rVariables.Strain.Matrix)  = prod( rVariables.Strain.InverseMatrix, rDeformationGradientF0 );
+	//set as the current strain
+	rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
 
-	  rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
-	}
-	else if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_None ){
-	  ConstitutiveModelUtilities::CalculateGreenLagrangeStrain( rDeformationGradientF0, rVariables.Strain.Matrix );
-	  rValues.StrainMatrix = rVariables.Strain.Matrix;
-	  rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
-	}
-	else{
-	  KRATOS_ERROR << "calling initialize HyperElasticModel .. StrainMeasure provided is inconsistent" << std::endl;
-	}
-      
+
       }
       else{
-	KRATOS_ERROR << "calling initialize HyperElasticModel .. StressMeasure required is inconsistent"  << std::endl;
+	
+	//set working strain measure
+	rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_None);
+	KRATOS_ERROR << "calling initialize SaintVenantKirchhoffModel .. StressMeasure is inconsistent"  << std::endl;
+	
       }
 
       

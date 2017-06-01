@@ -165,8 +165,9 @@ namespace Kratos
     //constitutive model
     ModelTypePointer mpModel;
 
-    //internal elastic variables
-    VectorType  mStrainVector;
+    //internal elastic variables 
+    VectorType  mStrainVector; 
+    
     
     ///@}
     ///@name Protected Operators
