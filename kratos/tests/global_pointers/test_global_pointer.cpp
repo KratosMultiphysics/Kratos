@@ -27,7 +27,8 @@ class TestClass {
 
     ~TestClass() {}
 
-    int getVar() { return this->mMagicNumber; }
+    int getVar() const { return this->mMagicNumber; }
+
     void setVar(int magicNumber) { this->mMagicNumber = magicNumber; }
 
     int mMagicNumber;
@@ -38,6 +39,15 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateRaw, KratosCoreFastSuit)
   int sampleVar = 1337;
 
 	auto fromRaw = GlobalPointer<int>(&sampleVar);
+
+  KRATOS_CHECK_EQUAL(*fromRaw, sampleVar);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstRaw, KratosCoreFastSuit)
+{
+  const int sampleVar = 1337;
+
+	auto fromRaw = GlobalPointer<const int>(&sampleVar);
 
   KRATOS_CHECK_EQUAL(*fromRaw, sampleVar);
 }
@@ -58,6 +68,16 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateClass, KratosCoreFastSuit)
   TestClass sampleVar(1337);
 
 	auto fromRaw = GlobalPointer<TestClass>(&sampleVar);
+
+  KRATOS_CHECK_EQUAL(fromRaw->getVar(), sampleVar.getVar());
+  KRATOS_CHECK_EQUAL((*fromRaw).getVar(), sampleVar.getVar());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstClass, KratosCoreFastSuit)
+{
+  const TestClass sampleVar(1337);
+
+	auto fromRaw = GlobalPointer<const TestClass>(&sampleVar);
 
   KRATOS_CHECK_EQUAL(fromRaw->getVar(), sampleVar.getVar());
   KRATOS_CHECK_EQUAL((*fromRaw).getVar(), sampleVar.getVar());
