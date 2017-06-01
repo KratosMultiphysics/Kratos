@@ -44,7 +44,6 @@ namespace Kratos
       rRightHandSide = AddReshapeWaterPressureForces ( rRightHandSide, LocalRHS, rVariables.number_of_variables, number_of_nodes);
 
 
-      //std::cout << " VECTOR " << - rRightHandSide + Previous << std::endl;
       return rRightHandSide; 
 
       KRATOS_CATCH("")
@@ -380,7 +379,7 @@ namespace Kratos
       double initial_porosity = rVariables.GetProperties().GetValue(INITIAL_POROSITY);
 
       double VolumeChange = this->CalculateVolumeChange(rGeometry, rVariables.GetShapeFunctions(), rVariables.GetDeformationGradient() );
-      GetPermeabilityTensor( rVariables.GetProperties(), rVariables.GetDeformationGradient(), K, initial_porosity, VolumeChange);
+      GetPermeabilityTensor( rVariables.GetProperties(), rVariables.GetDeformationGradient(), K, initial_porosity,dimension,  VolumeChange);
 
 
       const MatrixType & rDN_DX = rVariables.GetShapeFunctionsDerivatives();
