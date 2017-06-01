@@ -60,15 +60,36 @@ namespace Kratos
   //***********************PUBLIC OPERATIONS FROM BASE CLASS****************************
   //************************************************************************************
 
+  void LinearElasticModel::InitializeModel(ModelDataType& rValues)
+  {
+    KRATOS_TRY
+
+      
+    KRATOS_CATCH(" ")
+  }
+
+  //************************************************************************************
+  //************************************************************************************
+
+  void LinearElasticModel::FinalizeModel(ModelDataType& rValues)
+  {
+    KRATOS_TRY
+
+      
+    KRATOS_CATCH(" ")
+  }
+
+  //************************************************************************************
+  //************************************************************************************
+  
   void LinearElasticModel::InitializeElasticData(ModelDataType& rValues, ElasticDataType& rVariables)
   {
     KRATOS_TRY
 
     //set model data pointer
     rVariables.SetModelData(rValues);
-    rVariables.SetState(rValues.State);
-
-       
+    rVariables.SetState(rValues.State);     
+    
     KRATOS_CATCH(" ")
   }
   

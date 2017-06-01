@@ -165,6 +165,16 @@ namespace Kratos
     ///@name Operations
     ///@{
     
+    /**
+     * Initialize member data
+     */    
+    virtual void InitializeModel(ModelDataType& rValues) override;
+
+    /**
+     * Finalize member data
+     */    
+    virtual void FinalizeModel(ModelDataType& rValues) override;
+
     
     /**
      * Calculate Strain Energy Density Functions
@@ -210,7 +220,40 @@ namespace Kratos
     ///@}
     ///@name Access
     ///@{
-        
+
+    virtual void SetValue(const Variable<Vector>& rThisVariable, const Vector& rValue,
+			  const ProcessInfo& rCurrentProcessInfo ) override
+    {
+      KRATOS_TRY
+
+      // A method to compute the initial linear strain from the stress is needed
+      //if(rThisVariable == INITIAL_STRESS_VECTOR)
+	
+      // A method to compute the initial linear strain from the stress is needed
+      // if(rThisVariable == INITIAL_STRAIN_VECTOR){
+      //   mStrainVector = rValue;
+      // }
+
+      KRATOS_CATCH(" ")
+    }
+
+
+    virtual void SetValue(const Variable<Matrix>& rThisVariable, const Matrix& rValue,
+			  const ProcessInfo& rCurrentProcessInfo ) override
+    {
+      KRATOS_TRY
+
+      // A method to compute the initial linear strain from the stress is needed
+      //if(rThisVariable == INITIAL_STRESS_VECTOR)
+	
+      // A method to compute the initial linear strain from the stress is needed
+      // if(rThisVariable == INITIAL_STRAIN_VECTOR){
+      //   mStrainVector = rValue;
+      // }
+
+      KRATOS_CATCH(" ")
+    }
+    
     /**
      * method to ask the plasticity model the list of variables (dofs)  needed from the domain
      * @param rScalarVariables : list of scalar dofs
@@ -269,6 +312,9 @@ namespace Kratos
     ///@{
 
     const MatrixType msIdentityMatrix;
+    
+    //initial or historical strains
+    VectorType    mStrainVector;
 
     ///@}
     ///@name Protected member Variables
@@ -666,11 +712,13 @@ namespace Kratos
     virtual void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveModel )
+      rSerializer.save("mStrainVector",mStrainVector);
     }
 
     virtual void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveModel )      
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveModel )
+      rSerializer.load("mStrainVector",mStrainVector);	
     }
 
     ///@}

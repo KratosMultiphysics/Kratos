@@ -96,7 +96,7 @@ namespace Kratos
       
     };
     
-
+    
     template<std::size_t TVarSize>
     struct PlasticModelData
     {
@@ -117,7 +117,7 @@ namespace Kratos
       //internal variables
       InternalVariables<TVarSize>      Internal;
       InternalVariables<TVarSize> DeltaInternal;
-
+      
       //strain matrix
       MatrixType StrainMatrix; //wildcard strain (cauchy green tensors or infinitessimal tensor)
       
