@@ -95,6 +95,8 @@ class Simple3D2NBeamCrTest(StructuralMechanichsTestFactory):
 class Simple3D2NBeamCrLinearTest(StructuralMechanichsTestFactory):
     file_name = "3D2N_BEAMCR_test/linear_3D2NBeamCr_test"
     
-#class MPCSmallDisplacementElementTests(StructuralMechanichsTestFactory):
-    #file_name = "mpc_test/Mpc_Small_Disp_Elem_test"
-
+class Fofi4PointTentnoCableTests(StructuralMechanichsTestFactory):
+    file_name = "formfinding_test/Fofi_4Point_Tent_noCable_test"
+    
+class MembraneQ4PointLoadTests(StructuralMechanichsTestFactory):
+    file_name = "membrane_test/Membrane_Q4_PointLoad_test"
