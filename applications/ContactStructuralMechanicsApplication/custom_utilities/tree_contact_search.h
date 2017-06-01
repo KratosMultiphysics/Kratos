@@ -389,9 +389,9 @@ public:
                 if (itCond->Is(SLAVE) == true)
                 {
                     if (mSearchTreeType == KdtreeInRadius)
-                    {
-                        Point<3> Center;
-                        const double SearchRadius = mSearchFactor * ContactUtilities::CenterAndRadius((*itCond.base()), Center);
+                    {                        
+                        const Point<3> Center = itCond->GetGeometry().Center();
+                        const double SearchRadius = mSearchFactor * itCond->GetGeometry().Radius();
 
                         NumberPointsFound = TreePoints.SearchInRadius(Center, SearchRadius, PointsFound.begin(), mAllocationSize);
                     }

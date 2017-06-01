@@ -374,40 +374,6 @@ public:
     }
 
     /**
-     * This function calculates the center and radius of the geometry of a condition
-     * @param Cond: The pointer to the condition of interest
-     * @return Center: The center of the condition
-     * @return Radius: The radius of the condition
-     */
-
-    static inline double CenterAndRadius(
-        Condition::Pointer pCond,
-        PointType& Center
-        )
-    {
-        double Radius = 0.0;
-        Center = pCond->GetGeometry().Center();
-        
-        // TODO: Add calculation of radius to geometry.h 
-        array_1d<double, 3> AuxVector;
-        for(unsigned int i = 0; i < pCond->GetGeometry().PointsNumber(); i++)
-        {
-            noalias(AuxVector) = Center.Coordinates() - pCond->GetGeometry()[i].Coordinates();;
-            
-            const double AuxRadius = inner_prod(AuxVector, AuxVector);
-
-            if(AuxRadius > Radius)
-            {
-                Radius = AuxRadius;
-            }
-        }
-
-        Radius = std::sqrt(Radius);
-        
-        return Radius;
-    }
-
-    /**
      * This function calculates the normal of a condition
      * @param Cond: The pointer to the condition of interest
      */
