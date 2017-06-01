@@ -12,7 +12,6 @@
 #include "boost/smart_ptr.hpp"
 
 #include "testing/testing.h"
-#include "tests/geometries/test_geometry.h"
 #include "includes/global_pointer.h"
 
 namespace Kratos {
