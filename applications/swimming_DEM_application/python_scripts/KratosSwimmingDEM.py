@@ -257,7 +257,7 @@ class Solution:
         derivative_recovery_tool = DerivativeRecoveryTool3D(fluid_model_part)
 
         # creating a stationarity assessment tool
-        stationarity_tool = swim_proc.StationarityAssessmentTool(self.pp.CFD_DEM.max_pressure_variation_rate_tol , custom_functions_tool)
+        stationarity_tool = swim_proc.StationarityAssessmentTool(self.pp.CFD_DEM.max_pressure_variation_rate_tol, custom_functions_tool)
 
         # creating a debug tool
         dem_volume_tool = swim_proc.ProjectionDebugUtils(self.pp.CFD_DEM.fluid_domain_volume, fluid_model_part, self.alg.spheres_model_part, custom_functions_tool)
@@ -392,7 +392,7 @@ class Solution:
 
         post_utils.Writeresults(time)
 
-        while (time <= final_time):
+        while time <= final_time:
 
             time = time + Dt
             step += 1
@@ -518,6 +518,11 @@ class Solution:
                 out = out + Dt_DEM
                 first_dem_iter = False
 
+                # applying DEM-to-fluid coupling
+
+                if DEM_to_fluid_counter.Tick() and time >= self.pp.CFD_DEM.interaction_start_time:
+                    self.alg.projection_module.ProjectFromParticles()
+
             #### PRINTING GRAPHS ####
             os.chdir(graphs_path)
             # measuring mean velocities in a certain control volume (the 'velocity trap')
@@ -525,10 +530,6 @@ class Solution:
                 post_utils_DEM.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", time)
 
             os.chdir(post_path)
-
-            # applying DEM-to-fluid coupling
-            if DEM_to_fluid_counter.Tick() and time >= self.pp.CFD_DEM.interaction_start_time:
-                self.alg.projection_module.ProjectFromParticles()
 
             # coupling checks (debugging)
             if debug_info_counter.Tick():

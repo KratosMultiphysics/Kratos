@@ -71,23 +71,46 @@
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{
-        "python_module" : "impose_scalar_value_process",
+        "python_module" : "embedded_couette_test_local_process",
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"  : "ApplyOutletProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Outlet3D",
-            "variable_name"   : "PRESSURE",
-            "value"           : 0
-        }
-    },{
-        "python_module" : "EmbeddedCouetteTest_local_process",
-        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"  : "ApplyLocalProcess",
+        "process_name"  : "EmbeddedCouetteTestLocalProcess",
         "Parameters"    : {
             "mesh_id"                : 0,
             "distance"               : 0.5,
             "fluid_model_part_name"  : "Parts_Fluid"
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Outlet3D",
+            "variable_name"   : "VELOCITY",
+            "value"           : [null, 0.0, 0.0],
+            "constrained"     : [false,true,true]
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Sides3D",
+            "variable_name"   : "VELOCITY",
+            "value"           : [null, 0.0, null],
+            "constrained"     : [false,true,false]
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Top3D",
+            "variable_name"   : "VELOCITY",
+            "value"           : [1.0, 0.0, 0.0],
+            "constrained"     : [true,true,true]
         }
     },{
         "python_module" : "apply_distance_modification_process",

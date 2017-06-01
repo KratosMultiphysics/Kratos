@@ -129,27 +129,54 @@ public:
 
     static inline void TransformToClosestPeriodicCoordinates(const double target[3], double base_coordinates[3])
     {
-        for (unsigned int i = 0; i < 3; ++i){
-            double incr_i = target[i] - base_coordinates[i];
-
-            if (fabs(incr_i) > 0.5 * mDomainPeriods[i]){
-                base_coordinates[i] += GetSign(incr_i) * mDomainPeriods[i];
-            }
-        }
-
+        TransformToClosestPeriodicCoordinates(target, base_coordinates, mDomainPeriods);
     }
 
     static inline void TransformToClosestPeriodicCoordinates(const array_1d<double,3>& target, array_1d<double,3>& base_coordinates)
     {
+        TransformToClosestPeriodicCoordinates(target, base_coordinates, mDomainPeriods);
+    }
+
+    static inline void TransformToClosestPeriodicCoordinates(const double target[3], double base_coordinates[3], const double periods[3])
+    {
         for (unsigned int i = 0; i < 3; ++i){
             double incr_i = target[i] - base_coordinates[i];
 
-            if (fabs(incr_i) > 0.5 * mDomainPeriods[i]){
-                base_coordinates[i] += GetSign(incr_i) * mDomainPeriods[i];
+            if (fabs(incr_i) > 0.5 * periods[i]){
+                base_coordinates[i] += GetSign(incr_i) * periods[i];
             }
         }
 
     }
+
+    static inline void TransformToClosestPeriodicCoordinates(const array_1d<double,3>& target, array_1d<double,3>& base_coordinates, const double periods[3])
+    {
+        for (unsigned int i = 0; i < 3; ++i){
+            double incr_i = target[i] - base_coordinates[i];
+
+            if (fabs(incr_i) > 0.5 * periods[i]){
+                base_coordinates[i] += GetSign(incr_i) * periods[i];
+            }
+        }
+
+    }
+
+    static inline void GetBoxCenter(double box_center[3], const double min_point[3], const double max_point[3])
+    {
+        for (unsigned int i = 0; i < 3; ++i){
+            box_center[i] = 0.5 * (min_point[i] + max_point[i]);
+
+            if (min_point[i] > max_point[i]){ // the box is broken by the boundary in this dimension:  ]    x  * [   (outside),  ]    x    [ * (inside)
+                const double& min = mDomainMin[i];
+                const double& max = mDomainMax[i];
+                box_center[i] += 0.5 * (max - min); // The center of the box and of its complementary are always half a domain period apart: |..]..x..[...*.| (our bet: we assume we should ADD to go from x to *)
+                if (box_center[i] > max){ // we made a mistake, we should have gone the opposite way
+                    box_center[i] -= max - min;
+                }
+            }
+        }
+    }
+
     ///@}
     ///@name Operators
     ///@{
@@ -192,29 +219,25 @@ public:
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2)
     {
         double rObj_2_to_rObj_1[3];
-        PeriodicSubstract(rObj_1->GetGeometry()[0], rObj_2->GetGeometry()[0], rObj_2_to_rObj_1);
+        PointType& point_1 = rObj_1->GetGeometry()[0];
+        const double coors_1[3] = {point_1[0], point_1[1], point_1[2]};
+        PointType& point_2 = rObj_2->GetGeometry()[0];
+        const double coors_2[3] = {point_2[0], point_2[1], point_2[2]};
 
-        double distance_2 = DEM_INNER_PRODUCT_3(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
+        PeriodicSubstract(coors_1, coors_2, rObj_2_to_rObj_1);
+
+        const double distance_2 = DEM_INNER_PRODUCT_3(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
 
         SphericParticle* p_particle1 = static_cast<SphericParticle*>(&*rObj_1);
         SphericParticle* p_particle2 = static_cast<SphericParticle*>(&*rObj_2);
-        double radius_sum      = p_particle1->GetSearchRadius() + p_particle2->GetSearchRadius();
-        bool intersect         = floatle((distance_2 - radius_sum * radius_sum),0);
+        const double radius_sum      = p_particle1->GetSearchRadius() + p_particle2->GetSearchRadius();
+        const bool intersect         = floatle((distance_2 - radius_sum * radius_sum),0);
         return intersect;
     }
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double& radius_1)
     {
-        double rObj_2_to_rObj_1[3];
-        PeriodicSubstract(rObj_1->GetGeometry()[0], rObj_2->GetGeometry()[0], rObj_2_to_rObj_1);
-
-        double distance_2 = DEM_INNER_PRODUCT_3(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
-
-        SphericParticle* p_particle1 = static_cast<SphericParticle*>(&*rObj_1);
-        SphericParticle* p_particle2 = static_cast<SphericParticle*>(&*rObj_2);
-        double radius_sum      = p_particle1->GetSearchRadius() + p_particle2->GetSearchRadius();
-        bool intersect         = floatle((distance_2 - radius_sum * radius_sum),0);
-        return intersect;
+        return Intersection(rObj_1, rObj_2);
     }
 
     //******************************************************************************************************************
@@ -226,65 +249,63 @@ public:
         SphericParticle* p_particle = static_cast<SphericParticle*>(&*rObject);
         const double& radius = p_particle->GetSearchRadius();
 
-        bool intersect = (
-          floatle(rLowPoint[0]  - radius,center_of_particle[0]) &&
-          floatle(rLowPoint[1]  - radius,center_of_particle[1]) &&
-          floatle(rLowPoint[2]  - radius,center_of_particle[2]) &&
-          floatge(rHighPoint[0] + radius,center_of_particle[0]) &&
-          floatge(rHighPoint[1] + radius,center_of_particle[1]) &&
-          floatge(rHighPoint[2] + radius,center_of_particle[2]));
+        bool intersect;
 
-        if (mDomainIsPeriodic && !intersect){
-            double closest_representative_coor[3] = {center_of_particle[0], center_of_particle[1], center_of_particle[2]};
-            double box_center[3] = {0.5 * (rLowPoint[0] + rHighPoint[0]), 0.5 * (rLowPoint[1] + rHighPoint[1]), 0.5 * (rLowPoint[2] + rHighPoint[2])};
-            TransformToClosestPeriodicCoordinates(box_center, closest_representative_coor);
-            intersect = (
-            floatle(rLowPoint[0]  - radius,closest_representative_coor[0]) &&
-            floatle(rLowPoint[1]  - radius,closest_representative_coor[1]) &&
-            floatle(rLowPoint[2]  - radius,closest_representative_coor[2]) &&
-            floatge(rHighPoint[0] + radius,closest_representative_coor[0]) &&
-            floatge(rHighPoint[1] + radius,closest_representative_coor[1]) &&
-            floatge(rHighPoint[2] + radius,closest_representative_coor[2]));
+        if (mDomainIsPeriodic){
+            double expanded_box_min[3];
+            double expanded_box_max[3];
+
+            for (unsigned int i = 0; i < 3; ++i){
+                expanded_box_min[i] = rLowPoint[i] - radius;
+                expanded_box_max[i] = rHighPoint[i] + radius;
             }
+
+            double box_center[3];
+            GetBoxCenter(box_center, expanded_box_min, expanded_box_max);
+            //double box_center[3] = {0.5 * (rLowPoint[0] + rHighPoint[0]), 0.5 * (rLowPoint[1] + rHighPoint[1]), 0.5 * (rLowPoint[2] + rHighPoint[2])};
+            double representative_center_of_particle[3] = {center_of_particle[0],
+                                                           center_of_particle[1],
+                                                           center_of_particle[2]};
+            TransformToClosestPeriodicCoordinates(box_center, representative_center_of_particle);
+
+            for (unsigned int i = 0; i < 3; ++i){
+                const bool is_broken = rLowPoint[i] > rHighPoint[i];
+
+                if (is_broken){ // i.e., we have |  ]  [ | in this direction
+                    intersect = floatge(expanded_box_min[i], representative_center_of_particle[i])
+                             && floatle(expanded_box_max[i], representative_center_of_particle[i]);
+                }
+
+                else { // i.e., we have |  [ ] | in this direction
+                    intersect = floatle(expanded_box_min[i], representative_center_of_particle[i])
+                             && floatge(expanded_box_max[i], representative_center_of_particle[i]);
+                }
+            }
+        }
+
+        else {
+            for (unsigned int i = 0; i < 3; ++i){
+                intersect = floatle(rLowPoint[i]  - radius, center_of_particle[i])
+                         && floatge(rHighPoint[i] + radius, center_of_particle[i]);
+            }
+        }
 
         return  intersect;
     }
 
     static inline bool IntersectionBox(const PointerType& rObject, const PointType& rLowPoint, const PointType& rHighPoint, const double& Radius)
     {
-        const array_1d<double, 3>& center_of_particle = rObject->GetGeometry()[0];
-
-        SphericParticle* p_particle = static_cast<SphericParticle*>(&*rObject);
-        const double& radius = p_particle->GetSearchRadius();
-
-        bool intersect = (
-            floatle(rLowPoint[0]  - radius,center_of_particle[0]) &&
-            floatle(rLowPoint[1]  - radius,center_of_particle[1]) &&
-            floatle(rLowPoint[2]  - radius,center_of_particle[2]) &&
-            floatge(rHighPoint[0] + radius,center_of_particle[0]) &&
-            floatge(rHighPoint[1] + radius,center_of_particle[1]) &&
-            floatge(rHighPoint[2] + radius,center_of_particle[2]));
-
-        if (mDomainIsPeriodic && !intersect){
-            double closest_representative_coor[3] = {center_of_particle[0], center_of_particle[1], center_of_particle[2]};
-            double box_center[3] = {0.5 * (rLowPoint[0] + rHighPoint[0]), 0.5 * (rLowPoint[1] + rHighPoint[1]), 0.5 * (rLowPoint[2] + rHighPoint[2])};
-            TransformToClosestPeriodicCoordinates(box_center, closest_representative_coor);
-            intersect = (
-            floatle(rLowPoint[0]  - radius,closest_representative_coor[0]) &&
-            floatle(rLowPoint[1]  - radius,closest_representative_coor[1]) &&
-            floatle(rLowPoint[2]  - radius,closest_representative_coor[2]) &&
-            floatge(rHighPoint[0] + radius,closest_representative_coor[0]) &&
-            floatge(rHighPoint[1] + radius,closest_representative_coor[1]) &&
-            floatge(rHighPoint[2] + radius,closest_representative_coor[2]));
-            }
-
-        return  intersect;
+        return  IntersectionBox(rObject, rLowPoint, rHighPoint);
     }
 
     static inline void Distance(const PointerType& rObj_1, const PointerType& rObj_2, double& distance)
     {
+        PointType& point_1 = rObj_1->GetGeometry()[0];
+        const double coors_1[3] = {point_1[0], point_1[1], point_1[2]};
+        PointType& point_2 = rObj_2->GetGeometry()[0];
+        const double coors_2[3] = {point_2[0], point_2[1], point_2[2]};
         double rObj_2_to_rObj_1[3];
-        PeriodicSubstract(rObj_1->GetGeometry()[0], rObj_2->GetGeometry()[0], rObj_2_to_rObj_1);
+        PeriodicSubstract(coors_1, coors_2, rObj_2_to_rObj_1);
         distance = DEM_MODULUS_3(rObj_2_to_rObj_1);
     }
 
@@ -370,7 +391,7 @@ private:
         return (0.0 < value) - (value < 0.0);
     }
 
-    static inline void PeriodicSubstract(const array_1d<double, 3>& a, const array_1d<double, 3>& b, double c[3])
+    static inline void PeriodicSubstract(const double a[3], const double b[3], double c[3])
     {
         for (unsigned int i = 0; i < 3; ++i){
                 c[i] = a[i] - b[i];
@@ -378,7 +399,7 @@ private:
 
         if (mDomainIsPeriodic){ // Periods have been set (the domain is periodic)
             for (unsigned int i = 0; i < 3; ++i){
-                if (fabs(c[i]) > 0.5 * mDomainPeriods[i]){ // the objects are closer through the boundary
+                if (std::fabs(c[i]) > 0.5 * mDomainPeriods[i]){ // the objects are closer through the boundary
                     c[i] -= GetSign(c[i]) * mDomainPeriods[i];
                 }
             }
