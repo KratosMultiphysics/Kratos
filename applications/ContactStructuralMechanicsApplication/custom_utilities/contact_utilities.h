@@ -161,7 +161,7 @@ public:
         
         //Newton iteration:
 
-        unsigned int MaxIter = 20;
+        const unsigned int MaxIter = 20;
 
         for ( unsigned int k = 0; k < MaxIter; k++ )
         {
@@ -187,10 +187,6 @@ public:
             const double Distance = inner_prod(VectorPoints, Normal)/inner_prod(-NormalXi, Normal); 
             const array_1d<double, 3> CurrentDestinyGlobalCoords = PointDestiny - NormalXi * Distance;
             
-//             // Debug
-//             KRATOS_WATCH(CurrentGlobalCoords)
-//             KRATOS_WATCH(CurrentDestinyGlobalCoords)
-            
             // Derivatives of shape functions
             Matrix ShapeFunctionsGradients;
             ShapeFunctionsGradients = GeomOrigin.ShapeFunctionsLocalGradients(ShapeFunctionsGradients, ResultingPoint );
@@ -213,22 +209,11 @@ public:
                 ResultingPoint[0] = 1.0;
             }
             
-//             // Debug
-//             KRATOS_WATCH(ResultingPoint[0])
-//             KRATOS_WATCH(DeltaXi)
-//             KRATOS_WATCH(OldDeltaXi)
-            
             if ( std::abs(DeltaXi - OldDeltaXi) < Tolerance )
             {
                 return true;
             }
         }
-        
-//         // Debug
-//         KRATOS_WATCH(std::abs(DeltaXi - OldDeltaXi))
-//         KRATOS_WATCH(GeomOrigin)
-//         KRATOS_WATCH(PointDestiny)
-//         KRATOS_WATCH(ResultingPoint)
         
         return false;
     }
@@ -256,6 +241,15 @@ public:
 
         PointProjected.Coordinates() = PointDestiny.Coordinates() - Normal * Distance;
     }
+    
+        
+    /**
+     * Project a point over a plane (avoiding some steps)
+     * @param PointOrigin: A point in the plane
+     * @param PointDestiny: The point to be projected
+     * @param Normal: The normal of the plane
+     * @return PointProjected: The point pojected over the plane
+     */
     
     static inline PointType FastProject(
         const PointType& PointOrigin,
@@ -414,32 +408,6 @@ public:
     }
 
     /**
-     * This function calculates the normal and tangents of a condition
-     * @param Cond: The pointer to the condition of interest
-     */
-
-    static inline void ConditionNormal(Condition::Pointer pCond)
-    {
-        array_1d<double,3> & Normal     = pCond->GetValue(NORMAL);
-        array_1d<double,3> & TangentXi  = pCond->GetValue(TANGENT_XI);
-        array_1d<double,3> & TangentEta = pCond->GetValue(TANGENT_ETA);
-        
-        GeometryNormal(Normal, TangentXi, TangentEta, pCond->GetGeometry());
-    }
-    
-    /**
-     * This function calculates the normal of a condition
-     * @param Cond: The pointer to the condition of interest
-     */
-
-    static inline void FastConditionNormal(Condition::Pointer pCond)
-    {
-        array_1d<double,3> & Normal = pCond->GetValue(NORMAL); // TODO: Add calculation of normal to geometry.h 
-        
-        GeometryNormal(Normal, pCond->GetGeometry());
-    }
-
-    /**
      * This function calculates the normal of a condition
      * @param Cond: The pointer to the condition of interest
      */
@@ -463,90 +431,6 @@ public:
         }
         
         return Normal;
-    }
-    
-    /**
-     * This function calculates the normal of a geometry
-     * @return Normal: The normal of the geometry
-     * @param TangentXi: The first tangent of the geometry
-     * @param TangentEta: The second tangent of the geometry
-     * @param Geom: The geometry of interest
-     */
-
-    static inline void GeometryNormal(
-        array_1d<double,3> & Normal,
-        array_1d<double,3> & TangentXi,
-        array_1d<double,3> & TangentEta,
-        const GeometryType & Geom
-        )
-    {
-        noalias(Normal) = ZeroVector(3);
-        
-        // Geom normal is the sum of all nodal normals
-        // nodal normal = tangent_eta (or e3 in 2D) x tangent_xi
-        for ( unsigned int i = 0; i < Geom.PointsNumber( ); ++i )
-        {
-            NodalTangents( TangentXi, TangentEta, Geom, i );
-            Normal += MathUtils<double>::CrossProduct( TangentEta, TangentXi );
-        }
-        
-        const double Tolerance = std::numeric_limits<double>::epsilon();
-        
-        if ( norm_2( Normal ) > Tolerance )
-        {
-            Normal     /= norm_2( Normal );
-            TangentXi  /= norm_2( TangentXi );
-            TangentEta /= norm_2( TangentEta );
-        }
-    }
-        
-    static inline void GeometryNormal(
-        array_1d<double,3> & Normal,
-        const GeometryType & Geom
-        )
-    {
-        array_1d<double,3> TangentXi, TangentEta;
-        
-        GeometryNormal(Normal, TangentXi, TangentEta, Geom);
-    }
-    
-    /**
-     * This function calculates the tangents at a given node
-     */
-
-    static inline void NodalTangents(
-        array_1d<double,3> & t1,    // tangent in xi direction
-        array_1d<double,3> & t2,    // tangent in eta direction in 3D or simply e3 cartesian vector in 2D
-        const GeometryType & Geom,
-        const unsigned int i_node
-        )
-    {
-        const unsigned int dimension = Geom.WorkingSpaceDimension( );
-        const unsigned int local_dim = Geom.LocalSpaceDimension( );
-        Matrix J_i = ZeroMatrix( dimension, local_dim ); 
-        Geom.Jacobian( J_i, Geom[i_node].Coordinates( ) );
-
-        if( dimension == 2 )
-        {
-            // t1 (axis-direction)
-            t1[0] = J_i(0, 0);
-            t1[1] = J_i(1, 0);
-            t1[2] = 0.0;
-            // t2 (z-direction)
-            t2[0] = 0.0;
-            t2[1] = 0.0;
-            t2[2] = 1.0;
-        }
-        else // We can use just else, if it is not 2D it is 3D 
-        {
-            for (unsigned int i = 0; i < 3; i++)
-            {
-                // Using the Jacobian tangent directions 
-                t1[i] = J_i(i, 0);
-                t2[i] = J_i(i, 1);
-            }
-        }
-        
     }
     
     /**
@@ -585,11 +469,11 @@ public:
             
             if (itCond->Is(SLAVE) || itCond->Is(MASTER) || itCond->Is(ACTIVE))
             {
-                FastConditionNormal(*(itCond.base()));
+                array_1d<double, 3> & rNormal = itCond->GetValue(NORMAL);
+                rNormal = itCond->GetGeometry().Normal();
                 
                 const unsigned int NumberNodes = itCond->GetGeometry().PointsNumber();
                 const double & rArea = itCond->GetGeometry().Area()/NumberNodes;
-                const array_1d<double, 3> & rNormal = itCond->GetValue(NORMAL);
                 
                 for (unsigned int i = 0; i < NumberNodes; i++)
                 {
