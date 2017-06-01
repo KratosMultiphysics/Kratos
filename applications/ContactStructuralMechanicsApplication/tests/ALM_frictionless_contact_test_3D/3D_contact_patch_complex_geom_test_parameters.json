@@ -34,10 +34,8 @@
         "max_iteration"                      : 10,
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
         "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","Parts_Parts_Auto2","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","CONTACT_Contact_Auto1","SelfWeight3D_Self_weight_Auto1"],
-        "rotation_dofs"                      : false,
         "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver",
-            "scaling"     : false
+            "solver_type" : "SuperLUSolver"
         }
     },
     "constraints_process_list" : [{

@@ -30,8 +30,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver",
-            "scaling"     : false
+            "solver_type" : "SkylineLUFactorizationSolver"
         },
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
         "processes_sub_model_part_list"      : ["Parts_Parts_Nodes1","Parts_Parts_Nodes2","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","SurfaceLoad3D_SurfaceLoad","Contact_Part"]
@@ -88,7 +87,7 @@
             "integration_order"           : 2,
             "active_check_factor"         : 5.0e-1,
             "manual_ALM"                  : true,
-            "penalty"                     : 0.0e0,
+            "penalty"                     : 1.0e8,
             "scale_factor"                : 1.0e0,
             "debug_mode"                  : false
         }

@@ -31,9 +31,7 @@
         "max_number_splits"	                 : 0,
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver",
-            "scaling"     : false,
-            "verbosity"   : 0
+            "solver_type" : "SkylineLUFactorizationSolver"
         },
         "problem_domain_sub_model_part_list" : ["Parts_Part_foundation","Parts_Part_punch"],
         "processes_sub_model_part_list"      : ["Parts_Part_foundation_Nodes",

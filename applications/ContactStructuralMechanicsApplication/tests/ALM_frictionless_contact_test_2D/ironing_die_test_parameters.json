@@ -30,9 +30,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 20,
         "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver",
-            "scaling"     : false,
-            "verbosity"   : 0
+            "solver_type" : "SkylineLUFactorizationSolver"
         },
         "problem_domain_sub_model_part_list" : ["Parts_parts_die","Parts_parts_slab"],
         "processes_sub_model_part_list"      : ["Contact_Part","DISPLACEMENT_bc_fix","DISPLACEMENT_bc_rolling_support",

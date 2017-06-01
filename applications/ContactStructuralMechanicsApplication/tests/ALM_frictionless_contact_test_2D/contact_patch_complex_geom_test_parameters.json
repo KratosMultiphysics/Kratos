@@ -36,8 +36,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","CONTACT_Contact_Auto1","SelfWeight2D_Self_weight_Auto1"],
         "rotation_dofs"                      : false,
         "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver",
-            "scaling"     : false
+            "solver_type" : "SkylineLUFactorizationSolver"
         }
     },
     "constraints_process_list" : [{
