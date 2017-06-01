@@ -53,27 +53,6 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyRaw, KratosCoreFastSuit)
   KRATOS_CHECK_EQUAL(*fromRaw, newVal);
 }
 
-// Not being tested. Only relevant in DEBUG
-/**
- * This checks the access of invalid ranks while running in serial.
- * DO NOT USE this in a production code.
- */
-// KRATOS_TEST_CASE_IN_SUITE(GlobalPointerInvalidRankRaw, KratosCoreFastSuit)
-// {
-//   int sampleVar = 1337;
-//   int newRank = 2;
-//   int * sampleRawPointer = &sampleVar;
-//
-// 	auto fromRaw = GlobalPointer<int>(sampleRawPointer);
-//
-//   // Inject a new value in the rank private member
-//   int * rankIndirection = (int *)((long)(&fromRaw) + sizeof(void *) * 1);
-//   *rankIndirection = newRank;
-//
-//   KRATOS_CHECK_EQUAL(fromRaw.GetRank(), newRank);
-//   KRATOS_CHECK_EXCEPTION_RAISED(*fromRaw, Exception);
-// }
-
 KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateClass, KratosCoreFastSuit)
 {
   TestClass sampleVar(1337);
