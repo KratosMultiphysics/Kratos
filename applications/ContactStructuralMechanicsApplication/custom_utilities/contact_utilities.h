@@ -123,52 +123,6 @@ public:
     }
     
     /**
-     * Project a point over a line/plane following an arbitrary direction
-     * @param Geom: The geometry where to be projected
-     * @param PointDestiny: The point to be projected
-     * @param Vector: The direction to project
-     * @return PointProjected: The point pojected over the plane
-     * @return Distance: The distance between the point and the plane
-     */
-
-    static inline void ProjectDirection(
-        const GeometryType& Geom,
-        const PointType& PointDestiny,
-        PointType& PointProjected,
-        double& Distance,
-        const array_1d<double,3>& Vector
-        )
-    {        
-        array_1d<double,3> Normal;
-        
-        GeometryNormal(Normal, Geom);
-        
-        Distance = FastProjectDirection(Geom, PointDestiny, PointProjected, Normal,Vector);
-    }
-    
-    static inline void ProjectCoordDirection(
-        const GeometryType& Geom,
-        const GeometryType::CoordinatesArrayType& CoordDestiny,
-        GeometryType::CoordinatesArrayType& CoordProjected,
-        double& Distance,
-        const array_1d<double,3>& Vector
-        )
-    {        
-        array_1d<double,3> Normal;
-        
-        GeometryNormal(Normal, Geom);
-        
-        PointType PointDestiny;
-        PointDestiny.Coordinates() = CoordDestiny;
-        
-        PointType PointProjected;
-        
-        Distance = FastProjectDirection(Geom, PointDestiny, PointProjected, Normal,Vector);
-        
-        CoordProjected = PointProjected.Coordinates();
-    }
-    
-    /**
      * Projects iteratively to get the coordinate
      * @param GeomOrigin: The origin geometry
      * @param PointDestiny: The destination point
