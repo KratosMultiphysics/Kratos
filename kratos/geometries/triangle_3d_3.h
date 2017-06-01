@@ -763,21 +763,22 @@ public:
      *
      * @return The shortest altitude to edge length quality metric.
      */
-    virtual double ShortestAltitudeToLongestEdge() const {
-      constexpr double normFactor = 1.0;
+    virtual double ShortestAltitudeToLongestEdge() const 
+    {
+        constexpr double normFactor = 1.0;
 
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
+        const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
+        const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
+        const array_1d<double, 3> c = this->GetPoint(2) - this->GetPoint(0);
 
-      const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+        const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+        const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
 
-      // Shortest altitude is the one intersecting the largest base (or edge).
-      const double base = CalculateMaxEdgeLength(sa,sb,sc);
+        // Shortest altitude is the one intersecting the largest base (or edge).
+        const double base = CalculateMaxEdgeLength(sa,sb,sc);
 
-      return normFactor * (Area() * 2 / base ) / base;
+        return normFactor * (Area() * 2 / base ) / base;
     }
 
     /**
@@ -787,14 +788,14 @@ public:
     virtual array_1d<double, 3> Normal() override
     {
         // We define the normal and tangents
-        array_1d<double,3> Normal(0.0);
+        array_1d<double,3> Normal = ZeroVector(3);
         array_1d<double,3> TangentXi, TangentEta;
 
         // We compute the condition normal as the pondered  of the cross product of the nodal tangents 
         for ( unsigned int iNode = 0; iNode < this->PointsNumber( ); ++iNode )
         {
             Matrix JNode = ZeroMatrix( 3, 2 ); 
-            this->Jacobian( JNode, BaseType::GetPoint(iNode));
+            this->Jacobian( JNode, BaseType::GetPoint(iNode).Coordinates());
         
             for (unsigned int iDim = 0; iDim < 3; iDim++)
             {
@@ -807,7 +808,11 @@ public:
         }
         
         // We normalize
-        Normal /= norm_2( Normal );
+        const double Tolerance = std::numeric_limits<double>::epsilon();
+        if ( norm_2( Normal ) > Tolerance )
+        {
+            Normal /= norm_2( Normal );
+        }
         
         return Normal;
     }
