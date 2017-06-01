@@ -13,7 +13,7 @@
 
 #include "testing/testing.h"
 #include "tests/geometries/test_geometry.h"
-#include "includes/kratos_global_pointer.h"
+#include "includes/global_pointer.h"
 
 namespace Kratos {
 namespace Testing {
