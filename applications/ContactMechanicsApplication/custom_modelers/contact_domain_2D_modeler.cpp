@@ -122,6 +122,8 @@ namespace Kratos
 	  PointList[base+j]   = Coordinates[j] + Offset[j];
 	}
 	
+	//std::cout<<"   BodyNodes ["<<i<<"]= ("<<PointList[base]<<", "<<PointList[base+1]<<"). Id = "<<direct<<" Pre: "<<rMeshingVariables.NodalPreIds[direct]<<std::endl;
+	
 	base+=dimension;
 	direct+=1;
       }
@@ -198,6 +200,7 @@ namespace Kratos
     in.segmentlist                = new int[in.numberofsegments*2];
     
     ModelPart::ConditionsContainerType::iterator conditions_begin = rModelPart.ConditionsBegin();
+
     
     int base = 0;
     for(unsigned int i = 0; i<rModelPart.Conditions(MeshId).size(); i++)
@@ -205,24 +208,29 @@ namespace Kratos
 	Geometry< Node<3> >& rGeometry = (conditions_begin + i)->GetGeometry();
 	in.segmentlist[base]   = rGeometry[0].Id();
 	in.segmentlist[base+1] = rGeometry[1].Id();
+	//std::cout<<" Facet["<<i<<"]: ("<<in.segmentlist[base]<<" "<<in.segmentlist[base+1]<<")"<<std::endl;
 	
 	base+=2;
       }  
 
     ModelerUtilities::MeshContainer& InMesh = rMeshingVariables.InMesh;
-    int& NumberOfPoints   = InMesh.GetNumberOfPoints();
+    int& NumberOfPoints = InMesh.GetNumberOfPoints();
 
+    
     int ids = NumberOfPoints - BoxVertices.size() + 1;
-    for(unsigned int i=ids; i<BoxVertices.size(); i++) //2d (rectangular box of 4 sides)
+    for(unsigned int i=ids; i<ids+BoxVertices.size()-1; i++) //2d (rectangular box of 4 sides)
       {
 	in.segmentlist[base]   = i;
 	in.segmentlist[base+1] = i+1;
-
+	
+	//std::cout<<" BFacet[]: ("<<in.segmentlist[base]<<" "<<in.segmentlist[base+1]<<")"<<std::endl;
 	base+=2;
       }  
     
-    in.segmentlist[base]   = ids;
-    in.segmentlist[base+1] = NumberOfPoints - BoxVertices.size() + 1;
+    in.segmentlist[base]   = ids+BoxVertices.size()-1;
+    in.segmentlist[base+1] = ids;
+
+    //std::cout<<" BFacet[]: ("<<in.segmentlist[base]<<" "<<in.segmentlist[base+1]<<")"<<std::endl;
     
     //PART 3: (area) hole list    
     std::vector<bounded_vector<double, 3> >& Holes = rMeshingVariables.GetHoles();
