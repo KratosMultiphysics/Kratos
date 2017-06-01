@@ -686,6 +686,31 @@ public:
         return result;
     }
 
+    /** 
+     * Calculates the minimal distance between one node and its center
+     * @return The radius of the geometry
+     */
+    virtual double Radius() const
+    {
+        double Radius = 0.0;
+        const Point<3> Center = this->Center();
+        
+        array_1d<double, 3> AuxVector;
+        for(unsigned int iNode = 0; iNode < this->PointsNumber(); iNode++)
+        {
+            noalias(AuxVector) = Center.Coordinates() - this->GetPoint(iNode).Coordinates();;
+            
+            const double AuxValue = inner_prod(AuxVector, AuxVector);
+
+            if(AuxValue > Radius)
+            {
+                Radius = AuxValue;
+            }
+        }
+
+        return std::sqrt(Radius);
+    }
+    
     /**
      * It computes the normal of the geometry, if possible
      * @return The normal of the geometry
