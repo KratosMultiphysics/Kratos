@@ -69,6 +69,38 @@ public:
     {
   }
 
+  /** Constructor by boost::weak_ptr
+   * Constructor by boost::weak_ptr
+   * @param DataPointer Boost Weak Pointer to the Data.
+   */
+  GlobalPointer(boost::weak_ptr<TDataType> DataPointer) = delete;
+
+  /** Constructor by boost::unique_ptr
+   * Constructor by boost::unique_ptr
+   * @param DataPointer Std Unique Pointer to the Data.
+   */
+  /// Note: Not currently even imported on kratos.
+  // GlobalPointer(boost::unique_ptr<TDataType> DataPointer) = delete;
+
+  /** Constructor by std::shared_ptr
+   * Constructor by std::shared_ptr
+   * @param DataPointer Std Shared Pointer to the Data.
+   */
+  GlobalPointer(std::shared_ptr<TDataType> DataPointer) = delete;
+
+  /** Constructor by std::weak_ptr
+   * Constructor by std::weak_ptr
+   * @param DataPointer Std Weak Pointer to the Data.
+   */
+  GlobalPointer(std::weak_ptr<TDataType> DataPointer) = delete;
+
+  /** Constructor by std::unique_ptr
+   * Constructor by std::unique_ptr
+   * @param DataPointer Std Unique Pointer to the Data.
+   */
+  GlobalPointer(std::unique_ptr<TDataType> DataPointer) = delete;
+
+
   /** Default Destructor
    * Default Destructor.
    */
