@@ -16,31 +16,29 @@ class TestLineExactIntegration1(KratosUnittest.TestCase):
         model_part.AddProperties(KratosMultiphysics.Properties(1))
         
         normal = KratosMultiphysics.Vector(3)
-        normal[0] = 0.0
-        normal[1] = 1.0
-        normal[2] = 0.0
-        
+
         # Line 1
         model_part.CreateNewNode(1, 0.00,0.00,0.00)
-        model_part.GetNode(1).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(2, 1.00,0.00,0.00)
-        model_part.GetNode(2).SetValue(KratosMultiphysics.NORMAL, normal)
         
         cond1 = model_part.CreateNewCondition("Condition2D2N", 1, [1,2], model_part.GetProperties()[1])
+        normal = cond1.GetNormal()
         cond1.SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(1).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(2).SetValue(KratosMultiphysics.NORMAL, normal)
         
         # Creating the utility:
         ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility2D2N(1)
 
         # Line 2
-        normal[1] = -1.0
         model_part.CreateNewNode(3, 0.00,0.001,0.00)
-        model_part.GetNode(3).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(4, 1.00,0.001,0.00)
-        model_part.GetNode(4).SetValue(KratosMultiphysics.NORMAL, normal)
         
         cond2 = model_part.CreateNewCondition("Condition2D2N", 2, [3,4], model_part.GetProperties()[1])
+        normal = cond2.GetNormal()
         cond2.SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(3).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(4).SetValue(KratosMultiphysics.NORMAL, normal)
         
         MatrixSolution = KratosMultiphysics.Matrix()
         
@@ -61,31 +59,29 @@ class TestLineExactIntegration2(KratosUnittest.TestCase):
         model_part.AddProperties(KratosMultiphysics.Properties(1))
         
         normal = KratosMultiphysics.Vector(3)
-        normal[0] = 0.0
-        normal[1] = 1.0
-        normal[2] = 0.0
         
         # Line 1
         model_part.CreateNewNode(1, 0.00,0.00,0.00)
-        model_part.GetNode(1).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(2, 1.00,0.00,0.00)
-        model_part.GetNode(2).SetValue(KratosMultiphysics.NORMAL, normal)
         
         cond1 = model_part.CreateNewCondition("Condition2D2N", 1, [1,2], model_part.GetProperties()[1])
+        normal = cond1.GetNormal()
         cond1.SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(1).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(2).SetValue(KratosMultiphysics.NORMAL, normal)
         
         # Creating the utility:
         ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility2D2N(1)
 
         # Line 2
-        normal[1] = -1.0
         model_part.CreateNewNode(3, 0.50,0.001,0.00)
-        model_part.GetNode(3).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(4, 1.50,0.001,0.00)
-        model_part.GetNode(4).SetValue(KratosMultiphysics.NORMAL, normal)
         
         cond2 = model_part.CreateNewCondition("Condition2D2N", 2, [3,4], model_part.GetProperties()[1])
+        normal = cond2.GetNormal()
         cond2.SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(3).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(4).SetValue(KratosMultiphysics.NORMAL, normal)
         
         MatrixSolution = KratosMultiphysics.Matrix()
         
@@ -106,51 +102,31 @@ class TestLineExactIntegration3(KratosUnittest.TestCase):
         model_part.AddProperties(KratosMultiphysics.Properties(1))
         
         normal = KratosMultiphysics.Vector(3)
-        normal[0] = 0.0
-        normal[1] = 1.0
-        normal[2] = 0.0
         
         # Line 1
-        model_part.CreateNewNode(1, 0.00,0.00,0.00)
-        model_part.GetNode(1).SetValue(KratosMultiphysics.NORMAL, normal)
-        model_part.CreateNewNode(2, 1.00,0.00,0.00)
-        model_part.GetNode(2).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.CreateNewNode(1, 0.00,-0.5,0.00)
+        model_part.CreateNewNode(2, 1.00, 0.5,0.00)
         
         cond1 = model_part.CreateNewCondition("Condition2D2N", 1, [1,2], model_part.GetProperties()[1])
+        
+        normal = cond1.GetNormal()
         cond1.SetValue(KratosMultiphysics.NORMAL, normal)
-        
-        model_part.GetNode(1).Y = -0.25
-        model_part.GetNode(2).Y = +0.25
-        
-        normal[0] = 0.5
-        normal[1] = 0.8660254037844386
-        normal[2] = 0.0
-        
-        cond1.SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(1).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(2).SetValue(KratosMultiphysics.NORMAL, normal)
         
         # Creating the utility:
         ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility2D2N(1)
 
         # Line 2
-        normal[0] = 0.0
-        normal[1] = -1.0
-        normal[2] = 0.0
-        model_part.CreateNewNode(3, 0.0,0.25,0.00)
-        model_part.GetNode(3).SetValue(KratosMultiphysics.NORMAL, normal)
-        model_part.CreateNewNode(4, 1.0,0.25,0.00)
-        model_part.GetNode(4).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.CreateNewNode(3, 0.0,0.5,0.00)
+        model_part.CreateNewNode(4, 1.0,0.5,0.00)
         
         cond2 = model_part.CreateNewCondition("Condition2D2N", 2, [3,4], model_part.GetProperties()[1])
+        
+        normal = cond2.GetNormal()
         cond2.SetValue(KratosMultiphysics.NORMAL, normal)
-        
-        #model_part.GetNode(3).Y = -0.25
-        #model_part.GetNode(4).Y = +0.25
-        
-        #normal[0] = 0.5
-        #normal[1] = -0.8660254037844386
-        #normal[2] = 0.0
-        
-        #cond2.SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(3).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(4).SetValue(KratosMultiphysics.NORMAL, normal)
         
         MatrixSolution = KratosMultiphysics.Matrix()
         
@@ -161,8 +137,8 @@ class TestLineExactIntegration3(KratosUnittest.TestCase):
             #print("Integration accomplished", MatrixSolution)
         
         self.assertTrue(solution)
-        self.assertAlmostEqual(MatrixSolution[0,0], 0.0)
-        self.assertAlmostEqual(MatrixSolution[0,1], 2.23606797749979)
+        self.assertAlmostEqual(MatrixSolution[0,0], 0.5)
+        self.assertAlmostEqual(MatrixSolution[0,1], 2.0/(2.0**0.5))
     
 ## Test exact integration in 3D
 # TRIANGLE
@@ -173,20 +149,18 @@ class TestTriangleExactIntegration1(KratosUnittest.TestCase):
         model_part.AddProperties(KratosMultiphysics.Properties(1))
         
         normal = KratosMultiphysics.Vector(3)
-        normal[0] = 0.0
-        normal[1] = 0.0
-        normal[2] = 1.0
         
         # Triangle 1
         model_part.CreateNewNode(1, 0.00,0.00,0.00)
-        model_part.GetNode(1).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(2, 1.00,0.00,0.00)
-        model_part.GetNode(2).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(3, 0.00,1.00,0.00)
-        model_part.GetNode(3).SetValue(KratosMultiphysics.NORMAL, normal)
         
         cond1 = model_part.CreateNewCondition("SurfaceCondition3D3N", 1, [1,2,3], model_part.GetProperties()[1])
+        normal = cond1.GetNormal()
         cond1.SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(1).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(2).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(3).SetValue(KratosMultiphysics.NORMAL, normal)
         
         # Creating the utility:
         ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D3N(2)
@@ -194,14 +168,16 @@ class TestTriangleExactIntegration1(KratosUnittest.TestCase):
         # Triangle 2
         normal[2] = -1.0
         model_part.CreateNewNode(4, 0.00,0.00,0.01)
-        model_part.GetNode(4).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(5, 1.00,0.00,0.01)
-        model_part.GetNode(5).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(6, 0.00,1.00,0.01)
-        model_part.GetNode(6).SetValue(KratosMultiphysics.NORMAL, normal)
         
         cond2 = model_part.CreateNewCondition("SurfaceCondition3D3N", 2, [4,5,6], model_part.GetProperties()[1])
+        normal = cond2.GetNormal()
         cond2.SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(4).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(5).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(6).SetValue(KratosMultiphysics.NORMAL, normal)
+        
         
         MatrixSolution = KratosMultiphysics.Matrix()
         solution = ExactIntegration.TestGetExactIntegration(cond1, cond2, MatrixSolution)
@@ -228,35 +204,33 @@ class TestTriangleExactIntegration2(KratosUnittest.TestCase):
         model_part.AddProperties(KratosMultiphysics.Properties(1))
         
         normal = KratosMultiphysics.Vector(3)
-        normal[0] = 0.0
-        normal[1] = 0.0
-        normal[2] = 1.0
         
         # Triangle 1
         model_part.CreateNewNode(1, 0.00,0.00,0.00)
-        model_part.GetNode(1).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(2, 1.00,0.00,0.00)
-        model_part.GetNode(2).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(3, 0.00,1.00,0.00)
-        model_part.GetNode(3).SetValue(KratosMultiphysics.NORMAL, normal)
         
         cond1 = model_part.CreateNewCondition("SurfaceCondition3D3N", 1, [1,2,3], model_part.GetProperties()[1])
+        normal = cond1.GetNormal()
         cond1.SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(1).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(2).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(3).SetValue(KratosMultiphysics.NORMAL, normal)
         
         # Creating the utility:
         ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D3N(2)
 
         # Triangle 2
-        normal[2] = -1.0
         model_part.CreateNewNode(4, 0.00,0.00,0.01)
-        model_part.GetNode(4).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(5, 1.00,0.00,0.01)
-        model_part.GetNode(5).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(6, 1.00,1.00,0.01)
-        model_part.GetNode(6).SetValue(KratosMultiphysics.NORMAL, normal)
         
         cond2 = model_part.CreateNewCondition("SurfaceCondition3D3N", 2, [4,5,6], model_part.GetProperties()[1])
+        normal = cond2.GetNormal()
         cond2.SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(4).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(5).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(6).SetValue(KratosMultiphysics.NORMAL, normal)
         
         MatrixSolution = KratosMultiphysics.Matrix()
         solution = ExactIntegration.TestGetExactIntegration(cond1, cond2, MatrixSolution)
@@ -283,43 +257,41 @@ class TestTriangleExactIntegration3(KratosUnittest.TestCase):
         model_part.AddProperties(KratosMultiphysics.Properties(1))
         
         normal = KratosMultiphysics.Vector(3)
-        normal[0] = 0.0
-        normal[1] = 0.0
-        normal[2] = 1.0
         
         # Triangle 1 and 2
         model_part.CreateNewNode(1, 0.00,0.00,0.00)
-        model_part.GetNode(1).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(2, 1.00,0.00,0.00)
-        model_part.GetNode(2).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(3, 0.00,1.00,0.00)
-        model_part.GetNode(3).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(4, 1.00,1.00,0.00)
-        model_part.GetNode(3).SetValue(KratosMultiphysics.NORMAL, normal)
         
         cond1 = model_part.CreateNewCondition("SurfaceCondition3D3N", 1, [1,2,3], model_part.GetProperties()[1])
         cond2 = model_part.CreateNewCondition("SurfaceCondition3D3N", 2, [2,4,3], model_part.GetProperties()[1])
+        normal = cond1.GetNormal()
         cond1.SetValue(KratosMultiphysics.NORMAL, normal)
         cond2.SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(1).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(2).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(3).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(4).SetValue(KratosMultiphysics.NORMAL, normal)
         
         # Creating the utility:
         ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D3N(2)
 
         # Triangle 3 and 4
-        normal[2] = -1.0
         model_part.CreateNewNode(5, 0.00,0.00,0.01)
-        model_part.GetNode(5).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(6, 1.00,0.00,0.01)
-        model_part.GetNode(6).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(7, 0.00,1.00,0.01)
-        model_part.GetNode(7).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(8, 1.00,1.00,0.01)
-        model_part.GetNode(7).SetValue(KratosMultiphysics.NORMAL, normal)
         
         cond3 = model_part.CreateNewCondition("SurfaceCondition3D3N", 3, [5,6,8], model_part.GetProperties()[1])
         cond4 = model_part.CreateNewCondition("SurfaceCondition3D3N", 4, [5,8,7], model_part.GetProperties()[1])
+        normal = cond3.GetNormal()
         cond3.SetValue(KratosMultiphysics.NORMAL, normal)
         cond4.SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(5).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(6).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(7).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(8).SetValue(KratosMultiphysics.NORMAL, normal)
         
         MatrixSolution = KratosMultiphysics.Matrix()
         
@@ -399,39 +371,37 @@ class TestQuadrilateralExactIntegration1(KratosUnittest.TestCase):
         model_part.AddProperties(KratosMultiphysics.Properties(1))
         
         normal = KratosMultiphysics.Vector(3)
-        normal[0] = 0.0
-        normal[1] = 0.0
-        normal[2] = 1.0
         
         # Quadrilateral 1
         model_part.CreateNewNode(1, 0.00,0.00,0.00)
-        model_part.GetNode(1).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(2, 1.00,0.00,0.00)
-        model_part.GetNode(2).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(3, 1.00,1.00,0.00)
-        model_part.GetNode(3).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(4, 0.00,1.00,0.00)
-        model_part.GetNode(4).SetValue(KratosMultiphysics.NORMAL, normal)
         
         cond1 = model_part.CreateNewCondition("Condition3D4N", 1, [1,2,3,4], model_part.GetProperties()[1])
+        normal = cond1.GetNormal()
         cond1.SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(1).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(2).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(3).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(4).SetValue(KratosMultiphysics.NORMAL, normal)
 
         # Creating the utility:
         ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D4N(2)
 
         # Quadrilateral 2
-        normal[2] = -1.0
         model_part.CreateNewNode(5, 0.00,0.00,0.01)
-        model_part.GetNode(5).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(6, 1.00,0.00,0.01)
-        model_part.GetNode(6).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(7, 1.00,1.00,0.01)
-        model_part.GetNode(7).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(8, 0.00,1.00,0.01)
-        model_part.GetNode(8).SetValue(KratosMultiphysics.NORMAL, normal)
         
         cond2 = model_part.CreateNewCondition("Condition3D4N", 2, [5,6,7,8], model_part.GetProperties()[1])
+        normal = cond2.GetNormal()
         cond2.SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(5).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(6).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(7).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(8).SetValue(KratosMultiphysics.NORMAL, normal)
         
         MatrixSolution = KratosMultiphysics.Matrix()
         solution = ExactIntegration.TestGetExactIntegration(cond1, cond2, MatrixSolution)
@@ -467,22 +437,20 @@ class TestQuadrilateralExactIntegration2(KratosUnittest.TestCase):
         model_part.AddProperties(KratosMultiphysics.Properties(1))
         
         normal = KratosMultiphysics.Vector(3)
-        normal[0] = 0.0
-        normal[1] = 0.0
-        normal[2] = 1.0
         
         # Quadrilateral 1
         model_part.CreateNewNode(1, 0.00,0.00,0.00)
-        model_part.GetNode(1).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(2, 1.00,0.00,0.00)
-        model_part.GetNode(2).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(3, 1.00,1.00,0.00)
-        model_part.GetNode(3).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(4, 0.00,1.00,0.00)
-        model_part.GetNode(4).SetValue(KratosMultiphysics.NORMAL, normal)
         
         cond1 = model_part.CreateNewCondition("Condition3D4N", 1, [1,2,3,4], model_part.GetProperties()[1])
+        normal = cond1.GetNormal()
         cond1.SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(1).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(2).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(3).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(4).SetValue(KratosMultiphysics.NORMAL, normal)
 
         # Creating the utility:
         ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D4N()
@@ -490,16 +458,17 @@ class TestQuadrilateralExactIntegration2(KratosUnittest.TestCase):
         # Quadrilateral 2
         normal[2] = -1.0
         model_part.CreateNewNode(5, 0.50,0.50,0.01)
-        model_part.GetNode(5).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(6, 1.50,0.50,0.01)
-        model_part.GetNode(6).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(7, 1.50,1.50,0.01)
-        model_part.GetNode(7).SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.CreateNewNode(8, 0.50,1.50,0.01)
-        model_part.GetNode(8).SetValue(KratosMultiphysics.NORMAL, normal)
         
         cond2 = model_part.CreateNewCondition("Condition3D4N", 2, [5,6,7,8], model_part.GetProperties()[1])
+        normal = cond2.GetNormal()
         cond2.SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(5).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(6).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(7).SetValue(KratosMultiphysics.NORMAL, normal)
+        model_part.GetNode(8).SetValue(KratosMultiphysics.NORMAL, normal)
         
         MatrixSolution = KratosMultiphysics.Matrix()
         solution = ExactIntegration.TestGetExactIntegration(cond1, cond2, MatrixSolution)
