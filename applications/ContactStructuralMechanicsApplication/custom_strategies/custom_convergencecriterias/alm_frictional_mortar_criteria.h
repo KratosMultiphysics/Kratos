@@ -279,71 +279,71 @@ public:
                 auto& Table = mpTable->GetTable();
                 if (IsConvergedActive == true)
                 {
-					#if !defined(_WIN32)
-						Table << BOLDFONT(FGRN("       Achieved"));
-					#else
-						Table << "Achieved";
-					#endif
+                    #if !defined(_WIN32)
+                            Table << BOLDFONT(FGRN("       Achieved"));
+                    #else
+                            Table << "Achieved";
+                    #endif
                 }
                 else
                 {
-					#if !defined(_WIN32)
-						Table << BOLDFONT(FRED("   Not achieved"));
-					#else
-						Table << "Not achieved";
-					#endif
+                    #if !defined(_WIN32)
+                            Table << BOLDFONT(FRED("   Not achieved"));
+                    #else
+                            Table << "Not achieved";
+                    #endif
                 }
                 if (IsConvergedSlip == true)
                 {
-					#if !defined(_WIN32)
-						Table << BOLDFONT(FGRN("       Achieved"));
-					#else
-						Table << "Achieved";
-					#endif
+                    #if !defined(_WIN32)
+                            Table << BOLDFONT(FGRN("       Achieved"));
+                    #else
+                            Table << "Achieved";
+                    #endif
                 }
                 else
                 {
-					#if !defined(_WIN32)
-						Table << BOLDFONT(FRED("   Not achieved"));
-					#else
-						Table << "Not achieved";
-					#endif
+                    #if !defined(_WIN32)
+                            Table << BOLDFONT(FRED("   Not achieved"));
+                    #else
+                            Table << "Not achieved";
+                    #endif
                 }
             }
             else
             {
                 if (IsConvergedActive == true)
                 {
-					#if !defined(_WIN32)
-						std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
-					#else
-						std::cout << "\tActive set convergence is achieved" << std::endl;
-					#endif
+                    #if !defined(_WIN32)
+                            std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
+                    #else
+                            std::cout << "\tActive set convergence is achieved" << std::endl;
+                    #endif
                 }
                 else
                 {
-					#if !defined(_WIN32)
-						std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
-					#else
-						std::cout << "\tActive set convergence is not achieved" << std::endl;
-					#endif
+                    #if !defined(_WIN32)
+                            std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
+                    #else
+                            std::cout << "\tActive set convergence is not achieved" << std::endl;
+                    #endif
                 }
                 
                 if (IsConvergedSlip == true)
                 {
-					#if !defined(_WIN32)
-						std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
-					#else
-						std::cout << "\tSlip/stick set convergence is achieved" << std::endl;
-					#endif
+                    #if !defined(_WIN32)
+                            std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
+                    #else
+                            std::cout << "\tSlip/stick set convergence is achieved" << std::endl;
+                    #endif
                 }
                 else
                 {
-					#if !defined(_WIN32)
-						std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
-					#else
-						std::cout << "\tSlip/stick set  convergence is not achieved" << std::endl;
-					#endif
+                    #if !defined(_WIN32)
+                            std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
+                    #else
+                            std::cout << "\tSlip/stick set  convergence is not achieved" << std::endl;
+                    #endif
                 }
             }
         }
