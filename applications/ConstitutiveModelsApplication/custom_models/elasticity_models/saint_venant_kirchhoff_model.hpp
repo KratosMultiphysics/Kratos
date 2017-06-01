@@ -335,7 +335,7 @@ namespace Kratos
 	  rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
 	}
 	else if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_None ){
-	  ConstitutiveModelUtilities::CalculateGreenLagrangeStrain( rDeformationGradientF0, rVariables.Strain.Matrix );
+	  ConstitutiveModelUtilities::CalculateGreenLagrangeStrain( rDeformationGradientF0, rVariables.Strain.Matrix);
 	  rValues.StrainMatrix = rVariables.Strain.Matrix;
 	  rValues.State.Set(ConstitutiveModelData::COMPUTED_STRAIN);
 	}

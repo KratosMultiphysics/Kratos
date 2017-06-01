@@ -75,15 +75,8 @@ namespace Kratos
 
     rHardening = this->CalculateAndAddIsotropicHardening(rVariables,rHardening);
 
-<<<<<<< HEAD
     rHardening = this->CalculateAndAddKinematicHardening(rVariables,rHardening);
 	
-=======
-    double IsoHardening = rHardening;
-    
-    rHardening = this->CalculateAndAddKinematicHardening(rVariables,rHardening);
-    
->>>>>>> b753b27... thermo mechanical modelling is working again
     return rHardening;
 	
     KRATOS_CATCH(" ")

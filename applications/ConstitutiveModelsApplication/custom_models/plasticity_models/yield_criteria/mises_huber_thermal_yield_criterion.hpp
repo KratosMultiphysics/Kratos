@@ -118,6 +118,8 @@ namespace Kratos
 
       double Hardening = 0;
       Hardening = this->mHardeningLaw.CalculateHardening(rVariables,Hardening);
+
+      std::cout<<" DeltaGamma "<<rDeltaGamma<<" Hardening "<<Hardening<<std::endl;
       
       double EquivalentStress =  sqrt(2.0/3.0) * ( Hardening );
 
