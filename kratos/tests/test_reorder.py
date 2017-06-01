@@ -46,9 +46,9 @@ class TestModelPartIO(KratosUnittest.TestCase):
         KratosMultiphysics.ReorderAndOptimizeModelPartProcess(model_part,tmp).Execute()
         
         #output is
-        #10 11 12 9
-        #6   7  4 8
-        #1   2  3 5
+        #7   8 11 12
+        #4   5  6 10
+        #1   2  3 9
 
         
         for node in model_part.Nodes:
