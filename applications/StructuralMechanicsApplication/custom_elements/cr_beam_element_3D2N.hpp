@@ -121,6 +121,14 @@ namespace Kratos
 			MatrixType& rMassMatrix,
 			ProcessInfo& rCurrentProcessInfo) override;
 
+		void CalculateLumpedMassMatrix(
+			MatrixType& rMassMatrix,
+			ProcessInfo& rCurrentProcessInfo);
+
+		void CalculateConsistentMassMatrix(
+			MatrixType& rMassMatrix,
+			ProcessInfo& rCurrentProcessInfo);
+
 		void BuildSingleMassMatrix(
 			MatrixType& rMassMatrix,
 			const double Phi, const double CT, const double CR, const double L);
@@ -197,6 +205,7 @@ namespace Kratos
 
 		int mIterationCount = 0;
 		bool mIsLinearElement = false;
+		bool mLumpedMassMatrix = false;
 
 		CrBeamElement3D2N() {};
 

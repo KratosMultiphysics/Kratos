@@ -798,9 +798,9 @@ namespace Kratos
 	}
 
 	void CrBeamElement3D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
-		ProcessInfo& rCurrentProcessInfo) {
-
-		KRATOS_TRY
+		ProcessInfo& rCurrentProcessInfo) 
+	{
+		KRATOS_TRY;
 		const int number_of_nodes = GetGeometry().PointsNumber();
 		const int dimension = GetGeometry().WorkingSpaceDimension();
 		const int smallMatSize = number_of_nodes * 2;
@@ -811,86 +811,22 @@ namespace Kratos
 		}
 		rMassMatrix = ZeroMatrix(MatSize, MatSize);
 
-		const double L = this->mLength;
-		const double L2 = L * L;
-		const double rho = this->mDensity;
-		const double A = this->mArea;
-		const double E = this->mYoungsModulus;
-		const double Iy = this->mInertiaY;
-		const double Iz = this->mInertiaZ;
-		const double J = this->mInertiaX;
-		const double G = this->mShearModulus;
-		const double Ay = this->mEffAreaY;
-		const double Az = this->mEffAreaZ;
-		const double IRy = this->mRotInertiaY;
-		const double IRz = this->mRotInertiaZ;
-
-		double Phiy = 0.00;
-		double Phiz = 0.00;
-
-		if (Ay != 0.00) Phiz = (12.00 * E * Iz) / (L2*G*Ay);
-		if (Az != 0.00) Phiy = (12.00 * E * Iy) / (L2*G*Az);
-
-		const double CTy = (rho * A * L) / ((1 + Phiy)*(1 + Phiy));
-		const double CTz = (rho * A * L) / ((1 + Phiz)*(1 + Phiz));
-
-		const double CRy = (rho*IRy) / ((1 + Phiy)*(1 + Phiy)*L);
-		const double CRz = (rho*IRz) / ((1 + Phiz)*(1 + Phiz)*L);
-
-		//longitudinal forces + torsional moment
-		const double M00 = (1.00 / 3.00)*A*rho*L;
-		const double M06 = M00 / 2.00;
-		rMassMatrix(0, 0) = M00;
-		rMassMatrix(0, 6) = M06;
-		rMassMatrix(6, 6) = M00;
-		rMassMatrix(3, 3) = M00;
-		rMassMatrix(3, 9) = M06;
-		rMassMatrix(9, 9) = M00;
-
-		Matrix TempBendingMassMatrix = ZeroMatrix(smallMatSize, smallMatSize);
-		this->BuildSingleMassMatrix(TempBendingMassMatrix, Phiz, CTz, CRz, L);
-
-		rMassMatrix(1, 1) = TempBendingMassMatrix(0, 0);
-		rMassMatrix(1, 5) = TempBendingMassMatrix(0, 1);
-		rMassMatrix(1, 7) = TempBendingMassMatrix(0, 2);
-		rMassMatrix(1, 11) = TempBendingMassMatrix(0, 3);
-		rMassMatrix(5, 5) = TempBendingMassMatrix(1, 1);
-		rMassMatrix(5, 7) = TempBendingMassMatrix(1, 2);
-		rMassMatrix(5, 11) = TempBendingMassMatrix(1, 3);
-		rMassMatrix(7, 7) = TempBendingMassMatrix(2, 2);
-		rMassMatrix(7, 11) = TempBendingMassMatrix(2, 3);
-		rMassMatrix(11, 11) = TempBendingMassMatrix(3, 3);
-
-		TempBendingMassMatrix = ZeroMatrix(smallMatSize, smallMatSize);
-		this->BuildSingleMassMatrix(TempBendingMassMatrix, Phiy, CTy, CRy, L);
-
-		rMassMatrix(2, 2) = TempBendingMassMatrix(0, 0);
-		rMassMatrix(2, 4) = TempBendingMassMatrix(0, 1);
-		rMassMatrix(2, 8) = TempBendingMassMatrix(0, 2);
-		rMassMatrix(2, 10) = TempBendingMassMatrix(0, 3);
-		rMassMatrix(4, 4) = TempBendingMassMatrix(1, 1);
-		rMassMatrix(4, 8) = TempBendingMassMatrix(1, 2);
-		rMassMatrix(4, 10) = TempBendingMassMatrix(1, 3);
-		rMassMatrix(8, 8) = TempBendingMassMatrix(2, 2);
-		rMassMatrix(8, 10) = TempBendingMassMatrix(2, 3);
-		rMassMatrix(10, 10) = TempBendingMassMatrix(3, 3);
-
-
-		for (int j = 1; j < 12; ++j)
+		if (this->mLumpedMassMatrix == true)
 		{
-			for (int i = 0; i < j; ++i)
-			{
-				rMassMatrix(j, i) = rMassMatrix(i, j);
-			}
+			this->CalculateLumpedMassMatrix(rMassMatrix, rCurrentProcessInfo);
 		}
+		else
+		{
+			this->CalculateConsistentMassMatrix(rMassMatrix, rCurrentProcessInfo);
 
-		Matrix RotationMatrix = ZeroMatrix(MatSize);
-		Matrix aux_matrix = ZeroMatrix(MatSize);
+			Matrix RotationMatrix = ZeroMatrix(MatSize);
+			Matrix aux_matrix = ZeroMatrix(MatSize);
 
-		RotationMatrix = this->mRotationMatrix;
-		aux_matrix = prod(RotationMatrix, rMassMatrix);
-		rMassMatrix = prod(aux_matrix,
-			Matrix(trans(RotationMatrix)));
+			RotationMatrix = this->mRotationMatrix;
+			aux_matrix = prod(RotationMatrix, rMassMatrix);
+			rMassMatrix = prod(aux_matrix,
+				Matrix(trans(RotationMatrix)));
+		}
 
 		KRATOS_CATCH("")
 	}
@@ -1563,12 +1499,131 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	CrBeamElement3D2N::IntegrationMethod CrBeamElement3D2N::GetIntegrationMethod() const
+	void CrBeamElement3D2N::CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
+		ProcessInfo& rCurrentProcessInfo)
+	{
+		KRATOS_TRY;
+		const int number_of_nodes = GetGeometry().PointsNumber();
+		const int dimension = GetGeometry().WorkingSpaceDimension();
+		const int smallMatSize = number_of_nodes * 2;
+		const int MatSize = number_of_nodes * dimension * 2;
+
+		if (rMassMatrix.size1() != MatSize) {
+			rMassMatrix.resize(MatSize, MatSize, false);
+		}
+		rMassMatrix = ZeroMatrix(MatSize, MatSize);
+
+		const double L = this->mLength;
+		const double L2 = L * L;
+		const double rho = this->mDensity;
+		const double A = this->mArea;
+		const double E = this->mYoungsModulus;
+		const double Iy = this->mInertiaY;
+		const double Iz = this->mInertiaZ;
+		const double J = this->mInertiaX;
+		const double G = this->mShearModulus;
+		const double Ay = this->mEffAreaY;
+		const double Az = this->mEffAreaZ;
+		const double IRy = this->mRotInertiaY;
+		const double IRz = this->mRotInertiaZ;
+
+		double Phiy = 0.00;
+		double Phiz = 0.00;
+
+		if (Ay != 0.00) Phiz = (12.00 * E * Iz) / (L2*G*Ay);
+		if (Az != 0.00) Phiy = (12.00 * E * Iy) / (L2*G*Az);
+
+		const double CTy = (rho * A * L) / ((1 + Phiy)*(1 + Phiy));
+		const double CTz = (rho * A * L) / ((1 + Phiz)*(1 + Phiz));
+
+		const double CRy = (rho*IRy) / ((1 + Phiy)*(1 + Phiy)*L);
+		const double CRz = (rho*IRz) / ((1 + Phiz)*(1 + Phiz)*L);
+
+		//longitudinal forces + torsional moment
+		const double M00 = (1.00 / 3.00)*A*rho*L;
+		const double M06 = M00 / 2.00;
+		rMassMatrix(0, 0) = M00;
+		rMassMatrix(0, 6) = M06;
+		rMassMatrix(6, 6) = M00;
+		rMassMatrix(3, 3) = M00;
+		rMassMatrix(3, 9) = M06;
+		rMassMatrix(9, 9) = M00;
+
+		Matrix TempBendingMassMatrix = ZeroMatrix(smallMatSize, smallMatSize);
+		this->BuildSingleMassMatrix(TempBendingMassMatrix, Phiz, CTz, CRz, L);
+
+		rMassMatrix(1, 1) = TempBendingMassMatrix(0, 0);
+		rMassMatrix(1, 5) = TempBendingMassMatrix(0, 1);
+		rMassMatrix(1, 7) = TempBendingMassMatrix(0, 2);
+		rMassMatrix(1, 11) = TempBendingMassMatrix(0, 3);
+		rMassMatrix(5, 5) = TempBendingMassMatrix(1, 1);
+		rMassMatrix(5, 7) = TempBendingMassMatrix(1, 2);
+		rMassMatrix(5, 11) = TempBendingMassMatrix(1, 3);
+		rMassMatrix(7, 7) = TempBendingMassMatrix(2, 2);
+		rMassMatrix(7, 11) = TempBendingMassMatrix(2, 3);
+		rMassMatrix(11, 11) = TempBendingMassMatrix(3, 3);
+
+		TempBendingMassMatrix = ZeroMatrix(smallMatSize, smallMatSize);
+		this->BuildSingleMassMatrix(TempBendingMassMatrix, Phiy, CTy, CRy, L);
+
+		rMassMatrix(2, 2) = TempBendingMassMatrix(0, 0);
+		rMassMatrix(2, 4) = TempBendingMassMatrix(0, 1);
+		rMassMatrix(2, 8) = TempBendingMassMatrix(0, 2);
+		rMassMatrix(2, 10) = TempBendingMassMatrix(0, 3);
+		rMassMatrix(4, 4) = TempBendingMassMatrix(1, 1);
+		rMassMatrix(4, 8) = TempBendingMassMatrix(1, 2);
+		rMassMatrix(4, 10) = TempBendingMassMatrix(1, 3);
+		rMassMatrix(8, 8) = TempBendingMassMatrix(2, 2);
+		rMassMatrix(8, 10) = TempBendingMassMatrix(2, 3);
+		rMassMatrix(10, 10) = TempBendingMassMatrix(3, 3);
+
+
+		for (int j = 1; j < 12; ++j)
+		{
+			for (int i = 0; i < j; ++i)
+			{
+				rMassMatrix(j, i) = rMassMatrix(i, j);
+			}
+		}
+
+		KRATOS_CATCH("")
+	}
+
+	void CrBeamElement3D2N::CalculateLumpedMassMatrix(MatrixType& rMassMatrix,
+		ProcessInfo& rCurrentProcessInfo)
+	{
+		KRATOS_TRY;
+		const int number_of_nodes = GetGeometry().PointsNumber();
+		const int dimension = GetGeometry().WorkingSpaceDimension();
+		const int MatSize = number_of_nodes * dimension * 2;
+
+		if (rMassMatrix.size1() != MatSize) {
+			rMassMatrix.resize(MatSize, MatSize, false);
+		}
+		rMassMatrix = ZeroMatrix(MatSize, MatSize);
+
+		const double TotalMass = this->mArea * this->mLength * this->mDensity;
+		const double temp = 0.50 * TotalMass;
+
+		//translatonal mass	
+		for (int i = 0; i < number_of_nodes; ++i)
+		{
+			for (int j = 0; j < dimension; ++j)
+			{
+				int index = i * (dimension * 2) + j;
+				rMassMatrix(index, index) = temp;
+			}
+		}
+		//rotaional mass neglected alpha = 0
+		KRATOS_CATCH("")
+	}
+
+	CrBeamElement3D2N::IntegrationMethod 
+		CrBeamElement3D2N::GetIntegrationMethod() const
 	{
 		//do this to have 3GP as an output in GID
 		return Kratos::GeometryData::GI_GAUSS_3;
 	}
-
 
 
 
@@ -1651,9 +1706,6 @@ namespace Kratos
 
 		KRATOS_CATCH("")
 	}
-
-
-
 
 	Orientation::Orientation(array_1d<double, 3>& v1, const double theta) {
 
