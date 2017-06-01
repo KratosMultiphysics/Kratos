@@ -45,6 +45,12 @@ public:
 	*/
 	GlobalPointer() = delete;
 
+  /** Constructor by Data
+   * Constructor by Data
+   * @param Data the data.
+   */
+  GlobalPointer(TDataType Data) = delete;
+
   /** Constructor by Data Pointer
    * Constructor by Data Pointer
    * @param DataPointer Pointer to the data.
