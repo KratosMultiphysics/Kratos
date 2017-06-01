@@ -19,17 +19,6 @@ class SwimmingStrategy(BaseStrategy):
 
         return class_name
 
-    def GetSchemeInstance(self, class_name): # parent counterpart must not be called due to different 'globals()'
-        return globals().get(class_name)()
-
-    def Initialize(self):
-        BaseStrategy.Initialize(self)
-        BaseStrategy.SetVariablesAndOptions(self)
-
-        self.CheckMomentumConservation()
-
-        self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy (C++) Initialize function (initializes all elements and performs other necessary tasks before starting the time loop in Python)
-
     def CreateCPlusPlusStrategy(self):
         self.SetVariablesAndOptions()
         print('self.Parameters.IntegrationScheme',self.Parameters.IntegrationScheme)

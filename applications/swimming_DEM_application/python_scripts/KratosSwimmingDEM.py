@@ -46,6 +46,7 @@ import swimming_DEM_procedures as swim_proc
 import CFD_DEM_coupling
 import embedded
 import swimming_DEM_algorithm
+import swimming_DEM_gid_output
 # import the configuration data as read from the GiD
 
 try:
@@ -91,6 +92,8 @@ class Solution:
         
     
     def Initialize(self):
+        print("\nInitializing Problem...")
+        sys.stdout.flush()
                 
         run_code = self.alg.GetRunCode() ##MA: NOT USED?
 
@@ -99,37 +102,13 @@ class Solution:
         [self.post_path, data_and_results, self.graphs_path, MPI_results] = self.alg.procedures.CreateDirectories(str(self.main_path), str(self.pp.CFD_DEM.problem_name))
         swim_proc.CopyInputFilesIntoFolder(self.main_path, self.post_path)
 
-        self.alg.AddExtraVariables()
-
-        #Setting up the BoundingBox
-        bounding_box_time_limits = []
-        if self.pp.CFD_DEM.BoundingBoxOption == "ON":
-            self.alg.procedures.SetBoundingBox(self.alg.spheres_model_part, self.alg.cluster_model_part, self.alg.rigid_face_model_part, self.alg.creator_destructor)
-            bounding_box_time_limits = [self.alg.solver.bounding_box_start_time, self.alg.solver.bounding_box_stop_time]
-
-        # Creating the fluid solver
-        SolverSettings = self.pp.FluidSolverConfiguration
-        # solver_module = import_solver(SolverSettings)
-        self.fluid_model_part = self.alg.all_model_parts.Get('FluidPart')
         self.mixed_model_part = self.alg.all_model_parts.Get('MixedPart')
+        self.fluid_model_part = self.alg.all_model_parts.Get('FluidPart')
 
-        self.Dt_DEM = self.pp.CFD_DEM.MaxTimeStep
-
-        # reading the fluid part
         self.alg.Initialize()
-
         
-
-        # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation
-        # Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
-
-        if not self.pp.VolumeOutput:
-            cut_list = define_output.DefineCutPlanes()
-            gid_io.define_cuts(self.fluid_model_part, cut_list)
-
-        # gid_io.initialize_results(self.fluid_model_part) # MOD.
-
-        import swimming_DEM_gid_output
+        self.SetCutsOutput()        
+        
         self.swimming_DEM_gid_io = swimming_DEM_gid_output.SwimmingDEMGiDOutput(self.pp.problem_name,
                                                                            self.pp.VolumeOutput,
                                                                            self.pp.GiDPostMode,
@@ -139,38 +118,11 @@ class Solution:
 
         self.swimming_DEM_gid_io.initialize_swimming_DEM_results(self.alg.spheres_model_part, self.alg.cluster_model_part, self.alg.rigid_face_model_part, self.mixed_model_part)
 
-        # define the drag computation list
-        self.drag_list = define_output.DefineDragList()
-        self.drag_file_output_list = []
-        for it in self.drag_list:
-            f = open(it[1], 'w')
-            self.drag_file_output_list.append(f)
-            tmp = "#Drag for group " + it[1] + "\n"
-            f.write(tmp)
-            tmp = "time RX RY RZ"
-            f.write(tmp)
-            f.flush()
-
-        print(self.drag_file_output_list)    
-
-
-        # preparing output of point graphs
-        #import point_graph_printer
-
-        #output_nodes_list = define_output.DefineOutputPoints()
-        #self.graph_printer = point_graph_printer.PrintGraphPrinter(
-            #output_nodes_list,
-            #fluid_model_part,
-            #variables_dictionary,
-            #domain_size)
-
-        # setting fluid's body force to the same as DEM's
-        if self.pp.CFD_DEM.body_force_on_fluid_option:
-
-            for node in self.fluid_model_part.Nodes:
-                node.SetSolutionStepValue(BODY_FORCE_X, 0, self.pp.CFD_DEM.GravityX)
-                node.SetSolutionStepValue(BODY_FORCE_Y, 0, self.pp.CFD_DEM.GravityY)
-                node.SetSolutionStepValue(BODY_FORCE_Z, 0, self.pp.CFD_DEM.GravityZ)
+        self.SetDragOutput()
+          
+        self.SetPointGraphPrinter()
+        
+        self.TransferGravityFromDisperseToFluid()               
 
         # coarse-graining: applying changes to the physical properties of the model to adjust for
         # the similarity transformation if required (fluid effects only).
@@ -229,6 +181,7 @@ class Solution:
             self.calculate_distance_process.Execute()
 
         self.alg.KRATOSprint("Initialization Complete" + "\n")
+        sys.stdout.flush()
 
         self.step           = 0
         self.time           = self.pp.Start_time
@@ -304,8 +257,6 @@ class Solution:
 
         self.alg.KRATOSprint(self.alg.report.BeginReport(self.alg.timer))
 
-        self.mesh_motion = DEMFEMUtilities()
-
         # creating a Post Utils object that executes several post-related tasks
         self.post_utils_DEM = DEM_procedures.PostUtils(self.pp.CFD_DEM, self.alg.spheres_model_part)
 
@@ -380,6 +331,7 @@ class Solution:
 
                 if self.stationarity_counter.Tick():
                     print("Assessing Stationarity...")
+                    sys.stdout.flush()
                     self.stationarity = self.stationarity_tool.Assess(self.fluid_model_part)
                     sys.stdout.flush()
 
@@ -449,10 +401,7 @@ class Solution:
                 if self.alg.pp.do_solve_dem:
                     self.alg.DEMSolve(self.time_dem)
 
-                # Walls movement:
-                self.mesh_motion.MoveAllMeshes(self.alg.rigid_face_model_part, self.time, self.Dt)
-                self.mesh_motion.MoveAllMeshes(self.alg.spheres_model_part, self.time, self.Dt)
-                self.mesh_motion.MoveAllMeshes(self.alg.DEM_inlet_model_part, self.time, self.Dt)
+                self.alg.DEMFEMProcedures.MoveAllMeshes(self.alg.all_model_parts, self.time_dem, self.Dt_DEM)
 
                 #### TIME CONTROL ##################################
 
@@ -509,6 +458,48 @@ class Solution:
 
         return self.alg.GetReturnValue()
     
+    
+    def SetDragOutput(self):
+        # define the drag computation list
+        self.drag_list = define_output.DefineDragList()
+        self.drag_file_output_list = []
+        for it in self.drag_list:
+            f = open(it[1], 'w')
+            self.drag_file_output_list.append(f)
+            tmp = "#Drag for group " + it[1] + "\n"
+            f.write(tmp)
+            tmp = "time RX RY RZ"
+            f.write(tmp)
+            f.flush()
+
+        print(self.drag_file_output_list)  
+        sys.stdout.flush()
+    
+    def SetPointGraphPrinter(self):
+        pass
+         # preparing output of point graphs
+        #import point_graph_printer
+
+        #output_nodes_list = define_output.DefineOutputPoints()
+        #self.graph_printer = point_graph_printer.PrintGraphPrinter(
+            #output_nodes_list,
+            #fluid_model_part,
+            #variables_dictionary,
+            #domain_size)
+    
+    def SetCutsOutput(self):            
+        if not self.pp.VolumeOutput:
+            cut_list = define_output.DefineCutPlanes()
+            self.swimming_DEM_gid_io.define_cuts(self.fluid_model_part, cut_list)
+            
+    def TransferGravityFromDisperseToFluid(self):
+        # setting fluid's body force to the same as DEM's
+        if self.pp.CFD_DEM.body_force_on_fluid_option:
+
+            for node in self.fluid_model_part.Nodes:
+                node.SetSolutionStepValue(BODY_FORCE_X, 0, self.pp.CFD_DEM.GravityX)
+                node.SetSolutionStepValue(BODY_FORCE_Y, 0, self.pp.CFD_DEM.GravityY)
+                node.SetSolutionStepValue(BODY_FORCE_Z, 0, self.pp.CFD_DEM.GravityZ)
     
     def yield_DEM_time(self, current_time, current_time_plus_increment, delta_time):
             current_time += delta_time

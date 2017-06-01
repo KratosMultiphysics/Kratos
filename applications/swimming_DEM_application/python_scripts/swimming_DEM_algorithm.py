@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 #TODO: set self.SolverSettings only once! 
 #TODO: the same for self.fluid_model_part
+#TODO: test DEM bounding box
 
 import os
 import sys
@@ -10,6 +11,9 @@ from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 import dem_main_script_ready_for_coupling as DEM_algorithm
 import swimming_DEM_procedures as SDP
+import variables_management as vars_man
+import time as timer
+
 
 sys.path.insert(0,'')
 import DEM_explicit_solver_var as DEM_parameters
@@ -34,7 +38,6 @@ class Algorithm(BaseAlgorithm):
         self.all_model_parts.Add(ModelPart("MixedPart"))
 
     def StartTimer(self):
-        import time as timer
         self.timer = timer
         self.simulation_start_time = timer.time()
 
@@ -101,8 +104,7 @@ class Algorithm(BaseAlgorithm):
         self.pp.force[1] = 0
         self.pp.force[2] = 1e-10
 
-        # defining and adding imposed porosity fields
-        import swimming_DEM_procedures as SDP
+        # defining and adding imposed porosity fields        
         self.pp.fluid_fraction_fields = []
         field1 = SDP.FluidFractionFieldUtility.LinearField(0.0,
                                                           [0.0, 0.0, 0.0],
@@ -128,8 +130,7 @@ class Algorithm(BaseAlgorithm):
     def SetUpResultsDatabase(self):
         pass
 
-    def ReadModelParts(self, starting_node_Id = 0, starting_elem_Id = 0, starting_cond_Id = 0):
-        self.ReadFluidModelPart()
+    def ReadModelParts(self, starting_node_Id = 0, starting_elem_Id = 0, starting_cond_Id = 0):        
         fluid_mp = self.all_model_parts.Get('FluidPart')
         max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(fluid_mp)
         max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(fluid_mp)
@@ -146,44 +147,33 @@ class Algorithm(BaseAlgorithm):
 
     def Initialize(self):
         
-        BaseAlgorithm.Initialize(self)
+        self.spheres_model_part = self.all_model_parts.Get('SpheresPart')
+        self.fluid_model_part = self.all_model_parts.Get('FluidPart')
+
+        self.SetFluidSolverModule()
         
-        self.SetFluidBufferSizeAndAddAdditionalDofs()        
-        self.SetFluidSolver()        
-        self.FluidInitialize()        
-        self.ActivateTurbulenceModel()
+        self.vars_man = vars_man
+        self.vars_man.ConstructListsOfVariables(self.pp)
+                                        
+        self.FluidInitialize()
+        self.DispersePhaseInitialize()
+        
+        self.vars_man.AddingExtraProcessInfoVariables(self.pp, self.fluid_model_part, self.spheres_model_part)
 
     def FluidInitialize(self):
-        self.fluid_solver.Initialize()
 
-    def AddExtraVariables(self):
-        spheres_model_part = self.all_model_parts.Get('SpheresPart')
-        self.fluid_model_part = self.all_model_parts.Get('FluidPart')
-
-                # building lists of variables for which memory is to be allocated
-        # TEMPORARY, HORRIBLE !!!
-        import variables_management as vars_man
-        self.vars_man = vars_man
-
-        self.vars_man.ConstructListsOfVariables(self.pp)
-        self.fluid_model_part = self.all_model_parts.Get('FluidPart')
-
-        if "REACTION" in self.pp.nodal_results:
-            self.fluid_model_part.AddNodalSolutionStepVariable(REACTION)
-        if "DISTANCE" in self.pp.nodal_results:
-            self.fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
-
-        self.SetFluidSolverModule()        
-
-        self.AddExtraFluidVariables()        
-
-        [post_path, data_and_results, graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(self.pp.CFD_DEM.problem_name))
-
-        self.vars_man.AddNodalVariables(spheres_model_part, self.pp.dem_vars)
+        self.AddFluidVariables()   
+        self.ReadFluidModelPart()
+        self.SetFluidBufferSizeAndAddDofs()        
+        self.SetFluidSolver()        
+        self.fluid_solver.Initialize()        
+        self.ActivateTurbulenceModel()
+        
+    def DispersePhaseInitialize(self):
+        self.vars_man.AddNodalVariables(self.spheres_model_part, self.pp.dem_vars)
         self.vars_man.AddNodalVariables(self.rigid_face_model_part, self.pp.rigid_faces_vars)
         self.vars_man.AddNodalVariables(self.DEM_inlet_model_part, self.pp.inlet_vars)
-        # adding extra process info variables
-        self.vars_man.AddingExtraProcessInfoVariables(self.pp, self.fluid_model_part, spheres_model_part)
+        BaseAlgorithm.Initialize(self)                
         
     def SetFluidSolverModule(self):
         self.SolverSettings = self.pp.FluidSolverConfiguration
@@ -192,28 +182,42 @@ class Algorithm(BaseAlgorithm):
     def SetFluidSolver(self):
         self.fluid_solver = self.solver_module.CreateSolver(self.fluid_model_part, self.SolverSettings)
         
-    def AddExtraFluidVariables(self):
+    def AddFluidVariables(self):
         # caution with breaking up this block (memory allocation)! {
+        self.AddFluidVariablesByFluidSolver()
+        self.AddFluidVariablesBySwimmingDEMAlgorithm()
+                
+    def AddFluidVariablesByFluidSolver(self):
+        
+        if "REACTION" in self.pp.nodal_results:
+            self.fluid_model_part.AddNodalSolutionStepVariable(REACTION)
+        if "DISTANCE" in self.pp.nodal_results:
+            self.fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
+            
         self.solver_module.AddVariables(self.fluid_model_part, self.SolverSettings)
-        self.vars_man.AddNodalVariables(self.fluid_model_part, self.pp.fluid_vars)  #     MOD.
+        
+    def AddFluidVariablesBySwimmingDEMAlgorithm(self):
+        self.vars_man.AddNodalVariables(self.fluid_model_part, self.pp.fluid_vars) 
 
-    def SetFluidBufferSizeAndAddAdditionalDofs(self):
-        spheres_model_part = self.all_model_parts.Get('SpheresPart')
-        self.fluid_model_part = self.all_model_parts.Get('FluidPart')
+    def SetFluidBufferSizeAndAddDofs(self):
+        self.SetFluidBufferSizeAndAddDofsByFluidSolver()
+        self.SetFluidBufferSizeAndAddDofsBySwimmingDEMAlgorithm()  
+
+    def SetFluidBufferSizeAndAddDofsByFluidSolver(self):
+        spheres_model_part = self.all_model_parts.Get('SpheresPart')        
         self.SolverSettings = self.pp.FluidSolverConfiguration
-
         self.fluid_model_part.SetBufferSize(3)
         self.solver_module.AddDofs(self.fluid_model_part, self.SolverSettings)
-        SDP.AddExtraDofs(self.pp, self.fluid_model_part, spheres_model_part, self.cluster_model_part, self.DEM_inlet_model_part)
-        os.chdir(self.main_path)
-
-        self.KRATOSprint("\nInitializing Problem...")
-
+        
+    def SetFluidBufferSizeAndAddDofsBySwimmingDEMAlgorithm(self):
+        SDP.AddExtraDofs(self.pp, self.fluid_model_part, self.spheres_model_part, self.cluster_model_part, self.DEM_inlet_model_part)
+        
     def DEMSolve(self, time = 'None'): # time is passed in case it is needed
         self.solver.Solve()
 
     def FluidSolve(self, time = 'None'):
-        self.fluid_solver.Solve()
+        pass
+        #self.fluid_solver.Solve()
 
     def PerformZeroStepInitializations(self):
         pass
