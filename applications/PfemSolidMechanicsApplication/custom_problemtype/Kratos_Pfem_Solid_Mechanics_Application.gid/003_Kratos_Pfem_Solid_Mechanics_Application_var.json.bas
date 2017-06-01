@@ -24,7 +24,7 @@
         "scheme_type"                        : "Bossak",
 *endif
 *else
-        "solver_type"                        : "solid_mechanics_static_solver",
+        "solver_type"                        : "pfem_solid_mechanics_static_solver",
         "solution_type"                      : "Static",
 *if(strcmp(GenData(Solver_Type),"StaticSolver")==0)
         "analysis_type"                      : "Linear",
@@ -56,6 +56,13 @@
 *endif
 *if( strcmp(GenData(DOFS),"U-P")==0 || strcmp(GenData(DOFS),"U-wP")==0)
         "stabilization_factor"               : *GenData(Stabilization_Factor),
+*endif
+*if(strcmp(GenData(DOFS),"U-wP")==0)
+        "water_pressure_dofs"                : true,
+*endif
+*if(strcmp(GenData(DOFS),"U-J-wP")==0)
+        "jacobian_dofs"                      : true,
+        "water_pressure_dofs"                : true,
 *endif
         "reform_dofs_at_each_step"           : true,
         "displacement_relative_tolerance"    : *GenData(Convergence_Tolerance),
@@ -121,6 +128,7 @@
 *add cond group_SURFACE_PRESSURE *groups
 *add cond group_POINT_MOMENT *groups
 *add cond group_VOLUME_ACCELERATION *groups
+*add cond group_WATER_PRESSURE *groups
 *if(CondNumEntities > 0)
 *set var GroupNumber = 0
 *loop groups *OnlyInCond
@@ -489,6 +497,7 @@
 *set var numberconstraints= 0
 *set cond group_LINEAR_MOVEMENT *groups
 *add cond group_ANGULAR_MOVEMENT *groups
+*add cond group_WATER_PRESSURE *groups
 *loop groups *OnlyInCond
 *set var numberconstraints(int)=Operation(numberconstraints(int)+1)
 *end groups
@@ -542,6 +551,37 @@
 				null
 *endif
 				]
+	    }
+*if( Counter == numberconstraints )
+        }
+*else
+	},
+*endif
+*end groups
+*set cond group_WATER_PRESSURE *groups
+*loop groups *OnlyInCond
+*set var Counter=operation(Counter+1)
+        {
+        "help"            : "This process tries to fix water pressure",
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+        "python_module"   : "assign_scalar_to_nodes_process",
+        "process_name"    : "AssignScalarToNodesProcess",
+	"Parameters"      : {
+	   "mesh_id": 0,
+	   "variable_name":    "WATER_PRESSURE",
+           "model_part_name":  "*GroupName",
+*if(strcmp(cond(Time_Evolution),"INITIAL")==0)
+	    "interval"        : [*GenData(Start_Time), *GenData(Start_Time)],
+*elseif(strcmp(cond(Time_Evolution),"FULL")==0)
+	    "interval"        : [*GenData(Start_Time), "End"],
+*elseif(strcmp(cond(Time_Evolution),"INTERVAL")==0)
+	    "interval"        : [*cond(Time_Interval,1), *cond(Time_Interval,2)],
+*endif
+*if(strcmp(cond(by_function),"True")==0 )
+	    "value"           :	"*cond(Function)"
+*else
+	    "value"           :	*cond(Value)
+*endif			
 	    }
 *if( Counter == numberconstraints )
         }

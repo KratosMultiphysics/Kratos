@@ -603,6 +603,29 @@ Begin SubModelPart *GroupName // *GroupNum
 End SubModelPart
 *end groups    
 *endif
+*set cond group_WATER_PRESSURE *groups
+*if(CondNumEntities > 0)
+*loop groups *OnlyInCond
+Begin SubModelPart *GroupName // *GroupNum
+
+ Begin SubModelPartNodes
+*set group *GroupName *nodes
+*if(GroupNumEntities)
+*loop nodes *onlyingroup
+ *NodesNum
+*end nodes
+*endif
+ End SubModelPartNodes
+
+ Begin SubModelPartElements
+ End SubModelPartElements
+      
+ Begin SubModelPartConditions
+ End SubModelPartConditions
+
+End SubModelPart
+*end groups    
+*endif
 *set cond group_POINT_LOAD *groups
 *if(CondNumEntities)
 *loop groups *OnlyInCond
