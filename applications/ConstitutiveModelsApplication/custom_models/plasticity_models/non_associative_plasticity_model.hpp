@@ -213,7 +213,7 @@ namespace Kratos
                ComputeElastoPlasticTangentMatrix( rValues, Variables, rConstitutiveMatrix);
 
                if ( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES) )
-                  this->UpdateInternalVariables( rValues, Variables);
+		 this->UpdateInternalVariables( rValues, Variables, rStressMatrix );
 
                KRATOS_CATCH(" ")
             }
@@ -756,7 +756,7 @@ namespace Kratos
             //********************************************************************
             //********************************************************************
             // UpdateInternalVariables
-            virtual void UpdateInternalVariables(ModelDataType& rValues, PlasticDataType& rVariables)
+            virtual void UpdateInternalVariables(ModelDataType& rValues, PlasticDataType& rVariables, const MatrixType& rStressMatrix)
             {
                KRATOS_TRY
 

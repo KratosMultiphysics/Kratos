@@ -114,7 +114,11 @@ namespace Kratos
       const double& rStressNorm = rVariables.GetStressNorm();
 
       Hardening = this->mHardeningLaw.CalculateHardening(rVariables,Hardening);
+<<<<<<< HEAD
 		
+=======
+     
+>>>>>>> b753b27... thermo mechanical modelling is working again
       rYieldCondition = rStressNorm - sqrt(2.0/3.0) * Hardening;
 		
       return rYieldCondition;
@@ -160,8 +164,6 @@ namespace Kratos
       double DeltaHardening = 0;
 
       DeltaHardening = this->mHardeningLaw.CalculateDeltaHardening( rVariables, DeltaHardening );
-
-      //std::cout<<" DeltaHardening "<<DeltaHardening<<std::endl;
 
       rDeltaStateFunction = 2.0 * rMaterial.GetLameMuBar() + (2.0/3.0) * DeltaHardening;
 		
