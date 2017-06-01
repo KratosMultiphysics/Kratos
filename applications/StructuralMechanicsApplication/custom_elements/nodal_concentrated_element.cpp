@@ -17,7 +17,6 @@
 #include "includes/define.h"
 #include "custom_elements/nodal_concentrated_element.hpp"
 
-#include "solid_mechanics_application_variables.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos

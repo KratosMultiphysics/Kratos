@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.StructuralMechanicsApplication
 
 # Check that KratosMultiphysics was imported in the main script
@@ -126,7 +125,7 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
     
     def _IncreasePointLoad(forcing_nodes_list, Load):
         for node in forcing_nodes_list:
-            node.SetSolutionStepValue(KratosMultiphysics.SolidMechanicsApplication.POINT_LOAD, 0, Load)
+            node.SetSolutionStepValue(KratosMultiphysics.StructuralMechanicsApplication.POINT_LOAD, 0, Load)
 
     def _IncreaseDisplacement(forcing_nodes_list, disp):
         for node in forcing_nodes_list:
@@ -138,11 +137,11 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
         force_y = 0.0
         force_z = 0.0
         for node in self.main_model_part.Nodes:
-            new_load = node.GetSolutionStepValue(KratosMultiphysics.SolidMechanicsApplication.POINT_LOAD, 0) * lambda_value;
+            new_load = node.GetSolutionStepValue(KratosMultiphysics.StructuralMechanicsApplication.POINT_LOAD, 0) * lambda_value;
             force_x += new_load[0]
             force_y += new_load[1]
             force_z += new_load[2]
-            node.SetSolutionStepValue(KratosMultiphysics.SolidMechanicsApplication.POINT_LOAD, 0, new_load)
+            node.SetSolutionStepValue(KratosMultiphysics.StructuralMechanicsApplication.POINT_LOAD, 0, new_load)
         
         if (echo_level > 0):
             print("*********************** ")
@@ -166,7 +165,7 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
             self.settings["dynamic_factor"].SetDouble(0.0) # Quasi-static scheme
             
             if component_wise:
-                mechanical_scheme = KratosMultiphysics.SolidMechanicsApplication.ComponentWiseBossakScheme(
+                mechanical_scheme = KratosMultiphysics.StructuralMechanicsApplication.ComponentWiseBossakScheme(
                                                               self.settings["damp_factor_m"].GetDouble(), 
                                                               self.settings["dynamic_factor"].GetDouble())
             else:
@@ -182,7 +181,7 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
     def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search, implex):
         
         if(component_wise):
-            self.mechanical_solver = KratosMultiphysics.SolidMechanicsApplication.ComponentWiseNewtonRaphsonStrategy(
+            self.mechanical_solver = KratosMultiphysics.StructuralMechanicsApplication.ComponentWiseNewtonRaphsonStrategy(
                                                                             self.computing_model_part, 
                                                                             mechanical_scheme, 
                                                                             self.linear_solver, 
@@ -195,7 +194,7 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
         else:
             if(line_search):
                 if(implex):
-                    self.mechanical_solver = KratosMultiphysics.SolidMechanicsApplication.ResidualBasedNewtonRaphsonLineSearchImplexStrategy(self.computing_model_part, 
+                    self.mechanical_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedNewtonRaphsonLineSearchImplexStrategy(self.computing_model_part, 
                                                                                                             mechanical_scheme, 
                                                                                                             self.linear_solver, 
                                                                                                             mechanical_convergence_criterion, 
@@ -205,7 +204,7 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
                                                                                                             reform_step_dofs, 
                                                                                                             move_mesh_flag)
                 else:
-                    self.mechanical_solver = KratosMultiphysics.SolidMechanicsApplication.ResidualBasedNewtonRaphsonLineSearchStrategy(
+                    self.mechanical_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedNewtonRaphsonLineSearchStrategy(
                                                                                 self.computing_model_part, 
                                                                                 mechanical_scheme, 
                                                                                 self.linear_solver, 
