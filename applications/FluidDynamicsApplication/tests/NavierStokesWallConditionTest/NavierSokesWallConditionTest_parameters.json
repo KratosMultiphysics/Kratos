@@ -69,27 +69,27 @@
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{
-        "python_module" : "experimental_assign_value_process",
+        "python_module" : "assign_scalar_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignValueProcess",
+        "process_name"  : "AssignScalarVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Outlet2D_Inlet",
             "variable_name"   : "EXTERNAL_PRESSURE",
-            "constrained"     : true,
+            "constrained"     : false,
+            "interval"        : [0.0,"End"],
             "value"           : 1000.0
         }
     },{
-        "python_module" : "experimental_assign_value_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignValueProcess",
+        "python_module" : "apply_outlet_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"  : "ApplyOutletProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Outlet2D_Outlet",
             "variable_name"   : "PRESSURE",
             "constrained"     : true,
+            "interval"        : [0.0,"End"],
             "value"           : 0.0
         }
     },{
@@ -105,28 +105,15 @@
             "value"           : 1.0
         }
     },{
-        "python_module" : "experimental_assign_value_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignValueProcess",
+        "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Outlet2D_Inlet",
-            "variable_name"   : "VELOCITY_Y",
-            "constrained"     : true,
-            "value"           : 0.0
-        }
-    },{
-        "python_module" : "experimental_assign_value_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignValueProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Outlet2D_Outlet",
-            "variable_name"   : "VELOCITY_Y",
-            "constrained"     : true,
-            "value"           : 0.0
+            "variable_name"   : "VELOCITY",
+            "value"           : [null, 0.0, null],
+            "constrained"     : [false,true,false]
         }
     },{
         "python_module" : "apply_noslip_process",
@@ -145,7 +132,7 @@
             "model_part_name" : "NoSlip2D_NoSlip"
         }
     },{
-        "python_module" : "NavierStokesWallConditionTest_local_process",
+        "python_module" : "navier_stokes_wall_condition_test_local_process",
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         "process_name"  : "ApplyLocalProcess",
         "Parameters"    : {

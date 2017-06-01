@@ -4,11 +4,10 @@ from math import *
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return AssignVectorProcess(Model, settings["Parameters"])
-
+    return AssignVectorVariableProcess(Model, settings["Parameters"])
 
 ##all the processes python processes should be derived from "python_process"
-class AssignVectorProcess(KratosMultiphysics.Process):
+class AssignVectorVariableProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
@@ -47,24 +46,29 @@ class AssignVectorProcess(KratosMultiphysics.Process):
         #print(settings.PrettyPrintJsonString())
 
         settings.ValidateAndAssignDefaults(default_settings)
+        
+        self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
+        if(type(self.variable) != KratosMultiphysics.Array1DVariable3 and type(self.variable) != KratosMultiphysics.VectorVariable):
+            msg = "Error in AssignVectorVariableProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a vector or array3"
+            raise Exception(msg)
 
         self.model_part = Model[settings["model_part_name"].GetString()]
 
         self.aux_processes = []
 
-        import experimental_assign_value_process
+        import assign_scalar_variable_process
 
         #component X
         if(not settings["value"][0].IsNull()):
             x_params = KratosMultiphysics.Parameters("{}")
             x_params.AddValue("model_part_name",settings["model_part_name"])
             x_params.AddValue("mesh_id",settings["mesh_id"])
-            x_params.AddEmptyValue("constrained").SetBool(settings["constrained"][0].GetBool())
+            (x_params.AddEmptyValue("constrained")).SetBool(settings["constrained"][0].GetBool())
             x_params.AddValue("interval",settings["interval"])
             x_params.AddValue("value",settings["value"][0])
             x_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_X")
             x_params.AddValue("local_axes",settings["local_axes"])
-            self.aux_processes.append( experimental_assign_value_process.AssignValueProcess(Model, x_params) )
+            self.aux_processes.append( assign_scalar_variable_process.AssignScalarVariableProcess(Model, x_params) )
 
         #component Y
         if(not settings["value"][1].IsNull()):
@@ -76,7 +80,7 @@ class AssignVectorProcess(KratosMultiphysics.Process):
             y_params.AddValue("value",settings["value"][1])
             y_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Y")
             y_params.AddValue("local_axes",settings["local_axes"])
-            self.aux_processes.append( experimental_assign_value_process.AssignValueProcess(Model, y_params) )
+            self.aux_processes.append( assign_scalar_variable_process.AssignScalarVariableProcess(Model, y_params) )
 
         #component Z
         if(not settings["value"][2].IsNull()):
@@ -88,7 +92,7 @@ class AssignVectorProcess(KratosMultiphysics.Process):
             z_params.AddValue("value",settings["value"][2])
             z_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Z")
             z_params.AddValue("local_axes",settings["local_axes"])
-            self.aux_processes.append( experimental_assign_value_process.AssignValueProcess(Model, z_params) )
+            self.aux_processes.append( assign_scalar_variable_process.AssignScalarVariableProcess(Model, z_params) )
 
         # print("Finished construction of AssignVectorProcess Process")
 
