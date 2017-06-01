@@ -97,6 +97,13 @@ namespace Kratos
      */
     void GetLawFeatures(Features& rFeatures);
 
+
+    /**
+     * This function is designed to be called once to check compatibility with element and the model
+     * @param rFeatures
+     */
+    void GetModelFeatures(Features& rFeatures);
+    
     ///@}
     ///@name Access
     ///@{
@@ -158,8 +165,9 @@ namespace Kratos
     //constitutive model
     ModelTypePointer mpModel;
 
-    //internal elastic variables
-    VectorType  mInitialStrainVector;
+    //internal elastic variables 
+    VectorType  mStrainVector; 
+    
     
     ///@}
     ///@name Protected Operators
@@ -199,7 +207,7 @@ namespace Kratos
      * Adds Initial Strain to Strain Vector
      * @param rStrainVector
      */
-    void AddInitialStrainVector(Vector& rStrainVector);
+    void AddPreviousStrainVector(Vector& rStrainVector);
 
     
     

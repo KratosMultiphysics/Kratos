@@ -103,6 +103,9 @@ namespace Kratos
 	rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
 	rFeatures.mOptions.Set( ANISOTROPIC );
 
+	//Get model features
+	GetModelFeatures(rFeatures);
+	
 	//Set strain measure required by the consitutive law
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);

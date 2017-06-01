@@ -121,6 +121,23 @@ namespace Kratos
     ///@name Access
     ///@{
 
+    /**
+     * method to ask the constitutive model the list of variables (dofs) needed from the domain
+     * @param rScalarVariables : list of scalar dofs
+     * @param rComponentVariables :  list of vector dofs
+     */
+    virtual void GetDomainVariablesList(std::vector<Variable<double> >& rScalarVariables,
+					std::vector<Variable<array_1d<double,3> > >& rComponentVariables) override
+    {
+      KRATOS_TRY
+
+      PlasticityModel::GetDomainVariablesList(rScalarVariables, rComponentVariables);
+
+      rScalarVariables.push_back(TEMPERATURE);
+ 	
+      KRATOS_CATCH(" ")
+    }
+
     
     /**
      * Has Values

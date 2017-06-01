@@ -27,7 +27,7 @@ namespace Kratos
     KRATOS_TRY
 
     //member variables initialization
-    mInitialStrainVector.clear();
+    mStrainVector.clear();
 
     KRATOS_CATCH(" ")
   }
@@ -44,7 +44,7 @@ namespace Kratos
     mpModel = pModel->Clone();
       
     //member variables initialization
-    mInitialStrainVector.clear();
+    mStrainVector.clear();
     
     KRATOS_CATCH(" ")    
   }
@@ -54,7 +54,7 @@ namespace Kratos
 
   SmallStrain3DLaw::SmallStrain3DLaw(const SmallStrain3DLaw& rOther)
     : Constitutive3DLaw(rOther)
-    ,mInitialStrainVector(rOther.mInitialStrainVector)
+    ,mStrainVector(rOther.mStrainVector)
   {
     mpModel = rOther.mpModel->Clone();
   }
@@ -66,7 +66,7 @@ namespace Kratos
   {
     Constitutive3DLaw::operator=(rOther);
     mpModel = rOther.mpModel->Clone();
-    mInitialStrainVector = rOther.mInitialStrainVector;
+    mStrainVector = rOther.mStrainVector;
     return *this;
   } 
   
@@ -102,7 +102,7 @@ namespace Kratos
 
     // A method to compute the initial linear strain from the stress is needed
     // if(rThisVariable == INITIAL_STRAIN_VECTOR){
-    //   mInitialStrainVector = rValue;
+    //   mStrainVector = rValue;
     // }
          
     KRATOS_CATCH(" ")
@@ -136,12 +136,12 @@ namespace Kratos
     Vector& rStrainVector                  = rValues.GetStrainVector();
     Vector& rStressVector                  = rValues.GetStressVector();
 
-    AddInitialStrainVector(rStrainVector);
+    AddPreviousStrainVector(rStrainVector);
     
     //-----------------------------//
 
     
-    //2.-Calculate total Kirchhoff stress
+    // Calculate total PK2 stress
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
       
@@ -185,7 +185,7 @@ namespace Kratos
     Vector& rStrainVector                  = rValues.GetStrainVector();
     Vector& rStressVector                  = rValues.GetStressVector();
 
-    AddInitialStrainVector(rStrainVector);
+    AddPreviousStrainVector(rStrainVector);
     
     //-----------------------------//
 
@@ -276,13 +276,13 @@ namespace Kratos
   //************************************************************************************
 
 
-  void SmallStrain3DLaw::AddInitialStrainVector(Vector & rStrainVector)
+  void SmallStrain3DLaw::AddPreviousStrainVector(Vector & rStrainVector)
   {
     KRATOS_TRY
           
     for(unsigned int i=0; i<rStrainVector.size(); i++)
       {
-	rStrainVector[i] += mInitialStrainVector[i];
+	rStrainVector[i] += mStrainVector[i];
       }
           
     KRATOS_CATCH(" ")
@@ -301,35 +301,6 @@ namespace Kratos
     rFeatures.mOptions.Set( THREE_DIMENSIONAL_LAW );
     rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
     rFeatures.mOptions.Set( ISOTROPIC );
-
-    //Get model variables and set law characteristics
-    if( mpModel != NULL ){
-
-      std::vector<Variable<double> > ScalarVariables;
-      std::vector<Variable<array_1d<double,3> > > ComponentVariables;
-
-      mpModel->GetDomainVariablesList(ScalarVariables, ComponentVariables);
-      
-      for(std::vector<Variable<array_1d<double,3> > >::iterator cv_it=ComponentVariables.begin(); cv_it != ComponentVariables.end(); )
-	{
-	  if( *cv_it == DISPLACEMENT ){
-	    for(std::vector<Variable<double> >::iterator sv_it=ScalarVariables.begin(); sv_it != ScalarVariables.end(); )
-	      {
-		if( *sv_it == PRESSURE )
-		  rFeatures.mOptions.Set( U_P_LAW );
-	      }
-	  }
-	  // if( *cv_it == VELOCITY ){
-	  //   for(std::vector<Variable<double> >::iterator sv_it=ScalarVariables.begin(); sv_it != ScalarVariables.end(); )
-	  //     {
-	  // 	if( *sv_it == PRESSURE )
-	  // 	  rFeatures.mOptions.Set( V_P_LAW );
-	  //     }
-	  // }
-	}
-
-      //...
-    }
     
     //Set strain measure required by the consitutive law
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
@@ -344,6 +315,46 @@ namespace Kratos
     KRATOS_CATCH(" ")
   }
 
+  //************************************************************************************
+  //************************************************************************************
+  
+  void SmallStrain3DLaw::GetModelFeatures(Features& rFeatures)
+  {
+    KRATOS_TRY
 
+    //Get model variables and set law characteristics
+    if( mpModel != NULL ){
+
+      std::vector<Variable<double> > ScalarVariables;
+      std::vector<Variable<array_1d<double,3> > > ComponentVariables;
+
+      mpModel->GetDomainVariablesList(ScalarVariables, ComponentVariables);
+      
+      for(std::vector<Variable<array_1d<double,3> > >::iterator cv_it=ComponentVariables.begin(); cv_it != ComponentVariables.end(); cv_it++)
+	{
+	  if( *cv_it == DISPLACEMENT ){
+	    for(std::vector<Variable<double> >::iterator sv_it=ScalarVariables.begin(); sv_it != ScalarVariables.end(); sv_it++)
+	      {
+
+		if( *sv_it == PRESSURE )
+		  rFeatures.mOptions.Set( U_P_LAW );
+	      }
+	  }
+	  // if( *cv_it == VELOCITY ){
+	  //   for(std::vector<Variables<double> >::iterator sv_it=ScalarVariables.begin(); sv_it != ScalarVariables.end(); )
+	  //     {
+	  // 	if( *sv_it == PRESSURE )
+	  // 	  rFeatures.mOptions.Set( V_P_LAW );
+	  //     }
+	  // }
+	}
+
+      //...
+    }
+      
+
+
+    KRATOS_CATCH(" ")
+  }
 
 } // Namespace Kratos

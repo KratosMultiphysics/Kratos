@@ -32,6 +32,7 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_SOURCES
 	#elasticity models
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/linear_elastic_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/hyperelastic_model.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/borja_model.cpp
 
 	#plasticity models (template, all in headers)
 	
@@ -45,6 +46,7 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_laws/baker_johnson_cook_thermal_hardening_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_laws/exponential_damage_hardening_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_laws/modified_exponential_damage_hardening_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_laws/cam_clay_hardening_law.cpp
 
 	
 )

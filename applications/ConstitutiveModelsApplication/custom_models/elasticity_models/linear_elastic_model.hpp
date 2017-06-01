@@ -117,6 +117,19 @@ namespace Kratos
     ///@name Operations
     ///@{
 
+
+    /**
+     * Initialize member data
+     */    
+    virtual void InitializeModel(ModelDataType& rValues) override;
+
+    
+    /**
+     * Finalize member data
+     */    
+    virtual void FinalizeModel(ModelDataType& rValues) override;
+ 
+    
     /**
      * Calculate Strain Energy Density Functions
      */

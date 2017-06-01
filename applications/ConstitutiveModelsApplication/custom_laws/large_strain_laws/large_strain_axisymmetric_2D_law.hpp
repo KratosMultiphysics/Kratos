@@ -104,6 +104,9 @@ namespace Kratos
 	rFeatures.mOptions.Set( FINITE_STRAINS );
 	rFeatures.mOptions.Set( ISOTROPIC );
 
+	//Get model features
+	GetModelFeatures(rFeatures);
+      	
 	//Set strain measure required by the consitutive law
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
 	
@@ -115,7 +118,8 @@ namespace Kratos
 
 	KRATOS_CATCH(" ")
       }
-      
+
+
       ///@}
       ///@name Operations
       ///@{
