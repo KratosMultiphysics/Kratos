@@ -632,21 +632,26 @@ namespace Kratos
       // Reshape the BaseClass LHS and Add the Hydro Part
       AxisymWaterPressureUtilities WaterUtility; 
       Matrix TotalF = prod ( rVariables.F, rVariables.F0);
-
       int number_of_variables = dimension + 1; 
-
       Vector VolumeForce;
-
       VolumeForce= this->CalculateVolumeForce( VolumeForce, rVariables);
 
-      rLeftHandSideMatrix = WaterUtility.CalculateAndAddHydroProblemLHS( rLeftHandSideMatrix, BaseClassLeftHandSideMatrix, VolumeForce, number_of_variables, GetGeometry(), GetProperties(), rVariables.B, rVariables.DN_DX, rVariables.N, rVariables.detF0, mTimeStep, TotalF, IntegrationWeight, rVariables.CurrentRadius);
+      // 1. Create (make pointers) variables
+      WaterPressureUtilities::HydroMechanicalVariables HMVariables(GetGeometry(), GetProperties() );
 
-      // LHS
-      /*ProcessInfo SomeProcessInfo; 
-        std::vector< double> Mmodulus;
-        GetValueOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
-        double ConstrainedModulus = Mmodulus[0];
-        rLeftHandSideMatrix = WaterUtility.CalculateAndAddStabilizationLHS( rLeftHandSideMatrix, number_of_variables, GetGeometry(), GetProperties(), rVariables.DN_DX, ConstrainedModulus, rVariables.detF0, mTimeStep, IntegrationWeight);*/
+      HMVariables.SetBMatrix( rVariables.B);
+      HMVariables.SetShapeFunctionsDerivatives( rVariables.DN_DX);
+      HMVariables.SetDeformationGradient( TotalF);
+      HMVariables.SetVolumeForce( VolumeForce);
+      HMVariables.SetShapeFunctions( rVariables.N);
+
+      HMVariables.DeltaTime = mTimeStep;
+      HMVariables.detF0 = rVariables.detF0;
+      HMVariables.CurrentRadius = rVariables.CurrentRadius;
+      //HMVariables.ConstrainedModulus
+      HMVariables.number_of_variables = number_of_variables;
+
+      rLeftHandSideMatrix = WaterUtility.CalculateAndAddHydromechanicalLHS( HMVariables, rLeftHandSideMatrix, BaseClassLeftHandSideMatrix, IntegrationWeight);
 
       rVariables.detF = DeterminantF; 
       rVariables.detF0 /= rVariables.detF; 
@@ -684,18 +689,25 @@ namespace Kratos
       // Reshape the BaseClass RHS and Add the Hydro Part
       AxisymWaterPressureUtilities WaterUtility;
       Matrix TotalF = prod( rVariables.F, rVariables.F0);
-
       int number_of_variables = dimension+1; 
       double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
 
-      rRightHandSideVector = WaterUtility.CalculateAndAddHydroProblem( rRightHandSideVector, BaseClassRightHandSideVector, rVolumeForce, number_of_variables,  GetGeometry(), GetProperties(), rVariables.B, rVariables.DN_DX, rVariables.N, rVariables.detF0, mTimeStep, TotalF, IntegrationWeight, rVariables.CurrentRadius); 
+      // 1. Create (make pointers) variables
+      WaterPressureUtilities::HydroMechanicalVariables HMVariables(GetGeometry(), GetProperties() );
 
-      // Add Stab term
-      /*ProcessInfo SomeProcessInfo; 
-        std::vector< double> Mmodulus;
-        GetValueOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
-        double ConstrainedModulus = Mmodulus[0];
-        rRightHandSideVector = WaterUtility.CalculateAndAddStabilization( rRightHandSideVector, number_of_variables, GetGeometry(), GetProperties(), rVariables.DN_DX, ConstrainedModulus, rVariables.detF0, mTimeStep, IntegrationWeight);*/
+      HMVariables.SetBMatrix( rVariables.B);
+      HMVariables.SetShapeFunctionsDerivatives( rVariables.DN_DX);
+      HMVariables.SetDeformationGradient( TotalF);
+      HMVariables.SetVolumeForce( rVolumeForce);
+      HMVariables.SetShapeFunctions( rVariables.N);
+
+      HMVariables.DeltaTime = mTimeStep;
+      HMVariables.detF0 = rVariables.detF0;
+      HMVariables.CurrentRadius = rVariables.CurrentRadius;
+      //HMVariables.ConstrainedModulus
+      HMVariables.number_of_variables = number_of_variables;
+
+      rRightHandSideVector = WaterUtility.CalculateAndAddHydromechanicalRHS( HMVariables, rRightHandSideVector, BaseClassRightHandSideVector, IntegrationWeight);
 
 
       rVariables.detF = DeterminantF;

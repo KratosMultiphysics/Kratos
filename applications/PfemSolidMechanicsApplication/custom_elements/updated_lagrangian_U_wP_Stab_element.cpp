@@ -129,7 +129,6 @@ namespace Kratos
    {
    }
 
-
    //************************************************************************************
    //************************************************************************************
 
@@ -174,8 +173,10 @@ namespace Kratos
 
       // Add stabilization
       MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
+
       WaterPressureUtilities WaterUtility; 
       int number_of_variables = dimension + 1; 
+      
       ProcessInfo SomeProcessInfo; 
       std::vector< double> Mmodulus;
       GetValueOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
@@ -186,7 +187,21 @@ namespace Kratos
          const double& nu    = GetProperties()[POISSON_RATIO];
          ConstrainedModulus =  YoungModulus * ( 1.0-nu)/(1.0+nu) / (1.0-2.0*nu);
       }
-      rLeftHandSideMatrix = WaterUtility.CalculateAndAddStabilizationLHS( rLeftHandSideMatrix, number_of_variables, GetGeometry(), GetProperties(), rVariables.DN_DX, ConstrainedModulus, rVariables.detF0, mTimeStep, rIntegrationWeight);
+
+      // 1. Create (make pointers) variables
+      WaterPressureUtilities::HydroMechanicalVariables HMVariables(GetGeometry(), GetProperties() );
+
+      HMVariables.SetBMatrix( rVariables.B);
+      HMVariables.SetShapeFunctionsDerivatives( rVariables.DN_DX);
+      HMVariables.SetShapeFunctions( rVariables.N);
+
+      HMVariables.DeltaTime = mTimeStep;
+      HMVariables.detF0 = rVariables.detF0;
+      //HMVariables.CurrentRadius
+      HMVariables.ConstrainedModulus = ConstrainedModulus;
+      HMVariables.number_of_variables = number_of_variables;
+
+      rLeftHandSideMatrix = WaterUtility.CalculateAndAddStabilizationLHS( HMVariables, rLeftHandSideMatrix, rIntegrationWeight);
 
       rVariables.detF = DeterminantF; 
       rVariables.detF0 /= rVariables.detF; 
@@ -212,8 +227,10 @@ namespace Kratos
 
       // Add stabilization
       Vector& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
+
       WaterPressureUtilities WaterUtility; 
       int number_of_variables = dimension + 1; 
+      
       ProcessInfo SomeProcessInfo; 
       std::vector< double> Mmodulus;
       GetValueOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
@@ -225,7 +242,20 @@ namespace Kratos
          ConstrainedModulus =  YoungModulus * ( 1.0-nu)/(1.0+nu) / (1.0-2.0*nu);
       }
 
-      rRightHandSideVector = WaterUtility.CalculateAndAddStabilization( rRightHandSideVector, number_of_variables, GetGeometry(), GetProperties(), rVariables.DN_DX, ConstrainedModulus, rVariables.detF0, mTimeStep, rIntegrationWeight);
+      // 1. Create (make pointers) variables
+      WaterPressureUtilities::HydroMechanicalVariables HMVariables(GetGeometry(), GetProperties() );
+
+      HMVariables.SetBMatrix( rVariables.B);
+      HMVariables.SetShapeFunctionsDerivatives( rVariables.DN_DX);
+      HMVariables.SetShapeFunctions( rVariables.N);
+
+      HMVariables.DeltaTime = mTimeStep;
+      HMVariables.detF0 = rVariables.detF0;
+      //HMVariables.CurrentRadius
+      HMVariables.ConstrainedModulus = ConstrainedModulus;
+      HMVariables.number_of_variables = number_of_variables;
+
+      rRightHandSideVector = WaterUtility.CalculateAndAddStabilization( HMVariables, rRightHandSideVector, rIntegrationWeight);
 
 
       rVariables.detF = DeterminantF;

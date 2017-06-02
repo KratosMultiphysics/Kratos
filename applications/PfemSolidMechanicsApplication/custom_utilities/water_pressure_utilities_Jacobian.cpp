@@ -18,18 +18,19 @@ namespace Kratos
 
    // *************** RHS of the Hydromechanical Problem. Add the solid skeleton movement part *****************************
    // **********************************************************************************************************************
-   Vector &  WaterPressureJacobianUtilities::CalculateAndAddWaterPressureForcesDisplacement( Vector & rRightHandSideVector, GeometryType & rGeometry,  const PropertiesType & rProperties, const Matrix & rDN_DX, const Vector & rN, const double & rDetF0, const Matrix & rTotalF, const double& rDeltaTime,  const double & rIntegrationWeight, const double rCurrentRadius)
+   Vector & WaterPressureJacobianUtilities::CalculateMassBalance_AddDisplacementPart( HydroMechanicalVariables & rVariables, VectorType & rRightHandSideVector, const double & rIntegrationWeight)
    {
       KRATOS_TRY
 
       double ScalingConstant; 
-      GetScalingConstant( ScalingConstant, rProperties);
+      GetScalingConstant( ScalingConstant, rVariables.GetProperties() );
 
       // 2. Geometric
+      const GeometryType & rGeometry = rVariables.GetGeometry();
       const unsigned int number_of_nodes = rGeometry.PointsNumber();
-      //unsigned int dimension = rGeometry.WorkingSpaceDimension();
 
       double Jacobian_GP = 0;
+      const VectorType & rN = rVariables.GetShapeFunctions();
       for (unsigned int i = 0; i < number_of_nodes; i++)
          Jacobian_GP += rN(i) * rGeometry[i].FastGetSolutionStepValue( JACOBIAN );
 
@@ -44,7 +45,7 @@ namespace Kratos
             const double & rPreviousJacobian = rGeometry[j].FastGetSolutionStepValue( JACOBIAN, 1);
             double DeltaJacobian = rCurrentJacobian - rPreviousJacobian; 
             
-            rRightHandSideVector(i) -= rN(i) * rN(j) * (DeltaJacobian / Jacobian_GP) * rIntegrationWeight * ScalingConstant / rDetF0; 
+            rRightHandSideVector(i) -= rN(i) * rN(j) * (DeltaJacobian / Jacobian_GP) * rIntegrationWeight * ScalingConstant / rVariables.detF0; 
 
          }
 
@@ -52,26 +53,28 @@ namespace Kratos
 
       return rRightHandSideVector; 
 
-
       KRATOS_CATCH("")
    }
 
 
    // ****** Tanget To Mass conservation, part of the solid skeleton deformation for displ form *********
    // ***************************************************************************************************
-   Matrix & WaterPressureJacobianUtilities::ComputeSolidSkeletonDeformationMatrix( Matrix & rLocalLHS, GeometryType & rGeometry, const PropertiesType & rProperties, const Matrix & rDN_DX, const Vector & rN, const double & rIntegrationWeight, const double & rCurrentRadius)
+   Matrix& WaterPressureJacobianUtilities::ComputeSolidSkeletonDeformationMatrix( HydroMechanicalVariables & rVariables,  MatrixType & rLocalLHS, const double & rIntegrationWeight)
    {
       KRATOS_TRY
 
+      const GeometryType & rGeometry = rVariables.GetGeometry();
       const unsigned int number_of_nodes = rGeometry.PointsNumber();
-      //unsigned int dimension = rGeometry.WorkingSpaceDimension();
 
       // 1. Some constants
       double ScalingConstant;
-      GetScalingConstant( ScalingConstant, rProperties);
+      GetScalingConstant( ScalingConstant, rVariables.GetProperties() );
 
+      rLocalLHS.resize( number_of_nodes, number_of_nodes);
+      noalias( rLocalLHS ) = ZeroMatrix( number_of_nodes, number_of_nodes );
 
-      rLocalLHS = ZeroMatrix( number_of_nodes, number_of_nodes );
+      const VectorType & rN = rVariables.GetShapeFunctions();
+
 
       double Jacobian_GP = 0;
       for (unsigned int i = 0; i < number_of_nodes; i++)
@@ -128,7 +131,7 @@ namespace Kratos
       KRATOS_CATCH("")
    }
 
-   double WaterPressureJacobianUtilities::CalculateVolumeChange( GeometryType & rGeometry, const Vector & rN, const Matrix & rTotalF)
+   double WaterPressureJacobianUtilities::CalculateVolumeChange( const GeometryType & rGeometry, const Vector & rN, const Matrix & rTotalF)
    {
       const unsigned int number_of_nodes = rGeometry.PointsNumber();
 
@@ -139,5 +142,4 @@ namespace Kratos
       return VolumeChange; 
 
    }
-
 }

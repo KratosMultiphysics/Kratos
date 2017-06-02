@@ -20,304 +20,304 @@
 
 namespace Kratos
 {
-   ///@addtogroup ConstitutiveModelsApplication
-   ///@{
+  ///@addtogroup ConstitutiveModelsApplication
+  ///@{
 
-   ///@name Kratos Globals
-   ///@{
+  ///@name Kratos Globals
+  ///@{
 
-   ///@}
-   ///@name Type Definitions
-   ///@{
+  ///@}
+  ///@name Type Definitions
+  ///@{
 
-   ///@}
-   ///@name  Enum's
-   ///@{
+  ///@}
+  ///@name  Enum's
+  ///@{
 
-   ///@}
-   ///@name  Functions
-   ///@{
+  ///@}
+  ///@name  Functions
+  ///@{
 
-   ///@}
-   ///@name Kratos Classes
-   ///@{
+  ///@}
+  ///@name Kratos Classes
+  ///@{
 
-   /// Short class definition.
-   /** Detail class definition.
-    */
-   template<class THardeningRule>
-      class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) ModifiedCamClayYieldSurface
-      : public YieldSurface<THardeningRule>
-      {    
-         public:
+  /// Short class definition.
+  /** Detail class definition.
+   */
+  template<class THardeningRule>
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) ModifiedCamClayYieldSurface : public YieldSurface<THardeningRule>
+  {    
+  public:
 
-            ///@name Type Definitions
-            ///@{
+    ///@name Type Definitions
+    ///@{
 
-            typedef ConstitutiveModelData::MatrixType                          MatrixType;
-            typedef ConstitutiveModelData::VectorType                          VectorType;
-            typedef ConstitutiveModelData::ModelData                        ModelDataType;
-            typedef ConstitutiveModelData::MaterialData                  MaterialDataType;
+    typedef ConstitutiveModelData::MatrixType                          MatrixType;
+    typedef ConstitutiveModelData::VectorType                          VectorType;
+    typedef ConstitutiveModelData::ModelData                        ModelDataType;
+    typedef ConstitutiveModelData::MaterialData                  MaterialDataType;
 
-            typedef YieldSurface<THardeningRule>                                 BaseType;
-            typedef typename BaseType::Pointer                            BaseTypePointer;
-            typedef typename BaseType::PlasticDataType                    PlasticDataType;
+    typedef YieldSurface<THardeningRule>                                 BaseType;
+    typedef typename BaseType::Pointer                            BaseTypePointer;
+    typedef typename BaseType::PlasticDataType                    PlasticDataType;
 
-            /// Pointer definition of ModifiedCamClayYieldSurface
-            KRATOS_CLASS_POINTER_DEFINITION( ModifiedCamClayYieldSurface );
+    /// Pointer definition of ModifiedCamClayYieldSurface
+    KRATOS_CLASS_POINTER_DEFINITION( ModifiedCamClayYieldSurface );
 
-            ///@}
-            ///@name Life Cycle
-            ///@{
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-            /// Default constructor.
-            ModifiedCamClayYieldSurface() : BaseType() {}
+    /// Default constructor.
+    ModifiedCamClayYieldSurface() : BaseType() {}
 
-            /// Copy constructor.
-            ModifiedCamClayYieldSurface(ModifiedCamClayYieldSurface const& rOther) : BaseType(rOther) {}
-
-
-            /// Assignment operator.
-            ModifiedCamClayYieldSurface& operator=(ModifiedCamClayYieldSurface const& rOther)
-            {
-               BaseType::operator=(rOther);
-               return *this;
-            }
-
-            /// Clone.
-            virtual BaseTypePointer Clone() const override
-            {
-               return (ModifiedCamClayYieldSurface::Pointer(new ModifiedCamClayYieldSurface(*this)));
-            }
-
-            /// Destructor.
-            virtual ~ModifiedCamClayYieldSurface() {}
+    /// Copy constructor.
+    ModifiedCamClayYieldSurface(ModifiedCamClayYieldSurface const& rOther) : BaseType(rOther) {}
 
 
-            ///@}
-            ///@name Operators
-            ///@{
+    /// Assignment operator.
+    ModifiedCamClayYieldSurface& operator=(ModifiedCamClayYieldSurface const& rOther)
+    {
+      BaseType::operator=(rOther);
+      return *this;
+    }
+
+    /// Clone.
+    virtual BaseTypePointer Clone() const override
+    {
+      return (ModifiedCamClayYieldSurface::Pointer(new ModifiedCamClayYieldSurface(*this)));
+    }
+
+    /// Destructor.
+    virtual ~ModifiedCamClayYieldSurface() {}
 
 
-            ///@}
-            ///@name Operations
-            ///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
-            /**
-             * Calculate Yield Condition
-             */
 
-            virtual double& CalculateYieldCondition(const PlasticDataType& rVariables, double & rYieldCondition)
-            {
-               KRATOS_TRY
+    ///@}
+    ///@name Operations
+    ///@{
 
-               // Material Parameters
-               const double ShearM = 1.0;
+    /**
+     * Calculate Yield Condition
+     */
 
-               // compute something with the hardening rule
-               double PreconsolidationStress;
-               PreconsolidationStress = this->mHardeningRule.CalculateHardening( rVariables, PreconsolidationStress );
+    virtual double& CalculateYieldCondition(const PlasticDataType& rVariables, double & rYieldCondition)
+    {
+      KRATOS_TRY
 
-               const ModelDataType & rModelData = rVariables.GetModelData();
-               const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
+      // Material Parameters
+      const double ShearM = 1.0;
 
-               double MeanStress, LodeAngle;
-               double DeviatoricQ; // == sqrt(3)*J2
+      // compute something with the hardening rule
+      double PreconsolidationStress;
+      PreconsolidationStress = this->mHardeningRule.CalculateHardening( rVariables, PreconsolidationStress );
+
+      const ModelDataType & rModelData = rVariables.GetModelData();
+      const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
+
+      double MeanStress, LodeAngle;
+      double DeviatoricQ; // == sqrt(3)*J2
       
-               // more work is requiered
-               StressInvariantsUtilities::CalculateStressInvariants( rStressMatrix, MeanStress, DeviatoricQ, LodeAngle);
-               DeviatoricQ *= sqrt(3.0);
+      // more work is requiered
+      StressInvariantsUtilities::CalculateStressInvariants( rStressMatrix, MeanStress, DeviatoricQ, LodeAngle);
+      DeviatoricQ *= sqrt(3.0);
 
 
-               rYieldCondition  = pow( DeviatoricQ/ShearM, 2);
-               rYieldCondition += (MeanStress * (MeanStress - PreconsolidationStress) );
+      rYieldCondition  = pow( DeviatoricQ/ShearM, 2);
+      rYieldCondition += (MeanStress * (MeanStress - PreconsolidationStress) );
 
 
-               //std::cout << " yield funciton: p " << MeanStress << " q: " << DeviatoricQ << "  pc " << PreconsolidationStress << " yield value " << rYieldCondition << std::endl;
-               return rYieldCondition;
+      //std::cout << " yield funciton: p " << MeanStress << " q: " << DeviatoricQ << "  pc " << PreconsolidationStress << " yield value " << rYieldCondition << std::endl;
+      return rYieldCondition;
 
-               KRATOS_CATCH(" ")
-            }
+      KRATOS_CATCH(" ")
+    }
 
-            //*************************************************************************************
-            //*************************************************************************************
-            // evaluation of the derivative of the yield surface respect the stresses
-            virtual void CalculateYieldSurfaceDerivative(const PlasticDataType& rVariables, VectorType & rYieldSurfaceDerivative)
-            {
-               KRATOS_TRY
+    //*************************************************************************************
+    //*************************************************************************************
+    // evaluation of the derivative of the yield surface respect the stresses
+    virtual VectorType& CalculateDeltaStressYieldCondition(const PlasticDataType& rVariables, VectorType& rDeltaStressYieldCondition)
+    {
+      KRATOS_TRY
 
-               // Material Parameters
-               const double ShearM = 1.0;
+      // Material Parameters
+      const double ShearM = 1.0;
 
-               // compute something with the hardening rule
-               double PreconsolidationStress;
-               PreconsolidationStress = this->mHardeningRule.CalculateHardening( rVariables, PreconsolidationStress );
+      // compute something with the hardening rule
+      double PreconsolidationStress;
+      PreconsolidationStress = this->mHardeningRule.CalculateHardening( rVariables, PreconsolidationStress );
 
-               const ModelDataType & rModelData = rVariables.GetModelData();
-               const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
+      const ModelDataType & rModelData = rVariables.GetModelData();
+      const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
 
-               double MeanStress, J2, LodeAngle;
+      double MeanStress, J2, LodeAngle;
      
-               VectorType V1, V2;
-               // more work is requiered
-               StressInvariantsUtilities::CalculateStressInvariants( rStressMatrix, MeanStress, J2, LodeAngle);
-               StressInvariantsUtilities::CalculateDerivativeVectors( rStressMatrix, V1, V2);
+      VectorType V1, V2;
+      // more work is requiered
+      StressInvariantsUtilities::CalculateStressInvariants( rStressMatrix, MeanStress, J2, LodeAngle);
+      StressInvariantsUtilities::CalculateDerivativeVectors( rStressMatrix, V1, V2);
 
-               rYieldSurfaceDerivative  = ( 2.0*MeanStress - PreconsolidationStress) * V1 + 2.0 * 3.0 * pow( 1.0 / ShearM, 2) * J2 * V2;
+      rDeltaStressYieldCondition  = ( 2.0*MeanStress - PreconsolidationStress) * V1 + 2.0 * 3.0 * pow( 1.0 / ShearM, 2) * J2 * V2;
 
+      return rDeltaStressYieldCondition;
 
-               KRATOS_CATCH(" ")
-            }
-
-
-            ///@}
-            ///@name Access
-            ///@{
+      KRATOS_CATCH(" ")
+    }
 
 
-            ///@}
-            ///@name Inquiry
-            ///@{
+    ///@}
+    ///@name Access
+    ///@{
 
 
-            ///@}
-            ///@name Input and output
-            ///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-            /// Turn back information as a string.
-            virtual std::string Info() const
-            {
-               std::stringstream buffer;
-               buffer << "ModifiedCamClayYieldSurface" ;
-               return buffer.str();
-            }
-
-            /// Print information about this object.
-            virtual void PrintInfo(std::ostream& rOStream) const
-            {
-               rOStream << "ModifiedCamClayYieldSurface";
-            }
-
-            /// Print object's data.
-            virtual void PrintData(std::ostream& rOStream) const
-            {
-               rOStream << "ModifiedCamClayYieldSurface Data";
-            }
+    ///@}
+    ///@name Input and output
+    ///@{
 
 
-            ///@}
-            ///@name Friends
-            ///@{
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+      std::stringstream buffer;
+      buffer << "ModifiedCamClayYieldSurface" ;
+      return buffer.str();
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+      rOStream << "ModifiedCamClayYieldSurface";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+      rOStream << "ModifiedCamClayYieldSurface Data";
+    }
 
 
-            ///@}
-
-         protected:
-            ///@name Protected static Member Variables
-            ///@{
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-            ///@}
-            ///@name Protected member Variables
-            ///@{
+    ///@}
+
+  protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-            ///@}
-            ///@name Protected Operators
-            ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-            ///@}
-            ///@name Protected Operations
-            ///@{
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-            ///@}
-            ///@name Protected  Access
-            ///@{
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-            ///@}
-            ///@name Protected Inquiry
-            ///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-            ///@}
-            ///@name Protected LifeCycle
-            ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-            ///@}
-
-         private:
-            ///@name Static Member Variables
-            ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-            ///@}
-            ///@name Member Variables
-            ///@{
+    ///@}
+
+  private:
+    ///@name Static Member Variables
+    ///@{
 
 
-            ///@}
-            ///@name Private Operators
-            ///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
 
 
-            ///@}
-            ///@name Private Operations
-            ///@{
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
-            ///@}
-            ///@name Private  Access
-            ///@{
+    ///@}
+    ///@name Private Operations
+    ///@{
 
 
-            ///@}
-            ///@name Serialization
-            ///@{
-            friend class Serializer;
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-            virtual void save(Serializer& rSerializer) const
-            {
-               KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
-            }
-
-            virtual void load(Serializer& rSerializer)
-            {
-               KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
-            }
-
-            ///@}
-            ///@name Private Inquiry
-            ///@{
+    ///@}
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
 
 
-            ///@}
-            ///@name Un accessible methods
-            ///@{
+    virtual void save(Serializer& rSerializer) const
+    {
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
+    }
 
-            ///@}
+    virtual void load(Serializer& rSerializer)
+    {
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
+    }
 
-      }; // Class ModifiedCamClayYieldSurface
-
-   ///@}
-
-   ///@name Type Definitions
-   ///@{
-
-
-   ///@}
-   ///@name Input and output
-   ///@{
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
 
-   ///@}
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-   ///@} addtogroup block
+    ///@}
+
+  }; // Class ModifiedCamClayYieldSurface
+
+  ///@}
+
+  ///@name Type Definitions
+  ///@{
+
+
+  ///@}
+  ///@name Input and output
+  ///@{
+
+
+  ///@}
+
+  ///@} addtogroup block
 
 }  // namespace Kratos.
 

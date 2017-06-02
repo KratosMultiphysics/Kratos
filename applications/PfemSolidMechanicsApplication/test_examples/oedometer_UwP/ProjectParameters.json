@@ -1,6 +1,6 @@
 {
     "problem_data"             : {
-        "problem_name"    : "oedometer_UJwP",
+        "problem_name"    : "oedometer_UwP",
         "model_part_name" : "Main Domain",
         "domain_size"     : 2,
         "time_step"       : 0.01,
@@ -19,7 +19,7 @@
         "pressure_dofs"                      : true,
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "oedometer_UJwP",
+            "input_filename"   : "oedometer_UwP",
             "input_file_label" : 0
         },
         "line_search"                        : true,
@@ -179,7 +179,7 @@
         "Parameters"    : {
             "model_part_name"     : "Main Domain",
             "save_restart"        : false,
-            "restart_file_name"   : "oedometer_UJwP",
+            "restart_file_name"   : "oedometer_UwP",
             "restart_file_label"  : "step",
             "output_control_type" : "step",
             "output_frequency"    : 1,
