@@ -109,7 +109,8 @@ public:
         TablePrinterPointerType pTable = nullptr
         )
         :And_Criteria< TSparseSpace, TDenseSpace >(pFirstCriterion, pSecondCriterion),
-        mpTable(pTable)
+        mpTable(pTable),
+        mTableIsInitialized(false)
     {
     }
 
@@ -178,10 +179,11 @@ public:
     
     void Initialize(ModelPart& rModelPart) override
     {
-        if (mpTable != nullptr)
+        if (mpTable != nullptr && mTableIsInitialized == false)
         {
             auto& Table = mpTable->GetTable();
             Table.AddColumn("ITER", 4);
+            mTableIsInitialized = true;
         }
         
          BaseType::Initialize(rModelPart);
@@ -299,8 +301,9 @@ private:
     ///@name Member Variables
     ///@{
     
-    TablePrinterPointerType mpTable;
-
+    TablePrinterPointerType mpTable; // Pointer to the fancy table 
+    bool mTableIsInitialized;        // If the table is already initialized
+    
     ///@}
     ///@name Private Operators
     ///@{

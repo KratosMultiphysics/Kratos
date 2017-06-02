@@ -89,7 +89,8 @@ public:
         TablePrinterPointerType pTable = nullptr
         ) : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >(),
         mTolerance(Tolerance),
-        mpTable(pTable)
+        mpTable(pTable),
+        mTableIsInitialized(false)
     {
     }
 
@@ -360,10 +361,11 @@ public:
     {
         ConvergenceCriteriaBaseType::mConvergenceCriteriaIsInitialized = true;
         
-        if (mpTable != nullptr)
+        if (mpTable != nullptr && mTableIsInitialized == false)
         {
             mpTable->AddColumn("ACTIVE SET CONV.", 16);
             mpTable->AddColumn("SLIP/STICK CONV.", 16);
+            mTableIsInitialized = true;
         }
     }
     
@@ -502,6 +504,7 @@ private:
     double mTolerance;               // Tolerance considered in contact check
     
     TablePrinterPointerType mpTable; // Pointer to the fancy table 
+    bool mTableIsInitialized;        // If the table is already initialized
     
     ///@}
     ///@name Private Operators

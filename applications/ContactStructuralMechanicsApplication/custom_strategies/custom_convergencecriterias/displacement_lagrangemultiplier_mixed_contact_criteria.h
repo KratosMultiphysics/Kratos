@@ -107,7 +107,8 @@ public:
         )
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
           mEnsureContact(EnsureContact),
-          mpTable(pTable)
+          mpTable(pTable),
+          mTableIsInitialized(false)
     {
         mDispRatioTolerance = DispRatioTolerance;
         mDispAbsTolerance = DispAbsTolerance;
@@ -255,15 +256,15 @@ public:
                 else
                 {
                     std::cout.precision(4);
-					#if !defined(_WIN32)
-						std::cout << BOLDFONT("MIXED CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
-						std::cout << BOLDFONT("\tDISPLACEMENT: RATIO = ") << ResidualDispRatio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << ResidualDispAbs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
-						std::cout << BOLDFONT("\tLAGRANGE MUL: RATIO = ") << LMRatio << BOLDFONT(" EXP.RATIO = ") << mLMRatioTolerance << BOLDFONT(" ABS = ") << LMAbs << BOLDFONT(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
-					#else
-						std::cout << "MIXED CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
-						std::cout << "\tDISPLACEMENT: RATIO = " << ResidualDispRatio << " EXP.RATIO = " << mDispRatioTolerance << " ABS = " << ResidualDispAbs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
-						std::cout << "\tLAGRANGE MUL: RATIO = " << LMRatio << " EXP.RATIO = " << mLMRatioTolerance << " ABS = " << LMAbs << " EXP.ABS = " << mLMAbsTolerance << std::endl;
-					#endif
+                    #if !defined(_WIN32)
+                        std::cout << BOLDFONT("MIXED CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
+                        std::cout << BOLDFONT("\tDISPLACEMENT: RATIO = ") << ResidualDispRatio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << ResidualDispAbs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
+                        std::cout << BOLDFONT("\tLAGRANGE MUL: RATIO = ") << LMRatio << BOLDFONT(" EXP.RATIO = ") << mLMRatioTolerance << BOLDFONT(" ABS = ") << LMAbs << BOLDFONT(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
+                    #else
+                        std::cout << "MIXED CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
+                        std::cout << "\tDISPLACEMENT: RATIO = " << ResidualDispRatio << " EXP.RATIO = " << mDispRatioTolerance << " ABS = " << ResidualDispAbs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
+                        std::cout << "\tLAGRANGE MUL: RATIO = " << LMRatio << " EXP.RATIO = " << mLMRatioTolerance << " ABS = " << LMAbs << " EXP.ABS = " << mLMAbsTolerance << std::endl;
+                    #endif
                 }
             }
 
@@ -278,19 +279,19 @@ public:
                     if (mpTable != nullptr)
                     {
                         auto& Table = mpTable->GetTable();
-						#if !defined(_WIN32)
-							Table << BOLDFONT(FGRN("       Achieved"));
-						#else
-							Table << "Achieved";
-						#endif
+                        #if !defined(_WIN32)
+                            Table << BOLDFONT(FGRN("       Achieved"));
+                        #else
+                            Table << "Achieved";
+                        #endif
                     }
                     else
                     {
-						#if !defined(_WIN32)
-							std::cout << BOLDFONT("\tConvergence") << " is " << BOLDFONT(FGRN("achieved")) << std::endl;
-						#else
-							std::cout << "\tConvergence is achieved" << std::endl;
-						#endif
+                        #if !defined(_WIN32)
+                            std::cout << BOLDFONT("\tConvergence") << " is " << BOLDFONT(FGRN("achieved")) << std::endl;
+                        #else
+                            std::cout << "\tConvergence is achieved" << std::endl;
+                        #endif
                     }
                 }
                 return true;
@@ -302,19 +303,19 @@ public:
                     if (mpTable != nullptr)
                     {
                         auto& Table = mpTable->GetTable();
-						#if !defined(_WIN32)
-							Table << BOLDFONT(FRED("   Not achieved"));
-						#else
-							Table << "Not achieved";
-						#endif
+                        #if !defined(_WIN32)
+                            Table << BOLDFONT(FRED("   Not achieved"));
+                        #else
+                            Table << "Not achieved";
+                        #endif
                     }
                     else
                     {
-						#if !defined(_WIN32)
-							std::cout << BOLDFONT("\tConvergence") << " is " << BOLDFONT(FRED(" not achieved")) << std::endl;
-						#else
-							std::cout << "\tConvergence is not achieved" << std::endl;
-						#endif
+                        #if !defined(_WIN32)
+                            std::cout << BOLDFONT("\tConvergence") << " is " << BOLDFONT(FRED(" not achieved")) << std::endl;
+                        #else
+                            std::cout << "\tConvergence is not achieved" << std::endl;
+                        #endif
                     }
                 }
                 return false;
@@ -335,7 +336,7 @@ public:
     {
         BaseType::mConvergenceCriteriaIsInitialized = true;
         
-        if (mpTable != nullptr)
+        if (mpTable != nullptr && mTableIsInitialized == false)
         {
             auto& Table = mpTable->GetTable();
             Table.AddColumn("DP RATIO", 10);
@@ -347,6 +348,7 @@ public:
             Table.AddColumn("ABS", 10);
             Table.AddColumn("EXP. ABS", 10);
             Table.AddColumn("CONVERGENCE", 15);
+            mTableIsInitialized = true;
         }
     }
 
@@ -448,7 +450,8 @@ private:
     
     const bool mEnsureContact;
     
-    TablePrinterPointerType mpTable;
+    TablePrinterPointerType mpTable; // Pointer to the fancy table 
+    bool mTableIsInitialized;        // If the table is already initialized
     
     TDataType mDispRatioTolerance;
     TDataType mDispAbsTolerance;
