@@ -22,7 +22,7 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
-// #include "custom_utilities/process_factory_utility.h"
+#include "custom_utilities/process_factory_utility.h"
 
 namespace Kratos
 {
@@ -128,7 +128,7 @@ KRATOS_DEFINE_VARIABLE( bool, CONSIDER_PAIR_VARIATION )                         
 KRATOS_DEFINE_VARIABLE( std::string, TYING_VARIABLE )                               // The variable name for the mesh tying  
 
 /* Processes utilities */
-// KRATOS_DEFINE_VARIABLE( boost::shared_ptr<ProcessFactoryUtility>, PROCESSES_LIST )  // A pointer to the processes list
+KRATOS_DEFINE_VARIABLE( boost::shared_ptr<ProcessFactoryUtility>, PROCESSES_LIST )  // A pointer to the processes list
 }       
 
 #endif	/* KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED */
