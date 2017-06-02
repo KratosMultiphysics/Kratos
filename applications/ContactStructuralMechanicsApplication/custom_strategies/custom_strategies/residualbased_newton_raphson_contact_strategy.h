@@ -47,7 +47,7 @@ namespace Kratos {
 ///@}
 ///@name  Enum's
 ///@{
-
+        
 ///@}
 ///@name  Functions
 ///@{
@@ -267,22 +267,14 @@ public:
         
         // Plots a warning if the maximum number of iterations is exceeded
         if ((mAdaptativeStrategy == true) && (IsConverged == false))
-        {
-            // We finalize the step
-            BaseType::FinalizeSolutionStep();
-            
+        {            
             const double OriginalDeltaTime = StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]; // We save the delta time to restore later
             
             unsigned int SplitNumber = 0;
             
             // We iterate until we reach the convergence or we split more than desired
             while (IsConverged == false && SplitNumber <= mMaxNumberSplits)
-            {   
-                if (StrategyBaseType::MoveMeshFlag() == true)
-                {
-                    UnMoveMesh();
-                }
-                
+            {                   
                 // Expliting time step as a way to try improve the convergence
                 SplitNumber += 1;
                 double AuxDeltaTime;
@@ -290,11 +282,54 @@ public:
                 const double AuxTime = SplitTimeStep(AuxDeltaTime, CurrentTime);
                 
                 bool InsideTheSplitIsConverged = true;
+                unsigned int InnerIteration = 0;
                 while (InsideTheSplitIsConverged == true && StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] <= AuxTime)
                 {      
                     CurrentTime += AuxDeltaTime;
+                    InnerIteration += 1;
                     StrategyBaseType::GetModelPart().GetProcessInfo()[TIME_STEPS] += 1;
-                    StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] = CurrentTime; // Increase the time in the new delta time        
+                    
+                    if (InnerIteration == 1)
+                    {
+                        if (StrategyBaseType::MoveMeshFlag() == true)
+                        {
+                            UnMoveMesh();
+                        }
+                        
+                        NodesArrayType& pNode = StrategyBaseType::GetModelPart().Nodes();
+                        auto numNodes = pNode.end() - pNode.begin();
+                        
+                        #pragma omp parallel for
+                        for(int i = 0; i < numNodes; i++)  
+                        {
+                            auto itNode = pNode.begin() + i;
+                            
+                            itNode->OverwriteSolutionStepData(1, 0);
+//                             itNode->OverwriteSolutionStepData(2, 1);
+                        }
+                        
+                        StrategyBaseType::GetModelPart().GetProcessInfo().SetCurrentTime(CurrentTime); // Reduces the time step
+                        
+                        FinalizeSolutionStep();
+                    }
+                    else
+                    {
+                        NodesArrayType& pNode = StrategyBaseType::GetModelPart().Nodes();
+                        auto numNodes = pNode.end() - pNode.begin();
+                        
+                        #pragma omp parallel for
+                        for(int i = 0; i < numNodes; i++)  
+                        {
+                            auto itNode = pNode.begin() + i;
+                            
+                            itNode->CloneSolutionStepData();
+                        }
+                        
+                        ProcessInfo ThisProcessInfo = StrategyBaseType::GetModelPart().GetProcessInfo();
+                        ThisProcessInfo.CloneSolutionStepInfo();
+                        ThisProcessInfo.ClearHistory(StrategyBaseType::GetModelPart().GetBufferSize());
+                        ThisProcessInfo.SetAsTimeStepInfo(CurrentTime); // Sets the new time step
+                    }
                     
                     // We execute the processes before the non-linear iteration
                     if (mpMyProcesses != nullptr)
@@ -308,17 +343,19 @@ public:
                     mFinalizeWasPerformed = false;
                     
                     // We repeat the solve with the new DELTA_TIME
-                    BaseType::Initialize();
-                    BaseType::InitializeSolutionStep();
+                    Initialize();
+                    InitializeSolutionStep();
                     BaseType::Predict();
                     InsideTheSplitIsConverged = BaseType::SolveSolutionStep();
-                    BaseType::FinalizeSolutionStep();
+                    FinalizeSolutionStep();
                     
                     // We execute the processes after the non-linear iteration
                     if (mpMyProcesses != nullptr)
                     {
                         // TODO: Think about to add the postprocess processes
                         mpMyProcesses->ExecuteFinalizeSolutionStep();
+//                         mpMyProcesses->ExecuteBeforeOutputStep();
+//                         mpMyProcesses->ExecuteAfterOutputStep();
                     }
                 }
                 
@@ -619,9 +656,9 @@ protected:
         {
             auto itNode = pNode.begin() + i;
             
-            itNode->X() = itNode->X0() + itNode->GetSolutionStepValue(DISPLACEMENT_X, 1);
-            itNode->Y() = itNode->Y0() + itNode->GetSolutionStepValue(DISPLACEMENT_Y, 1);
-            itNode->Z() = itNode->Z0() + itNode->GetSolutionStepValue(DISPLACEMENT_Z, 1);
+            itNode->X() = itNode->X0() + itNode->FastGetSolutionStepValue(DISPLACEMENT_X, 1);
+            itNode->Y() = itNode->Y0() + itNode->FastGetSolutionStepValue(DISPLACEMENT_Y, 1);
+            itNode->Z() = itNode->Z0() + itNode->FastGetSolutionStepValue(DISPLACEMENT_Z, 1);
         }
 
         KRATOS_CATCH("");
