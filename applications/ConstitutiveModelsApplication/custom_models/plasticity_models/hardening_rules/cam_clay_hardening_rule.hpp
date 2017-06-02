@@ -7,15 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_CAM_CLAY_HARDENING_LAW_H_INCLUDED )
-#define  KRATOS_CAM_CLAY_HARDENING_LAW_H_INCLUDED
+#if !defined(KRATOS_CAM_CLAY_HARDENING_RULE_H_INCLUDED )
+#define  KRATOS_CAM_CLAY_HARDENING_RULE_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_models/plasticity_models/hardening_laws/hardening_law.hpp"
+#include "custom_models/plasticity_models/hardening_rules/hardening_rule.hpp"
 
 namespace Kratos
 {
@@ -44,8 +44,8 @@ namespace Kratos
    /// Short class definition.
    /** Detail class definition.
     */
-   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) CamClayHardeningLaw 
-      : public HardeningLaw
+   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) CamClayHardeningRule 
+      : public HardeningRule
       {
          protected:
 
@@ -55,27 +55,27 @@ namespace Kratos
             typedef InternalVariables<VarSize>   InternalVariablesType;
             typedef PlasticModelData<VarSize>          PlasticDataType;
 
-            /// Pointer definition of CamClayHardeningLaw
-            KRATOS_CLASS_POINTER_DEFINITION( CamClayHardeningLaw );
+            /// Pointer definition of CamClayHardeningRule
+            KRATOS_CLASS_POINTER_DEFINITION( CamClayHardeningRule );
 
             ///@}
             ///@name Life Cycle
             ///@{
 
             /// Default constructor.
-            CamClayHardeningLaw();
+            CamClayHardeningRule();
 
             /// Copy constructor.
-            CamClayHardeningLaw(CamClayHardeningLaw const& rOther);
+            CamClayHardeningRule(CamClayHardeningRule const& rOther);
 
             /// Assignment operator.
-            CamClayHardeningLaw& operator=(CamClayHardeningLaw const& rOther);
+            CamClayHardeningRule& operator=(CamClayHardeningRule const& rOther);
 
             /// Clone.
-            virtual HardeningLaw::Pointer Clone() const override;
+            virtual HardeningRule::Pointer Clone() const override;
 
             /// Destructor.
-            ~CamClayHardeningLaw();
+            ~CamClayHardeningRule();
 
             ///@}
             ///@name Operators
@@ -118,20 +118,20 @@ namespace Kratos
             virtual std::string Info() const override
             {
                std::stringstream buffer;
-               buffer << "CamClayHardeningLaw" ;
+               buffer << "CamClayHardeningRule" ;
                return buffer.str();
             }
 
             /// Print information about this object.
             virtual void PrintInfo(std::ostream& rOStream) const override
             {
-               rOStream << "CamClayHardeningLaw";
+               rOStream << "CamClayHardeningRule";
             }
 
             /// Print object's data.
             virtual void PrintData(std::ostream& rOStream) const override
             {
-               rOStream << "CamClayHardeningLaw Data";
+               rOStream << "CamClayHardeningRule Data";
             }    
 
 
@@ -207,12 +207,12 @@ namespace Kratos
 
             virtual void save(Serializer& rSerializer) const override
             {
-               KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningLaw )
+               KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningRule )
             }
 
             virtual void load(Serializer& rSerializer) override
             {
-               KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningLaw )
+               KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningRule )
             }
 
             ///@}
@@ -227,7 +227,7 @@ namespace Kratos
 
             ///@}
 
-      }; // Class CamClayHardeningLaw
+      }; // Class CamClayHardeningRule
 
    ///@}
 
@@ -246,6 +246,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CAM_CLAY_HARDENING_LAW_H_INCLUDED  defined 
+#endif // KRATOS_CAM_CLAY_HARDENING_RULE_H_INCLUDED  defined 
 
 

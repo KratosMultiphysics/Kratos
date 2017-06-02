@@ -138,21 +138,21 @@ namespace Kratos {
       Serializer::Register( "CamClayModel", mCamClayModel );
       
       //yield criteria
-      Serializer::Register( "MisesHuberYieldCriterion", mMisesHuberYieldCriterion );
-      Serializer::Register( "MisesHuberThermalYieldCriterion", mMisesHuberThermalYieldCriterion );      
-      Serializer::Register( "SimoJuYieldCriterion", mSimoJuYieldCriterion );
-      Serializer::Register( "ModifiedMisesYieldCriterion", mModifiedMisesYieldCriterion );
-      Serializer::Register( "ModifiedCamClayCriterion", mModifiedCamClayYieldCriterion );
+      Serializer::Register( "MisesHuberYieldSurface", mMisesHuberYieldSurface );
+      Serializer::Register( "MisesHuberThermalYieldSurface", mMisesHuberThermalYieldSurface );      
+      Serializer::Register( "SimoJuYieldSurface", mSimoJuYieldSurface );
+      Serializer::Register( "ModifiedMisesYieldSurface", mModifiedMisesYieldSurface );
+      Serializer::Register( "ModifiedCamClaySurface", mModifiedCamClayYieldSurface );
     
-      //hardening laws
-      Serializer::Register( "SimoExponentialHardeningLaw", mSimoExponentialHardeningLaw );
-      Serializer::Register( "SimoLinearHardeningLaw", mSimoLinearHardeningLaw );
-      Serializer::Register( "SimoExponentialThermalHardeningLaw", mSimoExponentialThermalHardeningLaw );
-      Serializer::Register( "JohnsonCookThermalHardeningLaw", mJohnsonCookThermalHardeningLaw );
-      Serializer::Register( "BakerJohnsonCookThermalHardeningLaw", mBakerJohnsonCookThermalHardeningLaw );
-      Serializer::Register( "ExponentialDamageHardeningLaw", mExponentialDamageHardeningLaw );
-      Serializer::Register( "ModifiedExponentialDamageHardeningLaw", mModifiedExponentialDamageHardeningLaw );
-      Serializer::Register( "CamClayHardeningLaw", mCamClayHardeningLaw );
+      //hardening rules
+      Serializer::Register( "SimoExponentialHardeningRule", mSimoExponentialHardeningRule );
+      Serializer::Register( "SimoLinearHardeningRule", mSimoLinearHardeningRule );
+      Serializer::Register( "SimoExponentialThermalHardeningRule", mSimoExponentialThermalHardeningRule );
+      Serializer::Register( "JohnsonCookThermalHardeningRule", mJohnsonCookThermalHardeningRule );
+      Serializer::Register( "BakerJohnsonCookThermalHardeningRule", mBakerJohnsonCookThermalHardeningRule );
+      Serializer::Register( "ExponentialDamageHardeningRule", mExponentialDamageHardeningRule );
+      Serializer::Register( "ModifiedExponentialDamageHardeningRule", mModifiedExponentialDamageHardeningRule );
+      Serializer::Register( "CamClayHardeningRule", mCamClayHardeningRule );
       
 
 

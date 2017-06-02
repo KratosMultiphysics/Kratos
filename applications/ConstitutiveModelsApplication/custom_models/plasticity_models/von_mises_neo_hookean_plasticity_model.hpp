@@ -16,8 +16,8 @@
 
 // Project includes
 #include "custom_models/plasticity_models/non_linear_associative_plasticity_model.hpp"
-#include "custom_models/plasticity_models/yield_criteria/mises_huber_yield_criterion.hpp"
-#include "custom_models/plasticity_models/hardening_laws/simo_exponential_hardening_law.hpp"
+#include "custom_models/plasticity_models/yield_surfaces/mises_huber_yield_surface.hpp"
+#include "custom_models/plasticity_models/hardening_rules/simo_exponential_hardening_rule.hpp"
 #include "custom_models/elasticity_models/isochoric_neo_hookean_model.hpp"
 
 namespace Kratos
@@ -47,7 +47,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) VonMisesNeoHookeanPlasticityModel : public NonLinearAssociativePlasticityModel<IsochoricNeoHookeanModel, MisesHuberYieldCriterion<SimoExponentialHardeningLaw> >
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) VonMisesNeoHookeanPlasticityModel : public NonLinearAssociativePlasticityModel<IsochoricNeoHookeanModel, MisesHuberYieldSurface<SimoExponentialHardeningRule> >
   {
   public:
     
@@ -58,13 +58,13 @@ namespace Kratos
     typedef IsochoricNeoHookeanModel                       ElasticityModelType;
     typedef typename ElasticityModelType::Pointer       ElasticityModelPointer;
 
-    //yield criterion
-    typedef SimoExponentialHardeningLaw                       HardeningLawType;
-    typedef MisesHuberYieldCriterion<HardeningLawType>      YieldCriterionType;
-    typedef typename YieldCriterionType::Pointer         YieldCriterionPointer;
+    //yield surface
+    typedef SimoExponentialHardeningRule                     HardeningRuleType;
+    typedef MisesHuberYieldSurface<HardeningRuleType>         YieldSurfaceType;
+    typedef typename YieldSurfaceType::Pointer             YieldSurfacePointer;
 
     //base type
-    typedef NonLinearAssociativePlasticityModel<ElasticityModelType,YieldCriterionType>  BaseType;
+    typedef NonLinearAssociativePlasticityModel<ElasticityModelType,YieldSurfaceType>  BaseType;
 
     //common types
     typedef typename BaseType::Pointer                         BaseTypePointer;

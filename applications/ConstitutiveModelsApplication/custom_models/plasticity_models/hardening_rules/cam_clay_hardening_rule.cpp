@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/plasticity_models/hardening_laws/cam_clay_hardening_law.hpp"
+#include "custom_models/plasticity_models/hardening_rules/cam_clay_hardening_rule.hpp"
 
 namespace Kratos
 {
@@ -20,8 +20,8 @@ namespace Kratos
   //*******************************CONSTRUCTOR******************************************
   //************************************************************************************
 
-  CamClayHardeningLaw::CamClayHardeningLaw()
-    :HardeningLaw()
+  CamClayHardeningRule::CamClayHardeningRule()
+    :HardeningRule()
   {
   }
 
@@ -29,17 +29,17 @@ namespace Kratos
   //*******************************ASSIGMENT OPERATOR***********************************
   //************************************************************************************
 
-  CamClayHardeningLaw& CamClayHardeningLaw::operator=(CamClayHardeningLaw const& rOther)
+  CamClayHardeningRule& CamClayHardeningRule::operator=(CamClayHardeningRule const& rOther)
   {
-    HardeningLaw::operator=(rOther);
+    HardeningRule::operator=(rOther);
     return *this;
   }
 
   //*******************************COPY CONSTRUCTOR*************************************
   //************************************************************************************
 
-  CamClayHardeningLaw::CamClayHardeningLaw(CamClayHardeningLaw const& rOther)
-    :HardeningLaw(rOther)
+  CamClayHardeningRule::CamClayHardeningRule(CamClayHardeningRule const& rOther)
+    :HardeningRule(rOther)
   {
 
   }
@@ -48,16 +48,16 @@ namespace Kratos
   //********************************CLONE***********************************************
   //************************************************************************************
 
-  HardeningLaw::Pointer CamClayHardeningLaw::Clone() const
+  HardeningRule::Pointer CamClayHardeningRule::Clone() const
   {
-    return ( HardeningLaw::Pointer(new CamClayHardeningLaw(*this)) );
+    return ( HardeningRule::Pointer(new CamClayHardeningRule(*this)) );
   }
 
 
   //********************************DESTRUCTOR******************************************
   //************************************************************************************
 
-  CamClayHardeningLaw::~CamClayHardeningLaw()
+  CamClayHardeningRule::~CamClayHardeningRule()
   {
   }
 
@@ -66,7 +66,7 @@ namespace Kratos
   //*******************************CALCULATE TOTAL HARDENING****************************
   //************************************************************************************
 
-  double& CamClayHardeningLaw::CalculateHardening(const PlasticDataType& rVariables, double& rHardening)
+  double& CamClayHardeningRule::CalculateHardening(const PlasticDataType& rVariables, double& rHardening)
   {
     KRATOS_TRY
 
@@ -89,7 +89,7 @@ namespace Kratos
   //*******************************CALCULATE HARDENING DERIVATIVE***********************
   //************************************************************************************
 
-  double& CamClayHardeningLaw::CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening)
+  double& CamClayHardeningRule::CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening)
   {
     KRATOS_TRY
       
