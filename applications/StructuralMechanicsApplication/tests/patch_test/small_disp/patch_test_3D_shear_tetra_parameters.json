@@ -34,7 +34,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto6","DISPLACEMENT_Displacement_Auto7","DISPLACEMENT_Displacement_Auto8","SurfaceLoad3D_Load_on_surfaces_Auto2","SurfaceLoad3D_Load_on_surfaces_Auto3","SurfaceLoad3D_Load_on_surfaces_Auto4","SurfaceLoad3D_Load_on_surfaces_Auto5"]
     },
     "constraints_process_list" : [{
-        "python_module" : "assign_vector_components_to_nodes_process",
+        "python_module" : "assign_vector_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorProcess",
@@ -46,7 +46,7 @@
             "interval"        : [0.0,"End"]
         }
     },{
-        "python_module" : "assign_vector_components_to_nodes_process",
+        "python_module" : "assign_vector_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorProcess",
@@ -58,7 +58,7 @@
             "interval"        : [0.0,"End"]
         }
     },{
-        "python_module" : "assign_vector_components_to_nodes_process",
+        "python_module" : "assign_vector_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorProcess",
