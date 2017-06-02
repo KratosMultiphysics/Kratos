@@ -151,7 +151,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
     def Initialize(self):
         structural_mechanics_static_solver.StaticMechanicalSolver.Initialize(self)
         
-    def AddProcessesLIst(self, processes_list):
+    def AddProcessesList(self, processes_list):
         self.processes_list = processes_list
         
     def _GetConvergenceCriterion(self):

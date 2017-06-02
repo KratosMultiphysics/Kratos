@@ -144,7 +144,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
     def Initialize(self):
         structural_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver.Initialize(self)
     
-    def AddProcessesLIst(self, processes_list):
+    def AddProcessesList(self, processes_list):
         self.processes_list = processes_list
     
     def _GetConvergenceCriterion(self):
