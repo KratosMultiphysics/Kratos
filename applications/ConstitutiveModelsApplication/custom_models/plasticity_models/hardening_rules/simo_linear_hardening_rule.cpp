@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/plasticity_models/hardening_laws/simo_linear_hardening_law.hpp"
+#include "custom_models/plasticity_models/hardening_rules/simo_linear_hardening_rule.hpp"
 
 
 namespace Kratos
@@ -21,8 +21,8 @@ namespace Kratos
   //*******************************CONSTRUCTOR******************************************
   //************************************************************************************
 
-  SimoLinearHardeningLaw::SimoLinearHardeningLaw()
-    :SimoExponentialHardeningLaw()
+  SimoLinearHardeningRule::SimoLinearHardeningRule()
+    :SimoExponentialHardeningRule()
   {
   }
 
@@ -30,17 +30,17 @@ namespace Kratos
   //*******************************ASSIGMENT OPERATOR***********************************
   //************************************************************************************
 
-  SimoLinearHardeningLaw& SimoLinearHardeningLaw::operator=(SimoLinearHardeningLaw const& rOther)
+  SimoLinearHardeningRule& SimoLinearHardeningRule::operator=(SimoLinearHardeningRule const& rOther)
   {
-    SimoExponentialHardeningLaw::operator=(rOther);
+    SimoExponentialHardeningRule::operator=(rOther);
     return *this;
   }
 
   //*******************************COPY CONSTRUCTOR*************************************
   //************************************************************************************
 
-  SimoLinearHardeningLaw::SimoLinearHardeningLaw(SimoLinearHardeningLaw const& rOther)
-    :SimoExponentialHardeningLaw(rOther)
+  SimoLinearHardeningRule::SimoLinearHardeningRule(SimoLinearHardeningRule const& rOther)
+    :SimoExponentialHardeningRule(rOther)
   {
 
   }
@@ -49,16 +49,16 @@ namespace Kratos
   //********************************CLONE***********************************************
   //************************************************************************************
 
-  HardeningLaw::Pointer SimoLinearHardeningLaw::Clone() const
+  HardeningRule::Pointer SimoLinearHardeningRule::Clone() const
   {
-    return ( HardeningLaw::Pointer(new SimoLinearHardeningLaw(*this)) );
+    return ( HardeningRule::Pointer(new SimoLinearHardeningRule(*this)) );
   }
 
 
   //********************************DESTRUCTOR******************************************
   //************************************************************************************
 
-  SimoLinearHardeningLaw::~SimoLinearHardeningLaw()
+  SimoLinearHardeningRule::~SimoLinearHardeningRule()
   {
   }
 
@@ -68,7 +68,7 @@ namespace Kratos
   //*******************************CALCULATE ISOTROPIC HARDENING************************
   //************************************************************************************
 
-  double& SimoLinearHardeningLaw::CalculateAndAddIsotropicHardening(const PlasticDataType& rVariables, double& rIsotropicHardening)
+  double& SimoLinearHardeningRule::CalculateAndAddIsotropicHardening(const PlasticDataType& rVariables, double& rIsotropicHardening)
   {
     KRATOS_TRY
 
@@ -83,7 +83,7 @@ namespace Kratos
     const double& KinematicHardeningConstant  = rMaterialProperties[KINEMATIC_HARDENING_MODULUS];
 	
 
-    //Linear Hardening law: (mTheta = 0)
+    //Linear Hardening rule: (mTheta = 0)
     rIsotropicHardening  += YieldStress + (1.0 - mTheta) * KinematicHardeningConstant * rEquivalentPlasticStrain;
 	
 	
@@ -97,7 +97,7 @@ namespace Kratos
   //*******************************CALCULATE HARDENING DERIVATIVE***********************
   //************************************************************************************
 
-  double& SimoLinearHardeningLaw::CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening)
+  double& SimoLinearHardeningRule::CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening)
   {
     KRATOS_TRY
       
@@ -106,7 +106,7 @@ namespace Kratos
     //linear hardening properties
     const double& KinematicHardeningConstant  =  rModelData.GetMaterialProperties()[KINEMATIC_HARDENING_MODULUS];
 	
-    //Linear Hardening law: (mTheta = 0)
+    //Linear Hardening rule: (mTheta = 0)
     rDeltaHardening  = (1.0 - mTheta) * KinematicHardeningConstant;
 		
     return rDeltaHardening;
@@ -118,7 +118,7 @@ namespace Kratos
   //***************************CALCULATE ISOTROPIC HARDENING DERIVATIVE*****************
   //************************************************************************************
 
-  double& SimoLinearHardeningLaw::CalculateAndAddDeltaIsotropicHardening(const PlasticDataType& rVariables, double& rDeltaIsotropicHardening)
+  double& SimoLinearHardeningRule::CalculateAndAddDeltaIsotropicHardening(const PlasticDataType& rVariables, double& rDeltaIsotropicHardening)
   {
     KRATOS_TRY
       
@@ -127,7 +127,7 @@ namespace Kratos
     //linear hardening properties
     const double& KinematicHardeningConstant  =  rModelData.GetMaterialProperties()[KINEMATIC_HARDENING_MODULUS];
 	
-    //Linear Hardening law: (mTheta = 0)
+    //Linear Hardening rule: (mTheta = 0)
     rDeltaIsotropicHardening  += mTheta * KinematicHardeningConstant;
 	
     return rDeltaIsotropicHardening;

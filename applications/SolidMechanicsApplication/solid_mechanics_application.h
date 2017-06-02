@@ -66,64 +66,51 @@
 #include "custom_elements/axisym_updated_lagrangian_U_P_element.hpp"
 
 //flow rules
-/* #include "custom_constitutive/custom_flow_rules/non_linear_associative_plastic_flow_rule.hpp" */
-/* #include "custom_constitutive/custom_flow_rules/linear_associative_plastic_flow_rule.hpp" */
-/* #include "custom_constitutive/custom_flow_rules/isotropic_damage_flow_rule.hpp" */
+#include "custom_constitutive/custom_flow_rules/non_linear_associative_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/linear_associative_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/isotropic_damage_flow_rule.hpp"
 
-/* //yield criteria */
-/* #include "custom_constitutive/custom_yield_criteria/mises_huber_yield_criterion.hpp" */
-/* #include "custom_constitutive/custom_yield_criteria/simo_ju_yield_criterion.hpp" */
-/* #include "custom_constitutive/custom_yield_criteria/modified_mises_yield_criterion.hpp" */
+//yield criteria
+#include "custom_constitutive/custom_yield_criteria/mises_huber_yield_criterion.hpp"
+#include "custom_constitutive/custom_yield_criteria/simo_ju_yield_criterion.hpp"
+#include "custom_constitutive/custom_yield_criteria/modified_mises_yield_criterion.hpp"
 
-/* //hardening laws */
-/* #include "custom_constitutive/custom_hardening_laws/non_linear_isotropic_kinematic_hardening_law.hpp" */
-/* #include "custom_constitutive/custom_hardening_laws/linear_isotropic_kinematic_hardening_law.hpp" */
-/* #include "custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.hpp" */
-/* #include "custom_constitutive/custom_hardening_laws/modified_exponential_damage_hardening_law.hpp" */
+//hardening laws
+#include "custom_constitutive/custom_hardening_laws/non_linear_isotropic_kinematic_hardening_law.hpp"
+#include "custom_constitutive/custom_hardening_laws/linear_isotropic_kinematic_hardening_law.hpp"
+#include "custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.hpp"
+#include "custom_constitutive/custom_hardening_laws/modified_exponential_damage_hardening_law.hpp"
 
-/* //constitutive laws */
-/* #include "custom_constitutive/hyperelastic_3D_law.hpp" */
-/* #include "custom_constitutive/hyperelastic_plane_strain_2D_law.hpp" */
-/* #include "custom_constitutive/hyperelastic_axisym_2D_law.hpp" */
+//constitutive laws
+#include "custom_constitutive/hyperelastic_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_axisym_2D_law.hpp"
 
-/* #include "custom_constitutive/hyperelastic_U_P_3D_law.hpp" */
-/* #include "custom_constitutive/hyperelastic_U_P_plane_strain_2D_law.hpp" */
-/* #include "custom_constitutive/hyperelastic_U_P_axisym_2D_law.hpp" */
+#include "custom_constitutive/hyperelastic_U_P_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_U_P_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_U_P_axisym_2D_law.hpp"
 
-/* #include "custom_constitutive/linear_elastic_3D_law.hpp" */
-/* #include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp" */
-/* #include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp" */
-/* #include "custom_constitutive/linear_elastic_axisym_2D_law.hpp" */
-/* #include "custom_constitutive/linear_elastic_orthotropic_3D_law.hpp" */
+#include "custom_constitutive/linear_elastic_3D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_axisym_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_orthotropic_3D_law.hpp"
 
-/* #include "custom_constitutive/python_outfitted_constitutive_law.hpp" */
-//#include "custom_constitutive/linear_elastic_plastic_3D_law.hpp"
-//#include "custom_constitutive/linear_elastic_plastic_plane_strain_2D_law.hpp"
-//#include "custom_constitutive/linear_elastic_plastic_plane_stress_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_J2_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_J2_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_J2_axisym_2D_law.hpp"
 
-//#include "custom_constitutive/hyperelastic_plastic_3D_law.hpp"
-//#include "custom_constitutive/hyperelastic_plastic_plane_strain_2D_law.hpp"
-//#include "custom_constitutive/hyperelastic_plastic_axisym_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_U_P_J2_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_U_P_J2_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_U_P_J2_axisym_2D_law.hpp"
 
-//#include "custom_constitutive/hyperelastic_plastic_U_P_3D_law.hpp"
-//#include "custom_constitutive/hyperelastic_plastic_U_P_plane_strain_2D_law.hpp"
-//#include "custom_constitutive/hyperelastic_plastic_U_P_axisym_2D_law.hpp"
+#include "custom_constitutive/isotropic_damage_simo_ju_3D_law.hpp"
+#include "custom_constitutive/isotropic_damage_simo_ju_plane_strain_2D_law.hpp"
+#include "custom_constitutive/isotropic_damage_simo_ju_plane_stress_2D_law.hpp"
 
-/* #include "custom_constitutive/hyperelastic_plastic_J2_3D_law.hpp" */
-/* #include "custom_constitutive/hyperelastic_plastic_J2_plane_strain_2D_law.hpp" */
-/* #include "custom_constitutive/hyperelastic_plastic_J2_axisym_2D_law.hpp" */
-
-/* #include "custom_constitutive/hyperelastic_plastic_U_P_J2_3D_law.hpp" */
-/* #include "custom_constitutive/hyperelastic_plastic_U_P_J2_plane_strain_2D_law.hpp" */
-/* #include "custom_constitutive/hyperelastic_plastic_U_P_J2_axisym_2D_law.hpp" */
-
-/* #include "custom_constitutive/isotropic_damage_simo_ju_3D_law.hpp" */
-/* #include "custom_constitutive/isotropic_damage_simo_ju_plane_strain_2D_law.hpp" */
-/* #include "custom_constitutive/isotropic_damage_simo_ju_plane_stress_2D_law.hpp" */
-
-/* #include "custom_constitutive/isotropic_damage_modified_mises_3D_law.hpp" */
-/* #include "custom_constitutive/isotropic_damage_modified_mises_plane_strain_2D_law.hpp" */
-/* #include "custom_constitutive/isotropic_damage_modified_mises_plane_stress_2D_law.hpp" */
+#include "custom_constitutive/isotropic_damage_modified_mises_3D_law.hpp"
+#include "custom_constitutive/isotropic_damage_modified_mises_plane_strain_2D_law.hpp"
+#include "custom_constitutive/isotropic_damage_modified_mises_plane_stress_2D_law.hpp"
 
 #include "solid_mechanics_application_variables.h"
 
@@ -389,74 +376,60 @@ typedef array_1d<double,6> Vector6;
 
    //constitutive laws
     
-   /* //Hyperelastic laws */
-   /* const HyperElastic3DLaw                       mHyperElastic3DLaw; */
-   /* const HyperElasticPlaneStrain2DLaw            mHyperElasticPlaneStrain2DLaw; */
-   /* const HyperElasticAxisym2DLaw                 mHyperElasticAxisym2DLaw; */
+   //Hyperelastic laws
+   const HyperElastic3DLaw                       mHyperElastic3DLaw;
+   const HyperElasticPlaneStrain2DLaw            mHyperElasticPlaneStrain2DLaw;
+   const HyperElasticAxisym2DLaw                 mHyperElasticAxisym2DLaw;
 
-   /* //Hyperelastic laws U-P */
-   /* const HyperElasticUP3DLaw                     mHyperElasticUP3DLaw; */
-   /* const HyperElasticUPPlaneStrain2DLaw          mHyperElasticUPPlaneStrain2DLaw; */
-   /* const HyperElasticUPAxisym2DLaw               mHyperElasticUPAxisym2DLaw; */
+   //Hyperelastic laws U-P
+   const HyperElasticUP3DLaw                     mHyperElasticUP3DLaw;
+   const HyperElasticUPPlaneStrain2DLaw          mHyperElasticUPPlaneStrain2DLaw;
+   const HyperElasticUPAxisym2DLaw               mHyperElasticUPAxisym2DLaw;
 
-   /* //Linear Elastic laws */
-   /* const LinearElastic3DLaw                      mLinearElastic3DLaw; */
-   /* const LinearElasticPlaneStrain2DLaw           mLinearElasticPlaneStrain2DLaw; */
-   /* const LinearElasticPlaneStress2DLaw           mLinearElasticPlaneStress2DLaw; */
-   /* const LinearElasticAxisym2DLaw                mLinearElasticAxisym2DLaw; */
+   //Linear Elastic laws
+   const LinearElastic3DLaw                      mLinearElastic3DLaw;
+   const LinearElasticPlaneStrain2DLaw           mLinearElasticPlaneStrain2DLaw;
+   const LinearElasticPlaneStress2DLaw           mLinearElasticPlaneStress2DLaw;
+   const LinearElasticAxisym2DLaw                mLinearElasticAxisym2DLaw;
 
-   /* const PythonOutfittedConstitutiveLaw          mPythonOutfittedConstitutiveLaw; */
+   const PythonOutfittedConstitutiveLaw          mPythonOutfittedConstitutiveLaw;
 
-   //Linear Elastic Plastic Laws
-   //const LinearElasticPlastic3DLaw               mLinearElasticPlastic3DLaw;
-   //const LinearElasticPlasticPlaneStrain2DLaw    mLinearElasticPlasticPlaneStrain2DLaw;
-   //const LinearElasticPlasticPlaneStress2DLaw    mLinearElasticPlasticPlaneStress2DLaw;
-
-   //Hyperelastic Plastic laws
-   //const HyperElasticPlastic3DLaw                mHyperElasticPlastic3DLaw;
-   //const HyperElasticPlasticPlaneStrain2DLaw     mHyperElasticPlasticPlaneStrain2DLaw;
-   //const HyperElasticPlasticAxisym2DLaw          mHyperElasticPlasticAxisym2DLaw;    
-
-   //Hyperelastic Plastic laws U-P
-   //const HyperElasticPlasticUP3DLaw              mHyperElasticPlasticUP3DLaw;
-   //const HyperElasticPlasticUPPlaneStrain2DLaw   mHyperElasticPlasticUPPlaneStrain2DLaw;
-   //const HyperElasticPlasticUPAxisym2DLaw        mHyperElasticPlasticUPAxisym2DLaw;    
- 
    //Hyperelastic Plastic J2 specilization laws 
-   /* const HyperElasticPlasticJ23DLaw              mHyperElasticPlasticJ23DLaw; */
-   /* const HyperElasticPlasticJ2PlaneStrain2DLaw   mHyperElasticPlasticJ2PlaneStrain2DLaw; */
-   /* const HyperElasticPlasticJ2Axisym2DLaw        mHyperElasticPlasticJ2Axisym2DLaw; */
+   const HyperElasticPlasticJ23DLaw              mHyperElasticPlasticJ23DLaw;
+   const HyperElasticPlasticJ2PlaneStrain2DLaw   mHyperElasticPlasticJ2PlaneStrain2DLaw;
+   const HyperElasticPlasticJ2Axisym2DLaw        mHyperElasticPlasticJ2Axisym2DLaw;
 
-   /* //Hyperelastic Plastic J2 specilization laws U-P */
-   /* const HyperElasticPlasticUPJ23DLaw            mHyperElasticPlasticUPJ23DLaw; */
-   /* const HyperElasticPlasticUPJ2PlaneStrain2DLaw mHyperElasticPlasticUPJ2PlaneStrain2DLaw; */
-   /* const HyperElasticPlasticUPJ2Axisym2DLaw      mHyperElasticPlasticUPJ2Axisym2DLaw; */
+   //Hyperelastic Plastic J2 specilization laws U-P
+   const HyperElasticPlasticUPJ23DLaw            mHyperElasticPlasticUPJ23DLaw;
+   const HyperElasticPlasticUPJ2PlaneStrain2DLaw mHyperElasticPlasticUPJ2PlaneStrain2DLaw;
+   const HyperElasticPlasticUPJ2Axisym2DLaw      mHyperElasticPlasticUPJ2Axisym2DLaw;
         
-   /* //Isotropic Damage Laws */
-   /* const IsotropicDamageSimoJu3DLaw              mIsotropicDamageSimoJu3DLaw; */
-   /* const IsotropicDamageSimoJuPlaneStrain2DLaw   mIsotropicDamageSimoJuPlaneStrain2DLaw; */
-   /* const IsotropicDamageSimoJuPlaneStress2DLaw   mIsotropicDamageSimoJuPlaneStress2DLaw; */
+   //Isotropic Damage Laws
+   const IsotropicDamageSimoJu3DLaw              mIsotropicDamageSimoJu3DLaw;
+   const IsotropicDamageSimoJuPlaneStrain2DLaw   mIsotropicDamageSimoJuPlaneStrain2DLaw;
+   const IsotropicDamageSimoJuPlaneStress2DLaw   mIsotropicDamageSimoJuPlaneStress2DLaw;
 
-   /* const IsotropicDamageModifiedMises3DLaw            mIsotropicDamageModifiedMises3DLaw; */
-   /* const IsotropicDamageModifiedMisesPlaneStrain2DLaw mIsotropicDamageModifiedMisesPlaneStrain2DLaw; */
-   /* const IsotropicDamageModifiedMisesPlaneStress2DLaw mIsotropicDamageModifiedMisesPlaneStress2DLaw; */
+   const IsotropicDamageModifiedMises3DLaw            mIsotropicDamageModifiedMises3DLaw;
+   const IsotropicDamageModifiedMisesPlaneStrain2DLaw mIsotropicDamageModifiedMisesPlaneStrain2DLaw;
+   const IsotropicDamageModifiedMisesPlaneStress2DLaw mIsotropicDamageModifiedMisesPlaneStress2DLaw;
    
-   /* //Flow Rules */
-   /* const NonLinearAssociativePlasticFlowRule     mNonLinearAssociativePlasticFlowRule; */
-   /* const LinearAssociativePlasticFlowRule        mLinearAssociativePlasticFlowRule; */
-   /* const IsotropicDamageFlowRule                 mIsotropicDamageFlowRule; */
+   //Flow Rules
+   const NonLinearAssociativePlasticFlowRule     mNonLinearAssociativePlasticFlowRule;
+   const LinearAssociativePlasticFlowRule        mLinearAssociativePlasticFlowRule;
+   const IsotropicDamageFlowRule                 mIsotropicDamageFlowRule;
     
-   /* //Yield Criteria */
-   /* const MisesHuberYieldCriterion                mMisesHuberYieldCriterion; */
-   /* const SimoJuYieldCriterion                    mSimoJuYieldCriterion; */
-   /* const ModifiedMisesYieldCriterion             mModifiedMisesYieldCriterion; */
+   //Yield Criteria
+   const MisesHuberYieldCriterion                mMisesHuberYieldCriterion;
+   const SimoJuYieldCriterion                    mSimoJuYieldCriterion;
+   const ModifiedMisesYieldCriterion             mModifiedMisesYieldCriterion;
     
-   /* //Hardening Laws */
-   /* const NonLinearIsotropicKinematicHardeningLaw mNonLinearIsotropicKinematicHardeningLaw; */
-   /* const LinearIsotropicKinematicHardeningLaw    mLinearIsotropicKinematicHardeningLaw; */
-   /* const ExponentialDamageHardeningLaw           mExponentialDamageHardeningLaw; */
-   /* const ModifiedExponentialDamageHardeningLaw   mModifiedExponentialDamageHardeningLaw; */
+   //Hardening Laws
+   const NonLinearIsotropicKinematicHardeningLaw mNonLinearIsotropicKinematicHardeningLaw;
+   const LinearIsotropicKinematicHardeningLaw    mLinearIsotropicKinematicHardeningLaw;
+   const ExponentialDamageHardeningLaw           mExponentialDamageHardeningLaw;
+   const ModifiedExponentialDamageHardeningLaw   mModifiedExponentialDamageHardeningLaw;
 
+   
    ///@}
    ///@name Private Operators
    ///@{

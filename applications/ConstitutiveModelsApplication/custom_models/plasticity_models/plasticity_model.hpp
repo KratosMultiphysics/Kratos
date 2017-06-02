@@ -16,7 +16,7 @@
 
 // Project includes
 #include "custom_models/constitutive_model.hpp"
-#include "custom_models/plasticity_models/yield_criteria/yield_criterion.hpp"
+#include "custom_models/plasticity_models/yield_surfaces/yield_surface.hpp"
 
 namespace Kratos
 {
@@ -45,7 +45,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  template<class TElasticityModel, class TYieldCriterion>
+  template<class TElasticityModel, class TYieldSurface>
   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) PlasticityModel : public ConstitutiveModel
   {
   public:
@@ -56,8 +56,8 @@ namespace Kratos
     //elasticity model
     typedef TElasticityModel                                   ElasticityModelType;
 
-    //yield criterion
-    typedef TYieldCriterion                                     YieldCriterionType;
+    //yield surface
+    typedef TYieldSurface                                         YieldSurfaceType;
 
     //common types
     typedef ConstitutiveModelData::SizeType                               SizeType;
@@ -65,8 +65,8 @@ namespace Kratos
     typedef ConstitutiveModelData::MatrixType                           MatrixType;
     typedef ConstitutiveModelData::VectorType                           VectorType;
     typedef ConstitutiveModelData::ModelData                         ModelDataType;
-    typedef typename TYieldCriterion::PlasticDataType              PlasticDataType;
-    typedef typename TYieldCriterion::InternalVariablesType  InternalVariablesType;
+    typedef typename TYieldSurface::PlasticDataType                PlasticDataType;
+    typedef typename TYieldSurface::InternalVariablesType    InternalVariablesType;
     
     /// Pointer definition of PlasticityModel
     KRATOS_CLASS_POINTER_DEFINITION( PlasticityModel );
@@ -79,14 +79,14 @@ namespace Kratos
     PlasticityModel() : ConstitutiveModel() {}
     
     /// Copy constructor.
-    PlasticityModel(PlasticityModel const& rOther) : ConstitutiveModel(rOther), mElasticityModel(rOther.mElasticityModel), mYieldCriterion(rOther.mYieldCriterion) {}
+    PlasticityModel(PlasticityModel const& rOther) : ConstitutiveModel(rOther), mElasticityModel(rOther.mElasticityModel), mYieldSurface(rOther.mYieldSurface) {}
     
     /// Assignment operator.
     PlasticityModel& operator=(PlasticityModel const& rOther)
     {
       ConstitutiveModel::operator=(rOther);
       mElasticityModel = rOther.mElasticityModel;
-      mYieldCriterion  = rOther.mYieldCriterion;
+      mYieldSurface    = rOther.mYieldSurface;
       return *this;
     }
 
@@ -306,7 +306,7 @@ namespace Kratos
     ///@{
     
     ElasticityModelType   mElasticityModel;
-    YieldCriterionType    mYieldCriterion;
+    YieldSurfaceType         mYieldSurface;
     
     ///@}
     ///@name Protected Operators
@@ -375,7 +375,7 @@ namespace Kratos
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveModel )
 
       rSerializer.save("mpElasticityModel",mElasticityModel);
-      rSerializer.save("mpYieldCriterion",mYieldCriterion);
+      rSerializer.save("mpYieldSurface",mYieldSurface);
     }
     
     virtual void load(Serializer& rSerializer) override
@@ -383,7 +383,7 @@ namespace Kratos
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveModel )
 
       rSerializer.load("mpElasticityModel",mElasticityModel);
-      rSerializer.load("mpYieldCriterion",mYieldCriterion);	
+      rSerializer.load("mpYieldSurface",mYieldSurface);	
     }
     
     ///@}

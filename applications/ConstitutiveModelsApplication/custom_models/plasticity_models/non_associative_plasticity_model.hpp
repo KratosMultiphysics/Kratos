@@ -44,8 +44,8 @@ namespace Kratos
    /// Short class definition.
    /** Detail class definition.
     */
-      template<class TElasticityModel, class TYieldCriterion>
-      class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) NonAssociativePlasticityModel : public PlasticityModel<TElasticityModel,TYieldCriterion>
+      template<class TElasticityModel, class TYieldSurface>
+      class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) NonAssociativePlasticityModel : public PlasticityModel<TElasticityModel,TYieldSurface>
       {
          public:
 
@@ -55,11 +55,11 @@ namespace Kratos
             //elasticity model
             typedef TElasticityModel                               ElasticityModelType;
 
-            //yield criterion
-            typedef TYieldCriterion                                 YieldCriterionType;
+            //yield surface
+            typedef TYieldSurface                                     YieldSurfaceType;
 
             //base type
-            typedef PlasticityModel<ElasticityModelType,YieldCriterionType>   BaseType;
+            typedef PlasticityModel<ElasticityModelType,YieldSurfaceType>     BaseType;
 
             //common types
             typedef typename BaseType::Pointer                         BaseTypePointer;
@@ -170,7 +170,7 @@ namespace Kratos
                this->mElasticityModel.CalculateStressTensor(rValues,rStressMatrix);
                //rValues.StressMatrix = rStressMatrix;
 
-               Variables.TrialStateFunction = this->mYieldCriterion.CalculateYieldCondition( Variables, Variables.TrialStateFunction);
+               Variables.TrialStateFunction = this->mYieldSurface.CalculateYieldCondition( Variables, Variables.TrialStateFunction);
 
                if ( Variables.TrialStateFunction  < Tolerance) {
                   // elastic loading step
@@ -188,7 +188,7 @@ namespace Kratos
 
                double InitialYieldFunction;
                this->mElasticityModel.CalculateStressTensor(rValues,rStressMatrix);
-               InitialYieldFunction = this->mYieldCriterion.CalculateYieldCondition( Variables, InitialYieldFunction);
+               InitialYieldFunction = this->mYieldSurface.CalculateYieldCondition( Variables, InitialYieldFunction);
 
                if ( (InitialYieldFunction < -Tolerance) && (Variables.TrialStateFunction > Tolerance) )
                {
@@ -290,7 +290,7 @@ namespace Kratos
                
                double Tolerance = 1e-6;
 
-               double YieldSurface = this->mYieldCriterion.CalculateYieldCondition( rVariables, YieldSurface);
+               double YieldSurface = this->mYieldSurface.CalculateYieldCondition( rVariables, YieldSurface);
 
                if ( fabs(YieldSurface) < Tolerance)
                   return;
@@ -301,11 +301,11 @@ namespace Kratos
                   this->mElasticityModel.CalculateConstitutiveTensor( rValues, ElasticMatrix);
 
                   VectorType YieldSurfaceDerivative;
-                  this->mYieldCriterion.CalculateYieldSurfaceDerivative( rVariables, YieldSurfaceDerivative);
+                  this->mYieldSurface.CalculateYieldSurfaceDerivative( rVariables, YieldSurfaceDerivative);
                   VectorType PlasticPotentialDerivative;
                   PlasticPotentialDerivative = YieldSurfaceDerivative; // LMV
 
-                  double H = this->mYieldCriterion.GetHardeningLaw().CalculateDeltaHardening( rVariables, H);
+                  double H = this->mYieldSurface.GetHardeningRule().CalculateDeltaHardening( rVariables, H);
 
                   double DeltaGamma = YieldSurface;
                   DeltaGamma /= ( H + MathUtils<double>::Dot( YieldSurfaceDerivative, prod(ElasticMatrix, PlasticPotentialDerivative) ) );
@@ -324,7 +324,7 @@ namespace Kratos
                      plasticVolDef += DeltaGamma * YieldSurfaceDerivative(i);
 
                   std::cout <<  i << " , " << YieldSurface; 
-                  YieldSurface = this->mYieldCriterion.CalculateYieldCondition( rVariables, YieldSurface);
+                  YieldSurface = this->mYieldSurface.CalculateYieldCondition( rVariables, YieldSurface);
                   std::cout << " , " << YieldSurface << std::endl;
 
                   if ( fabs( YieldSurface) < Tolerance) {
@@ -347,11 +347,11 @@ namespace Kratos
                this->mElasticityModel.CalculateConstitutiveTensor( rValues, ElasticMatrix);
 
                VectorType YieldSurfaceDerivative;
-               this->mYieldCriterion.CalculateYieldSurfaceDerivative( rVariables, YieldSurfaceDerivative);
+               this->mYieldSurface.CalculateYieldSurfaceDerivative( rVariables, YieldSurfaceDerivative);
                VectorType PlasticPotentialDerivative;
                PlasticPotentialDerivative = YieldSurfaceDerivative; // LMV
 
-               double H = this->mYieldCriterion.GetHardeningLaw().CalculateDeltaHardening( rVariables, H);
+               double H = this->mYieldSurface.GetHardeningRule().CalculateDeltaHardening( rVariables, H);
 
                VectorType AuxF = prod( trans(YieldSurfaceDerivative), rEPMatrix);
                VectorType AuxG = prod( rEPMatrix, PlasticPotentialDerivative);
@@ -394,7 +394,7 @@ namespace Kratos
                   rValues.StrainMatrix = AuxMatrix;
 
                   this->mElasticityModel.CalculateStressTensor(rValues,StressMatrix);
-                  HalfTimeStateFunction = this->mYieldCriterion.CalculateYieldCondition( rVariables, HalfTimeStateFunction);
+                  HalfTimeStateFunction = this->mYieldSurface.CalculateYieldCondition( rVariables, HalfTimeStateFunction);
 
                   if ( HalfTimeStateFunction < 0.0) {
                      InitialStateFunction = HalfTimeStateFunction;
@@ -538,11 +538,11 @@ namespace Kratos
                this->mElasticityModel.CalculateConstitutiveTensor( rValues, ElasticMatrix);
 
                VectorType YieldSurfaceDerivative;
-               this->mYieldCriterion.CalculateYieldSurfaceDerivative( rVariables, YieldSurfaceDerivative);
+               this->mYieldSurface.CalculateYieldSurfaceDerivative( rVariables, YieldSurfaceDerivative);
                VectorType PlasticPotentialDerivative;
                PlasticPotentialDerivative = YieldSurfaceDerivative; // LMV
 
-               double H = this->mYieldCriterion.GetHardeningLaw().CalculateDeltaHardening( rVariables, H);
+               double H = this->mYieldSurface.GetHardeningRule().CalculateDeltaHardening( rVariables, H);
 
                MatrixType StrainMatrix = prod( rDeformationGradientF, trans( rDeformationGradientF) );
                VectorType StrainVector; 

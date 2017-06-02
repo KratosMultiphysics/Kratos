@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_MISES_HUBER_YIELD_CRITERION_H_INCLUDED )
-#define  KRATOS_MISES_HUBER_YIELD_CRITERION_H_INCLUDED
+#if !defined(KRATOS_MISES_HUBER_YIELD_SURFACE_H_INCLUDED )
+#define  KRATOS_MISES_HUBER_YIELD_SURFACE_H_INCLUDED
 
 
 // System includes
@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/plasticity_models/yield_criteria/yield_criterion.hpp"
+#include "custom_models/plasticity_models/yield_surfaces/yield_surface.hpp"
 
 namespace Kratos
 {
@@ -45,8 +45,8 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  template<class THardeningLaw>
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) MisesHuberYieldCriterion : public YieldCriterion<THardeningLaw>
+  template<class THardeningRule>
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) MisesHuberYieldSurface : public YieldSurface<THardeningRule>
   {
   public:
     ///@name Type Definitions
@@ -58,25 +58,25 @@ namespace Kratos
     typedef ConstitutiveModelData::MaterialData                  MaterialDataType;
 
 
-    typedef YieldCriterion<THardeningLaw>                                BaseType;
+    typedef YieldSurface<THardeningRule>                                 BaseType;
     typedef typename BaseType::Pointer                            BaseTypePointer;
     typedef typename BaseType::PlasticDataType                    PlasticDataType;
     
-    /// Pointer definition of MisesHuberYieldCriterion
-    KRATOS_CLASS_POINTER_DEFINITION( MisesHuberYieldCriterion );
+    /// Pointer definition of MisesHuberYieldSurface
+    KRATOS_CLASS_POINTER_DEFINITION( MisesHuberYieldSurface );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MisesHuberYieldCriterion() : BaseType() {}
+    MisesHuberYieldSurface() : BaseType() {}
    
     /// Copy constructor.
-    MisesHuberYieldCriterion(MisesHuberYieldCriterion const& rOther) : BaseType(rOther) {}
+    MisesHuberYieldSurface(MisesHuberYieldSurface const& rOther) : BaseType(rOther) {}
 
     /// Assignment operator.
-    MisesHuberYieldCriterion& operator=(MisesHuberYieldCriterion const& rOther)
+    MisesHuberYieldSurface& operator=(MisesHuberYieldSurface const& rOther)
     {
       BaseType::operator=(rOther);
       return *this;
@@ -85,11 +85,11 @@ namespace Kratos
     /// Clone.
     virtual BaseTypePointer Clone() const override
     {
-      return ( MisesHuberYieldCriterion::Pointer(new MisesHuberYieldCriterion(*this)) );
+      return ( MisesHuberYieldSurface::Pointer(new MisesHuberYieldSurface(*this)) );
     }
     
     /// Destructor.
-    virtual ~MisesHuberYieldCriterion() {}
+    virtual ~MisesHuberYieldSurface() {}
 
 
     ///@}
@@ -113,7 +113,7 @@ namespace Kratos
 
       const double& rStressNorm = rVariables.GetStressNorm();
 
-      Hardening = this->mHardeningLaw.CalculateHardening(rVariables,Hardening);
+      Hardening = this->mHardeningRule.CalculateHardening(rVariables,Hardening);
      
       rYieldCondition = rStressNorm - sqrt(2.0/3.0) * Hardening;
 		
@@ -138,7 +138,7 @@ namespace Kratos
     
       double Hardening = 0;
 		
-      Hardening = this->mHardeningLaw.CalculateHardening( rVariables, Hardening );
+      Hardening = this->mHardeningRule.CalculateHardening( rVariables, Hardening );
 
       rStateFunction = rStressNorm - 2.0 * rMaterial.GetLameMuBar() * rDeltaGamma - sqrt(2.0/3.0) * ( Hardening );
 		
@@ -159,7 +159,7 @@ namespace Kratos
 
       double DeltaHardening = 0;
 
-      DeltaHardening = this->mHardeningLaw.CalculateDeltaHardening( rVariables, DeltaHardening );
+      DeltaHardening = this->mHardeningRule.CalculateDeltaHardening( rVariables, DeltaHardening );
 
       rDeltaStateFunction = 2.0 * rMaterial.GetLameMuBar() + (2.0/3.0) * DeltaHardening;
 		
@@ -241,20 +241,20 @@ namespace Kratos
     virtual std::string Info() const override
     {
       std::stringstream buffer;
-      buffer << "YieldCriterion" ;
+      buffer << "YieldSurface" ;
       return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-      rOStream << "MisesHuberYieldCriterion";
+      rOStream << "MisesHuberYieldSurface";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "MisesHuberYieldCriterion Data";
+      rOStream << "MisesHuberYieldSurface Data";
     }
 
 
@@ -353,7 +353,7 @@ namespace Kratos
 
     ///@}
 
-  }; // Class MisesHuberYieldCriterion
+  }; // Class MisesHuberYieldSurface
 
   ///@}
 
@@ -372,6 +372,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MISES_HUBER_YIELD_CRITERION_H_INCLUDED  defined 
+#endif // KRATOS_MISES_HUBER_YIELD_SURFACE_H_INCLUDED  defined 
 
 

@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/plasticity_models/hardening_laws/simo_exponential_thermal_hardening_law.hpp"
+#include "custom_models/plasticity_models/hardening_rules/simo_exponential_thermal_hardening_rule.hpp"
 
 namespace Kratos
 {
@@ -20,8 +20,8 @@ namespace Kratos
   //*******************************CONSTRUCTOR******************************************
   //************************************************************************************
 
-  SimoExponentialThermalHardeningLaw::SimoExponentialThermalHardeningLaw()
-    :SimoExponentialHardeningLaw()
+  SimoExponentialThermalHardeningRule::SimoExponentialThermalHardeningRule()
+    :SimoExponentialHardeningRule()
   {
 
   }
@@ -30,17 +30,17 @@ namespace Kratos
   //*******************************ASSIGMENT OPERATOR***********************************
   //************************************************************************************
 
-  SimoExponentialThermalHardeningLaw& SimoExponentialThermalHardeningLaw::operator=(SimoExponentialThermalHardeningLaw const& rOther)
+  SimoExponentialThermalHardeningRule& SimoExponentialThermalHardeningRule::operator=(SimoExponentialThermalHardeningRule const& rOther)
   {
-    SimoExponentialHardeningLaw::operator=(rOther);
+    SimoExponentialHardeningRule::operator=(rOther);
     return *this;
   }
 
   //*******************************COPY CONSTRUCTOR*************************************
   //************************************************************************************
 
-  SimoExponentialThermalHardeningLaw::SimoExponentialThermalHardeningLaw(SimoExponentialThermalHardeningLaw const& rOther)
-    :SimoExponentialHardeningLaw(rOther)
+  SimoExponentialThermalHardeningRule::SimoExponentialThermalHardeningRule(SimoExponentialThermalHardeningRule const& rOther)
+    :SimoExponentialHardeningRule(rOther)
   {
 
   }
@@ -49,16 +49,16 @@ namespace Kratos
   //********************************CLONE***********************************************
   //************************************************************************************
 
-  HardeningLaw::Pointer SimoExponentialThermalHardeningLaw::Clone() const
+  HardeningRule::Pointer SimoExponentialThermalHardeningRule::Clone() const
   {
-    return ( HardeningLaw::Pointer(new SimoExponentialThermalHardeningLaw(*this)) );
+    return ( HardeningRule::Pointer(new SimoExponentialThermalHardeningRule(*this)) );
   }
 
 
   //********************************DESTRUCTOR******************************************
   //************************************************************************************
 
-  SimoExponentialThermalHardeningLaw::~SimoExponentialThermalHardeningLaw()
+  SimoExponentialThermalHardeningRule::~SimoExponentialThermalHardeningRule()
   {
   }
 
@@ -67,7 +67,7 @@ namespace Kratos
   //***************************CALCULATE HARDENING DERIVATIVE TEMPERATURE***************
   //************************************************************************************
 
-  double& SimoExponentialThermalHardeningLaw::CalculateDeltaThermalHardening(const PlasticDataType& rVariables, double& rDeltaThermalHardening)
+  double& SimoExponentialThermalHardeningRule::CalculateDeltaThermalHardening(const PlasticDataType& rVariables, double& rDeltaThermalHardening)
   {
     KRATOS_TRY
 
@@ -100,7 +100,7 @@ namespace Kratos
     KinematicHardeningConstant *= ThermalFactor;
     
     
-    //Linear Hardening law: (mTheta = 1)
+    //Linear Hardening rule: (mTheta = 1)
     rDeltaThermalHardening  = ( YieldStress * ReferenceConductivity + this->mTheta * KinematicHardeningConstant * HardnessConductivity * rEquivalentPlasticStrain );
 	
     //Exponential Saturation:
@@ -118,7 +118,7 @@ namespace Kratos
   //***************************CALCULATE TEMPERATURE EVOLUTION PROPERTIES***************
   //************************************************************************************
 
-  double& SimoExponentialThermalHardeningLaw::CalculateThermalReferenceEffect(const PlasticDataType& rVariables, double& rThermalFactor)
+  double& SimoExponentialThermalHardeningRule::CalculateThermalReferenceEffect(const PlasticDataType& rVariables, double& rThermalFactor)
   {
     KRATOS_TRY
       
@@ -143,7 +143,7 @@ namespace Kratos
   //***************************CALCULATE TEMPERATURE EVOLUTION PROPERTIES***************
   //************************************************************************************
 
-  double& SimoExponentialThermalHardeningLaw::CalculateThermalCurrentEffect(const PlasticDataType& rVariables, double& rThermalFactor)
+  double& SimoExponentialThermalHardeningRule::CalculateThermalCurrentEffect(const PlasticDataType& rVariables, double& rThermalFactor)
   {
     KRATOS_TRY
 

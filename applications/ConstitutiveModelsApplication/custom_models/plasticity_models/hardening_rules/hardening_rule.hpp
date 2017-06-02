@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_HARDENING_LAW_H_INCLUDED )
-#define  KRATOS_HARDENING_LAW_H_INCLUDED
+#if !defined(KRATOS_HARDENING_RULE_H_INCLUDED )
+#define  KRATOS_HARDENING_RULE_H_INCLUDED
 
 // System includes
 #include <string>
@@ -51,7 +51,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) HardeningLaw
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) HardeningRule
   {
   protected:
 
@@ -111,7 +111,7 @@ namespace Kratos
       double TrialStateFunction;
       double StressNorm;
       
-      //hardening law internal variables
+      //hardening rule internal variables
       double RateFactor;
 
       //internal variables
@@ -151,34 +151,34 @@ namespace Kratos
     typedef InternalVariables<VarSize>   InternalVariablesType;
     typedef PlasticModelData<VarSize>          PlasticDataType;
     
-    /// Pointer definition of HardeningLaw
-    KRATOS_CLASS_POINTER_DEFINITION( HardeningLaw );
+    /// Pointer definition of HardeningRule
+    KRATOS_CLASS_POINTER_DEFINITION( HardeningRule );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    HardeningLaw() {}
+    HardeningRule() {}
 
     /// Copy constructor.
-    HardeningLaw(HardeningLaw const& rOther) {}
+    HardeningRule(HardeningRule const& rOther) {}
 
     /// Assignment operator.
-    HardeningLaw& operator=(HardeningLaw const& rOther)
+    HardeningRule& operator=(HardeningRule const& rOther)
       {
 	return *this;
       }
     
     /// Clone.
-    virtual HardeningLaw::Pointer Clone() const
+    virtual HardeningRule::Pointer Clone() const
     {
-      HardeningLaw::Pointer p_clone(new HardeningLaw(*this));
+      HardeningRule::Pointer p_clone(new HardeningRule(*this));
       return p_clone;
     }
 
     /// Destructor.
-    virtual ~HardeningLaw() {}
+    virtual ~HardeningRule() {}
 
     ///@}
     ///@name Operators
@@ -197,7 +197,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_ERROR << "calling the HardeningLaw base class ... illegal operation" << std::endl;	
+      KRATOS_ERROR << "calling the HardeningRule base class ... illegal operation" << std::endl;	
 
       return rHardening;
 	
@@ -213,7 +213,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_ERROR << "calling the HardeningLaw base class ... illegal operation" << std::endl;	
+      KRATOS_ERROR << "calling the HardeningRule base class ... illegal operation" << std::endl;	
 
       return rDeltaHardening;
 	
@@ -225,7 +225,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_ERROR << "calling the HardeningLaw base class ... illegal operation" << std::endl;	
+      KRATOS_ERROR << "calling the HardeningRule base class ... illegal operation" << std::endl;	
 
       return rDeltaThermalHardening;
 	
@@ -251,20 +251,20 @@ namespace Kratos
     virtual std::string Info() const
     {
       std::stringstream buffer;
-      buffer << "HardeningLaw" ;
+      buffer << "HardeningRule" ;
       return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-      rOStream << "HardeningLaw";
+      rOStream << "HardeningRule";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-      rOStream << "HardeningLaw Data";
+      rOStream << "HardeningRule Data";
     }
 
     ///@}
@@ -361,7 +361,7 @@ namespace Kratos
 
     ///@}
 
-  }; // Class HardeningLaw
+  }; // Class HardeningRule
 
   ///@}
 
@@ -380,6 +380,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_HARDENING_LAW_H_INCLUDED  defined 
+#endif // KRATOS_HARDENING_RULE_H_INCLUDED  defined 
 
 

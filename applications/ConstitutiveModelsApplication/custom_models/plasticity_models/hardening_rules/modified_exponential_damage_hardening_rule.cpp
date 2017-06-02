@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/plasticity_models/hardening_laws/exponential_damage_hardening_law.hpp"
+#include "custom_models/plasticity_models/hardening_rules/modified_exponential_damage_hardening_rule.hpp"
 
 namespace Kratos
 {
@@ -20,8 +20,8 @@ namespace Kratos
   //*******************************CONSTRUCTOR******************************************
   //************************************************************************************
 
-  ExponentialDamageHardeningLaw::ExponentialDamageHardeningLaw()
-    :HardeningLaw()
+  ModifiedExponentialDamageHardeningRule::ModifiedExponentialDamageHardeningRule()
+    :HardeningRule()
   {
        
   }
@@ -30,17 +30,17 @@ namespace Kratos
   //*******************************ASSIGMENT OPERATOR***********************************
   //************************************************************************************
 
-  ExponentialDamageHardeningLaw& ExponentialDamageHardeningLaw::operator=(ExponentialDamageHardeningLaw const& rOther)
+  ModifiedExponentialDamageHardeningRule& ModifiedExponentialDamageHardeningRule::operator=(ModifiedExponentialDamageHardeningRule const& rOther)
   {
-    HardeningLaw::operator=(rOther);
+    HardeningRule::operator=(rOther);
     return *this;
   }
 
   //*******************************COPY CONSTRUCTOR*************************************
   //************************************************************************************
 
-  ExponentialDamageHardeningLaw::ExponentialDamageHardeningLaw(ExponentialDamageHardeningLaw const& rOther)
-    :HardeningLaw(rOther)
+  ModifiedExponentialDamageHardeningRule::ModifiedExponentialDamageHardeningRule(ModifiedExponentialDamageHardeningRule const& rOther)
+    :HardeningRule(rOther)
   {
 
   }
@@ -49,16 +49,16 @@ namespace Kratos
   //********************************CLONE***********************************************
   //************************************************************************************
 
-  HardeningLaw::Pointer ExponentialDamageHardeningLaw::Clone() const
+  HardeningRule::Pointer ModifiedExponentialDamageHardeningRule::Clone() const
   {
-    return ( HardeningLaw::Pointer(new ExponentialDamageHardeningLaw(*this)) );
+    return ( HardeningRule::Pointer(new ModifiedExponentialDamageHardeningRule(*this)) );
   }
 
 
   //********************************DESTRUCTOR******************************************
   //************************************************************************************
 
-  ExponentialDamageHardeningLaw::~ExponentialDamageHardeningLaw()
+  ModifiedExponentialDamageHardeningRule::~ModifiedExponentialDamageHardeningRule()
   {
   }
 
@@ -67,24 +67,20 @@ namespace Kratos
   //****************************** CALCULATE DAMAGE PARAMETER **************************
   //************************************************************************************
 
-  double& ExponentialDamageHardeningLaw::CalculateHardening(const PlasticDataType& rVariables, double& rHardening)
+  double& ModifiedExponentialDamageHardeningRule::CalculateHardening(const PlasticDataType& rVariables, double& rHardening)
   {
     KRATOS_TRY
-   
+      
     const ModelDataType& rModelData       = rVariables.GetModelData();
     const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
-    const double& rFractureEnergy         = rMaterialProperties[FRACTURE_ENERGY];
     const double& rDamageThreshold        = rMaterialProperties[DAMAGE_THRESHOLD];
-    const double& rCharacteristicSize     = rModelData.GetCharacteristicSize();
+    const double& rResidualStrength       = rMaterialProperties[RESIDUAL_STRENGTH];
+    const double& rSofteningSlope         = rMaterialProperties[SOFTENING_SLOPE];
     const double& rStateVariable          = rVariables.GetDeltaInternalVariables()[0];
-
-    
-    double A = 1.0/(rFractureEnergy/(rCharacteristicSize*rDamageThreshold*rDamageThreshold)-0.5);
-
-    if(A < 0.0) A = 0.0;
     
     //Compute Damage variable from the internal historical variable
-    rHardening = 1.0-rDamageThreshold/rStateVariable*exp(A*(1.0-rStateVariable/rDamageThreshold));
+    rHardening  = 1.0-rDamageThreshold*(1.0-rResidualStrength)/rStateVariable;
+    rHardening -= rResidualStrength*exp(-rSofteningSlope*(rStateVariable-rDamageThreshold));
 
     if(rHardening < 0.0)
       {
@@ -96,7 +92,7 @@ namespace Kratos
       }
     
     return rHardening;
-
+    
     KRATOS_CATCH(" ")
     
   }
@@ -105,30 +101,27 @@ namespace Kratos
   //***************************** CALCULATE DAMAGE DERIVATIVE **************************
   //************************************************************************************
 
-  double& ExponentialDamageHardeningLaw::CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening)
+  double& ModifiedExponentialDamageHardeningRule::CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening)
   {
     KRATOS_TRY
       
     const ModelDataType& rModelData       = rVariables.GetModelData();
     const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
-    const double& rFractureEnergy         = rMaterialProperties[FRACTURE_ENERGY];
     const double& rDamageThreshold        = rMaterialProperties[DAMAGE_THRESHOLD];
-    const double& rCharacteristicSize     = rModelData.GetCharacteristicSize();
+    const double& rResidualStrength       = rMaterialProperties[RESIDUAL_STRENGTH];
+    const double& rSofteningSlope         = rMaterialProperties[SOFTENING_SLOPE];
     const double& rStateVariable          = rVariables.GetDeltaInternalVariables()[0];
-
-    double A = 1.0/(rFractureEnergy/(rCharacteristicSize*rDamageThreshold*rDamageThreshold)-0.5);
-
-    if(A < 0.0) A = 0.0;
     
     //Damage derivative with respect to the internal historical variable
-    rDeltaHardening = (rDamageThreshold + A*rStateVariable)/(rStateVariable*rStateVariable)*exp(A*(1.0-rStateVariable/rDamageThreshold));
+    rDeltaHardening  = rDamageThreshold*(1.0-rResidualStrength)/(rStateVariable*rStateVariable);
+    rDeltaHardening += rResidualStrength*rSofteningSlope*exp(-rSofteningSlope*(rStateVariable-rDamageThreshold));
 
     if(rDeltaHardening < 0.0) rDeltaHardening = 0.0;
     
     return rDeltaHardening;
     
     KRATOS_CATCH(" ")
-	  
+    
   }
 
 

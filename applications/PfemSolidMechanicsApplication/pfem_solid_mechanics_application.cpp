@@ -229,7 +229,7 @@ namespace Kratos
 
 
     //Register Constitutive Laws
-    /*Serializer::Register("BorjaHenckyCamClayPlasticAxisym2DLaw", mBorjaHenckyCamClayPlasticAxisym2DLaw);
+    Serializer::Register("BorjaHenckyCamClayPlasticAxisym2DLaw", mBorjaHenckyCamClayPlasticAxisym2DLaw);
     Serializer::Register("BorjaHenckyCamClayPlasticPlaneStrain2DLaw", mBorjaHenckyCamClayPlasticPlaneStrain2DLaw);
     Serializer::Register("HenckyJ2PlasticPlaneStrain2DLaw", mHenckyJ2PlasticPlaneStrain2DLaw);
     Serializer::Register("HenckyJ2PlasticAxisym2DLaw", mHenckyJ2PlasticAxisym2DLaw);
@@ -256,7 +256,7 @@ namespace Kratos
     Serializer::Register("CamClayYieldCriterion", mCamClayYieldCriterion);
 
     //Register Hardening Laws
-    Serializer::Register("CamClayKinematicHardeningLaw", mCamClayKinematicHardeningLaw);*/ 
+    Serializer::Register("CamClayKinematicHardeningLaw", mCamClayKinematicHardeningLaw);
 
   }
   
