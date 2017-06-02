@@ -7,8 +7,8 @@ BaseAlgorithm = swimming_DEM_algorithm.Algorithm
 import h5py
 
 class Algorithm(BaseAlgorithm):
-    def __init__(self, pp):
-        BaseAlgorithm.__init__(self, pp)
+    def __init__(self, varying_parameters = dict()):
+        BaseAlgorithm.__init__(self, varying_parameters = dict())
         self.fluid_loader_counter = self.GetFluidLoaderCounter()
 
     def SetBetaParameters(self):

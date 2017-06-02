@@ -5,8 +5,8 @@ BaseAlgorithm = swimming_DEM_algorithm.Algorithm
 import math
 
 class Algorithm(BaseAlgorithm):
-    def __init__(self, pp):
-        BaseAlgorithm.__init__(self, pp)
+    def __init__(self, varying_parameters = dict()):
+        BaseAlgorithm.__init__(self, varying_parameters = dict())
 
     def GetFluidSolveCounter(self):
         return SDP.Counter(is_dead = True)
@@ -23,7 +23,7 @@ class Algorithm(BaseAlgorithm):
     def SetBetaParameters(self):
         BaseAlgorithm.SetBetaParameters(self)
 
-    def SetCustomBetaParamters(self, dictionary): # These are input parameters that have not yet been transferred to the interface
+    def SetCustomBetaParameters(self, dictionary): # These are input parameters that have not yet been transferred to the interface
         var_names = [k for k in dictionary.keys()]
         var_values = [k for k in dictionary.values()]
 

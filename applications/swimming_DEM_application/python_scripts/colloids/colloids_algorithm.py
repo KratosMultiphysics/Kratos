@@ -6,8 +6,8 @@ import math
 BaseAlgorithm = swimming_DEM_algorithm.Algorithm
 
 class Algorithm(BaseAlgorithm):
-    def __init__(self, pp):
-        BaseAlgorithm.__init__(self, pp)
+    def __init__(self, varying_parameters = dict()):
+        BaseAlgorithm.__init__(self, varying_parameters = dict())
         self.cation_concentration_counter = self.GetCationConcentrationCounter()
 
     def SetBetaParameters(self):
