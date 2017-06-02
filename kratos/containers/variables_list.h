@@ -75,10 +75,6 @@ namespace Kratos
 		typedef VariablesContainerType::const_iterator ptr_const_iterator;
 		typedef VariablesContainerType::const_reverse_iterator ptr_const_reverse_iterator;
 		typedef VariablesContainerType::difference_type difference_type;
-		//typedef typename VariablesContainerType::iterator iterator;
-		//typedef typename VariablesContainerType::const_iterator const_iterator;
-		//typedef typename VariablesContainerType::reverse_iterator reverse_iterator;
-		//typedef typename VariablesContainerType::const_reverse_iterator const_reverse_iterator;
 
 
 		///@}
