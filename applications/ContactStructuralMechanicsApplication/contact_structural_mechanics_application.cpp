@@ -19,6 +19,7 @@
 #include "includes/define.h"
 
 #include "contact_structural_mechanics_application.h"
+#include "contact_structural_mechanics_application_variables.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
 
@@ -108,7 +109,7 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( TYING_VARIABLE )                                  // The variable name for the mesh tying 
     
     /* Processes utilities */
-//     KRATOS_REGISTER_VARIABLE( PROCESSES_LIST )                                  // A pointer to the processes list
+    KRATOS_REGISTER_VARIABLE( PROCESSES_LIST )                                  // A pointer to the processes list
 
     // CONDITIONS
     // Mesh tying mortar condition

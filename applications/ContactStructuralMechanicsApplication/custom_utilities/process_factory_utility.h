@@ -74,7 +74,7 @@ public:
     }
 
     /// Destructor.
-    ~ProcessFactoryUtility(){}
+    virtual ~ProcessFactoryUtility(){}
 
     ///@}
     ///@name Operators
