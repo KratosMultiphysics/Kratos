@@ -13,11 +13,9 @@
 namespace Kratos
 {
 typedef array_1d<double,3> Vector3;
-<<<<<<< HEAD
 typedef std::string string;
-=======
 typedef MpcData::Pointer MpcDataPointerType;
->>>>>>> multipoint_constraints
+
 
 // Generalized eigenvalue problem
 KRATOS_CREATE_VARIABLE( int, BUILD_LEVEL )

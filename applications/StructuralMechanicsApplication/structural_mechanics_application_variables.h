@@ -30,13 +30,10 @@
 
 namespace Kratos
 {
-<<<<<<< HEAD
 typedef array_1d<double,3> Vector3;
 typedef std::string string;
-=======
-typedef array_1d<double, 3> Vector3;
 typedef MpcData::Pointer MpcDataPointerType;
->>>>>>> multipoint_constraints
+
 
 // Generalized eigenvalue problem
 KRATOS_DEFINE_VARIABLE(int, BUILD_LEVEL)
@@ -44,25 +41,15 @@ KRATOS_DEFINE_VARIABLE(Vector, EIGENVALUE_VECTOR)
 KRATOS_DEFINE_VARIABLE(Matrix, EIGENVECTOR_MATRIX)
 
 // Geometrical
-<<<<<<< HEAD
-KRATOS_DEFINE_VARIABLE( double, AREA )
-KRATOS_DEFINE_VARIABLE( double, IT )
-KRATOS_DEFINE_VARIABLE( double, IY )
-KRATOS_DEFINE_VARIABLE( double, IZ )
-KRATOS_DEFINE_VARIABLE( double, CROSS_AREA )
-KRATOS_DEFINE_VARIABLE( double, MEAN_RADIUS )
-KRATOS_DEFINE_VARIABLE( int,    SECTION_SIDES )
-KRATOS_DEFINE_VARIABLE( Matrix , GEOMETRIC_STIFFNESS )
-=======
 KRATOS_DEFINE_VARIABLE(double, AREA)
-KRATOS_DEFINE_VARIABLE(double, IX)
+KRATOS_DEFINE_VARIABLE(double, IT)
 KRATOS_DEFINE_VARIABLE(double, IY)
 KRATOS_DEFINE_VARIABLE(double, IZ)
 KRATOS_DEFINE_VARIABLE(double, CROSS_AREA)
 KRATOS_DEFINE_VARIABLE(double, MEAN_RADIUS)
 KRATOS_DEFINE_VARIABLE(int, SECTION_SIDES)
 KRATOS_DEFINE_VARIABLE(Matrix, GEOMETRIC_STIFFNESS)
->>>>>>> multipoint_constraints
+
 
 // Othotropic/anisotropic constants
 // KRATOS_DEFINE_VARIABLE( double, YOUNG_MODULUS_X )

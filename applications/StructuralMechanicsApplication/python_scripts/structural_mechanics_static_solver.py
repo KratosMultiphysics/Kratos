@@ -194,18 +194,7 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
         if self.settings["multi_point_constraints_used"].GetBool():
             builder_and_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedBlockBuilderAndSolverWithMpc(self.linear_solver)
         else:
-<<<<<<< HEAD
-                if(component_wise):
-                    builder_and_solver = KratosSolid.ComponentWiseBuilderAndSolver(self.linear_solver)
-                else:
-                    if(block_builder):
-                        # To keep matrix blocks in builder
-                        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-                    else:
-                        builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
-=======
             builder_and_solver = super(StaticMechanicalSolver,self)._GetBuilderAndSolver(component_wise, block_builder)
->>>>>>> multipoint_constraints
             
         return builder_and_solver   
     
