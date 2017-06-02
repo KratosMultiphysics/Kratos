@@ -88,6 +88,8 @@ namespace Kratos
 
       virtual void Execute() override;
 
+      virtual void ExecuteInitialize() override;
+
       virtual void ExecuteInitializeSolutionStep() override;
 
       ///@}
@@ -140,6 +142,8 @@ namespace Kratos
       ///@name Protected Operations
       ///@{
 
+      void ValidateModelPart();
+
       void AssignBoussinesqForce();
 
       ///@}
@@ -170,9 +174,7 @@ namespace Kratos
 
       ModelPart &mrModelPart;
 
-      Parameters &mrParameters;
-
-      const array_1d<double,3> mrGravity;
+      array_1d<double,3> mrGravity;
 
       ///@}
       ///@name Private Operators
