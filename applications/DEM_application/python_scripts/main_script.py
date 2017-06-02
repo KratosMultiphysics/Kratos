@@ -225,11 +225,10 @@ class Solution(object):
         [model_part_io_spheres, self.spheres_model_part, MPICommSetup] = self.parallelutils.SetCommunicator(self.spheres_model_part, model_part_io_spheres, spheres_mp_filename)
 
         model_part_io_spheres.ReadModelPart(self.spheres_model_part)
-
-        max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(self.spheres_model_part)
-        max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
+        max_node_Id += self.creator_destructor.FindMaxNodeIdInModelPart(self.spheres_model_part)
+        max_elem_Id += self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
         old_max_elem_Id_spheres = max_elem_Id
-        max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.spheres_model_part)
+        max_cond_Id += self.creator_destructor.FindMaxConditionIdInModelPart(self.spheres_model_part)
         rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
         model_part_io_fem = model_part_reader(rigidFace_mp_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
         model_part_io_fem.ReadModelPart(self.rigid_face_model_part)
@@ -384,3 +383,8 @@ class Solution(object):
         self.procedures.DeleteFiles()
 
         self.KRATOSprint(self.report.FinalReport(timer))
+
+
+if __name__ == "__main__":
+    Solution().Run()
+    

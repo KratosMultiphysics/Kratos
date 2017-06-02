@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -56,9 +56,8 @@ class EigenSolver {
                     MatrixType(
                         Eigen::MappedSparseMatrix<value_type, Eigen::RowMajor, int>(
                             backend::rows(A), backend::cols(A), backend::nonzeros(A),
-                            const_cast<int*>(backend::ptr_data(A)),
-                            const_cast<int*>(backend::col_data(A)),
-                            const_cast<value_type*>(backend::val_data(A))
+                            const_cast<int*>(A.ptr), const_cast<int*>(A.col),
+                            const_cast<value_type*>(A.val)
                             )
                         )
                     );
@@ -70,6 +69,10 @@ class EigenSolver {
                 RHS(const_cast<value_type*>(&rhs[0]), n), X(&x[0], n);
 
             X = S.solve(RHS);
+        }
+
+        friend std::ostream& operator<<(std::ostream &os, const EigenSolver &s) {
+            return os << "eigen: " << s.n << " unknowns";
         }
     private:
         ptrdiff_t n;

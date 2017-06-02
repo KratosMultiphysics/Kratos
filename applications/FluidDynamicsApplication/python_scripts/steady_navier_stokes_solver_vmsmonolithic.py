@@ -50,6 +50,8 @@ class SteadyNavierStokesSolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.
                                                      self.settings["absolute_velocity_tolerance"].GetDouble(),
                                                      self.settings["relative_pressure_tolerance"].GetDouble(),
                                                      self.settings["absolute_pressure_tolerance"].GetDouble())
+        
+        (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
 
         self.time_scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(self.velocity_relaxation_factor, self.pressure_relaxation_factor, self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 

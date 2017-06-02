@@ -177,6 +177,14 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
                                                                          #self.settings["dynamic_factor"].GetDouble())
                 else:
                     mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+
+        elif(analysis_type == "Formfinding"):
+            print("::[Mechanical Solver]:: GetSolutionScheme: Formfinding")
+            self.settings.AddEmptyValue("damp_factor_m")  
+            self.settings.AddEmptyValue("dynamic_factor")
+            self.settings["damp_factor_m"].SetDouble(0.0)
+            self.settings["dynamic_factor"].SetDouble(0.0) # Quasi-static scheme
+            mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
                                 
         return mechanical_scheme
     
@@ -257,7 +265,19 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
                                                                             reform_step_dofs, 
                                                                             move_mesh_flag)
 
-                else:                    
+                elif self.settings["analysis_type"].GetString() == "Formfinding":
+                    print("::[Mechanical Solver]::StructuralMechanicsApplication::Formfinding ")
+                    self.mechanical_solver = KratosMultiphysics.StructuralMechanicsApplication.FormfindingUpdatedReferenceStrategy(self.computing_model_part, 
+                                                                            mechanical_scheme, 
+                                                                            self.linear_solver, 
+                                                                            mechanical_convergence_criterion, 
+                                                                            builder_and_solver, 
+                                                                            max_iters, 
+                                                                            compute_reactions, 
+                                                                            reform_step_dofs, 
+                                                                            move_mesh_flag)
+
+                else:
                     self.mechanical_solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
                                                                             self.computing_model_part, 
                                                                             mechanical_scheme, 

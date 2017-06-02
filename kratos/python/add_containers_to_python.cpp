@@ -48,6 +48,7 @@
 #include "python/add_deprecated_variables_to_python.h"
 #include "python/add_c2c_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_cfd_variables_to_python.h" //TODO: to be removed eventually
+#include "python/add_ale_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_dem_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_legacy_structural_app_vars_to_python.h" //TODO: to be removed eventually
 
@@ -240,6 +241,7 @@ void  AddContainersToPython()
     ;
 
     class_<VariableData>( "VariableData", no_init )
+    .def("Name", &VariableData::Name, return_value_policy<copy_const_reference>())
     .def( self_ns::str( self ) )
     ;
 
@@ -395,12 +397,14 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_FLAG(FREE_SURFACE)
     KRATOS_REGISTER_IN_PYTHON_FLAG(BLOCKED)
     KRATOS_REGISTER_IN_PYTHON_FLAG(MARKER)
+    KRATOS_REGISTER_IN_PYTHON_FLAG(PERIODIC)
 
 
     AddDeprecatedVariablesToPython();
     AddC2CVariablesToPython();
     AddDEMVariablesToPython(); //TODO: move this to the DEM application
     AddCFDVariablesToPython(); ///@TODO: move variables to CFD application
+    AddALEVariablesToPython(); ///@TODO: move variables to CFD application
     AddLegacyStructuralAppVarsToPython();
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( DOMAIN_SIZE )

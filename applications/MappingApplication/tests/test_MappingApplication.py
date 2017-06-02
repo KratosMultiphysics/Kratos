@@ -1,6 +1,5 @@
 # import Kratos
 from KratosMultiphysics import *
-from KratosMultiphysics.MappingApplication import *
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest

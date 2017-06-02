@@ -24,25 +24,26 @@ import os
 
 from design_logger_gid import DesignLoggerGID
 from design_logger_unv import DesignLoggerUNV
+from design_logger_vtk import DesignLoggerVTK
 
 from response_logger_steepest_descent import ResponseLoggerSteepestDescent
 from response_logger_penalized_projection import ResponseLoggerPenalizedProjection
 
 # ==============================================================================
-def CreateDataLogger( designSurface, communicator, optimizationSettings, timer, specificVariablesToBeLogged ):
-    responseLogger = createResponseLogger( communicator,  optimizationSettings, timer, specificVariablesToBeLogged )
+def CreateDataLogger( designSurface, communicator, optimizationSettings, timer ):
+    responseLogger = createResponseLogger( communicator,  optimizationSettings, timer )
     designLogger = createDesignLogger( designSurface, optimizationSettings )
     return optimizationDataLogger( responseLogger, designLogger, optimizationSettings )
 
 # -----------------------------------------------------------------------------
-def createResponseLogger( communicator, optimizationSettings, timer, specificVariablesToBeLogged ):
+def createResponseLogger( communicator, optimizationSettings, timer ):
 
     optimizationAlgorithm = optimizationSettings["optimization_algorithm"]["name"].GetString()
 
     if optimizationAlgorithm == "steepest_descent":
-        return ResponseLoggerSteepestDescent( communicator, optimizationSettings, timer, specificVariablesToBeLogged )
+        return ResponseLoggerSteepestDescent( communicator, optimizationSettings, timer )
     elif optimizationAlgorithm == "penalized_projection":
-        return ResponseLoggerPenalizedProjection( communicator, optimizationSettings, timer, specificVariablesToBeLogged )   
+        return ResponseLoggerPenalizedProjection( communicator, optimizationSettings, timer )   
     else:
         raise NameError("The following optimization algorithm not supported by the response logger (name may be a misspelling): " + optimizationAlgorithm)
 
@@ -54,7 +55,9 @@ def createDesignLogger( designSurface, optimizationSettings):
     if outputFormatName == "gid":
         return DesignLoggerGID( designSurface, optimizationSettings )
     if outputFormatName == "unv":
-        return DesignLoggerUNV( designSurface, optimizationSettings )        
+        return DesignLoggerUNV( designSurface, optimizationSettings )  
+    if outputFormatName == "vtk":
+        return DesignLoggerVTK( designSurface, optimizationSettings )                
     else:
         raise NameError("The following output format is not supported by the design logger (name may be misspelled): " + outputFormatName)
 

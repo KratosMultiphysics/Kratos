@@ -27,5 +27,5 @@ cmake -G "Visual Studio 14 2015 Win64"                                          
 -DINSTALL_PYTHON_FILES=ON                                                           ^
 -DINSTALL_EMBEDDED_PYTHON=ON                                                        ^
 -DEXCLUDE_ITSOL=ON                                                                  ^
--DSOLID_MECHANICS_APPLICATION=ON
+-DSOLID_MECHANICS_APPLICATION=ON                                                    ^
 ..

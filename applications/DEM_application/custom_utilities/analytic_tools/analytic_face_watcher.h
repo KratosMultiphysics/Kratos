@@ -57,11 +57,11 @@ class CrossingsTimeStepDataBase  // It holds the historical information gathered
     void PushBackCrossings(const int id1, const int id2, const double mass, const double normal_vel, const double tang_vel)
     {
         ++mNCrossings;
-        mNSignedCrossings = mNSignedCrossings + Sign(normal_vel);
+        mNSignedCrossings += Sign(id2);
         mMass += mass;
         mMasses.push_back(mass);
         mId1.push_back(id1);
-        mId2.push_back(id2);
+        mId2.push_back(fabs(id2));
         mRelVelNormal.push_back(normal_vel);
         mRelVelTangential.push_back(tang_vel);
     }    
@@ -120,18 +120,16 @@ class FaceHistoryDatabase // It holds the historical information gathered for a 
     public:
 
     FaceHistoryDatabase(): mNCrossings(0), mNSignedCrossings(0), mId(0), mMass(0.0){}
-    FaceHistoryDatabase(const int id) : mNCrossings(0), mNSignedCrossings(0), mId(id), mMass(0.0){}
+    FaceHistoryDatabase(const int id): mNCrossings(0), mNSignedCrossings(0), mId(id), mMass(0.0){}
     ~FaceHistoryDatabase(){}
 
     void PushBackCrossings(const double time, const int id2, const double mass, const double normal_vel, const double tang_vel)
     {
         ++mNCrossings;
-        mNSignedCrossings = mNSignedCrossings + Sign(normal_vel);
+        mNSignedCrossings += Sign(id2);
         mMass += mass * Sign(normal_vel);
-        KRATOS_WATCH(mNSignedCrossings)
-        KRATOS_WATCH(mMass)
         mTimes.push_back(time);
-        mId2.push_back(id2);
+        mId2.push_back(fabs(id2));
         mMasses.push_back(mass * Sign(normal_vel));
         mRelVelNormal.push_back(normal_vel);
         mRelVelTangential.push_back(tang_vel);

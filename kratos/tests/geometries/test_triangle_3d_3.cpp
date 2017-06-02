@@ -23,9 +23,13 @@
 // Utility includes
 #include "utilities/geometry_utilities.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos 
+{
+namespace Testing 
+{
 
+  static bool exceptionThrown = false;
+    
   /// Factory functions
 
   /** Generates a sample Triangle3D3.
