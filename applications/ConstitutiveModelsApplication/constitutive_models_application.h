@@ -78,19 +78,19 @@
 #include "custom_models/plasticity_models/cam_clay_model.hpp"
 
 //yield criteria
-#include "custom_models/plasticity_models/yield_criteria/mises_huber_thermal_yield_criterion.hpp"
-#include "custom_models/plasticity_models/yield_criteria/simo_ju_yield_criterion.hpp"
-#include "custom_models/plasticity_models/yield_criteria/modified_mises_yield_criterion.hpp"
-#include "custom_models/plasticity_models/yield_criteria/modified_cam_clay_yield_criterion.hpp"
+#include "custom_models/plasticity_models/yield_surfaces/mises_huber_thermal_yield_surface.hpp"
+#include "custom_models/plasticity_models/yield_surfaces/simo_ju_yield_surface.hpp"
+#include "custom_models/plasticity_models/yield_surfaces/modified_mises_yield_surface.hpp"
+#include "custom_models/plasticity_models/yield_surfaces/modified_cam_clay_yield_surface.hpp"
 
-//hardening laws
-#include "custom_models/plasticity_models/hardening_laws/simo_linear_hardening_law.hpp"
-#include "custom_models/plasticity_models/hardening_laws/simo_exponential_thermal_hardening_law.hpp"
-#include "custom_models/plasticity_models/hardening_laws/johnson_cook_thermal_hardening_law.hpp"
-#include "custom_models/plasticity_models/hardening_laws/baker_johnson_cook_thermal_hardening_law.hpp"
-#include "custom_models/plasticity_models/hardening_laws/exponential_damage_hardening_law.hpp"
-#include "custom_models/plasticity_models/hardening_laws/modified_exponential_damage_hardening_law.hpp"
-#include "custom_models/plasticity_models/hardening_laws/cam_clay_hardening_law.hpp"
+//hardening rules
+#include "custom_models/plasticity_models/hardening_rules/simo_linear_hardening_rule.hpp"
+#include "custom_models/plasticity_models/hardening_rules/simo_exponential_thermal_hardening_rule.hpp"
+#include "custom_models/plasticity_models/hardening_rules/johnson_cook_thermal_hardening_rule.hpp"
+#include "custom_models/plasticity_models/hardening_rules/baker_johnson_cook_thermal_hardening_rule.hpp"
+#include "custom_models/plasticity_models/hardening_rules/exponential_damage_hardening_rule.hpp"
+#include "custom_models/plasticity_models/hardening_rules/modified_exponential_damage_hardening_rule.hpp"
+#include "custom_models/plasticity_models/hardening_rules/cam_clay_hardening_rule.hpp"
 
 
 #include "constitutive_models_application_variables.h"
@@ -124,7 +124,7 @@ namespace Kratos {
     ///@name Type Definitions
     ///@{
 
-    typedef HardeningLaw                                               HardeningLawType; 
+    typedef HardeningRule                                               HardeningRuleType; 
     
     /// Pointer definition of KratosConstitutiveModelsApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosConstitutiveModelsApplication);
@@ -281,21 +281,21 @@ namespace Kratos {
     const CamClayModel                             mCamClayModel;
     
     //yield criteria
-    const MisesHuberYieldCriterion<HardeningLawType>         mMisesHuberYieldCriterion;
-    const MisesHuberThermalYieldCriterion<HardeningLawType>  mMisesHuberThermalYieldCriterion;
-    const SimoJuYieldCriterion<HardeningLawType>             mSimoJuYieldCriterion;
-    const ModifiedMisesYieldCriterion<HardeningLawType>      mModifiedMisesYieldCriterion;
-    const ModifiedCamClayYieldCriterion<HardeningLawType>    mModifiedCamClayYieldCriterion;
+    const MisesHuberYieldSurface<HardeningRuleType>         mMisesHuberYieldSurface;
+    const MisesHuberThermalYieldSurface<HardeningRuleType>  mMisesHuberThermalYieldSurface;
+    const SimoJuYieldSurface<HardeningRuleType>             mSimoJuYieldSurface;
+    const ModifiedMisesYieldSurface<HardeningRuleType>      mModifiedMisesYieldSurface;
+    const ModifiedCamClayYieldSurface<HardeningRuleType>    mModifiedCamClayYieldSurface;
     
-    //hardening laws
-    const SimoExponentialHardeningLaw              mSimoExponentialHardeningLaw;
-    const SimoLinearHardeningLaw                   mSimoLinearHardeningLaw;
-    const SimoExponentialThermalHardeningLaw       mSimoExponentialThermalHardeningLaw;
-    const JohnsonCookThermalHardeningLaw           mJohnsonCookThermalHardeningLaw;
-    const BakerJohnsonCookThermalHardeningLaw      mBakerJohnsonCookThermalHardeningLaw;
-    const ExponentialDamageHardeningLaw            mExponentialDamageHardeningLaw;
-    const ModifiedExponentialDamageHardeningLaw    mModifiedExponentialDamageHardeningLaw;
-    const CamClayHardeningLaw                      mCamClayHardeningLaw;
+    //hardening rules
+    const SimoExponentialHardeningRule              mSimoExponentialHardeningRule;
+    const SimoLinearHardeningRule                   mSimoLinearHardeningRule;
+    const SimoExponentialThermalHardeningRule       mSimoExponentialThermalHardeningRule;
+    const JohnsonCookThermalHardeningRule           mJohnsonCookThermalHardeningRule;
+    const BakerJohnsonCookThermalHardeningRule      mBakerJohnsonCookThermalHardeningRule;
+    const ExponentialDamageHardeningRule            mExponentialDamageHardeningRule;
+    const ModifiedExponentialDamageHardeningRule    mModifiedExponentialDamageHardeningRule;
+    const CamClayHardeningRule                      mCamClayHardeningRule;
     
     
        

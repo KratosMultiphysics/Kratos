@@ -1,21 +1,21 @@
 //
 //   Project Name:        KratosConstitutiveModelsApplication $
-//   Created by:          $Author:                  IPouplana $
-//   Last modified by:    $Co-Author:             JMCarbonell $
+//   Created by:          $Author:                JMCarbonell $
+//   Last modified by:    $Co-Author:                         $
 //   Date:                $Date:                   April 2017 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
 
-#if !defined(KRATOS_EXPONENTIAL_DAMAGE_HARDENING_LAW_H_INCLUDED )
-#define  KRATOS_EXPONENTIAL_DAMAGE_HARDENING_LAW_H_INCLUDED
+#if !defined(KRATOS_SIMO_EXPONENTIAL_HARDENING_RULE_H_INCLUDED )
+#define  KRATOS_SIMO_EXPONENTIAL_HARDENING_RULE_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_models/plasticity_models/hardening_laws/hardening_law.hpp"
+#include "custom_models/plasticity_models/hardening_rules/hardening_rule.hpp"
 
 namespace Kratos
 {
@@ -44,44 +44,45 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) ExponentialDamageHardeningLaw
-    : public HardeningLaw
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) SimoExponentialHardeningRule 
+    : public HardeningRule
   {
   public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of ExponentialDamageHardeningLaw
-    KRATOS_CLASS_POINTER_DEFINITION( ExponentialDamageHardeningLaw );
+    /// Pointer definition of SimoExponentialHardeningRule
+    KRATOS_CLASS_POINTER_DEFINITION( SimoExponentialHardeningRule );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    ExponentialDamageHardeningLaw();
+    SimoExponentialHardeningRule();
 
     /// Copy constructor.
-    ExponentialDamageHardeningLaw(ExponentialDamageHardeningLaw const& rOther);
+    SimoExponentialHardeningRule(SimoExponentialHardeningRule const& rOther);
 
     /// Assignment operator.
-    ExponentialDamageHardeningLaw& operator=(ExponentialDamageHardeningLaw const& rOther);
+    SimoExponentialHardeningRule& operator=(SimoExponentialHardeningRule const& rOther);
 
     /// Clone.
-    virtual HardeningLaw::Pointer Clone() const override;
-
+    virtual HardeningRule::Pointer Clone() const override;
+    
     /// Destructor.
-    ~ExponentialDamageHardeningLaw();
+    ~SimoExponentialHardeningRule();
 
     ///@}
     ///@name Operators
     ///@{
 
- 
+
     ///@}
     ///@name Operations
     ///@{
 
+    
     /**
      * Calculate Hardening functions
      */
@@ -93,8 +94,8 @@ namespace Kratos
      */
 
     virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening) override;
-    
- 
+
+
     ///@}
     ///@name Access
     ///@{
@@ -113,22 +114,23 @@ namespace Kratos
     virtual std::string Info() const override
     {
       std::stringstream buffer;
-      buffer << "ExponentialDamageHardeningLaw" ;
+      buffer << "SimoExponentialHardeningRule" ;
       return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-      rOStream << "ExponentialDamageHardeningLaw";
+      rOStream << "SimoExponentialHardeningRule";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "ExponentialDamageHardeningLaw Data";
-    } 
-    
+      rOStream << "SimoExponentialHardeningRule Data";
+    }    
+
+
     ///@}
     ///@name Friends
     ///@{
@@ -144,18 +146,43 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-    
 
+
+    /**
+     * Pure isotropic hardening Theta=1;  pure kinematic hardening Theta= 0; combined isotropic-kinematic 0<Theta<1
+     */
+    static constexpr double mTheta = 1.0;
+	
+     
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
+    /**
+     * Calculate Hardening functions
+     */
+    virtual double& CalculateAndAddIsotropicHardening(const PlasticDataType& rVariables, double& rIsotropicHardening);
 
+    virtual double& CalculateAndAddKinematicHardening(const PlasticDataType& rVariables, double& rKinematicHardening);
+
+    /**
+     * Calculate Hardening function derivatives
+     */
+    virtual double& CalculateAndAddDeltaIsotropicHardening(const PlasticDataType& rVariables, double& rDeltaIsotropicHardening);
+
+    virtual double& CalculateAndAddDeltaKinematicHardening(const PlasticDataType& rVariables, double& rDeltaKinematicHardening);
+
+
+    
+    virtual double& CalculateThermalReferenceEffect(const PlasticDataType& rVariables, double& rThermalFactor);
+
+    virtual double& CalculateThermalCurrentEffect(const PlasticDataType& rVariables, double& rThermalFactor);
+
+    
     ///@}
     ///@name Protected  Access
     ///@{
@@ -201,14 +228,15 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-     virtual void save(Serializer& rSerializer) const override
+
+    virtual void save(Serializer& rSerializer) const override
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningLaw )
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningRule )
     }
     
     virtual void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningLaw )
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningRule )
     }
     
     ///@}
@@ -223,7 +251,7 @@ namespace Kratos
 
     ///@}
 
-  }; // Class ExponentialDamageHardeningLaw
+  }; // Class SimoExponentialHardeningRule
 
   ///@}
 
@@ -235,13 +263,13 @@ namespace Kratos
   ///@name Input and output
   ///@{
 
-  
+
   ///@}
 
   ///@} addtogroup block
 
 }  // namespace Kratos.
 
-#endif // KRATOS_EXPONENTIAL_DAMAGE_HARDENING_LAW_H_INCLUDED  defined 
+#endif // KRATOS_SIMO_EXPONENTIAL_HARDENING_RULE_H_INCLUDED  defined 
 
 
