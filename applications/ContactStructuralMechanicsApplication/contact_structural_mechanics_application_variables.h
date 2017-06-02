@@ -22,7 +22,6 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
-#include "custom_utilities/process_factory_utility.h"
 
 namespace Kratos
 {
