@@ -35,11 +35,7 @@
     },
     "constraints_process_list" : [{
         "python_module" : "assign_vector_components_to_nodes_process",
-<<<<<<< HEAD
         "kratos_module" : "KratosMultiphysics",
-=======
-        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
->>>>>>> 4ab425d4f163699ab900003e2c10559059458347
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorProcess",
         "Parameters"    : {
@@ -51,11 +47,7 @@
         }
     },{
         "python_module" : "assign_vector_components_to_nodes_process",
-<<<<<<< HEAD
         "kratos_module" : "KratosMultiphysics",
-=======
-        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
->>>>>>> 4ab425d4f163699ab900003e2c10559059458347
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorProcess",
         "Parameters"    : {
@@ -67,11 +59,7 @@
         }
     },{
         "python_module" : "assign_vector_components_to_nodes_process",
-<<<<<<< HEAD
         "kratos_module" : "KratosMultiphysics",
-=======
-        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
->>>>>>> 4ab425d4f163699ab900003e2c10559059458347
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorProcess",
         "Parameters"    : {
@@ -84,11 +72,7 @@
     }],
     "loads_process_list"       : [{
         "python_module" : "assign_modulus_and_direction_to_conditions_process",
-<<<<<<< HEAD
         "kratos_module" : "KratosMultiphysics",
-=======
-        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
->>>>>>> 4ab425d4f163699ab900003e2c10559059458347
         "help"          : "This process sets a vector variable value over a condition",
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignModulusAndDirectionToConditionsProcess",

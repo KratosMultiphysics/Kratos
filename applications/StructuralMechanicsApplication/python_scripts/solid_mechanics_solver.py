@@ -47,7 +47,7 @@ class MechanicalSolver(object):
             "implex": false,
             "compute_reactions": true,
             "compute_contact_forces": false,
-            "block_builder": false,
+            "block_builder": true,
             "clear_storage": false,
             "component_wise": false,
             "move_mesh_flag": true,
@@ -85,15 +85,13 @@ class MechanicalSolver(object):
         
         # Add displacements
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        # Add dynamic variables
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
-        # Add reactions for the displacements
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        # Add nodal force variables
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FORCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_FORCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
+        
+        # Add dynamic variables
+        if(self.settings["solution_type"].GetString() == "Dynamic"):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)       
+
         # Add specific variables for the problem conditions
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
@@ -106,8 +104,9 @@ class MechanicalSolver(object):
             # Add specific variables for the problem (rotation dofs)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
+            if(self.settings["solution_type"].GetString() == "Dynamic"):
+                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
+                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
         if self.settings["pressure_dofs"].GetBool():
             # Add specific variables for the problem (pressure dofs)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
@@ -290,8 +289,8 @@ class MechanicalSolver(object):
             params.AddValue("bodies_list",self.settings["bodies_list"])
 
         # CheckAndPrepareModelProcess creates the solid_computational model part
-        import check_and_prepare_model_process_solid
-        check_and_prepare_model_process_solid.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
+        import check_and_prepare_model_process
+        check_and_prepare_model_process.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
         # Constitutive law import
         import constitutive_law_python_utility as constitutive_law_utils
