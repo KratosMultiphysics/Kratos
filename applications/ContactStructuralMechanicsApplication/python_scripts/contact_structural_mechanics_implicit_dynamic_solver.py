@@ -145,7 +145,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         structural_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver.Initialize(self)
     
     def AddProcessesList(self, processes_list):
-        self.processes_list = processes_list
+        self.processes_list = ContactStructuralMechanicsApplication.ProcessFactoryUtility(processes_list)
     
     def _GetConvergenceCriterion(self):
         if "Contact" in self.settings["convergence_criterion"].GetString():

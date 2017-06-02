@@ -152,7 +152,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         structural_mechanics_static_solver.StaticMechanicalSolver.Initialize(self)
         
     def AddProcessesList(self, processes_list):
-        self.processes_list = processes_list
+        self.processes_list = ContactStructuralMechanicsApplication.ProcessFactoryUtility(processes_list)
         
     def _GetConvergenceCriterion(self):
         if "Contact" in self.settings["convergence_criterion"].GetString():
