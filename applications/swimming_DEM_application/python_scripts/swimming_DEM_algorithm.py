@@ -23,7 +23,7 @@ class Algorithm(BaseAlgorithm):
     def __init__(self, pp):
         self.StartTimer()
         self.pp = pp
-        self.SetBetaParamters()
+        self.SetBetaParameters()
         self.SetDoSolveDEMVariable()
         # creating a basset_force tool to perform the operations associated with the calculation of this force along the path of each particle
         self.GetBassetForceTools()
@@ -41,7 +41,7 @@ class Algorithm(BaseAlgorithm):
         self.timer = timer
         self.simulation_start_time = timer.time()
 
-    def SetBetaParamters(self): # These are input parameters that have not yet been transferred to the interface
+    def SetBetaParameters(self): # These are input parameters that have not yet been transferred to the interface
         # import the configuration data as read from the GiD
         self.main_path = os.getcwd()
         self.pp.main_path = os.getcwd()
@@ -146,22 +146,19 @@ class Algorithm(BaseAlgorithm):
         BaseAlgorithm.ReadModelParts(self, starting_node_Id, starting_elem_Id, starting_cond_Id)
 
     def Initialize(self):
-        
-        self.spheres_model_part = self.all_model_parts.Get('SpheresPart')
-        self.fluid_model_part = self.all_model_parts.Get('FluidPart')
-
-        self.SetFluidSolverModule()
-        
+                              
         self.vars_man = vars_man
         self.vars_man.ConstructListsOfVariables(self.pp)
-                                        
+
         self.FluidInitialize()
         self.DispersePhaseInitialize()
-        
+                                
         self.vars_man.AddingExtraProcessInfoVariables(self.pp, self.fluid_model_part, self.spheres_model_part)
 
     def FluidInitialize(self):
-
+        
+        self.fluid_model_part = self.all_model_parts.Get('FluidPart')
+        self.SetFluidSolverModule()
         self.AddFluidVariables()   
         self.ReadFluidModelPart()
         self.SetFluidBufferSizeAndAddDofs()        
@@ -170,6 +167,8 @@ class Algorithm(BaseAlgorithm):
         self.ActivateTurbulenceModel()
         
     def DispersePhaseInitialize(self):
+        
+        self.spheres_model_part = self.all_model_parts.Get('SpheresPart')      
         self.vars_man.AddNodalVariables(self.spheres_model_part, self.pp.dem_vars)
         self.vars_man.AddNodalVariables(self.rigid_face_model_part, self.pp.rigid_faces_vars)
         self.vars_man.AddNodalVariables(self.DEM_inlet_model_part, self.pp.inlet_vars)
@@ -204,7 +203,7 @@ class Algorithm(BaseAlgorithm):
         self.SetFluidBufferSizeAndAddDofsBySwimmingDEMAlgorithm()  
 
     def SetFluidBufferSizeAndAddDofsByFluidSolver(self):
-        spheres_model_part = self.all_model_parts.Get('SpheresPart')        
+        #spheres_model_part = self.all_model_parts.Get('SpheresPart')        
         self.SolverSettings = self.pp.FluidSolverConfiguration
         self.fluid_model_part.SetBufferSize(3)
         self.solver_module.AddDofs(self.fluid_model_part, self.SolverSettings)
@@ -216,8 +215,7 @@ class Algorithm(BaseAlgorithm):
         self.solver.Solve()
 
     def FluidSolve(self, time = 'None'):
-        pass
-        #self.fluid_solver.Solve()
+        self.fluid_solver.Solve()
 
     def PerformZeroStepInitializations(self):
         pass
@@ -371,3 +369,6 @@ class Algorithm(BaseAlgorithm):
 
     def PerformFinalOperations(self, time = None):
         pass
+    
+    def GetReturnValue(self):
+        return 0.0

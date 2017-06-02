@@ -20,8 +20,8 @@ class Algorithm(BaseAlgorithm):
     def GetDebugInfo(self):
         return SDP.Counter(self.pp.CFD_DEM.debug_tool_cycle, 1, is_dead = 1)
 
-    def SetBetaParamters(self):
-        BaseAlgorithm.SetBetaParamters(self)
+    def SetBetaParameters(self):
+        BaseAlgorithm.SetBetaParameters(self)
 
     def SetCustomBetaParamters(self, dictionary): # These are input parameters that have not yet been transferred to the interface
         var_names = [k for k in dictionary.keys()]

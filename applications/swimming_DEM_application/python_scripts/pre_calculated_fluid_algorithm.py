@@ -11,8 +11,8 @@ class Algorithm(BaseAlgorithm):
         BaseAlgorithm.__init__(self, pp)
         self.fluid_loader_counter = self.GetFluidLoaderCounter()
 
-    def SetBetaParamters(self):
-        BaseAlgorithm.SetBetaParamters(self)
+    def SetBetaParameters(self):
+        BaseAlgorithm.SetBetaParameters(self)
         self.pp.CFD_DEM.alpha = 0.01
         self.pp.CFD_DEM.fluid_already_calculated = 1
         self.pp.CFD_DEM.load_derivatives = 0
