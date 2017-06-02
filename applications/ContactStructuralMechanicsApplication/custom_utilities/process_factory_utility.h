@@ -17,6 +17,7 @@
 #include <vector>
 #include "boost/smart_ptr.hpp"
 #include <boost/python.hpp>
+#include "includes/serializer.h"
 
 // External includes
 

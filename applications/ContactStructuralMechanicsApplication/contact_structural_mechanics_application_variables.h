@@ -54,7 +54,7 @@ typedef array_1d<double,3> Vector3;
 
 struct ConditionSet : std::unordered_set<Condition::Pointer, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> >
 {
-    ~ConditionSet(){}
+    virtual ~ConditionSet(){}
     
     typedef std::unordered_set<Condition::Pointer, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> > BaseType;
     
@@ -126,9 +126,6 @@ KRATOS_DEFINE_VARIABLE( bool, CONSIDER_PAIR_VARIATION )                         
 
 /* For mesh tying mortar condition */
 KRATOS_DEFINE_VARIABLE( std::string, TYING_VARIABLE )                               // The variable name for the mesh tying  
-
-/* Processes utilities */
-KRATOS_DEFINE_VARIABLE( boost::shared_ptr<ProcessFactoryUtility>, PROCESSES_LIST )  // A pointer to the processes list
 }       
 
 #endif	/* KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED */

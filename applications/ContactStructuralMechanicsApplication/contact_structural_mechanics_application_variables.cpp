@@ -49,7 +49,4 @@ KRATOS_CREATE_VARIABLE( bool, CONSIDER_PAIR_VARIATION )                         
 
 /* For mesh tying mortar condition */
 KRATOS_CREATE_VARIABLE( std::string, TYING_VARIABLE )                                // The variable name for the mesh tying
-
-/* Processes utilities */
-KRATOS_CREATE_VARIABLE( boost::shared_ptr<ProcessFactoryUtility>, PROCESSES_LIST )   // A pointer to the processes list
 }

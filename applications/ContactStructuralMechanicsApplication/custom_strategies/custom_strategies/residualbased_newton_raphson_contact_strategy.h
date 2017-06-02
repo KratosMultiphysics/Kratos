@@ -127,9 +127,11 @@ public:
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false,
-        Parameters ThisParameters =  Parameters(R"({})")
+        Parameters ThisParameters =  Parameters(R"({})"),
+        ProcessesListType pMyProcesses = nullptr
     )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
+        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag),
+        mpMyProcesses(pMyProcesses)
     {
         KRATOS_TRY;
 
@@ -176,9 +178,11 @@ public:
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false,
-        Parameters ThisParameters =  Parameters(R"({})")
-    )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag )
+        Parameters ThisParameters =  Parameters(R"({})"),
+        ProcessesListType pMyProcesses = nullptr                                      
+        )
+        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
+        mpMyProcesses(pMyProcesses)
     {
         KRATOS_TRY;
 
@@ -222,9 +226,7 @@ public:
     {
         bool IsConverged = BaseType::SolveSolutionStep();
         
-        ProcessesListType& pMyProcesses = StrategyBaseType::GetModelPart().GetProcessInfo()[PROCESSES_LIST];
-        
-        if (pMyProcesses == nullptr && StrategyBaseType::mEchoLevel > 0)
+        if (mpMyProcesses == nullptr && StrategyBaseType::mEchoLevel > 0)
         {
             std::cout << "WARNING:: If you have not implemented any method to recalculate BC or loads in function of time, this strategy will be USELESS" << std::endl;
         }
@@ -266,9 +268,9 @@ public:
                     StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] = CurrentTime; // Increase the time in the new delta time        
                     
                     // We execute the processes before the non-linear iteration
-                    if (pMyProcesses != nullptr)
+                    if (mpMyProcesses != nullptr)
                     {
-                        pMyProcesses->ExecuteInitializeSolutionStep();
+                        mpMyProcesses->ExecuteInitializeSolutionStep();
                     }
                     
                     // We repeat the predict and solve with the new DELTA_TIME
@@ -276,9 +278,9 @@ public:
                     IsConverged = BaseType::SolveSolutionStep();
                     
                     // We execute the processes after the non-linear iteration
-                    if (pMyProcesses != nullptr)
+                    if (mpMyProcesses != nullptr)
                     {
-                        pMyProcesses->ExecuteFinalizeSolutionStep();
+                        mpMyProcesses->ExecuteFinalizeSolutionStep();
                     }
                 }
             }
@@ -321,12 +323,13 @@ protected:
     ///@name Protected member Variables
     ///@{
     
-    bool mAdaptativeStrategy;        // If consider time split
-    double mSplitFactor;             // Number by one the delta time is split
-    unsigned int mMaxNumberSplits;   // Maximum number of splits
-    bool mRecalculateFactor;         // To check if we recalculate or not the scale factor
-    bool mPenaltyPathFollowing;      // To check if we recalculate or not the penalty parameter
-    double mInitialPenaltyParameter; // The initial penalty parameter
+    bool mAdaptativeStrategy;         // If consider time split
+    double mSplitFactor;              // Number by one the delta time is split
+    ProcessesListType mpMyProcesses;  // The processes list
+    unsigned int mMaxNumberSplits;    // Maximum number of splits
+    bool mRecalculateFactor;          // To check if we recalculate or not the scale factor
+    bool mPenaltyPathFollowing;       // To check if we recalculate or not the penalty parameter
+    double mInitialPenaltyParameter;  // The initial penalty parameter
 
     ///@}
     ///@name Protected Operators
