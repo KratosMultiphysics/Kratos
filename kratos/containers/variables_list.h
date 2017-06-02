@@ -84,7 +84,7 @@ namespace Kratos
 		///@{
 
 		/// Default constructor. mPosition should have at least on entry.
-		VariablesList() : mDataSize(0), mKeys(), mPositions(), mVariables()
+		VariablesList() : mDataSize(0), mKeys(1, static_cast<IndexType>(-1)), mPositions(1, static_cast<IndexType>(-1)), mVariables()
 		{
 		}
 
@@ -522,6 +522,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_VARIABLES_LIST_H_INCLUDED  defined 
-
-
+#endif // KRATOS_VARIABLES_LIST_H_INCLUDED  defined
