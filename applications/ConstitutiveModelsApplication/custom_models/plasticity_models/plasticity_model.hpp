@@ -374,16 +374,16 @@ namespace Kratos
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveModel )
 
-      rSerializer.save("mpElasticityModel",mElasticityModel);
-      rSerializer.save("mpYieldSurface",mYieldSurface);
+      rSerializer.save("mElasticityModel",mElasticityModel);
+      rSerializer.save("mYieldSurface",mYieldSurface);
     }
     
     virtual void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveModel )
 
-      rSerializer.load("mpElasticityModel",mElasticityModel);
-      rSerializer.load("mpYieldSurface",mYieldSurface);	
+      rSerializer.load("mElasticityModel",mElasticityModel);
+      rSerializer.load("mYieldSurface",mYieldSurface);	
     }
     
     ///@}
