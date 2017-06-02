@@ -146,6 +146,25 @@ public:
 #endif
   }
 
+  /** Returns a pointer to the class data
+   * Returns a pointer to the class data
+   * @return Pointer to the class data
+   */
+  char * ToRaw() {
+    return (char *)&mDataPointer;
+  }
+
+  /** Fills the class from raw data
+   * Fills the class from raw data
+   * @param newData Raw data containing the class info
+   */
+  void FromRaw(char * newData) {
+    memcpy(&mDataPointer, &newData[0], 8);
+#ifdef KRATOS_USING_MPI
+    memcpy(&mRank, &newData[8], 4);
+#endif
+  }
+
 private:
   /** Returns the rank of the current process
    * Returns the rank of the current process
@@ -162,7 +181,6 @@ private:
     return 0;
 #endif
   }
-
 
 };
 
