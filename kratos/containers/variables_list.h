@@ -372,6 +372,7 @@ namespace Kratos
 			if (mPositions[GetHashIndex(Key,mPositions.size(),mHashFunctionIndex)] < mDataSize) // The position is ocupied and a resize  (as re hash) is needed
 				ResizePositions();
 
+			mKeys[GetHashIndex(Key, mPositions.size(), mHashFunctionIndex)] = Key;
 			mPositions[GetHashIndex(Key, mPositions.size(), mHashFunctionIndex)] = ThePosition;
 		}
 
