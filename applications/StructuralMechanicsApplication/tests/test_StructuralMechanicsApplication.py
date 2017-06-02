@@ -9,6 +9,10 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
+<<<<<<< HEAD
+=======
+
+>>>>>>> multipoint_constraints
 # Basic moving mesh test
 from SmallTests import SimpleMeshMovingTest             as TSimpleMeshMovingTest
 # Dynamic basic tests
@@ -57,11 +61,14 @@ from SmallTests import Fofi4PointTentnoCableTests       as TFofi4PointTentnoCabl
 from SmallTests import MembraneQ4PointLoadTests         as TMembraneQ4PointLoadTests
 # Nodal damping test
 from test_nodal_damping import NodalDampingTests        as TNodalDampingTests
+<<<<<<< HEAD
 # 2NELEMENT tests
 from SmallTests import Simple3D2NTrussTest as T3D2NTrussTest
 from SmallTests import Simple3D2NBeamCrTest as T3D2NBeamCrTest
 from SmallTests import Simple3D2NBeamCrLinearTest as T3D2NBeamCrLinearTest
 
+=======
+>>>>>>> multipoint_constraints
 
 ## NIGTHLY TESTS
 from NightlyTests import ShellT3IsotropicScordelisTests as TShellT3IsotropicScordelisTests
@@ -96,15 +103,25 @@ def AssambleTestSuites():
     smallSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
     smallSuite.addTest(TEigenQ4Thick2x2PlateTests('test_execution'))
     smallSuite.addTest(TEigenTL3D8NCubeTests('test_execution'))
+<<<<<<< HEAD
     smallSuite.addTest(T3D2NTrussTest('test_execution'))  
     smallSuite.addTest(T3D2NBeamCrTest('test_execution'))    
     smallSuite.addTest(T3D2NBeamCrLinearTest('test_execution'))  
+=======
+<<<<<<< HEAD
+    smallSuite.addTest(MPCSmallDisplacementElementTests('test_execution'))
+=======
+>>>>>>> multipoint_constraints
     # Membrane tests
     smallSuite.addTest(TFofi4PointTentnoCableTests('test_execution'))
     smallSuite.addTest(TMembraneQ4PointLoadTests('test_execution'))
     # Nodal damping test
     smallSuite.addTest(TNodalDampingTests('test_execution'))
+<<<<<<< HEAD
 
+=======
+>>>>>>> f7743227e7b0cf5375184ea3a7c8b2ed052f5144
+>>>>>>> multipoint_constraints
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -131,10 +148,19 @@ def AssambleTestSuites():
             TShellT3ThinBendingRollUpTests,
             TShellT3ThinDrillingRollUpTests,
             TShellT3IsotropicScordelisTests,
+<<<<<<< HEAD
             T3D2NTrussTest,
             T3D2NBeamCrTest,
             T3D2NBeamCrLinearTest,
             #TMPCSmallDisplacementElementTests
+=======
+<<<<<<< HEAD
+            TMpcSmallDispElemTests
+=======
+            TIsotropicDamageSimoJuPSTest,
+            TNodalDampingTests
+>>>>>>> f7743227e7b0cf5375184ea3a7c8b2ed052f5144
+>>>>>>> multipoint_constraints
             ######TSprismPanTests
         ])
     )
