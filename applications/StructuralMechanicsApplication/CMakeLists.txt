@@ -25,6 +25,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 
   ##CONSTITUTIVE LAW
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_plane_stress.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_plane_strain.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/elastic_isotropic_3d.cpp
   
   ## ELEMENTS

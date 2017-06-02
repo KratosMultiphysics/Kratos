@@ -12,12 +12,12 @@ def AssignMaterial(Properties):
     
     prop_id = 2
     prop = Properties[prop_id]
-    mat = LinearElastic3DLaw();
+    mat = LinearElasticIsotropic3DLaw();
     prop.SetValue(CONSTITUTIVE_LAW, mat.Clone());
     
     prop_id = 3;
     prop = Properties[prop_id]
-    mat = IsotropicDamageSimoJuPlaneStress2DLaw();
+    mat = LinearElasticPlaneStrain2DLaw() ##IsotropicDamageSimoJuPlaneStress2DLaw();
     prop.SetValue(CONSTITUTIVE_LAW, mat.Clone());
     
     prop_id = 4;
