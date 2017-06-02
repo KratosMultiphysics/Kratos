@@ -345,8 +345,7 @@ namespace Kratos {
             int total_mesh_size_accross_mpi_processes = mesh_size_elements; //temporary value until reduction is done
             r_modelpart.GetCommunicator().SumAll(total_mesh_size_accross_mpi_processes);
             const double this_mpi_process_portion_of_inlet_mesh = (double) mesh_size_elements / (double) total_mesh_size_accross_mpi_processes;
-            assert(mp[INLET_NUMBER_OF_PARTICLES] >= 0);
-            double num_part_surface_time = mp[INLET_NUMBER_OF_PARTICLES];
+            double num_part_surface_time = GetInputNumberOfParticles(mp);
             num_part_surface_time *= this_mpi_process_portion_of_inlet_mesh;
             const double delta_t = current_time - mLastInjectionTimes[smp_number]; // FLUID DELTA_T CAN BE USED ALSO, it will depend on how often we call this function
             double surface = 1.0; //inlet_surface, this should probably be projected to velocity vector
@@ -660,6 +659,19 @@ namespace Kratos {
         ++mNumberOfParticlesInjected[i];
         
         mMassInjected[i] += r_cluster.GetMass();
+    }
+
+    double DEM_Inlet::GetInputNumberOfParticles(const ModelPart& mp)
+    {
+        double num_part_surface_time = mp[INLET_NUMBER_OF_PARTICLES];
+
+        if (num_part_surface_time >= 0){
+           return num_part_surface_time;
+        }
+
+        else {
+            KRATOS_THROW_ERROR(std::runtime_error, "The value of the Model Part variable INLET_NUMBER_OF_PARTICLES is not a positive int: ", num_part_surface_time);
+        }
     }
 
 
