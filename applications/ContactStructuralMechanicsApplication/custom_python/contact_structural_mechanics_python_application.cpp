@@ -67,7 +67,7 @@ BOOST_PYTHON_MODULE(KratosContactStructuralMechanicsApplication)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( TANGENT_FACTOR )                              // The proportion between the tangent and normal penalty
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( CONSIDER_NORMAL_VARIATION )                   // A value used to check if consider normal variation or not
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( CONSIDER_PAIR_VARIATION )                     // A value used to check if consider variation or not in the active inactive pairs
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( PROCESSES_LIST )                              // A pointer to the processes list
+//     KRATOS_REGISTER_IN_PYTHON_VARIABLE( PROCESSES_LIST )                              // A pointer to the processes list
 }
 
 

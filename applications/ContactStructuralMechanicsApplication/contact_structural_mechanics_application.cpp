@@ -108,7 +108,7 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( TYING_VARIABLE )                                  // The variable name for the mesh tying 
     
     /* Processes utilities */
-    KRATOS_REGISTER_VARIABLE( PROCESSES_LIST )                                  // A pointer to the processes list
+//     KRATOS_REGISTER_VARIABLE( PROCESSES_LIST )                                  // A pointer to the processes list
 
     // CONDITIONS
     // Mesh tying mortar condition

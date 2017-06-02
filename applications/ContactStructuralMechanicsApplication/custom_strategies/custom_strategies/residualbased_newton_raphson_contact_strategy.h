@@ -222,12 +222,12 @@ public:
     {
         bool IsConverged = BaseType::SolveSolutionStep();
         
-        ProcessesListType& pMyProcesses = StrategyBaseType::GetModelPart().GetProcessInfo()[PROCESSES_LIST];
-        
-        if (pMyProcesses == nullptr && StrategyBaseType::mEchoLevel > 0)
-        {
-            std::cout << "WARNING:: If you have not implemented any method to recalculate BC or loads in function of time, this strategy will be USELESS" << std::endl;
-        }
+//         ProcessesListType& pMyProcesses = StrategyBaseType::GetModelPart().GetProcessInfo()[PROCESSES_LIST];
+//         
+//         if (pMyProcesses == nullptr && StrategyBaseType::mEchoLevel > 0)
+//         {
+//             std::cout << "WARNING:: If you have not implemented any method to recalculate BC or loads in function of time, this strategy will be USELESS" << std::endl;
+//         }
         
         // Plots a warning if the maximum number of iterations is exceeded
         if ((mAdaptativeStrategy == true) && (IsConverged == false))
@@ -265,21 +265,21 @@ public:
 
                     StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] = CurrentTime; // Increase the time in the new delta time        
                     
-                    // We execute the processes before the non-linear iteration
-                    if (pMyProcesses != nullptr)
-                    {
-                        pMyProcesses->ExecuteInitializeSolutionStep();
-                    }
+//                     // We execute the processes before the non-linear iteration
+//                     if (pMyProcesses != nullptr)
+//                     {
+//                         pMyProcesses->ExecuteInitializeSolutionStep();
+//                     }
                     
                     // We repeat the predict and solve with the new DELTA_TIME
                     BaseType::Predict();
                     IsConverged = BaseType::SolveSolutionStep();
                     
-                    // We execute the processes after the non-linear iteration
-                    if (pMyProcesses != nullptr)
-                    {
-                        pMyProcesses->ExecuteFinalizeSolutionStep();
-                    }
+//                     // We execute the processes after the non-linear iteration
+//                     if (pMyProcesses != nullptr)
+//                     {
+//                         pMyProcesses->ExecuteFinalizeSolutionStep();
+//                     }
                 }
             }
             
