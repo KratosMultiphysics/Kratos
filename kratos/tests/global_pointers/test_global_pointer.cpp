@@ -139,26 +139,32 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerGatherRaw, KratosCoreFastSuit)
 
   std::size_t gpSize = sizeof(GlobalPointer<int>);
 
-  char * rawGather = (char *)malloc(gpSize * mpi_size);
-  KRATOS_CHECK_NOT_EQUAL(rawGather, nullptr);
+  char * rawGatherSend = (char *)malloc(gpSize);
+  char * rawGatherRecv = (char *)malloc(gpSize * mpi_size);
+
+  KRATOS_CHECK_NOT_EQUAL(rawGatherSend, nullptr);
+  KRATOS_CHECK_NOT_EQUAL(rawGatherRecv, nullptr);
+
+  fromRawOrigin.Save(rawGatherSend);
 
   MPI_Allgather(
-    fromRawOrigin.ToRaw(), gpSize, MPI_CHAR,
-    rawGather,             gpSize, MPI_CHAR,
+    rawGatherSend, gpSize, MPI_CHAR,
+    rawGatherRecv, gpSize, MPI_CHAR,
     MPI_COMM_WORLD
   );
 
   auto fromRawRemote = GlobalPointer<int>(nullptr);
 
   for(int i = 0; i < mpi_size; i += 1) {
-    fromRawRemote.FromRaw(&rawGather[i * gpSize]);
+    fromRawRemote.Load(&rawGatherRecv[i * gpSize]);
     KRATOS_CHECK_EQUAL(fromRawRemote.GetRank(), i);
     if(mpi_rank == i) {
       KRATOS_CHECK_EQUAL(*fromRawRemote, sampleVar);
     }
   }
 
-  free(rawGather);
+  free(rawGatherSend);
+  free(rawGatherRecv);
 }
 #endif
 

@@ -146,23 +146,20 @@ public:
 #endif
   }
 
-  /** Returns a pointer to the class data
-   * Returns a pointer to the class data
-   * @return Pointer to the class data
+  /** Fills buffer with the GlobalPoiter data
+   * Fills buffer with the GlobalPoiter data
+   * @param buffer Object data buffer
    */
-  char * ToRaw() {
-    return (char *)&mDataPointer;
+  void Save(char * buffer) {
+    memcpy(buffer, this, sizeof(GlobalPointer));
   }
 
-  /** Fills the class from raw data
-   * Fills the class from raw data
-   * @param newData Raw data containing the class info
+  /** Restores the GlobalPoiter with the data from the buffer
+   * Restores the GlobalPoiter with the data from the buffer
+   * @param buffer Object data buffer
    */
-  void FromRaw(char * newData) {
-    memcpy(&mDataPointer, &newData[0], 8);
-#ifdef KRATOS_USING_MPI
-    memcpy(&mRank, &newData[8], 4);
-#endif
+  void Load(char * buffer) {
+    memcpy(this, buffer, sizeof(GlobalPointer));
   }
 
 private:
