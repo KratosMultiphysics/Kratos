@@ -71,6 +71,9 @@ void  AddCustomUtilitiesToPython()
   
     // Process Factory utility
     class_<ProcessFactoryUtility>("ProcessFactoryUtility", init<boost::python::list&>())
+    .def(init< >())
+    .def("AddProcess",&ProcessFactoryUtility::AddProcess)
+    .def("AddProcesses",&ProcessFactoryUtility::AddProcesses)
     .def("ExecuteInitialize",&ProcessFactoryUtility::ExecuteInitialize)
     .def("ExecuteBeforeSolutionLoop",&ProcessFactoryUtility::ExecuteBeforeSolutionLoop)
     .def("ExecuteInitializeSolutionStep",&ProcessFactoryUtility::ExecuteInitializeSolutionStep)

@@ -65,6 +65,8 @@ public:
     ///@{
 
     /// Default constructors
+    ProcessFactoryUtility(){}
+    
     ProcessFactoryUtility(ListType& ProcessesList)
     {
         for (unsigned int iProcess = 0; iProcess < len(ProcessesList); ++iProcess)
@@ -79,11 +81,41 @@ public:
     ///@}
     ///@name Operators
     ///@{
+    
+    /// Assignment operator.
+    
+    ProcessFactoryUtility& operator=(ProcessFactoryUtility const& rOther)
+    {
+        mProcesses = rOther.mProcesses;
 
+        return *this;
+    }
+    
     ///@}
     ///@name Operations
     ///@{
+    
+    /**
+     * It add new process to the existing process list
+     */
 
+    void AddProcess(ObjectType& rProcess)
+    {
+        mProcesses.push_back(rProcess);
+    }
+    
+    /**
+     * It add new processes to the existing process list
+     */
+
+    void AddProcesses(ListType& ProcessesList)
+    {
+        for (unsigned int iProcess = 0; iProcess < len(ProcessesList); ++iProcess)
+        {
+            mProcesses.push_back(boost::python::extract<ObjectType>(ProcessesList[iProcess]));
+        }
+    }
+    
     /**
      * It executes the ExecuteInitialize() from the list of processes
      */
@@ -180,6 +212,45 @@ public:
         }
     }
 
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Flags
+    ///@{
+    
+    ///@}
+    ///@name Inquiry
+    ///@{
+    
+    ///@}
+    ///@name Input and output
+    ///@{
+    
+    /// Turn back information as a string.
+
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "ProcessFactoryUtility. Number of processes:" << mProcesses.size();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "ProcessFactoryUtility. Number of processes:" << mProcesses.size();
+    }
+
+    /// Print object's data.
+
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        rOStream << "ProcessFactoryUtility. Number of processes:" << mProcesses.size();
+    }
+
 protected:
 
     ///@name Protected static Member Variables
@@ -236,6 +307,20 @@ private:
     ///@name Serialization
     ///@{
 
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const
+    {
+        // TODO: Fill if necessary
+//         rSerializer.save("Processes", mProcesses);
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        // TODO: Fill if necessary
+//         rSerializer.load("Processes", mProcesses);
+    }
+    
     ///@name Private Inquiry
     ///@{
     ///@}
@@ -254,6 +339,22 @@ private:
 ///@}
 ///@name Input and output
 ///@{
+
+/// input stream function
+inline std::istream & operator >>(std::istream& rIStream,
+                                  ProcessFactoryUtility& rThis);
+
+/// output stream function
+
+inline std::ostream & operator <<(std::ostream& rOStream,
+                                  const ProcessFactoryUtility& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << " : " << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
 
 ///@}
 
