@@ -112,6 +112,9 @@ class SetOfModelParts(object):
 
     def Get(self, name):
         return self.model_parts[name]
+    
+    def Set(self, name, model_part):
+        self.model_parts[name] = model_part
 
     def Add(self, model_part):
         self.model_parts[model_part.Name] = model_part

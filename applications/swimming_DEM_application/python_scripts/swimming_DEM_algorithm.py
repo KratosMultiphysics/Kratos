@@ -47,44 +47,42 @@ class Algorithm(BaseAlgorithm):
         self.StartTimer()
         self.main_path = os.getcwd()
         
-        import ProjectParameters as pp        
-        self.pp = pp
-        self.pp.main_path = os.getcwd()
-        
-        import DEM_explicit_solver_var as DEM_parameters
-        self.pp.CFD_DEM = DEM_parameters
-                                
-        self.SetCustomBetaParameters(varying_parameters)
-        self.SetBetaParameters()
-        self.SetDoSolveDEMVariable()
+        self.SetFluidSolverParameters()        
+        self.SetDispersePhaseParameters()                
+        self.SetCouplingParameters(varying_parameters)
+                                                
         # creating a basset_force tool to perform the operations associated with the calculation of this force along the path of each particle
         self.GetBassetForceTools()
         BaseAlgorithm.__init__(self)
         self.CreateParts()
         
-    def Run(self):
-        self.Initialize()
-        self.RunMainTemporalLoop()
-        self.Finalize()
-
+    def SetFluidSolverParameters(self):
+        import ProjectParameters as pp        
+        self.pp = pp
+        
+    def SetDispersePhaseParameters(self):
+        pass
+        
+    def SetCouplingParameters(self, varying_parameters):
+        import DEM_explicit_solver_var as DEM_parameters
+        self.pp.CFD_DEM = DEM_parameters
+        self.SetDoSolveDEMVariable()
+        self.SetCustomBetaParameters(varying_parameters)
+        self.SetBetaParameters()
+        
     def CreateParts(self):
         # Order must be respected here
         # defining a fluid model
         self.all_model_parts.Add(ModelPart("FluidPart"))
         # defining a model part for the mixed part
         self.all_model_parts.Add(ModelPart("MixedPart"))
-
+        
     def StartTimer(self):
         self.timer = timer
         self.simulation_start_time = timer.time()
 
     def SetBetaParameters(self): # These are input parameters that have not yet been transferred to the interface
-        # import the configuration data as read from the GiD
-        self.main_path = os.getcwd()
-        self.pp.main_path = os.getcwd()
-
-
-
+        # import the configuration data as read from the GiD                
         ##############################################################################
         #                                                                            #
         #    INITIALIZE                                                              #
@@ -162,6 +160,15 @@ class Algorithm(BaseAlgorithm):
             var_values = [k for k in dictionary.values()]
             for name, value in zip(var_names, var_values):
                 globals()['self.pp.CFD_DEM.' + name] = value
+                
+                
+                
+        
+    def Run(self):
+        self.Initialize()
+        self.RunMainTemporalLoop()
+        self.Finalize()
+    
 
     def SetUpResultsDatabase(self):
         pass
@@ -174,7 +181,7 @@ class Algorithm(BaseAlgorithm):
         self.ReadDEMModelParts(max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
 
     def ReadFluidModelPart(self):
-        os.chdir(self.pp.main_path)
+        os.chdir(self.main_path)
         model_part_io_fluid = ModelPartIO(self.pp.problem_name)
         model_part_io_fluid.ReadModelPart(self.all_model_parts.Get('FluidPart'))
 

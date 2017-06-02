@@ -15,9 +15,26 @@ BaseAlgorithm = swimming_DEM_algorithm.Algorithm
 class Algorithm(BaseAlgorithm):
     
     def FluidInitialize(self):
-        #call pfem Solution constructor 
-        #initialize 
-        #Set self.fluid_solver
-        self.fluid_model_part = self.all_model_parts.Get('FluidPart')    
+        import kratos_pfem_fluid_ready_for_dem_coupling as solver_module
+        self.solver_module = solver_module
+        self.fluid_solver = self.solver_module.Solution()
+        self.fluid_solver.Initialize()
+        self.fluid_model_part = self.fluid_solver.main_model_part
+        self.all_model_parts.Set('FluidPart', self.fluid_solver.main_model_part)
+        
+    def SetFluidSolverParameters(self):              
+        self.pp = self.FluidSolverParameters()
+        
+    def CreateParts(self):
+        # Order must be respected here
+        # defining a fluid model
+        self.all_model_parts.Add(ModelPart("FluidPart"))
+        # defining a model part for the mixed part
+        self.all_model_parts.Add(ModelPart("MixedPart"))
+        
+    class FluidSolverParameters(self):
+        def __init__(self):
+            pass
+        
 
 
