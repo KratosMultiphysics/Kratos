@@ -4,9 +4,9 @@ namespace Kratos
 {
     /* Public functions *******************************************************/
     BoussinesqForceProcess::BoussinesqForceProcess(
-        ModelPart& rModelPart,
+        ModelPart::Pointer pModelPart,
         Parameters& rParameters):
-    mrModelPart(rModelPart),
+    mpModelPart(pModelPart),
     mrGravity(array_1d<double,3>(3,0.0))
     {
         // Read settings from parameters
@@ -76,25 +76,26 @@ namespace Kratos
         "\'BODY_FORCE\' variable is not registered in Kratos." << std::endl;
 
         // Nodal variables
-        KRATOS_ERROR_IF_NOT( mrModelPart.GetNodalSolutionStepVariablesList().Has(TEMPERATURE) ) <<
+        KRATOS_ERROR_IF_NOT( mpModelPart->GetNodalSolutionStepVariablesList().Has(TEMPERATURE) ) <<
         "\'TEMPERATURE\' variable is not added to the ModelPart nodal data." << std::endl;
 
-        KRATOS_ERROR_IF_NOT( mrModelPart.GetNodalSolutionStepVariablesList().Has(BODY_FORCE) ) <<
+        KRATOS_ERROR_IF_NOT( mpModelPart->GetNodalSolutionStepVariablesList().Has(BODY_FORCE) ) <<
         "\'BODY_FORCE\' variable is not added to the ModelPart nodal data." << std::endl;
 
         // Variables in ProcessInfo
-        KRATOS_ERROR_IF_NOT( mrModelPart.GetProcessInfo().Has(AMBIENT_TEMPERATURE) ) <<
+        KRATOS_ERROR_IF_NOT( mpModelPart->GetProcessInfo().Has(AMBIENT_TEMPERATURE) ) <<
         "Boussinesq Force Process Error: \'AMBIENT_TEMPERATURE\' not given in ProcessInfo." << std::endl;
     }
 
     void BoussinesqForceProcess::AssignBoussinesqForce()
     {
-        const double AmbientTemperature = mrModelPart.GetProcessInfo().GetValue(AMBIENT_TEMPERATURE);
-        int NumNodes = mrModelPart.NumberOfNodes();
+        ModelPart &rModelPart = *mpModelPart;
+        const double AmbientTemperature = rModelPart.GetProcessInfo().GetValue(AMBIENT_TEMPERATURE);
+        int NumNodes = rModelPart.NumberOfNodes();
         #pragma omp parallel for firstprivate(NumNodes,AmbientTemperature)
         for (int i = 0; i < NumNodes; ++i)
         {
-            ModelPart::NodeIterator iNode = mrModelPart.NodesBegin() + i;
+            ModelPart::NodeIterator iNode = rModelPart.NodesBegin() + i;
             double Temperature = iNode->FastGetSolutionStepValue(TEMPERATURE);
 
             iNode->FastGetSolutionStepValue(BODY_FORCE) = (1. - (Temperature-AmbientTemperature)/Temperature)*mrGravity;

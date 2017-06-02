@@ -53,9 +53,9 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  /// Auxiliary process to set Boussinesq forces to variable temperature flows.
-  /** The proces sets the BODY_FORCE variable to (1 - temp_fluctuation/reference_temp)*g,
-      so that the fluid element takes the Boussinesq force into account in solving the flow.
+  /// Auxiliary process to set Boussinesq buoyancy forces in variable temperature flows.
+  /** This process sets the BODY_FORCE variable to (1 - temp_fluctuation/reference_temp)*g,
+      so that the fluid element takes buoyancy into account when solving the flow.
    */
   class BoussinesqForceProcess: public Process
   {
@@ -71,7 +71,7 @@ namespace Kratos
       ///@{
 
       /// Constructor
-      BoussinesqForceProcess(ModelPart& rModelPart, Parameters& rParameters);
+      BoussinesqForceProcess(ModelPart::Pointer pModelPart, Parameters& rParameters);
 
       /// Destructor.
       virtual ~BoussinesqForceProcess() override;
@@ -172,7 +172,7 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
-      ModelPart &mrModelPart;
+      ModelPart::Pointer mpModelPart;
 
       array_1d<double,3> mrGravity;
 
