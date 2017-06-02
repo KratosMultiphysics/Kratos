@@ -59,6 +59,8 @@ namespace Kratos
 
 		typedef double BlockType;
 
+		typedef std::vector<IndexType> KeysContainerType;
+
 		typedef std::vector<IndexType> PositionsContainerType;
 
 		typedef std::vector<const VariableData*> VariablesContainerType;
@@ -82,7 +84,7 @@ namespace Kratos
 		///@{
 
 		/// Default constructor. mPosition should have at least on entry.
-		VariablesList() : mDataSize(0), mPositions(1, static_cast<IndexType>(-1)), mVariables()
+		VariablesList() : mDataSize(0), mKeys(), mPositions(), mVariables()
 		{
 		}
 
@@ -90,11 +92,13 @@ namespace Kratos
 		VariablesList(TInputIteratorType First, TInputIteratorType Last)
 		{
 			for (; First != Last; First++)
-				push_back(*First);
+				Add(*First);
 		}
 
 		/// Copy constructor.
 		VariablesList(VariablesList const& rOther) : mDataSize(rOther.mDataSize)
+			, mHashFunctionIndex(rOther.mHashFunctionIndex)
+			, mKeys(rOther.mKeys)
 			, mPositions(rOther.mPositions)
 			, mVariables(rOther.mVariables) {}
 
@@ -112,6 +116,8 @@ namespace Kratos
 		VariablesList& operator=(VariablesList const& rOther)
 		{
 			mDataSize = rOther.mDataSize;
+			mHashFunctionIndex = rOther.mHashFunctionIndex;
+			mKeys = rOther.mKeys;
 			mPositions = rOther.mPositions;
 			mVariables = rOther.mVariables;
 
@@ -209,7 +215,12 @@ namespace Kratos
 			mDataSize = rOther.mDataSize;
 			rOther.mDataSize = temp;
 
+			temp = mHashFunctionIndex;
+			mHashFunctionIndex = rOther.mHashFunctionIndex;
+			rOther.mHashFunctionIndex = temp;
+
 			mVariables.swap(rOther.mVariables);
+			mKeys.swap(rOther.mKeys);
 			mPositions.swap(rOther.mPositions);
 		}
 
@@ -222,7 +233,9 @@ namespace Kratos
 		void clear()
 		{
 			mDataSize = 0;
+			mHashFunctionIndex = 0;
 			mVariables.clear();
+			mKeys.clear();
 			mPositions.clear();
 		}
 
@@ -286,11 +299,7 @@ namespace Kratos
 			if (rThisVariable.Key() == 0)
 				return false;
 
-			for (auto i_variable = mVariables.begin(); i_variable != mVariables.end(); i_variable++)
-				if ((*i_variable)->Key() == rThisVariable.Key())
-					return true;
-
-			return false;
+			return mKeys[GetHashIndex(rThisVariable.Key(), mKeys.size(), mHashFunctionIndex)] == rThisVariable.Key();
 		}
 
 		bool IsEmpty() const
@@ -336,7 +345,9 @@ namespace Kratos
 
 		SizeType mDataSize;
 
-		double mSizeInverse;
+		SizeType mHashFunctionIndex;
+
+		KeysContainerType mKeys;
 
 		PositionsContainerType mPositions;
 
@@ -352,23 +363,28 @@ namespace Kratos
 		///@{
 
 
-		void SetPosition(IndexType TheIndex, SizeType ThePosition) {
+		void SetPosition(IndexType Key, SizeType ThePosition) {
 			//if (mPositions.size() <= TheIndex)
 			//	mPositions.resize(TheIndex + 1, static_cast<IndexType>(-1));
 			if (mPositions.empty())
 				ResizePositions();
 
-			if (mPositions[TheIndex % mPositions.size()] < mDataSize) // The position is ocupied and a resize  (as re hash) is needed
+			if (mPositions[GetHashIndex(Key,mPositions.size(),mHashFunctionIndex)] < mDataSize) // The position is ocupied and a resize  (as re hash) is needed
 				ResizePositions();
 
-			mPositions[TheIndex % mPositions.size()] = ThePosition;
-
-			mSizeInverse = 1.00 / mPositions.size();
+			mPositions[GetHashIndex(Key, mPositions.size(), mHashFunctionIndex)] = ThePosition;
 		}
 
-		SizeType GetPosition(IndexType TheIndex) const {
+		SizeType GetHashIndex(std::size_t Key, std::size_t TableSize, std::size_t HashFunctionIndex) const{
+			return (Key >> HashFunctionIndex) & (TableSize - 1);
+		}
+
+		SizeType GetPosition(IndexType Key) const {
 			// This is the fastest way I found to do the TheIndex % mPositions.size(); Pooyan.
-			SizeType index = TheIndex - mPositions.size() * static_cast<SizeType>(TheIndex * mSizeInverse);
+			//SizeType index = TheIndex - mPositions.size() * static_cast<SizeType>(TheIndex * mSizeInverse);
+
+			SizeType index = GetHashIndex(Key,mPositions.size(),mHashFunctionIndex);
+
 			//SizeType index = GetModulus(TheIndex);
 			//SizeType index = ( ( TheIndex * 193) + ( ( TheIndex & 0xffff0000) >> 16) * 5373) & (mPositions.size() - 1);
 			return mPositions[index];
@@ -376,23 +392,55 @@ namespace Kratos
 
 		void ResizePositions() {
 			bool size_is_ok = false;
-			SizeType new_size = mPositions.size();
+			std::size_t new_size = mPositions.size();
+			SizeType new_hash_function_index = 0;
 			while (size_is_ok != true) {
-				new_size++;
+				new_hash_function_index++;
+				if (new_hash_function_index > 31) {
+					new_hash_function_index = 0;
+					new_size *= 2;
+				}
+				//if (new_hash_function_index == 10)
+				//	break;
+				KeysContainerType new_keys(new_size, static_cast<IndexType>(-1));
 				PositionsContainerType new_positions(new_size, static_cast<IndexType>(-1));
 				size_is_ok = true;
 
-				for (auto i_variable = mVariables.begin(); i_variable != mVariables.end(); i_variable++)
-					if (new_positions[(*i_variable)->Key() % new_size] > mDataSize)
-						new_positions[(*i_variable)->Key() % new_size] = mPositions[(*i_variable)->Key() % mPositions.size()];
-					else {
-						size_is_ok = false;
-						break;
-					}
-					if (size_is_ok)
-						mPositions.swap(new_positions);
-					KRATOS_WATCH(new_size);
+					for (auto i_variable = mVariables.begin(); i_variable != mVariables.end(); i_variable++)
+						if (new_positions[GetHashIndex((*i_variable)->Key(), new_size, new_hash_function_index)] > mDataSize) {
+							new_positions[GetHashIndex((*i_variable)->Key(), new_size, new_hash_function_index)] = mPositions[GetHashIndex((*i_variable)->Key(), mPositions.size(), mHashFunctionIndex)];
+							new_keys[GetHashIndex((*i_variable)->Key(), new_size, new_hash_function_index)] = (*i_variable)->Key();
+						}
+						else {
+							size_is_ok = false;
+							break;
+						}
+
+				if (size_is_ok) {
+					mPositions.swap(new_positions);
+					mKeys.swap(new_keys);
+					mHashFunctionIndex = new_hash_function_index;
+				}
+				//std::cout << "New size " << new_size << " with hash index " << new_hash_function_index << std::endl;
 			}
+			//bool size_is_ok = false;
+			//SizeType new_size = mPositions.size();
+			//while (size_is_ok != true) {
+			//	new_size++;
+			//	PositionsContainerType new_positions(new_size, static_cast<IndexType>(-1));
+			//	size_is_ok = true;
+
+			//	for (auto i_variable = mVariables.begin(); i_variable != mVariables.end(); i_variable++)
+			//		if (new_positions[(*i_variable)->Key() % new_size] > mDataSize)
+			//			new_positions[(*i_variable)->Key() % new_size] = mPositions[(*i_variable)->Key() % mPositions.size()];
+			//		else {
+			//			size_is_ok = false;
+			//			break;
+			//		}
+			//		if (size_is_ok)
+			//			mPositions.swap(new_positions);
+			//		KRATOS_WATCH(new_size);
+			//}
 
 		}
 
