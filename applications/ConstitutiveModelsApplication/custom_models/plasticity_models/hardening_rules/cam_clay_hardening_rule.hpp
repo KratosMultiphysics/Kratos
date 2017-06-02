@@ -19,230 +19,229 @@
 
 namespace Kratos
 {
-   ///@addtogroup ConstitutiveModelsApplication
-   ///@{
+  ///@addtogroup ConstitutiveModelsApplication
+  ///@{
 
-   ///@name Kratos Globals
-   ///@{
+  ///@name Kratos Globals
+  ///@{
 
-   ///@}
-   ///@name Type Definitions
-   ///@{
+  ///@}
+  ///@name Type Definitions
+  ///@{
 
-   ///@}
-   ///@name  Enum's
-   ///@{
+  ///@}
+  ///@name  Enum's
+  ///@{
 
-   ///@}
-   ///@name  Functions
-   ///@{
+  ///@}
+  ///@name  Functions
+  ///@{
 
-   ///@}
-   ///@name Kratos Classes
-   ///@{
+  ///@}
+  ///@name Kratos Classes
+  ///@{
 
-   /// Short class definition.
-   /** Detail class definition.
-    */
-   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) CamClayHardeningRule 
-      : public HardeningRule
-      {
-         protected:
+  /// Short class definition.
+  /** Detail class definition.
+   */
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) CamClayHardeningRule : public HardeningRule
+  {
+  protected:
 
-            constexpr static std::size_t VarSize = 5;
-         public:
+    constexpr static std::size_t VarSize = 5;
+  public:
     
-            typedef InternalVariables<VarSize>   InternalVariablesType;
-            typedef PlasticModelData<VarSize>          PlasticDataType;
+    typedef InternalVariables<VarSize>   InternalVariablesType;
+    typedef PlasticModelData<VarSize>          PlasticDataType;
 
-            /// Pointer definition of CamClayHardeningRule
-            KRATOS_CLASS_POINTER_DEFINITION( CamClayHardeningRule );
+    /// Pointer definition of CamClayHardeningRule
+    KRATOS_CLASS_POINTER_DEFINITION( CamClayHardeningRule );
 
-            ///@}
-            ///@name Life Cycle
-            ///@{
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-            /// Default constructor.
-            CamClayHardeningRule();
+    /// Default constructor.
+    CamClayHardeningRule();
 
-            /// Copy constructor.
-            CamClayHardeningRule(CamClayHardeningRule const& rOther);
+    /// Copy constructor.
+    CamClayHardeningRule(CamClayHardeningRule const& rOther);
 
-            /// Assignment operator.
-            CamClayHardeningRule& operator=(CamClayHardeningRule const& rOther);
+    /// Assignment operator.
+    CamClayHardeningRule& operator=(CamClayHardeningRule const& rOther);
 
-            /// Clone.
-            virtual HardeningRule::Pointer Clone() const override;
+    /// Clone.
+    virtual HardeningRule::Pointer Clone() const override;
 
-            /// Destructor.
-            ~CamClayHardeningRule();
+    /// Destructor.
+    ~CamClayHardeningRule();
 
-            ///@}
-            ///@name Operators
-            ///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
 
-            ///@}
-            ///@name Operations
-            ///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
 
-            /**
-             * Calculate Hardening functions
-             */
+    /**
+     * Calculate Hardening functions
+     */
 
-            virtual double& CalculateHardening(const PlasticDataType& rVariables, double& rHardening);
+    virtual double& CalculateHardening(const PlasticDataType& rVariables, double& rHardening);
 
-            /**
-             * Calculate Hardening function derivatives
-             */
+    /**
+     * Calculate Hardening function derivatives
+     */
 
-            virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening);
+    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening);
 
 
-            ///@}
-            ///@name Access
-            ///@{
+    ///@}
+    ///@name Access
+    ///@{
 
 
-            ///@}
-            ///@name Inquiry
-            ///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-            ///@}
-            ///@name Input and output
-            ///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
-            /// Turn back information as a string.
-            virtual std::string Info() const override
-            {
-               std::stringstream buffer;
-               buffer << "CamClayHardeningRule" ;
-               return buffer.str();
-            }
+    /// Turn back information as a string.
+    virtual std::string Info() const override
+    {
+      std::stringstream buffer;
+      buffer << "CamClayHardeningRule" ;
+      return buffer.str();
+    }
 
-            /// Print information about this object.
-            virtual void PrintInfo(std::ostream& rOStream) const override
-            {
-               rOStream << "CamClayHardeningRule";
-            }
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const override
+    {
+      rOStream << "CamClayHardeningRule";
+    }
 
-            /// Print object's data.
-            virtual void PrintData(std::ostream& rOStream) const override
-            {
-               rOStream << "CamClayHardeningRule Data";
-            }    
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const override
+    {
+      rOStream << "CamClayHardeningRule Data";
+    }    
 
 
-            ///@}
-            ///@name Friends
-            ///@{
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-            ///@}
+    ///@}
 
-         protected:
-            ///@name Protected static Member Variables
-            ///@{
+  protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-            ///@}
-            ///@name Protected member Variables
-            ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
-            ///@}
-            ///@name Protected Operators
-            ///@{
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
-            ///@}
-            ///@name Protected Operations
-            ///@{
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
-            ///@}
-            ///@name Protected  Access
-            ///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-            ///@}
-            ///@name Protected Inquiry
-            ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-            ///@}
-            ///@name Protected LifeCycle
-            ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-            ///@}
+    ///@}
 
-         private:
-            ///@name Static Member Variables
-            ///@{
+  private:
+    ///@name Static Member Variables
+    ///@{
 
 
-            ///@}
-            ///@name Member Variables
-            ///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-            ///@}
-            ///@name Private Operators
-            ///@{
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
-            ///@}
-            ///@name Private Operations
-            ///@{
+    ///@}
+    ///@name Private Operations
+    ///@{
 
 
-            ///@}
-            ///@name Private  Access
-            ///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
 
-            ///@}
-            ///@name Serialization
-            ///@{
-            friend class Serializer;
+    ///@}
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
 
 
-            virtual void save(Serializer& rSerializer) const override
-            {
-               KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningRule )
-            }
+    virtual void save(Serializer& rSerializer) const override
+    {
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningRule )
+    }
 
-            virtual void load(Serializer& rSerializer) override
-            {
-               KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningRule )
-            }
+    virtual void load(Serializer& rSerializer) override
+    {
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningRule )
+    }
 
-            ///@}
-            ///@name Private Inquiry
-            ///@{
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
 
-            ///@}
-            ///@name Un accessible methods
-            ///@{
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
 
-            ///@}
+    ///@}
 
-      }; // Class CamClayHardeningRule
+  }; // Class CamClayHardeningRule
 
-   ///@}
+  ///@}
 
-   ///@name Type Definitions
-   ///@{
+  ///@name Type Definitions
+  ///@{
 
 
-   ///@}
-   ///@name Input and output
-   ///@{
+  ///@}
+  ///@name Input and output
+  ///@{
 
 
-   ///@}
+  ///@}
 
-   ///@} addtogroup block
+  ///@} addtogroup block
 
 }  // namespace Kratos.
 

@@ -130,7 +130,24 @@ namespace Kratos
 	
       KRATOS_CATCH(" ")
     }
-      
+
+
+    /** 
+     * Calculate Yield Condition Stresses derivative 
+     */ 
+       
+    virtual VectorType& CalculateDeltaStressYieldCondition(const PlasticDataType& rVariables, VectorType& rDeltaStressYieldCondition) 
+    { 
+      KRATOS_TRY 
+   
+      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;   
+ 
+      return rDeltaStressYieldCondition; 
+   
+      KRATOS_CATCH(" ") 
+    }
+
+    
     /**
      * Calculate State Function
      */
