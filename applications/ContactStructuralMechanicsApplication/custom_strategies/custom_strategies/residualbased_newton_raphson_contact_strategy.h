@@ -22,12 +22,16 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
-#include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-#include "utilities/variable_utils.h"
 
+// Strategies
+#include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
+
+// Utilities
+#include "utilities/variable_utils.h"
 #if !defined(_WIN32)
 	#include "custom_utilities/color_utilities.h"
 #endif
+#include "custom_utilities/process_factory_utility.h"
 
 // TODO: Extend the descriptions
 
@@ -99,6 +103,8 @@ public:
     typedef ModelPart::NodesContainerType                                          NodesArrayType;
     
     typedef ModelPart::ConditionsContainerType                                ConditionsArrayType;
+    
+    typedef boost::shared_ptr<ProcessFactoryUtility>                            ProcessesListType;
     
     /**
      * Default constructor 
@@ -216,11 +222,16 @@ public:
     {
         bool IsConverged = BaseType::SolveSolutionStep();
         
+        ProcessesListType& pMyProcesses = StrategyBaseType::GetModelPart().GetProcessInfo()[PROCESSES_LIST];
+        
+        if (pMyProcesses == nullptr && StrategyBaseType::mEchoLevel > 0)
+        {
+            std::cout << "WARNING:: If you have not implemented any method to recalculate BC or loads in function of time, this strategy will be USELESS" << std::endl;
+        }
+        
         // Plots a warning if the maximum number of iterations is exceeded
         if ((mAdaptativeStrategy == true) && (IsConverged == false))
         {
-            std::cout << "WARNING:: If you have not implemented any method to recalculate BC or loads in function of time, this strategy will be USELESS" << std::endl; // FIXME: Solve this
-            
             const double OriginalDeltaTime = StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]; // We save the delta time to restore later
             
             unsigned int SplitNumber = 0;
@@ -254,9 +265,21 @@ public:
 
                     StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] = CurrentTime; // Increase the time in the new delta time        
                     
+                    // We execute the processes before the non-linear iteration
+                    if (pMyProcesses != nullptr)
+                    {
+                        pMyProcesses->ExecuteInitializeSolutionStep();
+                    }
+                    
                     // We repeat the predict and solve with the new DELTA_TIME
                     BaseType::Predict();
                     IsConverged = BaseType::SolveSolutionStep();
+                    
+                    // We execute the processes after the non-linear iteration
+                    if (pMyProcesses != nullptr)
+                    {
+                        pMyProcesses->ExecuteFinalizeSolutionStep();
+                    }
                 }
             }
             
