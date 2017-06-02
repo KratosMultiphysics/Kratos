@@ -55,6 +55,7 @@ class Kratos_Execute_Test:
         # ### START SOLUTION ####
 
         self.computing_model_part = self.solver.GetComputingModelPart()
+        self.solver.AddProcessesList(self.list_of_processes)
 
         # ### Output settings start ####
         self.problem_path = os.getcwd()
