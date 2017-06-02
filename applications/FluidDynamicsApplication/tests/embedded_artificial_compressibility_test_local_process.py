@@ -12,13 +12,13 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return ApplyLocalProcess(Model, settings["Parameters"])
+    return EmbeddedArtificialCompressibilityTestLocalProcess(Model, settings["Parameters"])
 
-class ApplyLocalProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
+class EmbeddedArtificialCompressibilityTestLocalProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
 
     def __init__(self,model_part,params):
 
-        self.fluid_model_part = model_part[params["fluid_model_part_name"].GetString()]
+        self.fluid_model_part = model_part[params["model_part_name"].GetString()]
 
 
     def ExecuteInitialize(self):
@@ -48,9 +48,9 @@ class ApplyLocalProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
     def ExecuteFinalize(self):
 
         node_id_list = [100,102,112,122,146,173,219,253,297,346,397]
-        vel_x_expected = [1,0.28793,0.0070363,-0.1071,-0.13454,-0.12904,-0.093136,-0.07309,-0.056608,-0.044989,-0.02823]
-        vel_y_expected = [0,0.0095154,0.032294,0.039908,0.036608,0.026803,0.011931,0.0068775,0.003177,0.0020416,0.0006979]
-        press_expected = [-0.025594,-0.038788,-0.034704,-0.025906,-0.015924,-0.0071712,0.0010059,0.0033377,0.0046395,0.0052515,0.0055064]
+        vel_x_expected = [1,0.38577,0.038665,-0.093095,-0.11588,-0.10077,-0.069464,-0.0541,-0.043088,-0.034141,-0.022389]
+        vel_y_expected = [0,0.014781,0.035381,0.038773,0.0295,0.018162,0.0069178,0.0034694,0.0017436,0.00083193,0.00027465]
+        press_expected = [-0.024858,-0.03033,-0.029525,-0.022382,-0.013488,-0.0066768,-0.00093377,0.0006992,0.001516,0.0019067,0.002047]
         count = 0
 
         for node_id in node_id_list:
@@ -58,7 +58,7 @@ class ApplyLocalProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
             vel_y_obtained = self.fluid_model_part.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0)
             press_obtained = self.fluid_model_part.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.PRESSURE,0)
 
-            self.assertAlmostEqual(vel_x_obtained[count], vel_x_expected[count], 6)
-            self.assertAlmostEqual(vel_y_obtained[count], vel_y_expected[count], 6)
-            self.assertAlmostEqual(press_obtained[count], press_expected[count], 6)
+            self.assertAlmostEqual(vel_x_obtained, vel_x_expected[count], 4)
+            self.assertAlmostEqual(vel_y_obtained, vel_y_expected[count], 4)
+            self.assertAlmostEqual(press_obtained, press_expected[count], 4)
             count += 1

@@ -119,6 +119,7 @@ public:
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
+    
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
 
@@ -1003,10 +1004,11 @@ protected:
         }
     }
     
-    //**********************************************************************
-    //**********************************************************************
-
-    void MaxIterationsExceeded()
+    /**
+     * This method prints information after reach the max number of interations
+     */
+    
+    virtual void MaxIterationsExceeded()
     {
         if (this->GetEchoLevel() != 0 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
