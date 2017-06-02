@@ -670,7 +670,7 @@ namespace Kratos {
         }
 
         else {
-            KRATOS_THROW_ERROR(std::runtime_error, "The value of the Model Part variable INLET_NUMBER_OF_PARTICLES is not a positive int: ", num_part_surface_time);
+            KRATOS_ERROR << "The value of the Model Part variable INLET_NUMBER_OF_PARTICLES is not a positive int: " << num_part_surface_time;
         }
     }
 
