@@ -12,9 +12,9 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return ApplyLocalProcess(Model, settings["Parameters"])
+    return NavierStokesWallConditionTestLocalProcess(Model, settings["Parameters"])
 
-class ApplyLocalProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
+class NavierStokesWallConditionTestLocalProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
 
     def __init__(self,model_part,params):
 
@@ -53,4 +53,4 @@ class ApplyLocalProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
         for node in self.fluid_model_part.Nodes:
             react_x += node.GetSolutionStepValue(KratosMultiphysics.REACTION_X)
 
-        self.assertAlmostEqual(-react_x, self.ext_pres_res, delta=5e-3)
+        self.assertAlmostEqual(-react_x, self.ext_pres_res, delta=2e-2)
