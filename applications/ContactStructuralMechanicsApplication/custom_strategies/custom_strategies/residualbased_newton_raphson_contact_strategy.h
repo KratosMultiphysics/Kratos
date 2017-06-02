@@ -219,6 +219,40 @@ public:
     //***********************************************************************************//
     
     /**
+     * Initialization of member variables and prior operations
+     */
+     
+    virtual void Initialize() override
+    {
+        KRATOS_TRY;
+
+        BaseType::Initialize();
+        mFinalizeWasPerformed = false;
+
+        KRATOS_CATCH("");
+    }
+    
+    /**
+     * Performs all the required operations that should be done (for each step) 
+     * after solving the solution step.
+     */
+    
+    virtual void FinalizeSolutionStep() override
+    {
+        KRATOS_TRY;
+
+        if (mFinalizeWasPerformed == false)
+        {
+            BaseType::FinalizeSolutionStep();
+            
+            // To avoid compute twice the FinalizeSolutionStep
+            mFinalizeWasPerformed = true;
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    /**
      * Solves the current step. This function returns true if a solution has been found, false otherwise.
      */
     
@@ -234,6 +268,9 @@ public:
         // Plots a warning if the maximum number of iterations is exceeded
         if ((mAdaptativeStrategy == true) && (IsConverged == false))
         {
+            // We finalize the step
+            BaseType::FinalizeSolutionStep();
+            
             const double OriginalDeltaTime = StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]; // We save the delta time to restore later
             
             unsigned int SplitNumber = 0;
@@ -241,47 +278,53 @@ public:
             // We iterate until we reach the convergence or we split more than desired
             while (IsConverged == false && SplitNumber <= mMaxNumberSplits)
             {   
+                if (StrategyBaseType::MoveMeshFlag() == true)
+                {
+                    UnMoveMesh();
+                }
+                
                 // Expliting time step as a way to try improve the convergence
                 SplitNumber += 1;
+                double AuxDeltaTime;
+                double CurrentTime; 
+                const double AuxTime = SplitTimeStep(AuxDeltaTime, CurrentTime);
                 
-                const double AuxTime      = StrategyBaseType::GetModelPart().GetProcessInfo()[TIME];
-                double AuxDeltaTime = StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]; // FIXME: The DELTA_TIME is set to 0 for some reason!!!!
-                double CurrentTime   = AuxTime - AuxDeltaTime;
-                
-                StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] =   CurrentTime; // Restore time to the previous one
-                AuxDeltaTime /= mSplitFactor;
-                StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME] = AuxDeltaTime; // Change delta time
-                
-                CoutSplittingTime(AuxDeltaTime);
-                
-                unsigned int AuxCout = 0;
-                while (IsConverged == false && StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] <= AuxTime)
+                bool InsideTheSplitIsConverged = true;
+                while (InsideTheSplitIsConverged == true && StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] <= AuxTime)
                 {      
                     CurrentTime += AuxDeltaTime;
-         
-                    AuxCout += 1;
-                    if (AuxCout > 1) // We avoid to restore the database if we create the new step just after the first iteration
-                    {
-                        StrategyBaseType::GetModelPart().GetProcessInfo()[TIME_STEPS] += 1;
-                    }
-
+                    StrategyBaseType::GetModelPart().GetProcessInfo()[TIME_STEPS] += 1;
                     StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] = CurrentTime; // Increase the time in the new delta time        
                     
                     // We execute the processes before the non-linear iteration
                     if (mpMyProcesses != nullptr)
                     {
+                        // TODO: Think about to add the postprocess processes
                         mpMyProcesses->ExecuteInitializeSolutionStep();
                     }
                     
-                    // We repeat the predict and solve with the new DELTA_TIME
+                    // In order to initialize again everything
+                    BaseType::mInitializeWasPerformed = false;
+                    mFinalizeWasPerformed = false;
+                    
+                    // We repeat the solve with the new DELTA_TIME
+                    BaseType::Initialize();
+                    BaseType::InitializeSolutionStep();
                     BaseType::Predict();
-                    IsConverged = BaseType::SolveSolutionStep();
+                    InsideTheSplitIsConverged = BaseType::SolveSolutionStep();
+                    BaseType::FinalizeSolutionStep();
                     
                     // We execute the processes after the non-linear iteration
                     if (mpMyProcesses != nullptr)
                     {
+                        // TODO: Think about to add the postprocess processes
                         mpMyProcesses->ExecuteFinalizeSolutionStep();
                     }
+                }
+                
+                if (InsideTheSplitIsConverged == true)
+                {
+                    IsConverged = true;
                 }
             }
             
@@ -323,10 +366,14 @@ protected:
     ///@name Protected member Variables
     ///@{
     
+    // ADAPTATIVE STRATEGY PARAMETERS
     bool mAdaptativeStrategy;         // If consider time split
+    bool mFinalizeWasPerformed;       // If the FinalizeSolutionStep has been already performed
     double mSplitFactor;              // Number by one the delta time is split
     ProcessesListType mpMyProcesses;  // The processes list
     unsigned int mMaxNumberSplits;    // Maximum number of splits
+    
+    // OTHER PARAMETERS
     bool mRecalculateFactor;          // To check if we recalculate or not the scale factor
     bool mPenaltyPathFollowing;       // To check if we recalculate or not the penalty parameter
     double mInitialPenaltyParameter;  // The initial penalty parameter
@@ -345,6 +392,7 @@ protected:
     {
         BaseType::InitializeSolutionStep();
         
+        // TODO: MOVE THIS TO A PROCESS!!!
         // Now we rescale the scale factor
         if (mRecalculateFactor == true && StrategyBaseType::GetModelPart().GetProcessInfo()[TIME_STEPS] == 1)
         {
@@ -442,7 +490,7 @@ protected:
 //         auto numNodes = pNode.end() - pNode.begin();
 //         
 //         #pragma omp parallel for
-//         for(unsigned int i = 0; i < numNodes; i++)  // TODO: ADDtangent contact
+//         for(int i = 0; i < numNodes; i++)  // TODO: ADDtangent contact
 //         {
 //             auto itNode = pNode.begin() + i;
 //     
@@ -500,10 +548,11 @@ protected:
         TSystemVectorType& Dx,
         TSystemVectorType& b,
         const bool MoveMesh
-    ) override
+        ) override
     {
         BaseType::UpdateDatabase(A,Dx,b,MoveMesh);
         
+        // TODO: Move this to a process!!!
 //         // We recalculate the penalty parameter in case we want
 //         if (mPenaltyPathFollowing == true)
 //         {
@@ -521,6 +570,61 @@ protected:
 //                 CalculatePenaltyPathFollowingFrictionless();
 //             }
 //         }
+    }
+    
+    /**
+     * Here the time step is splitted
+     */
+    
+    double SplitTimeStep(
+        double& AuxDeltaTime,
+        double& CurrentTime
+        )
+    {
+        KRATOS_TRY;
+
+        const double AuxTime = StrategyBaseType::GetModelPart().GetProcessInfo()[TIME];
+        AuxDeltaTime = StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
+        CurrentTime = AuxTime - AuxDeltaTime;
+        
+        StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] =   CurrentTime; // Restore time to the previous one
+        AuxDeltaTime /= mSplitFactor;
+        StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME] = AuxDeltaTime; // Change delta time
+        
+        CoutSplittingTime(AuxDeltaTime);
+        
+        return AuxTime;
+        
+        KRATOS_CATCH("");
+    }
+    
+    /**
+     * This method moves bak the mesh to the previous position
+     */
+    
+    void UnMoveMesh()
+    {
+        KRATOS_TRY;
+
+        if (StrategyBaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false)
+        {
+            KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT var is not in the model_part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
+        }
+
+        NodesArrayType& pNode = StrategyBaseType::GetModelPart().Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for
+        for(int i = 0; i < numNodes; i++)  
+        {
+            auto itNode = pNode.begin() + i;
+            
+            itNode->X() = itNode->X0() + itNode->GetSolutionStepValue(DISPLACEMENT_X, 1);
+            itNode->Y() = itNode->Y0() + itNode->GetSolutionStepValue(DISPLACEMENT_Y, 1);
+            itNode->Z() = itNode->Z0() + itNode->GetSolutionStepValue(DISPLACEMENT_Z, 1);
+        }
+
+        KRATOS_CATCH("");
     }
     
     /**
