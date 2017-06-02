@@ -276,15 +276,22 @@ public:
         KRATOS_TRY
 
         if (GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false)
-            KRATOS_THROW_ERROR(std::logic_error, "It is impossible to move the mesh since the DISPLACEMENT var is not in the model_part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables", "");
+	{
+            KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT var is not in the model_part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
+    	}
 
-        for (ModelPart::NodeIterator i = GetModelPart().NodesBegin();
-                i != GetModelPart().NodesEnd(); ++i)
-        {
-            (i)->X() = (i)->X0() + i->GetSolutionStepValue(DISPLACEMENT_X);
-            (i)->Y() = (i)->Y0() + i->GetSolutionStepValue(DISPLACEMENT_Y);
-            (i)->Z() = (i)->Z0() + i->GetSolutionStepValue(DISPLACEMENT_Z);
-        }
+        NodesArrayType& pNode = GetModelPart().Nodes();
+	auto numNodes = pNode.end() - pNode.begin();
+
+	#pragma omp parallel for
+	for(int i = 0; i < numNodes; i++)  
+	{
+	    auto itNode = pNode.begin() + i;
+
+	    itNode->X() = itNode->X0() + itNode->FastGetSolutionStepValue(DISPLACEMENT_X);
+	    itNode->Y() = itNode->Y0() + itNode->FastGetSolutionStepValue(DISPLACEMENT_Y);
+	    itNode->Z() = itNode->Z0() + itNode->FastGetSolutionStepValue(DISPLACEMENT_Z);
+	}
 	
 	/*   std::cout<<" MESH MOVED "<<std::endl; */
 	/* if( mEchoLevel > 0 ) */
