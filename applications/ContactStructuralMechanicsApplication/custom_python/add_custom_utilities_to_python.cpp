@@ -26,6 +26,7 @@
 #include "custom_utilities/bprinter_utility.h"
 #include "custom_utilities/tree_contact_search.h"
 #include "custom_utilities/exact_mortar_segmentation_utility.h"
+#include "custom_utilities/process_factory_utility.h"
 
 namespace Kratos
 {
@@ -68,6 +69,17 @@ void  AddCustomUtilitiesToPython()
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
     ;
   
+    // Process Factory utility
+    class_<ProcessFactoryUtility>("ProcessFactoryUtility", init<boost::python::list&>())
+    .def("ExecuteInitialize",&ProcessFactoryUtility::ExecuteInitialize)
+    .def("ExecuteBeforeSolutionLoop",&ProcessFactoryUtility::ExecuteBeforeSolutionLoop)
+    .def("ExecuteInitializeSolutionStep",&ProcessFactoryUtility::ExecuteInitializeSolutionStep)
+    .def("ExecuteFinalizeSolutionStep",&ProcessFactoryUtility::ExecuteFinalizeSolutionStep)
+    .def("ExecuteBeforeOutputStep",&ProcessFactoryUtility::ExecuteBeforeOutputStep)
+    .def("ExecuteAfterOutputStep",&ProcessFactoryUtility::ExecuteAfterOutputStep)
+    .def("ExecuteFinalize",&ProcessFactoryUtility::ExecuteFinalize)
+    .def("Clear",&ProcessFactoryUtility::Clear)
+    ;
 }
 
 }  // namespace Python.

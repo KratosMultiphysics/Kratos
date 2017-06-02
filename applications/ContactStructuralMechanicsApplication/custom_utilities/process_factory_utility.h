@@ -58,13 +58,19 @@ public:
 
     typedef typename boost::python::object ObjectType;
     
+    typedef typename boost::python::list     ListType;
+    
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructors
-    ProcessFactoryUtility()
+    ProcessFactoryUtility(ListType& ProcessesList)
     {
+        for (unsigned int iProcess = 0; iProcess < len(ProcessesList); ++iProcess)
+        {
+            mProcesses.push_back(boost::python::extract<ObjectType>(ProcessesList[iProcess]));
+        }
     }
 
     /// Destructor.
@@ -79,11 +85,100 @@ public:
     ///@{
 
     /**
-     * Returns the point
-     * @return The point
+     * It executes the ExecuteInitialize() from the list of processes
      */
 
-
+    void ExecuteInitialize()
+    {
+        for (unsigned int iProcess = 0; iProcess < mProcesses.size(); iProcess++)
+        {
+            mProcesses[iProcess].attr("ExecuteInitialize")();
+        }
+    }
+    
+    /**
+     * It executes the ExecuteBeforeSolutionLoop() from the list of processes
+     */
+        
+    void ExecuteBeforeSolutionLoop()
+    {
+        for (unsigned int iProcess = 0; iProcess < mProcesses.size(); iProcess++)
+        {
+            mProcesses[iProcess].attr("ExecuteBeforeSolutionLoop")();
+        }
+    }
+    
+    /**
+     * It executes the ExecuteInitializeSolutionStep() from the list of processes
+     */
+        
+    void ExecuteInitializeSolutionStep()
+    {
+        for (unsigned int iProcess = 0; iProcess < mProcesses.size(); iProcess++)
+        {
+            mProcesses[iProcess].attr("ExecuteInitializeSolutionStep")();
+        }
+    }
+    
+    /**
+     * It executes the ExecuteFinalizeSolutionStep() from the list of processes
+     */
+        
+    void ExecuteFinalizeSolutionStep()
+    {
+        for (unsigned int iProcess = 0; iProcess < mProcesses.size(); iProcess++)
+        {
+            mProcesses[iProcess].attr("ExecuteFinalizeSolutionStep")();
+        }
+    }
+    
+    /**
+     * It executes the ExecuteBeforeOutputStep() from the list of processes
+     */
+        
+    void ExecuteBeforeOutputStep()
+    {
+        for (unsigned int iProcess = 0; iProcess < mProcesses.size(); iProcess++)
+        {
+            mProcesses[iProcess].attr("ExecuteBeforeOutputStep")();
+        }
+    }
+    
+    /**
+     * It executes the ExecuteAfterOutputStep() from the list of processes
+     */
+        
+    void ExecuteAfterOutputStep()
+    {
+        for (unsigned int iProcess = 0; iProcess < mProcesses.size(); iProcess++)
+        {
+            mProcesses[iProcess].attr("ExecuteAfterOutputStep")();
+        }
+    }
+    
+    /**
+     * It executes the ExecuteFinalize() from the list of processes
+     */
+        
+    void ExecuteFinalize()
+    {
+        for (unsigned int iProcess = 0; iProcess < mProcesses.size(); iProcess++)
+        {
+            mProcesses[iProcess].attr("ExecuteFinalize")();
+        }
+    }
+    
+    /**
+     * It executes the Clear() from the list of processes
+     */
+    
+    void Clear()
+    {
+        for (unsigned int iProcess = 0; iProcess < mProcesses.size(); iProcess++)
+        {
+            mProcesses[iProcess].attr("Clear")();
+        }
+    }
 
 protected:
 
