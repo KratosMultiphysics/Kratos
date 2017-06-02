@@ -7,15 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_YIELD_CRITERION_H_INCLUDED )
-#define  KRATOS_YIELD_CRITERION_H_INCLUDED
+#if !defined(KRATOS_YIELD_SURFACE_H_INCLUDED )
+#define  KRATOS_YIELD_SURFACE_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_models/plasticity_models/hardening_laws/hardening_law.hpp"
+#include "custom_models/plasticity_models/hardening_rules/hardening_rule.hpp"
 #include "custom_utilities/constitutive_model_utilities.hpp"
 
 namespace Kratos
@@ -45,8 +45,8 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  template<class THardeningLaw>
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) YieldCriterion
+  template<class THardeningRule>
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) YieldSurface
   {    
   public:
     
@@ -58,38 +58,38 @@ namespace Kratos
     typedef ConstitutiveModelData::ModelData                        ModelDataType;
     typedef ConstitutiveModelData::MaterialData                  MaterialDataType;
     
-    typedef THardeningLaw                                        HardeningLawType;
-    typedef typename THardeningLaw::PlasticDataType               PlasticDataType;   
-    typedef typename THardeningLaw::InternalVariablesType   InternalVariablesType;
+    typedef THardeningRule                                       HardeningRuleType;
+    typedef typename THardeningRule::PlasticDataType               PlasticDataType;   
+    typedef typename THardeningRule::InternalVariablesType   InternalVariablesType;
     
-    /// Pointer definition of YieldCriterion
-    KRATOS_CLASS_POINTER_DEFINITION( YieldCriterion );
+    /// Pointer definition of YieldSurface
+    KRATOS_CLASS_POINTER_DEFINITION( YieldSurface );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    YieldCriterion() {}
+    YieldSurface() {}
 
     /// Copy constructor.
-    YieldCriterion(YieldCriterion const& rOther) : mHardeningLaw(rOther.mHardeningLaw) {}
+    YieldSurface(YieldSurface const& rOther) : mHardeningRule(rOther.mHardeningRule) {}
 
     /// Assignment operator.
-    YieldCriterion& operator=(YieldCriterion const& rOther)
+    YieldSurface& operator=(YieldSurface const& rOther)
     {
-      mHardeningLaw = rOther.mHardeningLaw;
+      mHardeningRule = rOther.mHardeningRule;
       return *this;
     }
     
     /// Clone.
-    virtual YieldCriterion::Pointer Clone() const
+    virtual YieldSurface::Pointer Clone() const
     {
-      return (YieldCriterion<THardeningLaw>::Pointer(new YieldCriterion(*this)));
+      return (YieldSurface<THardeningRule>::Pointer(new YieldSurface(*this)));
     }
 
     /// Destructor.
-    virtual ~YieldCriterion() {}
+    virtual ~YieldSurface() {}
 
 
     ///@}
@@ -109,7 +109,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_ERROR << "calling the YieldCriterion base class ... illegal operation" << std::endl;	
+      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;	
 
       return rYieldCondition;
 	
@@ -124,7 +124,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_ERROR << "calling the YieldCriterion base class ... illegal operation" << std::endl;	
+      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;	
 
       return rDeltaYieldCondition;
 	
@@ -139,7 +139,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_ERROR << "calling the YieldCriterion base class ... illegal operation" << std::endl;	
+      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;	
 
       return rStateFunction;
 	
@@ -154,7 +154,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_ERROR << "calling the YieldCriterion base class ... illegal operation" << std::endl;	
+      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;	
 
       return rDeltaStateFunction;
 	
@@ -169,7 +169,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_ERROR << "calling the YieldCriterion base class ... illegal operation" << std::endl;	
+      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;	
 
       return rPlasticDissipation;
 	
@@ -184,7 +184,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_ERROR << "calling the YieldCriterion base class ... illegal operation" << std::endl;	
+      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;	
 
       return rDeltaPlasticDissipation;
 	
@@ -199,7 +199,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_ERROR << "calling the YieldCriterion base class ... illegal operation" << std::endl;	
+      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;	
 
       return rPlasticDissipation;
 	
@@ -214,7 +214,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      KRATOS_ERROR << "calling the YieldCriterion base class ... illegal operation" << std::endl;	
+      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;	
 
       return rDeltaPlasticDissipation;
 	
@@ -226,7 +226,7 @@ namespace Kratos
     ///@name Access
     ///@{
 
-    HardeningLawType& GetHardeningLaw() { return mHardeningLaw; };
+    HardeningRuleType& GetHardeningRule() { return mHardeningRule; };
     
     ///@}
     ///@name Inquiry
@@ -242,20 +242,20 @@ namespace Kratos
     virtual std::string Info() const
     {
       std::stringstream buffer;
-      buffer << "YieldCriterion" ;
+      buffer << "YieldSurface" ;
       return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-      rOStream << "YieldCriterion";
+      rOStream << "YieldSurface";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-      rOStream << "YieldCriterion Data";
+      rOStream << "YieldSurface Data";
     }
 
 
@@ -275,7 +275,7 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 	
-    HardeningLawType mHardeningLaw;
+    HardeningRuleType mHardeningRule;
     
     ///@}
     ///@name Protected Operators
@@ -337,12 +337,12 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const
     {
-      rSerializer.save("mHardeningLaw", mHardeningLaw);
+      rSerializer.save("mHardeningRule", mHardeningRule);
     }
 
     virtual void load(Serializer& rSerializer)
     {
-      rSerializer.load("mHardeningLaw", mHardeningLaw);
+      rSerializer.load("mHardeningRule", mHardeningRule);
     }
 
     ///@}
@@ -356,7 +356,7 @@ namespace Kratos
 
     ///@}
 
-  }; // Class YieldCriterion
+  }; // Class YieldSurface
 
   ///@}
 
@@ -375,6 +375,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_YIELD_CRITERION_H_INCLUDED  defined 
+#endif // KRATOS_YIELD_SURFACE_H_INCLUDED  defined 
 
 

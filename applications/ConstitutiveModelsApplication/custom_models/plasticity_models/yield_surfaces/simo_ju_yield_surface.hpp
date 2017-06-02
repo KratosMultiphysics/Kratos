@@ -7,19 +7,19 @@
 //
 //
 
-#if !defined(KRATOS_MODIFIED_MISES_YIELD_CRITERION_H_INCLUDED )
-#define  KRATOS_MODIFIED_MISES_YIELD_CRITERION_H_INCLUDED
+#if !defined(KRATOS_SIMO_JU_YIELD_SURFACE_H_INCLUDED )
+#define  KRATOS_SIMO_JU_YIELD_SURFACE_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_models/plasticity_models/yield_criteria/yield_criterion.hpp"
+#include "custom_models/plasticity_models/yield_surfaces/yield_surface.hpp"
 
 namespace Kratos
 {
-  ///@addtogroup ConstitutiveModelsApplication
+  ///@addtogroup ApplicationNameApplication
   ///@{
 
   ///@name Kratos Globals
@@ -44,50 +44,51 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  template<class THardeningLaw>
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) ModifiedMisesYieldCriterion : public YieldCriterion<THardeningLaw>
+  template<class THardeningRule>
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) SimoJuYieldSurface
+    : public YieldSurface<THardeningRule>
   {
   public:
     ///@name Type Definitions
     ///@{
-
+    
     typedef ConstitutiveModelData::MatrixType                          MatrixType;
     typedef ConstitutiveModelData::VectorType                          VectorType;
     typedef ConstitutiveModelData::ModelData                        ModelDataType;
     typedef ConstitutiveModelData::MaterialData                  MaterialDataType;
-    
-    typedef YieldCriterion<THardeningLaw>                                BaseType;
+
+    typedef YieldSurface<THardeningRule>                                 BaseType;
     typedef typename BaseType::Pointer                            BaseTypePointer;
     typedef typename BaseType::PlasticDataType                    PlasticDataType;
     
-    /// Pointer definition of ModifiedMisesYieldCriterion
-    KRATOS_CLASS_POINTER_DEFINITION( ModifiedMisesYieldCriterion );
+    /// Pointer definition of SimoJuYieldSurface
+    KRATOS_CLASS_POINTER_DEFINITION( SimoJuYieldSurface );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    ModifiedMisesYieldCriterion() : BaseType() {}
-    
+    SimoJuYieldSurface() : BaseType() {}
+
     /// Copy constructor.
-    ModifiedMisesYieldCriterion(ModifiedMisesYieldCriterion const& rOther) : BaseType(rOther) {}
+    SimoJuYieldSurface(SimoJuYieldSurface const& rOther) : BaseType(rOther) {}
 
     /// Assignment operator.
-    ModifiedMisesYieldCriterion& operator=(ModifiedMisesYieldCriterion const& rOther)
+    SimoJuYieldSurface& operator=(SimoJuYieldSurface const& rOther)
     {
       BaseType::operator=(rOther);
       return *this;
     }
     
     /// Clone.
-    virtual BaseTypePointer Clone() const
+    virtual BaseTypePointer Clone() const override
     {
-      return ( ModifiedMisesYieldCriterion::Pointer(new ModifiedMisesYieldCriterion(*this)) );
+      return ( SimoJuYieldSurface::Pointer(new SimoJuYieldSurface(*this)) );
     }
-
+    
     /// Destructor.
-    virtual ~ModifiedMisesYieldCriterion() {}
+    virtual ~SimoJuYieldSurface() {}
 
 
     ///@}
@@ -108,63 +109,76 @@ namespace Kratos
       KRATOS_TRY
 
       const ModelDataType& rModelData = rVariables.GetModelData();
+    
+      // Compute Theta parameter
+      double Theta;
+    
+      const Matrix& rStressMatrix = rModelData.GetStressMatrix();
+    
+      VectorType PrincipalStresses;
+      noalias(PrincipalStresses) = ConstitutiveModelUtilities::EigenValuesDirectMethod(rStressMatrix);
 
-      // Compute I1
-      const MatrixType& rStrainMatrix = rModelData.GetStrainMatrix();
-      double I1 = 0.0;
+
+      double Macaulay_PrincipalStress = 0.0, Absolute_PrincipalStress = 0.0;
     
       for(unsigned int i=0; i<3; i++)
-	{
-	  I1 += rStrainMatrix(i,i);
+	{ 
+	  if(PrincipalStresses[i] > 0.0)
+	    {
+	      Macaulay_PrincipalStress += PrincipalStresses[i];
+	      Absolute_PrincipalStress += PrincipalStresses[i];
+	    }
+	  else
+	    {
+	      Absolute_PrincipalStress -= PrincipalStresses[i];
+	    }
 	}
-    
-      // Compute J2
-      MatrixType DeviatoricStrain;
-      noalias(DeviatoricStrain) = rStrainMatrix;
-    
-      for(unsigned int i=0; i<3; i++)
+
+      if(Absolute_PrincipalStress > 1.0e-20)
 	{
-	  DeviatoricStrain(i,i) -= I1/3.0;
+	  Theta = Macaulay_PrincipalStress/Absolute_PrincipalStress;
 	}
-    
-      MatrixType Auxiliar;
-      noalias(Auxiliar) = prod(DeviatoricStrain,DeviatoricStrain);
-      double J2 = 0.0;
-    
-      for(unsigned int i=0; i<3; i++)
+      else
 	{
-	  J2 += Auxiliar(i,i);
+	  Theta = 0.5;
 	}
-    
-      J2 *= 0.5;
     
       // Compute Equivalent Strain (rYieldCondition)
-      const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
-      const double& StrengthRatio = rMaterialProperties[STRENGTH_RATIO];
-      const double& PoissonRatio  = rMaterialProperties[POISSON_RATIO];
-        
-      rYieldCondition  =  I1*(StrengthRatio-1.0)/(2.0*StrengthRatio*(1.0-2.0*PoissonRatio));
-      rYieldCondition +=  sqrt( I1*I1*(StrengthRatio-1.0)*(StrengthRatio-1.0)/((1.0-2.0*PoissonRatio)*(1.0-2.0*PoissonRatio)) + J2*12.0*StrengthRatio/((1.0+PoissonRatio)*(1.0+PoissonRatio)) )/(2.0*StrengthRatio);
+      const Matrix& rStrainMatrix = rModelData.GetStrainMatrix();
+      MatrixType Auxiliar;
+      noalias(Auxiliar) = prod(rStrainMatrix,rStressMatrix);
+    
+      double StressNorm = 0.0;
+    
+      for(unsigned int i=0; i<3; i++) 
+	{
+	  StressNorm += Auxiliar(i,i);
+	}
+    
+      const double& StrengthRatio = rModelData.GetMaterialProperties()[STRENGTH_RATIO];
+    
+      rYieldCondition = (Theta+(1.0-Theta)/StrengthRatio)*sqrt(StressNorm);
     
       return rYieldCondition;
 
-      KRATOS_CATCH(" ")
-
+      KRATOS_CATCH(" ")    
     }
+    
     /**
      * Calculate State Function
      */
 
     double& CalculateStateFunction(const PlasticDataType& rVariables, double & rStateFunction) override
-    {    
+    {
       KRATOS_TRY
-      
-      rStateFunction = this->mHardeningLaw.CalculateHardening(rVariables,rStateFunction);
+        
+      rStateFunction = this->mHardeningRule.CalculateHardening(rVariables,rStateFunction);
     
       return rStateFunction;
-
-      KRATOS_CATCH(" ")
+    
+      KRATOS_CATCH(" ")    
     }
+
     
     /**
      * Calculate State Function derivative
@@ -173,14 +187,15 @@ namespace Kratos
     double& CalculateDeltaStateFunction(const PlasticDataType& rVariables, double & rDeltaStateFunction) override
     {
       KRATOS_TRY
-          
-      rDeltaStateFunction = this->mHardeningLaw.CalculateDeltaHardening(rVariables,rDeltaStateFunction);
-      
+    
+      rDeltaStateFunction = this->mHardeningRule.CalculateDeltaHardening(rVariables,rDeltaStateFunction);
+    
       return rDeltaStateFunction;
-      
-      KRATOS_CATCH(" ")
+
+      KRATOS_CATCH(" ")        
     }
- 
+    
+
     ///@}
     ///@name Access
     ///@{
@@ -194,25 +209,25 @@ namespace Kratos
     ///@}
     ///@name Input and output
     ///@{
-
+    
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
       std::stringstream buffer;
-      buffer << "ModifiedMissesYieldCriterion" ;
+      buffer << "YieldSurface" ;
       return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-      rOStream << "ModifiedMissesYieldCriterion";
+      rOStream << "SimoJuYieldSurface";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "ModifiedMissesYieldCriterion Data";
+      rOStream << "SimoJuYieldSurface Data";
     }
     
     ///@}
@@ -288,17 +303,16 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
     }
-    
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -310,7 +324,7 @@ namespace Kratos
 
     ///@}
 
-  }; // Class ModifiedMisesYieldCriterion
+  }; // Class SimoJuYieldSurface
 
   ///@}
 
@@ -328,4 +342,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_MODIFIED_MISES_YIELD_CRITERION_H_INCLUDED  defined 
+#endif // KRATOS_SIMO_JU_YIELD_SURFACE_H_INCLUDED  defined 

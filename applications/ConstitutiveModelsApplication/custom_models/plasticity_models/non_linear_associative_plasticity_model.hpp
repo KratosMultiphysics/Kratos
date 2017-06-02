@@ -45,8 +45,8 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  template<class TElasticityModel, class TYieldCriterion>
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) NonLinearAssociativePlasticityModel : public PlasticityModel<TElasticityModel,TYieldCriterion>
+  template<class TElasticityModel, class TYieldSurface>
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) NonLinearAssociativePlasticityModel : public PlasticityModel<TElasticityModel,TYieldSurface>
   {
   public:
     
@@ -56,11 +56,11 @@ namespace Kratos
     //elasticity model
     typedef TElasticityModel                               ElasticityModelType;
 
-    //yield criterion
-    typedef TYieldCriterion                                 YieldCriterionType;
+    //yield surface
+    typedef TYieldSurface                                     YieldSurfaceType;
  
     //base type
-    typedef PlasticityModel<ElasticityModelType,YieldCriterionType>   BaseType;
+    typedef PlasticityModel<ElasticityModelType,YieldSurfaceType>     BaseType;
 
     //common types
     typedef typename BaseType::Pointer                         BaseTypePointer;
@@ -472,7 +472,7 @@ namespace Kratos
       rVariables.StressNorm = ConstitutiveModelUtilities::CalculateStressNorm(rStressMatrix, rVariables.StressNorm);
 
       //2.-Check yield condition
-      rVariables.TrialStateFunction = this->mYieldCriterion.CalculateYieldCondition(rVariables, rVariables.TrialStateFunction);
+      rVariables.TrialStateFunction = this->mYieldSurface.CalculateYieldCondition(rVariables, rVariables.TrialStateFunction);
 
       if( rVariables.State().Is(ConstitutiveModelData::IMPLEX_ACTIVE) ) 
 	{
@@ -625,7 +625,7 @@ namespace Kratos
       while ( fabs(StateFunction)>=Tolerance && iter<=MaxIterations)
 	{
 	  //Calculate Delta State Function:
-	  DeltaStateFunction = this->mYieldCriterion.CalculateDeltaStateFunction( rVariables, DeltaStateFunction );
+	  DeltaStateFunction = this->mYieldSurface.CalculateDeltaStateFunction( rVariables, DeltaStateFunction );
 
 	  //Calculate DeltaGamma:
 	  DeltaDeltaGamma  = StateFunction/DeltaStateFunction;
@@ -636,7 +636,7 @@ namespace Kratos
 	  rEquivalentPlasticStrain = rEquivalentPlasticStrainOld + DeltaPlasticStrain;
 	       	
 	  //Calculate State Function:
-	  StateFunction = this->mYieldCriterion.CalculateStateFunction( rVariables, StateFunction );
+	  StateFunction = this->mYieldSurface.CalculateStateFunction( rVariables, StateFunction );
 
 	  iter++;
 	}
@@ -808,7 +808,7 @@ namespace Kratos
 	  else if ( rVariables.State().IsNot(ConstitutiveModelData::PLASTIC_RATE_REGION) )
 	    rVariables.RateFactor = 0;
 	
-	  double DeltaHardening = this->mYieldCriterion.GetHardeningLaw().CalculateDeltaHardening( rVariables, DeltaHardening );
+	  double DeltaHardening = this->mYieldSurface.GetHardeningRule().CalculateDeltaHardening( rVariables, DeltaHardening );
 	  
 	  rFactors.Beta0 = 1.0 + DeltaHardening/(3.0 * rMaterial.GetLameMuBar());
 		
@@ -840,13 +840,13 @@ namespace Kratos
 
 	
       //1.- Thermal Dissipation:
-      mThermalVariables.PlasticDissipation = this->mYieldCriterion.CalculatePlasticDissipation( rVariables, mThermalVariables.PlasticDissipation );
+      mThermalVariables.PlasticDissipation = this->mYieldSurface.CalculatePlasticDissipation( rVariables, mThermalVariables.PlasticDissipation );
   
 
       //std::cout<<" PlasticDissipation "<<mThermalVariables.PlasticDissipation<<std::endl;
 
       //2.- Thermal Dissipation Increment:
-      mThermalVariables.DeltaPlasticDissipation = this->mYieldCriterion.CalculateDeltaPlasticDissipation( rVariables, mThermalVariables.DeltaPlasticDissipation );
+      mThermalVariables.DeltaPlasticDissipation = this->mYieldSurface.CalculateDeltaPlasticDissipation( rVariables, mThermalVariables.DeltaPlasticDissipation );
 		    		    
       //std::cout<<" DeltaPlasticDissipation "<<mThermalVariables.DeltaPlasticDissipation<<std::endl;
 
@@ -859,10 +859,10 @@ namespace Kratos
       KRATOS_TRY
        
       //1.- Thermal Dissipation:
-      mThermalVariables.PlasticDissipation = this->mYieldCriterion.CalculateImplexPlasticDissipation( rVariables, mThermalVariables.PlasticDissipation );
+      mThermalVariables.PlasticDissipation = this->mYieldSurface.CalculateImplexPlasticDissipation( rVariables, mThermalVariables.PlasticDissipation );
   
       //2.- Thermal Dissipation Increment:      
-      mThermalVariables.DeltaPlasticDissipation = this->mYieldCriterion.CalculateImplexDeltaPlasticDissipation( rVariables, mThermalVariables.DeltaPlasticDissipation );
+      mThermalVariables.DeltaPlasticDissipation = this->mYieldSurface.CalculateImplexDeltaPlasticDissipation( rVariables, mThermalVariables.DeltaPlasticDissipation );
 
       KRATOS_CATCH(" ")  
     }

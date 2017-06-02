@@ -7,15 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_MODIFIED_CAM_CLAY_YIELD_CRITERION_H_INCLUDED )
-#define      KRATOS_MODIFIED_CAM_CLAY_YIELD_CRITERION_H_INCLUDED
+#if !defined(KRATOS_MODIFIED_CAM_CLAY_YIELD_SURFACE_H_INCLUDED )
+#define      KRATOS_MODIFIED_CAM_CLAY_YIELD_SURFACE_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_models/plasticity_models/yield_criteria/yield_criterion.hpp"
+#include "custom_models/plasticity_models/yield_surfaces/yield_surface.hpp"
 #include "custom_utilities/stress_invariants_utilities.hpp"
 
 namespace Kratos
@@ -45,9 +45,9 @@ namespace Kratos
    /// Short class definition.
    /** Detail class definition.
     */
-   template<class THardeningLaw>
-      class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) ModifiedCamClayYieldCriterion
-      : public YieldCriterion<THardeningLaw>
+   template<class THardeningRule>
+      class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) ModifiedCamClayYieldSurface
+      : public YieldSurface<THardeningRule>
       {    
          public:
 
@@ -59,26 +59,26 @@ namespace Kratos
             typedef ConstitutiveModelData::ModelData                        ModelDataType;
             typedef ConstitutiveModelData::MaterialData                  MaterialDataType;
 
-            typedef YieldCriterion<THardeningLaw>                                BaseType;
+            typedef YieldSurface<THardeningRule>                                 BaseType;
             typedef typename BaseType::Pointer                            BaseTypePointer;
             typedef typename BaseType::PlasticDataType                    PlasticDataType;
 
-            /// Pointer definition of ModifiedCamClayYieldCriterion
-            KRATOS_CLASS_POINTER_DEFINITION( ModifiedCamClayYieldCriterion );
+            /// Pointer definition of ModifiedCamClayYieldSurface
+            KRATOS_CLASS_POINTER_DEFINITION( ModifiedCamClayYieldSurface );
 
             ///@}
             ///@name Life Cycle
             ///@{
 
             /// Default constructor.
-            ModifiedCamClayYieldCriterion() : BaseType() {}
+            ModifiedCamClayYieldSurface() : BaseType() {}
 
             /// Copy constructor.
-            ModifiedCamClayYieldCriterion(ModifiedCamClayYieldCriterion const& rOther) : BaseType(rOther) {}
+            ModifiedCamClayYieldSurface(ModifiedCamClayYieldSurface const& rOther) : BaseType(rOther) {}
 
 
             /// Assignment operator.
-            ModifiedCamClayYieldCriterion& operator=(ModifiedCamClayYieldCriterion const& rOther)
+            ModifiedCamClayYieldSurface& operator=(ModifiedCamClayYieldSurface const& rOther)
             {
                BaseType::operator=(rOther);
                return *this;
@@ -87,11 +87,11 @@ namespace Kratos
             /// Clone.
             virtual BaseTypePointer Clone() const override
             {
-               return (ModifiedCamClayYieldCriterion::Pointer(new ModifiedCamClayYieldCriterion(*this)));
+               return (ModifiedCamClayYieldSurface::Pointer(new ModifiedCamClayYieldSurface(*this)));
             }
 
             /// Destructor.
-            virtual ~ModifiedCamClayYieldCriterion() {}
+            virtual ~ModifiedCamClayYieldSurface() {}
 
 
             ///@}
@@ -114,9 +114,9 @@ namespace Kratos
                // Material Parameters
                const double ShearM = 1.0;
 
-               // compute something with the hardening law
+               // compute something with the hardening rule
                double PreconsolidationStress;
-               PreconsolidationStress = this->mHardeningLaw.CalculateHardening( rVariables, PreconsolidationStress );
+               PreconsolidationStress = this->mHardeningRule.CalculateHardening( rVariables, PreconsolidationStress );
 
                const ModelDataType & rModelData = rVariables.GetModelData();
                const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
@@ -149,9 +149,9 @@ namespace Kratos
                // Material Parameters
                const double ShearM = 1.0;
 
-               // compute something with the hardening law
+               // compute something with the hardening rule
                double PreconsolidationStress;
-               PreconsolidationStress = this->mHardeningLaw.CalculateHardening( rVariables, PreconsolidationStress );
+               PreconsolidationStress = this->mHardeningRule.CalculateHardening( rVariables, PreconsolidationStress );
 
                const ModelDataType & rModelData = rVariables.GetModelData();
                const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
@@ -189,20 +189,20 @@ namespace Kratos
             virtual std::string Info() const
             {
                std::stringstream buffer;
-               buffer << "ModifiedCamClayYieldCriterion" ;
+               buffer << "ModifiedCamClayYieldSurface" ;
                return buffer.str();
             }
 
             /// Print information about this object.
             virtual void PrintInfo(std::ostream& rOStream) const
             {
-               rOStream << "ModifiedCamClayYieldCriterion";
+               rOStream << "ModifiedCamClayYieldSurface";
             }
 
             /// Print object's data.
             virtual void PrintData(std::ostream& rOStream) const
             {
-               rOStream << "ModifiedCamClayYieldCriterion Data";
+               rOStream << "ModifiedCamClayYieldSurface Data";
             }
 
 
@@ -302,7 +302,7 @@ namespace Kratos
 
             ///@}
 
-      }; // Class ModifiedCamClayYieldCriterion
+      }; // Class ModifiedCamClayYieldSurface
 
    ///@}
 
@@ -321,6 +321,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MODIFIED_CAM_CLAY_YIELD_CRITERION_H_INCLUDED  defined 
+#endif // KRATOS_MODIFIED_CAM_CLAY_YIELD_SURFACE_H_INCLUDED  defined 
 
 
