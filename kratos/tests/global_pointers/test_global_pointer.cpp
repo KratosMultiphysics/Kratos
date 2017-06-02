@@ -122,15 +122,43 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyBoostSharedPtr, KratosCoreFastSuit)
   KRATOS_CHECK_EQUAL((*fromBoost).getVar(), sampleVar->getVar());
 }
 
+/// Parallel tests
+
 #ifdef KRATOS_USING_MPI
-// Parallel tests:
 KRATOS_TEST_CASE_IN_SUITE(GlobalPointerGatherRaw, KratosCoreFastSuit)
 {
-  int sampleVar = 1337;
+  int mpi_size;
+  int mpi_rank;
 
-	auto fromRaw = GlobalPointer<int>(&sampleVar);
+  MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+  MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
-  KRATOS_CHECK_EQUAL(*fromRaw, sampleVar);
+  int sampleVar = 1337 + mpi_rank;
+
+	auto fromRawOrigin = GlobalPointer<int>(&sampleVar);
+
+  std::size_t gpSize = sizeof(GlobalPointer<int>);
+
+  char * rawGather = (char *)malloc(gpSize * mpi_size);
+  KRATOS_CHECK_NOT_EQUAL(rawGather, nullptr);
+
+  MPI_Allgather(
+    fromRawOrigin.ToRaw(), gpSize, MPI_CHAR,
+    rawGather,             gpSize, MPI_CHAR,
+    MPI_COMM_WORLD
+  );
+
+  auto fromRawRemote = GlobalPointer<int>(nullptr);
+
+  for(int i = 0; i < mpi_size; i += 1) {
+    fromRawRemote.FromRaw(&rawGather[i * gpSize]);
+    KRATOS_CHECK_EQUAL(fromRawRemote.GetRank(), i);
+    if(mpi_rank == i) {
+      KRATOS_CHECK_EQUAL(*fromRawRemote, sampleVar);
+    }
+  }
+
+  free(rawGather);
 }
 #endif
 
