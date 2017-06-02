@@ -333,33 +333,19 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                         newton_parameters.AddValue("max_number_splits",self.settings["max_number_splits"])
                         newton_parameters.AddValue("rescale_factor",self.settings["rescale_factor"])
                         newton_parameters.AddValue("path_following_penalty",self.settings["path_following_penalty"])
-                        if self.processes_list == None:
-                            self.mechanical_solver = ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactStrategy(
-                                                                                    self.computing_model_part, 
-                                                                                    mechanical_scheme, 
-                                                                                    self.linear_solver, 
-                                                                                    mechanical_convergence_criterion, 
-                                                                                    builder_and_solver, 
-                                                                                    max_iters, 
-                                                                                    compute_reactions, 
-                                                                                    reform_step_dofs, 
-                                                                                    move_mesh_flag,
-                                                                                    newton_parameters,
-                                                                                    self.processes_list
-                                                                                    )
-                        else:
-                            self.mechanical_solver = ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactStrategy(
-                                                                                    self.computing_model_part, 
-                                                                                    mechanical_scheme, 
-                                                                                    self.linear_solver, 
-                                                                                    mechanical_convergence_criterion, 
-                                                                                    builder_and_solver, 
-                                                                                    max_iters, 
-                                                                                    compute_reactions, 
-                                                                                    reform_step_dofs, 
-                                                                                    move_mesh_flag,
-                                                                                    newton_parameters
-                                                                                    )
+                        self.mechanical_solver = ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactStrategy(
+                                                                                self.computing_model_part, 
+                                                                                mechanical_scheme, 
+                                                                                self.linear_solver, 
+                                                                                mechanical_convergence_criterion, 
+                                                                                builder_and_solver, 
+                                                                                max_iters, 
+                                                                                compute_reactions, 
+                                                                                reform_step_dofs, 
+                                                                                move_mesh_flag,
+                                                                                newton_parameters,
+                                                                                self.processes_list
+                                                                                )
                     else:
                         self.mechanical_solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
                                                                                 self.computing_model_part, 
