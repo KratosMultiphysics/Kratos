@@ -8,8 +8,6 @@ import math
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
-import dem_main_script_ready_for_coupling as DEM_algorithm
-import eulerian_fluid_ready_for_coupling as fluid_algorithm
 import CFD_DEM_coupling
 import swimming_DEM_procedures as SDP
 import swimming_DEM_gid_output
@@ -68,10 +66,12 @@ class Algorithm(object):
         self.GetBassetForceTools()
         
     def SetFluidAlgorithm(self):
+        import eulerian_fluid_ready_for_coupling as fluid_algorithm
         self.fluid_algorithm = fluid_algorithm.Solution()
         self.fluid_algorithm.main_path = self.main_path
     
     def SetDispersePhaseAlgorithm(self):
+        import dem_main_script_ready_for_coupling as DEM_algorithm
         self.disperse_phase_algorithm = DEM_algorithm.Solution(self.pp)            
         
     def SetCouplingParameters(self, varying_parameters):
@@ -736,10 +736,7 @@ class Algorithm(object):
             #variables_dictionary,
             #domain_size)
     
-    def SetCutsOutput(self):            
-        if not self.pp.VolumeOutput:
-            cut_list = define_output.DefineCutPlanes()
-            self.swimming_DEM_gid_io.define_cuts(self.fluid_model_part, cut_list)
+    
             
     def TransferGravityFromDisperseToFluid(self):
         # setting fluid's body force to the same as DEM's
