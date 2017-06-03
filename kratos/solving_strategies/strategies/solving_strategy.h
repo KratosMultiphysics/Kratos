@@ -29,51 +29,47 @@
 namespace Kratos
 {
 
-/**@name Kratos Globals */
-/*@{ */
+///@name Kratos Globals
+///@{
 
 
-/*@} */
-/**@name Type Definitions */
-/*@{ */
+///@}
+///@name Type Definitions
+///@{
 
-/*@} */
-/**@name  Enum's */
-/*@{ */
-
-
-/*@} */
-/**@name  Functions */
-/*@{ */
+///@}
+///@name  Enum's
+///@{
 
 
+///@}
+///@name  Functions
+///@{
 
-/*@} */
-/**@name Kratos Classes */
-/*@{ */
+///@}
+///@name Kratos Classes
+///@{
 
 /** Short class definition.
 Detail class definition.
 
-  \URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
+    \URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
 
-        \URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
+    \URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
 
-          \URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
+    \URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
 
-                \URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
+    \URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
 
+    \URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
 
-                        \URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
+    \URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
 
-                          \URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
+    \URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
 
-                                \URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-                                  \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
-
+    \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
  */
+
 template<class TSparseSpace,
          class TDenseSpace,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
@@ -81,103 +77,132 @@ template<class TSparseSpace,
 class SolvingStrategy
 {
 public:
-    /**@name Type Definitions */
-    /*@{ */
-    //		typedef std::set<Dof::Pointer,ComparePDof> DofSetType;
+    ///@name Type Definitions */
+    ///@{
+    
+//     typedef std::set<Dof::Pointer,ComparePDof>                                    DofSetType;
 
-    typedef typename TSparseSpace::DataType TDataType;
-    typedef typename TSparseSpace::MatrixType TSystemMatrixType;
-    typedef typename TSparseSpace::VectorType TSystemVectorType;
+    typedef typename TSparseSpace::DataType                                        TDataType;
+    
+    typedef typename TSparseSpace::MatrixType                              TSystemMatrixType;
+    
+    typedef typename TSparseSpace::VectorType                              TSystemVectorType;
 
-    typedef typename TSparseSpace::MatrixPointerType TSystemMatrixPointerType;
-    typedef typename TSparseSpace::VectorPointerType TSystemVectorPointerType;
+    typedef typename TSparseSpace::MatrixPointerType                TSystemMatrixPointerType;
+    
+    typedef typename TSparseSpace::VectorPointerType                TSystemVectorPointerType;
 
+    typedef typename TDenseSpace::MatrixType                           LocalSystemMatrixType;
+    
+    typedef typename TDenseSpace::VectorType                           LocalSystemVectorType;
 
-    typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
-    typedef typename TDenseSpace::VectorType LocalSystemVectorType;
-
-    typedef Scheme<TSparseSpace, TDenseSpace> TSchemeType;
+    typedef Scheme<TSparseSpace, TDenseSpace>                                    TSchemeType;
+    
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> TBuilderAndSolverType;
 
+    typedef typename ModelPart::DofType                                             TDofType;
+    
+    typedef typename ModelPart::DofsArrayType                                  DofsArrayType;
+    
+//     typedef Dof<TDataType>                                                          TDofType;
+    
+//     typedef PointerVectorSet<TDofType, IdentityFunction<TDofType> >            DofsArrayType;
+    
+//     typedef PointerVectorSet<TDofType, IndexedObject>                          DofsArrayType;
+    
+    typedef typename DofsArrayType::iterator                                 DofIteratorType;
+    
+    typedef typename DofsArrayType::const_iterator                   DofConstantIteratorType;
+    
+    typedef ModelPart::NodesContainerType                                     NodesArrayType;
+    
+    typedef ModelPart::ElementsContainerType                               ElementsArrayType;
+    
+    typedef ModelPart::ConditionsContainerType                           ConditionsArrayType;
+    
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION(SolvingStrategy);
-
-    typedef typename ModelPart::DofType TDofType;
-    typedef typename ModelPart::DofsArrayType DofsArrayType;
-    //typedef Dof<TDataType> TDofType;
-    //typedef PointerVectorSet<TDofType, IdentityFunction<TDofType> > DofsArrayType;
-    /* 		typedef PointerVectorSet<TDofType, IndexedObject> DofsArrayType; */
-    typedef typename DofsArrayType::iterator DofIterator;
-    typedef typename DofsArrayType::const_iterator DofConstantIterator;
-    /*@} */
+    
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     /** Constructor.
+     * @param rModelPart: The model part to be computed
+     * @param MoveMeshFlag: The flag to set if the mesh is moved or not
      */
 
-    /*@{ */
-
     SolvingStrategy(
-        ModelPart& model_part, bool MoveMeshFlag = false
+        ModelPart& rModelPart, 
+        bool MoveMeshFlag = false
     )
-        : mr_model_part(model_part)
+        : mrModelPart(rModelPart)
     {
         SetMoveMeshFlag(MoveMeshFlag);
     }
-    /*@} */
+    
+    ///@}
 
     /** Destructor.
      */
 
-    /*@{ */
-    virtual ~SolvingStrategy()
-    {
-    }
-    /*@} */
+    ///@{
+    virtual ~SolvingStrategy(){}
+    
+    ///@}
 
-    //*********************************************************************************
     /**OPERATIONS ACCESSIBLE FROM THE INPUT:*/
-    /*@{ */
+    
+    ///@{
 
     /**
-    operation to predict the solution ... if it is not called a trivial predictor is used in which the
-    values of the solution step of interest are assumed equal to the old values
+     * Operation to predict the solution ... if it is not called a trivial predictor is used in which the
+     * values of the solution step of interest are assumed equal to the old values
      */
     virtual void Predict()
     {
+        KRATOS_ERROR << "You are calling to the base class method Predict, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
     }
 
     /**
-    Initialization of member variables and prior operations
+     * Initialization of member variables and prior operations
      */
     virtual void Initialize()
     {
+        KRATOS_ERROR << "You are calling to the base class method Initialize, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
     }
 
     /**
-    the problem of interest is solved.
-	This function calls sequentially: Initialize(), InitializeSolutionStep(), Predict(), SolveSolutionStep() and FinalizeSolutionStep().
-	All those functions can otherwise be called separately.
+     * The problem of interest is solved.
+     * This function calls sequentially: Initialize(), InitializeSolutionStep(), Predict(), SolveSolutionStep() and FinalizeSolutionStep().
+     * All those functions can otherwise be called separately.
      */
     virtual double Solve()
     {
-		Initialize();
-		InitializeSolutionStep();
-		Predict();
-		SolveSolutionStep();
-		FinalizeSolutionStep();
-        return 0.00;
+        Initialize();
+        InitializeSolutionStep();
+        Predict();
+        SolveSolutionStep();
+//         const bool IsConverged = SolveSolutionStep();
+        FinalizeSolutionStep();
+        
+        // NOTE: Here I would add a conversion to double of the boolean IsConverged, that way we can know if the problem has is converged
+        // return (IsConverged == true ? 1.0 : 0.0); 
+        
+        return 0.0;
     }
 
     /**
-    clears the internal storage
+     * Clears the internal storage
      */
     virtual void Clear()
     {
+        KRATOS_ERROR << "You are calling to the base class method Clear, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
     }
 
     /**
-    this should be considered as a "post solution" convergence check which is useful for coupled analysis
-    - the convergence criteria used is the one used inside the "solve" step
+     * This should be considered as a "post solution" convergence check which is useful for coupled analysis
+     * - the convergence criteria used is the one used inside the "solve" step
      */
     virtual bool IsConverged()
     {
@@ -185,270 +210,312 @@ public:
     }
 
     /**
-    this operations should be called before printing the results when non trivial results (e.g. stresses)
-    need to be calculated given the solution of the step
-
-      This operations should be called only when needed, before printing as it can involve a non negligible cost
+     * This operations should be called before printing the results when non trivial results (e.g. stresses)
+     * need to be calculated given the solution of the step
+     * This operations should be called only when needed, before printing as it can involve a non negligible cost
      */
     virtual void CalculateOutputData()
     {
+        KRATOS_ERROR << "You are calling to the base class method CalculateOutputData, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
     }
 
-	/**
-    Performs all the required operations that should be done (for each step) before solving the solution step.
-	A member variable should be used as a flag to make sure this function is called only once per step.
-    */
-	virtual void InitializeSolutionStep()
-	{
-	}
-	
-	/**
-    Performs all the required operations that should be done (for each step) after solving the solution step.
-	A member variable should be used as a flag to make sure this function is called only once per step.
-    */
-	virtual void FinalizeSolutionStep()
-	{
-	}
-	
-	/**
-    Solves the current step. This function returns true if a solution has been found, false otherwise.
-    */
-	virtual bool SolveSolutionStep()
-	{
-		return true;
-	}
-	
-    //*********************************************************************************
-
-    /**level of echo for the solving strategy
-    0 -> mute... no echo at all
-    1 -> printing time and basic informations
-    2 -> printing linear solver data
-    3 -> Print of debug informations:
-    Echo of stiffness matrix, Dx, b...
+    /**
+     * Performs all the required operations that should be done (for each step) before solving the solution step.
+     * A member variable should be used as a flag to make sure this function is called only once per step.
      */
+    virtual void InitializeSolutionStep()
+    {
+        KRATOS_ERROR << "You are calling to the base class method InitializeSolutionStep, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    }
+
+    /**
+     * Performs all the required operations that should be done (for each step) after solving the solution step.
+     * A member variable should be used as a flag to make sure this function is called only once per step.
+     */
+    virtual void FinalizeSolutionStep()
+    {
+        KRATOS_ERROR << "You are calling to the base class method FinalizeSolutionStep, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+    }
+
+    /**
+     * Solves the current step. This function returns true if a solution has been found, false otherwise.
+     */
+    virtual bool SolveSolutionStep()
+    {
+        return true;
+    }
+
+    /**
+     * This sets the level of echo for the solving strategy
+     * @return Level of echo for the solving strategy:
+     * 0 -> Mute... no echo at all
+     * 1 -> Printing time and basic informations
+     * 2 -> Printing linear solver data
+     * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
+     */
+    
     virtual void SetEchoLevel(int Level)
     {
         mEchoLevel = Level;
     }
 
+    /**
+     * This returns the level of echo for the solving strategy
+     * @return Level of echo for the solving strategy:
+     * 0 -> Mute... no echo at all
+     * 1 -> Printing time and basic informations
+     * 2 -> Printing linear solver data
+     * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
+     */
     virtual int GetEchoLevel()
     {
         return mEchoLevel;
     }
 
-    //*********************************************************************************
-
-    /* 0 -> build StiffnessMatrix just once
-    1 -> build StiffnessMatrix at the beginning of each solution step
-    2 -> build StiffnessMatrix at each iteration*/
+    /**
+     * This sets the build level
+     * @param Level: The build level:
+     * 0 -> Build StiffnessMatrix just once
+     * 1 -> Build StiffnessMatrix at the beginning of each solution step
+     * 2 -> build StiffnessMatrix at each iteration
+     */
     virtual void SetRebuildLevel(int Level)
     {
         mRebuildLevel = Level;
         mStiffnessMatrixIsBuilt = false;
     }
 
+    /**
+     * This returns the build level
+     * @return The build level:
+     * 0 -> Build StiffnessMatrix just once
+     * 1 -> Build StiffnessMatrix at the beginning of each solution step
+     * 2 -> build StiffnessMatrix at each iteration
+     */
     virtual int GetRebuildLevel()
     {
         return mRebuildLevel;
     }
 
-    //*********************************************************************************
-
     /**
-    0 -> No mesh movement
-    1 -> move mesh
+     * This function sets the flag that says if the mesh is moved
+     * @param Flag: True if the mesh is moved, false otherwise
      */
     void SetMoveMeshFlag(bool Flag)
     {
         mMoveMeshFlag = Flag;
     }
 
+    /**
+     * This function returns the flag that says if the mesh is moved
+     * @return True if the mesh is moved, false otherwise
+     */
     bool MoveMeshFlag()
     {
         return mMoveMeshFlag;
     }
 
-    //*********************************************************************************
-
-    void MoveMesh()
+    /**
+     * This function is designed to move the mesh
+     * NOTE: Be careful it just consider displacements, derive this method to adapt to your own strategies (ALE, FSI, etc...)
+     */
+    virtual void MoveMesh()
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         if (GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false)
-	{
-            KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT var is not in the model_part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
-    	}
+        {
+            KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
+        }   
 
-        NodesArrayType& pNode = GetModelPart().Nodes();
-	auto numNodes = pNode.end() - pNode.begin();
+        NodesArrayType& NodesArray = GetModelPart().Nodes();
+        int numNodes = static_cast<int>(NodesArray.size());
 
-	#pragma omp parallel for
-	for(int i = 0; i < numNodes; i++)  
-	{
-	    auto itNode = pNode.begin() + i;
+        #pragma omp parallel for
+        for(int i = 0; i < numNodes; i++)  
+        {
+            auto itNode = NodesArray.begin() + i;
 
-	    itNode->X() = itNode->X0() + itNode->FastGetSolutionStepValue(DISPLACEMENT_X);
-	    itNode->Y() = itNode->Y0() + itNode->FastGetSolutionStepValue(DISPLACEMENT_Y);
-	    itNode->Z() = itNode->Z0() + itNode->FastGetSolutionStepValue(DISPLACEMENT_Z);
-	}
-	
-	/*   std::cout<<" MESH MOVED "<<std::endl; */
-	/* if( mEchoLevel > 0 ) */
+            noalias(itNode->Coordinates()) = itNode->GetInitialPosition().Coordinates();
+            noalias(itNode->Coordinates()) += itNode->FastGetSolutionStepValue(DISPLACEMENT);
+        }
+        
+        if (this->GetEchoLevel() != 0 && GetModelPart().GetCommunicator().MyPID() == 0 )
+        {
+            std::cout<<" MESH MOVED "<<std::endl;
+        }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
-    //*********************************************************************************
-
-    //operations to get the pointer to the model
-
+    /**
+     * Operations to get the pointer to the model
+     * @return mrModelPart: The model part member variable
+     */
     inline ModelPart& GetModelPart()
     {
-        return mr_model_part;
+        return mrModelPart;
     };
 
+    /**
+     * Operations to get the residual norm
+     * @return The residual norm
+     */
     virtual double GetResidualNorm()
     {
+        KRATOS_ERROR << "You are calling to the base class method GetResidualNorm, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
         return 0.0;
     }
 
     /**
-     * function to perform expensive checks.
+     * Function to perform expensive checks.
      * It is designed to be called ONCE to verify that the input is correct.
      */
     virtual int Check()
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
-        //check if displacement var is needed
+        // Check if displacement var is needed
         if (mMoveMeshFlag == true)
         {
-            for (ModelPart::NodeIterator i = GetModelPart().NodesBegin();
-                    i != GetModelPart().NodesEnd(); ++i)
+            NodesArrayType& NodesArray = GetModelPart().Nodes();
+            int numNodes = static_cast<int>(NodesArray.size());
 
-                if (i->SolutionStepsDataHas(DISPLACEMENT) == false)
+//             #pragma omp parallel for
+            for(int i = 0; i < numNodes; i++)  
+            {
+                auto itNode = NodesArray.begin() + i;
+                
+                if (itNode->SolutionStepsDataHas(DISPLACEMENT) == false)
                 {
-                    std::cout << "problem on node with Id " << i->Id() << std::endl;
-                    KRATOS_THROW_ERROR(std::logic_error, "It is impossible to move the mesh since the DISPLACEMENT var is not in the model_part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables", "");
+                    std::cout << "problem on node with Id " << itNode->Id() << std::endl;
+                    KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT var is not in the rModelPart. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
                 }
+            }
         }
 
+        ElementsArrayType& ElementsArray = GetModelPart().Elements();
+        int numElements = static_cast<int>(ElementsArray.size());
 
-
-        for (ModelPart::ElementsContainerType::iterator it = GetModelPart().ElementsBegin();
-                it != GetModelPart().ElementsEnd(); it++)
+//         #pragma omp parallel for
+        for(int i = 0; i < numElements; i++)  
         {
-            it->Check(GetModelPart().GetProcessInfo());
+            auto itElem = ElementsArray.begin() + i;
+            
+            itElem->Check(GetModelPart().GetProcessInfo());
         }
 
-        for (ModelPart::ConditionsContainerType::iterator it = GetModelPart().ConditionsBegin();
-                it != GetModelPart().ConditionsEnd(); it++)
+        ConditionsArrayType& ConditionsArray = GetModelPart().Conditions();
+        int numConditions = static_cast<int>(ConditionsArray.size());
+
+//         #pragma omp parallel for
+        for(int i = 0; i < numConditions; i++)  
         {
-            it->Check(GetModelPart().GetProcessInfo());
+            auto itCond = ConditionsArray.begin() + i;
+            
+            itCond->Check(GetModelPart().GetProcessInfo());
         }
+        
         return 0;
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
-    /*@} */
+    ///@}
 
 protected:
-    /**@name Protected static Member Variables */
-    /*@{ */
+    ///@name Protected static Member Variables */
+    ///@{
 
-    //level of echo for the solving strategy
+    // Level of echo for the solving strategy
     int mEchoLevel;
 
-    //settings for the rebuilding of the stiffness matrix
+    //Settings for the rebuilding of the stiffness matrix
     int mRebuildLevel;
     bool mStiffnessMatrixIsBuilt;
 
-    /*@} */
-    /**@name Protected member Variables */
-    /*@{ */
+    ///@}
+    ///@name Protected member Variables */
+    ///@{
 
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
+    ///@}
+    ///@name Protected Operators*/
+    ///@{
 
 
-    /*@} */
-    /**@name Protected  Access */
-    /*@{ */
+    ///@}
+    ///@name Protected Operations*/
+    ///@{
 
 
-    /*@} */
-    /**@name Protected Inquiry */
-    /*@{ */
+    ///@}
+    ///@name Protected  Access */
+    ///@{
 
 
-    /*@} */
-    /**@name Protected LifeCycle */
-    /*@{ */
+    ///@}
+    ///@name Protected Inquiry */
+    ///@{
 
+
+    ///@}
+    ///@name Protected LifeCycle */
+    ///@{
 
 private:
 
-    /*@} */
-    /**@name Static Member Variables */
-    /*@{ */
+    ///@}
+    ///@name Static Member Variables */
+    ///@{
 
 
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
+    ///@}
+    ///@name Member Variables */
+    ///@{
 
-    ModelPart& mr_model_part;
+    ModelPart& mrModelPart;
 
     bool mMoveMeshFlag;
 
-
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
+    ///@}
+    ///@name Private Operators*/
+    ///@{
 
 
-    /*@} */
-    /**@name Private  Access */
-    /*@{ */
+    ///@}
+    ///@name Private Operations*/
+    ///@{
 
 
-    /*@} */
-    /**@name Private Inquiry */
-    /*@{ */
+    ///@}
+    ///@name Private  Access */
+    ///@{
 
 
-    /*@} */
-    /**@name Un accessible methods */
-    /*@{ */
+    ///@}
+    ///@name Private Inquiry */
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods */
+    ///@{
 
     /** Copy constructor.
      */
     SolvingStrategy(const SolvingStrategy& Other);
 
 
-    /*@} */
+    ///@}
 
 }; /* Class NewSolvingStrategy */
 
-/*@} */
+///@}
 
-/**@name Type Definitions */
-/*@{ */
+///@name Type Definitions */
+///@{
 
 
-/*@} */
+///@}
 
 } /* namespace Kratos.*/
 
