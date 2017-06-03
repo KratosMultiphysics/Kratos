@@ -135,6 +135,8 @@ public:
     {
         KRATOS_TRY;
 
+        mConvergenceCriteriaEchoLevel = pNewConvergenceCriteria->GetEchoLevel();
+        
         Parameters DefaultParameters = Parameters(R"(
         {
             "adaptative_strategy"              : false,
@@ -186,6 +188,8 @@ public:
     {
         KRATOS_TRY;
 
+        mConvergenceCriteriaEchoLevel = pNewConvergenceCriteria->GetEchoLevel();
+        
         Parameters DefaultParameters = Parameters(R"(
         {
             "adaptative_strategy"              : false,
@@ -411,9 +415,10 @@ protected:
     unsigned int mMaxNumberSplits;    // Maximum number of splits
     
     // OTHER PARAMETERS
-    bool mRecalculateFactor;          // To check if we recalculate or not the scale factor
-    bool mPenaltyPathFollowing;       // To check if we recalculate or not the penalty parameter
-    double mInitialPenaltyParameter;  // The initial penalty parameter
+    int mConvergenceCriteriaEchoLevel; // The echo level of the convergence criteria
+    bool mRecalculateFactor;           // To check if we recalculate or not the scale factor
+    bool mPenaltyPathFollowing;        // To check if we recalculate or not the penalty parameter
+    double mInitialPenaltyParameter;   // The initial penalty parameter
 
     ///@}
     ///@name Protected Operators
@@ -648,17 +653,16 @@ protected:
             KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT var is not in the model_part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
         }
 
-        NodesArrayType& pNode = StrategyBaseType::GetModelPart().Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
-        
+        NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().Nodes();
+        int numNodes = static_cast<int>(NodesArray.size());
+
         #pragma omp parallel for
         for(int i = 0; i < numNodes; i++)  
         {
-            auto itNode = pNode.begin() + i;
-            
-            itNode->X() = itNode->X0() + itNode->FastGetSolutionStepValue(DISPLACEMENT_X, 1);
-            itNode->Y() = itNode->Y0() + itNode->FastGetSolutionStepValue(DISPLACEMENT_Y, 1);
-            itNode->Z() = itNode->Z0() + itNode->FastGetSolutionStepValue(DISPLACEMENT_Z, 1);
+            auto itNode = NodesArray.begin() + i;
+
+            noalias(itNode->Coordinates()) = itNode->GetInitialPosition().Coordinates();
+            noalias(itNode->Coordinates()) += itNode->FastGetSolutionStepValue(DISPLACEMENT, 1);
         }
 
         KRATOS_CATCH("");
@@ -670,7 +674,7 @@ protected:
     
     void CoutSolvingProblem()
     {
-        if (this->GetEchoLevel() != 0)
+        if (mConvergenceCriteriaEchoLevel != 0)
         {
             std::cout << "STEP: " << StrategyBaseType::GetModelPart().GetProcessInfo()[TIME_STEPS] << "\t NON LINEAR ITERATION: " << StrategyBaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] << "\t TIME: " << StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] << "\t DELTA TIME: " << StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]  << std::endl;
         }
@@ -682,7 +686,7 @@ protected:
         
     void CoutSplittingTime(const double AuxDeltaTime)
     {
-        if (this->GetEchoLevel() > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
+        if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
             const double Time = StrategyBaseType::GetModelPart().GetProcessInfo()[TIME];
             std::cout.precision(4);
@@ -706,7 +710,7 @@ protected:
     
     void MaxIterationsExceeded() override
     {
-        if (this->GetEchoLevel() > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
+        if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
             std::cout << "|----------------------------------------------------|" << std::endl;
             #if !defined(_WIN32)
@@ -724,7 +728,7 @@ protected:
         
     void MaxIterationsAndSplitsExceeded()
     {
-        if (this->GetEchoLevel() > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
+        if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
             std::cout << "|----------------------------------------------------|" << std::endl;
             #if !defined(_WIN32)
