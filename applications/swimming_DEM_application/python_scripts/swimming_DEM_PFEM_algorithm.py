@@ -24,13 +24,27 @@ class Algorithm(BaseAlgorithm):
         
     def SetFluidSolverParameters(self):              
         self.pp = self.FluidSolverParameters()
+        self.pp.Dt???????
+        self.pp.problem_name,
+        self.pp.VolumeOutput,
+        self.pp.GiDPostMode,
+        self.pp.GiDMultiFileFlag,
+        self.pp.GiDWriteMeshFlag,
+        self.pp.GiDWriteConditionsFlag
+        self.pp.domain_size
+        self.time           = self.pp.Start_time
+        self.Dt             = self.pp.Dt
+        self.out            = self.Dt
+        Nsteps         = self.pp.nsteps
+        if "REACTION" in self.pp.nodal_results:
+            self.fluid_model_part.AddNodalSolutionStepVariable(REACTION)
+        if "DISTANCE" in self.pp.nodal_results:
+            self.fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
+        self.vars_man.AddNodalVariables(self.fluid_model_part, self.pp.fluid_vars)
+        self.pp.variables_to_print_in_file
+        if self.pp.type_of_inlet == 'ForceImposed':
+            self.DEM_inlet = DEM_Force_Based_Inlet(self.DEM_inlet_model_part, self.pp.force)
         
-    def CreateParts(self):
-        # Order must be respected here
-        # defining a fluid model
-        self.all_model_parts.Add(ModelPart("FluidPart"))
-        # defining a model part for the mixed part
-        self.all_model_parts.Add(ModelPart("MixedPart"))
         
     class FluidSolverParameters(self):
         def __init__(self):
