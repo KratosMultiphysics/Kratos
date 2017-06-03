@@ -264,15 +264,17 @@ public:
     {
         bool IsConverged = BaseType::SolveSolutionStep();
         
-        if (mpMyProcesses == nullptr && StrategyBaseType::mEchoLevel > 0)
-        {
-            std::cout << "WARNING:: If you have not implemented any method to recalculate BC or loads in function of time, this strategy will be USELESS" << std::endl;
-        }
-        
         // Plots a warning if the maximum number of iterations is exceeded
         if ((mAdaptativeStrategy == true) && (IsConverged == false))
-        {            
-            const double OriginalDeltaTime = StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]; // We save the delta time to restore later
+        {
+            if (mpMyProcesses == nullptr && StrategyBaseType::mEchoLevel > 0)
+            {
+                std::cout << "WARNING:: If you have not implemented any method to recalculate BC or loads in function of time, this strategy will be USELESS" << std::endl;
+            }
+        
+            ProcessInfo& ThisProcessInfo = StrategyBaseType::GetModelPart().GetProcessInfo();
+
+            const double OriginalDeltaTime = ThisProcessInfo[DELTA_TIME]; // We save the delta time to restore later
             
             unsigned int SplitNumber = 0;
             
@@ -287,11 +289,11 @@ public:
                 
                 bool InsideTheSplitIsConverged = true;
                 unsigned int InnerIteration = 0;
-                while (InsideTheSplitIsConverged == true && StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] <= AuxTime)
+                while (InsideTheSplitIsConverged == true && ThisProcessInfo[TIME] <= AuxTime)
                 {      
                     CurrentTime += AuxDeltaTime;
                     InnerIteration += 1;
-                    StrategyBaseType::GetModelPart().GetProcessInfo()[TIME_STEPS] += 1;
+                    ThisProcessInfo[TIME_STEPS] += 1;
                     
                     if (InnerIteration == 1)
                     {
@@ -300,36 +302,35 @@ public:
                             UnMoveMesh();
                         }
                         
-                        NodesArrayType& pNode = StrategyBaseType::GetModelPart().Nodes();
-                        auto numNodes = pNode.end() - pNode.begin();
+                        NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().Nodes();
+                        int numNodes = static_cast<int>(NodesArray.size());
                         
                         #pragma omp parallel for
                         for(int i = 0; i < numNodes; i++)  
                         {
-                            auto itNode = pNode.begin() + i;
+                            auto itNode = NodesArray.begin() + i;
                             
                             itNode->OverwriteSolutionStepData(1, 0);
 //                             itNode->OverwriteSolutionStepData(2, 1);
                         }
                         
-                        StrategyBaseType::GetModelPart().GetProcessInfo().SetCurrentTime(CurrentTime); // Reduces the time step
+                        ThisProcessInfo.SetCurrentTime(CurrentTime); // Reduces the time step
                         
                         FinalizeSolutionStep();
                     }
                     else
                     {
-                        NodesArrayType& pNode = StrategyBaseType::GetModelPart().Nodes();
-                        auto numNodes = pNode.end() - pNode.begin();
+                        NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().Nodes();
+                        int numNodes = static_cast<int>(NodesArray.size());
                         
                         #pragma omp parallel for
                         for(int i = 0; i < numNodes; i++)  
                         {
-                            auto itNode = pNode.begin() + i;
+                            auto itNode = NodesArray.begin() + i;
                             
                             itNode->CloneSolutionStepData();
                         }
                         
-                        ProcessInfo ThisProcessInfo = StrategyBaseType::GetModelPart().GetProcessInfo();
                         ThisProcessInfo.CloneSolutionStepInfo();
                         ThisProcessInfo.ClearHistory(StrategyBaseType::GetModelPart().GetBufferSize());
                         ThisProcessInfo.SetAsTimeStepInfo(CurrentTime); // Sets the new time step
@@ -376,7 +377,7 @@ public:
             }
             
             // Restoring original DELTA_TIME
-            StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME] = OriginalDeltaTime;
+            ThisProcessInfo[DELTA_TIME] = OriginalDeltaTime;
         }
 
         return IsConverged;
@@ -469,13 +470,13 @@ protected:
         double AuxNonContact = 0.0;
         
         // Now we iterate over all the nodes
-        NodesArrayType& pNode = StrategyBaseType::GetModelPart().GetSubModelPart("Contact").Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
+        NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().GetSubModelPart("Contact").Nodes();
+        int numNodes = static_cast<int>(NodesArray.size());
         
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(numNodes); i++) 
         {
-            auto itNode = pNode.begin() + i;
+            auto itNode = NodesArray.begin() + i;
     
             for(auto itDoF = itNode->GetDofs().begin() ; itDoF != itNode->GetDofs().end() ; itDoF++)
             {
@@ -528,13 +529,13 @@ protected:
 //         double DeltaVfunction  = 0.0;
 //         
 //         // Now we iterate over all the nodes
-//         NodesArrayType& pNode = StrategyBaseType::GetModelPart().GetSubModelPart("Contact").Nodes();
-//         auto numNodes = pNode.end() - pNode.begin();
+//         NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().GetSubModelPart("Contact").Nodes();
+//         int numNodes = static_cast<int>(NodesArray.size());
 //         
 //         #pragma omp parallel for
 //         for(int i = 0; i < numNodes; i++)  // TODO: ADDtangent contact
 //         {
-//             auto itNode = pNode.begin() + i;
+//             auto itNode = NodesArray.begin() + i;
 //     
 //             if (itNode->Is(ACTIVE) == true)
 //             {
