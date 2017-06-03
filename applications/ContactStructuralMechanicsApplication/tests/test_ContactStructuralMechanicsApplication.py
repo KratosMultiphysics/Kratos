@@ -27,19 +27,20 @@ from SmallTests import SimplestPatchTestThreeDMeshTying  as TSimplestPatchTestTh
 from SmallTests import SimplePatchTestThreeDMeshTying    as TSimplePatchTestThreeDMeshTying
 
 # ALM frictionless tests
-from SmallTests import ALMHyperSimplePatchTestContact                 as TALMHyperSimplePatchTestContact
-from SmallTests import ALMHyperSimpleSlopePatchTestContact            as TALMHyperSimpleSlopePatchTestContact
-from SmallTests import ALMTwoDPatchComplexGeomTestContact             as TALMTwoDPatchComplexGeomTestContact
-from SmallTests import ALMTwoDPatchComplexGeomSlopeTestContact        as TALMTwoDPatchComplexGeomSlopeTestContact
-from SmallTests import ALMSimplePatchTestContact                      as TALMSimplePatchTestContact
-from SmallTests import ALMSimpleSlopePatchTestContact                 as TALMSimpleSlopePatchTestContact
-from SmallTests import ALMSimplePatchNotMatchingATestContact          as TALMSimplePatchNotMatchingATestContact
-from SmallTests import ALMSimplePatchNotMatchingBTestContact          as TALMSimplePatchNotMatchingBTestContact
-from SmallTests import ALMThreeDSimplestPatchMatchingTestContact      as TALMThreeDSimplestPatchMatchingTestContact
-from SmallTests import ALMThreeDSimplestPatchMatchingSlopeTestContact as TALMThreeDSimplestPatchMatchingSlopeTestContact
-from SmallTests import ALMThreeDPatchComplexGeomTestContact           as TALMThreeDPatchComplexGeomTestContact
-from SmallTests import ALMThreeDPatchMatchingTestContact              as TALMTThreeDPatchMatchingTestContact
-from SmallTests import ALMThreeDPatchNotMatchingTestContact           as TALMThreeDPatchNotMatchingTestContact
+from SmallTests import ALMHyperSimplePatchTestContact                      as TALMHyperSimplePatchTestContact
+from SmallTests import ALMHyperSimpleSlopePatchTestContact                 as TALMHyperSimpleSlopePatchTestContact
+from SmallTests import ALMTwoDPatchComplexGeomTestContact                  as TALMTwoDPatchComplexGeomTestContact
+from SmallTests import ALMTwoDPatchComplexGeomSlopeTestContact             as TALMTwoDPatchComplexGeomSlopeTestContact
+from SmallTests import ALMSimplePatchTestContact                           as TALMSimplePatchTestContact
+from SmallTests import ALMSimpleSlopePatchTestContact                      as TALMSimpleSlopePatchTestContact
+from SmallTests import ALMSimplePatchNotMatchingATestContact               as TALMSimplePatchNotMatchingATestContact
+from SmallTests import ALMSimplePatchNotMatchingBTestContact               as TALMSimplePatchNotMatchingBTestContact
+from SmallTests import ALMThreeDSimplestPatchMatchingTestContact           as TALMThreeDSimplestPatchMatchingTestContact
+from SmallTests import ALMThreeDSimplestPatchMatchingAdaptativeTestContact as TALMThreeDSimplestPatchMatchingAdaptativeTestContact
+from SmallTests import ALMThreeDSimplestPatchMatchingSlopeTestContact      as TALMThreeDSimplestPatchMatchingSlopeTestContact
+from SmallTests import ALMThreeDPatchComplexGeomTestContact                as TALMThreeDPatchComplexGeomTestContact
+from SmallTests import ALMThreeDPatchMatchingTestContact                   as TALMTThreeDPatchMatchingTestContact
+from SmallTests import ALMThreeDPatchNotMatchingTestContact                as TALMThreeDPatchNotMatchingTestContact
 
 ## NIGTHLY TESTS
 # ALM frictionless tests
@@ -99,6 +100,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TALMSimplePatchNotMatchingATestContact('test_execution'))
     smallSuite.addTest(TALMSimplePatchNotMatchingBTestContact('test_execution'))
     smallSuite.addTest(TALMThreeDSimplestPatchMatchingTestContact('test_execution'))
+    smallSuite.addTest(TALMThreeDSimplestPatchMatchingAdaptativeTestContact('test_execution'))
     smallSuite.addTest(TALMThreeDSimplestPatchMatchingSlopeTestContact('test_execution'))
     smallSuite.addTest(TALMThreeDPatchComplexGeomTestContact('test_execution'))
     smallSuite.addTest(TALMTThreeDPatchMatchingTestContact('test_execution'))
@@ -148,6 +150,7 @@ def AssambleTestSuites():
             TALMSimplePatchNotMatchingATestContact,
             TALMSimplePatchNotMatchingBTestContact,
             TALMThreeDSimplestPatchMatchingTestContact,
+            TALMThreeDSimplestPatchMatchingAdaptativeTestContact,
             TALMThreeDSimplestPatchMatchingSlopeTestContact,
             TALMThreeDPatchComplexGeomTestContact,
             TALMTThreeDPatchMatchingTestContact,
