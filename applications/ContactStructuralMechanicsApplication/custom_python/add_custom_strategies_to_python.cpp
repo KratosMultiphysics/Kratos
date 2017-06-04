@@ -119,7 +119,7 @@ void  AddCustomStrategiesToPython()
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************
     //********************************************************************
-
+                    
     // Custom mortar and criteria
     class_< MortarAndConvergenceCriteriaType,
             bases< ConvergenceCriteriaType >, boost::noncopyable >
@@ -127,7 +127,6 @@ void  AddCustomStrategiesToPython()
             "MortarAndConvergenceCriteria", 
             init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer>())
             .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer,TablePrinterPointerType>())
-            .def("SetEchoLevel", &MortarAndConvergenceCriteriaType::SetEchoLevel)
             .def("SetActualizeRHSFlag", &MortarAndConvergenceCriteriaType::SetActualizeRHSFlag)
             ;
             
@@ -138,7 +137,6 @@ void  AddCustomStrategiesToPython()
             "MeshTyingMortarConvergenceCriteria", 
             init< >())
             .def(init<TablePrinterPointerType>())
-            .def("SetEchoLevel", &MeshTyingMortarConvergenceCriteriaType::SetEchoLevel)
             ;
 
     // Dual set strategy for SSNM Convergence Criterion (frictionless case)
@@ -149,7 +147,6 @@ void  AddCustomStrategiesToPython()
             init< >())
             .def(init<double>())
             .def(init<double, TablePrinterPointerType>())
-            .def("SetEchoLevel", &ALMFrictionlessMortarConvergenceCriteriaType::SetEchoLevel)
             ;
             
     // Dual set strategy for SSNM Convergence Criterion (frictional case)
@@ -160,7 +157,6 @@ void  AddCustomStrategiesToPython()
             init< >())
             .def(init<double>())
             .def(init<double, TablePrinterPointerType>())
-            .def("SetEchoLevel", &ALMFrictionalMortarConvergenceCriteriaType::SetEchoLevel)
             ;
             
     // Displacement and lagrange multiplier Convergence Criterion
@@ -171,7 +167,6 @@ void  AddCustomStrategiesToPython()
             init< double, double, double, double >())
             .def(init< double, double, double, double, bool >())
             .def(init< double, double, double, double, bool, TablePrinterPointerType >())
-            .def("SetEchoLevel", &DisplacementLagrangeMultiplierContactCriteriaType::SetEchoLevel)
             ;
             
     // Displacement and lagrange multiplier mixed Convergence Criterion
@@ -193,7 +188,6 @@ void  AddCustomStrategiesToPython()
             init< double, double, double, double >())
             .def(init< double, double, double, double, bool >())
             .def(init< double, double, double, double, bool, TablePrinterPointerType >())
-            .def("SetEchoLevel", &DisplacementLagrangeMultiplierResidualContactCriteriaType::SetEchoLevel)
             ;
             
     //********************************************************************
