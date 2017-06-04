@@ -77,7 +77,7 @@ template<class TSparseSpace,
 class SolvingStrategy
 {
 public:
-    ///@name Type Definitions */
+    ///@name Type Definitions
     ///@{
     
 //     typedef std::set<Dof::Pointer,ComparePDof>                                    DofSetType;
@@ -161,7 +161,7 @@ public:
      */
     virtual void Predict()
     {
-        KRATOS_ERROR << "You are calling to the base class method Predict, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+        KRATOS_ERROR << "You are calling to the base class method Predict, please define in you derived class the method" << std::endl;
     }
 
     /**
@@ -169,7 +169,7 @@ public:
      */
     virtual void Initialize()
     {
-        KRATOS_ERROR << "You are calling to the base class method Initialize, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+        KRATOS_ERROR << "You are calling to the base class method Initialize, please define in you derived class the method" << std::endl;
     }
 
     /**
@@ -197,7 +197,7 @@ public:
      */
     virtual void Clear()
     {
-        KRATOS_ERROR << "You are calling to the base class method Clear, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+        KRATOS_ERROR << "You are calling to the base class method Clear, please define in you derived class the method" << std::endl;
     }
 
     /**
@@ -216,7 +216,7 @@ public:
      */
     virtual void CalculateOutputData()
     {
-        KRATOS_ERROR << "You are calling to the base class method CalculateOutputData, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+        KRATOS_ERROR << "You are calling to the base class method CalculateOutputData, please define in you derived class the method" << std::endl;
     }
 
     /**
@@ -225,7 +225,7 @@ public:
      */
     virtual void InitializeSolutionStep()
     {
-        KRATOS_ERROR << "You are calling to the base class method InitializeSolutionStep, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+        KRATOS_ERROR << "You are calling to the base class method InitializeSolutionStep, please define in you derived class the method" << std::endl;
     }
 
     /**
@@ -234,7 +234,7 @@ public:
      */
     virtual void FinalizeSolutionStep()
     {
-        KRATOS_ERROR << "You are calling to the base class method FinalizeSolutionStep, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+        KRATOS_ERROR << "You are calling to the base class method FinalizeSolutionStep, please define in you derived class the method" << std::endl;
     }
 
     /**
@@ -247,13 +247,12 @@ public:
 
     /**
      * This sets the level of echo for the solving strategy
-     * @return Level of echo for the solving strategy:
+     * @param Level of echo for the solving strategy:
      * 0 -> Mute... no echo at all
      * 1 -> Printing time and basic informations
      * 2 -> Printing linear solver data
      * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
      */
-    
     virtual void SetEchoLevel(int Level)
     {
         mEchoLevel = Level;
@@ -363,7 +362,7 @@ public:
      */
     virtual double GetResidualNorm()
     {
-        KRATOS_ERROR << "You are calling to the base class method GetResidualNorm, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
+        KRATOS_ERROR << "You are calling to the base class method GetResidualNorm, please define in you derived class the method" << std::endl;
         return 0.0;
     }
 
