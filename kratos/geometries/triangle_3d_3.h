@@ -785,7 +785,7 @@ public:
      * It computes the normal of the geometry, if possible
      * @return The normal of the geometry
      */
-    virtual array_1d<double, 3> Normal() override
+    virtual array_1d<double, 3> Normal(CoordinatesArrayType& rPointLocalCoordinates) override
     {
         const array_1d<double, 3> TangentXi  = this->GetPoint(1) - this->GetPoint(0);
         const array_1d<double, 3> TangentEta = this->GetPoint(2) - this->GetPoint(0);

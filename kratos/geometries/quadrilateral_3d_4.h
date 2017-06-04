@@ -521,7 +521,7 @@ public:
      * It computes the normal of the geometry, if possible
      * @return The normal of the geometry
      */
-    virtual array_1d<double, 3> Normal() override
+    virtual array_1d<double, 3> Normal(CoordinatesArrayType& rPointLocalCoordinates) override
     {
         // We define the normal and tangents
         array_1d<double,3> Normal = ZeroVector(3);
