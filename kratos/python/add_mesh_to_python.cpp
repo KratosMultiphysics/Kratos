@@ -59,10 +59,14 @@ typedef MeshType::NodeType NodeType;
 typedef MeshType::NodesContainerType NodesContainerType;
 typedef Geometry<Node<3> >::PointsArrayType NodesArrayType;
 typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
+typedef Point<3>::CoordinatesArrayType CoordinatesArrayType;
 
-array_1d<double,3> GetNormalFromCondition( Condition& dummy )
+array_1d<double,3> GetNormalFromCondition( 
+    Condition& dummy, 
+    CoordinatesArrayType& LocalCoords
+    )
 {
-    return( dummy.GetGeometry().Normal() );
+    return( dummy.GetGeometry().Normal(LocalCoords) );
 }
 
 double GetAreaFromCondition( Condition& dummy )
