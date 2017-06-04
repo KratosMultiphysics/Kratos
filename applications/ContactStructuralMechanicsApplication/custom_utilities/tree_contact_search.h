@@ -391,7 +391,7 @@ public:
                     if (mSearchTreeType == KdtreeInRadius)
                     {                        
                         const Point<3> Center = itCond->GetGeometry().Center();
-                        const double SearchRadius = mSearchFactor * itCond->GetGeometry().Radius();
+                        const double SearchRadius = mSearchFactor * Radius(itCond->GetGeometry());
 
                         NumberPointsFound = TreePoints.SearchInRadius(Center, SearchRadius, PointsFound.begin(), mAllocationSize);
                     }
@@ -529,6 +529,32 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
+ 
+    /**  
+     * Calculates the minimal distance between one node and its center 
+     * @return The radius of the geometry 
+     */ 
+    
+    double Radius(GeometryType& Geom) const 
+    { 
+        double Radius = 0.0; 
+        const Point<3> Center = Geom.Center(); 
+         
+        array_1d<double, 3> AuxVector; 
+        for(unsigned int iNode = 0; iNode < Geom.PointsNumber(); iNode++) 
+        { 
+            noalias(AuxVector) = Center.Coordinates() - Geom[iNode].Coordinates();; 
+             
+            const double AuxValue = inner_prod(AuxVector, AuxVector); 
+ 
+            if(AuxValue > Radius) 
+            { 
+                Radius = AuxValue; 
+            } 
+        } 
+ 
+        return std::sqrt(Radius); 
+    } 
     
     /**
      * It check the conditions if they are correctly detected
