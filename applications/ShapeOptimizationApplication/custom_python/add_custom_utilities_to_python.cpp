@@ -26,7 +26,9 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/optimization_utilities.h"
 #include "custom_utilities/geometry_utilities.h"
-#include "custom_utilities/vertex_morphing_mapper.h"
+#include "custom_utilities/mapping/mapper_vertex_morphing.h"
+#include "custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h"
+#include "custom_utilities/damping/damping_utilities.h"
 #include "custom_utilities/response_functions/strain_energy_response_function.h"
 #include "custom_utilities/response_functions/mass_response_function.h"
 #include "custom_utilities/input_output/universal_file_io.h"
@@ -49,16 +51,27 @@ void  AddCustomUtilitiesToPython()
     // ================================================================
     // For perfoming the mapping according to Vertex Morphing
     // ================================================================
-    class_<VertexMorphingMapper, bases<Process> >("VertexMorphingMapper", init<ModelPart&, boost::python::dict, Parameters&>())
-        .def("compute_mapping_matrix", &VertexMorphingMapper::compute_mapping_matrix)
-        .def("map_sensitivities_to_design_space", &VertexMorphingMapper::map_sensitivities_to_design_space)
-        .def("map_design_update_to_geometry_space", &VertexMorphingMapper::map_design_update_to_geometry_space)
+    class_<MapperVertexMorphing, bases<Process> >("MapperVertexMorphing", init<ModelPart&, Parameters&>())
+        .def("MapToDesignSpace", &MapperVertexMorphing::MapToDesignSpace)
+        .def("MapToGeometrySpace", &MapperVertexMorphing::MapToGeometrySpace)
         ;
 
+    class_<MapperVertexMorphingMatrixFree, bases<Process> >("MapperVertexMorphingMatrixFree", init<ModelPart&, Parameters&>())
+        .def("MapToDesignSpace", &MapperVertexMorphingMatrixFree::MapToDesignSpace)
+        .def("MapToGeometrySpace", &MapperVertexMorphingMatrixFree::MapToGeometrySpace)
+        ;
+    
+    // ================================================================
+    // For a possible damping of nodal variables
+    // ================================================================
+    class_<DampingUtilities, bases<Process> >("DampingUtilities", init<ModelPart&, boost::python::dict, Parameters&>())
+        .def("DampNodalVariable", &DampingUtilities::DampNodalVariable)
+        ;
+ 
     // ========================================================================
     // For performing individual steps of an optimization algorithm
     // ========================================================================
-    class_<OptimizationUtilities, bases<Process> >("OptimizationUtilities", init<ModelPart&, Parameters&>())
+    class_<OptimizationUtilities, bases<Process> >("OptimizationUtilities", init<ModelPart&, Parameters::Pointer>())
         // ----------------------------------------------------------------
         // For running unconstrained descent methods
         // ----------------------------------------------------------------
@@ -68,8 +81,6 @@ void  AddCustomUtilitiesToPython()
         // ----------------------------------------------------------------
         .def("compute_projected_search_direction", &OptimizationUtilities::compute_projected_search_direction)
         .def("correct_projected_search_direction", &OptimizationUtilities::correct_projected_search_direction)
-        .def("get_correction_scaling", &OptimizationUtilities::get_correction_scaling)
-        .def("set_correction_scaling", &OptimizationUtilities::set_correction_scaling)
         // ----------------------------------------------------------------
         // General optimization operations
         // ----------------------------------------------------------------
@@ -81,7 +92,8 @@ void  AddCustomUtilitiesToPython()
     // ========================================================================
     class_<GeometryUtilities, bases<Process> >("GeometryUtilities", init<ModelPart&>())
         .def("compute_unit_surface_normals", &GeometryUtilities::compute_unit_surface_normals)
-        .def("project_grad_on_unit_surface_normal", &GeometryUtilities::project_grad_on_unit_surface_normal)
+        .def("project_nodal_variable_on_unit_surface_normals", &GeometryUtilities::project_nodal_variable_on_unit_surface_normals)
+        .def("update_coordinates_according_to_input_variable", &GeometryUtilities::update_coordinates_according_to_input_variable)
         .def("extract_surface_nodes", &GeometryUtilities::extract_surface_nodes)
         ;
 

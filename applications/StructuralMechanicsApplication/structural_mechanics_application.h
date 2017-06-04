@@ -31,6 +31,7 @@
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
 #include "custom_elements/membrane_element.hpp"
+#include "custom_elements/prestress_membrane_element.hpp"
 #include "custom_elements/shell_thick_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
 #include "custom_elements/total_lagrangian.h"
@@ -108,8 +109,6 @@ public:
 
     virtual void Register();
 
-
-
     ///@}
     ///@name Access
     ///@{
@@ -151,7 +150,6 @@ public:
         rOStream << "Conditions:" << std::endl;
         KratosComponents<Condition>().PrintData(rOStream);
     }
-
 
     ///@}
     ///@name Friends
@@ -201,9 +199,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
-
-
-    //       static const ApplicationCondition  msApplicationCondition;
+//     static const ApplicationCondition  msApplicationCondition;
 
     ///@}
     ///@name Member Variables
@@ -212,46 +208,31 @@ private:
 
     /* ELEMENTS */
     // Adding the beam element 
-    const SmallDisplacementBeamElement3D2N   mSmallDisplacementBeamElement3D2N;
+    const SmallDisplacementBeamElement3D2N mSmallDisplacementBeamElement3D2N;
 
     // Adding the shells elements 
-    const IsotropicShellElement  mIsotropicShellElement3D3N;
-    const ShellThickElement3D4N  mShellThickElement3D4N;
-    const ShellThickElement3D4N  mShellThickCorotationalElement3D4N;
-    const ShellThinElement3D3N   mShellThinElement3D3N;
-    const ShellThinElement3D3N   mShellThinCorotationalElement3D3N;
+    const IsotropicShellElement mIsotropicShellElement3D3N;
+    const ShellThickElement3D4N mShellThickElement3D4N;
+    const ShellThickElement3D4N mShellThickCorotationalElement3D4N;
+    const ShellThinElement3D3N mShellThinElement3D3N;
+    const ShellThinElement3D3N mShellThinCorotationalElement3D3N;
 
     // Adding the membrane element 
     const MembraneElement mMembraneElement3D3N;
+    const MembraneElement mMembraneElement3D4N;
+    const PrestressMembraneElement mPreStressMembraneElement3D3N;
+    const PrestressMembraneElement mPreStressMembraneElement3D4N;
     
     // Adding the SPRISM element 
     const SprismElement3D6N mSprismElement3D6N;
     
     // Adding the nodal concentrated element 
     const NodalConcentratedElement mNodalConcentratedElement2D1N;
+    const NodalConcentratedElement mNodalConcentratedDampedElement2D1N;
     const NodalConcentratedElement mNodalConcentratedElement3D1N;
-    
-    
-    /* CONDITIONS*/
-    // Beam moment condition
-    const PointMoment3DCondition   mPointMomentCondition3D1N;
-    // Torque condition
-    const PointTorque3DCondition   mPointTorqueCondition3D1N;
+    const NodalConcentratedElement mNodalConcentratedDampedElement3D1N;
 
-    //total lagrangian
-    const TotalLagrangian mTotalLagrangian2D3N;
-    const TotalLagrangian mTotalLagrangian2D4N;
-    const TotalLagrangian mTotalLagrangian2D6N;
-    const TotalLagrangian mTotalLagrangian2D8N;
-    const TotalLagrangian mTotalLagrangian2D9N;
-    const TotalLagrangian mTotalLagrangian3D4N;
-    const TotalLagrangian mTotalLagrangian3D6N;
-    const TotalLagrangian mTotalLagrangian3D8N;
-    const TotalLagrangian mTotalLagrangian3D10N;
-    const TotalLagrangian mTotalLagrangian3D15N;
-    const TotalLagrangian mTotalLagrangian3D20N;
-    const TotalLagrangian mTotalLagrangian3D27N;
-
+    // Linear kinematic elements
     const KinematicLinear mKinematicLinear2D3N;
     const KinematicLinear mKinematicLinear2D4N;
     const KinematicLinear mKinematicLinear2D6N;
@@ -265,17 +246,36 @@ private:
     const KinematicLinear mKinematicLinear3D20N;
     const KinematicLinear mKinematicLinear3D27N;
     
-
-   const LineLoadCondition2D              mLineLoadCondition2D2N;
-   const LineLoadCondition2D              mLineLoadCondition2D3N;
-
-   const SurfaceLoadCondition3D    mSurfaceLoadCondition3D3N;
-   const SurfaceLoadCondition3D    mSurfaceLoadCondition3D4N;
-   const SurfaceLoadCondition3D    mSurfaceLoadCondition3D6N;
-   const SurfaceLoadCondition3D    mSurfaceLoadCondition3D8N;
-   const SurfaceLoadCondition3D    mSurfaceLoadCondition3D9N;
-
+    // Total lagrangian
+    const TotalLagrangian mTotalLagrangian2D3N;
+    const TotalLagrangian mTotalLagrangian2D4N;
+    const TotalLagrangian mTotalLagrangian2D6N;
+    const TotalLagrangian mTotalLagrangian2D8N;
+    const TotalLagrangian mTotalLagrangian2D9N;
+    const TotalLagrangian mTotalLagrangian3D4N;
+    const TotalLagrangian mTotalLagrangian3D6N;
+    const TotalLagrangian mTotalLagrangian3D8N;
+    const TotalLagrangian mTotalLagrangian3D10N;
+    const TotalLagrangian mTotalLagrangian3D15N;
+    const TotalLagrangian mTotalLagrangian3D20N;
+    const TotalLagrangian mTotalLagrangian3D27N;
     
+    /* CONDITIONS*/
+    // Line load
+    const LineLoadCondition2D mLineLoadCondition2D2N;
+    const LineLoadCondition2D mLineLoadCondition2D3N;
+
+    // Surface load
+    const SurfaceLoadCondition3D mSurfaceLoadCondition3D3N;
+    const SurfaceLoadCondition3D mSurfaceLoadCondition3D4N;
+    const SurfaceLoadCondition3D mSurfaceLoadCondition3D6N;
+    const SurfaceLoadCondition3D mSurfaceLoadCondition3D8N;
+    const SurfaceLoadCondition3D mSurfaceLoadCondition3D9N;
+    
+    // Beam moment condition
+    const PointMoment3DCondition mPointMomentCondition3D1N;
+    // Torque condition
+    const PointTorque3DCondition mPointTorqueCondition3D1N;
 
     ///@}
     ///@name Private Operators

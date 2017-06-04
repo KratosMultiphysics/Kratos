@@ -104,15 +104,15 @@ public:
         string outputFilename = outputDirectory + "/" + optimizationSettings["output"]["design_history_filename"].GetString() + "_";
         return outputFilename;
     }
-    
-    // -------------------------------------------------------------------------- 
+
+    // --------------------------------------------------------------------------
     void initializeLogging()
     {
         mKratosIdToVtkId = createMapFromKratosIdToVTKId();
         mVtkCellListSize = determineVtkCellListSize();
-    }    
+    }
 
-    // -------------------------------------------------------------------------- 
+    // --------------------------------------------------------------------------
     map<int,int> createMapFromKratosIdToVTKId()
     {
         map<int,int> kratos_id_to_vtk;
@@ -126,9 +126,9 @@ public:
         }
 
         return kratos_id_to_vtk;
-    }    
+    }
 
-    // -------------------------------------------------------------------------- 
+    // --------------------------------------------------------------------------
     unsigned int determineVtkCellListSize()
     {
          unsigned int vtk_cell_list_size = 0;
@@ -136,13 +136,13 @@ public:
         for (ModelPart::ConditionIterator condition_i = mrDesignSurface.ConditionsBegin(); condition_i != mrDesignSurface.ConditionsEnd(); ++condition_i)
         {
             vtk_cell_list_size++;
-            vtk_cell_list_size += condition_i->GetGeometry().size(); 
+            vtk_cell_list_size += condition_i->GetGeometry().size();
         }
-        
+
         return vtk_cell_list_size;
     }
 
-    // -------------------------------------------------------------------------- 
+    // --------------------------------------------------------------------------
     void logNodalResults( const int optimizationIteration )
     {
         updateOutputFilename( optimizationIteration );
@@ -158,19 +158,19 @@ public:
         mOutputFilename = outputFilename;
     }
 
-    // -------------------------------------------------------------------------- 
-    void writeHeader() 
+    // --------------------------------------------------------------------------
+    void writeHeader()
     {
         ofstream outputFile;
         outputFile.open(mOutputFilename, ios::out | ios::trunc );
-        outputFile << "# vtk DataFile Version 4.0" << "\n";        
-        outputFile << "vtk output" << "\n";        
-        outputFile << "ASCII" << "\n";        
-        outputFile << "DATASET UNSTRUCTURED_GRID" << "\n";                
-        outputFile.close();     
+        outputFile << "# vtk DataFile Version 4.0" << "\n";
+        outputFile << "vtk output" << "\n";
+        outputFile << "ASCII" << "\n";
+        outputFile << "DATASET UNSTRUCTURED_GRID" << "\n";
+        outputFile.close();
     }
 
-    // -------------------------------------------------------------------------- 
+    // --------------------------------------------------------------------------
     void writeMesh()
     {
         writeNodes();
@@ -178,12 +178,12 @@ public:
         writeElementTypes();
     }
 
-    // -------------------------------------------------------------------------- 
+    // --------------------------------------------------------------------------
     void writeNodalResults()
     {
         writeFirstNodalResultsAsPointData();
         writeOtherNodalResultsAsFieldData();
-    }     
+    }
 
     // --------------------------------------------------------------------------
     void writeNodes()
@@ -195,19 +195,19 @@ public:
 
         // write nodes header
         outputFile << "POINTS " << mrDesignSurface.NumberOfNodes() << " float" << "\n";
-        
+
         // write nodes
         for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
-            double x_coordinate = node_i->X();
-            double y_coordinate = node_i->Y();
-            double z_coordinate = node_i->Z();
+            double x_coordinate = node_i->X0();
+            double y_coordinate = node_i->Y0();
+            double z_coordinate = node_i->Z0();
             outputFile << " " << x_coordinate;
             outputFile << " " << y_coordinate;
             outputFile << " " << z_coordinate << "\n";
         }
 
-        outputFile.close();     
+        outputFile.close();
     }
 
     // --------------------------------------------------------------------------
@@ -218,20 +218,20 @@ public:
 
         // write elements header
         outputFile << "CELLS " << mrDesignSurface.NumberOfConditions() << " " << mVtkCellListSize << "\n";
-        
+
         // write elements
         for (ModelPart::ConditionIterator condition_i = mrDesignSurface.ConditionsBegin(); condition_i != mrDesignSurface.ConditionsEnd(); ++condition_i)
         {
             ModelPart::ConditionType::GeometryType& condition_geometry = condition_i->GetGeometry();
-            const unsigned int numberOfNodes = condition_geometry.size(); 
+            const unsigned int numberOfNodes = condition_geometry.size();
 
             outputFile << numberOfNodes;
             for (unsigned int i=0; i<numberOfNodes; i++)
-                outputFile << " " << mKratosIdToVtkId[condition_geometry[i].Id()]; 
+                outputFile << " " << mKratosIdToVtkId[condition_geometry[i].Id()];
             outputFile << "\n";
         }
 
-        outputFile.close();     
+        outputFile.close();
     }
 
     // --------------------------------------------------------------------------
@@ -242,24 +242,24 @@ public:
 
         // write element types header
         outputFile << "CELL_TYPES " << mrDesignSurface.NumberOfConditions() << "\n";
-        
+
         // write elements types
         for (ModelPart::ConditionIterator condition_i = mrDesignSurface.ConditionsBegin(); condition_i != mrDesignSurface.ConditionsEnd(); ++condition_i)
         {
-            const unsigned int numberOfNodes =  condition_i->GetGeometry().size(); 
+            const unsigned int numberOfNodes =  condition_i->GetGeometry().size();
             unsigned int element_type;
 
             if( numberOfNodes == 3 )
                 element_type = 5;
             else if( numberOfNodes == 4 )
-                element_type = 9;                
-            else 
+                element_type = 9;
+            else
                 KRATOS_THROW_ERROR(std::runtime_error,"Design surface contains conditions with geometries for which no VTK-output is implemented!","" )
 
-            outputFile << element_type << "\n";       
+            outputFile << element_type << "\n";
         }
 
-        outputFile.close();     
+        outputFile.close();
     }
 
     // --------------------------------------------------------------------------
@@ -267,12 +267,12 @@ public:
     {
         ofstream outputFile;
         outputFile.open(mOutputFilename, ios::out | ios::app );
-        
+
         // write nodal results header
         Parameters nodalResults = mrOptimizationSettings["output"]["nodal_results"];
         outputFile << "POINT_DATA " << mrDesignSurface.NumberOfNodes() << "\n";
 
-        // write nodal results variable header            
+        // write nodal results variable header
         string nodalResultName = nodalResults[0].GetString();
         unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
         if( KratosComponents<Variable<double>>::Has(nodalResultName))
@@ -285,7 +285,7 @@ public:
             dataCharacteristic = 2;
             outputFile << "VECTORS " << nodalResultName << " float" << "\n";
         }
-        
+
         // write nodal results
         outputFile << scientific;
         outputFile << setprecision(mDefaultPrecision);
@@ -295,7 +295,7 @@ public:
             {
                 Variable<double> nodalResultVariable = KratosComponents<Variable<double>>::Get(nodalResultName);
                 double& nodalResult = node_i->FastGetSolutionStepValue(nodalResultVariable);
-                outputFile << nodalResult << "\n"; 
+                outputFile << nodalResult << "\n";
             }
             else if(dataCharacteristic==2)
             {
@@ -303,26 +303,26 @@ public:
                 array_1d<double,3>& nodalResult = node_i->FastGetSolutionStepValue(nodalResultVariable);
                 outputFile << nodalResult[0] << " ";
                 outputFile << nodalResult[1] << " ";
-                outputFile << nodalResult[2] << "\n"; 
+                outputFile << nodalResult[2] << "\n";
             }
         }
 
-        outputFile.close();     
+        outputFile.close();
     }
-    
+
     // --------------------------------------------------------------------------
     void writeOtherNodalResultsAsFieldData()
     {
         ofstream outputFile;
         outputFile.open(mOutputFilename, ios::out | ios::app );
-        
+
         // write nodal results header
         Parameters nodalResults = mrOptimizationSettings["output"]["nodal_results"];
         outputFile << "FIELD FieldData " << nodalResults.size()-1 << "\n";
 
         for(unsigned int entry = 1; entry < nodalResults.size(); entry++)
         {
-            // write nodal results variable header            
+            // write nodal results variable header
             string nodalResultName = nodalResults[entry].GetString();
             unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
             if( KratosComponents<Variable<double>>::Has(nodalResultName))
@@ -345,7 +345,7 @@ public:
                 {
                     Variable<double> nodalResultVariable = KratosComponents<Variable<double>>::Get(nodalResultName);
                     double& nodalResult = node_i->FastGetSolutionStepValue(nodalResultVariable);
-                    outputFile << nodalResult << "\n"; 
+                    outputFile << nodalResult << "\n";
                 }
                 else if(dataCharacteristic==2)
                 {
@@ -353,12 +353,12 @@ public:
                     array_1d<double,3>& nodalResult = node_i->FastGetSolutionStepValue(nodalResultVariable);
                     outputFile << nodalResult[0] << " ";
                     outputFile << nodalResult[1] << " ";
-                    outputFile << nodalResult[2] << "\n"; 
+                    outputFile << nodalResult[2] << "\n";
                 }
             }
         }
 
-        outputFile.close();     
+        outputFile.close();
     }
 
     // ==============================================================================
