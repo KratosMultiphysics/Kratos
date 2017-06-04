@@ -413,25 +413,25 @@ public:
         // Initialize normal vectors
         const array_1d<double,3> ZeroVect = ZeroVector(3);
         
-        NodesArrayType& pNode = rModelPart.Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
+        NodesArrayType& NodesArray = rModelPart.Nodes();
+        int numNodes = static_cast<int>(NodesArray.size());
         
         #pragma omp parallel for
         for(int i = 0; i < numNodes; i++) 
         {
-            auto itNode = pNode.begin() + i;
+            auto itNode = NodesArray.begin() + i;
             itNode->GetValue(NODAL_AREA)      = 0.0;
             noalias(itNode->GetValue(NORMAL)) = ZeroVect;
         }
         
         // Sum all the nodes normals
-        ConditionsArrayType& pCond = rModelPart.Conditions();
-        auto numConditions = pCond.end() - pCond.begin();
+        ConditionsArrayType& ConditionsArray = rModelPart.Conditions();
+        int numConditions = static_cast<int>(ConditionsArray.size());
         
         #pragma omp parallel for
         for(int i = 0; i < numConditions; i++) 
         {
-            auto itCond = pCond.begin() + i;
+            auto itCond = ConditionsArray.begin() + i;
             
             if (itCond->Is(SLAVE) || itCond->Is(MASTER) || itCond->Is(ACTIVE))
             {
@@ -454,7 +454,7 @@ public:
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
         {
-            auto itNode = pNode.begin() + i;
+            auto itNode = NodesArray.begin() + i;
 
             const double TotalArea = itNode->GetValue(NODAL_AREA);
             if (TotalArea > Tolerance)
@@ -472,7 +472,7 @@ public:
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
         {
-            auto itNode = pNode.begin() + i;
+            auto itNode = NodesArray.begin() + i;
 
             const double NormNormal = norm_2(itNode->GetValue(NORMAL));
             
@@ -510,13 +510,13 @@ public:
         
         const Matrix I = IdentityMatrix(dimension, dimension);
 
-        NodesArrayType& pNode = rModelPart.Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
+        NodesArrayType& NodesArray = rModelPart.Nodes();
+        int numNodes = static_cast<int>(NodesArray.size());
         
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
         {
-            auto itNode = pNode.begin() + i;
+            auto itNode = NodesArray.begin() + i;
             itNode->GetValue(DELTA_NORMAL) = ZeroDeltaNormal;
         }
         
@@ -681,7 +681,7 @@ public:
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
         {
-            auto itNode = pNode.begin() + i;
+            auto itNode = NodesArray.begin() + i;
             const array_1d<double, 3> & nj = itNode->GetValue(NORMAL); // nodal non-normalized normal (this function is called before normalization)
             
             Matrix nj_o_nj = subrange( outer_prod( nj, nj ), 0, dimension, 0, dimension );

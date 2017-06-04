@@ -131,24 +131,24 @@ public:
         mSearchTreeType = ConvertSearchTree(ThisParameters["type_search"].GetString());
         mBucketSize = ThisParameters["bucket_size"].GetInt();
         
-        NodesArrayType& pNode = mrMainModelPart.Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
+        NodesArrayType& NodesArray = mrMainModelPart.Nodes();
+        int numNodes = static_cast<int>(NodesArray.size());
         
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
         {
-            auto itNode = pNode.begin() + i;
+            auto itNode = NodesArray.begin() + i;
             itNode->Set(ACTIVE, false);
         }
         
         // Iterate in the conditions
-        ConditionsArrayType& pConditions = mrMainModelPart.Conditions();
-        auto numConditions = pConditions.end() - pConditions.begin();
+        ConditionsArrayType& ConditionsArray = mrMainModelPart.Conditions();
+        int numConditions = static_cast<int>(ConditionsArray.size());
 
         #pragma omp parallel for 
         for(int i = 0; i < numConditions; i++) 
         {
-            auto itCond = pConditions.begin() + i;
+            auto itCond = ConditionsArray.begin() + i;
             
             itCond->Set(ACTIVE, false);
         }
@@ -171,13 +171,13 @@ public:
     void InitializeMortarConditions()
     {
         // Iterate in the conditions
-        ConditionsArrayType& pConditions = mrMainModelPart.Conditions();
-        auto numConditions = pConditions.end() - pConditions.begin();
+        ConditionsArrayType& ConditionsArray = mrMainModelPart.Conditions();
+        int numConditions = static_cast<int>(ConditionsArray.size());
 
 //         #pragma omp parallel for 
         for(int i = 0; i < numConditions; i++) 
         {
-            auto itCond = pConditions.begin() + i;
+            auto itCond = ConditionsArray.begin() + i;
 
             itCond->GetValue(CONTACT_SETS) = boost::shared_ptr<ConditionSet>(new ConditionSet); 
 //             itCond->GetValue(CONTACT_SETS)->reserve(mAllocationSize); 
@@ -192,13 +192,13 @@ public:
     {
         ResetContactOperators(mrMainModelPart);
         
-        NodesArrayType& pNode = mrMainModelPart.Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
+        NodesArrayType& NodesArray = mrMainModelPart.Nodes();
+        int numNodes = static_cast<int>(NodesArray.size());
         
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
         {
-            auto itNode = pNode.begin() + i;
+            auto itNode = NodesArray.begin() + i;
             
             if (itNode->Is(ACTIVE) == true)
             {
@@ -212,13 +212,13 @@ public:
     {
         ResetContactOperators(mrMainModelPart);
         
-        NodesArrayType& pNode = mrMainModelPart.Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
+        NodesArrayType& NodesArray = mrMainModelPart.Nodes();
+        int numNodes = static_cast<int>(NodesArray.size());
         
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
         {
-            auto itNode = pNode.begin() + i;
+            auto itNode = NodesArray.begin() + i;
             
             if (itNode->Is(ACTIVE) == true)
             {
@@ -236,13 +236,13 @@ public:
     {
         ResetContactOperators(mrMainModelPart);
         
-        NodesArrayType& pNode = mrMainModelPart.Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
+        NodesArrayType& NodesArray = mrMainModelPart.Nodes();
+        int numNodes = static_cast<int>(NodesArray.size());
         
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
         {
-            auto itNode = pNode.begin() + i;
+            auto itNode = NodesArray.begin() + i;
             
             if (itNode->Is(ACTIVE) == true)
             {
@@ -258,13 +258,13 @@ public:
     
     void PartialClearScalarMortarConditions()
     {
-        NodesArrayType& pNode = mrMainModelPart.Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
+        NodesArrayType& NodesArray = mrMainModelPart.Nodes();
+        int numNodes = static_cast<int>(NodesArray.size());
         
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
         {
-            auto itNode = pNode.begin() + i;
+            auto itNode = NodesArray.begin() + i;
             if (itNode->Is(ACTIVE) == false)
             {
                 itNode->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
@@ -278,13 +278,13 @@ public:
         
     void PartialClearComponentsMortarConditions()
     {
-        NodesArrayType& pNode = mrMainModelPart.Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
+        NodesArrayType& NodesArray = mrMainModelPart.Nodes();
+        int numNodes = static_cast<int>(NodesArray.size());
         
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
         {
-            auto itNode = pNode.begin() + i;
+            auto itNode = NodesArray.begin() + i;
             if (itNode->Is(ACTIVE) == false)
             {
                 itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector(3);
@@ -298,13 +298,13 @@ public:
     
     void PartialClearALMFrictionlessMortarConditions()
     {
-        NodesArrayType& pNode = mrMainModelPart.Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
+        NodesArrayType& NodesArray = mrMainModelPart.Nodes();
+        int numNodes = static_cast<int>(NodesArray.size());
         
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
         {
-            auto itNode = pNode.begin() + i;
+            auto itNode = NodesArray.begin() + i;
             if (itNode->Is(ACTIVE) == false)
             {
                 itNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
@@ -319,13 +319,13 @@ public:
     void CreatePointListMortar()
     {
         // Iterate in the conditions
-        ConditionsArrayType& pConditions = mrMainModelPart.Conditions();
-        auto numConditions = pConditions.end() - pConditions.begin();
+        ConditionsArrayType& ConditionsArray = mrMainModelPart.Conditions();
+        int numConditions = static_cast<int>(ConditionsArray.size());
 
         #pragma omp for nowait schedule(static)
         for(int i = 0; i < numConditions; i++) 
         {
-            auto itCond = pConditions.begin() + i;
+            auto itCond = ConditionsArray.begin() + i;
             
             if (itCond->Is(MASTER) == true)
             {
@@ -341,7 +341,7 @@ public:
     
     void UpdatePointListMortar()
     {
-        auto numPoints = mPointListDestination.end() - mPointListDestination.begin();
+        int numPoints = static_cast<int>(mPointListDestination.size());
         
         #pragma omp parallel for 
         for(int i = 0; i < numPoints; i++) 
@@ -378,13 +378,13 @@ public:
             KDTree TreePoints(mPointListDestination.begin(), mPointListDestination.end(), mBucketSize);
             
             // Iterate in the conditions
-            ConditionsArrayType& pConditions = mrMainModelPart.Conditions();
-            auto numConditions = pConditions.end() - pConditions.begin();
+            ConditionsArrayType& ConditionsArray = mrMainModelPart.Conditions();
+            int numConditions = static_cast<int>(ConditionsArray.size());
 
 //             #pragma omp for 
-            for(unsigned int i = 0; i < numConditions; i++) 
+            for(int i = 0; i < numConditions; i++) 
             {
-                auto itCond = pConditions.begin() + i;
+                auto itCond = ConditionsArray.begin() + i;
                 
                 if (itCond->Is(SLAVE) == true)
                 {
@@ -443,13 +443,13 @@ public:
     void CheckMortarConditions()
     {
         // Iterate in the conditions
-        ConditionsArrayType& pConditions = mrMainModelPart.Conditions();
-        auto numConditions = pConditions.end() - pConditions.begin();
+        ConditionsArrayType& ConditionsArray = mrMainModelPart.Conditions();
+        int numConditions = static_cast<int>(ConditionsArray.size());
 
 //         #pragma omp parallel for 
         for(int i = 0; i < numConditions; i++) 
         {
-            auto itCond = pConditions.begin() + i;
+            auto itCond = ConditionsArray.begin() + i;
             
             if (itCond->Is(MASTER) == true && itCond->Is(ACTIVE) == true)
             {
@@ -467,13 +467,13 @@ public:
             }
         }
         
-        NodesArrayType& pNode = mrMainModelPart.Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
+        NodesArrayType& NodesArray = mrMainModelPart.Nodes();
+        int numNodes = static_cast<int>(NodesArray.size());
         
 //         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
         {
-            auto itNode = pNode.begin() + i;
+            auto itNode = NodesArray.begin() + i;
             
             if (itNode->Is(ACTIVE) == true)
             {
@@ -607,14 +607,13 @@ protected:
         
     void ResetContactOperators(ModelPart & rModelPart)
     {
-        ConditionsArrayType& pCond = rModelPart.Conditions();
-    
-        auto numConditions = pCond.end() - pCond.begin();
+        ConditionsArrayType& ConditionsArray = rModelPart.Conditions();
+        int numConditions = static_cast<int>(ConditionsArray.size());
         
         #pragma omp parallel for 
         for(int i = 0; i < numConditions; i++) 
         {
-            auto itCond = pCond.begin() + i;
+            auto itCond = ConditionsArray.begin() + i;
             if (itCond->Is(SLAVE) == true && itCond->Is(ACTIVE) == true)
             {
                 itCond->Set(ACTIVE, false);

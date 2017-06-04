@@ -269,13 +269,13 @@ protected:
         double AuxNonContact = 0.0;
         
         // Now we iterate over all the nodes
-        NodesArrayType& pNode = StrategyBaseType::GetModelPart().GetSubModelPart("Contact").Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
+        NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().GetSubModelPart("Contact").Nodes();
+        int numNodes = static_cast<int>(NodesArray.size()); 
         
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(numNodes); i++) 
         {
-            auto itNode = pNode.begin() + i;
+            auto itNode = NodesArray.begin() + i;
     
             for(auto itDoF = itNode->GetDofs().begin() ; itDoF != itNode->GetDofs().end() ; itDoF++)
             {
@@ -376,13 +376,13 @@ protected:
         )
     {        
         // Now we iterate over all the nodes
-        NodesArrayType& pNode = StrategyBaseType::GetModelPart().Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
+        NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().Nodes();
+        int numNodes = static_cast<int>(NodesArray.size()); 
         
         #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(numNodes); i++) 
+        for(int i = 0; i < numNodes; i++) 
         {
-            auto itNode = pNode.begin() + i;
+            auto itNode = NodesArray.begin() + i;
     
             for(auto itDoF = itNode->GetDofs().begin() ; itDoF != itNode->GetDofs().end() ; itDoF++)
             {
@@ -417,13 +417,13 @@ protected:
         )
     {        
         // Now we iterate over all the nodes
-        NodesArrayType& pNode = StrategyBaseType::GetModelPart().Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
+        NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().Nodes();
+        int numNodes = static_cast<int>(NodesArray.size()); 
         
         #pragma omp parallel for
         for(int i = 0; i < numNodes; i++) 
         {
-            auto itNode = pNode.begin() + i;
+            auto itNode = NodesArray.begin() + i;
     
             for(auto itDoF = itNode->GetDofs().begin() ; itDoF != itNode->GetDofs().end() ; itDoF++)
             {

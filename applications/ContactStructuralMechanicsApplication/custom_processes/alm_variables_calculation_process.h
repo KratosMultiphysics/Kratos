@@ -150,13 +150,13 @@ public:
         double TotalAreaMaster   = 0.0;
         
         // Now we iterate over the conditions to calculate the nodal area
-        ConditionsArrayType& pConditions = mrThisModelPart.Conditions();
-        auto numConditions = pConditions.end() - pConditions.begin();
+        ConditionsArrayType& ConditionsArray = mrThisModelPart.Conditions();
+        int numConditions = static_cast<int>(ConditionsArray.size());
         
         #pragma omp parallel for 
         for(int i = 0; i < numConditions; i++) 
         {
-            auto itCond = pConditions.begin() + i;
+            auto itCond = ConditionsArray.begin() + i;
             
             // We get the condition geometry
             GeometryType& rThisGeometry = itCond->GetGeometry();

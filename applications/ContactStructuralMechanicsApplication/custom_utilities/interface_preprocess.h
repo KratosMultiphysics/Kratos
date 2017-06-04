@@ -1002,12 +1002,12 @@ private:
     unsigned int ReorderConditions()
     {
         // We reorder the conditions
-        ConditionsArrayType& pCondition = mrMainModelPart.Conditions();
-        unsigned int numConditions = pCondition.end() - pCondition.begin();
+        ConditionsArrayType& ConditionsArray = mrMainModelPart.Conditions();
+        unsigned int numConditions = static_cast<int>(ConditionsArray.size());
         
         for(unsigned int i = 0; i < numConditions; i++) 
         {
-            auto itCondition = pCondition.begin() + i;
+            auto itCondition = ConditionsArray.begin() + i;
             itCondition->SetId(i + 1);
         }
         
@@ -1057,8 +1057,8 @@ private:
         const std::string FinalString = ThisParameters["final_string"].GetString();
         const bool SimplestGeometry = ThisParameters["simplify_geometry"].GetBool();
         
-        NodesArrayType& pNode = mrMainModelPart.Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
+        NodesArrayType& NodesArray = mrMainModelPart.Nodes();
+        unsigned int numNodes = static_cast<int>(NodesArray.size());
         
         unsigned int CondCounter = 0;
         
@@ -1156,8 +1156,8 @@ private:
         const std::string FinalString = ThisParameters["final_string"].GetString();
         const bool SimplestGeometry = ThisParameters["simplify_geometry"].GetBool();
         
-        NodesArrayType& pNode = mrMainModelPart.Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
+        NodesArrayType& NodesArray = mrMainModelPart.Nodes();
+        unsigned int numNodes = static_cast<int>(NodesArray.size());
         
         unsigned int CondCounter = 0;
         

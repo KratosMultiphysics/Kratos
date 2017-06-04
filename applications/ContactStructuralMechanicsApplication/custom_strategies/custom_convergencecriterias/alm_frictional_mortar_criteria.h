@@ -165,13 +165,13 @@ public:
         
         const array_1d<double,3> ZeroVector(0.0);
         
-        NodesArrayType& pNodes = rModelPart.GetSubModelPart("Contact").Nodes();
-        auto numNodes = pNodes.end() - pNodes.begin();
+        NodesArrayType& NodesArray = rModelPart.GetSubModelPart("Contact").Nodes();
+        int numNodes = static_cast<int>(NodesArray.size());
 
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
         {
-            auto itNode = pNodes.begin() + i;
+            auto itNode = NodesArray.begin() + i;
             
             // Check if the node is slave
             bool NodeIsSlave = true;
@@ -244,13 +244,13 @@ public:
         // We update the pairs if necessary
         if (rModelPart.GetProcessInfo()[CONSIDER_PAIR_VARIATION] == true)
         {
-            ConditionsArrayType& pConditions = rModelPart.GetSubModelPart("Contact").Conditions();
-            auto numConditions = pConditions.end() - pConditions.begin();
+            ConditionsArrayType& ConditionsArray = rModelPart.GetSubModelPart("Contact").Conditions();
+            int numConditions = static_cast<int>(ConditionsArray.size());
 
             #pragma omp parallel for 
             for(int i = 0; i < numConditions; i++) 
             {
-                auto itCond = pConditions.begin() + i;
+                auto itCond = ConditionsArray.begin() + i;
                 if ( (itCond)->Is(ACTIVE) == true )
                 {
                     bool DeactivateCondition = true;

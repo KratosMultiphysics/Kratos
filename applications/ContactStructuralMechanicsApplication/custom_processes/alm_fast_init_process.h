@@ -124,13 +124,13 @@ public:
         }
         
         // We iterate over the node
-        NodesArrayType& pNodes = mrThisModelPart.Nodes();
-        auto numNodes = pNodes.end() - pNodes.begin();
+        NodesArrayType& NodesArray = mrThisModelPart.Nodes();
+        int numNodes = static_cast<int>(NodesArray.size());
         
         #pragma omp parallel for firstprivate(zerovector)
         for(int i = 0; i < numNodes; i++) 
         {
-            auto itNode = pNodes.begin() + i;
+            auto itNode = NodesArray.begin() + i;
             
             // Weighted values
             itNode->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
@@ -162,13 +162,13 @@ public:
         }
         
         // Now we iterate over the conditions
-        ConditionsArrayType& pConditions = mrThisModelPart.Conditions();
-        auto numConditions = pConditions.end() - pConditions.begin();
+        ConditionsArrayType& ConditionsArray = mrThisModelPart.Conditions();
+        int numConditions = static_cast<int>(ConditionsArray.size());
         
         #pragma omp parallel for firstprivate(zerovector)
         for(int i = 0; i < numConditions; i++) 
         {
-            auto itCond = pConditions.begin() + i;
+            auto itCond = ConditionsArray.begin() + i;
             
             // The normal and tangents vectors
             itCond->SetValue(NORMAL, zerovector);
