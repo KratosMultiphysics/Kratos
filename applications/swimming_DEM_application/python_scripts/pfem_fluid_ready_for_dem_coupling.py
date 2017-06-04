@@ -22,7 +22,20 @@ class Solution(KratosPfemFluid.Solution):
 
     def __init__(self):   
         self.pp = self.ProblemParameters()
-        super(Solution,self).__init__()        
+        super(Solution,self).__init__()    
+        
+    def AddNodalVariablesToModelPart(self):
+        
+        # Add variables (always before importing the model part)
+        self.solver.AddVariables()
+        self.AddFluidVariablesBySwimmingDEMAlgorithm()
+
+        # Add PfemSolidMechanicsApplication Variables
+        import pfem_solid_variables  
+        pfem_solid_variables.AddVariables(self.main_model_part) 
+        
+    def AddFluidVariablesBySwimmingDEMAlgorithm(self):
+        self.vars_man.AddNodalVariables(self.main_model_part, self.pp.fluid_vars) 
         
     def GetDeltaTimeFromParameters(self):
         return self.ProjectParameters["problem_data"]["time_step"].GetDouble()
@@ -31,10 +44,15 @@ class Solution(KratosPfemFluid.Solution):
         self.pp.nodal_results = []
         output_settings = self.ProjectParameters["output_configuration"]["result_file_configuration"]
         for i in range(output_settings["nodal_results"].size()):
-            self.pp.nodal_results.append(output_settings["nodal_results"][i].GetString())    
+            self.pp.nodal_results.append(output_settings["nodal_results"][i].GetString()) 
+        
+        self.pp.gauss_points_results = []    
+        for i in range(output_settings["gauss_point_results"].size()):
+            self.pp.nodal_results.append(output_settings["gauss_point_results"][i].GetString()) 
                         
             
         self.pp.problem_name = self.problem_name
+        self.pp.Start_time = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
         self.pp.VolumeOutput = True
         
         if output_settings["gidpost_flags"]["GiDPostMode"].GetString() == "GiD_PostBinary":

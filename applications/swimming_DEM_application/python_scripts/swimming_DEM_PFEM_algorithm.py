@@ -31,14 +31,28 @@ class Algorithm(BaseAlgorithm):
         # defining a fluid model
         self.all_model_parts.Add(ModelPart("FluidPart"))        
         
-        self.fluid_model_part = self.fluid_algorithm.main_model_part.GetSubModelPart("fluid_computing_domain")
+        #self.fluid_model_part = self.fluid_algorithm.main_model_part.GetSubModelPart("fluid_computing_domain")
+        self.fluid_model_part = self.fluid_algorithm.main_model_part.GetSubModelPart("Body1")
         self.all_model_parts.Set("FluidPart", self.fluid_model_part)
         
         # defining a model part for the mixed part
         self.all_model_parts.Add(ModelPart("MixedPart"))  
         
+        self.mixed_model_part = self.all_model_parts.Get('MixedPart')
+        
     def FluidInitialize(self):
+        
+        self.fluid_algorithm.vars_man=self.vars_man
         self.fluid_algorithm.Initialize()
+        
+    def CloneTimeStep(self):
+        self.fluid_algorithm.main_model_part.CloneTimeStep(self.time)
+        
+    def FluidSolve(self, time = 'None'):
+        
+        self.fluid_algorithm.InitializeSolutionStep()
+        self.fluid_algorithm.SolveSolutionStep()
+        self.fluid_algorithm.FinalizeSolutionStep()                
         
     def SetCutsOutput(self):
         pass

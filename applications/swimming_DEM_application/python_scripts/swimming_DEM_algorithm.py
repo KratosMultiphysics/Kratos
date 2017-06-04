@@ -55,12 +55,11 @@ class Algorithm(object):
                                                 
         self.SetDispersePhaseAlgorithm()
         
-        self.SetAllModelParts()
+        
         
         self.procedures = self.disperse_phase_algorithm.procedures        
         self.KRATOSprint = self.disperse_phase_algorithm.KRATOSprint    
         self.report        = DEM_procedures.Report() 
-        self.fluid_model_part = self.all_model_parts.Get("FluidPart")            
         
         # creating a basset_force tool to perform the operations associated with the calculation of this force along the path of each particle
         self.GetBassetForceTools()
@@ -88,8 +87,12 @@ class Algorithm(object):
         self.all_model_parts.Add(ModelPart("FluidPart"))        
         self.all_model_parts.Set("FluidPart", self.fluid_algorithm.fluid_model_part)
         
+        self.fluid_model_part = self.fluid_algorithm.fluid_model_part
+        
         # defining a model part for the mixed part
-        self.all_model_parts.Add(ModelPart("MixedPart"))        
+        self.all_model_parts.Add(ModelPart("MixedPart"))  
+        
+        self.mixed_model_part = self.all_model_parts.Get('MixedPart')
         
         
     def StartTimer(self):
@@ -207,13 +210,15 @@ class Algorithm(object):
         [self.post_path, data_and_results, self.graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(self.pp.CFD_DEM.problem_name))
         SDP.CopyInputFilesIntoFolder(self.main_path, self.post_path)
 
-        self.mixed_model_part = self.all_model_parts.Get('MixedPart')
+        #self.mixed_model_part = self.all_model_parts.Get('MixedPart')
 
         self.vars_man = vars_man
         self.vars_man.ConstructListsOfVariables(self.pp)        
 
         self.FluidInitialize()
         self.DispersePhaseInitialize()
+        
+        self.SetAllModelParts()
                                 
         self.vars_man.AddingExtraProcessInfoVariables(self.pp, self.fluid_model_part, self.disperse_phase_algorithm.spheres_model_part)
         
@@ -297,7 +302,6 @@ class Algorithm(object):
         self.time           = self.pp.Start_time
         self.Dt             = self.pp.Dt
         self.out            = self.Dt
-        Nsteps         = self.pp.nsteps
         self.final_time     = self.pp.CFD_DEM.FinalTime
         self.output_time    = self.pp.CFD_DEM.OutputTimeStep
 
@@ -407,6 +411,7 @@ class Algorithm(object):
         
     def FluidInitialize(self):
         
+        self.fluid_model_part = self.fluid_algorithm.fluid_model_part
         self.fluid_algorithm.vars_man=self.vars_man
         
         self.fluid_algorithm.SetFluidSolverModule()
@@ -433,7 +438,7 @@ class Algorithm(object):
 
             self.time = self.time + self.Dt
             self.step += 1
-            self.fluid_model_part.CloneTimeStep(self.time)
+            self.CloneTimeStep()            
             self.TellTime(self.time)
 
 
@@ -577,6 +582,9 @@ class Algorithm(object):
                 #self.graph_printer.PrintGraphs(self.time) #MA: commented out because the constructor was already commented out
                 self.PrintDrag(self.drag_list, self.drag_file_output_list, self.fluid_model_part, self.time)
                 
+    
+    def CloneTimeStep(self):
+        self.fluid_model_part.CloneTimeStep(self.time)
         
     def DEMSolve(self, time = 'None'): # time is passed in case it is needed
         self.disperse_phase_algorithm.solver.Solve()
@@ -707,6 +715,10 @@ class Algorithm(object):
 
         return self.GetReturnValue()
     
+    def SetCutsOutput(self):             
+        if not self.pp.VolumeOutput: 
+            cut_list = define_output.DefineCutPlanes() 
+            self.swimming_DEM_gid_io.define_cuts(self.fluid_model_part, cut_list) 
     
     def SetDragOutput(self):
         # define the drag computation list
