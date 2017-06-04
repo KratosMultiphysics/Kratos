@@ -128,7 +128,12 @@ public:
         main_namespace["y"] = y;
         main_namespace["z"] = z;
         main_namespace["t"] = t;
+
+        #if PY_MAJOR_VERSION >= 3
         PyObject* res = PyEval_EvalCode(mbytecode.ptr(),main_namespace.ptr(),main_namespace.ptr());
+        #else
+        PyObject* res = PyEval_EvalCode((PyCodeObject*)(mbytecode.ptr()),main_namespace.ptr(),main_namespace.ptr());
+        #endif
         return boost::python::extract<double>(res);
     }
 
