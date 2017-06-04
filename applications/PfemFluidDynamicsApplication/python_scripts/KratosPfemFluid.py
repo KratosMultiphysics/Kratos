@@ -73,13 +73,39 @@ class Solution(object):
         solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())
         self.solver = solver_module.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
 
+
+        #### Output settings start ####
+
+        self.problem_path = os.getcwd()
+        self.problem_name = self.ProjectParameters["problem_data"]["problem_name"].GetString()
+        
+        self.SetGraphicalOutput()   
+        
+    
+    def AddNodalVariablesToModelPart(self):
+        
         # Add variables (always before importing the model part)
         self.solver.AddVariables()
 
         # Add PfemSolidMechanicsApplication Variables
         import pfem_solid_variables  
         pfem_solid_variables.AddVariables(self.main_model_part) 
+        
+        
+    def Run(self):
 
+        self.Initialize()
+
+        self.RunMainTemporalLoop()
+
+        self.Finalize()
+        
+        
+    def Initialize(self):
+        
+        # Add variables (always before importing the model part)
+        self.AddNodalVariablesToModelPart()
+        
         # Read model_part (note: the buffer_size is set here) (restart is read here)
         self.solver.ImportModelPart()
 
@@ -146,26 +172,9 @@ class Solution(object):
         self.solver.InitializeStrategy()
         self.solver.SetEchoLevel(self.echo_level)
 
-        #### Output settings start ####
-
-        self.problem_path = os.getcwd()
-        self.problem_name = self.ProjectParameters["problem_data"]["problem_name"].GetString()
-
-        # Initialize GiD  I/O (gid outputs, file_lists)
-        self.SetGraphicalOutput()                                
         
-        
-    def Run(self):
 
-        self.Initialize()
-
-        self.RunMainTemporalLoop()
-
-        self.Finalize()
-        
-        
-    def Initialize(self):
-        
+        # Initialize GiD  I/O (gid outputs, file_lists)                 
         self.GraphicalOutputExecuteInitialize()
 
         #### Output settings end ####
@@ -201,51 +210,63 @@ class Solution(object):
         
         # Solving the problem (time integration)
         while(self.time < self.end_time):
+            
+            self.InitializeSolutionStep()
+            self.SolveSolutionStep()
+            self.FinalizeSolutionStep()
+      
+            
+    def InitializeSolutionStep(self):
+        
+        # current time parameters
+        # self.main_model_part.ProcessInfo.GetPreviousSolutionStepInfo()[KratosMultiphysics.DELTA_TIME] = self.delta_time
+        self.delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
-            # current time parameters
-            # self.main_model_part.ProcessInfo.GetPreviousSolutionStepInfo()[KratosMultiphysics.DELTA_TIME] = self.delta_time
-            self.delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        self.time = self.time + self.delta_time
+        self.step = self.step + 1
 
-            self.time = self.time + self.delta_time
-            self.step = self.step + 1
-
-            self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.step
-            self.main_model_part.CloneTimeStep(self.time) 
+        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.step
+        self.main_model_part.CloneTimeStep(self.time) 
 
 
-            print(" [STEP:",self.step," TIME:",self.time,"]")
+        print(" [STEP:",self.step," TIME:",self.time,"]")
 
-            # processes to be executed at the begining of the solution step
-            self.model_processes.ExecuteInitializeSolutionStep()
+        # processes to be executed at the begining of the solution step
+        self.model_processes.ExecuteInitializeSolutionStep()
 
-            self.GraphicalOutputExecuteInitializeSolutionStep()
+        self.GraphicalOutputExecuteInitializeSolutionStep()
 
-            # solve time step
-            clock_time = self.StartTimeMeasuring();
+        # solve time step
+        self.clock_time = self.StartTimeMeasuring();
 
-            self.solver.InitializeSolutionStep()
+        self.solver.InitializeSolutionStep()
+        
+    def SolveSolutionStep(self):
+        
+        self.solver.Predict()
 
-            self.solver.Predict()
+        self.solver.SolveSolutionStep()
 
-            self.solver.SolveSolutionStep()
+        self.solver.FinalizeSolutionStep()
+        
+    def FinalizeSolutionStep(self):
+        
+        self.StopTimeMeasuring(self.clock_time,"Solving", False);
 
-            self.solver.FinalizeSolutionStep()
+        self.GraphicalOutputExecuteFinalizeSolutionStep()            
 
-            self.StopTimeMeasuring(clock_time,"Solving", False);
+        # processes to be executed at the end of the solution step
+        self.model_processes.ExecuteFinalizeSolutionStep()
 
-            self.GraphicalOutputExecuteFinalizeSolutionStep()            
+        # processes to be executed before witting the output      
+        self.model_processes.ExecuteBeforeOutputStep()
 
-            # processes to be executed at the end of the solution step
-            self.model_processes.ExecuteFinalizeSolutionStep()
+        # write output results GiD: (frequency writing is controlled internally)
+        self.GraphicalOutputPrintOutput()            
 
-            # processes to be executed before witting the output      
-            self.model_processes.ExecuteBeforeOutputStep()
-
-            # write output results GiD: (frequency writing is controlled internally)
-            self.GraphicalOutputPrintOutput()            
-
-            # processes to be executed after witting the output
-            self.model_processes.ExecuteAfterOutputStep()
+        # processes to be executed after witting the output
+        self.model_processes.ExecuteAfterOutputStep()
+        
 
     def Finalize(self):
         
