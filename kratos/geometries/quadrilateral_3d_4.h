@@ -708,7 +708,8 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon();
         
         // We compute the normal
-        const array_1d<double, 3> Normal = this->Normal();
+        rResult.clear();
+        const array_1d<double, 3> Normal = this->Normal(rResult);
         
         // Vector point and distance
         const array_1d<double,3> VectorPoints = this->Center().Coordinates() - rPoint;
