@@ -422,7 +422,7 @@ public:
     ///@}
 
 protected:
-    ///@name Protected static Member Variables */
+    ///@name Protected static Member Variables
     ///@{
 
     // Level of echo for the solving strategy
@@ -433,42 +433,42 @@ protected:
     bool mStiffnessMatrixIsBuilt;
 
     ///@}
-    ///@name Protected member Variables */
+    ///@name Protected member Variables
     ///@{
 
     ///@}
-    ///@name Protected Operators*/
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations*/
+    ///@name Protected Operators
     ///@{
 
 
     ///@}
-    ///@name Protected  Access */
+    ///@name Protected Operations
     ///@{
 
 
     ///@}
-    ///@name Protected Inquiry */
+    ///@name Protected  Access
     ///@{
 
 
     ///@}
-    ///@name Protected LifeCycle */
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
     ///@{
 
 private:
 
     ///@}
-    ///@name Static Member Variables */
+    ///@name Static Member Variables
     ///@{
 
 
     ///@}
-    ///@name Member Variables */
+    ///@name Member Variables
     ///@{
 
     ModelPart& mrModelPart;
@@ -476,27 +476,27 @@ private:
     bool mMoveMeshFlag;
 
     ///@}
-    ///@name Private Operators*/
+    ///@name Private Operators
     ///@{
 
 
     ///@}
-    ///@name Private Operations*/
+    ///@name Private Operations
     ///@{
 
 
     ///@}
-    ///@name Private  Access */
+    ///@name Private  Access
     ///@{
 
 
     ///@}
-    ///@name Private Inquiry */
+    ///@name Private Inquiry
     ///@{
 
 
     ///@}
-    ///@name Un accessible methods */
+    ///@name Un accessible methods
     ///@{
 
     /** Copy constructor.
@@ -510,7 +510,7 @@ private:
 
 ///@}
 
-///@name Type Definitions */
+///@name Type Definitions
 ///@{
 
 
