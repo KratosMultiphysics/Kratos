@@ -42,13 +42,14 @@ public:
     ///@{
     
     // General type definitions
-    typedef Node<3>                                          NodeType;
-    typedef Point<3>                                        PointType;
-    typedef Geometry<NodeType>                           GeometryType;
-    typedef Geometry<PointType>                     GeometryPointType;
-    typedef GeometryData::IntegrationMethod         IntegrationMethod;
-    typedef ModelPart::NodesContainerType              NodesArrayType;
-    typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
+    typedef Node<3>                                              NodeType;
+    typedef Point<3>                                            PointType;
+    typedef PointType::CoordinatesArrayType          CoordinatesArrayType;
+    typedef Geometry<NodeType>                               GeometryType;
+    typedef Geometry<PointType>                         GeometryPointType;
+    typedef GeometryData::IntegrationMethod             IntegrationMethod;
+    typedef ModelPart::NodesContainerType                  NodesArrayType;
+    typedef ModelPart::ConditionsContainerType        ConditionsArrayType;
     
     ///@}
     ///@name Life Cycle
@@ -424,9 +425,13 @@ public:
             noalias(itNode->GetValue(NORMAL)) = ZeroVect;
         }
         
+        // Aux coordinates
+        CoordinatesArrayType AuxCoords;
+        AuxCoords.clear();
+        
         // Sum all the nodes normals
         ConditionsArrayType& ConditionsArray = rModelPart.Conditions();
-        const const int numConditions = static_cast<int>(ConditionsArray.size());
+        const int numConditions = static_cast<int>(ConditionsArray.size());
         
         #pragma omp parallel for
         for(int i = 0; i < numConditions; i++) 
@@ -436,7 +441,7 @@ public:
             if (itCond->Is(SLAVE) || itCond->Is(MASTER) || itCond->Is(ACTIVE))
             {
                 array_1d<double, 3> & rNormal = itCond->GetValue(NORMAL);
-                rNormal = itCond->GetGeometry().Normal(itCond->GetGeometry().Center().Coordinates());
+                rNormal = itCond->GetGeometry().Normal(AuxCoords);
                 
                 const unsigned int NumberNodes = itCond->GetGeometry().PointsNumber();
                 const double & rArea = itCond->GetGeometry().Area()/NumberNodes;
