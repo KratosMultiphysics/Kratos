@@ -161,7 +161,6 @@ public:
      */
     virtual void Predict()
     {
-        KRATOS_ERROR << "You are calling to the base class method Predict, please define in you derived class the method" << std::endl;
     }
 
     /**
@@ -216,7 +215,6 @@ public:
      */
     virtual void CalculateOutputData()
     {
-        KRATOS_ERROR << "You are calling to the base class method CalculateOutputData, please define in you derived class the method" << std::endl;
     }
 
     /**
@@ -225,7 +223,6 @@ public:
      */
     virtual void InitializeSolutionStep()
     {
-        KRATOS_ERROR << "You are calling to the base class method InitializeSolutionStep, please define in you derived class the method" << std::endl;
     }
 
     /**
@@ -234,7 +231,6 @@ public:
      */
     virtual void FinalizeSolutionStep()
     {
-        KRATOS_ERROR << "You are calling to the base class method FinalizeSolutionStep, please define in you derived class the method" << std::endl;
     }
 
     /**
@@ -328,7 +324,7 @@ public:
         }   
 
         NodesArrayType& NodesArray = GetModelPart().Nodes();
-        int numNodes = static_cast<int>(NodesArray.size());
+        const int numNodes = static_cast<int>(NodesArray.size());
 
         #pragma omp parallel for
         for(int i = 0; i < numNodes; i++)  
@@ -378,7 +374,7 @@ public:
         if (mMoveMeshFlag == true)
         {
             NodesArrayType& NodesArray = GetModelPart().Nodes();
-            int numNodes = static_cast<int>(NodesArray.size());
+            const int numNodes = static_cast<int>(NodesArray.size());
 
 //             #pragma omp parallel for
             for(int i = 0; i < numNodes; i++)  
@@ -394,7 +390,7 @@ public:
         }
 
         ElementsArrayType& ElementsArray = GetModelPart().Elements();
-        int numElements = static_cast<int>(ElementsArray.size());
+        const int numElements = static_cast<int>(ElementsArray.size());
 
 //         #pragma omp parallel for
         for(int i = 0; i < numElements; i++)  
@@ -405,7 +401,7 @@ public:
         }
 
         ConditionsArrayType& ConditionsArray = GetModelPart().Conditions();
-        int numConditions = static_cast<int>(ConditionsArray.size());
+        const int numConditions = static_cast<int>(ConditionsArray.size());
 
 //         #pragma omp parallel for
         for(int i = 0; i < numConditions; i++)  
