@@ -69,6 +69,13 @@ array_1d<double,3> GetNormalFromCondition(
     return( dummy.GetGeometry().Normal(LocalCoords) );
 }
 
+array_1d<double,3> FastGetNormalFromCondition(Condition& dummy)
+{
+    CoordinatesArrayType LocalCoords;
+    LocalCoords.clear();
+    return( dummy.GetGeometry().Normal(LocalCoords) );
+}
+
 double GetAreaFromCondition( Condition& dummy )
 {
     return( dummy.GetGeometry().Area() );
@@ -531,6 +538,7 @@ void  AddMeshToPython()
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Condition>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Condition>)
     .def("GetNormal",GetNormalFromCondition)
+    .def("GetNormal",FastGetNormalFromCondition)
     .def("GetArea",GetAreaFromCondition)
 
 
