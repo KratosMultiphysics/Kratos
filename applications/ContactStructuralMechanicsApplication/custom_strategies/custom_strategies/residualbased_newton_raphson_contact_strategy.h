@@ -303,7 +303,7 @@ public:
                         }
                         
                         NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().Nodes();
-                        int numNodes = static_cast<int>(NodesArray.size());
+                        const int numNodes = static_cast<int>(NodesArray.size());
                         
                         #pragma omp parallel for
                         for(int i = 0; i < numNodes; i++)  
@@ -321,7 +321,7 @@ public:
                     else
                     {
                         NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().Nodes();
-                        int numNodes = static_cast<int>(NodesArray.size());
+                        const int numNodes = static_cast<int>(NodesArray.size());
                         
                         #pragma omp parallel for
                         for(int i = 0; i < numNodes; i++)  
@@ -471,7 +471,7 @@ protected:
         
         // Now we iterate over all the nodes
         NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().GetSubModelPart("Contact").Nodes();
-        int numNodes = static_cast<int>(NodesArray.size());
+        const int numNodes = static_cast<int>(NodesArray.size());
         
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(numNodes); i++) 
@@ -530,7 +530,7 @@ protected:
 //         
 //         // Now we iterate over all the nodes
 //         NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().GetSubModelPart("Contact").Nodes();
-//         int numNodes = static_cast<int>(NodesArray.size());
+//         const int numNodes = static_cast<int>(NodesArray.size());
 //         
 //         #pragma omp parallel for
 //         for(int i = 0; i < numNodes; i++)  // TODO: ADDtangent contact
@@ -655,7 +655,7 @@ protected:
         }
 
         NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().Nodes();
-        int numNodes = static_cast<int>(NodesArray.size());
+        const int numNodes = static_cast<int>(NodesArray.size());
 
         #pragma omp parallel for
         for(int i = 0; i < numNodes; i++)  

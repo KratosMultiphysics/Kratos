@@ -132,7 +132,7 @@ public:
         mBucketSize = ThisParameters["bucket_size"].GetInt();
         
         NodesArrayType& NodesArray = mrMainModelPart.Nodes();
-        int numNodes = static_cast<int>(NodesArray.size());
+        const int numNodes = static_cast<int>(NodesArray.size());
         
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
@@ -143,7 +143,7 @@ public:
         
         // Iterate in the conditions
         ConditionsArrayType& ConditionsArray = mrMainModelPart.Conditions();
-        int numConditions = static_cast<int>(ConditionsArray.size());
+        const int numConditions = static_cast<int>(ConditionsArray.size());
 
         #pragma omp parallel for 
         for(int i = 0; i < numConditions; i++) 
@@ -172,7 +172,7 @@ public:
     {
         // Iterate in the conditions
         ConditionsArrayType& ConditionsArray = mrMainModelPart.Conditions();
-        int numConditions = static_cast<int>(ConditionsArray.size());
+        const int numConditions = static_cast<int>(ConditionsArray.size());
 
 //         #pragma omp parallel for 
         for(int i = 0; i < numConditions; i++) 
@@ -193,7 +193,7 @@ public:
         ResetContactOperators(mrMainModelPart);
         
         NodesArrayType& NodesArray = mrMainModelPart.Nodes();
-        int numNodes = static_cast<int>(NodesArray.size());
+        const int numNodes = static_cast<int>(NodesArray.size());
         
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
@@ -213,7 +213,7 @@ public:
         ResetContactOperators(mrMainModelPart);
         
         NodesArrayType& NodesArray = mrMainModelPart.Nodes();
-        int numNodes = static_cast<int>(NodesArray.size());
+        const int numNodes = static_cast<int>(NodesArray.size());
         
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
@@ -237,7 +237,7 @@ public:
         ResetContactOperators(mrMainModelPart);
         
         NodesArrayType& NodesArray = mrMainModelPart.Nodes();
-        int numNodes = static_cast<int>(NodesArray.size());
+        const int numNodes = static_cast<int>(NodesArray.size());
         
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
@@ -259,7 +259,7 @@ public:
     void PartialClearScalarMortarConditions()
     {
         NodesArrayType& NodesArray = mrMainModelPart.Nodes();
-        int numNodes = static_cast<int>(NodesArray.size());
+        const int numNodes = static_cast<int>(NodesArray.size());
         
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
@@ -279,7 +279,7 @@ public:
     void PartialClearComponentsMortarConditions()
     {
         NodesArrayType& NodesArray = mrMainModelPart.Nodes();
-        int numNodes = static_cast<int>(NodesArray.size());
+        const int numNodes = static_cast<int>(NodesArray.size());
         
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
@@ -299,7 +299,7 @@ public:
     void PartialClearALMFrictionlessMortarConditions()
     {
         NodesArrayType& NodesArray = mrMainModelPart.Nodes();
-        int numNodes = static_cast<int>(NodesArray.size());
+        const int numNodes = static_cast<int>(NodesArray.size());
         
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
@@ -320,7 +320,7 @@ public:
     {
         // Iterate in the conditions
         ConditionsArrayType& ConditionsArray = mrMainModelPart.Conditions();
-        int numConditions = static_cast<int>(ConditionsArray.size());
+        const int numConditions = static_cast<int>(ConditionsArray.size());
 
         #pragma omp for nowait schedule(static)
         for(int i = 0; i < numConditions; i++) 
@@ -379,7 +379,7 @@ public:
             
             // Iterate in the conditions
             ConditionsArrayType& ConditionsArray = mrMainModelPart.Conditions();
-            int numConditions = static_cast<int>(ConditionsArray.size());
+            const int numConditions = static_cast<int>(ConditionsArray.size());
 
 //             #pragma omp for 
             for(int i = 0; i < numConditions; i++) 
@@ -444,7 +444,7 @@ public:
     {
         // Iterate in the conditions
         ConditionsArrayType& ConditionsArray = mrMainModelPart.Conditions();
-        int numConditions = static_cast<int>(ConditionsArray.size());
+        const int numConditions = static_cast<int>(ConditionsArray.size());
 
 //         #pragma omp parallel for 
         for(int i = 0; i < numConditions; i++) 
@@ -468,7 +468,7 @@ public:
         }
         
         NodesArrayType& NodesArray = mrMainModelPart.Nodes();
-        int numNodes = static_cast<int>(NodesArray.size());
+        const int numNodes = static_cast<int>(NodesArray.size());
         
 //         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
@@ -608,7 +608,7 @@ protected:
     void ResetContactOperators(ModelPart & rModelPart)
     {
         ConditionsArrayType& ConditionsArray = rModelPart.Conditions();
-        int numConditions = static_cast<int>(ConditionsArray.size());
+        const int numConditions = static_cast<int>(ConditionsArray.size());
         
         #pragma omp parallel for 
         for(int i = 0; i < numConditions; i++) 

@@ -151,7 +151,7 @@ public:
         
         // Now we iterate over the conditions to calculate the nodal area
         ConditionsArrayType& ConditionsArray = mrThisModelPart.Conditions();
-        int numConditions = static_cast<int>(ConditionsArray.size());
+        const int numConditions = static_cast<int>(ConditionsArray.size());
         
         #pragma omp parallel for 
         for(int i = 0; i < numConditions; i++) 

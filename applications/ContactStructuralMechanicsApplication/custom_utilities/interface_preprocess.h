@@ -1003,7 +1003,7 @@ private:
     {
         // We reorder the conditions
         ConditionsArrayType& ConditionsArray = mrMainModelPart.Conditions();
-        unsigned int numConditions = static_cast<int>(ConditionsArray.size());
+        const unsigned int numConditions = static_cast<int>(ConditionsArray.size());
         
         for(unsigned int i = 0; i < numConditions; i++) 
         {
@@ -1058,7 +1058,7 @@ private:
         const bool SimplestGeometry = ThisParameters["simplify_geometry"].GetBool();
         
         NodesArrayType& NodesArray = mrMainModelPart.Nodes();
-        unsigned int numNodes = static_cast<int>(NodesArray.size());
+        const unsigned int numNodes = static_cast<int>(NodesArray.size());
         
         unsigned int CondCounter = 0;
         
@@ -1157,7 +1157,7 @@ private:
         const bool SimplestGeometry = ThisParameters["simplify_geometry"].GetBool();
         
         NodesArrayType& NodesArray = mrMainModelPart.Nodes();
-        unsigned int numNodes = static_cast<int>(NodesArray.size());
+        const unsigned int numNodes = static_cast<int>(NodesArray.size());
         
         unsigned int CondCounter = 0;
         

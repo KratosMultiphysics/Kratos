@@ -166,7 +166,7 @@ public:
         const array_1d<double,3> ZeroVector(0.0);
         
         NodesArrayType& NodesArray = rModelPart.GetSubModelPart("Contact").Nodes();
-        int numNodes = static_cast<int>(NodesArray.size());
+        const int numNodes = static_cast<int>(NodesArray.size());
 
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
@@ -245,7 +245,7 @@ public:
         if (rModelPart.GetProcessInfo()[CONSIDER_PAIR_VARIATION] == true)
         {
             ConditionsArrayType& ConditionsArray = rModelPart.GetSubModelPart("Contact").Conditions();
-            int numConditions = static_cast<int>(ConditionsArray.size());
+            const int numConditions = static_cast<int>(ConditionsArray.size());
 
             #pragma omp parallel for 
             for(int i = 0; i < numConditions; i++) 

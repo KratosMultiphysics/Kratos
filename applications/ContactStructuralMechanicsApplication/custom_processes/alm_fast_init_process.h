@@ -125,7 +125,7 @@ public:
         
         // We iterate over the node
         NodesArrayType& NodesArray = mrThisModelPart.Nodes();
-        int numNodes = static_cast<int>(NodesArray.size());
+        const int numNodes = static_cast<int>(NodesArray.size());
         
         #pragma omp parallel for firstprivate(zerovector)
         for(int i = 0; i < numNodes; i++) 
@@ -163,7 +163,7 @@ public:
         
         // Now we iterate over the conditions
         ConditionsArrayType& ConditionsArray = mrThisModelPart.Conditions();
-        int numConditions = static_cast<int>(ConditionsArray.size());
+        const int numConditions = static_cast<int>(ConditionsArray.size());
         
         #pragma omp parallel for firstprivate(zerovector)
         for(int i = 0; i < numConditions; i++) 

@@ -414,7 +414,7 @@ public:
         const array_1d<double,3> ZeroVect = ZeroVector(3);
         
         NodesArrayType& NodesArray = rModelPart.Nodes();
-        int numNodes = static_cast<int>(NodesArray.size());
+        const int numNodes = static_cast<int>(NodesArray.size()); 
         
         #pragma omp parallel for
         for(int i = 0; i < numNodes; i++) 
@@ -426,7 +426,7 @@ public:
         
         // Sum all the nodes normals
         ConditionsArrayType& ConditionsArray = rModelPart.Conditions();
-        int numConditions = static_cast<int>(ConditionsArray.size());
+        const const int numConditions = static_cast<int>(ConditionsArray.size());
         
         #pragma omp parallel for
         for(int i = 0; i < numConditions; i++) 
@@ -436,7 +436,7 @@ public:
             if (itCond->Is(SLAVE) || itCond->Is(MASTER) || itCond->Is(ACTIVE))
             {
                 array_1d<double, 3> & rNormal = itCond->GetValue(NORMAL);
-                rNormal = itCond->GetGeometry().Normal();
+                rNormal = itCond->GetGeometry().Normal(itCond->GetGeometry().Center().Coordinates());
                 
                 const unsigned int NumberNodes = itCond->GetGeometry().PointsNumber();
                 const double & rArea = itCond->GetGeometry().Area()/NumberNodes;
@@ -511,7 +511,7 @@ public:
         const Matrix I = IdentityMatrix(dimension, dimension);
 
         NodesArrayType& NodesArray = rModelPart.Nodes();
-        int numNodes = static_cast<int>(NodesArray.size());
+        const int numNodes = static_cast<int>(NodesArray.size()); 
         
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
