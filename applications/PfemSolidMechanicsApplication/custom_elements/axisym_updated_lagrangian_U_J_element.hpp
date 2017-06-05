@@ -157,6 +157,12 @@ namespace Kratos
                double & rReferenceRadius);
 
          /**
+          * Calculate Radius in the current and deformed geometry
+          */
+         virtual void CalculateRadius(double & rCurrentRadius, double & rReferenceRadius, const Vector& rN);
+
+
+         /**
           * Calculation of the Deformation Matrix  BL
           */
          virtual void CalculateDeformationMatrix(Matrix& rB,
@@ -165,7 +171,19 @@ namespace Kratos
                                             double& rCurrentRadius);
 
          
-         virtual void CalculateRadius(double & rCurrentRadius, double & rReferenceRadius, const Vector& rN);
+         /**
+          * Calculation of the Green Lagrange Strain Vector
+          */
+         void CalculateGreenLagrangeStrain(const Matrix& rF,
+               Vector& rStrainVector);
+
+         /**
+          * Calculation of the Almansi Strain Vector
+          */
+         void CalculateAlmansiStrain(const Matrix& rF,
+               Vector& rStrainVector);
+
+         
 
          ///@}
          ///@name Access
@@ -302,7 +320,7 @@ namespace Kratos
          /*
           * Function to modify the deformation gradient to the constitutitve equation
           */
-         virtual void ComputeConstitutiveVariables( GeneralVariables& rVariables, Matrix& rFT, double& rdetFT); 
+         virtual void ComputeConstitutiveVariables( GeneralVariables& rVariables, Matrix& rFT, double& rdetFT) override; 
 
          ///@}
          ///@name Protected  Access
