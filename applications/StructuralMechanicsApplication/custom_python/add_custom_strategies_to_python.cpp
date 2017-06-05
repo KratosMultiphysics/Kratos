@@ -63,7 +63,7 @@ void  AddCustomStrategiesToPython()
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef LinearSolverType::Pointer LinearSolverPointer;
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-    typedef BaseSolvingStrategyType::Pointer BaseSolvingStrategyPointer;
+//     typedef BaseSolvingStrategyType::Pointer BaseSolvingStrategyPointer;
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
     typedef ConvergenceCriteriaType::Pointer ConvergenceCriteriaPointer;
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;

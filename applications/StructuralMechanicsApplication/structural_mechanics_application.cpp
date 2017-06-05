@@ -7,6 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//    Co-authors:    Vicente Mataix Ferrándiz
 //
 
 
@@ -232,11 +233,10 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( RAYLEIGH_ALPHA )
     KRATOS_REGISTER_VARIABLE( RAYLEIGH_BETA )
     
-    
-    //nodal load variables
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(  POINT_LOAD )
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(  LINE_LOAD )
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(  SURFACE_LOAD )
+    // Nodal load variables
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_LOAD )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LINE_LOAD )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( SURFACE_LOAD )
         
     //condition load variables
     KRATOS_REGISTER_VARIABLE(POINT_LOADS_VECTOR )
@@ -313,6 +313,12 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "PointMomentCondition3D1N", mPointMomentCondition3D1N );
     // Torque moment condition
     KRATOS_REGISTER_CONDITION( "PointTorqueCondition3D1N", mPointTorqueCondition3D1N );
+    
+    // Register linear elastics laws
+    Serializer::Register( "LinearElastic3DLaw", mElasticIsotropic3D );
+    Serializer::Register( "LinearElasticPlaneStrain2DLaw", mLinearPlaneStrain );
+    Serializer::Register( "LinearElasticPlaneStress2DLaw", mLinearPlaneStress );
+//     Serializer::Register( "LinearElasticAxisym2DLaw",  );
     
 }
 

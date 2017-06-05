@@ -7,6 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//    Co-authors:    Vicente Mataix Ferrándiz
 //
 
 #if !defined(KRATOS_STRUCTURAL_MECHANICS_APPLICATION_H_INCLUDED )
@@ -34,10 +35,12 @@
 #include "custom_elements/prestress_membrane_element.hpp"
 #include "custom_elements/shell_thick_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
-#include "custom_elements/total_lagrangian.h"
-#include "custom_elements/kinematic_linear.h"
 #include "custom_elements/nodal_concentrated_element.hpp"
 #include "custom_elements/SprismElement3D6N.hpp"
+
+/* Adding solid elements */
+#include "custom_elements/total_lagrangian.h"
+#include "custom_elements/kinematic_linear.h"
 
 /* CONDITIONS */
 #include "custom_conditions/point_moment_3D_condition.hpp"
@@ -45,6 +48,11 @@
 #include "custom_conditions/base_load_condition.h"
 #include "custom_conditions/line_load_condition_2d.h"
 #include "custom_conditions/surface_load_condition_3d.h"
+
+/* CONSTITUTIVE LAWS */
+#include "custom_constitutive/elastic_isotropic_3d.h"
+#include "custom_constitutive/linear_plane_strain.h"
+#include "custom_constitutive/linear_plane_stress.h"
 
 /* UTILITIES */
 // Cross sections
@@ -276,6 +284,12 @@ private:
     const PointMoment3DCondition mPointMomentCondition3D1N;
     // Torque condition
     const PointTorque3DCondition mPointTorqueCondition3D1N;
+    
+    /* CONSTITUTIVE LAWS */
+    // Linear elastics laws
+    const ElasticIsotropic3D mElasticIsotropic3D;
+    const LinearPlaneStrain  mLinearPlaneStrain;
+    const LinearPlaneStress  mLinearPlaneStress;
 
     ///@}
     ///@name Private Operators
