@@ -240,11 +240,11 @@ class MechanicalSolver(object):
         #self.mechanical_solver.Solve()
         
         # Or considering the phases
-        self.mechanical_solver.Initialize()
-        self.mechanical_solver.InitializeSolutionStep()
-        self.mechanical_solver.Predict()
-        is_converged = self.mechanical_solver.SolveSolutionStep()
-        self.mechanical_solver.FinalizeSolutionStep()
+        Initialize()
+        InitializeSolutionStep()
+        Predict()
+        is_converged = SolveSolutionStep()
+        FinalizeSolutionStep()
 
     # solve :: sequencial calls
     
@@ -264,7 +264,8 @@ class MechanicalSolver(object):
         self.mechanical_solver.Predict()
 
     def SolveSolutionStep(self):
-        self.mechanical_solver.SolveSolutionStep()
+        is_converged = self.mechanical_solver.SolveSolutionStep()
+        return is_converged
 
     def FinalizeSolutionStep(self):
         self.mechanical_solver.FinalizeSolutionStep()
@@ -338,7 +339,6 @@ class MechanicalSolver(object):
         conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
         conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
         conv_params.AddValue("echo_level",self.settings["echo_level"])
-        conv_params.AddValue("component_wise",self.settings["component_wise"])
         conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])
         conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
         conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
@@ -352,10 +352,7 @@ class MechanicalSolver(object):
 
     def _GetBuilderAndSolver(self, component_wise, block_builder):
         # Creating the builder and solver
-        if(component_wise):
-            builder_and_solver = StructuralMechanicsApplication.ComponentWiseBuilderAndSolver(self.linear_solver)
-        else:
-            if(block_builder):
+        if(block_builder):
                 # To keep matrix blocks in builder
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
             else:
