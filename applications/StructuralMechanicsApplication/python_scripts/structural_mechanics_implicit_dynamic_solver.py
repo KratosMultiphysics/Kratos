@@ -126,6 +126,10 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         
         structural_mechanics_solver.MechanicalSolver.AddVariables(self)
             
+        # Add dynamic variables
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+            
         if self.settings["rotation_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.POINT_TORQUE)
