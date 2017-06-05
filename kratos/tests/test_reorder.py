@@ -11,7 +11,7 @@ def GetFilePath(fileName):
     return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
 
 
-class TestModelPartIO(KratosUnittest.TestCase):
+class TestReorder(KratosUnittest.TestCase):
 
     def setUp(self):
         if (sys.version_info < (3, 2)):
@@ -49,16 +49,27 @@ class TestModelPartIO(KratosUnittest.TestCase):
         #7   8 11 12
         #4   5  6 10
         #1   2  3 9
-
+        self.assertEqual(model_part.Nodes[1].X, 0.0);  self.assertEqual(model_part.Nodes[1].Y, 0.0)
+        self.assertEqual(model_part.Nodes[2].X, 1.0);  self.assertEqual(model_part.Nodes[2].Y, 0.0)
+        self.assertEqual(model_part.Nodes[3].X, 2.0);  self.assertEqual(model_part.Nodes[3].Y, 0.0)
+        self.assertEqual(model_part.Nodes[9].X, 3.0);  self.assertEqual(model_part.Nodes[9].Y, 0.0)
+        self.assertEqual(model_part.Nodes[4].X, 0.0);  self.assertEqual(model_part.Nodes[4].Y, 1.0)
+        self.assertEqual(model_part.Nodes[5].X, 1.0);  self.assertEqual(model_part.Nodes[5].Y, 1.0)
+        self.assertEqual(model_part.Nodes[6].X, 2.0);  self.assertEqual(model_part.Nodes[6].Y, 1.0)
+        self.assertEqual(model_part.Nodes[10].X, 3.0);  self.assertEqual(model_part.Nodes[10].Y, 1.0)
+        self.assertEqual(model_part.Nodes[7].X, 0.0);  self.assertEqual(model_part.Nodes[7].Y, 2.0)
+        self.assertEqual(model_part.Nodes[8].X, 1.0);  self.assertEqual(model_part.Nodes[8].Y, 2.0)
+        self.assertEqual(model_part.Nodes[11].X, 2.0);  self.assertEqual(model_part.Nodes[11].Y, 2.0)
+        self.assertEqual(model_part.Nodes[12].X, 3.0);  self.assertEqual(model_part.Nodes[12].Y, 2.0)
         
-        for node in model_part.Nodes:
-            print(node.Id, node.X,node.Y)
+        #for node in model_part.Nodes:
+            #print(node.Id, node.X,node.Y)
             
-        for elem in model_part.Elements:
-            tmp = []
-            for node in elem.GetNodes():
-                tmp.append(node.Id)
-            print(elem.Id,tmp)
+        #for elem in model_part.Elements:
+            #tmp = []
+            #for node in elem.GetNodes():
+                #tmp.append(node.Id)
+            #print(elem.Id,tmp)
 
 
 if __name__ == '__main__':
