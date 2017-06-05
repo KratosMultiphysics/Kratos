@@ -275,7 +275,7 @@ namespace Kratos
             }
         }
         else
-            KRATOS_ERROR << "a constitutive law needs to be specified for the element with ID ", this->Id() )
+            KRATOS_ERROR << "a constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
             KRATOS_CATCH( "" )
         }
 
