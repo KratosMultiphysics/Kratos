@@ -150,9 +150,7 @@ namespace Kratos
 
     //mechanical
 
-
     //geometrical
-    KRATOS_REGISTER_VARIABLE( MEAN_RADIUS )
 
     //domain definition    
     KRATOS_REGISTER_VARIABLE( RIGID_WALL )

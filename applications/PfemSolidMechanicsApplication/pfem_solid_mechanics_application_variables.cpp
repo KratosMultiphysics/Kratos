@@ -65,8 +65,7 @@ namespace Kratos
   //mechanical
 
   //geometrical
-  KRATOS_CREATE_VARIABLE( double, MEAN_RADIUS )
-
+  
   //domain definition
   KRATOS_CREATE_VARIABLE(double, WALL_TIP_RADIUS )
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( WALL_REFERENCE_POINT )
