@@ -74,25 +74,31 @@
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{
-        "python_module" : "impose_vector_value_by_direction_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes all the components of a given vector variable",
-        "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "ImposeVectorValueByDirectionProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Inlet2D_Inlet",
-            "variable_name"   : "VELOCITY",
-            "modulus"         : 1.0,
-            "direction"       : [1.0,0.0,0.0]
-        }
-    },{
         "python_module" : "apply_noslip_process",
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         "process_name"  : "ApplyNoSlipProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "NoSlip2D_No_slip"
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "variable_name"   : "VELOCITY",
+            "value"           : [1.0, 0.0, 0.0],
+            "constrained"     : [true,true,true],
+            "model_part_name" : "Inlet2D_Inlet"
+        }
+    },{
+        "python_module" : "embedded_artificial_compressibility_test_local_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"  : "EmbeddedArtificialCompressibilityTestLocalProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Parts_Fluid"
         }
     }],
     "gravity"                          : [{

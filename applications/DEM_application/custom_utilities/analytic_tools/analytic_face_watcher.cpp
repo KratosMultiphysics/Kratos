@@ -36,7 +36,7 @@ void AnalyticFaceWatcher::MakeMeasurements(ModelPart& analytic_model_part)
 
     for (ConditionsIteratorType i_cond = analytic_model_part.ConditionsBegin(); i_cond != analytic_model_part.ConditionsEnd(); ++i_cond){
         AnalyticFace& face = dynamic_cast<Kratos::AnalyticRigidFace3D&>(*(*(i_cond.base())));
-        const int n_crossings = fabs(face.GetNumberThroughput());
+        const int n_crossings = abs(face.GetNumberThroughput());
 
         if (n_crossings){
             const int id = int(i_cond->Id());

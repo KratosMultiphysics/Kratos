@@ -62,7 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "includes/variables.h"
-#include "includes/dem_variables.h"
+#include "includes/deprecated_variables.h" // for SOLID_FRACTION and SOLID_FRACTION_RATE
 #include "includes/convection_diffusion_settings.h"
 
 namespace Kratos
@@ -216,7 +216,7 @@ public:
                 // double specific_heat_var =C_table.GetValue(unknown_val);
                 double solid_fraction_var = F_table.GetValue(unknown_val);
                 double solid_fraction_rate_var = DF_DT_table.GetValue(unknown_val);
-                
+
                 //double htc_var = HTC_table.GetValue(unknown_val);
 
 
@@ -253,10 +253,10 @@ public:
                  ind->FastGetSolutionStepValue(SOLID_FRACTION) = 0.0;
                  ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = 0.0;
                  ind->FastGetSolutionStepValue(rDiffusionVar) = conductivity_var*1000.0; //0.05
- 
+
                  //ind->FastGetSolutionStepValue(rTransferCoef) = 0.0; ///(density_var*specific_heat_var);
                  // ind->FastGetSolutionStepValue(rUnknownVar) = amb_temp;
- 
+
                  //assign an initial value to the enthalpy
                  for(unsigned int i=0; i<buffer_size; i++)
                      ind->FastGetSolutionStepValue(ENTHALPY,i) = specific_heat_air*unknown_val;
@@ -266,8 +266,8 @@ public:
 //               mSchemeIsInitialized = true;
     }
 
-    
-    
+
+
     //***************************************************************************
     void InitializeSolutionStep(
         ModelPart& r_model_part,
@@ -350,7 +350,7 @@ public:
                 //ind->FastGetSolutionStepValue(rTransferCoef) = 0.0; //htc_var/(50.0); //*density_var*specific_heat_air);
 
                 ind->FastGetSolutionStepValue(ENTHALPY) = specific_heat_air*unknown_val; // * (ind->FastGetSolutionStepValue(rUnknownVar)) ;
-                ind->GetValue(ENTHALPY) = specific_heat_air*unknown_val; 
+                ind->GetValue(ENTHALPY) = specific_heat_air*unknown_val;
                 ind->GetValue(SOLID_FRACTION) = 0.0;
                 ind->GetValue(SOLID_FRACTION_RATE) = 0.0;
             }
@@ -566,4 +566,3 @@ private:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_NEW_STANDARD_STATIC_SCHEME  defined */
-
