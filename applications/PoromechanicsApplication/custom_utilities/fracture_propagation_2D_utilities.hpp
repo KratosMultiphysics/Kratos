@@ -75,7 +75,7 @@ protected:
     struct PropagationGlobalVariables
     {
         std::vector< std::vector< std::vector<FracturePoint> > > FracturePointsCellMatrix;
-
+        ProcessInfo::Pointer pProcessInfo;
         bool PropagateFractures;
         std::vector<Propagation> PropagationVector;
         std::vector<Bifurcation> BifurcationVector;
@@ -273,10 +273,7 @@ protected:
         
         // Check fracture propagation
         if(NonlocalDamage >= rParameters["fracture_data"]["propagation_damage"].GetDouble())
-        {
-            rPropagationData.PropagateFractures = true;
             this->PropagateFracture(itFracture,rPropagationData,AuxPropagationVariables,rParameters);
-        }
     }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1173,6 +1170,7 @@ private:
         FracturePoint MyFracturePoint;
         GeometryData::IntegrationMethod MyIntegrationMethod;
         const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        rPropagationData.pProcessInfo = rModelPart.pGetProcessInfo();
         array_1d<double,3> AuxLocalCoordinates;
         array_1d<double,3> AuxGlobalCoordinates;
 
@@ -1267,17 +1265,31 @@ private:
             }
         }
 
-        const double PropagationWidth = rParameters["fracture_data"]["propagation_width"].GetDouble();
-        int MotherFractureId = rParameters["fractures_list"][itFracture]["id"].GetInt();
         array_1d<double,2> AuxArray1;
         array_1d<double,2> AuxArray2;
-
+        const double PropagationWidth = rParameters["fracture_data"]["propagation_width"].GetDouble();
+        int MotherFractureId = rParameters["fractures_list"][itFracture]["id"].GetInt();
         Propagation MyPropagation;
+
         MyPropagation.MotherFractureId = MotherFractureId;
 
         MyPropagation.TipCoordinates[0] = TipX/TipDen;
         MyPropagation.TipCoordinates[1] = TipY/TipDen;
         MyPropagation.TipCoordinates[2] = 0.0;
+
+        noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
+        AuxArray1[1] += 0.5*PropagationWidth;
+        noalias(AuxArray2) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
+        MyPropagation.TopInitCoordinates[0] = AuxArray2[0];
+        MyPropagation.TopInitCoordinates[1] = AuxArray2[1];
+        MyPropagation.TopInitCoordinates[2] = 0.0;
+
+        noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
+        AuxArray1[1] -= 0.5*PropagationWidth;
+        noalias(AuxArray2) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
+        MyPropagation.BotInitCoordinates[0] = AuxArray2[0];
+        MyPropagation.BotInitCoordinates[1] = AuxArray2[1];
+        MyPropagation.BotInitCoordinates[2] = 0.0;
 
         // Check straight propagation
         const double PropagationLength = rParameters["fracture_data"]["propagation_length"].GetDouble();
@@ -1295,26 +1307,7 @@ private:
             MyPropagation.TipCoordinates[1] = AuxArray2[1];
         }
         
-        noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
-        AuxArray1[1] += 0.5*PropagationWidth;
-        noalias(AuxArray2) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
-        MyPropagation.TopInitCoordinates[0] = AuxArray2[0];
-        MyPropagation.TopInitCoordinates[1] = AuxArray2[1];
-        MyPropagation.TopInitCoordinates[2] = 0.0;
-
-        noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
-        AuxArray1[1] -= 0.5*PropagationWidth;
-        noalias(AuxArray2) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
-        MyPropagation.BotInitCoordinates[0] = AuxArray2[0];
-        MyPropagation.BotInitCoordinates[1] = AuxArray2[1];
-        MyPropagation.BotInitCoordinates[2] = 0.0;
-
         // Check whether new tip falls inside a valid element
-        const double PropagationDamage = rParameters["fracture_data"]["propagation_damage"].GetDouble();
-        array_1d<double,3> GlobalCoordinates;
-        GlobalCoordinates[0] = MyPropagation.TipCoordinates[0];
-        GlobalCoordinates[1] = MyPropagation.TipCoordinates[1];
-        GlobalCoordinates[2] = MyPropagation.TipCoordinates[2];
         array_1d<double,3> LocalCoordinates;
         Element::Pointer pElement;
         bool IsInside = false;
@@ -1322,7 +1315,7 @@ private:
         for(unsigned int i = 0; i < rAuxPropagationVariables.TopFrontFracturePoints.size(); i++)
         {
             pElement = rAuxPropagationVariables.TopFrontFracturePoints[i]->pElement;
-            IsInside = pElement->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates);
+            IsInside = pElement->GetGeometry().IsInside(MyPropagation.TipCoordinates,LocalCoordinates);
             if(IsInside) break;
         }
         if(IsInside == false)
@@ -1330,96 +1323,170 @@ private:
             for(unsigned int i = 0; i < rAuxPropagationVariables.BotFrontFracturePoints.size(); i++)
             {
                 pElement = rAuxPropagationVariables.BotFrontFracturePoints[i]->pElement;
-                IsInside = pElement->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates);
+                IsInside = pElement->GetGeometry().IsInside(MyPropagation.TipCoordinates,LocalCoordinates);
                 if(IsInside) break;
             }
         }
 
-        //TODO: Si la nova punta calculada amb tots els punts no es valida, es a dir: no es dins de cap element,
-        // o el dany promig dels seus GP es menor al dany de propagacio -> comprovar punts top i punts bot
-        // Si la propagacio amb punts bot i amb punts top es valida pero no ho es amb tots -> bifurcacio
-        // Si una de les dues propagacions (top o bot) es vailda i l'altre no -> propagar per top o bot
-        // Si cap de les tres opcions (tot, top i bot) no son valides -> no es propaga
-        
+        const double PropagationDamage = rParameters["fracture_data"]["propagation_damage"].GetDouble();
+        const ProcessInfo& CurrentProcessInfo = *(rPropagationData.pProcessInfo);
 
-        // std::vector<double> DamageVector(NumGPoints);
-        // itElem->GetValueOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfoOld);
+        if (IsInside == true)
+        {
+            std::vector<double> DamageVector;
+            pElement->GetValueOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
+            unsigned int NumGPoints = DamageVector.size();
+            double InvNumGPoints = 1.0/static_cast<double>(NumGPoints);
+            double ElementDamage = 0.0;
+            for (unsigned int i = 0; i < NumGPoints; i++)
+            {
+                ElementDamage += DamageVector[i];
+            }
+            ElementDamage *= InvNumGPoints;
+            if (ElementDamage >= 0.5*PropagationDamage)
+            {
+                rPropagationData.PropagationVector.push_back(MyPropagation);
+                rPropagationData.PropagateFractures = true;
+                return;
+            }
+        }
 
-        // if(IsInside == false)
-        // {
+        // Being here means that the new tip does not fall inside a valid element. We need to check top and bot fracture points
+        bool PropagateTop = false;
+        bool PropagateBot = false;
+        double TopEndX = 0.0;
+        double TopEndY = 0.0;
+        double TopEndDen = 0.0;
+        double BotEndX = 0.0;
+        double BotEndY = 0.0;
+        double BotEndDen = 0.0;
+        array_1d<double,3> GlobalCoordinates;
 
-        // }
-        // else
-        // {
-        //     if(IsInside)
-        //     {
+        #pragma omp parallel sections private(GlobalCoordinates,LocalCoordinates,pElement,IsInside)
+        {
+            #pragma omp section
+            {
+                for(unsigned int i = 0; i < rAuxPropagationVariables.TopFrontFracturePoints.size(); i++)
+                {
+                    this->AverageTipCoordinates(TopEndX,TopEndY,TopEndDen,*(rAuxPropagationVariables.TopFrontFracturePoints[i]));
+                }
+                GlobalCoordinates[0] = TopEndX/TopEndDen;
+                GlobalCoordinates[1] = TopEndY/TopEndDen;
+                GlobalCoordinates[2] = 0.0;
+                
+                // Check whether new tip falls inside a valid element
+                for(unsigned int i = 0; i < rAuxPropagationVariables.TopFrontFracturePoints.size(); i++)
+                {
+                    pElement = rAuxPropagationVariables.TopFrontFracturePoints[i]->pElement;
+                    IsInside = pElement->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates);
+                    if(IsInside) break;
+                }
 
-        //     }
-        // }
+                if (IsInside == true)
+                {
+                    std::vector<double> DamageVector;
+                    pElement->GetValueOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
+                    unsigned int NumGPoints = DamageVector.size();
+                    double InvNumGPoints = 1.0/static_cast<double>(NumGPoints);
+                    double ElementDamage = 0.0;
+                    for (unsigned int i = 0; i < NumGPoints; i++)
+                    {
+                        ElementDamage += DamageVector[i];
+                    }
+                    ElementDamage *= InvNumGPoints;
+                    if (ElementDamage >= 0.5*PropagationDamage)
+                        PropagateTop = true;
+                }
+            }
+            #pragma omp section
+            {
+                for(unsigned int i = 0; i < rAuxPropagationVariables.BotFrontFracturePoints.size(); i++)
+                {
+                    this->AverageTipCoordinates(BotEndX,BotEndY,BotEndDen,*(rAuxPropagationVariables.BotFrontFracturePoints[i]));
+                }
+                GlobalCoordinates[0] = BotEndX/BotEndDen;
+                GlobalCoordinates[1] = BotEndY/BotEndDen;
+                GlobalCoordinates[2] = 0.0;
 
-        rPropagationData.PropagationVector.push_back(MyPropagation);
+                // Check whether new tip falls inside a valid element
+                for(unsigned int i = 0; i < rAuxPropagationVariables.BotFrontFracturePoints.size(); i++)
+                {
+                    pElement = rAuxPropagationVariables.BotFrontFracturePoints[i]->pElement;
+                    IsInside = pElement->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates);
+                    if(IsInside) break;
+                }
 
-        // Bifurcation
-        // if(PropagationFactor < (0.5*PropagationDamage)
-        //     && TopBifurcationFactor > PropagationDamage && BotBifurcationFactor > PropagationDamage)
-        // {
-        //     Bifurcation MyBifurcation;
-        //     MyBifurcation.MotherFractureId = MotherFractureId;
+                if (IsInside == true)
+                {
+                    std::vector<double> DamageVector;
+                    pElement->GetValueOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
+                    unsigned int NumGPoints = DamageVector.size();
+                    double InvNumGPoints = 1.0/static_cast<double>(NumGPoints);
+                    double ElementDamage = 0.0;
+                    for (unsigned int i = 0; i < NumGPoints; i++)
+                    {
+                        ElementDamage += DamageVector[i];
+                    }
+                    ElementDamage *= InvNumGPoints;
+                    if (ElementDamage >= 0.5*PropagationDamage)
+                        PropagateBot = true;
+                }
+            }
+        }
 
-        //     double TopEndX = 0.0;
-        //     double TopEndY = 0.0;
-        //     double TopEndDen = 0.0;
-        //     double BotEndX = 0.0;
-        //     double BotEndY = 0.0;
-        //     double BotEndDen = 0.0;
+        if (PropagateTop == true && PropagateBot == true) // Bifurcation
+        {
+            Bifurcation MyBifurcation;
+            MyBifurcation.MotherFractureId = MotherFractureId;
 
-        //     #pragma omp parallel sections
-        //     {
-        //         #pragma omp section
-        //         {
-        //             for(unsigned int i = 0; i < rAuxPropagationVariables.TopFrontFracturePoints.size(); i++)
-        //             {
-        //                 this->AverageTipCoordinates(TopEndX,TopEndY,TopEndDen,*(rAuxPropagationVariables.TopFrontFracturePoints[i]));
-        //             }
-        //         }
-        //         #pragma omp section
-        //         {
-        //             for(unsigned int i = 0; i < rAuxPropagationVariables.BotFrontFracturePoints.size(); i++)
-        //             {
-        //                 this->AverageTipCoordinates(BotEndX,BotEndY,BotEndDen,*(rAuxPropagationVariables.BotFrontFracturePoints[i]));
-        //             }
-        //         }
-        //     }
+            MyBifurcation.TopTipCoordinates[0] = TopEndX/TopEndDen;
+            MyBifurcation.TopTipCoordinates[1] = TopEndY/TopEndDen;
+            MyBifurcation.TopTipCoordinates[2] = 0.0;
             
-        //     MyBifurcation.TopTipCoordinates[0] = TopEndX/TopEndDen;
-        //     MyBifurcation.TopTipCoordinates[1] = TopEndY/TopEndDen;
-        //     MyBifurcation.TopTipCoordinates[2] = 0.0;
+            MyBifurcation.BotTipCoordinates[0] = BotEndX/BotEndDen;
+            MyBifurcation.BotTipCoordinates[1] = BotEndY/BotEndDen;
+            MyBifurcation.BotTipCoordinates[2] = 0.0;
             
-        //     MyBifurcation.BotTipCoordinates[0] = BotEndX/BotEndDen;
-        //     MyBifurcation.BotTipCoordinates[1] = BotEndY/BotEndDen;
-        //     MyBifurcation.BotTipCoordinates[2] = 0.0;
-            
-        //     noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
-        //     AuxArray1[0] -= PropagationWidth;
-        //     AuxArray1[1] += 0.5*PropagationWidth;
-        //     noalias(AuxArray2) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
-        //     MyBifurcation.TopInitCoordinates[0] = AuxArray2[0];
-        //     MyBifurcation.TopInitCoordinates[1] = AuxArray2[1];
-        //     MyBifurcation.TopInitCoordinates[2] = 0.0;
+            noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
+            AuxArray1[0] -= PropagationWidth;
+            AuxArray1[1] += 0.5*PropagationWidth;
+            noalias(AuxArray2) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
+            MyBifurcation.TopInitCoordinates[0] = AuxArray2[0];
+            MyBifurcation.TopInitCoordinates[1] = AuxArray2[1];
+            MyBifurcation.TopInitCoordinates[2] = 0.0;
 
-        //     noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
-        //     AuxArray1[0] -= PropagationWidth;
-        //     AuxArray1[1] -= 0.5*PropagationWidth;
-        //     noalias(AuxArray2) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
-        //     MyBifurcation.BotInitCoordinates[0] = AuxArray2[0];
-        //     MyBifurcation.BotInitCoordinates[1] = AuxArray2[1];
-        //     MyBifurcation.BotInitCoordinates[2] = 0.0;
+            noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
+            AuxArray1[0] -= PropagationWidth;
+            AuxArray1[1] -= 0.5*PropagationWidth;
+            noalias(AuxArray2) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
+            MyBifurcation.BotInitCoordinates[0] = AuxArray2[0];
+            MyBifurcation.BotInitCoordinates[1] = AuxArray2[1];
+            MyBifurcation.BotInitCoordinates[2] = 0.0;
 
-        //     rPropagationData.BifurcationVector.push_back(MyBifurcation);
-        // }
+            rPropagationData.BifurcationVector.push_back(MyBifurcation);
+            rPropagationData.PropagateFractures = true;
+            return;
+        }
+        else if (PropagateTop == true) // Top Propagation
+        {
+            MyPropagation.TipCoordinates[0] = TopEndX/TopEndDen;
+            MyPropagation.TipCoordinates[1] = TopEndY/TopEndDen;
+            MyPropagation.TipCoordinates[2] = 0.0;
 
-        //TODO ??
-        //rPropagationData.PropagateFractures = true;
+            rPropagationData.PropagationVector.push_back(MyPropagation);
+            rPropagationData.PropagateFractures = true;
+            return;
+        }
+        else if (PropagateBot == true) // Bot Propagation
+        {
+            MyPropagation.TipCoordinates[0] = BotEndX/BotEndDen;
+            MyPropagation.TipCoordinates[1] = BotEndY/BotEndDen;
+            MyPropagation.TipCoordinates[2] = 0.0;
+
+            rPropagationData.PropagationVector.push_back(MyPropagation);
+            rPropagationData.PropagateFractures = true;
+            return;
+        }
     }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
