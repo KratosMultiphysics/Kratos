@@ -137,6 +137,11 @@ namespace Kratos
 			MatrixType& rDampingMatrix,
 			ProcessInfo& rCurrentProcessInfo) override;
 
+		void AddExplicitContribution(const VectorType& rRHSVector,
+			const Variable<VectorType>& rRHSVariable,
+			Variable<array_1d<double, 3> >& rDestinationVariable,
+			const ProcessInfo& rCurrentProcessInfo) override;
+
 		void GetValuesVector(
 			Vector& rValues,
 			int Step = 0) override;
@@ -196,7 +201,7 @@ namespace Kratos
 		Vector mNX, mNY, mNZ, mRHS, mTotalDef, mTotalPos;
 		Vector mTotalNodalDeformation, mTotalNodalPosistion, mBodyForces;
 		Vector mDeformationModes, mIncrementDeformation;
-		Matrix mLHS, mRotationMatrix;
+		Matrix mLHS, mRotationMatrix, mRotationMatrix0;
 		Vector mNX0, mNY0, mNZ0;
 		Vector mQuaternionVEC_A, mQuaternionVEC_B;
 		double mQuaternionSCA_A, mQuaternionSCA_B;
@@ -224,7 +229,7 @@ namespace Kratos
 		Orientation(array_1d<double, 3>& v1, array_1d<double, 3>& v2);
 
 
-		void CalculateRotationMatrix(bounded_matrix<double, 3, 3>& R);
+		void CalculateRotationMatrix(Matrix& R);
 		void CalculateBasisVectors(array_1d<double, 3>& v1,
 								   array_1d<double, 3>& v2,
 								   array_1d<double, 3>& v3);

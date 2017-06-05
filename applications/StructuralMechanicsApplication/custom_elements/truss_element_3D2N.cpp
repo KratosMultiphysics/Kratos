@@ -418,7 +418,6 @@ namespace Kratos
 		rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 		//creating LHS
 		noalias(rLeftHandSideMatrix) = this->CreateElementStiffnessMatrix();
-		this->mLHS = rLeftHandSideMatrix;
 
 		//create+compute RHS
 		rRightHandSideVector = ZeroVector(LocalSize);
@@ -463,8 +462,7 @@ namespace Kratos
 		if (this->mIsLinearElement == true)
 		{
 			Matrix LeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
-			LeftHandSideMatrix = this->mLHS;
-
+			this->CalculateLeftHandSide(LeftHandSideMatrix, rCurrentProcessInfo);
 			Vector NodalDeformation = ZeroVector(LocalSize);
 			this->GetValuesVector(NodalDeformation);
 			rRightHandSideVector = ZeroVector(LocalSize);
@@ -489,10 +487,10 @@ namespace Kratos
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const int LocalSize = NumNodes * dimension;
 
-		////resizing the matrices + create memory for LHS
+		//resizing the matrices + create memory for LHS
 		rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
-		////creating LHS
-		noalias(rLeftHandSideMatrix) = this->mLHS;
+		//creating LHS
+		noalias(rLeftHandSideMatrix) = this->CreateElementStiffnessMatrix();
 		KRATOS_CATCH("")
 	}
 
@@ -754,6 +752,41 @@ namespace Kratos
 		KRATOS_CATCH("")
 
 	}	
+
+
+
+	void TrussElement3D2N::AddExplicitContribution(const VectorType& rRHSVector,
+		const Variable<VectorType>& rRHSVariable,
+		Variable<array_1d<double, 3> >& rDestinationVariable,
+		const ProcessInfo& rCurrentProcessInfo)
+	{
+		KRATOS_TRY;
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
+		const int dimension = this->GetGeometry().WorkingSpaceDimension();
+		const int element_size = number_of_nodes * dimension;
+
+		if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL)
+		{
+
+			for (int i = 0; i< number_of_nodes; ++i)
+			{
+				int index = dimension * i;
+
+				GetGeometry()[i].SetLock();
+
+				array_1d<double, 3 > &ForceResidual = 
+					GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+
+				for (int j = 0; j<dimension; ++j)
+				{
+					ForceResidual[j] += rRHSVector[index + j];
+				}
+
+				GetGeometry()[i].UnSetLock();
+			}
+		}
+		KRATOS_CATCH("")
+	}
 
 
 
