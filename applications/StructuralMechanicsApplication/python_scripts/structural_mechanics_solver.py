@@ -37,7 +37,10 @@ class MechanicalSolver(object):
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name",
-                "input_file_label": 0
+                "input_file_label": 0,
+            },
+            "material_import_settings" :{
+                "materials_filename": "unknown_name",
             },
             "rotation_dofs": false,
             "pressure_dofs": false,
@@ -77,7 +80,6 @@ class MechanicalSolver(object):
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
         
         print("Warning: Construction of Base Mechanical Solver finished")
-
         
     def AddVariables(self):
         
@@ -237,14 +239,14 @@ class MechanicalSolver(object):
             self.Clear()
             
         # We can solve all at once
-        #self.mechanical_solver.Solve()
+        self.mechanical_solver.Solve()
         
-        # Or considering the phases
-        Initialize()
-        InitializeSolutionStep()
-        Predict()
-        is_converged = SolveSolutionStep()
-        FinalizeSolutionStep()
+        ## Or considering the phases
+        #Initialize()
+        #InitializeSolutionStep()
+        #Predict()
+        #is_converged = SolveSolutionStep()
+        #FinalizeSolutionStep()
 
     # solve :: sequencial calls
     
@@ -300,10 +302,12 @@ class MechanicalSolver(object):
         check_and_prepare_model_process.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
         # Constitutive law import
-        import constitutive_law_python_utility as constitutive_law_utils # TODO: Remove this and put the material process
-        constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part,
-                                                                         self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]);
-        constitutive_law.Initialize();
+        import read_materials_process
+        Model = {"Main" : self.main_model_part} # The process requires a model
+        for i in range(self.settings["processes_sub_model_part_list"].size()):
+            part_name = self.settings["processes_sub_model_part_list"][i].GetString()
+            Model.update({part_name: main_model_part.GetSubModelPart(part_name)})
+        read_materials_process.Factory(self.settings["material_import_settings"],Model)
         print("    Constitutive law initialized.")
 
     def _SetAndFillBuffer(self):
