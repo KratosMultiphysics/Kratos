@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import os
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -27,7 +27,7 @@ class MechanicalSolver(object):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "solid_mechanics_solver",
+            "solver_type": "structural_mechanics_solver",
             "echo_level": 0,
             "buffer_size": 2,
             "solution_type": "Dynamic",
@@ -44,12 +44,10 @@ class MechanicalSolver(object):
             "stabilization_factor": null,
             "reform_dofs_at_each_step": false,
             "line_search": false,
-            "implex": false,
             "compute_reactions": true,
             "compute_contact_forces": false,
             "block_builder": true,
             "clear_storage": false,
-            "component_wise": false,
             "move_mesh_flag": true,
             "convergence_criterion": "Residual_criteria",
             "displacement_relative_tolerance": 1.0e-4,
@@ -95,9 +93,9 @@ class MechanicalSolver(object):
         # Add specific variables for the problem conditions
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosStructural.POINT_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosStructural.LINE_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosStructural.SURFACE_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LINE_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.SURFACE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
 
         if self.settings["rotation_dofs"].GetBool():
@@ -107,10 +105,10 @@ class MechanicalSolver(object):
             if(self.settings["solution_type"].GetString() == "Dynamic"):
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
-        if self.settings["pressure_dofs"].GetBool():
+        if self.settings["pressure_dofs"].GetBool(): # TODO: The creation of UP and USigma elements is pending
             # Add specific variables for the problem (pressure dofs)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosStructural.PRESSURE_REACTION)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.PRESSURE_REACTION)
                     
         print("::[Mechanical Solver]:: Variables ADDED")
 
@@ -156,7 +154,7 @@ class MechanicalSolver(object):
                     
         if self.settings["pressure_dofs"].GetBool():                
             for node in self.main_model_part.Nodes:
-                node.AddDof(KratosMultiphysics.PRESSURE, KratosStructural.PRESSURE_REACTION);
+                node.AddDof(KratosMultiphysics.PRESSURE, StructuralMechanicsApplication.PRESSURE_REACTION);
             if not self.settings["stabilization_factor"].IsNull():
                 self.main_model_part.ProcessInfo[KratosMultiphysics.STABILIZATION_FACTOR] = self.settings["stabilization_factor"].GetDouble()
 
@@ -238,7 +236,15 @@ class MechanicalSolver(object):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
             
-        self.mechanical_solver.Solve()
+        # We can solve all at once
+        #self.mechanical_solver.Solve()
+        
+        # Or considering the phases
+        self.mechanical_solver.Initialize()
+        self.mechanical_solver.InitializeSolutionStep()
+        self.mechanical_solver.Predict()
+        is_converged = self.mechanical_solver.SolveSolutionStep()
+        self.mechanical_solver.FinalizeSolutionStep()
 
     # solve :: sequencial calls
     
@@ -293,7 +299,7 @@ class MechanicalSolver(object):
         check_and_prepare_model_process.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
         # Constitutive law import
-        import constitutive_law_python_utility as constitutive_law_utils
+        import constitutive_law_python_utility as constitutive_law_utils # TODO: Remove this and put the material process
         constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part,
                                                                          self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]);
         constitutive_law.Initialize();
@@ -347,7 +353,7 @@ class MechanicalSolver(object):
     def _GetBuilderAndSolver(self, component_wise, block_builder):
         # Creating the builder and solver
         if(component_wise):
-            builder_and_solver = KratosStructural.ComponentWiseBuilderAndSolver(self.linear_solver)
+            builder_and_solver = StructuralMechanicsApplication.ComponentWiseBuilderAndSolver(self.linear_solver)
         else:
             if(block_builder):
                 # To keep matrix blocks in builder
