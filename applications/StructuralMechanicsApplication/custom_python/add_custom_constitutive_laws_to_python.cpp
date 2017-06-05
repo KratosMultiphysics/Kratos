@@ -46,7 +46,7 @@ void  AddCustomConstitutiveLawsToPython()
     ;
 
     class_< ElasticIsotropic3D, bases< ConstitutiveLaw >, boost::noncopyable >
-    ( "LinearElasticIsotropic3DLaw",
+    ( "LinearElastic3DLaw",
       init<>() )
     ;
     
