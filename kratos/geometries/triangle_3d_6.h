@@ -468,6 +468,28 @@ public:
     }
 
     /**
+     * It computes the normal of the geometry, if possible
+     * @return The normal of the geometry
+     */
+    virtual array_1d<double, 3> Normal(CoordinatesArrayType& rPointLocalCoordinates) override
+    {
+        // We define the normal and tangents
+        array_1d<double,3> TangentXi, TangentEta;
+
+        Matrix JNode = ZeroMatrix( 3, 2 ); 
+        this->Jacobian( JNode, rPointLocalCoordinates);
+    
+        for (unsigned int iDim = 0; iDim < 3; iDim++)
+        {
+            // Using the Jacobian tangent directions 
+            TangentXi[iDim]  = JNode(iDim, 0);
+            TangentEta[iDim] = JNode(iDim, 1);
+        }
+        
+        return MathUtils<double>::UnitCrossProduct( TangentEta, TangentXi );
+    }
+    
+    /**
      * Returns whether given arbitrary point is inside the Geometry and the respective 
      * local point for the given global point
      * @param rPoint: The point to be checked if is inside o note in global coordinates

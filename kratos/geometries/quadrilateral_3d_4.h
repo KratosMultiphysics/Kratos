@@ -524,33 +524,19 @@ public:
     virtual array_1d<double, 3> Normal(CoordinatesArrayType& rPointLocalCoordinates) override
     {
         // We define the normal and tangents
-        array_1d<double,3> Normal = ZeroVector(3);
         array_1d<double,3> TangentXi, TangentEta;
 
-        // We compute the condition normal as the pondered  of the cross product of the nodal tangents 
-        for ( unsigned int iNode = 0; iNode < this->PointsNumber( ); ++iNode )
+        Matrix JNode = ZeroMatrix( 3, 2 ); 
+        this->Jacobian( JNode, rPointLocalCoordinates);
+    
+        for (unsigned int iDim = 0; iDim < 3; iDim++)
         {
-            Matrix JNode = ZeroMatrix( 3, 2 ); 
-            this->Jacobian( JNode, BaseType::GetPoint(iNode).Coordinates());
-        
-            for (unsigned int iDim = 0; iDim < 3; iDim++)
-            {
-                // Using the Jacobian tangent directions 
-                TangentXi[iDim]  = JNode(iDim, 0);
-                TangentEta[iDim] = JNode(iDim, 1);
-            }
-            
-            Normal += MathUtils<double>::CrossProduct( TangentEta, TangentXi );
+            // Using the Jacobian tangent directions 
+            TangentXi[iDim]  = JNode(iDim, 0);
+            TangentEta[iDim] = JNode(iDim, 1);
         }
         
-        // We normalize
-        const double Tolerance = std::numeric_limits<double>::epsilon();
-        if ( norm_2( Normal ) > Tolerance )
-        {
-            Normal /= norm_2( Normal );
-        }
-        
-        return Normal;
+        return MathUtils<double>::UnitCrossProduct( TangentEta, TangentXi );
     }
     
     /**
