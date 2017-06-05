@@ -820,7 +820,7 @@ namespace Kratos
 
 		////////////////////////////
 		//TESTING
-		this->mIsLumpedMassMatrix = true;
+		this->mIsLumpedMassMatrix = false;
 		////////////////////////////
 
 
