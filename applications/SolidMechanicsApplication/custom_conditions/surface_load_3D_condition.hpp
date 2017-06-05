@@ -149,6 +149,11 @@ protected:
      */
     virtual Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
 
+    /**
+     * Calculation of the Initial Position Increment
+     */
+    virtual Matrix& CalculateTotalDisplacement(Matrix & rDisplacement);
+
 
     /**
      * Calculate Condition Kinematics
