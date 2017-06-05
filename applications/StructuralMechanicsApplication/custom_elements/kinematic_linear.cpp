@@ -275,7 +275,7 @@ namespace Kratos
             }
         }
         else
-            KRATOS_THROW_ERROR( std::logic_error, "a constitutive law needs to be specified for the element with ID ", this->Id() )
+            KRATOS_ERROR << "a constitutive law needs to be specified for the element with ID ", this->Id() )
             KRATOS_CATCH( "" )
         }
 
@@ -877,59 +877,82 @@ namespace Kratos
 
 
 
-        //verify that the variables are correctly initialized
-
+        // Verify that the variables are correctly initialized
         if ( VELOCITY.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" );
+        {
+            KRATOS_ERROR <<"VELOCITY has Key zero! (check if the application is correctly registered" << std::endl;
+        }
 
         if ( DISPLACEMENT.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" );
+        {
+            KRATOS_ERROR <<"DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
+        }
 
         if ( ACCELERATION.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" );
+        {
+            KRATOS_ERROR <<"ACCELERATION has Key zero! (check if the application is correctly registered" << std::endl;
+        }
 
         if ( DENSITY.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" );
+        {
+            KRATOS_ERROR <<"DENSITY has Key zero! (check if the application is correctly registered" << std::endl;
+        }
 
         if ( VOLUME_ACCELERATION.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered", "" );
+        {
+            KRATOS_ERROR <<"VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered" << std::endl;
+        }
 
         if ( THICKNESS.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" );
+        {
+            KRATOS_ERROR <<"THICKNESS has Key zero! (check if the application is correctly registered" << std::endl;
+        }
 
-        //verify that the dofs exist
+        // Verify that the dofs exist
         for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
         {
             if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() );
+            {
+                KRATOS_ERROR <<"Missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
+            }
 
             if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() );
+            {
+                KRATOS_ERROR <<"Missing one of the dofs for the variable DISPLACEMENT on node " << GetGeometry()[i].Id() << std::endl;
+            }
         }
 
-        //verify that the constitutive law exists
+        // Verify that the constitutive law exists
         if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )
         {
-            KRATOS_THROW_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() );
+            KRATOS_ERROR << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
         }
 
 
-        //verify that the constitutive law has the correct dimension
+        // Verify that the constitutive law has the correct dimension
         if ( dimension == 2 )
         {
             if ( this->GetProperties().Has( THICKNESS ) == false )
-                KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() );
+            {
+                KRATOS_ERROR << "THICKNESS not provided for element " << this->Id() << std::endl;
+            }
             
             if ( this->GetProperties().Has( VOLUME_ACCELERATION ) == false )
-                KRATOS_THROW_ERROR( std::logic_error, "VOLUME_ACCELERATION not provided for element ", this->Id() );
+            {
+                KRATOS_ERROR << "VOLUME_ACCELERATION not provided for element " << this->Id() << std::endl;
+            }
 
             if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
-                KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() );
+            {
+                KRATOS_ERROR << "Wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) " << this->Id() << std::endl;
+            }
         }
         else
         {
             if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 6 )
-                KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) ", this->Id() );
+            {
+                KRATOS_ERROR << "Wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) " << this->Id() << std::endl;
+            }
         }
 
         //check constitutive law
