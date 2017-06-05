@@ -50,20 +50,19 @@ namespace Kratos
       protected:
 
          // Get Properties 
-         virtual void GetVoigtSize( const unsigned int dimension, unsigned int & voigtsize, unsigned int & principal_dimension); 
+         virtual void GetVoigtSize( const unsigned int & dimension, unsigned int & voigtsize, unsigned int & principal_dimension) override; 
 
          // COMPUTE RHS
-         virtual VectorType& CalculateAndAddWaterPressureForcesDisplacement( VectorType& rRightHandSide , GeometryType & rGeometry,  const PropertiesType & rProperties, const MatrixType & rDN_DX, const Vector & rN, const double & rDetF0, const Matrix & rTotalF, const double & rDeltaTime, const double & rIntegrationWeight, const double & rCurrentRadius);
+         virtual VectorType & CalculateMassBalance_AddDisplacementPart( HydroMechanicalVariables & rVariables, VectorType & rLocalRHS, const double & rIntegrationWeight) override;
          
         // COMPUTE LHS
 
 
-         virtual MatrixType & ComputeWaterPressureKUwP( MatrixType & LocalLHS, GeometryType & rGeometry, const Matrix & rDN_DX, const VectorType & rN, const double & rIntegrationWeight, const double & rCurrentRadius);
+         virtual MatrixType & ComputeWaterPressureKUwP( HydroMechanicalVariables & rVariables, MatrixType & rLocalLHS, const double & rIntegrationWeight) override;
 
-         virtual MatrixType & ComputeSolidSkeletonDeformationMatrix(MatrixType & rLocalLHS, GeometryType & rGeometry, const PropertiesType & rProperties, const Matrix & rDN_DX, const Vector & rN, const double & rIntegrationWeight, const double & rCurrentRadius);
+         virtual MatrixType & ComputeSolidSkeletonDeformationMatrix( HydroMechanicalVariables & rVariables, MatrixType & rLocalLHS, const double & rIntegrationWeight) override;
 
-
-         virtual MatrixType & ComputeDensityChangeTerm( MatrixType & rLocalLHS, GeometryType & rGeometry, const PropertiesType & rProperties, const Vector & rVolumeForce,  const Matrix & rDN_DX, const Vector & rN, const double & rDetF0, const double & rIntegrationWeight, const double & rCurrentRadius);
+         virtual MatrixType & ComputeDensityChangeTerm( HydroMechanicalVariables & rVariables, MatrixType & rLocalLHS, const double & rIntegrationWeight) override;
 
    }; // end Class AxisymWaterPressureUtilities
 

@@ -255,7 +255,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UpdatedLagrangianUJwPElement2D3N// GUI group identifier: Parts Auto1
+Begin Elements UpdatedLagrangianUwPStabElement2D3N// GUI group identifier: Parts Auto1
          1          1         21         14         20 
          2          1         12         14         21 
          3          1          9         14         12 
