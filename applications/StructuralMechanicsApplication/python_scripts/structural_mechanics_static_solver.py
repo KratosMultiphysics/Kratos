@@ -38,6 +38,9 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
+            "material_import_settings" :{
+                "materials_filename": "unknown_name"
+            },
             "rotation_dofs": false,
             "pressure_dofs": false,
             "stabilization_factor": 1.0,

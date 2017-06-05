@@ -10,7 +10,7 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "solid_mechanics_static_solver",
+        "solver_type"                        : "structural_mechanics_static_solver",
         "echo_level"                         : 0,
         "solution_type"                      : "Static",
         "analysis_type"                      : "Non-Linear",
@@ -18,6 +18,9 @@
             "input_type"       : "mdpa",
             "input_filename"   : "patch_test/small_disp/patch_test_2D_shear_qua",
             "input_file_label" : 0
+        },
+        "material_import_settings" :{
+            "materials_filename": "patch_test/materials_2D.json"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "Residual_criterion",
@@ -59,7 +62,7 @@
         }
     }],
     "loads_process_list"       : [{
-        "python_module" : "assign_modulus_and_direction_to_conditions_process",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process sets a vector variable value over a condition",
         "check"         : "DirectorVectorNonZero direction",
@@ -73,7 +76,7 @@
             "interval"        : [0.0,"End"]
         }
     },{
-        "python_module" : "assign_modulus_and_direction_to_conditions_process",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process sets a vector variable value over a condition",
         "check"         : "DirectorVectorNonZero direction",
@@ -87,7 +90,7 @@
             "interval"        : [0.0,"End"]
         }
     },{
-        "python_module" : "assign_modulus_and_direction_to_conditions_process",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process sets a vector variable value over a condition",
         "check"         : "DirectorVectorNonZero direction",
@@ -101,7 +104,7 @@
             "interval"        : [0.0,"End"]
         }
     },{
-        "python_module" : "assign_modulus_and_direction_to_conditions_process",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process sets a vector variable value over a condition",
         "check"         : "DirectorVectorNonZero direction",

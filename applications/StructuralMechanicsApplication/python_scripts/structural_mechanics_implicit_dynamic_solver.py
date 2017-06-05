@@ -33,6 +33,9 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
+            "material_import_settings" :{
+                "materials_filename": "unknown_name"
+            },
             "echo_level": 0,
             "buffer_size": 2,
             "solution_type": "Dynamic",

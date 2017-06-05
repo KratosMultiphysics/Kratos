@@ -40,7 +40,7 @@ class MechanicalSolver(object):
                 "input_file_label": 0,
             },
             "material_import_settings" :{
-                "materials_filename": "unknown_name",
+                "materials_filename": "unknown_name"
             },
             "rotation_dofs": false,
             "pressure_dofs": false,
@@ -304,10 +304,13 @@ class MechanicalSolver(object):
         # Constitutive law import
         import read_materials_process
         Model = {"Main" : self.main_model_part} # The process requires a model
+        for i in range(self.settings["problem_domain_sub_model_part_list"].size()):
+            part_name = self.settings["problem_domain_sub_model_part_list"][i].GetString()
+            Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
         for i in range(self.settings["processes_sub_model_part_list"].size()):
             part_name = self.settings["processes_sub_model_part_list"][i].GetString()
-            Model.update({part_name: main_model_part.GetSubModelPart(part_name)})
-        read_materials_process.Factory(self.settings["material_import_settings"],Model)
+            Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
+        read_materials_process.ReadMaterialsProcess(Model, self.settings["material_import_settings"])
         print("    Constitutive law initialized.")
 
     def _SetAndFillBuffer(self):
@@ -354,13 +357,13 @@ class MechanicalSolver(object):
         
         return convergence_criterion.mechanical_convergence_criterion
 
-    def _GetBuilderAndSolver(self, component_wise, block_builder):
+    def _GetBuilderAndSolver(self, block_builder):
         # Creating the builder and solver
         if(block_builder):
-                # To keep matrix blocks in builder
-                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-            else:
-                builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
+            # To keep matrix blocks in builder
+            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+        else:
+            builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
         
         return builder_and_solver
         
