@@ -7,15 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_SIMO_EXPONENTIAL_THERMAL_HARDENING_LAW_H_INCLUDED )
-#define  KRATOS_SIMO_EXPONENTIAL_THERMAL_HARDENING_LAW_H_INCLUDED
+#if !defined(KRATOS_JOHNSON_COOK_THERMAL_HARDENING_RULE_H_INCLUDED )
+#define  KRATOS_JOHNSON_COOK_THERMAL_HARDENING_RULE_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_models/plasticity_models/hardening_laws/simo_exponential_hardening_law.hpp"
+#include "custom_models/plasticity_models/hardening_rules/hardening_rule.hpp"
 
 namespace Kratos
 {
@@ -44,34 +44,34 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) SimoExponentialThermalHardeningLaw 
-    : public SimoExponentialHardeningLaw
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) JohnsonCookThermalHardeningRule 
+    : public HardeningRule
   {
   public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of SimoExponentialThermalHardeningLaw
-    KRATOS_CLASS_POINTER_DEFINITION( SimoExponentialThermalHardeningLaw );
+    /// Pointer definition of JohnsonCookThermalHardeningRule
+    KRATOS_CLASS_POINTER_DEFINITION( JohnsonCookThermalHardeningRule );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    SimoExponentialThermalHardeningLaw();
+    JohnsonCookThermalHardeningRule();
 
     /// Copy constructor.
-    SimoExponentialThermalHardeningLaw(SimoExponentialThermalHardeningLaw const& rOther);
+    JohnsonCookThermalHardeningRule(JohnsonCookThermalHardeningRule const& rOther);
 
     /// Assignment operator.
-    SimoExponentialThermalHardeningLaw& operator=(SimoExponentialThermalHardeningLaw const& rOther);
+    JohnsonCookThermalHardeningRule& operator=(JohnsonCookThermalHardeningRule const& rOther);
 
     /// Clone.
-    virtual HardeningLaw::Pointer Clone() const override;
+    virtual HardeningRule::Pointer Clone() const override;
     
     /// Destructor.
-    ~SimoExponentialThermalHardeningLaw();
+    ~JohnsonCookThermalHardeningRule();
 
     ///@}
     ///@name Operators
@@ -82,14 +82,21 @@ namespace Kratos
     ///@name Operations
     ///@{
 
+    
+    /**
+     * Calculate Hardening functions
+     */
 
+    virtual double& CalculateHardening(const PlasticDataType& rVariables, double& rHardening) override;
+      
     /**
      * Calculate Hardening function derivatives
      */
 
+    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening) override;
+
     virtual double& CalculateDeltaThermalHardening(const PlasticDataType& rVariables, double& rDeltaThermalHardening) override;
-
-
+    
     ///@}
     ///@name Access
     ///@{
@@ -108,20 +115,20 @@ namespace Kratos
     virtual std::string Info() const override
     {
       std::stringstream buffer;
-      buffer << "SimoExponentialThermalHardeningLaw" ;
+      buffer << "JohnsonCookThermalHardeningRule" ;
       return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-      rOStream << "SimoExponentialThermalHardeningLaw";
+      rOStream << "JohnsonCookThermalHardeningRule";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "SimoExponentialThermalHardeningLaw Data";
+      rOStream << "JohnsonCookThermalHardeningRule Data";
     }    
 
 
@@ -136,21 +143,21 @@ namespace Kratos
     ///@name Protected static Member Variables
     ///@{
 
+
     ///@}
     ///@name Protected member Variables
     ///@{
+	
      
     ///@}
     ///@name Protected Operators
     ///@{
 
+    
     ///@}
     ///@name Protected Operations
     ///@{
-  
-    virtual double& CalculateThermalReferenceEffect(const PlasticDataType& rVariables, double& rThermalFactor);
-
-    virtual double& CalculateThermalCurrentEffect(const PlasticDataType& rVariables, double& rThermalFactor);
+    
     
     ///@}
     ///@name Protected  Access
@@ -200,12 +207,12 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const override
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SimoExponentialHardeningLaw )
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningRule )
     }
     
     virtual void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SimoExponentialHardeningLaw )
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningRule )
     }
     
     ///@}
@@ -220,7 +227,7 @@ namespace Kratos
 
     ///@}
 
-  }; // Class SimoExponentialThermalHardeningLaw
+  }; // Class JohnsonCookThermalHardeningRule
 
   ///@}
 
@@ -239,6 +246,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SIMO_EXPONENTIAL_THERMAL_HARDENING_LAW_H_INCLUDED  defined 
+#endif // KRATOS_JOHNSON_COOK_THERMAL_HARDENING_RULE_H_INCLUDED  defined 
 
 

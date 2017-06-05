@@ -1,21 +1,21 @@
 //
 //   Project Name:        KratosConstitutiveModelsApplication $
-//   Created by:          $Author:                JMCarbonell $
+//   Created by:          $Author:                  LMonforte $
 //   Last modified by:    $Co-Author:                         $
 //   Date:                $Date:                   April 2017 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
 
-#if !defined(KRATOS_SIMO_LINEAR_HARDENING_LAW_H_INCLUDED )
-#define  KRATOS_SIMO_LINEAR_HARDENING_LAW_H_INCLUDED
+#if !defined(KRATOS_CAM_CLAY_HARDENING_RULE_H_INCLUDED )
+#define  KRATOS_CAM_CLAY_HARDENING_RULE_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_models/plasticity_models/hardening_laws/simo_exponential_hardening_law.hpp"
+#include "custom_models/plasticity_models/hardening_rules/hardening_rule.hpp"
 
 namespace Kratos
 {
@@ -44,35 +44,37 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) SimoLinearHardeningLaw 
-    : public SimoExponentialHardeningLaw
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) CamClayHardeningRule : public HardeningRule
   {
-  public:
-    ///@name Type Definitions
-    ///@{
+  protected:
 
-    /// Pointer definition of SimoLinearHardeningLaw
-    KRATOS_CLASS_POINTER_DEFINITION( SimoLinearHardeningLaw );
+    constexpr static std::size_t VarSize = 5;
+  public:
+    
+    typedef InternalVariables<VarSize>   InternalVariablesType;
+    typedef PlasticModelData<VarSize>          PlasticDataType;
+
+    /// Pointer definition of CamClayHardeningRule
+    KRATOS_CLASS_POINTER_DEFINITION( CamClayHardeningRule );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    SimoLinearHardeningLaw();
-
+    CamClayHardeningRule();
 
     /// Copy constructor.
-    SimoLinearHardeningLaw(SimoLinearHardeningLaw const& rOther);
+    CamClayHardeningRule(CamClayHardeningRule const& rOther);
 
     /// Assignment operator.
-    SimoLinearHardeningLaw& operator=(SimoLinearHardeningLaw const& rOther);
+    CamClayHardeningRule& operator=(CamClayHardeningRule const& rOther);
 
     /// Clone.
-    virtual HardeningLaw::Pointer Clone() const override;   
-    
+    virtual HardeningRule::Pointer Clone() const override;
+
     /// Destructor.
-    ~SimoLinearHardeningLaw();
+    ~CamClayHardeningRule();
 
     ///@}
     ///@name Operators
@@ -85,11 +87,17 @@ namespace Kratos
 
 
     /**
+     * Calculate Hardening functions
+     */
+
+    virtual double& CalculateHardening(const PlasticDataType& rVariables, double& rHardening);
+
+    /**
      * Calculate Hardening function derivatives
      */
 
-    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening) override;
-    
+    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening);
+
 
     ///@}
     ///@name Access
@@ -109,21 +117,22 @@ namespace Kratos
     virtual std::string Info() const override
     {
       std::stringstream buffer;
-      buffer << "SimoLinearHardeningLaw" ;
+      buffer << "CamClayHardeningRule" ;
       return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-      rOStream << "SimoLinearHardeningLaw";
+      rOStream << "CamClayHardeningRule";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "SimoLinearHardeningLaw Data";
+      rOStream << "CamClayHardeningRule Data";
     }    
+
 
     ///@}
     ///@name Friends
@@ -141,25 +150,13 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
-     
     ///@}
     ///@name Protected Operators
     ///@{
 
-    /**
-     * Calculate Hardening functions
-     */
-    virtual double& CalculateAndAddIsotropicHardening(const PlasticDataType& rVariables, double& rIsotropicHardening) override;
-
-    /**
-     * Calculate Hardening function derivatives
-     */
-    virtual double& CalculateAndAddDeltaIsotropicHardening(const PlasticDataType& rVariables, double& rDeltaIsotropicHardening) override;
-
     ///@}
     ///@name Protected Operations
     ///@{
-
 
     ///@}
     ///@name Protected  Access
@@ -187,7 +184,6 @@ namespace Kratos
     ///@name Member Variables
     ///@{
 
-	
     ///@}
     ///@name Private Operators
     ///@{
@@ -207,16 +203,17 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+
+    virtual void save(Serializer& rSerializer) const override
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SimoExponentialHardeningLaw )
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningRule )
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SimoExponentialHardeningLaw )
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningRule )
     }
- 
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -229,7 +226,7 @@ namespace Kratos
 
     ///@}
 
-  }; // Class SimoLinearHardeningLaw
+  }; // Class CamClayHardeningRule
 
   ///@}
 
@@ -248,6 +245,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SIMO_LINEAR_HARDENING_LAW_H_INCLUDED  defined 
+#endif // KRATOS_CAM_CLAY_HARDENING_RULE_H_INCLUDED  defined 
 
 

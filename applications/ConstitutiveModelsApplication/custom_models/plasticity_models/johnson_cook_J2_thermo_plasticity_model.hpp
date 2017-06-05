@@ -16,8 +16,8 @@
 
 // Project includes
 #include "custom_models/plasticity_models/non_linear_rate_dependent_plasticity_model.hpp"
-#include "custom_models/plasticity_models/yield_criteria/mises_huber_thermal_yield_criterion.hpp"
-#include "custom_models/plasticity_models/hardening_laws/johnson_cook_thermal_hardening_law.hpp"
+#include "custom_models/plasticity_models/yield_surfaces/mises_huber_thermal_yield_surface.hpp"
+#include "custom_models/plasticity_models/hardening_rules/johnson_cook_thermal_hardening_rule.hpp"
 #include "custom_models/elasticity_models/incompressible_neo_hookean_model.hpp"
 
 namespace Kratos
@@ -47,7 +47,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) JohnsonCookJ2ThermoPlasticityModel : public NonLinearRateDependentPlasticityModel<IncompressibleNeoHookeanModel, MisesHuberThermalYieldCriterion<JohnsonCookThermalHardeningLaw> >
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) JohnsonCookJ2ThermoPlasticityModel : public NonLinearRateDependentPlasticityModel<IncompressibleNeoHookeanModel, MisesHuberThermalYieldSurface<JohnsonCookThermalHardeningRule> >
   {
   public:
     
@@ -58,13 +58,13 @@ namespace Kratos
     typedef IncompressibleNeoHookeanModel                  ElasticityModelType;
     typedef typename ElasticityModelType::Pointer       ElasticityModelPointer;
 
-    //yield criterion
-    typedef JohnsonCookThermalHardeningLaw                       HardeningLawType;
-    typedef MisesHuberThermalYieldCriterion<HardeningLawType>  YieldCriterionType;
-    typedef typename YieldCriterionType::Pointer            YieldCriterionPointer;
+    //yield surface
+    typedef JohnsonCookThermalHardeningRule                    HardeningRuleType;
+    typedef MisesHuberThermalYieldSurface<HardeningRuleType>    YieldSurfaceType;
+    typedef typename YieldSurfaceType::Pointer               YieldSurfacePointer;
 
     //base type
-    typedef NonLinearRateDependentPlasticityModel<ElasticityModelType,YieldCriterionType>  BaseType;
+    typedef NonLinearRateDependentPlasticityModel<ElasticityModelType,YieldSurfaceType>  BaseType;
 
     //common types
     typedef typename BaseType::Pointer                         BaseTypePointer;

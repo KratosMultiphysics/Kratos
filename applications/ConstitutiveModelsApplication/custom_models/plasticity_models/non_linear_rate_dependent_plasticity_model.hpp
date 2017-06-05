@@ -45,8 +45,8 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  template<class TElasticityModel, class TYieldCriterion>
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) NonLinearRateDependentPlasticityModel : public NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>
+  template<class TElasticityModel, class TYieldSurface>
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) NonLinearRateDependentPlasticityModel : public NonLinearAssociativePlasticityModel<TElasticityModel,TYieldSurface>
   {
   public:
     
@@ -57,15 +57,15 @@ namespace Kratos
     typedef TElasticityModel                               ElasticityModelType;
     typedef typename  ElasticityModelType::Pointer      ElasticityModelPointer;
 
-    //yield criterion
-    typedef TYieldCriterion                                 YieldCriterionType;
-    typedef typename YieldCriterionType::Pointer         YieldCriterionPointer;
+    //yield surface 
+    typedef TYieldSurface                                     YieldSurfaceType;
+    typedef typename YieldSurfaceType::Pointer             YieldSurfacePointer;
 
     //derived type
-    typedef NonLinearAssociativePlasticityModel<ElasticityModelType,YieldCriterionType>   DerivedType;
+    typedef NonLinearAssociativePlasticityModel<ElasticityModelType,YieldSurfaceType>   DerivedType;
     
     //base type
-    typedef PlasticityModel<ElasticityModelType,YieldCriterionType>   BaseType;
+    typedef PlasticityModel<ElasticityModelType,YieldSurfaceType>     BaseType;
 
     //common types
     typedef typename BaseType::Pointer                         BaseTypePointer;
@@ -88,7 +88,7 @@ namespace Kratos
     NonLinearRateDependentPlasticityModel() : DerivedType() {}
 
     /// Constructor.
-    NonLinearRateDependentPlasticityModel(ElasticityModelPointer pElasticityModel, YieldCriterionPointer pYieldCriterion) : DerivedType(pElasticityModel, pYieldCriterion) {}
+    NonLinearRateDependentPlasticityModel(ElasticityModelPointer pElasticityModel, YieldSurfacePointer pYieldSurface) : DerivedType(pElasticityModel, pYieldSurface) {}
     
     /// Copy constructor.
     NonLinearRateDependentPlasticityModel(NonLinearRateDependentPlasticityModel const& rOther) : DerivedType(rOther) {}
@@ -260,13 +260,13 @@ namespace Kratos
       DeltaPlasticStrain       = sqrt(2.0/3.0) * rDeltaGamma;
       rEquivalentPlasticStrain = rEquivalentPlasticStrainOld + DeltaPlasticStrain;
 
-      double StateFunction     =  this->mYieldCriterion.CalculateStateFunction( rVariables, StateFunction );
+      double StateFunction     =  this->mYieldSurface.CalculateStateFunction( rVariables, StateFunction );
 
       double alpha = 1;
       while ( fabs(StateFunction)>=Tolerance && iter<=MaxIterations)
 	{
 	  //Calculate Delta State Function:
-	  DeltaStateFunction = this->mYieldCriterion.CalculateDeltaStateFunction( rVariables, DeltaStateFunction );
+	  DeltaStateFunction = this->mYieldSurface.CalculateDeltaStateFunction( rVariables, DeltaStateFunction );
 
 	  //Calculate DeltaGamma:
 	  DeltaDeltaGamma  = StateFunction/DeltaStateFunction;
@@ -280,7 +280,7 @@ namespace Kratos
 	  rEquivalentPlasticStrain = rEquivalentPlasticStrainOld + alpha * DeltaPlasticStrain;
 	       	
 	  //Calculate State Function:
-	  StateFunction = this->mYieldCriterion.CalculateStateFunction( rVariables, StateFunction );
+	  StateFunction = this->mYieldSurface.CalculateStateFunction( rVariables, StateFunction );
 
 	  iter++;
 	}
@@ -326,7 +326,7 @@ namespace Kratos
       while ( fabs(StateFunction)>=Tolerance && iter<=MaxIterations)
 	{
 	  //Calculate Delta State Function:
-	  DeltaStateFunction = this->mYieldCriterion.CalculateDeltaStateFunction( rVariables, DeltaStateFunction );
+	  DeltaStateFunction = this->mYieldSurface.CalculateDeltaStateFunction( rVariables, DeltaStateFunction );
 
 	  //Calculate DeltaGamma:
 	  DeltaDeltaGamma  = StateFunction/DeltaStateFunction;
@@ -340,7 +340,7 @@ namespace Kratos
 	  rEquivalentPlasticStrain = rEquivalentPlasticStrainOld + alpha * DeltaPlasticStrain;
 	       	
 	  //Calculate State Function:
-	  StateFunction = this->mYieldCriterion.CalculateStateFunction( rVariables, StateFunction );
+	  StateFunction = this->mYieldSurface.CalculateStateFunction( rVariables, StateFunction );
 
 	  iter++;
 	}
@@ -423,7 +423,7 @@ namespace Kratos
       double& rDeltaGamma  = rVariables.DeltaInternal.Variables[0];
       double DeltaGamma = sqrt(2.0/3.0) * rDeltaGamma;
 
-      double StateFunction = this->mYieldCriterion.CalculateStateFunction( rVariables, StateFunction );
+      double StateFunction = this->mYieldSurface.CalculateStateFunction( rVariables, StateFunction );
       double R0 = sqrt(2.0/3.0) * rDeltaGamma * StateFunction;
 
       //double Residual0 = StateFunction;
@@ -432,7 +432,7 @@ namespace Kratos
       const double& rEquivalentPlasticStrainOld  = this->mPreviousInternal.Variables[0];
       
       rEquivalentPlasticStrain = rEquivalentPlasticStrainOld + sqrt(2.0/3.0) * rDeltaGamma;
-      StateFunction = this->mYieldCriterion.CalculateStateFunction( rVariables, StateFunction );
+      StateFunction = this->mYieldSurface.CalculateStateFunction( rVariables, StateFunction );
 	
       double R1 = sqrt(2.0/3.0) * rDeltaGamma * StateFunction;
 
@@ -461,7 +461,7 @@ namespace Kratos
 	    
 	    rEquivalentPlasticStrain  = rEquivalentPlasticStrainOld + sqrt(2.0/3.0) * rDeltaGamma;
 
-	    StateFunction = this->mYieldCriterion.CalculateStateFunction( rVariables, StateFunction );
+	    StateFunction = this->mYieldSurface.CalculateStateFunction( rVariables, StateFunction );
 
 	    R2 = sqrt(2.0/3.0) * rDeltaGamma * StateFunction;
 

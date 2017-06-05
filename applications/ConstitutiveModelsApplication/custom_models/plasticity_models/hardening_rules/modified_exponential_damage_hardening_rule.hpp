@@ -1,21 +1,21 @@
 //
 //   Project Name:        KratosConstitutiveModelsApplication $
-//   Created by:          $Author:                JMCarbonell $
-//   Last modified by:    $Co-Author:                         $
+//   Created by:          $Author:                  IPouplana $
+//   Last modified by:    $Co-Author:             JMCarbonell $
 //   Date:                $Date:                   April 2017 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
 
-#if !defined(KRATOS_BAKER_JOHNSON_COOK_THERMAL_HARDENING_LAW_H_INCLUDED )
-#define  KRATOS_BAKER_JOHNSON_COOK_THERMAL_HARDENING_LAW_H_INCLUDED
+#if !defined(KRATOS_MODIFIED_EXPONENTIAL_DAMAGE_HARDENING_RULE_H_INCLUDED )
+#define  KRATOS_MODIFIED_EXPONENTIAL_DAMAGE_HARDENING_RULE_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_models/plasticity_models/hardening_laws/hardening_law.hpp"
+#include "custom_models/plasticity_models/hardening_rules/hardening_rule.hpp"
 
 namespace Kratos
 {
@@ -44,34 +44,35 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) BakerJohnsonCookThermalHardeningLaw 
-    : public HardeningLaw
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) ModifiedExponentialDamageHardeningRule
+    : public HardeningRule
   {
   public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of BakerJohnsonCookThermalHardeningLaw
-    KRATOS_CLASS_POINTER_DEFINITION( BakerJohnsonCookThermalHardeningLaw );
+    /// Pointer definition of ModifiedExponentialDamageHardeningRule
+    KRATOS_CLASS_POINTER_DEFINITION( ModifiedExponentialDamageHardeningRule );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    BakerJohnsonCookThermalHardeningLaw();
+    ModifiedExponentialDamageHardeningRule();
+
 
     /// Copy constructor.
-    BakerJohnsonCookThermalHardeningLaw(BakerJohnsonCookThermalHardeningLaw const& rOther);
+    ModifiedExponentialDamageHardeningRule(ModifiedExponentialDamageHardeningRule const& rOther);
 
     /// Assignment operator.
-    BakerJohnsonCookThermalHardeningLaw& operator=(BakerJohnsonCookThermalHardeningLaw const& rOther);
+    ModifiedExponentialDamageHardeningRule& operator=(ModifiedExponentialDamageHardeningRule const& rOther);
 
     /// Clone.
-    virtual HardeningLaw::Pointer Clone() const override;
+    virtual HardeningRule::Pointer Clone() const override;
     
     /// Destructor.
-    ~BakerJohnsonCookThermalHardeningLaw();
+    ~ModifiedExponentialDamageHardeningRule();
 
     ///@}
     ///@name Operators
@@ -82,7 +83,6 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    
     /**
      * Calculate Hardening functions
      */
@@ -95,7 +95,6 @@ namespace Kratos
 
     virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening) override;
 
-    virtual double& CalculateDeltaThermalHardening(const PlasticDataType& rVariables, double& rDeltaThermalHardening) override;
     
     ///@}
     ///@name Access
@@ -110,27 +109,26 @@ namespace Kratos
     ///@}
     ///@name Input and output
     ///@{
-
+    
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
       std::stringstream buffer;
-      buffer << "BakerJohnsonCookThermalHardeningLaw" ;
+      buffer << "ModifiedExponentialDamageHardeningRule" ;
       return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-      rOStream << "BakerJohnsonCookThermalHardeningLaw";
+      rOStream << "ModifiedExponentialDamageHardeningRule";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "BakerJohnsonCookThermalHardeningLaw Data";
-    }    
-
+      rOStream << "ModifiedExponentialDamageHardeningRule Data";
+    } 
 
     ///@}
     ///@name Friends
@@ -147,8 +145,8 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-	
-     
+
+    
     ///@}
     ///@name Protected Operators
     ///@{
@@ -157,8 +155,8 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
-    
-    
+
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -204,17 +202,17 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-
+    
     virtual void save(Serializer& rSerializer) const override
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningLaw )
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningRule )
     }
     
     virtual void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningLaw )
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningRule )
     }
-    
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -227,7 +225,7 @@ namespace Kratos
 
     ///@}
 
-  }; // Class BakerJohnsonCookThermalHardeningLaw
+  }; // Class ModifiedExponentialDamageHardeningRule
 
   ///@}
 
@@ -240,12 +238,12 @@ namespace Kratos
   ///@{
 
 
+  /// // input stream function
+
   ///@}
 
   ///@} addtogroup block
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BAKER_JOHNSON_COOK_THERMAL_HARDENING_LAW_H_INCLUDED  defined 
-
-
+#endif // KRATOS_MODIFIED_EXPONENTIAL_DAMAGE_HARDENING_RULE_H_INCLUDED  defined 

@@ -16,8 +16,8 @@
 
 // Project includes
 #include "custom_models/plasticity_models/non_associative_plasticity_model.hpp"
-#include "custom_models/plasticity_models/hardening_laws/cam_clay_hardening_law.hpp"
-#include "custom_models/plasticity_models/yield_criteria/modified_cam_clay_yield_criterion.hpp"
+#include "custom_models/plasticity_models/hardening_rules/cam_clay_hardening_rule.hpp"
+#include "custom_models/plasticity_models/yield_surfaces/modified_cam_clay_yield_surface.hpp"
 #include "custom_models/elasticity_models/borja_model.hpp"
 
 namespace Kratos
@@ -47,7 +47,7 @@ namespace Kratos
    /// Short class definition.
    /** Detail class definition.
     */
-   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) CamClayModel : public NonAssociativePlasticityModel<BorjaModel, ModifiedCamClayYieldCriterion<CamClayHardeningLaw> >
+   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) CamClayModel : public NonAssociativePlasticityModel<BorjaModel, ModifiedCamClayYieldSurface<CamClayHardeningRule> >
    {
       public:
 
@@ -58,13 +58,13 @@ namespace Kratos
          typedef BorjaModel                                     ElasticityModelType;
          typedef typename ElasticityModelType::Pointer       ElasticityModelPointer;
 
-         //yield criterion
-         typedef CamClayHardeningLaw                       HardeningLawType;
-         typedef ModifiedCamClayYieldCriterion<HardeningLawType>      YieldCriterionType;
-         typedef typename YieldCriterionType::Pointer         YieldCriterionPointer;
+         //yield surface
+         typedef CamClayHardeningRule                             HardeningRuleType;
+         typedef ModifiedCamClayYieldSurface<HardeningRuleType>    YieldSurfaceType;
+         typedef typename YieldSurfaceType::Pointer             YieldSurfacePointer;
 
          //base type
-         typedef NonAssociativePlasticityModel<ElasticityModelType,YieldCriterionType>  BaseType;
+         typedef NonAssociativePlasticityModel<ElasticityModelType,YieldSurfaceType>  BaseType;
 
          //common types
          typedef typename BaseType::Pointer                         BaseTypePointer;

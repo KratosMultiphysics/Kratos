@@ -45,8 +45,8 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  template<class TElasticityModel, class TYieldCriterion>
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) LinearAssociativePlasticityModel : public NonLinearAssociativePlasticityModel<TElasticityModel,TYieldCriterion>
+  template<class TElasticityModel, class TYieldSurface>
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) LinearAssociativePlasticityModel : public NonLinearAssociativePlasticityModel<TElasticityModel,TYieldSurface>
   {
   public:
     
@@ -57,15 +57,15 @@ namespace Kratos
     typedef TElasticityModel                               ElasticityModelType;
     typedef typename  ElasticityModelType::Pointer      ElasticityModelPointer;
 
-    //yield criterion
-    typedef TYieldCriterion                                 YieldCriterionType;
-    typedef typename YieldCriterionType::Pointer         YieldCriterionPointer;
+    //yield surface
+    typedef TYieldSurface                                     YieldSurfaceType;
+    typedef typename YieldSurfaceType::Pointer             YieldSurfacePointer;
 
     //derived type
-    typedef NonLinearAssociativePlasticityModel<ElasticityModelType,YieldCriterionType>   DerivedType;
+    typedef NonLinearAssociativePlasticityModel<ElasticityModelType,YieldSurfaceType>   DerivedType;
     
     //base type
-    typedef PlasticityModel<ElasticityModelType,YieldCriterionType>   BaseType;
+    typedef PlasticityModel<ElasticityModelType,YieldSurfaceType>     BaseType;
 
     //common types
     typedef typename BaseType::Pointer                         BaseTypePointer;
@@ -88,7 +88,7 @@ namespace Kratos
     LinearAssociativePlasticityModel() : DerivedType() {}
 
     /// Constructor.
-    LinearAssociativePlasticityModel(ElasticityModelPointer pElasticityModel, YieldCriterionPointer pYieldCriterion) : DerivedType(pElasticityModel, pYieldCriterion) {}
+    LinearAssociativePlasticityModel(ElasticityModelPointer pElasticityModel, YieldSurfacePointer pYieldSurface) : DerivedType(pElasticityModel, pYieldSurface) {}
     
     /// Copy constructor.
     LinearAssociativePlasticityModel(LinearAssociativePlasticityModel const& rOther) : DerivedType(rOther) {}
@@ -194,7 +194,7 @@ namespace Kratos
       double StateFunction                = rVariables.TrialStateFunction;	
 
       //Calculate Delta State Function:
-      DeltaStateFunction = this->mYieldCriterion.CalculateDeltaStateFunction( rVariables, DeltaStateFunction );
+      DeltaStateFunction = this->mYieldSurface.CalculateDeltaStateFunction( rVariables, DeltaStateFunction );
 
       //Calculate DeltaGamma:
       rDeltaGamma  = StateFunction/DeltaStateFunction;
