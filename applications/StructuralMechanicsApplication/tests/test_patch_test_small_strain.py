@@ -43,9 +43,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
         
         if(dim == 2):
-            cl = KratosMultiphysics.StructuralMechanicsApplication.LinearPlaneStress()
+            cl = KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStrain2DLaw()
         else:
-            cl = KratosMultiphysics.StructuralMechanicsApplication.ElasticIsotropic3D()
+            cl = KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw()
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl) 
             
     def _define_movement(self,dim):
@@ -216,7 +216,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         
         
 
-    def test_KinematicLinear_2D_triangle(self):
+    def test_SmallDisplacementElement_2D_triangle(self):
         dim = 2
         mp = KratosMultiphysics.ModelPart("solid_part")
         self._add_variables(mp)
@@ -239,10 +239,10 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         bcs.AddNodes([1,2,3,4])
                 
         #create Element
-        mp.CreateNewElement("KinematicLinear2D3N", 1, [1,2,5], mp.GetProperties()[1])
-        mp.CreateNewElement("KinematicLinear2D3N", 2, [2,3,5], mp.GetProperties()[1])
-        mp.CreateNewElement("KinematicLinear2D3N", 3, [3,4,5], mp.GetProperties()[1])
-        mp.CreateNewElement("KinematicLinear2D3N", 4, [4,1,5], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement2D3N", 1, [1,2,5], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement2D3N", 2, [2,3,5], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement2D3N", 3, [3,4,5], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement2D3N", 4, [4,1,5], mp.GetProperties()[1])
         
         A,b = self._define_movement(dim)
         
@@ -251,7 +251,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
         
-    def test_KinematicLinear_3D_hexa(self): 
+    def test_SmallDisplacementElement_3D_hexa(self): 
         dim = 3
         mp = KratosMultiphysics.ModelPart("solid_part")
         self._add_variables(mp)
@@ -285,13 +285,13 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         bcs.AddNodes([1,6,7,8,13,14,15,16])
 
         #create Element
-        mp.CreateNewElement("KinematicLinear3D8N", 1,[10,5,2,3,13,7,1,6], mp.GetProperties()[1])
-        mp.CreateNewElement("KinematicLinear3D8N", 2,[12,9,5,10,16,15,7,13], mp.GetProperties()[1])
-        mp.CreateNewElement("KinematicLinear3D8N", 3,[12,11,3,10,9,4,2,5], mp.GetProperties()[1])
-        mp.CreateNewElement("KinematicLinear3D8N", 4,[9,4,2,5,15,8,1,7], mp.GetProperties()[1])
-        mp.CreateNewElement("KinematicLinear3D8N", 5,[4,11,3,2,8,14,6,1], mp.GetProperties()[1])
-        mp.CreateNewElement("KinematicLinear3D8N", 6,[11,4,9,12,14,8,15,16], mp.GetProperties()[1])
-        mp.CreateNewElement("KinematicLinear3D8N", 7,[11,12,10,3,14,16,13,6], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D8N", 1,[10,5,2,3,13,7,1,6], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D8N", 2,[12,9,5,10,16,15,7,13], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D8N", 3,[12,11,3,10,9,4,2,5], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D8N", 4,[9,4,2,5,15,8,1,7], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D8N", 5,[4,11,3,2,8,14,6,1], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D8N", 6,[11,4,9,12,14,8,15,16], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D8N", 7,[11,12,10,3,14,16,13,6], mp.GetProperties()[1])
         
         A,b = self._define_movement(dim)
         self._apply_BCs(bcs,A,b)

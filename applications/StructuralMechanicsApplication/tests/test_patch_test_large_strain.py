@@ -24,9 +24,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
         
         if(dim == 2):
-            cl = KratosMultiphysics.StructuralMechanicsApplication.LinearPlaneStress()
+            cl = KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStrain2DLaw()
         else:
-            cl = KratosMultiphysics.StructuralMechanicsApplication.ElasticIsotropic3D()
+            cl = KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw()
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl) 
 
         
@@ -227,10 +227,10 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         bcs.AddNodes([1,2,3,4])
         
         #create Element
-        mp.CreateNewElement("TotalLagrangian2D3N", 1, [1,2,5], mp.GetProperties()[1])
-        mp.CreateNewElement("TotalLagrangian2D3N", 2, [2,3,5], mp.GetProperties()[1])
-        mp.CreateNewElement("TotalLagrangian2D3N", 3, [3,4,5], mp.GetProperties()[1])
-        mp.CreateNewElement("TotalLagrangian2D3N", 4, [4,1,5], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement2D3N", 1, [1,2,5], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement2D3N", 2, [2,3,5], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement2D3N", 3, [3,4,5], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement2D3N", 4, [4,1,5], mp.GetProperties()[1])
         
         A,b = self._define_movement(dim)
         
@@ -274,13 +274,13 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
         
         #create Element
-        mp.CreateNewElement("TotalLagrangian3D8N", 1,[10,5,2,3,13,7,1,6], mp.GetProperties()[1])
-        mp.CreateNewElement("TotalLagrangian3D8N", 2,[12,9,5,10,16,15,7,13], mp.GetProperties()[1])
-        mp.CreateNewElement("TotalLagrangian3D8N", 3,[12,11,3,10,9,4,2,5], mp.GetProperties()[1])
-        mp.CreateNewElement("TotalLagrangian3D8N", 4,[9,4,2,5,15,8,1,7], mp.GetProperties()[1])
-        mp.CreateNewElement("TotalLagrangian3D8N", 5,[4,11,3,2,8,14,6,1], mp.GetProperties()[1])
-        mp.CreateNewElement("TotalLagrangian3D8N", 6,[11,4,9,12,14,8,15,16], mp.GetProperties()[1])
-        mp.CreateNewElement("TotalLagrangian3D8N", 7,[11,12,10,3,14,16,13,6], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D8N", 1,[10,5,2,3,13,7,1,6], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D8N", 2,[12,9,5,10,16,15,7,13], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D8N", 3,[12,11,3,10,9,4,2,5], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D8N", 4,[9,4,2,5,15,8,1,7], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D8N", 5,[4,11,3,2,8,14,6,1], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D8N", 6,[11,4,9,12,14,8,15,16], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D8N", 7,[11,12,10,3,14,16,13,6], mp.GetProperties()[1])
 
         A,b = self._define_movement(dim)
         
