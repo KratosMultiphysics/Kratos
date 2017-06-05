@@ -188,8 +188,8 @@ public:
             }
 
             const std::size_t SystemSize = TSparseSpace::Size(b);
-            const TDataType AbsoluteNormDisp     = (mCurrentResidualDispNorm/static_cast<double>(DispSize));
-            const TDataType AbsoluteNormOtherDoF = (mCurrentResidualOtherDoFNorm/static_cast<double>(SystemSize - DispSize));
+            const TDataType AbsoluteNormDisp     = (mCurrentResidualDispNorm/static_cast<TDataType>(DispSize));
+            const TDataType AbsoluteNormOtherDoF = (mCurrentResidualOtherDoFNorm/static_cast<TDataType>(SystemSize - DispSize));
                     
             if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
             {

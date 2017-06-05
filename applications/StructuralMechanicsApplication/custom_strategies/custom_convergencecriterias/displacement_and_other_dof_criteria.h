@@ -191,8 +191,8 @@ public:
                 RatioOtherDoF = DeltaOtherDoFNorm/mReferenceOtherDoFNorm;
             }
             
-            const double AbsoluteDisplacementNorm = (DeltaDisplacenentNorm/std::sqrt(static_cast<double>(SizeDisp)));
-            const double AbsoluteOtherDoFNorm     = (DeltaOtherDoFNorm/std::sqrt(static_cast<double>(SizeDx - SizeDisp)));
+            const TDataType AbsoluteDisplacementNorm = (DeltaDisplacenentNorm/std::sqrt(static_cast<TDataType>(SizeDisp)));
+            const TDataType AbsoluteOtherDoFNorm     = (DeltaOtherDoFNorm/std::sqrt(static_cast<TDataType>(SizeDx - SizeDisp)));
 
             if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
             {
