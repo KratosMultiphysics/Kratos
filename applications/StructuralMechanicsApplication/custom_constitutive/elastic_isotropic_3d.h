@@ -76,9 +76,69 @@ public:
     
     SizeType GetStrainSize(){return 6;};
     
-    void CalculateMaterialResponsePK2 (Parameters & rValues);
+    /**
+     * Computes the material response:
+     * PK1 stresses and algorithmic ConstitutiveMatrix
+     * @param rValues
+     * @see   Parameters
+     */
+    void CalculateMaterialResponsePK1 (Parameters & rValues) override;
 
-    void CalculateMaterialResponseKirchhoff (Parameters & rValues);
+    /**
+     * Computes the material response:
+     * PK2 stresses and algorithmic ConstitutiveMatrix
+     * @param rValues
+     * @see   Parameters
+     */
+    void CalculateMaterialResponsePK2 (Parameters & rValues) override;
+    
+    /**
+     * Computes the material response:
+     * Kirchhoff stresses and algorithmic ConstitutiveMatrix
+     * @param rValues
+     * @see   Parameters
+     */
+    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
+
+    /**
+     * Computes the material response:
+     * Cauchy stresses and algorithmic ConstitutiveMatrix
+     * @param rValues
+     * @see   Parameters
+     */
+    void CalculateMaterialResponseCauchy (Parameters & rValues) override;
+
+    /**
+      * Updates the material response:
+      * Cauchy stresses and Internal Variables
+      * @param rValues
+      * @see   Parameters
+      */
+    void FinalizeMaterialResponsePK1 (Parameters & rValues) override;
+
+    /**
+      * Updates the material response:
+      * Cauchy stresses and Internal Variables
+      * @param rValues
+      * @see   Parameters
+      */
+    void FinalizeMaterialResponsePK2 (Parameters & rValues) override;
+
+    /**
+      * Updates the material response:
+      * Cauchy stresses and Internal Variables
+      * @param rValues
+      * @see   Parameters
+      */
+    void FinalizeMaterialResponseKirchhoff (Parameters & rValues)  override;
+
+    /**
+      * Updates the material response:
+      * Cauchy stresses and Internal Variables
+      * @param rValues
+      * @see   Parameters
+      */
+    void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
 
     int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
 
