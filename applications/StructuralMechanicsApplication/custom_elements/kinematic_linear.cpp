@@ -120,8 +120,8 @@ namespace Kratos
 
         const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(  );
 
-        //auxiliary terms
-        Vector BodyForce;
+        // Auxiliary terms
+        Vector BodyForce = ZeroVector(3);
         
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
         Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRAIN, false);
@@ -313,14 +313,18 @@ namespace Kratos
     )
     {
         KRATOS_TRY
-        unsigned int NumberOfNodes = GetGeometry().PointsNumber();
-        unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
+        
+        const unsigned int NumberOfNodes = GetGeometry().PointsNumber();
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        
         for ( unsigned int i = 0; i < NumberOfNodes; i++ )
         {
-            int index = dimension * i;
+            const unsigned int index = dimension * i;
 
-            for ( unsigned int j = 0; j < dimension; j++ ) rRightHandSideVector[index + j] += weight * N[i] * BodyForce[j];
+            for ( unsigned int j = 0; j < dimension; j++ ) 
+            {
+                rRightHandSideVector[index + j] += weight * N[i] * BodyForce[j];
+            }
         }
 
         KRATOS_CATCH( "" )

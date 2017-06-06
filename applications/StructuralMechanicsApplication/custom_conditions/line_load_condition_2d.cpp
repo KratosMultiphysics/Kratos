@@ -78,19 +78,21 @@ void LineLoadCondition2D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
 
 //************************************************************************************
 //************************************************************************************
-void LineLoadCondition2D::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo,
-                                        bool CalculateStiffnessMatrixFlag,
-                                        bool CalculateResidualVectorFlag )
+void LineLoadCondition2D::CalculateAll( 
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo,
+    bool CalculateStiffnessMatrixFlag,
+    bool CalculateResidualVectorFlag 
+    )
 {
     KRATOS_TRY
     //TODO: decide what to do with thickness
     
-    unsigned int NumberOfNodes = GetGeometry().size();
-    unsigned int dim = GetGeometry().WorkingSpaceDimension();
+    const unsigned int NumberOfNodes = GetGeometry().size();
+    const unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
-    //resizing as needed the LHS
-    unsigned int MatSize = NumberOfNodes * dim;
+    // Resizing as needed the LHS
+    const unsigned int MatSize = NumberOfNodes * dim;
 
     if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
     {
