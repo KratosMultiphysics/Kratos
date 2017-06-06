@@ -105,32 +105,62 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
 }
 
 //note that since we are in the hypothesis of small strains we can use the same function for everything
+void ElasticIsotropic3D::CalculateMaterialResponsePK1 (Parameters& rValues)
+{
+    CalculateMaterialResponsePK2(rValues);
+}
+
+//note that since we are in the hypothesis of small strains we can use the same function for everything
 void ElasticIsotropic3D::CalculateMaterialResponseKirchhoff (Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
 }
 
+//note that since we are in the hypothesis of small strains we can use the same function for everything
+void ElasticIsotropic3D::CalculateMaterialResponseCauchy (Parameters& rValues)
+{
+    CalculateMaterialResponsePK2(rValues);
+}
 
+void ElasticIsotropic3D::FinalizeMaterialResponsePK1(Parameters& rValues)
+{
+    // TODO: Add if necessary
+}
+
+void ElasticIsotropic3D::FinalizeMaterialResponsePK2(Parameters& rValues)
+{
+    // TODO: Add if necessary
+}
+
+void ElasticIsotropic3D::FinalizeMaterialResponseCauchy(Parameters& rValues)
+{
+    // TODO: Add if necessary
+}
+
+void ElasticIsotropic3D::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
+{
+    // TODO: Add if necessary
+}
 
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 //************************************************************************************
 
 void ElasticIsotropic3D::GetLawFeatures(Features& rFeatures)
 {
-    	//Set the type of law
-	rFeatures.mOptions.Set( PLANE_STRESS_LAW );
-	rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
-	rFeatures.mOptions.Set( ISOTROPIC );
+    //Set the type of law
+    rFeatures.mOptions.Set( PLANE_STRESS_LAW );
+    rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
+    rFeatures.mOptions.Set( ISOTROPIC );
 
-	//Set strain measure required by the consitutive law
-	rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
-	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-	
-	//Set the strain size
-	rFeatures.mStrainSize = 6;
+    //Set strain measure required by the consitutive law
+    rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
+    rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
+    
+    //Set the strain size
+    rFeatures.mStrainSize = 6;
 
-	//Set the spacedimension
-	rFeatures.mSpaceDimension = 3;
+    //Set the spacedimension
+    rFeatures.mSpaceDimension = 3;
 
 }
 
@@ -139,19 +169,23 @@ int ElasticIsotropic3D::Check(const Properties& rMaterialProperties,
                               const ProcessInfo& rCurrentProcessInfo)
 {
 
-    if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
-        KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ", "" )
+    if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.0)
+    {
+        KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
+    }
 
     const double& nu = rMaterialProperties[POISSON_RATIO];
     const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
 
     if(POISSON_RATIO.Key() == 0 || check==true)
-        KRATOS_THROW_ERROR( std::invalid_argument,"POISSON_RATIO has Key zero invalid value ", "" )
+    {
+        KRATOS_ERROR << "POISSON_RATIO has Key zero invalid value " << std::endl;
+    }
 
-
-    if(DENSITY.Key() == 0 || rMaterialProperties[DENSITY]<0.00)
-        KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY has Key zero or invalid value ", "" )
-
+    if(DENSITY.Key() == 0 || rMaterialProperties[DENSITY] < 0.0)
+    {
+        KRATOS_ERROR << "DENSITY has Key zero or invalid value " << std::endl;
+    }
 
     return 0;
 
