@@ -170,26 +170,44 @@ void LineLoadCondition2D::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorT
         v3[1] = J[PointNumber]( 0, 0 );
 
         // Calculating the pressure on the gauss point
-        double GaussLoad = LineLoad;
+        double GaussPressure = 0.0;
         for ( unsigned int ii = 0; ii < NumberOfNodes; ii++ )
         {
-            GaussLoad += Ncontainer( PointNumber, ii ) * PressureOnNodes[ii];
+            GaussPressure += Ncontainer( PointNumber, ii ) * PressureOnNodes[ii];
         }
 
         if ( CalculateStiffnessMatrixFlag == true )
         {
-            if ( GaussLoad != 0.0 )
+            if ( GaussPressure != 0.0 )
             {
-                CalculateAndSubKp( rLeftHandSideMatrix, DN_De[PointNumber], row( Ncontainer, PointNumber ), GaussLoad, IntegrationWeight );
+                CalculateAndSubKp( rLeftHandSideMatrix, DN_De[PointNumber], row( Ncontainer, PointNumber ), GaussPressure, IntegrationWeight );
             }
         }
 
         //adding contributions to the residual vector
         if ( CalculateResidualVectorFlag == true )
         {
-            if ( GaussLoad != 0.0 )
+            if ( GaussPressure != 0.0 )
             {
-                CalculateAndAdd_PressureForce( rRightHandSideVector, row( Ncontainer, PointNumber ), v3, GaussLoad, IntegrationWeight );
+                CalculateAndAdd_PressureForce( rRightHandSideVector, row( Ncontainer, PointNumber ), v3, GaussPressure, IntegrationWeight );
+            }
+        }
+        
+        array_1d<double,3> GaussLoad = LineLoad;
+        for (unsigned int ii = 0; ii < NumberOfNodes; ++ii)
+        {
+            if( GetGeometry()[ii].SolutionStepsDataHas( LINE_LOAD ) )
+            {
+                noalias(GaussLoad) += Ncontainer( PointNumber, ii )*GetGeometry()[ii].FastGetSolutionStepValue( LINE_LOAD );
+            }
+        }
+
+        for (unsigned int ii = 0; ii < NumberOfNodes; ++ii)
+        {
+            unsigned int base = ii*3;
+            for(unsigned int k=0; k<3; ++k)
+            {
+                rRightHandSideVector[base+k] += Ncontainer( PointNumber, ii )*GaussLoad[k];
             }
         }
 
