@@ -40,7 +40,7 @@ class MechanicalSolver(object):
                 "input_file_label": 0,
             },
             "material_import_settings" :{
-                "materials_filename": "unknown_name"
+                "materials_filename": ""
             },
             "rotation_dofs": false,
             "pressure_dofs": false,
@@ -302,16 +302,17 @@ class MechanicalSolver(object):
         check_and_prepare_model_process.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
         # Constitutive law import
-        import read_materials_process
-        Model = {"Main" : self.main_model_part} # The process requires a model
-        for i in range(self.settings["problem_domain_sub_model_part_list"].size()):
-            part_name = self.settings["problem_domain_sub_model_part_list"][i].GetString()
-            Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
-        for i in range(self.settings["processes_sub_model_part_list"].size()):
-            part_name = self.settings["processes_sub_model_part_list"][i].GetString()
-            Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
-        read_materials_process.ReadMaterialsProcess(Model, self.settings["material_import_settings"])
-        print("    Constitutive law initialized.")
+        if (self.settings["material_import_settings"]["materials_filename"].GetString() != ""):
+            import read_materials_process
+            Model = {"Main" : self.main_model_part} # The process requires a model
+            for i in range(self.settings["problem_domain_sub_model_part_list"].size()):
+                part_name = self.settings["problem_domain_sub_model_part_list"][i].GetString()
+                Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
+            for i in range(self.settings["processes_sub_model_part_list"].size()):
+                part_name = self.settings["processes_sub_model_part_list"][i].GetString()
+                Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
+            read_materials_process.ReadMaterialsProcess(Model, self.settings["material_import_settings"])
+            print("    Constitutive law initialized.")
 
     def _SetAndFillBuffer(self):
         # Set buffer size

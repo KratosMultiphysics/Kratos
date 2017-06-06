@@ -34,7 +34,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                 "input_filename": "unknown_name"
             },
             "material_import_settings" :{
-                "materials_filename": "unknown_name"
+                "materials_filename": ""
             },
             "echo_level": 0,
             "buffer_size": 2,
