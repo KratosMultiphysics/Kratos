@@ -517,8 +517,8 @@ Matrix& SpringDamperElement3D2N::CalculateDeltaPosition(Matrix & rDeltaPosition)
 void SpringDamperElement3D2N::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    std::cout << "CalculateMassMatrix" << std::endl;
-    //lumped
+    // std::cout << "CalculateMassMatrix" << std::endl;
+    //this is a massless element
     // unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     unsigned int system_size = OPT_NUM_DOFS;
 
@@ -534,30 +534,30 @@ void SpringDamperElement3D2N::CalculateMassMatrix( MatrixType& rMassMatrix, Proc
 
     // array_1d<double, OPT_NUM_DOFS> nodal_mass = ZeroVector( OPT_NUM_DOFS );
 
-    for ( size_t i = 0; i < OPT_NUM_NODES; ++i )
-    {
-        const unsigned int index = i * 6;
-        // const NodeType& iNode = GetGeometry()[i];
-        const double& nodal_mass = GetGeometry()[i].GetValue( NODAL_MASS );
+    // for ( size_t i = 0; i < OPT_NUM_NODES; ++i )
+    // {
+    //     const unsigned int index = i * 6;
+    //     // const NodeType& iNode = GetGeometry()[i];
+    //     const double& nodal_mass = GetGeometry()[i].GetValue( NODAL_MASS );
 
-        rMassMatrix( index, index ) = nodal_mass;
-        rMassMatrix( index+1, index+1 ) = nodal_mass;
-        rMassMatrix( index+2, index+2 ) = nodal_mass;
-        // for ( size_t j = i*6; j < i*6+dimension; ++j)
-        // {
-        //     rMassMatrix( j, j ) = i_nodal_mass;
-        // }
-        // nodal_mass[index]   = i_nodal_mass;
-        // nodal_mass[index+1] = i_nodal_mass;
-        // nodal_mass[index+2] = i_nodal_mass;
+    //     rMassMatrix( index, index ) = nodal_mass;
+    //     rMassMatrix( index+1, index+1 ) = nodal_mass;
+    //     rMassMatrix( index+2, index+2 ) = nodal_mass;
+    //     // for ( size_t j = i*6; j < i*6+dimension; ++j)
+    //     // {
+    //     //     rMassMatrix( j, j ) = i_nodal_mass;
+    //     // }
+    //     // nodal_mass[index]   = i_nodal_mass;
+    //     // nodal_mass[index+1] = i_nodal_mass;
+    //     // nodal_mass[index+2] = i_nodal_mass;
         
-    }
+    // }
 
     // for ( unsigned int j = 0; j < dimension; j++ )
     // {
 	//     rMassMatrix( j, j ) = Nodal_Mass;
     // }
-    KRATOS_WATCH(rMassMatrix);
+    // KRATOS_WATCH(rMassMatrix);
 
     KRATOS_CATCH( "" );
 }
@@ -577,6 +577,24 @@ void SpringDamperElement3D2N::CalculateDampingMatrix( MatrixType& rDampingMatrix
     const unsigned int system_size = OPT_NUM_DOFS;
 
     rDampingMatrix = ZeroMatrix( system_size, system_size );
+
+    if ( Element::Has( NODAL_DAMPING_RATIO ) )
+    {
+        array_1d<double, 2*OPT_NUM_DIMS> elemental_damping_ratio = ZeroVector( 2*OPT_NUM_DIMS );
+        elemental_damping_ratio[0] = Element::GetValue( NODAL_DAMPING_RATIO_X );
+        elemental_damping_ratio[1] = Element::GetValue( NODAL_DAMPING_RATIO_Y );
+        elemental_damping_ratio[2] = Element::GetValue( NODAL_DAMPING_RATIO_Z );
+        for ( size_t i = 0; i < 2*OPT_NUM_DIMS; ++i )
+        {
+            rDampingMatrix( i, i) += elemental_damping_ratio[i];
+            rDampingMatrix( i+6, i+6) += elemental_damping_ratio[i];
+            rDampingMatrix( i, i+6) -= elemental_damping_ratio[i];
+            rDampingMatrix( i+6, i) -= elemental_damping_ratio[i];
+        }
+    }
+
+
+    
 
     //1.-Calculate StiffnessMatrix:
 
