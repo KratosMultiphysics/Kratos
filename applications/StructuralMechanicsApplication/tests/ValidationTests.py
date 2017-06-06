@@ -45,6 +45,3 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
     
 class SprismPanTests(StructuralMechanichsTestFactory):
     file_name = "sprism_test/pan_test"
-
-class Eigen3D3NThinCircleTests(StructuralMechanichsTestFactory):
-    file_name = "eigen_test/Eigen_3D3N_Thin_Circle_test"

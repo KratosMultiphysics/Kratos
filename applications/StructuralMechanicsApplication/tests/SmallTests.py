@@ -129,23 +129,14 @@ class SprismMembranePatchTests(StructuralMechanichsTestFactory):
 class SprismBendingPatchTests(StructuralMechanichsTestFactory):
     file_name = "sprism_test/patch_bending_test"
 
-class ShellQ4ThickBendingRollUpTests(StructuralMechanichsTestFactory):
-    file_name = "shell_test/Shell_Q4_Thick__BendingRollUp_test"
-
-class ShellQ4ThickDrillingRollUpTests(StructuralMechanichsTestFactory):
-    file_name = "shell_test/Shell_Q4_Thick__DrillingRollUp_test"
-
-class ShellT3ThinBendingRollUpTests(StructuralMechanichsTestFactory):
-    file_name = "shell_test/Shell_T3_Thin__BendingRollUp_test"
-
-class ShellT3ThinDrillingRollUpTests(StructuralMechanichsTestFactory):
-    file_name = "shell_test/Shell_T3_Thin__DrillingRollUp_test"
-
 class EigenQ4Thick2x2PlateTests(StructuralMechanichsTestFactory):
     file_name = "eigen_test/Eigen_Q4_Thick_2x2_Plate_test"
 
 class EigenTL3D8NCubeTests(StructuralMechanichsTestFactory):
     file_name = "eigen_test/Eigen_TL_3D8N_Cube_test"
+    
+class Eigen3D3NThinCircleTests(StructuralMechanichsTestFactory):
+    file_name = "eigen_test/Eigen_3D3N_Thin_Circle_test"
     
 class Fofi4PointTentnoCableTests(StructuralMechanichsTestFactory):
     file_name = "formfinding_test/Fofi_4Point_Tent_noCable_test"

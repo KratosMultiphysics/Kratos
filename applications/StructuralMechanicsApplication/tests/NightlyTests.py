@@ -46,5 +46,17 @@ class StructrualMechanichsTestFactory(KratosUnittest.TestCase):
 class IsotropicDamageSimoJuPSTest(StructrualMechanichsTestFactory):
     file_name = "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test"
 
+class ShellQ4ThickBendingRollUpTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_Q4_Thick__BendingRollUp_test"
+
+class ShellQ4ThickDrillingRollUpTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_Q4_Thick__DrillingRollUp_test"
+
+class ShellT3ThinBendingRollUpTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3_Thin__BendingRollUp_test"
+
+class ShellT3ThinDrillingRollUpTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3_Thin__DrillingRollUp_test"
+
 class ShellT3IsotropicScordelisTests(StructrualMechanichsTestFactory):
     file_name = "shell_test/Shell_T3_Isotropic_Scordelis_test"
