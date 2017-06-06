@@ -24,14 +24,12 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             }
             """
             )
-        
-        #assign this here since it will change the "interval" prior to validation
-        a = settings["interval"]
 
+        #assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
-        
+
         #here i do a trick, since i want to allow "value" to be a string or a double value
-        if(settings.Has("value")):            
+        if(settings.Has("value")):
             if(settings["value"].IsString()):
                 default_settings["value"].SetString("0.0")
 
@@ -57,7 +55,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
 
             if(self.aux_function.DependsOnSpace()):
                 self.cpp_apply_function_utility = KratosMultiphysics.ApplyFunctionToNodesUtility(self.mesh.Nodes, self.aux_function )
-                
+
         #construct a variable_utils object to speedup fixing
         self.variable_utils = KratosMultiphysics.VariableUtils()
         self.step_is_active = False
@@ -65,10 +63,10 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
     def ExecuteInitializeSolutionStep(self):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
-        if(self.interval.IsInInterval(current_time)): 
-            
+        if(self.interval.IsInInterval(current_time)):
+
             self.step_is_active = True
-            
+
             if(self.is_fixed):
                 self.variable_utils.ApplyFixity(self.variable, self.is_fixed, self.mesh.Nodes)
 
@@ -80,7 +78,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
                     self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
                 else: #most general case - space varying function (possibly also time varying)
                     self.cpp_apply_function_utility.ApplyFunction(self.variable, current_time)
-                    
+
 
     def ExecuteFinalizeSolutionStep(self):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
