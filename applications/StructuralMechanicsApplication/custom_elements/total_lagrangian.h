@@ -210,10 +210,6 @@ private:
     ///@name Member Variables
     ///@{
 
-
-    double mTotalDomainInitialSize;
-    std::vector< Matrix > mInvJ0;
-    Vector mDetJ0;
     ///@}
     ///@name Private Operators
     ///@{

@@ -247,7 +247,7 @@ public:
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
             double detJ0;
-            ComputeDerivatives(J0, InvJ0, DN_DX, detJ0, PointNumber);
+            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, detJ0, PointNumber);
             const double weight = integration_points[PointNumber].Weight()*detJ0*thickness;
             const Vector& N = row(Ncontainer,PointNumber);
             
@@ -356,7 +356,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    void  ComputeDerivatives(Matrix& J0, 
+    void  CalculateDerivativesOnReference(Matrix& J0, 
                              Matrix& InvJ0, 
                              Matrix& DN_DX, 
                              double& detJ0, 

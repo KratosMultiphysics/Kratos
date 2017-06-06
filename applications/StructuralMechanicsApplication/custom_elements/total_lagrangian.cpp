@@ -56,15 +56,6 @@ namespace Kratos
 
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
 
-        //resizing jacobian inverses containers
-        mInvJ0.resize( integration_points.size() );
-        mDetJ0.resize( integration_points.size(), false );
-
-
-        GeometryType::JacobiansType J0;
-        J0 = GetGeometry().Jacobian( J0 );
-        mTotalDomainInitialSize = 0.00;
-
         //Constitutive Law initialisation
 
         if ( mConstitutiveLawVector.size() != integration_points.size() )
@@ -73,19 +64,6 @@ namespace Kratos
         }
 
         InitializeMaterial();
-
-        //calculating the inverse J0
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-        {
-            //getting informations for integration
-            double IntegrationWeight = integration_points[PointNumber].Weight();
-
-            //calculating and storing inverse of the jacobian and the parameters needed
-            MathUtils<double>::InvertMatrix( J0[PointNumber], mInvJ0[PointNumber], mDetJ0[PointNumber] );
-
-            //calculating the total area
-            mTotalDomainInitialSize += mDetJ0[PointNumber] * IntegrationWeight;
-        }
 
 
         KRATOS_CATCH( "" )
@@ -121,6 +99,7 @@ namespace Kratos
         Vector StressVector( StrainSize );
 
         Matrix DN_DX( NumberOfNodes, dim );
+        Matrix J0(dim,dim), InvJ0(dim,dim);
 
         // Resizing as needed the LHS
         const unsigned int MatSize = NumberOfNodes * dim;
@@ -175,11 +154,14 @@ namespace Kratos
 
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
+            double detJ0;
+            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, detJ0, PointNumber);
+            
             // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-            noalias( DN_DX ) = prod( DN_De[PointNumber], mInvJ0[PointNumber] );
+            noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
 
             // Deformation gradient
-            noalias( F ) = prod( J[PointNumber], mInvJ0[PointNumber] );
+            noalias( F ) = prod( J[PointNumber], InvJ0 );
             
             // Here we essentially set the input parameters
             double detF = MathUtils<double>::Det(F);
@@ -197,7 +179,7 @@ namespace Kratos
             CalculateB( B, F, DN_DX, StrainVector.size() );
 
             // Calculating weights for integration on the reference configuration
-            double IntToReferenceWeight = integration_points[PointNumber].Weight() * mDetJ0[PointNumber];
+            double IntToReferenceWeight = integration_points[PointNumber].Weight() * detJ0;
 
             if ( dim == 2 && GetProperties().Has( THICKNESS )) 
             {
@@ -554,6 +536,7 @@ namespace Kratos
         Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
         Values.SetStrainVector(StrainVector); //this is the input  parameter
         Values.SetStressVector(StressVector); //this is the output parameter
+        Matrix J0(dim,dim), InvJ0(dim,dim);
         
         //reading integration points and local gradients
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
@@ -570,9 +553,11 @@ namespace Kratos
 
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
+            double detJ0;
+            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, detJ0, PointNumber);
 
             //deformation gradient
-            noalias( F ) = prod( J[PointNumber], mInvJ0[PointNumber] );
+            noalias( F ) = prod( J[PointNumber], InvJ0 );
 
             Matrix PlasticStrainVector( GetGeometry().size(), GetGeometry().WorkingSpaceDimension() );
 
