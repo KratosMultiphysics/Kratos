@@ -94,23 +94,21 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void TotalLagrangian::CalculateAll( MatrixType& rLeftHandSideMatrix,
-                                        VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo,
-                                        bool CalculateStiffnessMatrixFlag,
-                                        bool CalculateResidualVectorFlag )
+    void TotalLagrangian::CalculateAll( 
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo,
+        bool CalculateStiffnessMatrixFlag,
+        bool CalculateResidualVectorFlag 
+        )
     {
-        KRATOS_TRY
-        const unsigned int number_of_nodes = GetGeometry().size();
+        KRATOS_TRY;
+        
+        const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int StrainSize;
+        const unsigned int StrainSize = (dim == 2) ? 3 : 6;
 
-        if ( dim == 2 )
-            StrainSize = 3;
-        else
-            StrainSize = 6;
-
-        Matrix B( StrainSize, number_of_nodes * dim );
+        Matrix B( StrainSize, NumberOfNodes * dim );
 
         Matrix F( dim, dim );
 
@@ -122,17 +120,17 @@ namespace Kratos
 
         Vector StressVector( StrainSize );
 
-        Matrix DN_DX( number_of_nodes, dim );
+        Matrix DN_DX( NumberOfNodes, dim );
 
-
-
-        //resizing as needed the LHS
-        unsigned int MatSize = number_of_nodes * dim;
+        // Resizing as needed the LHS
+        const unsigned int MatSize = NumberOfNodes * dim;
 
         if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
         {
             if ( rLeftHandSideMatrix.size1() != MatSize )
+            {
                 rLeftHandSideMatrix.resize( MatSize, MatSize, false );
+            }
 
             noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
         }
@@ -142,26 +140,27 @@ namespace Kratos
         if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
         {
             if ( rRightHandSideVector.size() != MatSize )
+            {
                 rRightHandSideVector.resize( MatSize, false );
+            }
 
             rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
         }
 
-        //reading integration points and local gradients
+        // Reading integration points and local gradients
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
 
         const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients(  );
 
         const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(  );
 
-
-        //calculating actual jacobian
+        // Calculating actual jacobian
         GeometryType::JacobiansType J;
 
         GetGeometry().Jacobian( J );
 
-        //auxiliary terms
-        Vector BodyForce;
+        // Auxiliary terms
+        Vector BodyForce = ZeroVector(3);
         
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
         Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRAIN, false);
@@ -176,28 +175,28 @@ namespace Kratos
 
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
-            //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
+            // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
             noalias( DN_DX ) = prod( DN_De[PointNumber], mInvJ0[PointNumber] );
 
-            //deformation gradient
+            // Deformation gradient
             noalias( F ) = prod( J[PointNumber], mInvJ0[PointNumber] );
             
-            //here we essentially set the input parameters
+            // Here we essentially set the input parameters
             double detF = MathUtils<double>::Det(F);
             Values.SetDeterminantF(detF); //assuming the determinant is computed somewhere else
             Values.SetDeformationGradientF(F); //F computed somewhere else
             
-            //here we set the space on which the results shall be written
+            // Here we set the space on which the results shall be written
             Values.SetConstitutiveMatrix(D); //assuming the determinant is computed somewhere else
             Values.SetStressVector(StressVector); //F computed somewhere else
             
-            //actually do the computations in the ConstitutiveLaw    
+            // Actually do the computations in the ConstitutiveLaw    
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values); //here the calculations are actually done 
 
-            //calculating operator B
+            // Calculating operator B
             CalculateB( B, F, DN_DX, StrainVector.size() );
 
-            //calculating weights for integration on the reference configuration
+            // Calculating weights for integration on the reference configuration
             double IntToReferenceWeight = integration_points[PointNumber].Weight() * mDetJ0[PointNumber];
 
             if ( dim == 2 && GetProperties().Has( THICKNESS )) 
@@ -215,13 +214,16 @@ namespace Kratos
 
             if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
             {
-                //contribution to external forces
-                BodyForce = GetProperties()[VOLUME_ACCELERATION];
+                // Contribution to external forces
+                if (GetProperties().Has( VOLUME_ACCELERATION ) == true)
+                {
+                    BodyForce += GetProperties()[VOLUME_ACCELERATION];
+                }
 
-                // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
+                // Operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
                 CalculateAndAdd_ExtForceContribution( row( Ncontainer, PointNumber ), rCurrentProcessInfo, BodyForce, rRightHandSideVector, IntToReferenceWeight );
 
-                // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
+                // Operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
                 noalias( rRightHandSideVector ) -= IntToReferenceWeight * prod( trans( B ), StressVector );
             }
         }
@@ -270,7 +272,7 @@ namespace Kratos
 
         weight *= DetJ0;
 
-        if ( dimension == 2 && GetProperties().Has( THICKNESS ))) 
+        if ( dimension == 2 && GetProperties().Has( THICKNESS )) 
         {
             weight *= GetProperties()[THICKNESS];
         }
@@ -320,7 +322,7 @@ namespace Kratos
         }
         else
         {
-            KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl
+            KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
         }
         
         KRATOS_CATCH( "" );
@@ -351,10 +353,10 @@ namespace Kratos
     )
     {
         KRATOS_TRY
-        unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        unsigned int NumberOfNodes = GetGeometry().PointsNumber();
         unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( unsigned int i = 0; i < NumberOfNodes; i++ )
         {
             int index = dimension * i;
 
@@ -427,10 +429,10 @@ namespace Kratos
         unsigned int StrainSize )
     {
         KRATOS_TRY
-        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        const unsigned int NumberOfNodes = GetGeometry().PointsNumber();
         unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( unsigned int i = 0; i < NumberOfNodes; i++ )
         {
             unsigned int index = dimension * i;
 
@@ -476,14 +478,14 @@ namespace Kratos
 
     void TotalLagrangian::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo )
     {
-        int number_of_nodes = GetGeometry().size();
+        int NumberOfNodes = GetGeometry().size();
         int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int dim2 = number_of_nodes * dim;
+        unsigned int dim2 = NumberOfNodes * dim;
 
         if ( rResult.size() != dim2 )
             rResult.resize( dim2, false );
 
-        for ( int i = 0; i < number_of_nodes; i++ )
+        for ( int i = 0; i < NumberOfNodes; i++ )
         {
             int index = i * dim;
             rResult[index] = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
@@ -533,7 +535,7 @@ namespace Kratos
 
         double TotalMass = mTotalDomainInitialSize * GetProperties()[DENSITY];
 
-        if ( dimension == 2 && GetProperties().Has( THICKNESS ))) 
+        if ( dimension == 2 && GetProperties().Has( THICKNESS ))
         {
             TotalMass *= GetProperties()[THICKNESS];
         }
@@ -562,11 +564,11 @@ namespace Kratos
     void TotalLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
-        unsigned int number_of_nodes = GetGeometry().size();
+        unsigned int NumberOfNodes = GetGeometry().size();
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
         //resizing as needed the LHS
-        unsigned int MatSize = number_of_nodes * dim;
+        unsigned int MatSize = NumberOfNodes * dim;
 
         if ( rDampingMatrix.size1() != MatSize )
             rDampingMatrix.resize( MatSize, MatSize, false );
@@ -628,7 +630,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
         unsigned int StrainSize;
 
@@ -641,7 +643,7 @@ namespace Kratos
         Matrix D( StrainSize, StrainSize );
         Vector StrainVector( StrainSize );
         Vector StressVector( StrainSize );
-        Matrix DN_DX( number_of_nodes, dim );
+        Matrix DN_DX( NumberOfNodes, dim );
         
 
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -853,13 +855,13 @@ namespace Kratos
 
     void TotalLagrangian::GetValuesVector( Vector& values, int Step )
     {
-        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        const unsigned int MatSize = number_of_nodes * dim;
+        const unsigned int MatSize = NumberOfNodes * dim;
 
         if ( values.size() != MatSize ) values.resize( MatSize, false );
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( unsigned int i = 0; i < NumberOfNodes; i++ )
         {
             const unsigned int index = i * dim;
             
@@ -876,13 +878,13 @@ namespace Kratos
 
     void TotalLagrangian::GetFirstDerivativesVector( Vector& values, int Step )
     {
-        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int MatSize = number_of_nodes * dim;
+        unsigned int MatSize = NumberOfNodes * dim;
 
         if ( values.size() != MatSize ) values.resize( MatSize, false );
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( unsigned int i = 0; i < NumberOfNodes; i++ )
         {
             const unsigned int index = i * dim;
             
@@ -898,12 +900,12 @@ namespace Kratos
 
     void TotalLagrangian::GetSecondDerivativesVector( Vector& values, int Step )
     {
-        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int MatSize = number_of_nodes * dim;
+        unsigned int MatSize = NumberOfNodes * dim;
 
         if ( values.size() != MatSize ) values.resize( MatSize, false );
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( unsigned int i = 0; i < NumberOfNodes; i++ )
         {
             const unsigned int index = i * dim;
             
@@ -997,8 +999,8 @@ namespace Kratos
 
         if ( VOLUME_ACCELERATION.Key() == 0 )
         {
-            KRATOS_ERROR << "VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered"<< std::en
-        }dl;
+            KRATOS_ERROR << "VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered"<< std::endl;
+        }
 
         if ( THICKNESS.Key() == 0 )
         {
@@ -1010,7 +1012,7 @@ namespace Kratos
         {
             if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
             {
-                KRATOS_ERROR << "missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
+                KRATOS_ERROR << "Missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
             }
 
             if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
@@ -1043,7 +1045,7 @@ namespace Kratos
         {
             if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 6 )
             {
-                KRATOS_ERROR << "wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) "<<  this->Id() << std:::endl;
+                KRATOS_ERROR << "wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) "<<  this->Id() << std::endl;
             }
         }
 
