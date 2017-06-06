@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "custom_conditions/line_load_condition_2d.h"
 #include "utilities/math_utils.h"
+#include "utilities/integration_utilities.h"
 
 namespace Kratos
 {
@@ -83,7 +84,8 @@ void LineLoadCondition2D::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorT
                                         bool CalculateResidualVectorFlag )
 {
     KRATOS_TRY
-
+    //TODO: decide what to do with thickness
+    
     unsigned int NumberOfNodes = GetGeometry().size();
     unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
@@ -111,17 +113,27 @@ void LineLoadCondition2D::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorT
         noalias( rRightHandSideVector ) = ZeroVector( MatSize ); //resetting RHS
     }
 
+    IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(GetGeometry());
+//     GetGeometry().GetDefaultIntegrationMethod();
+//     if(integration_method == GeometryData::GI_GAUSS_1)
+//         integration_method = GeometryData::GI_GAUSS_2;
+//     if(integration_method == GeometryData::GI_GAUSS_2)
+//         integration_method = GeometryData::GI_GAUSS_3;
+//     if(integration_method == GeometryData::GI_GAUSS_3)
+//         integration_method = GeometryData::GI_GAUSS_4;
+
+
     //reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(integration_method);
 
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients();
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
 
-    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues();
+    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(integration_method);
 
     //calculating actual jacobian
     GeometryType::JacobiansType J;
 
-    J = GetGeometry().Jacobian( J );
+    J = GetGeometry().Jacobian( J , integration_method);
 
     ////sizing work matrices
     Vector PressureOnNodes = ZeroVector( NumberOfNodes );
@@ -140,7 +152,7 @@ void LineLoadCondition2D::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorT
     {
         PressureOnCondition -= this->GetValue( POSITIVE_FACE_PRESSURE );
     }
-    
+
     for ( unsigned int i = 0; i < PressureOnNodes.size(); i++ )
     {
         PressureOnNodes[i] = PressureOnCondition;
@@ -164,11 +176,14 @@ void LineLoadCondition2D::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorT
     Vector v3 = ZeroVector( 2 ); //normal direction (not normalized)
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
-        double IntegrationWeight = integration_points[PointNumber].Weight();
+        const double detJ = MathUtils<double>::GeneralizedDet(J[PointNumber]);
+
+        double IntegrationWeight = integration_points[PointNumber].Weight()*detJ;
 
         v3[0] = -J[PointNumber]( 1, 0 );
         v3[1] = J[PointNumber]( 0, 0 );
-
+        v3 /= norm_2(v3);
+        
         // Calculating the pressure on the gauss point
         double GaussPressure = 0.0;
         for ( unsigned int ii = 0; ii < NumberOfNodes; ii++ )
@@ -183,7 +198,6 @@ void LineLoadCondition2D::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorT
                 CalculateAndSubKp( rLeftHandSideMatrix, DN_De[PointNumber], row( Ncontainer, PointNumber ), GaussPressure, IntegrationWeight );
             }
         }
-
         //adding contributions to the residual vector
         if ( CalculateResidualVectorFlag == true )
         {
@@ -192,26 +206,25 @@ void LineLoadCondition2D::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorT
                 CalculateAndAdd_PressureForce( rRightHandSideVector, row( Ncontainer, PointNumber ), v3, GaussPressure, IntegrationWeight );
             }
         }
-        
+
         array_1d<double,3> GaussLoad = LineLoad;
         for (unsigned int ii = 0; ii < NumberOfNodes; ++ii)
         {
             if( GetGeometry()[ii].SolutionStepsDataHas( LINE_LOAD ) )
             {
-                noalias(GaussLoad) += Ncontainer( PointNumber, ii )*GetGeometry()[ii].FastGetSolutionStepValue( LINE_LOAD );
+                noalias(GaussLoad) += ( Ncontainer( PointNumber, ii ))*GetGeometry()[ii].FastGetSolutionStepValue( LINE_LOAD );
             }
         }
-
         for (unsigned int ii = 0; ii < NumberOfNodes; ++ii)
         {
-            unsigned int base = ii*3;
-            for(unsigned int k=0; k<3; ++k)
+            unsigned int base = ii*dim;
+            for(unsigned int k=0; k<dim; ++k)
             {
-                rRightHandSideVector[base+k] += Ncontainer( PointNumber, ii )*GaussLoad[k];
+                rRightHandSideVector[base+k] += IntegrationWeight*Ncontainer( PointNumber, ii )*GaussLoad[k];
             }
         }
-
     }
+
 
     KRATOS_CATCH( "" )
 }
@@ -232,8 +245,9 @@ void LineLoadCondition2D::CalculateAndSubKp(
     Matrix Kij( 2, 2 );
     Matrix Cross_gn( 2, 2 );
 
+    //TODO: decide what to do with thickness
     //double h0 = GetProperties()[THICKNESS];
-    double h0 = 0.00;
+    double h0 = 1.00;
     Cross_gn( 0, 0 ) = 0.0;
     Cross_gn( 0, 1 ) = -h0;
     Cross_gn( 1, 0 ) = -h0;
