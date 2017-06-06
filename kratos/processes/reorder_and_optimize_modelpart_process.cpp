@@ -209,7 +209,7 @@ namespace Kratos
             }
             
              
-            unsigned int nnz = 0;
+            unsigned int nnz = 0; //number of nonzeros in the graph
             for(unsigned int i=0; i<n; ++i)
             {
                 //if(graph[i].size() == 0) KRATOS_ERROR << "node with Id " << i+1 << "has zero neighbours " << std::endl;
