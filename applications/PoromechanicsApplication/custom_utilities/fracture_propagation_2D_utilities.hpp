@@ -1375,6 +1375,7 @@ private:
                 GlobalCoordinates[2] = 0.0;
                 
                 // Check whether new tip falls inside a valid element
+                IsInside = false;
                 for(unsigned int i = 0; i < rAuxPropagationVariables.TopFrontFracturePoints.size(); i++)
                 {
                     pElement = rAuxPropagationVariables.TopFrontFracturePoints[i]->pElement;
@@ -1409,6 +1410,7 @@ private:
                 GlobalCoordinates[2] = 0.0;
 
                 // Check whether new tip falls inside a valid element
+                IsInside = false;
                 for(unsigned int i = 0; i < rAuxPropagationVariables.BotFrontFracturePoints.size(); i++)
                 {
                     pElement = rAuxPropagationVariables.BotFrontFracturePoints[i]->pElement;
