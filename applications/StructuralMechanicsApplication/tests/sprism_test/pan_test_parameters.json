@@ -18,15 +18,10 @@
             "input_type"     : "mdpa",
             "input_filename" : "sprism_test/pan_test"
         },
-        "rotation_dofs"                      : false,
-        "pressure_dofs"                      : false,
-        "stabilization_factor"               : 1.0,
         "reform_dofs_at_each_step"           : true,
         "line_search"                        : false,
         "compute_reactions"                  : true,
-        "compute_contact_forces"             : false,
         "block_builder"                      : false,
-        "component_wise"                     : false,
         "move_mesh_flag"                     : true,
         "convergence_criterion"              : "And_criterion",
         "displacement_relative_tolerance"    : 1e-4,
@@ -100,7 +95,21 @@
         }
     }
     ],
-    "loads_process_list" : [],  
+    "loads_process_list"       : [{
+        "python_module" : "assign_vector_by_direction_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process sets a vector variable value over a condition",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "POINTLOAD_PointLoad_Auto4",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"         : -1.0e3,
+            "direction"       : [0.0,0.0,"t"],
+            "interval"        : [0.0,"End"]
+        }
+    }],
     "json_output_process" : [
     {
         "python_module"   : "json_output_process",
@@ -129,17 +138,7 @@
         }
     }
     ],
-    "list_other_processes" : [
-    {
-        "python_module"   : "sprism_pan_test_local_process",
-        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
-        "help"                  : "",
-        "process_name"          : "ApplyLocalProcess",
-        "Parameters"            : {
-            "model_part_name"  : "POINTLOAD_PointLoad_Auto4"
-        }
-    },
-    {
+    "list_other_processes" : [{
         "python_module"  :"sprism_process", 
         "kratos_module":"KratosMultiphysics.StructuralMechanicsApplication", 
         "help"                 : "", 
@@ -147,8 +146,7 @@
         "Parameters":{
             "model_part_name"  : "Parts_Parts_Auto1"
             }
-    }
-    ],
+    }],
     "restart_options"          : {
         "SaveRestart"      : false,
         "RestartFrequency" : 0,
