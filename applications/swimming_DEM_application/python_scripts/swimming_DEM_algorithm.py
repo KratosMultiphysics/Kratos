@@ -94,9 +94,9 @@ class Algorithm(object):
     def SetCouplingParameters(self, varying_parameters):
         import DEM_explicit_solver_var as DEM_parameters
         self.pp.CFD_DEM = DEM_parameters
-        self.SetDoSolveDEMVariable()
-        self.SetCustomBetaParameters(varying_parameters)
+        self.SetDoSolveDEMVariable()        
         self.SetBetaParameters()
+        self.SetCustomBetaParameters(varying_parameters)
         
     def SetAllModelParts(self):
         self.all_model_parts = self.disperse_phase_algorithm.all_model_parts
