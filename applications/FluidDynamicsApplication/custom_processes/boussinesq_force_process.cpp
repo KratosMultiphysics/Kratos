@@ -10,16 +10,16 @@ namespace Kratos
     mrGravity(array_1d<double,3>(3,0.0))
     {
         // Read settings from parameters
-        KRATOS_ERROR_IF_NOT( rParameters.Has("Gravity") ) <<
-        "Boussinesq Force Process Error: \'Gravity\' not found in parameters." << std::endl;
+        KRATOS_ERROR_IF_NOT( rParameters.Has("gravity") ) <<
+        "Boussinesq Force Process Error: \'gravity\' not found in parameters." << std::endl;
 
-        Parameters rGravityParam = rParameters.GetValue("Gravity");
+        Parameters rGravityParam = rParameters.GetValue("gravity");
 
         KRATOS_ERROR_IF_NOT( rGravityParam.IsArray() ) <<
-        "Boussinesq Force Process Error: Given \'Gravity\' parameter is not an array." << std::endl;
+        "Boussinesq Force Process Error: Given \'gravity\' parameter is not an array." << std::endl;
 
         KRATOS_ERROR_IF_NOT( rGravityParam.size() == 3) <<
-        "Boussinesq Force Process Error: Given \'Gravity\' parameter is not a size 3 array." << std::endl;
+        "Boussinesq Force Process Error: Given \'gravity\' parameter is not a size 3 array." << std::endl;
 
         for (int i = 0; i < 3; i++)
         {
