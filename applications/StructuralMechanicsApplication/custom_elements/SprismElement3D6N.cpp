@@ -192,7 +192,7 @@ Element::Pointer SprismElement3D6N::Clone(
 
     if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() );
+        KRATOS_ERROR << "Constitutive law not has the correct size " << NewElement.mConstitutiveLawVector.size() << std::endl;
     }
     
     for(unsigned int i = 0; i < mConstitutiveLawVector.size(); i++)
@@ -239,10 +239,10 @@ void SprismElement3D6N::EquationIdVector(
 {
     KRATOS_TRY;
 
-    WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVector< Node < 3 > >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
 
-    const unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(nodal_neigb);
-    const unsigned int dim = number_of_nodes * 3;
+    const unsigned int NumberOfNodes = GetGeometry().size() + NumberOfActiveNeighbours(NeighbourNodes);
+    const unsigned int dim = NumberOfNodes * 3;
 
     if (rResult.size() != dim)
     {
@@ -262,11 +262,11 @@ void SprismElement3D6N::EquationIdVector(
     // Adding the ids of the neighbouring nodes
     for (unsigned int i = 0; i < 6; i++)
     {
-        if (HasNeighbour(i, nodal_neigb[i]))
+        if (HasNeighbour(i, NeighbourNodes[i]))
         {
-            rResult[index]     = nodal_neigb[i].GetDof(DISPLACEMENT_X).EquationId();
-            rResult[index + 1] = nodal_neigb[i].GetDof(DISPLACEMENT_Y).EquationId();
-            rResult[index + 2] = nodal_neigb[i].GetDof(DISPLACEMENT_Z).EquationId();
+            rResult[index]     = NeighbourNodes[i].GetDof(DISPLACEMENT_X).EquationId();
+            rResult[index + 1] = NeighbourNodes[i].GetDof(DISPLACEMENT_Y).EquationId();
+            rResult[index + 2] = NeighbourNodes[i].GetDof(DISPLACEMENT_Z).EquationId();
             index += 3;
         }
     }
@@ -284,7 +284,7 @@ void SprismElement3D6N::GetDofList(
 {
     KRATOS_TRY;
 
-    WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVector< Node < 3 > >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
     rElementalDofList.resize(0);
 
     // Nodes of the central element
@@ -298,11 +298,11 @@ void SprismElement3D6N::GetDofList(
     // Adding the dofs of the neighbouring nodes
     for (unsigned int i = 0; i < 6; i++)
     {
-        if (HasNeighbour(i, nodal_neigb[i]))
+        if (HasNeighbour(i, NeighbourNodes[i]))
         {
-            rElementalDofList.push_back(nodal_neigb[i].pGetDof(DISPLACEMENT_X));
-            rElementalDofList.push_back(nodal_neigb[i].pGetDof(DISPLACEMENT_Y));
-            rElementalDofList.push_back(nodal_neigb[i].pGetDof(DISPLACEMENT_Z));
+            rElementalDofList.push_back(NeighbourNodes[i].pGetDof(DISPLACEMENT_X));
+            rElementalDofList.push_back(NeighbourNodes[i].pGetDof(DISPLACEMENT_Y));
+            rElementalDofList.push_back(NeighbourNodes[i].pGetDof(DISPLACEMENT_Z));
         }
     }
 
@@ -317,10 +317,10 @@ void SprismElement3D6N::GetValuesVector(
         int Step
         )
 {
-    WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
-    const unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(nodal_neigb);
+    WeakPointerVector< Node < 3 > >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
+    const unsigned int NumberOfNodes = GetGeometry().size() + NumberOfActiveNeighbours(NeighbourNodes);
 
-    const unsigned int MatSize = number_of_nodes * 3;
+    const unsigned int MatSize = NumberOfNodes * 3;
     if (rValues.size() != MatSize)
     {
         rValues.resize(MatSize, false);
@@ -341,9 +341,9 @@ void SprismElement3D6N::GetValuesVector(
     // Neighbour nodes
     for (int i = 0; i < 6; i++)
     {
-        if (HasNeighbour(i, nodal_neigb[i]))
+        if (HasNeighbour(i, NeighbourNodes[i]))
         {
-            const array_1d<double, 3 > & disp = nodal_neigb[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+            const array_1d<double, 3 > & disp = NeighbourNodes[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
             rValues[index]     = disp[0];
             rValues[index + 1] = disp[1];
             rValues[index + 2] = disp[2];
@@ -360,10 +360,10 @@ void SprismElement3D6N::GetFirstDerivativesVector(
         int Step
         )
 {
-    WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
-    const unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(nodal_neigb);
+    WeakPointerVector< Node < 3 > >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
+    const unsigned int NumberOfNodes = GetGeometry().size() + NumberOfActiveNeighbours(NeighbourNodes);
 
-    const unsigned int MatSize = number_of_nodes * 3;
+    const unsigned int MatSize = NumberOfNodes * 3;
     if (rValues.size() != MatSize)
     {
         rValues.resize(MatSize, false);
@@ -384,9 +384,9 @@ void SprismElement3D6N::GetFirstDerivativesVector(
     // Neighbour nodes
     for (int i = 0; i < 6; i++)
     {
-        if (HasNeighbour(i, nodal_neigb[i]))
+        if (HasNeighbour(i, NeighbourNodes[i]))
         {
-            const array_1d<double, 3 > & vel = nodal_neigb[i].FastGetSolutionStepValue(VELOCITY, Step);
+            const array_1d<double, 3 > & vel = NeighbourNodes[i].FastGetSolutionStepValue(VELOCITY, Step);
             rValues[index]     = vel[0];
             rValues[index + 1] = vel[1];
             rValues[index + 2] = vel[2];
@@ -403,10 +403,10 @@ void SprismElement3D6N::GetSecondDerivativesVector(
         int Step
         )
 {
-    WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
-    const unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(nodal_neigb);
+    WeakPointerVector< Node < 3 > >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
+    const unsigned int NumberOfNodes = GetGeometry().size() + NumberOfActiveNeighbours(NeighbourNodes);
 
-    const unsigned int MatSize = number_of_nodes * 3;
+    const unsigned int MatSize = NumberOfNodes * 3;
     if (rValues.size() != MatSize)
     {
         rValues.resize(MatSize, false);
@@ -427,9 +427,9 @@ void SprismElement3D6N::GetSecondDerivativesVector(
     // Neighbour nodes
     for (int i = 0; i < 6; i++)
     {
-        if (HasNeighbour(i, nodal_neigb[i]))
+        if (HasNeighbour(i, NeighbourNodes[i]))
         {
-            const array_1d<double, 3 > & acc = nodal_neigb[i].FastGetSolutionStepValue(ACCELERATION, Step);
+            const array_1d<double, 3 > & acc = NeighbourNodes[i].FastGetSolutionStepValue(ACCELERATION, Step);
             rValues[index]     = acc[0];
             rValues[index + 1] = acc[1];
             rValues[index + 2] = acc[2];
@@ -646,12 +646,12 @@ void SprismElement3D6N::CalculateMassMatrix(
 {
     KRATOS_TRY;
 
-    WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVector< Node < 3 > >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
         
     const double Density = GetProperties()[DENSITY];
 
-    const unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(nodal_neigb);
-    const unsigned int MatSize = number_of_nodes * 3;
+    const unsigned int NumberOfNodes = GetGeometry().size() + NumberOfActiveNeighbours(NeighbourNodes);
+    const unsigned int MatSize = NumberOfNodes * 3;
 
     if (rMassMatrix.size1() != MatSize)
     {
@@ -722,14 +722,14 @@ void SprismElement3D6N::CalculateDampingMatrix(
 {
     KRATOS_TRY;
 
-    WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVector< Node < 3 > >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
 
     // 0.-Initialize the DampingMatrix:
-    const unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(nodal_neigb);
+    const unsigned int NumberOfNodes = GetGeometry().size() + NumberOfActiveNeighbours(NeighbourNodes);
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     // Resizing as needed the LHS
-    const unsigned int MatSize = number_of_nodes * dimension;
+    const unsigned int MatSize = NumberOfNodes * dimension;
 
     if ( rDampingMatrix.size1() != MatSize )
     {
@@ -792,14 +792,14 @@ void SprismElement3D6N::CalculateDampingMatrix(
 {
     KRATOS_TRY;
 
-    WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVector< Node < 3 > >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
 
     // 0.-Initialize the DampingMatrix:
-    const unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(nodal_neigb);
+    const unsigned int NumberOfNodes = GetGeometry().size() + NumberOfActiveNeighbours(NeighbourNodes);
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     // Resizing as needed the LHS
-    const unsigned int MatSize = number_of_nodes * dimension;
+    const unsigned int MatSize = NumberOfNodes * dimension;
 
     if ( rDampingMatrix.size1() != MatSize )
     {
@@ -850,14 +850,14 @@ void SprismElement3D6N::AddExplicitContribution(
 {
     KRATOS_TRY;
 
-    WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVector< Node < 3 > >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();// + NumberOfActiveNeighbours(nodal_neigb);
+    const unsigned int NumberOfNodes = GetGeometry().PointsNumber();// + NumberOfActiveNeighbours(NeighbourNodes);
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     if( rRHSVariable == EXTERNAL_FORCES_VECTOR && rDestinationVariable == EXTERNAL_FORCE )
     {
-        for(unsigned int i = 0; i < number_of_nodes; i++)
+        for(unsigned int i = 0; i < NumberOfNodes; i++)
         {
             int index = dimension * i;
 
@@ -875,22 +875,22 @@ void SprismElement3D6N::AddExplicitContribution(
             }
             else
             {
-                nodal_neigb[i].SetLock();
-                array_1d<double, 3 > &ExternalForce = nodal_neigb[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
+                NeighbourNodes[i].SetLock();
+                array_1d<double, 3 > &ExternalForce = NeighbourNodes[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
 
                 for(unsigned int j = 0; j < dimension; j++)
                 {
                     ExternalForce[j] += rRHSVector[index + j];
                 }
 
-                nodal_neigb[i].UnSetLock();
+                NeighbourNodes[i].UnSetLock();
             }
         }
     }
 
     if( rRHSVariable == INTERNAL_FORCES_VECTOR && rDestinationVariable == INTERNAL_FORCE )
     {
-        for(unsigned int i = 0; i < number_of_nodes; i++)
+        for(unsigned int i = 0; i < NumberOfNodes; i++)
         {
             int index = dimension * i;
 
@@ -908,22 +908,22 @@ void SprismElement3D6N::AddExplicitContribution(
             }
             else
             {
-                nodal_neigb[i].SetLock();
-                array_1d<double, 3 > &InternalForce = nodal_neigb[i].FastGetSolutionStepValue(INTERNAL_FORCE);
+                NeighbourNodes[i].SetLock();
+                array_1d<double, 3 > &InternalForce = NeighbourNodes[i].FastGetSolutionStepValue(INTERNAL_FORCE);
 
                 for(unsigned int j = 0; j < dimension; j++)
                 {
                     InternalForce[j] += rRHSVector[index + j];
                 }
 
-                nodal_neigb[i].UnSetLock();
+                NeighbourNodes[i].UnSetLock();
             }
         }
     }
 
     if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL )
     {
-        for(unsigned int i = 0; i < number_of_nodes; i++)
+        for(unsigned int i = 0; i < NumberOfNodes; i++)
         {
             int index = dimension * i;
 
@@ -941,15 +941,15 @@ void SprismElement3D6N::AddExplicitContribution(
             }
             else
             {
-                nodal_neigb[i].SetLock();
-                array_1d<double, 3 > &ForceResidual = nodal_neigb[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+                NeighbourNodes[i].SetLock();
+                array_1d<double, 3 > &ForceResidual = NeighbourNodes[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
 
                 for(unsigned int j = 0; j < dimension; j++)
                 {
                     ForceResidual[j] += rRHSVector[index + j];
                 }
 
-                nodal_neigb[i].UnSetLock();
+                NeighbourNodes[i].UnSetLock();
             }
         }
     }
@@ -991,9 +991,9 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
         /* Reading integration points */
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-        double& alpha_eas = Element::GetValue(ALPHA_EAS);
+        double& AlphaEAS = Element::GetValue(ALPHA_EAS);
 
         /* Calculate the cartesian derivatives */
         CartesianDerivatives CartDeriv;
@@ -1005,12 +1005,12 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         this->CalculateCommonComponents(CC, CartDeriv);
 
         // Reading integration points
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+        for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
         {
-            double zeta_gauss = 2.0 * integration_points[PointNumber].Z() - 1.0;
+            double ZetaGauss = 2.0 * IntegrationPoints[PointNumber].Z() - 1.0;
 
             // Compute element kinematics C, F ...
-            this->CalculateKinematics(Variables, CC, PointNumber, alpha_eas, zeta_gauss);
+            this->CalculateKinematics(Variables, CC, PointNumber, AlphaEAS, ZetaGauss);
 
             // To take in account previous step writing
             if( mFinalizedStep )
@@ -1058,9 +1058,9 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         ConstitutiveLawOptions.Set(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY, true);
 
         /* Reading integration points */
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-        double& alpha_eas = Element::GetValue(ALPHA_EAS);
+        double& AlphaEAS = Element::GetValue(ALPHA_EAS);
 
         /* Calculate the cartesian derivatives */
         CartesianDerivatives CartDeriv;
@@ -1072,12 +1072,12 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         this->CalculateCommonComponents(CC, CartDeriv);
 
         // Reading integration points
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+        for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
         {
-            double zeta_gauss = 2.0 * integration_points[PointNumber].Z() - 1.0;
+            double ZetaGauss = 2.0 * IntegrationPoints[PointNumber].Z() - 1.0;
 
             // Compute element kinematics C, F ...
-            this->CalculateKinematics(Variables, CC,PointNumber, alpha_eas, zeta_gauss);
+            this->CalculateKinematics(Variables, CC,PointNumber, AlphaEAS, ZetaGauss);
 
             // To take in account previous step writing
             if( mFinalizedStep )
@@ -1119,9 +1119,9 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY, true);
 
         /* Reading integration points */
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-        double& alpha_eas = Element::GetValue(ALPHA_EAS);
+        double& AlphaEAS = Element::GetValue(ALPHA_EAS);
 
         /* Calculate the cartesian derivatives */
         CartesianDerivatives CartDeriv;
@@ -1133,12 +1133,12 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         this->CalculateCommonComponents(CC, CartDeriv);
 
         // Reading integration points
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+        for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
         {
-            double zeta_gauss = 2.0 * integration_points[PointNumber].Z() - 1.0;
+            double ZetaGauss = 2.0 * IntegrationPoints[PointNumber].Z() - 1.0;
 
             // Compute element kinematics C, F ...
-            this->CalculateKinematics(Variables, CC,PointNumber, alpha_eas, zeta_gauss);
+            this->CalculateKinematics(Variables, CC,PointNumber, AlphaEAS, ZetaGauss);
 
             // To take in account previous step writing
             if( mFinalizedStep )
@@ -1162,7 +1162,7 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
             }
             mConstitutiveLawVector[PointNumber]->GetValue(STRAIN_ENERGY, StrainEnergy);
 
-            rOutput[PointNumber] = Variables.detJ * integration_points[PointNumber].Weight() * StrainEnergy;  // 1/2 * sigma * epsilon
+            rOutput[PointNumber] = Variables.detJ * IntegrationPoints[PointNumber].Weight() * StrainEnergy;  // 1/2 * sigma * epsilon
         }
     }
     else
@@ -1229,9 +1229,9 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         /* Reading integration points */
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-        double& alpha_eas = Element::GetValue(ALPHA_EAS);
+        double& AlphaEAS = Element::GetValue(ALPHA_EAS);
 
         /* Calculate the cartesian derivatives */
         CartesianDerivatives CartDeriv;
@@ -1243,12 +1243,12 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         this->CalculateCommonComponents(CC, CartDeriv);
 
         // Reading integration points
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+        for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
         {
-            double zeta_gauss = 2.0 * integration_points[PointNumber].Z() - 1.0;
+            double ZetaGauss = 2.0 * IntegrationPoints[PointNumber].Z() - 1.0;
 
             // Compute element kinematics C, F ...
-            this->CalculateKinematics(Variables, CC, PointNumber, alpha_eas, zeta_gauss);
+            this->CalculateKinematics(Variables, CC, PointNumber, AlphaEAS, ZetaGauss);
 
             // To take in account previous step writing
             if( mFinalizedStep )
@@ -1285,9 +1285,9 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         this->InitializeGeneralVariables(Variables);
 
         /* Reading integration points */
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-        double& alpha_eas = Element::GetValue(ALPHA_EAS);
+        double& AlphaEAS = Element::GetValue(ALPHA_EAS);
 
         /* Calculate the cartesian derivatives */
         CartesianDerivatives CartDeriv;
@@ -1299,12 +1299,12 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         this->CalculateCommonComponents(CC, CartDeriv);
 
         // Reading integration points
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+        for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
         {
-            double zeta_gauss = 2.0 * integration_points[PointNumber].Z() - 1.0;
+            double ZetaGauss = 2.0 * IntegrationPoints[PointNumber].Z() - 1.0;
 
             // Compute element kinematics C, F ...
-            this->CalculateKinematics(Variables, CC, PointNumber, alpha_eas, zeta_gauss);
+            this->CalculateKinematics(Variables, CC, PointNumber, AlphaEAS, ZetaGauss);
 
             // To take in account previous step writing
             if( mFinalizedStep )
@@ -1454,9 +1454,9 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
         /* Reading integration points */
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-        double& alpha_eas = Element::GetValue(ALPHA_EAS);
+        double& AlphaEAS = Element::GetValue(ALPHA_EAS);
 
         /* Calculate the cartesian derivatives */
         CartesianDerivatives CartDeriv;
@@ -1468,12 +1468,12 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         this->CalculateCommonComponents(CC, CartDeriv);
 
         // Reading integration points
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+        for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
         {
-            const double & zeta_gauss = 2.0 * integration_points[PointNumber].Z() - 1.0;
+            const double & ZetaGauss = 2.0 * IntegrationPoints[PointNumber].Z() - 1.0;
 
             // Compute element kinematics C, F ...
-            this->CalculateKinematics(Variables, CC, PointNumber, alpha_eas, zeta_gauss);
+            this->CalculateKinematics(Variables, CC, PointNumber, AlphaEAS, ZetaGauss);
 
             // Set general variables to constitutivelaw parameters
             this->SetGeneralVariables(Variables,Values,PointNumber);
@@ -1495,9 +1495,9 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         this->InitializeGeneralVariables(Variables);
 
         /* Reading integration points */
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-        double& alpha_eas = Element::GetValue(ALPHA_EAS);
+        double& AlphaEAS = Element::GetValue(ALPHA_EAS);
 
         /* Calculate the cartesian derivatives */
         CartesianDerivatives CartDeriv;
@@ -1509,12 +1509,12 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         this->CalculateCommonComponents(CC, CartDeriv);
 
         // Reading integration points
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+        for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
         {
-            const double & zeta_gauss = 2.0 * integration_points[PointNumber].Z() - 1.0;
+            const double & ZetaGauss = 2.0 * IntegrationPoints[PointNumber].Z() - 1.0;
 
             // Compute element kinematics C, F ...
-            this->CalculateKinematics(Variables, CC, PointNumber, alpha_eas, zeta_gauss);
+            this->CalculateKinematics(Variables, CC, PointNumber, AlphaEAS, ZetaGauss);
 
             if( rOutput[PointNumber].size2() != Variables.F.size2() )
             {
@@ -1621,7 +1621,7 @@ void SprismElement3D6N::SetValueOnIntegrationPoints(
             mConstitutiveLawVector.resize(rValues.size());
             if( mConstitutiveLawVector.size() != GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod ) )
             {
-                KRATOS_THROW_ERROR( std::logic_error, "Constitutive law not has the correct size ", mConstitutiveLawVector.size() );
+                KRATOS_ERROR << "Constitutive law not has the correct size " << mConstitutiveLawVector.size() << std::endl;
             }
         }
         for(unsigned int i = 0; i < rValues.size(); i++)
@@ -1769,132 +1769,132 @@ int  SprismElement3D6N::Check(const ProcessInfo& rCurrentProcessInfo)
 
     /* Check the neighbours have been calculated */
     // Neighbour elements
-    WeakPointerVector< Element >& elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
-    if (elem_neigb.size() == 0)
+    WeakPointerVector< Element >& NeighbourElements = this->GetValue(NEIGHBOUR_ELEMENTS);
+    if (NeighbourElements.size() == 0)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "The neighbour elements are not calculated", "");
+        KRATOS_ERROR << "The neighbour elements are not calculated" << std::endl;
     }
 
     // Neighbour nodes
-    WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
-    if (nodal_neigb.size() == 0)
+    WeakPointerVector< Node < 3 > >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
+    if (NeighbourNodes.size() == 0)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "The neighbour nodes are not calculated", "");
+        KRATOS_ERROR << "The neighbour nodes are not calculated" << std::endl;
     }
 
     /* Verify compatibility with the constitutive law */
     ConstitutiveLaw::Features LawFeatures;
     this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetLawFeatures(LawFeatures);
 
-    bool correct_strain_measure = false;
+    bool CorrectStrainMeasure = false;
     for(unsigned int i = 0; i < LawFeatures.mStrainMeasures.size(); i++)
     {
         if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Deformation_Gradient)
         {
-            correct_strain_measure = true;
+            CorrectStrainMeasure = true;
         }
     }
 
-    if(correct_strain_measure == false)
+    if(CorrectStrainMeasure == false)
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Constitutive law is not compatible with the element type ", " Large Displacements " );
+        KRATOS_ERROR << "Constitutive law is not compatible with the element type SprismElement3D6N" << std::endl;
     }
 
     // Verify that nodal variables are correctly initialized
     if (DISPLACEMENT.Key() == 0)
     {
-        KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR << "DISPLACEMENT has Key zero! (check if the application is correctly registered"<< std::endl;
     }
 
     if (VELOCITY.Key() == 0)
     {
-        KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR << "VELOCITY has Key zero! (check if the application is correctly registered"<< std::endl;
     }
 
     if (ACCELERATION.Key() == 0)
     {
-        KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR << "ACCELERATION has Key zero! (check if the application is correctly registered"<< std::endl;
     }
 
     if (DENSITY.Key() == 0)
     {
-        KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR << "DENSITY has Key zero! (check if the application is correctly registered"<< std::endl;
     }
 
     if (VOLUME_ACCELERATION.Key() == 0)
     {
-        KRATOS_THROW_ERROR( std::invalid_argument,"VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR << "VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered"<< std::endl;
     }
 
     // Verify that elemental variables are correctly initialized
     if ( VON_MISES_STRESS.Key() == 0 )
     {
-        KRATOS_THROW_ERROR( std::invalid_argument,"VON_MISES_STRESS has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR << "VON_MISES_STRESS has Key zero! (check if the application is correctly registered"<< std::endl;
     }
 
     if ( NORM_ISOCHORIC_STRESS.Key() == 0 )
     {
-        KRATOS_THROW_ERROR( std::invalid_argument,"NORM_ISOCHORIC_STRESS has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR << "NORM_ISOCHORIC_STRESS has Key zero! (check if the application is correctly registered"<< std::endl;
     }
 
     if ( CAUCHY_STRESS_TENSOR.Key() == 0 )
     {
-        KRATOS_THROW_ERROR( std::invalid_argument,"CAUCHY_STRESS_TENSOR has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR << "CAUCHY_STRESS_TENSOR has Key zero! (check if the application is correctly registered"<< std::endl;
     }
 
     if ( CAUCHY_STRESS_VECTOR.Key() == 0 )
     {
-        KRATOS_THROW_ERROR( std::invalid_argument,"CAUCHY_STRESS_VECTOR has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR << "CAUCHY_STRESS_VECTOR has Key zero! (check if the application is correctly registered"<< std::endl;
     }
 
     if ( PK2_STRESS_TENSOR.Key() == 0 )
     {
-        KRATOS_THROW_ERROR( std::invalid_argument,"PK2_STRESS_TENSOR has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR << "PK2_STRESS_TENSOR has Key zero! (check if the application is correctly registered"<< std::endl;
     }
 
     if ( PK2_STRESS_VECTOR.Key() == 0 )
     {
-        KRATOS_THROW_ERROR( std::invalid_argument,"PK2_STRESS_VECTOR has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR << "PK2_STRESS_VECTOR has Key zero! (check if the application is correctly registered" << std::endl;
     }
 
     if ( GREEN_LAGRANGE_STRAIN_TENSOR.Key() == 0 )
     {
-        KRATOS_THROW_ERROR( std::invalid_argument,"GREEN_LAGRANGE_STRAIN_TENSOR has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR << "GREEN_LAGRANGE_STRAIN_TENSOR has Key zero! (check if the application is correctly registered" << std::endl;
     }
 
     if ( GREEN_LAGRANGE_STRAIN_VECTOR.Key() == 0 )
     {
-        KRATOS_THROW_ERROR( std::invalid_argument,"GREEN_LAGRANGE_STRAIN_VECTOR has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR << "GREEN_LAGRANGE_STRAIN_VECTOR has Key zero! (check if the application is correctly registered" << std::endl;
     }
 
     if ( ALMANSI_STRAIN_TENSOR.Key() == 0 )
     {
-        KRATOS_THROW_ERROR( std::invalid_argument,"ALMANSI_STRAIN_TENSOR has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR << "ALMANSI_STRAIN_TENSOR has Key zero! (check if the application is correctly registered" << std::endl;
     }
 
     if ( ALMANSI_STRAIN_VECTOR.Key() == 0 )
     {
-        KRATOS_THROW_ERROR( std::invalid_argument,"ALMANSI_STRAIN_VECTOR has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR << "ALMANSI_STRAIN_VECTOR has Key zero! (check if the application is correctly registered" << std::endl;
     }
 
     if ( HENCKY_STRAIN_TENSOR.Key() == 0 )
     {
-        KRATOS_THROW_ERROR( std::invalid_argument,"HENCKY_STRAIN_TENSOR has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR << "HENCKY_STRAIN_TENSOR has Key zero! (check if the application is correctly registered" << std::endl;
     }
 
     if ( HENCKY_STRAIN_VECTOR.Key() == 0 )
     {
-        KRATOS_THROW_ERROR( std::invalid_argument,"HENCKY_STRAIN_VECTOR has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR << "HENCKY_STRAIN_VECTOR has Key zero! (check if the application is correctly registered" << std::endl;
     }
 
     if ( CONSTITUTIVE_MATRIX.Key() == 0 )
     {
-        KRATOS_THROW_ERROR( std::invalid_argument,"CONSTITUTIVE_MATRIX has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR << "CONSTITUTIVE_MATRIX has Key zero! (check if the application is correctly registered" << std::endl;
     }
 
     if ( DEFORMATION_GRADIENT.Key() == 0 )
     {
-        KRATOS_THROW_ERROR( std::invalid_argument,"DEFORMATION_GRADIENT has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR << "DEFORMATION_GRADIENT has Key zero! (check if the application is correctly registered" << std::endl;
     }
 
     // Verify that the dofs exist
@@ -1902,24 +1902,24 @@ int  SprismElement3D6N::Check(const ProcessInfo& rCurrentProcessInfo)
     {
         if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false)
         {
-            KRATOS_THROW_ERROR( std::invalid_argument, "Missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id());
+            KRATOS_ERROR << "Missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
         }
 
         if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false)
         {
-            KRATOS_THROW_ERROR( std::invalid_argument, "Missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id());
+            KRATOS_ERROR << "Missing one of the dofs for the variable DISPLACEMENT on node " << GetGeometry()[i].Id() << std::endl;
         }
     }
 
     // Verify that the constitutive law exists
     if (this->GetProperties().Has( CONSTITUTIVE_LAW ) == false)
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Constitutive law not provided for property ", this->GetProperties().Id());
+        KRATOS_ERROR << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
     }
 
     if (this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 6)
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) ", this->Id());
+        KRATOS_ERROR << "Wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) " << this->Id() << std::endl;
     }
 
     // Check constitutive law
@@ -1970,9 +1970,9 @@ void SprismElement3D6N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-    double& alpha_eas = Element::GetValue(ALPHA_EAS);
+    double& AlphaEAS = Element::GetValue(ALPHA_EAS);
 
     /* Calculate the cartesian derivatives */
     CartesianDerivatives CartDeriv;
@@ -1984,12 +1984,12 @@ void SprismElement3D6N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
     this->CalculateCommonComponents(CC, CartDeriv);
 
     // Reading integration points
-    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+    for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
     {
-        const double & zeta_gauss = 2.0 * integration_points[PointNumber].Z() - 1.0;
+        const double& ZetaGauss = 2.0 * IntegrationPoints[PointNumber].Z() - 1.0;
 
         // Compute element kinematics C, F ...
-        this->CalculateKinematics(Variables, CC, PointNumber, alpha_eas, zeta_gauss);
+        this->CalculateKinematics(Variables, CC, PointNumber, AlphaEAS, ZetaGauss);
 
         // Set general variables to constitutivelaw parameters
         this->SetGeneralVariables(Variables,Values,PointNumber);
@@ -2035,12 +2035,12 @@ void SprismElement3D6N::Initialize()
 {
     KRATOS_TRY;
 
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
     /* Constitutive Law initialisation */
-    if ( mConstitutiveLawVector.size() != integration_points.size() )
+    if ( mConstitutiveLawVector.size() != IntegrationPoints.size() )
     {
-        mConstitutiveLawVector.resize( integration_points.size() );
+        mConstitutiveLawVector.resize( IntegrationPoints.size() );
     }
 
     /* Implicit or explicit EAS update */
@@ -2074,8 +2074,8 @@ void SprismElement3D6N::Initialize()
     }
 
     // Resizing the containers
-    mAuxMatCont.resize( integration_points.size() );
-    mAuxCont.resize( integration_points.size(), false );
+    mAuxMatCont.resize( IntegrationPoints.size() );
+    mAuxCont.resize( IntegrationPoints.size(), false );
 
     if ( mELementalFlags.Is(SprismElement3D6N::TOTAL_UPDATED_LAGRANGIAN) == true ) // Jacobian inverses
     {
@@ -2085,13 +2085,13 @@ void SprismElement3D6N::Initialize()
         mTotalDomainInitialSize = 0.0;
 
         /* Calculating the inverse J0 */
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+        for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
         {
             // Calculating and storing inverse of the jacobian and the parameters needed
             MathUtils<double>::InvertMatrix( J0[PointNumber], mAuxMatCont[PointNumber], mAuxCont[PointNumber] );
 
             // Getting informations for integration
-            double IntegrationWeight = integration_points[PointNumber].Weight();
+            double IntegrationWeight = IntegrationPoints[PointNumber].Weight();
 
             // Calculating the total volume
             mTotalDomainInitialSize += mAuxCont[PointNumber] * IntegrationWeight;
@@ -2101,16 +2101,16 @@ void SprismElement3D6N::Initialize()
     {
         mTotalDomainInitialSize = 0.0; // Just initialize, not used in UL
 
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+        for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
         {
             mAuxCont[PointNumber] = 1.00;
             mAuxMatCont[PointNumber] = IdentityMatrix(3);
         }
     }
 
-    /* Initialize alpha_eas */
-    double& alpha_eas = Element::GetValue(ALPHA_EAS);
-    alpha_eas = 0.0;
+    /* Initialize AlphaEAS */
+    double& AlphaEAS = Element::GetValue(ALPHA_EAS);
+    AlphaEAS = 0.0;
 
     /* Initialize EAS parameters*/
     mEAS.clear();
@@ -2156,16 +2156,16 @@ void SprismElement3D6N::CalculateElementalSystem(
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
     /* Reading integration points */
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
     /* Getting the alpha parameter of the EAS improvement */
-    double& alpha_eas = Element::GetValue(ALPHA_EAS);
+    double& AlphaEAS = Element::GetValue(ALPHA_EAS);
 
     /* Calculate the RHS */
     if ( rLocalSystem.CalculationFlags.Is(SprismElement3D6N::COMPUTE_RHS_VECTOR) == true ) // Update just if RHS is calculated
     {
         /* Getting the increase of displacements */
-        boost::numeric::ublas::bounded_matrix<double, 36, 1 > delta_disp;
+        bounded_matrix<double, 36, 1 > delta_disp;
 
         delta_disp = GetVectorCurrentPosition() - mPreviousCoor; // Calculates the increase of displacements
         mPreviousCoor = GetVectorCurrentPosition(); // Update previous coordinates // Note: Save coordinates in an auxiliar variable
@@ -2173,7 +2173,7 @@ void SprismElement3D6N::CalculateElementalSystem(
         /* Update alpha EAS */
         if (mEAS.stiff_alpha > 1.0e-12) // Avoid division by zero
         {
-            alpha_eas -= prod(mEAS.H_EAS, delta_disp)(0, 0) / mEAS.stiff_alpha;
+            AlphaEAS -= prod(mEAS.H_EAS, delta_disp)(0, 0) / mEAS.stiff_alpha;
         }
     }
 
@@ -2194,15 +2194,15 @@ void SprismElement3D6N::CalculateElementalSystem(
     mEAS.clear();
 
     // Reading integration points
-    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+    for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
     {
-        const double zeta_gauss = 2.0 * integration_points[PointNumber].Z() - 1.0;
+        const double ZetaGauss = 2.0 * IntegrationPoints[PointNumber].Z() - 1.0;
 
         /* Assemble B */
-        this->CalculateDeformationMatrix(Variables.B, CC, zeta_gauss, alpha_eas);
+        this->CalculateDeformationMatrix(Variables.B, CC, ZetaGauss, AlphaEAS);
 
         // Compute element kinematics C, F ...
-        this->CalculateKinematics(Variables, CC, PointNumber, alpha_eas, zeta_gauss);
+        this->CalculateKinematics(Variables, CC, PointNumber, AlphaEAS, ZetaGauss);
 
         // Set general variables to constitutivelaw parameters
         this->SetGeneralVariables(Variables, Values, PointNumber);
@@ -2211,10 +2211,10 @@ void SprismElement3D6N::CalculateElementalSystem(
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, Variables.StressMeasure);
 
         // Calculating weights for integration on the "reference configuration"
-        double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
+        double IntegrationWeight = IntegrationPoints[PointNumber].Weight() * Variables.detJ;
 
         /* Integrate in Zeta */
-        IntegrateInZeta(Variables, IntStress, alpha_eas, zeta_gauss, IntegrationWeight);
+        IntegrateInZeta(Variables, IntStress, AlphaEAS, ZetaGauss, IntegrationWeight);
     }
 
     /* Auxiliary terms: Allocating the VolumeForce*/
@@ -2227,13 +2227,13 @@ void SprismElement3D6N::CalculateElementalSystem(
         this->CalculateVolumeForce( VolumeForce, Variables );
 
         /* Contribution to external and internal forces */
-        this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce, IntStress, CC, alpha_eas );
+        this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce, IntStress, CC, AlphaEAS );
     }
 
     if ( rLocalSystem.CalculationFlags.Is(SprismElement3D6N::COMPUTE_LHS_MATRIX) == true ) // Calculation of the matrix is required
     {
         /* Contribution to the tangent stiffness matrix */
-        this->CalculateAndAddLHS( rLocalSystem, Variables, Values, IntStress, CC, CartDeriv, alpha_eas );
+        this->CalculateAndAddLHS( rLocalSystem, Variables, Values, IntStress, CC, CartDeriv, AlphaEAS );
     }
 
     KRATOS_CATCH("");
@@ -2254,7 +2254,7 @@ void SprismElement3D6N::CalculateDynamicSystem(
     this->InitializeGeneralVariables(Variables);
 
     // Reading integration points
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
     MatrixType  LocalLeftHandSideMatrix;
     VectorType  LocalRightHandSideVector;
@@ -2263,7 +2263,7 @@ void SprismElement3D6N::CalculateDynamicSystem(
     this->InitializeSystemMatrices( LocalLeftHandSideMatrix, LocalRightHandSideVector, rLocalSystem.CalculationFlags );
 
     /* Getting the alpha parameter of the EAS improvement */
-    double& alpha_eas = Element::GetValue(ALPHA_EAS);
+    double& AlphaEAS = Element::GetValue(ALPHA_EAS);
 
     /* Calculate the cartesian derivatives */
     CartesianDerivatives CartDeriv;
@@ -2274,18 +2274,18 @@ void SprismElement3D6N::CalculateDynamicSystem(
     CC.clear();
     this->CalculateCommonComponents(CC, CartDeriv);
 
-    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+    for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
     {
-        const double zeta_gauss = 2.0 * integration_points[PointNumber].Z() - 1.0;
+        const double ZetaGauss = 2.0 * IntegrationPoints[PointNumber].Z() - 1.0;
 
         /* Assemble B */
-        this->CalculateDeformationMatrix(Variables.B, CC, zeta_gauss, alpha_eas);
+        this->CalculateDeformationMatrix(Variables.B, CC, ZetaGauss, AlphaEAS);
 
         // Compute element kinematics C, F ...
-        this->CalculateKinematics(Variables, CC, PointNumber, alpha_eas, zeta_gauss);
+        this->CalculateKinematics(Variables, CC, PointNumber, AlphaEAS, ZetaGauss);
 
         // Calculating weights for integration on the "reference configuration"
-        double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
+        double IntegrationWeight = IntegrationPoints[PointNumber].Weight() * Variables.detJ;
 
         if ( rLocalSystem.CalculationFlags.Is(SprismElement3D6N::COMPUTE_LHS_MATRIX) ) // Calculation of the matrix is required
         {
@@ -2326,8 +2326,8 @@ void SprismElement3D6N::PrintElementCalculation(
 
     std::cout << " Element: " << this->Id() << std::endl;
 
-    WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
-    const unsigned int number_neigb = NumberOfActiveNeighbours(nodal_neigb);
+    WeakPointerVector< Node < 3 > >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
+    const unsigned int number_neigb = NumberOfActiveNeighbours(NeighbourNodes);
 
     for ( unsigned int i = 0; i < 6; i++ )
     {
@@ -2340,11 +2340,11 @@ void SprismElement3D6N::PrintElementCalculation(
 
     for ( unsigned int i = 0; i < number_neigb; i++ )
     {
-        array_1d<double, 3> &CurrentPosition  = nodal_neigb[i].Coordinates();
-        array_1d<double, 3 > & CurrentDisplacement  = nodal_neigb[i].FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double, 3 > & PreviousDisplacement = nodal_neigb[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+        array_1d<double, 3> &CurrentPosition  = NeighbourNodes[i].Coordinates();
+        array_1d<double, 3 > & CurrentDisplacement  = NeighbourNodes[i].FastGetSolutionStepValue(DISPLACEMENT);
+        array_1d<double, 3 > & PreviousDisplacement = NeighbourNodes[i].FastGetSolutionStepValue(DISPLACEMENT,1);
         array_1d<double, 3> PreviousPosition  = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
-        std::cout << " Previous  Position  neighbour node[" << nodal_neigb[i].Id() << "]: "<<PreviousPosition << std::endl;
+        std::cout << " Previous  Position  neighbour node[" << NeighbourNodes[i].Id() << "]: "<<PreviousPosition << std::endl;
     }
 
     for ( unsigned int i = 0; i < 6; i++ )
@@ -2355,8 +2355,8 @@ void SprismElement3D6N::PrintElementCalculation(
 
     for ( unsigned int i = 0; i < number_neigb; i++ )
     {
-        array_1d<double, 3> & CurrentPosition  = nodal_neigb[i].Coordinates();
-        std::cout << " Current  Position neighbour node[" << nodal_neigb[i].Id()<<"]: " << CurrentPosition << std::endl;
+        array_1d<double, 3> & CurrentPosition  = NeighbourNodes[i].Coordinates();
+        std::cout << " Current  Position neighbour node[" << NeighbourNodes[i].Id()<<"]: " << CurrentPosition << std::endl;
     }
 
     for ( unsigned int i = 0; i < 6; i++ )
@@ -2367,8 +2367,8 @@ void SprismElement3D6N::PrintElementCalculation(
 
     for ( unsigned int i = 0; i < number_neigb; i++ )
     {
-        array_1d<double, 3 > & PreviousDisplacement = nodal_neigb[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-        std::cout << " Previous Displacement neighbour node[" << nodal_neigb[i].Id() << "]: " << PreviousDisplacement << std::endl;
+        array_1d<double, 3 > & PreviousDisplacement = NeighbourNodes[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+        std::cout << " Previous Displacement neighbour node[" << NeighbourNodes[i].Id() << "]: " << PreviousDisplacement << std::endl;
     }
 
     for ( unsigned int i = 0; i < 6; i++ )
@@ -2379,8 +2379,8 @@ void SprismElement3D6N::PrintElementCalculation(
 
     for ( unsigned int i = 0; i < number_neigb; i++ )
     {
-        array_1d<double, 3 > & CurrentDisplacement  = nodal_neigb[i].FastGetSolutionStepValue(DISPLACEMENT);
-        std::cout << " Current  Displacement  node[" << nodal_neigb[i].Id() << "]: " << CurrentDisplacement << std::endl;
+        array_1d<double, 3 > & CurrentDisplacement  = NeighbourNodes[i].FastGetSolutionStepValue(DISPLACEMENT);
+        std::cout << " Current  Displacement  node[" << NeighbourNodes[i].Id() << "]: " << CurrentDisplacement << std::endl;
     }
 
     std::cout << " Stress " << rVariables.StressVector << std::endl;
@@ -2435,13 +2435,13 @@ unsigned int SprismElement3D6N::NumberOfActiveNeighbours(WeakPointerVector< Node
 /***********************************************************************************/
 
 void SprismElement3D6N::GetNodalCoordinates(
-        boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord,
-        WeakPointerVector< Node < 3 > >& nodal_neigb,
+        bounded_matrix<double, 12, 3 > & nodes_coord,
+        WeakPointerVector< Node < 3 > >& NeighbourNodes,
         const std::string Configuration
         )
 {
      nodes_coord = ZeroMatrix(12, 3);
-     const unsigned int number_neigb = NumberOfActiveNeighbours(nodal_neigb);
+     const unsigned int number_neigb = NumberOfActiveNeighbours(NeighbourNodes);
 
      if (Configuration.find("Initial") != std::string::npos)
      {
@@ -2457,20 +2457,20 @@ void SprismElement3D6N::GetNodalCoordinates(
          {
              for (unsigned int i = 0; i < 6; i++)
              {
-                 nodes_coord(i + 6, 0) = nodal_neigb[i].X0();
-                 nodes_coord(i + 6, 1) = nodal_neigb[i].Y0();
-                 nodes_coord(i + 6, 2) = nodal_neigb[i].Z0();
+                 nodes_coord(i + 6, 0) = NeighbourNodes[i].X0();
+                 nodes_coord(i + 6, 1) = NeighbourNodes[i].Y0();
+                 nodes_coord(i + 6, 2) = NeighbourNodes[i].Z0();
              }
          }
          else
          {
              for (unsigned int i = 0; i < 6; i++)
              {
-                 if (HasNeighbour(i, nodal_neigb[i]))
+                 if (HasNeighbour(i, NeighbourNodes[i]))
                  {
-                     nodes_coord(i + 6, 0) = nodal_neigb[i].X0();
-                     nodes_coord(i + 6, 1) = nodal_neigb[i].Y0();
-                     nodes_coord(i + 6, 2) = nodal_neigb[i].Z0();
+                     nodes_coord(i + 6, 0) = NeighbourNodes[i].X0();
+                     nodes_coord(i + 6, 1) = NeighbourNodes[i].Y0();
+                     nodes_coord(i + 6, 2) = NeighbourNodes[i].Z0();
                  }
                  else
                  {
@@ -2496,7 +2496,7 @@ void SprismElement3D6N::GetNodalCoordinates(
          {
              for (unsigned int i = 0; i < 6; i++)
              {
-                 const array_1d<double, 3> &CurrentPosition  = nodal_neigb[i].Coordinates();
+                 const array_1d<double, 3> &CurrentPosition  = NeighbourNodes[i].Coordinates();
                  nodes_coord(i + 6, 0) = CurrentPosition[0];
                  nodes_coord(i + 6, 1) = CurrentPosition[1];
                  nodes_coord(i + 6, 2) = CurrentPosition[2];
@@ -2506,9 +2506,9 @@ void SprismElement3D6N::GetNodalCoordinates(
          {
              for (unsigned int i = 0; i < 6; i++)
              {
-                 if (HasNeighbour(i, nodal_neigb[i]))
+                 if (HasNeighbour(i, NeighbourNodes[i]))
                  {
-                     const array_1d<double, 3> &CurrentPosition  = nodal_neigb[i].Coordinates();
+                     const array_1d<double, 3> &CurrentPosition  = NeighbourNodes[i].Coordinates();
                      nodes_coord(i + 6, 0) = CurrentPosition[0];
                      nodes_coord(i + 6, 1) = CurrentPosition[1];
                      nodes_coord(i + 6, 2) = CurrentPosition[2];
@@ -2524,7 +2524,7 @@ void SprismElement3D6N::GetNodalCoordinates(
      }
      else
      {
-         KRATOS_THROW_ERROR( std::invalid_argument," The configuration is not possible, the posibilities are Current and Initial:  ", Configuration );
+         KRATOS_ERROR << " The configuration is not possible, the posibilities are Current and Initial:  " <<  Configuration << std::endl;
      }
 }
 
@@ -2533,15 +2533,15 @@ void SprismElement3D6N::GetNodalCoordinates(
 
 void SprismElement3D6N::CalculateCartesianDerivatives(CartesianDerivatives& CartDeriv)
 {
-    boost::numeric::ublas::bounded_matrix<double, 12, 3 > nodes_coord; // Coordinates of the nodes
-    WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
+    bounded_matrix<double, 12, 3 > nodes_coord; // Coordinates of the nodes
+    WeakPointerVector< Node < 3 > >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
     if ( mELementalFlags.Is(SprismElement3D6N::TOTAL_UPDATED_LAGRANGIAN) == true )
     {
-        this->GetNodalCoordinates(nodes_coord, nodal_neigb, "Initial");
+        this->GetNodalCoordinates(nodes_coord, NeighbourNodes, "Initial");
     }
     else
     {
-        this->GetNodalCoordinates(nodes_coord, nodal_neigb, "Current");
+        this->GetNodalCoordinates(nodes_coord, NeighbourNodes, "Current");
     }
 
     /* Calculate local system of coordinates of the element */
@@ -2559,8 +2559,8 @@ void SprismElement3D6N::CalculateCartesianDerivatives(CartesianDerivatives& Cart
 
     //******************************** CENTRAL POINT ******************************
     // Calculate cartesian derivatives
-    boost::numeric::ublas::bounded_matrix<double, 2, 4 > CartesianDerivativesCenterLower;
-    boost::numeric::ublas::bounded_matrix<double, 2, 4 > CartesianDerivativesCenterUpper;
+    bounded_matrix<double, 2, 4 > CartesianDerivativesCenterLower;
+    bounded_matrix<double, 2, 4 > CartesianDerivativesCenterUpper;
 
     // Lower face
     CalculateCartesianDerOnCenter_plane(0, nodes_coord, CartesianDerivativesCenterLower);
@@ -2579,7 +2579,7 @@ void SprismElement3D6N::CalculateCartesianDerivatives(CartesianDerivatives& Cart
     CalculateCartesianDerOnGauss_trans(nodes_coord, CartDeriv.TransversalCartesianDerivativesGauss4, 0.5, 0.5,   1.0);
 
     /* In-plane derivative */
-    if (HasNeighbour(0, nodal_neigb[0])) // Assuming that if the upper element has neighbours the lower has too
+    if (HasNeighbour(0, NeighbourNodes[0])) // Assuming that if the upper element has neighbours the lower has too
     {
         CalculateCartesianDerOnGauss_plane(0, 0, nodes_coord, CartDeriv.InPlaneCartesianDerivativesGauss1);
         CalculateCartesianDerOnGauss_plane(0, 3, nodes_coord, CartDeriv.InPlaneCartesianDerivativesGauss4);
@@ -2595,7 +2595,7 @@ void SprismElement3D6N::CalculateCartesianDerivatives(CartesianDerivatives& Cart
     CalculateCartesianDerOnGauss_trans(nodes_coord, CartDeriv.TransversalCartesianDerivativesGauss5, 0.0, 0.5,   1.0);
 
     /* In-plane derivative */
-    if (HasNeighbour(1, nodal_neigb[1])) //Idem
+    if (HasNeighbour(1, NeighbourNodes[1])) //Idem
     {
         CalculateCartesianDerOnGauss_plane(1, 0, nodes_coord, CartDeriv.InPlaneCartesianDerivativesGauss2);
         CalculateCartesianDerOnGauss_plane(1, 3, nodes_coord, CartDeriv.InPlaneCartesianDerivativesGauss5);
@@ -2611,7 +2611,7 @@ void SprismElement3D6N::CalculateCartesianDerivatives(CartesianDerivatives& Cart
     CalculateCartesianDerOnGauss_trans(nodes_coord, CartDeriv.TransversalCartesianDerivativesGauss6, 0.5, 0.0,   1.0);
 
     /* In-plane derivative */
-    if (HasNeighbour(2, nodal_neigb[2])) // Idem
+    if (HasNeighbour(2, NeighbourNodes[2])) // Idem
     {
         CalculateCartesianDerOnGauss_plane(2, 0, nodes_coord, CartDeriv.InPlaneCartesianDerivativesGauss3);
         CalculateCartesianDerOnGauss_plane(2, 3, nodes_coord, CartDeriv.InPlaneCartesianDerivativesGauss6);
@@ -2633,13 +2633,13 @@ void SprismElement3D6N::CalculateCommonComponents(
 {
     KRATOS_TRY;
 
-    boost::numeric::ublas::bounded_matrix<double, 12, 3 > nodes_coord; // Coordinates of the nodes
-    WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
-    this->GetNodalCoordinates(nodes_coord, nodal_neigb, "Current");
+    bounded_matrix<double, 12, 3 > nodes_coord; // Coordinates of the nodes
+    WeakPointerVector< Node < 3 > >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
+    this->GetNodalCoordinates(nodes_coord, NeighbourNodes, "Current");
 
     /* Declare deformation Gradient F components */
     // In plane components
-    boost::numeric::ublas::bounded_matrix<double, 3, 2 > InPlaneGradientFGauss;
+    bounded_matrix<double, 3, 2 > InPlaneGradientFGauss;
     // Transversal components
     array_1d<double, 3 > TransverseGradientF0, TransverseGradientF1, TransverseGradientF2;
 
@@ -2886,7 +2886,7 @@ void SprismElement3D6N::CalculateIdVect()
 {
     KRATOS_TRY;
 
-    WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVector< Node < 3 > >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
 
     /* Compute mid_vec */
     for (unsigned int i = 0; i < 18; i++)
@@ -2896,7 +2896,7 @@ void SprismElement3D6N::CalculateIdVect()
     unsigned int index = 18;
     for (unsigned int i = 0; i < 6; i++)
     {
-        if (HasNeighbour(i, nodal_neigb[i]))
+        if (HasNeighbour(i, NeighbourNodes[i]))
         {
             for (unsigned int j = 0; j < 3; j++)
             {
@@ -2920,7 +2920,7 @@ void SprismElement3D6N::CalculateIdVect()
 /***********************************************************************************/
 
 void SprismElement3D6N::ComputeLocalDerivatives(
-        boost::numeric::ublas::bounded_matrix<double, 6, 3 > & local_der_patch,
+        bounded_matrix<double, 6, 3 > & local_der_patch,
         const double xi,
         const double eta,
         const double zeta
@@ -2961,7 +2961,7 @@ void SprismElement3D6N::ComputeLocalDerivatives(
 /***********************************************************************************/
 
 void SprismElement3D6N::ComputeLocalDerivativesQuadratic(
-        boost::numeric::ublas::bounded_matrix<double, 4, 2 > & local_der_patch,
+        bounded_matrix<double, 4, 2 > & local_der_patch,
         const int node_gauss
         )
 {
@@ -3025,7 +3025,7 @@ void SprismElement3D6N::CalculateJacobianCenterGauss(
         )
 {
     /* Fill the aux matrix of coordinates */
-    boost::numeric::ublas::bounded_matrix<double, 3, 6 > nodes_coord;
+    bounded_matrix<double, 3, 6 > nodes_coord;
     for (unsigned int i = 0; i < 6; i++)
     {
         const array_1d<double, 3> &CurrentPosition  = GetGeometry()[i].Coordinates();
@@ -3038,7 +3038,7 @@ void SprismElement3D6N::CalculateJacobianCenterGauss(
     double eta = 0.333333333333333333333333333333333;
 
     /* Local derivatives patch */
-    boost::numeric::ublas::bounded_matrix<double, 6, 3 > local_der_patch;
+    bounded_matrix<double, 6, 3 > local_der_patch;
     ComputeLocalDerivatives(local_der_patch, xi, eta, zeta);
 
     /* Compute Jacobian */
@@ -3053,16 +3053,16 @@ void SprismElement3D6N::CalculateJacobianCenterGauss(
 
 void SprismElement3D6N::CalculateJacobian(
         double & detJ,
-        boost::numeric::ublas::bounded_matrix<double, 3, 3 > & J,
-        boost::numeric::ublas::bounded_matrix<double, 6, 3 > & local_der_patch,
-        const boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord,
+        bounded_matrix<double, 3, 3 > & J,
+        bounded_matrix<double, 6, 3 > & local_der_patch,
+        const bounded_matrix<double, 12, 3 > & nodes_coord,
         const double xi,
         const double eta,
         const double zeta
         )
 {
     /* Auxiliar coordinates of the nodes */
-    boost::numeric::ublas::bounded_matrix<double, 3, 6 > nodes_coord_aux;
+    bounded_matrix<double, 3, 6 > nodes_coord_aux;
 
     for (unsigned int i = 0; i < 6; i++)
     {
@@ -3085,10 +3085,10 @@ void SprismElement3D6N::CalculateJacobian(
 /***********************************************************************************/
 
 void SprismElement3D6N::CalculateJacobianAndInv(
-        boost::numeric::ublas::bounded_matrix<double, 3, 3 > & J,
-        boost::numeric::ublas::bounded_matrix<double, 3, 3 > & Jinv,
-        boost::numeric::ublas::bounded_matrix<double, 6, 3 > & local_der_patch,
-        const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & nodes_coord,
+        bounded_matrix<double, 3, 3 > & J,
+        bounded_matrix<double, 3, 3 > & Jinv,
+        bounded_matrix<double, 6, 3 > & local_der_patch,
+        const bounded_matrix<double, 3, 6 > & nodes_coord,
         const double xi,
         const double eta,
         const double zeta
@@ -3108,16 +3108,16 @@ void SprismElement3D6N::CalculateJacobianAndInv(
 /***********************************************************************************/
 
 void SprismElement3D6N::CalculateJacobianAndInv(
-        boost::numeric::ublas::bounded_matrix<double, 3, 3 > & J,
-        boost::numeric::ublas::bounded_matrix<double, 3, 3 > & Jinv,
-        const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & nodes_coord,
+        bounded_matrix<double, 3, 3 > & J,
+        bounded_matrix<double, 3, 3 > & Jinv,
+        const bounded_matrix<double, 3, 6 > & nodes_coord,
         const double xi,
         const double eta,
         const double zeta
         )
 {
     /* Local derivatives patch */
-    boost::numeric::ublas::bounded_matrix<double, 6, 3 > local_der_patch;
+    bounded_matrix<double, 6, 3 > local_der_patch;
     ComputeLocalDerivatives(local_der_patch, xi, eta, zeta);
 
     /* Compute Jacobian */
@@ -3132,8 +3132,8 @@ void SprismElement3D6N::CalculateJacobianAndInv(
 
 void SprismElement3D6N::CalculateCartesianDerOnCenter_plane(
         const int index,
-        const boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord,
-        boost::numeric::ublas::bounded_matrix<double, 2, 4 > & CartesianDerivativesCenter
+        const bounded_matrix<double, 12, 3 > & nodes_coord,
+        bounded_matrix<double, 2, 4 > & CartesianDerivativesCenter
         )
 {
     double norm0, norm;
@@ -3182,16 +3182,16 @@ void SprismElement3D6N::CalculateCartesianDerOnCenter_plane(
 void SprismElement3D6N::CalculateCartesianDerOnGauss_plane(
         const int node_gauss,
         const int index,
-        const boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord,
-        boost::numeric::ublas::bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss
+        const bounded_matrix<double, 12, 3 > & nodes_coord,
+        bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss
         )
 {
     /* Local derivatives patch */
-    boost::numeric::ublas::bounded_matrix<double, 4, 2 > local_der_patch;
+    bounded_matrix<double, 4, 2 > local_der_patch;
     ComputeLocalDerivativesQuadratic(local_der_patch,node_gauss);
 
     /* Auxiliar coordinates of the nodes */
-    boost::numeric::ublas::bounded_matrix<double, 3, 4 > nodes_coord_aux;
+    bounded_matrix<double, 3, 4 > nodes_coord_aux;
 
     for (unsigned int i = 0; i < 3; i++)
     {
@@ -3205,7 +3205,7 @@ void SprismElement3D6N::CalculateCartesianDerOnGauss_plane(
     nodes_coord_aux(2, 3) = nodes_coord(node_gauss + 6 + index, 2);
 
     /* Compute local derivatives */
-    boost::numeric::ublas::bounded_matrix<double, 3, 2 > Xd;
+    bounded_matrix<double, 3, 2 > Xd;
     noalias(Xd) = prod(nodes_coord_aux, local_der_patch);
 
     /* Split local derivatives */
@@ -3222,14 +3222,14 @@ void SprismElement3D6N::CalculateCartesianDerOnGauss_plane(
     StructuralMechanicsMathUtilities::Comp_Orthonor_Base(t1g, t2g, t3g, mvxe, Xdxi, Xdeta);
 
     /* Compute Jacobian */
-    boost::numeric::ublas::bounded_matrix<double, 2, 2 > jac;
+    bounded_matrix<double, 2, 2 > jac;
     jac(0, 0) = inner_prod(Xdxi,  t1g);
     jac(0, 1) = inner_prod(Xdxi,  t2g);
     jac(1, 0) = inner_prod(Xdeta, t1g);
     jac(1, 1) = inner_prod(Xdeta, t2g);
 
     /* Compute the inverse of the Jacobian */
-    boost::numeric::ublas::bounded_matrix<double, 2, 2 > Jinv_plane;
+    bounded_matrix<double, 2, 2 > Jinv_plane;
     StructuralMechanicsMathUtilities::InvMat2x2(jac, Jinv_plane);
 
     /* Compute the Cartesian derivatives */
@@ -3240,8 +3240,8 @@ void SprismElement3D6N::CalculateCartesianDerOnGauss_plane(
 /***********************************************************************************/
 
 void SprismElement3D6N::CalculateCartesianDerOnGauss_trans(
-        const boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord,
-        boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss,
+        const bounded_matrix<double, 12, 3 > & nodes_coord,
+        bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss,
         const double xi,
         const double eta,
         const double zeta
@@ -3249,8 +3249,8 @@ void SprismElement3D6N::CalculateCartesianDerOnGauss_trans(
 {
     /* Compute local derivatives */
     double det;
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > Xd;
-    boost::numeric::ublas::bounded_matrix<double, 6, 3 > local_der_patch;
+    bounded_matrix<double, 3, 3 > Xd;
+    bounded_matrix<double, 6, 3 > local_der_patch;
     CalculateJacobian(det, Xd, local_der_patch, nodes_coord, xi, eta, zeta);
 
     /* Split local derivatives */
@@ -3264,15 +3264,15 @@ void SprismElement3D6N::CalculateCartesianDerOnGauss_trans(
 
     /* Compute orthonormal vectors */
     array_1d<double, 3 > t1g, t2g, t3g;
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > t = ZeroMatrix(3, 3);
+    bounded_matrix<double, 3, 3 > t = ZeroMatrix(3, 3);
     StructuralMechanicsMathUtilities::Comp_Orthonor_Base(t, t1g, t2g, t3g, mvxe, Xdxi, Xdeta);
 
     /* Compute Jacobian */
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > jac;
+    bounded_matrix<double, 3, 3 > jac;
     noalias(jac) = prod(t, Xd);
 
     /* Compute inverse of the Jaccobian (just third column) */
-    boost::numeric::ublas::bounded_matrix<double, 3, 1 > Jinv_trans;
+    bounded_matrix<double, 3, 1 > Jinv_trans;
     StructuralMechanicsMathUtilities::InvMat3x3Col(jac, 3, det,  Jinv_trans);
 
     /* Compute Cartesian derivatives */
@@ -3284,7 +3284,7 @@ void SprismElement3D6N::CalculateCartesianDerOnGauss_trans(
 
 void SprismElement3D6N::CalculateCartesianDerOnCenter_trans(
         CartesianDerivatives& CartDeriv,
-        const boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord,
+        const bounded_matrix<double, 12, 3 > & nodes_coord,
         const int part
         )
 {
@@ -3306,11 +3306,11 @@ void SprismElement3D6N::CalculateCartesianDerOnCenter_trans(
     }
     else
     {
-        KRATOS_THROW_ERROR( std::invalid_argument," This part id is not possible, just 0, 1 or 2  ", part );
+        KRATOS_ERROR << " This part id is not possible, just 0, 1 or 2  " << part << std::endl;
     }
 
     /* Auxiliar coordinates of the nodes */
-    boost::numeric::ublas::bounded_matrix<double, 3, 6 > nodes_coord_aux;
+    bounded_matrix<double, 3, 6 > nodes_coord_aux;
     for (unsigned int i = 0; i < 6; i++)
     {
         nodes_coord_aux(0, i) = nodes_coord(i, 0);
@@ -3319,18 +3319,18 @@ void SprismElement3D6N::CalculateCartesianDerOnCenter_trans(
     }
 
     /* Auxiliar components to calculate the Jacobian and his inverse */
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > J;
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > Jinv;
+    bounded_matrix<double, 3, 3 > J;
+    bounded_matrix<double, 3, 3 > Jinv;
 
     if (part == 0)
     {
         /* Calculate the Jacobian and his inverse */
-        boost::numeric::ublas::bounded_matrix<double, 6, 3 > local_der_patch;
+        bounded_matrix<double, 6, 3 > local_der_patch;
         CalculateJacobianAndInv(J, Jinv, local_der_patch, nodes_coord_aux, xi, eta, zeta);
 
         // Compute cartesian (y3) derivatives of the shape functions necessary to compute f_3
         /* Compute Cartesian derivatives */
-        boost::numeric::ublas::bounded_matrix<double, 6, 3 > TransversalCartesianDerivativesGauss_aux;
+        bounded_matrix<double, 6, 3 > TransversalCartesianDerivativesGauss_aux;
         noalias(TransversalCartesianDerivativesGauss_aux) = prod(local_der_patch, Jinv);
 
         for (unsigned int i = 0; i < 6 ; i++)
@@ -3377,16 +3377,16 @@ void SprismElement3D6N::CalculateCartesianDerOnCenter_trans(
 /***********************************************************************************/
 
 void SprismElement3D6N::CalculateInPlaneGradientFGauss(
-        boost::numeric::ublas::bounded_matrix<double, 3, 2 > & InPlaneGradientFGauss,
-        const boost::numeric::ublas::bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss,
-        const boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord,
+        bounded_matrix<double, 3, 2 > & InPlaneGradientFGauss,
+        const bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss,
+        const bounded_matrix<double, 12, 3 > & nodes_coord,
         const int node_gauss,
         const int index
         )
 {
     /* Auxiliar operators */
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > nodes_coord_aux;
-    boost::numeric::ublas::bounded_matrix<double, 3, 2 > InPlaneCartesianDerivativesGauss_aux;
+    bounded_matrix<double, 3, 3 > nodes_coord_aux;
+    bounded_matrix<double, 3, 2 > InPlaneCartesianDerivativesGauss_aux;
 
     for (unsigned int i = 0; i < 3; i++)
     {
@@ -3400,8 +3400,8 @@ void SprismElement3D6N::CalculateInPlaneGradientFGauss(
 
     noalias(InPlaneGradientFGauss) = prod(nodes_coord_aux, InPlaneCartesianDerivativesGauss_aux);
 
-    WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
-    if (HasNeighbour(node_gauss, nodal_neigb[node_gauss]))
+    WeakPointerVector< Node < 3 > >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
+    if (HasNeighbour(node_gauss, NeighbourNodes[node_gauss]))
     {
         for (unsigned int j = 0; j < 3 ; j++)
         {
@@ -3416,8 +3416,8 @@ void SprismElement3D6N::CalculateInPlaneGradientFGauss(
 
 void SprismElement3D6N::CalculateTransverseGradientF(
         array_1d<double, 3 > & TransverseGradientF,
-        const boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss,
-        const boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord
+        const bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss,
+        const bounded_matrix<double, 12, 3 > & nodes_coord
         )
 {
     noalias(TransverseGradientF) = ZeroVector(3);
@@ -3438,7 +3438,7 @@ void SprismElement3D6N::CalculateTransverseGradientFinP(
         array_1d<double, 3 > & TransverseGradientFt,
         array_1d<double, 3 > & TransverseGradientFxi,
         array_1d<double, 3 > & TransverseGradientFeta,
-        const boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord,
+        const bounded_matrix<double, 12, 3 > & nodes_coord,
         const int index
         )
 {
@@ -3459,10 +3459,10 @@ void SprismElement3D6N::CalculateTransverseGradientFinP(
 /***********************************************************************************/
 
 void SprismElement3D6N::CalculateAndAdd_B_Membrane(
-        boost::numeric::ublas::bounded_matrix<double, 3, 18 > & B_membrane,
-        boost::numeric::ublas::bounded_matrix<double, 3, 1  > & C_membrane,
-        const boost::numeric::ublas::bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss,
-        const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & InPlaneGradientFGauss,
+        bounded_matrix<double, 3, 18 > & B_membrane,
+        bounded_matrix<double, 3, 1  > & C_membrane,
+        const bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss,
+        const bounded_matrix<double, 3, 2 > & InPlaneGradientFGauss,
         const int node_gauss
         )
 {
@@ -3504,15 +3504,15 @@ void SprismElement3D6N::CalculateAndAdd_B_Membrane(
 /***********************************************************************************/
 
 void SprismElement3D6N::CalculateAndAdd_Membrane_Kgeometric(
-        boost::numeric::ublas::bounded_matrix<double, 36, 36 > & Kgeometricmembrane,
-        const boost::numeric::ublas::bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss1,
-        const boost::numeric::ublas::bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss2,
-        const boost::numeric::ublas::bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss3,
+        bounded_matrix<double, 36, 36 > & Kgeometricmembrane,
+        const bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss1,
+        const bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss2,
+        const bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss3,
         const array_1d<double, 3 > & S_membrane,
         const int index
         )
 {
-    boost::numeric::ublas::bounded_matrix<double, 6, 6 > H = ZeroMatrix(6, 6);
+    bounded_matrix<double, 6, 6 > H = ZeroMatrix(6, 6);
 
     unsigned int ii;
     unsigned int jj;
@@ -3617,25 +3617,25 @@ void SprismElement3D6N::CalculateAndAdd_Membrane_Kgeometric(
 /***********************************************************************************/
 
 void SprismElement3D6N::CalculateAndAdd_B_Shear(
-        boost::numeric::ublas::bounded_matrix<double, 2, 18 > & B_shear,
-        boost::numeric::ublas::bounded_matrix<double, 2, 1 > & C_shear,
-        const boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss1,
-        const boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss2,
-        const boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss3,
+        bounded_matrix<double, 2, 18 > & B_shear,
+        bounded_matrix<double, 2, 1 > & C_shear,
+        const bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss1,
+        const bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss2,
+        const bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss3,
         const array_1d<double, 3 > & TransverseGradientFGauss1,
         const array_1d<double, 3 > & TransverseGradientFGauss2,
         const array_1d<double, 3 > & TransverseGradientFGauss3,
         const array_1d<double, 3 > & TransverseGradientFt,
         const array_1d<double, 3 > & TransverseGradientFxi,
         const array_1d<double, 3 > & TransverseGradientFeta,
-        const boost::numeric::ublas::bounded_matrix<double, 2, 2 > & Jinv_plane,
+        const bounded_matrix<double, 2, 2 > & Jinv_plane,
         const int index
         )
 {
     // Considering the Gauss point in the middle of the element
     double eta_p = 0.33333333333333333333;
     double xi_p  = 0.33333333333333333333;
-    boost::numeric::ublas::bounded_matrix<double, 2, 3 > Pa;
+    bounded_matrix<double, 2, 3 > Pa;
     Pa(0, 0) = - xi_p;
     Pa(0, 1) = - xi_p;
     Pa(0, 2) = 1.0 - xi_p;
@@ -3643,7 +3643,7 @@ void SprismElement3D6N::CalculateAndAdd_B_Shear(
     Pa(1, 1) = eta_p - 1.0;
     Pa(1, 2) = eta_p;
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 18 > aux_B_shear = ZeroMatrix(3, 18);
+    bounded_matrix<double, 3, 18 > aux_B_shear = ZeroMatrix(3, 18);
 
     /* First contribution*/
     for (unsigned int i = 0; i < 6; i++)
@@ -3673,12 +3673,12 @@ void SprismElement3D6N::CalculateAndAdd_B_Shear(
         aux_B_shear(2, i + index + 3) += TransverseGradientFGauss3[i];
     }
 
-    boost::numeric::ublas::bounded_matrix<double, 2, 3 > aux_prod;
+    bounded_matrix<double, 2, 3 > aux_prod;
     noalias(aux_prod) = prod(Jinv_plane, Pa);
     noalias(B_shear) = prod(aux_prod, aux_B_shear);
 
     // Calculating the components of C
-    boost::numeric::ublas::bounded_matrix<double, 3, 1 > aux_C_shear;
+    bounded_matrix<double, 3, 1 > aux_C_shear;
     aux_C_shear(0, 0) =   inner_prod(TransverseGradientFt  , TransverseGradientFGauss1);
     aux_C_shear(1, 0) =   inner_prod(TransverseGradientFxi , TransverseGradientFGauss2);
     aux_C_shear(2, 0) =   inner_prod(TransverseGradientFeta, TransverseGradientFGauss3);
@@ -3690,11 +3690,11 @@ void SprismElement3D6N::CalculateAndAdd_B_Shear(
 /***********************************************************************************/
 
 void SprismElement3D6N::CalculateAndAdd_Shear_Kgeometric(
-    boost::numeric::ublas::bounded_matrix<double, 18, 18 > & Kgeometricshear,
-    const boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss1,
-    const boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss2,
-    const boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss3,
-    const boost::numeric::ublas::bounded_matrix<double, 2, 2 > & Jinv_plane,
+    bounded_matrix<double, 18, 18 > & Kgeometricshear,
+    const bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss1,
+    const bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss2,
+    const bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss3,
+    const bounded_matrix<double, 2, 2 > & Jinv_plane,
     const array_1d<double, 2 > & S_shear,
     const int index
     )
@@ -3816,9 +3816,9 @@ void SprismElement3D6N::CalculateAndAdd_Shear_Kgeometric(
 /***********************************************************************************/
 
 void SprismElement3D6N::CalculateAndAdd_B_Normal(
-        boost::numeric::ublas::bounded_matrix<double, 1, 18 > & B_normal,
+        bounded_matrix<double, 1, 18 > & B_normal,
         double & C_normal,
-        const boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesCenter,
+        const bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesCenter,
         const array_1d<double, 3 > & TransversalDeformationGradientF
         )
 {
@@ -3837,12 +3837,12 @@ void SprismElement3D6N::CalculateAndAdd_B_Normal(
 /***********************************************************************************/
 
 void SprismElement3D6N::CalculateAndAdd_Normal_Kgeometric(
-        boost::numeric::ublas::bounded_matrix<double, 18, 18 > & Kgeometricnormal,
-        const boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesCenter,
+        bounded_matrix<double, 18, 18 > & Kgeometricnormal,
+        const bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesCenter,
         const double S_normal
         )
 {
-    boost::numeric::ublas::bounded_matrix<double, 6, 6 > H = ZeroMatrix(6, 6);
+    bounded_matrix<double, 6, 6 > H = ZeroMatrix(6, 6);
     for (unsigned int i = 0; i < 6; i++)
     {
         double aux = S_normal * TransversalCartesianDerivativesCenter(i, 0);
@@ -3873,13 +3873,13 @@ void SprismElement3D6N::CalculateAndAdd_Normal_Kgeometric(
 /***********************************************************************************/
 /***********************************************************************************/
 
-boost::numeric::ublas::bounded_matrix<double, 36, 1 > SprismElement3D6N::CalculateDisp(const int& step)
+bounded_matrix<double, 36, 1 > SprismElement3D6N::CalculateDisp(const int& step)
 {
     KRATOS_TRY;
 
-    boost::numeric::ublas::bounded_matrix<double, 36, 1 > disp_vec;
+    bounded_matrix<double, 36, 1 > disp_vec;
 
-    WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVector< Node < 3 > >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
 
     /* Element nodes */
     for (unsigned int index = 0; index < 6; index++)
@@ -3891,13 +3891,13 @@ boost::numeric::ublas::bounded_matrix<double, 36, 1 > SprismElement3D6N::Calcula
     }
 
     /* Neighbour nodes */
-    int number_neigb = NumberOfActiveNeighbours(nodal_neigb);
+    int number_neigb = NumberOfActiveNeighbours(NeighbourNodes);
 
     if (number_neigb == 6) // All the possible neighours
     {
         for (unsigned int index = 0; index < 6; index++)
         {
-            array_1d<double,3> disp = nodal_neigb[index].FastGetSolutionStepValue(DISPLACEMENT, step);
+            array_1d<double,3> disp = NeighbourNodes[index].FastGetSolutionStepValue(DISPLACEMENT, step);
             disp_vec(18 + index * 3    , 0) = disp[0];
             disp_vec(18 + index * 3 + 1, 0) = disp[1];
             disp_vec(18 + index * 3 + 2, 0) = disp[2];
@@ -3907,9 +3907,9 @@ boost::numeric::ublas::bounded_matrix<double, 36, 1 > SprismElement3D6N::Calcula
     {
         for (unsigned int index = 0; index < 6; index++)
         {
-            if (HasNeighbour(index, nodal_neigb[index]))
+            if (HasNeighbour(index, NeighbourNodes[index]))
             {
-                array_1d<double,3> disp = nodal_neigb[index].FastGetSolutionStepValue(DISPLACEMENT, step);
+                array_1d<double,3> disp = NeighbourNodes[index].FastGetSolutionStepValue(DISPLACEMENT, step);
                 disp_vec(18 + index * 3    , 0) = disp[0];
                 disp_vec(18 + index * 3 + 1, 0) = disp[1];
                 disp_vec(18 + index * 3 + 2, 0) = disp[2];
@@ -3931,13 +3931,13 @@ boost::numeric::ublas::bounded_matrix<double, 36, 1 > SprismElement3D6N::Calcula
 /***********************************************************************************/
 /***********************************************************************************/
 
-boost::numeric::ublas::bounded_matrix<double, 36, 1 > SprismElement3D6N::GetVectorCurrentPosition()
+bounded_matrix<double, 36, 1 > SprismElement3D6N::GetVectorCurrentPosition()
 {
     KRATOS_TRY;
 
-    boost::numeric::ublas::bounded_matrix<double, 36, 1 > VectorCurrentPosition;
+    bounded_matrix<double, 36, 1 > VectorCurrentPosition;
 
-    WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVector< Node < 3 > >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
 
     /* Element nodes */
     for (unsigned int index = 0; index < 6; index++)
@@ -3949,13 +3949,13 @@ boost::numeric::ublas::bounded_matrix<double, 36, 1 > SprismElement3D6N::GetVect
     }
 
     /* Neighbour nodes */
-    int number_neigb = NumberOfActiveNeighbours(nodal_neigb);
+    int number_neigb = NumberOfActiveNeighbours(NeighbourNodes);
 
     if (number_neigb == 6) // All the possible neighours
     {
         for (unsigned int index = 0; index < 6; index++)
         {
-            array_1d<double,3> CurrentPosition = nodal_neigb[index].Coordinates();
+            array_1d<double,3> CurrentPosition = NeighbourNodes[index].Coordinates();
             VectorCurrentPosition(18 + index * 3    , 0) = CurrentPosition[0];
             VectorCurrentPosition(18 + index * 3 + 1, 0) = CurrentPosition[1];
             VectorCurrentPosition(18 + index * 3 + 2, 0) = CurrentPosition[2];
@@ -3965,9 +3965,9 @@ boost::numeric::ublas::bounded_matrix<double, 36, 1 > SprismElement3D6N::GetVect
     {
         for (unsigned int index = 0; index < 6; index++)
         {
-            if (HasNeighbour(index, nodal_neigb[index]))
+            if (HasNeighbour(index, NeighbourNodes[index]))
             {
-                array_1d<double,3> CurrentPosition = nodal_neigb[index].Coordinates();
+                array_1d<double,3> CurrentPosition = NeighbourNodes[index].Coordinates();
                 VectorCurrentPosition(18 + index * 3    , 0) = CurrentPosition[0];
                 VectorCurrentPosition(18 + index * 3 + 1, 0) = CurrentPosition[1];
                 VectorCurrentPosition(18 + index * 3 + 2, 0) = CurrentPosition[2];
@@ -3992,50 +3992,51 @@ boost::numeric::ublas::bounded_matrix<double, 36, 1 > SprismElement3D6N::GetVect
 void SprismElement3D6N::IntegrateInZeta(
         GeneralVariables& rVariables,
         StressIntegratedComponents& IntStress,
-        const double& alpha_eas,
-        const double& zeta_gauss,
+        const double& AlphaEAS,
+        const double& ZetaGauss,
         const double& rIntegrationWeight
         )
 {
     KRATOS_TRY;
-    double L_1 = 0.5 * (1.0 - zeta_gauss);
-    double L_2 = 0.5 * (1.0 + zeta_gauss);
+    
+    const double L1 = 0.5 * (1.0 - ZetaGauss);
+    const double L2 = 0.5 * (1.0 + ZetaGauss);
 
-    double fact_eas = exp(2.0 * alpha_eas * zeta_gauss);
+    const double FactorEAS = std::exp(2.0 * AlphaEAS * ZetaGauss);
 
     /* INTEGRATE PK2 IN ZETA */
     // Integrate stresses in the reference configuration
     /* In plane stresses */
     // Lower
-    IntStress.S_membrane_lower(0) +=  L_1 * rIntegrationWeight * rVariables.StressVector[0]; // xx
-    IntStress.S_membrane_lower(1) +=  L_1 * rIntegrationWeight * rVariables.StressVector[1]; // yy
-    IntStress.S_membrane_lower(2) +=  L_1 * rIntegrationWeight * rVariables.StressVector[3]; // xy
+    IntStress.S_membrane_lower(0) +=  L1 * rIntegrationWeight * rVariables.StressVector[0]; // xx
+    IntStress.S_membrane_lower(1) +=  L1 * rIntegrationWeight * rVariables.StressVector[1]; // yy
+    IntStress.S_membrane_lower(2) +=  L1 * rIntegrationWeight * rVariables.StressVector[3]; // xy
     // Upper
-    IntStress.S_membrane_upper(0) +=  L_2 * rIntegrationWeight * rVariables.StressVector[0]; // xx
-    IntStress.S_membrane_upper(1) +=  L_2 * rIntegrationWeight * rVariables.StressVector[1]; // yy
-    IntStress.S_membrane_upper(2) +=  L_2 * rIntegrationWeight * rVariables.StressVector[3]; // xy
+    IntStress.S_membrane_upper(0) +=  L2 * rIntegrationWeight * rVariables.StressVector[0]; // xx
+    IntStress.S_membrane_upper(1) +=  L2 * rIntegrationWeight * rVariables.StressVector[1]; // yy
+    IntStress.S_membrane_upper(2) +=  L2 * rIntegrationWeight * rVariables.StressVector[3]; // xy
 
     /* Transversal stresses */ // Note: Order according to the Voigt Notation in the Wiki
     // Lower face
-    IntStress.S_shear_lower(0)    +=  L_1 * rIntegrationWeight * rVariables.StressVector[5]; // xz
-    IntStress.S_shear_lower(1)    +=  L_1 * rIntegrationWeight * rVariables.StressVector[4]; // yz
+    IntStress.S_shear_lower(0)    +=  L1 * rIntegrationWeight * rVariables.StressVector[5]; // xz
+    IntStress.S_shear_lower(1)    +=  L1 * rIntegrationWeight * rVariables.StressVector[4]; // yz
     // Upper face
-    IntStress.S_shear_upper(0)    +=  L_2 * rIntegrationWeight * rVariables.StressVector[5]; // xz
-    IntStress.S_shear_upper(1)    +=  L_2 * rIntegrationWeight * rVariables.StressVector[4]; // yz
+    IntStress.S_shear_upper(0)    +=  L2 * rIntegrationWeight * rVariables.StressVector[5]; // xz
+    IntStress.S_shear_upper(1)    +=  L2 * rIntegrationWeight * rVariables.StressVector[4]; // yz
 
     /* Normal stress */
-    IntStress.S_normal            +=  fact_eas * rIntegrationWeight * rVariables.StressVector[2]; // zz
+    IntStress.S_normal            +=  FactorEAS * rIntegrationWeight * rVariables.StressVector[2]; // zz
 
     /* INTEGRATE EAS IN ZETA */
     // Calculate EAS residual
-    mEAS.rhs_alpha += rIntegrationWeight * zeta_gauss * rVariables.StressVector[2] * rVariables.C[2];
+    mEAS.rhs_alpha += rIntegrationWeight * ZetaGauss * rVariables.StressVector[2] * rVariables.C[2];
 
     // Calculate EAS stiffness
-    mEAS.stiff_alpha += rIntegrationWeight * zeta_gauss * zeta_gauss * rVariables.C[2]
+    mEAS.stiff_alpha += rIntegrationWeight * ZetaGauss * ZetaGauss * rVariables.C[2]
             * (rVariables.ConstitutiveMatrix(2, 2) * rVariables.C[2] + 2.0 * rVariables.StressVector[2]);
 
-    boost::numeric::ublas::bounded_matrix<double, 1, 36 > B3;
-    boost::numeric::ublas::bounded_matrix<double, 1,  6 > D3;
+    bounded_matrix<double, 1, 36 > B3;
+    bounded_matrix<double, 1,  6 > D3;
 
     for (unsigned int i = 0; i < 6; i++)
     {
@@ -4047,7 +4048,7 @@ void SprismElement3D6N::IntegrateInZeta(
     }
 
     // Calculate H operator
-    noalias(mEAS.H_EAS) += rIntegrationWeight * zeta_gauss
+    noalias(mEAS.H_EAS) += rIntegrationWeight * ZetaGauss
             * (rVariables.C[2] * prod(D3, rVariables.B) + 2.0 * rVariables.StressVector[2] * B3);
 
     KRATOS_CATCH( "" );
@@ -4063,7 +4064,7 @@ void SprismElement3D6N::CalculateAndAddLHS(
         const StressIntegratedComponents& IntStress,
         const CommonComponents& CC,
         const CartesianDerivatives& CartDeriv,
-        double& alpha_eas
+        double& AlphaEAS
         )
 {
     /* Contributions of the stiffness matrix calculated on the reference configuration */
@@ -4079,17 +4080,17 @@ void SprismElement3D6N::CalculateAndAddLHS(
             if( rLeftHandSideVariables[i] == MATERIAL_STIFFNESS_MATRIX )
             {
                 /* Reading integration points */
-                const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+                const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-                for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+                for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
                 {
-                    double zeta_gauss = 2.0 * integration_points[PointNumber].Z() - 1.0;
+                    double ZetaGauss = 2.0 * IntegrationPoints[PointNumber].Z() - 1.0;
 
                     /* Assemble B */
-                    this->CalculateDeformationMatrix(rVariables.B, CC, zeta_gauss, alpha_eas);
+                    this->CalculateDeformationMatrix(rVariables.B, CC, ZetaGauss, AlphaEAS);
 
                     // Compute element kinematics C, F ...
-                    this->CalculateKinematics(rVariables, CC, PointNumber, alpha_eas, zeta_gauss);
+                    this->CalculateKinematics(rVariables, CC, PointNumber, AlphaEAS, ZetaGauss);
 
                     // Set general variables to constitutivelaw parameters
                     this->SetGeneralVariables(rVariables, rValues, PointNumber);
@@ -4098,7 +4099,7 @@ void SprismElement3D6N::CalculateAndAddLHS(
                     mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, rVariables.StressMeasure);
 
                     // Calculating weights for integration on the "reference configuration"
-                    double IntegrationWeight = integration_points[PointNumber].Weight() * rVariables.detJ;
+                    double IntegrationWeight = IntegrationPoints[PointNumber].Weight() * rVariables.detJ;
 
                     /* Operation performed: add Km to the LefsHandSideMatrix */
                     this->CalculateAndAddKuum( rLeftHandSideMatrices[i], rVariables, IntegrationWeight);
@@ -4123,7 +4124,7 @@ void SprismElement3D6N::CalculateAndAddLHS(
 
             if(calculated == false)
             {
-                KRATOS_THROW_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rLeftHandSideVariables[i]);
+                KRATOS_ERROR << " ELEMENT can not supply the required local system variable: " << rLeftHandSideVariables[i] << std::endl;
             }
         }
     }
@@ -4132,18 +4133,18 @@ void SprismElement3D6N::CalculateAndAddLHS(
         MatrixType& LeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
 
         /* Reading integration points */
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
         /* Calculate the Material Stiffness Matrix */
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+        for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
         {
-            double zeta_gauss = 2.0 * integration_points[PointNumber].Z() - 1.0;
+            double ZetaGauss = 2.0 * IntegrationPoints[PointNumber].Z() - 1.0;
 
             /* Assemble B */
-            this->CalculateDeformationMatrix(rVariables.B, CC, zeta_gauss, alpha_eas);
+            this->CalculateDeformationMatrix(rVariables.B, CC, ZetaGauss, AlphaEAS);
 
             // Compute element kinematics C, F ...
-            this->CalculateKinematics(rVariables, CC, PointNumber, alpha_eas, zeta_gauss);
+            this->CalculateKinematics(rVariables, CC, PointNumber, AlphaEAS, ZetaGauss);
 
             // Set general variables to constitutivelaw parameters
             this->SetGeneralVariables(rVariables, rValues, PointNumber);
@@ -4152,7 +4153,7 @@ void SprismElement3D6N::CalculateAndAddLHS(
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, rVariables.StressMeasure);
 
             // Calculating weights for integration on the "reference configuration"
-            double IntegrationWeight = integration_points[PointNumber].Weight() * rVariables.detJ;
+            double IntegrationWeight = IntegrationPoints[PointNumber].Weight() * rVariables.detJ;
 
             /* Operation performed: add Km to the LefsHandSideMatrix */
             this->CalculateAndAddKuum( LeftHandSideMatrix, rVariables, IntegrationWeight);
@@ -4181,7 +4182,7 @@ void SprismElement3D6N::CalculateAndAddDynamicLHS(
         )
 {
   // Mass matrix
-  WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
+  WeakPointerVector< Node < 3 > >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
 
   // Compute volume change
   double VolumeChange;
@@ -4190,8 +4191,8 @@ void SprismElement3D6N::CalculateAndAddDynamicLHS(
   // Compute density
   double Density = VolumeChange * GetProperties()[DENSITY];
 
-  unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(nodal_neigb);
-  unsigned int MatSize = number_of_nodes * 3;
+  unsigned int NumberOfNodes = GetGeometry().size() + NumberOfActiveNeighbours(NeighbourNodes);
+  unsigned int MatSize = NumberOfNodes * 3;
 
   if (rLeftHandSideMatrix.size1() != MatSize)
   {
@@ -4282,7 +4283,7 @@ void SprismElement3D6N::CalculateAndAddRHS(
         Vector& rVolumeForce,
         const StressIntegratedComponents& IntStress,
         const CommonComponents& CC,
-        double& alpha_eas
+        double& AlphaEAS
         )
 {
     /* Contribution of the internal and external forces */
@@ -4303,13 +4304,13 @@ void SprismElement3D6N::CalculateAndAddRHS(
             if( rRightHandSideVariables[i] == INTERNAL_FORCES_VECTOR )
             {
                 /* Operation performed: RightHandSideVector -= IntForce */
-                this->CalculateAndAddInternalForces( RightHandSideVectors[i], IntStress, CC, alpha_eas );
+                this->CalculateAndAddInternalForces( RightHandSideVectors[i], IntStress, CC, AlphaEAS );
                 calculated = true;
             }
 
             if(calculated == false)
             {
-                KRATOS_THROW_ERROR( std::logic_error, " ELEMENT can not supply the required local system variable: ", rRightHandSideVariables[i] );
+                KRATOS_ERROR << " ELEMENT can not supply the required local system variable: " << rRightHandSideVariables[i] << std::endl;
             }
         }
     }
@@ -4321,7 +4322,7 @@ void SprismElement3D6N::CalculateAndAddRHS(
         this->CalculateAndAddExternalForces( RightHandSideVector, rVariables, rVolumeForce );
 
         /* Operation performed: RightHandSideVector -= IntForce */
-        this->CalculateAndAddInternalForces( RightHandSideVector, IntStress, CC, alpha_eas );
+        this->CalculateAndAddInternalForces( RightHandSideVector, IntStress, CC, AlphaEAS );
     }
 }
 
@@ -4350,8 +4351,8 @@ void SprismElement3D6N::CalculateAndAddKuum(
 {
     KRATOS_TRY;
     
-    boost::numeric::ublas::bounded_matrix<double, 36, 36 >      K; // Local stiffness matrix
-    boost::numeric::ublas::bounded_matrix<double,  6, 36 > aux_CB;
+    bounded_matrix<double, 36, 36 >      K; // Local stiffness matrix
+    bounded_matrix<double,  6, 36 > aux_CB;
 
     /* Calculate K */
     noalias(aux_CB) = prod(rVariables.ConstitutiveMatrix, rVariables.B);
@@ -4388,8 +4389,8 @@ void SprismElement3D6N::CalculateAndAddKuug(
     /* The stress is already integrated, we just calculate it once */
 
     /* Auxiliar stiffness matrix */
-    boost::numeric::ublas::bounded_matrix<double, 18, 18 > aux_K = ZeroMatrix(18, 18); // Auxiliar stiffness matrix
-    boost::numeric::ublas::bounded_matrix<double, 36, 36 >     K = ZeroMatrix(36, 36); // Stiffness matrix
+    bounded_matrix<double, 18, 18 > aux_K = ZeroMatrix(18, 18); // Auxiliar stiffness matrix
+    bounded_matrix<double, 36, 36 >     K = ZeroMatrix(36, 36); // Stiffness matrix
 
     /* COMPUTATION OF GEOMETRIC STIFFNESS MATRIX */
 
@@ -4454,7 +4455,7 @@ void SprismElement3D6N::ApplyEASLHS(MatrixType& rLeftHandSideMatrix)
     KRATOS_TRY;
 
     // Allocate auxiliar vector and matrix
-    boost::numeric::ublas::bounded_matrix<double, 36, 36 > lhs_aux = ZeroMatrix(36, 36);
+    bounded_matrix<double, 36, 36 > lhs_aux = ZeroMatrix(36, 36);
 
     noalias(lhs_aux) -= prod(trans(mEAS.H_EAS), mEAS.H_EAS) / mEAS.stiff_alpha;
 
@@ -4480,8 +4481,8 @@ void SprismElement3D6N::ApplyEASLHS(MatrixType& rLeftHandSideMatrix)
 /***********************************************************************************/
 
 void SprismElement3D6N::ApplyEASRHS(
-        boost::numeric::ublas::bounded_matrix<double, 36, 1 > & rhs_full,
-        double& alpha_eas
+        bounded_matrix<double, 36, 1 > & rhs_full,
+        double& AlphaEAS
         )
 {
     KRATOS_TRY;
@@ -4490,7 +4491,7 @@ void SprismElement3D6N::ApplyEASRHS(
     noalias(rhs_full) -= trans(mEAS.H_EAS) * mEAS.rhs_alpha / mEAS.stiff_alpha;
 
     /* Update ALPHA_EAS */
-    alpha_eas -= mEAS.rhs_alpha / mEAS.stiff_alpha;
+    AlphaEAS -= mEAS.rhs_alpha / mEAS.stiff_alpha;
 
     KRATOS_CATCH( "" );
 }
@@ -4506,10 +4507,10 @@ void SprismElement3D6N::CalculateAndAddExternalForces(
 {
     KRATOS_TRY;
 
-    unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    double aux_div = number_of_nodes;
+    unsigned int NumberOfNodes = GetGeometry().PointsNumber();
+    double aux_div = NumberOfNodes;
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( unsigned int i = 0; i < NumberOfNodes; i++ )
     {
         int index = 3 * i;
         for ( unsigned int j = 0; j < 3; j++ )
@@ -4528,12 +4529,12 @@ void SprismElement3D6N::CalculateAndAddInternalForces(
         VectorType& rRightHandSideVector,
         const StressIntegratedComponents& IntStress,
         const CommonComponents& CC,
-        double& alpha_eas
+        double& AlphaEAS
         )
 {
     KRATOS_TRY;
 
-    boost::numeric::ublas::bounded_matrix<double, 36, 1 > rhs_full = ZeroMatrix(36, 1);
+    bounded_matrix<double, 36, 1 > rhs_full = ZeroMatrix(36, 1);
 
     int aux_index = 0;
     for (unsigned int i = 0; i < 18; i++)
@@ -4567,7 +4568,7 @@ void SprismElement3D6N::CalculateAndAddInternalForces(
     }
 
     /* Apply EAS stabilization */
-    ApplyEASRHS(rhs_full, alpha_eas);
+    ApplyEASRHS(rhs_full, AlphaEAS);
 
     for (unsigned int i = 0; i < 36; i++)
     {
@@ -4597,9 +4598,9 @@ void SprismElement3D6N::SetGeneralVariables(
     if(rVariables.detF < 0)
     {
         std::cout<<" Element: "<<this->Id()<<std::endl;
-        unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        unsigned int NumberOfNodes = GetGeometry().PointsNumber();
 
-        for (unsigned int i = 0; i < number_of_nodes; i++)
+        for (unsigned int i = 0; i < NumberOfNodes; i++)
         {
             array_1d<double, 3> &CurrentPosition  = GetGeometry()[i].Coordinates();
             array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
@@ -4609,21 +4610,8 @@ void SprismElement3D6N::SetGeneralVariables(
             std::cout<<" ---Disp: "<<CurrentDisplacement<<" (Pre: "<<PreviousDisplacement<<")"<<std::endl;
         }
 
-        for (unsigned int i = 0; i < number_of_nodes; i++)
-        {
-            if(GetGeometry()[i].SolutionStepsDataHas(CONTACT_FORCE))
-            {
-                array_1d<double, 3 > & PreContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE,1);
-                array_1d<double, 3 > & ContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
-                std::cout<<" ---Contact_Force: (Pre:"<<PreContactForce<<", Cur:"<<ContactForce<<") "<<std::endl;
-            }
-            else
-            {
-                std::cout<<" ---Contact_Force: NULL "<<std::endl;
-            }
-        }
         KRATOS_WATCH(rVariables.F);
-        KRATOS_THROW_ERROR( std::invalid_argument," SPRISM ELEMENT INVERTED: |F| < 0  detF = ", rVariables.detF );
+        KRATOS_ERROR << " SPRISM ELEMENT INVERTED: |F| < 0  detF = " << rVariables.detF << std::endl;
     }
 
     // Compute total F: FT
@@ -4651,9 +4639,9 @@ void SprismElement3D6N::InitializeSystemMatrices(
         )
 {
     // Resizing as needed the LHS
-    WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
-    const unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(nodal_neigb);
-    const unsigned int MatSize = number_of_nodes * 3;
+    WeakPointerVector< Node < 3 > >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
+    const unsigned int NumberOfNodes = GetGeometry().size() + NumberOfActiveNeighbours(NeighbourNodes);
+    const unsigned int MatSize = NumberOfNodes * 3;
 
     if ( rCalculationFlags.Is(SprismElement3D6N::COMPUTE_LHS_MATRIX) ) // Calculation of the matrix is required
     {
@@ -4695,7 +4683,7 @@ void SprismElement3D6N::InitializeMaterial()
     }
     else
     {
-        KRATOS_THROW_ERROR( std::logic_error, "A constitutive law needs to be specified for the element with ID ", this->Id() );
+        KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
     }
 
     KRATOS_CATCH( "" );
@@ -4725,8 +4713,8 @@ void SprismElement3D6N::ClearNodalForces()
 {
     KRATOS_TRY;
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    const unsigned int NumberOfNodes = GetGeometry().PointsNumber();
+    for ( unsigned int i = 0; i < NumberOfNodes; i++ )
     {
       if( GetGeometry()[i].SolutionStepsDataHas(EXTERNAL_FORCE) && GetGeometry()[i].SolutionStepsDataHas(INTERNAL_FORCE) ){
 
@@ -4750,21 +4738,21 @@ void SprismElement3D6N::CalculateKinematics(
         GeneralVariables& rVariables,
         const CommonComponents& CC,
         const int& rPointNumber,
-        const double& alpha_eas,
-        const double& zeta_gauss
+        const double& AlphaEAS,
+        const double& ZetaGauss
         )
 {
     KRATOS_TRY;
 
-    const double & L_1 = 0.5 * (1.0 - zeta_gauss);
-    const double & L_2 = 0.5 * (1.0 + zeta_gauss);
+    const double & L_1 = 0.5 * (1.0 - ZetaGauss);
+    const double & L_2 = 0.5 * (1.0 + ZetaGauss);
 
-    const double & fact_eas = std::exp(2.0 * alpha_eas * zeta_gauss);  // EAS factor
+    const double & FactorEAS = std::exp(2.0 * AlphaEAS * ZetaGauss);  // EAS factor
 
     /* Assemble C */
     rVariables.C[0] = L_1 * CC.C_membrane_lower(0, 0) + L_2 * CC.C_membrane_upper(0, 0); // xx
     rVariables.C[1] = L_1 * CC.C_membrane_lower(1, 0) + L_2 * CC.C_membrane_upper(1, 0); // yy
-    rVariables.C[2] = fact_eas * CC.C_normal;                                            // zz
+    rVariables.C[2] = FactorEAS * CC.C_normal;                                            // zz
     rVariables.C[3] = L_1 * CC.C_membrane_lower(2, 0) + L_2 * CC.C_membrane_upper(2, 0); // xy
     rVariables.C[4] = L_1 * CC.C_shear_lower(1, 0)    + L_2 * CC.C_shear_upper(1, 0);    // yz
     rVariables.C[5] = L_1 * CC.C_shear_lower(0, 0)    + L_2 * CC.C_shear_upper(0, 0);    // xz
@@ -4776,7 +4764,7 @@ void SprismElement3D6N::CalculateKinematics(
     if (rVariables.detF < 1.0e-8)
     {
         KRATOS_WATCH(rVariables.C);
-        KRATOS_THROW_ERROR( std::logic_error, "The determinant of C is zero or negative.  det(C): ", rVariables.detF );
+        KRATOS_ERROR << "The determinant of C is zero or negative.  det(C): " << rVariables.detF << std::endl;
     }
 
     rVariables.detF = std::sqrt(rVariables.detF);
@@ -4917,46 +4905,46 @@ void SprismElement3D6N::CbartoFbar(
 void SprismElement3D6N::CalculateDeformationMatrix(
         Matrix& rB,
         const CommonComponents& CC,
-        const double& zeta_gauss,
-        const double& alpha_eas
+        const double& ZetaGauss,
+        const double& AlphaEAS
         )
 {
     KRATOS_TRY;
 
     rB.clear(); // Set all components to zero
 
-    double L_1 = 0.5 * (1.0 - zeta_gauss);
-    double L_2 = 0.5 * (1.0 + zeta_gauss);
+    const double L1 = 0.5 * (1.0 - ZetaGauss);
+    const double L2 = 0.5 * (1.0 + ZetaGauss);
 
-    double fact_eas = exp(2.0 * alpha_eas * zeta_gauss); // EAS factor
+    const double FactorEAS = std::exp(2.0 * AlphaEAS * ZetaGauss); // EAS factor
 
     for (unsigned int index = 0; index < 9; index++)
     {
         /* Element nodes */ // Note: It's important to consider the Voigt notation order considered in Kratos
         // Lower face
-        rB(0, index)      = L_1 * CC.B_membrane_lower(0, index);  // xx
-        rB(1, index)      = L_1 * CC.B_membrane_lower(1, index);  // yy
-        rB(2, index)      = fact_eas * CC.B_normal(0, index);     // zz
-        rB(3, index)      = L_1 * CC.B_membrane_lower(2, index);  // xy
-        rB(4, index)      = L_1 * CC.B_shear_lower(1, index) + L_2 * CC.B_shear_upper(1, index); // yz
-        rB(5, index)      = L_1 * CC.B_shear_lower(0, index) + L_2 * CC.B_shear_upper(0, index); // xz
+        rB(0, index)      = L1 * CC.B_membrane_lower(0, index);  // xx
+        rB(1, index)      = L1 * CC.B_membrane_lower(1, index);  // yy
+        rB(2, index)      = FactorEAS * CC.B_normal(0, index);     // zz
+        rB(3, index)      = L1 * CC.B_membrane_lower(2, index);  // xy
+        rB(4, index)      = L1 * CC.B_shear_lower(1, index) + L2 * CC.B_shear_upper(1, index); // yz
+        rB(5, index)      = L1 * CC.B_shear_lower(0, index) + L2 * CC.B_shear_upper(0, index); // xz
         // Upper face
-        rB(0, index + 9)  = L_2 * CC.B_membrane_upper(0, index);  // xx
-        rB(1, index + 9)  = L_2 * CC.B_membrane_upper(1, index);  // yy
-        rB(2, index + 9)  = fact_eas * CC.B_normal(0, index + 9); // zz
-        rB(3, index + 9)  = L_2 * CC.B_membrane_upper(2, index);  // xy
-        rB(4, index + 9)  = L_1 * CC.B_shear_lower(1, index + 9) + L_2 * CC.B_shear_upper(1, index + 9); // yz
-        rB(5, index + 9)  = L_1 * CC.B_shear_lower(0, index + 9) + L_2 * CC.B_shear_upper(0, index + 9); // xz
+        rB(0, index + 9)  = L2 * CC.B_membrane_upper(0, index);  // xx
+        rB(1, index + 9)  = L2 * CC.B_membrane_upper(1, index);  // yy
+        rB(2, index + 9)  = FactorEAS * CC.B_normal(0, index + 9); // zz
+        rB(3, index + 9)  = L2 * CC.B_membrane_upper(2, index);  // xy
+        rB(4, index + 9)  = L1 * CC.B_shear_lower(1, index + 9) + L2 * CC.B_shear_upper(1, index + 9); // yz
+        rB(5, index + 9)  = L1 * CC.B_shear_lower(0, index + 9) + L2 * CC.B_shear_upper(0, index + 9); // xz
 
         /* Neighbour nodes */
         // Lower face
-        rB(0, index + 18) = L_1 * CC.B_membrane_lower(0, index + 9); // xx
-        rB(1, index + 18) = L_1 * CC.B_membrane_lower(1, index + 9); // yy
-        rB(3, index + 18) = L_1 * CC.B_membrane_lower(2, index + 9); // xy
+        rB(0, index + 18) = L1 * CC.B_membrane_lower(0, index + 9); // xx
+        rB(1, index + 18) = L1 * CC.B_membrane_lower(1, index + 9); // yy
+        rB(3, index + 18) = L1 * CC.B_membrane_lower(2, index + 9); // xy
         // Upper face
-        rB(0, index + 27) = L_2 * CC.B_membrane_upper(0, index + 9); // xx
-        rB(1, index + 27) = L_2 * CC.B_membrane_upper(1, index + 9); // yy
-        rB(3, index + 27) = L_2 * CC.B_membrane_upper(2, index + 9); // xy
+        rB(0, index + 27) = L2 * CC.B_membrane_upper(0, index + 9); // xx
+        rB(1, index + 27) = L2 * CC.B_membrane_upper(1, index + 9); // yy
+        rB(3, index + 27) = L2 * CC.B_membrane_upper(2, index + 9); // xy
     }
 
     KRATOS_CATCH( "" );
@@ -5053,7 +5041,6 @@ void SprismElement3D6N::GetHistoricalVariables(
 
     rVariables.detF  = 1.0;
     rVariables.F     = IdentityMatrix(size);
-
 }
 
 /***********************************************************************************/
@@ -5372,7 +5359,7 @@ void SprismElement3D6N::CalculateHenckyStrain(
     EigenValuesMatrix(2, 2) = 0.5 * log(EigenValuesMatrix(2, 2));
 
     // Calculate E matrix
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > EMatrix;
+    bounded_matrix<double, 3, 3 > EMatrix;
     noalias(EMatrix) = prod(trans(EigenVectorsMatrix), EigenValuesMatrix);
     noalias(EMatrix) = prod(EMatrix, EigenVectorsMatrix);
 
@@ -5456,7 +5443,7 @@ void SprismElement3D6N::CalculateVolumeForce(
     KRATOS_TRY;
 
     /* Reading integration points */
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
     rVolumeForce = ZeroVector(3);
 
@@ -5467,9 +5454,9 @@ void SprismElement3D6N::CalculateVolumeForce(
         accel = GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     }
 
-    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+    for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
     {
-        double IntegrationWeight = integration_points[PointNumber].Weight() * rVariables.detJ;
+        double IntegrationWeight = IntegrationPoints[PointNumber].Weight() * rVariables.detJ;
         rVolumeForce += IntegrationWeight * accel;
     }
 
