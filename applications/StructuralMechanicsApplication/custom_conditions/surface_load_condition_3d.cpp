@@ -117,7 +117,7 @@ void SurfaceLoadCondition3D::CalculateAndSubKp(
 {
     KRATOS_TRY
 
-    bounded_matrix<double, 3, 3 > Kij;
+    Matrix Kij(3, 3);
     bounded_matrix<double, 3, 3 > Cross_ge;
     bounded_matrix<double, 3, 3 > Cross_gn;
     double coeff;
@@ -172,7 +172,7 @@ void SurfaceLoadCondition3D::MakeCrossMatrix(
 void SurfaceLoadCondition3D::CalculateAndAdd_PressureForce(
     VectorType& residualvector,
     const Vector& N,
-    const array_1d<double, 3 > & v3,
+    const array_1d<double, 3 >& v3,
     double pressure,
     double weight,
     const ProcessInfo& rCurrentProcessInfo
@@ -251,6 +251,10 @@ void SurfaceLoadCondition3D::CalculateAll(
 
     // Pressure applied to the element itself
     double PressureOnCondition = 0.0;
+    if( this->Has( PRESSURE ) )
+    {
+        PressureOnCondition += this->GetValue( PRESSURE );
+    }
     if( this->Has( NEGATIVE_FACE_PRESSURE ) )
     {
         PressureOnCondition += this->GetValue( NEGATIVE_FACE_PRESSURE );

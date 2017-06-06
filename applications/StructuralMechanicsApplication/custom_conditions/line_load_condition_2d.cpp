@@ -126,18 +126,42 @@ void LineLoadCondition2D::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorT
     ////sizing work matrices
     Vector PressureOnNodes = ZeroVector( NumberOfNodes );
 
-    double ConditionalPressure = GetValue( PRESSURE );
-
-    //double ConditionalPressure = 0.0;
+    // Pressure applied to the element itself
+    double PressureOnCondition = 0.0;
+    if( this->Has( PRESSURE ) )
+    {
+        PressureOnCondition += this->GetValue( PRESSURE );
+    }
+    if( this->Has( NEGATIVE_FACE_PRESSURE ) )
+    {
+        PressureOnCondition += this->GetValue( NEGATIVE_FACE_PRESSURE );
+    }
+    if( this->Has( POSITIVE_FACE_PRESSURE ) )
+    {
+        PressureOnCondition -= this->GetValue( POSITIVE_FACE_PRESSURE );
+    }
+    
     for ( unsigned int i = 0; i < PressureOnNodes.size(); i++ )
     {
-        PressureOnNodes[i] = ConditionalPressure
-                             + GetGeometry()[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE )  //nodal pressures on the two faces
-                             - GetGeometry()[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
+        PressureOnNodes[i] = PressureOnCondition;
+        if( GetGeometry()[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) )
+        {
+            PressureOnNodes[i] += GetGeometry()[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE );
+        }
+        if( GetGeometry()[i].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) )
+        {
+            PressureOnNodes[i] -= GetGeometry()[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
+        }
     }
 
+    // Vector with a loading applied to the elemnt
+    array_1d<double, 3 > LineLoad = ZeroVector(3);
+    if( this->Has( LINE_LOAD ) )
+    {
+        noalias(LineLoad) = this->GetValue( LINE_LOAD );
+    }
+    
     Vector v3 = ZeroVector( 2 ); //normal direction (not normalized)
-
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
         double IntegrationWeight = integration_points[PointNumber].Weight();
@@ -145,28 +169,27 @@ void LineLoadCondition2D::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorT
         v3[0] = -J[PointNumber]( 1, 0 );
         v3[1] = J[PointNumber]( 0, 0 );
 
-        //calculating the pressure on the gauss point
-        double GaussPressure = 0.0;
-
+        // Calculating the pressure on the gauss point
+        double GaussLoad = LineLoad;
         for ( unsigned int ii = 0; ii < NumberOfNodes; ii++ )
         {
-            GaussPressure += Ncontainer( PointNumber, ii ) * PressureOnNodes[ii];
+            GaussLoad += Ncontainer( PointNumber, ii ) * PressureOnNodes[ii];
         }
 
         if ( CalculateStiffnessMatrixFlag == true )
         {
-            if ( GaussPressure != 0.0 )
+            if ( GaussLoad != 0.0 )
             {
-                CalculateAndSubKp( rLeftHandSideMatrix, DN_De[PointNumber], row( Ncontainer, PointNumber ), GaussPressure, IntegrationWeight );
+                CalculateAndSubKp( rLeftHandSideMatrix, DN_De[PointNumber], row( Ncontainer, PointNumber ), GaussLoad, IntegrationWeight );
             }
         }
 
         //adding contributions to the residual vector
         if ( CalculateResidualVectorFlag == true )
         {
-            if ( GaussPressure != 0.0 )
+            if ( GaussLoad != 0.0 )
             {
-                CalculateAndAdd_PressureForce( rRightHandSideVector, row( Ncontainer, PointNumber ), v3, GaussPressure, IntegrationWeight );
+                CalculateAndAdd_PressureForce( rRightHandSideVector, row( Ncontainer, PointNumber ), v3, GaussLoad, IntegrationWeight );
             }
         }
 
