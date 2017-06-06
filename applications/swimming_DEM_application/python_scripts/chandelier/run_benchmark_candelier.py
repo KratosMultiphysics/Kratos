@@ -9,7 +9,7 @@ def PrintMessage(run_name, radial_error, tolerance):
         messages_to_print = [run_name, error_message]
         max_len = max([len(msg) for msg in {run_name, error_message}])
 
-        if radial_error < tolerance:
+        if radial_error != None and radial_error < tolerance:
             veredict_msg = 'OK'
         else:
             veredict_msg = 'Fail'

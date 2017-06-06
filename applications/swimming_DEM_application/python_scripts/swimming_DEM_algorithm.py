@@ -201,7 +201,8 @@ class Algorithm(object):
         self.Initialize()
         self.RunMainTemporalLoop()
         self.Finalize()
-    
+        
+        return self.GetReturnValue()
 
     def SetUpResultsDatabase(self):
         pass
@@ -728,8 +729,7 @@ class Algorithm(object):
             i.close()
 
         self.TellFinalSummary(self.step, self.time, self.DEM_step)
-
-        return self.GetReturnValue()
+        
     
     def SetCutsOutput(self):             
         if not self.pp.VolumeOutput: 
