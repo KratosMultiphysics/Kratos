@@ -164,6 +164,7 @@ class Algorithm(object):
         self.pp.CFD_DEM.print_CONDUCTIVITY_option = False
         self.pp.CFD_DEM.filter_velocity_option = False
         self.pp.CFD_DEM.print_PARTICLE_VEL_option = False
+        self.pp.CFD_DEM.apply_time_filter_to_fluid_fraction = False
         # Making the fluid step an exact multiple of the DEM step
         self.pp.Dt = int(self.pp.Dt / self.pp.CFD_DEM.MaxTimeStep) * self.pp.CFD_DEM.MaxTimeStep
         self.pp.viscosity_modification_type = 0.0
