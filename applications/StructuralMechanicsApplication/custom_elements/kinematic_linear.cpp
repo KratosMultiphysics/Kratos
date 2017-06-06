@@ -25,7 +25,7 @@ namespace Kratos
 {
 
     KinematicLinear::KinematicLinear( IndexType NewId, GeometryType::Pointer pGeometry )
-            : Element( NewId, pGeometry )
+            : BaseSolidElement( NewId, pGeometry )
     {
         //DO NOT ADD DOFS HERE!!!
     }
@@ -34,7 +34,7 @@ namespace Kratos
 //************************************************************************************
 
     KinematicLinear::KinematicLinear( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-            : Element( NewId, pGeometry, pProperties )
+            : BaseSolidElement( NewId, pGeometry, pProperties )
     {
     }
 
@@ -140,7 +140,7 @@ namespace Kratos
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
             double detJ0;
-            ComputeDerivatives(J0, InvJ0, DN_DX, detJ0, PointNumber);
+            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, detJ0, PointNumber);
             
             //Compute B and strain
             CalculateB( B, DN_DX );
@@ -376,126 +376,6 @@ namespace Kratos
 
 
 
-//************************************************************************************
-//************************************************************************************
-
-    void KinematicLinear::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo )
-    {
-        int NumberOfNodes = GetGeometry().size();
-        int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int dim2 = NumberOfNodes * dim;
-
-        if ( rResult.size() != dim2 )
-            rResult.resize( dim2, false );
-
-        for ( int i = 0; i < NumberOfNodes; i++ )
-        {
-            int index = i * dim;
-            rResult[index] = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
-            rResult[index + 1] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
-
-            if ( dim == 3 )
-                rResult[index + 2] = GetGeometry()[i].GetDof( DISPLACEMENT_Z ).EquationId();
-        }
-
-    }
-
-//************************************************************************************
-//************************************************************************************
-
-    void KinematicLinear::GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo )
-    {
-        ElementalDofList.resize( 0 );
-
-        for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
-        {
-            ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_X ) );
-            ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Y ) );
-
-            if ( GetGeometry().WorkingSpaceDimension() == 3 )
-            {
-                ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Z ) );
-            }
-        }
-    }
-
-//************************************************************************************
-//************************************************************************************
-
-    void KinematicLinear::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
-    {
-        KRATOS_TRY
-
-        //lumped
-        unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        unsigned int NumberOfNodes = GetGeometry().size();
-        unsigned int MatSize = dimension * NumberOfNodes;
-
-        if ( rMassMatrix.size1() != MatSize )
-            rMassMatrix.resize( MatSize, MatSize, false );
-
-        rMassMatrix = ZeroMatrix( MatSize, MatSize );
-        
-        
-        
-        Matrix DN_DX( NumberOfNodes, dimension );
-        Matrix J0(dimension,dimension), InvJ0(dimension,dimension);
-        
-        //reading integration points and local gradients
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
-
-        double initial_area = 0.0;
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-        {
-            double detJ0;
-            ComputeDerivatives(J0, InvJ0, DN_DX, detJ0, PointNumber);
-            initial_area += detJ0;
-        }
-
-        double TotalMass = initial_area * GetProperties()[DENSITY];
-
-        if ( dimension == 2 && GetProperties().Has( THICKNESS )) 
-        {
-            TotalMass *= GetProperties()[THICKNESS];
-        }
-
-        Vector LumpFact;
-
-        LumpFact = GetGeometry().LumpingFactors( LumpFact );
-
-        for ( unsigned int i = 0; i < NumberOfNodes; i++ )
-        {
-            double temp = LumpFact[i] * TotalMass;
-
-            for ( unsigned int j = 0; j < dimension; j++ )
-            {
-                unsigned int index = i * dimension + j;
-                rMassMatrix( index, index ) = temp;
-            }
-        }
-
-        KRATOS_CATCH( "" )
-    }
-
-//************************************************************************************
-//************************************************************************************
-
-    void KinematicLinear::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
-    {
-        KRATOS_TRY
-        unsigned int NumberOfNodes = GetGeometry().size();
-        unsigned int dim = GetGeometry().WorkingSpaceDimension();
-
-        //resizing as needed the LHS
-        unsigned int MatSize = NumberOfNodes * dim;
-
-        if ( rDampingMatrix.size1() != MatSize )
-            rDampingMatrix.resize( MatSize, MatSize, false );
-
-        noalias( rDampingMatrix ) = ZeroMatrix( MatSize, MatSize );
-
-        KRATOS_CATCH( "" )
-    }
 
 //************************************************************************************
 //************************************************************************************
@@ -585,7 +465,7 @@ namespace Kratos
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
             double detJ0;
-            ComputeDerivatives(J0, InvJ0, DN_DX, detJ0, PointNumber);
+            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, detJ0, PointNumber);
             
             //Compute B and strain
             
@@ -769,71 +649,6 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void KinematicLinear::GetValuesVector( Vector& values, int Step )
-    {
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        const unsigned int MatSize = NumberOfNodes * dim;
-
-        if ( values.size() != MatSize ) values.resize( MatSize, false );
-
-        for ( unsigned int i = 0; i < NumberOfNodes; i++ )
-        {
-            const unsigned int index = i * dim;
-            
-            const auto& d  = GetGeometry()[i].FastGetSolutionStepValue( DISPLACEMENT, Step );
-            
-            for(unsigned int k=0; k<dim;k++)
-                values[index+k] = d[k];
-        }
-    }
-
-
-//************************************************************************************
-//************************************************************************************
-
-    void KinematicLinear::GetFirstDerivativesVector( Vector& values, int Step )
-    {
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int MatSize = NumberOfNodes * dim;
-
-        if ( values.size() != MatSize ) values.resize( MatSize, false );
-
-        for ( unsigned int i = 0; i < NumberOfNodes; i++ )
-        {
-            const unsigned int index = i * dim;
-            
-            const auto& d  = GetGeometry()[i].FastGetSolutionStepValue( VELOCITY, Step );
-            
-            for(unsigned int k=0; k<dim;k++)
-                values[index+k] = d[k];
-        }
-    }
-
-//************************************************************************************
-//************************************************************************************
-
-    void KinematicLinear::GetSecondDerivativesVector( Vector& values, int Step )
-    {
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int MatSize = NumberOfNodes * dim;
-
-        if ( values.size() != MatSize ) values.resize( MatSize, false );
-        for ( unsigned int i = 0; i < NumberOfNodes; i++ )
-        {
-            const unsigned int index = i * dim;
-            
-            const auto& d  = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION, Step );
-            
-            for(unsigned int k=0; k<dim;k++)
-                values[index+k] = d[k];
-        }    }
-
-//************************************************************************************
-//************************************************************************************
-
     void KinematicLinear::Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo )
     {
 
@@ -980,41 +795,16 @@ namespace Kratos
         KRATOS_CATCH( "" );
     }
 
-    void  KinematicLinear::ComputeDerivatives(Matrix& J0, 
-                             Matrix& InvJ0, 
-                             Matrix& DN_DX, 
-                             double& detJ0, 
-                             const unsigned int PointNumber)
-    {
-        auto& DN_De = GetGeometry().ShapeFunctionsLocalGradients()[PointNumber];
-        
-        J0.clear();
-        for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
-        {
-            const auto& coords = GetGeometry()[i].GetInitialPosition(); //NOTE: here we refer to the original, undeformed position!!
-            for(unsigned int k=0; k<GetGeometry().WorkingSpaceDimension(); k++)
-            {
-                for(unsigned int m=0; m<GetGeometry().LocalSpaceDimension(); m++)
-                {
-                    J0(k,m) += coords[k]*DN_De(i,m);
-                }
-            }
-        }
-        
-        MathUtils<double>::InvertMatrix( J0, InvJ0, detJ0 );
-        
-        noalias( DN_DX ) = prod( DN_De, InvJ0);
-    }
 
     void KinematicLinear::save( Serializer& rSerializer ) const
     {
         rSerializer.save( "Name", "KinematicLinear" );
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseSolidElement );
     }
 
     void KinematicLinear::load( Serializer& rSerializer )
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseSolidElement );
     }
 
 

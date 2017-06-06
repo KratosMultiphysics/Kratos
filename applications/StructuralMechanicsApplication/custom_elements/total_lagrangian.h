@@ -24,23 +24,12 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/element.h"
+#include "custom_elements/base_solid_element.h"
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
-/*
-namespace TotalLagrangianAuxiliaries
-{
-    extern Matrix msB;
-    extern Matrix msF;
-    extern Matrix msD;
-    extern Matrix msC;
-    extern Vector msStrainVector;
-    extern Vector msStressVector;
-    extern Matrix msDN_DX;
-}
- */
+
 
 namespace Kratos
 {
@@ -69,7 +58,7 @@ namespace Kratos
  */
 
 class TotalLagrangian
-    : public Element
+    : public BaseSolidElement
 {
 public:
     ///@name Type Definitions
@@ -116,19 +105,9 @@ public:
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
-    //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
-
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
-
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo);
-
     void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
     void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
-
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo);
 
@@ -145,10 +124,6 @@ public:
     void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
     void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-    void GetValuesVector(Vector& values, int Step = 0);
-    void GetFirstDerivativesVector(Vector& values, int Step = 0);
-    void GetSecondDerivativesVector(Vector& values, int Step = 0);
 
 
     void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
@@ -200,7 +175,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-	TotalLagrangian() : Element()
+	TotalLagrangian() : BaseSolidElement()
     {
     }
 
@@ -230,25 +205,11 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    /*  static Matrix msB;
-    static Matrix msF;
-    static Matrix msD;
-    static Matrix msC;
-    static Vector msStrainVector;
-    static Vector msStressVector;
-    static Matrix msDN_DX;
-     */
+
     ///@}
     ///@name Member Variables
     ///@{
-    /**
-     * Container for constitutive law instances on each integration point
-     */
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
-    double mTotalDomainInitialSize;
-    std::vector< Matrix > mInvJ0;
-    Vector mDetJ0;
     ///@}
     ///@name Private Operators
     ///@{

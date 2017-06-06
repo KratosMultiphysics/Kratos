@@ -25,7 +25,7 @@ namespace Kratos
 {
 
     TotalLagrangian::TotalLagrangian( IndexType NewId, GeometryType::Pointer pGeometry )
-            : Element( NewId, pGeometry )
+            : BaseSolidElement( NewId, pGeometry )
     {
         //DO NOT ADD DOFS HERE!!!
     }
@@ -34,7 +34,7 @@ namespace Kratos
 //************************************************************************************
 
     TotalLagrangian::TotalLagrangian( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-            : Element( NewId, pGeometry, pProperties )
+            : BaseSolidElement( NewId, pGeometry, pProperties )
     {
     }
 
@@ -56,15 +56,6 @@ namespace Kratos
 
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
 
-        //resizing jacobian inverses containers
-        mInvJ0.resize( integration_points.size() );
-        mDetJ0.resize( integration_points.size(), false );
-
-
-        GeometryType::JacobiansType J0;
-        J0 = GetGeometry().Jacobian( J0 );
-        mTotalDomainInitialSize = 0.00;
-
         //Constitutive Law initialisation
 
         if ( mConstitutiveLawVector.size() != integration_points.size() )
@@ -73,19 +64,6 @@ namespace Kratos
         }
 
         InitializeMaterial();
-
-        //calculating the inverse J0
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-        {
-            //getting informations for integration
-            double IntegrationWeight = integration_points[PointNumber].Weight();
-
-            //calculating and storing inverse of the jacobian and the parameters needed
-            MathUtils<double>::InvertMatrix( J0[PointNumber], mInvJ0[PointNumber], mDetJ0[PointNumber] );
-
-            //calculating the total area
-            mTotalDomainInitialSize += mDetJ0[PointNumber] * IntegrationWeight;
-        }
 
 
         KRATOS_CATCH( "" )
@@ -121,6 +99,7 @@ namespace Kratos
         Vector StressVector( StrainSize );
 
         Matrix DN_DX( NumberOfNodes, dim );
+        Matrix J0(dim,dim), InvJ0(dim,dim);
 
         // Resizing as needed the LHS
         const unsigned int MatSize = NumberOfNodes * dim;
@@ -175,11 +154,14 @@ namespace Kratos
 
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
+            double detJ0;
+            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, detJ0, PointNumber);
+            
             // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-            noalias( DN_DX ) = prod( DN_De[PointNumber], mInvJ0[PointNumber] );
+            noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
 
             // Deformation gradient
-            noalias( F ) = prod( J[PointNumber], mInvJ0[PointNumber] );
+            noalias( F ) = prod( J[PointNumber], InvJ0 );
             
             // Here we essentially set the input parameters
             double detF = MathUtils<double>::Det(F);
@@ -197,7 +179,7 @@ namespace Kratos
             CalculateB( B, F, DN_DX, StrainVector.size() );
 
             // Calculating weights for integration on the reference configuration
-            double IntToReferenceWeight = integration_points[PointNumber].Weight() * mDetJ0[PointNumber];
+            double IntToReferenceWeight = integration_points[PointNumber].Weight() * detJ0;
 
             if ( dim == 2 && GetProperties().Has( THICKNESS )) 
             {
@@ -477,110 +459,8 @@ namespace Kratos
 
 
 
-//************************************************************************************
-//************************************************************************************
 
-    void TotalLagrangian::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo )
-    {
-        int NumberOfNodes = GetGeometry().size();
-        int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int dim2 = NumberOfNodes * dim;
 
-        if ( rResult.size() != dim2 )
-            rResult.resize( dim2, false );
-
-        for ( int i = 0; i < NumberOfNodes; i++ )
-        {
-            int index = i * dim;
-            rResult[index] = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
-            rResult[index + 1] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
-
-            if ( dim == 3 )
-                rResult[index + 2] = GetGeometry()[i].GetDof( DISPLACEMENT_Z ).EquationId();
-        }
-
-    }
-
-//************************************************************************************
-//************************************************************************************
-
-    void TotalLagrangian::GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo )
-    {
-        ElementalDofList.resize( 0 );
-
-        for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
-        {
-            ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_X ) );
-            ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Y ) );
-
-            if ( GetGeometry().WorkingSpaceDimension() == 3 )
-            {
-                ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Z ) );
-            }
-        }
-    }
-
-//************************************************************************************
-//************************************************************************************
-
-    void TotalLagrangian::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
-    {
-        KRATOS_TRY
-
-        //lumped
-        unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        unsigned int NumberOfNodes = GetGeometry().size();
-        unsigned int MatSize = dimension * NumberOfNodes;
-
-        if ( rMassMatrix.size1() != MatSize )
-            rMassMatrix.resize( MatSize, MatSize, false );
-
-        rMassMatrix = ZeroMatrix( MatSize, MatSize );
-
-        double TotalMass = mTotalDomainInitialSize * GetProperties()[DENSITY];
-
-        if ( dimension == 2 && GetProperties().Has( THICKNESS ))
-        {
-            TotalMass *= GetProperties()[THICKNESS];
-        }
-
-        Vector LumpFact;
-
-        LumpFact = GetGeometry().LumpingFactors( LumpFact );
-
-        for ( unsigned int i = 0; i < NumberOfNodes; i++ )
-        {
-            double temp = LumpFact[i] * TotalMass;
-
-            for ( unsigned int j = 0; j < dimension; j++ )
-            {
-                unsigned int index = i * dimension + j;
-                rMassMatrix( index, index ) = temp;
-            }
-        }
-
-        KRATOS_CATCH( "" )
-    }
-
-//************************************************************************************
-//************************************************************************************
-
-    void TotalLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
-    {
-        KRATOS_TRY
-        unsigned int NumberOfNodes = GetGeometry().size();
-        unsigned int dim = GetGeometry().WorkingSpaceDimension();
-
-        //resizing as needed the LHS
-        unsigned int MatSize = NumberOfNodes * dim;
-
-        if ( rDampingMatrix.size1() != MatSize )
-            rDampingMatrix.resize( MatSize, MatSize, false );
-
-        noalias( rDampingMatrix ) = ZeroMatrix( MatSize, MatSize );
-
-        KRATOS_CATCH( "" )
-    }
 
 //************************************************************************************
 //************************************************************************************
@@ -656,6 +536,7 @@ namespace Kratos
         Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
         Values.SetStrainVector(StrainVector); //this is the input  parameter
         Values.SetStressVector(StressVector); //this is the output parameter
+        Matrix J0(dim,dim), InvJ0(dim,dim);
         
         //reading integration points and local gradients
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
@@ -672,9 +553,11 @@ namespace Kratos
 
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
+            double detJ0;
+            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, detJ0, PointNumber);
 
             //deformation gradient
-            noalias( F ) = prod( J[PointNumber], mInvJ0[PointNumber] );
+            noalias( F ) = prod( J[PointNumber], InvJ0 );
 
             Matrix PlasticStrainVector( GetGeometry().size(), GetGeometry().WorkingSpaceDimension() );
 
@@ -857,71 +740,6 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void TotalLagrangian::GetValuesVector( Vector& values, int Step )
-    {
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        const unsigned int MatSize = NumberOfNodes * dim;
-
-        if ( values.size() != MatSize ) values.resize( MatSize, false );
-
-        for ( unsigned int i = 0; i < NumberOfNodes; i++ )
-        {
-            const unsigned int index = i * dim;
-            
-            const auto& d  = GetGeometry()[i].FastGetSolutionStepValue( DISPLACEMENT, Step );
-            
-            for(unsigned int k=0; k<dim;k++)
-                values[index+k] = d[k];
-        }
-    }
-
-
-//************************************************************************************
-//************************************************************************************
-
-    void TotalLagrangian::GetFirstDerivativesVector( Vector& values, int Step )
-    {
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int MatSize = NumberOfNodes * dim;
-
-        if ( values.size() != MatSize ) values.resize( MatSize, false );
-
-        for ( unsigned int i = 0; i < NumberOfNodes; i++ )
-        {
-            const unsigned int index = i * dim;
-            
-            const auto& d  = GetGeometry()[i].FastGetSolutionStepValue( VELOCITY, Step );
-            
-            for(unsigned int k=0; k<dim;k++)
-                values[index+k] = d[k];
-        }
-    }
-
-//************************************************************************************
-//************************************************************************************
-
-    void TotalLagrangian::GetSecondDerivativesVector( Vector& values, int Step )
-    {
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int MatSize = NumberOfNodes * dim;
-
-        if ( values.size() != MatSize ) values.resize( MatSize, false );
-        for ( unsigned int i = 0; i < NumberOfNodes; i++ )
-        {
-            const unsigned int index = i * dim;
-            
-            const auto& d  = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION, Step );
-            
-            for(unsigned int k=0; k<dim;k++)
-                values[index+k] = d[k];
-        }    }
-
-//************************************************************************************
-//************************************************************************************
-
     void TotalLagrangian::Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo )
     {
 
@@ -1071,12 +889,12 @@ namespace Kratos
     void TotalLagrangian::save( Serializer& rSerializer ) const
     {
         rSerializer.save( "Name", "TotalLagrangian" );
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseSolidElement );
     }
 
     void TotalLagrangian::load( Serializer& rSerializer )
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseSolidElement );
     }
 
 } // Namespace Kratos
