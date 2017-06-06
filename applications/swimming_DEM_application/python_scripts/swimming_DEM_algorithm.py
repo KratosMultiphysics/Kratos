@@ -235,9 +235,7 @@ class Algorithm(object):
         self.DispersePhaseInitialize()
         
         self.SetAllModelParts()
-                                
-        self.vars_man.AddingExtraProcessInfoVariables(self.pp, self.fluid_model_part, self.disperse_phase_algorithm.spheres_model_part)
-        
+                                        
         self.SetCutsOutput()        
         
         self.swimming_DEM_gid_io = swimming_DEM_gid_output.SwimmingDEMGiDOutput(self.pp.problem_name,
@@ -431,7 +429,8 @@ class Algorithm(object):
         self.fluid_algorithm.vars_man=self.vars_man
         
         self.fluid_algorithm.SetFluidSolverModule()
-        self.fluid_algorithm.AddFluidVariables()           
+        self.fluid_algorithm.AddFluidVariables()  
+        self.vars_man.AddExtraProcessInfoVariablesToFluidModelPart(self.pp, self.fluid_model_part)        
         self.fluid_algorithm.ReadFluidModelPart()
         self.fluid_algorithm.SetFluidBufferSizeAndAddDofs() 
         SDP.AddExtraDofs(self.pp, self.fluid_model_part, self.disperse_phase_algorithm.spheres_model_part, self.disperse_phase_algorithm.cluster_model_part, self.disperse_phase_algorithm.DEM_inlet_model_part)
@@ -446,6 +445,8 @@ class Algorithm(object):
         self.vars_man.AddNodalVariables(self.disperse_phase_algorithm.spheres_model_part, self.pp.dem_vars)
         self.vars_man.AddNodalVariables(self.disperse_phase_algorithm.rigid_face_model_part, self.pp.rigid_faces_vars)
         self.vars_man.AddNodalVariables(self.disperse_phase_algorithm.DEM_inlet_model_part, self.pp.inlet_vars)
+        self.vars_man.AddExtraProcessInfoVariablesToDispersePhaseModelPart(self.pp, self.disperse_phase_algorithm.spheres_model_part)
+        
         self.disperse_phase_algorithm.Initialize()                
         
               
