@@ -1,8 +1,8 @@
 //   
 //   Project Name:        Kratos       
-//   Last modified by:    $Author: it's me! $
-//   Date:                $Date: 2008-08-08 23:58:38 $
-//   Revision:            $Revision: 1.0 $
+//   Last modified by:    $Author:  Miguel Masó Sotomayor $
+//   Date:                $Date:              june 2 2017 $
+//   Revision:            $Revision:                  1.1 $
 //
 //
 

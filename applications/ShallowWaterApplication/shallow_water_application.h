@@ -1,8 +1,8 @@
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: Miguel Masó Sotomayor $
-//   Date:                $Date:  $
-//   Revision:            $Revision: 1.2 $
+//   Last Modified by:    $Author:  Miguel Masó Sotomayor$
+//   Date:                $Date:            april 26 2017$
+//   Revision:            $Revision:                 1.3 $
 //
 //
 
@@ -23,11 +23,11 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-
-// Application includes
 #include "includes/variables.h"
 #include "shallow_water_application_variables.h"
-#include "custom_elements/helmholtz.h"
+#include "custom_elements/projected_swe.h" //including the file for the second element
+#include "includes/condition.h"            //we'll also need conditions for the point heat loads
+#include "includes/ublas_interface.h"
 
 
 namespace Kratos
@@ -75,9 +75,11 @@ namespace Kratos
 		/// Destructor.
 		virtual ~KratosShallowWaterApplication(){}
 
+
 		///@}
 		///@name Operators 
 		///@{
+
 
 		///@}
 		///@name Operations
@@ -85,13 +87,17 @@ namespace Kratos
 
 		virtual void Register();
 
+
+
 		///@}
 		///@name Access
 		///@{ 
 
+
 		///@}
 		///@name Inquiry
 		///@{
+
 
 		///@}      
 		///@name Input and output
@@ -111,23 +117,25 @@ namespace Kratos
 		}
 
 		///// Print object's data.
-		virtual void PrintData(std::ostream& rOStream) const
-		{
-			KRATOS_WATCH("in my application");
-			KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
-			rOStream << "Variables:" << std::endl;
-			KratosComponents<VariableData>().PrintData(rOStream);
-			rOStream << std::endl;
-			rOStream << "Elements:" << std::endl;
-			KratosComponents<Element>().PrintData(rOStream);
-			rOStream << std::endl;
-			rOStream << "Conditions:" << std::endl;
-			KratosComponents<Condition>().PrintData(rOStream);
-		}
+      virtual void PrintData(std::ostream& rOStream) const
+      {
+      	KRATOS_WATCH("in my application");
+      	KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+		rOStream << "Variables:" << std::endl;
+		KratosComponents<VariableData>().PrintData(rOStream);
+		rOStream << std::endl;
+		rOStream << "Elements:" << std::endl;
+		KratosComponents<Element>().PrintData(rOStream);
+		rOStream << std::endl;
+		rOStream << "Conditions:" << std::endl;
+		KratosComponents<Condition>().PrintData(rOStream);
+      }
+
 
 		///@}      
 		///@name Friends
 		///@{
+
 
 		///@}
 
@@ -135,29 +143,36 @@ namespace Kratos
 		///@name Protected static Member Variables 
 		///@{ 
 
+
 		///@} 
 		///@name Protected member Variables 
 		///@{ 
+
 
 		///@} 
 		///@name Protected Operators
 		///@{ 
 
+
 		///@} 
 		///@name Protected Operations
 		///@{ 
+
 
 		///@} 
 		///@name Protected  Access 
 		///@{ 
 
+
 		///@}      
 		///@name Protected Inquiry 
 		///@{ 
 
+
 		///@}    
 		///@name Protected LifeCycle 
 		///@{ 
+
 
 		///@}
 
@@ -165,13 +180,14 @@ namespace Kratos
 		///@name Static Member Variables 
 		///@{ 
 
+
+
 		//       static const ApplicationCondition  msApplicationCondition; 
 
 		///@} 
 		///@name Member Variables 
 		///@{ 
-// 		const Elem2D   mElem2D; 
-// 		const Elem3D   mElem3D; 
+		const ProjectedSWE mProjectedSWE;  // element
 
 
 		///@} 

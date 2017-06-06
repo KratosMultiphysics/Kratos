@@ -1,6 +1,6 @@
 #importing the Kratos Library
 from KratosMultiphysics import *
-from KratosMultiphysics.PureDiffusionApplication import *
+from KratosMultiphysics.ShallowWaterApplication import *
 from KratosMultiphysics.ConvectionDiffusionApplication import *
 CheckForPreviousImport()
 
@@ -14,8 +14,6 @@ def AddVariables(model_part):  #this way er only need one command to add all the
     model_part.AddNodalSolutionStepVariable(SCALAR_VELOCITY_Y);
     model_part.AddNodalSolutionStepVariable(SCALAR_PROJECTED_VELOCITY_X);
     model_part.AddNodalSolutionStepVariable(SCALAR_PROJECTED_VELOCITY_Y);
-    #~ model_part.AddNodalSolutionStepVariable(POINT_HEAT_SOURCE);
-    #~ model_part.AddNodalSolutionStepVariable(TEMPERATURE);
 
 def AddDofs(model_part):
     for node in model_part.Nodes:
