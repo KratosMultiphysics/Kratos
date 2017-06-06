@@ -207,7 +207,7 @@ namespace Kratos
             if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
             {
                 //contributions to stiffness matrix calculated on the reference config
-                auto tmp = ( IntToReferenceWeight ) * Matrix( prod( D, B ) );
+                Matrix tmp = ( IntToReferenceWeight ) * Matrix( prod( D, B ) );
                 noalias( rLeftHandSideMatrix ) += prod( trans( B ), tmp ); //to be optimized to remove the temporary
                 CalculateAndAddKg( rLeftHandSideMatrix, DN_DX, StressVector, IntToReferenceWeight );
             }
