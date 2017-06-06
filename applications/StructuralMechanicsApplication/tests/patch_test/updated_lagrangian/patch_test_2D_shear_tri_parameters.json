@@ -19,6 +19,9 @@
             "input_filename"   : "patch_test/updated_lagrangian/patch_test_2D_shear_tri",
             "input_file_label" : 0
         },
+        "material_import_settings" :{
+            "materials_filename": "patch_test/materials_2D.json"
+        },
         "line_search"                        : false,
         "convergence_criterion"              : "Residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
@@ -58,7 +61,7 @@
         }
     }],
     "loads_process_list"       : [{
-        "python_module" : "assign_modulus_and_direction_to_conditions_process",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process sets a vector variable value over a condition",
         "check"         : "DirectorVectorNonZero direction",
@@ -72,7 +75,7 @@
             "interval"        : [0.0,"End"]
         }
     },{
-        "python_module" : "assign_modulus_and_direction_to_conditions_process",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process sets a vector variable value over a condition",
         "check"         : "DirectorVectorNonZero direction",
@@ -86,7 +89,7 @@
             "interval"        : [0.0,"End"]
         }
     },{
-        "python_module" : "assign_modulus_and_direction_to_conditions_process",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process sets a vector variable value over a condition",
         "check"         : "DirectorVectorNonZero direction",
@@ -100,7 +103,7 @@
             "interval"        : [0.0,"End"]
         }
     },{
-        "python_module" : "assign_modulus_and_direction_to_conditions_process",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process sets a vector variable value over a condition",
         "check"         : "DirectorVectorNonZero direction",

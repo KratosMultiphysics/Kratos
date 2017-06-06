@@ -19,6 +19,9 @@
             "input_filename"   : "patch_test/updated_lagrangian/patch_test_3D_tension_tetra",
             "input_file_label" : 0
         },
+        "material_import_settings" :{
+            "materials_filename": "patch_test/materials_3D.json"
+        },
         "line_search"                        : false,
         "convergence_criterion"              : "Residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
@@ -29,7 +32,7 @@
         "linear_solver_settings"             : {
             "solver_type" : "SkylineLUFactorizationSolver"
         },
-        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto2"],
+        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto3","DISPLACEMENT_Displacement_Auto4","DISPLACEMENT_Displacement_Auto6","SurfaceLoad3D_Load_on_surfaces_Auto1"]
     },
     "constraints_process_list" : [{
@@ -70,7 +73,7 @@
         }
     }],
     "loads_process_list"       : [{
-        "python_module" : "assign_modulus_and_direction_to_conditions_process",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process sets a vector variable value over a condition",
         "check"         : "DirectorVectorNonZero direction",
