@@ -32,7 +32,7 @@ class Algorithm(BaseAlgorithm):
         self.all_model_parts.Add(ModelPart("FluidPart"))        
         
         #self.fluid_model_part = self.fluid_algorithm.main_model_part.GetSubModelPart("fluid_computing_domain")
-        self.fluid_model_part = self.fluid_algorithm.main_model_part.GetSubModelPart("Body1")
+        #self.fluid_model_part = self.fluid_algorithm.main_model_part.GetSubModelPart("Body1")
         self.all_model_parts.Set("FluidPart", self.fluid_model_part)
         
         # defining a model part for the mixed part
@@ -44,6 +44,7 @@ class Algorithm(BaseAlgorithm):
         
         self.fluid_algorithm.vars_man=self.vars_man
         self.fluid_algorithm.Initialize()   
+        self.fluid_model_part = self.fluid_algorithm.main_model_part.GetSubModelPart("Body1")
         
     def CloneTimeStep(self):
         pass
