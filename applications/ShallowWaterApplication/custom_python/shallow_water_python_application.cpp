@@ -44,9 +44,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last modified by:    $Author: Miguel Maso Sotomayor $
-//   Date:                $Date: 27-03-2017 $
-//   Revision:            $Revision: 1.0 $
+//   Last modified by:    $Author:  Miguel Masó Sotomayor$
+//   Date:                $Date:                 may 2017$
+//   Revision:            $Revision:                  1.3$
 //
 //
 
@@ -70,31 +70,36 @@ namespace Kratos
 namespace Python
 {
 
-	using namespace boost::python;
+  using namespace boost::python;
 
 
-	BOOST_PYTHON_MODULE(KratosShallowWaterApplication)
-	{
+  
+  BOOST_PYTHON_MODULE(KratosShallowWaterApplication)
+  {
 
-	class_<KratosShallowWaterApplication, 
-		KratosShallowWaterApplication::Pointer, 
-		bases<KratosApplication>, boost::noncopyable >("KratosShallowWaterApplication")
-		;
+	  class_<KratosShallowWaterApplication, 
+			  KratosShallowWaterApplication::Pointer, 
+			  bases<KratosApplication>, boost::noncopyable >("KratosShallowWaterApplication")
+			;
 
 	AddCustomStrategiesToPython();
 	AddCustomUtilitiesToPython();
 
 	//registering variables in python
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(PATCH_INDEX) // TODO: Remove variable ??
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(ELEVATION)   // Water surface elevation (eta)
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(BATHYMETRY)  // Bathymetry (H)
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(DEPTH)       // Total depth (h=H+eta)
+	KRATOS_REGISTER_IN_PYTHON_VARIABLE(BATHYMETRY);
+	KRATOS_REGISTER_IN_PYTHON_VARIABLE(HEIGHT);
+	KRATOS_REGISTER_IN_PYTHON_VARIABLE(PROJECTED_HEIGHT);
+	KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(PROJECTED_VELOCITY);
+	KRATOS_REGISTER_IN_PYTHON_VARIABLE(SCALAR_VELOCITY_X);
+	KRATOS_REGISTER_IN_PYTHON_VARIABLE(SCALAR_VELOCITY_Y);
+	KRATOS_REGISTER_IN_PYTHON_VARIABLE(SCALAR_PROJECTED_VELOCITY_X);
+	KRATOS_REGISTER_IN_PYTHON_VARIABLE(SCALAR_PROJECTED_VELOCITY_Y);
 
-
-	}
-
-}   // namespace Python.
-
-}   // namespace Kratos.
+  }
+  
+  
+}  // namespace Python.
+  
+}  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

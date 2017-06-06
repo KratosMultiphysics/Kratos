@@ -1,15 +1,15 @@
 //
 //   Project Name:        Kratos
-//   Last modified by:    $Author: it's me! $
-//   Date:                $Date: 2008-08-08 23:58:38 $
-//   Revision:            $Revision: 1.0 $
+//   Last modified by:    $Author:  Miguel Masó Sotomayor $
+//   Date:                $Date:              june 2 2017 $
+//   Revision:            $Revision:                  1.1 $
 //
 //
 
 // Project includes
 #include "includes/define.h"
 #include "custom_elements/projected_swe.h"
-#include "pure_diffusion_application.h"
+#include "shallow_water_application.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 
@@ -73,7 +73,6 @@ namespace Kratos
 		// Getting the BDF2 coefficients (not fixed to allow variable time step)
 		// The coefficients INCLUDE the time step
 		const double delta_t = rCurrentProcessInfo[DELTA_TIME];
-		//~ const int Stationary = rCurrentProcessInfo[STATIONARY];
 		//~ const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
 		//~ array_1d<double,2> BDFcoeffs = {1.0, 1.0};  
 		double BDFcoeffs[2] = {1.0/delta_t, 1.0/delta_t};

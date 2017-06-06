@@ -70,15 +70,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	namespace Python
-	{
+    namespace Python
+    {
 
-		void  AddCustomStrategiesToPython();
-		//~ {
-			//~ using namespace boost::python;
-		//~ }
+      void  AddCustomStrategiesToPython()
+      {
+		  using namespace boost::python;
+	  }
 
-	}  // namespace Python.
+    }  // namespace Python.
   
 }  // namespace Kratos.
 

@@ -41,9 +41,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last modified by:    $Author:  $
-//   Date:                $Date:  $
-//   Revision:            $Revision: 1.2 $
+//   Last modified by:    $Author:  Miguel Masó Sotomayor$
+//   Date:                $Date:                 may 2017$
+//   Revision:            $Revision:                  1.2$
 //
 //
 
@@ -76,15 +76,12 @@ namespace Python
 	using namespace boost::python;
 
 
-		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+		//~ typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+		//~ typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+		//~ typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
 
   }
-	
-
-
 
 
 }  // namespace Python.
