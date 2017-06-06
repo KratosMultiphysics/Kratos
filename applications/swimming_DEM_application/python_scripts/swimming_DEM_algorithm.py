@@ -48,15 +48,16 @@ class Algorithm(object):
         self.main_path = os.getcwd()                
         
         self.SetFluidAlgorithm()
+        self.fluid_algorithm.coupling_algorithm = self
 
-        self.pp = self.fluid_algorithm.pp        
+        self.pp = self.fluid_algorithm.pp   
+        
         
         self.SetCouplingParameters(varying_parameters)
                                                 
         self.SetDispersePhaseAlgorithm()
-        
-        
-        
+        self.disperse_phase_algorithm.coupling_algorithm = self
+                
         self.procedures = self.disperse_phase_algorithm.procedures        
         self.KRATOSprint = self.disperse_phase_algorithm.KRATOSprint    
         self.report        = DEM_procedures.Report() 
@@ -188,22 +189,19 @@ class Algorithm(object):
     def SetUpResultsDatabase(self):
         pass
 
-    def ReadModelParts(self, starting_node_Id = 0, starting_elem_Id = 0, starting_cond_Id = 0):        
-        fluid_mp = self.all_model_parts.Get('FluidPart')
-        max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(fluid_mp)
-        max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(fluid_mp)
-        max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(fluid_mp)
-        self.ReadDEMModelParts(max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
-
-    def ReadDEMModelParts(self, starting_node_Id = 0, starting_elem_Id = 0, starting_cond_Id = 0):
-        self.disperse_phase_algorithm.ReadModelParts(self, starting_node_Id, starting_elem_Id, starting_cond_Id)
+    def ReadDispersePhaseModelParts(self, starting_node_Id = 0, starting_elem_Id = 0, starting_cond_Id = 0):        
+        fluid_mp = self.fluid_model_part
+        max_node_Id = self.disperse_phase_algorithm.creator_destructor.FindMaxNodeIdInModelPart(fluid_mp)
+        max_elem_Id = self.disperse_phase_algorithm.creator_destructor.FindMaxElementIdInModelPart(fluid_mp)
+        max_cond_Id = self.disperse_phase_algorithm.creator_destructor.FindMaxConditionIdInModelPart(fluid_mp)
+        self.disperse_phase_algorithm.BaseReadModelParts(max_node_Id, max_elem_Id, max_cond_Id)        
 
     def Initialize(self):
         
         print("\nInitializing Problem...")
         sys.stdout.flush()
                 
-        run_code = self.GetRunCode() ##MA: NOT USED?
+        #run_code = self.GetRunCode() ##MA: NOT USED?
 
         # Moving to the recently created folder
         os.chdir(self.main_path)
@@ -396,7 +394,7 @@ class Algorithm(object):
 
             gauge.ConstructArrayOfNodes(condition)
             print(gauge.variables)
-            print_analytics_counter = SDP.Counter( 5 * steps_between_measurements, 1, 1)
+            #print_analytics_counter = SDP.Counter( 5 * steps_between_measurements, 1, 1) # MA: not used anywhere?
         # ANALYTICS END
 
         import derivative_recovery.derivative_recovery_strategy as derivative_recoverer

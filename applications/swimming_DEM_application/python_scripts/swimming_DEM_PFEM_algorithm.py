@@ -43,10 +43,10 @@ class Algorithm(BaseAlgorithm):
     def FluidInitialize(self):
         
         self.fluid_algorithm.vars_man=self.vars_man
-        self.fluid_algorithm.Initialize()
+        self.fluid_algorithm.Initialize()   
         
     def CloneTimeStep(self):
-        self.fluid_algorithm.main_model_part.CloneTimeStep(self.time)
+        pass
         
     def FluidSolve(self, time = 'None'):
         

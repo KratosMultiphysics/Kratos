@@ -56,6 +56,12 @@ class Solution(BaseAlgorithm):
                 return None
         else:
             return scheme
+        
+    def BaseReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
+        super(Solution,self).ReadModelParts(max_node_Id, max_elem_Id, max_cond_Id)
+        
+    def ReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
+        self.coupling_algorithm.ReadDispersePhaseModelParts()
     
     def SetGraphicalOutput(self):
         pass
