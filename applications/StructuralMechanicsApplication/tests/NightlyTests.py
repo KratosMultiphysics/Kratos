@@ -23,7 +23,7 @@ class controlledExecutionScope:
         os.chdir(self.currentPath)
 
 
-class StructrualMechanichsTestFactory(KratosUnittest.TestCase):
+class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
 
     def setUp(self):
         # Within this location context:
@@ -43,7 +43,7 @@ class StructrualMechanichsTestFactory(KratosUnittest.TestCase):
     def tearDown(self):
         pass
     
-class IsotropicDamageSimoJuPSTest(StructrualMechanichsTestFactory):
+class IsotropicDamageSimoJuPSTest(StructuralMechanichsTestFactory):
     file_name = "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test"
 
 class ShellQ4ThickBendingRollUpTests(StructuralMechanichsTestFactory):
@@ -58,5 +58,5 @@ class ShellT3ThinBendingRollUpTests(StructuralMechanichsTestFactory):
 class ShellT3ThinDrillingRollUpTests(StructuralMechanichsTestFactory):
     file_name = "shell_test/Shell_T3_Thin__DrillingRollUp_test"
 
-class ShellT3IsotropicScordelisTests(StructrualMechanichsTestFactory):
+class ShellT3IsotropicScordelisTests(StructuralMechanichsTestFactory):
     file_name = "shell_test/Shell_T3_Isotropic_Scordelis_test"
