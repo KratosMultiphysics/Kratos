@@ -43,6 +43,7 @@ class Algorithm(BaseAlgorithm):
     def FluidInitialize(self):
         
         self.fluid_algorithm.vars_man=self.vars_man
+        self.vars_man.AddExtraProcessInfoVariablesToFluidModelPart(self.pp, self.fluid_model_part)
         self.fluid_algorithm.Initialize()   
         self.fluid_model_part = self.fluid_algorithm.main_model_part.GetSubModelPart("Body1")
         
