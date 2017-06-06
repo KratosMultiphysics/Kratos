@@ -12,14 +12,10 @@
 #if !defined(KRATOS_SURFACE_LOAD_CONDITION_3D_H_INCLUDED )
 #define  KRATOS_SURFACE_LOAD_CONDITION_3D_H_INCLUDED
 
-
-
 // System includes
-
 
 // External includes
 #include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"
@@ -27,18 +23,42 @@
 #include "custom_conditions/base_load_condition.h"
 #include "includes/ublas_interface.h"
 
-
 namespace Kratos
 {
 
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+    
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  SurfaceLoadCondition3D
     : public BaseLoadCondition
 {
 public:
 
+    ///@name Type Definitions
+    ///@{
+    
     // Counted pointer of SurfaceLoadCondition3D
     KRATOS_CLASS_POINTER_DEFINITION( SurfaceLoadCondition3D );
 
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     // Constructor void
     SurfaceLoadCondition3D();
@@ -51,7 +71,15 @@ public:
 
     // Destructor
     virtual ~SurfaceLoadCondition3D();
+    
+    ///@}
+    ///@name Operators
+    ///@{
 
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     // Name Operations
     Condition::Pointer Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const;
@@ -69,18 +97,69 @@ public:
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo );
 
+    ///@}
+    ///@name Access
+    ///@{
 
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    ///@}
+    ///@name Friends
+    ///@{
+    
 protected:
 
+    ///@name Protected static Member Variables
+    ///@{
 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+    
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+    
 private:
-    ///@name Static Member Variables
+    ///@name Private static Member Variables
+    ///@{
 
-    /// privat variables
+    ///@}
+    ///@name Private member Variables
+    ///@{
 
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-    // privat name Operations
-
+    ///@}
+    ///@name Private Operations
+    ///@{
+    
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -101,21 +180,6 @@ private:
         boost::numeric::ublas::bounded_matrix<double, 3, 3>& M,
         array_1d<double, 3>& U );
 
-    void CrossProduct(
-        array_1d<double, 3>& cross,
-        array_1d<double, 3>& a,
-        array_1d<double, 3>& b );
-
-    void SubtractMatrix(
-        MatrixType& Destination,
-        boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
-        int InitialRow,
-        int InitialCol );
-
-    void ExpandReducedMatrix(
-        Matrix& Destination,
-        Matrix& ReducedMatrix );
-
     void CalculateAndAdd_PressureForce(
         VectorType& residualvector,
         const Vector& N,
@@ -123,7 +187,22 @@ private:
         double pressure,
         double weight,
         const ProcessInfo& rCurrentProcessInfo );
+    
+    ///@}
+    ///@name Private  Access
+    ///@{
 
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+    ///@}
+    ///@name Private LifeCycle
+    ///@{
+
+    ///@}
+    ///@name Unaccessible methods
+    ///@{
 
     ///@}
     ///@name Serialization
@@ -143,6 +222,13 @@ private:
 
 
 }; // class SurfaceLoadCondition3D.
+
+///@name Type Definitions
+///@{
+
+///@}
+///@name Input and output
+///@{
 
 } // namespace Kratos.
 

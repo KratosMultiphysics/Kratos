@@ -77,7 +77,6 @@ public:
     /// Destructor.
     virtual ~LineLoadCondition2D();
 
-
     ///@}
     ///@name Operators
     ///@{
@@ -86,6 +85,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
+    
     Condition::Pointer Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const;
     Condition::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const;
 
@@ -195,6 +195,7 @@ private:
         Vector& v3,
         double pressure,
         double weight );
+    
     ///@}
     ///@name Private Operations
     ///@{
@@ -245,7 +246,6 @@ private:
 }; // Class LineLoadCondition2D
 
 ///@}
-
 ///@name Type Definitions
 ///@{
 

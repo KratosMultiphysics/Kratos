@@ -84,16 +84,18 @@ void LineLoadCondition2D::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorT
 {
     KRATOS_TRY
 
-    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int NumberOfNodes = GetGeometry().size();
     unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
     //resizing as needed the LHS
-    unsigned int MatSize = number_of_nodes * dim;
+    unsigned int MatSize = NumberOfNodes * dim;
 
     if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
     {
         if ( rLeftHandSideMatrix.size1() != MatSize )
+        {
             rLeftHandSideMatrix.resize( MatSize, MatSize, false );
+        }
 
         noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
     }
@@ -102,7 +104,9 @@ void LineLoadCondition2D::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorT
     if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
     {
         if ( rRightHandSideVector.size( ) != MatSize )
+        {
             rRightHandSideVector.resize( MatSize, false );
+        }
 
         noalias( rRightHandSideVector ) = ZeroVector( MatSize ); //resetting RHS
     }
@@ -120,7 +124,7 @@ void LineLoadCondition2D::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorT
     J = GetGeometry().Jacobian( J );
 
     ////sizing work matrices
-    Vector PressureOnNodes = ZeroVector( number_of_nodes );
+    Vector PressureOnNodes = ZeroVector( NumberOfNodes );
 
     double ConditionalPressure = GetValue( PRESSURE );
 
@@ -142,25 +146,28 @@ void LineLoadCondition2D::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorT
         v3[1] = J[PointNumber]( 0, 0 );
 
         //calculating the pressure on the gauss point
-        double gauss_pressure = 0.00;
+        double GaussPressure = 0.0;
 
-        for ( unsigned int ii = 0; ii < number_of_nodes; ii++ )
-            gauss_pressure += Ncontainer( PointNumber, ii ) * PressureOnNodes[ii];
+        for ( unsigned int ii = 0; ii < NumberOfNodes; ii++ )
+        {
+            GaussPressure += Ncontainer( PointNumber, ii ) * PressureOnNodes[ii];
+        }
 
         if ( CalculateStiffnessMatrixFlag == true )
         {
-            if ( gauss_pressure != 0.00 )
+            if ( GaussPressure != 0.0 )
             {
-
-                CalculateAndSubKp( rLeftHandSideMatrix, DN_De[PointNumber], row( Ncontainer, PointNumber ), gauss_pressure, IntegrationWeight );
+                CalculateAndSubKp( rLeftHandSideMatrix, DN_De[PointNumber], row( Ncontainer, PointNumber ), GaussPressure, IntegrationWeight );
             }
         }
 
         //adding contributions to the residual vector
         if ( CalculateResidualVectorFlag == true )
         {
-            if ( gauss_pressure != 0.00 )
-                CalculateAndAdd_PressureForce( rRightHandSideVector, row( Ncontainer, PointNumber ), v3, gauss_pressure, IntegrationWeight );
+            if ( GaussPressure != 0.0 )
+            {
+                CalculateAndAdd_PressureForce( rRightHandSideVector, row( Ncontainer, PointNumber ), v3, GaussPressure, IntegrationWeight );
+            }
         }
 
     }
@@ -170,6 +177,7 @@ void LineLoadCondition2D::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorT
 
 //***********************************************************************
 //***********************************************************************
+
 void LineLoadCondition2D::CalculateAndSubKp(
     Matrix& K,
     const Matrix& DN_De,
@@ -220,10 +228,10 @@ void LineLoadCondition2D::CalculateAndAdd_PressureForce(
     double pressure,
     double weight )
 {
-    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int NumberOfNodes = GetGeometry().size();
     unsigned int dim = 2;
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( unsigned int i = 0; i < NumberOfNodes; i++ )
     {
         int index = dim * i;
         double coeff = pressure * N[i] * weight;
