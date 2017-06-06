@@ -136,7 +136,7 @@
                 "model_part_name" : "SurfaceLoad3D_Load_on_surfaces_Auto2",
                 "variable_name"   : "DISPLACEMENT_Y",
                 "interval"        : [0.0, "End"],
-                "value"           : "7.8E-03",
+                "value"           : 7.8E-03,
                 "tolerance_rank"  : 3
         }
     }

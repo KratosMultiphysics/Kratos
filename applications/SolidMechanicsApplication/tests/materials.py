@@ -25,4 +25,13 @@ def AssignMaterial(Properties):
     mat = LinearElasticPlaneStress2DLaw()
     prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())
     
-
+    prop_id = 5;
+    prop = Properties[prop_id]
+    mat = HyperElasticPlaneStrain2DLaw()
+    prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())
+    
+    prop_id = 6
+    prop = Properties[prop_id]
+    mat = HyperElastic3DLaw();
+    prop.SetValue(CONSTITUTIVE_LAW, mat.Clone());
+ 

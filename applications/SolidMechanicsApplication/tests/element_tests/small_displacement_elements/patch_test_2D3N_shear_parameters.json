@@ -124,7 +124,7 @@
                 "model_part_name" : "LineLoad2D_Load_on_lines_Auto4",
                 "variable_name"   : "DISPLACEMENT_Y",
                 "interval"        : [0.0, "End"],
-                "value"           : "7.8E-03",
+                "value"           : 7.8E-03,
                 "tolerance_rank"  : 3
         }
     }

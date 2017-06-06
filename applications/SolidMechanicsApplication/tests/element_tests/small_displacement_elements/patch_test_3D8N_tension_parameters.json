@@ -94,7 +94,7 @@
                 "model_part_name" : "SurfaceLoad3D_Load_on_surfaces_Auto1",
                 "variable_name"   : "DISPLACEMENT_X",
                 "interval"        : [0.0, "End"],
-                "value"           : "2.73E-03",
+                "value"           : 2.73E-03,
                 "tolerance_rank"  : 3
         }
     }

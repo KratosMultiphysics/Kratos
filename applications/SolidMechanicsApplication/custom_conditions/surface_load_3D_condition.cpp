@@ -90,8 +90,8 @@ void SurfaceLoad3DCondition::InitializeGeneralVariables(GeneralVariables& rVaria
   //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
   //rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
 
-  //Calculate Initial Position
-  rVariables.DeltaPosition = CalculateTotalDisplacement(rVariables.DeltaPosition);
+  //Calculate Total Delta Position
+  rVariables.DeltaPosition = CalculateTotalDeltaPosition(rVariables.DeltaPosition);
 
   //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_0/d£]
   rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
@@ -129,19 +129,19 @@ Matrix& SurfaceLoad3DCondition::CalculateDeltaPosition(Matrix & rDeltaPosition)
 }
 
 
-//*************************COMPUTE TOTAL DISPLACEMENT*********************************
+//*************************COMPUTE TOTAL DELTA POSITION*******************************
 //************************************************************************************
 
 
-Matrix& SurfaceLoad3DCondition::CalculateTotalDisplacement(Matrix & rDisplacement)
+Matrix& SurfaceLoad3DCondition::CalculateTotalDeltaPosition(Matrix & rDeltaPosition)
 {
     KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    rDisplacement.resize(number_of_nodes , dimension, false);
-    rDisplacement = zero_matrix<double>( number_of_nodes , dimension);
+    rDeltaPosition.resize(number_of_nodes , dimension, false);
+    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -149,11 +149,11 @@ Matrix& SurfaceLoad3DCondition::CalculateTotalDisplacement(Matrix & rDisplacemen
 
         for ( unsigned int j = 0; j < dimension; j++ )
         {
-            rDisplacement(i,j) = CurrentDisplacement[j];
+            rDeltaPosition(i,j) = CurrentDisplacement[j];
         }
     }
 
-    return rDisplacement;
+    return rDeltaPosition;
 
     KRATOS_CATCH( "" )
 }
