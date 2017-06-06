@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "custom_conditions/surface_load_condition_3d.h"
 #include "utilities/math_utils.h"
+#include "utilities/integration_utilities.h"
 
 namespace Kratos
 {
@@ -234,13 +235,14 @@ void SurfaceLoadCondition3D::CalculateAll(
     }
 
     // Reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
-    const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = GetGeometry().ShapeFunctionsLocalGradients();
-    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues();
+    IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(GetGeometry());
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(integration_method);
+    const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
+    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(integration_method);
 
     // Calculating actual jacobian
     GeometryType::JacobiansType J;
-    J = GetGeometry().Jacobian(J);
+    J = GetGeometry().Jacobian(J,integration_method);
 
     // Vector with a loading applied to the elemnt
     array_1d<double, 3 > SurfaceLoad = ZeroVector(3);
@@ -285,7 +287,8 @@ void SurfaceLoadCondition3D::CalculateAll(
     array_1d<double, 3 > v3;
     for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
     {
-        double IntegrationWeight = GetGeometry().IntegrationPoints()[PointNumber].Weight();
+        const double detJ = MathUtils<double>::GeneralizedDet(J[PointNumber]);
+        double IntegrationWeight = integration_points[PointNumber].Weight()*detJ;
         auto& N = row(Ncontainer, PointNumber);
 
         ge[0] = J[PointNumber](0, 0);
@@ -296,6 +299,7 @@ void SurfaceLoadCondition3D::CalculateAll(
         gn[2] = J[PointNumber](2, 1);
 
         MathUtils<double>::CrossProduct(v3, ge, gn);
+        v3 /= norm_2(v3);
 
         // Calculating the pressure on the gauss point
         double pressure = 0.0;
@@ -338,7 +342,7 @@ void SurfaceLoadCondition3D::CalculateAll(
             unsigned int base = ii*3;
             for(unsigned int k=0; k<3; ++k)
             {
-                rRightHandSideVector[base+k] += N[ii]*GaussLoad[k];
+                rRightHandSideVector[base+k] += IntegrationWeight*N[ii]*GaussLoad[k];
             }
         }
     }

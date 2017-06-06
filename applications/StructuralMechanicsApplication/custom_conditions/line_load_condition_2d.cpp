@@ -116,14 +116,6 @@ void LineLoadCondition2D::CalculateAll(
     }
 
     IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(GetGeometry());
-//     GetGeometry().GetDefaultIntegrationMethod();
-//     if(integration_method == GeometryData::GI_GAUSS_1)
-//         integration_method = GeometryData::GI_GAUSS_2;
-//     if(integration_method == GeometryData::GI_GAUSS_2)
-//         integration_method = GeometryData::GI_GAUSS_3;
-//     if(integration_method == GeometryData::GI_GAUSS_3)
-//         integration_method = GeometryData::GI_GAUSS_4;
-
 
     //reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(integration_method);
