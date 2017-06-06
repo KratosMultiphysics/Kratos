@@ -98,7 +98,7 @@ namespace Kratos
             ModelPart::NodeIterator iNode = rModelPart.NodesBegin() + i;
             double Temperature = iNode->FastGetSolutionStepValue(TEMPERATURE);
 
-            iNode->FastGetSolutionStepValue(BODY_FORCE) = (1. - (Temperature-AmbientTemperature)/Temperature)*mrGravity;
+            iNode->FastGetSolutionStepValue(BODY_FORCE) = (1. - (Temperature-AmbientTemperature)/AmbientTemperature)*mrGravity;
         }
 
     }
