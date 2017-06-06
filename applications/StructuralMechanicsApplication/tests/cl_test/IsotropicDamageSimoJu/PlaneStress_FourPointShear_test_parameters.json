@@ -9,7 +9,7 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "solid_mechanics_static_solver",
+        "solver_type"                        : "structural_mechanics_static_solver",
         "echo_level"                         : 0,
         "solution_type"                      : "Static",
         "analysis_type"                      : "Non-Linear",
@@ -26,14 +26,13 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 15,
         "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver",
-            "scaling"     : true
+            "solver_type" : "SkylineLUFactorizationSolver"
         },
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
         "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","LineLoad2D_Load_on_lines_Auto1","LineLoad2D_Load_on_lines_Auto2"]
     },
     "constraints_process_list" : [{
-        "python_module" : "assign_vector_process",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorComponentsToNodesProcess",
@@ -44,7 +43,7 @@
             "value"           : [0.0,0.0,0.0]
         }
     },{
-        "python_module" : "assign_vector_process",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorComponentsToNodesProcess",

@@ -17,6 +17,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "eigen_test/Eigen_Q4_Thick_2x2_Plate"
         },
+        "material_import_settings" :{
+            "materials_filename": "eigen_test/Eigen_Q4_Thick_2x2_Plate_test_materials.json"
+        },
 	"eigensolver_settings":{
         "solver_type": "FEAST",
         "print_feast_output": false,

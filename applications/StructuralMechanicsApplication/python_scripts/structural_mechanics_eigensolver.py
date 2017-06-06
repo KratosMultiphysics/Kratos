@@ -1,8 +1,8 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-from KratosMultiphysics import ExternalSolversApplication
-from KratosMultiphysics import StructuralMechanicsApplication
+import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -30,6 +30,9 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
                 "input_type": "mdpa",
                 "input_filename": "unknown_name",
                 "input_file_label": 0
+            },
+            "material_import_settings" :{
+                "materials_filename": ""
             },
             "rotation_dofs": false,
             "pressure_dofs": false,
@@ -95,7 +98,7 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
                 
         if self.settings["pressure_dofs"].GetBool():                
             for node in self.main_model_part.Nodes:
-                node.AddDof(KratosMultiphysics.PRESSURE, KratosSolid.PRESSURE_REACTION)
+                node.AddDof(KratosMultiphysics.PRESSURE, StructuralMechanicsApplication.PRESSURE_REACTION)
 
         print("::[Structural EigenSolver]:: DOF's ADDED")
 
