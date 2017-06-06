@@ -4,6 +4,7 @@ import os
 import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
+from KratosMultiphysics.SwimmingDEMApplication import *
 import main_script
 
 sys.path.insert(0,'')

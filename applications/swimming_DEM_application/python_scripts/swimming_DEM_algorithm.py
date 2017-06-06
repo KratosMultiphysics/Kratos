@@ -38,7 +38,24 @@ else:
     print("Running under OpenMP........")
 
 sys.path.insert(0,'')
-#BaseAlgorithm = DEM_algorithm.Solution
+
+class Logger(object):
+    def __init__(self):
+        self.terminal = sys.stdout
+        self.path_to_console_out_file = "console_output.txt"
+        self.log = open(self.path_to_console_out_file, "a")
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)  
+
+    def flush(self):
+        #this flush method is needed for python 3 compatibility.
+        #this handles the flush command by doing nothing.
+        #you might want to specify some extra behavior here.
+        pass    
+    
+sys.stdout = Logger()
 
 
 class Algorithm(object):
@@ -424,6 +441,7 @@ class Algorithm(object):
         
     def DispersePhaseInitialize(self):
         
+        self.spheres_model_part = self.disperse_phase_algorithm.spheres_model_part
         self.vars_man.AddNodalVariables(self.disperse_phase_algorithm.spheres_model_part, self.pp.dem_vars)
         self.vars_man.AddNodalVariables(self.disperse_phase_algorithm.rigid_face_model_part, self.pp.rigid_faces_vars)
         self.vars_man.AddNodalVariables(self.disperse_phase_algorithm.DEM_inlet_model_part, self.pp.inlet_vars)
@@ -793,3 +811,5 @@ class Algorithm(object):
     
     def GetReturnValue(self):
         return 0.0
+
+    

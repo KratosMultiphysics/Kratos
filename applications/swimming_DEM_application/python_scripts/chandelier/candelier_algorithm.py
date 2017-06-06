@@ -6,7 +6,7 @@ import math
 
 class Algorithm(BaseAlgorithm):
     def __init__(self, varying_parameters = dict()):
-        BaseAlgorithm.__init__(self, varying_parameters = dict())
+        BaseAlgorithm.__init__(self, varying_parameters)
 
     def GetFluidSolveCounter(self):
         return SDP.Counter(is_dead = True)
@@ -89,7 +89,7 @@ class Algorithm(BaseAlgorithm):
         self.results_database = candelier_hdf5.ResultsCandelier(self.pp, self.main_path)
 
     def DEMSolve(self, time = 'None'):
-        self.solver.Solve()
+        self.disperse_phase_algorithm.solver.Solve()
         for node in self.spheres_model_part.Nodes:
             coor_calculated = [node.X, node.Y, node.Z]
             self.radial_error = self.results_database.CalculateError(time, coor_calculated)

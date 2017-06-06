@@ -33,13 +33,13 @@ varying_parameters['basset_force_type'] = 0
 import candelier_algorithm
 test = script.Solution(candelier_algorithm, varying_parameters)
 error_names.append('No history force, Daitche')
-errors.append(test.Run())
+errors.append(test.alg.Run())
 
 varying_parameters['basset_force_type'] = 2
 # Second-order accurate Daitche benchmark
 test = script.Solution(candelier_algorithm, varying_parameters)
 error_names.append('All forces, Daitche')
-errors.append(test.Run())
+errors.append(test.alg.Run())
 
 # Output
 print()
