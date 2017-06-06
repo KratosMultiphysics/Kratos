@@ -163,6 +163,9 @@ namespace Kratos
 
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( xi_c )
 
+    KRATOS_CREATE_VARIABLE( double, SOLID_FRACTION )
+    KRATOS_CREATE_VARIABLE( double, SOLID_FRACTION_RATE )
+
 
 
   void KratosApplication::RegisterDeprecatedVariables()
@@ -258,6 +261,9 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(   IS_DIVIDED )
 
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( xi_c )
+
+    KRATOS_REGISTER_VARIABLE( SOLID_FRACTION )
+    KRATOS_REGISTER_VARIABLE( SOLID_FRACTION_RATE )
 
   }
 }  // namespace Kratos.

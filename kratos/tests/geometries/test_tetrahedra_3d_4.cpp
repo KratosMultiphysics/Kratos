@@ -29,6 +29,8 @@ namespace Kratos {
     typedef Tetrahedra3D4<PointType>  GeometryType;
     typedef GeometryType::Pointer     GeometryPtrType;
 
+    static bool exceptionThrown = false;
+    
     /** Generates a sample Tetrahedra3D4.
      * Generates a tetrahedra defined by three random points in the space.
      * @return  Pointer to a Tetrahedra3D4

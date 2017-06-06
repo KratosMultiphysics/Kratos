@@ -106,6 +106,8 @@ if(${ACTIVATE_DEBUG_MACRO} MATCHES ON)        #MSI: Flag defined for debug Macro
     add_definitions(-DDEBUG_MACRO)
 endif(${ACTIVATE_DEBUG_MACRO} MATCHES ON)
 
+add_definitions( -Wsuggest-override )
+
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosDEMApplication PROPERTIES SUFFIX .pyd)

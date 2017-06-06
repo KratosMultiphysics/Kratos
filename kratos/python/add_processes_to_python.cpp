@@ -46,19 +46,23 @@
 #include "processes/check_skin_process.h"
 #include "processes/replace_elements_and_condition_process.h"
 #include "processes/compute_nodal_gradient_process.h"
+#include "processes/assign_scalar_variable_to_conditions_process.h"
+#include "processes/assign_scalar_field_to_conditions_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
-
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
+
+#include "utilities/python_function_callback_utility.h"
+
 
 namespace Kratos
 {
 
 namespace Python
 {
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
+typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
 
 void  AddProcessesToPython()
 {
@@ -67,15 +71,15 @@ void  AddProcessesToPython()
 
 
     class_<Process>("Process")
-            .def("Execute",&Process::Execute)
-            .def("ExecuteInitialize",&Process::ExecuteInitialize)
-            .def("ExecuteBeforeSolutionLoop",&Process::ExecuteBeforeSolutionLoop)
-            .def("ExecuteInitializeSolutionStep",&Process::ExecuteInitializeSolutionStep)
-            .def("ExecuteFinalizeSolutionStep",&Process::ExecuteFinalizeSolutionStep)
-            .def("ExecuteBeforeOutputStep",&Process::ExecuteBeforeOutputStep)
-            .def("ExecuteAfterOutputStep",&Process::ExecuteAfterOutputStep)
-            .def("ExecuteFinalize",&Process::ExecuteFinalize)
-            .def(self_ns::str(self))
+    .def("Execute",&Process::Execute)
+    .def("ExecuteInitialize",&Process::ExecuteInitialize)
+    .def("ExecuteBeforeSolutionLoop",&Process::ExecuteBeforeSolutionLoop)
+    .def("ExecuteInitializeSolutionStep",&Process::ExecuteInitializeSolutionStep)
+    .def("ExecuteFinalizeSolutionStep",&Process::ExecuteFinalizeSolutionStep)
+    .def("ExecuteBeforeOutputStep",&Process::ExecuteBeforeOutputStep)
+    .def("ExecuteAfterOutputStep",&Process::ExecuteAfterOutputStep)
+    .def("ExecuteFinalize",&Process::ExecuteFinalize)
+    .def(self_ns::str(self))
     ;
 
     class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",init<ModelPart&>())
@@ -141,8 +145,8 @@ void  AddProcessesToPython()
 
     class_<TetrahedralMeshOrientationCheck, bases<Process>, boost::noncopyable >("TetrahedralMeshOrientationCheck",
             init<ModelPart&, bool>())
-            .def("SwapAll",&TetrahedralMeshOrientationCheck::SwapAll)
-            .def("SwapNegativeElements",&TetrahedralMeshOrientationCheck::SwapNegativeElements)
+    .def("SwapAll",&TetrahedralMeshOrientationCheck::SwapAll)
+    .def("SwapNegativeElements",&TetrahedralMeshOrientationCheck::SwapNegativeElements)
     ;
 
     class_<ComputeBDFCoefficientsProcess, bases<Process>, boost::noncopyable >("ComputeBDFCoefficientsProcess",
@@ -161,8 +165,8 @@ void  AddProcessesToPython()
 
     class_<LevelSetConvectionProcess<2> , bases<Process>, boost::noncopyable >("LevelSetConvectionProcess2D",
             init<Variable<double>& , ModelPart& , LinearSolverType::Pointer ,double >())
-            .def(init< Variable<double>& , ModelPart& , LinearSolverType::Pointer ,double, double>())
-			.def(init< Variable<double>&, ModelPart&, LinearSolverType::Pointer, double, double,int>())
+    .def(init< Variable<double>& , ModelPart& , LinearSolverType::Pointer ,double, double>())
+    .def(init< Variable<double>&, ModelPart&, LinearSolverType::Pointer, double, double,int>())
     ;
     class_<LevelSetConvectionProcess<3> , bases<Process>, boost::noncopyable >("LevelSetConvectionProcess3D",
             init<Variable<double>& , ModelPart& , LinearSolverType::Pointer ,double>())
@@ -217,9 +221,19 @@ void  AddProcessesToPython()
             init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
 
+
+    class_<AssignScalarVariableToConditionsProcess, bases<Process>, boost::noncopyable >("AssignScalarVariableToConditionsProcess",
+            init<ModelPart&, Parameters >())
+    ;
+
+    class_<AssignScalarFieldToConditionsProcess , bases<Process>, boost::noncopyable >("AssignScalarFieldToConditionsProcess",
+            init<ModelPart&, Parameters >())
+    ;
+
 	class_<CalculateDiscontinuousDistanceToSkinProcess, bases<Process>, boost::noncopyable >("CalculateDiscontinuousDistanceToSkinProcess",
 		init<ModelPart&, ModelPart&>())
 		;
+
 
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
     //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;

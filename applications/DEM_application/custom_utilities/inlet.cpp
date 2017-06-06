@@ -345,7 +345,7 @@ namespace Kratos {
             int total_mesh_size_accross_mpi_processes = mesh_size_elements; //temporary value until reduction is done
             r_modelpart.GetCommunicator().SumAll(total_mesh_size_accross_mpi_processes);
             const double this_mpi_process_portion_of_inlet_mesh = (double) mesh_size_elements / (double) total_mesh_size_accross_mpi_processes;
-            double num_part_surface_time = mp[INLET_NUMBER_OF_PARTICLES];
+            double num_part_surface_time = GetInputNumberOfParticles(mp);
             num_part_surface_time *= this_mpi_process_portion_of_inlet_mesh;
             const double delta_t = current_time - mLastInjectionTimes[smp_number]; // FLUID DELTA_T CAN BE USED ALSO, it will depend on how often we call this function
             double surface = 1.0; //inlet_surface, this should probably be projected to velocity vector
@@ -371,8 +371,15 @@ namespace Kratos {
             else {           
                 //calculate number of particles to insert from input data
                 const double double_number_of_particles_to_insert = num_part_surface_time * delta_t * surface + mPartialParticleToInsert[smp_number];
-                number_of_particles_to_insert = floor(double_number_of_particles_to_insert);
-                mPartialParticleToInsert[smp_number] = double_number_of_particles_to_insert - number_of_particles_to_insert;
+
+                if (double_number_of_particles_to_insert < INT_MAX){ // otherwise the precision is not enough to see the residuals
+                    mPartialParticleToInsert[smp_number] = double_number_of_particles_to_insert - number_of_particles_to_insert;
+                    number_of_particles_to_insert = std::trunc(double_number_of_particles_to_insert);
+                }
+
+                else {
+                    number_of_particles_to_insert = INT_MAX;
+                }
             }
             
             if (number_of_particles_to_insert) {                                
@@ -408,7 +415,7 @@ namespace Kratos {
                     }
                 }
                 
-                
+
                 const array_1d<double, 3> angular_velocity = mp[ANGULAR_VELOCITY];
                 const double mod_angular_velocity = MathUtils<double>::Norm3(angular_velocity);
                 const double angular_velocity_start_time = mp[ANGULAR_VELOCITY_START_TIME];
@@ -433,7 +440,7 @@ namespace Kratos {
                 Properties::Pointer p_properties = mInletModelPart.pGetProperties(mp[PROPERTIES_ID]);
                 
                 const double mass_that_should_have_been_inserted_so_far = mass_flow * (current_time - inlet_start_time);                               
-               
+
                 int i=0;
                 for (i = 0; i < number_of_particles_to_insert; i++) {
 
@@ -475,7 +482,7 @@ namespace Kratos {
                         Cluster3D* p_cluster = creator.ClusterCreatorWithPhysicalParameters(r_modelpart, 
                                                                                             r_clusters_modelpart,
                                                                                             max_Id+1, 
-                                                                                            valid_elements[random_pos]->GetGeometry()(0), 
+                                                                                            valid_elements[random_pos]->GetGeometry()(0),
                                                                                             valid_elements[random_pos],
                                                                                            //This only works for random_pos as real position in the vector if 
                                                                                            //we use ModelPart::NodesContainerType::ContainerType instead of ModelPart::NodesContainerType
@@ -514,7 +521,58 @@ namespace Kratos {
         mFirstInjectionIsDone = true;
         
     }    //CreateElementsFromInletMesh   
-    
+        
+    void DEM_Inlet::AddRandomPerpendicularComponentToGivenVector(array_1d<double, 3 >& vector, const double angle_in_degrees)
+    {
+        KRATOS_TRY
+        const double vector_modulus = DEM_MODULUS_3(vector);
+        array_1d<double, 3 > unitary_vector;
+        noalias(unitary_vector) = vector / vector_modulus;
+        array_1d<double, 3 > normal_1;
+        array_1d<double, 3 > normal_2;
+
+        if (fabs(unitary_vector[0])>=0.577) {
+            normal_1[0]= - unitary_vector[1];
+            normal_1[1]= unitary_vector[0];
+            normal_1[2]= 0.0;
+        }
+        else if (fabs(unitary_vector[1])>=0.577) {
+            normal_1[0]= 0.0;
+            normal_1[1]= - unitary_vector[2];
+            normal_1[2]= unitary_vector[1];
+        }
+        else {
+            normal_1[0]= unitary_vector[2];
+            normal_1[1]= 0.0;
+            normal_1[2]= - unitary_vector[0];
+        }
+
+        //normalize(normal_1);
+        const double distance0 = DEM_MODULUS_3(normal_1);
+        const double inv_distance0 = (distance0 != 0.0) ? 1.0 / distance0 : 0.00;
+        normal_1[0] *= inv_distance0;
+        normal_1[1] *= inv_distance0;
+        normal_1[2] *= inv_distance0;
+
+        //CrossProduct(NormalDirection,Vector0,Vector1);
+        DEM_SET_TO_CROSS_OF_FIRST_TWO_3(unitary_vector, normal_1, normal_2)
+
+        const double angle_in_radians = angle_in_degrees * KRATOS_M_PI / 180;
+        const double radius = tan(angle_in_radians) * vector_modulus;
+        const double radius_square = radius * radius;
+        double local_added_vector_modulus_square = radius_square + 1.0; //just greater than the radius, to get at least one iteration of the while
+        array_1d<double, 3> local_added_vector; local_added_vector[0] = local_added_vector[1] = local_added_vector[2] = 0.0;
+
+        while (local_added_vector_modulus_square > radius_square) {
+            //Random in a range: (max - min) * ( (double)rand() / (double)RAND_MAX ) + min
+            local_added_vector[0] = 2*radius * (double)rand() / (double)RAND_MAX - radius;
+            local_added_vector[1] = 2*radius * (double)rand() / (double)RAND_MAX - radius;
+            local_added_vector_modulus_square = local_added_vector[0]*local_added_vector[0] + local_added_vector[1]*local_added_vector[1];
+        }
+
+        noalias(vector) += local_added_vector[0] * normal_1 + local_added_vector[1] * normal_2;
+        KRATOS_CATCH("")
+    }
     
     void DEM_Inlet::ThrowWarningTooSmallInlet(const ModelPart& mp) {
         if(!mWarningTooSmallInlet) {
@@ -601,6 +659,19 @@ namespace Kratos {
         ++mNumberOfParticlesInjected[i];
         
         mMassInjected[i] += r_cluster.GetMass();
+    }
+
+    double DEM_Inlet::GetInputNumberOfParticles(const ModelPart& mp)
+    {
+        double num_part_surface_time = mp[INLET_NUMBER_OF_PARTICLES];
+
+        if (num_part_surface_time >= 0){
+           return num_part_surface_time;
+        }
+
+        else {
+            KRATOS_ERROR << "The value of the Model Part variable INLET_NUMBER_OF_PARTICLES is not a positive int: " << num_part_surface_time;
+        }
     }
 
 
