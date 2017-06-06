@@ -118,6 +118,15 @@ NodeType::Pointer GetNodeFromCondition( Condition& dummy, unsigned int index )
     return( dummy.GetGeometry().pGetPoint(index) );
 }
 
+void ConditionCalculateLocalSystemStandard( Condition& dummy, 
+                                                Matrix& rLeftHandSideMatrix,
+                                                Vector& rRightHandSideVector,
+                                                ProcessInfo& rCurrentProcessInfo)
+{
+    dummy.CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+}
+
+
 boost::python::list GetNodesFromCondition( Condition& dummy )
 {
     boost::python::list nodes_list;
@@ -560,7 +569,7 @@ void  AddMeshToPython()
     				.def(SolutionStepVariableIndexingPython<Condition, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
     */
     .def("Initialize", &Condition::Initialize)
-    //.def("CalculateLocalSystem", &Condition::CalculateLocalSystem)
+    .def("CalculateLocalSystem", &ConditionCalculateLocalSystemStandard)
     .def("Info", &Condition::Info)
     .def(self_ns::str(self))
     ;
