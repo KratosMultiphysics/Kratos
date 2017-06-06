@@ -164,7 +164,10 @@ namespace Kratos
             //calculating weights for integration on the reference configuration
             double IntToReferenceWeight = integration_points[PointNumber].Weight() * detJ0;
 
-            if ( dim == 2 ) IntToReferenceWeight *= GetProperties()[THICKNESS];
+            if ( dim == 2 && GetProperties().Has( THICKNESS )) 
+            {
+                IntToReferenceWeight *= GetProperties()[THICKNESS];
+            }
 
             if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
             {
@@ -230,7 +233,10 @@ namespace Kratos
 
         weight *= DetJ0;
 
-        if ( dimension == 2 ) weight *= GetProperties()[THICKNESS];
+        if ( dimension == 2 && GetProperties().Has( THICKNESS )) 
+        {
+            weight *= GetProperties()[THICKNESS];
+        }
 
         return weight;
     }
@@ -441,7 +447,10 @@ namespace Kratos
 
         double TotalMass = initial_area * GetProperties()[DENSITY];
 
-        if ( dimension == 2 ) TotalMass *= GetProperties()[THICKNESS];
+        if ( dimension == 2 && GetProperties().Has( THICKNESS )) 
+        {
+            TotalMass *= GetProperties()[THICKNESS];
+        }
 
         Vector LumpFact;
 
@@ -932,15 +941,10 @@ namespace Kratos
         // Verify that the constitutive law has the correct dimension
         if ( dimension == 2 )
         {
-            if ( this->GetProperties().Has( THICKNESS ) == false )
-            {
-                KRATOS_ERROR << "THICKNESS not provided for element " << this->Id() << std::endl;
-            }
-            
-            if ( this->GetProperties().Has( VOLUME_ACCELERATION ) == false )
-            {
-                KRATOS_ERROR << "VOLUME_ACCELERATION not provided for element " << this->Id() << std::endl;
-            }
+//             if ( this->GetProperties().Has( THICKNESS ) == false ) // NOTE: Not mandatory
+//             {
+//                 KRATOS_ERROR << "THICKNESS not provided for element " << this->Id() << std::endl;
+//             }
 
             if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
             {
