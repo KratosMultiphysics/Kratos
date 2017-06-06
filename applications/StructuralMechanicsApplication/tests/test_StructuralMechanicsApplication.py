@@ -200,7 +200,7 @@ def AssambleTestSuites():
             TShellT3ThinDrillingRollUpTests,
             TShellT3IsotropicScordelisTests,
             ##TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
-            ##TSprismPanTests # FIXME: New get up to date
+            ##TSprismPanTests # FIXME: Needs point load and get up to date
         ])
     )
         

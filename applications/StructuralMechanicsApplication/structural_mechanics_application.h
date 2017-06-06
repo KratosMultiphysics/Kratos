@@ -46,6 +46,7 @@
 #include "custom_conditions/point_moment_3D_condition.hpp"
 #include "custom_conditions/point_torque_3D_condition.hpp"
 #include "custom_conditions/base_load_condition.h"
+#include "custom_conditions/point_load_condition.h"
 #include "custom_conditions/line_load_condition_2d.h"
 #include "custom_conditions/surface_load_condition_3d.h"
 
@@ -269,6 +270,10 @@ private:
     const TotalLagrangian mTotalLagrangian3D27N;
     
     /* CONDITIONS*/
+    // Point load
+    const PointLoadCondition mPointLoadCondition2D1N;
+    const PointLoadCondition mPointLoadCondition3D1N;
+    
     // Line load
     const LineLoadCondition2D mLineLoadCondition2D2N;
     const LineLoadCondition2D mLineLoadCondition2D3N;
