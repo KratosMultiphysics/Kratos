@@ -256,11 +256,6 @@ protected:
      */
     void ClearNodalForces ();
 
-    /**
-     * Calculation of the Delta Position
-     */
-    Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
-
     ///@}
     ///@name Protected  Access
     ///@{
