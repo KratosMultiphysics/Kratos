@@ -84,11 +84,17 @@ void LineLoad3DCondition::InitializeGeneralVariables(GeneralVariables& rVariable
   rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
   
   //Calculate Delta Position
-  rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+  //rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
 
-  ///calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
+  //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
+  //rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
+
+  //Calculate Total Delta Position
+  rVariables.DeltaPosition = CalculateTotalDeltaPosition(rVariables.DeltaPosition);
+
+  //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_0/d£]
   rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
-
+  
 }
 
 //*************************COMPUTE DELTA POSITION*************************************
@@ -121,7 +127,33 @@ Matrix& LineLoad3DCondition::CalculateDeltaPosition(Matrix & rDeltaPosition)
     KRATOS_CATCH( "" )
 }
 
+//*************************COMPUTE TOTAL DELTA POSITION*******************************
+//************************************************************************************
 
+Matrix& LineLoad3DCondition::CalculateTotalDeltaPosition(Matrix & rDeltaPosition)
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    rDeltaPosition.resize(number_of_nodes , dimension, false);
+    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+ 
+        for ( unsigned int j = 0; j < dimension; j++ )
+        {
+            rDeltaPosition(i,j) = CurrentDisplacement[j];
+        }
+    }
+
+    return rDeltaPosition;
+
+    KRATOS_CATCH( "" )
+}
 
 //*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************
