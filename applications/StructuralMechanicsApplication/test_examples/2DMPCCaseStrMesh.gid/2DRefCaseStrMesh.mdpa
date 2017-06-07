@@ -43,14 +43,6 @@ Begin Elements SmallDisplacementElement2D4N// GUI group identifier: smallDispSur
          8          1          8          9          7          4 
 End Elements
 
-Begin Conditions LineLoadCondition2D2N// GUI group identifier: centerLineLoad
-1 0 7 9
-2 0 6 7
-3 0 7 6
-4 0 9 7
-5 0 9 7
-6 0 7 6
-End Conditions
 
 Begin SubModelPart Parts_smallDispSurf // Group smallDispSurf // Subtree Parts
     Begin SubModelPartNodes
@@ -106,11 +98,6 @@ Begin SubModelPart LineLoad2D_centerLineLoad // Group centerLineLoad // Subtree 
     Begin SubModelPartElements
     End SubModelPartElements
     Begin SubModelPartConditions
-         1
-         2
-         3
-         4
-         5
-         6
+
     End SubModelPartConditions
 End SubModelPart

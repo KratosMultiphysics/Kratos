@@ -53,20 +53,7 @@
             "value"           : [0.0,0.0,0.0]
         }
     }],
-    "loads_process_list"       : [{
-        "implemented_in_file"   : "apply_vector_on_conditions_process",
-        "implemented_in_module" : "KratosMultiphysics.SolidMechanicsApplication",
-        "help"                  : "This process sets a vector variable value over a condition",
-        "check"                 : "DirectorVectorNonZero direction",
-        "process_name"          : "ApplyVectorOnConditionsProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "LineLoad2D_centerLineLoad",
-            "variable_name"   : "LINE_LOAD",
-            "modulus"          : 0.0,
-            "direction"       : [1.0,0.0,0.0]
-        }
-    }],
+    "loads_process_list"       : [],
     "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {

@@ -30,6 +30,8 @@ from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
+from KratosMultiphysics.ChimeraApplication import *
+
 
 
 ######################################################################################
@@ -85,6 +87,7 @@ if(echo_level>1):
 #### processes settings start ####
 import process_factory
 list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
+print(list_of_processes[0])
 
 list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
             
@@ -139,23 +142,40 @@ time       = ProjectParameters["problem_data"]["start_time"].GetDouble()
 end_time   = ProjectParameters["problem_data"]["end_time"].GetDouble()
 
 main_model_part.Nodes[10].SetSolutionStepValue(DISPLACEMENT_X, 0, 0.01)    
-main_model_part.Nodes[10].SetSolutionStepValue(DISPLACEMENT_Y, 0, 0.0) 
+main_model_part.Nodes[10].SetSolutionStepValue(DISPLACEMENT_Y, 0, 0.00) 
 main_model_part.Nodes[10].Fix(DISPLACEMENT_X) 
 main_model_part.Nodes[10].Fix(DISPLACEMENT_Y)
 
 
 main_model_part.Nodes[11].SetSolutionStepValue(DISPLACEMENT_X, 0, 0.01)    
-main_model_part.Nodes[11].SetSolutionStepValue(DISPLACEMENT_Y, 0, 0.1)
+main_model_part.Nodes[11].SetSolutionStepValue(DISPLACEMENT_Y, 0, 0.00)
 main_model_part.Nodes[11].Fix(DISPLACEMENT_X) 
 main_model_part.Nodes[11].Fix(DISPLACEMENT_Y)
 
 
 main_model_part.Nodes[12].SetSolutionStepValue(DISPLACEMENT_X, 0, 0.01)    
-main_model_part.Nodes[12].SetSolutionStepValue(DISPLACEMENT_Y, 0, 0.01)
+main_model_part.Nodes[12].SetSolutionStepValue(DISPLACEMENT_Y, 0, 0.00)
 main_model_part.Nodes[12].Fix(DISPLACEMENT_X) 
 main_model_part.Nodes[12].Fix(DISPLACEMENT_Y)
 
-constraintMaker = AddMultiPointConstraint() 
+#newconstraintMaker = ApplyMultipointConstraintsProcess(solver.GetComputingModelPart())
+newconstraintMaker = ApplyMultipointConstraintsProcess(main_model_part)
+
+def ApplyConstraintsNew(main_model_part, newconstraintMaker):
+    print("Setting MPC Constraints .. !!") 
+    
+    newconstraintMaker.AddMasterSlaveRelation(main_model_part.Nodes[16],DISPLACEMENT_Y, main_model_part.Nodes[6], DISPLACEMENT_Y,  1.0, 0 )  
+    newconstraintMaker.AddMasterSlaveRelation(main_model_part.Nodes[16],DISPLACEMENT_X, main_model_part.Nodes[6], DISPLACEMENT_X,  1.0, 0 )   
+    
+    newconstraintMaker.AddMasterSlaveRelation(main_model_part.Nodes[17],DISPLACEMENT_X, main_model_part.Nodes[7], DISPLACEMENT_X,  1.0, 0 )
+    newconstraintMaker.AddMasterSlaveRelation(main_model_part.Nodes[17],DISPLACEMENT_Y, main_model_part.Nodes[7], DISPLACEMENT_Y,  1.0, 0 ) 
+    
+    newconstraintMaker.AddMasterSlaveRelation(main_model_part.Nodes[18],DISPLACEMENT_X, main_model_part.Nodes[9], DISPLACEMENT_X,  1.0, 0 )   
+    newconstraintMaker.AddMasterSlaveRelation(main_model_part.Nodes[18],DISPLACEMENT_Y, main_model_part.Nodes[9], DISPLACEMENT_Y,  1.0, 0 )     
+    print("Finished Setting MPC Constraints .. !!")
+    
+    
+ApplyConstraintsNew(main_model_part, newconstraintMaker)
 
 # solving the problem (time integration)
 while(time <= end_time):
@@ -163,7 +183,6 @@ while(time <= end_time):
     time = time + delta_time
     step = step + 1
     main_model_part.CloneTimeStep(time)
-
    
     # print process info
     ## 
@@ -178,24 +197,7 @@ while(time <= end_time):
     
     print("########################## Solving START")
     solver.Solve()
-    print("########################## Solving END")
-    
-    if(step == 1):
-        main_model_part.Nodes[6].SetValue(IS_SLAVE, True)
-        main_model_part.Nodes[7].SetValue(IS_SLAVE, True)
-        main_model_part.Nodes[9].SetValue(IS_SLAVE, True)
-        print("Setting MPC Constraints .. !!") 
-       
-        constraintMaker.ApplyConstraint(main_model_part.Nodes[16],DISPLACEMENT_Y, main_model_part.Nodes[6], DISPLACEMENT_Y,  1.0 )  
-        constraintMaker.ApplyConstraint(main_model_part.Nodes[16],DISPLACEMENT_X, main_model_part.Nodes[6], DISPLACEMENT_X,  1.0 )   
-        constraintMaker.ApplyConstraint(main_model_part.Nodes[17],DISPLACEMENT_X, main_model_part.Nodes[7], DISPLACEMENT_X,  1.0 )
-        constraintMaker.ApplyConstraint(main_model_part.Nodes[17],DISPLACEMENT_Y, main_model_part.Nodes[7], DISPLACEMENT_Y,  1.0 )                   
-        constraintMaker.ApplyConstraint(main_model_part.Nodes[18],DISPLACEMENT_X, main_model_part.Nodes[9], DISPLACEMENT_X,  1.0 )   
-        constraintMaker.ApplyConstraint(main_model_part.Nodes[18],DISPLACEMENT_Y, main_model_part.Nodes[9], DISPLACEMENT_Y,  1.0 )   
-
-        print("########################## Solving START")
-        solver.Solve()
-        print("########################## Solving END")
+    print("########################## Solving END")   
        
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
