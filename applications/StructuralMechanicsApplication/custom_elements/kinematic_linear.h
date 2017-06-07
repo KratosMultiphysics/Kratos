@@ -107,30 +107,6 @@ public:
       */
     void ResetConstitutiveLaw();
 
-     /**
-     * This function provides a more general interface to the element. 
-     * It is designed so that rLHSvariables and rRHSvariables are passed to the element thus telling what is the desired output
-     * @param rLeftHandSideMatrices: container with the output left hand side matrices
-     * @param rLHSVariables: paramter describing the expected LHSs
-     * @param rRightHandSideVectors: container for the desired RHS output
-     * @param rRHSVariables: parameter describing the expected RHSs
-     */
-    void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix, 
-        VectorType& rRightHandSideVector, 
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-      * This is called during the assembling process in order to calculate the elemental right hand side vector only
-      * @param rRightHandSideVector: the elemental right hand side vector
-      * @param rCurrentProcessInfo: the current process info instance
-      */
-    void CalculateRightHandSide(
-        VectorType& rRightHandSideVector, 
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
-
     /**
      * Called at the beginning of each solution step
      * @param rCurrentProcessInfo: the current process info instance
@@ -156,123 +132,18 @@ public:
     void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
     /**
-     * Calculate a double Variable on the Element Constitutive Law
-     * @param rVariable: The variable we want to get
-     * @param rOutput: The values obtained int the integration points
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateOnIntegrationPoints(
-        const Variable<double>& rVariable, 
-        std::vector<double>& rOutput, 
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * Calculate a Vector Variable on the Element Constitutive Law
-     * @param rVariable: The variable we want to get
-     * @param rOutput: The values obtained int the integration points
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateOnIntegrationPoints(
-        const Variable<Vector>& rVariable, 
-        std::vector<Vector>& rOutput, 
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
      * Calculate a Matrix Variable on the Element Constitutive Law
      * @param rVariable: The variable we want to get
      * @param rOutput: The values obtained int the integration points
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateOnIntegrationPoints(
+    virtual void CalculateOnIntegrationPoints(
         const Variable<Matrix >& rVariable, 
         std::vector< Matrix >& rOutput, 
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
-     /**
-     * Set a double Value on the Element Constitutive Law
-     * @param rVariable: The variable we want to set
-     * @param rValues: The values to set in the integration points
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void SetValueOnIntegrationPoints(
-        const Variable<double>& rVariable, 
-        std::vector<double>& rValues, 
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
     
-     /**
-     * Set a Vector Value on the Element Constitutive Law
-     * @param rVariable: The variable we want to set
-     * @param rValues: The values to set in the integration points
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void SetValueOnIntegrationPoints(
-        const Variable<Vector>& rVariable, 
-        std::vector<Vector>& rValues, 
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-     /**
-     * Set a Matrix Value on the Element Constitutive Law
-     * @param rVariable: The variable we want to set
-     * @param rValues: The values to set in the integration points
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void SetValueOnIntegrationPoints(
-        const Variable<Matrix>& rVariable, 
-        std::vector<Matrix>& rValues, 
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * Get on rVariable a double Value from the Element Constitutive Law
-     * @param rVariable: The variable we want to get
-     * @param rValues: The results in the integration points
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<double>& rVariable, 
-        std::vector<double>& rValues, 
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * Get on rVariable a Vector Value from the Element Constitutive Law
-     * @param rVariable: The variable we want to get
-     * @param rValues: The results in the integration points
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<Vector>& rVariable, 
-        std::vector<Vector>& rValues, 
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * Get on rVariable a Matrix Value from the Element Constitutive Law
-     * @param rVariable: The variable we want to get
-     * @param rValues: The results in the integration points
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<Matrix>& rVariable, 
-        std::vector<Matrix>& rValues, 
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * This method is not defined yet...
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void Calculate(
-        const Variable<double>& rVariable, 
-        double& Output,
-        const ProcessInfo& rCurrentProcessInfo
-        );
-
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -280,7 +151,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     //std::string Info() const;
 
@@ -327,10 +198,14 @@ protected:
      * \f$ K^e = w\,B^T\,D\,B \f$ and
      * \f$ r^e \f$
      */
-    virtual void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo,
-                              bool CalculateStiffnessMatrixFlag,
-                              bool CalculateResidualVectorFlag);
+    virtual void CalculateAll(
+        MatrixType& rLeftHandSideMatrix, 
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
+        );
+    
     ///@}
     ///@name Protected Operations
     ///@{
@@ -373,11 +248,6 @@ private:
 
     virtual void InitializeMaterial();
 
-    double CalculateIntegrationWeight(
-        double GaussPointWeight,
-        double DetJ0
-        );
-
     void CalculateAndAdd_ExtForceContribution(
         const Vector& N,
         const ProcessInfo& CurrentProcessInfo,
@@ -408,6 +278,18 @@ private:
      */
     Matrix ComputeEquivalentF(const Vector& StrainVector);
 
+    /**
+     * This functions computes the integration weight to consider
+     * @param IntegrationPoints: The array containing the integration points
+     * @param PointNumber: The id of the integration point considered
+     * @param detJ: The determinant of the jacobian of the element
+     */
+    virtual double GetIntegrationWeight(
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const unsigned int PointNumber,
+        const double detJ
+        );
+    
     ///@}
     ///@name Private Operations
     ///@{

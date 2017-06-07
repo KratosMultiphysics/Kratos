@@ -30,8 +30,8 @@ namespace Kratos
         //DO NOT ADD DOFS HERE!!!
     }
 
-//************************************************************************************
-//************************************************************************************
+    //************************************************************************************
+    //************************************************************************************
 
     TotalLagrangian::TotalLagrangian( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
             : BaseSolidElement( NewId, pGeometry, pProperties )
@@ -47,37 +47,36 @@ namespace Kratos
     {
     }
 
-//************************************************************************************
-//************************************************************************************
+    //************************************************************************************
+    //************************************************************************************
 
     void TotalLagrangian::Initialize()
     {
         KRATOS_TRY
 
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints(  );
 
         //Constitutive Law initialisation
 
-        if ( mConstitutiveLawVector.size() != integration_points.size() )
+        if ( mConstitutiveLawVector.size() != IntegrationPoints.size() )
         {
-            mConstitutiveLawVector.resize( integration_points.size() );
+            mConstitutiveLawVector.resize( IntegrationPoints.size() );
         }
 
         InitializeMaterial();
 
-
         KRATOS_CATCH( "" )
     }
 
-//************************************************************************************
-//************************************************************************************
+    //************************************************************************************
+    //************************************************************************************
 
     void TotalLagrangian::CalculateAll( 
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag 
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag 
         )
     {
         KRATOS_TRY;
@@ -127,7 +126,7 @@ namespace Kratos
         }
 
         // Reading integration points and local gradients
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints(  );
 
         const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients(  );
 
@@ -152,7 +151,7 @@ namespace Kratos
         Values.SetStrainVector(StrainVector); //this is the input  parameter
         Values.SetStressVector(StressVector); //this is the output parameter
 
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+        for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
         {
             double detJ0;
             CalculateDerivativesOnReference(J0, InvJ0, DN_DX, detJ0, DN_De[PointNumber]);
@@ -164,7 +163,7 @@ namespace Kratos
             noalias( F ) = prod( J[PointNumber], InvJ0 );
             
             // Here we essentially set the input parameters
-            double detF = MathUtils<double>::Det(F);
+            const double detF = MathUtils<double>::Det(F);
             Values.SetDeterminantF(detF); //assuming the determinant is computed somewhere else
             Values.SetDeformationGradientF(F); //F computed somewhere else
             
@@ -179,7 +178,7 @@ namespace Kratos
             CalculateB( B, F, DN_DX, StrainVector.size() );
 
             // Calculating weights for integration on the reference configuration
-            double IntToReferenceWeight = integration_points[PointNumber].Weight() * detJ0;
+            double IntToReferenceWeight = GetIntegrationWeight(IntegrationPoints, PointNumber, detJ0); 
 
             if ( dim == 2 && GetProperties().Has( THICKNESS )) 
             {
@@ -188,9 +187,11 @@ namespace Kratos
 
             if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
             {
-                //contributions to stiffness matrix calculated on the reference config
-                Matrix tmp = ( IntToReferenceWeight ) * Matrix( prod( D, B ) );
-                noalias( rLeftHandSideMatrix ) += prod( trans( B ), tmp ); //to be optimized to remove the temporary
+                // Contributions to stiffness matrix calculated on the reference config
+                /* Material stiffness matrix */
+                typedef Matrix temp_type;
+                noalias( rLeftHandSideMatrix ) += IntToReferenceWeight *prod( trans( B ), temp_type(prod(D, B)));
+                /* Geometric stiffness matrix */
                 CalculateAndAddKg( rLeftHandSideMatrix, DN_DX, StressVector, IntToReferenceWeight );
             }
 
@@ -210,60 +211,11 @@ namespace Kratos
             }
         }
 
-
         KRATOS_CATCH( "" )
     }
 
-//************************************************************************************
-//************************************************************************************
-
-    void TotalLagrangian::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
-    {
-        //calculation flags
-        bool CalculateStiffnessMatrixFlag = false;
-        bool CalculateResidualVectorFlag = true;
-        MatrixType temp = Matrix();
-
-        CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
-    }
-
-//************************************************************************************
-//************************************************************************************
-
-    void TotalLagrangian::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
-    {
-        //calculation flags
-        bool CalculateStiffnessMatrixFlag = true;
-        bool CalculateResidualVectorFlag = true;
-
-        CalculateAll( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
-        
-
-
-    }
-
-//************************************************************************************
-//************************************************************************************
-
-    double TotalLagrangian::CalculateIntegrationWeight( double GaussPointWeight, double DetJ0 )
-    {
-        //to permorm the integration over the reference domain we need to include
-        // the thickness in 2D
-        unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        double weight = GaussPointWeight;
-
-        weight *= DetJ0;
-
-        if ( dimension == 2 && GetProperties().Has( THICKNESS )) 
-        {
-            weight *= GetProperties()[THICKNESS];
-        }
-
-        return weight;
-    }
-
-////************************************************************************************
-////************************************************************************************
+    //************************************************************************************
+    //************************************************************************************
 
     void TotalLagrangian::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
     {
@@ -272,9 +224,25 @@ namespace Kratos
                     GetGeometry(), row( GetGeometry().ShapeFunctionsValues(  ), i ),
                     CurrentProcessInfo );
     }
+    
+    //************************************************************************************
+    //************************************************************************************
 
-////************************************************************************************
-////************************************************************************************
+    void TotalLagrangian::InitializeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+    {
+        // TODO: Add somethig if necessary
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
+
+    void TotalLagrangian::FinalizeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+    {
+        // TODO: Add somethig if necessary
+    }
+
+    //************************************************************************************
+    //************************************************************************************
 
     void TotalLagrangian::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
     {
@@ -286,8 +254,115 @@ namespace Kratos
                     CurrentProcessInfo );
     }
 
-//************************************************************************************
-//************************************************************************************
+    //************************************************************************************
+    //************************************************************************************
+
+    void TotalLagrangian::CalculateOnIntegrationPoints( 
+        const Variable<Matrix >& rVariable, 
+        std::vector< Matrix >& Output, 
+        const ProcessInfo& rCurrentProcessInfo
+        ) 
+    { 
+        KRATOS_TRY 
+ 
+        const unsigned int NumberOfNodes = GetGeometry().size(); 
+        const unsigned int dim = GetGeometry().WorkingSpaceDimension(); 
+        const unsigned int StrainSize = dim == 2 ? 3 : 6;
+ 
+        Matrix F( dim, dim ); 
+        Matrix D( StrainSize, StrainSize ); 
+        Vector StrainVector( StrainSize ); 
+        Vector StressVector( StrainSize ); 
+        Matrix DN_DX( NumberOfNodes, dim ); 
+ 
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo); 
+        Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRAIN, false); 
+        Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS); 
+        Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false); 
+        Values.SetStrainVector(StrainVector); //this is the input  parameter 
+        Values.SetStressVector(StressVector); //this is the output parameter 
+        Matrix J0(dim,dim), InvJ0(dim,dim); 
+         
+        //reading integration points and local gradients 
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  ); 
+ 
+//         const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(  ); 
+ 
+        //calculating actual jacobian 
+        GeometryType::JacobiansType J; 
+ 
+        J = GetGeometry().Jacobian( J ); 
+ 
+        if ( Output.size() != integration_points.size() ) 
+        {
+            Output.resize( integration_points.size() ); 
+        }
+ 
+        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ ) 
+        { 
+            const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients()[PointNumber]; 
+            double detJ0; 
+            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, detJ0, DN_De); 
+ 
+            // Deformation gradient 
+            noalias( F ) = prod( J[PointNumber], InvJ0 ); 
+ 
+            Matrix PlasticStrainVector( GetGeometry().size(), GetGeometry().WorkingSpaceDimension() ); 
+ 
+            if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ) 
+            { 
+                // Strain calculation 
+                Matrix C = prod( trans( F ), F ); 
+                CalculateStrain( C, StrainVector ); 
+                if ( Output[PointNumber].size2() != StrainVector.size() )
+                {
+                    Output[PointNumber].resize( 1, StrainVector.size(), false ); 
+                }
+ 
+                for ( unsigned int ii = 0; ii < StrainVector.size(); ii++ )
+                {
+                    Output[PointNumber]( 0, ii ) = StrainVector[ii]; 
+                }
+            } 
+            else if ( rVariable == PK2_STRESS_TENSOR ) 
+            { 
+                if ( Output[PointNumber].size2() != StressVector.size() ) 
+                {
+                    Output[PointNumber].resize( 1, StressVector.size(), false ); 
+                }
+                                         
+                //here we essentially set the input parameters 
+                const double detF = MathUtils<double>::Det(F); 
+                Values.SetDeterminantF(detF); //assuming the determinant is computed somewhere else 
+                Values.SetDeformationGradientF(F); //F computed somewhere else 
+                 
+                //actually do the computations in the ConstitutiveLaw     
+                mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values); //here the calculations are actually done  
+ 
+                for ( unsigned int ii = 0; ii < StressVector.size(); ii++ ) 
+                { 
+                    Output[PointNumber]( 0, ii ) = StressVector[ii]; 
+                } 
+            } 
+//             else if ( rVariable == GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR ) 
+//             { 
+//                 double size = StrainVector.size(); 
+//                 Matrix PlasticStrainVector( 1, size ); 
+//  
+//                 if ( Output[PointNumber].size2() != StrainVector.size() ) 
+//                     Output[PointNumber].resize( 1, size, false ); 
+//  
+//                 mConstitutiveLawVector[PointNumber]->GetValue( GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR, PlasticStrainVector ); 
+//  
+//                 Output[PointNumber] = PlasticStrainVector; 
+//             } 
+        } 
+ 
+        KRATOS_CATCH( "" ) 
+    } 
+    
+    //************************************************************************************
+    //************************************************************************************
 
     void TotalLagrangian::InitializeMaterial()
     {
@@ -323,8 +398,8 @@ namespace Kratos
         KRATOS_CATCH( "" )
     }
 
-//************************************************************************************
-//************************************************************************************
+    //************************************************************************************
+    //************************************************************************************
 
     inline void TotalLagrangian::CalculateAndAdd_ExtForceContribution(
         const Vector& N,
@@ -354,8 +429,8 @@ namespace Kratos
 
 
 
-//************************************************************************************
-//************************************************************************************
+    //************************************************************************************
+    //************************************************************************************
 
     void TotalLagrangian::CalculateAndAddKg(
         MatrixType& K,
@@ -372,8 +447,8 @@ namespace Kratos
         KRATOS_CATCH( "" )
     }
 
-//************************************************************************************
-//************************************************************************************
+    //************************************************************************************
+    //************************************************************************************
 
     void TotalLagrangian::CalculateStrain(
         const Matrix& C,
@@ -405,8 +480,8 @@ namespace Kratos
         KRATOS_CATCH( "" )
     }
 
-//************************************************************************************
-//************************************************************************************
+    //************************************************************************************
+    //************************************************************************************
 
     void TotalLagrangian::CalculateB(
         Matrix& B,
@@ -457,341 +532,21 @@ namespace Kratos
         KRATOS_CATCH( "" )
     }
 
+    //************************************************************************************
+    //************************************************************************************
 
-
-
-
-
-//************************************************************************************
-//************************************************************************************
-
-    void TotalLagrangian::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo )
+    double TotalLagrangian::GetIntegrationWeight(
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const unsigned int PointNumber,
+        const double detJ
+        )
     {
-        if ( Output.size() != GetGeometry().IntegrationPoints(  ).size() )
-            Output.resize( GetGeometry().IntegrationPoints(  ).size() );
-
-        for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
-            Output[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, Output[ii] );
+        return IntegrationPoints[PointNumber].Weight() * detJ;
     }
 
-//************************************************************************************
-//************************************************************************************
+    //************************************************************************************
+    //************************************************************************************
 
-    void TotalLagrangian::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo )
-    {
-        unsigned int StrainSize;
-
-        if ( GetGeometry().WorkingSpaceDimension() == 2 ) StrainSize = 3;
-        else StrainSize = 6;
-
-        Vector StrainVector( StrainSize );
-
-        if ( rVariable == INSITU_STRESS )
-        {
-            for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
-            {
-                if ( Output[ii].size() != StrainVector.size() )
-                    Output[ii].resize( StrainVector.size(), false );
-
-                Output[ii] = mConstitutiveLawVector[ii]->GetValue( INSITU_STRESS, Output[ii] );
-            }
-        }
-        else
-        {
-            if ( Output.size() != GetGeometry().IntegrationPoints(  ).size() )
-                Output.resize( GetGeometry().IntegrationPoints(  ).size() );
-
-            for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
-                Output[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, Output[ii] );
-        }
-
-    }
-
-//************************************************************************************
-//************************************************************************************
-
-    void TotalLagrangian::CalculateOnIntegrationPoints( const Variable<Matrix >& rVariable, std::vector< Matrix >& Output, const ProcessInfo& rCurrentProcessInfo )
-    {
-        KRATOS_TRY
-
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int StrainSize;
-
-        if ( dim == 2 )
-            StrainSize = 3;
-        else
-            StrainSize = 6;
-
-        Matrix F( dim, dim );
-        Matrix D( StrainSize, StrainSize );
-        Vector StrainVector( StrainSize );
-        Vector StressVector( StrainSize );
-        Matrix DN_DX( NumberOfNodes, dim );
-        
-
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-        Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRAIN, false);
-        Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
-        Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-        Values.SetStrainVector(StrainVector); //this is the input  parameter
-        Values.SetStressVector(StressVector); //this is the output parameter
-        Matrix J0(dim,dim), InvJ0(dim,dim);
-        
-        //reading integration points and local gradients
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
-
-//         const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(  );
-
-        //calculating actual jacobian
-        GeometryType::JacobiansType J;
-
-        J = GetGeometry().Jacobian( J );
-
-        if ( Output.size() != integration_points.size() )
-            Output.resize( integration_points.size() );
-
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-        {
-            const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients()[PointNumber];
-            double detJ0;
-            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, detJ0, DN_De);
-
-            //deformation gradient
-            noalias( F ) = prod( J[PointNumber], InvJ0 );
-
-            Matrix PlasticStrainVector( GetGeometry().size(), GetGeometry().WorkingSpaceDimension() );
-
-            if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
-            {
-                //strain calculation
-                Matrix C = prod( trans( F ), F );
-                CalculateStrain( C, StrainVector );
-                if ( Output[PointNumber].size2() != StrainVector.size() )
-                    Output[PointNumber].resize( 1, StrainVector.size(), false );
-
-                for ( unsigned int ii = 0; ii < StrainVector.size(); ii++ )
-                    Output[PointNumber]( 0, ii ) = StrainVector[ii];
-            }
-            else if ( rVariable == PK2_STRESS_TENSOR )
-            {
-                if ( Output[PointNumber].size2() != StressVector.size() )
-                    Output[PointNumber].resize( 1, StressVector.size(), false );
-                                        
-                //here we essentially set the input parameters
-                double detF = MathUtils<double>::Det(F);
-                Values.SetDeterminantF(detF); //assuming the determinant is computed somewhere else
-                Values.SetDeformationGradientF(F); //F computed somewhere else
-                
-                //actually do the computations in the ConstitutiveLaw    
-                mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values); //here the calculations are actually done 
-
-                for ( unsigned int ii = 0; ii < StressVector.size(); ii++ )
-                {
-                    Output[PointNumber]( 0, ii ) = StressVector[ii];
-                }
-            }
-//             else if ( rVariable == GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR )
-//             {
-//                 double size = StrainVector.size();
-//                 Matrix PlasticStrainVector( 1, size );
-// 
-//                 if ( Output[PointNumber].size2() != StrainVector.size() )
-//                     Output[PointNumber].resize( 1, size, false );
-// 
-//                 mConstitutiveLawVector[PointNumber]->GetValue( GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR, PlasticStrainVector );
-// 
-//                 Output[PointNumber] = PlasticStrainVector;
-//             }
-        }
-
-        KRATOS_CATCH( "" )
-    }
-
-//************************************************************************************
-//************************************************************************************
-
-    void TotalLagrangian::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
-    {
-
-        for ( unsigned int PointNumber = 0; PointNumber < GetGeometry().IntegrationPoints(  ).size(); PointNumber++ )
-        {
-            mConstitutiveLawVector[PointNumber]->SetValue( rVariable,
-                    rValues[PointNumber], rCurrentProcessInfo );
-        }
-
-    }
-
-
-//************************************************************************************
-//************************************************************************************
-
-    void TotalLagrangian::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
-    {
-        for ( unsigned int PointNumber = 0; PointNumber < GetGeometry().IntegrationPoints(  ).size(); PointNumber++ )
-        {
-            mConstitutiveLawVector[PointNumber]->SetValue( rVariable,
-                    rValues[PointNumber], rCurrentProcessInfo );
-        }
-
-    }
-
-//************************************************************************************
-//************************************************************************************
-
-    void TotalLagrangian::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
-            std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo )
-    {
-        if ( rValues.size() != GetGeometry().IntegrationPoints(  ).size() )
-            rValues.resize( GetGeometry().IntegrationPoints(  ).size(), false );
-
-        for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
-            rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
-    }
-
-
-//************************************************************************************
-//************************************************************************************
-
-    void TotalLagrangian::GetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
-    {
-        const unsigned int& size = GetGeometry().IntegrationPoints(  ).size();
-
-        if ( rValues.size() != size )
-            rValues.resize( size );
-
-        //TODO: decide which is the correct one
-  /*      if ( rVariable == INSITU_STRESS || rVariable == PRESTRESS )
-        {
-            for ( unsigned int PointNumber = 0;
-                    PointNumber < GetGeometry().IntegrationPoints(  ).size();
-                    PointNumber++ )
-            {
-                rValues[PointNumber] =
-                    mConstitutiveLawVector[PointNumber]->GetValue( PRESTRESS, rValues[PointNumber] );
-            }
-        }
-        if ( rVariable == PLASTIC_STRAIN_VECTOR )
-        {
-            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-            {
-                if ( rValues[i].size() != 6 )
-                    rValues[i].resize( 6 );
-                noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( PLASTIC_STRAIN_VECTOR, rValues[i] );
-            }
-        }
-  */      if ( rVariable == STRESSES )
-        {
-            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-            {
-                if ( rValues[i].size() != 6 )
-                    rValues[i].resize( 6 );
-                noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( STRESSES, rValues[i] );
-            }
-        }
-        if ( rVariable == MATERIAL_PARAMETERS )
-        {
-            for ( unsigned int PointNumber = 0;
-                    PointNumber < GetGeometry().IntegrationPoints(  ).size(); PointNumber++ )
-            {
-                rValues[PointNumber] =
-                    mConstitutiveLawVector[PointNumber]->GetValue( MATERIAL_PARAMETERS, rValues[PointNumber] );
-            }
-        }
-
-        if ( rVariable == INTERNAL_VARIABLES )
-        {
-            for ( unsigned int PointNumber = 0;
-                    PointNumber < GetGeometry().IntegrationPoints(  ).size();
-                    PointNumber++ )
-            {
-                rValues[PointNumber] =
-                    mConstitutiveLawVector[PointNumber]->GetValue( INTERNAL_VARIABLES, rValues[PointNumber] );
-
-            }
-        }
-
-
-    }
-
-//************************************************************************************
-//************************************************************************************
-
-    void TotalLagrangian::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
-            std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
-    {
-        if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
-        {
-            CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-        }
-
-        if ( rVariable == PK2_STRESS_TENSOR )
-        {
-            CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-        }
-
-//         if ( rVariable == GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR )
-//         {
-//             CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-//         }
-
-    }
-
-//************************************************************************************
-//************************************************************************************
-
-    void TotalLagrangian::Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo )
-    {
-
-        //HERE IT IS ESTIMATING DELTA_TIME for explicit elements
-//         double lamda = 1.00; // parametro que depende del tipo de problema y del elemento pag 308 libro dinamica de Barbat
-//         double c1 = 0.00; //sqrt(GetProperties()[YOUNG_MODULUS]/GetProperties()[DENSITY]); velocidad del sonido en el medio
-//         double c2 = 0.00; // norma de la velocidad actual dentro del elemento
-//         double c = 0.00;
-//         double wmax = 0.00;
-//         Vector Values( GetGeometry().IntegrationPoints(  ).size() );
-//         Vector Velocities;
-// 
-//         GetFirstDerivativesVector( Velocities, 0 );
-// 
-//         if ( rVariable == DELTA_TIME )
-//         {
-//             for ( unsigned int PointNumber = 0;
-//                     PointNumber < GetGeometry().IntegrationPoints(  ).size();
-//                     PointNumber++ )
-//             {
-//                 mConstitutiveLawVector[PointNumber]-> GetValue( DELTA_TIME, c1 );
-//                 Values[PointNumber] = c1;
-//             }
-//         }
-// 
-//         c1 = ( *std::max_element( Values.begin(), Values.end() ) );
-// 
-//         c2 = norm_2( Velocities );
-// 
-//         c = ( c1 > c2 ) ? c1 : c2;
-// 
-// 
-//         double le = GetGeometry().Length();
-//         //KRATOS_WATCH(le)
-// 
-//         /// maxima frecuencia de un elemento
-//         wmax = ( lamda * c ) / le;
-//         Output = 2.0 / wmax;
-//         //KRATOS_WATCH(Output)
-
-    }
-
-//************************************************************************************
-//************************************************************************************
-    /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo
-     */
     int  TotalLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
@@ -886,13 +641,18 @@ namespace Kratos
         KRATOS_CATCH( "" );
     }
 
+    //************************************************************************************
+    //************************************************************************************
 
     void TotalLagrangian::save( Serializer& rSerializer ) const
     {
         rSerializer.save( "Name", "TotalLagrangian" );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseSolidElement );
     }
-
+    
+    //************************************************************************************
+    //************************************************************************************
+    
     void TotalLagrangian::load( Serializer& rSerializer )
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseSolidElement );

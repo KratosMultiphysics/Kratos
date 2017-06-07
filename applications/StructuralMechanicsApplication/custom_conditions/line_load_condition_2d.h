@@ -13,14 +13,10 @@
 #if !defined(KRATOS_LINE_LOAD_CONDITION_2D_H_INCLUDED )
 #define  KRATOS_LINE_LOAD_CONDITION_2D_H_INCLUDED
 
-
-
 // System includes
-
 
 // External includes
 #include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"
@@ -28,7 +24,6 @@
 #include "custom_conditions/base_load_condition.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
-
 
 namespace Kratos
 {
@@ -175,26 +170,42 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-                       ProcessInfo& rCurrentProcessInfo,
-                       bool CalculateStiffnessMatrixFlag,
-                       bool CalculateResidualVectorFlag );
+    
+    void CalculateAll( 
+        MatrixType& rLeftHandSideMatrix, 
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo,
+        bool CalculateStiffnessMatrixFlag,
+        bool CalculateResidualVectorFlag 
+        );
 
     void CalculateAndSubKp(
         Matrix& K,
         const Matrix& DN_De,
         const Vector& N,
-        double pressure,
-        double weight
-    );
-
+        const double Pressure,
+        const double IntegrationWeight
+        );
 
     void CalculateAndAdd_PressureForce(
-        Vector& residualvector,
+        VectorType& rRightHandSideVector,
         const Vector& N,
-        Vector& v3,
-        double pressure,
-        double weight );
+        array_1d<double, 2>& Normal,
+        const double Pressure,
+        const double IntegrationWeight 
+        );
+    
+    /**
+     * This functions computes the integration weight to consider
+     * @param IntegrationPoints: The array containing the integration points
+     * @param PointNumber: The id of the integration point considered
+     * @param detJ: The determinant of the jacobian of the element
+     */
+    virtual double GetIntegrationWeight(
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const unsigned int PointNumber,
+        const double detJ
+        );
     
     ///@}
     ///@name Private Operations

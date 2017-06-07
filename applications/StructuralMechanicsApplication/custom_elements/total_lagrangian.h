@@ -97,39 +97,53 @@ public:
     //TODO: ADD THE OTHER CREATE FUNCTION
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
-    void Initialize();
+    /**
+      * Called to initialize the element.
+      * Must be called before any calculation is done
+      */
+    void Initialize() override;
 
+    /**
+      * This resets the constitutive law
+      */
     void ResetConstitutiveLaw();
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    /**
+     * Called at the beginning of each solution step
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    /**
+     * This is called for non-linear analysis at the beginning of the iteration process
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    /**
+     * This is called for non-linear analysis at the beginning of the iteration process
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    
+    /**
+     * Called at the end of eahc solution step
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    /**
+     * Calculate a Matrix Variable on the Element Constitutive Law
+     * @param rVariable: The variable we want to get
+     * @param rOutput: The values obtained int the integration points
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void CalculateOnIntegrationPoints(
+        const Variable<Matrix >& rVariable, 
+        std::vector< Matrix >& rOutput, 
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& Output, const ProcessInfo& rCurrentProcessInfo);
-
-    void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-    void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-
-    void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
-
-    //************************************************************************************
-    //************************************************************************************
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -137,7 +151,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     //std::string Info() const;
 
@@ -184,10 +198,14 @@ protected:
      * \f$ K^e = w\,B^T\,D\,B \f$ and
      * \f$ r^e \f$
      */
-    virtual void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo,
-                              bool CalculateStiffnessMatrixFlag,
-                              bool CalculateResidualVectorFlag);
+    virtual void CalculateAll(
+        MatrixType& rLeftHandSideMatrix, 
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
+        ) override;
+    
     ///@}
     ///@name Protected Operations
     ///@{
@@ -239,10 +257,6 @@ private:
 
     virtual void InitializeMaterial();
 
-    double CalculateIntegrationWeight
-    (double GaussPointWeight,
-     double DetJ0);
-
     void CalculateAndAdd_ExtForceContribution(
         const Vector& N,
         const ProcessInfo& CurrentProcessInfo,
@@ -262,6 +276,19 @@ private:
 
     void Comprobate_State_Vector(Vector& Result);
 
+    /**
+     * This functions computes the integration weight to consider
+     * @param IntegrationPoints: The array containing the integration points
+     * @param PointNumber: The id of the integration point considered
+     * @param detJ: The determinant of the jacobian of the element
+     */
+    virtual double GetIntegrationWeight(
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const unsigned int PointNumber,
+        const double detJ
+        );
+    
+    
     ///@}
     ///@name Private Operations
     ///@{
