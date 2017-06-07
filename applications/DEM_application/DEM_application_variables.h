@@ -24,10 +24,10 @@ namespace Kratos
 #define DEM_ADD_SECOND_TO_FIRST(a, b)               a[0] += b[0]; a[1] += b[1]; a[2] += b[2];
 #define DEM_SET_COMPONENTS_TO_ZERO_3(a)             a[0]  = 0.0;  a[1]  = 0.0;  a[2]  = 0.0;
 #define DEM_SET_COMPONENTS_TO_ZERO_3x3(a)           a[0][0] = 0.0; a[0][1] = 0.0; a[0][2] = 0.0; a[1][0] = 0.0; a[1][1] = 0.0; a[1][2] = 0.0; a[2][0] = 0.0; a[2][1] = 0.0; a[2][2] = 0.0;
-#define DEM_MULTIPLY_BY_SCALAR_3(a, b)              a[0] = b * a[0]; a[1] = b * a[1]; a[2] = b * a[2];
-#define DEM_MODULUS_3(a)                            sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
-#define DEM_MODULUS_2(a)                            sqrt(a[0] * a[0] + a[1] * a[1])
-#define DEM_INNER_PRODUCT_3(a, b)                       (a[0] * b[0] + a[1] * b[1] + a[2] * b[2])
+#define DEM_MULTIPLY_BY_SCALAR_3(a, b)              a[0] *= (b); a[1] *= (b); a[2] *= (b);
+#define DEM_MODULUS_3(a)                            std::sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
+#define DEM_MODULUS_2(a)                            std::sqrt(a[0] * a[0] + a[1] * a[1])
+#define DEM_INNER_PRODUCT_3(a, b)                            (a[0] * b[0] + a[1] * b[1] + a[2] * b[2])
 #define DEM_SET_TO_CROSS_OF_FIRST_TWO_3(a, b, c)    c[0] = a[1] * b[2] - a[2] * b[1]; c[1] = a[2] * b[0] - a[0] * b[2]; c[2] = a[0] * b[1] - a[1] * b[0];
 #define DEM_COPY_SECOND_TO_FIRST_3x3(a, b)          a[0][0] = b[0][0]; a[0][1] = b[0][1]; a[0][2] = b[0][2]; \
                                                     a[1][0] = b[1][0]; a[1][1] = b[1][1]; a[1][2] = b[1][2]; \
