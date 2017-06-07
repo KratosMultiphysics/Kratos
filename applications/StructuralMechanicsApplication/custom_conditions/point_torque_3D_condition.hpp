@@ -175,10 +175,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    /**
-     * Energy variable for loads
-     */
-    double mEnergy;
 
     ///@}
     ///@name Protected Operators
