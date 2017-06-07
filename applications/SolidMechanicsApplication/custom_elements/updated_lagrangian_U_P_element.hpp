@@ -39,7 +39,7 @@ namespace Kratos
 
 /**
  * Implements a Large Displacement Lagrangian definition for structural analysis.
- * This works for arbitrary geometries in 3D and 2D
+ * This works for Linear Triangles and Tetrahedra.
  */
 
 class KRATOS_API(SOLID_MECHANICS_APPLICATION) UpdatedLagrangianUPElement

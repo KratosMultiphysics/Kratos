@@ -34,34 +34,27 @@
 namespace Kratos
 {
 
-namespace Python
-{
-
-// //Boundary Skin Generator
-// void GenerateSkin(ModelPart& model_part,char* ConditionName,unsigned int dimension,unsigned int preserve )
-// {
-//   GenerateBoundarySkin(model_part,KratosComponents<Condition>::Get(ConditionName),dimension,preserve);
-// }
+  namespace Python
+  {
 
 
+    void  AddCustomUtilitiesToPython()
+    {
 
-void  AddCustomUtilitiesToPython()
-{
+      using namespace boost::python;
 
-    using namespace boost::python;
-
-    class_<EnergyUtilities>("EnergyUtilities",init<>())
-    .def("GetTotalKinematicEnergy",&EnergyUtilities::GetTotalKinematicEnergy)
-    .def("CalculateNodalMass",&EnergyUtilities::CalculateNodalMass)
-    .def("GetTotalStrainEnergy",&EnergyUtilities::GetTotalStrainEnergy)
-    .def("GetGravitationalEnergy",&EnergyUtilities::GetGravitationalEnergy)
-    .def("GetExternallyAppliedEnergy",&EnergyUtilities::GetExternallyAppliedEnergy)
-    ;
+      class_<EnergyUtilities>("EnergyUtilities",init<>())
+	.def("GetTotalKinematicEnergy",&EnergyUtilities::GetTotalKinematicEnergy)
+	.def("CalculateNodalMass",&EnergyUtilities::CalculateNodalMass)
+	.def("GetTotalStrainEnergy",&EnergyUtilities::GetTotalStrainEnergy)
+	.def("GetGravitationalEnergy",&EnergyUtilities::GetGravitationalEnergy)
+	.def("GetExternallyAppliedEnergy",&EnergyUtilities::GetExternallyAppliedEnergy)
+	;
 
 
-}
+    }
 
-}  // namespace Python.
+  }  // namespace Python.
 
 } // Namespace Kratos
 
