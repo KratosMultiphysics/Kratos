@@ -166,41 +166,41 @@ def AssambleTestSuites():
             TDynamicBossakTests,
             TDynamicNewmarkTests,
             TNodalDampingTests,
-            #TSDTwoDShearQuaPatchTest, # FIXME: Not working
-            #TSDTwoDShearTriPatchTest, # FIXME: Not working
+            ##TSDTwoDShearQuaPatchTest, # FIXME: Not working
+            ##TSDTwoDShearTriPatchTest, # FIXME: Not working
             TSDTwoDTensionQuaPatchTest,
             TSDTwoDTensionTriPatchTest,
-            #TSDThreeDShearHexaPatchTest, # FIXME: Not working
-            #TSDThreeDShearTetraPatchTest, # FIXME: Not working
+            ##TSDThreeDShearHexaPatchTest, # FIXME: Not working
+            ##TSDThreeDShearTetraPatchTest, # FIXME: Not working
             TSDThreeDTensionHexaPatchTest,
             TSDThreeDTensionTetraPatchTest,
-            #TTLTwoDShearQuaPatchTest, # FIXME: Not working
-            #TTLTwoDShearTriPatchTest, # FIXME: Not working
+            ##TTLTwoDShearQuaPatchTest, # FIXME: Not working
+            ##TTLTwoDShearTriPatchTest, # FIXME: Not working
             TTLTwoDTensionQuaPatchTest,
             TTLTwoDTensionTriPatchTest,
-            #TTLThreeDShearHexaPatchTest, # FIXME: Not working
-            #TTLThreeDShearTetraPatchTest, # FIXME: Not working
+            ##TTLThreeDShearHexaPatchTest, # FIXME: Not working
+            ##TTLThreeDShearTetraPatchTest, # FIXME: Not working
             TTLThreeDTensionHexaPatchTest,
             TTLThreeDTensionTetraPatchTest,
-            #####TULTwoDShearQuaPatchTest,
-            #####TULTwoDShearTriPatchTest,
-            #####TULTwoDTensionQuaPatchTest,
-            #####TULTwoDTensionTriPatchTest,
-            #####TULThreeDShearHexaPatchTest,
-            #####TULThreeDShearTetraPatchTest,
-            #####TULThreeDTensionHexaPatchTest,
-            #####TULThreeDTensionTetraPatchTest,
+            #######TULTwoDShearQuaPatchTest,
+            #######TULTwoDShearTriPatchTest,
+            #######TULTwoDTensionQuaPatchTest,
+            #######TULTwoDTensionTriPatchTest,
+            #######TULThreeDShearHexaPatchTest,
+            #######TULThreeDShearTetraPatchTest,
+            #######TULThreeDTensionHexaPatchTest,
+            #######TULThreeDTensionTetraPatchTest,
             TSprismMembranePatchTests,
             TSprismBendingPatchTests,
-            #TFofi4PointTentnoCableTests, # FIXME: Not working!!!
-            #TMembraneQ4PointLoadTests, # FIXME: Needs point load
+            ##TFofi4PointTentnoCableTests, # FIXME: Not working!!!
+            #TMembraneQ4PointLoadTests, # FIXME: Not working!!!, Needs point load
             TShellQ4ThickBendingRollUpTests,
             TShellQ4ThickDrillingRollUpTests,
             TShellT3ThinBendingRollUpTests,
             TShellT3ThinDrillingRollUpTests,
             TShellT3IsotropicScordelisTests,
-            ##TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
-            ##TSprismPanTests # FIXME: Needs point load and get up to date
+            ###TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
+            ###TSprismPanTests # FIXME: Needs point load and get up to date
         ])
     )
         
@@ -209,7 +209,7 @@ def AssambleTestSuites():
             allSuite.addTests(
                 KratosUnittest.TestLoader().loadTestsFromTestCases([
                     TEigenQ4Thick2x2PlateTests,
-                    #TEigenTL3D8NCubeTests, # FIXME: Not good result, check mass matrix 
+                    TEigenTL3D8NCubeTests,
                     TEigen3D3NThinCircleTests
                 ])
             )
