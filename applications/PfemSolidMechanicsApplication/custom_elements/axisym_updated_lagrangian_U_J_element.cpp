@@ -168,7 +168,9 @@ namespace Kratos
             //verify that the variables are correctly initialized
 
             if ( JACOBIAN.Key() == 0 )
-               KRATOS_THROW_ERROR( std::invalid_argument, "PRESSURE has Key zero! (check if the application is correctly registered", "" )
+            KRATOS_THROW_ERROR( std::invalid_argument, "JACOBIAN has Key zero! (check if the application is correctly registered", "" )
+
+
 
                   return correct;
 
@@ -258,6 +260,15 @@ namespace Kratos
       //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
       rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
 
+    //stabilization factor
+    double StabilizationFactor = 0.20;
+    if( GetProperties().Has(STABILIZATION_FACTOR_J) ) {
+        StabilizationFactor = GetProperties()[STABILIZATION_FACTOR_J];
+    }
+    else if( rCurrentProcessInfo.Has(STABILIZATION_FACTOR_J) ) {
+        StabilizationFactor = rCurrentProcessInfo[STABILIZATION_FACTOR_J];
+    }
+    GetProperties().SetValue(STABILIZATION_FACTOR_J, StabilizationFactor);
 
 
    }
@@ -358,6 +369,103 @@ namespace Kratos
 
       KRATOS_CATCH( "" )
    }
+//************************************************************************************
+//************************************************************************************
+
+void AxisymUpdatedLagrangianUJElement::CalculateGreenLagrangeStrain(const Matrix& rF,
+        Vector& rStrainVector )
+{
+    KRATOS_TRY
+
+    const unsigned int dimension  = GetGeometry().WorkingSpaceDimension();
+
+    //Right Cauchy-Green Calculation
+    Matrix C ( 3, 3 );
+    noalias( C ) = prod( trans( rF ), rF );
+
+    if( dimension == 2 )
+    {
+
+        //Green Lagrange Strain Calculation
+        if ( rStrainVector.size() != 4 ) rStrainVector.resize( 4, false );
+
+        rStrainVector[0] = 0.5 * ( C( 0, 0 ) - 1.00 );
+
+        rStrainVector[1] = 0.5 * ( C( 1, 1 ) - 1.00 );
+
+        rStrainVector[2] = 0.5 * ( C( 2, 2 ) - 1.00 );
+
+        rStrainVector[3] = C( 0, 1 ); // xy
+
+    }
+    else if( dimension == 3 )
+    {
+
+        std::cout<<" AXISYMMETRIC case and 3D is not possible "<<std::endl;
+
+    }
+    else
+    {
+
+        KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
+        Vector& rStrainVector )
+{
+    KRATOS_TRY
+
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    //Left Cauchy-Green Calculation
+    Matrix LeftCauchyGreen(rF.size1(),rF.size1());
+    noalias(LeftCauchyGreen) = prod( rF, trans( rF ) );
+
+    //Calculating the inverse of the jacobian
+    Matrix InverseLeftCauchyGreen(rF.size1(),rF.size1());
+    double det_b=0;
+    MathUtils<double>::InvertMatrix( LeftCauchyGreen, InverseLeftCauchyGreen, det_b);
+
+    if( dimension == 2 )
+    {
+
+        //Almansi Strain Calculation
+        if ( rStrainVector.size() != 4 ) rStrainVector.resize( 4, false );
+
+        rStrainVector[0] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 0, 0 ) );
+
+        rStrainVector[1] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 1, 1 ) );
+
+        rStrainVector[2] = 0.5 * ( 1.00 - InverseLeftCauchyGreen( 2, 2 ) );
+
+        rStrainVector[3] = - InverseLeftCauchyGreen( 0, 1 ); // xy
+
+    }
+    else if( dimension == 3 )
+    {
+
+        std::cout<<" AXISYMMETRIC case and 3D is not possible "<<std::endl;
+
+    }
+    else
+    {
+
+        KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
+
+    }
+
+
+    KRATOS_CATCH( "" )
+}
+
+
 
    //************* COMPUTING  METHODS
    //************************************************************************************
