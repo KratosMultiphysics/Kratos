@@ -271,7 +271,49 @@ class NodalDampingTests(KratosUnittest.TestCase):
             current_analytical_displacement_y_2 = 1.0064 * exp(-0.08334*time) * sin(0.70221*time+atan(9.031))
             self.assertAlmostEqual(mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0), \
                 current_analytical_displacement_y_2,delta=5e-2)
-            
+
+    def test_undamped_mdof_system_eigen(self):
+        import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
+        mp = self._set_up_mdof_system()
+
+        #set parameters
+        mp.Elements[1].SetValue(KratosMultiphysics.NODAL_MASS,20.0)
+        mp.Elements[3].SetValue(KratosMultiphysics.NODAL_MASS,40.0)
+        mp.Elements[2].SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[200.0,200.0,200.0])
+        mp.Elements[4].SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[400.0,400.0,400.0])
+
+        #create solver
+        eigen_solver_parameters = KratosMultiphysics.Parameters("""
+            {
+                "solver_type": "FEAST",
+                "print_feast_output": false,
+                "perform_stochastic_estimate": false,
+                "solve_eigenvalue_problem": true,
+                "lambda_min": 0.0,
+                "lambda_max": 4.0e5,
+                "number_of_eigenvalues": 0,
+                "search_dimension": 10,
+                "linear_solver_settings": {
+                    "solver_type" : "pastix",
+                    "echo_level" : 0
+                }
+            }""")
+        feast_system_solver = ExternalSolversApplication.PastixComplexSolver(eigen_solver_parameters["linear_solver_settings"])
+        eigen_solver = ExternalSolversApplication.FEASTSolver(eigen_solver_parameters, feast_system_solver)
+        scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
+        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(eigen_solver)
+
+        solver = StructuralMechanicsApplication.EigensolverStrategy(
+            mp,
+            scheme,
+            builder_and_solver)
+
+        solver.Solve()
+
+        current_eigenvalues = [ev for ev in mp.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR]]
+        analytical_eigenvalues = [5,20]
+        for ev in range(len(current_eigenvalues)):
+            self.assertAlmostEqual(current_eigenvalues[ev], analytical_eigenvalues[ev])
 
 if __name__ == '__main__':
     KratosUnittest.main()
