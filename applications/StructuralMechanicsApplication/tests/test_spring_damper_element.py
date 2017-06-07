@@ -274,6 +274,10 @@ class NodalDampingTests(KratosUnittest.TestCase):
 
     def test_undamped_mdof_system_eigen(self):
         import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
+        if not hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver") \
+            or not hasattr(KratosMultiphysics.ExternalSolversApplication, "PastixSolver"):
+            self.skipTest("Pastix or FEAST are not available")
+
         mp = self._set_up_mdof_system()
 
         #set parameters
@@ -291,8 +295,8 @@ class NodalDampingTests(KratosUnittest.TestCase):
                 "solve_eigenvalue_problem": true,
                 "lambda_min": 0.0,
                 "lambda_max": 4.0e5,
-                "number_of_eigenvalues": 0,
-                "search_dimension": 10,
+                "number_of_eigenvalues": 2,
+                "search_dimension": 18,
                 "linear_solver_settings": {
                     "solver_type" : "pastix",
                     "echo_level" : 0
@@ -312,7 +316,7 @@ class NodalDampingTests(KratosUnittest.TestCase):
 
         current_eigenvalues = [ev for ev in mp.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR]]
         analytical_eigenvalues = [5,20]
-        for ev in range(len(current_eigenvalues)):
+        for ev in range(len(analytical_eigenvalues)):
             self.assertAlmostEqual(current_eigenvalues[ev], analytical_eigenvalues[ev])
 
 if __name__ == '__main__':
