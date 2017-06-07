@@ -132,7 +132,7 @@ namespace Kratos
 
         for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
         {
-            const double detJ0 = CalculateDerivativesOnReference(J0, InvJ0, DN_DX, PointNumber);
+            const double detJ0 = CalculateDerivativesOnReference(J0, InvJ0, DN_DX, PointNumber, GetGeometry().GetDefaultIntegrationMethod());
             
             // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
             noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
@@ -238,7 +238,7 @@ namespace Kratos
  
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ ) 
         { 
-            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, PointNumber); 
+            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, PointNumber, GetGeometry().GetDefaultIntegrationMethod()); 
  
             // Deformation gradient 
             noalias( F ) = prod( J[PointNumber], InvJ0 ); 

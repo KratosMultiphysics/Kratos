@@ -333,10 +333,10 @@ namespace Kratos
         Matrix DN_DX( NumberOfNodes, Dimension );
         Matrix J0(Dimension,Dimension), InvJ0(Dimension,Dimension);
         
-        //reading integration points and local gradients
-        IntegrationMethod IntegrationMethod = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(GetGeometry());
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints( IntegrationMethod );
-        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(IntegrationMethod);
+        // Reading integration points and local gradients
+        IntegrationMethod ThisIntegrationMethod = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(GetGeometry());
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints( ThisIntegrationMethod );
+        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(ThisIntegrationMethod);
         
         const double density = GetProperties()[DENSITY];
         double thickness = 1.0;
@@ -344,30 +344,30 @@ namespace Kratos
         {
             thickness = GetProperties()[THICKNESS];
         }
-
+        
         for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
-        {
-            const double detJ0 = CalculateDerivativesOnReference(J0, InvJ0, DN_DX, PointNumber);
+        {   
+            const double detJ0 = CalculateDerivativesOnReference(J0, InvJ0, DN_DX, PointNumber, ThisIntegrationMethod);
             const double IntegrationWeight = GetIntegrationWeight(IntegrationPoints, PointNumber, detJ0) * thickness;
             const Vector& N = row(Ncontainer,PointNumber);
-
+            
             for ( unsigned int i = 0; i < NumberOfNodes; i++ )
             {
                 const unsigned int index_i = i * Dimension;
-
+                
                 for ( unsigned int j = 0; j < NumberOfNodes; ++j )
                 {
-                    const unsigned int index_j = j*Dimension;
+                    const unsigned int index_j = j * Dimension;
                     const double NiNj_weight = N[i] * N[j] * IntegrationWeight * density;
-
+                    
                     for ( unsigned int k = 0; k < Dimension; k++ )
                     {
-                        rMassMatrix( index_i+k, index_j+k ) += NiNj_weight;
+                        rMassMatrix( index_i + k, index_j + k ) += NiNj_weight;
                     }
                 }
             }
         }
-
+        
         KRATOS_CATCH( "" )
     }
 
@@ -747,14 +747,15 @@ namespace Kratos
         Matrix& J0, 
         Matrix& InvJ0, 
         Matrix& DN_DX, 
-        const unsigned int PointNumber
+        const unsigned int PointNumber,
+        IntegrationMethod ThisIntegrationMethod
         )
     {
         J0.clear();
         
         double detJ0;
         
-        const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients()[PointNumber];
+        const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
         
         for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
         {

@@ -118,7 +118,7 @@ namespace Kratos
 
         for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
         {
-            const double detJ0 = CalculateDerivativesOnReference(J0, InvJ0, DN_DX, PointNumber); 
+            const double detJ0 = CalculateDerivativesOnReference(J0, InvJ0, DN_DX, PointNumber, GetGeometry().GetDefaultIntegrationMethod()); 
             
             //Compute B and strain
             CalculateB( B, DN_DX );
@@ -216,7 +216,7 @@ namespace Kratos
 
         for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
         {
-            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, PointNumber); 
+            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, PointNumber, GetGeometry().GetDefaultIntegrationMethod()); 
             
             //Compute B and strain
             CalculateB( B, DN_DX );

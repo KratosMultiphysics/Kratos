@@ -396,7 +396,8 @@ protected:
         Matrix& J0, 
         Matrix& InvJ0, 
         Matrix& DN_DX, 
-        const unsigned int PointNumber
+        const unsigned int PointNumber,
+        IntegrationMethod ThisIntegrationMethod
         );
 
     /**
