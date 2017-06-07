@@ -355,7 +355,8 @@ void TotalLagrangianElement::CalculateOnIntegrationPoints( const Variable<double
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
       if( dimension == 2){
-	Thickness = GetProperties()[THICKNESS];
+	if ( this->GetProperties().Has( THICKNESS ) )
+	  Thickness = GetProperties()[THICKNESS];
       }
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
