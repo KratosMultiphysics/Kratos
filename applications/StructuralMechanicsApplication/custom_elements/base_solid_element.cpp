@@ -334,9 +334,9 @@ namespace Kratos
         Matrix J0(Dimension,Dimension), InvJ0(Dimension,Dimension);
         
         //reading integration points and local gradients
-        IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(GetGeometry());
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( integration_method );
-        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(integration_method);
+        IntegrationMethod IntegrationMethod = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(GetGeometry());
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints( IntegrationMethod );
+        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(IntegrationMethod);
         
         const double density = GetProperties()[DENSITY];
         double thickness = 1.0;
@@ -345,14 +345,10 @@ namespace Kratos
             thickness = GetProperties()[THICKNESS];
         }
 
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+        for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
         {
-
-            const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(integration_method)[PointNumber];
-
-            double detJ0;
-            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, detJ0, DN_De);
-            const double weight = integration_points[PointNumber].Weight()*detJ0*thickness;
+            const double detJ0 = CalculateDerivativesOnReference(J0, InvJ0, DN_DX, PointNumber);
+            const double IntegrationWeight = GetIntegrationWeight(IntegrationPoints, PointNumber, detJ0) * thickness;
             const Vector& N = row(Ncontainer,PointNumber);
 
             for ( unsigned int i = 0; i < NumberOfNodes; i++ )
@@ -362,7 +358,7 @@ namespace Kratos
                 for ( unsigned int j = 0; j < NumberOfNodes; ++j )
                 {
                     const unsigned int index_j = j*Dimension;
-                    const double NiNj_weight = N[i]*N[j]*weight*density;
+                    const double NiNj_weight = N[i] * N[j] * IntegrationWeight * density;
 
                     for ( unsigned int k = 0; k < Dimension; k++ )
                     {
@@ -732,18 +728,33 @@ namespace Kratos
        KRATOS_ERROR << "You are calle to the CalculateAll from the base class for solid elements" << std::endl; 
     }
     
+    //***********************************************************************
+    //***********************************************************************
+
+    double BaseSolidElement::GetIntegrationWeight(
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const unsigned int PointNumber,
+        const double detJ
+        )
+    {
+        return IntegrationPoints[PointNumber].Weight() * detJ;
+    }
+    
     //************************************************************************************
     //************************************************************************************
     
-    void BaseSolidElement::CalculateDerivativesOnReference(
+    double BaseSolidElement::CalculateDerivativesOnReference(
         Matrix& J0, 
         Matrix& InvJ0, 
         Matrix& DN_DX, 
-        double& detJ0, 
-        const Matrix& DN_De
+        const unsigned int PointNumber
         )
     {
         J0.clear();
+        
+        double detJ0;
+        
+        const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients()[PointNumber];
         
         for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
         {
@@ -760,6 +771,8 @@ namespace Kratos
         MathUtils<double>::InvertMatrix( J0, InvJ0, detJ0 );
         
         noalias( DN_DX ) = prod( DN_De, InvJ0);
+        
+        return detJ0;
     }
 
 } // Namespace Kratos

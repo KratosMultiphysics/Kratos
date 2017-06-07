@@ -47,8 +47,6 @@ namespace Kratos
     {
     }
 
-
-
     //************************************************************************************
     //************************************************************************************
 
@@ -134,8 +132,7 @@ namespace Kratos
 
         for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
         {
-            double detJ0;
-            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, detJ0, DN_De[PointNumber]);
+            const double detJ0 = CalculateDerivativesOnReference(J0, InvJ0, DN_DX, PointNumber);
             
             // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
             noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
@@ -241,9 +238,7 @@ namespace Kratos
  
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ ) 
         { 
-            const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients()[PointNumber]; 
-            double detJ0; 
-            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, detJ0, DN_De); 
+            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, PointNumber); 
  
             // Deformation gradient 
             noalias( F ) = prod( J[PointNumber], InvJ0 ); 
@@ -432,18 +427,6 @@ namespace Kratos
         }
 
         KRATOS_CATCH( "" )
-    }
-
-    //************************************************************************************
-    //************************************************************************************
-
-    double TotalLagrangian::GetIntegrationWeight(
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber,
-        const double detJ
-        )
-    {
-        return IntegrationPoints[PointNumber].Weight() * detJ;
     }
 
     //************************************************************************************

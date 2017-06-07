@@ -392,14 +392,25 @@ protected:
         const bool CalculateResidualVectorFlag
         );
     
-    void  CalculateDerivativesOnReference(
+    double CalculateDerivativesOnReference(
         Matrix& J0, 
         Matrix& InvJ0, 
         Matrix& DN_DX, 
-        double& detJ0, 
-        const Matrix& DN_De
+        const unsigned int PointNumber
         );
 
+    /**
+     * This functions computes the integration weight to consider
+     * @param IntegrationPoints: The array containing the integration points
+     * @param PointNumber: The id of the integration point considered
+     * @param detJ: The determinant of the jacobian of the element
+     */
+    virtual double GetIntegrationWeight(
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const unsigned int PointNumber,
+        const double detJ
+        );
+    
     ///@}
     ///@name Protected Operations
     ///@{
@@ -425,8 +436,6 @@ private:
     ///@name Member Variables
     ///@{
 
-
-
     ///@}
     ///@name Private Operators
     ///@{
@@ -434,7 +443,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access

@@ -240,18 +240,6 @@ private:
      * @return The deformation gradient F
      */
     Matrix ComputeEquivalentF(const Vector& StrainVector);
-
-    /**
-     * This functions computes the integration weight to consider
-     * @param IntegrationPoints: The array containing the integration points
-     * @param PointNumber: The id of the integration point considered
-     * @param detJ: The determinant of the jacobian of the element
-     */
-    virtual double GetIntegrationWeight(
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber,
-        const double detJ
-        );
     
     ///@}
     ///@name Private Operations

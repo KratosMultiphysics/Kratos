@@ -118,9 +118,7 @@ namespace Kratos
 
         for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
         {
-            const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients()[PointNumber];
-            double detJ0;
-            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, detJ0, DN_De);
+            const double detJ0 = CalculateDerivativesOnReference(J0, InvJ0, DN_DX, PointNumber); 
             
             //Compute B and strain
             CalculateB( B, DN_DX );
@@ -218,9 +216,7 @@ namespace Kratos
 
         for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
         {
-            const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients()[PointNumber];
-            double detJ0;
-            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, detJ0, DN_De);
+            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, PointNumber); 
             
             //Compute B and strain
             CalculateB( B, DN_DX );
@@ -378,18 +374,6 @@ namespace Kratos
         }
         
         return F;
-    }
-    
-    //***********************************************************************
-    //***********************************************************************
-
-    double KinematicLinear::GetIntegrationWeight(
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber,
-        const double detJ
-        )
-    {
-        return IntegrationPoints[PointNumber].Weight() * detJ;
     }
 
     //************************************************************************************
