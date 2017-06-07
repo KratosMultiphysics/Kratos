@@ -21,6 +21,7 @@
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
 
+
 /* External includes */
 
 
@@ -715,6 +716,23 @@ public:
 
         KRATOS_CATCH("")
     }
+
+	bool CheckVariableKeys()
+	{
+		KRATOS_TRY
+
+			CheckVariableKeysHelper< Variable<double> >();
+		CheckVariableKeysHelper< Variable<array_1d<double,3> > >();
+		CheckVariableKeysHelper< Variable<bool> >();
+		CheckVariableKeysHelper< Variable<int> >();
+		CheckVariableKeysHelper< Variable<unsigned int> >();
+		CheckVariableKeysHelper< Variable<Vector> >();
+		CheckVariableKeysHelper< Variable<Matrix> >();
+		CheckVariableKeysHelper< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >();
+		 
+		return true;
+		KRATOS_CATCH("")
+	}
     
     /*@} */
     /**@name Acces */
@@ -741,6 +759,31 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
+	template< class TVarType >
+	bool CheckVariableKeysHelper()
+	{
+		KRATOS_TRY
+
+			for (const auto& var : KratosComponents< TVarType >::GetComponents())
+			{
+				if (var.first == "NONE" || var.first == "")
+					std::cout << " var first is NONE or empty " << var.first << var.second << std::endl;
+				if (var.second->Name() == "NONE" || var.second->Name() == "")
+					std::cout << var.first << var.second << std::endl;
+				if (var.first != var.second->Name()) //name of registration does not correspond to the var name
+				{
+					std::cout << "Registration Name = " << var.first << " Variable Name = " << std::endl;
+				}
+				if (var.second->Key() == 0)
+				{
+					KRATOS_ERROR << "found a key of zero for the variable registered with the name : " << var.first << std::endl;
+					return false;
+				}
+			}
+
+		return true;
+		KRATOS_CATCH("")
+	}
 
 
     /*@} */

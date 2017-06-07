@@ -148,10 +148,10 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         print("::[Mechanical Solver]:: Variables ADDED")
     
     def Solve(self):
-        
+        KratosMultiphysics.VariableUtils().CheckVariableKeys()
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-            
+        
         self.mechanical_solver.Solve()
         
         if self.settings["analysis_type"].GetString() == "Arc-Length":
