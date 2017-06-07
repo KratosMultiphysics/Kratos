@@ -88,6 +88,41 @@ public:
     ///@{
 
     /**
+     * Called to initialize the element.
+     * Must be called before any calculation is done
+     */
+    void Initialize() override;
+
+    /**
+      * This resets the constitutive law
+      */
+    void ResetConstitutiveLaw();
+
+    /**
+     * Called at the beginning of each solution step
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+
+    /**
+     * This is called for non-linear analysis at the beginning of the iteration process
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * This is called for non-linear analysis at the beginning of the iteration process
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    
+    /**
+     * Called at the end of eahc solution step
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    
+    /**
      * Sets on rResult the ID's of the element degrees of freedom
      * @param rResult: The vector containing the equation id
      * @param rCurrentProcessInfo: The current process info instance
@@ -342,6 +377,8 @@ protected:
     ///@name Protected Operators
     ///@{
     
+    virtual void InitializeMaterial();
+    
     /**
      * Calculates the elemental contributions
      * \f$ K^e = w\,B^T\,D\,B \f$ and
@@ -361,27 +398,7 @@ protected:
         Matrix& DN_DX, 
         double& detJ0, 
         const Matrix& DN_De
-        )
-    {
-        J0.clear();
-        
-        for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
-        {
-            const array_1d<double, 3>& coords = GetGeometry()[i].GetInitialPosition(); //NOTE: here we refer to the original, undeformed position!!
-            for(unsigned int k = 0; k < GetGeometry().WorkingSpaceDimension(); k++)
-            {
-                for(unsigned int m = 0; m < GetGeometry().LocalSpaceDimension(); m++)
-                {
-                    J0(k,m) += coords[k]*DN_De(i,m);
-                }
-            }
-        }
-        
-        MathUtils<double>::InvertMatrix( J0, InvJ0, detJ0 );
-        
-        noalias( DN_DX ) = prod( DN_De, InvJ0);
-    }
-
+        );
 
     ///@}
     ///@name Protected Operations

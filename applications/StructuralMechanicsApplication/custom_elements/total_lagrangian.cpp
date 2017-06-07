@@ -47,26 +47,7 @@ namespace Kratos
     {
     }
 
-    //************************************************************************************
-    //************************************************************************************
 
-    void TotalLagrangian::Initialize()
-    {
-        KRATOS_TRY
-
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints(  );
-
-        //Constitutive Law initialisation
-
-        if ( mConstitutiveLawVector.size() != IntegrationPoints.size() )
-        {
-            mConstitutiveLawVector.resize( IntegrationPoints.size() );
-        }
-
-        InitializeMaterial();
-
-        KRATOS_CATCH( "" )
-    }
 
     //************************************************************************************
     //************************************************************************************
@@ -217,46 +198,6 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void TotalLagrangian::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
-    {
-        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-            mConstitutiveLawVector[i]->InitializeSolutionStep( GetProperties(),
-                    GetGeometry(), row( GetGeometry().ShapeFunctionsValues(  ), i ),
-                    CurrentProcessInfo );
-    }
-    
-    //************************************************************************************
-    //************************************************************************************
-
-    void TotalLagrangian::InitializeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
-    {
-        // TODO: Add somethig if necessary
-    }
-    
-    //************************************************************************************
-    //************************************************************************************
-
-    void TotalLagrangian::FinalizeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
-    {
-        // TODO: Add somethig if necessary
-    }
-
-    //************************************************************************************
-    //************************************************************************************
-
-    void TotalLagrangian::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
-    {
-        //         std::cout << "in TL: calling FinalizeSolutionStep" << std::endl;
-        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-            mConstitutiveLawVector[i]->FinalizeSolutionStep( GetProperties(),
-                    GetGeometry(),
-                    row( GetGeometry().ShapeFunctionsValues(  ), i ),
-                    CurrentProcessInfo );
-    }
-
-    //************************************************************************************
-    //************************************************************************************
-
     void TotalLagrangian::CalculateOnIntegrationPoints( 
         const Variable<Matrix >& rVariable, 
         std::vector< Matrix >& Output, 
@@ -360,43 +301,6 @@ namespace Kratos
  
         KRATOS_CATCH( "" ) 
     } 
-    
-    //************************************************************************************
-    //************************************************************************************
-
-    void TotalLagrangian::InitializeMaterial()
-    {
-        KRATOS_TRY
-
-        if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
-        {
-            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-            {
-                mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-                mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(),
-                        row( GetGeometry().ShapeFunctionsValues(  ), i ) );
-            }
-        }
-        else
-        {
-            KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
-        }
-        
-        KRATOS_CATCH( "" );
-    }
-
-    void TotalLagrangian::ResetConstitutiveLaw()
-    {
-        KRATOS_TRY
-
-        if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
-        {
-            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-                mConstitutiveLawVector[i]->ResetMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues(  ), i ) );
-        }
-
-        KRATOS_CATCH( "" )
-    }
 
     //************************************************************************************
     //************************************************************************************
@@ -426,8 +330,6 @@ namespace Kratos
 
         KRATOS_CATCH( "" )
     }
-
-
 
     //************************************************************************************
     //************************************************************************************

@@ -23,6 +23,106 @@
 
 namespace Kratos
 {
+    void BaseSolidElement::Initialize()
+    {
+        KRATOS_TRY
+
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints(  );
+
+        //Constitutive Law initialisation
+
+        if ( mConstitutiveLawVector.size() != IntegrationPoints.size() )
+        {
+            mConstitutiveLawVector.resize( IntegrationPoints.size() );
+        }
+
+        InitializeMaterial();
+
+        KRATOS_CATCH( "" )
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
+
+    void BaseSolidElement::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
+    {
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+            mConstitutiveLawVector[i]->InitializeSolutionStep( GetProperties(),
+                    GetGeometry(), row( GetGeometry().ShapeFunctionsValues(  ), i ),
+                    CurrentProcessInfo );
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
+
+    void BaseSolidElement::InitializeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+    {
+        // TODO: Add somethig if necessary
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
+
+    void BaseSolidElement::FinalizeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+    {
+        // TODO: Add somethig if necessary
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void BaseSolidElement::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
+    {
+        //         std::cout << "in TL: calling FinalizeSolutionStep" << std::endl;
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+            mConstitutiveLawVector[i]->FinalizeSolutionStep( GetProperties(),
+                    GetGeometry(),
+                    row( GetGeometry().ShapeFunctionsValues(  ), i ),
+                    CurrentProcessInfo );
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void BaseSolidElement::InitializeMaterial()
+    {
+        KRATOS_TRY
+
+        if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
+        {
+            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+            {
+                mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+                mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(),
+                        row( GetGeometry().ShapeFunctionsValues(  ), i ) );
+            }
+        }
+        else
+        {
+            KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
+        }
+        
+        KRATOS_CATCH( "" );
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+    
+    void BaseSolidElement::ResetConstitutiveLaw()
+    {
+        KRATOS_TRY
+
+        if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
+        {
+            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+                mConstitutiveLawVector[i]->ResetMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues(  ), i ) );
+        }
+
+        KRATOS_CATCH( "" )
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
 
     void BaseSolidElement::EquationIdVector(
         EquationIdVectorType& rResult,
@@ -621,7 +721,6 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    
     void BaseSolidElement::CalculateAll(
         MatrixType& rLeftHandSideMatrix, 
         VectorType& rRightHandSideVector,
@@ -631,6 +730,36 @@ namespace Kratos
         )
     {
        KRATOS_ERROR << "You are calle to the CalculateAll from the base class for solid elements" << std::endl; 
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
+    
+    void BaseSolidElement::CalculateDerivativesOnReference(
+        Matrix& J0, 
+        Matrix& InvJ0, 
+        Matrix& DN_DX, 
+        double& detJ0, 
+        const Matrix& DN_De
+        )
+    {
+        J0.clear();
+        
+        for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
+        {
+            const array_1d<double, 3>& coords = GetGeometry()[i].GetInitialPosition(); //NOTE: here we refer to the original, undeformed position!!
+            for(unsigned int k = 0; k < GetGeometry().WorkingSpaceDimension(); k++)
+            {
+                for(unsigned int m = 0; m < GetGeometry().LocalSpaceDimension(); m++)
+                {
+                    J0(k,m) += coords[k]*DN_De(i,m);
+                }
+            }
+        }
+        
+        MathUtils<double>::InvertMatrix( J0, InvJ0, detJ0 );
+        
+        noalias( DN_DX ) = prod( DN_De, InvJ0);
     }
 
 } // Namespace Kratos
