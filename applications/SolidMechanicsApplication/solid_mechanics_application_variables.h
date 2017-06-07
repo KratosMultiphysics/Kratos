@@ -35,8 +35,6 @@
 #include "includes/mat_variables.h"
 #include "custom_utilities/shell_cross_section.hpp"
 
-#include "constitutive_models_application_variables.h"
-
 namespace Kratos
 {
   ///@name Type Definitions
