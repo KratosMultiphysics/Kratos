@@ -155,9 +155,9 @@ public:
                 }
                 ratio = mFinalCorrectionNorm/mReferenceDispNorm;
             }
-            const double aaa = SparseSpaceType::Size(Dx);
+            const std::size_t SizeSystem = SparseSpaceType::Size(Dx);
 
-            const double AbsoluteNorm = (mFinalCorrectionNorm/std::sqrt(aaa));
+            const double AbsoluteNorm = (mFinalCorrectionNorm/std::sqrt(SizeSystem));
 
             if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
             {
