@@ -35,6 +35,7 @@ class Solution(KratosPfemFluid.Solution):
         pfem_solid_variables.AddVariables(self.main_model_part) 
         
     def AddFluidVariablesBySwimmingDEMAlgorithm(self):
+        self.vars_man.AddExtraProcessInfoVariablesToFluidModelPart(self.pp, self.main_model_part)
         self.vars_man.AddNodalVariables(self.main_model_part, self.pp.fluid_vars) 
         
     def GetDeltaTimeFromParameters(self):

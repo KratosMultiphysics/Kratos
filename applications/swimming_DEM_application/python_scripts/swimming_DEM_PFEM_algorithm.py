@@ -29,11 +29,7 @@ class Algorithm(BaseAlgorithm):
         self.all_model_parts = self.disperse_phase_algorithm.all_model_parts
         
         # defining a fluid model
-        self.all_model_parts.Add(ModelPart("FluidPart"))        
-        
-        #self.fluid_model_part = self.fluid_algorithm.main_model_part.GetSubModelPart("fluid_computing_domain")
-        #self.fluid_model_part = self.fluid_algorithm.main_model_part.GetSubModelPart("Body1")
-        self.all_model_parts.Set("FluidPart", self.fluid_model_part)
+        self.all_model_parts.Add(self.fluid_model_part, "FluidPart")        
         
         # defining a model part for the mixed part
         self.all_model_parts.Add(ModelPart("MixedPart"))  
@@ -42,8 +38,7 @@ class Algorithm(BaseAlgorithm):
         
     def FluidInitialize(self):
         
-        self.fluid_algorithm.vars_man=self.vars_man
-        self.vars_man.AddExtraProcessInfoVariablesToFluidModelPart(self.pp, self.fluid_model_part)
+        self.fluid_algorithm.vars_man=self.vars_man        
         self.fluid_algorithm.Initialize()   
         self.fluid_model_part = self.fluid_algorithm.main_model_part.GetSubModelPart("Body1")
         

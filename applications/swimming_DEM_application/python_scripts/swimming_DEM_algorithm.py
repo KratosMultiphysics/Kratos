@@ -102,8 +102,7 @@ class Algorithm(object):
         self.all_model_parts = self.disperse_phase_algorithm.all_model_parts
         
         # defining a fluid model
-        self.all_model_parts.Add(ModelPart("FluidPart"))        
-        self.all_model_parts.Set("FluidPart", self.fluid_algorithm.fluid_model_part)
+        self.all_model_parts.Add(self.fluid_algorithm.fluid_model_part)        
         
         self.fluid_model_part = self.fluid_algorithm.fluid_model_part
         
