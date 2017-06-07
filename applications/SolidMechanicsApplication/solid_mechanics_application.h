@@ -34,14 +34,10 @@
 #include "includes/constitutive_law.h"
 #include "includes/ublas_interface.h"
 #include "includes/kratos_application.h"
-
-// Core applications
-#include "constitutive_models_application.h"
-
-
 #include "containers/flags.h"
 
 //conditions
+#include "custom_conditions/point_moment_3D_condition.hpp"
 #include "custom_conditions/point_load_2D_condition.hpp"
 #include "custom_conditions/point_load_axisym_2D_condition.hpp"
 #include "custom_conditions/point_load_3D_condition.hpp"
@@ -64,6 +60,11 @@
 
 #include "custom_elements/updated_lagrangian_U_P_element.hpp"
 #include "custom_elements/axisym_updated_lagrangian_U_P_element.hpp"
+
+#include "custom_elements/small_displacement_beam_element_3D2N.hpp"
+
+#include "custom_elements/shell_thick_element_3D4N.hpp"
+#include "custom_elements/shell_thin_element_3D3N.hpp"
 
 //flow rules
 #include "custom_constitutive/custom_flow_rules/non_linear_associative_plastic_flow_rule.hpp"
@@ -352,26 +353,38 @@ typedef array_1d<double,6> Vector6;
    const UpdatedLagrangianUPElement             mUpdatedLagrangianUPElement2D3N;
    const AxisymUpdatedLagrangianUPElement mAxisymUpdatedLagrangianUPElement2D3N;
    const UpdatedLagrangianUPElement             mUpdatedLagrangianUPElement3D4N;
-	
+
+   //beams
+   const SmallDisplacementBeamElement3D2N   mSmallDisplacementBeamElement3D2N;
+
+
+   //shells
+   const ShellThickElement3D4N              mShellThickElement3D4N;
+   const ShellThickElement3D4N  mShellThickCorotationalElement3D4N;
+   const ShellThinElement3D3N                mShellThinElement3D3N;
+   const ShellThinElement3D3N    mShellThinCorotationalElement3D3N;
+
+   
    //conditions
-   const ForceLoadCondition                  mForceLoadCondition;
+   const ForceLoadCondition                    mForceLoadCondition;
 
    const PointLoad2DCondition              mPointLoadCondition2D1N;
    const PointLoadAxisym2DCondition  mAxisymPointLoadCondition2D1N;
    const PointLoad3DCondition              mPointLoadCondition3D1N;
+   const PointMoment3DCondition          mPointMomentCondition3D1N;
+   
+   const LineLoad2DCondition                mLineLoadCondition2D2N;
+   const LineLoad2DCondition                mLineLoadCondition2D3N;
+   const LineLoadAxisym2DCondition    mAxisymLineLoadCondition2D2N;
+   const LineLoadAxisym2DCondition    mAxisymLineLoadCondition2D3N;
+   const LineLoad3DCondition                mLineLoadCondition3D2N;
+   const LineLoad3DCondition                mLineLoadCondition3D3N;
 
-   const LineLoad2DCondition              mLineLoadCondition2D2N;
-   const LineLoad2DCondition              mLineLoadCondition2D3N;
-   const LineLoadAxisym2DCondition  mAxisymLineLoadCondition2D2N;
-   const LineLoadAxisym2DCondition  mAxisymLineLoadCondition2D3N;
-   const LineLoad3DCondition              mLineLoadCondition3D2N;
-   const LineLoad3DCondition              mLineLoadCondition3D3N;
-
-   const SurfaceLoad3DCondition    mSurfaceLoadCondition3D3N;
-   const SurfaceLoad3DCondition    mSurfaceLoadCondition3D4N;
-   const SurfaceLoad3DCondition    mSurfaceLoadCondition3D6N;
-   const SurfaceLoad3DCondition    mSurfaceLoadCondition3D8N;
-   const SurfaceLoad3DCondition    mSurfaceLoadCondition3D9N;
+   const SurfaceLoad3DCondition          mSurfaceLoadCondition3D3N;
+   const SurfaceLoad3DCondition          mSurfaceLoadCondition3D4N;
+   const SurfaceLoad3DCondition          mSurfaceLoadCondition3D6N;
+   const SurfaceLoad3DCondition          mSurfaceLoadCondition3D8N;
+   const SurfaceLoad3DCondition          mSurfaceLoadCondition3D9N;
 
 
    //constitutive laws
@@ -391,8 +404,6 @@ typedef array_1d<double,6> Vector6;
    const LinearElasticPlaneStrain2DLaw           mLinearElasticPlaneStrain2DLaw;
    const LinearElasticPlaneStress2DLaw           mLinearElasticPlaneStress2DLaw;
    const LinearElasticAxisym2DLaw                mLinearElasticAxisym2DLaw;
-
-   const PythonOutfittedConstitutiveLaw          mPythonOutfittedConstitutiveLaw;
 
    //Hyperelastic Plastic J2 specilization laws 
    const HyperElasticPlasticJ23DLaw              mHyperElasticPlasticJ23DLaw;
