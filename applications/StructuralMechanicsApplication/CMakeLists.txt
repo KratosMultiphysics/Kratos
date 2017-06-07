@@ -40,6 +40,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/prestress_membrane_element.cpp
 
   # Solid elements
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_solid_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/kinematic_linear.cpp
   

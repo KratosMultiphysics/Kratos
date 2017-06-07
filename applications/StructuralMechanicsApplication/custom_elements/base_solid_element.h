@@ -87,216 +87,76 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * Sets on rResult the ID's of the element degrees of freedom
+     * @param rResult: The vector containing the equation id
+     * @param rCurrentProcessInfo: The current process info instance
+     */
     virtual void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo )
-    {
-        KRATOS_TRY
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        if (rResult.size() != dim*NumberOfNodes)
-            rResult.resize(dim*NumberOfNodes,false);
+        ProcessInfo& rCurrentProcessInfo 
+        );
 
-        const unsigned int pos = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
-
-        if(dim == 2)
-        {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
-            {
-                const unsigned int index = i * 2;
-                rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_X,pos).EquationId();
-                rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y,pos+1).EquationId();
-            }
-        }
-        else
-        {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
-            {
-                const unsigned int index = i * 3;
-                rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_X,pos).EquationId();
-                rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y,pos+1).EquationId();
-                rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z,pos+2).EquationId();
-            }
-        }
-        KRATOS_CATCH("")
-    };
-
-
+    /**
+     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
+     * @param rElementalDofList: The vector containing the dof of the element
+     * @param rCurrentProcessInfo: The current process info instance
+     */
     virtual void GetDofList(
-        DofsVectorType& ElementalDofList,
-        ProcessInfo& rCurrentProcessInfo )
-    {
-        KRATOS_TRY
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int dim =  GetGeometry().WorkingSpaceDimension();
-        ElementalDofList.resize(0);
-        ElementalDofList.reserve(dim*NumberOfNodes);
+        DofsVectorType& rElementalDofList,
+        ProcessInfo& rCurrentProcessInfo 
+        );
 
-        if(dim == 2)
-        {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
-            {
-                ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-                ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-            }
-        }
-        else
-        {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
-            {
-                ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-                ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-                ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-            }
-        }
-        KRATOS_CATCH("")
-    };
-
+    /**
+     * Sets on rValues the nodal displacements
+     * @param rValues: The values of displacements
+     * @param Step: The step to be computed
+     */
     virtual void GetValuesVector(
-        Vector& values,
-        int Step = 0 )
-    {
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int MatSize = NumberOfNodes * dim;
-        if (values.size() != MatSize)
-            values.resize(MatSize, false);
-        for (unsigned int i = 0; i < NumberOfNodes; i++)
-        {
-            const array_1d<double, 3 > & Displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-            unsigned int index = i * dim;
-            for(unsigned int k=0; k<dim; ++k)
-            {
-                values[index+k] = Displacement[k];
-            }
-        }
-    }
-
-
+        Vector& rValues,
+        int Step = 0 
+        );
+    
+    /**
+     * Sets on rValues the nodal velocities
+     * @param rValues: The values of velocities
+     * @param Step: The step to be computed
+     */
     virtual void GetFirstDerivativesVector(
-        Vector& values,
-        int Step = 0 )
-    {
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int MatSize = NumberOfNodes * dim;
-        if (values.size() != MatSize)
-        {
-            values.resize(MatSize, false);
-        }
-        
-        for (unsigned int i = 0; i < NumberOfNodes; i++)
-        {
-            const array_1d<double, 3 > & Velocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
-            unsigned int index = i * dim;
-            for(unsigned int k=0; k<dim; ++k)
-            {
-                values[index+k] = Velocity[k];
-            }
-        }
-    }
+        Vector& rValues,
+        int Step = 0 
+        );
 
+    /**
+     * Sets on rValues the nodal accelerations
+     * @param rValues: The values of accelerations
+     * @param Step: The step to be computed
+     */
     virtual void GetSecondDerivativesVector(
-        Vector& values,
-        int Step = 0 )
-    {
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int MatSize = NumberOfNodes * dim;
-        if (values.size() != MatSize)
-            values.resize(MatSize, false);
-        for (unsigned int i = 0; i < NumberOfNodes; i++)
-        {
-            const array_1d<double, 3 > & Acceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
-            unsigned int index = i * dim;
-            for(unsigned int k=0; k<dim; ++k)
-            {
-                values[index+k] = Acceleration[k];
-            }
-        }
-    }
+        Vector& rValues,
+        int Step = 0 
+        );
 
+    /**
+      * This is called during the assembling process in order to calculate the elemental mass matrix
+      * @param rMassMatrix: the elemental mass matrix
+      * @param rCurrentProcessInfo: the current process info instance
+      */
     virtual void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo )
-    {
-        KRATOS_TRY
+        ProcessInfo& rCurrentProcessInfo 
+        );
 
-        //lumped
-        unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        unsigned int NumberOfNodes = GetGeometry().size();
-        unsigned int MatSize = dimension * NumberOfNodes;
-
-        if ( rMassMatrix.size1() != MatSize )
-            rMassMatrix.resize( MatSize, MatSize, false );
-
-        rMassMatrix = ZeroMatrix( MatSize, MatSize );
-        
-        Matrix DN_DX( NumberOfNodes, dimension );
-        Matrix J0(dimension,dimension), InvJ0(dimension,dimension);
-        
-        //reading integration points and local gradients
-        IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(GetGeometry());
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( integration_method );
-        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(integration_method);
-        
-        const double density = GetProperties()[DENSITY];
-        double thickness = 1.0;
-        if ( dimension == 2 && GetProperties().Has( THICKNESS )) 
-            thickness = GetProperties()[THICKNESS];
-
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-        {
-
-            const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(integration_method)[PointNumber];
-
-            double detJ0;
-            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, detJ0, DN_De);
-            const double weight = integration_points[PointNumber].Weight()*detJ0*thickness;
-            const Vector& N = row(Ncontainer,PointNumber);
-
-            for ( unsigned int i = 0; i < NumberOfNodes; i++ )
-            {
-                unsigned int index_i = i * dimension;
-
-                for ( unsigned int j = 0; j < NumberOfNodes; ++j )
-                {
-                    unsigned int index_j = j*dimension;
-                    double NiNj_weight = N[i]*N[j]*weight*density;
-
-                    for ( unsigned int k = 0; k < dimension; k++ )
-                    {
-                        
-                        rMassMatrix( index_i+k, index_j+k ) += NiNj_weight;
-                    }
-                }
-            }
-        }
-
-
-
-        KRATOS_CATCH( "" )
-    }
-
-
+   /**
+      * This is called during the assembling process in order
+      * to calculate the elemental damping matrix
+      * @param rDampingMatrix: the elemental damping matrix
+      * @param rCurrentProcessInfo: the current process info instance
+      */
     virtual void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo )
-    {
-        KRATOS_TRY
-        unsigned int NumberOfNodes = GetGeometry().size();
-        unsigned int dim = GetGeometry().WorkingSpaceDimension();
-
-        //resizing as needed the LHS
-        unsigned int MatSize = NumberOfNodes * dim;
-
-        if ( rDampingMatrix.size1() != MatSize )
-            rDampingMatrix.resize( MatSize, MatSize, false );
-
-        noalias( rDampingMatrix ) = ZeroMatrix( MatSize, MatSize );
-
-        KRATOS_CATCH( "" )
-    }
+        ProcessInfo& rCurrentProcessInfo 
+        );
 
     /**
      * This function provides the place to perform checks on the completeness of the input.
@@ -305,30 +165,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo )
-    {
-        if ( DISPLACEMENT.Key() == 0 )
-        {
-            KRATOS_ERROR <<  "DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
-        }
-
-        //verify that the dofs exist
-        for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
-        {
-            if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-            {
-                KRATOS_ERROR << "missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
-            }
-
-            if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false ||
-                 this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false ||
-                 this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
-            {
-                KRATOS_ERROR << "missing one of the dofs for the variable DISPLACEMENT on node " << GetGeometry()[i].Id() << " of condition " << Id() << std::endl;
-            }
-        }
-        return 0;
-    }
+    virtual int Check( const ProcessInfo& rCurrentProcessInfo );
 
     ///@}
     ///@name Access
@@ -356,25 +193,29 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
+    
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; // The vector containing the constitutive laws
 
     ///@}
     ///@name Protected Operators
     ///@{
-    void  CalculateDerivativesOnReference(Matrix& J0, 
-                             Matrix& InvJ0, 
-                             Matrix& DN_DX, 
-                             double& detJ0, 
-                             const Matrix& DN_De
-                                         )
+    
+    void  CalculateDerivativesOnReference(
+        Matrix& J0, 
+        Matrix& InvJ0, 
+        Matrix& DN_DX, 
+        double& detJ0, 
+        const Matrix& DN_De
+        )
     {
         J0.clear();
+        
         for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
         {
-            const auto& coords = GetGeometry()[i].GetInitialPosition(); //NOTE: here we refer to the original, undeformed position!!
-            for(unsigned int k=0; k<GetGeometry().WorkingSpaceDimension(); k++)
+            const array_1d<double, 3>& coords = GetGeometry()[i].GetInitialPosition(); //NOTE: here we refer to the original, undeformed position!!
+            for(unsigned int k = 0; k < GetGeometry().WorkingSpaceDimension(); k++)
             {
-                for(unsigned int m=0; m<GetGeometry().LocalSpaceDimension(); m++)
+                for(unsigned int m = 0; m < GetGeometry().LocalSpaceDimension(); m++)
                 {
                     J0(k,m) += coords[k]*DN_De(i,m);
                 }
