@@ -76,7 +76,7 @@ namespace Kratos
 		return mFindIntersectedObjectsProcess.GetIntersections();
 	}
 
-	void CalculateDiscontinuousDistanceToSkinProcess::ComputeDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
+	void CalculateDiscontinuousDistanceToSkinProcess::CalculateDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
 	{
 		const int number_of_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).NumberOfElements();
 		auto& r_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).ElementsArray();
@@ -97,7 +97,7 @@ namespace Kratos
 	{
 		this->Initialize();
 		this->FindIntersections();
-		this->ComputeDistances(this->GetIntersections());
+		this->CalculateDistances(this->GetIntersections());
 	}
 
 	/// Turn back information as a string.

@@ -49,14 +49,14 @@ namespace Kratos
 		}
 	}
 
-	void CalculateDistanceToSkinProcess::ComputeDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
+	void CalculateDistanceToSkinProcess::CalculateDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
 	{
-		CalculateDiscontinuousDistanceToSkinProcess::ComputeDistances(rIntersectedObjects);
-		this->ComputeNodalDistances();
+		CalculateDiscontinuousDistanceToSkinProcess::CalculateDistances(rIntersectedObjects);
+		this->CalculateNodalDistances();
 		this->CalculateNodesDistances();
 	}
 
-	void CalculateDistanceToSkinProcess::ComputeNodalDistances()
+	void CalculateDistanceToSkinProcess::CalculateNodalDistances()
 	{
 		ModelPart& ModelPart1 = (CalculateDiscontinuousDistanceToSkinProcess::mFindIntersectedObjectsProcess).GetModelPart1();
 
@@ -345,7 +345,7 @@ namespace Kratos
 	{
 		this->Initialize();
 		this->FindIntersections();
-		this->ComputeDistances(this->GetIntersections());
+		this->CalculateDistances(this->GetIntersections());
 	}
 
 	/// Turn back information as a string.

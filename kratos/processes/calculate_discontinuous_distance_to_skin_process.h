@@ -82,14 +82,14 @@ namespace Kratos
       ///@}
       ///@name Operations
       ///@{
-      
+
       virtual void Initialize();
 
       virtual void FindIntersections();
 
       virtual std::vector<PointerVector<GeometricalObject>>& GetIntersections();
 
-      virtual void ComputeDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects);
+      virtual void CalculateDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects);
 
       virtual void Clear();
 
