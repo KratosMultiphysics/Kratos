@@ -17,9 +17,6 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 
-
-
-
 namespace Kratos
 {
 
@@ -30,12 +27,12 @@ namespace Kratos
 class IntervalUtility
 {
 public:
+    
     KRATOS_CLASS_POINTER_DEFINITION(IntervalUtility);
 
     IntervalUtility(  Parameters settings )
     {
         KRATOS_TRY
-
 
         if(settings.Has("interval"))
         {
@@ -49,8 +46,10 @@ public:
         }
         else
         {
-            settings = Parameters(R"( {"interval":[0.0, 1e30] } )" );
+            Parameters defaults(R"( {"default_interval": [0.0, 10.0]} )");
+            settings.AddValue("interval", defaults["default_interval"]);
         }
+
         minterval_begin = settings["interval"][0].GetDouble();
         minterval_end = settings["interval"][1].GetDouble();
 
@@ -61,6 +60,7 @@ public:
     {
         return minterval_begin;
     }
+
     double GetIntervalEnd()
     {
         return minterval_end;
@@ -74,9 +74,6 @@ public:
         else
             return false;
     }
-
-
-
 
 private:
     double minterval_begin;
