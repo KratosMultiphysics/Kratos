@@ -166,20 +166,20 @@ def AssambleTestSuites():
             TDynamicBossakTests,
             TDynamicNewmarkTests,
             TNodalDampingTests,
-            ##TSDTwoDShearQuaPatchTest, # FIXME: Not working
-            ##TSDTwoDShearTriPatchTest, # FIXME: Not working
+            #TSDTwoDShearQuaPatchTest, # FIXME: Not working
+            #TSDTwoDShearTriPatchTest, # FIXME: Not working
             TSDTwoDTensionQuaPatchTest,
             TSDTwoDTensionTriPatchTest,
-            ##TSDThreeDShearHexaPatchTest, # FIXME: Not working
-            ##TSDThreeDShearTetraPatchTest, # FIXME: Not working
+            #TSDThreeDShearHexaPatchTest, # FIXME: Not working
+            #TSDThreeDShearTetraPatchTest, # FIXME: Not working
             TSDThreeDTensionHexaPatchTest,
             TSDThreeDTensionTetraPatchTest,
-            ##TTLTwoDShearQuaPatchTest, # FIXME: Not working
-            ##TTLTwoDShearTriPatchTest, # FIXME: Not working
+            #TTLTwoDShearQuaPatchTest, # FIXME: Not working
+            #TTLTwoDShearTriPatchTest, # FIXME: Not working
             TTLTwoDTensionQuaPatchTest,
             TTLTwoDTensionTriPatchTest,
-            ##TTLThreeDShearHexaPatchTest, # FIXME: Not working
-            ##TTLThreeDShearTetraPatchTest, # FIXME: Not working
+            #TTLThreeDShearHexaPatchTest, # FIXME: Not working
+            #TTLThreeDShearTetraPatchTest, # FIXME: Not working
             TTLThreeDTensionHexaPatchTest,
             TTLThreeDTensionTetraPatchTest,
             #######TULTwoDShearQuaPatchTest,
@@ -192,8 +192,8 @@ def AssambleTestSuites():
             #######TULThreeDTensionTetraPatchTest,
             TSprismMembranePatchTests,
             TSprismBendingPatchTests,
-            ##TFofi4PointTentnoCableTests, # FIXME: Not working!!!
-            #TMembraneQ4PointLoadTests, # FIXME: Not working!!!, Needs point load
+            TFofi4PointTentnoCableTests,
+            TMembraneQ4PointLoadTests,
             TShellQ4ThickBendingRollUpTests,
             TShellQ4ThickDrillingRollUpTests,
             TShellT3ThinBendingRollUpTests,
