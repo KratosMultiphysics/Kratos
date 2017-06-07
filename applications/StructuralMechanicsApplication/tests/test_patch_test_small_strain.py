@@ -5,7 +5,7 @@ import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 
-class TestPatchTestLargeStrain(KratosUnittest.TestCase):
+class TestPatchTestSmallStrain(KratosUnittest.TestCase):
     def setUp(self):
         pass
     
@@ -312,6 +312,10 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         self._solve(mp)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
-
+    
+    def test_execution(self):
+        self.test_SmallDisplacementElement_2D_triangle()
+        self.test_SmallDisplacementElement_3D_hexa()
+        
 if __name__ == '__main__':
     KratosUnittest.main()

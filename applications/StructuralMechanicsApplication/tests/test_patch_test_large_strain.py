@@ -85,6 +85,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
+        convergence_criterion.SetEchoLevel(0)
         
         max_iters = 20
         compute_reactions = True
@@ -288,6 +289,10 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         self._solve(mp)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
+        
+    def test_execution(self):
+        self.test_TL_2D_triangle()
+        self.test_TL_3D_hexa()
 
 if __name__ == '__main__':
     KratosUnittest.main()

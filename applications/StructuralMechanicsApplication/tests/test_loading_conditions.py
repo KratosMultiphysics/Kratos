@@ -9,8 +9,6 @@ import math
 class TestLoadingConditions(KratosUnittest.TestCase):
     def setUp(self):
         pass
-    
-    
 
     def test_LineLoadCondition2D2N(self):
         dim = 2
@@ -159,7 +157,9 @@ class TestLoadingConditions(KratosUnittest.TestCase):
         for i in range(len(rhs)):
             self.assertAlmostEqual(rhs[i],reference_res[i])     
         
-
- 
+    def test_execution(self):
+        self.test_LineLoadCondition2D2N()
+        self.test_SurfaceLoadCondition3D4N()
+        
 if __name__ == '__main__':
     KratosUnittest.main()

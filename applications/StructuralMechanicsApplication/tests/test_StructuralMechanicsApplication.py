@@ -17,7 +17,11 @@ except ImportError as e:
 
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
-
+# Simple patch tests
+from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
+from test_patch_test_large_strain import TestPatchTestLargeStrain as TTestPatchTestLargeStrain
+# Test loading conditions
+from test_loading_conditions import TestLoadingConditions as TestLoadingConditions
 # Basic moving mesh test
 from SmallTests import SimpleMeshMovingTest             as TSimpleMeshMovingTest
 # Dynamic basic tests
@@ -93,6 +97,11 @@ def AssambleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
+    # Simple patch tests
+    smallSuite.addTest(TTestPatchTestSmallStrain('test_execution'))
+    smallSuite.addTest(TTestPatchTestLargeStrain('test_execution'))
+    # Test loading conditions
+    smallSuite.addTest(TestLoadingConditions('test_execution'))
     # Basic moving mesh test
     smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
     # Dynamic basic tests
@@ -162,6 +171,9 @@ def AssambleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
+            TTestPatchTestSmallStrain,
+            TTestPatchTestLargeStrain,
+            TestLoadingConditions,
             TSimpleMeshMovingTest,
             TDynamicBossakTests,
             TDynamicNewmarkTests,
@@ -204,17 +216,17 @@ def AssambleTestSuites():
         ])
     )
         
-    if (missing_external_dependencies == False):
-        if( hasattr(KratosMultiphysics.ExternalSolversApplication,  "FEASTSolver") ):
-            allSuite.addTests(
-                KratosUnittest.TestLoader().loadTestsFromTestCases([
-                    TEigenQ4Thick2x2PlateTests,
-                    TEigenTL3D8NCubeTests,
-                    TEigen3D3NThinCircleTests
-                ])
-            )
-        else:
-            print("FEASTSolver solver is not included in the compilation of the External Solvers Application")
+    #if (missing_external_dependencies == False):
+        #if( hasattr(KratosMultiphysics.ExternalSolversApplication,  "FEASTSolver") ):
+            #allSuite.addTests(
+                #KratosUnittest.TestLoader().loadTestsFromTestCases([
+                    #TEigenQ4Thick2x2PlateTests,
+                    #TEigenTL3D8NCubeTests,
+                    #TEigen3D3NThinCircleTests
+                #])
+            #)
+        #else:
+            #print("FEASTSolver solver is not included in the compilation of the External Solvers Application")
 
     return suites
 
