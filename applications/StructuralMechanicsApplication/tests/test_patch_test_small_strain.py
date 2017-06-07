@@ -38,6 +38,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS,210e9)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO,0.3)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS,1.0)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,1.0)
         
         g = [0,0,0]
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
@@ -250,6 +251,19 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         self._solve(mp)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
+        
+        #checking consistent mass matrix
+        M = KratosMultiphysics.Matrix(0,0)
+        mp.Elements[1].CalculateMassMatrix(M,mp.ProcessInfo)
+        Area = mp.Elements[1].GetArea()
+        for i in range(3):
+            for j in range(3):
+                for k in range(dim):
+                    if(i==j):
+                        coeff = Area/6.0
+                    else:
+                        coeff = Area/12.0
+                    self.assertAlmostEqual(M[i*dim+k,j*dim+k],coeff)
         
     def test_SmallDisplacementElement_3D_hexa(self): 
         dim = 3

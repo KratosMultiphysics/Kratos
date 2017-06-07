@@ -239,24 +239,29 @@ public:
         IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(GetGeometry());
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( integration_method );
         const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(integration_method);
-        const double density = GetProperties()[DENSITY];
         
+        const double density = GetProperties()[DENSITY];
         double thickness = 1.0;
         if ( dimension == 2 && GetProperties().Has( THICKNESS )) 
             thickness = GetProperties()[THICKNESS];
+
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
+
+            const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(integration_method)[PointNumber];
+
             double detJ0;
-            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, detJ0, PointNumber);
+            CalculateDerivativesOnReference(J0, InvJ0, DN_DX, detJ0, DN_De);
             const double weight = integration_points[PointNumber].Weight()*detJ0*thickness;
             const Vector& N = row(Ncontainer,PointNumber);
-            
+
             for ( unsigned int i = 0; i < NumberOfNodes; i++ )
             {
-                unsigned int index_i = i * NumberOfNodes;
+                unsigned int index_i = i * dimension;
+
                 for ( unsigned int j = 0; j < NumberOfNodes; ++j )
                 {
-                    unsigned int index_j = j*NumberOfNodes;
+                    unsigned int index_j = j*dimension;
                     double NiNj_weight = N[i]*N[j]*weight*density;
 
                     for ( unsigned int k = 0; k < dimension; k++ )
@@ -265,7 +270,7 @@ public:
                         rMassMatrix( index_i+k, index_j+k ) += NiNj_weight;
                     }
                 }
-            }            
+            }
         }
 
 
@@ -360,10 +365,9 @@ protected:
                              Matrix& InvJ0, 
                              Matrix& DN_DX, 
                              double& detJ0, 
-                             const unsigned int PointNumber)
+                             const Matrix& DN_De
+                                         )
     {
-        auto& DN_De = GetGeometry().ShapeFunctionsLocalGradients()[PointNumber];
-        
         J0.clear();
         for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
         {
