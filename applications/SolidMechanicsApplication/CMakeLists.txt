@@ -6,9 +6,9 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 #include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../ConstitutiveModelsApplication )
 
 
-if(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
-    message(SEND_ERROR "The ConsitutiveModels Application must be compiled before this one. Set CONSTITUTIVE_MODELS_APPLICATION=ON in the configure file.")
-endif(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
+#if(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
+#    message(SEND_ERROR "The ConsitutiveModels Application must be compiled before this one. Set CONSTITUTIVE_MODELS_APPLICATION=ON in the configure file.")
+#endif(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
 
 ## generate variables with the sources
 set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
@@ -116,8 +116,8 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosSolidMechanicsApplication SHARED ${KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES})
-##target_link_libraries(KratosSolidMechanicsApplication KratosCore)
-target_link_libraries(KratosSolidMechanicsApplication KratosCore KratosConstitutiveModelsApplication)
+target_link_libraries(KratosSolidMechanicsApplication KratosCore)
+##target_link_libraries(KratosSolidMechanicsApplication KratosCore KratosConstitutiveModelsApplication)
 set_target_properties(KratosSolidMechanicsApplication PROPERTIES PREFIX "")
 set_target_properties(KratosSolidMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "SOLID_MECHANICS_APPLICATION=EXPORT,API")
 install(TARGETS KratosSolidMechanicsApplication DESTINATION libs )
