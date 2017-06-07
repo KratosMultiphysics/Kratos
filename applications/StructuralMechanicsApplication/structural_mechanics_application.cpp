@@ -176,22 +176,6 @@ void KratosStructuralMechanicsApplication::Register()
     /* Torque condition */
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_TORQUE )
 
-//    // Orthotropy
-//    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_X )
-//    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_Y )
-//    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_Z )
-//    KRATOS_REGISTER_VARIABLE( SHEAR_MODULUS_XY )
-//    KRATOS_REGISTER_VARIABLE( SHEAR_MODULUS_YZ )
-//    KRATOS_REGISTER_VARIABLE( SHEAR_MODULUS_XZ )
-//    KRATOS_REGISTER_VARIABLE( POISSON_RATIO_XY )
-//    KRATOS_REGISTER_VARIABLE( POISSON_RATIO_YZ )
-//    KRATOS_REGISTER_VARIABLE( POISSON_RATIO_XZ )
-
-//    // Material orientation
-//    KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DX )
-//    KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DY )
-//    KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DZ )
-
     // Adding the SPRISM EAS variables
     KRATOS_REGISTER_VARIABLE(ALPHA_EAS);
     KRATOS_REGISTER_VARIABLE(EAS_IMP);
@@ -209,39 +193,20 @@ void KratosStructuralMechanicsApplication::Register()
     // Strain measures
     KRATOS_REGISTER_VARIABLE(HENCKY_STRAIN_VECTOR);
     KRATOS_REGISTER_VARIABLE(HENCKY_STRAIN_TENSOR);
-    
-    //material orientation
-    KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DX )
-    KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DY )
-    KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DZ )
-    
-    //othotropic/anisotropic constants
-    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_X )
-    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_Y )
-    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_Z )
-    KRATOS_REGISTER_VARIABLE( SHEAR_MODULUS_XY )
-    KRATOS_REGISTER_VARIABLE( SHEAR_MODULUS_YZ )
-    KRATOS_REGISTER_VARIABLE( SHEAR_MODULUS_XZ )
-    KRATOS_REGISTER_VARIABLE( POISSON_RATIO_XY )
-    KRATOS_REGISTER_VARIABLE( POISSON_RATIO_YZ )
-    KRATOS_REGISTER_VARIABLE( POISSON_RATIO_XZ )
 
     KRATOS_REGISTER_VARIABLE( NORM_ISOCHORIC_STRESS )
     KRATOS_REGISTER_VARIABLE( PLASTIC_STRAIN )
-    KRATOS_REGISTER_VARIABLE( ALMANSI_STRAIN_TENSOR )
-    KRATOS_REGISTER_VARIABLE( GREEN_LAGRANGE_STRAIN_VECTOR )
-    KRATOS_REGISTER_VARIABLE( ALMANSI_STRAIN_VECTOR )
     KRATOS_REGISTER_VARIABLE( VON_MISES_STRESS ) 
-    
+
     KRATOS_REGISTER_VARIABLE( RAYLEIGH_ALPHA )
     KRATOS_REGISTER_VARIABLE( RAYLEIGH_BETA )
-    
+
     // Nodal load variables
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_LOAD )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LINE_LOAD )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( SURFACE_LOAD )
         
-    //condition load variables
+    // Condition load variables
     KRATOS_REGISTER_VARIABLE(POINT_LOADS_VECTOR )
     KRATOS_REGISTER_VARIABLE(LINE_LOADS_VECTOR )
     KRATOS_REGISTER_VARIABLE(SURFACE_LOADS_VECTOR )
@@ -257,7 +222,7 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT( "ShellThickElementCorotational3D4N", mShellThickCorotationalElement3D4N )
     KRATOS_REGISTER_ELEMENT( "ShellThinElement3D3N", mShellThinElement3D3N )
     KRATOS_REGISTER_ELEMENT( "ShellThinElementCorotational3D3N", mShellThinCorotationalElement3D3N )
-    
+
     // Register the membrane element
     KRATOS_REGISTER_ELEMENT( "MembraneElement3D3N", mMembraneElement3D3N )
     KRATOS_REGISTER_ELEMENT( "MembraneElement3D4N", mMembraneElement3D4N )
@@ -266,13 +231,13 @@ void KratosStructuralMechanicsApplication::Register()
 
     // Register the SPRISM element
     KRATOS_REGISTER_ELEMENT("SprismElement3D6N", mSprismElement3D6N);
-    
+
     // Register the nodal concentrated element
     KRATOS_REGISTER_ELEMENT("NodalConcentratedElement2D1N", mNodalConcentratedElement2D1N);
     KRATOS_REGISTER_ELEMENT("NodalConcentratedDampedElement2D1N", mNodalConcentratedDampedElement2D1N);
     KRATOS_REGISTER_ELEMENT("NodalConcentratedElement3D1N", mNodalConcentratedElement3D1N);
     KRATOS_REGISTER_ELEMENT("NodalConcentratedDampedElement3D1N", mNodalConcentratedDampedElement3D1N);
-    
+
     // SOLID ELEMENTS
     // Small displacement elements
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement2D3N", mKinematicLinear2D3N )
@@ -287,7 +252,7 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement3D15N", mKinematicLinear3D15N )
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement3D20N", mKinematicLinear3D20N )
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement3D27N", mKinematicLinear3D27N )
-    
+
     // Total lagrangian elements
     KRATOS_REGISTER_ELEMENT( "TotalLagrangianElement2D3N", mTotalLagrangian2D3N )
     KRATOS_REGISTER_ELEMENT( "TotalLagrangianElement2D4N", mTotalLagrangian2D4N )
@@ -319,12 +284,12 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "PointMomentCondition3D1N", mPointMomentCondition3D1N );
     // Torque moment condition
     KRATOS_REGISTER_CONDITION( "PointTorqueCondition3D1N", mPointTorqueCondition3D1N );
-    
+
     // Register linear elastics laws
     Serializer::Register( "LinearElastic3DLaw", mElasticIsotropic3D );
     Serializer::Register( "LinearElasticPlaneStrain2DLaw", mLinearPlaneStrain );
     Serializer::Register( "LinearElasticPlaneStress2DLaw", mLinearPlaneStress );
-//     Serializer::Register( "LinearElasticAxisym2DLaw",  );
+    //     Serializer::Register( "LinearElasticAxisym2DLaw",  );
     
 }
 
