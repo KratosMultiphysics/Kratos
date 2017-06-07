@@ -110,7 +110,7 @@ public:
         // Call the distance calculator methods
         pdistance_calculator->Initialize();
         pdistance_calculator->FindIntersections();
-        pdistance_calculator->ComputeDistances(pdistance_calculator->GetIntersections());
+        pdistance_calculator->CalculateDistances(pdistance_calculator->GetIntersections());
 
         // TODO: Raycasting
 
@@ -118,7 +118,7 @@ public:
         this->PeakValuesCorrection(); //TODO: Check the correct behaviour of this method once the raycasting has been implemented
 
         // Compute the embedded velocity
-        this->ComputeEmbeddedVelocity(pdistance_calculator->GetIntersections());
+        this->CalculateEmbeddedVelocity(pdistance_calculator->GetIntersections());
 
         // Call the distance calculation Clear() to delete the intersection data
         pdistance_calculator->Clear();
@@ -180,17 +180,22 @@ public:
     ///@name Protected Operations
     ///@{
 
-    void ComputeEmbeddedVelocity(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
+    void CalculateEmbeddedVelocity(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
     {
-        #pragma omp for
+        const array_1d<double, 3> aux_zero = ZeroVector(3);
+
+        // #pragma omp parallel for firstprivate(aux_zero)
         for (int k = 0; k < static_cast<int>(mrFluidModelPart.NumberOfElements()); ++k)
         {
             ModelPart::ElementsContainerType::iterator itFluidElement = mrFluidModelPart.ElementsBegin() + k;
-            PointerVector<GeometricalObject> intersected_skin_elems = rIntersectedObjects[itFluidElement->Id()];
+            const PointerVector<GeometricalObject>& intersected_skin_elems = rIntersectedObjects[k];
 
-            unsigned int intersection_counter = 0;
+            // Initialize the element EMBEDDED_VELOCITY
+            itFluidElement->SetValue(EMBEDDED_VELOCITY, aux_zero);
 
             // Accumulate the VELOCITY from all the structure conditions that intersect the element
+            unsigned int intersection_counter = 0;
+
             for(auto itSkinElement : intersected_skin_elems)
             {
                 array_1d<double,3> emb_vel = (itSkinElement.GetGeometry()[0]).GetSolutionStepValue(VELOCITY);
