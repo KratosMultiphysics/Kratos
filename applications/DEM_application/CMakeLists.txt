@@ -106,7 +106,8 @@ if(${ACTIVATE_DEBUG_MACRO} MATCHES ON)        #MSI: Flag defined for debug Macro
     add_definitions(-DDEBUG_MACRO)
 endif(${ACTIVATE_DEBUG_MACRO} MATCHES ON)
 
-add_definitions( -Wsuggest-override )
+# Warn about overriding virtual fuctions not marked as override
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
 
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
