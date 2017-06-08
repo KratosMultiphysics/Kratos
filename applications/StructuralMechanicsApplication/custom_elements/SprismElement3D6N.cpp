@@ -14,13 +14,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "custom_elements/SprismElement3D6N.hpp"
-#include "custom_utilities/structural_mechanics_math_utilities.hpp"
-#include "utilities/math_utils.h"
-#include "includes/constitutive_law.h"
-#include "structural_mechanics_application.h"
-#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -2407,7 +2401,7 @@ void SprismElement3D6N::GetNodalCoordinates(
      else
      {
          std::string Config = (ThisConfiguration == Initial) ? "Initial" : "Current";
-         KRATOS_ERROR << " The configuration is not possible, the posibilities are Current and Initial:  " << Config << std::endl;
+         KRATOS_ERROR << " The configuration is not possible, the posibilities are Current and Initial: " << Config << std::endl;
      }
 }
 

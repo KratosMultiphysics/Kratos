@@ -160,6 +160,7 @@ namespace Kratos
                 rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z,pos+2).EquationId();
             }
         }
+
         KRATOS_CATCH("")
     };
         
@@ -195,7 +196,7 @@ namespace Kratos
                 rElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
             }
         }
-        
+
         KRATOS_CATCH("")
     };
         
