@@ -14,8 +14,6 @@
 
 #include "utilities/math_utils.h"
 
-// TODO: Remove repeated functions
-
 namespace Kratos
 {
 class StructuralMechanicsMathUtilities
@@ -25,7 +23,20 @@ public:
     ///@name Type definitions
     ///@{
      
-    typedef long double RealType;
+    typedef long double                                RealType;
+    
+    typedef Node<3>                                    NodeType;
+    
+    typedef Geometry<NodeType>                     GeometryType;
+    
+    ///@}
+    ///@name  Enum's
+    ///@{
+    
+    #if !defined(INITIAL_CURRENT)
+    #define INITIAL_CURRENT
+        enum Configuration {Initial = 0, Current = 1};
+    #endif
     
     ///@}
     ///@name Operations
@@ -87,10 +98,6 @@ public:
         MathUtils<double>::CrossProduct(t1g, t2g, t3g);
         n = norm_2(t1g);
         t1g /= n;
-
-//        KRATOS_WATCH(t1g);
-//        KRATOS_WATCH(t2g);
-//        KRATOS_WATCH(t3g);
     }
 
     static inline void Comp_Orthonor_Base(
@@ -304,6 +311,41 @@ public:
         solution[1] = c / q;
 
         return true;
+    }
+    
+    /**
+     * Calculates the radius of axisymmetry
+     * @param N: The Gauss Point shape function
+     * @param Geom: The geometry studied
+     * @return Radius: The radius of axisymmetry
+     */
+        
+    double CalculateRadius(
+        const Vector N,
+        GeometryType& Geom,
+        const Configuration ThisConfiguration = Current 
+        )
+    {
+        double Radius = 0.0;
+
+        for (unsigned int iNode = 0; iNode < Geom.size(); iNode++)
+        {
+            // Displacement from the reference to the current configuration   
+            if (ThisConfiguration == Current)
+            {
+                const array_1d<double, 3 > CurrentPosition = Geom[iNode].Coordinates();
+                Radius += CurrentPosition[0] * N[iNode];
+            }
+            else
+            {
+                const array_1d<double, 3 > DeltaDisplacement = Geom[iNode].FastGetSolutionStepValue(DISPLACEMENT) - Geom[iNode].FastGetSolutionStepValue(DISPLACEMENT,1);  
+                const array_1d<double, 3 > CurrentPosition = Geom[iNode].Coordinates();
+                const array_1d<double, 3 > ReferencePosition = CurrentPosition - DeltaDisplacement;
+                Radius += ReferencePosition[0] * N[iNode];
+            }
+        }
+        
+        return Radius;
     }
     
 private:
