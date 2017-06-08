@@ -30,6 +30,7 @@ class BuoyancyTest(UnitTest.TestCase):
         self.convection_diffusion_solver = "eulerian"
         self.dt = 0.5
         self.nsteps = 3
+        self.thermal_expansion_coefficient = None # If set, it will be used instead of 1./AmbientTemperature
 
         self.check_tolerance = 1e-6
         self.print_output = False
@@ -46,6 +47,13 @@ class BuoyancyTest(UnitTest.TestCase):
     def testEulerian(self):
         self.convection_diffusion_solver = "eulerian"
         self.reference_file = "reference10_eulerian"
+        self.testBuoyancy()
+
+
+    def testThermalExpansionCoefficient(self):
+        self.convection_diffusion_solver = "eulerian"
+        self.reference_file = "reference10_eulerian"
+        self.thermal_expansion_coefficient = 1./293.15
         self.testBuoyancy()
 
     def testBFECC(self):
@@ -186,8 +194,11 @@ class BuoyancyTest(UnitTest.TestCase):
         mu = 0.71*k/c # For Prandlt = 0.71
         nu = mu/rho
 
-        grav_string = '{ "gravity" : [ 0.0, -' + str(g) +', 0.0 ] }'
-        parameters = Parameters(grav_string)
+        if self.thermal_expansion_coefficient is not None:
+            parameter_string = '{ "gravity" : [ 0.0, -' + str(g) +', 0.0 ], "thermal_expansion_coefficient" : '+ str(self.thermal_expansion_coefficient) +' }'
+        else:
+            parameter_string = '{ "gravity" : [ 0.0, -' + str(g) +', 0.0 ] }'
+        parameters = Parameters(parameter_string)
         self.buoyancy_process = BoussinesqForceProcess(self.model_part,parameters)
 
         ## Set initial and boundary conditions

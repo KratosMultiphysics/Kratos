@@ -176,6 +176,10 @@ namespace Kratos
 
       array_1d<double,3> mrGravity;
 
+      bool mUseAmbientTemperature;
+
+      double mThermalExpansionCoefficient;
+
       ///@}
       ///@name Private Operators
       ///@{
