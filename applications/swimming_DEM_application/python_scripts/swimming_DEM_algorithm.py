@@ -303,12 +303,8 @@ class Algorithm(object):
         # creating a debug tool
         self.dem_volume_tool = SDP.ProjectionDebugUtils(self.pp.CFD_DEM.fluid_domain_volume, self.fluid_model_part, self.disperse_phase_algorithm.spheres_model_part, self.custom_functions_tool)
 
-        # creating a distance calculation process for the embedded technology
-        # (used to calculate elemental distances defining the structure embedded in the fluid mesh)
-        if self.pp.CFD_DEM.embedded_option:
-            self.calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(self.disperse_phase_algorithm.rigid_face_model_part, self.fluid_model_part)
-            self.calculate_distance_process.Execute()
-
+        self.SetEmbeddedTools()
+        
         self.KRATOSprint("Initialization Complete" + "\n")
         sys.stdout.flush()
 
@@ -447,7 +443,14 @@ class Algorithm(object):
         self.vars_man.AddNodalVariables(self.disperse_phase_algorithm.DEM_inlet_model_part, self.pp.inlet_vars)
         self.vars_man.AddExtraProcessInfoVariablesToDispersePhaseModelPart(self.pp, self.disperse_phase_algorithm.spheres_model_part)
         
-        self.disperse_phase_algorithm.Initialize()                
+        self.disperse_phase_algorithm.Initialize()  
+        
+    def SetEmbeddedTools(self):
+    # creating a distance calculation process for the embedded technology
+        # (used to calculate elemental distances defining the structure embedded in the fluid mesh)
+        if self.pp.CFD_DEM.embedded_option:
+            self.calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(self.disperse_phase_algorithm.rigid_face_model_part, self.fluid_model_part)
+            self.calculate_distance_process.Execute()
         
               
     def RunMainTemporalLoop(self):
@@ -466,13 +469,7 @@ class Algorithm(object):
             else:
                 time_final_DEM_substepping = self.time
 
-            # calculating elemental distances defining the structure embedded in the fluid mesh
-            if self.pp.CFD_DEM.embedded_option:
-                self.calculate_distance_process.Execute()
-
-            if self.embedded_counter.Tick():
-                embedded.ApplyEmbeddedBCsToFluid(self.fluid_model_part)
-                embedded.ApplyEmbeddedBCsToBalls(self.disperse_phase_algorithm.spheres_model_part, self.pp.CFD_DEM)
+            self.PerformEmbeddedOperations()            
 
             # solving the fluid part
 
@@ -615,6 +612,15 @@ class Algorithm(object):
 
     def PerformInitialDEMStepOperations(self, time = None):
         pass
+    
+    def PerformEmbeddedOperations(self):
+        # calculating elemental distances defining the structure embedded in the fluid mesh
+        if self.pp.CFD_DEM.embedded_option:
+            self.calculate_distance_process.Execute()
+
+        if self.embedded_counter.Tick():
+            embedded.ApplyEmbeddedBCsToFluid(self.fluid_model_part)
+            embedded.ApplyEmbeddedBCsToBalls(self.disperse_phase_algorithm.spheres_model_part, self.pp.CFD_DEM)
 
     def SetInlet(self):
         if self.pp.CFD_DEM.dem_inlet_option:

@@ -75,6 +75,12 @@ class Algorithm(BaseAlgorithm):
         self.pp.variables_to_print_in_file
         if self.pp.type_of_inlet == 'ForceImposed':
             self.DEM_inlet = DEM_Force_Based_Inlet(self.DEM_inlet_model_part, self.pp.force)
+            
+    def SetEmbeddedTools(self):
+        pass
+            
+    def PerformEmbeddedOperations(self):
+        pass
 
         
 
