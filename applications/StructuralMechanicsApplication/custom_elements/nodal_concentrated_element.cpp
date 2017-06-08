@@ -248,9 +248,6 @@ void NodalConcentratedElement::FinalizeNonLinearIteration( ProcessInfo& rCurrent
 void NodalConcentratedElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
-    
-    // Explicit case:
-    this->ClearNodalForces();
 
     KRATOS_CATCH( "" );
 }
@@ -396,26 +393,6 @@ void NodalConcentratedElement::AddExplicitContribution(const VectorType& rRHSVec
 
 }
 
-//************************************************************************************
-//************************************************************************************
-
-void NodalConcentratedElement::ClearNodalForces()
-{
-    KRATOS_TRY;
-
-    if( GetGeometry()[0].SolutionStepsDataHas(EXTERNAL_FORCE) && GetGeometry()[0].SolutionStepsDataHas(INTERNAL_FORCE) )
-    {
-        array_1d<double, 3 > & ExternalForce = GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_FORCE);
-        array_1d<double, 3 > & InternalForce = GetGeometry()[0].FastGetSolutionStepValue(INTERNAL_FORCE);
-
-        GetGeometry()[0].SetLock();
-        ExternalForce.clear();
-        InternalForce.clear();
-        GetGeometry()[0].UnSetLock();
-    }
-    
-    KRATOS_CATCH( "" );
-}
 
 //*************************COMPUTE DELTA POSITION*************************************
 //************************************************************************************
