@@ -996,6 +996,10 @@ public:
     inline typename DofType::Pointer pAddDof(TVariableType const& rDofVariable)
     {
         KRATOS_TRY_LEVEL_3
+        
+#ifdef KRATOS_DEBUG
+        if(rDofVariable.Key() == 0) KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
+#endif
 
         typename DofsContainerType::iterator i_dof = mDofs.find(rDofVariable);
         if(i_dof != mDofs.end())
@@ -1017,6 +1021,8 @@ public:
     inline typename DofType::Pointer pAddDof(DofType const& SourceDof)
     {
         KRATOS_TRY_LEVEL_3
+        
+
 
         typename DofsContainerType::iterator i_dof = mDofs.find(SourceDof.GetVariable());
         if(i_dof != mDofs.end())
@@ -1043,6 +1049,11 @@ public:
     inline typename DofType::Pointer pAddDof(TVariableType const& rDofVariable, TReactionType const& rDofReaction)
     {
         KRATOS_TRY_LEVEL_3
+        
+#ifdef KRATOS_DEBUG
+        if(rDofVariable.Key() == 0) KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
+        if(rDofReaction.Key() == 0) KRATOS_ERROR << "Reaction  " << rDofReaction << " has key zero when adding reactions for node " << this->Id() << std::endl;
+#endif
 
         typename DofsContainerType::iterator i_dof = mDofs.find(rDofVariable);
         if(i_dof != mDofs.end())
@@ -1068,10 +1079,19 @@ public:
     inline DofType& AddDof(TVariableType const& rDofVariable)
     {
         KRATOS_TRY_LEVEL_3
+        
+#ifdef KRATOS_DEBUG
+        if(rDofVariable.Key() == 0) KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
+#endif
 
         typename DofsContainerType::iterator i_dof = mDofs.find(rDofVariable);
         if(i_dof != mDofs.end())
+        {
             return *i_dof;
+        }
+            
+        
+            
 
         typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
         mDofs.insert(mDofs.begin(), p_new_dof);
@@ -1090,10 +1110,18 @@ public:
     inline DofType& AddDof(TVariableType const& rDofVariable, TReactionType const& rDofReaction)
     {
         KRATOS_TRY_LEVEL_3
+        
+#ifdef KRATOS_DEBUG
+        if(rDofVariable.Key() == 0) KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
+        if(rDofReaction.Key() == 0) KRATOS_ERROR << "Reaction  " << rDofReaction << " has key zero when adding reactions for node " << this->Id() << std::endl;
+#endif
 
         typename DofsContainerType::iterator i_dof = mDofs.find(rDofVariable);
         if(i_dof != mDofs.end())
+        {
+            i_dof->SetReaction(rDofReaction);
             return *i_dof;
+        }
 
         typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
         mDofs.insert(mDofs.begin(), p_new_dof);
