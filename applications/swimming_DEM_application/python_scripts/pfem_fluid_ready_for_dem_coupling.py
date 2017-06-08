@@ -22,26 +22,7 @@ class Solution(KratosPfemFluid.Solution):
 
     def __init__(self):   
         self.pp = self.ProblemParameters()
-        super(Solution,self).__init__()    
-        
-    def AddNodalVariablesToModelPart(self):
-        
-        # Add variables (always before importing the model part)
-        self.solver.AddVariables()
-        self.AddFluidVariablesBySwimmingDEMAlgorithm()
-
-        # Add PfemSolidMechanicsApplication Variables
-        import pfem_solid_variables  
-        pfem_solid_variables.AddVariables(self.main_model_part) 
-        
-    def AddFluidVariablesBySwimmingDEMAlgorithm(self):
-        self.vars_man.AddExtraProcessInfoVariablesToFluidModelPart(self.pp, self.main_model_part)
-        self.vars_man.AddNodalVariables(self.main_model_part, self.pp.fluid_vars) 
-        
-    def GetDeltaTimeFromParameters(self):
-        return self.ProjectParameters["problem_data"]["time_step"].GetDouble()
-        
-    def SetGraphicalOutput(self):
+        super(Solution,self).__init__()  
         self.pp.nodal_results = []
         output_settings = self.ProjectParameters["output_configuration"]["result_file_configuration"]
         for i in range(output_settings["nodal_results"].size()):
@@ -76,7 +57,22 @@ class Solution(KratosPfemFluid.Solution):
         else:
             self.pp.GiDWriteConditionsFlag  = False
         
-                
+    def AddNodalVariablesToModelPart(self):
+        
+        # Add variables (always before importing the model part)
+        self.solver.AddVariables()
+        self.AddFluidVariablesBySwimmingDEMAlgorithm()
+
+        # Add PfemSolidMechanicsApplication Variables
+        import pfem_solid_variables  
+        pfem_solid_variables.AddVariables(self.main_model_part) 
+        
+    def AddFluidVariablesBySwimmingDEMAlgorithm(self):
+        self.vars_man.AddExtraProcessInfoVariablesToFluidModelPart(self.pp, self.main_model_part)
+        self.vars_man.AddNodalVariables(self.main_model_part, self.pp.fluid_vars) 
+        
+    def GetDeltaTimeFromParameters(self):
+        return self.ProjectParameters["problem_data"]["time_step"].GetDouble()                                
 
     def GraphicalOutputExecuteInitialize(self):
         pass
