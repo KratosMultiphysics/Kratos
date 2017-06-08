@@ -116,6 +116,7 @@ namespace Kratos
         "In Boussinesq Force Process: \'AMBIENT_TEMPERATURE\' obtained from ProcessInfo is incorrect." << std::endl <<
         "Expected a positive double, got " << AmbientTemperature << std::endl;
 
+        // Note: the default value of 1/AMBIENT_TEMPERATURE is the usual assumption for perfect gases.
         const double Alpha = (mUseAmbientTemperature) ? 1.0 / AmbientTemperature : mThermalExpansionCoefficient;
 
         int NumNodes = rModelPart.NumberOfNodes();
