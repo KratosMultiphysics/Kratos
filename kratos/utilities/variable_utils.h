@@ -692,7 +692,9 @@ public:
                  const TVarType& rReactionVar,
                  ModelPart& rModelPart)
     {
-        KRATOS_TRY
+		KRATOS_TRY
+
+			std::cout << "adding variable " << rVar << " with assigned reaction " << rReactionVar << std::endl;
         
         if(rVar.Key() == 0)
             KRATOS_ERROR << " Variable : " << rVar << " has a 0 key. Check if the application was correctly registered.";
@@ -710,7 +712,15 @@ public:
         #pragma omp parallel for 
         for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k)
         {
-            auto it = rModelPart.NodesBegin() + k;
+			auto it = rModelPart.NodesBegin() + k;
+
+#ifdef KRATOS_DEBUG
+			if (it->SolutionStepsDataHas(rVar) == false)
+				KRATOS_ERROR << " Variable : " << rVar << "not included in the Soluttion step data ";
+			if (it->SolutionStepsDataHas(rReactionVar) == false)
+				KRATOS_ERROR << " Variable : " << rReactionVar << "not included in the Soluttion step data ";
+#endif
+            
             it->AddDof(rVar,rReactionVar);
         }
 
@@ -734,6 +744,27 @@ public:
 		KRATOS_CATCH("")
 	}
     
+	bool CheckDofs(ModelPart& rModelPart)
+	{
+		KRATOS_TRY
+
+		for(auto& node : rModelPart.Nodes())
+		{
+			for (auto& dof : node.GetDofs())
+			{
+				//if (!node.SolutionStepsDataHas(dof.GetVariable()))
+				//	KRATOS_ERROR << "node : " << node << " does not have allocated space for the variable " << dof << std::endl;
+				if (dof.GetVariable().Key() == 0)
+				{
+					KRATOS_ERROR << "found a zero key on a dof of node " << node << std::endl;
+
+				}
+
+			}
+		}
+		return true;
+		KRATOS_CATCH("")
+	}
     /*@} */
     /**@name Acces */
     /*@{ */
