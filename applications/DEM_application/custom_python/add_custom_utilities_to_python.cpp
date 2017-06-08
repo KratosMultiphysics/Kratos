@@ -25,7 +25,8 @@
 #include "custom_utilities/inlet.h"
 #include "custom_utilities/force_based_inlet.h"
 #include "custom_utilities/reorder_consecutive_from_given_ids_model_part_io.h"
-#include "custom_utilities/AuxiliaryUtilities.h" 
+#include "custom_utilities/AuxiliaryUtilities.h"
+#include "custom_utilities/excavator_utility.h"
 
 #include "boost/python/list.hpp"
 #include "boost/python/extract.hpp"
@@ -121,6 +122,7 @@ void AddCustomUtilitiesToPython() {
         .def("CalculateGravitationalPotentialEnergy", &SphericElementGlobalPhysicsCalculator::CalculateGravitationalPotentialEnergy)
         .def("CalculateTotalMomentum", &SphericElementGlobalPhysicsCalculator::CalculateTotalMomentum)
         .def("CalulateTotalAngularMomentum", &SphericElementGlobalPhysicsCalculator::CalulateTotalAngularMomentum)
+        .def("CalculateSumOfInternalForces", &SphericElementGlobalPhysicsCalculator::CalculateSumOfInternalForces)
         ;
 
     void (DemSearchUtilities::*SearchNodeNeigboursDistancesMM)(ModelPart&,ModelPart&,const double&,const Variable<double>&) = &DemSearchUtilities::SearchNodeNeigboursDistances<Variable<double> >;
@@ -147,6 +149,7 @@ void AddCustomUtilitiesToPython() {
         .def("GetTimeStepsData", &AnalyticParticleWatcher::GetTimeStepsData)
         .def("GetParticleData", &AnalyticParticleWatcher::GetParticleData)
         .def("GetAllParticlesData", &AnalyticParticleWatcher::GetAllParticlesData)
+        .def("SetNodalMaxImpactVelocities", &AnalyticParticleWatcher::SetNodalMaxImpactVelocities)
         ;
 
     class_<AnalyticFaceWatcher, boost::noncopyable >
@@ -216,9 +219,12 @@ void AddCustomUtilitiesToPython() {
         .def("GetIthSubModelPartData", &AuxiliaryUtilities::GetIthSubModelPartData<std::string>) 
         .def("GetIthSubModelPartNodes", &AuxiliaryUtilities::GetIthSubModelPartNodes)          
         ;
-    
-    }
 
+    class_<ExcavatorUtility, boost::noncopyable >("ExcavatorUtility",
+        init<ModelPart&, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double>())
+        .def("ExecuteInitializeSolutionStep", &ExcavatorUtility::ExecuteInitializeSolutionStep)   
+        ;
+    }
 
 /*ModelPart::NodesContainerType::Pointer ModelPartGetNodes1(ModelPart& rModelPart)
 {

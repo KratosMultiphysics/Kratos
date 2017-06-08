@@ -158,7 +158,9 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     if {$IsPeriodic eq true} {
         set Groups [GiD_Info conditions Interface_Part groups]    
         for {set i 0} {$i < [llength $Groups]} {incr i} {
-            append PutStrings \" Periodic_Bars_[lindex [lindex $Groups $i] 1] \" ,
+            if {[lindex [lindex $Groups $i] 20] eq true} {
+                append PutStrings \" Periodic_Bars_[lindex [lindex $Groups $i] 1] \" ,
+            }
         }
     }
     set PutStrings [string trimright $PutStrings ,]

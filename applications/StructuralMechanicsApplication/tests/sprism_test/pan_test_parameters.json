@@ -119,7 +119,7 @@
         }
     }
     ],
-    "list_other_processes" : [
+    "json_check_process" : [
     {
         "python_module"   : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",
@@ -131,7 +131,9 @@
             "model_part_name"  : "POINTLOAD_PointLoad_Auto4",
             "time_frequency"   : 0.01
         }
-    },
+    }
+    ],
+    "list_other_processes" : [
     {
         "python_module"   : "sprism_pan_test_local_process",
         "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",

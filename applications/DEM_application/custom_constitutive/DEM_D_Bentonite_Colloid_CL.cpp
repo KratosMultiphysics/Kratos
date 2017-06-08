@@ -102,10 +102,9 @@ namespace Kratos {
         else { // you are contacting a regular ball, do normal ball-to-ball force evaluation
             const double distance = element1->GetInteractionRadius() + element2->GetInteractionRadius() - indentation;
             const double cation_concentration = element1->GetGeometry()[0].FastGetSolutionStepValue(CATION_CONCENTRATION);
-            const double smoother = 1.0;//std::max(1.0, 9.0 * indentation / (element1->GetInteractionRadius() + element2->GetInteractionRadius()));
             LocalElasticContactForce[0] = 0.0;
             LocalElasticContactForce[1] = 0.0;
-            LocalElasticContactForce[2] = smoother * CalculateNormalForce(distance, cation_concentration);
+            LocalElasticContactForce[2] = CalculateNormalForce(distance, cation_concentration);
         }
 //Z
         cohesive_force              = CalculateCohesiveNormalForce(element1, element2, indentation);
