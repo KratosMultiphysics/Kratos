@@ -36,7 +36,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        self.echo_level        = self.settings["meshing_frequency"].GetInt()
+        self.echo_level        = self.settings["echo_level"].GetInt()
         self.domain_size       = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         self.meshing_frequency = self.settings["meshing_frequency"].GetDouble()
         
