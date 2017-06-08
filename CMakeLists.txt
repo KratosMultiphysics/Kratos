@@ -65,36 +65,34 @@ else(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   endif(${CMAKE_C_COMPILER} MATCHES "icc.*$")
 endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+# Old non-compatible versions of VS
 if(${MSVC80})
-  message("detected compiler as MSVC80")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES")
+  message( FATAL_ERROR "DEPRECARED: detected compiler as MSVC80")
 endif(${MSVC80})
 
 if(${MSVC90})
-  message("detected compiler as MSVC90")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES")
+  message( FATAL_ERROR "DEPRECARED: detected compiler as MSVC90")
 endif(${MSVC90})
 
 if(${MSVC10})
-  message("detected compiler as MSVC10")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES")
+  message( FATAL_ERROR "DEPRECARED: detected compiler as MSVC10")
 endif(${MSVC10})
 
 if(${MSVC11})
-  message("detected compiler as MSVC11")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  message( FATAL_ERROR "DEPRECARED: detected compiler as MSVC11")
 endif(${MSVC11})
 
 if(${MSVC12})
-  message("detected compiler as MSVC12")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  message( FATAL_ERROR "DEPRECARED: detected compiler as MSVC12")
 endif(${MSVC12})
 
+# Common flags for MSVC
+if(${MSVC})
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
+endif(${MSVC})
+
+# Specific flags for different versions of MSVC
 if(${MSVC14})
   message("detected compiler as MSVC14")
   SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
