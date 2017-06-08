@@ -28,6 +28,7 @@
 #include "custom_processes/Boundary_Windkessel_model.h"
 #include "custom_processes/stokes_initialization_process.h"
 #include "custom_processes/distance_modification_process.h"
+#include "custom_processes/boussinesq_force_process.h"
 #include "custom_processes/embedded_nodes_initialization_process.h"
 #include "custom_processes/embedded_postprocess_process.h"
 #include "custom_processes/move_rotor_process.h"
@@ -61,6 +62,10 @@ void AddCustomProcessesToPython()
     class_< StokesInitializationProcess< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases<Process>, boost::noncopyable >
     ("StokesInitializationProcess",init<ModelPart::Pointer, LinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
     .def("SetConditions",&StokesInitializationProcess<SparseSpaceType, LocalSpaceType, LinearSolverType>::SetConditions)
+    ;
+
+    class_< BoussinesqForceProcess, bases<Process>, boost::noncopyable >
+    ("BoussinesqForceProcess",init<ModelPart::Pointer, Parameters& >())
     ;
 
     class_< WindkesselModel, bases<Process>, boost::noncopyable >
