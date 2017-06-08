@@ -681,7 +681,11 @@ public:
       double se = (e[0]*e[0]) + (e[1]*e[1]) + (e[2]*e[2]);
       double sf = (f[0]*f[0]) + (f[1]*f[1]) + (f[2]*f[2]);
 
-      return normFactor * std::pow(3*Volume(), 2.0 / 3.0) / (sa + sb + sc + sd + se + sf);
+      double vol = Volume();
+      double absVol = std::abs(Volume());
+      double isInv = vol < 0.0 ? -1.0 : 1.0;
+
+      return normFactor * isInv * std::pow(3*absVol, 2.0 / 3.0) / (sa + sb + sc + sd + se + sf);
     }
 
     /** Calculates the volume to average edge lenght quality metric.
@@ -711,7 +715,7 @@ public:
      * @return [description]
      */
     virtual double VolumeToRMSEdgeLength() const override {
-      constexpr double normFactor = 3.0 * 1.41421356237309504880;
+      constexpr double normFactor = 6.0 * 1.41421356237309504880;
 
       auto a = this->GetPoint(0) - this->GetPoint(1);
       auto b = this->GetPoint(1) - this->GetPoint(2);
@@ -727,7 +731,7 @@ public:
       double se = (e[0]*e[0])+(e[1]*e[1])+(e[2]*e[2]);
       double sf = (f[0]*f[0])+(f[1]*f[1])+(f[2]*f[2]);
 
-      return normFactor * Volume() / std::sqrt(1.0/6.0 * (sa + sb + sc + sd + se + sf));
+      return normFactor * Volume() / std::pow(std::sqrt(1.0/6.0 * (sa + sb + sc + sd + se + sf)), 3.0);
     }
 
     /**
