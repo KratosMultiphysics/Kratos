@@ -98,7 +98,7 @@ namespace Kratos
          {
             KRATOS_TRY
 
-      HyperElasticModel::InitializeModel(rValues);
+            HyperElasticModel::InitializeModel(rValues);
 
             // Compute trial strain
             //deformation gradient
@@ -178,7 +178,7 @@ namespace Kratos
          {
             KRATOS_TRY
 
-      rVariables.SetModelData(rValues);
+            rVariables.SetModelData(rValues);
             rVariables.SetState(rValues.State);
 
             const StressMeasureType& rStressMeasure  = rValues.GetStressMeasure();
