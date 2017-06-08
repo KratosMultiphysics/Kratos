@@ -88,15 +88,15 @@ endif(${MSVC12})
 
 # Common flags for MSVC
 if(${MSVC})
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  message("Detected compiler as MSVC")
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W4 /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
 endif(${MSVC})
 
 # Specific flags for different versions of MSVC
 if(${MSVC14})
-  message("detected compiler as MSVC14")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  message("Adding additional flags for MSVC14")
+  # Nothing needed right now
 endif(${MSVC14})
 
 # Tell the linker to give an error if undefined functions are found
