@@ -48,7 +48,7 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             "line_search": false,
             "compute_reactions": true,
             "compute_contact_forces": false,
-            "block_builder": false,
+            "block_builder": true,
             "clear_storage": false,
             "move_mesh_flag": true,
             "convergence_criterion": "Residual_criteria",
