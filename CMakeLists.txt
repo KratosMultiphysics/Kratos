@@ -67,23 +67,23 @@ endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Old non-compatible versions of VS
 if(${MSVC80})
-  message( FATAL_ERROR "DEPRECARED: detected compiler as MSVC80")
+  message( FATAL_ERROR "DEPRECATED: detected compiler as MSVC80")
 endif(${MSVC80})
 
 if(${MSVC90})
-  message( FATAL_ERROR "DEPRECARED: detected compiler as MSVC90")
+  message( FATAL_ERROR "DEPRECATED: detected compiler as MSVC90")
 endif(${MSVC90})
 
 if(${MSVC10})
-  message( FATAL_ERROR "DEPRECARED: detected compiler as MSVC10")
+  message( FATAL_ERROR "DEPRECATED: detected compiler as MSVC10")
 endif(${MSVC10})
 
 if(${MSVC11})
-  message( FATAL_ERROR "DEPRECARED: detected compiler as MSVC11")
+  message( FATAL_ERROR "DEPRECATED: detected compiler as MSVC11")
 endif(${MSVC11})
 
 if(${MSVC12})
-  message( FATAL_ERROR "DEPRECARED: detected compiler as MSVC12")
+  message( FATAL_ERROR "DEPRECATED: detected compiler as MSVC12")
 endif(${MSVC12})
 
 # Common flags for MSVC
