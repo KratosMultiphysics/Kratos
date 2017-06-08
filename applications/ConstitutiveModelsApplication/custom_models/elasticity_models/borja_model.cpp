@@ -76,7 +76,7 @@ namespace Kratos
       devNorm = 0;
       for (unsigned int i = 0; i < 3; i++)
          for (unsigned int j = 0; j < 3; j++)
-            devNorm += pow( rDev(i,i), 2);
+            devNorm += pow( rDev(i,j), 2);
 
       devNorm = sqrt(devNorm);
 
