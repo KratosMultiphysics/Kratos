@@ -54,7 +54,7 @@ namespace Kratos
 					rMassMatrix(k+3*i, k+3*j) += 1.0;
 			}
 		}
-		rMassMatrix *= 1.0/(12);
+		rMassMatrix *= 1.0/(12.0);
 	}
 
 	void ProjectedSWE::CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix) 
@@ -125,8 +125,8 @@ namespace Kratos
 
 
 		// Compute the mass matrix
-		//~ CalculateConsistentMassMatrix(msM);
-		CalculateLumpedMassMatrix(msM);
+		CalculateConsistentMassMatrix(msM);
+		//~ CalculateLumpedMassMatrix(msM);
 
 		// Compute parameters and derivatives matrices
 		// Loop on Gauss points: ONE GAUSS POINT

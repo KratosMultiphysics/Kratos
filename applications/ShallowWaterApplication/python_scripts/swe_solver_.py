@@ -113,7 +113,7 @@ class BFECCConvectionSolver:
         # Copy unknown to projection_unknown
         (self.VariableUtils).CopyScalarVar(HEIGHT,PROJECTED_HEIGHT,self.model_part.Nodes)
         (self.VariableUtils).CopyScalarVar(SCALAR_VELOCITY_X,SCALAR_PROJECTED_VELOCITY_X,self.model_part.Nodes)
-        #~ (self.VariableUtils).CopyScalarVar(VELOCITY_Y,PROJECTED_VELOCITY_Y,self.model_part.Nodes)
+        (self.VariableUtils).CopyScalarVar(SCALAR_VELOCITY_Y,SCALAR_PROJECTED_VELOCITY_Y,self.model_part.Nodes)
         # Copy projection_unknown to previous time step
         self.bfecc_utility.CopyScalarVarToPreviousTimeStep(self.model_part,PROJECTED_HEIGHT)
         self.bfecc_utility.CopyScalarVarToPreviousTimeStep(self.model_part,SCALAR_PROJECTED_VELOCITY_X)
@@ -121,7 +121,7 @@ class BFECCConvectionSolver:
         # Convect projection_unknown from previous time step to current time step
         self.bfecc_utility.BFECCconvect(self.model_part,PROJECTED_HEIGHT,VELOCITY,substepping)
         self.bfecc_utility.BFECCconvect(self.model_part,SCALAR_PROJECTED_VELOCITY_X,VELOCITY,substepping)
-        #~ self.bfecc_utility.BFECCconvect(self.model_part,PROJECTED_VELOCITY_Y,VELOCITY,substepping)
+        self.bfecc_utility.BFECCconvect(self.model_part,SCALAR_PROJECTED_VELOCITY_Y,VELOCITY,substepping)
         
         # Return auxiliar variables value to vector components
         for node in self.model_part.Nodes:

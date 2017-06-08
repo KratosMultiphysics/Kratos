@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosTestApplication 
+KratosShallowWaterApplication 
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -58,6 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_utilities/move_shallow_water_particle_utility.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -80,6 +81,19 @@ namespace Python
 		//~ typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 		//~ typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
+		class_< MoveShallowWaterParticleUtility<2> > ("MoveShallowWaterParticleUtility", init<ModelPart& , int >())
+			.def("MountBin", &MoveShallowWaterParticleUtility<2>::MountBin)
+			.def("MoveParticles", &MoveShallowWaterParticleUtility<2>::MoveParticles)
+			.def("CorrectParticlesWithoutMovingUsingDeltaVariables", &MoveShallowWaterParticleUtility<2>::CorrectParticlesWithoutMovingUsingDeltaVariables)
+			.def("PreReseed", &MoveShallowWaterParticleUtility<2>::PreReseed)
+			.def("PostReseed", &MoveShallowWaterParticleUtility<2>::PostReseed)
+			.def("ResetBoundaryConditions", &MoveShallowWaterParticleUtility<2>::ResetBoundaryConditions)
+			.def("TransferLagrangianToEulerian",&MoveShallowWaterParticleUtility<2>::TransferLagrangianToEulerian)
+			.def("CalculateVelOverElemSize", &MoveShallowWaterParticleUtility<2>::CalculateVelOverElemSize)
+			.def("CalculateDeltaVariables", &MoveShallowWaterParticleUtility<2>::CalculateDeltaVariables)
+			.def("CopyScalarVarToPreviousTimeStep", &MoveShallowWaterParticleUtility<2>::CopyScalarVarToPreviousTimeStep)
+			.def("CopyVectorVarToPreviousTimeStep", &MoveShallowWaterParticleUtility<2>::CopyVectorVarToPreviousTimeStep)
+		;
 
   }
 
