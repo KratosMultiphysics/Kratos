@@ -744,7 +744,7 @@ namespace Kratos
 	  }
 	}
 	
-      std::cout<<"   recovered conditions "<<counter<<std::endl;
+      //std::cout<<"   recovered conditions "<<counter<<std::endl;
 
       //control if all previous conditions have been added:
       bool all_assigned = true;

@@ -24,6 +24,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
+            "echo_level"            : 0,
             "model_part_name"       : "Fluid Domain",
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 1.0,
@@ -36,7 +37,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        self.echo_level        = 1
+        self.echo_level        = self.settings["meshing_frequency"].GetInt()
         self.domain_size       = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         self.meshing_frequency = self.settings["meshing_frequency"].GetDouble()
         
@@ -99,6 +100,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
             self.InitializeDomains()
 
             for domain in self.meshing_domains:
+                domain.SetEchoLevel(self.echo_level)
                 domain.Initialize()
                 if(domain.Active()):
                     domain.ComputeInitialAverageMeshParameters()      
