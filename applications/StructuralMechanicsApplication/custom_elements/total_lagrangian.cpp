@@ -59,7 +59,7 @@ namespace Kratos
         )
     {
         KRATOS_TRY;
-        
+
         const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
         const unsigned int StrainSize = (dim == 2) ? 3 : 6;
