@@ -12,15 +12,15 @@
 		"model_name" : "KratosMultiphysics.ConstitutiveModelsApplication.VonMisesNeoHookeanPlasticityModel"
             },
 	    "variables": {
-		"KratosMultiphysics.ConstitutiveModelsApplication.C10": 3.84615384615384615385e10,
+		"KratosMultiphysics.C10": 3.84615384615384615385e10,
 	        "KratosMultiphysics.YOUNG_MODULUS": 206.9e7,
 		"KratosMultiphysics.POISSON_RATIO": 0.29,
 		"KratosMultiphysics.YIELD_STRESS": 4.5E2,
-		"KratosMultiphysics.ConstitutiveModelsApplication.ISOTROPIC_HARDENING_MODULUS": 0.0,
-		"KratosMultiphysics.ConstitutiveModelsApplication.KINEMATIC_HARDENING_MODULUS": 1.2924e2,
-		"KratosMultiphysics.ConstitutiveModelsApplication.HARDENING_EXPONENT": 16.93,
-		"KratosMultiphysics.ConstitutiveModelsApplication.REFERENCE_HARDENING_MODULUS": 450,
-		"KratosMultiphysics.ConstitutiveModelsApplication.INFINITY_HARDENING_MODULUS": 715		
+		"KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS": 0.0,
+		"KratosMultiphysics.KINEMATIC_HARDENING_MODULUS": 1.2924e2,
+		"KratosMultiphysics.HARDENING_EXPONENT": 16.93,
+		"KratosMultiphysics.REFERENCE_HARDENING_MODULUS": 450,
+		"KratosMultiphysics.INFINITY_HARDENING_MODULUS": 715		
             },
 	    "tables": {
 		"table1": {

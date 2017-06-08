@@ -76,7 +76,7 @@ namespace Kratos
       devNorm = 0;
       for (unsigned int i = 0; i < 3; i++)
          for (unsigned int j = 0; j < 3; j++)
-            devNorm += pow( rDev(i,i), 2);
+            devNorm += pow( rDev(i,j), 2);
 
       devNorm = sqrt(devNorm);
 
@@ -163,7 +163,7 @@ namespace Kratos
 
       // bulk modulus part
       double pressure = -ReferencePressure * std::exp( -VolumetricHencky / SwellingSlope ) * ( 1 + AlphaShear * pow(deviatoricNorm, 2) / SwellingSlope);
-      rConstitutiveMatrix += (-pressure/SwellingSlope) * IdentityCross;
+      rConstitutiveMatrix = (-pressure/SwellingSlope) * IdentityCross;
 
       // Shear modulus part
       rConstitutiveMatrix += 2.0*( AlphaShear*ReferencePressure*std::exp(-VolumetricHencky/SwellingSlope) + ConstantShearModulus) *(FourthOrderIdentity - (1.0/3.0)*IdentityCross);

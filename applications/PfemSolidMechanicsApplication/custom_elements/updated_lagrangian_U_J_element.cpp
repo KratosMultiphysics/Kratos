@@ -448,7 +448,7 @@ namespace Kratos
 
             // AND NOW IN THE OTHER WAY
             Matrix m; double d; 
-            ComputeConstitutiveVariables( Variables, m, d);
+            this->ComputeConstitutiveVariables( Variables, m, d);
 
             Variables.FT = m;
             Variables.detFT = d; 
@@ -567,7 +567,7 @@ namespace Kratos
 
             // AND NOW IN THE OTHER WAY
             Matrix m; double d; 
-            ComputeConstitutiveVariables( Variables, m, d);
+            this->ComputeConstitutiveVariables( Variables, m, d);
 
             Variables.FT = m;
             Variables.detFT = d; 
@@ -625,7 +625,7 @@ namespace Kratos
 
             // AND NOW IN THE OTHER WAY
             Matrix m; double d; 
-            ComputeConstitutiveVariables( Variables, m, d);
+            this->ComputeConstitutiveVariables( Variables, m, d);
 
             Variables.FT = m;
             Variables.detFT = d; 
@@ -1942,7 +1942,7 @@ namespace Kratos
 
          // AND NOW IN THE OTHER WAY
          Matrix m; double d; 
-         ComputeConstitutiveVariables( Variables, m, d);
+         this->ComputeConstitutiveVariables( Variables, m, d);
 
          Variables.FT = m;
          Variables.detFT = d; 
@@ -2019,7 +2019,7 @@ namespace Kratos
 
          // AND NOW IN THE OTHER WAY
          Matrix m; double d; 
-         ComputeConstitutiveVariables( Variables, m, d);
+         this->ComputeConstitutiveVariables( Variables, m, d);
 
          Variables.FT = m;
          Variables.detFT = d; 
