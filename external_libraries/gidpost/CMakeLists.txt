@@ -14,13 +14,7 @@ set( GIDPOST_SOURCES
 add_definitions(-DNDEBUG)
 message("WARNING: YOUR GIDPOST IS BEING COMPILED  WITHOUT DEBUG (ALL ASSERTS WILL BE AVOIDED)")
 add_definitions( -DUSE_CONST )
-
-# Ignore
-if(MSVC)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /w")
-else(MSVC)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w")
-endif(MSVC)
+add_definitions( -w )
 
 ###############################################################
 add_library(gidpost STATIC ${GIDPOST_SOURCES})
