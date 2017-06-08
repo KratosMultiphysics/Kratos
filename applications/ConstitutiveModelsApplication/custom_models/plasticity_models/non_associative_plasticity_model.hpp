@@ -124,8 +124,9 @@ namespace Kratos
             {
                KRATOS_TRY
 
-               this->mElasticityModel.CalculateStressTensor(rValues,rStressMatrix);
 
+               Matrix ConstMatrix = ZeroMatrix(6);
+               this->CalculateStressAndConstitutiveTensors( rValues, rStressMatrix, ConstMatrix);
                rValues.StressMatrix = rStressMatrix; 
 
                KRATOS_CATCH(" ")
@@ -142,13 +143,8 @@ namespace Kratos
                //Initialize ConstitutiveMatrix
                rConstitutiveMatrix.clear();
 
-               MatrixType StressMatrix = rValues.StressMatrix;
-               //1.-Elastic Stress Matrix
-               this->mElasticityModel.CalculateStressTensor(rValues,rValues.StressMatrix);
-
-               // calculate elastic constitutive tensor
-               this->mElasticityModel.CalculateConstitutiveTensor(rValues,rConstitutiveMatrix);
-
+               MatrixType StressMatrix;
+               this->CalculateStressAndConstitutiveTensors( rValues, StressMatrix, rConstitutiveMatrix);
 
                KRATOS_CATCH(" ")
             }
@@ -170,15 +166,17 @@ namespace Kratos
 
                Variables.TrialStateFunction = this->mYieldSurface.CalculateYieldCondition( Variables, Variables.TrialStateFunction);
 
+               Matrix ConstitutiveMatrix;
+               noalias( ConstitutiveMatrix ) = ZeroMatrix(6);
+
                if ( Variables.TrialStateFunction  < Tolerance) {
                   // elastic loading step
                   rConstitutiveMatrix.clear();
-                  this->mElasticityModel.CalculateConstitutiveTensor(rValues,rConstitutiveMatrix);
+                  this->mElasticityModel.CalculateConstitutiveTensor(rValues, ConstitutiveMatrix);
+                  rConstitutiveMatrix = SetConstitutiveMatrixToTheApropiateSize( rConstitutiveMatrix, ConstitutiveMatrix);
                   return;
                }
 
-               rConstitutiveMatrix.clear();
-               this->mElasticityModel.CalculateConstitutiveTensor(rValues,rConstitutiveMatrix);
 
                // elasto-plastic step. Recover Initial be
                const MatrixType & rDeformationGradientF = rValues.GetDeformationGradientF();
@@ -207,8 +205,9 @@ namespace Kratos
 
                noalias( rStressMatrix) = rValues.StressMatrix;
 
-               this->mElasticityModel.CalculateConstitutiveTensor(rValues,rConstitutiveMatrix);
-               ComputeElastoPlasticTangentMatrix( rValues, Variables, rConstitutiveMatrix);
+               this->mElasticityModel.CalculateConstitutiveTensor(rValues, ConstitutiveMatrix);
+               ComputeElastoPlasticTangentMatrix( rValues, Variables, ConstitutiveMatrix);
+               rConstitutiveMatrix = SetConstitutiveMatrixToTheApropiateSize( rConstitutiveMatrix, ConstitutiveMatrix);
 
                if ( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES) )
                   this->UpdateInternalVariables( rValues, Variables, rStressMatrix );
@@ -278,6 +277,47 @@ namespace Kratos
             ///@}
             ///@name Protected Operations
             ///@{
+
+            //***************************************************************************************
+            //***************************************************************************************
+            // Correct Yield Surface Drift According to 
+
+            Matrix & SetConstitutiveMatrixToTheApropiateSize( Matrix & rConstitutiveMatrix, const Matrix & rConstMatrixBig)
+            {
+
+               KRATOS_TRY
+
+               if ( rConstitutiveMatrix.size1() == 6) {
+                  noalias( rConstitutiveMatrix ) = rConstMatrixBig;
+               } else if ( rConstitutiveMatrix.size1() == 3 ) {
+                  for (unsigned int i = 0; i < 2; i++) {
+                     for (unsigned int j = 0; j < 2; j++) {
+                        rConstitutiveMatrix(0,0) = rConstMatrixBig(0,0);
+                        rConstitutiveMatrix(0,1) = rConstMatrixBig(0,1);
+                        rConstitutiveMatrix(0,2) = rConstMatrixBig(0,3);
+
+                        rConstitutiveMatrix(1,0) = rConstMatrixBig(1,0);
+                        rConstitutiveMatrix(1,1) = rConstMatrixBig(1,1);
+                        rConstitutiveMatrix(1,2) = rConstMatrixBig(1,3);
+
+                        rConstitutiveMatrix(2,0) = rConstMatrixBig(3,0);
+                        rConstitutiveMatrix(2,1) = rConstMatrixBig(3,1);
+                        rConstitutiveMatrix(2,2) = rConstMatrixBig(3,3);
+                     }
+                  }
+
+               } else if ( rConstitutiveMatrix.size1() == 4 ) {
+                  for (unsigned int i = 0; i < 4; i++) {
+                     for (unsigned int j = 0; j < 4; j++) {
+                        rConstitutiveMatrix(i,j) = rConstMatrixBig(i,j);
+                     }
+                  }
+               }
+
+               return rConstitutiveMatrix;
+
+               KRATOS_CATCH("")
+            }
 
             //***************************************************************************************
             //***************************************************************************************
