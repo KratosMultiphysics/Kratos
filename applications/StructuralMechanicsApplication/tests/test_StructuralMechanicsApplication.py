@@ -216,17 +216,17 @@ def AssambleTestSuites():
         ])
     )
         
-    #if (missing_external_dependencies == False):
-        #if( hasattr(KratosMultiphysics.ExternalSolversApplication,  "FEASTSolver") ):
-            #allSuite.addTests(
-                #KratosUnittest.TestLoader().loadTestsFromTestCases([
-                    #TEigenQ4Thick2x2PlateTests,
-                    #TEigenTL3D8NCubeTests,
-                    #TEigen3D3NThinCircleTests
-                #])
-            #)
-        #else:
-            #print("FEASTSolver solver is not included in the compilation of the External Solvers Application")
+    if (missing_external_dependencies == False):
+        if( hasattr(KratosMultiphysics.ExternalSolversApplication,  "FEASTSolver") ):
+            allSuite.addTests(
+                KratosUnittest.TestLoader().loadTestsFromTestCases([
+                    TEigenQ4Thick2x2PlateTests,
+                    TEigenTL3D8NCubeTests,
+                    TEigen3D3NThinCircleTests
+                ])
+            )
+        else:
+            print("FEASTSolver solver is not included in the compilation of the External Solvers Application")
 
     return suites
 
