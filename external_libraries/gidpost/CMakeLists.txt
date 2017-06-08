@@ -17,7 +17,7 @@ add_definitions( -DUSE_CONST )
 
 # Ignore
 if(MSVC)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W0")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /w")
 else(MSVC)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w")
 endif(MSVC)
