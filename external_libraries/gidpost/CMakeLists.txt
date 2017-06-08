@@ -1,7 +1,7 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 ## generate variables with the sources
-set( GIDPOST_SOURCES     
+set( GIDPOST_SOURCES
  	${CMAKE_CURRENT_SOURCE_DIR}/source/gidpost.c
  	${CMAKE_CURRENT_SOURCE_DIR}/source/gidpostInt.c
  	${CMAKE_CURRENT_SOURCE_DIR}/source/gidpostHash.c
@@ -14,7 +14,13 @@ set( GIDPOST_SOURCES
 add_definitions(-DNDEBUG)
 message("WARNING: YOUR GIDPOST IS BEING COMPILED  WITHOUT DEBUG (ALL ASSERTS WILL BE AVOIDED)")
 add_definitions( -DUSE_CONST )
-add_definitions( -w )
+
+# Ignore
+if(MSVC)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W0")
+else(MSVC)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w")
+endif(MSVC)
 
 ###############################################################
 add_library(gidpost STATIC ${GIDPOST_SOURCES})
@@ -40,4 +46,3 @@ endif (Threads_FOUND)
 if (UNIX)
   target_link_libraries(gidpost m)
 endif (UNIX)
-
