@@ -23,8 +23,10 @@
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
-#include "includes/variables.h"
 #include "includes/constitutive_law.h"
+#include "includes/variables.h"
+#include "structural_mechanics_application.h"
+#include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"
 
 namespace Kratos
@@ -770,7 +772,7 @@ public:
     void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
     /**
-     * This is called for non-linear analysis at the beginning of the iteration process/home/rrossi/data/kratos/applications/StructuralMechanicsApplication/custom_elements/SprismElement3D6N.hpp
+     * This is called for non-linear analysis at the beginning of the iteration process
      * @param rCurrentProcessInfo: The current process info instance
      */
     void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
@@ -884,7 +886,7 @@ protected:
     virtual void GetNodalCoordinates(
             bounded_matrix<double, 12, 3 > & NodesCoord,
             WeakPointerVector< Node < 3 > >& nodal_neigb,
-            const StructuralMechanicsMathUtilities::Configuration ThisConfiguration
+            const Configuration ThisConfiguration
             );
 
     /**

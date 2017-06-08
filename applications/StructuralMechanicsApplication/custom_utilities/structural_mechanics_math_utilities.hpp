@@ -16,6 +16,15 @@
 
 namespace Kratos
 {
+///@}
+///@name  Enum's
+///@{
+
+#if !defined(INITIAL_CURRENT)
+#define INITIAL_CURRENT
+    enum Configuration {Initial = 0, Current = 1};
+#endif
+    
 class StructuralMechanicsMathUtilities
 {
 public:
@@ -28,15 +37,6 @@ public:
     typedef Node<3>                                    NodeType;
     
     typedef Geometry<NodeType>                     GeometryType;
-    
-    ///@}
-    ///@name  Enum's
-    ///@{
-    
-    #if !defined(INITIAL_CURRENT)
-    #define INITIAL_CURRENT
-        enum Configuration {Initial = 0, Current = 1};
-    #endif
     
     ///@}
     ///@name Operations

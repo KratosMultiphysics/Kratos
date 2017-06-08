@@ -14,13 +14,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "custom_elements/SprismElement3D6N.hpp"
-#include "custom_utilities/structural_mechanics_math_utilities.hpp"
-#include "utilities/math_utils.h"
-#include "includes/constitutive_law.h"
-#include "structural_mechanics_application.h"
-#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -2319,7 +2313,7 @@ unsigned int SprismElement3D6N::NumberOfActiveNeighbours(WeakPointerVector< Node
 void SprismElement3D6N::GetNodalCoordinates(
         bounded_matrix<double, 12, 3 > & NodesCoord,
         WeakPointerVector< Node < 3 > >& NeighbourNodes,
-        const StructuralMechanicsMathUtilities::Configuration ThisConfiguration
+        const Configuration ThisConfiguration
         )
 {
      NodesCoord = ZeroMatrix(12, 3);
