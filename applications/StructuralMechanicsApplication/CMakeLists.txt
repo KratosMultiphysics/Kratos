@@ -3,7 +3,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosStructuralMechanicsApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-# include_directories( ${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/MeshingApplication )
 
@@ -53,6 +52,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ## CONDITIONS
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_3D_condition.cpp # Beam's moment conditions
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_torque_3D_condition.cpp # Torques conditions
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/base_load_condition.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_condition.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_condition_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_condition_3d.cpp

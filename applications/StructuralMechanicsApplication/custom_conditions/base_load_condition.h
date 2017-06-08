@@ -86,154 +86,76 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * Sets on rResult the ID's of the element degrees of freedom
+     * @param rResult: The vector containing the equation id
+     * @param rCurrentProcessInfo: The current process info instance
+     */
     virtual void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo )
-    {
-        KRATOS_TRY
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        if (rResult.size() != dim*NumberOfNodes)
-            rResult.resize(dim*NumberOfNodes,false);
-
-        const unsigned int pos = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
-
-        if(dim == 2)
-        {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
-            {
-                const unsigned int index = i * 2;
-                rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_X,pos).EquationId();
-                rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y,pos+1).EquationId();
-            }
-        }
-        else
-        {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
-            {
-                const unsigned int index = i * 3;
-                rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_X,pos).EquationId();
-                rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y,pos+1).EquationId();
-                rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z,pos+2).EquationId();
-            }
-        }
-        KRATOS_CATCH("")
-    };
-
-
+        ProcessInfo& rCurrentProcessInfo 
+        ) override;
+    
+    /**
+     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
+     * @param rElementalDofList: The vector containing the dof of the element
+     * @param rCurrentProcessInfo: The current process info instance
+     */
     virtual void GetDofList(
         DofsVectorType& ElementalDofList,
-        ProcessInfo& rCurrentProcessInfo )
-    {
-        KRATOS_TRY
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int dim =  GetGeometry().WorkingSpaceDimension();
-        ElementalDofList.resize(0);
-        ElementalDofList.reserve(dim*NumberOfNodes);
+        ProcessInfo& rCurrentProcessInfo
+        ) override;
 
-        if(dim == 2)
-        {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
-            {
-                ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-                ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-            }
-        }
-        else
-        {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
-            {
-                ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-                ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-                ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-            }
-        }
-        KRATOS_CATCH("")
-    };
-
+    /**
+     * Sets on rValues the nodal displacements
+     * @param rValues: The values of displacements
+     * @param Step: The step to be computed
+     */
     virtual void GetValuesVector(
-        Vector& values,
-        int Step = 0 )
-    {
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int MatSize = NumberOfNodes * dim;
-        if (values.size() != MatSize)
-            values.resize(MatSize, false);
-        for (unsigned int i = 0; i < NumberOfNodes; i++)
-        {
-            const array_1d<double, 3 > & Displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-            unsigned int index = i * dim;
-            for(unsigned int k=0; k<dim; ++k)
-            {
-                values[index+k] = Displacement[k];
-            }
-        }
-    }
+        Vector& rValues,
+        int Step = 0 
+        ) override;
 
-
+    /**
+     * Sets on rValues the nodal velocities
+     * @param rValues: The values of velocities
+     * @param Step: The step to be computed
+     */
     virtual void GetFirstDerivativesVector(
-        Vector& values,
-        int Step = 0 )
-    {
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int MatSize = NumberOfNodes * dim;
-        if (values.size() != MatSize)
-        {
-            values.resize(MatSize, false);
-        }
-        
-        for (unsigned int i = 0; i < NumberOfNodes; i++)
-        {
-            const array_1d<double, 3 > & Velocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
-            unsigned int index = i * dim;
-            for(unsigned int k=0; k<dim; ++k)
-            {
-                values[index+k] = Velocity[k];
-            }
-        }
-    }
-
+        Vector& rValues,
+        int Step = 0 
+        ) override;
+    
+    /**
+     * Sets on rValues the nodal accelerations
+     * @param rValues: The values of accelerations
+     * @param Step: The step to be computed
+     */
     virtual void GetSecondDerivativesVector(
-        Vector& values,
-        int Step = 0 )
-    {
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int MatSize = NumberOfNodes * dim;
-        if (values.size() != MatSize)
-            values.resize(MatSize, false);
-        for (unsigned int i = 0; i < NumberOfNodes; i++)
-        {
-            const array_1d<double, 3 > & Acceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
-            unsigned int index = i * dim;
-            for(unsigned int k=0; k<dim; ++k)
-            {
-                values[index+k] = Acceleration[k];
-            }
-        }
-    }
+        Vector& rValues,
+        int Step = 0 
+        ) override;
 
+    /**
+      * This is called during the assembling process in order to calculate the elemental mass matrix
+      * @param rMassMatrix: the elemental mass matrix
+      * @param rCurrentProcessInfo: the current process info instance
+      */
     virtual void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo )
-    {
-        if(rMassMatrix.size1() != 0)
-        {
-            rMassMatrix.resize(0, 0, false);
-        }
-    }
-
+        ProcessInfo& rCurrentProcessInfo 
+        ) override;
+    
+    /**
+      * This is called during the assembling process in order
+      * to calculate the elemental damping matrix
+      * @param rDampingMatrix: the elemental damping matrix
+      * @param rCurrentProcessInfo: the current process info instance
+      */
     virtual void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo )
-    {
-        if(rDampingMatrix.size1() != 0)
-        {
-            rDampingMatrix.resize(0, 0, false);
-        }
-    }
+        ProcessInfo& rCurrentProcessInfo 
+        ) override;
 
     /**
      * This function provides the place to perform checks on the completeness of the input.
@@ -242,31 +164,8 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo )
-    {
-        if ( DISPLACEMENT.Key() == 0 )
-        {
-            KRATOS_ERROR <<  "DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
-        }
-
-        //verify that the dofs exist
-        for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
-        {
-            if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-            {
-                KRATOS_ERROR << "missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
-            }
-
-            if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false ||
-                 this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false ||
-                 this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
-            {
-                KRATOS_ERROR << "missing one of the dofs for the variable DISPLACEMENT on node " << GetGeometry()[i].Id() << " of condition " << Id() << std::endl;
-            }
-        }
-        return 0;
-    }
-
+    virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    
     ///@}
     ///@name Access
     ///@{
@@ -301,6 +200,18 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+    
+    /**
+     * This functions computes the integration weight to consider
+     * @param IntegrationPoints: The array containing the integration points
+     * @param PointNumber: The id of the integration point considered
+     * @param detJ: The determinant of the jacobian of the element
+     */
+    virtual double GetIntegrationWeight(
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const unsigned int PointNumber,
+        const double detJ
+        );
     
     ///@}
     ///@name Protected  Access
