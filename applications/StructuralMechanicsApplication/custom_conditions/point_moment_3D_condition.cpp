@@ -164,42 +164,6 @@ void PointMoment3DCondition::GetDofList(DofsVectorType& ConditionalDofList,Proce
     }
 }
 
-//***********************************************************************************
-//***********************************************************************************
-
-void PointMoment3DCondition::AddExplicitContribution(const VectorType& rRHS,
-        const Variable<VectorType>& rRHSVariable,
-        Variable<array_1d<double,3> >& rDestinationVariable,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
-
-    if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == MOMENT_RESIDUAL )
-    {
-
-        for(unsigned int i=0; i< number_of_nodes; i++)
-        {
-            int index = dimension * i;
-
-            GetGeometry()[i].SetLock();
-
-            array_1d<double, 3 > &MomentResidual = GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
-            for(unsigned int j=0; j<dimension; j++)
-            {
-                MomentResidual[j] += rRHS[index + j];
-            }
-
-            GetGeometry()[i].UnSetLock();
-        }
-    }
-
-    KRATOS_CATCH( "" )
-}
-
 //*********************************GET DOUBLE VALUE***********************************
 //************************************************************************************
 
