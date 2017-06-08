@@ -2319,13 +2319,13 @@ unsigned int SprismElement3D6N::NumberOfActiveNeighbours(WeakPointerVector< Node
 void SprismElement3D6N::GetNodalCoordinates(
         bounded_matrix<double, 12, 3 > & NodesCoord,
         WeakPointerVector< Node < 3 > >& NeighbourNodes,
-        const Configuration ThisConfiguration
+        const StructuralMechanicsMathUtilities::Configuration ThisConfiguration
         )
 {
      NodesCoord = ZeroMatrix(12, 3);
      const unsigned int NumberNeighbours = NumberOfActiveNeighbours(NeighbourNodes);
 
-     if (ThisConfiguration == Initial)
+     if (ThisConfiguration == StructuralMechanicsMathUtilities::Initial)
      {
          /* Fill the aux matrix of coordinates */
          for (unsigned int i = 0; i < 6; i++)
@@ -2363,7 +2363,7 @@ void SprismElement3D6N::GetNodalCoordinates(
              }
          }
      }
-     else if (ThisConfiguration == Current)
+     else if (ThisConfiguration == StructuralMechanicsMathUtilities::Current)
      {
          /* Fill the aux matrix of coordinates */
          for (unsigned int i = 0; i < 6; i++)
@@ -2406,7 +2406,7 @@ void SprismElement3D6N::GetNodalCoordinates(
      }
      else
      {
-         std::string Config = (ThisConfiguration == Initial) ? "Initial" : "Current";
+         std::string Config = (ThisConfiguration == StructuralMechanicsMathUtilities::Initial) ? "Initial" : "Current";
          KRATOS_ERROR << " The configuration is not possible, the posibilities are Current and Initial:  " << Config << std::endl;
      }
 }
@@ -2420,11 +2420,11 @@ void SprismElement3D6N::CalculateCartesianDerivatives(CartesianDerivatives& Cart
     WeakPointerVector< Node < 3 > >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
     if ( mELementalFlags.Is(SprismElement3D6N::TOTAL_UPDATED_LAGRANGIAN) == true )
     {
-        this->GetNodalCoordinates(NodesCoord, NeighbourNodes, Initial);
+        this->GetNodalCoordinates(NodesCoord, NeighbourNodes, StructuralMechanicsMathUtilities::Initial);
     }
     else
     {
-        this->GetNodalCoordinates(NodesCoord, NeighbourNodes, Current);
+        this->GetNodalCoordinates(NodesCoord, NeighbourNodes, StructuralMechanicsMathUtilities::Current);
     }
 
     /* Calculate local system of coordinates of the element */
@@ -2518,7 +2518,7 @@ void SprismElement3D6N::CalculateCommonComponents(
 
     bounded_matrix<double, 12, 3 > NodesCoord; // Coordinates of the nodes
     WeakPointerVector< Node < 3 > >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
-    this->GetNodalCoordinates(NodesCoord, NeighbourNodes, Current);
+    this->GetNodalCoordinates(NodesCoord, NeighbourNodes, StructuralMechanicsMathUtilities::Current);
 
     /* Declare deformation Gradient F components */
     // In plane components
