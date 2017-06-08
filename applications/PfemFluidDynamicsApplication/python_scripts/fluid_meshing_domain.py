@@ -58,7 +58,7 @@ class FluidMeshingDomain(meshing_domain.MeshingDomain):
         delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         self.main_model_part.ProcessInfo.SetValue(KratosPfemFluid.INITIAL_DELTA_TIME,delta_time)
         self.main_model_part.ProcessInfo.SetValue(KratosPfemFluid.CURRENT_DELTA_TIME,delta_time)
-        self.main_model_part.ProcessInfo.SetValue(PREVIOUS_DELTA_TIME,delta_time)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.PREVIOUS_DELTA_TIME,delta_time)
         self.main_model_part.ProcessInfo.SetValue(KratosPfemFluid.TIME_INTERVAL_CHANGED,False)
         
 
