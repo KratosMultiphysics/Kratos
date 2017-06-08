@@ -41,7 +41,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class ReorderAndOptimizeModelPartProcess : public Process
+class KRATOS_API(KRATOS_CORE) ReorderAndOptimizeModelPartProcess : public Process
 {
 public:
     using GeometryType = Geometry<Point<3> >;
@@ -59,7 +59,7 @@ public:
     ReorderAndOptimizeModelPartProcess() = delete;
 
     /// Constructor to be used. Takes the geometry to be meshed and ModelPart to be filled
-    ReorderAndOptimizeModelPartProcess( ModelPart& rOutputModelPart, Parameters settings);
+    ReorderAndOptimizeModelPartProcess( ModelPart& rModelPart, Parameters settings);
 
     /// The object is not copyable.
     ReorderAndOptimizeModelPartProcess(ReorderAndOptimizeModelPartProcess const& rOther) = delete;
@@ -244,11 +244,11 @@ protected:
                     }
                 }
             }
-            
+
             //computing the inverse permutation
             #pragma omp parallel for
             for(int i = 0; i < n; ++i) invperm[perm[i]] = i;
-            
+
         }
     };
 
