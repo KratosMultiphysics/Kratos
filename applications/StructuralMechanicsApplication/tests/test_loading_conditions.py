@@ -119,29 +119,12 @@ class TestLoadingConditions(KratosUnittest.TestCase):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
         
-        convergence_criterion.SetEchoLevel(0)
+        builder_and_solver.SetEchoLevel(0)
         
-        max_iters = 20
-        compute_reactions = True
-        reform_step_dofs = True
-        calculate_norm_dx = False
-        move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp, 
-                                                                        scheme, 
-                                                                        linear_solver, 
-                                                                        convergence_criterion, 
-                                                                        builder_and_solver, 
-                                                                        max_iters, 
-                                                                        compute_reactions, 
-                                                                        reform_step_dofs, 
-                                                                        move_mesh_flag)
-        strategy.SetEchoLevel(0)
-        
-        strategy.Check()
-        strategy.Solve()
-        
+        builder_and_solver.Check(mp)
+        builder_and_solver.SetUpDofSet(scheme, mp);
+        builder_and_solver.SetUpSystem(mp);
         builder_and_solver.BuildRHS(scheme, mp, rhs)
         
         self.assertEqual(rhs[0], 0.5*lenght)
