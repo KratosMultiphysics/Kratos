@@ -61,11 +61,11 @@
         }
     }],
     "loads_process_list"       : [{
-        "python_module" : "assign_vector_by_direction_process",
+        "python_module" : "assign_vector_by_direction_to_condition_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process sets a vector variable value over a condition",
         "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
+        "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_Load_on_lines_Auto2",
@@ -75,11 +75,11 @@
             "interval"        : [0.0,"End"]
         }
     },{
-        "python_module" : "assign_vector_by_direction_process",
+        "python_module" : "assign_vector_by_direction_to_condition_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process sets a vector variable value over a condition",
         "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
+        "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_Load_on_lines_Auto3",
@@ -89,11 +89,11 @@
             "interval"        : [0.0,"End"]
         }
     },{
-        "python_module" : "assign_vector_by_direction_process",
+        "python_module" : "assign_vector_by_direction_to_condition_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process sets a vector variable value over a condition",
         "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
+        "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_Load_on_lines_Auto4",
@@ -103,11 +103,11 @@
             "interval"        : [0.0,"End"]
         }
     },{
-        "python_module" : "assign_vector_by_direction_process",
+        "python_module" : "assign_vector_by_direction_to_condition_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process sets a vector variable value over a condition",
         "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
+        "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_Load_on_lines_Auto5",

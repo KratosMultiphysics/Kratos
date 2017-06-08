@@ -178,30 +178,30 @@ def AssambleTestSuites():
             TDynamicBossakTests,
             TDynamicNewmarkTests,
             TNodalDampingTests,
-            #TSDTwoDShearQuaPatchTest, # FIXME: Not working
-            #TSDTwoDShearTriPatchTest, # FIXME: Not working
+            TSDTwoDShearQuaPatchTest,
+            TSDTwoDShearTriPatchTest,
             TSDTwoDTensionQuaPatchTest,
             TSDTwoDTensionTriPatchTest,
-            #TSDThreeDShearHexaPatchTest, # FIXME: Not working
-            #TSDThreeDShearTetraPatchTest, # FIXME: Not working
+            TSDThreeDShearHexaPatchTest,
+            TSDThreeDShearTetraPatchTest,
             TSDThreeDTensionHexaPatchTest,
             TSDThreeDTensionTetraPatchTest,
-            #TTLTwoDShearQuaPatchTest, # FIXME: Not working
-            #TTLTwoDShearTriPatchTest, # FIXME: Not working
+            TTLTwoDShearQuaPatchTest,
+            TTLTwoDShearTriPatchTest,
             TTLTwoDTensionQuaPatchTest,
             TTLTwoDTensionTriPatchTest,
-            #TTLThreeDShearHexaPatchTest, # FIXME: Not working
-            #TTLThreeDShearTetraPatchTest, # FIXME: Not working
+            TTLThreeDShearHexaPatchTest,
+            TTLThreeDShearTetraPatchTest,
             TTLThreeDTensionHexaPatchTest,
             TTLThreeDTensionTetraPatchTest,
-            #######TULTwoDShearQuaPatchTest,
-            #######TULTwoDShearTriPatchTest,
-            #######TULTwoDTensionQuaPatchTest,
-            #######TULTwoDTensionTriPatchTest,
-            #######TULThreeDShearHexaPatchTest,
-            #######TULThreeDShearTetraPatchTest,
-            #######TULThreeDTensionHexaPatchTest,
-            #######TULThreeDTensionTetraPatchTest,
+            ########TULTwoDShearQuaPatchTest,
+            ########TULTwoDShearTriPatchTest,
+            ########TULTwoDTensionQuaPatchTest,
+            ########TULTwoDTensionTriPatchTest,
+            ########TULThreeDShearHexaPatchTest,
+            ########TULThreeDShearTetraPatchTest,
+            ########TULThreeDTensionHexaPatchTest,
+            ########TULThreeDTensionTetraPatchTest,
             TSprismMembranePatchTests,
             TSprismBendingPatchTests,
             TFofi4PointTentnoCableTests,
@@ -211,8 +211,8 @@ def AssambleTestSuites():
             TShellT3ThinBendingRollUpTests,
             TShellT3ThinDrillingRollUpTests,
             TShellT3IsotropicScordelisTests,
-            ###TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
-            ###TSprismPanTests # FIXME: Needs point load and get up to date
+            ####TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
+            ####TSprismPanTests # FIXME: Needs point load and get up to date
         ])
     )
         

@@ -96,11 +96,11 @@
     }
     ],
     "loads_process_list"       : [{
-        "python_module" : "assign_vector_by_direction_process",
+        "python_module" : "assign_vector_by_direction_to_condition_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process sets a vector variable value over a condition",
         "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
+        "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "POINTLOAD_PointLoad_Auto4",

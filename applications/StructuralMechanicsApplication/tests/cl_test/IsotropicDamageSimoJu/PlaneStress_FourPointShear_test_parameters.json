@@ -32,7 +32,7 @@
         "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","LineLoad2D_Load_on_lines_Auto1","LineLoad2D_Load_on_lines_Auto2"]
     },
     "constraints_process_list" : [{
-        "python_module" : "assign_vector_by_direction_process",
+        "python_module" : "assign_vector_by_direction_to_condition_process",
         "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorComponentsToNodesProcess",
@@ -43,7 +43,7 @@
             "value"           : [0.0,0.0,0.0]
         }
     },{
-        "python_module" : "assign_vector_by_direction_process",
+        "python_module" : "assign_vector_by_direction_to_condition_process",
         "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorComponentsToNodesProcess",
