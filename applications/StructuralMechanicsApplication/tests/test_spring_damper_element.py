@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division
 
 import KratosMultiphysics 
 
-import KratosMultiphysics.SolidMechanicsApplication as SolidMechanicsApplication
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -18,10 +17,10 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)      
-        mp.AddNodalSolutionStepVariable(SolidMechanicsApplication.POINT_LOAD)
+        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
 
     def _apply_material_properties(self,mp):
-        cl = SolidMechanicsApplication.LinearElasticPlaneStress2DLaw()
+        cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl) 
 
     def _add_dofs(self,node):
@@ -42,12 +41,12 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
     def _apply_harmonic_cosine_load(self,amplitude,frequency,nodes,time):
         for node in nodes:
             force = amplitude * cos(2*pi*frequency*time)
-            node.SetSolutionStepValue(SolidMechanicsApplication.POINT_LOAD,0,[0,force,0])
+            node.SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD,0,[0,force,0])
 
     def _apply_harmonic_sine_load(self,amplitude,frequency,nodes,time):
         for node in nodes:
             force = amplitude * sin(2*pi*frequency*time)
-            node.SetSolutionStepValue(SolidMechanicsApplication.POINT_LOAD,0,[0,force,0])
+            node.SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD,0,[0,force,0])
         
     def _solve(self,mp):
         

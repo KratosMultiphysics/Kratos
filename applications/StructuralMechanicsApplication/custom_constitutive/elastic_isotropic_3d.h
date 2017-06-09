@@ -85,7 +85,7 @@ public:
 
     /**
      * This function is designed to be called once to check compatibility with element
-     * @param rFeatures
+     * @param rFeatures: The Features of the law
      */
     void GetLawFeatures(Features& rFeatures);
     
@@ -224,15 +224,26 @@ private:
      * It calculates the stress vector
      * @param rStrainVector: The strain vector in Voigt notation
      * @param rStressVector: The stress vector in Voigt notation
+     * @param E: The Young Modulus
      * @param NU: The poisson coefficient
      */
-    void CalculateStress(
+    virtual void CalculateStress(
         const Vector& rStrainVector, 
         Vector& rStressVector, 
         const double E, 
         const double NU 
         );
-
+    
+    /**
+     * It calculates the strain vector
+     * @param rValues: The Internalvalues of the law
+     * @param rStrainVector: The strain vector in Voigt notation
+     */
+    virtual void CalculateStrain(
+        Parameters& rValues,
+        Vector& rStrainVector
+        );
+    
     ///@}
     ///@name Private Operations
     ///@{

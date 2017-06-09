@@ -121,7 +121,7 @@ namespace Kratos
             const double detJ0 = CalculateDerivativesOnReference(J0, InvJ0, DN_DX, PointNumber, GetGeometry().GetDefaultIntegrationMethod()); 
             
             //Compute B and strain
-            CalculateB( B, DN_DX );
+            CalculateB( B, DN_DX, IntegrationPoints, PointNumber );
             noalias(StrainVector) = prod(B,displacements);
 
             // Compute equivalent F
@@ -219,7 +219,7 @@ namespace Kratos
             CalculateDerivativesOnReference(J0, InvJ0, DN_DX, PointNumber, GetGeometry().GetDefaultIntegrationMethod()); 
             
             //Compute B and strain
-            CalculateB( B, DN_DX );
+            CalculateB( B, DN_DX, IntegrationPoints, PointNumber );
             noalias(StrainVector) = prod(B,displacements);
             F = ComputeEquivalentF(StrainVector);
             
@@ -305,40 +305,42 @@ namespace Kratos
     //************************************************************************************
 
     void KinematicLinear::CalculateB(
-        Matrix& B,
-        const Matrix& DN_DX 
+        Matrix& rB,
+        const Matrix& DN_DX,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const unsigned int PointNumber
         )
     {
         KRATOS_TRY;
         
         const unsigned int NumberOfNodes = GetGeometry().PointsNumber();
-        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+        const unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
 
-        B.clear();
+        rB.clear();
         
-        if(dim == 2)
+        if(Dimension == 2)
         {
             for ( unsigned int i = 0; i < NumberOfNodes; ++i )
             {
-                B( 0, i*2 ) = DN_DX( i, 0 );
-                B( 1, i*2 + 1 ) = DN_DX( i, 1 );
-                B( 2, i*2 ) = DN_DX( i, 1 );
-                B( 2, i*2 + 1 ) = DN_DX( i, 0 );
+                rB( 0, i*2 ) = DN_DX( i, 0 );
+                rB( 1, i*2 + 1 ) = DN_DX( i, 1 );
+                rB( 2, i*2 ) = DN_DX( i, 1 );
+                rB( 2, i*2 + 1 ) = DN_DX( i, 0 );
             }
         }
-        else if(dim == 3)
+        else if(Dimension == 3)
         {
             for ( unsigned int i = 0; i < NumberOfNodes; ++i )
             {
-                B( 0, i*3 ) = DN_DX( i, 0 );
-                B( 1, i*3 + 1 ) = DN_DX( i, 1 );
-                B( 2, i*3 + 2 ) = DN_DX( i, 2 );
-                B( 3, i*3 ) = DN_DX( i, 1 );
-                B( 3, i*3 + 1 ) = DN_DX( i, 0 );
-                B( 4, i*3 + 1 ) = DN_DX( i, 2 );
-                B( 4, i*3 + 2 ) = DN_DX( i, 1 );
-                B( 5, i*3 ) = DN_DX( i, 2 );
-                B( 5, i*3 + 2 ) = DN_DX( i, 0 );
+                rB( 0, i*3 ) = DN_DX( i, 0 );
+                rB( 1, i*3 + 1 ) = DN_DX( i, 1 );
+                rB( 2, i*3 + 2 ) = DN_DX( i, 2 );
+                rB( 3, i*3 ) = DN_DX( i, 1 );
+                rB( 3, i*3 + 1 ) = DN_DX( i, 0 );
+                rB( 4, i*3 + 1 ) = DN_DX( i, 2 );
+                rB( 4, i*3 + 2 ) = DN_DX( i, 1 );
+                rB( 5, i*3 ) = DN_DX( i, 2 );
+                rB( 5, i*3 + 2 ) = DN_DX( i, 0 );
             }
         }
 

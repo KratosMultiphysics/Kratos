@@ -54,6 +54,9 @@ namespace Kratos
     {
     };
 
+    //************************************************************************************
+    //************************************************************************************
+    
     void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
     {
         //b.- Get Values to compute the constitutive law:
@@ -68,15 +71,7 @@ namespace Kratos
         //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
         if(Options.IsNot( ConstitutiveLaw::COMPUTE_STRAIN )) //large strains
         {
-
-            //1.-Compute total deformation gradient
-            const Matrix& F = rValues.GetDeformationGradientF();
-            
-            Matrix Etensor = prod(trans(F),F);
-            Etensor -= IdentityMatrix(3,3);
-            Etensor *= 0.5;
-            
-            noalias(StrainVector) = MathUtils<double>::StrainTensorToVector(Etensor);
+            CalculateStrain(rValues, StrainVector);
         }
 
         if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
@@ -145,7 +140,7 @@ namespace Kratos
     void ElasticIsotropic3D::GetLawFeatures(Features& rFeatures)
     {
         //Set the type of law
-        rFeatures.mOptions.Set( PLANE_STRESS_LAW );
+        rFeatures.mOptions.Set( THREE_DIMENSIONAL_LAW );
         rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
         rFeatures.mOptions.Set( ISOTROPIC );
 
@@ -158,7 +153,6 @@ namespace Kratos
 
         //Set the spacedimension
         rFeatures.mSpaceDimension = 3;
-
     }
 
     //************************************************************************************
@@ -258,6 +252,24 @@ namespace Kratos
         Matrix C(SizeSystem,SizeSystem);
         CalculateElasticMatrix(C, E, NU);
         noalias(rStressVector) = prod(C,rStrainVector);
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+        
+    void ElasticIsotropic3D::CalculateStrain(
+        Parameters& rValues,
+        Vector& rStrainVector
+        )
+    {
+        //1.-Compute total deformation gradient
+        const Matrix& F = rValues.GetDeformationGradientF();
+        
+        Matrix Etensor = prod(trans(F),F);
+        Etensor -= IdentityMatrix(3,3);
+        Etensor *= 0.5;
+        
+        noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(Etensor);
     }
 
 } // Namespace Kratos

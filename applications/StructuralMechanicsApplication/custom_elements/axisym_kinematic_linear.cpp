@@ -67,6 +67,61 @@ namespace Kratos
     //********************************* PROTECTED ****************************************
     //************************************************************************************
 
+    void AxisymKinematicLinear::CalculateB(
+        Matrix& rB,
+        const Matrix& DN_DX,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const unsigned int PointNumber
+        )
+    {
+        KRATOS_TRY;
+        
+        const unsigned int NumberOfNodes = GetGeometry().PointsNumber();
+
+        Vector N;
+        N = GetGeometry().ShapeFunctionsValues( N, IntegrationPoints[PointNumber].Coordinates() );
+        const double Radius = StructuralMechanicsMathUtilities::CalculateRadius(N, GetGeometry());
+        
+        rB.clear();
+        
+        for ( unsigned int i = 0; i < NumberOfNodes; i++ )
+        {
+            const unsigned int index = 2 * i;
+
+            rB(0, index + 0) = DN_DX(i, 0);
+            rB(1, index + 1) = DN_DX(i, 1);
+            rB(2, index + 0) = N[i]/Radius;
+            rB(3, index + 0) = DN_DX(i, 1);
+            rB(3, index + 1) = DN_DX(i, 0);
+        }
+
+        KRATOS_CATCH( "" )
+    }
+    
+    
+    //************************************************************************************
+    //************************************************************************************
+    
+    Matrix AxisymKinematicLinear::ComputeEquivalentF(const Vector& rStrainVector)
+    {
+        Matrix F(3, 3);
+        
+        F(0,0) = 1.0 + rStrainVector[0];
+        F(0,1) = 0.5 * rStrainVector[3];
+        F(0,2) = 0.0;
+        F(1,0) = 0.5 * rStrainVector[3];
+        F(1,1) = 1.0 + rStrainVector[1];
+        F(1,2) = 0.0;
+        F(2,0) = 0.0;
+        F(2,1) = 0.0;
+        F(2,2) = 1.0 + rStrainVector[2];
+        
+        return F;
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
+    
     double AxisymKinematicLinear::GetIntegrationWeight(
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const unsigned int PointNumber,

@@ -156,6 +156,25 @@ private:
     ///@{
 
     /**
+     * Calculation of the Deformation Matrix B
+     * @param B: The deformation matrix
+     * @param DN_DX: The derivatives of the shape functions
+     */
+    void CalculateB(
+        Matrix& rB,
+        const Matrix& DN_DX,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const unsigned int PointNumber
+        ) override;
+    
+    /**
+     * Calculation of the equivalent deformation gradient
+     * @param StrainVector: The strain tensor (Voigt notation)
+     * @return The deformation gradient F
+     */
+    Matrix ComputeEquivalentF(const Vector& rStrainVector) override;
+    
+    /**
      * This functions computes the integration weight to consider
      * @param IntegrationPoints: The array containing the integration points
      * @param PointNumber: The id of the integration point considered

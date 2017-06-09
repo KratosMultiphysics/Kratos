@@ -229,9 +229,11 @@ private:
      * @param B: The deformation matrix
      * @param DN_DX: The derivatives of the shape functions
      */
-    void CalculateB(
-        Matrix& B,
-        const Matrix& DN_DX
+    virtual void CalculateB(
+        Matrix& rB,
+        const Matrix& DN_DX,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const unsigned int PointNumber
         );
     
     /**
@@ -239,7 +241,7 @@ private:
      * @param StrainVector: The strain tensor (Voigt notation)
      * @return The deformation gradient F
      */
-    Matrix ComputeEquivalentF(const Vector& StrainVector);
+    virtual Matrix ComputeEquivalentF(const Vector& StrainVector);
     
     ///@}
     ///@name Private Operations
