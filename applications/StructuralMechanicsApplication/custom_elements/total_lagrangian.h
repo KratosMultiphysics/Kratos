@@ -232,13 +232,19 @@ private:
         double weight
     );
 
-    void CalculateStrain(const Matrix& C,
-                         Vector& StrainVector);
+    void CalculateStrain(
+        const Matrix& C,
+        Vector& rStrainVector
+        );
 
-    void CalculateB(Matrix& B,
-                    Matrix& F,
-                    Matrix& DN_DX,
-                    unsigned int StrainSize);
+    void CalculateB(
+        Matrix& B,
+        Matrix& F,
+        Matrix& DN_DX,
+        unsigned int StrainSize,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const unsigned int PointNumber
+        );
 
 
     void Comprobate_State_Vector(Vector& Result);

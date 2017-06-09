@@ -61,7 +61,7 @@ namespace Kratos
         
         const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        const unsigned int StrainSize = ( dim == 2 ) ? 3 : 6;
+        const unsigned int StrainSize = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
 
         Matrix B( StrainSize, NumberOfNodes * dim );
         Matrix D( StrainSize, StrainSize );
@@ -186,7 +186,7 @@ namespace Kratos
 
         const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        const unsigned int StrainSize = dim == 2 ? 3 : 6;
+        const unsigned int StrainSize = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
 
         Matrix F( dim, dim );
         Matrix D( StrainSize, StrainSize );
@@ -218,12 +218,12 @@ namespace Kratos
         {
             CalculateDerivativesOnReference(J0, InvJ0, DN_DX, PointNumber, GetGeometry().GetDefaultIntegrationMethod()); 
             
-            //Compute B and strain
+            //Compute B and strain // TODO: MOVE THIS TO THE CL!!!!!!
             CalculateB( B, DN_DX, IntegrationPoints, PointNumber );
             noalias(StrainVector) = prod(B,displacements);
             F = ComputeEquivalentF(StrainVector);
             
-            if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
+            if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ) 
             {
                 if ( rOutput[PointNumber].size2() != StrainVector.size() )
                 {
@@ -243,7 +243,7 @@ namespace Kratos
                 }
                                         
                 // Here we essentially set the input parameters
-                const double detF = MathUtils<double>::Det(F);
+                const double detF = MathUtils<double>::Det(F); 
                 Values.SetDeterminantF(detF); //assuming the determinant is computed somewhere else
                 Values.SetDeformationGradientF(F); //F computed somewhere else
                 
@@ -447,9 +447,9 @@ namespace Kratos
 //                 KRATOS_ERROR << "THICKNESS not provided for element " << this->Id() << std::endl;
 //             }
 
-            if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
+            if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() < 3 || this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() > 4 )
             {
-                KRATOS_ERROR << "Wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) " << this->Id() << std::endl;
+                KRATOS_ERROR << "Wrong constitutive law used. This is a 2D element! expected strain size is 3 or 4 (el id = ) " << this->Id() << std::endl;
             }
         }
         else
