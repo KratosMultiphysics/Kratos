@@ -39,7 +39,7 @@ private:
 
 public:
 
-	/** Default constructor
+ /** Default constructor
 	* Default constructor
 	* This should never be called as we need a local pointer to exists
 	*/
@@ -92,7 +92,13 @@ public:
    * Constructor by std::shared_ptr
    * @param DataPointer Std Shared Pointer to the Data.
    */
-  GlobalPointer(std::shared_ptr<TDataType> DataPointer) = delete;
+  GlobalPointer(std::shared_ptr<TDataType> DataPointer)
+    : mDataPointer(DataPointer.get())
+#ifdef KRATOS_USING_MPI
+    , mRank(GetLocalRank())
+#endif
+    {
+  }
 
   /** Constructor by std::weak_ptr
    * Constructor by std::weak_ptr
