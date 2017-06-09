@@ -7,13 +7,12 @@ import os
 
 CheckForPreviousImport()
 
+path_of_the_application =  os.path.dirname((os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))) # script directory
+# print(path_of_the_appli)
 # Import the mapper library
-# This is pre compiled and is put in the external library. Also a header file is put in the header file folder to give the 
-# users the syntax for the mapping routines. 
-libMapper = ctp.cdll.LoadLibrary("../custom_external_libraries/libEMPIRE_MapperLib.so")
-#libMapper = ctp.cdll.LoadLibrary("/home/annab/software/kratos/applications/empire_application/custom_external_libraries/libEMPIRE_MapperLib.so")
-
-#libMapper = ctp.cdll.LoadLibrary("libEMPIRE_MapperLib.so")
+# This is pre compiled and is put in the external library. Also a header file is put in the header file folder to give the
+# users the syntax for the mapping routines.
+libMapper = ctp.cdll.LoadLibrary(path_of_the_application+"/custom_external_libraries/libEMPIRE_MapperLib.so")
 
 ## Wrapper class for the mapper
 # Consturctor will have two model parts as arguments, type of mapper and then options to the mapper. 
