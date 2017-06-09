@@ -156,7 +156,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerGatherRaw, KratosCoreFastSuit)
   auto from_rawRemote = GlobalPointer<int>(nullptr);
 
   for(int i = 0; i < mpi_size; i += 1) {
-    from_rawRemote.Load(&raw_gather_recv[i * gp_size]);
+    from_raw_remote.Load(&raw_gather_recv[i * gp_size]);
     KRATOS_CHECK_EQUAL(from_raw_remote.GetRank(), i);
     if(mpi_rank == i) {
       KRATOS_CHECK_EQUAL(*from_rawRemote, sample_var);
