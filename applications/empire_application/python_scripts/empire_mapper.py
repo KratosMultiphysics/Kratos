@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # import libraries
 from KratosMultiphysics import *
 from KratosMultiphysics.EmpireApplication import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
 import ctypes as ctp
 import os
 
@@ -11,8 +10,8 @@ CheckForPreviousImport()
 # Import the mapper library
 # This is pre compiled and is put in the external library. Also a header file is put in the header file folder to give the 
 # users the syntax for the mapping routines. 
-#libMapper = ctp.cdll.LoadLibrary("../custom_external_libraries/libEMPIRE_MapperLib.so")
-libMapper = ctp.cdll.LoadLibrary("/home/annab/software/kratos/applications/empire_application/custom_external_libraries/libEMPIRE_MapperLib.so")
+libMapper = ctp.cdll.LoadLibrary("../custom_external_libraries/libEMPIRE_MapperLib.so")
+#libMapper = ctp.cdll.LoadLibrary("/home/annab/software/kratos/applications/empire_application/custom_external_libraries/libEMPIRE_MapperLib.so")
 
 #libMapper = ctp.cdll.LoadLibrary("libEMPIRE_MapperLib.so")
 

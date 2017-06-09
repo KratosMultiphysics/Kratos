@@ -9,7 +9,6 @@ from numpy import linalg as la
 #
 import sys
 from KratosMultiphysics import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.MeshingApplication import *
