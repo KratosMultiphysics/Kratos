@@ -96,7 +96,6 @@ public:
     void RegisterCFDVariables(); //TODO: move to application
     void RegisterALEVariables(); //TODO: move to application
     void RegisterDEMVariables(); //TODO: move to application
-    void RegisterMATVariables(); //TODO: move to application
     void RegisterLegacyStructuralAppVariables(); //TODO: move to application
 
     ///@}

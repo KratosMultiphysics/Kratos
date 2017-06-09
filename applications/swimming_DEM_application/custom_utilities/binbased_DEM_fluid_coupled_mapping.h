@@ -175,10 +175,6 @@ void AddDEMVariablesToImpose(const VariableData& r_variable){
     mDEMVariablesToBeImposed.Add(r_variable);
 }
 
-void AddFluidVariableToBeTimeAveraged(const VariableData& r_variable){
-    mFluidVariablesToBeTimeAveraged.Add(r_variable);
-}
-
 void InterpolateFromFluidMesh(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid, const double alpha);
 void ImposeFlowOnDEMFromField(FluidFieldUtility& r_flow, ModelPart& r_dem_model_part);
 void ImposeVelocityOnDEMFromField(FluidFieldUtility& r_flow, ModelPart& r_dem_model_part);
@@ -275,7 +271,6 @@ array_1d<double, 3> mGravity;
 VariablesList mDEMCouplingVariables;
 VariablesList mFluidCouplingVariables;
 VariablesList mDEMVariablesToBeImposed;
-VariablesList mFluidVariablesToBeTimeAveraged;
 PointPointSearch::Pointer mpPointPointSearch;
 
 FluidFieldUtility mFlowField;
@@ -296,7 +291,6 @@ void SearchParticleNodalNeighboursFixedRadius(ModelPart& r_fluid_model_part, Mod
 void RecalculateDistances(ModelPart& r_dem_model_part);
 bool IsDEMVariable(const VariableData& var);
 bool IsFluidVariable(const VariableData& var);
-bool IsFluidVariableToBeAveraged(const VariableData& var);
 array_1d<double, 3> CalculateAcceleration(const Geometry<Node<3> >& geom, const array_1d<double, TDim + 1>& N);
 double CalculateNormOfSymmetricGradient(const Geometry<Node<3> >& geom, const int index);
 array_1d<double, 3> CalculateVorticity(const Geometry<Node<3> >& geom, const int index);

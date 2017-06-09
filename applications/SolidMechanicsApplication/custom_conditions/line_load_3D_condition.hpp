@@ -162,11 +162,6 @@ protected:
     virtual Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
 
     /**
-     * Calculation of the Total Position Increment
-     */
-    virtual Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
-    
-    /**
      * Calculation of the Vector Force of the Condition
      */
     virtual Vector& CalculateVectorForce(Vector& rVectorForce, GeneralVariables& rVariables);

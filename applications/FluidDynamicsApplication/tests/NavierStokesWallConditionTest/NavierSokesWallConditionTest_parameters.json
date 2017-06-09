@@ -93,10 +93,10 @@
             "value"           : 0.0
         }
     },{
-        "python_module" : "assign_scalar_variable_process",
+        "python_module" : "experimental_assign_value_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignScalarVariableProcess",
+        "process_name"  : "AssignValueProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Parts_Fluid",

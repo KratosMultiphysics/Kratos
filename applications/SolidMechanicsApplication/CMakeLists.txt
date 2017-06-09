@@ -3,12 +3,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosSolidMechanicsApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-#include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../ConstitutiveModelsApplication )
-
-
-#if(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
-#    message(SEND_ERROR "The ConsitutiveModels Application must be compiled before this one. Set CONSTITUTIVE_MODELS_APPLICATION=ON in the configure file.")
-#endif(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
 
 ## generate variables with the sources
 set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
@@ -18,38 +12,8 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-   
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/linear_solid_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_small_displacement_element.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_U_P_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_P_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_P_element.cpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_beam_element_3D2N.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thick_element_3D4N.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thin_element_3D3N.cpp
-	
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/force_load_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_axisym_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_3D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_3D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_axisym_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_3D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_3D_condition.cpp
-	
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
-	
-	## Constitutive Models Application ##  DEPRECATED CONSTITUTIVE LAWS IMPLEMENTATION
-	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_hardening_laws/non_linear_isotropic_kinematic_hardening_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_hardening_laws/linear_isotropic_kinematic_hardening_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.cpp
@@ -87,7 +51,8 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_U_P_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_U_P_axisym_2D_law.cpp
 
-
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/python_outfitted_constitutive_law.cpp
+	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_J2_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_J2_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_J2_axisym_2D_law.cpp
@@ -107,17 +72,34 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/isotropic_damage_modified_mises_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/isotropic_damage_modified_mises_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/isotropic_damage_modified_mises_plane_stress_2D_law.cpp
+    
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/linear_solid_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_small_displacement_element.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_U_P_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_P_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_P_element.cpp
 
-	## Constitutive Models Application ##  DEPRECATED CONSTITUTIVE LAWS IMPLEMENTATION
-
-	
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/force_load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_2D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_axisym_2D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_3D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_2D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_axisym_2D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_3D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_3D_condition.cpp
 )
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosSolidMechanicsApplication SHARED ${KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES})
+##target_link_libraries(KratosSolidMechanicsApplication KratosCore)
 target_link_libraries(KratosSolidMechanicsApplication KratosCore)
-##target_link_libraries(KratosSolidMechanicsApplication KratosCore KratosConstitutiveModelsApplication)
+##target_link_libraries(KratosSolidMechanicsApplication KratosCore triangle tetgen msuite tetMeshOpt)
 set_target_properties(KratosSolidMechanicsApplication PROPERTIES PREFIX "")
 set_target_properties(KratosSolidMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "SOLID_MECHANICS_APPLICATION=EXPORT,API")
 install(TARGETS KratosSolidMechanicsApplication DESTINATION libs )

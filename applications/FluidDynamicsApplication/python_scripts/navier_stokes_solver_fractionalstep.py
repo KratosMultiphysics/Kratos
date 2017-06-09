@@ -76,8 +76,7 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
                 "maximum_delta_time"  : 0.01
             },
             "move_mesh_flag": false,
-            "use_slip_conditions": true,
-            "reorder": false
+            "use_slip_conditions": true
         }""")
 
         ## Overwrite the default settings with user-provided parameters

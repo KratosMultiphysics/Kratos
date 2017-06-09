@@ -322,11 +322,9 @@ double& TotalLagrangianElement::CalculateTotalMass( double& rTotalMass, const Pr
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     rTotalMass = mTotalDomainInitialSize * GetProperties()[DENSITY];
-
-    if( dimension == 2 ){
-      if ( this->GetProperties().Has( THICKNESS ) )
-	rTotalMass *= GetProperties()[THICKNESS];
-    }
+    
+    if( dimension == 2 )
+        rTotalMass *= GetProperties()[THICKNESS];
 
     return rTotalMass;
 
@@ -355,8 +353,7 @@ void TotalLagrangianElement::CalculateOnIntegrationPoints( const Variable<double
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
       if( dimension == 2){
-	if ( this->GetProperties().Has( THICKNESS ) )
-	  Thickness = GetProperties()[THICKNESS];
+	Thickness = GetProperties()[THICKNESS];
       }
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -369,6 +366,7 @@ void TotalLagrangianElement::CalculateOnIntegrationPoints( const Variable<double
       //set constitutive law flags:
       Flags &ConstitutiveLawOptions=Values.GetOptions();
 
+      ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
       ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
       ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY);
    

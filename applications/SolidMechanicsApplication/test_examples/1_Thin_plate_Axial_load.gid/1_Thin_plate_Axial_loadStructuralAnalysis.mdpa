@@ -1,0 +1,74 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1 // GUI property identifier: Property1
+// GUI material identifier: Steel_AISI1059
+ DENSITY 7870
+ YOUNG_MODULUS 210.0e9
+ POISSON_RATIO 0.30
+ THICKNESS 0.1
+ BODY_FORCE [3] (0.0, 0.0, 0.0)
+End Properties
+
+Begin Nodes // GUI group identifier: PlanStre0
+1 0.00000 4.00000 0
+2 0.00000 3.00000 0
+3 0.00000 2.00000 0
+4 2.00000 3.50000 0
+5 2.00000 2.75000 0
+6 2.00000 2.00000 0
+7 0.00000 1.00000 0
+8 2.00000 1.25000 0
+9 0.00000 0.00000 0
+10 2.00000 0.50000 0
+11 4.00000 3.00000 0
+12 4.00000 2.50000 0
+13 4.00000 2.00000 0
+14 4.00000 1.50000 0
+15 4.00000 1.00000 0
+End Nodes
+
+Begin Elements SmallDisplacementElement2D4N   // GUI group identifier: PlanStre0
+1 1 10 8 7 9
+2 1 15 14 8 10
+3 1 8 6 3 7
+4 1 14 13 6 8
+5 1 6 5 2 3
+6 1 13 12 5 6
+7 1 5 4 1 2
+8 1 12 11 4 5
+End Elements
+
+
+Begin NodalData DISPLACEMENT_X
+         3    1   0.000000
+End NodalData
+
+Begin NodalData DISPLACEMENT_Y
+         3    1   0.000000
+End NodalData
+
+Begin NodalData DISPLACEMENT_X
+         1    1   0.000000
+         2    1   0.000000
+         3    1   0.000000
+         7    1   0.000000
+         9    1   0.000000
+End NodalData
+
+Begin Conditions LineLoadCondition2D2N // GUI beam uniformly distributed load group identifier: LoadOverLine1
+   1   1      11      12
+   2   1      12      13
+   3   1      13      14
+   4   1      14      15
+End Conditions
+
+Begin NodalData LINE_LOAD_X // GUI beam uniformly distributed load group identifier: LoadOverLine1
+        11      1 100000000.0000000000
+        12      1 100000000.0000000000
+        13      1 100000000.0000000000
+        14      1 100000000.0000000000
+        15      1 100000000.0000000000
+End NodalData
+

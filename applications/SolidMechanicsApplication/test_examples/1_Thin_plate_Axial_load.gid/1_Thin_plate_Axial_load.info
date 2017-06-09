@@ -1,0 +1,39 @@
+ |  /           |             
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \ 
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 3.3.13152
+     KRATOS  __|  _ \  |   |  _ \              
+           \__ \ (   | |   | | , )             
+           ____/\___/ ___|_| ___/ MECHANICS     
+Initializing KratosSolidMechanicsApplication...
+Initializing KratosExternalSolversApplication... 
+  [Reading Nodes    : 15 nodes read]
+  [Reading Elements : 8 elements read] [Type: SmallDisplacementElement2D4N]
+  [Total Lines Read : 75]
+Sat Jan 16 13:52:34 2016
+Importing    KratosSolidMechanicsApplication
+Importing    KratosExternalSolversApplication
+ problem path  /home/flo/Escritorio/Josep Maria/Gid/1_Thin_plate_Axial_load.gid
+ 
+::[KSM Simulation]:: OMP USING 2 THREADS ]
+ 
+::[Mechanical Solver]:: -START-
+::[Mechanical Solver]:: Variables ADDED
+::[KSM Simulation]:: Reading -START- (MDPA FILE) 
+::[KSM Simulation]:: Reading -END- 
+::[Mechanical Solver]:: DOF's ADDED
+::[Mechanical Solver]:: -END- 
+ 
+::[KSM Simulation]:: Analysis -START- 
+  [ TIME=1.00000000e+00 ]: STEP= 1  [-----------------] 
+  [ ITERS=2|AVG-ITERS=2|RATIO=1.6827e-15|NORM=6.5585e-10 ][ WRITE_ID=1 ]
+::[KSM Simulation]:: Analysis -END- 
+ 
+::[Solving Info]:: [ SIMULATED-TIME=1.0000e+00 seconds | STEPS-NUMBER=1 ]
+::[Solving Info]:: [ AVG-ITERS:2|MAX-ITERS=2|RESULTS-FILES=1 ]
+::[Solving Info]:: -NOTE: run_GID_for_viewing_results-
+
+::[KSM Simulation]:: [ Computing Time = (0.18  seconds process time) ( 0.47  seconds wall time) ]
+Sat Jan 16 13:52:35 2016
+KRATOS TERMINATED CORRECTLY

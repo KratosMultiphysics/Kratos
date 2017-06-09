@@ -47,10 +47,10 @@ class MechanicalSolver(object):
             "implex": false,
             "compute_reactions": true,
             "compute_contact_forces": false,
-            "block_builder": true,
-            "move_mesh_flag": true,
+            "block_builder": false,
             "clear_storage": false,
             "component_wise": false,
+            "move_mesh_flag": true,
             "convergence_criterion": "Residual_criteria",
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
@@ -106,7 +106,6 @@ class MechanicalSolver(object):
 
         if self.settings["rotation_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.POINT_MOMENT)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)

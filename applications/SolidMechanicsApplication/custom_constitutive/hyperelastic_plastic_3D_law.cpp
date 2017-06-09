@@ -356,7 +356,6 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
     noalias(ElasticVariables.CauchyGreenMatrix) = prod(mElasticLeftCauchyGreen,trans(ElasticVariables.DeformationGradientF));
     ElasticVariables.CauchyGreenMatrix = prod(ElasticVariables.DeformationGradientF,ElasticVariables.CauchyGreenMatrix);
 
-
     //5.-Calculate trace of Left Cauchy-Green tensor b_bar
     ElasticVariables.traceCG = 0;
     for( unsigned int i=0; i<3; i++)
@@ -465,15 +464,8 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
 
       mElasticLeftCauchyGreen  = ( IsochoricStressMatrix * ( 1.0 / ElasticVariables.LameMu ) );
       mElasticLeftCauchyGreen += ( ElasticVariables.traceCG/3.0) * ElasticVariables.Identity;
-
-    }
-
     
-
-    // std::cout<<" StrainVector "<<StrainVector<<std::endl;
-    // std::cout<<" StressVector "<<StressVector<<std::endl;
-    // std::cout<<" ConstitutiveMatrix "<<ConstitutiveMatrix<<std::endl;
-            
+    }
 
 }
 

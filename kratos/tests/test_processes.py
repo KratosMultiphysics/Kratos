@@ -114,7 +114,6 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
-        model_part.AddNodalSolutionStepVariable(DENSITY)
         model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
@@ -126,8 +125,6 @@ class TestProcesses(KratosUnittest.TestCase):
             node.Free(VELOCITY_X)
             node.Free(VELOCITY_Y)
             node.Free(VELOCITY_Z)
-            node.SetSolutionStepValue(DENSITY,0,0.0)
-            node.SetSolutionStepValue(VISCOSITY,0,0.0)
             node.SetSolutionStepValue(DISPLACEMENT_X,0,0.0)
             node.SetSolutionStepValue(DISPLACEMENT_Y,0,0.0)
             node.SetSolutionStepValue(DISPLACEMENT_Z,0,0.0)
@@ -149,16 +146,6 @@ class TestProcesses(KratosUnittest.TestCase):
                             "interval"        : [0.0, 10.0],
                             "constrained"		  : true,
                             "value"      : "x+100.0*y*t**2"
-                        }
-                    },
-                    {
-                        "python_module"   : "assign_scalar_variable_process",
-                        "kratos_module" : "KratosMultiphysics",
-                        "process_name"          : "AssignScalarVariableProcess",
-                        "Parameters"            : {
-                            "model_part_name" : "Main",
-                            "variable_name"   : "DENSITY",
-                            "value"      : "x*x+y*y+z*z+t"
                         }
                     },
                     {
@@ -283,9 +270,7 @@ class TestProcesses(KratosUnittest.TestCase):
         t = model_part.ProcessInfo[TIME]
         for node in model_part.Nodes:
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), math.sqrt(node.X**2+node.Y**2)*t)
-            self.assertEqual(node.GetSolutionStepValue(DENSITY), node.X**2+node.Y**2+node.Z**2+t)
             self.assertEqual(node.GetSolutionStepValue(VISCOSITY), node.X+100.0*node.Y*t**2)
-            self.assertTrue(node.IsFixed(DENSITY))
             self.assertTrue(node.IsFixed(VISCOSITY))
             self.assertTrue(node.IsFixed(DISPLACEMENT_X))
             self.assertFalse(node.IsFixed(DISPLACEMENT_Y))
@@ -297,7 +282,6 @@ class TestProcesses(KratosUnittest.TestCase):
         ##verify the result
         t = model_part.ProcessInfo[TIME]
         for node in model_part.Nodes:
-            self.assertFalse(node.IsFixed(DENSITY))
             self.assertFalse(node.IsFixed(VISCOSITY))
             self.assertFalse(node.IsFixed(DISPLACEMENT_X))
             self.assertFalse(node.IsFixed(DISPLACEMENT_Y))
@@ -319,9 +303,7 @@ class TestProcesses(KratosUnittest.TestCase):
         t = model_part.ProcessInfo[TIME]
         for node in model_part.Nodes:
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), math.sqrt(node.X**2+node.Y**2)*3.0) ##still the old value
-            self.assertEqual(node.GetSolutionStepValue(DENSITY), node.X**2+node.Y**2+node.Z**2+t)
             self.assertEqual(node.GetSolutionStepValue(VISCOSITY), node.X+100.0*node.Y*t**2)
-            self.assertTrue(node.IsFixed(DENSITY))
             self.assertTrue(node.IsFixed(VISCOSITY))
             self.assertFalse(node.IsFixed(DISPLACEMENT_X)) #it is left unfixed at the end of the previous interval
 
@@ -331,7 +313,6 @@ class TestProcesses(KratosUnittest.TestCase):
         ##verify the result
         t = model_part.ProcessInfo[TIME]
         for node in model_part.Nodes:
-            self.assertFalse(node.IsFixed(DENSITY))
             self.assertFalse(node.IsFixed(VISCOSITY))
             self.assertFalse(node.IsFixed(DISPLACEMENT_X))
 
@@ -433,7 +414,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         for process in list_of_processes:
             process.ExecuteFinalizeSolutionStep()
-
+            
     def test_rotated_system(self):
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VELOCITY)
@@ -490,7 +471,7 @@ class TestProcesses(KratosUnittest.TestCase):
         for process in list_of_processes:
             process.ExecuteFinalizeSolutionStep()
 
-
+        
     def test_assign_scalar_value_to_conditions(self):
         model_part = ModelPart("Main")
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
@@ -532,12 +513,12 @@ class TestProcesses(KratosUnittest.TestCase):
 
         for process in list_of_processes:
             process.ExecuteInitializeSolutionStep()
-
+            
         for cond in model_part.Conditions:
             self.assertEqual(cond.GetValue(PRESSURE), 15.0)
             self.assertEqual(cond.GetValue(VISCOSITY), 2)
 
-
+        
     def test_assign_scalar_field_to_conditions(self):
         model_part = ModelPart("Main")
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
@@ -548,9 +529,9 @@ class TestProcesses(KratosUnittest.TestCase):
             {
                 "process_list" : [
                     {
-                        "python_module"   : "assign_scalar_to_conditions_process",
+                        "python_module"   : "assign_scalar_field_to_conditions_process",
                         "kratos_module" : "KratosMultiphysics",
-                        "process_name"          : "AssignScalarToConditionsProcess",
+                        "process_name"          : "AssignScalarFieldToConditionsProcess",
                         "Parameters"            : {
                             "model_part_name":"Main",
                             "variable_name": "INITIAL_STRAIN",
@@ -566,7 +547,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         import process_factory
         list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
-
+            
         model_part.CloneTimeStep(5.0)
 
         for process in list_of_processes:
@@ -575,12 +556,12 @@ class TestProcesses(KratosUnittest.TestCase):
         t = model_part.ProcessInfo[TIME]
         for cond in model_part.Conditions:
             v = cond.GetValue(INITIAL_STRAIN)
-
+            
             i = 0
             for node in cond.GetNodes():
-                self.assertEqual(v[i],node.X+node.Y*t+node.Z)
+                self.assertEqual(v[i],node.X+node.Y*t+node.Z)    
                 i=i+1
-
+            
     def test_find_nodal_h_process(self):
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(NODAL_H)
@@ -592,13 +573,13 @@ class TestProcesses(KratosUnittest.TestCase):
         for i in range(1,len(model_part.Nodes)):
             self.assertEqual(model_part.GetNode(i).GetSolutionStepValue(NODAL_H), 0.25)
         self.assertEqual(model_part.GetNode(len(model_part.Nodes)).GetSolutionStepValue(NODAL_H), 0.5)
-
+        
     def test_assign_acceleration_to_nodes(self):
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
-
+        
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
 
@@ -630,11 +611,11 @@ class TestProcesses(KratosUnittest.TestCase):
 
         ################### here we are within the interval
         model_part.CloneTimeStep(3.0)
-
+        
         for process in list_of_processes:
             process.ExecuteInitializeSolutionStep()
-
-
+            
+            
         for node in model_part.Nodes:
             self.assertEqual(node.IsFixed(ACCELERATION_X), True)
             self.assertEqual(node.IsFixed(ACCELERATION_Y), False)
@@ -647,11 +628,11 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(ACCELERATION_Z), node.Z)
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 0.0) #displacements remain unmodified, they will be assigned by the scheme
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), 0.0)
-            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 0.0)
-
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 0.0)            
+        
         for process in list_of_processes:
             process.ExecuteFinalizeSolutionStep()
-
+            
         for node in model_part.Nodes:
             self.assertEqual(node.IsFixed(ACCELERATION_X), False)
             self.assertEqual(node.IsFixed(ACCELERATION_Y), False)
@@ -664,14 +645,14 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(ACCELERATION_Z), node.Z)
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 0.0) #displacements remain unmodified, they will be assigned by the scheme
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), 0.0)
-            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 0.0)
-
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 0.0)   
+            
         ################### here we are outside of the interval - values do not change but everything is free
         model_part.CloneTimeStep(8.0)
-
+        
         for process in list_of_processes:
             process.ExecuteInitializeSolutionStep()
-
+            
         for node in model_part.Nodes:
             self.assertEqual(node.IsFixed(ACCELERATION_X), False)
             self.assertEqual(node.IsFixed(ACCELERATION_Y), False)
@@ -684,11 +665,11 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(ACCELERATION_Z), node.Z)
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 0.0) #displacements remain unmodified, they will be assigned by the scheme
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), 0.0)
-            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 0.0)
-
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 0.0)   
+        
         for process in list_of_processes:
             process.ExecuteFinalizeSolutionStep()
-
+            
         for node in model_part.Nodes:
             self.assertEqual(node.IsFixed(ACCELERATION_X), False)
             self.assertEqual(node.IsFixed(ACCELERATION_Y), False)
@@ -701,6 +682,6 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(ACCELERATION_Z), node.Z)
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 0.0) #displacements remain unmodified, they will be assigned by the scheme
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), 0.0)
-            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 0.0)               
 if __name__ == '__main__':
     KratosUnittest.main()

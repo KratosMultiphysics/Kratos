@@ -140,11 +140,9 @@ void AxisymSmallDisplacementElement::InitializeGeneralVariables (GeneralVariable
 
 void AxisymSmallDisplacementElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
-  
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.Radius;
-    if ( this->GetProperties().Has( THICKNESS ) )
-      IntegrationWeight /= GetProperties()[THICKNESS];
-  
+
+    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.Radius / GetProperties()[THICKNESS];
+
     //contributions to stiffness matrix calculated on the reference config
     SmallDisplacementElement::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight );
 
@@ -157,10 +155,8 @@ void AxisymSmallDisplacementElement::CalculateAndAddLHS(LocalSystemComponents& r
 
 void AxisymSmallDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.Radius;
-    if ( this->GetProperties().Has( THICKNESS ) )
-      IntegrationWeight /= GetProperties()[THICKNESS];
-  
+    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.Radius / GetProperties()[THICKNESS];
+
     //contribution to external forces
     SmallDisplacementElement::CalculateAndAddRHS( rLocalSystem, rVariables, rVolumeForce, IntegrationWeight );
 

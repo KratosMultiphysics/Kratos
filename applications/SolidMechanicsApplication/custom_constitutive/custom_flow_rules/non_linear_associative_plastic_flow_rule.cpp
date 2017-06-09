@@ -139,18 +139,11 @@ bool NonLinearAssociativePlasticFlowRule::CalculateReturnMapping( RadialReturnVa
 	this->SetCriterionParameters ( rReturnMappingVariables, PlasticVariables, CriterionParameters );
 
 
-	//1.- Isochoric stress norm
+	//1.-Isochoric stress norm
 	rReturnMappingVariables.NormIsochoricStress = CalculateStressNorm( rIsoStressMatrix, rReturnMappingVariables.NormIsochoricStress );
 
 	//2.- Check yield condition
 	rReturnMappingVariables.TrialStateFunction = mpYieldCriterion->CalculateYieldCondition( rReturnMappingVariables.TrialStateFunction, CriterionParameters );
-
-
-	//3.- Initialize PlasticDissipation
-	mThermalVariables.PlasticDissipation = 0;
-	mThermalVariables.DeltaPlasticDissipation = 0;
-	  
-	
 
 	if( rReturnMappingVariables.Options.Is(IMPLEX_ACTIVE) ) 
 	  {
@@ -285,16 +278,16 @@ void NonLinearAssociativePlasticFlowRule::CalculateThermalDissipation( YieldCrit
 
       //1.- Thermal Dissipation:
  
-      mThermalVariables.PlasticDissipation = mpYieldCriterion->CalculatePlasticDissipation( mThermalVariables.PlasticDissipation, rCriterionParameters);
+      rThermalVariables.PlasticDissipation = mpYieldCriterion->CalculatePlasticDissipation( rThermalVariables.PlasticDissipation, rCriterionParameters);
   
 
-      std::cout<<" PlasticDissipation "<<mThermalVariables.PlasticDissipation<<std::endl;
+      //std::cout<<" PlasticDissipation "<<mThermalVariables.PlasticDissipation<<std::endl;
 
       //2.- Thermal Dissipation Increment:
 
-      mThermalVariables.DeltaPlasticDissipation = mpYieldCriterion->CalculateDeltaPlasticDissipation( mThermalVariables.DeltaPlasticDissipation, rCriterionParameters );
+      rThermalVariables.DeltaPlasticDissipation = mpYieldCriterion->CalculateDeltaPlasticDissipation( rThermalVariables.DeltaPlasticDissipation, rCriterionParameters );
 		    		    
-      std::cout<<" DeltaPlasticDissipation "<<mThermalVariables.DeltaPlasticDissipation<<std::endl;
+      //std::cout<<" DeltaPlasticDissipation "<<mThermalVariables.DeltaPlasticDissipation<<std::endl;
 }
 
 
@@ -324,7 +317,7 @@ void NonLinearAssociativePlasticFlowRule::UpdateConfiguration( RadialReturnVaria
 {
 	//Back Stress update
         
-        std::cout<< " ElasticIsoStress "<<rIsoStressMatrix<<std::endl;
+        //std::cout<< " ElasticIsoStress "<<rIsoStressMatrix<<std::endl;
 
 	//Plastic Strain Update
         if( rReturnMappingVariables.NormIsochoricStress > 0 ){
@@ -338,7 +331,7 @@ void NonLinearAssociativePlasticFlowRule::UpdateConfiguration( RadialReturnVaria
 	  
 	}
 
-	std::cout<< " PlasticIsoStress "<<rIsoStressMatrix<<std::endl;
+	//std::cout<< " PlasticIsoStress "<<rIsoStressMatrix<<std::endl;
 }
 
 //***************************UPDATE INTERNAL VARIABLES********************************
@@ -356,12 +349,10 @@ bool NonLinearAssociativePlasticFlowRule::UpdateInternalVariables( RadialReturnV
 	mInternalVariables.DeltaPlasticStrain         *= ( 1.0/rReturnMappingVariables.DeltaTime );
  	
 	//update thermal variables
-	// mThermalVariables = rReturnMappingVariables.Thermal;
+	mThermalVariables = rReturnMappingVariables.Thermal;
 
-	std::cout<<" Update Internal Variables "<<mInternalVariables.EquivalentPlasticStrain<<" old "<<mInternalVariables.EquivalentPlasticStrainOld<<std::endl;
-	std::cout<<" Thermal Dissipation "<<mThermalVariables.PlasticDissipation<<" delta "<<mThermalVariables.DeltaPlasticDissipation<<std::endl;
-	
 	// mInternalVariables.print();
+
 	// mThermalVariables.print();
 
 	return true;

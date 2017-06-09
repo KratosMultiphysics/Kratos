@@ -22,12 +22,12 @@
 namespace Kratos
 {
 
-  namespace Python
-  {
+namespace Python
+{
 
-    void  AddCustomUtilitiesToPython();
+void  AddCustomUtilitiesToPython();
 
-  }  // namespace Python.
+}  // namespace Python.
 
 }  // namespace Kratos.
 

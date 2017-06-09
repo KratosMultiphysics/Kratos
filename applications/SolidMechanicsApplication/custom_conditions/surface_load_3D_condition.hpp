@@ -149,11 +149,6 @@ protected:
      */
     virtual Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
 
-    /**
-     * Calculation of the Total Position Increment
-     */
-    virtual Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
-
 
     /**
      * Calculate Condition Kinematics

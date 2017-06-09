@@ -16,7 +16,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/variables.h"
 #include "includes/node.h"
 #include "includes/element.h"
 #include "geometries/geometry.h"
@@ -77,7 +76,6 @@ namespace Kratos {
         virtual void UpdateTotalThroughput(Cluster3D& r_cluster);
         virtual void UpdatePartialThroughput(SphericParticle& r_spheric_particle, const int i);
         virtual void UpdatePartialThroughput(Cluster3D& r_cluster, const int i);
-        double GetInputNumberOfParticles(const ModelPart& mp);
 
         Vector mPartialParticleToInsert; //array of doubles, must be resized in the constructor to the number of meshes
         Vector mLastInjectionTimes; //array of doubles, must be resized in the constructor to the number of meshes

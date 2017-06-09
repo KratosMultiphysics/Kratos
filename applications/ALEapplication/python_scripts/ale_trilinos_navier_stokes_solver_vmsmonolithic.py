@@ -17,9 +17,6 @@ class ALETrilinosNavierStokesSolverVMSMonolithic(trilinos_navier_stokes_solver_v
     def __init__(self, model_part, custom_settings):
         # get ale solver type
         self.ale_solver_type = custom_settings["ale_solver_type"].GetString()
-        valid_ale_solver_types = ["trilinos_mesh_solver_structural_similarity"]
-        if self.ale_solver_type not in valid_ale_solver_types:
-            raise Exception("Invalid ale_solver_type: " + self.ale_solver_type)
         # remove the ale solver type from settings so we can reuse the navier stokes constructor
         navier_stokes_settings = custom_settings
         navier_stokes_settings.RemoveValue("ale_solver_type")

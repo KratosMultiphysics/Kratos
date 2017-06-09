@@ -257,7 +257,6 @@ def ConstructListsOfResultsToPrint(pp):
     pp.clusters_printing_vars = []
     pp.fluid_printing_vars = []
     pp.rigid_faces_printing_vars = []
-    pp.time_filtered_vars = []
 
     for variable in pp.nodal_results:
         pp.fluid_printing_vars += [eval(variable)]
@@ -378,9 +377,6 @@ def ConstructListsOfVariablesForCoupling(pp):
 
     if pp.CFD_DEM.print_REYNOLDS_NUMBER_option:
         pp.coupling_dem_vars += [REYNOLDS_NUMBER]
-
-    if pp.CFD_DEM.apply_time_filter_to_fluid_fraction:
-        pp.time_filtered_vars += [FLUID_FRACTION_FILTERED]
 
 def ChangeListOfFluidNodalResultsToPrint(pp):
     pp.nodal_results += ["TORQUE"]

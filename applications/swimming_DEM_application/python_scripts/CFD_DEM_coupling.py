@@ -56,9 +56,6 @@ class ProjectionModule:
                 pp.coupling_dem_vars.remove(var)
             self.projector.AddDEMVariablesToImpose(SLIP_VELOCITY)
 
-        for var in pp.time_filtered_vars:
-            self.projector.AddFluidVariableToBeTimeAveraged(var)
-
         # calculating the fluid nodal areas that are needed for the coupling
 
         self.area_calculator = CalculateNodalAreaProcess(self.fluid_model_part, self.dimension)

@@ -33,23 +33,27 @@
 
 
 
+
 namespace Kratos
 {
 
-  namespace Python
-  {
-    using namespace boost::python;
+namespace Python
+{
+using namespace boost::python;
 
-    typedef Condition                            ConditionBaseType;
-    typedef Geometry<Node<3> >                        GeometryType;
-    typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
-    typedef GeometryType::PointsArrayType           NodesArrayType;
+typedef Condition                            ConditionBaseType;
+typedef Geometry<Node<3> >                        GeometryType;
+typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
+typedef GeometryType::PointsArrayType           NodesArrayType;
 
-    void  AddCustomConditionsToPython()
-    {
+void  AddCustomConditionsToPython()
+{
+    // class_< FaceForce3D, FaceForce3D::Pointer, bases< ConditionBaseType > >
+    // ("FaceForce3D",
+    //  init<int, GeometryType::Pointer, Properties::Pointer>() )
+    // ;
+}
 
-    }
-
-  }  // namespace Python.
+}  // namespace Python.
 
 }  // namespace Kratos.

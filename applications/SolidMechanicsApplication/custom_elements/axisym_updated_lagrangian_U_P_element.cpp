@@ -296,9 +296,7 @@ void AxisymUpdatedLagrangianUPElement::FinalizeStepVariables( GeneralVariables &
 void AxisymUpdatedLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
 
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
-    if ( this->GetProperties().Has( THICKNESS ) )
-      IntegrationWeight /= GetProperties()[THICKNESS];
+    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
 
     //contributions to stiffness matrix calculated on the reference config
     rVariables.detF0   *= rVariables.detF;
@@ -318,9 +316,7 @@ void AxisymUpdatedLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents&
 
 void AxisymUpdatedLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
-    if ( this->GetProperties().Has( THICKNESS ) )
-      IntegrationWeight /= GetProperties()[THICKNESS];
+    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
 
     //contribution to external forces
     rVariables.detF0   *= rVariables.detF;

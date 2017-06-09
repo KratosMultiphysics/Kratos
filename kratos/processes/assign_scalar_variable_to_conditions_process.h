@@ -39,19 +39,15 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
-    
     /// Pointer definition of AssignScalarVariableToConditionsProcess
     KRATOS_CLASS_POINTER_DEFINITION(AssignScalarVariableToConditionsProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
-    AssignScalarVariableToConditionsProcess(
-        ModelPart& rModelPart,
-        Parameters rParameters
-        ) : Process(Flags()) , 
-            mrModelPart(rModelPart)
+    AssignScalarVariableToConditionsProcess(ModelPart& model_part,
+                                            Parameters rParameters
+                                           ) : Process(Flags()) , mr_model_part(model_part)
     {
         KRATOS_TRY
 
@@ -63,17 +59,14 @@ public:
                 "value" : 1.0
             }  )" );
 
+
         // Validate against defaults -- this ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mmesh_id       = rParameters["mesh_id"].GetInt();
         mvariable_name = rParameters["variable_name"].GetString();
-        
-        if( KratosComponents< Variable<double> >::Has( mvariable_name )) //case of double variable
-        {
-            mdouble_value = rParameters["value"].GetDouble();
-        }
-        else if( KratosComponents<array_1d_component_type>::Has( mvariable_name ) ) //case of component variable
+
+        if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
         {
             mdouble_value = rParameters["value"].GetDouble();
         }
@@ -87,7 +80,7 @@ public:
         }
         else
         {
-            KRATOS_ERROR <<"Trying to set a variable that is not in the model_part - variable name is " << mvariable_name << std::endl;
+            KRATOS_THROW_ERROR(std::runtime_error,"trying to set a variable that is not in the model_part - variable name is ",mvariable_name);
         }
 
         KRATOS_CATCH("");
@@ -121,13 +114,9 @@ public:
 
         KRATOS_TRY;
 
-        if( KratosComponents< Variable<double> >::Has( mvariable_name )) //case of double variable
+        if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
         {
             InternalAssignValue<>(KratosComponents< Variable<double> >::Get(mvariable_name), mdouble_value);
-        }
-        else if( KratosComponents<array_1d_component_type>::Has( mvariable_name )  ) //case of component variable
-        {
-            InternalAssignValueSerial<>(KratosComponents<array_1d_component_type>::Get(mvariable_name), mdouble_value);
         }
         else if( KratosComponents< Variable<int> >::Has( mvariable_name ) ) //case of int variable
         {
@@ -139,7 +128,7 @@ public:
         }
         else
         {
-            KRATOS_ERROR << "Not able to set the variable. Attempting to set variable: " << mvariable_name << std::endl;
+            KRATOS_THROW_ERROR(std::logic_error, "Not able to set the variable. Attempting to set variable:",mvariable_name);
         }
 
         KRATOS_CATCH("");
@@ -226,9 +215,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
+    ModelPart& mr_model_part;
     std::string mvariable_name;
-//     double mdouble_value;
     double mdouble_value;
     int mint_value;
     bool mbool_value;
@@ -241,31 +229,13 @@ private:
     template< class TVarType, class TDataType >
     void InternalAssignValue(TVarType& rVar, const TDataType value)
     {
-        const int nconditions = mrModelPart.GetMesh(mmesh_id).Conditions().size();
+        const int nconditions = mr_model_part.GetMesh(mmesh_id).Conditions().size();
 
         if(nconditions != 0)
         {
-            ModelPart::ConditionsContainerType::iterator it_begin = mrModelPart.GetMesh(mmesh_id).ConditionsBegin();
+            ModelPart::ConditionsContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).ConditionsBegin();
 
             #pragma omp parallel for
-            for(int i = 0; i<nconditions; i++)
-            {
-                ModelPart::ConditionsContainerType::iterator it = it_begin + i;
-
-                it->SetValue(rVar, value);
-            }
-        }
-    }
-    
-    template< class TVarType, class TDataType >
-    void InternalAssignValueSerial(TVarType& rVar, const TDataType value)
-    {
-        const int nconditions = mrModelPart.GetMesh(mmesh_id).Conditions().size();
-
-        if(nconditions != 0)
-        {
-            ModelPart::ConditionsContainerType::iterator it_begin = mrModelPart.GetMesh(mmesh_id).ConditionsBegin();
-
             for(int i = 0; i<nconditions; i++)
             {
                 ModelPart::ConditionsContainerType::iterator it = it_begin + i;

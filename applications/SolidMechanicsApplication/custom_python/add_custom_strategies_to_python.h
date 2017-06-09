@@ -22,12 +22,15 @@
 namespace Kratos
 {
 
-  namespace Python
-  {
+namespace Python
+{
 
-    void  AddCustomStrategiesToPython();
+void  AddCustomStrategiesToPython();
+/* { */
+/*   using namespace boost::python; */
+/* } */
 
-  }  // namespace Python.
+}  // namespace Python.
 
 }  // namespace Kratos.
 

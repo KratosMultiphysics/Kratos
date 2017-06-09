@@ -646,6 +646,7 @@ void LargeDisplacementElement::CalculateElementalSystem( LocalSystemComponents& 
     //set constitutive law flags:
     Flags &ConstitutiveLawOptions=Values.GetOptions();
 
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
@@ -1043,10 +1044,8 @@ double& LargeDisplacementElement::CalculateIntegrationWeight(double& rIntegratio
       
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    if( dimension == 2 ){
-      if ( this->GetProperties().Has( THICKNESS ) )
+    if( dimension == 2 )
         rIntegrationWeight *= GetProperties()[THICKNESS];
-    }
 
     return rIntegrationWeight;
 
@@ -1376,6 +1375,7 @@ void LargeDisplacementElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
     //set constitutive law flags:
     Flags &ConstitutiveLawOptions=Values.GetOptions();
 
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
 
@@ -1882,10 +1882,8 @@ double& LargeDisplacementElement::CalculateTotalMass( double& rTotalMass, const 
 
       }
 
-    if( dimension == 2 ){
-      if ( this->GetProperties().Has( THICKNESS ) )
-	rTotalMass *= GetProperties()[THICKNESS];
-    }
+    if( dimension == 2 )
+      rTotalMass *= GetProperties()[THICKNESS];
 
 
     return rTotalMass;
@@ -2327,6 +2325,7 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
 
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
         //reading integration points
@@ -2363,6 +2362,7 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
 
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY);
 
@@ -2400,6 +2400,7 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
 
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
         //reading integration points
@@ -2464,6 +2465,7 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
 
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
         //reading integration points
@@ -2691,7 +2693,21 @@ int  LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     KRATOS_TRY
 
     unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
-  
+
+    //verify compatibility with the constitutive law
+    ConstitutiveLaw::Features LawFeatures;
+    this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
+
+    bool correct_strain_measure = false;
+    for(unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); i++)
+    {
+	    if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Deformation_Gradient)
+		    correct_strain_measure = true;
+    }
+
+    if( correct_strain_measure == false )
+	    KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the element type ", " Large Displacements " )
+	  
 
     //verify that nodal variables are correctly initialized
 
@@ -2764,34 +2780,32 @@ int  LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
         KRATOS_THROW_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() )
     }
 
-    //verify compatibility with the constitutive law
-    ConstitutiveLaw::Features LawFeatures;
-    this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
-
-    bool correct_strain_measure = false;
-    for(unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); i++)
-    {
-      if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Deformation_Gradient)
-	correct_strain_measure = true;
-    }
-
-    if( correct_strain_measure == false )
-      KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the element type ", " Large Displacements " )
-
+    //Verify that the body force is defined
+    // if ( this->GetProperties().Has( BODY_FORCE ) == false )
+    // {
+    //     KRATOS_THROW_ERROR( std::logic_error, "BODY_FORCE not provided for property ", this->GetProperties().Id() )
+    // }
 
     //verify that the constitutive law has the correct dimension
     if ( dimension == 2 )
     {
-       
-        if( LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRAIN_LAW) && LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRESS_LAW) && LawFeatures.mOptions.IsNot(ConstitutiveLaw::AXISYMMETRIC_LAW) )
-	  KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element expected plane state or axisymmetric ", this->Id() )	      
-
+        // if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
+	//     KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() ) //fails in some 2D cases, i.e. axisymmetric
 
         // if ( THICKNESS.Key() == 0 )
-        //   KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" ) //if is not read from model part it will not exist
+        //     KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" ) //if is not read from model part it will not exist
 
-	// if ( this->GetProperties().Has( THICKNESS ) == false )
-	//   KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
+	if ( this->GetProperties().Has( THICKNESS ) == false ){
+
+	  if(LawFeatures.mOptions.Is(ConstitutiveLaw::PLANE_STRAIN_LAW) || LawFeatures.mOptions.Is(ConstitutiveLaw::AXISYMMETRIC_LAW) ){	   
+
+	    this->GetProperties().SetValue( THICKNESS , 1.0 );
+	  }
+	  else
+	    {
+	      KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
+	    }
+	}
 
     }
     else
@@ -2801,8 +2815,14 @@ int  LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     }
 
     //check constitutive law
-    this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Check( this->GetProperties(), this->GetGeometry(), rCurrentProcessInfo );
-	
+    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+    {
+        return mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
+    }
+
+    //check if it is in the XY plane for 2D case
+
+
     return 0;
 
     KRATOS_CATCH( "" );

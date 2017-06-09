@@ -149,7 +149,6 @@ void AddCustomUtilitiesToPython() {
         .def("GetTimeStepsData", &AnalyticParticleWatcher::GetTimeStepsData)
         .def("GetParticleData", &AnalyticParticleWatcher::GetParticleData)
         .def("GetAllParticlesData", &AnalyticParticleWatcher::GetAllParticlesData)
-        .def("SetNodalMaxImpactVelocities", &AnalyticParticleWatcher::SetNodalMaxImpactVelocities)
         ;
 
     class_<AnalyticFaceWatcher, boost::noncopyable >

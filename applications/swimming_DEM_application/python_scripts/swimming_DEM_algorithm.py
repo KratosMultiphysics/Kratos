@@ -88,7 +88,6 @@ class Algorithm(BaseAlgorithm):
         self.pp.CFD_DEM.print_CONDUCTIVITY_option = False
         self.pp.CFD_DEM.filter_velocity_option = False
         self.pp.CFD_DEM.print_PARTICLE_VEL_option = False
-        self.pp.CFD_DEM.apply_time_filter_to_fluid_fraction = False
         # Making the fluid step an exact multiple of the DEM step
         self.pp.Dt = int(self.pp.Dt / self.pp.CFD_DEM.MaxTimeStep) * self.pp.CFD_DEM.MaxTimeStep
         self.pp.viscosity_modification_type = 0.0
@@ -220,12 +219,7 @@ class Algorithm(BaseAlgorithm):
     def SetAnalyticFaceWatcher(self):
         from analytic_tools import analytic_data_procedures
         self.watcher = AnalyticFaceWatcher()
-        self.watcher_analyser = analytic_data_procedures.FaceWatcherAnalyzer(analytic_face_watcher = self.watcher, path = self.main_path)
-
-    def SetAnalyticParticleWatcher(self):
-        from analytic_tools import analytic_data_procedures
-        self.particle_watcher = AnalyticParticleWatcher()
-        self.particle_watcher_analyser = analytic_data_procedures.ParticleWatcherAnalyzer(analytic_particle_watcher = self.particle_watcher, path = self.main_path)
+        self.watcher_analyser = analytic_data_procedures.WatcherAnalyzer(analytic_face_watcher = self.watcher, path = self.main_path)
 
     def SetInletWatcher(self):
         self.watcher_analyser.SetInlet(self.DEM_inlet)

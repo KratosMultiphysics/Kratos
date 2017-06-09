@@ -465,7 +465,6 @@ void UpdatedLagrangianElement::CalculateOnIntegrationPoints( const Variable<doub
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
         if( dimension == 2){
-	  if ( this->GetProperties().Has( THICKNESS ) )
             Thickness = GetProperties()[THICKNESS];
         }
 
@@ -479,6 +478,7 @@ void UpdatedLagrangianElement::CalculateOnIntegrationPoints( const Variable<doub
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
 
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY);
    

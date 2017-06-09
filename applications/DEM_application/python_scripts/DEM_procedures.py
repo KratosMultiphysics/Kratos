@@ -34,7 +34,6 @@ class MdpaCreator(object):
         self.DEM_parameters = DEM_parameters
         self.current_path = path
 
-
         # Creating necessary directories
 
         self.post_mdpas = os.path.join(str(self.current_path), str(self.DEM_parameters.problem_name) + '_post_mdpas')
@@ -93,7 +92,7 @@ class SetOfModelParts(object):
         self.cluster_model_part    = self.Get("ClusterPart")
         self.DEM_inlet_model_part  = self.Get("DEMInletPart")
         self.mapping_model_part    = self.Get("MappingPart")
-        self.contact_model_part    = self.Get("ContactPart")        
+        self.contact_model_part    = self.Get("ContactPart")
 
     def ComputeMaxIds(self):
 
@@ -334,7 +333,6 @@ class Procedures(object):
 
         # MODEL
         self.domain_size = self.DEM_parameters.Dimension
-        self.aux = AuxiliaryUtilities()
         
     def SetScheme(self):
         if (self.DEM_parameters.IntegrationScheme == 'Forward_Euler'):
@@ -387,8 +385,6 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(DELTA_ROTATION) #TODO: only if self.DEM_parameters.RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)  #TODO: only if self.DEM_parameters.RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)  #TODO: only if self.DEM_parameters.RotationOption! Check that no one accesses them in c++ without checking the rotation option
-        model_part.AddNodalSolutionStepVariable(NORMAL_IMPACT_VELOCITY)
-        model_part.AddNodalSolutionStepVariable(TANGENTIAL_IMPACT_VELOCITY)
 
         # FORCES
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
@@ -496,20 +492,8 @@ class Procedures(object):
         if (Var_Translator(self.DEM_parameters.PostEulerAngles)):
             model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
-
     def AddMpiVariables(self, model_part):
         pass
-
-    def SetInitialNodalValues(self, spheres_model_part, cluster_model_part, DEM_inlet_model_part, rigid_face_model_part):
-        pass
-        # no fa falta inicialitzar els valors nodals
-
-        for mesh_number in range(0, spheres_model_part.NumberOfSubModelParts()):
-            mesh_nodes = self.aux.GetIthSubModelPartNodes(spheres_model_part,mesh_number)
-
-            for node in mesh_nodes:
-                node.SetSolutionStepValue(NORMAL_IMPACT_VELOCITY, 0.0)
-                node.SetSolutionStepValue(TANGENTIAL_IMPACT_VELOCITY, 0.0)
     
     def SetUpBufferSizeInAllModelParts(self, spheres_model_part, spheres_b_size, cluster_model_part, clusters_b_size, DEM_inlet_model_part, inlet_b_size, rigid_face_model_part, rigid_b_size):
         spheres_model_part.SetBufferSize(spheres_b_size)
@@ -1353,8 +1337,6 @@ class DEMIo(object):
         self.PostHeatFlux                 = getattr(self.DEM_parameters, "PostHeatFlux", 0)
         self.PostNeighbourSize            = getattr(self.DEM_parameters, "PostNeighbourSize", 0)
         self.PostBrokenRatio              = getattr(self.DEM_parameters, "PostBrokenRatio", 0)
-        self.PostNormalImpactVelocity     = getattr(self.DEM_parameters, "PostNormalImpactVelocity", 0)
-        self.PostTangentialImpactVelocity = getattr(self.DEM_parameters, "PostTangentialImpactVelocity", 0)
 
         if not (hasattr(self.DEM_parameters, "PostBoundingBox")):
             self.PostBoundingBox = 0
@@ -1382,14 +1364,6 @@ class DEMIo(object):
             
         self.SetMultifileLists(self.multifiles)
         
-        #Analytic
-        if not (hasattr(self.DEM_parameters, "PostNormalImpactVelocity")):
-            PostNormalImpactVelocity = 0
-            PostTangentialImpactVelocity = 0
-        else:
-            PostNormalImpactVelocity = Var_Translator(self.DEM_parameters.PostNormalImpactVelocity)
-            PostTangentialImpactVelocity = Var_Translator(self.DEM_parameters.PostTangentialImpactVelocity)
-
         # Ice
         if (hasattr(self.DEM_parameters, "PostVirtualSeaSurfaceX1")):
             self.SeaSurfaceX1 = self.DEM_parameters.PostVirtualSeaSurfaceX1
@@ -1435,7 +1409,6 @@ class DEMIo(object):
         self.PushPrintVar(self.PostVelocity,         VELOCITY,                     self.global_variables)
         self.PushPrintVar(self.PostTotalForces,      TOTAL_FORCES,                 self.global_variables)
 
-
     def AddSpheresAndClustersVariables(self):  # variables common to spheres and clusters
         self.PushPrintVar(self.PostAppliedForces,       EXTERNAL_APPLIED_FORCE,  self.spheres_and_clusters_variables)
         self.PushPrintVar(self.PostAppliedForces,       EXTERNAL_APPLIED_MOMENT, self.spheres_and_clusters_variables)
@@ -1457,8 +1430,6 @@ class DEMIo(object):
         self.PushPrintVar(self.PostExportId,         EXPORT_ID,                    self.spheres_variables)
         self.PushPrintVar(self.PostTemperature,      TEMPERATURE,                  self.spheres_variables)
         self.PushPrintVar(self.PostHeatFlux,         HEATFLUX,                     self.spheres_variables)
-        self.PushPrintVar(self.PostNormalImpactVelocity,      NORMAL_IMPACT_VELOCITY,       self.spheres_variables)
-        self.PushPrintVar(self.PostTangentialImpactVelocity,      TANGENTIAL_IMPACT_VELOCITY,   self.spheres_variables)
 
         #self.PushPrintVar(                        1, DELTA_DISPLACEMENT,           self.spheres_variables)  # Debugging
         #self.PushPrintVar(                        1, PARTICLE_ROTATION_ANGLE,      self.spheres_variables)  # Debugging
