@@ -73,7 +73,7 @@ class NodalDampingTests(KratosUnittest.TestCase):
                                                                         compute_reactions, 
                                                                         reform_step_dofs, 
                                                                         move_mesh_flag)
-        strategy.SetEchoLevel(1)
+        strategy.SetEchoLevel(0)
         
         strategy.Check()
         strategy.Solve()
@@ -263,7 +263,6 @@ class NodalDampingTests(KratosUnittest.TestCase):
             mp.CloneTimeStep(time)
 
             self._solve(mp)
-            print("time=",time)
             current_analytical_displacement_y_1 = 2.0148 * exp(-0.08334*time) * sin(0.70221*time+atan(8.153))
             self.assertAlmostEqual(mp.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0), \
                 current_analytical_displacement_y_1,delta=5e-2)

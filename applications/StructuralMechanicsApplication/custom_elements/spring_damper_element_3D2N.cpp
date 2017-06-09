@@ -183,11 +183,14 @@ void SpringDamperElement3D2N::GetFirstDerivativesVector( Vector& rValues, int St
     for ( size_t i = 0; i < GetGeometry().size(); ++i)
     {
         const array_1d<double, 3>& vel = GetGeometry()[i].FastGetSolutionStepValue( VELOCITY, Step );
-        std::cout << "TODO: angular velocity??" << std::endl;
+        // const array_1d<double, 3>& avel = GetGeometry()[i].FastGetSolutionStepValue( ANGULAR_VELOCITY, Step );
         unsigned int index = i * 6;
         rValues[index]   = vel[0];
         rValues[index+1] = vel[1];
         rValues[index+2] = vel[2];
+        // rValues[index+3] = avel[0];
+        // rValues[index+4] = avel[1];
+        // rValues[index+5] = avel[2];
         rValues[index+3] = 0.0;
         rValues[index+4] = 0.0;
         rValues[index+5] = 0.0;
@@ -208,11 +211,14 @@ void SpringDamperElement3D2N::GetSecondDerivativesVector( Vector& rValues, int S
     for ( size_t i = 0; i < GetGeometry().size(); ++i)
     {
         const array_1d<double, 3>& acc = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION, Step );
-        std::cout << "TODO: angular acceleration??" << std::endl;
+        // const array_1d<double, 3>& aacc = GetGeometry()[i].FastGetSolutionStepValue( ANGULAR_ACCELERATION, Step );
         unsigned int index = i * 6;
         rValues[index]   = acc[0];
         rValues[index+1] = acc[1];
         rValues[index+2] = acc[2];
+        // rValues[index+3] = aacc[0];
+        // rValues[index+4] = aacc[1];
+        // rValues[index+5] = aacc[2];
         rValues[index+3] = 0.0;
         rValues[index+4] = 0.0;
         rValues[index+5] = 0.0;
@@ -278,8 +284,6 @@ void SpringDamperElement3D2N::CalculateLocalSystem( MatrixType& rLeftHandSideMat
     KRATOS_TRY;
 
     /* Calculate elemental system */
-    std::cout << "=====================================================" << std::endl;
-    std::cout << "DISCRETE SPRING/DAMPER ELEMENT" << std::endl;
     // Compute RHS (RHS = rRightHandSideVector = Fext - Fint)
     this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 
@@ -294,7 +298,7 @@ void SpringDamperElement3D2N::CalculateLocalSystem( MatrixType& rLeftHandSideMat
 
 void SpringDamperElement3D2N::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
-    std::cout << "CalculateRightHandSide for id=" << this->Id() << std::endl;
+    // std::cout << "CalculateRightHandSide for id=" << this->Id() << std::endl;
 
     if ( rRightHandSideVector.size() != OPT_NUM_DOFS )
     {
@@ -446,7 +450,6 @@ void SpringDamperElement3D2N::CalculateDampingMatrix( MatrixType& rDampingMatrix
 int SpringDamperElement3D2N::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
-    std::cout << "Check" << std::endl;
 
     // Verify that the variables are correctly initialized
 
