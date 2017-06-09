@@ -4,8 +4,7 @@
         "propagation_damage":                   0.5,
         "propagation_length":                   0.05,
         "propagation_width":                    0.01,
-        "propagation_cosangle":                 0.0,
-        "straight_propagation":                 true,
+        "correction_tolerance":                 1.0,
         "propagation_frequency":                1,
         "body_domain_sub_model_part_list":      ["Body_Part-auto-1"],
         "interface_domain_sub_model_part_list": ["Interface_Part-auto-1"]

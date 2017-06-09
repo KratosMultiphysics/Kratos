@@ -63,7 +63,8 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
                 "maximum_delta_time"  : 0.01
             },
             "periodic": "periodic",
-            "move_mesh_flag": false
+            "move_mesh_flag": false,
+            "reorder": false
         }""")
 
         ## Overwrite the default settings with user-provided parameters
