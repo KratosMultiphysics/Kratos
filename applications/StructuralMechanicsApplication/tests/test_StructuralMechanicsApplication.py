@@ -68,6 +68,7 @@ from SmallTests import Fofi4PointTentnoCableTests       as TFofi4PointTentnoCabl
 from SmallTests import MembraneQ4PointLoadTests         as TMembraneQ4PointLoadTests
 # Nodal damping test
 from test_nodal_damping import NodalDampingTests        as TNodalDampingTests
+# Spring damper element tests
 from test_spring_damper_element import SpringDamperElementTests as TSpringDamperElementTests
 
 ## NIGTHLY TESTS
@@ -184,6 +185,7 @@ def AssambleTestSuites():
             TDynamicBossakTests,
             TDynamicNewmarkTests,
             TNodalDampingTests,
+            TSpringDamperElementTests,
             TSDTwoDShearQuaPatchTest,
             TSDTwoDShearTriPatchTest,
             TSDTwoDTensionQuaPatchTest,
@@ -219,10 +221,6 @@ def AssambleTestSuites():
             TShellT3IsotropicScordelisTests,
             ####TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
             ####TSprismPanTests # FIXME: Needs point load and get up to date
-            TIsotropicDamageSimoJuPSTest,
-            TNodalDampingTests,
-            TSpringDamperElementTests
-            ######TSprismPanTests
         ])
     )
         
