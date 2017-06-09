@@ -49,7 +49,9 @@
 #include "custom_conditions/point_torque_3D_condition.hpp"
 #include "custom_conditions/base_load_condition.h"
 #include "custom_conditions/point_load_condition.h"
+#include "custom_conditions/axisym_point_load_condition.h"
 #include "custom_conditions/line_load_condition_2d.h"
+#include "custom_conditions/axisym_line_load_condition_2d.h"
 #include "custom_conditions/surface_load_condition_3d.h"
 
 /* CONSTITUTIVE LAWS */
@@ -288,9 +290,14 @@ private:
     const PointLoadCondition mPointLoadCondition2D1N;
     const PointLoadCondition mPointLoadCondition3D1N;
     
+    const AxisymPointLoadCondition mAxisymPointLoadCondition2D1N;
+    
     // Line load
     const LineLoadCondition2D mLineLoadCondition2D2N;
     const LineLoadCondition2D mLineLoadCondition2D3N;
+    
+    const AxisymLineLoadCondition2D mAxisymLineLoadCondition2D2N;
+    const AxisymLineLoadCondition2D mAxisymLineLoadCondition2D3N;
 
     // Surface load
     const SurfaceLoadCondition3D mSurfaceLoadCondition3D3N;

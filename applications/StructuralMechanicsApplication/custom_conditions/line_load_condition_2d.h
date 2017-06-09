@@ -84,10 +84,6 @@ public:
     Condition::Pointer Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const;
     Condition::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const;
 
-    void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );
-
-    void CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );
-
     ///@}
     ///@name Access
     ///@{
@@ -138,6 +134,37 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * This functions calculates both the RHS and the LHS
+     * @param rLeftHandSideMatrix: The LHS
+     * @param rRightHandSideVector: The RHS
+     * @param rCurrentProcessInfo: The current process info instance
+     * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
+     * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
+     */
+    virtual void CalculateAll( 
+        MatrixType& rLeftHandSideMatrix, 
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo,
+        bool CalculateStiffnessMatrixFlag,
+        bool CalculateResidualVectorFlag 
+        ) override;
+
+    void CalculateAndSubKp(
+        Matrix& K,
+        const Matrix& DN_De,
+        const Vector& N,
+        const double Pressure,
+        const double IntegrationWeight
+        );
+
+    void CalculateAndAddPressureForce(
+        VectorType& rRightHandSideVector,
+        const Vector& N,
+        array_1d<double, 2>& Normal,
+        const double Pressure,
+        const double IntegrationWeight 
+        );
 
     ///@}
     ///@name Protected  Access
@@ -160,52 +187,13 @@ private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
 
-
-
     ///@}
     ///@name Private Operators
     ///@{
-    
-    void CalculateAll( 
-        MatrixType& rLeftHandSideMatrix, 
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag 
-        );
-
-    void CalculateAndSubKp(
-        Matrix& K,
-        const Matrix& DN_De,
-        const Vector& N,
-        const double Pressure,
-        const double IntegrationWeight
-        );
-
-    void CalculateAndAdd_PressureForce(
-        VectorType& rRightHandSideVector,
-        const Vector& N,
-        array_1d<double, 2>& Normal,
-        const double Pressure,
-        const double IntegrationWeight 
-        );
-    
-    /**
-     * This functions computes the integration weight to consider
-     * @param IntegrationPoints: The array containing the integration points
-     * @param PointNumber: The id of the integration point considered
-     * @param detJ: The determinant of the jacobian of the element
-     */
-    virtual double GetIntegrationWeight(
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber,
-        const double detJ
-        );
     
     ///@}
     ///@name Private Operations

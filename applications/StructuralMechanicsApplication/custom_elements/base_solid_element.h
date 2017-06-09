@@ -91,7 +91,7 @@ public:
      * Called to initialize the element.
      * Must be called before any calculation is done
      */
-    void Initialize() override;
+    virtual void Initialize() override;
 
     /**
       * This resets the constitutive law
@@ -102,25 +102,25 @@ public:
      * Called at the beginning of each solution step
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
     /**
      * This is called for non-linear analysis at the beginning of the iteration process
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This is called for non-linear analysis at the beginning of the iteration process
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
     
     /**
      * Called at the end of eahc solution step
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    virtual void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
     
     /**
      * Sets on rResult the ID's of the element degrees of freedom
@@ -387,9 +387,12 @@ protected:
     virtual void InitializeMaterial();
     
     /**
-     * Calculates the elemental contributions
-     * \f$ K^e = w\,B^T\,D\,B \f$ and
-     * \f$ r^e \f$
+     * This functions calculates both the RHS and the LHS
+     * @param rLeftHandSideMatrix: The LHS
+     * @param rRightHandSideVector: The RHS
+     * @param rCurrentProcessInfo: The current process info instance
+     * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
+     * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
      */
     virtual void CalculateAll(
         MatrixType& rLeftHandSideMatrix, 

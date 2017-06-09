@@ -64,10 +64,17 @@ public:
     SurfaceLoadCondition3D();
 
     // Constructor using an array of nodes
-    SurfaceLoadCondition3D( IndexType NewId, GeometryType::Pointer pGeometry );
+    SurfaceLoadCondition3D( 
+        IndexType NewId, 
+        GeometryType::Pointer pGeometry 
+        );
 
     // Constructor using an array of nodes with properties
-    SurfaceLoadCondition3D( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    SurfaceLoadCondition3D( 
+        IndexType NewId,
+        GeometryType::Pointer pGeometry, 
+        PropertiesType::Pointer pProperties 
+        );
 
     // Destructor
     virtual ~SurfaceLoadCondition3D();
@@ -82,20 +89,17 @@ public:
     ///@{
 
     // Name Operations
-    Condition::Pointer Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const;
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const;
+    
     Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties ) const;
-
-    void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo );
-
-    void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo );
+        PropertiesType::Pointer pProperties 
+        ) const;
 
     ///@}
     ///@name Access
@@ -132,6 +136,45 @@ protected:
     ///@name Protected Operations
     ///@{
     
+    /**
+     * This functions calculates both the RHS and the LHS
+     * @param rLeftHandSideMatrix: The LHS
+     * @param rRightHandSideVector: The RHS
+     * @param rCurrentProcessInfo: The current process info instance
+     * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
+     * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
+     */
+    virtual void CalculateAll(
+        MatrixType& rLeftHandSideMatrix, 
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
+        ) override;
+
+    void CalculateAndSubKp(
+        Matrix& K,
+        array_1d<double, 3>& ge,
+        array_1d<double, 3>& gn,
+        const Matrix& DN_De,
+        const Vector& N,
+        double pressure,
+        double weight );
+
+    void MakeCrossMatrix(
+        bounded_matrix<double, 3, 3>& M,
+        array_1d<double, 3>& U 
+        );
+
+    void CalculateAndAddPressureForce(
+        VectorType& residualvector,
+        const Vector& N,
+        const array_1d<double, 3>& v3,
+        double pressure,
+        double weight,
+        const ProcessInfo& rCurrentProcessInfo 
+        );
+    
     ///@}
     ///@name Protected  Access
     ///@{
@@ -159,34 +202,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    
-    void CalculateAll(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag );
-
-    void CalculateAndSubKp(
-        Matrix& K,
-        array_1d<double, 3>& ge,
-        array_1d<double, 3>& gn,
-        const Matrix& DN_De,
-        const Vector& N,
-        double pressure,
-        double weight );
-
-    void MakeCrossMatrix(
-        boost::numeric::ublas::bounded_matrix<double, 3, 3>& M,
-        array_1d<double, 3>& U );
-
-    void CalculateAndAdd_PressureForce(
-        VectorType& residualvector,
-        const Vector& N,
-        const array_1d<double, 3>& v3,
-        double pressure,
-        double weight,
-        const ProcessInfo& rCurrentProcessInfo );
     
     ///@}
     ///@name Private  Access

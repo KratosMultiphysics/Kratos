@@ -19,7 +19,47 @@
 #include "custom_conditions/base_load_condition.h"
 
 namespace Kratos
-{    
+{
+    void BaseLoadCondition::Initialize()
+    {
+        // TODO: Add somethig if necessary
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
+
+    void BaseLoadCondition::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
+    {
+        // TODO: Add somethig if necessary
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
+
+    void BaseLoadCondition::InitializeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+    {
+        // TODO: Add somethig if necessary
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
+
+    void BaseLoadCondition::FinalizeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+    {
+        // TODO: Add somethig if necessary
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void BaseLoadCondition::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
+    {
+        // TODO: Add somethig if necessary
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
     void BaseLoadCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo )
@@ -175,6 +215,30 @@ namespace Kratos
         }
     }
     
+    //************************************************************************************
+    //************************************************************************************
+
+    void BaseLoadCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+    {
+        // Calculation flags
+        const bool CalculateStiffnessMatrixFlag = false;
+        const bool CalculateResidualVectorFlag = true;
+        MatrixType temp = Matrix();
+
+        CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+    void BaseLoadCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+    {
+        //calculation flags
+        const bool CalculateStiffnessMatrixFlag = true;
+        const bool CalculateResidualVectorFlag = true;
+
+        CalculateAll( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
+    }
+    
     //***********************************************************************
     //***********************************************************************
     
@@ -201,6 +265,19 @@ namespace Kratos
         {
             rDampingMatrix.resize(0, 0, false);
         }
+    }
+    
+    //***********************************************************************
+    //***********************************************************************
+
+    void BaseLoadCondition::CalculateAll( 
+        MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo,
+        bool CalculateStiffnessMatrixFlag,
+        bool CalculateResidualVectorFlag 
+        )
+    {
+        KRATOS_ERROR << "You are calling the CalculateAll from the base class for loads" << std::endl;
     }
     
     //***********************************************************************

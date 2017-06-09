@@ -154,14 +154,18 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-	TotalLagrangian() : BaseSolidElement()
+    
+    TotalLagrangian() : BaseSolidElement()
     {
     }
 
     /**
-     * Calculates the elemental contributions
-     * \f$ K^e = w\,B^T\,D\,B \f$ and
-     * \f$ r^e \f$
+     * This functions calculates both the RHS and the LHS
+     * @param rLeftHandSideMatrix: The LHS
+     * @param rRightHandSideVector: The RHS
+     * @param rCurrentProcessInfo: The current process info instance
+     * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
+     * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
      */
     virtual void CalculateAll(
         MatrixType& rLeftHandSideMatrix, 

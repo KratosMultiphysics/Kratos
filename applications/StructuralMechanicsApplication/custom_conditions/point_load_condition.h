@@ -66,8 +66,16 @@ public:
     ///@{
 
     /// Default constructor.
-    PointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry );
-    PointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
+    PointLoadCondition( 
+        IndexType NewId, 
+        GeometryType::Pointer pGeometry 
+        );
+    
+    PointLoadCondition( 
+        IndexType NewId, 
+        GeometryType::Pointer pGeometry,  
+        PropertiesType::Pointer pProperties 
+        );
 
     /// Destructor.
     virtual ~PointLoadCondition();
@@ -81,12 +89,17 @@ public:
     ///@name Operations
     ///@{
     
-    Condition::Pointer Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const;
-    Condition::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const;
-
-    void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );
-
-    void CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const;
+    
+    Condition::Pointer Create( 
+        IndexType NewId, 
+        NodesArrayType const& ThisNodes,  
+        PropertiesType::Pointer pProperties 
+        ) const;
 
     ///@}
     ///@name Access
@@ -138,7 +151,27 @@ protected:
     ///@name Protected Operations
     ///@{
 
-
+    /**
+     * This functions calculates both the RHS and the LHS
+     * @param rLeftHandSideMatrix: The LHS
+     * @param rRightHandSideVector: The RHS
+     * @param rCurrentProcessInfo: The current process info instance
+     * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
+     * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
+     */
+    virtual void CalculateAll( 
+        MatrixType& rLeftHandSideMatrix, 
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo,
+        bool CalculateStiffnessMatrixFlag,
+        bool CalculateResidualVectorFlag 
+        ) override;
+        
+    /**
+     * It calcules the integration load for the point load 
+     */
+    virtual double GetPointLoadIntegrationWeight();
+        
     ///@}
     ///@name Protected  Access
     ///@{
@@ -170,10 +203,6 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-                       ProcessInfo& rCurrentProcessInfo,
-                       bool CalculateStiffnessMatrixFlag,
-                       bool CalculateResidualVectorFlag );
 
     ///@}
     ///@name Private Operations
@@ -207,7 +236,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseLoadCondition );
     }
-
 
     ///@}
     ///@name Un accessible methods

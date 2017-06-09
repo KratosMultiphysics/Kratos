@@ -23,122 +23,118 @@
 
 namespace Kratos
 {
-//************************************************************************************
-//************************************************************************************
-PointLoadCondition::PointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry )
-    : BaseLoadCondition( NewId, pGeometry )
-{
-    //DO NOT ADD DOFS HERE!!!
-}
-
-//************************************************************************************
-//************************************************************************************
-PointLoadCondition::PointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
-    : BaseLoadCondition( NewId, pGeometry, pProperties )
-{
-}
-
-Condition::Pointer PointLoadCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
-{
-    return boost::make_shared<PointLoadCondition>(NewId, pGeom, pProperties);
-}
-
-Condition::Pointer PointLoadCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
-{
-    return boost::make_shared<PointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
-}
-
-PointLoadCondition::~PointLoadCondition()
-{
-}
-
-
-//************************************************************************************
-//************************************************************************************
-void PointLoadCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
-{
-    // Calculation flags
-    const bool CalculateStiffnessMatrixFlag = false;
-    const bool CalculateResidualVectorFlag = true;
-    MatrixType temp = Matrix();
-
-    CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
-}
-
-//************************************************************************************
-//************************************************************************************
-void PointLoadCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
-{
-    //calculation flags
-    const bool CalculateStiffnessMatrixFlag = true;
-    const bool CalculateResidualVectorFlag = true;
-
-    CalculateAll( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
-}
-
-//************************************************************************************
-//************************************************************************************
-void PointLoadCondition::CalculateAll( 
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
-    bool CalculateStiffnessMatrixFlag,
-    bool CalculateResidualVectorFlag 
-    )
-{
-    KRATOS_TRY
+    //******************************* CONSTRUCTOR ****************************************
+    //************************************************************************************
     
-    const unsigned int NumberOfNodes = GetGeometry().size();
-    const unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
-
-    // Resizing as needed the LHS
-    const unsigned int MatSize = NumberOfNodes * Dimension;
-
-    if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
+    PointLoadCondition::PointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry )
+        : BaseLoadCondition( NewId, pGeometry )
     {
-        if ( rLeftHandSideMatrix.size1() != MatSize )
-        {
-            rLeftHandSideMatrix.resize( MatSize, MatSize, false );
-        }
-
-        noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
+        //DO NOT ADD DOFS HERE!!!
     }
 
-    //resizing as needed the RHS
-    if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
+    //************************************************************************************
+    //************************************************************************************
+    
+    PointLoadCondition::PointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
+        : BaseLoadCondition( NewId, pGeometry, pProperties )
     {
-        if ( rRightHandSideVector.size( ) != MatSize )
-        {
-            rRightHandSideVector.resize( MatSize, false );
-        }
-
-        noalias( rRightHandSideVector ) = ZeroVector( MatSize ); //resetting RHS
     }
 
-    // Vector with a loading applied to the condition
-    array_1d<double, 3 > PointLoad = ZeroVector(3);
-    if( this->Has( POINT_LOAD ) )
+    //********************************* CREATE *******************************************
+    //************************************************************************************
+    
+    Condition::Pointer PointLoadCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
     {
-        noalias(PointLoad) = this->GetValue( POINT_LOAD );
+        return boost::make_shared<PointLoadCondition>(NewId, pGeom, pProperties);
     }
 
-    for (unsigned int ii = 0; ii < NumberOfNodes; ++ii)
+    //************************************************************************************
+    //************************************************************************************
+    
+    Condition::Pointer PointLoadCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
     {
-        const unsigned int base = ii*Dimension;
+        return boost::make_shared<PointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    }
+
+    //******************************* DESTRUCTOR *****************************************
+    //************************************************************************************
+    
+    PointLoadCondition::~PointLoadCondition()
+    {
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void PointLoadCondition::CalculateAll( 
+        MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo,
+        bool CalculateStiffnessMatrixFlag,
+        bool CalculateResidualVectorFlag 
+        )
+    {
+        KRATOS_TRY
         
-        if( GetGeometry()[ii].SolutionStepsDataHas( POINT_LOAD ) )
+        const unsigned int NumberOfNodes = GetGeometry().size();
+        const unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
+
+        // Resizing as needed the LHS
+        const unsigned int MatSize = NumberOfNodes * Dimension;
+
+        if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
         {
-            noalias(PointLoad) += GetGeometry()[ii].FastGetSolutionStepValue( POINT_LOAD );
+            if ( rLeftHandSideMatrix.size1() != MatSize )
+            {
+                rLeftHandSideMatrix.resize( MatSize, MatSize, false );
+            }
+
+            noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
         }
-        
-        for(unsigned int k=0; k<Dimension; ++k)
+
+        //resizing as needed the RHS
+        if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
         {
-            rRightHandSideVector[base+k] += PointLoad[k];
+            if ( rRightHandSideVector.size( ) != MatSize )
+            {
+                rRightHandSideVector.resize( MatSize, false );
+            }
+
+            noalias( rRightHandSideVector ) = ZeroVector( MatSize ); //resetting RHS
         }
+
+        // Vector with a loading applied to the condition
+        array_1d<double, 3 > PointLoad = ZeroVector(3);
+        if( this->Has( POINT_LOAD ) )
+        {
+            noalias(PointLoad) = this->GetValue( POINT_LOAD );
+        }
+
+        for (unsigned int ii = 0; ii < NumberOfNodes; ++ii)
+        {
+            const unsigned int base = ii*Dimension;
+            
+            if( GetGeometry()[ii].SolutionStepsDataHas( POINT_LOAD ) )
+            {
+                noalias(PointLoad) += GetGeometry()[ii].FastGetSolutionStepValue( POINT_LOAD );
+            }
+            
+            for(unsigned int k = 0; k < Dimension; ++k)
+            {
+                rRightHandSideVector[base + k] += GetPointLoadIntegrationWeight() * PointLoad[k];
+            }
+        }
+
+        KRATOS_CATCH( "" )
     }
-
-    KRATOS_CATCH( "" )
-}
-
+    
+    //************************************************************************************
+    //************************************************************************************
+    
+    double PointLoadCondition::GetPointLoadIntegrationWeight()
+    {
+        return 1.0;
+    }
+    
 } // Namespace Kratos
 
 

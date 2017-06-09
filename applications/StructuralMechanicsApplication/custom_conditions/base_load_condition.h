@@ -87,6 +87,36 @@ public:
     ///@{
 
     /**
+     * Called to initialize the element.
+     * Must be called before any calculation is done
+     */
+    virtual void Initialize() override;
+
+    /**
+     * Called at the beginning of each solution step
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+
+    /**
+     * This is called for non-linear analysis at the beginning of the iteration process
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * This is called for non-linear analysis at the beginning of the iteration process
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    
+    /**
+     * Called at the end of eahc solution step
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    
+    /**
      * Sets on rResult the ID's of the element degrees of freedom
      * @param rResult: The vector containing the equation id
      * @param rCurrentProcessInfo: The current process info instance
@@ -137,9 +167,33 @@ public:
         ) override;
 
     /**
+     * This function provides a more general interface to the element. 
+     * It is designed so that rLHSvariables and rRHSvariables are passed to the element thus telling what is the desired output
+     * @param rLeftHandSideMatrices: container with the output left hand side matrices
+     * @param rLHSVariables: paramter describing the expected LHSs
+     * @param rRightHandSideVectors: container for the desired RHS output
+     * @param rRHSVariables: parameter describing the expected RHSs
+     */
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix, 
+        VectorType& rRightHandSideVector, 
+        ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+      * This is called during the assembling process in order to calculate the elemental right hand side vector only
+      * @param rRightHandSideVector: the elemental right hand side vector
+      * @param rCurrentProcessInfo: the current process info instance
+      */
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector, 
+        ProcessInfo& rCurrentProcessInfo
+        ) override;
+        
+    /**
       * This is called during the assembling process in order to calculate the elemental mass matrix
       * @param rMassMatrix: the elemental mass matrix
-      * @param rCurrentProcessInfo: the current process info instance
+      * @param rCurrentProcessInfo: The current process info instance
       */
     virtual void CalculateMassMatrix(
         MatrixType& rMassMatrix,
@@ -150,7 +204,7 @@ public:
       * This is called during the assembling process in order
       * to calculate the elemental damping matrix
       * @param rDampingMatrix: the elemental damping matrix
-      * @param rCurrentProcessInfo: the current process info instance
+      * @param rCurrentProcessInfo: The current process info instance
       */
     virtual void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
@@ -200,6 +254,22 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+    
+    /**
+     * This functions calculates both the RHS and the LHS
+     * @param rLeftHandSideMatrix: The LHS
+     * @param rRightHandSideVector: The RHS
+     * @param rCurrentProcessInfo: The current process info instance
+     * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
+     * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
+     */
+    virtual void CalculateAll(
+        MatrixType& rLeftHandSideMatrix, 
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
+        );
     
     /**
      * This functions computes the integration weight to consider

@@ -23,6 +23,9 @@
 
 namespace Kratos
 {
+    //******************************* CONSTRUCTOR ****************************************
+    //************************************************************************************
+    
     LineLoadCondition2D::LineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry )
         : BaseLoadCondition( NewId, pGeometry )
     {
@@ -31,48 +34,33 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
+    
     LineLoadCondition2D::LineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
         : BaseLoadCondition( NewId, pGeometry, pProperties )
     {
     }
 
+    //********************************* CREATE *******************************************
+    //************************************************************************************
+    
     Condition::Pointer LineLoadCondition2D::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
     {
         return boost::make_shared<LineLoadCondition2D>(NewId, pGeom, pProperties);
     }
 
+    //************************************************************************************
+    //************************************************************************************
+    
     Condition::Pointer LineLoadCondition2D::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
     {
         return boost::make_shared<LineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
     }
 
+    //******************************* DESTRUCTOR *****************************************
+    //************************************************************************************
+    
     LineLoadCondition2D::~LineLoadCondition2D()
     {
-    }
-
-    //************************************************************************************
-    //************************************************************************************
-
-    void LineLoadCondition2D::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
-    {
-        //calculation flags
-        bool CalculateStiffnessMatrixFlag = false;
-        bool CalculateResidualVectorFlag = true;
-        MatrixType temp = Matrix();
-
-        CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
-    }
-
-    //************************************************************************************
-    //************************************************************************************
-
-    void LineLoadCondition2D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
-    {
-        //calculation flags
-        bool CalculateStiffnessMatrixFlag = true;
-        bool CalculateResidualVectorFlag = true;
-
-        CalculateAll( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
     }
 
     //************************************************************************************
@@ -86,8 +74,7 @@ namespace Kratos
         bool CalculateResidualVectorFlag 
         )
     {
-        KRATOS_TRY
-        //TODO: decide what to do with thickness
+        KRATOS_TRY;
         
         const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
@@ -198,7 +185,7 @@ namespace Kratos
             {
                 if ( GaussPressure != 0.0 )
                 {
-                    CalculateAndAdd_PressureForce( rRightHandSideVector, row( Ncontainer, PointNumber ), Normal, GaussPressure, IntegrationWeight );
+                    CalculateAndAddPressureForce( rRightHandSideVector, row( Ncontainer, PointNumber ), Normal, GaussPressure, IntegrationWeight );
                 }
             }
 
@@ -219,7 +206,6 @@ namespace Kratos
                 }
             }
         }
-
 
         KRATOS_CATCH( "" )
     }
@@ -270,7 +256,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
 
-    void LineLoadCondition2D::CalculateAndAdd_PressureForce(
+    void LineLoadCondition2D::CalculateAndAddPressureForce(
         Vector& rRightHandSideVector,
         const Vector& N,
         array_1d<double, 2>& Normal,
@@ -289,18 +275,6 @@ namespace Kratos
             rRightHandSideVector[index]   += coeff * Normal[0];
             rRightHandSideVector[index+1] += coeff * Normal[1];
         }
-    }
-
-    //***********************************************************************
-    //***********************************************************************
-
-    double LineLoadCondition2D::GetIntegrationWeight(
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber,
-        const double detJ
-        )
-    {
-        return IntegrationPoints[PointNumber].Weight() * detJ;
     }
 
 } // Namespace Kratos

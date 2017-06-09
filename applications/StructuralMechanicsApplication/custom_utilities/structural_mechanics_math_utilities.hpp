@@ -348,6 +348,32 @@ public:
         return Radius;
     }
     
+    /**
+     * Calculates the radius of axisymmetry for a point
+     * @param Geom: The geometry studied
+     * @return The radius of axisymmetry
+     */
+        
+    static inline double CalculateRadiusPoint(
+        GeometryType& Geom,
+        const Configuration ThisConfiguration = Current 
+        )
+    {
+        // Displacement from the reference to the current configuration   
+        if (ThisConfiguration == Current)
+        {
+            const array_1d<double, 3 > CurrentPosition = Geom[0].Coordinates();
+            return CurrentPosition[0];
+        }
+        else
+        {
+            const array_1d<double, 3 > DeltaDisplacement = Geom[0].FastGetSolutionStepValue(DISPLACEMENT) - Geom[0].FastGetSolutionStepValue(DISPLACEMENT,1);  
+            const array_1d<double, 3 > CurrentPosition = Geom[0].Coordinates();
+            const array_1d<double, 3 > ReferencePosition = CurrentPosition - DeltaDisplacement;
+            return ReferencePosition[0];
+        }
+    }
+    
 private:
 };// class StructuralMechanicsMathUtilities
 }
