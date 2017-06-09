@@ -185,7 +185,9 @@ protected:
     ///@}
     ///@name Protected LifeCycle
     ///@{
-
+    
+    // A protected default constructor necessary for serialization
+    PointLoadCondition() {};
 
     ///@}
 
@@ -223,9 +225,6 @@ private:
     ///@{
 
     friend class Serializer;
-
-    // A private default constructor necessary for serialization
-    PointLoadCondition() {};
 
     virtual void save( Serializer& rSerializer ) const
     {

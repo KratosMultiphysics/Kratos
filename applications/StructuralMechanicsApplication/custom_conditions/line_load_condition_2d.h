@@ -81,8 +81,17 @@ public:
     ///@name Operations
     ///@{
     
-    Condition::Pointer Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const;
-    Condition::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const;
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const;
+        
+    Condition::Pointer Create( 
+        IndexType NewId, 
+        NodesArrayType const& ThisNodes, 
+        PropertiesType::Pointer pProperties 
+        ) const;
 
     ///@}
     ///@name Access
@@ -180,6 +189,8 @@ protected:
     ///@name Protected LifeCycle
     ///@{
 
+    // A protected default constructor necessary for serialization
+    LineLoadCondition2D() {};
 
     ///@}
 
@@ -214,9 +225,6 @@ private:
     ///@{
 
     friend class Serializer;
-
-    // A private default constructor necessary for serialization
-    LineLoadCondition2D() {};
 
     virtual void save( Serializer& rSerializer ) const
     {
