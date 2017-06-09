@@ -139,32 +139,32 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerGatherRaw, KratosCoreFastSuit)
 
   std::size_t gp_size = sizeof(GlobalPointer<int>);
 
-  char * raw_gather_send = (char *)malloc(gp_size);
-  char * raw_gather_recv = (char *)malloc(gp_size * mpi_size);
+  char * raw_gather_send_buffer = new char[gp_size];
+  char * raw_gather_recv_buffer = new char[gp_size * mpi_size];
 
-  KRATOS_CHECK_NOT_EQUAL(raw_gather_send, nullptr);
-  KRATOS_CHECK_NOT_EQUAL(raw_gather_recv, nullptr);
+  KRATOS_CHECK_NOT_EQUAL(raw_gather_send_buffer, nullptr);
+  KRATOS_CHECK_NOT_EQUAL(raw_gather_recv_buffer, nullptr);
 
-  from_raw_origin.Save(raw_gather_send);
+  from_raw_origin.Save(raw_gather_send_buffer);
 
   MPI_Allgather(
-    raw_gather_send, gp_size, MPI_CHAR,
-    raw_gather_recv, gp_size, MPI_CHAR,
+    raw_gather_send_buffer, gp_size, MPI_CHAR,
+    raw_gather_recv_buffer, gp_size, MPI_CHAR,
     MPI_COMM_WORLD
   );
 
   auto from_rawRemote = GlobalPointer<int>(nullptr);
 
   for(int i = 0; i < mpi_size; i += 1) {
-    from_raw_remote.Load(&raw_gather_recv[i * gp_size]);
+    from_raw_remote.Load(&raw_gather_recv_buffer[i * gp_size]);
     KRATOS_CHECK_EQUAL(from_raw_remote.GetRank(), i);
     if(mpi_rank == i) {
       KRATOS_CHECK_EQUAL(*from_rawRemote, sample_var);
     }
   }
 
-  free(raw_gather_send);
-  free(raw_gather_recv);
+  delete[] raw_gather_send_buffer;
+  delete[] raw_gather_recv_buffer;
 }
 #endif
 
