@@ -22,78 +22,78 @@ class TestClass {
     TestClass() {}
 
   public:
-    TestClass(int magicNumber) { this->mMagicNumber = magicNumber; }
-    TestClass(const TestClass & rOther) { this->mMagicNumber = rOther.mMagicNumber; }
+    TestClass(int MagicNbr) { this->mMagicNbr = MagicNbr; }
+    TestClass(const TestClass & rOther) { this->mMagicNbr = rOther.mMagicNbr; }
 
     ~TestClass() {}
 
-    int getVar() const { return this->mMagicNumber; }
+    int getVar() const { return this->mMagicNbr; }
 
-    void setVar(int magicNumber) { this->mMagicNumber = magicNumber; }
+    void setVar(int MagicNbr) { this->mMagicNbr = MagicNbr; }
 
-    int mMagicNumber;
+    int mMagicNbr;
 };
 
 KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateRaw, KratosCoreFastSuit)
 {
-  int sampleVar = 1337;
+  int sample_var = 1337;
 
-	auto fromRaw = GlobalPointer<int>(&sampleVar);
+	auto from_raw = GlobalPointer<int>(&sample_var);
 
-  KRATOS_CHECK_EQUAL(*fromRaw, sampleVar);
+  KRATOS_CHECK_EQUAL(*from_raw, sample_var);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstRaw, KratosCoreFastSuit)
 {
-  const int sampleVar = 1337;
+  const int sample_var = 1337;
 
-	auto fromRaw = GlobalPointer<const int>(&sampleVar);
+	auto from_raw = GlobalPointer<const int>(&sample_var);
 
-  KRATOS_CHECK_EQUAL(*fromRaw, sampleVar);
+  KRATOS_CHECK_EQUAL(*from_raw, sample_var);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyRaw, KratosCoreFastSuit)
 {
-  int sampleVar = 1337;
-  int newVal = 42;
+  int sample_var = 1337;
+  int new_value = 42;
 
-	auto fromRaw = GlobalPointer<int>(&sampleVar);
-  *fromRaw = newVal;
+	auto from_raw = GlobalPointer<int>(&sample_var);
+  *from_raw = new_value;
 
-  KRATOS_CHECK_EQUAL(*fromRaw, newVal);
+  KRATOS_CHECK_EQUAL(*from_raw, new_value);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateClass, KratosCoreFastSuit)
 {
-  TestClass sampleVar(1337);
+  TestClass sample_var(1337);
 
-	auto fromRaw = GlobalPointer<TestClass>(&sampleVar);
+	auto from_raw = GlobalPointer<TestClass>(&sample_var);
 
-  KRATOS_CHECK_EQUAL(fromRaw->getVar(), sampleVar.getVar());
-  KRATOS_CHECK_EQUAL((*fromRaw).getVar(), sampleVar.getVar());
+  KRATOS_CHECK_EQUAL(from_raw->getVar(), sample_var.getVar());
+  KRATOS_CHECK_EQUAL((*from_raw).getVar(), sample_var.getVar());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstClass, KratosCoreFastSuit)
 {
-  const TestClass sampleVar(1337);
+  const TestClass sample_var(1337);
 
-	auto fromRaw = GlobalPointer<const TestClass>(&sampleVar);
+	auto from_raw = GlobalPointer<const TestClass>(&sample_var);
 
-  KRATOS_CHECK_EQUAL(fromRaw->getVar(), sampleVar.getVar());
-  KRATOS_CHECK_EQUAL((*fromRaw).getVar(), sampleVar.getVar());
+  KRATOS_CHECK_EQUAL(from_raw->getVar(), sample_var.getVar());
+  KRATOS_CHECK_EQUAL((*from_raw).getVar(), sample_var.getVar());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyClass, KratosCoreFastSuit)
 {
-  TestClass sampleVar(1337);
+  TestClass sample_var(1337);
 
-	auto fromRaw = GlobalPointer<TestClass>(&sampleVar);
+	auto from_raw = GlobalPointer<TestClass>(&sample_var);
 
-  fromRaw->setVar(42);
-  sampleVar.setVar(42);
+  from_raw->setVar(42);
+  sample_var.setVar(42);
 
-  KRATOS_CHECK_EQUAL(fromRaw->getVar(), sampleVar.getVar());
-  KRATOS_CHECK_EQUAL((*fromRaw).getVar(), sampleVar.getVar());
+  KRATOS_CHECK_EQUAL(from_raw->getVar(), sample_var.getVar());
+  KRATOS_CHECK_EQUAL((*from_raw).getVar(), sample_var.getVar());
 }
 
 // Test global_ptr<shared_ptr>
@@ -101,25 +101,25 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateBoostSharedPtr, KratosCoreFastSuit)
 {
   typedef boost::shared_ptr<TestClass> BoostPtrType;
 
-  auto sampleVar = BoostPtrType(new TestClass(1337));
-	auto fromBoost = GlobalPointer<TestClass>(sampleVar);
+  auto sample_var = BoostPtrType(new TestClass(1337));
+	auto from_boost = GlobalPointer<TestClass>(sample_var);
 
-  KRATOS_CHECK_EQUAL(fromBoost->getVar(), sampleVar->getVar());
-  KRATOS_CHECK_EQUAL((*fromBoost).getVar(), sampleVar->getVar());
+  KRATOS_CHECK_EQUAL(from_boost->getVar(), sample_var->getVar());
+  KRATOS_CHECK_EQUAL((*from_boost).getVar(), sample_var->getVar());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyBoostSharedPtr, KratosCoreFastSuit)
 {
   typedef boost::shared_ptr<TestClass> BoostPtrType;
 
-  auto sampleVar = BoostPtrType(new TestClass(1337));
-	auto fromBoost = GlobalPointer<TestClass>(sampleVar);
+  auto sample_var = BoostPtrType(new TestClass(1337));
+	auto from_boost = GlobalPointer<TestClass>(sample_var);
 
-  fromBoost->setVar(42);
-  sampleVar->setVar(42);
+  from_boost->setVar(42);
+  sample_var->setVar(42);
 
-  KRATOS_CHECK_EQUAL(fromBoost->getVar(), sampleVar->getVar());
-  KRATOS_CHECK_EQUAL((*fromBoost).getVar(), sampleVar->getVar());
+  KRATOS_CHECK_EQUAL(from_boost->getVar(), sample_var->getVar());
+  KRATOS_CHECK_EQUAL((*from_boost).getVar(), sample_var->getVar());
 }
 
 /// Parallel tests
@@ -133,38 +133,38 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerGatherRaw, KratosCoreFastSuit)
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
-  int sampleVar = 1337 + mpi_rank;
+  int sample_var = 1337 + mpi_rank;
 
-	auto fromRawOrigin = GlobalPointer<int>(&sampleVar);
+	auto from_raw_origin = GlobalPointer<int>(&sample_var);
 
-  std::size_t gpSize = sizeof(GlobalPointer<int>);
+  std::size_t gp_size = sizeof(GlobalPointer<int>);
 
-  char * rawGatherSend = (char *)malloc(gpSize);
-  char * rawGatherRecv = (char *)malloc(gpSize * mpi_size);
+  char * raw_gather_send = (char *)malloc(gp_size);
+  char * raw_gather_recv = (char *)malloc(gp_size * mpi_size);
 
-  KRATOS_CHECK_NOT_EQUAL(rawGatherSend, nullptr);
-  KRATOS_CHECK_NOT_EQUAL(rawGatherRecv, nullptr);
+  KRATOS_CHECK_NOT_EQUAL(raw_gather_send, nullptr);
+  KRATOS_CHECK_NOT_EQUAL(raw_gather_recv, nullptr);
 
-  fromRawOrigin.Save(rawGatherSend);
+  from_raw_origin.Save(raw_gather_send);
 
   MPI_Allgather(
-    rawGatherSend, gpSize, MPI_CHAR,
-    rawGatherRecv, gpSize, MPI_CHAR,
+    raw_gather_send, gp_size, MPI_CHAR,
+    raw_gather_recv, gp_size, MPI_CHAR,
     MPI_COMM_WORLD
   );
 
-  auto fromRawRemote = GlobalPointer<int>(nullptr);
+  auto from_rawRemote = GlobalPointer<int>(nullptr);
 
   for(int i = 0; i < mpi_size; i += 1) {
-    fromRawRemote.Load(&rawGatherRecv[i * gpSize]);
-    KRATOS_CHECK_EQUAL(fromRawRemote.GetRank(), i);
+    from_rawRemote.Load(&raw_gather_recv[i * gp_size]);
+    KRATOS_CHECK_EQUAL(from_raw_remote.GetRank(), i);
     if(mpi_rank == i) {
-      KRATOS_CHECK_EQUAL(*fromRawRemote, sampleVar);
+      KRATOS_CHECK_EQUAL(*from_rawRemote, sample_var);
     }
   }
 
-  free(rawGatherSend);
-  free(rawGatherRecv);
+  free(raw_gather_send);
+  free(raw_gather_recv);
 }
 #endif
 
