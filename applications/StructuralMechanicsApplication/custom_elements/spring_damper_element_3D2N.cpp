@@ -298,7 +298,6 @@ void SpringDamperElement3D2N::CalculateLocalSystem( MatrixType& rLeftHandSideMat
 
 void SpringDamperElement3D2N::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
-    // std::cout << "CalculateRightHandSide for id=" << this->Id() << std::endl;
 
     if ( rRightHandSideVector.size() != OPT_NUM_DOFS )
     {
@@ -312,7 +311,7 @@ void SpringDamperElement3D2N::CalculateRightHandSide(VectorType& rRightHandSideV
     elemental_stiffness[0] = Element::GetValue( NODAL_STIFFNESS_X );
     elemental_stiffness[1] = Element::GetValue( NODAL_STIFFNESS_Y );
     elemental_stiffness[2] = Element::GetValue( NODAL_STIFFNESS_Z );
-    // std::cout << "ROTATIONAL STIFFNESS MISSING" << std::endl;
+    // Rotational stiffness not yet implemented..
 
     const double du = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X)
         - this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
@@ -320,8 +319,6 @@ void SpringDamperElement3D2N::CalculateRightHandSide(VectorType& rRightHandSideV
         - this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
     const double dw = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Z)
         - this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
-
-    // std::cout << "du/dv/dw=" << du <<"/" << dv << "/" << dw << std::endl;
 
     current_displacement[0] = -du;
     current_displacement[1] = -dv;
@@ -334,7 +331,6 @@ void SpringDamperElement3D2N::CalculateRightHandSide(VectorType& rRightHandSideV
     {
         rRightHandSideVector[i]  -= elemental_stiffness[i % 6] * current_displacement[i];
     }
-    // KRATOS_WATCH(rRightHandSideVector);
 
 }
 
@@ -343,8 +339,6 @@ void SpringDamperElement3D2N::CalculateRightHandSide(VectorType& rRightHandSideV
 
 void SpringDamperElement3D2N::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
 {
-    // std::cout << "CalculateLeftHandSide" << this->Id() << std::endl;
-
     // Resizing the LHS
     unsigned int system_size = OPT_NUM_DOFS;
 
@@ -360,7 +354,7 @@ void SpringDamperElement3D2N::CalculateLeftHandSide( MatrixType& rLeftHandSideMa
     elemental_stiffness[0] = Element::GetValue( NODAL_STIFFNESS_X );
     elemental_stiffness[1] = Element::GetValue( NODAL_STIFFNESS_Y );
     elemental_stiffness[2] = Element::GetValue( NODAL_STIFFNESS_Z );
-    // ROTATIONAL STIFFNESS MISSING
+    // Rotational stiffness not yet implemented..
 
     for ( size_t i = 0; i < 2*OPT_NUM_DIMS; ++i )
     {
@@ -402,7 +396,6 @@ void SpringDamperElement3D2N::CalculateMassMatrix( MatrixType& rMassMatrix, Proc
     KRATOS_TRY
     
     //this is a massless element
-    // unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     unsigned int system_size = OPT_NUM_DOFS;
 
     if ( rMassMatrix.size1() != system_size )

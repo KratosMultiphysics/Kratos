@@ -121,10 +121,10 @@ def AssambleTestSuites():
     smallSuite.addTest(TSprismMembranePatchTests('test_execution'))
     smallSuite.addTest(TSprismBendingPatchTests('test_execution'))
     # Shell tests
-    # smallSuite.addTest(TShellQ4ThickBendingRollUpTests('test_execution'))
-    # smallSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution'))
-    # smallSuite.addTest(TShellT3ThinBendingRollUpTests('test_execution'))
-    # smallSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
+    smallSuite.addTest(TShellQ4ThickBendingRollUpTests('test_execution'))
+    smallSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution'))
+    smallSuite.addTest(TShellT3ThinBendingRollUpTests('test_execution'))
+    smallSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
     # Eigenvalues tests
     smallSuite.addTest(TEigenQ4Thick2x2PlateTests('test_execution'))
     smallSuite.addTest(TEigenTL3D8NCubeTests('test_execution'))
