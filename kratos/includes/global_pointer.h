@@ -112,6 +112,18 @@ public:
    */
   GlobalPointer(std::unique_ptr<TDataType> DataPointer) = delete;
 
+  /** Copy constructor
+   * Copy constructor
+   * @ rOther: Copied GlobalPointer
+   */
+  GlobalPointer(const GlobalPointer & rOther)
+    : mDataPointer(rOther.mDataPointer)
+#ifdef KRATOS_USING_MPI
+    , mRank(rOther.mRank)
+#endif
+    {
+  }
+
 
   /** Default Destructor
    * Default Destructor.
@@ -138,6 +150,17 @@ public:
    */
   TDataType * operator->() {
     return mDataPointer;
+  }
+
+  /** Assignment Operator
+   * Assignment Operator
+   */
+  GlobalPointer & operator=(const GlobalPointer & rOther) {
+    mDataPointer = rOther.mDataPointer;
+#ifdef KRATOS_USING_MPI
+    mRank = rOther.mRank;
+#endif
+    return *this;
   }
 
   /** Returns the rank of the data owner
