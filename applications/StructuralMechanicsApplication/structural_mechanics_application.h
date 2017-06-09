@@ -36,6 +36,11 @@
 #include "custom_elements/shell_thick_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
 #include "custom_elements/nodal_concentrated_element.hpp"
+
+/* Adding the spring damper element */
+#include "custom_elements/spring_damper_element_3D2N.hpp"
+
+/* Adding the SPRISM element */
 #include "custom_elements/SprismElement3D6N.hpp"
 
 /* Adding solid elements */
@@ -285,6 +290,9 @@ private:
     const AxisymTotalLagrangian mAxisymTotalLagrangian2D8N;
     const AxisymTotalLagrangian mAxisymTotalLagrangian2D9N;
     
+    // Adding the spring damper element
+    const SpringDamperElement3D2N mSpringDamperElement3D2N;
+
     /* CONDITIONS*/
     // Point load
     const PointLoadCondition mPointLoadCondition2D1N;

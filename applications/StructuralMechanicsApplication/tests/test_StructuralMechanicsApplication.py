@@ -66,6 +66,9 @@ from SmallTests import Eigen3D3NThinCircleTests         as TEigen3D3NThinCircleT
 # Membrane tests
 from SmallTests import Fofi4PointTentnoCableTests       as TFofi4PointTentnoCableTests
 from SmallTests import MembraneQ4PointLoadTests         as TMembraneQ4PointLoadTests
+# Nodal damping test
+from test_nodal_damping import NodalDampingTests        as TNodalDampingTests
+from test_spring_damper_element import SpringDamperElementTests as TSpringDamperElementTests
 
 ## NIGTHLY TESTS
 # Shell test
@@ -146,6 +149,9 @@ def AssambleTestSuites():
     # Membrane tests
     smallSuite.addTest(TFofi4PointTentnoCableTests('test_execution'))
     smallSuite.addTest(TMembraneQ4PointLoadTests('test_execution'))
+    # Nodal damping test
+    smallSuite.addTest(TNodalDampingTests('test_execution'))
+    smallSuite.addTest(TSpringDamperElementTests('test_execution'))
 
     # TODO: Add Riccardo's tests
 
@@ -213,6 +219,10 @@ def AssambleTestSuites():
             TShellT3IsotropicScordelisTests,
             ####TIsotropicDamageSimoJuPSTest, # FIXME: Need CL correspondent
             ####TSprismPanTests # FIXME: Needs point load and get up to date
+            TIsotropicDamageSimoJuPSTest,
+            TNodalDampingTests,
+            TSpringDamperElementTests
+            ######TSprismPanTests
         ])
     )
         

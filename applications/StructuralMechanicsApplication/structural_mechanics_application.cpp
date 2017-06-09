@@ -111,6 +111,8 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     mAxisymTotalLagrangian2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
     mAxisymTotalLagrangian2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
     mAxisymTotalLagrangian2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9 ) ) ) ),
+    // Adding the spring damper element
+    mSpringDamperElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
     /* CONDITIONS */
     // Adding point load conditions
     mPointLoadCondition2D1N(  0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
@@ -289,6 +291,9 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT( "AxisymTotalLagrangianElement2D6N", mAxisymTotalLagrangian2D6N )
     KRATOS_REGISTER_ELEMENT( "AxisymTotalLagrangianElement2D8N", mAxisymTotalLagrangian2D8N )
     KRATOS_REGISTER_ELEMENT( "AxisymTotalLagrangianElement2D9N", mAxisymTotalLagrangian2D9N )
+
+    // Register the spring damper element
+    KRATOS_REGISTER_ELEMENT("SpringDamperElement3D2N", mSpringDamperElement3D2N);
 
     // Register the conditions
     // Point loads
