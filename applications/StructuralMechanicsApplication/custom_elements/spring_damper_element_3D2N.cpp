@@ -349,7 +349,7 @@ void SpringDamperElement3D2N::CalculateLeftHandSide( MatrixType& rLeftHandSideMa
 
     noalias( rLeftHandSideMatrix ) = ZeroMatrix( system_size, system_size ); //resetting LHS
 
-    //elemental_stiffness: kx, ky, kz, cpx, cpy, cpz
+    // elemental_stiffness: kx, ky, kz, cpx, cpy, cpz
     array_1d<double, 2*OPT_NUM_DIMS > elemental_stiffness = ZeroVector( 2*OPT_NUM_DIMS ); 
     elemental_stiffness[0] = Element::GetValue( NODAL_STIFFNESS_X );
     elemental_stiffness[1] = Element::GetValue( NODAL_STIFFNESS_Y );
@@ -363,8 +363,7 @@ void SpringDamperElement3D2N::CalculateLeftHandSide( MatrixType& rLeftHandSideMa
         rLeftHandSideMatrix( i, i+6) -= elemental_stiffness[i];
         rLeftHandSideMatrix( i+6, i) -= elemental_stiffness[i];
     }
-
-    // KRATOS_WATCH(rLeftHandSideMatrix);
+    
 }
 
 //************************************************************************************
