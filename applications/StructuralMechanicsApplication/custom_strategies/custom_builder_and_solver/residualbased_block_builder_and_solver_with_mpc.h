@@ -289,6 +289,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
 
   protected:
     void ConstructMatrixStructure(
+        typename TSchemeType::Pointer pScheme,
         TSystemMatrixType &A,
         ElementsContainerType &rElements,
         ConditionsArrayType &rConditions,

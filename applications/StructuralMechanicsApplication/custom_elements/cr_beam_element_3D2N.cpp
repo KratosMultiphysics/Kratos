@@ -1663,6 +1663,29 @@ namespace Kratos
 				GetGeometry()[i].UnSetLock();
 			}
 		}
+
+
+		if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == MOMENT_RESIDUAL)
+		{
+
+			for (int i = 0; i< number_of_nodes; ++i)
+			{
+				int index = (element_size * i) + dimension;
+
+				GetGeometry()[i].SetLock();
+
+				array_1d<double, 3> &MomentResidual =
+					GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
+
+				for (int j = 0; j<dimension; ++j)
+				{
+					MomentResidual[j] += rRHSVector[index + j];
+				}
+
+				GetGeometry()[i].UnSetLock();
+			}
+		}
+
 		KRATOS_CATCH("")
 	}
 
