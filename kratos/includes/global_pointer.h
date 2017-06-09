@@ -131,21 +131,21 @@ public:
   ~GlobalPointer() {
   }
 
-  /**
+  /** Pointer Operator
   * Pointer Operator
   */
   TDataType & operator*() {
 	  return *mDataPointer;
   }
 
-  /**
+  /** Pointer Operator
   * Pointer Operator
   */
   TDataType const& operator*() const {
 	  return *mDataPointer;
   }
 
-  /**
+  /** Arrow Operator
    * Arrow Operator
    */
   TDataType * operator->() {
