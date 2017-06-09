@@ -17,7 +17,6 @@
 #include "includes/define.h"
 #include "custom_elements/spring_damper_element_3D2N.hpp"
 
-#include "solid_mechanics_application_variables.h"
 #include "structural_mechanics_application_variables.h"
 
 #define OPT_NUM_NODES 2
