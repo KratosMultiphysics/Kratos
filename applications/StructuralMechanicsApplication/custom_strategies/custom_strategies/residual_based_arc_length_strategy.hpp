@@ -700,7 +700,7 @@ public:
                 //    new_residual = Parameters[0];
                 //}
 
-                old_residual = new_residual;
+//                 old_residual = new_residual;
 
                 if(is_converged == true)
                 {
