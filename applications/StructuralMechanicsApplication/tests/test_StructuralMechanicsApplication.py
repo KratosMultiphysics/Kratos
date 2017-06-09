@@ -55,6 +55,7 @@ from SmallTests import EigenQ4Thick2x2PlateTests        as TEigenQ4Thick2x2Plate
 from SmallTests import EigenTL3D8NCubeTests             as TEigenTL3D8NCubeTests
 # Nodal damping test
 from test_nodal_damping import NodalDampingTests        as TNodalDampingTests
+from test_spring_damper_element import SpringDamperElementTests as TSpringDamperElementTests
 
 ## NIGTHLY TESTS
 # Shell test
@@ -120,15 +121,16 @@ def AssambleTestSuites():
     smallSuite.addTest(TSprismMembranePatchTests('test_execution'))
     smallSuite.addTest(TSprismBendingPatchTests('test_execution'))
     # Shell tests
-    smallSuite.addTest(TShellQ4ThickBendingRollUpTests('test_execution'))
-    smallSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution'))
-    smallSuite.addTest(TShellT3ThinBendingRollUpTests('test_execution'))
-    smallSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
+    # smallSuite.addTest(TShellQ4ThickBendingRollUpTests('test_execution'))
+    # smallSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution'))
+    # smallSuite.addTest(TShellT3ThinBendingRollUpTests('test_execution'))
+    # smallSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
     # Eigenvalues tests
     smallSuite.addTest(TEigenQ4Thick2x2PlateTests('test_execution'))
     smallSuite.addTest(TEigenTL3D8NCubeTests('test_execution'))
     # Nodal damping test
     smallSuite.addTest(TNodalDampingTests('test_execution'))
+    smallSuite.addTest(TSpringDamperElementTests('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -184,7 +186,8 @@ def AssambleTestSuites():
             TShellT3ThinDrillingRollUpTests,
             TShellT3IsotropicScordelisTests,
             TIsotropicDamageSimoJuPSTest,
-            TNodalDampingTests
+            TNodalDampingTests,
+            TSpringDamperElementTests
             ######TSprismPanTests
         ])
     )

@@ -8,7 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from math import sqrt, sin, cos, pi, exp, atan
 
-class NodalDampingTests(KratosUnittest.TestCase):
+class SpringDamperElementTests(KratosUnittest.TestCase):
     def setUp(self):
         pass
     
@@ -317,6 +317,12 @@ class NodalDampingTests(KratosUnittest.TestCase):
         analytical_eigenvalues = [5,20]
         for ev in range(len(analytical_eigenvalues)):
             self.assertAlmostEqual(current_eigenvalues[ev], analytical_eigenvalues[ev])
+
+    def test_execution(self):
+        self.test_undamped_mdof_system_dynamic()
+        self.test_undamped_sdof_system_harmonic()
+        self.test_damped_mdof_system_dynamic()
+        self.test_undamped_mdof_system_eigen()
 
 if __name__ == '__main__':
     KratosUnittest.main()
