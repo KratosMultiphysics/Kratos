@@ -682,10 +682,8 @@ public:
       double sf = (f[0]*f[0]) + (f[1]*f[1]) + (f[2]*f[2]);
 
       double vol = Volume();
-      double absVol = std::abs(Volume());
-      double isInv = vol < 0.0 ? -1.0 : 1.0;
 
-      return normFactor * isInv * std::pow(3*absVol, 2.0 / 3.0) / (sa + sb + sc + sd + se + sf);
+      return std::copysign(normFactor * std::pow(9 * vol * vol, 1.0 / 3.0) / (sa + sb + sc + sd + se + sf), vol);
     }
 
     /** Calculates the volume to average edge lenght quality metric.
