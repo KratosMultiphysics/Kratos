@@ -346,7 +346,7 @@ public:
 
         //vector<RealType> Parameters;
 //         RealType old_residual = 0.00;
-        RealType new_residual = 0.00;
+//         RealType new_residual = 0.00;
 
         //unsigned int MaxLineSearchIter = 50;
         //RealType tolls                 = 0.80;
