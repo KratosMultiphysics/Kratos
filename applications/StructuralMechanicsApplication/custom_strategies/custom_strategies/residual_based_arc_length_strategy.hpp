@@ -345,7 +345,7 @@ public:
         unsigned int recursive        = 0;
 
         //vector<RealType> Parameters;
-        RealType old_residual = 0.00;
+//         RealType old_residual = 0.00;
         RealType new_residual = 0.00;
 
         //unsigned int MaxLineSearchIter = 50;
@@ -1002,7 +1002,7 @@ public:
         disc = b * b - 4.00 * a * c;
         if (disc >= 0.00)
         {
-            StructuralMechanicsMathUtilities::Solve_Second_Order_Equation(a,b,c,x_sol);
+            StructuralMechanicsMathUtilities::SolveSecondOrderEquation(a,b,c,x_sol);
 
             TSparseSpace::ScaleAndAdd(x_sol[0],Sigma_q,meta,Sigma_h,Delta_p1); //Delta_p1 = x_sol(0)*Sigma_q + meta*Sigma_h
             TSparseSpace::ScaleAndAdd(x_sol[1],Sigma_q,meta,Sigma_h,Delta_p2); //Delta_p2 = x_sol(1)*Sigma_q + meta*Sigma_h
@@ -1452,7 +1452,7 @@ private:
         if (disc >= 0.00)
         {
             imag = false;
-            StructuralMechanicsMathUtilities::Solve_Second_Order_Equation(a_prima, b_prima, c_prima, solution);
+            StructuralMechanicsMathUtilities::SolveSecondOrderEquation(a_prima, b_prima, c_prima, solution);
 
             if(solution[0] < 0.00)
             {

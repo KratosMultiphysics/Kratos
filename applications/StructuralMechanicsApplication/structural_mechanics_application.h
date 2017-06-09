@@ -40,7 +40,9 @@
 
 /* Adding solid elements */
 #include "custom_elements/total_lagrangian.h"
+#include "custom_elements/axisym_total_lagrangian.h"
 #include "custom_elements/kinematic_linear.h"
+#include "custom_elements/axisym_kinematic_linear.h"
 
 /* CONDITIONS */
 #include "custom_conditions/point_moment_3D_condition.hpp"
@@ -255,6 +257,12 @@ private:
     const KinematicLinear mKinematicLinear3D20N;
     const KinematicLinear mKinematicLinear3D27N;
     
+    const AxisymKinematicLinear mAxisymKinematicLinear2D3N;
+    const AxisymKinematicLinear mAxisymKinematicLinear2D4N;
+    const AxisymKinematicLinear mAxisymKinematicLinear2D6N;
+    const AxisymKinematicLinear mAxisymKinematicLinear2D8N;
+    const AxisymKinematicLinear mAxisymKinematicLinear2D9N;
+    
     // Total lagrangian
     const TotalLagrangian mTotalLagrangian2D3N;
     const TotalLagrangian mTotalLagrangian2D4N;
@@ -268,6 +276,12 @@ private:
     const TotalLagrangian mTotalLagrangian3D15N;
     const TotalLagrangian mTotalLagrangian3D20N;
     const TotalLagrangian mTotalLagrangian3D27N;
+    
+    const AxisymTotalLagrangian mAxisymTotalLagrangian2D3N;
+    const AxisymTotalLagrangian mAxisymTotalLagrangian2D4N;
+    const AxisymTotalLagrangian mAxisymTotalLagrangian2D6N;
+    const AxisymTotalLagrangian mAxisymTotalLagrangian2D8N;
+    const AxisymTotalLagrangian mAxisymTotalLagrangian2D9N;
     
     /* CONDITIONS*/
     // Point load

@@ -1055,7 +1055,7 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         rOutput_aux = rOutput;
 
         rOutput.resize( 6, false );
-        Matrix interpol = StructuralMechanicsMathUtilities::interpol_PrismGiD(IntegrationPointNumber);
+        Matrix interpol = StructuralMechanicsMathUtilities::InterpolPrismGiD(IntegrationPointNumber);
 
         for (unsigned int iii = 0; iii < 6; iii++)
         {
@@ -1224,7 +1224,7 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         rOutput_aux = rOutput;
 
         rOutput.resize( 6 );
-        Matrix interpol = StructuralMechanicsMathUtilities::interpol_PrismGiD(IntegrationPointNumber);
+        Matrix interpol = StructuralMechanicsMathUtilities::InterpolPrismGiD(IntegrationPointNumber);
 
         for (unsigned int iii = 0; iii < 6; iii++)
         {
@@ -1413,7 +1413,7 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         rOutput_aux = rOutput;
 
         rOutput.resize( 6 );
-        Matrix interpol = StructuralMechanicsMathUtilities::interpol_PrismGiD(IntegrationPointNumber);
+        Matrix interpol = StructuralMechanicsMathUtilities::InterpolPrismGiD(IntegrationPointNumber);
 
         for (unsigned int iii = 0; iii < 6; iii++)
         {

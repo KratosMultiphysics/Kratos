@@ -377,6 +377,13 @@ protected:
     ///@name Protected Operators
     ///@{
     
+    ///@}
+    ///@name Protected Operations
+    ///@{
+    
+    /**
+     * It initializes the material
+     */
     virtual void InitializeMaterial();
     
     /**
@@ -411,10 +418,6 @@ protected:
         const unsigned int PointNumber,
         const double detJ
         );
-    
-    ///@}
-    ///@name Protected Operations
-    ///@{
     
     ///@}
     ///@name Protected  Access

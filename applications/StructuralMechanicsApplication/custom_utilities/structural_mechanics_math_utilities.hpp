@@ -143,7 +143,7 @@ public:
      * @param nG Number of Gauss Points
      * @return Matrix of interpolations
      */
-    static inline Matrix interpol_PrismGiD(const int nG)
+    static inline Matrix InterpolPrismGiD(const int nG)
     {
         Matrix interpol;
         interpol.resize(nG, 6, false);
@@ -286,15 +286,15 @@ public:
      * @return Vector of solutions
      */
 
-    static inline bool Solve_Second_Order_Equation(
+    static inline bool SolveSecondOrderEquation(
             const RealType& a,
             const RealType& b,
             const RealType& c,
             std::vector<RealType>& solution
             )
     {
-        RealType disc = b*b - 4.00*a*c;
-        RealType q = 0.00;
+        const RealType disc = b*b - 4.00*a*c;
+        RealType q = 0.0;
 
         solution.resize(2, false);
 
@@ -320,7 +320,7 @@ public:
      * @return Radius: The radius of axisymmetry
      */
         
-    double CalculateRadius(
+    static inline double CalculateRadius(
         const Vector N,
         GeometryType& Geom,
         const Configuration ThisConfiguration = Current 
