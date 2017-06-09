@@ -1046,8 +1046,6 @@ namespace Kratos
 			rRightHandSideVector = ZeroVector(LocalSize);
 			rRightHandSideVector -= prod(rLeftHandSideMatrix, NodalDeformation);
 		}
-		//assign global element variables
-		this->mLHS = rLeftHandSideMatrix;
 		//add bodyforces 
 		rRightHandSideVector += this->CalculateBodyForces();
 		this->mIterationCount++;
@@ -1056,7 +1054,8 @@ namespace Kratos
 
 	void CrBeamElement3D2N::CalculateRightHandSide(
 		VectorType& rRightHandSideVector,
-		ProcessInfo& rCurrentProcessInfo) {
+		ProcessInfo& rCurrentProcessInfo)
+	{
 
 		KRATOS_TRY;
 		const int NumNodes = this->GetGeometry().PointsNumber();
@@ -1064,24 +1063,28 @@ namespace Kratos
 		const int size = NumNodes * dimension;
 		const int LocalSize = NumNodes * dimension * 2;
 		rRightHandSideVector = ZeroVector(LocalSize);
-		this->UpdateIncrementDeformation();
-		Matrix TransformationMatrix = ZeroMatrix(LocalSize);
-		this->CalculateTransformationMatrix(TransformationMatrix);
-		Vector elementForces_t = ZeroVector(size);
-		elementForces_t = this->CalculateElementForces();
-		Vector nodalForcesLocal_qe = ZeroVector(LocalSize);
-		Matrix TransformationMatrixS = ZeroMatrix(LocalSize, size);
-		TransformationMatrixS = this->CalculateTransformationS();
-		nodalForcesLocal_qe = prod(TransformationMatrixS,
-			elementForces_t);
-		//save local nodal forces
-		this->mNodalForces = ZeroVector(LocalSize);
-		this->mNodalForces = nodalForcesLocal_qe;
 
-		Vector nodalForcesGlobal_q = ZeroVector(LocalSize);
-		nodalForcesGlobal_q = prod(TransformationMatrix, nodalForcesLocal_qe);
-		rRightHandSideVector -= nodalForcesGlobal_q;
 
+		if (this->mIsLinearElement == false)
+		{
+			this->UpdateIncrementDeformation();
+			Matrix TransformationMatrix = ZeroMatrix(LocalSize);
+			this->CalculateTransformationMatrix(TransformationMatrix);
+			Vector elementForces_t = ZeroVector(size);
+			elementForces_t = this->CalculateElementForces();
+			Vector nodalForcesLocal_qe = ZeroVector(LocalSize);
+			Matrix TransformationMatrixS = ZeroMatrix(LocalSize, size);
+			TransformationMatrixS = this->CalculateTransformationS();
+			nodalForcesLocal_qe = prod(TransformationMatrixS,
+				elementForces_t);
+			//save local nodal forces
+			this->mNodalForces = ZeroVector(LocalSize);
+			this->mNodalForces = nodalForcesLocal_qe;
+
+			Vector nodalForcesGlobal_q = ZeroVector(LocalSize);
+			nodalForcesGlobal_q = prod(TransformationMatrix, nodalForcesLocal_qe);
+			rRightHandSideVector -= nodalForcesGlobal_q;
+		}
 
 		//LINEAR BEAM ELEMENT
 		if (this->mIsLinearElement == true)
@@ -1158,6 +1161,8 @@ namespace Kratos
 			rLeftHandSideMatrix = prod(aux_matrix,
 				Matrix(trans(TransformationMatrix)));
 		}
+		//assign global element variables
+		this->mLHS = rLeftHandSideMatrix;
 		KRATOS_CATCH("")
 	}
 
@@ -1245,6 +1250,7 @@ namespace Kratos
 
 		if (mIterationCount == 0) this->mTotalNodalDeformation = ZeroVector(LocalSize);
 		this->GetValuesVector(actualDeformation, 0);
+
 		this->mIncrementDeformation = actualDeformation
 			- this->mTotalNodalDeformation;
 
@@ -1632,9 +1638,6 @@ namespace Kratos
 		const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;
-		/////////////////////////////////////////////////
-		//NOT FINISHED YET !!!!
-		/////////////////////////////////////////////////
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const int element_size = number_of_nodes * dimension;
