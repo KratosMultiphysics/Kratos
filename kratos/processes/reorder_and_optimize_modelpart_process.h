@@ -228,7 +228,6 @@ protected:
                     // The graph contains another connected component that we
                     // cannot reach.  Search for a node that has not yet been
                     // included in a level set, and start exploring from it.
-                    bool found = false;
                     for(int i = 0; i < n; ++i)
                     {
                         if (levelSet[i] == 0)
@@ -238,17 +237,16 @@ protected:
                             levelSet[i] = currentLevelSet;
                             maxDegreeInCurrentLevelSet = degree[i];
                             firstWithDegree[maxDegreeInCurrentLevelSet] = i;
-                            found = true;
                             break;
                         }
                     }
                 }
             }
-            
+
             //computing the inverse permutation
             #pragma omp parallel for
             for(int i = 0; i < n; ++i) invperm[perm[i]] = i;
-            
+
         }
     };
 
