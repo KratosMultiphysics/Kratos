@@ -189,7 +189,7 @@ public:
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const
+                            PropertiesType::Pointer pProperties) const override
     {
         return Element::Pointer(new DistanceCalculationElementSimplex(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
@@ -197,7 +197,7 @@ public:
     /// Calculate the element's local contribution to the system for the current step.
     virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo)
+                                      ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int number_of_points = TDim+1;
 
@@ -225,6 +225,7 @@ public:
         for(unsigned int i=0; i<number_of_points; i++)
         {
             distances[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
+			if (distances[i] >= 0.0 && distances[i] < 1e-30) distances[i] = 1e-30;
         }
 
         const unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
@@ -384,7 +385,7 @@ public:
      * @param rCurrentProcessInfo the current process info object (unused)
      */
     virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo)
+                                  ProcessInfo& rCurrentProcessInfo) override
     {
 
         unsigned int number_of_nodes = TDim+1;
@@ -406,7 +407,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo)
+                            ProcessInfo& rCurrentProcessInfo) override
     {
         unsigned int number_of_nodes = TDim+1;
 
@@ -451,7 +452,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override
 {
         KRATOS_TRY
 
@@ -482,12 +483,12 @@ public:
         KRATOS_CATCH("");
     }
 
-    void Initialize()
+    void Initialize() override
     {
     }
     
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo)
+                                        ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_ERROR << "should not enter here" << std::endl;
         if (rRightHandSideVector.size() != 0)
@@ -503,7 +504,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "DistanceCalculationElementSimplex #" << Id();
@@ -511,7 +512,7 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "DistanceCalculationElementSimplex" << TDim << "D";
     }
@@ -549,7 +550,7 @@ protected:
         Vector positive_side_rhs = ZeroVector(rhs.size());
         Vector negative_side_rhs = ZeroVector(rhs.size());
 
-        CondenseLocally(lhs,rhs, distances,  1.0, positive_side_lhs, positive_side_rhs);
+		CondenseLocally(lhs,rhs, distances,  1.0, positive_side_lhs, positive_side_rhs);
         CondenseLocally(lhs,rhs, distances,  -1.0, negative_side_lhs, negative_side_rhs);
         noalias(lhs) = positive_side_lhs + negative_side_lhs;
         noalias(rhs) = positive_side_rhs + negative_side_rhs;
@@ -682,12 +683,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }

@@ -36,13 +36,14 @@ class TestCase(KratosUnittest.TestCase):
             # remove hdf5 file
             if "io_test_0.h5" in os.listdir("./test_input_output"):
                 os.remove("./test_input_output/io_test_0.h5")
+            # remove other generated files
+            if "io_test.time" in os.listdir("./test_input_output"):
+                os.remove("./test_input_output/io_test.time")
+            if "reference_results.json" in os.listdir("./test_input_output"):
+                os.remove("./test_input_output/reference_results.json")
 
     def tearDown(self):
-        # remove other generated files
-        if "io_test.time" in os.listdir("./test_input_output"):
-            os.remove("./test_input_output/io_test.time")
-        if "reference_results.json" in os.listdir("./test_input_output"):
-            os.remove("./test_input_output/reference_results.json")
+        pass
 
 if __name__ == '__main__':
     KratosUnittest.main()

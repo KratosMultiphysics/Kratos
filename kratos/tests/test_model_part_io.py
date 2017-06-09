@@ -4,6 +4,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 
 import os
+import sys
 
 
 def GetFilePath(fileName):
@@ -11,6 +12,10 @@ def GetFilePath(fileName):
 
 
 class TestModelPartIO(KratosUnittest.TestCase):
+
+    def setUp(self):
+        if (sys.version_info < (3, 2)):
+            self.assertRaisesRegex = self.assertRaisesRegexp
 
     def test_model_part_io_read_model_part(self):
         model_part = KratosMultiphysics.ModelPart("Main")
@@ -118,27 +123,30 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(outlet_model_part.NumberOfElements(), 0)
         self.assertEqual(outlet_model_part.NumberOfConditions(), 1)
         self.assertEqual(outlet_model_part.NumberOfSubModelParts(), 0)
-        
+
     def test_model_part_io_write_model_part(self):
         model_part = KratosMultiphysics.ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_write"))
         model_part_io.ReadModelPart(model_part)
 
-        file = open("test_model_part_io_write.out.mdpa","w")
-        file.close()
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_write.out"), KratosMultiphysics.IO.WRITE)
         model_part_io.WriteModelPart(model_part)
-        
-        import filecmp 
+
+        import filecmp
         value = filecmp.cmp(GetFilePath("test_model_part_io_write.mdpa"), GetFilePath("test_model_part_io_write.out.mdpa"))
         self.assertEqual(value, True)
-        
+
+        # Clean up temporary files
+        os.remove(GetFilePath("test_model_part_io_write.out.mdpa"))
+        os.remove(GetFilePath("test_model_part_io_write.out.time"))
+        os.remove(GetFilePath("test_model_part_io_write.time"))
+
     @KratosUnittest.expectedFailure
     def test_error_on_wrong_input(self):
         model_part = KratosMultiphysics.ModelPart("Main")
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("wrong_properties_input"))
-        
+
         #an error shall be thrown while reading the input since the format is not correct
         try:
             with self.assertRaisesRegex(RuntimeError, "wrong input format while reading Properties"): #ideally a more specific error message shall be devised
@@ -147,7 +155,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         except:
             raise Exception("a segmentation fault is issued!!")
             self.fail("a segmentation fault is issued!!")
-            
+
 
 
 

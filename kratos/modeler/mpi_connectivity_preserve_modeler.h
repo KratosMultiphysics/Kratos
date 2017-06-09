@@ -71,7 +71,7 @@ public:
     virtual void GenerateModelPart(ModelPart &OriginModelPart,
                                    ModelPart &DestinationModelPart,
                                    const Element &rReferenceElement,
-                                   const Condition &rReferenceBoundaryCondition);
+                                   const Condition &rReferenceBoundaryCondition) override;
 
 private:
 

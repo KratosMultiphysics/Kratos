@@ -19,6 +19,9 @@ HELP: For the moment, MPI only works in Linux and requires compiling METIS_APPLI
 DEPENDENCIES: (OpenMP,RESTORE,Number_of_threads,#CURRENT#)(MPI,HIDE,Number_of_threads,1)
 QUESTION: Number_of_threads
 VALUE: 1
+QUESTION: Periodic_Interface_Conditions#CB#(true,false)
+VALUE: false
+HELP: Define periodic conditions between the upper and lower nodes of interface elements (for dynamic activation of joints).
 QUESTION: FIC_Stabilization#CB#(true,false)
 VALUE: false
 HELP: Only for linear elements with equal order interpolation for displacements and pressures.
@@ -31,7 +34,7 @@ HELP: Length defining the domain of interaction between non-local damaged points
 QUESTION: Fracture_Propagation#CB#(true,false)
 VALUE: false
 HELP: Only for pre-defined crack-tips defined with interface elements.
-DEPENDENCIES: (true,RESTORE,Propagation_Length,#CURRENT#,RESTORE,Propagation_Damage,#CURRENT#,RESTORE,Propagation_Frequency,#CURRENT#,RESTORE,Propagation_Width,#CURRENT#,RESTORE,Propagation_Height,#CURRENT#,RESTORE,Propagation_CosAngle,#CURRENT#)(false,HIDE,Propagation_Length,#CURRENT#,HIDE,Propagation_Damage,#CURRENT#,HIDE,Propagation_Frequency,#CURRENT#,HIDE,Propagation_Width,#CURRENT#,HIDE,Propagation_Height,#CURRENT#,HIDE,Propagation_CosAngle,#CURRENT#)
+DEPENDENCIES: (true,RESTORE,Propagation_Length,#CURRENT#,RESTORE,Propagation_Damage,#CURRENT#,RESTORE,Propagation_Frequency,#CURRENT#,RESTORE,Propagation_Width,#CURRENT#,RESTORE,Propagation_Height,#CURRENT#,RESTORE,Correction_Tolerance,#CURRENT#)(false,HIDE,Propagation_Length,#CURRENT#,HIDE,Propagation_Damage,#CURRENT#,HIDE,Propagation_Frequency,#CURRENT#,HIDE,Propagation_Width,#CURRENT#,HIDE,Propagation_Height,#CURRENT#,HIDE,Correction_Tolerance,#CURRENT#)
 QUESTION: Propagation_Damage
 VALUE: 0.5
 HELP: Damage threshold after which propagation occurs.
@@ -44,9 +47,9 @@ HELP: Second dimension of the propagation.
 QUESTION: Propagation_Height
 VALUE: 0.01
 HELP: Third dimension of the propagation. Only for 3D cases.
-QUESTION: Propagation_CosAngle
-VALUE: 0.0
-HELP: Cosinus of the angle defining the front sector of straight propagation. It ranges from 0.0 (only straight propagation) to 1.0 (only bifurcation).
+QUESTION: Correction_Tolerance
+VALUE: 1.0e-3
+HELP: Used to avoid deviations in the propagation path caused by irregularities in the mesh.
 QUESTION: Propagation_Frequency
 VALUE: 1
 HELP: Number of steps after which the fracture propagation will be checked. Set 1 if propagation should be checked at every time step.
@@ -91,6 +94,10 @@ HELP: Times the initial radius. In order to use a constant radius, choose the sa
 QUESTION: Min_Radius_Factor
 VALUE: 0.5
 HELP: Times the initial radius. In order to use a constant radius, choose the same value for Min Radius Factor and Max Radius Factor
+QUESTION: Reform_Dofs_At_Each_Step#CB#(true,false)
+VALUE: false
+QUESTION: Move_Mesh#CB#(true,false)
+VALUE: true
 QUESTION: Block_Builder#CB#(true,false)
 VALUE: false
 QUESTION: Solver_Type#CB#(SkylineLUFactorizationSolver,SuperLUSolver,BICGSTABSolver,AMGCL,Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver)
@@ -145,8 +152,8 @@ QUESTION: Write_Local_Permeability#CB#(true,false)
 VALUE: false
 QUESTION: GiD_post_mode#CB#(GiD_PostAscii,GiD_PostAsciiZipped,GiD_PostBinary,GiD_PostHDF5)
 VALUE: GiD_PostBinary
-QUESTION: Write_deformed_mesh#CB#(WriteDeformed,WriteUndeformed)
-VALUE: WriteDeformed
+QUESTION: Write_deformed_mesh#CB#(WriteUndeformed,WriteDeformed)
+VALUE: WriteUndeformed
 HELP: Write the coordinates of the mesh in its deformed position. Note: With the DISPLACEMENT variable GiD allows obtaining the deformed mesh regardless of this flag.
 QUESTION: Write_conditions#CB#(WriteConditions,WriteElementsOnly,WriteConditionsOnly)
 VALUE: WriteElementsOnly

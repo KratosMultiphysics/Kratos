@@ -126,7 +126,7 @@ public:
     /**
      * Clone
      */
-    virtual BaseTypePointer Clone()
+    virtual BaseTypePointer Clone() override
     {
         return BaseTypePointer( new ResidualBasedBossakDisplacementScheme(*this) );
     }
@@ -174,7 +174,7 @@ public:
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b )
+        TSystemVectorType& b ) override
     {
         KRATOS_TRY;
 
@@ -246,7 +246,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         KRATOS_TRY;
 
@@ -339,7 +339,7 @@ public:
      * This is intended to be called just once when the strategy is initialized
      * @param rModelPart: The model of the problem to solve
      */
-    void InitializeElements(ModelPart& rModelPart)
+    void InitializeElements(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
 
@@ -370,13 +370,13 @@ public:
      * @param rModelPart: The model of the problem to solve
      */
 
-    void InitializeConditions(ModelPart& rModelPart)
+    void InitializeConditions(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
 
         if(this->mElementsAreInitialized == false)
         {
-            KRATOS_THROW_ERROR( std::logic_error, "Before initilizing Conditions, initialize Elements FIRST", "" );
+            KRATOS_ERROR << "Before initilizing Conditions, initialize Elements FIRST";
         }
 
         const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
@@ -413,7 +413,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         KRATOS_TRY;
 
@@ -466,7 +466,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-        )
+        ) override
     {
         KRATOS_TRY;
 
@@ -521,7 +521,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         KRATOS_TRY;
 
@@ -577,7 +577,7 @@ public:
     void InitializeNonLinearIteration(
         Condition::Pointer rCurrentCondition,
         ProcessInfo& CurrentProcessInfo
-    )
+    ) override
     {
         (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
     }
@@ -591,7 +591,7 @@ public:
     void InitializeNonLinearIteration(
         Element::Pointer rCurrentElement,
         ProcessInfo& CurrentProcessInfo
-    )
+    ) override
     {
         (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
     }
@@ -610,7 +610,7 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -647,7 +647,7 @@ public:
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
 
         KRATOS_TRY;
@@ -685,7 +685,7 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -724,7 +724,7 @@ public:
         Condition::Pointer rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -759,7 +759,7 @@ public:
     void GetElementalDofList(
         Element::Pointer rCurrentElement,
         Element::DofsVectorType& ElementalDofList,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         rCurrentElement->GetDofList(ElementalDofList, CurrentProcessInfo);
     }
@@ -775,7 +775,7 @@ public:
     void GetConditionDofList(
         Condition::Pointer rCurrentCondition,
         Element::DofsVectorType& ConditionDofList,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         rCurrentCondition->GetDofList(ConditionDofList, CurrentProcessInfo);
     }
@@ -788,7 +788,7 @@ public:
      * @return Zero means  all ok
      */
 
-    virtual int Check(ModelPart& rModelPart)
+    virtual int Check(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
 
@@ -802,15 +802,15 @@ public:
         // Verify that the variables are correctly initialized
         if(DISPLACEMENT.Key() == 0)
         {
-            KRATOS_THROW_ERROR( std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered", "" );
+            KRATOS_ERROR << "DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
         }
         if(VELOCITY.Key() == 0)
         {
-            KRATOS_THROW_ERROR( std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered", "" );
+            KRATOS_ERROR << "VELOCITY has Key zero! (check if the application is correctly registered" << std::endl;
         }
         if(ACCELERATION.Key() == 0)
         {
-            KRATOS_THROW_ERROR( std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered", "" );
+            KRATOS_ERROR << "ACCELERATION has Key zero! (check if the application is correctly registered" << std::endl;
         }
 
         // Check that variables are correctly allocated
@@ -819,15 +819,15 @@ public:
         {
             if (it->SolutionStepsDataHas(DISPLACEMENT) == false)
             {
-                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() );
+                KRATOS_ERROR << "DISPLACEMENT variable is not allocated for node " << it->Id() << std::endl;
             }
             if (it->SolutionStepsDataHas(VELOCITY) == false)
             {
-                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() );
+                KRATOS_ERROR << "VELOCITY variable is not allocated for node " << it->Id() << std::endl;
             }
             if (it->SolutionStepsDataHas(ACCELERATION) == false)
             {
-                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() );
+                KRATOS_ERROR << "ACCELERATION variable is not allocated for node " << it->Id() << std::endl;
             }
         }
 
@@ -837,29 +837,29 @@ public:
         {
             if(it->HasDofFor(DISPLACEMENT_X) == false)
             {
-                KRATOS_THROW_ERROR( std::invalid_argument,"missing DISPLACEMENT_X dof on node ",it->Id() );
+                KRATOS_ERROR << "missing DISPLACEMENT_X dof on node " << it->Id() << std::endl;
             }
             if(it->HasDofFor(DISPLACEMENT_Y) == false)
             {
-                KRATOS_THROW_ERROR( std::invalid_argument,"missing DISPLACEMENT_Y dof on node ",it->Id() );
+                KRATOS_ERROR << "missing DISPLACEMENT_Y dof on node " << it->Id() << std::endl;
             }
             if(it->HasDofFor(DISPLACEMENT_Z) == false)
             {
-                KRATOS_THROW_ERROR( std::invalid_argument,"missing DISPLACEMENT_Z dof on node ",it->Id() );
+                KRATOS_ERROR << "missing DISPLACEMENT_Z dof on node " << it->Id() << std::endl;
             }
         }
 
         // Check for admissible value of the AlphaBossak
         if(mAlpha.m > 0.0 || mAlpha.m < -0.3)
         {
-            KRATOS_THROW_ERROR( std::logic_error,"Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is ", mAlpha.m );
+            KRATOS_ERROR << "Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is " << mAlpha.m << std::endl;
         }
 
         // Check for minimum value of the buffer index
         // Verify buffer size
         if (rModelPart.GetBufferSize() < 2)
         {
-            KRATOS_THROW_ERROR( std::logic_error, "insufficient buffer size. Buffer size should be greater than 2. Current size is", rModelPart.GetBufferSize() );
+            KRATOS_ERROR << "insufficient buffer size. Buffer size should be greater than 2. Current size is" << rModelPart.GetBufferSize() << std::endl;
         }
 
         return 0;

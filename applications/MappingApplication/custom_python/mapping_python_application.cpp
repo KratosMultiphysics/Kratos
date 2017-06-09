@@ -42,28 +42,28 @@ namespace Kratos
 namespace Python
 {
 
-  using namespace boost::python;
+using namespace boost::python;
 
 
 
-  BOOST_PYTHON_MODULE(KratosMappingApplication)
-  {
+BOOST_PYTHON_MODULE(KratosMappingApplication)
+{
 
-	  class_<KratosMappingApplication,
-			  KratosMappingApplication::Pointer,
-			  bases<KratosApplication>, boost::noncopyable >("KratosMappingApplication")
-			;
+    class_<KratosMappingApplication,
+           KratosMappingApplication::Pointer,
+           bases<KratosApplication>, boost::noncopyable >("KratosMappingApplication")
+           ;
 
-	AddCustomStrategiesToPython();
-	AddCustomUtilitiesToPython();
+    AddCustomStrategiesToPython();
+    AddCustomUtilitiesToPython();
     AddCustomProcessesToPython();
 
-	//registering variables in python
+    //registering variables in python
 
 //	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
 
 
-  }
+}
 
 
 }  // namespace Python.

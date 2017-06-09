@@ -363,7 +363,7 @@ public:
 #endif
     }
 
-    void SetId(IndexType NewId)
+    void SetId(IndexType NewId) override
     {
         IndexedObject::SetId(NewId);
         Node<3>::DofsContainerType& my_dofs = (this)->GetDofs();
@@ -1129,7 +1129,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Node #" << Id();
@@ -1137,13 +1137,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         BaseType::PrintData(rOStream);
         if(!mDofs.empty())
@@ -1241,7 +1241,7 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
 // 	  int size = rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin();
 // 	  KRATOS_WATCH(rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin());
@@ -1258,7 +1258,7 @@ private:
 // 	  KRATOS_WATCH((rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin())-size);
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
 // 	  int size = rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin();
 // 	  KRATOS_WATCH(rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin());

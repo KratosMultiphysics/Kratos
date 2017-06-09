@@ -3,7 +3,9 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 
-class TestModel(KratosUnittest.TestCase):
+import sys
+
+class TestModel(KratosUnittest.TestCase):        
 
     def test_model(self):
         model_part = KratosMultiphysics.ModelPart("Main")
@@ -11,12 +13,13 @@ class TestModel(KratosUnittest.TestCase):
         model_part.CreateSubModelPart("Temp")
         outlet = model_part.CreateSubModelPart("Outlet")
         
-
         model = KratosMultiphysics.Model()
         model.AddModelPart(model_part)
+                
+        aaa = model["Main.Outlet"].CreateSubModelPart("aaa") 
         
-        
-        aaa = model["Main.Outlet"].CreateSubModelPart("aaa")
+        if (sys.version_info < (3, 2)):
+            self.assertRaisesRegex = self.assertRaisesRegexp
         
         #check that a meaningful error is thrown
         with self.assertRaisesRegex(RuntimeError, "Error: The model part named : \"aaa\" was not found as root model part.  total input string was \"aaa\""):

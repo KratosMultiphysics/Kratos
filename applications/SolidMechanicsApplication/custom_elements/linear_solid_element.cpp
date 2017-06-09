@@ -513,7 +513,10 @@ void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
         //calculating weights for integration on the "reference configuration"
         double IntegrationWeight = integration_points[PointNumber].Weight() * detJ;
 
-	if( dimension == 2 ) IntegrationWeight *= GetProperties()[THICKNESS];
+	if( dimension == 2 ){
+	  if ( this->GetProperties().Has( THICKNESS ) )
+	    IntegrationWeight *= GetProperties()[THICKNESS];
+	}
 
 	//compute the deformation matrix B
 	this->CalculateDeformationMatrix(B,DN_DX);
@@ -882,7 +885,10 @@ void LinearSolidElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessIn
 
     double TotalMass = GetGeometry().DomainSize() * GetProperties()[DENSITY];
 
-    if( dimension == 2 ) TotalMass *= GetProperties()[THICKNESS];
+    if( dimension == 2 ){
+      if ( this->GetProperties().Has( THICKNESS ) )
+	TotalMass *= GetProperties()[THICKNESS];
+    }
 
     Vector LumpFact(number_of_nodes);
     noalias(LumpFact) = ZeroVector(number_of_nodes);    
@@ -1167,8 +1173,7 @@ int LinearSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
 
     unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
 
-    //verify that the variables are correctly initialized
-
+    //verify that the nodal variables are correctly initialized
     if ( VELOCITY.Key() == 0 )
         KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" )
 
@@ -1215,34 +1220,26 @@ int LinearSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
     bool correct_strain_measure = false;
     for(unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); i++)
     {
-	    if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Infinitesimal)
-		    correct_strain_measure = true;
+      if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Infinitesimal)
+	correct_strain_measure = true;
     }
 
     if( correct_strain_measure == false )
-	    KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the element type ", " Small Displacements " );
+      KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the element type ", " Small Displacements " );
 
 
     //verify that the constitutive law has the correct dimension
     if ( dimension == 2 )
     {
-        // if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
-	//     KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() ) //fails in some 2D cases, i.e. axisymmetric
-
+        if( LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRAIN_LAW) && LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRESS_LAW) && LawFeatures.mOptions.IsNot(ConstitutiveLaw::AXISYMMETRIC_LAW) )
+	  KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element expected plane state or axisymmetric ", this->Id() )	      
+	
         // if ( THICKNESS.Key() == 0 )
-        //     KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" ) //if is not read from model part it will not exist
+        //   KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" ) //if is not read from model part it will not exist
 
-	if ( this->GetProperties().Has( THICKNESS ) == false ){
-	   
-	  if(LawFeatures.mOptions.Is(ConstitutiveLaw::PLANE_STRAIN_LAW) || LawFeatures.mOptions.Is(ConstitutiveLaw::AXISYMMETRIC_LAW) ){
+	// if ( this->GetProperties().Has( THICKNESS ) == false )
+	//   KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
 
-	    this->GetProperties().SetValue( THICKNESS , 1.0 );
-	  }
-	  else
-	    {
-	      KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
-	    }
-	}
 
     }
     else
@@ -1251,6 +1248,7 @@ int LinearSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
             KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) ", this->Id() )
     }
 
+    //check constitutive law
     this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Check( this->GetProperties(), this->GetGeometry(), rCurrentProcessInfo );
 
     return 0;

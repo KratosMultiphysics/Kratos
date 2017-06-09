@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,6 @@ THE SOFTWARE.
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/unordered_map.hpp>
-#include <boost/range/numeric.hpp>
 #include <boost/multi_array.hpp>
 #include <boost/foreach.hpp>
 
@@ -79,7 +78,7 @@ class comm_pattern {
         comm_pattern(
                 MPI_Comm mpi_comm,
                 ptrdiff_t n_loc_cols,
-                std::vector<ptrdiff_t> rem_cols,
+                size_t n_rem_cols, const ptrdiff_t *p_rem_cols,
                 const backend_params &bprm = backend_params()
                 ) : comm(mpi_comm)
         {
@@ -90,6 +89,7 @@ class comm_pattern {
             // Renumber remote columns,
             // find out how many remote values we need from each process.
             std::vector<ptrdiff_t> num_recv(comm.size, 0); // Number of columns to receive from each process
+            std::vector<ptrdiff_t> rem_cols(p_rem_cols, p_rem_cols + n_rem_cols);
 
             std::sort(rem_cols.begin(), rem_cols.end());
             rem_cols.erase(std::unique(rem_cols.begin(), rem_cols.end()), rem_cols.end());
@@ -171,8 +171,8 @@ class comm_pattern {
             gather = boost::make_shared<Gather>(n_loc_cols, send.col, bprm);
         }
 
-        size_t renumber(std::vector<ptrdiff_t> &col) {
-            BOOST_FOREACH(ptrdiff_t &c, col) c = idx[c];
+        size_t renumber(size_t n, ptrdiff_t *col) {
+            for(size_t i = 0; i < n; ++i) col[i] = idx[col[i]];
             return recv.val.size();
         }
 

@@ -1,2 +1,2 @@
-# Use the following command to compile FEAST in the folder src
-make ARCH=x64 LIB=feast all
+# For compiling FEAST library add the following command in the configure.sh
+-DINCLUDE_FEAST=ON

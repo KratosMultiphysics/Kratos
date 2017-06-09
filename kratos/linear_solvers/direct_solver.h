@@ -70,13 +70,13 @@ public:
     DirectSolver(const DirectSolver& Other) {}
 
     /// Print information about this object.
-    void  PrintInfo(std::ostream& rOStream) const
+    void  PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Direct solver";
     }
 
     /// Print object's data.
-    void  PrintData(std::ostream& rOStream) const
+    void  PrintData(std::ostream& rOStream) const override
     {
     }
 

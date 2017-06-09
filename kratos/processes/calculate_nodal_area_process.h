@@ -138,7 +138,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    virtual void Execute() override
     {
         KRATOS_TRY
 
@@ -211,19 +211,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "CalculateNodalAreaProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "CalculateNodalAreaProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
     }
 

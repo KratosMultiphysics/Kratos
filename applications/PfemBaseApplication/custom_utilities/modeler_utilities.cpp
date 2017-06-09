@@ -911,7 +911,7 @@ namespace Kratos
       mJinv /= rVolume;
   
       //calculation of the center
-      Vector Center = ZeroVector(3);    //center pos
+      Vector Center = ZeroVector(2);    //center pos
 
       //center point 0
       for(unsigned int i = 0; i < dimension; i++)
@@ -926,7 +926,8 @@ namespace Kratos
       Center = prod(mJinv,Center);
 
       //calculate the element radius
-      Center -= rVertices[0];
+      Center[0] -= rVertices[0][0];
+      Center[1] -= rVertices[0][1];
 
       rRadius = norm_2(Center);
       

@@ -127,6 +127,15 @@ public:
 ///******************************************************************************************************************
 ///******************************************************************************************************************
 
+    static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint, const double Radius)
+    {
+        (void)Radius;
+        CalculateBoundingBox(rObject, rLowPoint, rHighPoint);
+    }
+
+///******************************************************************************************************************
+///******************************************************************************************************************
+
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2)
     {
         Element::GeometryType& geom_1 = rObj_1->GetGeometry();
@@ -135,15 +144,36 @@ public:
 
     }
 
+///******************************************************************************************************************
+///******************************************************************************************************************
+
+    static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double Radius)
+    {
+        (void)Radius;
+        return Intersection(rObj_1, rObj_2);
+    }
 
 ///******************************************************************************************************************
 ///******************************************************************************************************************
 
-    static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
+    static inline bool IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
     {
         return rObject->GetGeometry().HasIntersection(rLowPoint, rHighPoint);
     }
 
+///******************************************************************************************************************
+///******************************************************************************************************************
+
+    static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint, const double Radius)
+    {
+        (void)Radius;
+        return IntersectionBox(rObject, rLowPoint, rHighPoint);
+    }
+
+///******************************************************************************************************************
+///******************************************************************************************************************
+
+    static inline void Distance(const PointerType& rObj_1, const PointerType& rObj_2, double& distance) {}
 
 
     ///@}
