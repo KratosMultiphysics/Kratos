@@ -1090,7 +1090,7 @@ namespace Kratos
 		if (this->mIsLinearElement == true)
 		{
 			Matrix LeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
-			this->CalculateLeftHandSide(LeftHandSideMatrix,rCurrentProcessInfo);
+			this->CalculateLeftHandSide(LeftHandSideMatrix, rCurrentProcessInfo);
 			Vector NodalDeformation = ZeroVector(LocalSize);
 			this->GetValuesVector(NodalDeformation);
 			rRightHandSideVector = ZeroVector(LocalSize);
@@ -1697,7 +1697,7 @@ namespace Kratos
 			if (GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size() != 2)
 			{
 				KRATOS_ERROR <<
-					("The truss element works only in 3D and with 2 noded elements", "")
+					("The beam element works only in 3D and with 2 noded elements", "")
 					<< std::endl;
 			}
 		//verify that the variables are correctly initialized
@@ -1764,6 +1764,29 @@ namespace Kratos
 				<< std::endl;
 		}
 
+		if (this->GetProperties().Has(POISSON_RATIO) == false)
+		{
+			KRATOS_ERROR << ("POISSON_RATIO not provided for this element", this->Id())
+				<< std::endl;
+		}
+
+		if (this->GetProperties().Has(IT) == false)
+		{
+			KRATOS_ERROR << ("IT not provided for this element", this->Id())
+				<< std::endl;
+		}
+
+		if (this->GetProperties().Has(IY) == false)
+		{
+			KRATOS_ERROR << ("IY not provided for this element", this->Id())
+				<< std::endl;
+		}
+
+		if (this->GetProperties().Has(IZ) == false)
+		{
+			KRATOS_ERROR << ("IZ not provided for this element", this->Id())
+				<< std::endl;
+		}
 
 		return 0;
 
