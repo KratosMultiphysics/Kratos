@@ -14,7 +14,6 @@
 #if !defined(KRATOS_SOLVING_STRATEGY )
 #define  KRATOS_SOLVING_STRATEGY
 
-
 /* System includes */
 
 /* External includes */
@@ -24,7 +23,6 @@
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
-
 
 namespace Kratos
 {
@@ -50,24 +48,24 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** Short class definition.
-Detail class definition.
+/** Solving strategy base class
+This is the base class from which we will derive all the strategies (line-search, NR, etc...)
 
-    \URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
+\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
 
-    \URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
+\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
 
-    \URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
+\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
 
-    \URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
+\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
 
-    \URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
+\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
 
-    \URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
+\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
 
-    \URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
+\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
 
-    \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
+\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
  */
 
 template<class TSparseSpace,
@@ -181,14 +179,11 @@ public:
         Initialize();
         InitializeSolutionStep();
         Predict();
-        SolveSolutionStep();
-//         const bool IsConverged = SolveSolutionStep();
+        const bool IsConverged = SolveSolutionStep();
         FinalizeSolutionStep();
         
-        // NOTE: Here I would add a conversion to double of the boolean IsConverged, that way we can know if the problem has is converged
-        // return (IsConverged == true ? 1.0 : 0.0); 
+        return (IsConverged == true ? 1.0 : 0.0); 
         
-        return 0.0;
     }
 
     /**
@@ -316,7 +311,7 @@ public:
      */
     virtual void MoveMesh()
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
         if (GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false)
         {
@@ -340,7 +335,7 @@ public:
             std::cout<<" MESH MOVED "<<std::endl;
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /**
@@ -368,19 +363,14 @@ public:
      */
     virtual int Check()
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
         // Check if displacement var is needed
         if (mMoveMeshFlag == true)
         {
-            NodesArrayType& NodesArray = GetModelPart().Nodes();
-            const int numNodes = static_cast<int>(NodesArray.size());
-
-//             #pragma omp parallel for
-            for(int i = 0; i < numNodes; i++)  
+            for (ModelPart::NodesContainerType::iterator itNode = GetModelPart().NodesBegin();
+                 itNode != GetModelPart().NodesEnd(); itNode++)
             {
-                auto itNode = NodesArray.begin() + i;
-                
                 if (itNode->SolutionStepsDataHas(DISPLACEMENT) == false)
                 {
                     std::cout << "problem on node with Id " << itNode->Id() << std::endl;
@@ -389,30 +379,21 @@ public:
             }
         }
 
-        ElementsArrayType& ElementsArray = GetModelPart().Elements();
-        const int numElements = static_cast<int>(ElementsArray.size());
-
-//         #pragma omp parallel for
-        for(int i = 0; i < numElements; i++)  
+        for (ModelPart::ElementsContainerType::iterator itElem = GetModelPart().ElementsBegin();
+             itElem != GetModelPart().ElementsEnd(); itElem++)
         {
-            auto itElem = ElementsArray.begin() + i;
-            
             itElem->Check(GetModelPart().GetProcessInfo());
         }
 
-        ConditionsArrayType& ConditionsArray = GetModelPart().Conditions();
-        const int numConditions = static_cast<int>(ConditionsArray.size());
-
-//         #pragma omp parallel for
-        for(int i = 0; i < numConditions; i++)  
+        for (ModelPart::ConditionsContainerType::iterator itCond = GetModelPart().ConditionsBegin();
+             itCond != GetModelPart().ConditionsEnd(); itCond++)
         {
-            auto itCond = ConditionsArray.begin() + i;
-            
             itCond->Check(GetModelPart().GetProcessInfo());
         }
         
         return 0;
-        KRATOS_CATCH("");
+        
+        KRATOS_CATCH("")
     }
 
     ///@}
@@ -424,7 +405,7 @@ protected:
     // Level of echo for the solving strategy
     int mEchoLevel;
 
-    //Settings for the rebuilding of the stiffness matrix
+    // Settings for the rebuilding of the stiffness matrix
     int mRebuildLevel;
     bool mStiffnessMatrixIsBuilt;
 
