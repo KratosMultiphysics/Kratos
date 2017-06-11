@@ -185,7 +185,7 @@ void NonLinearHenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Par
 
         this->CalculateElastoPlasticTangentMatrix( ReturnMappingVariables, NewElasticLeftCauchyGreen, rAlpha, ElastoPlasticTangentMatrix, ElasticVariables);
 
-        //if( Options.Is(ConstitutiveLaw::TOTAL_TENSOR ) )
+        
         ConstitutiveMatrix = this->SetConstitutiveMatrixToAppropiateDimension(ElastoPlasticTangentMatrix);
 
     }

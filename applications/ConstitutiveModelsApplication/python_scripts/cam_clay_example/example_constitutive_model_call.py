@@ -1,8 +1,8 @@
 from KratosMultiphysics import *
-from KratosMultiphysics.SolidMechanicsApplication import *
+import KratosMultiphysics.ConstitutiveModelsApplication as KratosMaterialModels
 
 ######################### general parameters
-nnodes = 4
+nnodes = 3
 dim = 3
 
 #define a model part and create new nodes
@@ -17,6 +17,9 @@ properties = model_part.Properties[prop_id]
 properties.SetValue(YOUNG_MODULUS, 200e9)
 properties.SetValue(POISSON_RATIO, 0.3)
 
+C10 = 200e9/(4*(1+0.3))
+properties.SetValue(KratosMaterialModels.C10, C10)
+
 #allocate a geometry
 #a = PointerVector()
 #a.append(node1)
@@ -29,8 +32,13 @@ N = Vector(3)
 DN_DX = Matrix(3,2)
 
 ######################################## here we choose the constitutive law #########################
-#construct a constitutive law 
-cl = LinearElastic3DLaw()
+#construct a constitutive law
+elasticity_model = KratosMaterialModels.SaintVenantKirchhoffModel()
+cl  = KratosMaterialModels.LargeStrain3DLaw(elasticity_model)
+
+#plasticity_model = KratosMaterialModels.VonMisesNeoHookeanPlasticityModel()
+#cl  = KratosMaterialModels.LargeStrain3DLaw(plasticity_model)
+
 cl.Check( properties, geom, model_part.ProcessInfo )
 
 if(cl.WorkingSpaceDimension() != dim):
@@ -39,15 +47,16 @@ if(cl.WorkingSpaceDimension() != dim):
 ##set the parameters to be employed
 #note that here i am adding them all to check that this does not fail
 cl_options = Flags()
-cl_options.Set(ConstitutiveLaw.COMPUTE_STRAIN, False)
+cl_options.Set(ConstitutiveLaw.COMPUTE_STRAIN, True)
 cl_options.Set(ConstitutiveLaw.COMPUTE_STRESS, True)
 cl_options.Set(ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, True)
 #cl_options.Set(ConstitutiveLaw.COMPUTE_STRAIN_ENERGY, False)
 #cl_options.Set(ConstitutiveLaw.ISOCHORIC_TENSOR_ONLY, False)
 #cl_options.Set(ConstitutiveLaw.VOLUMETRIC_TENSOR_ONLY, False)
+#cl_options.Set(ConstitutiveLaw.TOTAL_TENSOR, True)
 #cl_options.Set(ConstitutiveLaw.FINALIZE_MATERIAL_RESPONSE, False)
 
-##from here below it should be an otput not an input
+##from here below it should be an output not an input
 #cl_options.Set(ConstitutiveLaw.FINITE_STRAINS, False) 
 #cl_options.Set(ConstitutiveLaw.INFINITESIMAL_STRAINS, False)
 #cl_options.Set(ConstitutiveLaw.PLANE_STRAIN_LAW, False)
@@ -60,12 +69,12 @@ cl_options.Set(ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, True)
 from math import sqrt
 
 F = Matrix(3,3)
-F[0,0] = 1.0; F[0,1] = 0.0; F[0,2] = 0.0;
-F[1,0] = 0.0; F[1,1] = 1.0; F[1,2] = 0.0;
-F[2,0] = 0.0; F[2,1] = 0.0; F[2,2] = 1.0;
-detF = 1.0
+F[0,0] = 1.0; F[0,1] = 0.0; F[0,2] = 2.0;
+F[1,0] = 0.0; F[1,1] = 0.9; F[1,2] = 0.0;
+F[2,0] = 0.0; F[2,1] = 0.0; F[2,2] = 0.1;
+detF = 0.09
 
-stress_vector = Vector(cl.GetStrainSize() )
+stress_vector = Vector(cl.GetStrainSize())
 strain_vector = Vector(cl.GetStrainSize())
 
 
@@ -96,8 +105,9 @@ print( "stress = ", cl_params.GetStressVector() )
 print( "strain = ", cl_params.GetStrainVector() )
 print( "C      = ", cl_params.GetConstitutiveMatrix() )
 
-cl.FinalizeMaterialResponsePK2( cl_params )
-#cl.FinalizeSolutionStep( properties, geom, N, model_part.ProcessInfo )
+#cl.FinalizeMaterialResponsePK2( cl_params )
+cl.FinalizeSolutionStep( properties, geom, N, model_part.ProcessInfo )
+
 
 print("\n The Material Response Kirchhoff")
 cl.CalculateMaterialResponseKirchhoff( cl_params )
