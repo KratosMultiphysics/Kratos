@@ -6,12 +6,12 @@ import math
 BaseAlgorithm = swimming_DEM_algorithm.Algorithm
 
 class Algorithm(BaseAlgorithm):
-    def __init__(self, pp):
-        BaseAlgorithm.__init__(self, pp)
+    def __init__(self, varying_parameters = dict()):
+        BaseAlgorithm.__init__(self, varying_parameters)
         self.cation_concentration_counter = self.GetCationConcentrationCounter()
 
-    def SetBetaParamters(self):
-        BaseAlgorithm.SetBetaParamters(self)
+    def SetBetaParameters(self):
+        BaseAlgorithm.SetBetaParameters(self)
         self.pp.CFD_DEM.alpha = 0.01
         self.pp.IntegrationScheme = 'TerminalVelocityScheme'
         self.pp.CFD_DEM.basset_force_type = 0
