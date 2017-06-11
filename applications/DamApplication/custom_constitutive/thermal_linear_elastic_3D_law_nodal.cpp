@@ -50,8 +50,8 @@ void ThermalLinearElastic3DLawNodal::CalculateMaterialResponseKirchhoff (Paramet
     //0.- Initialize parameters
     MaterialResponseVariables ElasticVariables;
 
-	ElasticVariables.SetShapeFunctionsValues(rValues.GetShapeFunctionsValues());
-	ElasticVariables.SetElementGeometry(rValues.GetElementGeometry());
+    ElasticVariables.SetShapeFunctionsValues(rValues.GetShapeFunctionsValues());
+    ElasticVariables.SetElementGeometry(rValues.GetElementGeometry());
 
     //1.- Lame constants
     double YoungModulus;
@@ -65,56 +65,69 @@ void ThermalLinearElastic3DLawNodal::CalculateMaterialResponseKirchhoff (Paramet
     ElasticVariables.ThermalExpansionCoefficient = MaterialProperties[THERMAL_EXPANSION]; 
     ElasticVariables.ReferenceTemperature = CurrentProcessInfo[REFERENCE_TEMPERATURE];
 
-    if(Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ))
-    {
-		this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+    if(Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )){
+      
+      this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 		
-		if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) //TOTAL STRESS
-		{
-			double Temperature;
-			this->CalculateDomainTemperature( ElasticVariables, Temperature);
+      if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){ //TOTAL STRESS
+	  
+	double Temperature;
+	this->CalculateDomainTemperature( ElasticVariables, Temperature);
 
-			Vector ThermalStrainVector;
-			this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,Temperature);
+	Vector ThermalStrainVector;
+	this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,Temperature);
 
-			StressVector = prod(ConstitutiveMatrix,(StrainVector - ThermalStrainVector));
-		}
-	}
-	else if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) //TOTAL STRESS
-    {        
-        this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
-
-        double Temperature;
-        this->CalculateDomainTemperature( ElasticVariables, Temperature);
-
-        Vector ThermalStrainVector;
-        this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,Temperature);
-
-        StressVector = prod(ConstitutiveMatrix,(StrainVector - ThermalStrainVector));
+	StressVector = prod(ConstitutiveMatrix,(StrainVector - ThermalStrainVector));
+      }
     }
-    else if( Options.Is( ConstitutiveLaw::TOTAL_TENSOR ) ) //This should be COMPUTE_MECHANICAL_STRESS
-    {        
-        this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+    else if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){ //TOTAL STRESS
+      
+      if( Options.Is( ConstitutiveLaw::MECHANICAL_RESPONSE_ONLY ) ){ //This should be COMPUTE_MECHANICAL_STRESS
+ 
+	this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+	
+	StressVector = prod(ConstitutiveMatrix,StrainVector);
+      }
+      else if( Options.Is( ConstitutiveLaw::THERMAL_RESPONSE_ONLY ) ){ //This should be COMPUTE_THERMAL_STRESS
+	
+	this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+	
+	double Temperature;
+	this->CalculateDomainTemperature( ElasticVariables, Temperature);
+	
+	this->CalculateThermalStrain(StrainVector,ElasticVariables,Temperature);
+	
+	StressVector = prod(ConstitutiveMatrix,StrainVector);
+      }
+      else{
+	
+	this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+	
+	double Temperature;
+	this->CalculateDomainTemperature( ElasticVariables, Temperature);
+	
+	Vector ThermalStrainVector;
+	this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,Temperature);
+	
+	StressVector = prod(ConstitutiveMatrix,(StrainVector - ThermalStrainVector));
+	
+      }  
 
-        StressVector = prod(ConstitutiveMatrix,StrainVector);
     }
-    else if( Options.Is( ConstitutiveLaw::VOLUMETRIC_TENSOR_ONLY ) ) //This should be COMPUTE_THERMAL_STRESS
-    {
-        this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+    else if(Options.Is(ConstitutiveLaw::COMPUTE_STRAIN)){ //This should be COMPUTE_THERMAL_STRAIN
 
-        double Temperature;
-        this->CalculateDomainTemperature( ElasticVariables, Temperature);
+      // COMPUTE_STRAIN
+      if(Options.Is(ConstitutiveLaw::THERMAL_RESPONSE_ONLY)){
 
-        this->CalculateThermalStrain(StrainVector,ElasticVariables,Temperature);
+	double Temperature;
+	this->CalculateDomainTemperature( ElasticVariables, Temperature);
 
-        StressVector = prod(ConstitutiveMatrix,StrainVector);
-    }
-    else if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ) ) //This should be COMPUTE_THERMAL_STRAIN
-    {
-        double Temperature;
-        this->CalculateDomainTemperature( ElasticVariables, Temperature);
-        
-        this->CalculateThermalStrain(StrainVector,ElasticVariables,Temperature);
+	// Thermal strain
+	this->CalculateThermalStrain(StrainVector,ElasticVariables,Temperature);
+	
+      }
+      //other strain: to implement
+      
     }
     
     KRATOS_CATCH( "" )

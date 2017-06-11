@@ -132,7 +132,6 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
         #self.options.Set(KratosMultiphysics.ConstitutiveLaw.COMPUTE_STRAIN_ENERGY, False)
         #self.options.Set(KratosMultiphysics.ConstitutiveLaw.ISOCHORIC_TENSOR_ONLY, False)
         #self.options.Set(KratosMultiphysics.ConstitutiveLaw.VOLUMETRIC_TENSOR_ONLY, False)
-        #self.options.Set(KratosMultiphysics.ConstitutiveLaw.TOTAL_TENSOR, True)
         #self.options.Set(KratosMultiphysics.ConstitutiveLaw.FINALIZE_MATERIAL_RESPONSE, False)
 
         #set calculation variables
