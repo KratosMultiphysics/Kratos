@@ -15,7 +15,8 @@ def AddVariables(main_model_part):
   
     main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL);
     main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H);
-    
+
+    main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
     main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_NORMAL);
     
     main_model_part.AddNodalSolutionStepVariable(KratosPfemBase.OFFSET);
