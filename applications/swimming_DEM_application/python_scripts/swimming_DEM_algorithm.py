@@ -270,7 +270,7 @@ class Algorithm(object):
         self.io_tools = SDP.IOTools(self.pp)
 
         # creating a projection module for the fluid-DEM coupling
-        h_min = 0.01
+        self.h_min = 0.01
         n_balls = 1
         fluid_volume = 10
         self.pp.CFD_DEM.n_particles_in_depth = int(math.sqrt(n_balls / fluid_volume)) # only relevant in 2D problems
@@ -289,7 +289,7 @@ class Algorithm(object):
             field_utility = self.GetFieldUtility()
 
             self.projection_module = CFD_DEM_coupling.ProjectionModule(self.fluid_model_part, self.disperse_phase_algorithm.spheres_model_part, self.disperse_phase_algorithm.rigid_face_model_part, self.pp.domain_size, self.pp, field_utility)
-            self.projection_module.UpdateDatabase(h_min)
+            self.projection_module.UpdateDatabase(self.h_min)
 
         # creating a custom functions calculator for the implementation of additional custom functions
         self.custom_functions_tool = SDP.FunctionsCalculator(self.pp)
@@ -459,6 +459,7 @@ class Algorithm(object):
 
             self.time = self.time + self.Dt
             self.step += 1
+            self.TransferTimeToFluidSolver()
             self.CloneTimeStep()            
             self.TellTime(self.time)
 
@@ -598,6 +599,9 @@ class Algorithm(object):
                 self.PrintDrag(self.drag_list, self.drag_file_output_list, self.fluid_model_part, self.time)
                 
     
+    def TransferTimeToFluidSolver(self):
+        pass
+        
     def CloneTimeStep(self):
         self.fluid_model_part.CloneTimeStep(self.time)
         
@@ -732,12 +736,14 @@ class Algorithm(object):
 
         self.PerformFinalOperations(self.time_dem)
 
-        for i in self.drag_file_output_list:
-            i.close()
+        self.FinalizeDragOutput()        
 
         self.TellFinalSummary(self.step, self.time, self.DEM_step)
         
-    
+    def FinalizeDragOutput(self):        
+        for i in self.drag_file_output_list:
+            i.close()
+        
     def SetCutsOutput(self):             
         if not self.pp.VolumeOutput: 
             cut_list = define_output.DefineCutPlanes() 
