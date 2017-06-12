@@ -1736,7 +1736,8 @@ protected:
         }
 
         // Nitsche coefficient
-        const double cons_coef = 500.0/rData.h;
+        const double eff_mu = BaseType::ComputeEffectiveViscosity(rData);
+        const double cons_coef = 25.0*eff_mu/rData.h;
 
         // Declare auxiliar arrays
         array_1d<double, MatrixSize> auxRightHandSideVector = ZeroVector(MatrixSize);
@@ -1752,48 +1753,37 @@ protected:
             const VectorType aux_cut = row(rSplittingData.N_container_cut, icut);
 
             // Set the shape functions auxiliar matrices
-            bounded_matrix<double, TDim, TNumNodes*TDim> aux = ZeroMatrix(TDim, TNumNodes*TDim);
+            bounded_matrix<double, TDim, MatrixSize> N_aux = ZeroMatrix(TDim, MatrixSize);
             for (unsigned int i=0; i<TNumNodes; ++i)
             {
                 for (unsigned int comp=0; comp<TDim; ++comp)
                 {
-                    aux(comp,i*TDim+comp) = aux_cut(i);
+                    N_aux(comp,i*BlockSize+comp) = aux_cut(i);
                 }
             }
-
-            const bounded_matrix<double, TNumNodes, TDim> aux_trans = trans(aux);
+            const bounded_matrix<double, MatrixSize, TDim> aux_trans = trans(N_aux);
 
             // Compute the current cut point auxLHS contribution
+            const bounded_matrix<double, MatrixSize, TDim> aux_1 = prod(aux_trans, normal_projection_matrix);
+            const bounded_matrix<double, MatrixSize, MatrixSize> aux_2 = prod(aux_1, N_aux);
+            auxLeftHandSideMatrix += cons_coef*weight*aux_2;
+        }
+
+        // If level set velocity is not 0, add its contribution to the RHS
+        if (this->Has(EMBEDDED_VELOCITY))
+        {
+            const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
+            array_1d<double, MatrixSize> embedded_vel_exp = ZeroVector(MatrixSize);
+
             for (unsigned int i=0; i<TNumNodes; ++i)
             {
-                for (unsigned int j=0; j<TNumNodes; ++j)
+                for (unsigned int comp=0; comp<TDim; ++comp)
                 {
-                    for (unsigned int k=0; k<TDim; ++k)
-                    {
-                        for (unsigned int m=0; m<TDim; ++m)
-                        {
-                            auxLeftHandSideMatrix(i*BlockSize+m, j*BlockSize+k) += cons_coef*weight*aux_trans(i,k)*normal_projection_matrix(k,m)*aux(m,j);
-                        }
-                    }
+                    embedded_vel_exp(i*BlockSize+comp) = embedded_vel(comp);
                 }
             }
 
-            // If level set velocity is not 0, add its contribution to the RHS
-            if (this->Has(EMBEDDED_VELOCITY))
-            {
-                const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-
-                for (unsigned int i=0; i<TNumNodes; ++i)
-                {
-                    for (unsigned int j=0; j<TDim; ++j)
-                    {
-                        for (unsigned int k=0; k<TDim; ++k)
-                        {
-                            auxRightHandSideVector(i*BlockSize+j) += cons_coef*weight*aux_trans(i,j)*normal_projection_matrix(j,k)*embedded_vel(k);
-                        }
-                    }
-                }
-            }
+            auxRightHandSideVector += prod(auxLeftHandSideMatrix, embedded_vel_exp);
         }
 
         // LHS outside Nitche contribution assembly
@@ -1802,98 +1792,6 @@ protected:
         // RHS outside Nitche contribution assembly
         // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
         rRightHandSideVector += auxRightHandSideVector;
-        rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol);
-
-    }
-
-    /**
-    * This function adds the penalty Nitsche term (Freund and Stenberg formulation).
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
-    * @param rSplittingData: reference to the intersection data structure
-    */
-    void AddSlipNoPenetrationFreundNitschePenaltyContribution2(MatrixType& rLeftHandSideMatrix,
-                                                               VectorType& rRightHandSideVector,
-                                                               const ElementDataType& rData,
-                                                               const ElementSplittingDataStruct& rSplittingData)
-    {
-        constexpr unsigned int BlockSize = TDim+1;
-        constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
-
-        // Obtain the previous iteration velocity solution
-        array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
-
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            for (unsigned int comp=0; comp<TDim; comp++)
-            {
-                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
-            }
-            prev_sol(i*BlockSize+TDim) = rData.p(i);
-        }
-
-        // Nitsche coefficient
-        const double eff_mu = BaseType::ComputeEffectiveViscosity(rData);
-        const double cons_coef = 25*eff_mu/rData.h;
-
-        // Declare auxiliar arrays
-        array_1d<double, MatrixSize> auxRightHandSideVector = ZeroVector(MatrixSize);
-        bounded_matrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
-
-        // Set the normal projection matrix nxn
-        bounded_matrix<double, TDim, TDim> normal_projection_matrix;
-        SetNormalProjectionMatrix(rSplittingData, normal_projection_matrix);
-
-        for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
-        {
-            const double weight = rSplittingData.cut_edge_areas(icut);
-            const VectorType aux_cut = row(rSplittingData.N_container_cut, icut);
-
-            // Set the shape functions auxiliar matrices
-            bounded_matrix<double, TDim, MatrixSize> N_proj_mat = ZeroMatrix(TDim, MatrixSize);
-            for (unsigned int i=0; i<TNumNodes; ++i)
-            {
-                for (unsigned int comp=0; comp<TDim; ++comp)
-                {
-                    N_proj_mat(comp,i*BlockSize+comp) = aux_cut(i)*rSplittingData.intersection_normal(comp);
-                }
-            }
-
-            const bounded_matrix<double, TNumNodes, TDim> trans_N_proj_mat = trans(N_proj_mat);
-
-            // Compute the current cut point auxLHS contribution
-            const bounded_matrix<double, MatrixSize, MatrixSize> aux_mat = prod(trans_N_proj_mat, N_proj_mat);
-            auxLeftHandSideMatrix = cons_coef*weight*aux_mat;
-
-        }
-
-        // If level set velocity is not 0, add its contribution to the RHS
-        if (this->Has(EMBEDDED_VELOCITY))
-        {
-            // Get the normal component of the embedded velocity
-            const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-
-            // Set an auxiliar array to set the elemental EMBEDDED_VELOCITY as nodal values
-            array_1d<double, MatrixSize> embedded_vel_nodes = ZeroVector(MatrixSize);
-            for (unsigned int i=0; i<TNumNodes; ++i)
-            {
-                for (unsigned int comp=0; i<TDim; ++comp)
-                {
-                    embedded_vel_nodes(i*BlockSize+comp) = embedded_vel(comp);
-                }
-            }
-
-            // Compute the RHS contribution
-            auxRightHandSideVector = prod(auxLeftHandSideMatrix, embedded_vel_nodes);
-            rRightHandSideVector += auxRightHandSideVector;
-        }
-
-        // LHS outside Nitche contribution assembly
-        rLeftHandSideMatrix += auxLeftHandSideMatrix;
-
-        // RHS outside Nitche contribution assembly
-        // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
         rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol);
 
     }
@@ -1942,112 +1840,8 @@ protected:
         bounded_matrix<double, (TDim-1)*3, TNumNodes*TDim> B_matrix = ZeroMatrix((TDim-1)*3, TNumNodes*TDim);
         SetStrainMatrix(rData, B_matrix);
 
-        for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
-        {
-            const double weight = rSplittingData.cut_edge_areas(icut);
-            const VectorType aux_cut = row(rSplittingData.N_container_cut, icut);
-
-            bounded_matrix<double, (TDim-1)*3, TNumNodes*BlockSize> pres_to_voigt_matrix_op = ZeroMatrix((TDim-1)*3, TNumNodes*BlockSize);
-
-            // Fill the pressure to Voigt notation operator matrix
-            for (unsigned int i=0; i<TNumNodes; ++i)
-            {
-                for (unsigned int comp=0; comp<TDim; ++comp)
-                {
-                    pres_to_voigt_matrix_op(comp,i*BlockSize+TDim) = aux_cut(i);
-                }
-            }
-
-            // Set the shape functions auxiliar transpose matrix
-            bounded_matrix<double, MatrixSize, TDim> N_trans = ZeroMatrix(MatrixSize, TDim);
-            for (unsigned int i=0; i<TNumNodes; ++i)
-            {
-                for (unsigned int comp=0; comp<TDim; ++comp)
-                {
-                    N_trans(i*BlockSize+comp, comp) = aux_cut(i);
-                }
-            }
-
-            // Compute some auxliar matrices
-            bounded_matrix<double, MatrixSize, TDim> N_trans_nproj = prod(N_trans, normal_projection_matrix);
-            bounded_matrix<double, MatrixSize, (TDim-1)*3> N_trans_nproj_voigtnproj = prod(N_trans_nproj, voigt_normal_projection_matrix);
-
-            // Get the contribution coming from the shear stress op. (extension from 16x12 to 16x16 of vel_LHS_cont_condensed)
-            bounded_matrix<double, MatrixSize, (TDim-1)*3> N_trans_nproj_voigtnproj_C = prod(N_trans_nproj_voigtnproj, rData.C);
-            bounded_matrix<double, MatrixSize, TDim*TNumNodes> vel_LHS_cont_condensed = prod(N_trans_nproj_voigtnproj_C, B_matrix);
-            bounded_matrix<double, MatrixSize, MatrixSize> vel_LHS_cont = ZeroMatrix(MatrixSize, MatrixSize);
-            for (unsigned int i=0; i<TNumNodes; ++i)
-            {
-                for (unsigned int j=0; j<TNumNodes; ++j)
-                {
-                    for (unsigned int k=0; k<TDim; ++k)
-                    {
-                        for (unsigned int m=0; m<TDim; ++m)
-                        {
-                            vel_LHS_cont(i*BlockSize+k, j*BlockSize+m) = vel_LHS_cont_condensed(i*TDim+k, j*TDim+m);
-                        }
-                    }
-                }
-            }
-
-            // Get the contribution coming from the pressure stress op.
-            bounded_matrix<double, MatrixSize, MatrixSize> pres_LHS_cont = prod(N_trans_nproj_voigtnproj, pres_to_voigt_matrix_op);
-
-            auxLeftHandSideMatrix += weight*vel_LHS_cont;
-            auxLeftHandSideMatrix += weight*pres_LHS_cont;
-        }
-
-        // LHS outside Nitche contribution assembly
-        rLeftHandSideMatrix -= auxLeftHandSideMatrix; // The minus sign comes from the Nitsche formulation
-
-        // RHS outside Nitche contribution assembly
-        //TODO: Add the g RHS contribution (note that it is a substraction due to the minus sign)
-        // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
-        rRightHandSideVector += prod(auxLeftHandSideMatrix, prev_sol); // The plus sign comes from the Nitsche formulation
-
-    }
-
-    /**
-    * This function adds the Nitsche symmetric counterpart of the fluxes (Freund and Stenberg formulation).
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
-    * @param rSplittingData: reference to the intersection data structure
-    */
-    void AddSlipNoPenetrationFreundNitscheSymmetricCounterpartContribution2(MatrixType& rLeftHandSideMatrix,
-                                                                            VectorType& rRightHandSideVector,
-                                                                            const ElementDataType& rData,
-                                                                            const ElementSplittingDataStruct& rSplittingData)
-    {
-        constexpr unsigned int BlockSize = TDim+1;
-        constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
-
-        // Obtain the previous iteration velocity solution
-        array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
-
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            for (unsigned int comp=0; comp<TDim; comp++)
-            {
-                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
-            }
-            prev_sol(i*BlockSize+TDim) = rData.p(i);
-        }
-
-        // Declare auxiliar arrays
-        array_1d<double, MatrixSize> auxRightHandSideVector = ZeroVector(MatrixSize);
-        bounded_matrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
-
-        // Get the normal projection matrix in Voigt notation
-        bounded_matrix<double, TDim, (TDim-1)*3> voigt_normal_projection_matrix = ZeroMatrix(TDim, (TDim-1)*3);
-        SetVoigtNormalProjectionMatrix(rSplittingData, voigt_normal_projection_matrix);
-
-        // Get the strain matrix (constant since linear elements are used)
-        bounded_matrix<double, (TDim-1)*3, TNumNodes*TDim> B_matrix = ZeroMatrix((TDim-1)*3, TNumNodes*TDim);
-        SetStrainMatrix(rData, B_matrix);
-
         // Expand the B matrix to set 0 in the pressure rows. Besides, transpose it.
-        bounded_matrix<double, MatrixSize, (TDim-1)*3> trans_B_matrix_exp = ZeroMatrix(MatrixSize, MatrixSize);
+        bounded_matrix<double, MatrixSize, (TDim-1)*3> trans_B_matrix_exp = ZeroMatrix(MatrixSize, (TDim-1)*3);
         for (unsigned int i=0; i<TNumNodes; ++i)
         {
             for (unsigned int j=0; j<TDim; ++j)
@@ -2060,8 +1854,7 @@ protected:
         }
 
         // Compute some element constant matrices
-        const bounded_matrix<double, MatrixSize, (TDim-1)*3> aux_matrix_1 = prod(trans_B_matrix_exp, rData.C);
-        const bounded_matrix<double, MatrixSize, (TDim-1)*3> aux_matrix_2 = prod(aux_matrix_1, trans(voigt_normal_projection_matrix));
+        const bounded_matrix<double, MatrixSize, (TDim-1)*3> aux_matrix_BC = prod(trans_B_matrix_exp, trans(rData.C));
 
         for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
         {
@@ -2069,7 +1862,7 @@ protected:
             const VectorType aux_cut = row(rSplittingData.N_container_cut, icut);
 
             // Fill the pressure to Voigt notation operator matrix
-            bounded_matrix<double, TNumNodes*BlockSize, (TDim-1)*3> trans_pres_to_voigt_matrix_op = ZeroMatrix(TNumNodes*BlockSize, (TDim-1)*3);
+            bounded_matrix<double, MatrixSize, (TDim-1)*3> trans_pres_to_voigt_matrix_op = ZeroMatrix(MatrixSize, (TDim-1)*3);
             for (unsigned int i=0; i<TNumNodes; ++i)
             {
                 for (unsigned int comp=0; comp<TDim; ++comp)
@@ -2078,22 +1871,24 @@ protected:
                 }
             }
 
-            // Set the shape functions normal projection auxiliar matrix
-            bounded_matrix<double, MatrixSize, TDim> N_norm_proj = ZeroMatrix(TDim, MatrixSize);
+            // Set the shape functions auxiliar matrix
+            bounded_matrix<double, TDim, MatrixSize> N_aux = ZeroMatrix(TDim, MatrixSize);
             for (unsigned int i=0; i<TNumNodes; ++i)
             {
                 for (unsigned int comp=0; comp<TDim; ++comp)
                 {
-                    N_norm_proj(comp, i*BlockSize+comp) = aux_cut(i)*rSplittingData.intersection_normal(comp);
+                    N_aux(comp,i*BlockSize+comp) = aux_cut(i);
                 }
             }
 
+            const bounded_matrix<double, TDim, MatrixSize> N_aux_proj = prod(normal_projection_matrix, N_aux);
+            const bounded_matrix<double, (TDim-1)*3, MatrixSize> N_aux_proj_voigt = prod(trans(voigt_normal_projection_matrix), N_aux_proj);
+
             // Contribution coming fron the shear stress operator
-            auxLeftHandSideMatrix += weight*prod(aux_matrix_2, N_norm_proj);
+            auxLeftHandSideMatrix += weight*prod(aux_matrix_BC, N_aux_proj_voigt);
 
             // Contribution coming from the pressure terms
-            const bounded_matrix<double, MatrixSize, TDim> aux_matrix_3 = prod(trans_pres_to_voigt_matrix_op, trans(voigt_normal_projection_matrix));
-            auxLeftHandSideMatrix += weight*prod(aux_matrix_3, N_norm_proj);
+            auxLeftHandSideMatrix -= weight*prod(trans_pres_to_voigt_matrix_op, N_aux_proj_voigt);
 
         }
 
@@ -2101,8 +1896,25 @@ protected:
         rLeftHandSideMatrix -= auxLeftHandSideMatrix; // The minus sign comes from the Nitsche formulation
 
         // RHS outside Nitche contribution assembly
-        //TODO: Add the g RHS contribution (note that it is a substraction due to the minus sign)
+        // If level set velocity is not 0, add its contribution to the RHS
+        if (this->Has(EMBEDDED_VELOCITY))
+        {
+            const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
+            array_1d<double, MatrixSize> embedded_vel_exp = ZeroVector(MatrixSize);
+
+            for (unsigned int i=0; i<TNumNodes; ++i)
+            {
+                for (unsigned int comp=0; comp<TDim; ++comp)
+                {
+                    embedded_vel_exp(i*BlockSize+comp) = embedded_vel(comp);
+                }
+            }
+
+            auxRightHandSideVector += prod(auxLeftHandSideMatrix, embedded_vel_exp);
+        }
+
         // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
+        rRightHandSideVector -= auxRightHandSideVector;
         rRightHandSideVector += prod(auxLeftHandSideMatrix, prev_sol); // The plus sign comes from the Nitsche formulation
 
     }
@@ -2135,39 +1947,78 @@ protected:
             prev_sol(i*BlockSize+TDim) = rData.p(i);
         }
 
+        // Declare auxiliar arrays
+        bounded_matrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
 
+        // Get the normal projection matrix
+        bounded_matrix<double, TDim, TDim> normal_projection_matrix = ZeroMatrix(TDim, TDim);
+        SetNormalProjectionMatrix(rSplittingData, normal_projection_matrix);
 
-    }
+        // Get the normal projection matrix in Voigt notation
+        bounded_matrix<double, TDim, (TDim-1)*3> voigt_normal_projection_matrix = ZeroMatrix(TDim, (TDim-1)*3);
+        SetVoigtNormalProjectionMatrix(rSplittingData, voigt_normal_projection_matrix);
 
+        // Get the strain matrix (constant since linear elements are used)
+        bounded_matrix<double, (TDim-1)*3, TNumNodes*TDim> B_matrix = ZeroMatrix((TDim-1)*3, TNumNodes*TDim);
+        SetStrainMatrix(rData, B_matrix);
 
-    /**
-    * This function adds the null tangential stress contribution (Freund and Stenberg formulation).
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
-    * @param rSplittingData: reference to the intersection data structure
-    */
-    void AddSlipNoPenetrationFreundNitscheNullTangentialStressContribution2(MatrixType& rLeftHandSideMatrix,
-                                                                            VectorType& rRightHandSideVector,
-                                                                            const ElementDataType& rData,
-                                                                            const ElementSplittingDataStruct& rSplittingData)
-    {
-        constexpr unsigned int BlockSize = TDim+1;
-        constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
-
-        // Obtain the previous iteration velocity solution
-        array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
-
-        for (unsigned int i=0; i<TNumNodes; i++)
+        // Expand the B matrix to set 0 in the pressure rows.
+        bounded_matrix<double, (TDim-1)*3, MatrixSize> B_matrix_exp = ZeroMatrix((TDim-1)*3, MatrixSize);
+        for (unsigned int i=0; i<TNumNodes; ++i)
         {
-            for (unsigned int comp=0; comp<TDim; comp++)
+            for (unsigned int j=0; j<TDim; ++j)
             {
-                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
+                for (unsigned int k=0; k<(TDim-1)*3; ++k)
+                {
+                    B_matrix_exp(k, i*BlockSize+j) = B_matrix(k, i*TDim+j);
+                }
             }
-            prev_sol(i*BlockSize+TDim) = rData.p(i);
         }
 
+        // Compute some element constant matrices
+        const bounded_matrix<double, TDim, (TDim-1)*3> projection_matrix = prod(normal_projection_matrix, voigt_normal_projection_matrix);
+        const bounded_matrix<double, (TDim-1)*3, MatrixSize> aux_matrix_BC = prod(rData.C, B_matrix_exp);
 
+        for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
+        {
+            const double weight = rSplittingData.cut_edge_areas(icut);
+            const VectorType aux_cut = row(rSplittingData.N_container_cut, icut);
+
+            // Fill the pressure to Voigt notation operator matrix
+            bounded_matrix<double, (TDim-1)*3, MatrixSize> pres_to_voigt_matrix_op = ZeroMatrix((TDim-1)*3, MatrixSize);
+            for (unsigned int i=0; i<TNumNodes; ++i)
+            {
+                for (unsigned int comp=0; comp<TDim; ++comp)
+                {
+                    pres_to_voigt_matrix_op(comp, i*BlockSize+TDim) = aux_cut(i);
+                }
+            }
+
+            // Set the shape functions auxiliar transpose matrix
+            bounded_matrix<double, MatrixSize, TDim> N_aux_trans = ZeroMatrix(MatrixSize, TDim);
+            for (unsigned int i=0; i<TNumNodes; ++i)
+            {
+                for (unsigned int comp=0; comp<TDim; ++comp)
+                {
+                    N_aux_trans(i*BlockSize+comp, comp) = aux_cut(i);
+                }
+            }
+
+            const bounded_matrix<double, MatrixSize, (TDim-1)*3> N_aux_proj = prod(N_aux_trans, projection_matrix);
+
+            // Contribution coming fron the shear stress operator
+            auxLeftHandSideMatrix += weight*prod(N_aux_proj, aux_matrix_BC);
+
+            // Contribution coming from the pressure terms
+            auxLeftHandSideMatrix -= weight*prod(N_aux_proj, pres_to_voigt_matrix_op);
+
+        }
+
+        // LHS outside Nitche contribution assembly
+        rLeftHandSideMatrix -= auxLeftHandSideMatrix; // The minus sign comes from the Nitsche formulation
+
+        // RHS outside Nitche contribution assembly
+        rRightHandSideVector += prod(auxLeftHandSideMatrix, prev_sol); // The plus sign comes from the Nitsche formulation
 
     }
 
@@ -2209,12 +2060,9 @@ protected:
                 // // AddSlipNoPenetrationNitchePressureContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
 
                 // Pure Nitche implementation (Freund and Stenberg)
-                // AddSlipNoPenetrationFreundNitschePenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
-                // AddSlipNoPenetrationFreundNitscheSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
-                // AddSlipNoPenetrationFreundNitscheNullTangentialStressContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
-                AddSlipNoPenetrationFreundNitschePenaltyContribution2(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
-                AddSlipNoPenetrationFreundNitscheSymmetricCounterpartContribution2(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
-                // AddSlipNoPenetrationFreundNitscheNullTangentialStressContribution2(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
+                AddSlipNoPenetrationFreundNitschePenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
+                AddSlipNoPenetrationFreundNitscheSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
+                AddSlipNoPenetrationFreundNitscheNullTangentialStressContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
             }
             else
             {
