@@ -18,7 +18,7 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)      
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
-        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_MASS)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_STIFFNESS)
 
     def _apply_material_properties(self,mp):
