@@ -26,16 +26,16 @@ namespace Kratos
 void RoccoNetElement3D4N::Initialize()
 {
 	KRATOS_TRY
-		// using custom values for now, these must be input variables later
-		this->mDiameter = sqrt(0.1*0.1 * 2);   //0.405 / PI; //sqrt(0.1*0.1*2);
-	this->mThicknessWire = 0.001;
-	this->mNumberWindings = 10.00;
-	this->mKb = 700000.00;// 707213.578;
-	this->mKt = this->mKb *40;
-
+	this->mKb = this->GetProperties()[KB_ROCCO];
+	this->mNumberWindings = this->GetProperties()[WIRE_WINDINGS_ROCCO];
+	this->mThicknessWire = this->GetProperties()[WIRE_THICKNESS_ROCCO];
+	this->mDiameter = this->GetProperties()[DIAMETER_ROCCO];
+	this->mNodalMass_custom = this->GetProperties()[NODAL_MASS_ROCCO];
+	const int Kt_multiplyer = this->GetProperties()[KT_MULT_ROCCO];
 
 
 	//this is calculated from input variables
+	this->mKt = this->mKb * Kt_multiplyer;
 	this->mCircumference = this->mDiameter * PI;
 	this->mLengthDiagonalReference = this->mDiameter -
 		(this->mThicknessWire*sqrt(this->mNumberWindings));
@@ -50,32 +50,9 @@ void RoccoNetElement3D4N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 	const int dimension = this->GetGeometry().WorkingSpaceDimension();
 	const int element_size = number_of_nodes * dimension;
 
-	rLeftHandSideMatrix = ZeroMatrix(element_size, element_size);
-	rRightHandSideVector = ZeroVector(element_size);
 
-
-	//LHS
-	Matrix TempStiffness = ZeroMatrix(element_size, element_size);
-	this->AddDiagonalStiffnessContribution(TempStiffness);
-	rLeftHandSideMatrix += TempStiffness;
-
-	TempStiffness = ZeroMatrix(element_size, element_size);
-	this->AddCableStiffnessContribution(TempStiffness);
-	rLeftHandSideMatrix += TempStiffness;
-
-	//save LHS to pass to CalculateLHS()
-	this->mLHS = ZeroMatrix(element_size, element_size);
-	this->mLHS = rLeftHandSideMatrix;
-
-	//RHS
-	Vector TempInternalForces = ZeroVector(element_size);
-	this->AddDiagonalRHSForces(TempInternalForces);
-	rRightHandSideVector -= TempInternalForces;
-
-	TempInternalForces = ZeroVector(element_size);
-	this->AddCableRHSForces(TempInternalForces);
-	rRightHandSideVector -= TempInternalForces;
-
+	this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+	this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 	KRATOS_CATCH("")
 }
 void RoccoNetElement3D4N::CalculateRightHandSide(VectorType& rRightHandSideVector,
@@ -85,9 +62,9 @@ void RoccoNetElement3D4N::CalculateRightHandSide(VectorType& rRightHandSideVecto
 	const int number_of_nodes = this->GetGeometry().PointsNumber();
 	const int dimension = this->GetGeometry().WorkingSpaceDimension();
 	const int element_size = number_of_nodes * dimension;
-	//RHS
-	rRightHandSideVector = ZeroVector(element_size);
 
+	rRightHandSideVector = ZeroVector(element_size);
+	//RHS
 	Vector TempInternalForces = ZeroVector(element_size);
 	this->AddDiagonalRHSForces(TempInternalForces);
 	rRightHandSideVector -= TempInternalForces;
@@ -106,224 +83,23 @@ void RoccoNetElement3D4N::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 	const int LocalSize = NumNodes * dimension;
 
 	rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
-	rLeftHandSideMatrix = this->mLHS;
+
+	//LHS
+	Matrix TempStiffness = ZeroMatrix(LocalSize, LocalSize);
+	this->AddDiagonalStiffnessContribution(TempStiffness);
+	rLeftHandSideMatrix += TempStiffness;
+
+	TempStiffness = ZeroMatrix(LocalSize, LocalSize);
+	this->AddCableStiffnessContribution(TempStiffness);
+	rLeftHandSideMatrix += TempStiffness;
+
+	//save LHS to pass to CalculateLHS()
+	this->mLHS = ZeroMatrix(LocalSize, LocalSize);
+	this->mLHS = rLeftHandSideMatrix;
 	KRATOS_CATCH("")
 }
 
 
-
-//STIFFNESS CALCULATION
-void RoccoNetElement3D4N::AddDiagonalStiffnessContribution(Matrix& rLeftHandSideMatrix)
-{
-	KRATOS_TRY
-	const int number_of_nodes = this->GetGeometry().PointsNumber();
-	const int dimension = this->GetGeometry().WorkingSpaceDimension();
-	const int element_size = number_of_nodes * dimension;
-	const int spring_size = dimension * 2;
-
-	rLeftHandSideMatrix = ZeroMatrix(element_size, element_size);
-
-	Matrix DraftDiagonalK = ZeroMatrix(spring_size, spring_size);
-	Matrix TempDiagonalK = ZeroMatrix(spring_size, spring_size);
-	Matrix TempTransformationMatrix = ZeroMatrix(spring_size, spring_size);
-	Matrix AuxRotationMatrix = ZeroMatrix(spring_size, spring_size);
-	Matrix TempLeftHandSide = ZeroMatrix(element_size, element_size);
-	double StiffnessKb; //enhance function for this
-	DraftDiagonalK(0, 0) = 1.00;
-	DraftDiagonalK(0, 3) = -1.00;
-	DraftDiagonalK(3, 0) = -1.00;
-	DraftDiagonalK(3, 3) = 1.00;
-
-
-	//Diagonal Node 1 -> 3
-	StiffnessKb = this->CalculateDiagonalStiffnessKb(0, 2); //enhance function for this
-	TempDiagonalK = DraftDiagonalK * StiffnessKb;
-	this->CreateTransformationMatrix(TempTransformationMatrix, 0, 2);
-	AuxRotationMatrix = prod(TempTransformationMatrix, TempDiagonalK);
-	TempDiagonalK = prod(AuxRotationMatrix,
-		Matrix(trans(TempTransformationMatrix)));
-
-	for (int i = 0; i < dimension; ++i)
-	{
-		for (int j = 0; j < dimension; ++j)
-		{
-			TempLeftHandSide(i, j) += TempDiagonalK(i, j);
-			TempLeftHandSide(i, j + spring_size) +=
-				TempDiagonalK(i, j + dimension);
-			TempLeftHandSide(i + spring_size, j) +=
-				TempDiagonalK(i + dimension, j);
-			TempLeftHandSide(i + spring_size, j + spring_size) +=
-				TempDiagonalK(i + dimension, j + dimension);
-		}
-	}
-	rLeftHandSideMatrix += TempLeftHandSide;
-
-	//Diagonal Node 2 -> 4
-	StiffnessKb = this->CalculateDiagonalStiffnessKb(1, 3); //enhance function for this
-	TempDiagonalK = ZeroMatrix(spring_size, spring_size);
-	TempTransformationMatrix = ZeroMatrix(spring_size, spring_size);
-	AuxRotationMatrix = ZeroMatrix(spring_size, spring_size);
-	TempLeftHandSide = ZeroMatrix(element_size, element_size);
-
-	TempDiagonalK = DraftDiagonalK * StiffnessKb;
-	this->CreateTransformationMatrix(TempTransformationMatrix, 1, 3);
-	AuxRotationMatrix = prod(TempTransformationMatrix, TempDiagonalK);
-	TempDiagonalK = prod(AuxRotationMatrix,
-		Matrix(trans(TempTransformationMatrix)));
-
-	for (int i = 0; i < dimension; ++i)
-	{
-		int ii = i + dimension;
-		for (int j = 0; j < dimension; ++j)
-		{
-			int jj = j + dimension;
-			TempLeftHandSide(ii, jj) += TempDiagonalK(i, j);
-			TempLeftHandSide(ii, jj + spring_size) +=
-				TempDiagonalK(i, j + dimension);
-			TempLeftHandSide(ii + spring_size, jj) +=
-				TempDiagonalK(i + dimension, j);
-			TempLeftHandSide(ii + spring_size, jj + spring_size) +=
-				TempDiagonalK(i + dimension, j + dimension);
-		}
-	}
-	rLeftHandSideMatrix += TempLeftHandSide;
-	KRATOS_CATCH("")
-}
-void RoccoNetElement3D4N::AddCableStiffnessContribution(Matrix& rLeftHandSideMatrix)
-{
-	KRATOS_TRY
-	const int number_of_nodes = this->GetGeometry().PointsNumber();
-	const int dimension = this->GetGeometry().WorkingSpaceDimension();
-	const int element_size = number_of_nodes * dimension;
-	const int spring_size = dimension * 2;
-
-	const double ReferenceCableLength = this->mCircumference;
-	const double ActualCableLength = this->CalculateActualCableLength();
-
-	rLeftHandSideMatrix = ZeroMatrix(element_size, element_size);
-
-	double StiffnessKt = this->mKt*4.00;
-
-	if (ReferenceCableLength > ActualCableLength && this->mCableResistanceReached == false)
-	{
-		this->mCableResistanceReached = false;
-	}
-	else this->mCableResistanceReached = true;
-
-	if (this->mCableResistanceReached == true)
-	{
-		Matrix TempDiagonalK = ZeroMatrix(spring_size, spring_size);
-		Matrix TempTransformationMatrix = ZeroMatrix(spring_size, spring_size);
-		Matrix AuxRotationMatrix = ZeroMatrix(spring_size, spring_size);
-		Matrix DraftDiagonalK = ZeroMatrix(spring_size, spring_size);
-		Matrix TempLeftHandSide = ZeroMatrix(element_size, element_size);
-
-		DraftDiagonalK(0, 0) = 1.00 * StiffnessKt;
-		DraftDiagonalK(0, 3) = -1.00 * StiffnessKt;
-		DraftDiagonalK(3, 0) = -1.00 * StiffnessKt;
-		DraftDiagonalK(3, 3) = 1.00 * StiffnessKt;
-
-		// Kt relates now to the respective displacement not the total delta L....
-
-		//node 1 -> 2
-		this->CreateTransformationMatrix(TempTransformationMatrix, 0, 1);
-		AuxRotationMatrix = prod(TempTransformationMatrix, DraftDiagonalK);
-		TempDiagonalK = prod(AuxRotationMatrix,
-			Matrix(trans(TempTransformationMatrix)));
-
-		for (int i = 0; i < spring_size; ++i)
-		{
-			for (int j = 0; j < spring_size; ++j)
-			{
-				TempLeftHandSide(i, j) += TempDiagonalK(i, j);
-			}
-		}
-		rLeftHandSideMatrix += TempLeftHandSide;
-	
-
-		//node 2 -> 3
-		TempDiagonalK = ZeroMatrix(spring_size, spring_size);
-		TempTransformationMatrix = ZeroMatrix(spring_size, spring_size);
-		AuxRotationMatrix = ZeroMatrix(spring_size, spring_size);
-		TempLeftHandSide = ZeroMatrix(element_size, element_size);
-
-		this->CreateTransformationMatrix(TempTransformationMatrix, 1, 2);
-		AuxRotationMatrix = prod(TempTransformationMatrix, DraftDiagonalK);
-		TempDiagonalK = prod(AuxRotationMatrix,
-			Matrix(trans(TempTransformationMatrix)));
-
-		for (int i = 0; i < spring_size; ++i)
-		{
-			for (int j = 0; j < spring_size; ++j)
-			{
-				TempLeftHandSide(i + dimension, j + dimension) += TempDiagonalK(i, j);
-			}
-		}
-		rLeftHandSideMatrix += TempLeftHandSide;
-
-		//node 3 -> 4
-		TempDiagonalK = ZeroMatrix(spring_size, spring_size);
-		TempTransformationMatrix = ZeroMatrix(spring_size, spring_size);
-		AuxRotationMatrix = ZeroMatrix(spring_size, spring_size);
-		TempLeftHandSide = ZeroMatrix(element_size, element_size);
-
-		this->CreateTransformationMatrix(TempTransformationMatrix, 2, 3);
-		AuxRotationMatrix = prod(TempTransformationMatrix, DraftDiagonalK);
-		TempDiagonalK = prod(AuxRotationMatrix,
-			Matrix(trans(TempTransformationMatrix)));
-
-		for (int i = 0; i < spring_size; ++i)
-		{
-			for (int j = 0; j < spring_size; ++j)
-			{
-				TempLeftHandSide(i + (2 * dimension), j + (2 * dimension))
-					+= TempDiagonalK(i, j);
-			}
-		}
-		rLeftHandSideMatrix += TempLeftHandSide;
-
-		//node 4 -> 1
-		TempDiagonalK = ZeroMatrix(spring_size, spring_size);
-		TempTransformationMatrix = ZeroMatrix(spring_size, spring_size);
-		AuxRotationMatrix = ZeroMatrix(spring_size, spring_size);
-		TempLeftHandSide = ZeroMatrix(element_size, element_size);
-
-		this->CreateTransformationMatrix(TempTransformationMatrix, 3, 0);
-		AuxRotationMatrix = prod(TempTransformationMatrix, DraftDiagonalK);
-		TempDiagonalK = prod(AuxRotationMatrix,
-			Matrix(trans(TempTransformationMatrix)));
-
-		for (int i = 0; i < dimension; ++i)
-		{
-			for (int j = 0; j < dimension; ++j)
-			{
-				TempLeftHandSide(i, j) += TempDiagonalK(i, j);
-				TempLeftHandSide(i + (3 * dimension), j + (3 * dimension)) +=
-					TempDiagonalK(i + dimension, j + dimension);
-
-				TempLeftHandSide(i, j + (3 * dimension)) += TempDiagonalK(i, j + dimension);
-				TempLeftHandSide(i + (3 * dimension), j) += TempDiagonalK(i + dimension, j);
-			}
-		}
-		rLeftHandSideMatrix += TempLeftHandSide;
-	}
-	KRATOS_CATCH("")
-}
-double RoccoNetElement3D4N::CalculateDiagonalStiffnessKb(const int node1, const int node2)
-{
-	const int number_of_nodes = this->GetGeometry().PointsNumber();
-	const int dimension = this->GetGeometry().WorkingSpaceDimension();
-	const int element_size = number_of_nodes * dimension;
-
-	double StiffnessKb = this->mKb;
-	const double length = this->CalculateActualDiagonalLength(node1, node2);
-	const double RefLength = this->mLengthDiagonalReference;
-
-	// use dring - tring as ref length
-	if (length <= RefLength) StiffnessKb = 0.00;
-
-	return StiffnessKb;
-}
 
 //RHS CALCUALTION
 void RoccoNetElement3D4N::AddDiagonalRHSForces(Vector& rInternalForces)
@@ -361,19 +137,18 @@ void RoccoNetElement3D4N::AddDiagonalRHSForces(Vector& rInternalForces)
 		this->mNormalResistanceReached = true; // true
 	}
 
-	//create diagonal RHS local   ---> changed N due to Axel's Email
+	//create diagonal RHS local   
 	double N1, N2;
 	// Diagonal 1
 	if (u1 <= 0.00) N1 = 0.00;
 	else if (u1 > 0.00 && mNormalResistanceReached == false) N1 = StiffnessKb * u1;
-	//else N1 = StiffnessKb * this->mdN1;
-	else N1 = StiffnessKb * u1;
+	else N1 = StiffnessKb * this->mdN1;
 
 	// Diagonal 1
 	if (u2 <= 0.00) N2 = 0.00;
 	else if (u2 > 0.00 && mNormalResistanceReached == false) N2 = StiffnessKb * u2;
-	//else N2 = StiffnessKb * this->mdN2;
-	else N2 = StiffnessKb * u2;
+	else N2 = StiffnessKb * this->mdN2;
+
 
 	Vector InnerForces1 = ZeroVector(spring_size);
 	Vector InnerForces2 = ZeroVector(spring_size);
@@ -470,6 +245,14 @@ void RoccoNetElement3D4N::AddCableRHSForces(Vector& rInternalForces)
 
 	KRATOS_CATCH("");
 }
+
+
+
+
+
+
+
+
 
 //LENGTH CALCULATION
 double RoccoNetElement3D4N::CalculateActualCableLength()
@@ -598,25 +381,218 @@ double RoccoNetElement3D4N::CalculateCableLengthRefNodes()
 }
 
 
+//STIFFNESS CALCULATION
+void RoccoNetElement3D4N::AddDiagonalStiffnessContribution(Matrix& rLeftHandSideMatrix)
+{
+	KRATOS_TRY
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
+	const int dimension = this->GetGeometry().WorkingSpaceDimension();
+	const int element_size = number_of_nodes * dimension;
+	const int spring_size = dimension * 2;
+
+	rLeftHandSideMatrix = ZeroMatrix(element_size, element_size);
+
+	Matrix DraftDiagonalK = ZeroMatrix(spring_size, spring_size);
+	Matrix TempDiagonalK = ZeroMatrix(spring_size, spring_size);
+	Matrix TempTransformationMatrix = ZeroMatrix(spring_size, spring_size);
+	Matrix AuxRotationMatrix = ZeroMatrix(spring_size, spring_size);
+	Matrix TempLeftHandSide = ZeroMatrix(element_size, element_size);
+	double StiffnessKb; //enhance function for this
+	DraftDiagonalK(0, 0) = 1.00;
+	DraftDiagonalK(0, 3) = -1.00;
+	DraftDiagonalK(3, 0) = -1.00;
+	DraftDiagonalK(3, 3) = 1.00;
 
 
+	//Diagonal Node 1 -> 3
+	StiffnessKb = this->CalculateDiagonalStiffnessKb(0, 2); //enhance function for this
+	TempDiagonalK = DraftDiagonalK * StiffnessKb;
+	this->CreateTransformationMatrix(TempTransformationMatrix, 0, 2);
+	AuxRotationMatrix = prod(TempTransformationMatrix, TempDiagonalK);
+	TempDiagonalK = prod(AuxRotationMatrix,
+		Matrix(trans(TempTransformationMatrix)));
+
+	for (int i = 0; i < dimension; ++i)
+	{
+		for (int j = 0; j < dimension; ++j)
+		{
+			TempLeftHandSide(i, j) += TempDiagonalK(i, j);
+			TempLeftHandSide(i, j + spring_size) +=
+				TempDiagonalK(i, j + dimension);
+			TempLeftHandSide(i + spring_size, j) +=
+				TempDiagonalK(i + dimension, j);
+			TempLeftHandSide(i + spring_size, j + spring_size) +=
+				TempDiagonalK(i + dimension, j + dimension);
+		}
+	}
+	rLeftHandSideMatrix += TempLeftHandSide;
+
+	//Diagonal Node 2 -> 4
+	StiffnessKb = this->CalculateDiagonalStiffnessKb(1, 3); //enhance function for this
+	TempDiagonalK = ZeroMatrix(spring_size, spring_size);
+	TempTransformationMatrix = ZeroMatrix(spring_size, spring_size);
+	AuxRotationMatrix = ZeroMatrix(spring_size, spring_size);
+	TempLeftHandSide = ZeroMatrix(element_size, element_size);
+
+	TempDiagonalK = DraftDiagonalK * StiffnessKb;
+	this->CreateTransformationMatrix(TempTransformationMatrix, 1, 3);
+	AuxRotationMatrix = prod(TempTransformationMatrix, TempDiagonalK);
+	TempDiagonalK = prod(AuxRotationMatrix,
+		Matrix(trans(TempTransformationMatrix)));
+
+	for (int i = 0; i < dimension; ++i)
+	{
+		int ii = i + dimension;
+		for (int j = 0; j < dimension; ++j)
+		{
+			int jj = j + dimension;
+			TempLeftHandSide(ii, jj) += TempDiagonalK(i, j);
+			TempLeftHandSide(ii, jj + spring_size) +=
+				TempDiagonalK(i, j + dimension);
+			TempLeftHandSide(ii + spring_size, jj) +=
+				TempDiagonalK(i + dimension, j);
+			TempLeftHandSide(ii + spring_size, jj + spring_size) +=
+				TempDiagonalK(i + dimension, j + dimension);
+		}
+	}
+	rLeftHandSideMatrix += TempLeftHandSide;
+	KRATOS_CATCH("")
+}
+void RoccoNetElement3D4N::AddCableStiffnessContribution(Matrix& rLeftHandSideMatrix)
+{
+	KRATOS_TRY
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
+	const int dimension = this->GetGeometry().WorkingSpaceDimension();
+	const int element_size = number_of_nodes * dimension;
+	const int spring_size = dimension * 2;
+
+	const double ReferenceCableLength = this->mCircumference;
+	const double ActualCableLength = this->CalculateActualCableLength();
+
+	rLeftHandSideMatrix = ZeroMatrix(element_size, element_size);
+
+	double StiffnessKt = this->mKt*4.00;
+
+	if (ReferenceCableLength > ActualCableLength && this->mCableResistanceReached == false)
+	{
+		this->mCableResistanceReached = false;
+	}
+	else this->mCableResistanceReached = true;
+
+	if (this->mCableResistanceReached == true)
+	{
+		Matrix TempDiagonalK = ZeroMatrix(spring_size, spring_size);
+		Matrix TempTransformationMatrix = ZeroMatrix(spring_size, spring_size);
+		Matrix AuxRotationMatrix = ZeroMatrix(spring_size, spring_size);
+		Matrix DraftDiagonalK = ZeroMatrix(spring_size, spring_size);
+		Matrix TempLeftHandSide = ZeroMatrix(element_size, element_size);
+
+		DraftDiagonalK(0, 0) = 1.00 * StiffnessKt;
+		DraftDiagonalK(0, 3) = -1.00 * StiffnessKt;
+		DraftDiagonalK(3, 0) = -1.00 * StiffnessKt;
+		DraftDiagonalK(3, 3) = 1.00 * StiffnessKt;
+
+		// Kt relates now to the respective displacement not the total delta L....
+
+		//node 1 -> 2
+		this->CreateTransformationMatrix(TempTransformationMatrix, 0, 1);
+		AuxRotationMatrix = prod(TempTransformationMatrix, DraftDiagonalK);
+		TempDiagonalK = prod(AuxRotationMatrix,
+			Matrix(trans(TempTransformationMatrix)));
+
+		for (int i = 0; i < spring_size; ++i)
+		{
+			for (int j = 0; j < spring_size; ++j)
+			{
+				TempLeftHandSide(i, j) += TempDiagonalK(i, j);
+			}
+		}
+		rLeftHandSideMatrix += TempLeftHandSide;
 
 
+		//node 2 -> 3
+		TempDiagonalK = ZeroMatrix(spring_size, spring_size);
+		TempTransformationMatrix = ZeroMatrix(spring_size, spring_size);
+		AuxRotationMatrix = ZeroMatrix(spring_size, spring_size);
+		TempLeftHandSide = ZeroMatrix(element_size, element_size);
 
+		this->CreateTransformationMatrix(TempTransformationMatrix, 1, 2);
+		AuxRotationMatrix = prod(TempTransformationMatrix, DraftDiagonalK);
+		TempDiagonalK = prod(AuxRotationMatrix,
+			Matrix(trans(TempTransformationMatrix)));
 
+		for (int i = 0; i < spring_size; ++i)
+		{
+			for (int j = 0; j < spring_size; ++j)
+			{
+				TempLeftHandSide(i + dimension, j + dimension) += TempDiagonalK(i, j);
+			}
+		}
+		rLeftHandSideMatrix += TempLeftHandSide;
 
+		//node 3 -> 4
+		TempDiagonalK = ZeroMatrix(spring_size, spring_size);
+		TempTransformationMatrix = ZeroMatrix(spring_size, spring_size);
+		AuxRotationMatrix = ZeroMatrix(spring_size, spring_size);
+		TempLeftHandSide = ZeroMatrix(element_size, element_size);
 
+		this->CreateTransformationMatrix(TempTransformationMatrix, 2, 3);
+		AuxRotationMatrix = prod(TempTransformationMatrix, DraftDiagonalK);
+		TempDiagonalK = prod(AuxRotationMatrix,
+			Matrix(trans(TempTransformationMatrix)));
 
+		for (int i = 0; i < spring_size; ++i)
+		{
+			for (int j = 0; j < spring_size; ++j)
+			{
+				TempLeftHandSide(i + (2 * dimension), j + (2 * dimension))
+					+= TempDiagonalK(i, j);
+			}
+		}
+		rLeftHandSideMatrix += TempLeftHandSide;
 
+		//node 4 -> 1
+		TempDiagonalK = ZeroMatrix(spring_size, spring_size);
+		TempTransformationMatrix = ZeroMatrix(spring_size, spring_size);
+		AuxRotationMatrix = ZeroMatrix(spring_size, spring_size);
+		TempLeftHandSide = ZeroMatrix(element_size, element_size);
 
+		this->CreateTransformationMatrix(TempTransformationMatrix, 3, 0);
+		AuxRotationMatrix = prod(TempTransformationMatrix, DraftDiagonalK);
+		TempDiagonalK = prod(AuxRotationMatrix,
+			Matrix(trans(TempTransformationMatrix)));
 
+		for (int i = 0; i < dimension; ++i)
+		{
+			for (int j = 0; j < dimension; ++j)
+			{
+				TempLeftHandSide(i, j) += TempDiagonalK(i, j);
+				TempLeftHandSide(i + (3 * dimension), j + (3 * dimension)) +=
+					TempDiagonalK(i + dimension, j + dimension);
 
+				TempLeftHandSide(i, j + (3 * dimension)) += TempDiagonalK(i, j + dimension);
+				TempLeftHandSide(i + (3 * dimension), j) += TempDiagonalK(i + dimension, j);
+			}
+		}
+		rLeftHandSideMatrix += TempLeftHandSide;
+	}
+	KRATOS_CATCH("")
+}
+double RoccoNetElement3D4N::CalculateDiagonalStiffnessKb(const int node1, const int node2)
+{
+	const int number_of_nodes = this->GetGeometry().PointsNumber();
+	const int dimension = this->GetGeometry().WorkingSpaceDimension();
+	const int element_size = number_of_nodes * dimension;
 
+	double StiffnessKb = this->mKb;
+	const double length = this->CalculateActualDiagonalLength(node1, node2);
+	const double RefLength = this->mLengthDiagonalReference;
 
+	// use dring - tring as ref length
+	if (length <= RefLength) StiffnessKb = 0.00;
 
-
-
-
+	return StiffnessKb;
+}
 
 
 
@@ -763,40 +739,43 @@ int RoccoNetElement3D4N::Check(const ProcessInfo& rCurrentProcessInfo)
 			KRATOS_THROW_ERROR(std::logic_error, "This Element needs at least a buffer size = 2", "");
 	}
 
-	// check properties
-	if (this->pGetProperties() == NULL)
-		KRATOS_THROW_ERROR(std::logic_error, "Properties not provided for element ", this->Id());
-
-	const PropertiesType & props = this->GetProperties();
-
-	if (props.Has(SHELL_CROSS_SECTION)) // if the user specified a cross section ...
+	if (this->GetProperties().Has(KB_ROCCO) == false ||
+		this->GetProperties()[KB_ROCCO] == 0)
 	{
-		const ShellCrossSection::Pointer & section = props[SHELL_CROSS_SECTION];
-		if (section == NULL)
-			KRATOS_THROW_ERROR(std::logic_error, "SHELL_CROSS_SECTION not provided for element ", this->Id());
-
-		section->Check(props, geom, rCurrentProcessInfo);
+		KRATOS_ERROR << ("KB_ROCCO not provided for this element", this->Id()) << std::endl;
 	}
-	else // ... allow the automatic creation of a homogeneous section from a material and a thickness
+
+	if (this->GetProperties().Has(WIRE_WINDINGS_ROCCO) == false ||
+		this->GetProperties()[WIRE_WINDINGS_ROCCO] == 0)
 	{
-		if (!props.Has(CONSTITUTIVE_LAW))
-			KRATOS_THROW_ERROR(std::logic_error, "CONSTITUTIVE_LAW not provided for element ", this->Id());
-		const ConstitutiveLaw::Pointer& claw = props[CONSTITUTIVE_LAW];
-		if (claw == NULL)
-			KRATOS_THROW_ERROR(std::logic_error, "CONSTITUTIVE_LAW not provided for element ", this->Id());
-
-		if (!props.Has(THICKNESS))
-			KRATOS_THROW_ERROR(std::logic_error, "THICKNESS not provided for element ", this->Id());
-		if (props[THICKNESS] <= 0.0)
-			KRATOS_THROW_ERROR(std::logic_error, "wrong THICKNESS value provided for element ", this->Id());
-
-		ShellCrossSection::Pointer dummySection = ShellCrossSection::Pointer(new ShellCrossSection());
-		dummySection->BeginStack();
-		dummySection->AddPly(props[THICKNESS], 0.0, 5, this->pGetProperties());
-		dummySection->EndStack();
-		dummySection->SetSectionBehavior(ShellCrossSection::Thick);
-		dummySection->Check(props, geom, rCurrentProcessInfo);
+		KRATOS_ERROR << ("WIRE_WINDINGS_ROCCO not provided for this element", this->Id()) << std::endl;
 	}
+
+	if (this->GetProperties().Has(WIRE_THICKNESS_ROCCO) == false ||
+		this->GetProperties()[WIRE_THICKNESS_ROCCO] == 0)
+	{
+		KRATOS_ERROR << ("WIRE_THICKNESS_ROCCO not provided for this element", this->Id()) << std::endl;
+	}
+
+	if (this->GetProperties().Has(DIAMETER_ROCCO) == false ||
+		this->GetProperties()[DIAMETER_ROCCO] == 0)
+	{
+		KRATOS_ERROR << ("DIAMETER_ROCCO not provided for this element", this->Id()) << std::endl;
+	}
+
+	if (this->GetProperties().Has(NODAL_MASS_ROCCO) == false ||
+		this->GetProperties()[NODAL_MASS_ROCCO] == 0)
+	{
+		KRATOS_ERROR << ("NODAL_MASS_ROCCO not provided for this element", this->Id()) << std::endl;
+	}
+
+	if (this->GetProperties().Has(KT_MULT_ROCCO) == false ||
+		this->GetProperties()[KT_MULT_ROCCO] == 0)
+	{
+		KRATOS_ERROR << ("KT_MULT_ROCCO not provided for this element", this->Id()) << std::endl;
+	}
+
+	
 
 	return 0;
 
@@ -927,6 +906,13 @@ void RoccoNetElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessIn
 	}
 
 	rMassMatrix = ZeroMatrix(element_size, element_size);
+
+	const double NodalMassRocco = this->mNodalMass_custom;
+
+	for (int i = 0; i < element_size; ++i)
+	{
+		rMassMatrix(i, i) = NodalMassRocco;
+	}
 	KRATOS_CATCH("")
 }
 
@@ -941,8 +927,46 @@ void RoccoNetElement3D4N::CalculateDampingMatrix(MatrixType& rDampingMatrix, Pro
 	{
 		rDampingMatrix.resize(element_size, element_size, false);
 	}
-
+	///TODO!
 	rDampingMatrix = ZeroMatrix(element_size, element_size);
 	KRATOS_CATCH("")
 }
+
+
+void RoccoNetElement3D4N::AddExplicitContribution(const VectorType& rRHSVector,
+	const Variable<VectorType>& rRHSVariable,
+	Variable<array_1d<double, 3> >& rDestinationVariable,
+	const ProcessInfo& rCurrentProcessInfo)
+{
+	KRATOS_TRY;
+	const int number_of_nodes = this->GetGeometry().PointsNumber();
+	const int dimension = this->GetGeometry().WorkingSpaceDimension();
+	const int element_size = number_of_nodes * dimension;
+
+	if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL)
+	{
+
+		for (int i = 0; i< number_of_nodes; ++i)
+		{
+			int index = dimension * i;
+
+			GetGeometry()[i].SetLock();
+
+			array_1d<double, 3 > &ForceResidual =
+				GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+
+			for (int j = 0; j<dimension; ++j)
+			{
+				ForceResidual[j] += rRHSVector[index + j];
+			}
+
+			GetGeometry()[i].UnSetLock();
+		}
+	}
+	KRATOS_CATCH("")
 }
+
+
+
+
+} // namespace Kratos.

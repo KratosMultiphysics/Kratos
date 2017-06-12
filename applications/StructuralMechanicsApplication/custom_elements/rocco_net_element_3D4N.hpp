@@ -145,6 +145,11 @@ public:
 
 	double CalculateDiagonalStiffnessKb(const int node1, const int node2);
 
+	void AddExplicitContribution(const VectorType& rRHSVector,
+		const Variable<VectorType>& rRHSVariable,
+		Variable<array_1d<double, 3> >& rDestinationVariable,
+		const ProcessInfo& rCurrentProcessInfo) override;
+
 private:
 
 
@@ -154,6 +159,7 @@ private:
 	bool mNormalResistanceReached = false;
 	bool mCableResistanceReached = false;
 	Matrix mLHS;
+	double mNodalMass_custom;
 
 	RoccoNetElement3D4N() : Element() {}
 
