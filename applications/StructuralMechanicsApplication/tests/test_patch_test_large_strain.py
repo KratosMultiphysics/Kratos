@@ -205,7 +205,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         
         
 
-    def test_TL_2D_triangle(self):
+    def _test_TL_2D_triangle(self):
         dim = 2
         mp = KratosMultiphysics.ModelPart("solid_part")
         self._add_variables(mp)
@@ -240,7 +240,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
         
-    def test_TL_3D_hexa(self):  
+    def _test_TL_3D_hexa(self):  
         dim = 3
         mp = KratosMultiphysics.ModelPart("solid_part")
         self._add_variables(mp)
@@ -291,8 +291,8 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         self._check_outputs(mp,A,dim)
         
     def test_execution(self):
-        self.test_TL_2D_triangle()
-        self.test_TL_3D_hexa()
+        self._test_TL_2D_triangle()
+        self._test_TL_3D_hexa()
 
 if __name__ == '__main__':
     KratosUnittest.main()

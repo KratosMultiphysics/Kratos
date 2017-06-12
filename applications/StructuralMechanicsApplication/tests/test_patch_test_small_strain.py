@@ -217,7 +217,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         
         
 
-    def test_SmallDisplacementElement_2D_triangle(self):
+    def _test_SmallDisplacementElement_2D_triangle(self):
         dim = 2
         mp = KratosMultiphysics.ModelPart("solid_part")
         self._add_variables(mp)
@@ -265,7 +265,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
                         coeff = Area/12.0
                     self.assertAlmostEqual(M[i*dim+k,j*dim+k],coeff)
         
-    def test_SmallDisplacementElement_3D_hexa(self): 
+    def _test_SmallDisplacementElement_3D_hexa(self): 
         dim = 3
         mp = KratosMultiphysics.ModelPart("solid_part")
         self._add_variables(mp)
@@ -314,8 +314,8 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         self._check_outputs(mp,A,dim)
     
     def test_execution(self):
-        self.test_SmallDisplacementElement_2D_triangle()
-        self.test_SmallDisplacementElement_3D_hexa()
+        self._test_SmallDisplacementElement_2D_triangle()
+        self._test_SmallDisplacementElement_3D_hexa()
         
 if __name__ == '__main__':
     KratosUnittest.main()

@@ -143,23 +143,26 @@ def AssambleTestSuites():
     # SPRISM tests
     smallSuite.addTest(TSprismMembranePatchTests('test_execution'))
     smallSuite.addTest(TSprismBendingPatchTests('test_execution'))
-    # Eigenvalues tests
-    smallSuite.addTest(TEigenQ4Thick2x2PlateTests('test_execution'))
-    smallSuite.addTest(TEigen3D3NThinCircleTests('test_execution'))
-    smallSuite.addTest(TEigenTL3D8NCubeTests('test_execution'))
     # Membrane tests
     smallSuite.addTest(TFofi4PointTentnoCableTests('test_execution'))
     smallSuite.addTest(TMembraneQ4PointLoadTests('test_execution'))
     # Nodal damping test
     smallSuite.addTest(TNodalDampingTests('test_execution'))
-    smallSuite.addTest(TSpringDamperElementTests('test_execution'))
 
-    # TODO: Add Riccardo's tests
+    if (missing_external_dependencies == False):
+        if( hasattr(KratosMultiphysics.ExternalSolversApplication,  "FEASTSolver") ):
+            # Eigenvalues tests
+            smallSuite.addTest(TEigenQ4Thick2x2PlateTests('test_execution'))
+            smallSuite.addTest(TEigen3D3NThinCircleTests('test_execution'))
+            smallSuite.addTest(TEigenTL3D8NCubeTests('test_execution'))
+            # Element damping test
+            smallSuite.addTest(TSpringDamperElementTests('test_execution'))
+        else:
+            print("FEASTSolver solver is not included in the compilation of the External Solvers Application")
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-    # Shell tests
     # Shell tests
     nightSuite.addTest(TShellQ4ThickBendingRollUpTests('test_execution'))
     nightSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution'))
@@ -185,7 +188,6 @@ def AssambleTestSuites():
             TDynamicBossakTests,
             TDynamicNewmarkTests,
             TNodalDampingTests,
-            TSpringDamperElementTests,
             TSDTwoDShearQuaPatchTest,
             TSDTwoDShearTriPatchTest,
             TSDTwoDTensionQuaPatchTest,
@@ -228,6 +230,7 @@ def AssambleTestSuites():
         if( hasattr(KratosMultiphysics.ExternalSolversApplication,  "FEASTSolver") ):
             allSuite.addTests(
                 KratosUnittest.TestLoader().loadTestsFromTestCases([
+                    TSpringDamperElementTests,
                     TEigenQ4Thick2x2PlateTests,
                     TEigenTL3D8NCubeTests,
                     TEigen3D3NThinCircleTests
