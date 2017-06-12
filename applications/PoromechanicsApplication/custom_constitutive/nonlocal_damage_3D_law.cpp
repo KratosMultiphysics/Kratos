@@ -98,7 +98,7 @@ void NonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     // CharacteristicSize (for nonlocal damage it must be 1.0)
     ReturnMappingVariables.CharacteristicSize = 1.0;
 
-    if(Options.Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY)) // LOCAL QUANTITIES
+    if(Options.Is(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE)) // LOCAL QUANTITIES
     {
         if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
         {

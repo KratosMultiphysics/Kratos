@@ -71,13 +71,15 @@ void ThermalLinearElastic3DLawNodal::CalculateMaterialResponseKirchhoff (Paramet
 		
       if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){ //TOTAL STRESS
 	  
-	double Temperature;
-	this->CalculateDomainTemperature( ElasticVariables, Temperature);
+        double Temperature;
+        this->CalculateDomainTemperature( ElasticVariables, Temperature);
 
-	Vector ThermalStrainVector;
-	this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,Temperature);
+        Vector ThermalStrainVector;
+        this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,Temperature);
 
-	StressVector = prod(ConstitutiveMatrix,(StrainVector - ThermalStrainVector));
+        Vector tmp(StrainVector.size());
+        noalias(tmp) = StrainVector - ThermalStrainVector;
+        noalias(StressVector) = prod(ConstitutiveMatrix,tmp);
       }
     }
     else if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){ //TOTAL STRESS
@@ -86,7 +88,7 @@ void ThermalLinearElastic3DLawNodal::CalculateMaterialResponseKirchhoff (Paramet
  
 	this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 	
-	StressVector = prod(ConstitutiveMatrix,StrainVector);
+	noalias(StressVector) = prod(ConstitutiveMatrix,StrainVector);
       }
       else if( Options.Is( ConstitutiveLaw::THERMAL_RESPONSE_ONLY ) ){ //This should be COMPUTE_THERMAL_STRESS
 	
@@ -97,19 +99,21 @@ void ThermalLinearElastic3DLawNodal::CalculateMaterialResponseKirchhoff (Paramet
 	
 	this->CalculateThermalStrain(StrainVector,ElasticVariables,Temperature);
 	
-	StressVector = prod(ConstitutiveMatrix,StrainVector);
+	noalias(StressVector) = prod(ConstitutiveMatrix,StrainVector);
       }
       else{
 	
-	this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
-	
-	double Temperature;
-	this->CalculateDomainTemperature( ElasticVariables, Temperature);
-	
-	Vector ThermalStrainVector;
-	this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,Temperature);
-	
-	StressVector = prod(ConstitutiveMatrix,(StrainVector - ThermalStrainVector));
+        this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+        
+        double Temperature;
+        this->CalculateDomainTemperature( ElasticVariables, Temperature);
+        
+        Vector ThermalStrainVector;
+        this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,Temperature);
+
+        Vector tmp(StrainVector.size());
+        noalias(tmp) = StrainVector - ThermalStrainVector;
+        noalias(StressVector) = prod(ConstitutiveMatrix,tmp);
 	
       }  
 
