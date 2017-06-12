@@ -95,15 +95,10 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                 for i in range(self.params["check_variables"].size()):
                     out = self.params["check_variables"][i]
                     variable = KratosMultiphysics.KratosGlobals.GetVariable( out.GetString() )
-                    val = node.GetSolutionStepValue(variable, 0)
-                    if isinstance(val,float):
-                        value_scalar = True
-                    else:
-                        value_scalar = False
 
                     value = node.GetSolutionStepValue(variable, 0)
                     # Scalar variable
-                    if value_scalar:
+                    if isinstance(value,float):
                         values_json = self.data["NODE_"+str(node.Id)][out.GetString() ]
                         value_json = linear_interpolation(time, input_time_list, values_json)
                         if (self.iscloseavailable == True):
@@ -113,35 +108,45 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                             self.assertAlmostEqual(value, value_json, msg=("Error checking node "+str(node.Id)+" "+out.GetString()+" results."), delta=tol)
                     # Vector variable
                     else:
-                        if (self.iscloseavailable == True):
-                            # X-component
-                            values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_X"]
-                            value_json = linear_interpolation(time, input_time_list, values_json)
-                            isclosethis = math.isclose(value[0], value_json, rel_tol=reltol, abs_tol=tol)
-                            self.assertTrue(isclosethis)
-                            # Y-component
-                            values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_Y"]
-                            value_json = linear_interpolation(time, input_time_list, values_json)
-                            isclosethis = math.isclose(value[1], value_json, rel_tol=reltol, abs_tol=tol)
-                            self.assertTrue(isclosethis)
-                            # Z-component
-                            values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_Z"]
-                            value_json = linear_interpolation(time, input_time_list, values_json)
-                            isclosethis = math.isclose(value[2], value_json, rel_tol=reltol, abs_tol=tol)
-                            self.assertTrue(isclosethis)
+                        if (KratosMultiphysics.KratosGlobals.HasVariable( out.GetString() + "_X" )): # We will asume to be components
+                            if (self.iscloseavailable == True):
+                                # X-component
+                                values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_X"]
+                                value_json = linear_interpolation(time, input_time_list, values_json)
+                                isclosethis = math.isclose(value[0], value_json, rel_tol=reltol, abs_tol=tol)
+                                self.assertTrue(isclosethis)
+                                # Y-component
+                                values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_Y"]
+                                value_json = linear_interpolation(time, input_time_list, values_json)
+                                isclosethis = math.isclose(value[1], value_json, rel_tol=reltol, abs_tol=tol)
+                                self.assertTrue(isclosethis)
+                                # Z-component
+                                values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_Z"]
+                                value_json = linear_interpolation(time, input_time_list, values_json)
+                                isclosethis = math.isclose(value[2], value_json, rel_tol=reltol, abs_tol=tol)
+                                self.assertTrue(isclosethis)
+                            else:
+                                # X-component
+                                values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_X"]
+                                value_json = linear_interpolation(time, input_time_list, values_json)
+                                self.assertAlmostEqual(value[0], value_json, msg=("Error checking node "+str(node.Id)+" "+out.GetString()+" X-component results."), delta=tol)
+                                # Y-component
+                                values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_Y"]
+                                value_json = linear_interpolation(time, input_time_list, values_json)
+                                self.assertAlmostEqual(value[1], value_json, msg=("Error checking node "+str(node.Id)+" "+out.GetString()+" Y-component results."), delta=tol)
+                                # Z-component
+                                values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_Z"]
+                                value_json = linear_interpolation(time, input_time_list, values_json)
+                                self.assertAlmostEqual(value[2], value_json, msg=("Error checking node "+str(node.Id)+" "+out.GetString()+" Z-component results."), delta=tol)
                         else:
-                            # X-component
-                            values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_X"]
-                            value_json = linear_interpolation(time, input_time_list, values_json)
-                            self.assertAlmostEqual(value[0], value_json, msg=("Error checking node "+str(node.Id)+" "+out.GetString()+" X-component results."), delta=tol)
-                            # Y-component
-                            values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_Y"]
-                            value_json = linear_interpolation(time, input_time_list, values_json)
-                            self.assertAlmostEqual(value[1], value_json, msg=("Error checking node "+str(node.Id)+" "+out.GetString()+" Y-component results."), delta=tol)
-                            # Z-component
-                            values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_Z"]
-                            value_json = linear_interpolation(time, input_time_list, values_json)
-                            self.assertAlmostEqual(value[2], value_json, msg=("Error checking node "+str(node.Id)+" "+out.GetString()+" Z-component results."), delta=tol)
+                            values_json = self.data["NODE_"+str(node.Id)][out.GetString() ]
+                            for index in range(len(value)):
+                                value_json = linear_interpolation(time, input_time_list, values_json[index])
+                                if (self.iscloseavailable == True):
+                                    isclosethis = math.isclose(value[index], value_json, rel_tol=reltol, abs_tol=tol)
+                                    self.assertTrue(isclosethis)
+                                else:
+                                    self.assertAlmostEqual(value[index], value_json, msg=("Error checking node "+str(node.Id)+" "+out.GetString()+" results."), delta=tol)
 
     def ExecuteBeforeOutputStep(self):
         pass
