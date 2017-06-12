@@ -96,8 +96,6 @@ class MmgProcess(KratosMultiphysics.Process):
             mesh_dependent_constant = self.params["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble()
             if (mesh_dependent_constant == 0.0):
                 self.params["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(0.5 * (self.dim/(self.dim + 1))**2.0)
-        #elif (self.strategy == "ErrorStrategy"):
-            #pass
         
         # Calculate NODAL_H
         self.find_nodal_h = KratosMultiphysics.FindNodalHProcess(self.Model[self.model_part_name])
@@ -253,21 +251,6 @@ class MmgProcess(KratosMultiphysics.Process):
                             self.Model[self.model_part_name],
                             current_metric_variable,
                             hessian_parameters))
-                        
-        #elif (self.strategy == "ErrorStrategy"): # NOTE: Not used here directly!!!
-            #error_parameters = KratosMultiphysics.Parameters("""{}""")
-            #error_parameters.AddValue("minimal_size",self.params["minimal_size"])
-            #error_parameters.AddValue("maximal_size",self.params["maximal_size"])
-            #error_parameters.AddValue("enforce_current",self.params["enforce_current"])
-            #if (self.dim == 2):
-                #self.MetricsProcess.append(MeshingApplication.ComputeErrorSolMetricProcess2D(
-                    #self.Model[self.model_part_name],
-                    #error_parameters))
-
-            #else:
-                #self.MetricsProcess.append(MeshingApplication.ComputeErrorSolMetricProcess3D(
-                    #self.Model[self.model_part_name],
-                    #error_parameters))
 
     def _CreateGradientProcess(self):
         # We compute the scalar value gradient

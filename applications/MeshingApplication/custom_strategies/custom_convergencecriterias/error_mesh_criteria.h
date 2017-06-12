@@ -196,7 +196,7 @@ public:
         NodesArrayType& NodesArray = rModelPart.Nodes();
         int numNodes = NodesArray.end() - NodesArray.begin();
         
-//         #pragma omp parallel for 
+//         #pragma omp parallel for // FIXME: Parallel not working
         for(int i = 0; i < numNodes; i++) 
         {
             auto itNode = NodesArray.begin() + i;
@@ -327,45 +327,6 @@ public:
     void Initialize(ModelPart& rModelPart) override
     {
         BaseType::mConvergenceCriteriaIsInitialized = true;
-    }
-    
-    /**
-     * This function initializes the solution step
-     * @param rModelPart Reference to the ModelPart containing the contact problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
-     */
-    
-    void InitializeSolutionStep(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
-    ) override
-    {
-    }
-    
-    /**
-     * This function finalizes the solution step
-     * @param rModelPart Reference to the ModelPart containing the contact problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
-     */
-    
-    void FinalizeSolutionStep(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
-    ) override
-    {
-        
     }
 
     ///@}
