@@ -2,7 +2,7 @@
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:              August 2016 $
+//   Date:                $Date:                June 2017 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
@@ -293,13 +293,9 @@ public:
 	int number_of_nodes = mr_model_part.NumberOfNodes();
 	ModelPart::NodeConstantIterator nodes_begin = mr_model_part.NodesBegin();
 
-	CheckNodalData(nodes_begin);
-	
 	//generating the dofs for the initial node
 	AddNodalDofs(nodes_begin);
-	
 	ModelPart::NodeType::DofsContainerType& reference_dofs = nodes_begin->GetDofs();
-
         #pragma omp parallel for
 	for (int k=0; k<number_of_nodes; k++)
 	  {
@@ -310,18 +306,24 @@ public:
 		it->pAddDof( *iii );
 	      }
 	  }
+	*/
 
-
-	CheckNodalData(nodes_begin);
 	
-	/* this is slower
+	//2nd way:  (faster-)
         #pragma omp parallel for
 	for (int k=0; k<number_of_nodes; k++)
 	  {
 	    ModelPart::NodeConstantIterator it = nodes_begin + k;
 	    AddNodalDofs(it);
 	  }
+	
+
+	/*
+	//3rt way: add dofs in the standard way one by one to all nodes  (faster--)
+	AddNodalDofs();
 	*/
+		
+	//CheckNodalData(nodes_begin);
 	
         KRATOS_CATCH("");
 
@@ -460,28 +462,80 @@ private:
     ///@name Private Operators
     ///@{
 
+
+    void AddNodalDofs()
+    {
+      KRATOS_TRY
+
+	int number_of_nodes = mr_model_part.NumberOfNodes();
+	ModelPart::NodeConstantIterator nodes_begin = mr_model_part.NodesBegin();
+	
+	for( unsigned int i=0; i < m_component_variables_list.size(); i++ )
+	  {
+            #pragma omp parallel for
+	    for (int k=0; k<number_of_nodes; k++)
+	      {
+		ModelPart::NodeConstantIterator it = nodes_begin + k;
+		it->pAddDof(*m_component_variables_list[i],*m_component_reactions_list[i]);
+	      }
+	  }
+	
+	for( unsigned int j=0; j < m_component_variables_no_reaction_list.size(); j++ )
+	  {
+           #pragma omp parallel for
+	    for (int k=0; k<number_of_nodes; k++)
+	      {
+		ModelPart::NodeConstantIterator it = nodes_begin + k;
+		it->pAddDof(*m_component_variables_no_reaction_list[j]);
+	      }
+	  }
+	
+	for( unsigned int l=0; l < m_scalar_variables_list.size(); l++ )
+	  {
+           #pragma omp parallel for
+	    for (int k=0; k<number_of_nodes; k++)
+	      {
+		ModelPart::NodeConstantIterator it = nodes_begin + k;
+		it->pAddDof(*m_scalar_variables_list[l],*m_scalar_reactions_list[l]);
+	      }
+	  }
+	
+	for( unsigned int m=0; m < m_scalar_variables_no_reaction_list.size(); m++ )
+	  {
+           #pragma omp parallel for
+	    for (int k=0; k<number_of_nodes; k++)
+	      {
+		ModelPart::NodeConstantIterator it = nodes_begin + k;
+		it->pAddDof(*m_scalar_variables_no_reaction_list[m]);
+	      }
+	  }
+
+      KRATOS_CATCH(" ")
+    }
+
+    
     void AddNodalDofs( ModelPart::NodeConstantIterator& node_it )
     {
       KRATOS_TRY
 
       for( unsigned int i=0; i < m_component_variables_list.size(); i++ )
 	{
-	  node_it->AddDof(*m_component_variables_list[i],*m_component_reactions_list[i]);
+	  node_it->pAddDof(*m_component_variables_list[i],*m_component_reactions_list[i]);
 	}
       
       for( unsigned int j=0; j < m_component_variables_no_reaction_list.size(); j++ )
 	{
-	  node_it->AddDof(*m_component_variables_no_reaction_list[j]);
+	  node_it->pAddDof(*m_component_variables_no_reaction_list[j]);
 	}
       
       for( unsigned int l=0; l < m_scalar_variables_list.size(); l++ )
 	{
-	  node_it->AddDof(*m_scalar_variables_list[l],*m_scalar_reactions_list[l]);
+	  node_it->pAddDof(*m_scalar_variables_list[l],*m_scalar_reactions_list[l]);
 	}
       
       for( unsigned int m=0; m < m_scalar_variables_no_reaction_list.size(); m++ )
 	{
-	  node_it->AddDof(*m_scalar_variables_no_reaction_list[m]);
+	  node_it->pAddDof(*m_scalar_variables_no_reaction_list[m]);
 	}
 
       KRATOS_CATCH(" ")
@@ -495,10 +549,11 @@ private:
       std::cout<<" CHECK VARIABLES LIST KEYS "<<std::endl;
 	
       VariablesListDataValueContainer VariablesList = (node_it)->SolutionStepData();
-
-      for(unsigned int i=0; i<VariablesList.pGetVariablesList()->size(); i++)
-	std::cout<<" Variable: "<<VariablesList.pGetVariablesList()[i]<<std::endl;
-
+      
+      std::cout<<" list size "<<VariablesList.pGetVariablesList()->size()<<std::endl;
+      std::cout<<" Variable: "<<VariablesList.pGetVariablesList()[0]<<std::endl;
+      std::cout<<" end "<<std::endl;
+                
       KRATOS_CATCH(" ")
     }
     

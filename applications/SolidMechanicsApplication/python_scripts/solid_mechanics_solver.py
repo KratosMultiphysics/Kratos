@@ -128,10 +128,9 @@ class MechanicalSolver(object):
         self.nodal_variables = self.nodal_variables + self.dof_variables + self.dof_reactions 
 
         self.nodal_variables = [self.nodal_variables[i] for i in range(0,len(self.nodal_variables)) if self.nodal_variables[i] is not 'NOT_DEFINED']
-       
+
         for variable in self.nodal_variables:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
-  
         print("::[Mechanical Solver]:: Variables ADDED")
                                                               
     
@@ -143,50 +142,6 @@ class MechanicalSolver(object):
 
         AddDofsProcess = KratosSolid.AddDofsProcess(self.main_model_part, self.dof_variables, self.dof_reactions)
         AddDofsProcess.Execute()
-        
-        for node in self.main_model_part.Nodes:
-            # adding dofs
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X);
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y);
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z);
-            
-        if(self.settings["solution_type"].GetString() == "Dynamic"):
-            for node in self.main_model_part.Nodes:
-                # adding first derivatives as dofs
-                node.AddDof(KratosMultiphysics.VELOCITY_X);
-                node.AddDof(KratosMultiphysics.VELOCITY_Y);
-                node.AddDof(KratosMultiphysics.VELOCITY_Z);
-                # adding second derivatives as dofs
-                node.AddDof(KratosMultiphysics.ACCELERATION_X);
-                node.AddDof(KratosMultiphysics.ACCELERATION_Y);
-                node.AddDof(KratosMultiphysics.ACCELERATION_Z);                
-            
-        if self.settings["rotation_dofs"].GetBool():
-            for node in self.main_model_part.Nodes:
-                node.AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X);
-                node.AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y);
-                node.AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z);
-                
-        if(self.settings["solution_type"].GetString() == "Dynamic" and self.settings["rotation_dofs"].GetBool()):
-            for node in self.main_model_part.Nodes:       
-                # adding first derivatives as dofs
-                node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_X);
-                node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Y);
-                node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Z);
-                # adding second derivatives as dofs
-                node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_X);
-                node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Y);
-                node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Z);
-                    
-        if self.settings["pressure_dofs"].GetBool():                
-            for node in self.main_model_part.Nodes:
-                node.AddDof(KratosMultiphysics.PRESSURE, KratosSolid.PRESSURE_REACTION);
-            if not self.settings["stabilization_factor"].IsNull():
-                self.main_model_part.ProcessInfo[KratosMultiphysics.STABILIZATION_FACTOR] = self.settings["stabilization_factor"].GetDouble()
-
-
-        for node in self.main_model_part.Nodes:
-            print("node",node)
                 
         print("::[Mechanical Solver]:: DOF's ADDED")
         
