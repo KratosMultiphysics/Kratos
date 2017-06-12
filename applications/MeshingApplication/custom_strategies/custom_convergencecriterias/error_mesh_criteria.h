@@ -138,6 +138,13 @@ public:
         mErrorTolerance = mThisParameters["error_mesh_tolerance"].GetDouble();
         mConstantError = mThisParameters["error_mesh_constant"].GetDouble();
         mRemeshingUtilities = ConvertRemeshUtil(mThisParameters["remeshing_utility"].GetString());
+        
+        #if !defined(INCLUDE_MMG)
+            if (mRemeshingUtilities == MMG)
+            {
+                KRATOS_ERROR << "YOU CAN USE MMG LIBRARY. CHECK YOUR COMPILATION" << std::endl;
+            }
+        #endif
     }
 
     ///Copy constructor 
@@ -186,13 +193,13 @@ public:
         double CurrentSolPow2 = 0.0;
         
         // Iterate in the nodes
-        NodesArrayType& pNode = rModelPart.Nodes();
-        int numNodes = pNode.end() - pNode.begin();
+        NodesArrayType& NodesArray = rModelPart.Nodes();
+        int numNodes = NodesArray.end() - NodesArray.begin();
         
 //         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
         {
-            auto itNode = pNode.begin() + i;
+            auto itNode = NodesArray.begin() + i;
             
             double MainDoFNodalError = 0.0;           
             double OtherDoFNodalError = 0.0;        
@@ -290,7 +297,6 @@ public:
             // Remeshing
             if (mRemeshingUtilities == MMG)
             {
-                #ifdef INCLUDE_MMG
                 if (mDimension == 2)
                 {
                     MmgProcess<2> MmgRemesh = MmgProcess<2>(mThisModelPart, mThisParameters["remeshing_parameters"]); 
@@ -301,7 +307,6 @@ public:
                     MmgProcess<3> MmgRemesh = MmgProcess<3>(mThisModelPart, mThisParameters["remeshing_parameters"]); 
                     MmgRemesh.Execute();
                 }
-                #endif  
             }
             else
             {
