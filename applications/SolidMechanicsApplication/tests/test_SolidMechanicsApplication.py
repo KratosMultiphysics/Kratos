@@ -179,7 +179,7 @@ def AssambleTestSuites():
             SHE_3D3N_B_TEST,
             SHE_3D3N_D_TEST,
             #CSS
-            CSS_IsoDamage_SimoJu_TEST
+            #CSS_IsoDamage_SimoJu_TEST
             ##...
         ])
     )
