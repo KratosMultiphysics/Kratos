@@ -170,7 +170,7 @@ public:
         KRATOS_TRY
 	  
 	unsigned int number_variables = len(rVariablesList);
-	unsigned int number_reactions = len(rVariablesList);
+	unsigned int number_reactions = len(rReactionsList);
 
 	// Check variables vs reactions consistency
 	if( number_variables != number_reactions )
@@ -183,7 +183,7 @@ public:
 	    std::string reaction_name = boost::python::extract<std::string>(rReactionsList[i]);
 
 	    bool supplied_reaction = true;
-	    if(reaction_name == "NONE")
+	    if(reaction_name == "NOT_DEFINED")
 	      supplied_reaction = false;
 	    
 	    if( KratosComponents< VectorVariableType >::Has( variable_name ) ){ //case of array_1d (vector with components) variable
@@ -293,6 +293,7 @@ public:
 	int number_of_nodes = mr_model_part.NumberOfNodes();
 	ModelPart::NodeConstantIterator nodes_begin = mr_model_part.NodesBegin();
 
+	CheckNodalData(nodes_begin);
 	
 	//generating the dofs for the initial node
 	AddNodalDofs(nodes_begin);
@@ -309,7 +310,10 @@ public:
 		it->pAddDof( *iii );
 	      }
 	  }
-		
+
+
+	CheckNodalData(nodes_begin);
+	
 	/* this is slower
         #pragma omp parallel for
 	for (int k=0; k<number_of_nodes; k++)
@@ -479,6 +483,21 @@ private:
 	{
 	  node_it->AddDof(*m_scalar_variables_no_reaction_list[m]);
 	}
+
+      KRATOS_CATCH(" ")
+    }
+
+
+    void CheckNodalData( ModelPart::NodeConstantIterator& node_it )
+    {
+      KRATOS_TRY
+
+      std::cout<<" CHECK VARIABLES LIST KEYS "<<std::endl;
+	
+      VariablesListDataValueContainer VariablesList = (node_it)->SolutionStepData();
+
+      for(unsigned int i=0; i<VariablesList.pGetVariablesList()->size(); i++)
+	std::cout<<" Variable: "<<VariablesList.pGetVariablesList()[i]<<std::endl;
 
       KRATOS_CATCH(" ")
     }
