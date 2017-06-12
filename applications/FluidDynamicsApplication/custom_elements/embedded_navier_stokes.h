@@ -1793,6 +1793,10 @@ protected:
             prev_sol(i*BlockSize+TDim) = rData.p(i);
         }
 
+        // Nitsche coefficient
+        const double eff_mu = BaseType::ComputeEffectiveViscosity(rData);
+        const double cons_coef = eff_mu/rData.h;
+
         // Declare auxiliar arrays
         array_1d<double, MatrixSize> auxRightHandSideVector = ZeroVector(MatrixSize);
         bounded_matrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
@@ -1854,10 +1858,10 @@ protected:
             const bounded_matrix<double, (TDim-1)*3, MatrixSize> N_aux_proj_voigt = prod(trans(voigt_normal_projection_matrix), N_aux_proj);
 
             // Contribution coming fron the shear stress operator
-            auxLeftHandSideMatrix += weight*prod(aux_matrix_BC, N_aux_proj_voigt);
+            auxLeftHandSideMatrix += cons_coef*weight*prod(aux_matrix_BC, N_aux_proj_voigt);
 
             // Contribution coming from the pressure terms
-            auxLeftHandSideMatrix -= weight*prod(trans_pres_to_voigt_matrix_op, N_aux_proj_voigt);
+            auxLeftHandSideMatrix -= cons_coef*weight*prod(trans_pres_to_voigt_matrix_op, N_aux_proj_voigt);
 
         }
 
