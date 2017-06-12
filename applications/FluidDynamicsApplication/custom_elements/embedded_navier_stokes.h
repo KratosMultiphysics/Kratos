@@ -600,114 +600,85 @@ protected:
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
-        VectorType auxRightHandSideVector = ZeroVector(MatrixSize);
-        MatrixType auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, TNumNodes);
+        // Obtain the previous iteration velocity solution
+        array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
 
-        // Compute the contribution of the boundary pressure term at the intersection
-        for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
+        for (unsigned int i=0; i<TNumNodes; i++)
         {
-
-            const double weight = (rSplittingData.cut_edge_areas)(icut);
-            const array_1d<double, TNumNodes> aux = row(rSplittingData.N_container_cut, icut);
-            array_1d<double, MatrixSize> aux_normal = ZeroVector(MatrixSize);
-
-            for (unsigned int i=0; i<TNumNodes; i++)
+            for (unsigned int comp=0; comp<TDim; comp++)
             {
-                for(unsigned int j=0; j<TDim; j++)
-                {
-                    aux_normal(i*BlockSize+j) = aux(i)*rSplittingData.intersection_normal(j);
-                }
+                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
             }
-
-            auxLeftHandSideMatrix += weight*outer_prod(aux_normal, aux);
-
+            prev_sol(i*BlockSize+TDim) = rData.p(i);
         }
 
-        // Assemble the LHS contribution to the pressure columns
-        for (unsigned int i=0; i<MatrixSize; i++)
-        {
-            for (unsigned int j=0; j<TNumNodes; j++)
-            {
-                rLeftHandSideMatrix(i,j*BlockSize+TDim) += auxLeftHandSideMatrix(i,j);
-            }
-        }
+        // Declare auxiliar arrays
+        bounded_matrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
 
-        // Assemble and compute the RHS pressure residual contribution at the intersection
-        noalias(rRightHandSideVector) -= prod(auxLeftHandSideMatrix, rData.p);
+        // Get the normal projection matrix in Voigt notation
+        bounded_matrix<double, TDim, (TDim-1)*3> voigt_normal_projection_matrix = ZeroMatrix(TDim, (TDim-1)*3);
+        SetVoigtNormalProjectionMatrix(rSplittingData, voigt_normal_projection_matrix);
 
-        // Compute the contribution of the tangential boundary stress term at the intersection
-        bounded_matrix<double, TDim, (TDim-1)*3> normal_matrix;         // Set normal matrix
-        SetNormalMatrix(rSplittingData.intersection_normal, normal_matrix);
-
-        bounded_matrix<double, (TDim-1)*3, TNumNodes*TDim> B_matrix;    // Set strain matrix
+        // Get the strain matrix (constant since linear elements are used)
+        bounded_matrix<double, (TDim-1)*3, TNumNodes*TDim> B_matrix = ZeroMatrix((TDim-1)*3, TNumNodes*TDim);
         SetStrainMatrix(rData, B_matrix);
 
-        bounded_matrix<double, TNumNodes*TDim, TDim> w_matrix;
-        bounded_matrix<double, TNumNodes*TDim, (TDim-1)*3> aux_matrix_1;
-        bounded_matrix<double, TNumNodes*TDim, (TDim-1)*3> aux_matrix_2;
+        // Expand the B matrix to set 0 in the pressure rows.
+        bounded_matrix<double, (TDim-1)*3, MatrixSize> B_matrix_exp = ZeroMatrix((TDim-1)*3, MatrixSize);
+        for (unsigned int i=0; i<TNumNodes; ++i)
+        {
+            for (unsigned int j=0; j<TDim; ++j)
+            {
+                for (unsigned int k=0; k<(TDim-1)*3; ++k)
+                {
+                    B_matrix_exp(k, i*BlockSize+j) = B_matrix(k, i*TDim+j);
+                }
+            }
+        }
 
-        auxLeftHandSideMatrix.resize(TNumNodes*TDim, TNumNodes*TDim, false);
-        auxRightHandSideVector.resize(TNumNodes*TDim, false);
-        auxLeftHandSideMatrix.clear();
-        auxRightHandSideVector.clear();
+        // Compute some element constant matrices
+        const bounded_matrix<double, TDim, (TDim-1)*3> aux_matrix_AC = prod(voigt_normal_projection_matrix, rData.C);
+        const bounded_matrix<double, (TDim-1)*3, MatrixSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix_exp);
 
-        // Compute the tangential stress LHS contribution
         for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
         {
-            const double weight = (rSplittingData.cut_edge_areas)(icut);
-            const array_1d<double, TNumNodes> aux = row(rSplittingData.N_container_cut, icut);
+            const double weight = rSplittingData.cut_edge_areas(icut);
+            const VectorType aux_cut = row(rSplittingData.N_container_cut, icut);
 
-            w_matrix.clear();
-
-            for (unsigned int i=0; i<TNumNodes; i++)
+            // Fill the pressure to Voigt notation operator matrix
+            bounded_matrix<double, (TDim-1)*3, MatrixSize> pres_to_voigt_matrix_op = ZeroMatrix((TDim-1)*3, MatrixSize);
+            for (unsigned int i=0; i<TNumNodes; ++i)
             {
-                for (unsigned int j=0; j<TDim; j++)
+                for (unsigned int comp=0; comp<TDim; ++comp)
                 {
-                    w_matrix(i*TDim+j,j) = aux(i);
+                    pres_to_voigt_matrix_op(comp, i*BlockSize+TDim) = aux_cut(i);
                 }
             }
 
-            noalias(aux_matrix_1) = prod(w_matrix, normal_matrix);
-            noalias(aux_matrix_2) = prod(aux_matrix_1, rData.C);
-            noalias(auxLeftHandSideMatrix) += weight*prod(aux_matrix_2, B_matrix);
-
-        }
-
-        // Assemble the LHS tangential stress contribution to the velocity rows
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            for (unsigned int j=0; j<TNumNodes; j++)
+            // Set the shape functions auxiliar transpose matrix
+            bounded_matrix<double, MatrixSize, TDim> N_aux_trans = ZeroMatrix(MatrixSize, TDim);
+            for (unsigned int i=0; i<TNumNodes; ++i)
             {
-                for (unsigned int row=0; row<TDim; row++)
+                for (unsigned int comp=0; comp<TDim; ++comp)
                 {
-                    for (unsigned int col=0; col<TDim; col++)
-                    {
-                        rLeftHandSideMatrix(i*BlockSize+row,j*BlockSize+col) -= auxLeftHandSideMatrix(i*TDim+row, j*TDim+col);
-                    }
+                    N_aux_trans(i*BlockSize+comp, comp) = aux_cut(i);
                 }
             }
+
+            // Contribution coming fron the shear stress operator
+            auxLeftHandSideMatrix += weight*prod(N_aux_trans, aux_matrix_ACB);
+
+            // Contribution coming from the pressure terms
+            const bounded_matrix<double, MatrixSize, (TDim-1)*3> N_voigt_proj_matrix= prod(N_aux_trans, voigt_normal_projection_matrix);
+            auxLeftHandSideMatrix -= weight*prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op);
+
         }
 
-        // Obtain the previous iteration velocity solution
-        array_1d<double, TNumNodes*TDim> prev_sol = ZeroVector(TNumNodes*TDim);
+        // LHS assembly
+        rLeftHandSideMatrix += auxLeftHandSideMatrix;
 
-        for (unsigned int i = 0; i<TNumNodes; i++)
-        {
-            prev_sol(i*TDim) = rData.v(i,0);
-            prev_sol(i*TDim+1) = rData.v(i,1);
-            prev_sol(i*TDim+2) = rData.v(i,2);
-        }
-
-        noalias(auxRightHandSideVector) = prod(auxLeftHandSideMatrix, prev_sol);
-
-        // Assemble the RHS tangential stress contribution to the velocity rows
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            for (unsigned int row=0; row<TDim; row++)
-            {
-                rRightHandSideVector(i*BlockSize+row) += auxRightHandSideVector(i*TDim+row);
-            }
-        }
+        // RHS assembly
+        rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol);
 
     }
 
@@ -2041,7 +2012,7 @@ protected:
         if (rSplittingData.ndivisions > 1)
         {
             // Compute and assemble the boundary terms comping from the integration by parts
-            // AddIntersectionBoundaryTermsContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
+            AddIntersectionBoundaryTermsContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
 
             // First, compute and assemble the penalty level set BC imposition contribution
             // Secondly, compute and assemble the modified Nitche method level set BC imposition contribution
