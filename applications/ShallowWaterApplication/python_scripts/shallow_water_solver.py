@@ -58,6 +58,7 @@ class ShallowWaterSolver:
                                             ReformDofSetAtEachStep, MoveMeshFlag)
 
         # Creating the solution strategy for the particle stage
+        self.VariableUtils = VariableUtils()
         maximum_number_of_particles= 8*self.domain_size
         self.moveparticles = MoveShallowWaterParticleUtility(self.model_part,maximum_number_of_particles)  
         self.moveparticles.MountBin()
@@ -70,8 +71,9 @@ class ShallowWaterSolver:
         pre_minimum_number_of_particles=self.domain_size;
         (self.moveparticles).PreReseed(pre_minimum_number_of_particles);    
         (self.moveparticles).TransferLagrangianToEulerian();
-        #(self.VariableUtils).CopyScalarVar(PROJECTED_SCALAR1,self.unknown_var,self.model_part.Nodes)
-        #(self.moveparticles).ResetBoundaryConditions()
+        (self.VariableUtils).CopyScalarVar(PROJECTED_HEIGHT,HEIGHT,self.model_part.Nodes)
+        (self.VariableUtils).CopyVectorVar(PROJECTED_VELOCITY,VELOCITY,self.model_part.Nodes)
+        (self.moveparticles).ResetBoundaryConditions()
         #(self.moveparticles).CopyScalarVarToPreviousTimeStep(PROJECTED_HEIGHT,self.model_part.Nodes)
         #(self.moveparticles).CopyVectorVarToPreviousTimeStep(PROJECTED_VELOCITY,self.model_part.Nodes)
         
