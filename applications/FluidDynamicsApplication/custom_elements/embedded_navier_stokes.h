@@ -201,10 +201,6 @@ public:
             distances[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
         }
 
-        // Allocate memory needed
-        bounded_matrix<double,MatrixSize, MatrixSize> lhs_local;
-        array_1d<double, MatrixSize> rhs_local;
-
         // Number of positive and negative distance function values
         unsigned int npos=0, nneg=0;
         for (unsigned int i = 0; i<TNumNodes; i++)
@@ -221,7 +217,7 @@ public:
         // Element LHS and RHS contributions computation
         if(npos == TNumNodes) // All nodes belong to fluid domain
         {
-            ComputeElementAsFluid<MatrixSize>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, data, rCurrentProcessInfo);
+            ComputeElementAsFluid<MatrixSize>(rLeftHandSideMatrix, rRightHandSideVector, data, rCurrentProcessInfo);
         }
         else if(nneg == TNumNodes) // All nodes belong to structure domain
         {
@@ -230,10 +226,10 @@ public:
         }
         else // Element intersects both fluid and structure domains
         {
-            ComputeElementAsMixed<MatrixSize>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, data, rCurrentProcessInfo, distances);
+            ComputeElementAsMixed<MatrixSize>(rLeftHandSideMatrix, rRightHandSideVector, data, rCurrentProcessInfo, distances);
         }
 
-        KRATOS_CATCH("Error in embedded Navier-Stokes symbolic element")
+        KRATOS_CATCH("Error in embedded Navier-Stokes element")
     }
 
 
@@ -275,13 +271,15 @@ public:
      * @param rCurrentProcessInfo: reference to the ProcessInfo
      */
     template<unsigned int MatrixSize>
-    void ComputeElementAsFluid(bounded_matrix<double,MatrixSize, MatrixSize>& lhs_local,
-                               array_1d<double,MatrixSize>& rhs_local,
-                               MatrixType& rLeftHandSideMatrix,
+    void ComputeElementAsFluid(MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
                                ElementDataType& rData,
                                ProcessInfo& rCurrentProcessInfo)
     {
+        // Allocate memory needed
+        array_1d<double, MatrixSize> rhs_local;
+        bounded_matrix<double,MatrixSize, MatrixSize> lhs_local;
+
         // Shape functions Gauss points values
         bounded_matrix<double, TNumNodes, TNumNodes> Ncontainer; // Container with the evaluation of the 4 shape functions in the 4 Gauss pts.
         BaseType::GetShapeFunctionsOnGauss(Ncontainer);
@@ -318,9 +316,7 @@ public:
     * @param distances: reference to an array containing the nodal distance
     */
     template<unsigned int MatrixSize>
-    void ComputeElementAsMixed(bounded_matrix<double,MatrixSize, MatrixSize>& lhs_local,
-                               array_1d<double,MatrixSize>& rhs_local,
-                               MatrixType& rLeftHandSideMatrix,
+    void ComputeElementAsMixed(MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
                                ElementDataType& rData,
                                ProcessInfo& rCurrentProcessInfo,
@@ -339,8 +335,6 @@ public:
         // Splitting to determine the new Gauss pts.
         this->ComputeSplitting(rData, rDistances, SplittingData);
 
-        // std::cout << "Mixed element: " << this->Id() << " ndivisions = " << SplittingData.ndivisions << " distances: " << rDistances[0] << " " << rDistances[1] << " " << rDistances[2] << " " << rDistances[3] << " " << std::endl;
-
         if(SplittingData.ndivisions == 1)
         {
             // Cases exist when the element is like not subdivided due to the characteristics of the provided distance.
@@ -352,11 +346,15 @@ public:
             // Gauss pt. is FLUID (the element is close to be full of fluid)
             if(dgauss > 0.0)
             {
-                ComputeElementAsFluid<MatrixSize>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, rData, rCurrentProcessInfo);
+                ComputeElementAsFluid<MatrixSize>(rLeftHandSideMatrix, rRightHandSideVector, rData, rCurrentProcessInfo);
             }
         }
         else
         {
+            // Allocate memory needed
+            array_1d<double, MatrixSize> rhs_local;
+            bounded_matrix<double,MatrixSize, MatrixSize> lhs_local;
+
             // Loop over subdivisions
             for(unsigned int division = 0; division<SplittingData.ndivisions; division++)
             {
@@ -2043,7 +2041,7 @@ protected:
         if (rSplittingData.ndivisions > 1)
         {
             // Compute and assemble the boundary terms comping from the integration by parts
-            AddIntersectionBoundaryTermsContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
+            // AddIntersectionBoundaryTermsContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
 
             // First, compute and assemble the penalty level set BC imposition contribution
             // Secondly, compute and assemble the modified Nitche method level set BC imposition contribution
