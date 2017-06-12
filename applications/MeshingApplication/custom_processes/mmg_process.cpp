@@ -12,7 +12,6 @@
 
 // System includes
 #include <set>
-#include <map>
 
 // External includes
 // The includes related with the MMG library
@@ -191,16 +190,16 @@ void MmgProcess<TDim>::InitializeMeshData()
     // Build mesh in MMG5 format //
     
     // Iterate in the nodes
-    NodesArrayType& pNode = mrThisModelPart.Nodes();
-    auto numNodes = pNode.end() - pNode.begin();
+    NodesArrayType& NodesArray = mrThisModelPart.Nodes();
+    SizeType numNodes = NodesArray.end() - NodesArray.begin();
     
     // Iterate in the conditions
-    ConditionsArrayType& pConditions = mrThisModelPart.Conditions();
-    auto numConditions = pConditions.end() - pConditions.begin();
+    ConditionsArrayType& ConditionsArray = mrThisModelPart.Conditions();
+    int numConditions = ConditionsArray.end() - ConditionsArray.begin();
     
     // Iterate in the elements
-    ElementsArrayType& pElements = mrThisModelPart.Elements();
-    auto numElements = pElements.end() - pElements.begin();
+    ElementsArrayType& ElementsArray = mrThisModelPart.Elements();
+    int numElements = ElementsArray.end() - ElementsArray.begin();
     
     /* Manually set of the mesh */
     array_1d<int, TDim - 1> numArrayElements;
@@ -220,9 +219,9 @@ void MmgProcess<TDim>::InitializeMeshData()
         numArrayConditions[1] = 0; // Quadrilaterals
         
         /* Elements */
-        for(unsigned int i = 0; i < numElements; i++) 
+        for(int i = 0; i < numElements; i++) 
         {
-            auto itElem = pElements.begin() + i;
+            auto itElem = ElementsArray.begin() + i;
             
             if ((itElem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) // Tetrahedron
             {
@@ -244,9 +243,9 @@ void MmgProcess<TDim>::InitializeMeshData()
         }
         
         /* Conditions */
-        for(unsigned int i = 0; i < numConditions; i++) 
+        for(int i = 0; i < numConditions; i++) 
         {
-            auto itCond = pConditions.begin() + i;
+            auto itCond = ConditionsArray.begin() + i;
             
             if ((itCond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) // Triangles
             {
@@ -263,16 +262,16 @@ void MmgProcess<TDim>::InitializeMeshData()
     
     /* Nodes */
     // We copy the DOF from the fisrt node (after we release, to avoid problem with previous conditions)
-    mDofs = pNode.begin()->GetDofs();
+    mDofs = NodesArray.begin()->GetDofs();
     for (typename Node<3>::DofsContainerType::const_iterator itDoF = mDofs.begin(); itDoF != mDofs.end(); itDoF++)
     {
         itDoF->FreeDof();
     }
     
 //         #pragma omp parallel for 
-    for(unsigned int i = 0; i < numNodes; i++) 
+    for(SizeType i = 0; i < numNodes; i++) 
     {
-        auto itNode = pNode.begin() + i;
+        auto itNode = NodesArray.begin() + i;
         
         SetNodes(itNode->X(), itNode->Y(), itNode->Z(), NodeColors[itNode->Id()], i + 1);
         
@@ -295,16 +294,16 @@ void MmgProcess<TDim>::InitializeMeshData()
     if (TDim == 2 && numConditions > 0)
     {
         const CondGeometries2D IndexGeom0 = Line;
-        mpRefCondition[IndexGeom0] = pConditions.begin()->Create(0, pConditions.begin()->GetGeometry(), pConditions.begin()->pGetProperties());
+        mpRefCondition[IndexGeom0] = ConditionsArray.begin()->Create(0, ConditionsArray.begin()->GetGeometry(), ConditionsArray.begin()->pGetProperties());
     }
     else
     {
         const CondGeometries3D IndexGeom0 = Triangle3D;
         const CondGeometries3D IndexGeom1 = Quadrilateral3D;
         
-        for(unsigned int i = 0; i < numConditions; i++) 
+        for(int i = 0; i < numConditions; i++) 
         {
-            auto itCond = pConditions.begin() + i;
+            auto itCond = ConditionsArray.begin() + i;
 
             if ((itCond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3 && mInitRefCondition[IndexGeom0] == false) // Triangle
             {
@@ -324,10 +323,11 @@ void MmgProcess<TDim>::InitializeMeshData()
         }
         
     }
-//         #pragma omp parallel for 
-    for(unsigned int i = 0; i < numConditions; i++) 
+    
+//     #pragma omp parallel for 
+    for(int i = 0; i < numConditions; i++) 
     {
-        auto itCond = pConditions.begin() + i;
+        auto itCond = ConditionsArray.begin() + i;
         
         SetConditions(itCond->GetGeometry(), CondColors[itCond->Id()], i + 1);
     }
@@ -337,16 +337,16 @@ void MmgProcess<TDim>::InitializeMeshData()
     if (TDim == 2 && numElements > 0)
     {
         const ElemGeometries2D IndexGeom0 = Triangle2D;
-        mpRefElement[IndexGeom0] = pElements.begin()->Create(0, pElements.begin()->GetGeometry(), pElements.begin()->pGetProperties());
+        mpRefElement[IndexGeom0] = ElementsArray.begin()->Create(0, ElementsArray.begin()->GetGeometry(), ElementsArray.begin()->pGetProperties());
     }
     else
     {
         const ElemGeometries3D IndexGeom0 = Tetrahedra;
         const ElemGeometries3D IndexGeom1 = Prism;
         
-        for(unsigned int i = 0; i < numElements; i++) 
+        for(int i = 0; i < numElements; i++) 
         {
-            auto itElem = pElements.begin() + i;
+            auto itElem = ElementsArray.begin() + i;
             
             if ((itElem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 && mInitRefElement[IndexGeom0] == false) // Tetrahedra
             {
@@ -366,10 +366,11 @@ void MmgProcess<TDim>::InitializeMeshData()
         }
         
     }
-//         #pragma omp parallel for 
-    for(unsigned int i = 0; i < numElements; i++) 
+
+//     #pragma omp parallel for 
+    for(int i = 0; i < numElements; i++) 
     {
-        auto itElem = pElements.begin() + i;
+        auto itElem = ElementsArray.begin() + i;
         
         SetElements(itElem->GetGeometry(), ElemColors[itElem->Id()], i + 1);
     }
@@ -384,15 +385,15 @@ void MmgProcess<TDim>::InitializeSolData()
     ////////* SOLUTION FILE *////////
     
     // Iterate in the nodes
-    NodesArrayType& pNode = mrThisModelPart.Nodes();
-    auto numNodes = pNode.end() - pNode.begin();
+    NodesArrayType& NodesArray = mrThisModelPart.Nodes();
+    SizeType numNodes = NodesArray.end() - NodesArray.begin();
     
     SetSolSizeTensor(numNodes);
 
-//         #pragma omp parallel for 
-    for(unsigned int i = 0; i < numNodes; i++) 
+//     #pragma omp parallel for 
+    for(SizeType i = 0; i < numNodes; i++) 
     {
-        auto itNode = pNode.begin() + i;
+        auto itNode = NodesArray.begin() + i;
         
         #ifdef KRATOS_DEBUG 
         if( itNode->Has(MMG_METRIC) == false) 
@@ -416,9 +417,8 @@ void MmgProcess<TDim>::InitializeSolData()
     }
 }
 
-/**
-    * We execute the MMg library and build the new model part from the old model part
-    */
+/***********************************************************************************/
+/***********************************************************************************/
 
 template <unsigned int TDim>
 void MmgProcess<TDim>::ExecuteRemeshing()
@@ -427,8 +427,8 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     const bool SaveToFile = mThisParameters["save_external_files"].GetBool();
     
     // We initialize some values
-    const unsigned int StepDataSize = mrThisModelPart.GetNodalSolutionStepDataSize();
-    const unsigned int BufferSize   = mrThisModelPart.NodesBegin()->GetBufferSize();
+    const SizeType StepDataSize = mrThisModelPart.GetNodalSolutionStepDataSize();
+    const SizeType BufferSize   = mrThisModelPart.NodesBegin()->GetBufferSize();
     
     mThisParameters["step_data_size"].SetInt(StepDataSize);
     mThisParameters["buffer_size"].SetInt(BufferSize);
@@ -515,12 +515,12 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     for (int unsigned iNode = 1; iNode <= nNodes; iNode++)
     {
         int ref, isRequired;
-        NodeType::Pointer pNode = CreateNode(iNode, ref, isRequired);
+        NodeType::Pointer NodesArray = CreateNode(iNode, ref, isRequired);
         
         // Set the DOFs in the nodes 
         for (typename Node<3>::DofsContainerType::const_iterator itDoF = mDofs.begin(); itDoF != mDofs.end(); itDoF++)
         {
-            pNode->pAddDof(*itDoF);
+            NodesArray->pAddDof(*itDoF);
         }
         
         if (ref != 0) // NOTE: ref == 0 is the MainModelPart
@@ -530,7 +530,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
             {
                 std::string SubModelPartName = ColorList[colors];
                 ModelPart& SubModelPart = mrThisModelPart.GetSubModelPart(SubModelPartName);
-                SubModelPart.AddNode(pNode);
+                SubModelPart.AddNode(NodesArray);
             }
         }
     }
@@ -695,11 +695,11 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         }
     }
     
-    //  Get the list of submodelparts names
+    // Get the list of submodelparts names
     const std::vector<std::string> SubModelPartNames = mrThisModelPart.GetSubModelPartNames();
     
     // Add the nodes to the differents submodelparts
-    for (unsigned int iModelPart = 0; iModelPart < mrThisModelPart.NumberOfSubModelParts(); iModelPart++)
+    for (SizeType iModelPart = 0; iModelPart < mrThisModelPart.NumberOfSubModelParts(); iModelPart++)
     {
         ModelPart& rSubModelPart = mrThisModelPart.GetSubModelPart(SubModelPartNames[iModelPart]);
         
@@ -707,7 +707,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         
         for (ElementConstantIterator itElem = rSubModelPart.ElementsBegin(); itElem != rSubModelPart.ElementsEnd(); itElem++)
         {
-            for (unsigned int iNode = 0; iNode < itElem->GetGeometry().size(); iNode++)
+            for (SizeType iNode = 0; iNode < itElem->GetGeometry().size(); iNode++)
             {
                 AuxSet.insert(itElem->GetGeometry()[iNode].Id());
             }
@@ -715,7 +715,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         
         for (ConditionConstantIterator itCond = rSubModelPart.ConditionsBegin(); itCond != rSubModelPart.ConditionsEnd(); itCond++)
         {
-            for (unsigned int iNode = 0; iNode < itCond->GetGeometry().size(); iNode++)
+            for (SizeType iNode = 0; iNode < itCond->GetGeometry().size(); iNode++)
             {
                 AuxSet.insert(itCond->GetGeometry()[iNode].Id());
             }
@@ -770,28 +770,28 @@ void MmgProcess<TDim>::ExecuteRemeshing()
 template<unsigned int TDim>
 void MmgProcess<TDim>::ReorderAllIds()
 {
-    NodesArrayType& pNode = mrThisModelPart.Nodes();
-    auto numNodes = pNode.end() - pNode.begin();
+    NodesArrayType& NodesArray = mrThisModelPart.Nodes();
+    SizeType numNodes = NodesArray.end() - NodesArray.begin();
 
-    for(unsigned int i = 0; i < numNodes; i++) 
+    for(SizeType i = 0; i < numNodes; i++) 
     {
-        auto itNode = pNode.begin() + i;
+        auto itNode = NodesArray.begin() + i;
         itNode->SetId(i + 1);
     }
 
     ConditionsArrayType& pCondition = mrThisModelPart.Conditions();
-    auto numConditions = pCondition.end() - pCondition.begin();
+    SizeType numConditions = pCondition.end() - pCondition.begin();
     
-    for(unsigned int i = 0; i < numConditions; i++) 
+    for(SizeType i = 0; i < numConditions; i++) 
     {
         auto itCondition = pCondition.begin() + i;
         itCondition->SetId(i + 1);
     }
 
     ElementsArrayType& pElement = mrThisModelPart.Elements();
-    auto numElements = pElement.end() - pElement.begin();
+    SizeType numElements = pElement.end() - pElement.begin();
 
-    for(unsigned int i = 0; i < numElements; i++) 
+    for(SizeType i = 0; i < numElements; i++) 
     {
         auto itElement = pElement.begin() + i;
         itElement->SetId(i + 1);
@@ -805,18 +805,18 @@ template<unsigned int TDim>
 void MmgProcess<TDim>::InitializeElementsAndConditions()
 {
     ConditionsArrayType& pCondition = mrThisModelPart.Conditions();
-    auto numConditions = pCondition.end() - pCondition.begin();
+    SizeType numConditions = pCondition.end() - pCondition.begin();
     
-    for(unsigned int i = 0; i < numConditions; i++) 
+    for(SizeType i = 0; i < numConditions; i++) 
     {
         auto itCondition = pCondition.begin() + i;
         itCondition->Initialize();
     }
 
     ElementsArrayType& pElement = mrThisModelPart.Elements();
-    auto numElements = pElement.end() - pElement.begin();
+    SizeType numElements = pElement.end() - pElement.begin();
 
-    for(unsigned int i = 0; i < numElements; i++) 
+    for(SizeType i = 0; i < numElements; i++) 
     {
         auto itElement = pElement.begin() + i;
         itElement->Initialize();
@@ -836,12 +836,12 @@ std::vector<unsigned int> MmgProcess<TDim>::CheckNodes()
     
     vector<double> Coords(TDim);
     
-    NodesArrayType& pNode = mrThisModelPart.Nodes();
-    auto numNodes = pNode.end() - pNode.begin();
+    NodesArrayType& NodesArray = mrThisModelPart.Nodes();
+    SizeType numNodes = NodesArray.end() - NodesArray.begin();
     
-    for(unsigned int i = 0; i < numNodes; i++) 
+    for(SizeType i = 0; i < numNodes; i++) 
     {
-        auto itNode = pNode.begin() + i;
+        auto itNode = NodesArray.begin() + i;
         
         const array_1d<double, 3> Coordinates = itNode->Coordinates();
         
@@ -1585,7 +1585,7 @@ void MmgProcess<3>::InitVerbosityParameter(int verbosityMMG)
 
 template<>  
 void MmgProcess<2>::SetMeshSize(
-    const int numNodes,
+    const SizeType numNodes,
     const array_1d<int, 1> numArrayElements, 
     const array_1d<int, 1> numArrayConditions
     )
@@ -1602,7 +1602,7 @@ void MmgProcess<2>::SetMeshSize(
 
 template<>  
 void MmgProcess<3>::SetMeshSize(
-    const int numNodes,
+    const SizeType numNodes,
     const array_1d<int, 2> numArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
     const array_1d<int, 2> numArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
     )
@@ -2112,54 +2112,54 @@ void MmgProcess<TDim>::ComputeColors(
     
     std::vector<std::string> ModelPartNames;
     ModelPartNames.push_back(mrThisModelPart.Name());
-    for (unsigned int i_sub = 0; i_sub < SubModelPartNames.size(); i_sub++)
+    for (unsigned int iSub = 0; iSub < SubModelPartNames.size(); iSub++)
     {
-        ModelPartNames.push_back(SubModelPartNames[i_sub]);
+        ModelPartNames.push_back(SubModelPartNames[iSub]);
     }
     
     // Initialize colors
     int color = 0;
-    for (unsigned int i_sub = 0; i_sub < ModelPartNames.size(); i_sub++)
+    for (SizeType iSub = 0; iSub < ModelPartNames.size(); iSub++)
     {
-        mColors[i_sub].push_back(ModelPartNames[i_sub]);
+        mColors[iSub].push_back(ModelPartNames[iSub]);
         
         if (color > 0)
         {
-            ModelPart& rSubModelPart = mrThisModelPart.GetSubModelPart(ModelPartNames[i_sub]);
+            ModelPart& rSubModelPart = mrThisModelPart.GetSubModelPart(ModelPartNames[iSub]);
             
             // Iterate in the nodes
-            NodesArrayType& pNode = rSubModelPart.Nodes();
-            auto numNodes = pNode.end() - pNode.begin();
+            NodesArrayType& NodesArray = rSubModelPart.Nodes();
+            SizeType numNodes = NodesArray.end() - NodesArray.begin();
             
             // Iterate in the conditions
-            ConditionsArrayType& pConditions = rSubModelPart.Conditions();
-            auto numConditions = pConditions.end() - pConditions.begin();
+            ConditionsArrayType& ConditionsArray = rSubModelPart.Conditions();
+            SizeType numConditions = ConditionsArray.end() - ConditionsArray.begin();
             
             // Iterate in the elements
-            ElementsArrayType& pElements = rSubModelPart.Elements();
-            auto numElements = pElements.end() - pElements.begin();
+            ElementsArrayType& ElementsArray = rSubModelPart.Elements();
+            SizeType numElements = ElementsArray.end() - ElementsArray.begin();
             
             /* Nodes */
     //         #pragma omp parallel for 
-            for(unsigned int i = 0; i < numNodes; i++) 
+            for(SizeType i = 0; i < numNodes; i++) 
             {
-                auto itNode = pNode.begin() + i;
+                auto itNode = NodesArray.begin() + i;
                 AuxNodeColors[itNode->Id()].insert(color);
             }
             
             /* Conditions */
     //         #pragma omp parallel for 
-            for(unsigned int i = 0; i < numConditions; i++) 
+            for(SizeType i = 0; i < numConditions; i++) 
             {
-                auto itCond = pConditions.begin() + i;
+                auto itCond = ConditionsArray.begin() + i;
                 AuxCondColors[itCond->Id()].insert(color);
             }
             
             /* Elements */
     //         #pragma omp parallel for 
-            for(unsigned int i = 0; i < numElements; i++) 
+            for(SizeType i = 0; i < numElements; i++) 
             {
-                auto itElem = pElements.begin() + i;
+                auto itElem = ElementsArray.begin() + i;
                 AuxElemColors[itElem->Id()].insert(color);
             }
         }
@@ -2188,7 +2188,7 @@ void MmgProcess<TDim>::ComputeColors(
     /* Conditions */
     for(itType iterator = AuxCondColors.begin(); iterator != AuxCondColors.end(); iterator++) 
     {
-//             const int key = iterator->first;
+//         const int key = iterator->first;
         const std::set<int> Value = iterator->second;
         
         if (Value.size() > 1)
@@ -2200,7 +2200,7 @@ void MmgProcess<TDim>::ComputeColors(
     /* Elements */
     for(itType iterator = AuxElemColors.begin(); iterator != AuxElemColors.end(); iterator++) 
     {
-//             const int key = iterator->first;
+//         const int key = iterator->first;
         const std::set<int> Value = iterator->second;
         
         if (Value.size() > 1)
@@ -2214,7 +2214,7 @@ void MmgProcess<TDim>::ComputeColors(
     for(CombType iterator = Combinations.begin(); iterator != Combinations.end(); iterator++) 
     {
         const std::set<int> key = iterator->first;
-//             const int Value = iterator->second;
+//         const int Value = iterator->second;
         
         for( auto it = key.begin(); it != key.end(); ++it ) 
         {

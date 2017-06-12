@@ -14,6 +14,7 @@
 #define KRATOS_MMG_PROCESS
 
 // System includes
+// #include <unordered_map> // TODO: Change boost unordered map by std
 
 // External includes
 // The includes related with the MMG library
@@ -93,7 +94,7 @@ namespace Kratos
                 return false;
             }
 
-            for(unsigned int i=0; i<lhs.size(); i++)
+            for(std::size_t i=0; i<lhs.size(); i++)
             {
                 if(lhs[i] != rhs[i]) 
                 {
@@ -475,7 +476,7 @@ private:
      */
     
     void SetMeshSize(
-        const int numNodes,
+        const SizeType numNodes,
         const array_1d<int, TDim - 1> numArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
         const array_1d<int, TDim - 1> numArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
         );
