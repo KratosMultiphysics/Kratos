@@ -17,6 +17,13 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
                 lappend Surfaces [lindex [lindex $BodyVolume [expr {2+$k}]] 0]
             }
             dict set BodyVolumesDict [lindex $BodyEntities $j] Surfaces $Surfaces
+            if {[lindex [GiD_Info list_entities Volumes [lindex $BodyEntities $j]] 11] eq "Meshing"} {
+                set MeshSize [lindex [GiD_Info list_entities Volumes [lindex $BodyEntities $j]] 17]
+                set MeshSize [string trimleft $MeshSize "size="]
+                dict set BodyVolumesDict [lindex $BodyEntities $j] MeshSize $MeshSize
+            } else {
+                dict set BodyVolumesDict [lindex $BodyEntities $j] MeshSize 0
+            }
         }
     }
     
@@ -281,7 +288,7 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
             set ConditionValues "true [lindex [lindex $Groups 0] 4] [lindex [lindex $Groups 0] 5] [lindex [lindex $Groups 0] 6] [lindex [lindex $Groups 0] 7] \
             [lindex [lindex $Groups 0] 8] [lindex [lindex $Groups 0] 9] [lindex [lindex $Groups 0] 10] [lindex [lindex $Groups 0] 11] [lindex [lindex $Groups 0] 12]\
             [lindex [lindex $Groups 0] 13] [lindex [lindex $Groups 0] 14] [lindex [lindex $Groups 0] 15] [lindex [lindex $Groups 0] 16] [lindex [lindex $Groups 0] 17]\
-            0.0 [lindex [lindex $Groups 0] 19]"
+            0.0 [lindex [lindex $Groups 0] 19] [lindex [lindex $Groups 0] 20] [lindex [lindex $Groups 0] 21]"
             GiD_AssignData condition Interface_Part groups $ConditionValues $LinkInterfaceGroup
         }
     }
@@ -1038,9 +1045,14 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
         for {set i 0} {$i < [llength $BodyVolumeGroups]} {incr i} {
             GiD_EntitiesGroups assign [lindex $BodyVolumeGroups $i] volumes $NewBodyVolumeId
         }
-        
+
+        if {[dict get $BodyVolume MeshSize] > 0.0} {
+            GiD_Process Mescape Meshing AssignSizes Volumes [dict get $BodyVolume MeshSize] $NewBodyVolumeId escape escape
+        }
+
         dict set BodyVolumesDict $NewBodyVolumeId Groups [dict get $BodyVolume Groups]
         dict set BodyVolumesDict $NewBodyVolumeId Surfaces [dict get $BodyVolume Surfaces]
+        dict set BodyVolumesDict $NewBodyVolumeId MeshSize [dict get $BodyVolume MeshSize]
     }
 
     dict for {Id Fracture} $FracturesDict {
@@ -1054,7 +1066,7 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
     }
 
     # Generate New Mesh
-    GiD_Process Mescape Meshing Generate Yes [GiD_Info Project LastElementSize] MeshingParametersFrom=Preferences
+    GiD_Process Mescape Meshing Generate Yes [GiD_Info Project LastElementSize] MeshingParametersFrom=Preferences escape
 
     ## Update FracturesData.json file
     set filename [file join $dir FracturesData.json]

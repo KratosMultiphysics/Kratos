@@ -175,7 +175,7 @@ namespace Kratos {
 
         // Finding overlapping of initial configurations
         if (r_process_info[CLEAN_INDENT_OPTION]) {
-            for (int i = 0; i < 10; i++) CalculateInitialMaxIndentations();
+            for (int i = 0; i < 10; i++) CalculateInitialMaxIndentations(r_process_info);
         }
 
         if (r_process_info[CRITICAL_TIME_OPTION]) {
@@ -595,8 +595,9 @@ namespace Kratos {
     void ExplicitSolverStrategy::BoundingBoxUtility(bool is_time_to_mark_and_remove) {
         KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
+        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
 
-        if (ElementConfigureType::GetDomainPeriodicity()) {
+        if (r_process_info[DOMAIN_IS_PERIODIC]) {
             mpParticleCreatorDestructor->MoveParticlesOutsideBoundingBoxBackInside(r_model_part);
         } else if (is_time_to_mark_and_remove) {
             mpParticleCreatorDestructor->DestroyParticlesOutsideBoundingBox(*mpCluster_model_part);
@@ -654,16 +655,12 @@ namespace Kratos {
         ModelPart& r_model_part = GetModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         const int number_of_particles = (int) mListOfSphericParticles.size();
-        double total_mass = 0.0;
         
         #pragma omp parallel for
         for (int i = 0; i < number_of_particles; i++) {
             mListOfSphericParticles[i]->Initialize(r_process_info);
-            total_mass += mListOfSphericParticles[i]->GetMass();
         }
-        
-        KRATOS_WATCH(total_mass)
-        
+                
         KRATOS_CATCH("")
     }
 
@@ -1170,7 +1167,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }//DoubleHierarchyMethod
 
-    void ExplicitSolverStrategy::CalculateInitialMaxIndentations() {
+    void ExplicitSolverStrategy::CalculateInitialMaxIndentations(ProcessInfo& r_process_info) {
         KRATOS_TRY
         std::vector<double> indentations_list, indentations_list_ghost;
         indentations_list.resize(mListOfSphericParticles.size());
@@ -1183,7 +1180,7 @@ namespace Kratos {
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
                 double indentation;
-                mListOfSphericParticles[i]->CalculateMaxBallToBallIndentation(indentation);
+                mListOfSphericParticles[i]->CalculateMaxBallToBallIndentation(indentation, r_process_info);
                 double max_indentation = std::max(0.0, 0.5 * indentation); // reducing the radius by half the indentation is enough
 
                 mListOfSphericParticles[i]->CalculateMaxBallToFaceIndentation(indentation);
@@ -1210,7 +1207,7 @@ namespace Kratos {
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
                 double indentation;
-                mListOfSphericParticles[i]->CalculateMaxBallToBallIndentation(indentation);
+                mListOfSphericParticles[i]->CalculateMaxBallToBallIndentation(indentation, r_process_info);
             }
         } //#pragma omp parallel
 

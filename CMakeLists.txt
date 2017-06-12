@@ -42,7 +42,7 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas  ")
     set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -Wall -Wno-unknown-pragmas  ")
     set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
-    message("additional default options were set for intel compiler")
+    message("additional default options were set for clang compiler")
     message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
     message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
   endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
@@ -328,6 +328,11 @@ install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DE
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/application_importer.py" DESTINATION KratosMultiphysics )
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_unittest.py" DESTINATION KratosMultiphysics RENAME KratosUnittest.py )
 
+# Remove the tags in the event of multiple versions of boost being found
+# in the same directory
+list(REMOVE_ITEM Boost_LIBRARIES "debug" "optimized")
+
+# Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)
 install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
 
@@ -348,19 +353,11 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
     #take care: do not indent the lines below
 file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/KratosLoader.py "import sys
-# # kratos_libs=\"${CMAKE_INSTALL_PREFIX}/libs\"
-# # kratos_applications=\"${CMAKE_INSTALL_PREFIX}/applications\"
-# # kratos_scripts=\"${CMAKE_INSTALL_PREFIX}/kratos/python_scripts\"
-# # kratos_tests=\"${CMAKE_INSTALL_PREFIX}/kratos/tests\"
-# # sys.path.append(kratos_libs)
-# # sys.path.append(kratos_applications)
-# # sys.path.append(kratos_scripts)
-# # sys.path.append(kratos_tests)
 import os.path
-kratos_libs=os.path.join(os.path.dirname(__file__),'../libs')
-kratos_applications=os.path.join(os.path.dirname(__file__),'../applications')
-kratos_scripts=os.path.join(os.path.dirname(__file__),'../kratos/python_scripts')
-kratos_tests=os.path.join(os.path.dirname(__file__),'../kratos/tests')
+kratos_libs=os.path.abspath(os.path.join(os.path.dirname(__file__),'../libs'))
+kratos_applications=os.path.abspath(os.path.join(os.path.dirname(__file__),'../applications'))
+kratos_scripts=os.path.abspath(os.path.join(os.path.dirname(__file__),'../kratos/python_scripts'))
+kratos_tests=os.path.abspath(os.path.join(os.path.dirname(__file__),'../kratos/tests'))
 sys.path.append(kratos_libs)
 sys.path.append(kratos_applications)
 sys.path.append(kratos_scripts)

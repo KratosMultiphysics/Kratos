@@ -38,25 +38,57 @@ namespace Kratos {
     
     DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart): mInletModelPart(inlet_modelpart)
     {                
-        mPartialParticleToInsert.resize(inlet_modelpart.NumberOfSubModelParts(), false);
-        mLastInjectionTimes.resize(inlet_modelpart.NumberOfSubModelParts(), false);
-        mTotalNumberOfDetachedParticles.resize(inlet_modelpart.NumberOfSubModelParts(), false);
-        mLayerRemoved.resize(inlet_modelpart.NumberOfSubModelParts(), false);
+        const int number_of_submodelparts = inlet_modelpart.NumberOfSubModelParts();
+        mPartialParticleToInsert.resize(number_of_submodelparts, false);
+        mLastInjectionTimes.resize(number_of_submodelparts, false);
+        //mTotalNumberOfDetachedParticles.resize(number_of_submodelparts, false);
+        mLayerRemoved.resize(number_of_submodelparts, false);
+        mNumberOfParticlesInjected.resize(number_of_submodelparts, false);
+        mMassInjected.resize(number_of_submodelparts, false);
         
         int smp_iterator_number = 0;   
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = inlet_modelpart.SubModelPartsBegin(); sub_model_part != inlet_modelpart.SubModelPartsEnd(); ++sub_model_part) {                        
             mPartialParticleToInsert[smp_iterator_number] = 0.0;
             mLastInjectionTimes[smp_iterator_number] = 0.0;
             mLayerRemoved[smp_iterator_number] = false;
+            //mTotalNumberOfDetachedParticles[smp_iterator_number] = 0.0;
+            mNumberOfParticlesInjected[smp_iterator_number] = 0;
+            mMassInjected[smp_iterator_number] = 0.0;
             smp_iterator_number++;
         }                
         
-        mFirstTime = true;
+        mFirstInjectionIsDone = false;
         mBallsModelPartHasSphericity = false;  
         mBallsModelPartHasRotation   = false;
-        mNumberOfParticlesInjected = 0;
+        mTotalNumberOfParticlesInjected = 0;
+        mTotalMassInjected = 0.0;
         SetNormalizedMaxIndentationForRelease(0.0);
         SetNormalizedMaxIndentationForNewParticleCreation(0.05);
+        
+        mWarningTooSmallInlet = false;
+        mWarningTooSmallInletForMassFlow = false;
+    }
+    
+    void DEM_Inlet::CheckSubModelPart(ModelPart& smp) {
+        CheckIfSubModelPartHasVariable(smp, IDENTIFIER);        
+        CheckIfSubModelPartHasVariable(smp, VELOCITY);
+        CheckIfSubModelPartHasVariable(smp, MAX_RAND_DEVIATION_ANGLE);
+        CheckIfSubModelPartHasVariable(smp, PROPERTIES_ID);
+        CheckIfSubModelPartHasVariable(smp, INLET_START_TIME);
+        CheckIfSubModelPartHasVariable(smp, INLET_STOP_TIME);
+        CheckIfSubModelPartHasVariable(smp, ELEMENT_TYPE);
+        CheckIfSubModelPartHasVariable(smp, INJECTOR_ELEMENT_TYPE);
+        CheckIfSubModelPartHasVariable(smp, INLET_NUMBER_OF_PARTICLES);        
+        CheckIfSubModelPartHasVariable(smp, CONTAINS_CLUSTERS);                        
+        CheckIfSubModelPartHasVariable(smp, RIGID_BODY_MOTION);
+        
+        if(smp[RIGID_BODY_MOTION]){
+            CheckIfSubModelPartHasVariable(smp, LINEAR_VELOCITY);
+            CheckIfSubModelPartHasVariable(smp, ANGULAR_VELOCITY);
+            CheckIfSubModelPartHasVariable(smp, ANGULAR_VELOCITY_START_TIME);
+            CheckIfSubModelPartHasVariable(smp, ANGULAR_VELOCITY_STOP_TIME);
+            CheckIfSubModelPartHasVariable(smp, ANGULAR_VELOCITY_PERIOD);
+        }
     }
                  
     void DEM_Inlet::InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const bool using_strategy_for_continuum) {
@@ -80,10 +112,12 @@ namespace Kratos {
                 
         for (ModelPart::SubModelPartsContainerType::iterator smp_it = mInletModelPart.SubModelPartsBegin(); smp_it != mInletModelPart.SubModelPartsEnd(); ++smp_it) {
             ModelPart& mp = *smp_it;
+            
+            CheckSubModelPart(mp);
 
             int mesh_size = smp_it->NumberOfNodes();
             if (!mesh_size) continue;
-            ModelPart::NodesContainerType::ContainerType all_nodes = smp_it->NodesArray();
+            ModelPart::NodesContainerType::ContainerType& all_nodes = smp_it->NodesArray();
             std::string& identifier = mp[IDENTIFIER];
             mp[INLET_INITIAL_VELOCITY] = mp[LINEAR_VELOCITY];    //This is the velocity of the moving injector of particles
             mp[INLET_INITIAL_PARTICLES_VELOCITY] = mp[VELOCITY]; //This is the initial velocity vector of the injected particles
@@ -116,7 +150,7 @@ namespace Kratos {
             }
             
             Element::Pointer dummy_element_pointer;
-            std::string& ElementNameString = mp[ELEMENT_TYPE];
+            std::string& ElementNameString = mp[INJECTOR_ELEMENT_TYPE];
             const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
             
             Properties::Pointer p_properties = mInletModelPart.pGetProperties(mp[PROPERTIES_ID]);
@@ -157,6 +191,7 @@ namespace Kratos {
         for (int k = 0; k < (int)r_modelpart.GetCommunicator().LocalMesh().Elements().size(); k++) {
             ElementIterator elem_it = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + k;                                        
             if (elem_it->IsNot(NEW_ENTITY)) continue;
+            if (elem_it->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
 
             SphericParticle& spheric_particle = dynamic_cast<SphericParticle&>(*elem_it);
             Node<3>& node_it = elem_it->GetGeometry()[0];
@@ -189,7 +224,7 @@ namespace Kratos {
             if (have_just_stopped_touching) {
                 if (node_it.IsNot(BLOCKED)) {//The ball must be freed
                     RemoveInjectionConditions(spheric_particle);
-                    UpdateThroughput(spheric_particle);
+                    UpdateTotalThroughput(spheric_particle);
                 }
                 else {
                     //Inlet BLOCKED nodes are ACTIVE when injecting, so when they cease to be in contact with other balls, ACTIVE is set to 'false', as they become available for injecting new elements.
@@ -198,7 +233,6 @@ namespace Kratos {
                 }
             }            
         }         
-        mFirstTime = false;        
     } //Dettach
 
     void DEM_Inlet::FixInjectorConditions(Element* p_element){}
@@ -251,7 +285,6 @@ namespace Kratos {
             if (elem_it->IsNot(NEW_ENTITY)) continue;
 
             Kratos::Cluster3D& r_cluster = dynamic_cast<Kratos::Cluster3D&>(*elem_it); 
-            Node<3>& cluster_central_node = r_cluster.GetGeometry()[0];
             bool still_touching=false;
 
             for (unsigned int j = 0; j < r_cluster.GetSpheres().size(); j++) { //loop over the spheres of the cluster
@@ -268,20 +301,8 @@ namespace Kratos {
             }
 
             if (!still_touching) { //The ball must be freed
-                cluster_central_node.Set(DEMFlags::FIXED_VEL_X, false);
-                cluster_central_node.Set(DEMFlags::FIXED_VEL_Y, false);
-                cluster_central_node.Set(DEMFlags::FIXED_VEL_Z, false);
-                cluster_central_node.Set(DEMFlags::FIXED_ANG_VEL_X, false);
-                cluster_central_node.Set(DEMFlags::FIXED_ANG_VEL_Y, false);
-                cluster_central_node.Set(DEMFlags::FIXED_ANG_VEL_Z, false);
-                elem_it->Set(NEW_ENTITY, 0);
-                cluster_central_node.Set(NEW_ENTITY, 0);
-                cluster_central_node.pGetDof(VELOCITY_X)->FreeDof();
-                cluster_central_node.pGetDof(VELOCITY_Y)->FreeDof();
-                cluster_central_node.pGetDof(VELOCITY_Z)->FreeDof();
-                cluster_central_node.pGetDof(ANGULAR_VELOCITY_X)->FreeDof();
-                cluster_central_node.pGetDof(ANGULAR_VELOCITY_Y)->FreeDof();
-                cluster_central_node.pGetDof(ANGULAR_VELOCITY_Z)->FreeDof();
+                RemoveInjectionConditions(r_cluster);
+                UpdateTotalThroughput(r_cluster);
 
                 for (unsigned int j = 0; j < r_cluster.GetSpheres().size(); j++) { //loop over the spheres of the cluster
                     SphericParticle* spheric_particle = r_cluster.GetSpheres()[j];
@@ -291,7 +312,6 @@ namespace Kratos {
                 }                    
             }                
         } 
-        mFirstTime=false;
     } //DettachClusters
     
     void DEM_Inlet::CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator) {                    
@@ -305,13 +325,14 @@ namespace Kratos {
         for (ModelPart::SubModelPartsContainerType::iterator smp_it = mInletModelPart.SubModelPartsBegin(); smp_it != mInletModelPart.SubModelPartsEnd(); ++smp_it) {            
             ModelPart& mp = *smp_it;
 
-            if (r_modelpart.GetProcessInfo()[TIME] < mp[INLET_START_TIME]) continue;
+            const double inlet_start_time = mp[INLET_START_TIME];
+            if (current_time < inlet_start_time) continue;
             
             const int mesh_size_elements = smp_it->NumberOfElements();
             
-            ModelPart::ElementsContainerType::ContainerType all_elements = smp_it->ElementsArray();
+            ModelPart::ElementsContainerType::ContainerType& all_elements = smp_it->ElementsArray();
                         
-            if (r_modelpart.GetProcessInfo()[TIME] > mp[INLET_STOP_TIME]) {
+            if (current_time > mp[INLET_STOP_TIME]) {
                 if (mLayerRemoved[smp_number]) continue;
                 for (int i = 0; i < mesh_size_elements; i++) {                   
                     all_elements[i]->Set(TO_ERASE);
@@ -324,22 +345,49 @@ namespace Kratos {
             int total_mesh_size_accross_mpi_processes = mesh_size_elements; //temporary value until reduction is done
             r_modelpart.GetCommunicator().SumAll(total_mesh_size_accross_mpi_processes);
             const double this_mpi_process_portion_of_inlet_mesh = (double) mesh_size_elements / (double) total_mesh_size_accross_mpi_processes;
-            double num_part_surface_time = mp[INLET_NUMBER_OF_PARTICLES];
+            double num_part_surface_time = GetInputNumberOfParticles(mp);
             num_part_surface_time *= this_mpi_process_portion_of_inlet_mesh;
             const double delta_t = current_time - mLastInjectionTimes[smp_number]; // FLUID DELTA_T CAN BE USED ALSO, it will depend on how often we call this function
             double surface = 1.0; //inlet_surface, this should probably be projected to velocity vector
             
-            //calculate number of particles to insert from input data
-            const double double_number_of_particles_to_insert = num_part_surface_time * delta_t * surface + mPartialParticleToInsert[smp_number];
-            int number_of_particles_to_insert = floor(double_number_of_particles_to_insert);
-            mPartialParticleToInsert[smp_number] = double_number_of_particles_to_insert - number_of_particles_to_insert;
+            int number_of_particles_to_insert = 0;
+            const double mass_flow = mp[MASS_FLOW];
+            const bool imposed_mass_flow_option = mp.Has(IMPOSED_MASS_FLOW_OPTION) && mp[IMPOSED_MASS_FLOW_OPTION];
+            if(imposed_mass_flow_option){                
+                number_of_particles_to_insert = mesh_size_elements; // The maximum possible, to increase random.                
+                
+                if(mass_flow) {
+                    const double mean_radius = mp[RADIUS];
+                    const double density = mInletModelPart.GetProperties(mp[PROPERTIES_ID])[PARTICLE_DENSITY];
+                    const double estimated_mass_of_a_particle = density * 4.0/3.0 * KRATOS_M_PI * mean_radius * mean_radius * mean_radius;                               
+                    const double maximum_time_until_release = estimated_mass_of_a_particle * mesh_size_elements / mass_flow;
+                    const double minimum_velocity = mean_radius * 3.0 / maximum_time_until_release; //The distance necessary to get out of the injector, over the time.
+                    array_1d<double, 3> & proposed_velocity = mp[VELOCITY];
+                    const double modulus_of_proposed_velocity = DEM_MODULUS_3(proposed_velocity);
+                    const double factor = 2.0;
+                    DEM_MULTIPLY_BY_SCALAR_3(proposed_velocity, factor * minimum_velocity / modulus_of_proposed_velocity);
+                }
+            }
+            else {           
+                //calculate number of particles to insert from input data
+                const double double_number_of_particles_to_insert = num_part_surface_time * delta_t * surface + mPartialParticleToInsert[smp_number];
+
+                if (double_number_of_particles_to_insert < INT_MAX){ // otherwise the precision is not enough to see the residuals
+                    mPartialParticleToInsert[smp_number] = double_number_of_particles_to_insert - number_of_particles_to_insert;
+                    number_of_particles_to_insert = std::trunc(double_number_of_particles_to_insert);
+                }
+
+                else {
+                    number_of_particles_to_insert = INT_MAX;
+                }
+            }
             
-            if (number_of_particles_to_insert) {
+            if (number_of_particles_to_insert) {                                
+                
                 //randomizing mesh
                 srand(/*time(NULL)* */r_modelpart.GetProcessInfo()[TIME_STEPS]);
                 
-                ModelPart::ElementsContainerType::ContainerType inserting_elements(number_of_particles_to_insert);               
-                ModelPart::ElementsContainerType::ContainerType valid_elements = smp_it->ElementsArray();
+                ModelPart::ElementsContainerType::ContainerType valid_elements(mesh_size_elements); //This is a new vector we are going to work on 
                 int valid_elements_length = 0;
                
                 for (int i = 0; i < mesh_size_elements; i++) {                    
@@ -348,19 +396,13 @@ namespace Kratos {
                         valid_elements_length++;
                     } // (push_back) //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted.
                 }
-
-                if (valid_elements_length < number_of_particles_to_insert) {
+                
+                if (valid_elements_length < number_of_particles_to_insert) {                                                
                     number_of_particles_to_insert = valid_elements_length;
-                    //std::cout<<"The number of DEM particles has been reduced to match the available number of nodes of the DEM Inlet mesh"<<std::endl<<std::flush;
                 }
-               
-                for (int i = 0; i < number_of_particles_to_insert; i++) {
-                    int pos = rand() % valid_elements_length;
-                    //int pos = i;
-                    inserting_elements[i] = valid_elements[pos]; //This only works for pos as real position in the vector if 
-                    //we use ModelPart::NodesContainerType::ContainerType instead of ModelPart::NodesContainerType
-                    valid_elements[pos] = valid_elements[valid_elements_length - 1];
-                    valid_elements_length = valid_elements_length - 1;
+                
+                if(!imposed_mass_flow_option){    
+                    ThrowWarningTooSmallInlet(mp);                                                      
                 }
                
                 PropertiesProxy* p_fast_properties = NULL;
@@ -373,20 +415,17 @@ namespace Kratos {
                     }
                 }
                 
+
                 const array_1d<double, 3> angular_velocity = mp[ANGULAR_VELOCITY];
                 const double mod_angular_velocity = MathUtils<double>::Norm3(angular_velocity);
                 const double angular_velocity_start_time = mp[ANGULAR_VELOCITY_START_TIME];
                 const double angular_velocity_stop_time = mp[ANGULAR_VELOCITY_STOP_TIME];
                 const double angular_period = mp[ANGULAR_VELOCITY_PERIOD];
-                array_1d<double, 3> angular_velocity_changed;
-                const double time = r_modelpart.GetProcessInfo()[TIME];
-                array_1d<double, 3> new_axes1;
-                array_1d<double, 3> new_axes2;
-                array_1d<double, 3> new_axes3;
+                array_1d<double, 3> angular_velocity_changed, new_axes1, new_axes2, new_axes3;
                 
                 // The objective of the function call that follows is to rotate the inlet velocity, thus preserving perpendicularity with respect to the inlet plane.
                 // Here we compute the three axis new_axes1, new_axes2, new_axes3 where we will have to project the initial inlet velocity to obtain the actual inlet velocity.
-                GeometryFunctions::RotateGridOfNodes(time, angular_velocity_start_time, angular_velocity_stop_time, angular_velocity_changed,
+                GeometryFunctions::RotateGridOfNodes(current_time, angular_velocity_start_time, angular_velocity_stop_time, angular_velocity_changed,
                                                      angular_period, mod_angular_velocity, angular_velocity, new_axes1, new_axes2, new_axes3);
                  
                 array_1d<double, 3> inlet_initial_velocity = mp[INLET_INITIAL_VELOCITY];
@@ -399,66 +438,167 @@ namespace Kratos {
                 const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
                 
                 Properties::Pointer p_properties = mInletModelPart.pGetProperties(mp[PROPERTIES_ID]);
-               
-                if (mp[CONTAINS_CLUSTERS] == false) {
-               
-                    for (int i = 0; i < number_of_particles_to_insert; i++) {
-                        Element* p_element = creator.ElementCreatorWithPhysicalParameters(r_modelpart,
-                                                                                        max_Id+1, 
-                                                                                        inserting_elements[i]->GetGeometry()(0),
-                                                                                        inserting_elements[i],
-                                                                                        p_properties, 
-                                                                                        mp,
-                                                                                        r_reference_element, 
-                                                                                        p_fast_properties, 
-                                                                                        mBallsModelPartHasSphericity, 
-                                                                                        mBallsModelPartHasRotation, 
-                                                                                        false, 
-                                                                                        smp_it->Elements());
-                        /*if(mStrategyForContinuum) {
-                            SphericContinuumParticle& spheric_cont_particle = dynamic_cast<SphericContinuumParticle&>(*p_element);
-                            spheric_cont_particle.mContinuumInitialNeighborsSize = 0;
-                        }*/
+                
+                const double mass_that_should_have_been_inserted_so_far = mass_flow * (current_time - inlet_start_time);                               
 
-                        FixInjectionConditions(p_element);
+                int i=0;
+                for (i = 0; i < number_of_particles_to_insert; i++) {
 
-                        inserting_elements[i]->Set(ACTIVE); //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted. 
-                        inserting_elements[i]->GetGeometry()[0].Set(ACTIVE);
+                    if (imposed_mass_flow_option) {
+                        if(GetPartialMassInjectedSoFar(smp_number) >= mass_that_should_have_been_inserted_so_far ) {
+                            break;
+                        }
+                    }
+
+                    int random_pos = rand() % valid_elements_length;
+                    
+                    if (mp[CONTAINS_CLUSTERS] == false) {
+                        SphericParticle* r_spheric_particle = creator.ElementCreatorWithPhysicalParameters(r_modelpart,
+                                                                                    max_Id+1, 
+                                                                                    valid_elements[random_pos]->GetGeometry()(0),
+                                                                                    valid_elements[random_pos],
+                                                                                    //This only works for random_pos as real position in the vector if 
+                                                                                    //we use ModelPart::NodesContainerType::ContainerType instead of ModelPart::NodesContainerType
+                                                                                    p_properties, 
+                                                                                    mp,
+                                                                                    r_reference_element, 
+                                                                                    p_fast_properties, 
+                                                                                    mBallsModelPartHasSphericity, 
+                                                                                    mBallsModelPartHasRotation, 
+                                                                                    false, 
+                                                                                    smp_it->Elements());
+                    /*if(mStrategyForContinuum) {
+                        SphericContinuumParticle& spheric_cont_particle = dynamic_cast<SphericContinuumParticle&>(*p_element);
+                        spheric_cont_particle.mContinuumInitialNeighborsSize = 0;
+                    }*/
+
+                        FixInjectionConditions(r_spheric_particle);
+                        UpdatePartialThroughput(*r_spheric_particle, smp_number);
                         max_Id++;
-                    }        
-                }
-               
-                else {
-               
-                    for (int i = 0; i < number_of_particles_to_insert; i++) {
+                    }
+                    else {
+                        
                         int number_of_added_spheres = 0;
-                        creator.ClusterCreatorWithPhysicalParameters(r_modelpart, 
-                                                                     r_clusters_modelpart,
-                                                                     max_Id+1, 
-                                                                     inserting_elements[i]->GetGeometry()(0), 
-                                                                     inserting_elements[i],
-                                                                     p_properties,
-                                                                     mp,
-                                                                     r_reference_element, 
-                                                                     p_fast_properties, 
-                                                                     mBallsModelPartHasSphericity, 
-                                                                     mBallsModelPartHasRotation, 
-                                                                     smp_it->Elements(),
-                                                                     number_of_added_spheres,
-                                                                     mStrategyForContinuum);
-                        inserting_elements[i]->Set(ACTIVE); //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted. 
-                        inserting_elements[i]->GetGeometry()[0].Set(ACTIVE);
-                        max_Id += number_of_added_spheres;
-                    }        
-                }               
+                        Cluster3D* p_cluster = creator.ClusterCreatorWithPhysicalParameters(r_modelpart, 
+                                                                                            r_clusters_modelpart,
+                                                                                            max_Id+1, 
+                                                                                            valid_elements[random_pos]->GetGeometry()(0),
+                                                                                            valid_elements[random_pos],
+                                                                                           //This only works for random_pos as real position in the vector if 
+                                                                                           //we use ModelPart::NodesContainerType::ContainerType instead of ModelPart::NodesContainerType
+                                                                                            p_properties,
+                                                                                            mp,
+                                                                                            r_reference_element, 
+                                                                                            p_fast_properties, 
+                                                                                            mBallsModelPartHasSphericity, 
+                                                                                            mBallsModelPartHasRotation, 
+                                                                                            smp_it->Elements(),
+                                                                                            number_of_added_spheres,
+                                                                                            mStrategyForContinuum);
+                                               
+                        UpdatePartialThroughput(*p_cluster, smp_number);
+                        max_Id += number_of_added_spheres;                        
+                    }
+
+                    valid_elements[random_pos]->Set(ACTIVE); //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted. 
+                    valid_elements[random_pos]->GetGeometry()[0].Set(ACTIVE);                    
+                    valid_elements[random_pos] = valid_elements[valid_elements_length - 1]; //Last position overwrites random_pos
+                    valid_elements_length--; //we remove last position and next random_pos has one less option
+                }  
+                
+                if(imposed_mass_flow_option) {
+                    if (i == number_of_particles_to_insert && (GetPartialMassInjectedSoFar(smp_number) < mass_that_should_have_been_inserted_so_far ) && mFirstInjectionIsDone == true) {
+                        ThrowWarningTooSmallInletForMassFlow(mp);                                                
+                    }
+                }
+                
             } //if (number_of_particles_to_insert)
             mLastInjectionTimes[smp_number] = current_time;
             smp_number++;
         } // for smp_it
         
         creator.RemoveUnusedNodesOfTheClustersModelPart(r_clusters_modelpart);
+        mFirstInjectionIsDone = true;
         
-    }    //CreateElementsFromInletMesh       
+    }    //CreateElementsFromInletMesh   
+        
+    void DEM_Inlet::AddRandomPerpendicularComponentToGivenVector(array_1d<double, 3 >& vector, const double angle_in_degrees)
+    {
+        KRATOS_TRY
+        const double vector_modulus = DEM_MODULUS_3(vector);
+        array_1d<double, 3 > unitary_vector;
+        noalias(unitary_vector) = vector / vector_modulus;
+        array_1d<double, 3 > normal_1;
+        array_1d<double, 3 > normal_2;
+
+        if (fabs(unitary_vector[0])>=0.577) {
+            normal_1[0]= - unitary_vector[1];
+            normal_1[1]= unitary_vector[0];
+            normal_1[2]= 0.0;
+        }
+        else if (fabs(unitary_vector[1])>=0.577) {
+            normal_1[0]= 0.0;
+            normal_1[1]= - unitary_vector[2];
+            normal_1[2]= unitary_vector[1];
+        }
+        else {
+            normal_1[0]= unitary_vector[2];
+            normal_1[1]= 0.0;
+            normal_1[2]= - unitary_vector[0];
+        }
+
+        //normalize(normal_1);
+        const double distance0 = DEM_MODULUS_3(normal_1);
+        const double inv_distance0 = (distance0 != 0.0) ? 1.0 / distance0 : 0.00;
+        normal_1[0] *= inv_distance0;
+        normal_1[1] *= inv_distance0;
+        normal_1[2] *= inv_distance0;
+
+        //CrossProduct(NormalDirection,Vector0,Vector1);
+        DEM_SET_TO_CROSS_OF_FIRST_TWO_3(unitary_vector, normal_1, normal_2)
+
+        const double angle_in_radians = angle_in_degrees * KRATOS_M_PI / 180;
+        const double radius = tan(angle_in_radians) * vector_modulus;
+        const double radius_square = radius * radius;
+        double local_added_vector_modulus_square = radius_square + 1.0; //just greater than the radius, to get at least one iteration of the while
+        array_1d<double, 3> local_added_vector; local_added_vector[0] = local_added_vector[1] = local_added_vector[2] = 0.0;
+
+        while (local_added_vector_modulus_square > radius_square) {
+            //Random in a range: (max - min) * ( (double)rand() / (double)RAND_MAX ) + min
+            local_added_vector[0] = 2*radius * (double)rand() / (double)RAND_MAX - radius;
+            local_added_vector[1] = 2*radius * (double)rand() / (double)RAND_MAX - radius;
+            local_added_vector_modulus_square = local_added_vector[0]*local_added_vector[0] + local_added_vector[1]*local_added_vector[1];
+        }
+
+        noalias(vector) += local_added_vector[0] * normal_1 + local_added_vector[1] * normal_2;
+        KRATOS_CATCH("")
+    }
+    
+    void DEM_Inlet::ThrowWarningTooSmallInlet(const ModelPart& mp) {
+        if(!mWarningTooSmallInlet) {
+
+            std::cout<<std::endl;
+            std::cout<<std::endl;
+            std::cout<<"WARNING: At Inlet, the number of injected DEM particles has been reduced to match the available number of nodes for injecting, which was too small. Increase the size of inlet called '"<<mp.Name()<<"'."<<std::endl;
+            std::cout<<std::endl;
+            std::cout<<std::endl<<std::flush;
+
+            mWarningTooSmallInlet = true;
+        }              
+    }
+    
+    void DEM_Inlet::ThrowWarningTooSmallInletForMassFlow(const ModelPart& mp) {
+        if(!mWarningTooSmallInletForMassFlow) {
+            
+            std::cout<<std::endl;
+            std::cout<<std::endl;
+            std::cout<<"WARNING: At Inlet, the mass flow can not be fulfilled because the number of nodes for injecting was too small. Increase the size of inlet called '"<<mp.Name()<<"'."<<std::endl;
+            std::cout<<std::endl;
+            std::cout<<std::endl<<std::flush;
+
+            mWarningTooSmallInletForMassFlow = true;
+        }           
+    }
 
     ModelPart& DEM_Inlet::GetInletModelPart()
     {
@@ -474,21 +614,64 @@ namespace Kratos {
     {
         mNormalizedMaxIndentationForNewParticleCreation = value;
     }
-
-    int DEM_Inlet::GetNumberOfParticlesInjectedSoFar()
+    
+    int DEM_Inlet::GetPartialNumberOfParticlesInjectedSoFar(const int i)
     {
-        return mNumberOfParticlesInjected;
+        return mNumberOfParticlesInjected[i];
     }
 
-    double DEM_Inlet::GetMassInjectedSoFar()
+    int DEM_Inlet::GetTotalNumberOfParticlesInjectedSoFar()
     {
-        return mMassInjected;
+        return mTotalNumberOfParticlesInjected;
+    }
+    
+    double DEM_Inlet::GetPartialMassInjectedSoFar(const int i)
+    {
+        return mMassInjected[i];
     }
 
-    void DEM_Inlet::UpdateThroughput(SphericParticle& r_spheric_particle)
+    double DEM_Inlet::GetTotalMassInjectedSoFar()
     {
-        ++mNumberOfParticlesInjected;
-        mMassInjected += r_spheric_particle.GetMass();
+        return mTotalMassInjected;
+    }
+
+    void DEM_Inlet::UpdateTotalThroughput(SphericParticle& r_spheric_particle)
+    {
+        ++mTotalNumberOfParticlesInjected;
+        mTotalMassInjected += r_spheric_particle.GetMass();
+    }
+    
+    void DEM_Inlet::UpdateTotalThroughput(Cluster3D& r_cluster)
+    {
+        ++mTotalNumberOfParticlesInjected;
+        mTotalMassInjected += r_cluster.GetMass();
+    }
+    
+    void DEM_Inlet::UpdatePartialThroughput(SphericParticle& r_spheric_particle, const int i)
+    {
+        ++mNumberOfParticlesInjected[i];
+        
+        mMassInjected[i] += r_spheric_particle.GetMass();
+    }
+    
+    void DEM_Inlet::UpdatePartialThroughput(Cluster3D& r_cluster, const int i)
+    {
+        ++mNumberOfParticlesInjected[i];
+        
+        mMassInjected[i] += r_cluster.GetMass();
+    }
+
+    double DEM_Inlet::GetInputNumberOfParticles(const ModelPart& mp)
+    {
+        double num_part_surface_time = mp[INLET_NUMBER_OF_PARTICLES];
+
+        if (num_part_surface_time >= 0){
+           return num_part_surface_time;
+        }
+
+        else {
+            KRATOS_ERROR << "The value of the Model Part variable INLET_NUMBER_OF_PARTICLES is not a positive int: " << num_part_surface_time;
+        }
     }
 
 

@@ -16,6 +16,7 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/cfd_variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/ale_variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/dem_variables.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/mat_variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/legacy_structural_app_vars.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/integration_rules.cpp;
@@ -45,6 +46,9 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/processes/structured_mesh_generator_process.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/processes/tetrahedra_mesh_edge_swapping_process.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/processes/find_intersected_geometrical_objects_process.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_discontinuous_distance_to_skin_process.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_distance_to_skin_process.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/reorder_and_optimize_modelpart_process.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/exception.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/code_location.cpp;
@@ -67,6 +71,7 @@ set( KRATOS_PYTHON_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_cfd_variables_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_ale_variables_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_dem_variables_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/python/add_mat_variables_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_legacy_structural_app_vars_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_containers_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_constitutive_law_to_python.cpp
