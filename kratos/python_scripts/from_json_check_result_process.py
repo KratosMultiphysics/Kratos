@@ -48,6 +48,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
             "model_part_name"      : "",
             "sub_model_part_name"  : "",
             "tolerance"            : 1e-3,
+            "relative_tolerance"   : 1e-6,
             "time_frequency"       : 1.00
         }
         """)
@@ -83,6 +84,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
 
     def ExecuteFinalizeSolutionStep(self):
         tol = self.params["tolerance"].GetDouble()
+        reltol = self.params["relative_tolerance"].GetDouble()
         time = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME)
         dt = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
         self.time_counter += dt
@@ -105,7 +107,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                         values_json = self.data["NODE_"+str(node.Id)][out.GetString() ]
                         value_json = linear_interpolation(time, input_time_list, values_json)
                         if (self.iscloseavailable == True):
-                            isclosethis = math.isclose(value, value_json, rel_tol=tol, abs_tol=tol)
+                            isclosethis = math.isclose(value, value_json, rel_tol=reltol, abs_tol=tol)
                             self.assertTrue(isclosethis)
                         else:
                             self.assertAlmostEqual(value, value_json, msg=("Error checking node "+str(node.Id)+" "+out.GetString()+" results."), delta=tol)
@@ -115,17 +117,17 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                             # X-component
                             values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_X"]
                             value_json = linear_interpolation(time, input_time_list, values_json)
-                            isclosethis = math.isclose(value[0], value_json, rel_tol=tol, abs_tol=tol)
+                            isclosethis = math.isclose(value[0], value_json, rel_tol=reltol, abs_tol=tol)
                             self.assertTrue(isclosethis)
                             # Y-component
                             values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_Y"]
                             value_json = linear_interpolation(time, input_time_list, values_json)
-                            isclosethis = math.isclose(value[1], value_json, rel_tol=tol, abs_tol=tol)
+                            isclosethis = math.isclose(value[1], value_json, rel_tol=reltol, abs_tol=tol)
                             self.assertTrue(isclosethis)
                             # Z-component
                             values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_Z"]
                             value_json = linear_interpolation(time, input_time_list, values_json)
-                            isclosethis = math.isclose(value[2], value_json, rel_tol=tol, abs_tol=tol)
+                            isclosethis = math.isclose(value[2], value_json, rel_tol=reltol, abs_tol=tol)
                             self.assertTrue(isclosethis)
                         else:
                             # X-component
