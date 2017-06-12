@@ -756,8 +756,47 @@ public:
     virtual void CalculateMaterialResponseCauchy (Parameters& rValues);
 
 
+
     /**
-     * Updates the material response,  called by the element in FinalizeSolutionStep.
+     * Initialize the material response,  called by the element in FinalizeSolutionStep.
+     * @see Parameters
+     * @see StressMeasures
+     */
+    void InitializeMaterialResponse (Parameters& rValues,const StressMeasure& rStressMeasure);
+
+
+    /**
+     * Initialize the material response in terms of 1st Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+
+    virtual void InitializeMaterialResponsePK1 (Parameters& rValues);
+
+    /**
+     * Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+
+    virtual void InitializeMaterialResponsePK2 (Parameters& rValues);
+
+    /**
+     * Initialize the material response in terms of Kirchhoff stresses
+     * @see Parameters
+     */
+
+    virtual void InitializeMaterialResponseKirchhoff (Parameters& rValues);
+
+    /**
+     * Initialize the material response in terms of Cauchy stresses
+     * @see Parameters
+     */
+
+    virtual void InitializeMaterialResponseCauchy (Parameters& rValues);
+
+
+    
+    /**
+     * Finalize the material response,  called by the element in FinalizeSolutionStep.
      * @see Parameters
      * @see StressMeasures
      */
@@ -765,28 +804,28 @@ public:
 
 
     /**
-     * Updates the material response in terms of 1st Piola-Kirchhoff stresses
+     * Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
 
     virtual void FinalizeMaterialResponsePK1 (Parameters& rValues);
 
     /**
-     * Updates the material response in terms of 2nd Piola-Kirchhoff stresses
+     * Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
 
     virtual void FinalizeMaterialResponsePK2 (Parameters& rValues);
 
     /**
-     * Updates the material response in terms of Kirchhoff stresses
+     * Finalize the material response in terms of Kirchhoff stresses
      * @see Parameters
      */
 
     virtual void FinalizeMaterialResponseKirchhoff (Parameters& rValues);
 
     /**
-     * Updates the material response in terms of Cauchy stresses
+     * Finalize the material response in terms of Cauchy stresses
      * @see Parameters
      */
 
