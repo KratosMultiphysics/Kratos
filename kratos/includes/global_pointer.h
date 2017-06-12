@@ -136,6 +136,28 @@ public:
     {
   }
 
+  /** Move constructor
+   * Move constructor
+   * @ rOther: Copied GlobalPointer
+   */
+  GlobalPointer(const GlobalPointer && rOther)
+    : mDataPointer(std::move(rOther.mDataPointer))
+#ifdef KRATOS_USING_MPI
+    , mRank(std::move(rOther.mRank))
+#endif
+    {
+  }
+
+  /** Assignment Operator
+   * Assignment Operator
+   */
+  GlobalPointer & operator=(const GlobalPointer & rOther) {
+    mDataPointer = rOther.mDataPointer;
+#ifdef KRATOS_USING_MPI
+    mRank = rOther.mRank;
+#endif
+    return *this;
+  }
 
   /** Default Destructor
    * Default Destructor.
@@ -162,17 +184,6 @@ public:
    */
   TDataType * operator->() {
     return mDataPointer;
-  }
-
-  /** Assignment Operator
-   * Assignment Operator
-   */
-  GlobalPointer & operator=(const GlobalPointer & rOther) {
-    mDataPointer = rOther.mDataPointer;
-#ifdef KRATOS_USING_MPI
-    mRank = rOther.mRank;
-#endif
-    return *this;
   }
 
   /** Returns the rank of the data owner
