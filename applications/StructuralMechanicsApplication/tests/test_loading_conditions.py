@@ -10,7 +10,7 @@ class TestLoadingConditions(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    def test_LineLoadCondition2D2N(self):
+    def _test_LineLoadCondition2D2N(self):
         dim = 2
         mp = KratosMultiphysics.ModelPart("solid_part")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -79,7 +79,7 @@ class TestLoadingConditions(KratosUnittest.TestCase):
         self.assertAlmostEqual(rhs[2],reference_res[2])
         self.assertAlmostEqual(rhs[3],reference_res[3])
         
-    def test_LineLoadCondition2D2NAngle(self):
+    def _test_LineLoadCondition2D2NAngle(self):
         dim = 2
         mp = KratosMultiphysics.ModelPart("solid_part")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -105,6 +105,12 @@ class TestLoadingConditions(KratosUnittest.TestCase):
         cond2 = mp.CreateNewCondition("LineLoadCondition2D2N", 2, [2,3], mp.GetProperties()[1])
         
         rhs = KratosMultiphysics.Vector(6)
+        rhs[0] = 0.0
+        rhs[1] = 0.0
+        rhs[2] = 0.0
+        rhs[3] = 0.0
+        rhs[4] = 0.0
+        rhs[5] = 0.0
         
         #first we apply a constant LINE_LOAD to theh condition 
         load_on_cond = KratosMultiphysics.Vector(3)
@@ -134,7 +140,7 @@ class TestLoadingConditions(KratosUnittest.TestCase):
         self.assertEqual(rhs[4], 0.0*lenght)
         self.assertEqual(rhs[5],-0.5*lenght)
 
-    def test_SurfaceLoadCondition3D4N(self):
+    def _test_SurfaceLoadCondition3D4N(self):
         dim = 2
         mp = KratosMultiphysics.ModelPart("solid_part")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -212,9 +218,9 @@ class TestLoadingConditions(KratosUnittest.TestCase):
             self.assertAlmostEqual(rhs[i],reference_res[i])     
         
     def test_execution(self):
-        self.test_LineLoadCondition2D2N()
-        self.test_LineLoadCondition2D2NAngle()
-        self.test_SurfaceLoadCondition3D4N()
+        self._test_LineLoadCondition2D2N()
+        self._test_LineLoadCondition2D2NAngle()
+        self._test_SurfaceLoadCondition3D4N()
         
 if __name__ == '__main__':
     KratosUnittest.main()
