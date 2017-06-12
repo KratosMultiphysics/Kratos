@@ -94,7 +94,7 @@ class MechanicalSolver(object):
         # Add dynamic variables
         if(self.settings["solution_type"].GetString() == "Dynamic"):
             self.dof_variables = self.dof_variables + ['VELOCITY','ACCELERATION']
-            self.dof_reactions = self.dof_reactions + ['NONE','NONE']
+            self.dof_reactions = self.dof_reactions + ['NOT_DEFINED','NOT_DEFINED']
         
         # Add specific variables for the problem conditions
         self.nodal_variables = self.nodal_variables + ['VOLUME_ACCELERATION','POSITIVE_FACE_PRESSURE','NEGATIVE_FACE_PRESSURE','POINT_LOAD','LINE_LOAD','SURFACE_LOAD']
@@ -110,7 +110,7 @@ class MechanicalSolver(object):
             self.dof_reactions = self.dof_reactions + ['TORQUE']
             if(self.settings["solution_type"].GetString() == "Dynamic"):
                 self.dof_variables = self.dof_variables + ['ANGULAR_VELOCITY','ANGULAR_ACCELERATION']
-                self.dof_reactions = self.dof_reactions + ['NONE','NONE']
+                self.dof_reactions = self.dof_reactions + ['NOT_DEFINED','NOT_DEFINED']
             # Add specific variables for the problem conditions
             self.nodal_variables = self.nodal_variables + ['POINT_MOMENT']
 
@@ -127,11 +127,10 @@ class MechanicalSolver(object):
         
         self.nodal_variables = self.nodal_variables + self.dof_variables + self.dof_reactions 
 
-        self.nodal_variables = [self.nodal_variables[i] for i in range(0,len(self.nodal_variables)) if self.nodal_variables[i] is not 'NONE']
-       
+        self.nodal_variables = [self.nodal_variables[i] for i in range(0,len(self.nodal_variables)) if self.nodal_variables[i] is not 'NOT_DEFINED']
+
         for variable in self.nodal_variables:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
-                                                            
         print("::[Mechanical Solver]:: Variables ADDED")
                                                               
     
@@ -143,7 +142,8 @@ class MechanicalSolver(object):
 
         AddDofsProcess = KratosSolid.AddDofsProcess(self.main_model_part, self.dof_variables, self.dof_reactions)
         AddDofsProcess.Execute()
-
+                
+        print("::[Mechanical Solver]:: DOF's ADDED")
         
     def ImportModelPart(self):
         
