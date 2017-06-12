@@ -415,7 +415,7 @@ namespace Kratos
 
         // For axisymmetric case
         Vector N;
-        double Radius;
+        double Radius = 0.0f;
         
         if ( StrainSize == 4 )
         {
