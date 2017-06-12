@@ -1706,7 +1706,7 @@ protected:
 
         // Nitsche coefficient
         const double eff_mu = BaseType::ComputeEffectiveViscosity(rData);
-        const double cons_coef = 25.0*eff_mu/rData.h;
+        const double cons_coef = 10000.0*eff_mu/rData.h;
 
         // Declare auxiliar arrays
         array_1d<double, MatrixSize> auxRightHandSideVector = ZeroVector(MatrixSize);
@@ -2019,8 +2019,8 @@ protected:
             // Note that the Nitche contribution has to be computed the last since it drops the outer nodes rows previous constributions
             if (this->Is(SLIP)) // TODO: Now, all the elements are marked with the SLIP flag. Even though the contribution is only added
             {
-                // // Previous implementation and tests
-                // // AddSlipBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData); //TODO: Check and decoment this when finished
+                // Previous implementation and tests
+                // AddSlipBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData); //TODO: Check and decoment this when finished
                 // DropOuterNodesVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
                 // // DropOuterNodesPressureContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
                 // AddSlipNoPenetrationNitcheContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
