@@ -79,7 +79,13 @@ public:
    * Constructor by boost::weak_ptr
    * @param DataPointer Boost Weak Pointer to the Data.
    */
-  GlobalPointer(boost::weak_ptr<TDataType> DataPointer) = delete;
+  GlobalPointer(boost::weak_ptr<TDataType> DataPointer)
+    : mDataPointer(DataPointer.lock().get())
+  #ifdef KRATOS_USING_MPI
+    , mRank(GetLocalRank())
+  #endif
+    {
+  }
 
   /** Constructor by boost::unique_ptr
    * Constructor by boost::unique_ptr
@@ -104,7 +110,13 @@ public:
    * Constructor by std::weak_ptr
    * @param DataPointer Std Weak Pointer to the Data.
    */
-  GlobalPointer(std::weak_ptr<TDataType> DataPointer) = delete;
+  GlobalPointer(std::weak_ptr<TDataType> DataPointer)
+    : mDataPointer(DataPointer.lock().get())
+  #ifdef KRATOS_USING_MPI
+    , mRank(GetLocalRank())
+  #endif
+      {
+    }
 
   /** Constructor by std::unique_ptr
    * Constructor by std::unique_ptr
