@@ -179,10 +179,10 @@ public:
         Initialize();
         InitializeSolutionStep();
         Predict();
-        const bool IsConverged = SolveSolutionStep();
+        SolveSolutionStep();
         FinalizeSolutionStep();
         
-        return (IsConverged == true ? 1.0 : 0.0); 
+        return 0.0; 
         
     }
 
