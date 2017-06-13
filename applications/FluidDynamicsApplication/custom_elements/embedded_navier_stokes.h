@@ -675,10 +675,10 @@ protected:
         }
 
         // LHS assembly
-        rLeftHandSideMatrix += auxLeftHandSideMatrix;
+        rLeftHandSideMatrix -= auxLeftHandSideMatrix;
 
         // RHS assembly
-        rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol);
+        rRightHandSideVector += prod(auxLeftHandSideMatrix, prev_sol);
 
     }
 
@@ -937,10 +937,10 @@ protected:
     * @param rData: reference to element data structure
     * @param rSplittingData: reference to the intersection data structure
     */
-    void AddBoundaryConditionNitcheContribution(MatrixType& rLeftHandSideMatrix,
-                                                VectorType& rRightHandSideVector,
-                                                const ElementDataType& rData,
-                                                const ElementSplittingDataStruct& rSplittingData)
+    void AddBoundaryConditionModifiedNitcheContribution(MatrixType& rLeftHandSideMatrix,
+                                                        VectorType& rRightHandSideVector,
+                                                        const ElementDataType& rData,
+                                                        const ElementSplittingDataStruct& rSplittingData)
     {
 
         constexpr unsigned int BlockSize = TDim+1;                 // Block size
@@ -1795,7 +1795,6 @@ protected:
 
         // Nitsche coefficient
         const double eff_mu = BaseType::ComputeEffectiveViscosity(rData);
-        const double cons_coef = eff_mu/rData.h;
 
         // Declare auxiliar arrays
         array_1d<double, MatrixSize> auxRightHandSideVector = ZeroVector(MatrixSize);
@@ -1858,10 +1857,12 @@ protected:
             const bounded_matrix<double, (TDim-1)*3, MatrixSize> N_aux_proj_voigt = prod(trans(voigt_normal_projection_matrix), N_aux_proj);
 
             // Contribution coming fron the shear stress operator
-            auxLeftHandSideMatrix += cons_coef*weight*prod(aux_matrix_BC, N_aux_proj_voigt);
+            //TODO: CHECK THE CONSISTENCY PARAMETERS
+            auxLeftHandSideMatrix += eff_mu*weight*prod(aux_matrix_BC, N_aux_proj_voigt);
 
             // Contribution coming from the pressure terms
-            auxLeftHandSideMatrix -= cons_coef*weight*prod(trans_pres_to_voigt_matrix_op, N_aux_proj_voigt);
+            //TODO: CHECK THE CONSISTENCY PARAMETERS
+            auxLeftHandSideMatrix -= eff_mu*weight*prod(trans_pres_to_voigt_matrix_op, N_aux_proj_voigt);
 
         }
 
@@ -2041,7 +2042,7 @@ protected:
             {
                 AddBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
                 DropOuterNodesVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
-                AddBoundaryConditionNitcheContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
+                AddBoundaryConditionModifiedNitcheContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
             }
         }
         // Add a penalty contribution to enforce the BC imposition at the level set when the distance value is close to 0
