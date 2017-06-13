@@ -71,7 +71,7 @@ MmgProcess<TDim>::MmgProcess(
 {       
     Parameters DefaultParameters = Parameters(R"(
         {
-            "filename"                         : "out",
+            "filename"                             : "out",
             "framework"                            : "Eulerian",
             "internal_variables_parameters"        :
             {

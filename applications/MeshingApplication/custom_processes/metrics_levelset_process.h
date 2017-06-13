@@ -84,9 +84,7 @@ public:
         Parameters ThisParameters = Parameters(R"({})")
         )
         :mThisModelPart(rThisModelPart),
-        mVariableGradient(rVariableGradient),
-        mMinSize(ThisParameters["minimal_size"].GetDouble()),
-        mEnforceCurrent(ThisParameters["enforce_current"].GetBool())
+        mVariableGradient(rVariableGradient)
     {   
         Parameters DefaultParameters = Parameters(R"(
         {
@@ -101,6 +99,9 @@ public:
             }
         })" );
         ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        
+        mMinSize = ThisParameters["minimal_size"].GetDouble();
+        mEnforceCurrent = ThisParameters["enforce_current"].GetBool();
         
         // In case we have isotropic remeshing (default values)
         if (ThisParameters["anisotropy_remeshing"].GetBool() == false)
