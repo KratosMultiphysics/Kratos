@@ -77,7 +77,9 @@ class Solution(object):
         #### Output settings start ####
 
         self.problem_path = os.getcwd()
+
         self.problem_name = self.ProjectParameters["problem_data"]["problem_name"].GetString()                 
+
         
     
     def AddNodalVariablesToModelPart(self):
@@ -166,6 +168,7 @@ class Solution(object):
         self.computing_model_part = self.solver.GetComputingModelPart()
         
         self.SetGraphicalOutput()  
+
 
         ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
         self.solver.Initialize()

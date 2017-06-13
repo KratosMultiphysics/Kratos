@@ -91,7 +91,7 @@ public:
     ///@{
 
     /// Default constructor.
-    ContactDomain3DModeler() {} //
+    ContactDomain3DModeler() { std::cout<<"3D modeler for Contact"<<std::endl; } //
 
     /// Destructor.
     virtual ~ContactDomain3DModeler() {}
@@ -202,13 +202,13 @@ private:
      
     //set nodes to a mesh
     void SetNodes(ModelPart& rModelPart,
-		  MeshingParametersType& rMeshingVariables);
+		  MeshingParametersType& rMeshingVariables) override;
 
 
     //set faces in the triangulateio before the Delaunay Tesselation
     void SetFaces ( ModelPart &rModelPart,
 		    MeshingParametersType & rMeshingVariables,
-		    tetgenio &in );
+		    tetgenio &in ) override;
 
     ///@}
     ///@name Private  Access

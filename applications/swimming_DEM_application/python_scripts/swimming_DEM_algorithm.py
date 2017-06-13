@@ -640,7 +640,12 @@ class Algorithm(object):
     def SetAnalyticFaceWatcher(self):
         from analytic_tools import analytic_data_procedures
         self.watcher = AnalyticFaceWatcher()
-        self.watcher_analyser = analytic_data_procedures.WatcherAnalyzer(analytic_face_watcher = self.watcher, path = self.main_path)
+        self.watcher_analyser = analytic_data_procedures.FaceWatcherAnalyzer(analytic_face_watcher = self.watcher, path = self.main_path)
+
+    def SetAnalyticParticleWatcher(self):
+        from analytic_tools import analytic_data_procedures
+        self.particle_watcher = AnalyticParticleWatcher()
+        self.particle_watcher_analyser = analytic_data_procedures.ParticleWatcherAnalyzer(analytic_particle_watcher = self.particle_watcher, path = self.main_path)
 
     def SetInletWatcher(self):
         self.watcher_analyser.SetInlet(self.DEM_inlet) 
