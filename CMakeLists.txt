@@ -67,35 +67,40 @@ endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Old non-compatible versions of VS
 if(${MSVC80})
-  message( FATAL_ERROR "DEPRECATED: detected compiler as MSVC80")
+  message( "DEPRECATED: detected compiler as MSVC80")
+  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
 endif(${MSVC80})
 
 if(${MSVC90})
-  message( FATAL_ERROR "DEPRECATED: detected compiler as MSVC90")
+  message( "DEPRECATED: detected compiler as MSVC90")
+  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
 endif(${MSVC90})
 
 if(${MSVC10})
-  message( FATAL_ERROR "DEPRECATED: detected compiler as MSVC10")
+  message( "DEPRECATED: detected compiler as MSVC10")
+  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
 endif(${MSVC10})
 
 if(${MSVC11})
-  message( FATAL_ERROR "DEPRECATED: detected compiler as MSVC11")
+  message( "DEPRECATED: detected compiler as MSVC11")
+  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
 endif(${MSVC11})
 
 if(${MSVC12})
-  message( FATAL_ERROR "DEPRECATED: detected compiler as MSVC12")
+  message( "DEPRECATED: detected compiler as MSVC12")
+  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
 endif(${MSVC12})
 
 # Common flags for MSVC
 if(${MSVC})
   message("Detected compiler as MSVC")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W4 /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
 endif(${MSVC})
 
 # Specific flags for different versions of MSVC
 if(${MSVC14})
-  message("Adding additional flags for MSVC14")
+  # message("Adding additional flags for MSVC14")
   # Nothing needed right now
 endif(${MSVC14})
 
