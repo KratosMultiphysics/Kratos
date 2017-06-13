@@ -58,6 +58,7 @@ from SmallTests import Fofi4PointTentnoCableTests       as TFofi4PointTentnoCabl
 from SmallTests import MembraneQ4PointLoadTests         as TMembraneQ4PointLoadTests
 # Nodal damping test
 from test_nodal_damping import NodalDampingTests        as TNodalDampingTests
+from test_spring_damper_element import SpringDamperElementTests as TSpringDamperElementTests
 
 ## NIGTHLY TESTS
 # Shell test
@@ -135,6 +136,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TMembraneQ4PointLoadTests('test_execution'))
     # Nodal damping test
     smallSuite.addTest(TNodalDampingTests('test_execution'))
+    smallSuite.addTest(TSpringDamperElementTests('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -192,7 +194,8 @@ def AssambleTestSuites():
             TShellT3ThinDrillingRollUpTests,
             TShellT3IsotropicScordelisTests,
             TIsotropicDamageSimoJuPSTest,
-            TNodalDampingTests
+            TNodalDampingTests,
+            TSpringDamperElementTests
             ######TSprismPanTests
         ])
     )

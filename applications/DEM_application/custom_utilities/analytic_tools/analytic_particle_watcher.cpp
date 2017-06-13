@@ -29,8 +29,8 @@ void AnalyticParticleWatcher::MakeMeasurements(ModelPart& analytic_model_part)
 
     for (ElementsIteratorType i_elem = analytic_model_part.ElementsBegin(); i_elem != analytic_model_part.ElementsEnd(); ++i_elem){
         AnalyticParticle& particle = dynamic_cast<Kratos::AnalyticSphericParticle&>(*(*(i_elem.base())));
-        const int n_collisions = particle.GetNumberOfCollisions();
 
+        const int n_collisions = particle.GetNumberOfCollisions();
         if (n_collisions){
             const int id = int(i_elem->Id());
             ParticleHistoryDatabase& particle_database = GetParticleDataBase(id);
@@ -54,6 +54,29 @@ void AnalyticParticleWatcher::MakeMeasurements(ModelPart& analytic_model_part)
 
     }
 }
+
+
+void AnalyticParticleWatcher::SetNodalMaxImpactVelocities(ModelPart& analytic_model_part)
+{
+    for (ElementsIteratorType i_elem = analytic_model_part.ElementsBegin(); i_elem != analytic_model_part.ElementsEnd(); ++i_elem){
+        AnalyticParticle& particle = dynamic_cast<Kratos::AnalyticSphericParticle&>(*(*(i_elem.base())));
+
+        const int id = int(i_elem->Id());
+        ParticleHistoryDatabase& particle_database = GetParticleDataBase(id);
+        double db_normal_impact_velocity = 0.0;
+        double db_tangential_impact_velocity = 0.0;
+        particle_database.GetMaxVelocities(db_normal_impact_velocity, db_tangential_impact_velocity);
+
+        // get current nodal values
+        double& current_max_normal_velocity = particle.GetGeometry()[0].FastGetSolutionStepValue(NORMAL_IMPACT_VELOCITY);//set initial value somewhere
+        double& current_max_tangential_velocity = particle.GetGeometry()[0].FastGetSolutionStepValue(TANGENTIAL_IMPACT_VELOCITY);
+
+        // choose max between current and database
+        current_max_normal_velocity = std::max(current_max_normal_velocity, db_normal_impact_velocity);
+        current_max_tangential_velocity = std::max(current_max_tangential_velocity, db_tangential_impact_velocity);
+    }
+}
+
 
 void AnalyticParticleWatcher::ClearList(boost::python::list& my_list)
 {
@@ -125,10 +148,9 @@ void AnalyticParticleWatcher::GetTimeStepsData(boost::python::list ids,
 AnalyticParticleWatcher::ParticleHistoryDatabase& AnalyticParticleWatcher::GetParticleDataBase(int id)
 {
     if (mMapOfParticleHistoryDatabases.find(id) == mMapOfParticleHistoryDatabases.end()){
-      AnalyticParticleWatcher::ParticleHistoryDatabase new_particle_database(id);
-      mMapOfParticleHistoryDatabases[id] = new_particle_database;
+        AnalyticParticleWatcher::ParticleHistoryDatabase new_particle_database(id);
+        mMapOfParticleHistoryDatabases[id] = new_particle_database;
     }
-
     return mMapOfParticleHistoryDatabases[id];
 }
 
