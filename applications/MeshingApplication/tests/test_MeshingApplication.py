@@ -1,8 +1,21 @@
 # import Kratos
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
-import KratosMultiphysics.FluidDynamicsApplication   as FluidDynamicsApplication
 import KratosMultiphysics.MeshingApplication         as MeshingApplication
+try:
+  import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
+  missing_external_solver_dependencies = False
+except ImportError as e:
+    missing_external_solver_dependencies = True
+try:
+  import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
+  missing_external_fluid_dependencies = False
+except ImportError as e:
+    missing_external_fluid_dependencies = True
+try:
+  import KratosMultiphysics.SolidMechanicsApplication as SolidMechanicsApplication
+  missing_external_solid_dependencies = False
+except ImportError as e:
+    missing_external_solid_dependencies = True
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -45,13 +58,15 @@ def AssambleTestSuites():
     smallSuite.addTest(TTestRedistance('test_refine_half'))
     smallSuite.addTest(TTestRedistance('test_refine_half_and_improve'))
     if( hasattr(MeshingApplication,  "MmgProcess2D") ):
-        smallSuite.addTest(TTwoDHessianTest('test_execution'))
-        smallSuite.addTest(TThreeDHessianTest('test_execution'))
-        smallSuite.addTest(TTwoDCavityTest('test_execution'))
-        smallSuite.addTest(TCoarseSphereTest('test_execution'))
-        smallSuite.addTest(TTwoDDynamicBeamTest('test_execution'))
-        smallSuite.addTest(TThreeDDynamicBeamTest('test_execution'))
-        smallSuite.addTest(TTwoDDynamicPlasticBeamTest('test_execution'))
+        if (missing_external_fluid_dependencies == False):
+            smallSuite.addTest(TTwoDHessianTest('test_execution'))
+            smallSuite.addTest(TThreeDHessianTest('test_execution'))
+            smallSuite.addTest(TTwoDCavityTest('test_execution'))
+            smallSuite.addTest(TCoarseSphereTest('test_execution'))
+        if (missing_external_solid_dependencies == False):
+            smallSuite.addTest(TTwoDDynamicBeamTest('test_execution'))
+            smallSuite.addTest(TThreeDDynamicBeamTest('test_execution'))
+            smallSuite.addTest(TTwoDDynamicPlasticBeamTest('test_execution'))
     else:
         print("MMG process is not compiled and the corresponding tests will not be executed")
 
@@ -59,15 +74,17 @@ def AssambleTestSuites():
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
     if( hasattr(MeshingApplication,  "MmgProcess2D") ):
-        nightSuite.addTest(TStanfordBunnyTest('test_execution'))
+        if (missing_external_fluid_dependencies == False):
+            nightSuite.addTest(TStanfordBunnyTest('test_execution'))
     else:
         print("MMG process is not compiled and the corresponding tests will not be executed")
     
     # For very long tests that should not be in nighly and you can use to validate 
     validationSuite = suites['validation']
     if( hasattr(MeshingApplication,  "MmgProcess2D") ):
-        validationSuite.addTest(TTwoDSphereRemeshedChannelTest('test_execution'))
-        validationSuite.addTest(TThreeDSphereRemeshedChannelTest('test_execution'))
+        if (missing_external_fluid_dependencies == False):
+            validationSuite.addTest(TTwoDSphereRemeshedChannelTest('test_execution'))
+            validationSuite.addTest(TThreeDSphereRemeshedChannelTest('test_execution'))
     else:
         print("MMG process is not compiled and the corresponding tests will not be executed")
 
@@ -80,20 +97,26 @@ def AssambleTestSuites():
     )
 
     if( hasattr(MeshingApplication,  "MmgProcess2D") ):
-        allSuite.addTests(
-            KratosUnittest.TestLoader().loadTestsFromTestCases([
-                TTwoDHessianTest,
-                TThreeDHessianTest,
-                TTwoDCavityTest,
-                TCoarseSphereTest,
-                TTwoDDynamicBeamTest,
-                TThreeDDynamicBeamTest,
-                #TTwoDDynamicPlasticBeamTest,
-                #TStanfordBunnyTest,
-                #TTwoDSphereRemeshedChannelTest,
-                #TThreeDSphereRemeshedChannelTest,
-            ])
-        )
+        if (missing_external_fluid_dependencies == False):
+            allSuite.addTests(
+                KratosUnittest.TestLoader().loadTestsFromTestCases([
+                    TTwoDHessianTest,
+                    TThreeDHessianTest,
+                    TTwoDCavityTest,
+                    TCoarseSphereTest,
+                    #TStanfordBunnyTest,
+                    #TTwoDSphereRemeshedChannelTest,
+                    #TThreeDSphereRemeshedChannelTest,
+                ])
+            )
+        if (missing_external_solid_dependencies == False):
+            allSuite.addTests(
+                KratosUnittest.TestLoader().loadTestsFromTestCases([
+                    TTwoDDynamicBeamTest,
+                    TThreeDDynamicBeamTest,
+                    #TTwoDDynamicPlasticBeamTest,
+                ])
+            )
     else:
         print("MMG process is not compiled and the corresponding tests will not be executed")
 

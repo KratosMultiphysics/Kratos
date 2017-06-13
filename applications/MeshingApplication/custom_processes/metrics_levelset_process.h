@@ -159,10 +159,8 @@ public:
             const double Ratio = CalculateAnisotropicRatio(Distance, mAnisRatio, mBoundLayer, mInterpolation);
             
             // For postprocess pourposes
-            double& AnisotropicRatio = itNode->FastGetSolutionStepValue(ANISOTROPIC_RATIO, 0); 
-            AnisotropicRatio = Ratio;
+            itNode->SetValue(ANISOTROPIC_RATIO, Ratio); 
             
-
             double ElementSize = mMinSize;
             const double NodalH = itNode->FastGetSolutionStepValue(NODAL_H, 0);
             if (((ElementSize > NodalH) && (mEnforceCurrent == true)) || (std::abs(Distance) > mBoundLayer))

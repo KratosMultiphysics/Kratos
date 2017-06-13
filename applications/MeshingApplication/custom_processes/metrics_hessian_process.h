@@ -153,15 +153,15 @@ public:
     virtual void Execute()
     {
         // Iterate in the nodes
-        NodesArrayType& pNode = mThisModelPart.Nodes();
-        int numNodes = pNode.end() - pNode.begin();
+        NodesArrayType& NodesArray = mThisModelPart.Nodes();
+        int numNodes = NodesArray.end() - NodesArray.begin();
         
         CalculateAuxiliarHessian();
         
         #pragma omp parallel for 
         for(int i = 0; i < numNodes; i++) 
         {
-            auto itNode = pNode.begin() + i;
+            auto itNode = NodesArray.begin() + i;
             
             if ( itNode->SolutionStepsDataHas( mVariable ) == false )
             {
@@ -187,8 +187,7 @@ public:
             const double Ratio = CalculateAnisotropicRatio(Distance, mAnisRatio, mBoundLayer, mInterpolation);
             
             // For postprocess pourposes
-            double& AnisotropicRatio = itNode->FastGetSolutionStepValue(ANISOTROPIC_RATIO); 
-            AnisotropicRatio = Ratio;
+            itNode->SetValue(ANISOTROPIC_RATIO, Ratio); 
             
             // We compute the metric
             #ifdef KRATOS_DEBUG 
@@ -338,14 +337,14 @@ private:
         const double MaxRatio = 1.0/(ElementMaxSize * ElementMaxSize);
 //         const double MaxRatio = 1.0/(mMaxSize * mMaxSize);
         
-        typedef boost::numeric::ublas::bounded_matrix<double, TDim, TDim> TempType;
+        typedef bounded_matrix<double, TDim, TDim> TempType;
         
         // Declaring the eigen system
-        boost::numeric::ublas::bounded_matrix<double, TDim, TDim> EigenVectorMatrix;
-        boost::numeric::ublas::bounded_matrix<double, TDim, TDim> EigenValuesMatrix;
+        bounded_matrix<double, TDim, TDim> EigenVectorMatrix;
+        bounded_matrix<double, TDim, TDim> EigenValuesMatrix;
 
         // We first transform into a matrix
-        const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> HessianMatrix = MetricsMathUtils<TDim>::VectorToTensor(Hessian);
+        const bounded_matrix<double, TDim, TDim> HessianMatrix = MetricsMathUtils<TDim>::VectorToTensor(Hessian);
         
         MathUtils<double>::EigenSystem<TDim>(HessianMatrix, EigenVectorMatrix, EigenValuesMatrix, 1e-18, 20);
         
@@ -389,7 +388,7 @@ private:
         }
             
         // We compute the product
-        const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> MetricMatrix =  prod(trans(EigenVectorMatrix), prod<TempType>(EigenValuesMatrix, EigenVectorMatrix));
+        const bounded_matrix<double, TDim, TDim> MetricMatrix =  prod(trans(EigenVectorMatrix), prod<TempType>(EigenValuesMatrix, EigenVectorMatrix));
         
         // Finally we transform to a vector
         const Vector Metric = MetricsMathUtils<TDim>::TensorToVector(MetricMatrix);
@@ -406,50 +405,52 @@ private:
     void CalculateAuxiliarHessian()
     {
         // Iterate in the nodes
-        NodesArrayType& pNode = mThisModelPart.Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
+        NodesArrayType& NodesArray = mThisModelPart.Nodes();
+        int numNodes = NodesArray.end() - NodesArray.begin();
         
-//         #pragma omp parallel for // NOTE: Be careful with the parallel (MUST BE INITIALIZED TO BE THREAD SAFE)
-        for(unsigned int i = 0; i < numNodes; i++) 
+        // Declaring auxiliar vector
+        const Vector AuxZeroVector = ZeroVector(3 * (TDim - 1));
+        
+        #pragma omp parallel for
+        for(int i = 0; i < numNodes; i++) 
         {
-            auto itNode = pNode.begin() + i;
+            auto itNode = NodesArray.begin() + i;
             
-            Vector& hessian = itNode->GetValue(AUXILIAR_HESSIAN);  
-            hessian = ZeroVector(3 * (TDim - 1));
+            itNode->SetValue(AUXILIAR_HESSIAN, AuxZeroVector);  
         }
         
         // Compute auxiliar gradient
-        ComputeNodalGradientProcess<TDim, TVarType> GradientProcess = ComputeNodalGradientProcess<TDim, TVarType>(mThisModelPart, mVariable, AUXILIAR_GRADIENT, NODAL_AREA);
+        ComputeNodalGradientProcess<TDim, TVarType, NonHistorical> GradientProcess = ComputeNodalGradientProcess<TDim, TVarType, NonHistorical>(mThisModelPart, mVariable, AUXILIAR_GRADIENT, NODAL_AREA);
         GradientProcess.Execute();
         
         // Iterate in the conditions
-        ElementsArrayType& pElement = mThisModelPart.Elements();
-        int numElements = pElement.end() - pElement.begin();
+        ElementsArrayType& ElementsArray = mThisModelPart.Elements();
+        int numElements = ElementsArray.end() - ElementsArray.begin();
         
         #pragma omp parallel for
         for(int i = 0; i < numElements; i++) 
         {
-            auto itElem = pElement.begin() + i;
+            auto itElem = ElementsArray.begin() + i;
             
             Element::GeometryType& geom = itElem->GetGeometry();
 
             double Volume;
             if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
             {
-                boost::numeric::ublas::bounded_matrix<double,3, 2> DN_DX;
+                bounded_matrix<double,3, 2> DN_DX;
                 array_1d<double, 3> N;
     
                 GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
                 
-                boost::numeric::ublas::bounded_matrix<double,3, 2> values;
+                bounded_matrix<double,3, 2> values;
                 for(unsigned int iNode = 0; iNode < 3; iNode++)
                 {
-                    const array_1d<double, 3> aux_grad = geom[iNode].FastGetSolutionStepValue(AUXILIAR_GRADIENT);
-                    values(iNode, 0) = aux_grad[0];
-                    values(iNode, 1) = aux_grad[1];
+                    const array_1d<double, 3> AuxGrad = geom[iNode].GetValue(AUXILIAR_GRADIENT);
+                    values(iNode, 0) = AuxGrad[0];
+                    values(iNode, 1) = AuxGrad[1];
                 }
                 
-                const boost::numeric::ublas::bounded_matrix<double,2, 2> Hessian = prod(trans(DN_DX), values); 
+                const bounded_matrix<double,2, 2> Hessian = prod(trans(DN_DX), values); 
                 const Vector HessianCond = MetricsMathUtils<2>::TensorToVector(Hessian);
                 
                 for(unsigned int iNode = 0; iNode < geom.size(); iNode++)
@@ -465,21 +466,21 @@ private:
             }
             else if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4)
             {
-                boost::numeric::ublas::bounded_matrix<double,4,  3> DN_DX;
+                bounded_matrix<double,4,  3> DN_DX;
                 array_1d<double, 4> N;
                 
                 GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
                 
-                boost::numeric::ublas::bounded_matrix<double,4, 3> values;
+                bounded_matrix<double,4, 3> values;
                 for(unsigned int iNode = 0; iNode < 4; iNode++)
                 {
-                    const array_1d<double, 3> aux_grad = geom[iNode].FastGetSolutionStepValue(AUXILIAR_GRADIENT);
-                    values(iNode, 0) = aux_grad[0];
-                    values(iNode, 1) = aux_grad[1];
-                    values(iNode, 2) = aux_grad[2];
+                    const array_1d<double, 3> AuxGrad = geom[iNode].GetValue(AUXILIAR_GRADIENT);
+                    values(iNode, 0) = AuxGrad[0];
+                    values(iNode, 1) = AuxGrad[1];
+                    values(iNode, 2) = AuxGrad[2];
                 }
                 
-                const boost::numeric::ublas::bounded_matrix<double, 3, 3> Hessian = prod(trans(DN_DX), values); 
+                const bounded_matrix<double, 3, 3> Hessian = prod(trans(DN_DX), values); 
                 const Vector HessianCond = MetricsMathUtils<3>::TensorToVector(Hessian);
                 
                 for(unsigned int iNode = 0; iNode < geom.size(); iNode++)
@@ -502,7 +503,7 @@ private:
         #pragma omp parallel for
         for(int i = 0; i < numNodes; i++) 
         {
-            auto itNode = pNode.begin() + i;
+            auto itNode = NodesArray.begin() + i;
             itNode->GetValue(AUXILIAR_HESSIAN) /= itNode->FastGetSolutionStepValue(NODAL_AREA);
         }
     }
