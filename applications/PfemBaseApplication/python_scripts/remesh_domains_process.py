@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
 KratosMultiphysics.CheckForPreviousImport()
 
-from multiprocessing import Pool
+#from multiprocessing import Pool
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):

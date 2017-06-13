@@ -5,7 +5,6 @@ import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 KratosMultiphysics.CheckForPreviousImport()
 
-from multiprocessing import Pool
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -330,18 +329,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         for domain in self.meshing_domains:
             domain.ExecuteMeshing()
         
-        
-        #parallel (not working pickling instances not enabled)
-        #domains_number = len(self.meshing_domains)
-        #if(domains_number>8):
-        #    domains_number = 8
-        
-        #pool = Pool(domains_number)
-        #pool.map(self.ExecuteMeshing,self.meshing_domains)
-        #pool.close()
-        #pool.joint()        
-        #
-        
+                
         self.model_meshing.ExecuteFinalize()
         
         self.counter += 1 
