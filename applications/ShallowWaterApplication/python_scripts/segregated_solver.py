@@ -43,15 +43,15 @@ class MeshStageSolver:
         ReformDofSetAtEachStep = False
         MoveMeshFlag = False
         import strategy_python
-        self.mesh_solver = strategy_python.SolvingStrategyPython(self.model_part,
+        self.solver = strategy_python.SolvingStrategyPython(self.model_part,
                                             self.time_scheme, self.swe_linear_solver,
                                             self.conv_criteria, CalculateReactionFlag,
                                             ReformDofSetAtEachStep, MoveMeshFlag)
-
+    
     #######################################################################   
     def Solve(self):
         (self.solver).Solve()
-
+    
     #######################################################################   
     def SetEchoLevel(self,level):
         (self.mesh_solver).SetEchoLevel(level)
@@ -85,9 +85,9 @@ class ParticleStageSolver:
         self.moveparticles = MoveShallowWaterParticleUtility(self.model_part,maximum_number_of_particles)  
         self.moveparticles.MountBin()
         self.VariableUtils = VariableUtils()
-
+    
     #######################################################################   
-    def Solve(self):
+    def SolveBeforeMesh(self):
         # Move particles
         (self.moveparticles).CalculateVelOverElemSize();
         (self.moveparticles).MoveParticles();
@@ -99,7 +99,8 @@ class ParticleStageSolver:
         (self.moveparticles).ResetBoundaryConditions()
         #(self.moveparticles).CopyScalarVarToPreviousTimeStep(PROJECTED_HEIGHT,self.model_part.Nodes)
         #(self.moveparticles).CopyVectorVarToPreviousTimeStep(PROJECTED_VELOCITY,self.model_part.Nodes)
-        
+         
+    def SolveAfterMesh(self):
         # Update particles
         (self.moveparticles).CalculateDeltaVariables();        
         (self.moveparticles).CorrectParticlesWithoutMovingUsingDeltaVariables();
