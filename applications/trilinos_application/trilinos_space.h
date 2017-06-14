@@ -564,7 +564,7 @@ public:
         rGraph.RowMap().MyGlobalElements(MyGlobalElements);
         
         
-        for(IndexType i=0; i< NumMyRows; i++)
+        for(IndexType i = 0; i < static_cast<IndexType>(NumMyRows); ++i)
         {
 //             std::cout << pA->Comm().MyPID() << " : I=" << i << std::endl;
             IndexType GlobalRow = MyGlobalElements[i];
