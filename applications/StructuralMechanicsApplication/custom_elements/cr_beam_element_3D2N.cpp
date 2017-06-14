@@ -818,10 +818,13 @@ namespace Kratos
 		}
 		rMassMatrix = ZeroMatrix(MatSize, MatSize);
 
-		////////////////////////////
-		//TESTING
-		this->mIsLumpedMassMatrix = false;
-		////////////////////////////
+
+
+		if (this->GetProperties().Has(LUMPED_MASS_MATRIX) == true) {
+			this->mIsLumpedMassMatrix = GetProperties()[LUMPED_MASS_MATRIX];
+		}
+		else this->mIsLumpedMassMatrix = false;
+
 
 
 		if (this->mIsLumpedMassMatrix == true)
