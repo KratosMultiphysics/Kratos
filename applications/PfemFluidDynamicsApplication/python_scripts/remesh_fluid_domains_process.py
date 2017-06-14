@@ -5,7 +5,6 @@ import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 KratosMultiphysics.CheckForPreviousImport()
 
-from multiprocessing import Pool
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -24,6 +23,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
+            "echo_level"            : 0,
             "model_part_name"       : "Fluid Domain",
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 1.0,
@@ -36,7 +36,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        self.echo_level        = 1
+        self.echo_level        = self.settings["echo_level"].GetInt()
         self.domain_size       = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         self.meshing_frequency = self.settings["meshing_frequency"].GetDouble()
         
@@ -99,6 +99,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
             self.InitializeDomains()
 
             for domain in self.meshing_domains:
+                domain.SetEchoLevel(self.echo_level)
                 domain.Initialize()
                 if(domain.Active()):
                     domain.ComputeInitialAverageMeshParameters()      
@@ -364,18 +365,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         for domain in self.meshing_domains:
             domain.ExecuteMeshing()
         
-        
-        #parallel (not working pickling instances not enabled)
-        #domains_number = len(self.meshing_domains)
-        #if(domains_number>8):
-        #    domains_number = 8
-        
-        #pool = Pool(domains_number)
-        #pool.map(self.ExecuteMeshing,self.meshing_domains)
-        #pool.close()
-        #pool.joint()        
-        #
-        
+                
         self.model_meshing.ExecuteFinalize()
         
         self.counter += 1 

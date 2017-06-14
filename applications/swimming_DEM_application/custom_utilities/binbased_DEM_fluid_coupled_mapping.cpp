@@ -586,13 +586,17 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
         }
     }
 
-    const double alpha = 0.1; // Needs to be an input
-#pragma omp parallel firstprivate(alpha)
-    for (int i = 0; i < (int)r_fluid_model_part.Nodes().size(); ++i){
-        NodeIteratorType i_node = r_fluid_model_part.NodesBegin() + i;
-        array_1d<double, 3>& particles_filtered_vel = i_node->FastGetSolutionStepValue(PARTICLE_VEL_FILTERED);
-        const array_1d<double, 3>& particles_vel = i_node->FastGetSolutionStepValue(TIME_AVERAGED_ARRAY_3);
-        particles_filtered_vel = (1.0 - alpha) * particles_filtered_vel + alpha * particles_vel;
+    if ( (r_fluid_model_part.GetNodalSolutionStepVariablesList()).Has(PARTICLE_VEL_FILTERED) ) {
+        
+        const double alpha = 0.1; // Needs to be an input
+            #pragma omp parallel firstprivate(alpha)
+            for (int i = 0; i < (int)r_fluid_model_part.Nodes().size(); ++i){
+                NodeIteratorType i_node = r_fluid_model_part.NodesBegin() + i;
+                array_1d<double, 3>& particles_filtered_vel = i_node->FastGetSolutionStepValue(PARTICLE_VEL_FILTERED);
+                const array_1d<double, 3>& particles_vel = i_node->FastGetSolutionStepValue(TIME_AVERAGED_ARRAY_3);
+                particles_filtered_vel = (1.0 - alpha) * particles_filtered_vel + alpha * particles_vel;
+        }
+    
     }
 
 }
@@ -1720,7 +1724,9 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ResetFlu
         ClearVariable(node_it, FLUID_FRACTION);
 
         if (mTimeAveragingType == 0 || mTimeAveragingType == 2){
-            ClearVariable(node_it, PHASE_FRACTION);
+            if (IsFluidVariable(PHASE_FRACTION)){
+                ClearVariable(node_it, PHASE_FRACTION);
+            }
             if (IsFluidVariable(TIME_AVERAGED_ARRAY_3)){
                 array_1d<double, 3>& particle_velocity = node_it->FastGetSolutionStepValue(TIME_AVERAGED_ARRAY_3);
                 particle_velocity = ZeroVector(3);
