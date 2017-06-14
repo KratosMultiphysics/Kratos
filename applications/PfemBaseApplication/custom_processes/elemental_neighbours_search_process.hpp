@@ -487,9 +487,9 @@ namespace Kratos
 	  for(ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ie++)
             {
 	      //face nodes
-	      Geometry<Node<3> >& geom = (ie)->GetGeometry();
+	      Geometry<Node<3> >& rGeometry = (ie)->GetGeometry();
 
-	      if( geom.FacesNumber() == 3 ){
+	      if( rGeometry.FacesNumber() == 3 ){
 
 		//vector of the 3 faces around the given face
 		(ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
@@ -498,11 +498,11 @@ namespace Kratos
 		//neighb_face is the vector containing pointers to the three faces around ic:
 
 		// neighbour element over edge 1-2 of element ic;
-		neighb_elems(0) = CheckForNeighbourElems2D(geom[1].Id(), geom[2].Id(), geom[1].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems(0) = CheckForNeighbourElems2D(rGeometry[1].Id(), rGeometry[2].Id(), rGeometry[1].GetValue(NEIGHBOUR_ELEMENTS), ie);
 		// neighbour element over edge 2-0 of element ic;
-		neighb_elems(1) = CheckForNeighbourElems2D(geom[2].Id(), geom[0].Id(), geom[2].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems(1) = CheckForNeighbourElems2D(rGeometry[2].Id(), rGeometry[0].Id(), rGeometry[2].GetValue(NEIGHBOUR_ELEMENTS), ie);
 		// neighbour element over edge 0-1 of element ic;
-		neighb_elems(2) = CheckForNeighbourElems2D(geom[0].Id(), geom[1].Id(), geom[0].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems(2) = CheckForNeighbourElems2D(rGeometry[0].Id(), rGeometry[1].Id(), rGeometry[0].GetValue(NEIGHBOUR_ELEMENTS), ie);
 
 		unsigned int counter=0;
 		for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
@@ -511,16 +511,14 @@ namespace Kratos
 		      {
 
 			ie->Set(BOUNDARY);
-
-			Geometry<Node<3> >& pGeom = (ie)->GetGeometry();
-			
+		
 			boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
-			pGeom.NodesInFaces(lpofa);
+			rGeometry.NodesInFaces(lpofa);
 			
-			for(unsigned int i = 0; i < pGeom.size(); i++)
+			for(unsigned int i = 0; i < rGeometry.FacesNumber(); i++)
 			  {
 			    if(i!=counter)
-			      pGeom[lpofa(i,0)].Set(BOUNDARY);  //set boundary particles
+			      rGeometry[lpofa(i,0)].Set(BOUNDARY);  //set boundary particles
 			  }
 			
 		      }
@@ -529,7 +527,7 @@ namespace Kratos
 		  }
 
 	      }
-	      else if( geom.FacesNumber() == 2 ){
+	      else if( rGeometry.FacesNumber() == 2 ){
 
 		//vector of the 3 faces around the given face
 		(ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(2);
@@ -538,9 +536,9 @@ namespace Kratos
 		//neighb_face is the vector containing pointers to the three faces around ic:
 
 		// neighbour element over edge 0 of element ic;
-		neighb_elems(0) = CheckForNeighbourElems1D(geom[0].Id(), geom[0].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems(0) = CheckForNeighbourElems1D(rGeometry[0].Id(), rGeometry[0].GetValue(NEIGHBOUR_ELEMENTS), ie);
 		// neighbour element over edge 1 of element ic;
-		neighb_elems(1) = CheckForNeighbourElems1D(geom[1].Id(), geom[1].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems(1) = CheckForNeighbourElems1D(rGeometry[1].Id(), rGeometry[1].GetValue(NEIGHBOUR_ELEMENTS), ie);
 
 		unsigned int counter=0;
 		for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
@@ -549,16 +547,14 @@ namespace Kratos
 		      {
 
 			ie->Set(BOUNDARY);
-
-			Geometry<Node<3> >& pGeom = (ie)->GetGeometry();
 			
 			boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
-			pGeom.NodesInFaces(lpofa);
+			rGeometry.NodesInFaces(lpofa);
 			
-			for(unsigned int i = 0; i < pGeom.size(); i++)
+			for(unsigned int i = 0; i < rGeometry.FacesNumber(); i++)
 			  {
 			    if(i!=counter)
-			      pGeom[lpofa(i,0)].Set(BOUNDARY);  //set boundary particles
+			      rGeometry[lpofa(i,0)].Set(BOUNDARY);  //set boundary particles
 			  }
 			
 		      }
@@ -574,9 +570,9 @@ namespace Kratos
 	  for(ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ie++)
             {
 	      //face nodes
-	      Geometry<Node<3> >& geom = (ie)->GetGeometry();
+	      Geometry<Node<3> >& rGeometry = (ie)->GetGeometry();
 
-	      if( geom.FacesNumber() == 4 ){
+	      if( rGeometry.FacesNumber() == 4 ){
 			
 		//vector of the 4 faces around the given element (3D tetrahedron)
 		(ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(4);
@@ -585,13 +581,13 @@ namespace Kratos
 		//neighb_face is the vector containing pointers to the three faces around ic:
 
 		// neighbour element over face 1-2-3 of element ic;
-		neighb_elems(0) = CheckForNeighbourElems3D(geom[1].Id(), geom[2].Id(), geom[3].Id(), geom[1].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems(0) = CheckForNeighbourElems3D(rGeometry[1].Id(), rGeometry[2].Id(), rGeometry[3].Id(), rGeometry[1].GetValue(NEIGHBOUR_ELEMENTS), ie);
 		// neighbour element over face 2-3-0 of element ic;
-		neighb_elems(1) = CheckForNeighbourElems3D(geom[2].Id(), geom[3].Id(), geom[0].Id(), geom[2].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems(1) = CheckForNeighbourElems3D(rGeometry[2].Id(), rGeometry[3].Id(), rGeometry[0].Id(), rGeometry[2].GetValue(NEIGHBOUR_ELEMENTS), ie);
 		// neighbour element over face 3-0-1 of element ic;
-		neighb_elems(2) = CheckForNeighbourElems3D(geom[3].Id(), geom[0].Id(), geom[1].Id(), geom[3].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems(2) = CheckForNeighbourElems3D(rGeometry[3].Id(), rGeometry[0].Id(), rGeometry[1].Id(), rGeometry[3].GetValue(NEIGHBOUR_ELEMENTS), ie);
 		// neighbour element over face 0-1-2 of element ic;
-		neighb_elems(3) = CheckForNeighbourElems3D(geom[0].Id(), geom[1].Id(), geom[2].Id(), geom[0].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems(3) = CheckForNeighbourElems3D(rGeometry[0].Id(), rGeometry[1].Id(), rGeometry[2].Id(), rGeometry[0].GetValue(NEIGHBOUR_ELEMENTS), ie);
 
 		unsigned int counter=0;
 		for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
@@ -601,16 +597,14 @@ namespace Kratos
 		
 			ie->Set(BOUNDARY);
 
-			Geometry<Node<3> >& pGeom = (ie)->GetGeometry();
-
 			boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
-			pGeom.NodesInFaces(lpofa);
+			rGeometry.NodesInFaces(lpofa);
 			
-			for(unsigned int i = 0; i < pGeom.size(); i++)
+			for(unsigned int i = 0; i < rGeometry.FacesNumber(); i++)
 			  {
 			    if(i!=counter){
-			      pGeom[lpofa(i,0)].Set(BOUNDARY);  //set boundary particles
-			      //std::cout<<" SetBoundary ("<<pGeom[lpofa(i,0)].Id()<<")"<<std::endl;
+			      rGeometry[lpofa(i,0)].Set(BOUNDARY);  //set boundary particles
+			      //std::cout<<" SetBoundary ("<<rGeometry[lpofa(i,0)].Id()<<")"<<std::endl;
 			    }
 			  }
 
@@ -620,7 +614,7 @@ namespace Kratos
 
 
 	      }
-	      else if( geom.FacesNumber() == 3 ){
+	      else if( rGeometry.FacesNumber() == 3 ){
 
 		//vector of the 3 faces around the given element (3D triangle)
 		(ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
@@ -629,11 +623,11 @@ namespace Kratos
 		//neighb_face is the vector containing pointers to the three faces around ic:
 
 		// neighbour element over edge 1-2 of element ic;
-		neighb_elems(0) = CheckForNeighbourElems2D(geom[1].Id(), geom[2].Id(), geom[1].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems(0) = CheckForNeighbourElems2D(rGeometry[1].Id(), rGeometry[2].Id(), rGeometry[1].GetValue(NEIGHBOUR_ELEMENTS), ie);
 		// neighbour element over edge 2-0 of element ic;
-		neighb_elems(1) = CheckForNeighbourElems2D(geom[2].Id(), geom[0].Id(), geom[2].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems(1) = CheckForNeighbourElems2D(rGeometry[2].Id(), rGeometry[0].Id(), rGeometry[2].GetValue(NEIGHBOUR_ELEMENTS), ie);
 		// neighbour element over edge 0-1 of element ic;
-		neighb_elems(2) = CheckForNeighbourElems2D(geom[0].Id(), geom[1].Id(), geom[0].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems(2) = CheckForNeighbourElems2D(rGeometry[0].Id(), rGeometry[1].Id(), rGeometry[0].GetValue(NEIGHBOUR_ELEMENTS), ie);
 
 		unsigned int counter=0;
 		for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
@@ -643,15 +637,15 @@ namespace Kratos
 
 			ie->Set(BOUNDARY);
 
-			Geometry<Node<3> >& pGeom = (ie)->GetGeometry();
+			Geometry<Node<3> >& rGeometry = (ie)->GetGeometry();
 			
 			boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
-			pGeom.NodesInFaces(lpofa);
+			rGeometry.NodesInFaces(lpofa);
 			
-			for(unsigned int i = 0; i < pGeom.size(); i++)
+			for(unsigned int i = 0; i < rGeometry.FacesNumber(); i++)
 			  {
 			    if(i!=counter)
-			      pGeom[lpofa(i,0)].Set(BOUNDARY);  //set boundary particles
+			      rGeometry[lpofa(i,0)].Set(BOUNDARY);  //set boundary particles
 			  }
 			
 		      }
