@@ -55,8 +55,13 @@ namespace Kratos
 {
 KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     /* ELEMENTS */
+    // Adding the truss elements
+	mTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), false),    
+	mTrussLinearElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), true),
     // Adding the beam element
     mSmallDisplacementBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
+	mCrBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), false),
+    mCrLinearBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2))), true),
     // Adding the shells elements
     mIsotropicShellElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mShellThickElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ), false ),
@@ -152,13 +157,25 @@ void KratosStructuralMechanicsApplication::Register()
 
     // Geometrical
     KRATOS_REGISTER_VARIABLE( AREA )
-    KRATOS_REGISTER_VARIABLE( IX )
+    KRATOS_REGISTER_VARIABLE( IT )
     KRATOS_REGISTER_VARIABLE( IY )
     KRATOS_REGISTER_VARIABLE( IZ )
     KRATOS_REGISTER_VARIABLE( CROSS_AREA )
     KRATOS_REGISTER_VARIABLE( MEAN_RADIUS )
     KRATOS_REGISTER_VARIABLE( SECTION_SIDES )
     KRATOS_REGISTER_VARIABLE( GEOMETRIC_STIFFNESS )
+
+    // Truss generalized variables
+	KRATOS_REGISTER_VARIABLE(TRUSS_PRESTRESS_PK2)
+	KRATOS_REGISTER_VARIABLE(TRUSS_IS_CABLE)
+
+
+    // Beam generalized variables
+	KRATOS_REGISTER_VARIABLE(AREA_EFFECTIVE_Y)
+	KRATOS_REGISTER_VARIABLE(AREA_EFFECTIVE_Z)
+	KRATOS_REGISTER_VARIABLE(INERTIA_ROT_Y)
+	KRATOS_REGISTER_VARIABLE(INERTIA_ROT_Z)
+	KRATOS_REGISTER_VARIABLE(LOCAL_AXES_VECTOR)
 
     //  Shell generalized variables
     KRATOS_REGISTER_VARIABLE( SHELL_STRAIN )
@@ -226,8 +243,14 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(POSITIVE_FACE_PRESSURES_VECTOR )
     KRATOS_REGISTER_VARIABLE(NEGATIVE_FACE_PRESSURES_VECTOR )
 
+    //Register the truss element
+	KRATOS_REGISTER_ELEMENT("TrussElement3D2N",mTrussElement3D2N)
+	KRATOS_REGISTER_ELEMENT("TrussLinearElement3D2N", mTrussLinearElement3D2N)
+
     // Register the beam element
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementBeamElement3D2N", mSmallDisplacementBeamElement3D2N )
+    KRATOS_REGISTER_ELEMENT( "CrBeamElement3D2N", mCrBeamElement3D2N)
+    KRATOS_REGISTER_ELEMENT( "CrLinearBeamElement3D2N", mCrLinearBeamElement3D2N)
 
     //Register the shells elements
     KRATOS_REGISTER_ELEMENT( "IsotropicShellElement3D3N", mIsotropicShellElement3D3N )
