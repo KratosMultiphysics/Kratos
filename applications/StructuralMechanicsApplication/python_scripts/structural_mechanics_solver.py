@@ -104,6 +104,8 @@ class MechanicalSolver(object):
             # Add specific variables for the problem (rotation dofs)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LOCAL_POINT_MOMENT)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
             if(self.settings["solution_type"].GetString() == "Dynamic"):
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
@@ -140,6 +142,7 @@ class MechanicalSolver(object):
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,self.main_model_part)
+
                 
         if(self.settings["solution_type"].GetString() == "Dynamic" and self.settings["rotation_dofs"].GetBool()):
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_VELOCITY_X,self.main_model_part)
