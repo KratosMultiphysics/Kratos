@@ -23,7 +23,9 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-#include "structural_application.h"
+
+#include "includes/constitutive_law.h"
+#include "constitutive_laws/umat.h"
 
 namespace Kratos
 {
@@ -182,8 +184,7 @@ private:
     ///@{
 
 
-
-    //       static const ApplicationCondition  msApplicationCondition;
+    const Umat mUmatLaw;
 
     ///@}
     ///@name Member Variables
