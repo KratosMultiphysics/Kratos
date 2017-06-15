@@ -24,9 +24,9 @@ class FracturePropagationUtility:
         
         import platform
         if platform.system()=="Windows":
-            self.execute_gid = "gid"
+            self.execute_gid = "gidx"
         else:
-            self.execute_gid = "./gid"
+            self.execute_gid = "./gidx"
         
         self.move_mesh_flag = move_mesh_flag
         
@@ -94,8 +94,6 @@ class FracturePropagationUtility:
         self.list_of_files_names.append(filename)
         filename = "FracturesData.json"
         self.list_of_files_names.append(filename)
-        #~ filename = str(self.problem_name)+".vv"
-        #~ self.list_of_files_names.append(filename)
         
         for filename in self.list_of_files_names:
             filepath = os.path.join(str(self.problem_path),str(filename))
@@ -130,9 +128,9 @@ class FracturePropagationUtility:
             # Call GiD to generate new mesh
             import subprocess
             os.chdir(self.gid_path)
-            # subprocess.call(str(self.execute_gid) + " -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
-            # subprocess.call(str(self.execute_gid) + " -n -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
             subprocess.call(str(self.execute_gid) + " -c " + str(self.gid_preferences_path) + " -n -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
+            # subprocess.call(str(self.execute_gid) + " -c " + str(self.gid_preferences_path) + " -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
+            # subprocess.call(str(self.execute_gid) + " -n -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
             os.chdir(self.problem_path)
             
             # Overwrite last state files with new problem files
