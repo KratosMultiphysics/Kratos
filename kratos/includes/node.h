@@ -965,7 +965,7 @@ public:
 
         std::stringstream buffer;
         buffer << "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name();
-        KRATOS_ERROR <<  buffer.str(), "");
+        KRATOS_ERROR <<  buffer.str() << std::endl;
     }
 
     /** returns the Dof asociated with variable  */
@@ -974,11 +974,13 @@ public:
     {
         typename DofsContainerType::iterator it=mDofs.find(rDofVariable.Key());
         if ( it!= mDofs.end() )
+        {
             return *it;
+        }
 
         std::stringstream buffer;
         buffer << "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name();
-        KRATOS_ERROR <<  buffer.str(), "");
+        KRATOS_ERROR <<  buffer.str() << std::endl;
 
     }
 
