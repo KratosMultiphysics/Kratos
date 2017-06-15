@@ -792,7 +792,7 @@ public:
     	{
     	  typename SolutionStepsNeighboursContainerType::iterator i;
     	  if((i = mSolutionStepsNeighbours.find(SolutionStepIndex)) == mSolutionStepsNeighbours.end())
-    	    KRATOS_ERROR <<  "Solution step index out of range.", *this);
+    	    KRATOS_ERROR <<  "Solution step index out of range." << std::endl;
 
     	  return *(i.base());
     	}
