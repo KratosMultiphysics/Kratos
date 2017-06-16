@@ -3,35 +3,36 @@
         "problem_name"    : "testnew",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
-        "time_step"       : 10,
+        "time_step"       : 0.0004,
         "start_time"      : 0.0,
-        "end_time"        : 2500,
+        "end_time"        : 0.04,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_static_solver",
+        "solver_type"                        : "structural_mechanics_implicit_dynamic_solver",
         "echo_level"                         : 0,
-        "solution_type"                      : "Static",
-        "analysis_type"                      : "Non-Linear",
+        "solution_type"                      : "Dynamic",
+        "time_integration_method"            : "Implicit",
+        "scheme_type"                        : "Newmark",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "3D2N_BEAMCR_test/nonlinear_3D2NBeamCr_test"
+            "input_filename" : "3D2N_BEAMCR_test/dynamic_3D2NBeamCr_test"
         },
 		"line_search"                        : false,
         "compute_reactions"					 : true,
         "convergence_criterion"              : "Residual_criterion",
-        "displacement_relative_tolerance"    : 1e-12,
-        "displacement_absolute_tolerance"    : 1e-12,
-        "residual_relative_tolerance"        : 1e-12,
-        "residual_absolute_tolerance"        : 1e-12,
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 100,
         "linear_solver_settings"             : {
             "solver_type" : "Super_LU",
-            "scaling"     : true,
+            "scaling"     : false,
             "verbosity"   : 0
         },
         "problem_domain_sub_model_part_list" : ["Parts_structure"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_dirichletXYZ","DISPLACEMENT_dirichletYZ","ROTATION_dirrot","PointLoad3D_neumann"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_dirichletXYZ","DISPLACEMENT_dirichletYZ","ROTATION_dirrot","ROTATION_dirrotX","PointLoad3D_neumann"],
         "rotation_dofs"                      : true
     },
     "constraints_process_list" : [{
@@ -57,14 +58,14 @@
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_dirichletYZ",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : false,
+            "is_fixed_x"      : true,
             "is_fixed_y"      : false,
-            "is_fixed_z"      : true,
+            "is_fixed_z"      : false,
             "value"           : [0.0,0.0,0.0]
         }
     },{
-        "python_module"         : "impose_vector_value_by_components_process",
-        "kratos_module"         : "KratosMultiphysics",
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
         "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
@@ -76,17 +77,33 @@
             "is_fixed_z"      : true,
             "value"           : [0.0,0.0,0.0]
         }
-    }],
-    "loads_process_list"        : [{
-        "python_module"         : "assign_vector_variable_process",
-        "kratos_module"         : "KratosMultiphysics",
+    },{
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
         "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
-                "mesh_id"              : 0,
-                "model_part_name"      : "PointLoad3D_neumann",
-                "variable_name"        : "LOCAL_POINT_MOMENT",
-                "value"            : [0.0,0.0,"10000*t"]
+            "mesh_id"         : 0,
+            "model_part_name" : "ROTATION_dirrotX",
+            "variable_name"   : "ROTATION",
+            "is_fixed_x"      : false,
+            "is_fixed_y"      : false,
+            "is_fixed_z"      : false,
+            "value"           : [0.0,0.0,0.0]
+        }
+    }],
+    "loads_process_list"       : [{
+        "python_module"   : "process_factory",
+        "kratos_module" : "KratosMultiphysics",
+        "check"                 : "DirectorVectorNonZero direction",
+        "help"                  : "This process ",
+        "process_name"          : "ApplyConstantVectorValueProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "PointLoad3D_neumann",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"          : 100000,
+            "direction"       : [0,-1,0]
         }
     }],
     "restart_options"          : {
@@ -106,10 +123,10 @@
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
-            "check_variables"  : ["DISPLACEMENT_X","DISPLACEMENT_Y","LOCAL_POINT_MOMENT_Z"],
-            "input_file_name"  : "3D2N_BEAMCR_test/nonlinear_3D2NBeamCr_test_results.json",
+            "check_variables"  : ["DISPLACEMENT_Y"],
+            "input_file_name"  : "3D2N_BEAMCR_test/dynamic_3D2NBeamCr_test_results.json",
             "model_part_name"  : "PointLoad3D_neumann",
-            "time_frequency"   : 9
+            "time_frequency"   : 0.0002
         }
     }
     ],
@@ -120,10 +137,10 @@
         "help"                  : "",
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
-            "output_variables" : ["DISPLACEMENT_X","DISPLACEMENT_Y","LOCAL_POINT_MOMENT_Z"],
-            "output_file_name" : "3D2N_BEAMCR_test/nonlinear_3D2NBeamCr_test_results.json",
+            "output_variables" : ["DISPLACEMENT_Y"],
+            "output_file_name" : "3D2N_BEAMCR_test/dynamic_3D2NBeamCr_test_results.json",
             "model_part_name"  : "PointLoad3D_neumann",
-            "time_frequency"   : 9
+            "time_frequency"   : 0.0002
         }
     }
     ]     

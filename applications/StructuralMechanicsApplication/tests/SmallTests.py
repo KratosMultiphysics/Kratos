@@ -85,18 +85,24 @@ class EigenQ4Thick2x2PlateTests(StructuralMechanichsTestFactory):
 
 class EigenTL3D8NCubeTests(StructuralMechanichsTestFactory):
     file_name = "eigen_test/Eigen_TL_3D8N_Cube_test"
-<<<<<<< HEAD
 
 class Simple3D2NTrussTest(StructuralMechanichsTestFactory):
     file_name = "3D2N_TRUSS_test/nonlinear_3D2NTruss_test"
+    
+class Simple3D2NTrussLinearTest(StructuralMechanichsTestFactory):
+    file_name = "3D2N_TRUSS_test/linear_3D2NTruss_test"
+
+class Simple3D2NTrussDynamicTest(StructuralMechanichsTestFactory):
+    file_name = "3D2N_TRUSS_test/dynamic_3D2NTruss_test"
 
 class Simple3D2NBeamCrTest(StructuralMechanichsTestFactory):
     file_name = "3D2N_BEAMCR_test/nonlinear_3D2NBeamCr_test"
      
 class Simple3D2NBeamCrLinearTest(StructuralMechanichsTestFactory):
     file_name = "3D2N_BEAMCR_test/linear_3D2NBeamCr_test"
-=======
->>>>>>> multipoint_constraints
+    
+class Simple3D2NBeamCrDynamicTest(StructuralMechanichsTestFactory):
+    file_name = "3D2N_BEAMCR_test/dynamic_3D2NBeamCr_test"    
     
 class Fofi4PointTentnoCableTests(StructuralMechanichsTestFactory):
     file_name = "formfinding_test/Fofi_4Point_Tent_noCable_test"

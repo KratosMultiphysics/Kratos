@@ -55,12 +55,12 @@ def AssambleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            TEmbeddedArtificialCompressibilityTest,
-            TEmbeddedCouetteTest,
-            TEmbeddedCouetteImposedTest,
-            TEmbeddedReservoirTest,
-            TManufacturedSolutionTest,
-            TNavierStokesWallConditionTest
+            #TEmbeddedArtificialCompressibilityTest,
+            #TEmbeddedCouetteTest,
+            #TEmbeddedCouetteImposedTest,
+            #TEmbeddedReservoirTest,
+           # TManufacturedSolutionTest,
+           # TNavierStokesWallConditionTest
         ])
     )
 
