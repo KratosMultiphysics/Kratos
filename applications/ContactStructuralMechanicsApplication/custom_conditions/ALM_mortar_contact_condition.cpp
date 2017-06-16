@@ -467,7 +467,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
     MortarConditionMatrices rThisMortarConditionMatrices;
     
     // Compute Ae and its derivative
-    this->CalculateAeAndDeltaAe(rDerivativeData, rVariables, rCurrentProcessInfo); 
+    const bool DualLM = this->CalculateAeAndDeltaAe(rDerivativeData, rVariables, rCurrentProcessInfo); 
     
     // We call the exact integration utility
     ExactMortarIntegrationUtility<TDim, TNumNodes> IntUtil = ExactMortarIntegrationUtility<TDim, TNumNodes>(mIntegrationOrder);
@@ -529,7 +529,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                         GetGeometry().PointLocalCoordinates(LocalPointParent, GPGlobal);
                         
                         // Calculate the kinematic variables
-                        this->CalculateKinematics( rVariables, rDerivativeData, MasterNormal, LocalPointDecomp, LocalPointParent, DecompGeom);
+                        this->CalculateKinematics( rVariables, rDerivativeData, MasterNormal, LocalPointDecomp, LocalPointParent, DecompGeom, DualLM);
                         
                         const double IntegrationWeight = IntegrationPointsSlave[PointNumber].Weight();
                     
@@ -623,7 +623,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
-void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateAeAndDeltaAe(
+bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateAeAndDeltaAe(
     DerivativeDataType& rDerivativeData,
     GeneralVariables& rVariables,
     const ProcessInfo& rCurrentProcessInfo
@@ -689,7 +689,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                         GetGeometry().PointLocalCoordinates(LocalPointParent, GPGlobal);
                         
                         // Calculate the kinematic variables
-                        this->CalculateKinematics( rVariables, rDerivativeData, MasterNormal, LocalPointDecomp, LocalPointParent, DecompGeom);
+                        this->CalculateKinematics( rVariables, rDerivativeData, MasterNormal, LocalPointDecomp, LocalPointParent, DecompGeom, false);
                         
                         // Update the derivative of DetJ
                         this->CalculateDeltaDetjSlave(rVariables, rDerivativeData); 
@@ -706,8 +706,10 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     // We can consider the pair if at least one integration point is considered
     if (IsIntegrated == true)
     {
-        this->CalculateDeltaAe(rDerivativeData, rAeData);
+        return this->CalculateDeltaAe(rDerivativeData, rAeData);
     }
+    
+    return false;
 }
 
 /*********************************COMPUTE KINEMATICS*********************************/
@@ -720,7 +722,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     const array_1d<double, 3> MasterNormal,
     const PointType& LocalPointDecomp,
     const PointType& LocalPointParent,
-    GeometryPointType& GeometryDecomp
+    GeometryPointType& GeometryDecomp,
+    const bool DualLM
     )
 {  
     /// SLAVE CONDITION ///
@@ -730,8 +733,14 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     
     /* SHAPE FUNCTIONS */
     GetGeometry().ShapeFunctionsValues( rVariables.NSlave, LocalPointParent.Coordinates() );
-    rVariables.PhiLagrangeMultipliers = prod(rDerivativeData.Ae, rVariables.NSlave);
-//     rVariables.PhiLagrangeMultipliers = rVariables.NSlave;
+    if (DualLM == true)
+    {
+        rVariables.PhiLagrangeMultipliers = prod(rDerivativeData.Ae, rVariables.NSlave);
+    }
+    else
+    {
+        rVariables.PhiLagrangeMultipliers = rVariables.NSlave;
+    }
     
     /* SHAPE FUNCTION DERIVATIVES */
     GetGeometry().ShapeFunctionsLocalGradients( rVariables.DNDeSlave, LocalPointParent );
@@ -927,7 +936,7 @@ bounded_matrix<double, TNumNodes, TNumNodes> AugmentedLagrangianMethodMortarCont
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
-void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaAe(
+bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaAe(
     DerivativeDataType& rDerivativeData,
     AeData& rAeData
     )
@@ -942,6 +951,11 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     const bounded_matrix<double, TNumNodes, TNumNodes> NormalizedMe = rAeData.Me/NormMe;
     
     // We compute the normalized inverse
+    const double DetNormalizedMe = MathUtils<double>::DetMat<TNumNodes>(NormalizedMe);
+    if (std::abs(DetNormalizedMe) < Tolerance)
+    {
+        return false;
+    }
     const bounded_matrix<double, TNumNodes, TNumNodes> NormalizedInvMe = MathUtils<double>::InvertMatrix<TNumNodes>(NormalizedMe, auxdet, Tolerance); 
     
     // Now we compute the inverse
@@ -958,6 +972,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
         DeltaAe[i] = prod(rDerivativeData.DeltaAe[i], InvMe);
 //         DeltaAe[i] = ZeroMatrix(TNumNodes, TNumNodes); // NOTE: Test with zero derivative
     }
+    
+    return true;
 }
 
 /***********************************************************************************/

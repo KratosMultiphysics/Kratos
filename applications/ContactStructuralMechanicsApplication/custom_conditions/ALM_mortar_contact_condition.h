@@ -841,7 +841,7 @@ protected:
      * Calculate Ae and DeltaAe matrices
      */
     
-    void CalculateAeAndDeltaAe( 
+    bool CalculateAeAndDeltaAe( 
         DerivativeDataType& rDerivativeData,
         GeneralVariables& rVariables,
         const ProcessInfo& rCurrentProcessInfo
@@ -864,7 +864,8 @@ protected:
         const array_1d<double, 3> MasterNormal,
         const PointType& LocalPointDecomp,
         const PointType& LocalPointParent,
-        GeometryPointType& GeometryDecomp
+        GeometryPointType& GeometryDecomp,
+        const bool DualLM = true
         );
 
     /********************************************************************************/
@@ -1045,7 +1046,7 @@ protected:
      * Calculates the matrix DeltaAe
      */
     
-    void CalculateDeltaAe(
+    bool CalculateDeltaAe(
         DerivativeDataType& rDerivativeData,
         AeData& rAeData
         );
