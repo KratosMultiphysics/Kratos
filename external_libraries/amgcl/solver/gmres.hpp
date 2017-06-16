@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,14 +32,15 @@ THE SOFTWARE.
  */
 
 #include <vector>
+#include <algorithm>
 #include <cmath>
 
 #include <boost/multi_array.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <boost/range/algorithm.hpp>
 
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/solver/detail/default_inner_product.hpp>
+#include <amgcl/solver/detail/givens_rotations.hpp>
 #include <amgcl/util.hpp>
 
 namespace amgcl {
@@ -75,25 +76,31 @@ class gmres {
             /// Maximum number of iterations.
             unsigned maxiter;
 
-            /// Target residual error.
+            /// Target relative residual error.
             scalar_type tol;
 
+            /// Target absolute residual error.
+            scalar_type abstol;
+
             params(unsigned M = 30, unsigned maxiter = 100, scalar_type tol = 1e-8)
-                : M(M), maxiter(maxiter), tol(tol)
+                : M(M), maxiter(maxiter), tol(tol),
+                  abstol(std::numeric_limits<scalar_type>::min())
             { }
 
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_VALUE(p, M),
                   AMGCL_PARAMS_IMPORT_VALUE(p, maxiter),
-                  AMGCL_PARAMS_IMPORT_VALUE(p, tol)
+                  AMGCL_PARAMS_IMPORT_VALUE(p, tol),
+                  AMGCL_PARAMS_IMPORT_VALUE(p, abstol)
             {
-                AMGCL_PARAMS_CHECK(p, (M)(maxiter)(tol));
+                AMGCL_PARAMS_CHECK(p, (M)(maxiter)(tol)(abstol));
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path) const {
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, M);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, maxiter);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, tol);
+                AMGCL_PARAMS_EXPORT_VALUE(p, path, abstol);
             }
         };
 
@@ -143,19 +150,20 @@ class gmres {
                 return boost::make_tuple(0, norm_rhs);
             }
 
-            scalar_type eps = prm.tol * norm_rhs, norm_r = math::zero<scalar_type>();
+            scalar_type eps = std::max(prm.tol * norm_rhs, prm.abstol);
+            scalar_type norm_r = math::zero<scalar_type>();
 
             while(true) {
                 backend::residual(rhs, A, x, *r);
 
                 // -- Check stopping condition
-                if ((norm_r = norm(*r)) < prm.tol * norm_rhs || iter >= prm.maxiter)
+                if ((norm_r = norm(*r)) < eps || iter >= prm.maxiter)
                     break;
 
                 // -- Inner GMRES iteration
                 P.apply(*r, *v[0]);
 
-                boost::fill(s, 0);
+                std::fill(s.begin(), s.end(), 0);
                 s[0] = norm(*v[0]);
 
                 precondition(!math::is_zero(s[0]),
@@ -183,11 +191,11 @@ class gmres {
                     backend::axpby(math::inverse(H[j+1][j]), v_new, math::zero<scalar_type>(), v_new);
 
                     for(unsigned k = 0; k < j; ++k)
-                        apply_plane_rotation(H[k][j], H[k+1][j], cs[k], sn[k]);
+                        detail::apply_plane_rotation(H[k][j], H[k+1][j], cs[k], sn[k]);
 
-                    generate_plane_rotation(H[j][j], H[j+1][j], cs[j], sn[j]);
-                    apply_plane_rotation(H[j][j], H[j+1][j], cs[j], sn[j]);
-                    apply_plane_rotation(s[j], s[j+1], cs[j], sn[j]);
+                    detail::generate_plane_rotation(H[j][j], H[j+1][j], cs[j], sn[j]);
+                    detail::apply_plane_rotation(H[j][j], H[j+1][j], cs[j], sn[j]);
+                    detail::apply_plane_rotation(s[j], s[j+1], cs[j], sn[j]);
 
                     scalar_type inner_res = std::abs(s[j+1]);
 
@@ -204,11 +212,7 @@ class gmres {
                         s[k] -= H[k][i] * s[i];
                 }
 
-                unsigned k = 0;
-                for (; k + 1 < j; k += 2)
-                    backend::axpbypcz(s[k], *v[k], s[k+1], *v[k+1], math::identity<scalar_type>(), x);
-                for (; k < j; ++k)
-                    backend::axpby(s[k], *v[k], math::identity<scalar_type>(), x);
+                backend::lin_comb(j, s, v, math::identity<scalar_type>(), x);
             }
 
             return boost::make_tuple(iter, norm_r / norm_rhs);
@@ -231,6 +235,10 @@ class gmres {
             return (*this)(P.system_matrix(), P, rhs, x);
         }
 
+
+        friend std::ostream& operator<<(std::ostream &os, const gmres &s) {
+            return os << "gmres(" << s.prm.M << "): " << s.n << " unknowns";
+        }
     public:
         params prm;
 
@@ -247,33 +255,6 @@ class gmres {
         template <class Vec>
         scalar_type norm(const Vec &x) const {
             return std::abs(sqrt(inner_product(x, x)));
-        }
-
-        static void apply_plane_rotation(
-                coef_type &dx, coef_type &dy, coef_type cs, coef_type sn
-                )
-        {
-            coef_type tmp = cs * dx + sn * dy;
-            dy = -sn * dx + cs * dy;
-            dx = tmp;
-        }
-
-        static void generate_plane_rotation(
-                coef_type dx, coef_type dy, coef_type &cs, coef_type &sn
-                )
-        {
-            if (math::is_zero(dy)) {
-                cs = 1;
-                sn = 0;
-            } else if (std::abs(dy) > std::abs(dx)) {
-                coef_type tmp = dx / dy;
-                sn = math::inverse(sqrt(math::identity<coef_type>() + tmp * tmp));
-                cs = tmp * sn;
-            } else {
-                coef_type tmp = dy / dx;
-                cs = math::inverse(sqrt(math::identity<coef_type>() + tmp * tmp));
-                sn = tmp * cs;
-            }
         }
 };
 

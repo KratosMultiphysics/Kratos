@@ -435,6 +435,8 @@ namespace Kratos {
         } 
     }
     
+    double Cluster3D::GetMass() { return GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS); }
+    
     double Cluster3D::SlowGetDensity() { return GetProperties()[PARTICLE_DENSITY];}
     
     int Cluster3D::SlowGetParticleMaterial() { return GetProperties()[PARTICLE_MATERIAL];}

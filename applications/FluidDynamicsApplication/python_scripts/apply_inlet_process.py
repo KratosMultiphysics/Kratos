@@ -51,8 +51,8 @@ class ApplyInletProcess(KratosMultiphysics.Process):
             condition.Set(KratosMultiphysics.INLET, True)
 
         # Construct the base process AssignVectorByDirectionProcess
-        import experimental_assign_vector_by_direction_process
-        self.aux_process = experimental_assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, settings)
+        import assign_vector_by_direction_process
+        self.aux_process = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, settings)
 
 
     def ExecuteInitializeSolutionStep(self):

@@ -41,7 +41,7 @@ void  AddMappersToPython()
     .def("InverseVectorMap",&SharedPointsMapper::InverseVectorMap)
     ;
 
-    class_<AdvancedNMPointsMapper>("AdvancedNMPointsMapper", init<const ModelPart&, ModelPart&>())
+    class_<AdvancedNMPointsMapper>("AdvancedNMPointsMapper", init< ModelPart&, ModelPart&>())
     .def("FindNeighbours",&AdvancedNMPointsMapper::FindNeighbours)
     .def("ScalarToNormalVectorMap",&AdvancedNMPointsMapper::ScalarToNormalVectorMap)
     .def("NormalVectorToScalarMap",&AdvancedNMPointsMapper::NormalVectorToScalarMap)
@@ -58,4 +58,3 @@ void  AddMappersToPython()
 }  // namespace Python.
 
 } // Namespace Kratos
-

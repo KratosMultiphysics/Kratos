@@ -271,13 +271,17 @@ public:
     /** Returns the Node::Pointer  corresponding to it's identifier */
     typename NodeType::Pointer pGetNode(IndexType NodeId)
     {
-        return (*mpNodes)(NodeId);
+        auto i = mpNodes->find(NodeId);
+        KRATOS_ERROR_IF(i == mpNodes->end()) << " node index not found: " << NodeId << ".";
+        return *i.base();
     }
 
     /** Returns a reference node corresponding to it's identifier */
     NodeType& GetNode(IndexType NodeId)
     {
-        return (*mpNodes)[NodeId];
+        auto i = mpNodes->find(NodeId);
+        KRATOS_ERROR_IF(i == mpNodes->end()) << " node index not found: " << NodeId << ".";
+        return *i;
     }
 
     /** Remove the node with given Id from mesh.
@@ -460,13 +464,17 @@ public:
     /** Returns the Element::Pointer  corresponding to it's identifier */
     typename ElementType::Pointer pGetElement(IndexType ElementId)
     {
-        return (*mpElements)(ElementId);
+        auto i = mpElements->find(ElementId);
+        KRATOS_ERROR_IF(i == mpElements->end()) << " element index not found: " << ElementId << ".";
+        return *i.base();
     }
 
     /** Returns a reference element corresponding to it's identifier */
     ElementType& GetElement(IndexType ElementId)
     {
-        return (*mpElements)[ElementId];
+        auto i = mpElements->find(ElementId);
+        KRATOS_ERROR_IF(i == mpElements->end()) << " element index not found: " << ElementId << ".";
+        return *i;
     }
 
     /** Remove the element with given Id from mesh.
@@ -555,13 +563,17 @@ public:
     /** Returns the Condition::Pointer  corresponding to it's identifier */
     typename ConditionType::Pointer pGetCondition(IndexType ConditionId)
     {
-        return (*mpConditions)(ConditionId);
+        auto i = mpConditions->find(ConditionId);
+        KRATOS_ERROR_IF(i == mpConditions->end()) << " condition index not found: " << ConditionId << ".";
+        return *i.base();
     }
 
     /** Returns a reference condition corresponding to it's identifier */
     ConditionType& GetCondition(IndexType ConditionId)
     {
-        return (*mpConditions)[ConditionId];
+        auto i = mpConditions->find(ConditionId);
+        KRATOS_ERROR_IF(i == mpConditions->end()) << " condition index not found: " << ConditionId << ".";
+        return *i;
     }
 
     /** Remove the condition with given Id from mesh.

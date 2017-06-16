@@ -48,7 +48,9 @@
 #include "python/add_deprecated_variables_to_python.h"
 #include "python/add_c2c_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_cfd_variables_to_python.h" //TODO: to be removed eventually
+#include "python/add_ale_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_dem_variables_to_python.h" //TODO: to be removed eventually
+#include "python/add_mat_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_legacy_structural_app_vars_to_python.h" //TODO: to be removed eventually
 
 #include "includes/convection_diffusion_settings.h"
@@ -240,6 +242,7 @@ void  AddContainersToPython()
     ;
 
     class_<VariableData>( "VariableData", no_init )
+    .def("Name", &VariableData::Name, return_value_policy<copy_const_reference>())
     .def( self_ns::str( self ) )
     ;
 
@@ -395,12 +398,15 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_FLAG(FREE_SURFACE)
     KRATOS_REGISTER_IN_PYTHON_FLAG(BLOCKED)
     KRATOS_REGISTER_IN_PYTHON_FLAG(MARKER)
+    KRATOS_REGISTER_IN_PYTHON_FLAG(PERIODIC)
 
 
     AddDeprecatedVariablesToPython();
     AddC2CVariablesToPython();
     AddDEMVariablesToPython(); //TODO: move this to the DEM application
     AddCFDVariablesToPython(); ///@TODO: move variables to CFD application
+    AddALEVariablesToPython(); ///@TODO: move variables to CFD application
+    AddMATVariablesToPython(); ///@TODO: move variables to CFD application
     AddLegacyStructuralAppVarsToPython();
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( DOMAIN_SIZE )
@@ -442,8 +448,6 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( TEMPERATURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( TEMPERATURE_OLD_IT )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( PRESSURE )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DENSITY )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( VISCOSITY )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( VISCOSITY_AIR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( VISCOSITY_WATER )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( ERROR_RATIO )
@@ -514,14 +518,7 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( CONSTITUTIVE_LAW )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( INTERNAL_VARIABLES )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( MATERIAL_PARAMETERS )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( GREEN_LAGRANGE_STRAIN_TENSOR )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( PK2_STRESS_TENSOR )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( CAUCHY_STRESS_TENSOR )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( CAUCHY_STRESS_VECTOR )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DEFORMATION_GRADIENT )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( YOUNG_MODULUS )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( POISSON_RATIO )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( THICKNESS )
+
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( NEGATIVE_FACE_PRESSURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( POSITIVE_FACE_PRESSURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( POROSITY )

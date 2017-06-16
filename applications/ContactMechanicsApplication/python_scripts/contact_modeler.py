@@ -81,7 +81,8 @@ class ContactModeler(mesh_modeler.MeshModeler):
         elif( self.domain_size == 3 ):
 
             if( meshing_options.Is(KratosPfemBase.ModelerUtilities.CONSTRAINED) ):
-                modeler_flags = "pBJFMYYQ"
+                #modeler_flags = "pMYYCJFu0"
+                modeler_flags = "pJFBMYYCCQu0"
             else:
                 modeler_flags = "JFMQO4/4"
 
@@ -101,6 +102,10 @@ class ContactModeler(mesh_modeler.MeshModeler):
     def SetPostMeshingProcesses(self):
 
         # The order set is the order of execution:
+
+        #print GiD mesh output for checking purposes
+        print_output_mesh = KratosPfemBase.PrintOutputMeshProcess(self.model_part, self.MeshingParameters, self.echo_level)
+        self.mesher.SetPostMeshingProcess(print_output_mesh)        
         
         #select mesh elements
         select_mesh_elements  = KratosPfemBase.SelectMeshElements(self.model_part, self.MeshingParameters, self.echo_level)

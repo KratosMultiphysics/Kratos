@@ -7,414 +7,433 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher, Jordi Cotela
+//
+// See Master-Thesis P.Bucher
+// "Development and Implementation of a Parallel
+//  Framework for Non-Matching Grid Mapping"
 
 #if !defined(KRATOS_INTERFACE_SEARCH_STRUCTURE_H_INCLUDED )
 #define  KRATOS_INTERFACE_SEARCH_STRUCTURE_H_INCLUDED
 
-
-
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
-#include "interface_object.h"
 #include "interface_object_manager_serial.h"
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "custom_configures/interface_object_configure.h"
 
+
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
+///@addtogroup ApplicationNameApplication
+///@{
 
-  ///@name Kratos Globals
-  ///@{
+///@name Kratos Globals
+///@{
 
-  ///@}
-  ///@name Type Definitions
-  ///@{
+///@}
+///@name Type Definitions
+///@{
 
-  typedef matrix<int> GraphType; // GraphColoringProcess
+typedef matrix<int> GraphType; // GraphColoringProcess
 
-  ///@}
-  ///@name  Enum's
-  ///@{
+///@}
+///@name  Enum's
+///@{
 
-  ///@}
-  ///@name  Functions
-  ///@{
+///@}
+///@name  Functions
+///@{
 
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@}
+///@name Kratos Classes
+///@{
 
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class InterfaceSearchStructure
+/// Short class definition.
+/** Detail class definition.
+*/
+class InterfaceSearchStructure
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of InterfaceSearchStructure
+    KRATOS_CLASS_POINTER_DEFINITION(InterfaceSearchStructure);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    InterfaceSearchStructure(InterfaceObjectManagerBase::Pointer pInterfaceObjectManager,
+                             InterfaceObjectManagerBase::Pointer pInterfaceObjectManagerBins,
+                             int EchoLevel) :
+        mpInterfaceObjectManager(pInterfaceObjectManager),
+        mpInterfaceObjectManagerBins(pInterfaceObjectManagerBins)
     {
-    public:
-      ///@name Type Definitions
-      ///@{
-
-      /// Pointer definition of InterfaceSearchStructure
-      KRATOS_CLASS_POINTER_DEFINITION(InterfaceSearchStructure);
-
-      ///@}
-      ///@name Life Cycle
-      ///@{
-
-      InterfaceSearchStructure(InterfaceObjectManagerBase::Pointer i_interface_object_manager,
-                               InterfaceObjectManagerBase::Pointer i_interface_object_manager_bins,
-                               int i_echo_level) :
-                               m_p_interface_object_manager(i_interface_object_manager),
-                               m_p_interface_object_manager_bins(i_interface_object_manager_bins) {
-          m_echo_level = i_echo_level;
-          Initialize();
-      }
+        mEchoLevel = EchoLevel;
+        Initialize();
+    }
 
 
-      /// Destructor.
-      virtual ~InterfaceSearchStructure(){ }
+    /// Destructor.
+    virtual ~InterfaceSearchStructure() { }
 
 
-      ///@}
-      ///@name Operators
-      ///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
 
-      ///@}
-      ///@name Operations
-      ///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-      void Search(const double i_search_radius, const int i_max_search_iterations) {
-          m_search_radius = i_search_radius;
-          m_max_search_iterations = i_max_search_iterations;
-          int increase_factor = 4;
-          int num_iteration = 1;
-          bool last_iteration = false;
+    void Search(const double SearchRadius, const int MaxSearchIterations)
+    {
+        mSearchRadius = SearchRadius;
+        mMaxSearchIterations = MaxSearchIterations;
+        int increase_factor = 4;
+        int num_iteration = 1;
+        bool last_iteration = false;
 
-          // First Iteration is done outside the search loop bcs it has
-          // to be done in any case
-          // one search iteration should be enough in most cases (if the search
-          // radius was either computed or specified properly)
-          // only if some points did not find a neighbor or dont have a valid
-          // projection, more search iterations are necessary
-          ConductSearchIteration(last_iteration);
+        if (mMaxSearchIterations == 1)   // in case only one search iteration is conducted
+        {
+            last_iteration = true;
+        }
 
-          while (num_iteration < m_max_search_iterations && !m_p_interface_object_manager->AllNeighborsFound()) {
-              m_search_radius *= increase_factor;
-              ++num_iteration;
+        // First Iteration is done outside the search loop bcs it has
+        // to be done in any case
+        // one search iteration should be enough in most cases (if the search
+        // radius was either computed or specified properly)
+        // only if some points did not find a neighbor or dont have a valid
+        // projection, more search iterations are necessary
+        ConductSearchIteration(last_iteration);
 
-              if (num_iteration == m_max_search_iterations) {
-                  last_iteration = true;
-              }
+        while (num_iteration < mMaxSearchIterations && !mpInterfaceObjectManager->AllNeighborsFound())
+        {
+            mSearchRadius *= increase_factor;
+            ++num_iteration;
 
-              if (m_comm_rank == 0) {
-                  std::cout << "MAPPER WARNING, search radius was increased, "
-                            << "another search iteration is conducted, "
-                            << "search iteration " << num_iteration << " / "
-                            << m_max_search_iterations << ", search radius "
-                            << m_search_radius << std::endl;
-              }
+            if (num_iteration == mMaxSearchIterations)
+            {
+                last_iteration = true;
+            }
 
-              ConductSearchIteration(last_iteration);
-          }
+            if (mEchoLevel > 1 && mCommRank == 0)
+            {
+                std::cout << "MAPPER WARNING, search radius was increased, "
+                          << "another search iteration is conducted, "
+                          << "search iteration " << num_iteration << " / "
+                          << mMaxSearchIterations << ", search radius "
+                          << mSearchRadius << std::endl;
+            }
 
-          m_p_interface_object_manager->CheckResults();
-
-          // TODO
-          // PrintPairs(); // makes only sense in serial, since there is no information locally existing abt the neighbor
-          // Might be implemented at some point...
-      }
-
-
-      ///@}
-      ///@name Access
-      ///@{
-
-
-      ///@}
-      ///@name Inquiry
-      ///@{
+            ConductSearchIteration(last_iteration);
+        }
+        if (mEchoLevel > 1)
+        {
+            mpInterfaceObjectManager->CheckResults();
+        }
+    }
 
 
-      ///@}
-      ///@name Input and output
-      ///@{
+    ///@}
+    ///@name Access
+    ///@{
 
-      /// Turn back information as a string.
-      virtual std::string Info() const
-      {
-	       std::stringstream buffer;
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
         buffer << "InterfaceSearchStructure" ;
         return buffer.str();
-      }
+    }
 
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "InterfaceSearchStructure";}
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "InterfaceSearchStructure";
+    }
 
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const {}
-
-
-      ///@}
-      ///@name Friends
-      ///@{
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const {}
 
 
-      ///@}
-
-    protected:
-      ///@name Protected static Member Variables
-      ///@{
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-      ///@}
-      ///@name Protected member Variables
-      ///@{
+    ///@}
 
-      InterfaceObjectManagerBase::Pointer m_p_interface_object_manager;
-      InterfaceObjectManagerBase::Pointer m_p_interface_object_manager_bins;
-
-      BinsObjectDynamic<InterfaceObjectConfigure>::Pointer m_p_local_bin_structure;
-      int m_local_bin_structure_size;
-
-      double m_search_radius;
-      int m_max_search_iterations;
-
-      int m_comm_rank = 0; // default, for serial version
-      int m_comm_size = 1; // default, for serial version
-
-      int m_echo_level = 0;
-
-      ///@}
-      ///@name Protected Operators
-      ///@{
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-      ///@}
-      ///@name Protected Operations
-      ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
-      void FindLocalNeighbors(InterfaceObjectConfigure::ContainerType& interface_objects,
-                              const int interface_objects_size, std::vector<InterfaceObject::Pointer>& interface_object_results,
-                              std::vector<double>& min_distances, std::vector<array_1d<double,2>>& local_coordinates,
-                              std::vector<std::vector<double>>& shape_functions, const int comm_partner) {
-          // This function finds neighbors of the InterfaceObjects in interface_objects in bin_structure
-          // It must be executable by serial and parallel version!
-          // interface_objects_size must be passed bcs interface_objects might contain old entries (it has the max receive buffer size as size)!
+    InterfaceObjectManagerBase::Pointer mpInterfaceObjectManager;
+    InterfaceObjectManagerBase::Pointer mpInterfaceObjectManagerBins;
 
-          if (m_p_local_bin_structure) { // this partition has a bin structure
-              InterfaceObjectConfigure::ResultContainerType neighbor_results(m_local_bin_structure_size);
-              std::vector<double> neighbor_distances(m_local_bin_structure_size);
+    BinsObjectDynamic<InterfaceObjectConfigure>::Pointer mpLocalBinStructure;
+    int mLocalBinStructureSize;
 
-              InterfaceObjectConfigure::IteratorType interface_object_itr;
-              InterfaceObjectConfigure::ResultIteratorType results_itr;
-              std::vector<double>::iterator distance_itr;
+    double mSearchRadius;
+    int mMaxSearchIterations;
+
+    int mCommRank = 0; // default, for serial version
+    int mCommSize = 1; // default, for serial version
+
+    int mEchoLevel = 0;
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    void FindLocalNeighbors(InterfaceObjectConfigure::ContainerType& rInterfaceObjects,
+                            const int InterfaceObjectsSize, std::vector<InterfaceObject::Pointer>& rInterfaceObjectResults,
+                            std::vector<double>& rMinDistances, std::vector<std::vector<double>>& rShapeFunctionValues,
+                            std::vector<int>& rPairingIndices)
+    {
+        // This function finds neighbors of the InterfaceObjects in rInterfaceObjects in bin_structure
+        // It must be executable by serial and parallel version!
+        // InterfaceObjectsSize must be passed bcs rInterfaceObjects might contain old entries (it has
+        // the max receive buffer size as size)!
+
+        if (mpLocalBinStructure)   // this partition has a bin structure
+        {
+            InterfaceObjectConfigure::ResultContainerType neighbor_results(mLocalBinStructureSize);
+            std::vector<double> neighbor_distances(mLocalBinStructureSize);
+
+            InterfaceObjectConfigure::IteratorType interface_object_itr;
+            InterfaceObjectConfigure::ResultIteratorType results_itr;
+            std::vector<double>::iterator distance_itr;
 
             //   Searching the neighbors
-              for (int i = 0; i < interface_objects_size; ++i){
-                  interface_object_itr = interface_objects.begin() + i;
-                  double search_radius = m_search_radius; // reset search radius
+            for (int i = 0; i < InterfaceObjectsSize; ++i)
+            {
+                interface_object_itr = rInterfaceObjects.begin() + i;
+                double search_radius = mSearchRadius; // reset search radius
 
-                  results_itr = neighbor_results.begin();
-                  distance_itr = neighbor_distances.begin();
+                results_itr = neighbor_results.begin();
+                distance_itr = neighbor_distances.begin();
 
-                  std::size_t number_of_results = m_p_local_bin_structure->SearchObjectsInRadius(
-                              *interface_object_itr, search_radius, results_itr,
-                              distance_itr, m_local_bin_structure_size);
+                std::size_t number_of_results = mpLocalBinStructure->SearchObjectsInRadius(
+                                                    *interface_object_itr, search_radius, results_itr,
+                                                    distance_itr, mLocalBinStructureSize);
 
-                  if (number_of_results > 0) { // neighbors were found
-                      SelectBestResult(interface_object_itr, neighbor_results,
-                                       neighbor_distances, number_of_results,
-                                       interface_object_results[i], min_distances[i],
-                                       local_coordinates[i], shape_functions[i]);
-                  } else {
-                      min_distances[i] = -1.0f; // indicates that the search was not succesful
-                      interface_object_results[i].reset(); // Release an old pointer, that is probably existing from a previous search
-                  }
-              }
-          } else { // this partition has no part of the point receiving interface, i.e. the origin of the mapped values
-              for (int i = 0; i < interface_objects_size; ++i) { // no results in this partition
-                  min_distances[i] = -1.0f; // indicates that the search was not succesful
-                  interface_object_results[i].reset(); // Release an old pointer, that is probably existing from a previous search
-              }
-          }
-      }
+                if (number_of_results > 0)   // neighbors were found
+                {
+                    SelectBestResult(interface_object_itr, neighbor_results,
+                                     neighbor_distances, number_of_results,
+                                     rInterfaceObjectResults[i], rMinDistances[i],
+                                     rShapeFunctionValues[i], rPairingIndices[i]);
+                }
+                else
+                {
+                    rMinDistances[i] = -1.0f; // indicates that the search was not succesful
+                    rInterfaceObjectResults[i].reset(); // Release an old pointer, that is probably existing from a previous search
+                }
+            }
+        }
+        else     // this partition has no part of the point receiving interface, i.e. the origin of the mapped values
+        {
+            for (int i = 0; i < InterfaceObjectsSize; ++i)   // no results in this partition
+            {
+                rMinDistances[i] = -1.0f; // indicates that the search was not succesful
+                rInterfaceObjectResults[i].reset(); // Release an old pointer, that is probably existing from a previous search
+            }
+        }
+    }
 
-      void SelectBestResult(const InterfaceObjectConfigure::IteratorType& point,
-                            const InterfaceObjectConfigure::ResultContainerType& result_list,
-                            const std::vector<double>& distances, const std::size_t num_results,
-                            InterfaceObject::Pointer& vec_closest_results, double& closest_distance,
-                            array_1d<double,2>& local_coords, std::vector<double>& shape_functions_values) {
+    void SelectBestResult(const InterfaceObjectConfigure::IteratorType& rPoint,
+                          const InterfaceObjectConfigure::ResultContainerType& rResultList,
+                          const std::vector<double>& rDistances, const std::size_t NumResults,
+                          InterfaceObject::Pointer& rVecClosestResults, double& rClosestDistance,
+                          std::vector<double>& rShapeFunctionsValues, int& rPairingStatus)
+    {
 
-          double min_distance = std::numeric_limits<double>::max();
-          closest_distance = -1.0f; // indicate a failed search in case no result is good
-          array_1d<double,2> local_coords_temp;
+        double min_distance = std::numeric_limits<double>::max();
+        rClosestDistance = -1.0f; // indicate a failed search in case no result is good
+        rPairingStatus = InterfaceObject::PairingStatus::NoNeighbor;
 
-          for (int i = 0; i < static_cast<int>(num_results); ++i) { // find index of best result
-              if (result_list[i]->EvaluateResult((*point)->Coordinates(), min_distance, distances[i],
-                                                 local_coords_temp, shape_functions_values)) {
-                  closest_distance = min_distance;
-                  local_coords = local_coords_temp;
-                  vec_closest_results = result_list[i];
-              }
-          }
-      }
+        for (int i = 0; i < static_cast<int>(NumResults); ++i)   // find index of best result
+        {
+            if (rResultList[i]->EvaluateResult((*rPoint)->Coordinates(), min_distance,
+                                               rDistances[i], rShapeFunctionsValues))
+            {
+                rClosestDistance = min_distance;
+                rVecClosestResults = rResultList[i];
+                rPairingStatus = InterfaceObject::PairingStatus::NeighborFound;
+            }
+        }
 
-
-      ///@}
-      ///@name Protected  Access
-      ///@{
-
-
-      ///@}
-      ///@name Protected Inquiry
-      ///@{
-
-
-      ///@}
-      ///@name Protected LifeCycle
-      ///@{
-
-
-      ///@}
-
-    private:
-      ///@name Static Member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Member Variables
-      ///@{
-
-      // int m_omp_threshold_num_nodes = 1000; // TODO constexpr???
-
-      ///@}
-      ///@name Private Operators
-      ///@{
+        if (rPairingStatus != InterfaceObject::PairingStatus::NeighborFound)
+        {
+            for (int i = 0; i < static_cast<int>(NumResults); ++i)   // find index of best result
+            {
+                if (rResultList[i]->ComputeApproximation((*rPoint)->Coordinates(), min_distance,
+                        rShapeFunctionsValues))
+                {
+                    rClosestDistance = min_distance;
+                    rVecClosestResults = rResultList[i];
+                    rPairingStatus = InterfaceObject::PairingStatus::Approximation;
+                }
+            }
+        }
+    }
 
 
-      ///@}
-      ///@name Private Operations
-      ///@{
-
-      void Initialize() { // build the local bin-structure
-          InterfaceObjectConfigure::ContainerType interface_objects_bins = m_p_interface_object_manager_bins->GetInterfaceObjects();
-
-          m_local_bin_structure_size = interface_objects_bins.size();
-
-          if (m_local_bin_structure_size > 0) { // only construct the bins if the partition has a part of the interface
-              m_p_local_bin_structure = BinsObjectDynamic<InterfaceObjectConfigure>::Pointer(
-                  new BinsObjectDynamic<InterfaceObjectConfigure>(interface_objects_bins.begin(), interface_objects_bins.end()));
-          }
-      }
-
-      virtual void ConductSearchIteration(const bool last_iteration) {
-          InterfaceObjectConfigure::ContainerType interface_objects;
-          m_p_interface_object_manager->GetInterfaceObjectsSerialSearch(interface_objects);
-
-          int num_objects = interface_objects.size();
-
-          std::vector<InterfaceObject::Pointer> interface_object_results(num_objects);
-          std::vector<double> min_distances(num_objects);
-          std::vector<array_1d<double,2>> local_coordinates(num_objects);
-          std::vector<std::vector<double>> shape_functions(num_objects);
-
-          FindLocalNeighbors(interface_objects, num_objects, interface_object_results,
-                             min_distances, local_coordinates, shape_functions, m_comm_rank);
-
-          m_p_interface_object_manager_bins->StoreSearchResults(min_distances, interface_object_results, shape_functions, local_coordinates);
-          m_p_interface_object_manager->PostProcessReceivedResults(min_distances, interface_objects);
-      }
-
-      virtual void PrintPairs() {
-          std::vector<InterfaceObject::Pointer> interface_objects = m_p_interface_object_manager->GetDestinationInterfaceObjects();
-          int num_objects = interface_objects.size();
-
-          std::vector<InterfaceObject::Pointer> interface_objects_bins = m_p_interface_object_manager_bins->GetOriginInterfaceObjects();
-          if (num_objects != static_cast<int>(interface_objects_bins.size()))
-              KRATOS_ERROR << "MappingApplication; InterfaceSearchStructure; \"PrintPairs\" size mismatch!" << std::endl;
-          for (int i = 0; i < num_objects; ++i) {
-              if (interface_objects_bins[i] == nullptr) {
-                  std::cout << "InterfaceObject 1 ";
-                  interface_objects[i]->PrintMatchInfo();
-                  std::cout << " has not found a match! " << std::endl;
-              } else {
-                  interface_objects[i]->PrintMatchInfo();
-                  std::cout << " paired with ";
-                  interface_objects_bins[i]->PrintMatchInfo();
-                  std::cout << std::endl;
-              }
-          }
-      }
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-      ///@}
-      ///@name Private  Access
-      ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-      ///@}
-      ///@name Private Inquiry
-      ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-      ///@}
-      ///@name Un accessible methods
-      ///@{
+    ///@}
 
-      /// Assignment operator.
-      InterfaceSearchStructure& operator=(InterfaceSearchStructure const& rOther);
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    // int m_omp_threshold_num_nodes = 1000; // TODO constexpr???
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    void Initialize()   // build the local bin-structure
+    {
+        InterfaceObjectConfigure::ContainerType interface_objects_bins = mpInterfaceObjectManagerBins->GetInterfaceObjects();
+
+        mLocalBinStructureSize = interface_objects_bins.size();
+
+        if (mLocalBinStructureSize > 0)   // only construct the bins if the partition has a part of the interface
+        {
+            mpLocalBinStructure = BinsObjectDynamic<InterfaceObjectConfigure>::Pointer(
+                                      new BinsObjectDynamic<InterfaceObjectConfigure>(interface_objects_bins.begin(), interface_objects_bins.end()));
+        }
+    }
+
+    virtual void ConductSearchIteration(const bool LastIteration)
+    {
+        InterfaceObjectConfigure::ContainerType interface_objects;
+        mpInterfaceObjectManager->GetInterfaceObjectsSerialSearch(interface_objects);
+
+        int num_objects = interface_objects.size();
+
+        std::vector<InterfaceObject::Pointer> interface_object_results(num_objects);
+        std::vector<double> min_distances(num_objects);
+        std::vector<std::vector<double>> shape_function_values(num_objects);
+        std::vector<int> pairing_indices(num_objects);
+
+        FindLocalNeighbors(interface_objects, num_objects, interface_object_results,
+                           min_distances, shape_function_values, pairing_indices);
+
+        mpInterfaceObjectManagerBins->StoreSearchResults(min_distances, interface_object_results, shape_function_values);
+        mpInterfaceObjectManager->PostProcessReceivedResults(interface_objects, min_distances,
+                pairing_indices);
+    }
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    InterfaceSearchStructure& operator=(InterfaceSearchStructure const& rOther);
 
     //   /// Copy constructor.
     //   InterfaceSearchStructure(InterfaceSearchStructure const& rOther){}
 
 
-      ///@}
+    ///@}
 
-    }; // Class InterfaceSearchStructure
+}; // Class InterfaceSearchStructure
 
-  ///@}
+///@}
 
-  ///@name Type Definitions
-  ///@{
-
-
-  ///@}
-  ///@name Input and output
-  ///@{
+///@name Type Definitions
+///@{
 
 
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream,
-				    InterfaceSearchStructure& rThis)
-    {
-        return rIStream;
-    }
+///@}
+///@name Input and output
+///@{
 
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream,
-				    const InterfaceSearchStructure& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
 
-      return rOStream;
-    }
-  ///@}
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  InterfaceSearchStructure& rThis)
+{
+    return rIStream;
+}
 
-  ///@} addtogroup block
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const InterfaceSearchStructure& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
+
+///@} addtogroup block
 
 }  // namespace Kratos.
 

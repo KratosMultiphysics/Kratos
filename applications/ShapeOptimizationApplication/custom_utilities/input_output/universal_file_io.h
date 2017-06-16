@@ -256,7 +256,8 @@ public:
 
         const int modelType = 1; // Structural
         const int analysisType = 4; // Transient analysis
-        const int resultType = 95; // Unknown 3DOF Vector
+        const int resultType = 95; // Unknown 3DOF Vector  
+        const int displacementResultType = 8; // Displacement
         const int dataType = 4; // Double precision floating point
         const int numberOfDataValuesForTheDataComponent = 3;
 
@@ -312,7 +313,10 @@ public:
             outputFile << setw(10) << modelType; 
             outputFile << setw(10) << analysisType; 
             outputFile << setw(10) << dataCharacteristic;
-            outputFile << setw(10) << resultType;
+            if (nodalResultName.compare("SHAPE_CHANGE_ABSOLUTE") == 0)
+                outputFile << setw(10) << displacementResultType;
+            else
+                outputFile << setw(10) << resultType;
             outputFile << setw(10) << dataType;
             outputFile << setw(10) << numberOfDataValuesForTheDataComponent << "\n";
 

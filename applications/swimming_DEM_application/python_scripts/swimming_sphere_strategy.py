@@ -40,7 +40,7 @@ class SwimmingStrategy(BaseStrategy):
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                               self.time_integration_scheme, self.search_strategy, self.Parameters.do_search_neighbours)
 
-        elif self.Parameters.IntegrationScheme == 'Hybrid_Bashforth':
+        elif self.Parameters.IntegrationScheme in {'Hybrid_Bashforth', 'TerminalVelocityScheme'}:
             self.cplusplus_strategy = AdamsBashforthStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                               self.time_integration_scheme, self.search_strategy, self.Parameters.do_search_neighbours)

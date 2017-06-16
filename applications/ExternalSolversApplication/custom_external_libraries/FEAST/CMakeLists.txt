@@ -6,9 +6,11 @@ if (OPENMP_FOUND)
    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${OpenMP_Fortran_FLAGS}")
 endif (OPENMP_FOUND)
 
-	
+# disable warnings
+set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -w")
+
 if(${CMAKE_COMPILER_IS_GNUG77})
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -O3 -ffree-line-length-none -ffixed-line-length-none -cpp -fPIC")
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -w -O3 -ffree-line-length-none -ffixed-line-length-none -cpp -fPIC")
   message("additional default options were set for gfortran")
   message("----------------------****************---------------------- CMAKE_Fortran_FLAGS = ${CMAKE_Fortran_FLAGS}")
 endif(${CMAKE_COMPILER_IS_GNUG77})

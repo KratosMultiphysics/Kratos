@@ -1,18 +1,14 @@
-// //    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+// //    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
-
-
-// This define must be HERE
-#define DKRATOS_EXPORT_INTERFACE_2 1
 
 // System includes
 #include <string>
@@ -68,7 +64,7 @@
 namespace Kratos
 {
   typedef array_1d<double,3> Vector3;
-    
+
   //Create Variables by type:
 
   //bools
@@ -310,7 +306,7 @@ namespace Kratos
   //for Vulcan application
   KRATOS_CREATE_VARIABLE( double, LATENT_HEAT )
   KRATOS_CREATE_VARIABLE( double, AMBIENT_TEMPERATURE )
-  
+
 
   //vectors
 
@@ -350,13 +346,13 @@ namespace Kratos
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( INTERNAL_FORCE )
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( CONTACT_FORCE )
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( CONTACT_NORMAL )
-  
+
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( LINEAR_MOMENTUM )
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( ANGULAR_MOMENTUM )
 
   KRATOS_CREATE_VARIABLE( Vector, EXTERNAL_FORCES_VECTOR )
   KRATOS_CREATE_VARIABLE( Vector, INTERNAL_FORCES_VECTOR )
-  KRATOS_CREATE_VARIABLE( Vector, CONTACT_FORCES_VECTOR ) 
+  KRATOS_CREATE_VARIABLE( Vector, CONTACT_FORCES_VECTOR )
 
   KRATOS_CREATE_VARIABLE( Vector, CAUCHY_STRESS_VECTOR )
   KRATOS_CREATE_VARIABLE( Vector, PK2_STRESS_VECTOR )
@@ -464,7 +460,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, YIELD_STRESS )
   KRATOS_CREATE_VARIABLE( double, MU )
   KRATOS_CREATE_VARIABLE( double, TAU )
-  
+
   KRATOS_CREATE_VARIABLE( double, SEARCH_RADIUS )
 
   //for Vulcan application
@@ -543,8 +539,8 @@ namespace Kratos
     mSurfaceCondition3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9 ) ) ) ),
 
     //deprecated conditions start
-    mCondition2D( 0, Element::GeometryType::Pointer( new Geometry<Node<3> >( Element::GeometryType::PointsArrayType( 2  ) ) ) ), 
-    mCondition2D2N( 0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2  ) ) ) ), 
+    mCondition2D( 0, Element::GeometryType::Pointer( new Geometry<Node<3> >( Element::GeometryType::PointsArrayType( 2  ) ) ) ),
+    mCondition2D2N( 0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2  ) ) ) ),
     mCondition2D3N( 0, Element::GeometryType::Pointer( new Line2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3  ) ) ) ),
     mCondition3D( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3  ) ) ) ), // Note: Could be interesting to change the name to mCondition3D3N (conflict with quadratic line)
     mCondition3D2N( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2  ) ) ) ),
@@ -564,8 +560,8 @@ namespace Kratos
     mElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2  ) ) ) ),
     mElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3  ) ) ) ),
     mElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4  ) ) ) ),
-    mElement3D6N( 0, Element::GeometryType::Pointer( new Prism3D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),    
-    mElement3D8N( 0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),	
+    mElement3D6N( 0, Element::GeometryType::Pointer( new Prism3D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
+    mElement3D8N( 0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
     mElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10)))),
     mpVariableData( KratosComponents<VariableData>::pGetComponents() ),
     mpIntVariables( KratosComponents<Variable<int> >::pGetComponents() ),
@@ -588,7 +584,9 @@ namespace Kratos
       KratosApplication::RegisterDeprecatedVariables();
       KratosApplication::RegisterC2CVariables(); //TODO: move to application
       KratosApplication::RegisterCFDVariables(); //TODO: move to application
+      KratosApplication::RegisterALEVariables(); //TODO: move to application
       KratosApplication::RegisterDEMVariables(); //TODO: move to application
+      KratosApplication::RegisterMATVariables(); //TODO: move to application
       KratosApplication::RegisterLegacyStructuralAppVariables(); //TODO: move to application
 
       // Variables that should be moved to applications (but have too many dependencies)
@@ -603,7 +601,7 @@ namespace Kratos
       //--------------- GENERAL VARIABLES FOR MULTIPLE APPLICATIONS -------------------//
 
       KRATOS_REGISTER_VARIABLE( DOMAIN_SIZE )
-      
+
       //STRATEGIES
       KRATOS_REGISTER_VARIABLE( LOAD_RESTART )
 
@@ -1010,7 +1008,7 @@ namespace Kratos
 //       KRATOS_REGISTER_VARIABLE( MATERIAL )
 
       KRATOS_REGISTER_VARIABLE( ENRICHED_PRESSURES )
-              
+
       KRATOS_REGISTER_VARIABLE( SEARCH_RADIUS )
 
 //       KRATOS_REGISTER_VARIABLE( LAST_AIR )
@@ -1113,7 +1111,7 @@ namespace Kratos
       KRATOS_REGISTER_ELEMENT( "Element3D3N", mElement3D3N )
       KRATOS_REGISTER_ELEMENT( "Element3D4N", mElement3D4N )
       KRATOS_REGISTER_ELEMENT( "Element3D6N", mElement3D6N )
-      KRATOS_REGISTER_ELEMENT( "Element3D8N", mElement3D8N )   
+      KRATOS_REGISTER_ELEMENT( "Element3D8N", mElement3D8N )
       KRATOS_REGISTER_ELEMENT( "Element3D10N", mElement3D10N )
       //Register general geometries:
 
@@ -1239,13 +1237,7 @@ namespace Kratos
       KRATOS_REGISTER_FLAG(FREE_SURFACE);
       KRATOS_REGISTER_FLAG(BLOCKED);
       KRATOS_REGISTER_FLAG(MARKER);
-
+      KRATOS_REGISTER_FLAG(PERIODIC);
 
   }
-
-
 }  // namespace Kratos.
-
-// This define must be HERE
-#undef DKRATOS_EXPORT_INTERFACE_2
-

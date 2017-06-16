@@ -41,8 +41,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~NanoParticle(){};
-
+    virtual ~NanoParticle();
 
     /// Turn back information as a string.
     virtual std::string Info() const override
@@ -68,14 +67,16 @@ public:
     
     double CalculateVolume() override;
 
-    double GetInteractionRadius(const int radius_index);
-    void SetInteractionRadius(const double radius, const int radius_index  = 0);
+    double GetInteractionRadius(const int radius_index = 0) override;
+    void SetInteractionRadius(const double radius, const int radius_index = 0) override;
+    void SetDefaultRadiiHierarchy(const double radius) override;
+
+    double GetCationConcentration();
 
 protected:
 
     double mThicknessOverRadius;
     double mInteractionRadius;
-    //double mInteractionRadius;
 
 private:
 
@@ -91,7 +92,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericParticle );
     }
 
-    /*
     /// Assignment operator.
     NanoParticle& operator=(NanoParticle const& rOther)
     {
@@ -103,7 +103,6 @@ private:
     {
     *this = rOther;
     }
-    */
 
     ///@}
 

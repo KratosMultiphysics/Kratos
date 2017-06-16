@@ -55,6 +55,11 @@ class FluidMeshingDomain(meshing_domain.MeshingDomain):
     
         self.RefiningParameters.SetCriticalRadius(mean_nodal_h)
         self.RefiningParameters.SetInitialRadius(mean_nodal_h)
+        delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        self.main_model_part.ProcessInfo.SetValue(KratosPfemFluid.INITIAL_DELTA_TIME,delta_time)
+        self.main_model_part.ProcessInfo.SetValue(KratosPfemFluid.CURRENT_DELTA_TIME,delta_time)
+        self.main_model_part.ProcessInfo.SetValue(KratosPfemFluid.PREVIOUS_DELTA_TIME,delta_time)
+        self.main_model_part.ProcessInfo.SetValue(KratosPfemFluid.TIME_INTERVAL_CHANGED,False)
         
 
     #

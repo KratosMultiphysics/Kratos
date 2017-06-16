@@ -73,9 +73,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/fields/cellular_flow_field.h"
 #include "custom_utilities/fields/ethier_flow_field.h"
 #include "custom_utilities/fields/pouliot_flow_field.h"
+#include "custom_utilities/fields/shear_flow_1D_with_exponential_viscosity_field.h"
 #include "custom_utilities/basset_force_tools.h"
 #include "custom_utilities/statistics/sampling_tool.h"
 #include "custom_utilities/derivative_recovery_meshing_tools.h"
+#include "custom_utilities/inlets/bentonite_force_based_inlet.h"
 
 namespace Kratos{
 
@@ -174,6 +176,10 @@ using namespace boost::python;
         ;
 
     class_<ConstantVelocityField, bases<VelocityField> > ("ConstantVelocityField", init<const double, const double, const double>())
+        ;    
+
+    class_<ShearFlow1DWithExponentialViscosityField, bases<VelocityField> > ("ShearFlow1DWithExponentialViscosityField", init<const double, const double, const double>())
+        .def("SetRimZoneThickness", &ShearFlow1DWithExponentialViscosityField::SetRimZoneThickness)
         ;
 
     class_<CellularFlowField, bases<VelocityField> > ("CellularFlowField",  init<const double, const double, const double, const double>())
@@ -244,8 +250,6 @@ using namespace boost::python;
     EvaluateDoubleFieldAtPoint EvaluateDoubleField = &FieldUtility::EvaluateFieldAtPoint;
     EvaluateVectorFieldAtPoint EvaluateVectorField = &FieldUtility::EvaluateFieldAtPoint;
 
-    // next we do what is needed to define the overloaded function 'FieldUtility::EvaluateFieldAtPoint'
-
     typedef void (FieldUtility::*ImposeDoubleFieldOnNodes)(Variable<double>&, const double, RealField::Pointer, ModelPart&, const ProcessInfo&, const bool);
     typedef void (FieldUtility::*ImposeVectorFieldOnNodes)(Variable<array_1d<double, 3> >&, const array_1d<double, 3>, VectorField<3>::Pointer, ModelPart&, const ProcessInfo&, const bool);
     typedef void (FieldUtility::*ImposeVelocityFieldOnNodes)(ModelPart&, const VariablesList&);
@@ -267,24 +271,7 @@ using namespace boost::python;
         ;
 
     // and the same for 'FluidFieldUtility' ...
-
-    typedef double (FluidFieldUtility::*EvaluateDoubleFluidFieldAtPoint)(const double&, const array_1d<double, 3>&, RealField::Pointer);
-    typedef array_1d<double, 3> (FluidFieldUtility::*EvaluateVectorFluidFieldAtPoint)(const double&, const array_1d<double, 3>&, VectorField<3>::Pointer);
-
-    EvaluateDoubleFluidFieldAtPoint EvaluateDoubleFluidField = &FieldUtility::EvaluateFieldAtPoint;
-    EvaluateVectorFluidFieldAtPoint EvaluateVectorFluidField = &FieldUtility::EvaluateFieldAtPoint;
-
-    typedef void (FluidFieldUtility::*ImposeVelocityFluidFieldOnNodes)(ModelPart&, const VariablesList&);
-
-    ImposeVelocityFluidFieldOnNodes ImposeVelocityFluidField = &FluidFieldUtility::ImposeFieldOnNodes;
-
-    class_<FluidFieldUtility> ("FluidFieldUtility", init<SpaceTimeSet::Pointer, VelocityField::Pointer, const double, const double >())
-        .def("MarkNodesInside", &FluidFieldUtility::MarkNodesInside)
-        .def("EvaluateFieldAtPoint", EvaluateDoubleFluidField)
-        .def("EvaluateFieldAtPoint", EvaluateVectorFluidField)
-        .def("ImposeFieldOnNodes", ImposeDoubleField)
-        .def("ImposeFieldOnNodes", ImposeVectorField)
-        .def("ImposeFieldOnNodes", ImposeVelocityFluidField)
+    class_<FluidFieldUtility, bases<FieldUtility> > ("FluidFieldUtility", init<SpaceTimeSet::Pointer, VelocityField::Pointer, const double, const double >())
         ;
 
     typedef void (CustomFunctionsCalculator<3>::*CopyValuesScalar)(ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&);
@@ -397,6 +384,7 @@ using namespace boost::python;
 
     class_<BinBasedDEMFluidCoupledMapping <3, NanoParticle> >
             ("BinBasedNanoDEMFluidCoupledMapping3D", init<double, int, int, int>())
+        .def("InterpolateVelocity", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateVelocity)
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromFluidMesh)
         .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromNewestFluidMesh)
         .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::ImposeFlowOnDEMFromField)
@@ -417,6 +405,11 @@ using namespace boost::python;
     class_<EmbeddedVolumeTool <3> >("EmbeddedVolumeTool", init<>())
         .def("CalculateNegativeDistanceVolume", &EmbeddedVolumeTool <3> ::CalculateNegativeDistanceVolume)
         ;
+
+    class_<Bentonite_Force_Based_Inlet, bases<DEM_Force_Based_Inlet> >
+        ("Bentonite_Force_Based_Inlet", init<ModelPart&, array_1d<double, 3>>())
+        ;
+
     }
 }  // namespace Python.
 
