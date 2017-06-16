@@ -80,6 +80,9 @@ namespace Kratos
    }
 
 
+   //Vale, el problema és que això és hypo-elastic i estic finalitzant la solució a cada iteració (amb les variables aquestes rares i tal). Per això no puc reduir l'error aquell petit que em surt. I a sobre encara tinc sort que és petit.
+   //
+
 
    //init material:
    void Umat::InitializeMaterial( const Properties& props,
@@ -102,9 +105,13 @@ namespace Kratos
       STRAN = new double[6];
       DSTRAN = new double[6];
 
+      // Finalized stress and state variables
+      STRESS_END = new double[6];
+
       for ( int i = 0; i < NTENS[0]; i++ )
       {
          STRESS[i] = 0.0 ;
+         STRESS_END[i] = 0.0;
          STRAN[i] = 0.0 ;
          DSTRAN[i] = 0.0 ;
       }
@@ -115,8 +122,8 @@ namespace Kratos
 
       MaterialNumber = new int[1];
 
+      // material data should be readed here. I just set the number for the moment //LMV
       //Vector mdata = props[MATERIAL_PARAMETERS] ;
-
       //NPROPS[0] = mdata.size() - 1;
       NPROPS[0] = 2;
 
@@ -143,13 +150,17 @@ namespace Kratos
                KRATOS_THROW_ERROR( std::logic_error, "LinearElastic umat material number material properties failure must be 2 ", "" );
 
             STATEV = new double[13]; //[0..5] epsilonElastic, [6..11] epsilonPlastic, [12] alpha
+            STATEV_END = new double [13];
 
-            for ( unsigned int i = 0; i < 13; i++ )
+            for ( unsigned int i = 0; i < 13; i++ ) {
                STATEV[i] = 0.0;
+               STATEV_END[i] = 0.0;
+            }
 
             NSTATV[0] = 13;
 
-            PROPS[0] = 100; // young??
+            // LMV!!!!
+            PROPS[0] = 1000.0; // young??
             PROPS[1] = 0.3; // nu ??
             break;
 
@@ -209,6 +220,17 @@ namespace Kratos
      int CalculateTangent,
      bool SaveInternalVariables )*/
 
+   void Umat::LoadPreviousInformation()
+   {
+      KRATOS_TRY
+
+      for (unsigned int i = 0; i < 6; i++)
+         STRESS[i] = STRESS_END[i];
+      for (unsigned int i = 0; i < NSTATV[0]; i++)
+         STATEV[i] = STATEV_END[i];
+
+      KRATOS_CATCH("")
+   }
    void Umat::CalculateMaterialResponseKirchhoff(  Parameters & rValues)
    {
 
@@ -235,7 +257,6 @@ namespace Kratos
       noalias( StrainVector) = rStrainVector;
 
 
-
       double DDSDDE[NTENS[0]][NTENS[0]];
       double DDSDDT[NTENS[0]];
       double DRPLDE[NTENS[0]];
@@ -246,6 +267,9 @@ namespace Kratos
       TIM[1] = rCurrentProcessInfo[DELTA_TIME];
       DTIME[0] = rCurrentProcessInfo[DELTA_TIME];
       NPT[0] = 0;
+
+      // LOAD PREVIOUS INFORMATION
+      LoadPreviousInformation();
 
       for ( int i = 0; i < NTENS[0]; i++ )
       {
@@ -265,6 +289,16 @@ namespace Kratos
             DDSDDE[i][j] = 0.0;
          }
       }
+
+      std::cout << " STRAN " << StrainVector << std::endl;
+      std::cout << " DSTRAN" << DSTRAN << std::endl;
+      for (unsigned int i = 0; i < 6; i++)
+         std::cout << " , " << DSTRAN[i];
+      std::cout << std::endl;
+      std::cout << " STATEV " << STATEV << std::endl;
+      for (unsigned int i = 0; i < 12; i++)
+         std::cout << "  ,  " << STATEV[i];
+      std::cout << std::endl;
 
       Matrix AlgorithmicTangent = ZeroMatrix(6,6);
       Vector StressVector = ZeroVector(6);
@@ -292,9 +326,6 @@ namespace Kratos
       if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
       {
          noalias( rStressVector ) = StressVector;
-         std::cout << " STRESS " << rStressVector << std::endl;
-         std::cout << " STRAIN " << StrainVector << std::endl;
-         std::cout << std::endl;
       }
       if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
       {
@@ -310,7 +341,15 @@ namespace Kratos
          const Vector& ShapeFunctionsValues ,
          const ProcessInfo& CurrentProcessInfo )
    {
+      KRATOS_TRY
+
       //does nothing
+      for (unsigned int i = 0; i < 6; i++)
+         STRESS_END[i] = STRESS[i];
+      for (unsigned int i = 0; i < NSTATV[0]; i++)
+         STATEV_END[i] = STATEV[i];
+
+      KRATOS_CATCH("")
    }
 
    int Umat::Check(const Properties& rMaterialProperties, const GeometryType & rElementGeometry, const ProcessInfo & rCurrentProcessInfo)
