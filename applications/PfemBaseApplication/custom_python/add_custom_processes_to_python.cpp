@@ -39,6 +39,7 @@
 
 //MiddleMeshing processes
 #include "custom_processes/refine_mesh_elements_on_size_process.hpp"
+#include "custom_processes/print_output_mesh_process.hpp"
 
 //PostMeshing processes
 #include "custom_processes/generate_new_nodes_process.hpp"
@@ -170,7 +171,13 @@ namespace Kratos
 	 )
 	;
 
- 
+
+      class_<PrintOutputMeshProcess, bases<ProcessBaseType>, boost::noncopyable >
+	(
+	 "PrintOutputMeshProcess", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
+	 )
+	;
+      
 
       //********MODEL VOLUME CALCULATION*********//
 

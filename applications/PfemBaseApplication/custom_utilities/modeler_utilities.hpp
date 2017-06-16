@@ -54,7 +54,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of TriGenCDT
+    /// Pointer definition of ModelerUtilities
     KRATOS_CLASS_POINTER_DEFINITION( ModelerUtilities );
 
 
@@ -189,7 +189,7 @@ public:
 
       void CreatePointList(const unsigned int NumberOfPoints, const unsigned int Dimension)
       {
-	if( mpPointList != NULL && PointListFlag == true){
+	if( mpPointList ){
 	  delete [] mpPointList;
 	}
 	mNumberOfPoints = NumberOfPoints;
@@ -199,7 +199,7 @@ public:
 
       void CreateElementList(const unsigned int NumberOfElements, const unsigned int NumberOfVertices)
       {
-	if( mpElementList != NULL && ElementListFlag == true){
+	if( mpElementList ){
 	  delete [] mpElementList;
 	}
 	mNumberOfElements = NumberOfElements;
@@ -209,7 +209,7 @@ public:
 
       void CreateElementSizeList(const unsigned int NumberOfElements)
       {
-	if( mpElementSizeList != NULL ){
+	if( mpElementSizeList ){
 	  delete [] mpElementSizeList;
 	}
 	mpElementSizeList     = new double[NumberOfElements];
@@ -218,7 +218,7 @@ public:
 
       void CreateElementNeighbourList(const unsigned int NumberOfElements, const unsigned int NumberOfFaces)
       {
-	if( mpElementNeighbourList != NULL ){
+	if( mpElementNeighbourList ){
 	  delete [] mpElementNeighbourList;
 	}
 	mpElementNeighbourList     = new int[NumberOfElements * NumberOfFaces];
@@ -243,35 +243,23 @@ public:
 
       void Finalize()
       {
-	if( mpPointList!= NULL && PointListFlag ){
+	if( mpPointList && PointListFlag ){
 	  delete [] mpPointList;
 	}
 
-	// mesher deletes it always...
-	// if( mpElementList!= NULL && ElementListFlag ){
-	//   delete [] mpElementList;
-	// }
+	if( mpElementList && ElementListFlag ){
+	  delete [] mpElementList;
+	}
 
-	if( mpElementSizeList!= NULL && ElementSizeListFlag ){
+	if( mpElementSizeList && ElementSizeListFlag ){
 	  delete [] mpElementSizeList;
 	}
 
-	if( mpElementNeighbourList!= NULL && ElementNeighbourListFlag ){
+	if( mpElementNeighbourList && ElementNeighbourListFlag ){
 	  delete [] mpElementNeighbourList;
 	}
 
-	mpPointList            = (double*) NULL;
-	mpElementList          = (int*)    NULL;
-	mpElementSizeList      = (double*) NULL;
-	mpElementNeighbourList = (int*)    NULL;
-
-	mNumberOfPoints        = 0;
-	mNumberOfElements      = 0;
-
-	PointListFlag            = false;
-	ElementListFlag          = false;
-	ElementSizeListFlag      = false;
-	ElementNeighbourListFlag = false;
+	Initialize();
       }
 
     };
@@ -1448,15 +1436,23 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-	return "";
+        std::stringstream buffer;
+        buffer << "ModelerUtilities";
+        return buffer.str();
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {}
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "ModelerUtilities";
+    }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
-
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+      rOStream << "ModelerUtilities Data";
+    }
+    
 
     ///@}
     ///@name Friends
@@ -1542,34 +1538,35 @@ private:
 
 }; // Class ModelerUtilities
 
-///@}
+  ///@}
 
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-
-/// input stream function
-    inline std::istream& operator >> (std::istream& rIStream,
+  ///@name Type Definitions
+  ///@{
+  
+  
+  ///@}
+  ///@name Input and output
+  ///@{
+  
+  
+  /// input stream function
+  inline std::istream& operator >> (std::istream& rIStream,
 				      ModelerUtilities& rThis);
 
-/// output stream function
-    inline std::ostream& operator << (std::ostream& rOStream,
-				      const ModelerUtilities& rThis)
-    {
-	rThis.PrintInfo(rOStream);
-	rOStream << std::endl;
-	rThis.PrintData(rOStream);
+  /// output stream function
+  inline std::ostream& operator << (std::ostream& rOStream,
+				    const ModelerUtilities& rThis)
+  {
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+    
+    return rOStream;
+  }
+  ///@}
 
-	return rOStream;
-    }
-///@}
-
-
+  ///@} addtogroup block
+  
 }  // namespace Kratos.
 
 #endif // KRATOS_MODELER_UTILITIES_H_INCLUDED  defined

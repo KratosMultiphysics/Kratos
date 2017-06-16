@@ -6,13 +6,15 @@
         }],
         "constraints" : [],
         "design_variables" : {
-            "variable_type"             : "vertex_morphing", 
+            "design_variables_type"     : "vertex_morphing", 
             "input_model_part_name"     : "vertex_morphing_tent",
             "design_submodel_part_name" : "design_surface",
             "domain_size"               : 3,
             "filter" : {
-                "filter_function_type" : "gaussian",
-                "filter_radius"        : 5
+                "filter_function_type"       : "gaussian",
+                "filter_radius"              : 5,
+                "max_nodes_in_filter_radius" : 100,
+                "matrix_free_filtering"      : false                  
             },
             "damping" : {
                 "perform_damping" : false,
@@ -21,7 +23,7 @@
         },
         "optimization_algorithm" : {
             "name"               : "steepest_descent",
-            "max_iterations"     : 200,
+            "max_iterations"     : 300,
             "relative_tolerance" : 1e-2
         },
         "line_search" : {
@@ -33,13 +35,10 @@
             "output_directory"        : "Optimization_Results",
             "design_history_filename" : "design_history",
             "response_log_filename"   : "response_log",
-            "nodal_results"           : [ "NORMALIZED_SURFACE_NORMAL",
-                                          "OBJECTIVE_SENSITIVITY",
+            "nodal_results"           : [ "OBJECTIVE_SENSITIVITY",
                                           "MAPPED_OBJECTIVE_SENSITIVITY",
                                           "DESIGN_UPDATE",
-                                          "DESIGN_CHANGE_ABSOLUTE",
-                                          "SHAPE_UPDATE",
-                                          "SHAPE_CHANGE_ABSOLUTE" ],           
+                                          "SHAPE_UPDATE" ],           
             "output_format" : {
                 "name"                   : "gid",
                 "VolumeOutput"           : true,

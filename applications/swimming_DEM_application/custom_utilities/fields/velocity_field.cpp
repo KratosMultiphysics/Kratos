@@ -152,7 +152,7 @@ void VelocityField::ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesL
 
     #pragma omp parallel for firstprivate(must_impose_fluid_velocity, must_impose_fluid_acceleration, must_impose_fluid_velocity_laplacian, time)
     for (int i = 0; i < (int)r_model_part.Nodes().size(); i++){
-        int thread_number = omp_get_thread_num();
+        int thread_number = OpenMPUtils::ThisThread();
         ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
         Node<3>::Pointer p_node = *(i_particle.base());
         const array_1d<double, 3>& coor = p_node->Coordinates();
@@ -192,10 +192,10 @@ void VelocityField::ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesL
     }
 }
 
-void VelocityField::ImposeVelocityOnNodes(ModelPart& r_model_part, const VariableData& container_variable)
+void VelocityField::ImposeVelocityOnNodes(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& container_variable)
 {
     const double time = r_model_part.GetProcessInfo()[TIME];
-    int thread_number = omp_get_thread_num();
+    int thread_number = OpenMPUtils::ThisThread();
 
     for (int i = 0; i < (int)r_model_part.Nodes().size(); i++){
         ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
@@ -203,7 +203,7 @@ void VelocityField::ImposeVelocityOnNodes(ModelPart& r_model_part, const Variabl
         const array_1d<double, 3>& coor = p_node->Coordinates();
         array_1d<double, 3> fluid_vel;
         Evaluate(time, coor, fluid_vel, thread_number);
-        array_1d<double, 3>& slip_vel = p_node->FastGetSolutionStepValue(SLIP_VELOCITY);
+        array_1d<double, 3>& slip_vel = p_node->FastGetSolutionStepValue(container_variable);
         noalias(slip_vel) = fluid_vel;
     }
 }
@@ -221,4 +221,3 @@ bool VelocityField::VariableIsInList(const VariablesList var_list, const Variabl
 }
 
 } // namespace Kratos.
-

@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # -*- coding: utf-8 -*-
 from KratosMultiphysics import *
 from KratosMultiphysics.mpi import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.MetisApplication import *
 from KratosMultiphysics.TrilinosApplication import *
@@ -127,8 +126,6 @@ class IncompressibleFluidSolver:
         (self.neighbour_search).Execute()
 
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau)
-        self.model_part.ProcessInfo.SetValue(
-            ACTIVATE_TAU2, self.activate_tau2)
 
         # check if slip conditions are defined
         slip_cond_count = 0

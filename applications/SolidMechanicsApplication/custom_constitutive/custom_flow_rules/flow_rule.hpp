@@ -235,7 +235,7 @@ namespace Kratos
     /// Default constructor.
     FlowRule()
     {
-      //KRATOS_THROW_ERROR( std::logic_error, "calling the default constructor in FlowRule ... illegal operation!!", "" )
+      //KRATOS_ERROR << "calling the default constructor in FlowRule ... illegal operation!!", "" )
     };
 
     /// Initialization constructor.
@@ -314,49 +314,53 @@ namespace Kratos
 
     };
 
-    const Properties & GetProperties()
+    const Properties& GetProperties()
     {
-      return mpYieldCriterion->GetHardeningLaw().GetProperties();
+        return mpYieldCriterion->GetHardeningLaw().GetProperties();
     };
 	
-    const InternalVariables & GetInternalVariables()
+    const InternalVariables& GetInternalVariables()
     {
-      return mInternalVariables;
+        return mInternalVariables;
+    };
+    
+    InternalVariables& SetInternalVariables()
+    {
+        return mInternalVariables;
     };
 	
-
-    const ThermalVariables & GetThermalVariables()
+    const ThermalVariables& GetThermalVariables()
     {
       return mThermalVariables;
     };
 
     virtual bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix )
     {
-	    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation!!", "" )
+	    KRATOS_ERROR << "Calling the base class function in FlowRule ... illegal operation!!" << std::endl;
 	    return 0;
     };
 
     virtual bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen)
     {
-	    KRATOS_THROW_ERROR(std::logic_error, "calling the base class function in FlowRule ... illegal operation!!","");
+	    KRATOS_ERROR <<  "Calling the base class function in FlowRule ... illegal operation!!" << std::endl;
 
     };
  
     virtual void ComputeElastoPlasticTangentMatrix( const RadialReturnVariables& rReturnMappingVariables, const Matrix& rElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticMatrix)
     {
-	    KRATOS_THROW_ERROR(std::logic_error, "calling the base class function in FlowRule ... illegal operation!!","");
+	    KRATOS_ERROR <<  "Calling the base class function in FlowRule ... illegal operation!!" << std::endl;
 
     };
 
     virtual void CalculateScalingFactors(const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors )
     {
-	    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation!!", "" )
+	    KRATOS_ERROR << "Calling the base class function in FlowRule ... illegal operation!!" << std::endl;
     };
     
 
     virtual bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables )
     {
-	    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation!!", "" )
+	    KRATOS_ERROR << "Calling the base class function in FlowRule ... illegal operation!!" << std::endl;
 
 	    return 0;
     };
@@ -421,7 +425,7 @@ namespace Kratos
 
     virtual double& CalculateStressNorm ( Matrix & rStressMatrix, double& rStressNorm )
     {
-            KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation!!", "" )
+            KRATOS_ERROR << "Calling the base class function in FlowRule ... illegal operation!!" << std::endl;
 
 	    return rStressNorm;
     };

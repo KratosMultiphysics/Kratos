@@ -28,16 +28,21 @@ typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
 typedef WeakPointerVector<Element> ParticleWeakVectorType;
 typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
 typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+typedef SphericParticle BaseType;
+typedef BaseType::ParticleDataBuffer BaseBufferType;
+typedef std::unique_ptr<BaseType::ParticleDataBuffer> BaseBufferPointerType;
 
 /// Default constructor.
-AnalyticSphericParticle( IndexType NewId, GeometryType::Pointer pGeometry );
+AnalyticSphericParticle();
+AnalyticSphericParticle( IndexType NewId, GeometryType::Pointer pGeometry);
 AnalyticSphericParticle( IndexType NewId, NodesArrayType const& ThisNodes);
-AnalyticSphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
+AnalyticSphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+AnalyticSphericParticle(Element::Pointer p_spheric_particle);
 
 Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
 /// Destructor.
-virtual ~AnalyticSphericParticle(){};
+virtual ~AnalyticSphericParticle(){}
 
 /// Turn back information as a string.
 std::string Info() const override
@@ -53,9 +58,12 @@ void PrintInfo(std::ostream& rOStream) const override {rOStream << "AnalyticSphe
 /// Print object's data.
 void PrintData(std::ostream& rOStream) const override {}
 
-protected:
+int GetNumberOfCollisions();
+void GetCollidingIds(array_1d<int, 4>& colliding_ids);
+void GetCollidingNormalRelativeVelocity(array_1d<double, 4>& colliding_normal_vel);
+void GetCollidingTangentialRelativeVelocity(array_1d<double, 4>& colliding_tangential_vel);
 
-AnalyticSphericParticle();
+protected:
 
 class ParticleDataBuffer: public SphericParticle::ParticleDataBuffer
 {
@@ -66,13 +74,17 @@ ParticleDataBuffer(SphericParticle* p_this_particle): SphericParticle::ParticleD
 virtual ~ParticleDataBuffer(){}
 
 std::vector<int> mCurrentContactingNeighbourIds;
-
 };
 
-virtual std::unique_ptr<SphericParticle::ParticleDataBuffer> CreateParticleDataBuffer(SphericParticle* p_this_particle)
+std::unique_ptr<SphericParticle::ParticleDataBuffer> CreateParticleDataBuffer(SphericParticle* p_this_particle) override
 {
+    ClearImpactMemberVariables();
     return std::unique_ptr<SphericParticle::ParticleDataBuffer>(new ParticleDataBuffer(p_this_particle));
 }
+
+void PushBackIdToContactingNeighbours(BaseBufferType &data_buffer, int id);
+
+void ClearNeighbours(BaseBufferType & data_buffer);
 
 private:
 
@@ -92,16 +104,37 @@ array_1d<double, 4> mCollidingRadii;
 array_1d<double, 4> mCollidingNormalVelocities;
 array_1d<double, 4> mCollidingTangentialVelocities;
 std::vector<int> mContactingNeighbourIds;
+std::unique_ptr<ParticleDataBuffer> mpDataBuffer;
 
-void ClearMemberVariables();
+ParticleDataBuffer* GetPointerToDerivedDataBuffer(BaseBufferType& data_buffer)
+{
+  BaseBufferType *p_raw_data_buffer = &data_buffer;
+  return static_cast<ParticleDataBuffer*>(p_raw_data_buffer);
+}
 
-void FinalizeForceComputation(ParticleDataBuffer & data_buffer);
+void ClearImpactMemberVariables();
 
-void CalculateRelativePositions(ParticleDataBuffer & data_buffer);
+void FinalizeForceComputation(BaseBufferType & data_buffer) override;
+
+void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
+                                                       const ProcessInfo& r_process_info,
+                                                       double LocalElasticContactForce[3],
+                                                       double DeltDisp[3],
+                                                       double LocalDeltDisp[3],
+                                                       double RelVel[3],
+                                                       const double indentation,
+                                                       double ViscoDampingLocalContactForce[3],
+                                                       double& cohesive_force,
+                                                       SphericParticle* p_neighbour_element,
+                                                       bool& sliding,
+                                                       double LocalCoordSystem[3][3],
+                                                       double OldLocalCoordSystem[3][3],
+                                                       array_1d<double, 3>& neighbour_elastic_contact_force) override;
+
 
 bool IsNewNeighbour(const int nighbour_id);
 
-void RecordNewImpact(ParticleDataBuffer & data_buffer);
+void RecordNewImpact(BaseType::ParticleDataBuffer & data_buffer);
 
 void save(Serializer& rSerializer) const override
 {

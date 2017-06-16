@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 from KratosMultiphysics import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.MeshingApplication import *
@@ -47,9 +46,9 @@ class MainKratos:
         for i in range(self.ProjectParameters["initial_conditions_process_list"].size()):
             initial_cond_part_name = self.ProjectParameters["initial_conditions_process_list"][i]["Parameters"]["model_part_name"].GetString()
             self.Model.update({initial_cond_part_name: self.main_model_part.GetSubModelPart(initial_cond_part_name)})
-    
+
         ## Get the gravity submodel part in the object Model
-        for i in range(self.ProjectParameters["gravity"].size()):   
+        for i in range(self.ProjectParameters["gravity"].size()):
             gravity_part_name = self.ProjectParameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
             self.Model.update({gravity_part_name: self.main_model_part.GetSubModelPart(gravity_part_name)})
 
@@ -91,23 +90,23 @@ class MainKratos:
 
             for process in self.list_of_processes:
                 process.ExecuteInitializeSolutionStep()
-            
+
             #self.gid_output.ExecuteInitializeSolutionStep()
-                
+
             if self.execute_solve:
                 self.solver.Solve()
-        
+
             for process in self.list_of_processes:
                 process.ExecuteFinalizeSolutionStep()
-            
+
             #self.gid_output.ExecuteFinalizeSolutionStep()
 
             #if self.gid_output.IsOutputStep():
             #    self.gid_output.PrintOutput()
-            
+
         for process in self.list_of_processes:
             process.ExecuteFinalize()
-        
+
         #self.gid_output.ExecuteFinalize()
 
 if __name__ == '__main__':

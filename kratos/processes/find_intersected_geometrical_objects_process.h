@@ -257,22 +257,27 @@ namespace Kratos
 
 	  virtual void Initialize();
 
-	  virtual void Execute();
+	  virtual void Execute() override;
 
       ///@}
       ///@name Input and output
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const;
+      virtual std::string Info() const override;
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const;
+      virtual void PrintInfo(std::ostream& rOStream) const override;
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const;
+      virtual void PrintData(std::ostream& rOStream) const override;
 
       ///@}
+
+	protected:
+
+		void FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults);
+		ModelPart& GetModelPart1();
 
     private:
       ///@name Static Member Variables
@@ -295,6 +300,7 @@ namespace Kratos
 		void SetOctreeBoundingBox();
 		void MarkIfIntersected(Element& rElement1, std::vector<OctreeType::cell_type*>& leaves);
 		bool HasIntersection(Element::GeometryType& rFirstGeometry, Element::GeometryType& rSecondGeometry);
+		void FindIntersectedSkinObjects(Element& rElement1, std::vector<OctreeType::cell_type*>& leaves, PointerVector<GeometricalObject>& rResults);
 
 
       ///@}
