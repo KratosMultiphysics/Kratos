@@ -589,22 +589,48 @@ namespace Kratos {
 
     //   }
 
-    if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)){
-      if(rGeom[0].IsNot(INLET))
-    	BoundLHSMatrix(0,0) +=  Weight / 3.0;
-      if(rGeom[1].IsNot(INLET))
-    	BoundLHSMatrix(1,1) +=  Weight / 3.0;
-    }else if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
-      if(rGeom[0].IsNot(INLET))
-    	BoundLHSMatrix(0,0) +=  Weight / 3.0;
-      if(rGeom[2].IsNot(INLET))
-    	BoundLHSMatrix(2,2) +=  Weight / 3.0;
-    }else if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
-      if(rGeom[1].IsNot(INLET))
-    	BoundLHSMatrix(1,1) +=  Weight / 3.0;
-      if(rGeom[2].IsNot(INLET))
-    	BoundLHSMatrix(2,2) +=  Weight / 3.0;
-    }
+    // if(this->Is(TO_ERASE)){
+    //   WeakPointerVector<Node<3> >& rN0 = rGeom[0].GetValue(NEIGHBOUR_NODES);
+    //   WeakPointerVector<Node<3> >& rN1 = rGeom[1].GetValue(NEIGHBOUR_NODES);
+    //   WeakPointerVector<Node<3> >& rN2 = rGeom[2].GetValue(NEIGHBOUR_NODES);
+    //   if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE) &&
+    // 	 (rN0.size()<NumNodes || rN1.size()<NumNodes)){
+    // 	if(rGeom[0].IsNot(INLET))
+    // 	  BoundLHSMatrix(0,0) +=  Weight / 3.0;
+    // 	if(rGeom[1].IsNot(INLET))
+    // 	  BoundLHSMatrix(1,1) +=  Weight / 3.0;
+    //   }else if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE) &&
+    // 	 (rN0.size()<NumNodes || rN2.size()<NumNodes)){
+    // 	if(rGeom[0].IsNot(INLET))
+    // 	  BoundLHSMatrix(0,0) +=  Weight / 3.0;
+    // 	if(rGeom[2].IsNot(INLET))
+    // 	  BoundLHSMatrix(2,2) +=  Weight / 3.0;
+    //   }else if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE) &&
+    // 	 (rN2.size()<NumNodes || rN1.size()<NumNodes)){
+    // 	if(rGeom[1].IsNot(INLET))
+    // 	  BoundLHSMatrix(1,1) +=  Weight / 3.0;
+    // 	if(rGeom[2].IsNot(INLET))
+    // 	  BoundLHSMatrix(2,2) +=  Weight / 3.0;
+    //   }
+    // }else{
+
+      if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)){
+	if(rGeom[0].IsNot(INLET))
+	  BoundLHSMatrix(0,0) +=  Weight / 3.0;
+	if(rGeom[1].IsNot(INLET))
+	  BoundLHSMatrix(1,1) +=  Weight / 3.0;
+      }else if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
+	if(rGeom[0].IsNot(INLET))
+	  BoundLHSMatrix(0,0) +=  Weight / 3.0;
+	if(rGeom[2].IsNot(INLET))
+	  BoundLHSMatrix(2,2) +=  Weight / 3.0;
+      }else if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
+	if(rGeom[1].IsNot(INLET))
+	  BoundLHSMatrix(1,1) +=  Weight / 3.0;
+	if(rGeom[2].IsNot(INLET))
+	  BoundLHSMatrix(2,2) +=  Weight / 3.0;
+      }
+    // }
 
   }
 
@@ -736,34 +762,71 @@ namespace Kratos {
     //   }
 
 
-    if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE) ){ 
-      AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
-      AccB= 0.5/TimeStep*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
-      const array_1d<double, 3> &NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
-      const array_1d<double, 3> &NormalB    = rGeom[1].FastGetSolutionStepValue(NORMAL);
-      if(rGeom[0].IsNot(INLET)) //to change into moving wall!!!!!
-    	BoundRHSVector[0] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev)/3.0;
-      if(rGeom[1].IsNot(INLET))
-    	BoundRHSVector[1] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) + BoundRHSCoeffDev)/3.0;
-    }else  if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE) ){
-      AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
-      AccB= 0.5/TimeStep*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
-      const array_1d<double, 3> &NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
-      const array_1d<double, 3> &NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
-      if(rGeom[0].IsNot(INLET))
-    	BoundRHSVector[0] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev)/3.0;
-      if(rGeom[2].IsNot(INLET))   
-    	BoundRHSVector[2] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) + BoundRHSCoeffDev)/3.0;
-    }else  if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE) ){
-      AccA= 0.5/TimeStep*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
-      AccB= 0.5/TimeStep*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
-      const array_1d<double, 3> &NormalA    = rGeom[1].FastGetSolutionStepValue(NORMAL);
-      const array_1d<double, 3> &NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
-      if(rGeom[1].IsNot(INLET))
-    	BoundRHSVector[1] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev)/3.0;
-      if(rGeom[2].IsNot(INLET))
-    	BoundRHSVector[2] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) + BoundRHSCoeffDev)/3.0;
-    }
+    // if(this->Is(TO_ERASE)){
+    //   WeakPointerVector<Node<3> >& rN0 = rGeom[0].GetValue(NEIGHBOUR_NODES);
+    //   WeakPointerVector<Node<3> >& rN1 = rGeom[1].GetValue(NEIGHBOUR_NODES);
+    //   WeakPointerVector<Node<3> >& rN2 = rGeom[2].GetValue(NEIGHBOUR_NODES);
+
+    //   if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE) && (rN0.size()<NumNodes || rN1.size()<NumNodes)){ 
+    // 	AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
+    // 	AccB= 0.5/TimeStep*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
+    // 	const array_1d<double, 3> &NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
+    // 	const array_1d<double, 3> &NormalB    = rGeom[1].FastGetSolutionStepValue(NORMAL);
+    // 	if(rGeom[0].IsNot(INLET)) //to change into moving wall!!!!!
+    // 	  BoundRHSVector[0] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev)/3.0;
+    // 	if(rGeom[1].IsNot(INLET))
+    // 	  BoundRHSVector[1] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) + BoundRHSCoeffDev)/3.0;
+    //   }else  if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE) && (rN0.size()<NumNodes || rN2.size()<NumNodes) ){
+    // 	AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
+    // 	AccB= 0.5/TimeStep*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
+    // 	const array_1d<double, 3> &NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
+    // 	const array_1d<double, 3> &NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
+    // 	if(rGeom[0].IsNot(INLET))
+    // 	  BoundRHSVector[0] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev)/3.0;
+    // 	if(rGeom[2].IsNot(INLET))   
+    // 	  BoundRHSVector[2] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) + BoundRHSCoeffDev)/3.0;
+    //   }else  if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && (rN1.size()<NumNodes || rN2.size()<NumNodes) ){
+    // 	AccA= 0.5/TimeStep*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
+    // 	AccB= 0.5/TimeStep*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
+    // 	const array_1d<double, 3> &NormalA    = rGeom[1].FastGetSolutionStepValue(NORMAL);
+    // 	const array_1d<double, 3> &NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
+    // 	if(rGeom[1].IsNot(INLET))
+    // 	  BoundRHSVector[1] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev)/3.0;
+    // 	if(rGeom[2].IsNot(INLET))
+    // 	  BoundRHSVector[2] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) + BoundRHSCoeffDev)/3.0;
+    //   }
+
+    // }else{
+
+      if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE) ){ 
+	AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
+	AccB= 0.5/TimeStep*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
+	const array_1d<double, 3> &NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
+	const array_1d<double, 3> &NormalB    = rGeom[1].FastGetSolutionStepValue(NORMAL);
+	if(rGeom[0].IsNot(INLET)) //to change into moving wall!!!!!
+	  BoundRHSVector[0] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev)/3.0;
+	if(rGeom[1].IsNot(INLET))
+	  BoundRHSVector[1] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) + BoundRHSCoeffDev)/3.0;
+      }else  if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE) ){
+	AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
+	AccB= 0.5/TimeStep*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
+	const array_1d<double, 3> &NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
+	const array_1d<double, 3> &NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
+	if(rGeom[0].IsNot(INLET))
+	  BoundRHSVector[0] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev)/3.0;
+	if(rGeom[2].IsNot(INLET))   
+	  BoundRHSVector[2] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) + BoundRHSCoeffDev)/3.0;
+      }else  if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE) ){
+	AccA= 0.5/TimeStep*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
+	AccB= 0.5/TimeStep*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
+	const array_1d<double, 3> &NormalA    = rGeom[1].FastGetSolutionStepValue(NORMAL);
+	const array_1d<double, 3> &NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
+	if(rGeom[1].IsNot(INLET))
+	  BoundRHSVector[1] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev)/3.0;
+	if(rGeom[2].IsNot(INLET))
+	  BoundRHSVector[2] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) + BoundRHSCoeffDev)/3.0;
+      }
+    // }
 
   }
 
@@ -1005,13 +1068,14 @@ namespace Kratos {
   template< unsigned int TDim>
   bool TwoStepUpdatedLagrangianVPFluidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
 									  const ProcessInfo& rCurrentProcessInfo,
+									  const ShapeFunctionDerivativesType& rDN_DX,
 									  unsigned int g)
   {
     bool computeElement=false;
     double theta=this->GetThetaMomentum();
     const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
 
-    computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,g,theta);
+    computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
 
     this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
     return computeElement;
@@ -1117,15 +1181,35 @@ namespace Kratos {
   void TwoStepUpdatedLagrangianVPFluidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,double TimeStep, unsigned int g)
   {
 
-    rElementalVariables.CurrentTotalCauchyStress=mCurrentTotalCauchyStress[g];
-    rElementalVariables.CurrentDeviatoricCauchyStress=mCurrentDeviatoricCauchyStress[g];
+    // const unsigned int numNodes = this->GetGeometry().size();
+    // if(this->Is(TO_ERASE)){
+    //   std::cout<<"TO ERASE ELEMENT!!!!"<<std::endl;
+    // }
+    // for(unsigned int i=0; i<numNodes; i++)
+    //   {
+    // 	// std::cout<<i<<" "<<this->GetGeometry()[i]<<std::endl;
+    // 	if(this->Is(TO_ERASE)){
+    // 	  std::cout<<"         TO ERASE ELEMENT!!!!"<<std::endl;
+    // 	}
+    // 	if(this->GetGeometry()[i].Is(TO_ERASE)){
+    // 	  std::cout<<i<<") coordinates "<<this->GetGeometry()[0].X()<<" "<<this->GetGeometry()[0].Y()<<std::endl;
+    // 	  if(this->GetGeometry()[i].Is(FREE_SURFACE)){
+    // 	    std::cout<<"ATTENTION FREE SURFACE NODE!!!!"<<std::endl;
+
+    // 	  }
+    // 	}
+    //   }
+    
+    // this->Initialize();
+    // rElementalVariables.CurrentTotalCauchyStress=mCurrentTotalCauchyStress[g];
+    // rElementalVariables.CurrentDeviatoricCauchyStress=mCurrentDeviatoricCauchyStress[g];
 
     double Density  = 0;
     double CurrSecondLame  = 0;
     double CurrBulkModulus = 0;
 
+
     this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep);
- 
     double CurrFirstLame  = 0;
     CurrFirstLame  =CurrBulkModulus - 2.0*CurrSecondLame/3.0;
 
@@ -1328,13 +1412,13 @@ namespace Kratos {
     // Loop on integration points
     for (unsigned int g = 0; g < NumGauss; g++)
       {
-	bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,g,theta);
-	if(computeElement==true){
-	  const double GaussWeight = GaussWeights[g];
-	  totalVolume+=GaussWeight;
-	  const ShapeFunctionsType& N = row(NContainer,g);
-	  const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
+	const double GaussWeight = GaussWeights[g];
+	totalVolume+=GaussWeight;
+	const ShapeFunctionsType& N = row(NContainer,g);
+	const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
+	bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
 
+	if(computeElement==true){
 	  // Evaluate required variables at the integration point
 	  array_1d<double,3> BodyForce(3,0.0);
 	  this->EvaluateInPoint(BodyForce,BODY_FORCE,N);

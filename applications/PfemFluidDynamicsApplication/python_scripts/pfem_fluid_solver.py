@@ -274,6 +274,10 @@ class PfemFluidSolver:
 
     def InitializeSolutionStep(self):
         #pass
+  
+        #split_elements = KratosPfemFluid.SplitElementsProcess(self.main_model_part,self.settings["echo_level"].GetInt())
+        #split_elements.ExecuteInitialize()
+
         self.fluid_solver.InitializeSolutionStep()
 
     def Predict(self):
@@ -287,6 +291,9 @@ class PfemFluidSolver:
     def FinalizeSolutionStep(self):
         #pass
         self.fluid_solver.FinalizeSolutionStep()
+     
+        #split_elements = KratosPfemFluid.SplitElementsProcess(self.main_model_part,self.settings["echo_level"].GetInt())
+        #split_elements.ExecuteFinalize()
         
         #self.fluid_solver.CalculateAccelerations()  # ACCELERATION
         #self.fluid_solver.CalculateDisplacements()  # DISPLACEMENTS
