@@ -50,7 +50,7 @@ namespace Kratos
 
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const uint local_size = number_of_nodes * dimension;
+		const unsigned int local_size = number_of_nodes * dimension;
 
 		if (rResult.size() != local_size) rResult.resize(local_size);
 
@@ -71,7 +71,7 @@ namespace Kratos
 
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const uint local_size = number_of_nodes * dimension;
+		const unsigned int local_size = number_of_nodes * dimension;
 
 		if (rElementalDofList.size() != local_size) {
 			rElementalDofList.resize(local_size);
@@ -120,7 +120,7 @@ namespace Kratos
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const uint local_size = number_of_nodes * dimension;
+		const unsigned int local_size = number_of_nodes * dimension;
 
 		const double E = this->mYoungsModulus;
 		double A = this->mArea;
@@ -228,7 +228,7 @@ namespace Kratos
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const uint MatSize = number_of_nodes * dimension;
+		const unsigned int MatSize = number_of_nodes * dimension;
 
 		if (rDampingMatrix.size1() != MatSize)
 		{
@@ -277,7 +277,7 @@ namespace Kratos
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const uint MatSize = number_of_nodes * dimension;
+		const unsigned int MatSize = number_of_nodes * dimension;
 
 		if (rMassMatrix.size1() != MatSize) {
 			rMassMatrix.resize(MatSize, MatSize, false);
@@ -310,7 +310,7 @@ namespace Kratos
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const uint MatSize = number_of_nodes * dimension;
+		const unsigned int MatSize = number_of_nodes * dimension;
 
 		//getting shapefunctionvalues 
 		const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues(
@@ -340,7 +340,7 @@ namespace Kratos
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const uint element_size = number_of_nodes * dimension;
+		const unsigned int element_size = number_of_nodes * dimension;
 
 		if (rValues.size() != element_size) rValues.resize(element_size, false);
 
@@ -362,7 +362,7 @@ namespace Kratos
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const uint element_size = number_of_nodes * dimension;
+		const unsigned int element_size = number_of_nodes * dimension;
 
 		if (rValues.size() != element_size) rValues.resize(element_size, false);
 
@@ -384,7 +384,7 @@ namespace Kratos
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const uint element_size = number_of_nodes * dimension;
+		const unsigned int element_size = number_of_nodes * dimension;
 
 		if (rValues.size() != element_size) rValues.resize(element_size, false);
 
@@ -571,7 +571,7 @@ namespace Kratos
 		if (CROSS_AREA.Key() == 0)
 			KRATOS_ERROR << "CROSS_AREA has Key zero! (check if the application is correctly registered" << "" << std::endl;
 		//verify that the dofs exist
-		for (uint i = 0; i<this->GetGeometry().PointsNumber(); ++i)
+		for (unsigned int i = 0; i<this->GetGeometry().PointsNumber(); ++i)
 			{
 			if (this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false)
 				KRATOS_ERROR << "missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
@@ -676,7 +676,7 @@ namespace Kratos
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const uint local_size = number_of_nodes * dimension;
+		const unsigned int local_size = number_of_nodes * dimension;
 
 		//1st calculate transformation matrix
 		Vector DirectionVectorX = ZeroVector(dimension);
@@ -739,7 +739,7 @@ namespace Kratos
 			rRotationMatrix.resize(local_size, local_size, false);
 		}
 		//Building the rotation matrix for the local element matrix
-		for (uint kk = 0; kk < local_size; kk += dimension)
+		for (unsigned int kk = 0; kk < local_size; kk += dimension)
 		{
 			for (int i = 0; i<dimension; ++i)
 			{
