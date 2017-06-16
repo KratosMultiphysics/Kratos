@@ -71,7 +71,7 @@ void MeshlessBaseCouplingCondition::Initialize()
 
 												 //calculate basis vectors for MASTER Patch
 	Matrix DN_De_Master = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-  KRATOS_WATCH(DN_De_Master)
+  //KRATOS_WATCH(DN_De_Master)
 	Matrix JMaster = ZeroMatrix(working_space_dimension, local_space_dimension);
 	JacobianElement(DN_De_Master, JMaster, true);
 
@@ -99,7 +99,7 @@ void MeshlessBaseCouplingCondition::Initialize()
 	array_1d<double, 3> g2_Slave;
 	array_1d<double, 3> g3_Slave;
 	Matrix DN_De_Slave = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE);
-  KRATOS_WATCH(DN_De_Slave)
+  //KRATOS_WATCH(DN_De_Slave)
 	Matrix JSlave = ZeroMatrix(working_space_dimension, local_space_dimension);
 	JacobianElement(DN_De_Slave, JSlave, false);
 
@@ -404,7 +404,7 @@ void MeshlessBaseCouplingCondition::CaculateRotationalShapeFunctions(
 	Vector &Phi_r, Vector &Phi_r_Lambda, Matrix &Phi_rs, array_1d<double, 2> &Diff_Phi)
 {
 	Vector localTrimTangentsMasterVector = this->GetValue(TANGENTS);
-  KRATOS_WATCH(localTrimTangentsMasterVector)
+  //KRATOS_WATCH(localTrimTangentsMasterVector)
 	Matrix ShapeFunctionDerivativesMaster = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 	int number_of_points_master = ShapeFunctionDerivativesMaster.size1();
 	Vector Phi_r_Master = ZeroVector(number_of_points_master * 3);
@@ -419,7 +419,7 @@ void MeshlessBaseCouplingCondition::CaculateRotationalShapeFunctions(
 
 
   Vector localTrimTangentsSlaveVector = this->GetValue(TANGENTS_SLAVE);
-  KRATOS_WATCH(localTrimTangentsSlaveVector)
+  //KRATOS_WATCH(localTrimTangentsSlaveVector)
 	Matrix ShapeFunctionDerivativesSlave = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE);
 	int number_of_points_slave = ShapeFunctionDerivativesSlave.size1();
 	Vector Phi_r_Slave = ZeroVector(number_of_points_slave * 3);

@@ -549,7 +549,7 @@ void MeshlessShellElement::CalculateMetricDeformed(const Matrix& DN_De,
 	Matrix J;
 	Jacobian(DN_De, J);
 
-  KRATOS_WATCH(J)
+  //KRATOS_WATCH(J)
 
 	//auxiliary terms
 	array_1d<double, 3> g3;

@@ -84,11 +84,11 @@ namespace Kratos
     dn(1, 0) = -1;
     dn(1, 1) = 0;
     dn(1, 2) = 1;
-    KRATOS_WATCH(dn)
+    //KRATOS_WATCH(dn)
     Matrix Jacobian = prod(dn, triangle);
 
     double detJacobian = Jacobian(0, 0)*Jacobian(1, 1) - Jacobian(1, 0)*Jacobian(0, 1);
-    std::cout << "detJacobian: " << detJacobian << std::endl;
+    //std::cout << "detJacobian: " << detJacobian << std::endl;
 
     for (unsigned int i = 0; i<coords_dir_gu.size1(); i++)
     {
@@ -97,11 +97,11 @@ namespace Kratos
       n[1] = coords_dir_gu(i, 0);
       n[2] = coords_dir_gu(i, 1);
 
-      KRATOS_WATCH(coords_dir_gu(i, 0))
-      KRATOS_WATCH(coords_dir_gu(i, 1))
+      //KRATOS_WATCH(coords_dir_gu(i, 0))
+      //KRATOS_WATCH(coords_dir_gu(i, 1))
 
       Vector position = prod(n, triangle);
-      KRATOS_WATCH(position)
+      //KRATOS_WATCH(position)
 
       array_1d<double, 3> point;
 
@@ -293,7 +293,7 @@ namespace Kratos
   std::vector<array_1d<double, 3>> KnotSpan2dNIntegrate::getIntegrationPointsInParameterDomain()
   {
     std::vector<Matrix> faces = m_polygon.Triangulate();
-    std::cout << "faces: " << faces.size() << std::endl;
+    //std::cout << "faces: " << faces.size() << std::endl;
     std::vector<array_1d<double, 3>> IntegrationPoints, IntegrationPointsTriangle;
 
     int degree = m_p;

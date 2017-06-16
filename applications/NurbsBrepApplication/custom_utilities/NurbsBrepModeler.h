@@ -74,13 +74,13 @@ namespace Kratos
     ///@{
     // Variables definition 
     typedef Node<3> NodeType;
-    typedef std::vector<NodeType::Pointer> NodeVector;
+    typedef std::vector<NodeType::Pointer>           NodeVector;
     typedef std::vector<NodeType::Pointer>::iterator NodeIterator;
-    typedef std::vector<double>                          DistanceVector;
-    typedef std::vector<double>::iterator                DistanceIterator;
+    typedef std::vector<double>                      DistanceVector;
+    typedef std::vector<double>::iterator            DistanceIterator;
 
-    typedef std::vector<BrepFace> BrepFacesVector;
-    typedef std::vector<BrepEdge> BrepEdgesVector;
+    typedef std::vector<BrepFace>  BrepFacesVector;
+    typedef std::vector<BrepEdge>  BrepEdgesVector;
 
     typedef std::vector<BrepModel> BrepModelVector;
 
@@ -91,17 +91,13 @@ namespace Kratos
 
     /// Pointer definition of KratosNurbsTestcaseApplication
     KRATOS_CLASS_POINTER_DEFINITION(NurbsBrepModeler);
-
     ///@}
     ///@name functions 
     ///@{ 
     void CreateIntegrationDomain(const int& shapefunction_order, ModelPart& model_part);
-
     ///@} 
     ///@name Life Cycle 
     ///@{ 
-        
-   
     /// Constructor.
     NurbsBrepModeler(BrepModelGeometryReader& brep_model_geometry_reader, ModelPart& model_part);
 
@@ -141,11 +137,9 @@ namespace Kratos
     ModelPart m_model_part;
     BrepModelVector m_brep_model_vector;
     //TreeType m_search_tree;
-
     ///@} 
     ///@name Private Operators
     ///@{ 
-
     ///@} 
     ///@name Private Operations
     ///@{ 
@@ -156,15 +150,12 @@ namespace Kratos
     ///@} 
     ///@name Private  Access 
     ///@{ 
-
     ///@}    
     ///@name Private Inquiry 
     ///@{ 
-
     ///@}    
     ///@name Un accessible methods 
     ///@{ 
-
     /// Assignment operator.
     NurbsBrepModeler& operator=(NurbsBrepModeler const& rOther);
 

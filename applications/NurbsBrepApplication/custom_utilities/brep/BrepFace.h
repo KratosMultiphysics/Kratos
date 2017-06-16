@@ -92,7 +92,10 @@ namespace Kratos
     void EvaluateSurfacePoint(Point<3>& rSurfacePoint, const double& u, const double& v);
     void EvaluateShapeFunctionsSlaveNode(double& const u, double& const v, const int& shapefunction_order, Node<3>::Pointer node);
     Node<3>::Pointer EvaluateNode(double u, double v, const int& shapefunction_order);
+    //void GetLocalParameterOfPoint(const Point<3>& point, double& u, double& v);
+    void GetLocalParameterOfPointOnTrimmingCurve(const Point<3>& point, const BrepTrimmingCurve& trimming_curve, double& u, double& v);
     void GetClosestPoint(const Point<3>& point, double& u, double& v);
+    bool NewtonRaphson(const Point<3>& point, double& u, double& v);
     std::vector<Node<3>::Pointer> EnhanceShapeFunctions(std::vector<array_1d<double, 3>>& points, const int& shapefunction_order);
     void EnhanceNode(Node<3>::Pointer& node, const double& u, const double& v, const int& shapefunction_order);
     void EnhanceShapeFunctionsSlave(

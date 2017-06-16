@@ -138,7 +138,6 @@ class IGAStructuralMechanicsSolver:
 	def AddDofs(self):
 		for node in self.model_part.Nodes:
 			# adding dofs
-			print(node.Id)
 			node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X);
 			node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y);
 			node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z);

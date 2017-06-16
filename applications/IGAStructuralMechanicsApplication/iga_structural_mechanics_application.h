@@ -48,6 +48,7 @@
 
 /*CONDITIONS*/
 #include "custom_conditions/meshless_support_rotation_condition.h"
+#include "custom_conditions/meshless_surface_support_condition.h"
 #include "custom_conditions/meshless_load_condition.h"
 #include "custom_conditions/meshless_lagrange_coupling_condition.h"
 #include "custom_conditions/meshless_lagrange_coupling_condition_2.h"
@@ -211,6 +212,7 @@ private:
 
 	// Meshless Conditions
 	const MeshlessSupportRotationCondition mMeshlessSupportRotationCondition;
+  const MeshlessSurfaceSupportCondition mMeshlessSurfaceSupportCondition;
 	const MeshlessLoadCondition mMeshlessLoadCondition;
 	const MeshlessLagrangeCouplingCondition mMeshlessLagrangeCouplingCondition;
   const MeshlessLagrangeCouplingCondition2 mMeshlessLagrangeCouplingCondition2;

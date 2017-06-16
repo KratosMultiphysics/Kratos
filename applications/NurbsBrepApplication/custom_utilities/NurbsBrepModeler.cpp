@@ -141,17 +141,17 @@ namespace Kratos
           std::vector<Node<3>::Pointer> NodeVectorElement = face_master.GetQuadraturePointsOfTrimmingCurveWithPoints(
             shapefunction_order, trim_index_master, points);
 
-          for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
-          {
-            KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_VALUES))
-            KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_SLAVE))
-          }
+          //for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
+          //{
+          //  KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_VALUES))
+          //  KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_SLAVE))
+          //}
 
           face_slave.EnhanceShapeFunctionsSlave(NodeVectorElement, trim_index_slave, 2);
           for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
           {
-            KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_VALUES))
-            KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_SLAVE))
+            //KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_VALUES))
+            //KRATOS_WATCH(NodeVectorElement[k]->GetValue(SHAPE_FUNCTION_SLAVE))
             NodeVectorElement[k]->SetId(id_itr);
             id_itr++;
             model_part_coupling_edge_id.AddNode(NodeVectorElement[k]);

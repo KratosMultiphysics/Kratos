@@ -32,6 +32,7 @@ set( KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_base_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_load_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_support_rotation_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_surface_support_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_base_coupling_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_lagrange_coupling_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_lagrange_coupling_condition_2.cpp	

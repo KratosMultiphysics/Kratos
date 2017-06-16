@@ -28,6 +28,38 @@ namespace Kratos
 {
 //TODO: you should isolate this from python. In kratos the "Parameters" class gives you access to the json object.
   //std::vector<BrepModel>
+  void BrepModelGeometryReader::WriteGaussPoints(ModelPart& model_part)
+  {
+    const ModelPart& faces = model_part.GetSubModelPart("FACES");
+    std::ofstream file;
+    file.open("faces.txt");
+    for (auto node = faces.NodesBegin(); node != faces.NodesEnd(); ++node)
+    {
+      file << node->X() << " " << node->Y() << " " << node->Z() << " " << "\n";
+    }
+    file.close();
+
+    const ModelPart& edges = model_part.GetSubModelPart("EDGES");
+    std::ofstream file_edges;
+    file_edges.open("edges.txt");
+    for (auto node = edges.NodesBegin(); node != edges.NodesEnd(); ++node)
+    {
+      file_edges << node->X() << " " << node->Y() << " " << node->Z() << " " << "\n";
+    }
+    file_edges.close();
+
+    const ModelPart& c_edges = model_part.GetSubModelPart("COUPLING_EDGES");
+    std::ofstream file_c_edges;
+    file_c_edges.open("c_edges.txt");
+    for (auto node = c_edges.NodesBegin(); node != c_edges.NodesEnd(); ++node)
+    {
+      file_c_edges << node->X() << " " << node->Y() << " " << node->Z() << " ";
+      
+      Vector location = node->GetValue(LOCATION_SLAVE);
+      file_c_edges << location[0] << " " << location[1] << " " << location[2] << "\n";
+    }
+    file_c_edges.close();
+  }
   std::vector<BrepModel> BrepModelGeometryReader::ReadGeometry(ModelPart& model_part)
   {
     std::cout << "\n> Start reading CAD geometry..." << std::endl;

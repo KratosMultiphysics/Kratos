@@ -242,13 +242,13 @@ void MeshlessSupportRotationCondition::CalculateLocalSystem(MatrixType& rLeftHan
 		array_1d<double, 2> TrimTangents;
 		TrimTangents[0] = Tangents[0];
 		TrimTangents[1] = Tangents[1];
-    KRATOS_WATCH(Tangents)
-      KRATOS_WATCH(DN_De)
+    //KRATOS_WATCH(Tangents)
+    //KRATOS_WATCH(DN_De)
 		CalculateRotation(DN_De, Phi_r, Phi_rs, Phi, TrimTangents);
 
-    KRATOS_WATCH(Phi_r)
-      KRATOS_WATCH(Phi_rs)
-      KRATOS_WATCH(Phi)
+    //KRATOS_WATCH(Phi_r)
+    //  KRATOS_WATCH(Phi_rs)
+    //  KRATOS_WATCH(Phi)
 
 		for (unsigned int n = 0; n < number_of_points*3; n++)
 		{

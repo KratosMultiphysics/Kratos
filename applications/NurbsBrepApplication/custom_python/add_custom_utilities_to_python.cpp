@@ -62,6 +62,7 @@ namespace Python
 
     class_<BrepModelGeometryReader, boost::noncopyable>("BrepModelGeometryReader", init<Parameters&>())
       .def("ReadGeometry", &BrepModelGeometryReader::ReadGeometry)
+      .def("WriteGaussPoints", &BrepModelGeometryReader::WriteGaussPoints)
       ;
     //void BrepModelGeometryReader::ReadGeometry(BrepModelVector& r_brep_model_vector, ModelPart& model_part)
     //  .def("EvaluateShapeFunction", &NurbsShapeFunctionModeler::EvaluateShapeFunction)

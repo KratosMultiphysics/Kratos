@@ -84,6 +84,12 @@ namespace Kratos
 
     bool IsInside(const double& u, const double& v);
 
+    double GetArea();
+
+    bool IsFullKnotSpan();
+    bool m_is_full_knot_span = false;
+
+
     //TODO: you need to give reading access to your internals through the Calculate function
     /// Constructor.
     Polygon(PolygonType polygon);

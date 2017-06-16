@@ -48,6 +48,7 @@ KratosIGAStructuralMechanicsApplication::KratosIGAStructuralMechanicsApplication
 	//mSupportCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
 	mMeshlessLoadCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
 	mMeshlessSupportRotationCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+  mMeshlessSurfaceSupportCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
 	mMeshlessPenaltyCouplingRotationCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1))))
 {}
 
@@ -95,6 +96,7 @@ void KratosIGAStructuralMechanicsApplication::Register() {
 	
 	// Register meshless condition
 	KRATOS_REGISTER_CONDITION("MeshlessSupportRotationCondition", mMeshlessSupportRotationCondition)
+  KRATOS_REGISTER_CONDITION("MeshlessSurfaceSupportCondition", mMeshlessSurfaceSupportCondition)
 	KRATOS_REGISTER_CONDITION("MeshlessLoadCondition", mMeshlessLoadCondition)
 	KRATOS_REGISTER_CONDITION("MeshlessLagrangeCouplingCondition", mMeshlessLagrangeCouplingCondition)
   KRATOS_REGISTER_CONDITION("MeshlessLagrangeCouplingCondition2", mMeshlessLagrangeCouplingCondition2)

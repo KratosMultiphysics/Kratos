@@ -109,7 +109,7 @@ namespace Kratos
 
     std::vector<Node<3>::Pointer> NodeVector;
 
-    int tolerance = 10e7;
+    int tolerance = 10e6;
 
     IntVector knot_vector_u = GetIntegerVector(m_knot_vector_u, tolerance);
     IntVector knot_vector_v = GetIntegerVector(m_knot_vector_v, tolerance);
@@ -133,8 +133,17 @@ namespace Kratos
 
             Polygon boundary_polygon = boundaries.clipByKnotSpan(parameter_span_u, parameter_span_v);
 
-            KnotSpan2dNIntegrate knot_span(0, true, m_p, m_q, parameter_span_u, parameter_span_v, boundary_polygon);
-            std::vector<array_1d<double, 3>> points = knot_span.getIntegrationPointsInParameterDomain();
+            std::vector<array_1d<double, 3>> points;
+            if (!boundary_polygon.IsFullKnotSpan())
+            {
+              KnotSpan2dNIntegrate knot_span(0, true, m_p, m_q, parameter_span_u, parameter_span_v, boundary_polygon);
+              points = knot_span.getIntegrationPointsInParameterDomain();
+            }
+            else
+            {
+              KnotSpan2d knot_span(0, true, m_p, m_q, parameter_span_u, parameter_span_v);
+              points = knot_span.getIntegrationPointsInParameterDomain();
+            }
             //std::cout << "k: " << std::endl;
             //for (unsigned int k = 0; k < points.size(); k++)
             //{
@@ -162,11 +171,12 @@ namespace Kratos
 
     std::vector<double> intersections = trimming_curve.FindIntersections(m_p, m_q, m_knot_vector_u, m_knot_vector_v);
 
-    int highest_polynomial_order = m_p;
-    if (m_q > m_p)
-      highest_polynomial_order = m_q;
+    //int highest_polynomial_order = m_p;
+    //if (m_q > m_p)
+    //  highest_polynomial_order = m_q;
+    int degree = std::max(m_p, m_q);
 
-    std::vector<array_1d<double, 3>> quadrature_points = trimming_curve.GetQuadraturePoints(intersections, highest_polynomial_order);
+    std::vector<array_1d<double, 3>> quadrature_points = trimming_curve.GetQuadraturePoints(intersections, degree);
 
     std::vector<Node<3>::Pointer> NodeVectorElement = EnhanceShapeFunctions(quadrature_points, shapefunction_order);
     for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
@@ -176,9 +186,14 @@ namespace Kratos
       tangents_basis_vector[0] = tangents_basis[0];
       tangents_basis_vector[1] = tangents_basis[1];
       NodeVectorElement[k]->SetValue(TANGENTS_BASIS_VECTOR, tangents_basis_vector);
-      KRATOS_WATCH(tangents_basis_vector)
+      //KRATOS_WATCH(tangents_basis_vector)
     }
     return NodeVectorElement;
+  }
+
+  void BrepFace::GetLocalParameterOfPointOnTrimmingCurve(const Point<3>& point, const BrepTrimmingCurve& trimming_curve, double& u, double& v)
+  {
+    bool success = NewtonRaphson(point, u, v);
   }
 
   std::vector<Node<3>::Pointer> BrepFace::GetQuadraturePointsOfTrimmingCurveWithPoints(const int& shapefunction_order, const int& trim_index, std::vector<Point<3>> intersection_points)
@@ -189,17 +204,79 @@ namespace Kratos
     std::vector<Point<2>> intersection_points_2d;
     for (unsigned int i = 0; i < intersection_points.size(); i++)
     {
+      //GetLocalParameterOfPointOnTrimmingCurve(intersection_points[i], trimming_curve, )
       double u = 0;
       double v = 0;
-      GetClosestPoint(intersection_points[i], u, v);
+      bool success = NewtonRaphson(intersection_points[i], u, v);
+      //GetClosestPoint(intersection_points[i], u, v);
+      if (!success)
+      {
+        std::vector<array_1d<double, 2>> trimming_curve_loop = trimming_curve.CreatePolygon(20);
+        double distance = 1e10;
+        array_1d<double, 2> initial_guess;
+        for (auto point_itr = trimming_curve_loop.begin(); point_itr != trimming_curve_loop.end(); ++point_itr)
+        {
+          Point<3> point_global;
+          EvaluateSurfacePoint(point_global, (*point_itr)[0], (*point_itr)[1]);
+          double new_distance = sqrt((intersection_points[i][0] - point_global[0]) * (intersection_points[i][0] - point_global[0])
+            + (intersection_points[i][1] - point_global[1]) * (intersection_points[i][1] - point_global[1])
+            + (intersection_points[i][2] - point_global[2]) * (intersection_points[i][2] - point_global[2]));
+          if (new_distance < distance)
+          {
+            distance = new_distance;
+            initial_guess = (*point_itr);
+          }
+        }
+        u = initial_guess[0];
+        v = initial_guess[1];
+        bool success = NewtonRaphson(intersection_points[i], u, v);
+        if (!success) {
+          std::cout << "100 iteration points needed." << std::endl;
+          trimming_curve_loop = trimming_curve.CreatePolygon(100);
+          distance = 1e10;
+          for (auto point_itr = trimming_curve_loop.begin(); point_itr != trimming_curve_loop.end(); ++point_itr)
+          {
+            Point<3> point_global;
+            EvaluateSurfacePoint(point_global, (*point_itr)[0], (*point_itr)[1]);
+            double new_distance = sqrt((intersection_points[i][0] - point_global[0]) * (intersection_points[i][0] - point_global[0])
+              + (intersection_points[i][1] - point_global[1]) * (intersection_points[i][1] - point_global[1])
+              + (intersection_points[i][2] - point_global[2]) * (intersection_points[i][2] - point_global[2]));
+            if (new_distance < distance)
+            {
+              distance = new_distance;
+              initial_guess = (*point_itr);
+            }
+          }
+          u = initial_guess[0];
+          v = initial_guess[1];
+          std::cout << "Initial: u=" << u << ", v=" << v << std::endl;
+          bool success = NewtonRaphson(intersection_points[i], u, v);
+          if (!success)
+          {
+            u = initial_guess[0];
+            v = initial_guess[1];
+            //KRATOS_ERROR << "Point not found after 100 pts." << std::endl;
+          }
+        }
+      }
       Point<2> point(u, v);
       intersection_points_2d.push_back(point);
     }
 
     std::vector<double> intersections_slave = trimming_curve.FindIntersectionsWithPoints(intersection_points_2d);
-
+    std::cout << "intersections slave: ";
+    for (unsigned int i = 0; i < intersections_slave.size(); i++)
+    {
+      std::cout << intersections_slave[i] << ", ";
+    }
+    std::cout << std::endl;
     std::vector<double> intersections_master = trimming_curve.FindIntersections(m_p, m_q, m_knot_vector_u, m_knot_vector_v);
-
+    std::cout << "intersections master: ";
+    for (unsigned int i = 0; i < intersections_master.size(); i++)
+    {
+      std::cout << intersections_master[i] << ", ";
+    }
+    std::cout << std::endl;
     for (unsigned int i = 0; i < intersections_master.size(); i++)
     {
       intersections_slave.push_back(intersections_master[i]);
@@ -213,9 +290,7 @@ namespace Kratos
         intersections.push_back(intersections_slave[i]);
     }
 
-    int highest_polynomial_order = m_p;
-    if (m_q > m_p)
-      highest_polynomial_order = m_q;
+    int highest_polynomial_order = std::max(m_p, m_q);
 
     std::vector<array_1d<double, 3>> quadrature_points = trimming_curve.GetQuadraturePoints(intersections, highest_polynomial_order);
 
@@ -227,7 +302,7 @@ namespace Kratos
       tangents_basis_vector[0] = tangents_basis[0];
       tangents_basis_vector[1] = tangents_basis[1];
       NodeVectorElement[k]->SetValue(TANGENTS_BASIS_VECTOR, tangents_basis_vector);
-      KRATOS_WATCH(tangents_basis_vector)
+      //KRATOS_WATCH(tangents_basis_vector)
     }
     return NodeVectorElement;
   }
@@ -253,12 +328,12 @@ namespace Kratos
     for (unsigned int i = 0; i < m_trimming_loops.size(); i++)
     {
       std::vector<BrepTrimmingCurve> trimming_curves = m_trimming_loops[i].GetTrimmingCurves();
-      std::cout << trimming_curves.size() << std::endl;
+      //std::cout << trimming_curves.size() << std::endl;
       for (unsigned int j = 0; j < trimming_curves.size(); j++)
       {
         if (trimming_curves[j].GetIndex() == trim_index)
         {
-          trimming_curves[j].PrintData();
+          //trimming_curves[j].PrintData();
           return trimming_curves[j];
         }
       }
@@ -269,19 +344,89 @@ namespace Kratos
   void BrepFace::EnhanceShapeFunctionsSlave(
     std::vector<Node<3>::Pointer>& nodes, const int& trim_index, const int& shapefunction_order)
   {
+
+    BrepTrimmingCurve trimming_curve = GetTrimmingCurve(trim_index);
     //std::vector<Node<3>::Pointer> NodeVector;
     for (unsigned int i = 0; i < nodes.size(); i++)
     {
       Point<3> point(nodes[i]->X(), nodes[i]->Y(), nodes[i]->Z());
+      //double u = 0;
+      //double v = 0;
+      //GetClosestPoint(point, u, v);
+
       double u = 0;
       double v = 0;
-      GetClosestPoint(point, u, v);
-      EvaluateShapeFunctionsSlaveNode(u, v, shapefunction_order, nodes[i]);
 
-      BrepTrimmingCurve trimming_curve = GetTrimmingCurve(trim_index);
       double parameter = 0.0;
+
+      bool success = false;// = NewtonRaphson(point, u, v);
+      std::cout << "Very Initial: u=" << u << ", v=" << v << std::endl;
+      //GetClosestPoint(point, u, v);
+      if (!success)
+      {
+        std::vector<array_1d<double, 3>> trimming_curve_loop = trimming_curve.CreatePolygonWithParameter(30);
+        double distance = 1e10;
+        array_1d<double, 2> initial_guess;
+        for (auto point_itr = trimming_curve_loop.begin(); point_itr != trimming_curve_loop.end(); ++point_itr)
+        {
+          Point<3> point_global;
+          EvaluateSurfacePoint(point_global, (*point_itr)[0], (*point_itr)[1]);
+          double new_distance = sqrt((point[0] - point_global[0]) * (point[0] - point_global[0])
+            + (point[1] - point_global[1]) * (point[1] - point_global[1])
+            + (point[2] - point_global[2]) * (point[2] - point_global[2]));
+          if (new_distance < distance)
+          {
+            distance = new_distance;
+            initial_guess = (*point_itr);
+            parameter = (*point_itr)[2];
+          }
+        }
+        u = initial_guess[0];
+        v = initial_guess[1];
+        std::cout << "Initial: u=" << u << ", v=" << v << std::endl;
+        bool success = NewtonRaphson(point, u, v);
+        std::cout << "nach newton raphson: u=" << u << ", v=" << v << std::endl;
+        if (!success) {
+          std::cout << "100 iteration points needed." << std::endl;
+          trimming_curve_loop = trimming_curve.CreatePolygonWithParameter(100);
+          distance = 1e10;
+          for (auto point_itr = trimming_curve_loop.begin(); point_itr != trimming_curve_loop.end(); ++point_itr)
+          {
+            Point<3> point_global;
+            EvaluateSurfacePoint(point_global, (*point_itr)[0], (*point_itr)[1]);
+            double new_distance = sqrt((point[0] - point_global[0]) * (point[0] - point_global[0])
+              + (point[1] - point_global[1]) * (point[1] - point_global[1])
+              + (point[2] - point_global[2]) * (point[2] - point_global[2]));
+            if (new_distance < distance)
+            {
+              distance = new_distance;
+              initial_guess = (*point_itr);
+              parameter = (*point_itr)[2];
+            }
+          }
+          u = initial_guess[0];
+          v = initial_guess[1];
+          std::cout << "Initial: u=" << u << ", v=" << v << std::endl;
+          bool success = NewtonRaphson(point, u, v);
+          //if (!success)
+            //KRATOS_ERROR << "Point not found after 100 pts." << std::endl;
+        }
+      }
+      std::cout << "u=" << u << ", v=" << v << std::endl;
       Point<2> point2d(u, v);
-      trimming_curve.GetClosestPoint(point2d, parameter);
+      Point<3> point3d;
+      std::cout << "parameter before: " << parameter << std::endl;
+      std::cout << "point2d before: " << point2d[0] << ", " << point2d[1] << std::endl;
+      success = trimming_curve.GetClosestPoint(point2d, parameter);
+      if (!success)
+        trimming_curve.ProjectionBisection(parameter, point2d);
+      std::cout << "parameter afterwards: " << parameter << "success: " << success <<std::endl;
+      //std::cout << "point2d afterwards: " << point2d[0] << ", " << point2d[1] << std::endl;
+      trimming_curve.EvaluateCurvePoint(point3d, parameter);
+      std::cout << "point2d afterwards: " << point3d[0] << ", " << point3d[1] << std::endl;
+
+      EvaluateShapeFunctionsSlaveNode(point3d[0], point3d[1], shapefunction_order, nodes[i]);
+
 
       array_1d<double, 2> tangents_basis = trimming_curve.GetBaseVector(parameter);
       Vector tangents_basis_vector(2);
@@ -299,18 +444,20 @@ namespace Kratos
     {
       Node<3>::Pointer node = EvaluateNode(points[i][0], points[i][1], shapefunction_order);
       node->SetValue(INTEGRATION_WEIGHT, points[i][2]);
-      KRATOS_WATCH(points[i][2])
-        NodeVector.push_back(node);
+      //KRATOS_WATCH(points[i][2])
+      NodeVector.push_back(node);
     }
     return NodeVector;
   }
 
   void BrepFace::EvaluateShapeFunctionsSlaveNode(double& const u, double& const v, const int& shapefunction_order, Node<3>::Pointer node)
   {
-    Point<3> new_point(0, 0, 0);
+    //Point<3> new_point(0, 0, 0);
 
     int span_u = NurbsUtilities::find_knot_span(m_p, m_knot_vector_u, u);
     int span_v = NurbsUtilities::find_knot_span(m_q, m_knot_vector_v, v);
+
+    Vector new_point = ZeroVector(3);
 
     Vector N = ZeroVector((m_q + 1)*(m_p + 1));
 
@@ -340,12 +487,18 @@ namespace Kratos
         //ControlPointIDs(c + (m_q + 1)*b) = m_control_points_ids[control_point_index];
         ControlPointIDs(k) = m_control_points_ids[control_point_index];
 
+
+        new_point[0] += R(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).X();
+        new_point[1] += R(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).Y();
+        new_point[2] += R(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).Z();
         //std::cout << "c + (m_q + 1)*b" << c + (m_q + 1)*b << std::endl;
         //std::cout << "k" << k << std::endl;
 
         k++;
       }
     }
+
+    node->SetValue(LOCATION_SLAVE, new_point);
 
     if (shapefunction_order > -1)
       node->SetValue(SHAPE_FUNCTION_SLAVE, N);
@@ -428,18 +581,18 @@ namespace Kratos
 
     if (shapefunction_order > -1)
       rSurfacePoint->SetValue(SHAPE_FUNCTION_VALUES, N);
-    KRATOS_WATCH(ControlPointIDs)
-      KRATOS_WATCH(N)
+    //KRATOS_WATCH(ControlPointIDs)
+    //  KRATOS_WATCH(N)
 
       if (shapefunction_order > 0)
       {
         Matrix DN_De;
         Matrix DDN_DDe;
         EvaluateNURBSFunctionsDerivatives(span_u, span_v, u, v, DN_De, DDN_DDe);
-        KRATOS_WATCH(DN_De)
-          KRATOS_WATCH(DDN_DDe)
-          //  Matrix R = ZeroMatrix(4, 2);
-          rSurfacePoint->SetValue(SHAPE_FUNCTION_DERIVATIVES, DN_De);
+        //KRATOS_WATCH(DN_De)
+        //  KRATOS_WATCH(DDN_DDe)
+        //  Matrix R = ZeroMatrix(4, 2);
+        rSurfacePoint->SetValue(SHAPE_FUNCTION_DERIVATIVES, DN_De);
 
         if (shapefunction_order > 1)
         {
@@ -451,11 +604,11 @@ namespace Kratos
     rSurfacePoint->SetValue(LOCAL_PARAMETERS, local_parameter);
     rSurfacePoint->SetValue(CONTROL_POINT_IDS, ControlPointIDs);
 
-    KRATOS_WATCH(local_parameter)
-      KRATOS_WATCH(rSurfacePoint->X())
-      KRATOS_WATCH(rSurfacePoint->Y())
-      KRATOS_WATCH(rSurfacePoint->Z())
-      return rSurfacePoint;
+    //KRATOS_WATCH(local_parameter)
+    //  KRATOS_WATCH(rSurfacePoint->X())
+    //  KRATOS_WATCH(rSurfacePoint->Y())
+    //  KRATOS_WATCH(rSurfacePoint->Z())
+    return rSurfacePoint;
   }
 
   void BrepFace::EnhanceNode(Node<3>::Pointer& node, const double& u, const double& v, const int& shapefunction_order)
@@ -518,13 +671,54 @@ namespace Kratos
     node->SetValue(CONTROL_POINT_IDS, ControlPointIDs);
   }
 
+  bool BrepFace::NewtonRaphson(const Point<3>& point, double& u, double& v)
+  {
+    double norm_delta_u = 100000000;
+    //unsigned int k = 0;
+    unsigned int max_itr = 20;
+
+    for (int i = 0; i<max_itr; ++i)// (norm_delta_u > 1e-8)
+    {
+      // newton_raphson_point is evaluated
+      Point<3> newton_raphson_point;
+      EvaluateSurfacePoint(newton_raphson_point, u, v);
+
+      Vector difference = ZeroVector(3); // Distance between current Q_k and P
+                                         // The distance between Q (on the CAD surface) and P (on the FE-mesh) is evaluated
+      difference(0) = newton_raphson_point[0] - point[0];
+      difference(1) = newton_raphson_point[1] - point[1];
+      difference(2) = newton_raphson_point[2] - point[2];
+
+      Matrix hessian = ZeroMatrix(2, 2);
+      Vector gradient = ZeroVector(2);
+      // The distance is used to compute Hessian and gradient
+      EvaluateGradientsForClosestPointSearch(difference, hessian, gradient, u, v);
+
+      double det_H = 0;
+      Matrix inv_H = ZeroMatrix(2, 2);
+
+      // u and v are updated
+      MathUtils<double>::InvertMatrix(hessian, inv_H, det_H);
+      Vector delta_u = prod(inv_H, gradient);
+      u -= delta_u(0);
+      v -= delta_u(1);
+
+      norm_delta_u = norm_2(delta_u);
+
+      //k++;
+      if (norm_delta_u > 1e-7)
+        return true;
+    }
+    return false;
+  }
+
   void BrepFace::GetClosestPoint(const Point<3>& point, double& u, double& v)
   {
     double norm_delta_u = 100000000;
     unsigned int k = 0;
-    unsigned int max_itr = 20;
+    unsigned int max_itr = 40;
 
-    while (norm_delta_u > 1e-8)
+    while (norm_delta_u > 1e-5)
     {
       // newton_raphson_point is evaluated
       Point<3> newton_raphson_point;

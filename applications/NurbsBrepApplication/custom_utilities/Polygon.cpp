@@ -47,7 +47,6 @@ namespace Kratos
   /**
   * @date   Mai, 2017
   * @brief   Basic function to triangulate polygon. Produces minimal number of triangles.
-  *          Only convex polygons possible.
   *          Function from empire-multiphysics. http://empire-multiphysics.com/projects/empire
   * @param [in] polygon, polygon to triangulate space.
   * @param [out] triangles, list of the outcoming triangles.
@@ -61,12 +60,12 @@ namespace Kratos
     std::list<Diagonal> diagonals;
     bool ret = true;
 
-    int n = boost::geometry::num_points(polygon);
-    std::cout << "number of points: " << n << std::endl;
+    int n = boost::geometry::num_points(polygon)-1;
+    //std::cout << "number of points: " << n << std::endl;
     std::vector<PointXYType> const& points = polygon.outer();
     matrix<DPState> dpstates(n, n);
 
-    std::cout << "check 2" << std::endl;
+    //std::cout << "check 2" << std::endl;
     //init states and visibility
     for (unsigned int i = 0; i<(n - 1); i++) {
       p1 = points[i];
@@ -108,7 +107,7 @@ namespace Kratos
         }
       }
     }
-    std::cout << "check 3" << std::endl;
+    //std::cout << "check 3" << std::endl;
     dpstates(n - 1, 0).visible = true;
     dpstates(n - 1, 0).weight = 0;
     dpstates(n - 1, 0).bestvertex = -1;
@@ -166,7 +165,7 @@ namespace Kratos
       else
       {
         std::cout << "triangle with zero area" << GetAreaOfTriangle(triangle) << std::endl;
-        KRATOS_WATCH(triangle)
+        //KRATOS_WATCH(triangle)
       }
       if (bestvertex > (diagonal.index1 + 1)) {
         newdiagonal.index1 = diagonal.index1;
@@ -179,7 +178,7 @@ namespace Kratos
         diagonals.push_back(newdiagonal);
       }
     }
-    std::cout << "check 5" << std::endl;
+    //std::cout << "check 5" << std::endl;
 
     //for (unsigned int i = 1; i<n; i++) {
     //  delete[] dpstates[i];
@@ -359,7 +358,7 @@ namespace Kratos
   std::vector<Matrix> Polygon::Triangulate()
   {
     std::vector<Matrix> triangles;
-    std::cout << "m_polygon: " << m_polygon_list.size() << std::endl;
+    //std::cout << "m_polygon: " << m_polygon_list.size() << std::endl;
     //for (auto polygon = m_polygon_list.begin(); polygon != m_polygon_list.end(); ++polygon)
     for (unsigned int i = 0; i<m_polygon_list.size(); i++)
     {
@@ -367,8 +366,8 @@ namespace Kratos
       if (boost::geometry::area(m_polygon_list[i]) > 0)
       {
         Reverse(i);
-        std::cout << "reverse polygon: "<< boost::geometry::wkt<PolygonType>(m_polygon_list[i]) << std::endl;
-        std::cout << "reverse polygon are: " << boost::geometry::area(m_polygon_list[i]) << std::endl;
+        //std::cout << "reverse polygon: "<< boost::geometry::wkt<PolygonType>(m_polygon_list[i]) << std::endl;
+        //std::cout << "reverse polygon are: " << boost::geometry::area(m_polygon_list[i]) << std::endl;
       }
 
       if (boost::geometry::num_points(m_polygon_list[i]) > 0)
@@ -384,12 +383,17 @@ namespace Kratos
       else
         KRATOS_THROW_ERROR(std::runtime_error, "Polygon::Triangulate: No points in polygon.", std::endl);
     }
-    std::cout << triangles.size() << std::endl;
-    for (unsigned int t = 0; t < triangles.size(); t++)
-    {
-      KRATOS_WATCH(triangles[t])
-    }
+    //std::cout << triangles.size() << std::endl;
+    //for (unsigned int t = 0; t < triangles.size(); t++)
+    //{
+    //  //KRATOS_WATCH(triangles[t])
+    //}
     return triangles;
+  }
+
+  bool Polygon::IsFullKnotSpan()
+  {
+    return m_is_full_knot_span;
   }
 
   Polygon Polygon::clipByKnotSpan(const Vector& parameter_span_u, const Vector& parameter_span_v) {
@@ -411,6 +415,9 @@ namespace Kratos
       clipPolygon((*it), polygon, polygon_vector);
     }
     Polygon new_polygon(polygon_vector);
+    //std::cout << "area full knot span: " << abs(boost::geometry::area(polygon)) << ", area of clipped polygon: " << new_polygon.GetArea() << std::endl;
+    if (abs(abs(boost::geometry::area(polygon)) - new_polygon.GetArea()) < 1e-7)
+      new_polygon.m_is_full_knot_span = true;
     return new_polygon;
   }
 
@@ -421,7 +428,7 @@ namespace Kratos
 
     for (std::deque<PolygonType>::const_iterator it = output.begin(); it != output.end(); ++it)
     {
-      std::cout << "Geclipptes Polygon: " << boost::geometry::wkt<PolygonType>(*it) << std::endl;
+      //std::cout << "Geclipptes Polygon: " << boost::geometry::wkt<PolygonType>(*it) << std::endl;
       polygon_vector.push_back(*it);
     }
   }
@@ -608,6 +615,18 @@ namespace Kratos
     return true;
   }
 
+
+  double Polygon::GetArea()
+  {
+    double area = 0.0;
+
+    for (PolygonVectorType::const_iterator it = m_polygon_list.begin(); it != m_polygon_list.end(); ++it)
+    {
+      area += abs(boost::geometry::area(*it));
+    }
+    return area;
+  }
+
   ///Constructor
   Polygon::Polygon(PolygonVectorType polygon_list)
     : m_polygon_list(polygon_list)
@@ -678,6 +697,8 @@ namespace Kratos
     }
     m_polygon_list = polygon_outer_list;
   }
+
+
 
   ///Destructor
   Polygon::~Polygon()

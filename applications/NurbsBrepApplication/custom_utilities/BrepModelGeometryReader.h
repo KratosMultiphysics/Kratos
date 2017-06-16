@@ -87,6 +87,7 @@ namespace Kratos
     ///@name Life Cycle 
     ///@{ 
     std::vector<BrepModel> ReadGeometry(ModelPart& model_part);
+    void WriteGaussPoints(ModelPart& model_part);
 
     /// Constructor.
     BrepModelGeometryReader(Parameters& cad_geometry_in_json);

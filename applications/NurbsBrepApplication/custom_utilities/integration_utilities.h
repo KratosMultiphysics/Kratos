@@ -504,31 +504,38 @@ namespace Kratos
       Matrix& gaussian_coords,
       Vector& weights)
     {
-      std::cout << "degree: " << degree << std::endl;
-      switch (degree) {
-      case 1:
+      //std::cout << "degree: " << degree << std::endl;
+      int number_of_points = degree;
+      //switch (degree) {
+      //case 1:
+      if (number_of_points == 1)
+      {
         gaussian_coords.resize(1, 2);
         weights.resize(1);
 
         gaussian_coords(0, 0) = 0.33333333333333;
         gaussian_coords(0, 1) = 0.33333333333333;
         weights[0] = 1.00000000000000;
-        return;
-      case 2:
+      }
+        //case 2:
+      else if (number_of_points == 2)
+      {
         gaussian_coords.resize(3, 2);
-        weights.resize(3);
+      weights.resize(3);
 
-        gaussian_coords(0, 0) = 0.16666666666667;
-        gaussian_coords(0, 1) = 0.16666666666667;
-        gaussian_coords(1, 0) = 0.16666666666667;
-        gaussian_coords(1, 1) = 0.66666666666667;
-        gaussian_coords(2, 0) = 0.66666666666667;
-        gaussian_coords(2, 1) = 0.16666666666667;
-        weights[0] = 0.33333333333333;
-        weights[1] = 0.33333333333333;
-        weights[2] = 0.33333333333333;
-        return;
-      case 3:
+      gaussian_coords(0, 0) = 0.16666666666667;
+      gaussian_coords(0, 1) = 0.16666666666667;
+      gaussian_coords(1, 0) = 0.16666666666667;
+      gaussian_coords(1, 1) = 0.66666666666667;
+      gaussian_coords(2, 0) = 0.66666666666667;
+      gaussian_coords(2, 1) = 0.16666666666667;
+      weights[0] = 0.33333333333333;
+      weights[1] = 0.33333333333333;
+      weights[2] = 0.33333333333333;
+    }
+      //case 3:
+      else if (number_of_points == 3)
+      {
         gaussian_coords.resize(4, 2);
         weights.resize(4);
 
@@ -545,17 +552,64 @@ namespace Kratos
         weights[1] = 0.52083333333333;
         weights[2] = 0.52083333333333;
         weights[3] = 0.52083333333333;
-        return;
+      }
+        //return;
       //case 4:
-      //  return{
-      //    IntegrationPoint(Vector2d(0.44594849091597, 0.44594849091597), 0.22338158967801),
-      //    IntegrationPoint(Vector2d(0.44594849091597, 0.10810301816807), 0.22338158967801),
-      //    IntegrationPoint(Vector2d(0.10810301816807, 0.44594849091597), 0.22338158967801),
-      //    IntegrationPoint(Vector2d(0.09157621350977, 0.09157621350977), 0.10995174365532),
-      //    IntegrationPoint(Vector2d(0.09157621350977, 0.81684757298046), 0.10995174365532),
-      //    IntegrationPoint(Vector2d(0.81684757298046, 0.09157621350977), 0.10995174365532)
-      //  };
+      else if (number_of_points == 4)
+      {
+        gaussian_coords.resize(6, 2);
+        weights.resize(6);
+
+        gaussian_coords(0, 0) = 0.44594849091597;
+        gaussian_coords(0, 1) = 0.44594849091597;
+        gaussian_coords(1, 0) = 0.44594849091597;
+        gaussian_coords(1, 1) = 0.10810301816807;
+        gaussian_coords(2, 0) = 0.10810301816807;
+        gaussian_coords(2, 1) = 0.44594849091597;
+        gaussian_coords(3, 0) = 0.09157621350977;
+        gaussian_coords(3, 1) = 0.09157621350977;
+        gaussian_coords(4, 0) = 0.09157621350977;
+        gaussian_coords(4, 1) = 0.81684757298046;
+        gaussian_coords(5, 0) = 0.81684757298046;
+        gaussian_coords(5, 1) = 0.09157621350977;
+
+        weights[0] = 0.22338158967801;
+        weights[1] = 0.22338158967801;
+        weights[2] = 0.22338158967801;
+        weights[3] = 0.10995174365532;
+        weights[4] = 0.10995174365532;
+        weights[5] = 0.10995174365532;
+      }
       //case 5:
+      else if (number_of_points == 5)
+      {
+        gaussian_coords.resize(7, 2);
+        weights.resize(7);
+
+        gaussian_coords(0, 0) = 0.33333333333333;
+        gaussian_coords(1, 0) = 0.47014206410511;
+        gaussian_coords(2, 0) = 0.47014206410511;
+        gaussian_coords(3, 0) = 0.05971587178977;
+        gaussian_coords(4, 0) = 0.10128650732346;
+        gaussian_coords(5, 0) = 0.10128650732346;
+        gaussian_coords(6, 0) = 0.79742698535309;
+
+        gaussian_coords(0, 1) = 0.33333333333333;
+        gaussian_coords(1, 1) = 0.47014206410511;
+        gaussian_coords(2, 1) = 0.05971587178977;
+        gaussian_coords(3, 1) = 0.47014206410511;
+        gaussian_coords(4, 1) = 0.10128650732346;
+        gaussian_coords(5, 1) = 0.79742698535309;
+        gaussian_coords(6, 1) = 0.10128650732346;
+
+        weights[0] = 0.22500000000000;
+        weights[1] = 0.13239415278851;
+        weights[2] = 0.13239415278851;
+        weights[3] = 0.13239415278851;
+        weights[4] = 0.12593918054483;
+        weights[5] = 0.12593918054483;
+        weights[6] = 0.12593918054483;
+      }
       //  return{
       //    IntegrationPoint(Vector2d(0.33333333333333, 0.33333333333333), 0.22500000000000),
       //    IntegrationPoint(Vector2d(0.47014206410511, 0.47014206410511), 0.13239415278851),
@@ -566,6 +620,50 @@ namespace Kratos
       //    IntegrationPoint(Vector2d(0.79742698535309, 0.10128650732346), 0.12593918054483)
       //  };
       //case 6:
+      else if (number_of_points == 6)
+      {
+        gaussian_coords.resize(12, 2);
+        weights.resize(12);
+
+        gaussian_coords(0, 0) = 0.24928674517091;
+        gaussian_coords(1, 0) = 0.24928674517091;
+        gaussian_coords(2, 0) = 0.50142650965818;
+        gaussian_coords(3, 0) = 0.06308901449150;
+        gaussian_coords(4, 0) = 0.06308901449150;
+        gaussian_coords(5, 0) = 0.87382197101700;
+        gaussian_coords(6, 0) = 0.31035245103378;
+        gaussian_coords(7, 0) = 0.63650249912140;
+        gaussian_coords(8, 0) = 0.05314504984482;
+        gaussian_coords(9, 0) = 0.63650249912140;
+        gaussian_coords(10, 0) = 0.31035245103378;
+        gaussian_coords(11, 0) = 0.05314504984482;
+
+        gaussian_coords(0, 1) = 0.24928674517091;
+        gaussian_coords(1, 1) = 0.50142650965818;
+        gaussian_coords(2, 1) = 0.24928674517091;
+        gaussian_coords(3, 1) = 0.06308901449150;
+        gaussian_coords(4, 1) = 0.87382197101700;
+        gaussian_coords(5, 1) = 0.06308901449150;
+        gaussian_coords(6, 1) = 0.63650249912140;
+        gaussian_coords(7, 1) = 0.05314504984482;
+        gaussian_coords(8, 1) = 0.31035245103378;
+        gaussian_coords(9, 1) = 0.31035245103378;
+        gaussian_coords(10, 1) = 0.05314504984482;
+        gaussian_coords(11, 1) = 0.63650249912140;
+
+        weights[0] = 0.11678627572638;
+        weights[1] = 0.11678627572638;
+        weights[2] = 0.11678627572638;
+        weights[3] = 0.05084490637021;
+        weights[4] = 0.05084490637021;
+        weights[5] = 0.05084490637021;
+        weights[6] = 0.08285107561837;
+        weights[7] = 0.08285107561837;
+        weights[8] = 0.08285107561837;
+        weights[9] = 0.08285107561837;
+        weights[10] = 0.08285107561837;
+        weights[11] = 0.08285107561837;
+      }
       //  return{
       //    IntegrationPoint(Vector2d(0.24928674517091, 0.24928674517091), 0.11678627572638),
       //    IntegrationPoint(Vector2d(0.24928674517091, 0.50142650965818), 0.11678627572638),
@@ -731,8 +829,10 @@ namespace Kratos
       //    IntegrationPoint(Vector2d(0.11625191590760, 0.02573405054833), 0.01731623110866),
       //    IntegrationPoint(Vector2d(0.02573405054833, 0.85801403354407), 0.01731623110866)
       //  };
-      default:
-        KRATOS_THROW_ERROR(std::logic_error, "IntegrationUtilities::GetFace: face_id does not exist", "");
+      //default:
+else
+{
+        KRATOS_ERROR << "Degree " << degree << " is not implemented" << std::endl;
       }
     }
 
