@@ -15,25 +15,25 @@ class AnalyticSimulator:
 
     def CalculateNonDimensionalVars(self):
         pp = self.pp
-        rho_f = float(pp.rho_f)
-        rho_p = float(pp.rho_p)
-        a = float(pp.a)
-        nu = float(pp.nu)
-        R = float(pp.R)
-        g = float(pp.g)
-        omega = float(pp.omega)
-        x0 = float(pp.x0)
-        y0 = float(pp.y0)
-        z0 = float(pp.z0)
-        u0 = float(pp.u0)
-        v0 = float(pp.v0)
-        volume = 4.0 / 3.0 * math.pi * a ** 3
+        rho_f = pp.rho_f
+        rho_p = pp.rho_p
+        a = pp.a
+        nu = pp.nu
+        R = pp.R
+        g = pp.g
+        omega = pp.omega
+        x0 = pp.x0
+        y0 = pp.y0
+        z0 = pp.z0
+        u0 = pp.u0
+        v0 = pp.v0
+        volume = 4. / 3 * math.pi * a ** 3
 
         gamma = rho_p / rho_f
-        S = a ** 2 * omega / (9.0 * nu) # pseudo Stokes' Number
+        S = a ** 2 * omega / (9 * nu) # pseudo Stokes' Number
         Fr = (R * omega) ** 2 / (g * R) # pseudo Froude's Number
-        Re_T = 4.0 / 9.0 * (gamma - 1.0) * g * a ** 3 / nu ** 2 # terminal velocity Reynold's number
-        nDw0 = 2.0 * (1.0 - gamma) * S / Fr # Non-dimensional terminal sedimentation velocity
+        Re_T = 4. / 9 * (gamma - 1.) * g * a ** 3 / nu ** 2 # terminal velocity Reynold's number
+        nDw0 = 2 * (1. - gamma) * S / Fr # Non-dimensional terminal sedimentation velocity
 
         Z0 = (x0 + 1j * y0) / R
         U0 = 1j * Z0
@@ -58,20 +58,20 @@ class AnalyticSimulator:
         S = self.S
 
         if include_lift:
-            A = 1.0/ S - 1.j * Cs / (math.pi * math.sqrt(2 * S))
-            B = 3.0 - Cs / (math.pi * math.sqrt(2.0 * S)) - 1.j / S
+            A = 1./ S - 1.j * Cs / (math.pi * math.sqrt(2 * S))
+            B = 3. - Cs / (math.pi * math.sqrt(2 * S)) - 1.j / S
         else:
-            A = 1.0/ S
-            B = 3.0 - 1.j / S
+            A = 1./ S
+            B = 3. - 1.j / S
 
         C = - 3. / math.sqrt(math.pi * S)
 
-        A /= (2.0 * gamma + 1)
-        B /= (2.0 * gamma + 1)
-        C /= (2.0 * gamma + 1)
+        A /= (2 * gamma + 1)
+        B /= (2 * gamma + 1)
+        C /= (2 * gamma + 1)
 
         if not include_history_force:
-            C = 0.0
+            C = 0.
 
         self.A = A
         self.B = B
@@ -88,13 +88,13 @@ class AnalyticSimulator:
         x1 = 1.j * C * math.sqrt(math.pi)
         x2 = A
         x3 = - C * math.sqrt(math.pi)
-        x4 = 1.0
+        x4 = 1
         p = P([x0, x1, x2, x3, x4])
 
         self.roots = p.roots()
 
     def GetProductOfRootDifferences(self, roots, i):
-        product = 1.0
+        product = 1.
 
         for j in range(4):
 
@@ -134,7 +134,7 @@ class AnalyticSimulator:
         NDcoors[2] = float(NDz0 + t * NDw0)
 
         if NDvel != None:
-            NDxy = 0.0
+            NDxy = 0.
             for i in range(4):
                 NDxy += A[i] * X[i] * cmath.exp(X[i] ** 2 * t) * mpmath.erfc(- X[i] * math.sqrt(t))
             NDvel[0] = float(NDxy.real)
@@ -173,7 +173,7 @@ class AnalyticSimulator:
         FhZ *= basset_dimensional_coeff * C1 * math.sqrt(math.pi)
         FB[0] = float(FhZ.real)
         FB[1] = float(FhZ.imag)
-        FB[2] = 0.0
+        FB[2] = 0.
 
 if __name__ == "__main__":
     sim = AnalyticSimulator(pp)

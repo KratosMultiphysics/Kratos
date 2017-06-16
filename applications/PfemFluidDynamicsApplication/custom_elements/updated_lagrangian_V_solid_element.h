@@ -15,6 +15,15 @@
 
 // External includes
 
+ 
+/* // Project includes */
+/* #include "containers/array_1d.h" */
+/* #include "includes/define.h" */
+/* /\* #include "includes/element.h" *\/ */
+/* #include "includes/serializer.h" */
+/* #include "geometries/geometry.h" */
+/* #include "utilities/math_utils.h" */
+
 #include "custom_elements/two_step_updated_lagrangian_V_P_solid_element.h" 
 
 namespace Kratos
@@ -223,6 +232,12 @@ namespace Kratos
        */
 
 
+      /* virtual void UpdateCauchyStress(unsigned int g,ProcessInfo& rCurrentProcessInfo); */
+
+      /* virtual void InitializeElementalVariables(ElementalVariables & rElementalVariables); */
+
+      /* virtual void CalculateDeltaPosition (Matrix & rDeltaPosition); */
+
       ///@}
       ///@name Access
       ///@{
@@ -302,6 +317,7 @@ namespace Kratos
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
    
+
       
       bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
 				const ProcessInfo& rCurrentProcessInfo,
@@ -311,6 +327,13 @@ namespace Kratos
       void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 					    double TimeStep,
 					    unsigned int g);
+
+
+      
+      void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
+							 VectorType& rRightHandSideVector,
+							 ProcessInfo& rCurrentProcessInfo);
+
 
 
       double GetThetaMomentum (){return 1.0;};

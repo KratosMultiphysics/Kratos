@@ -185,9 +185,9 @@ protected:
     /**
      * Calculation of the Material Stiffness Matrix by components
      */
-    void CalculateContactStiffness (double &Kcont,GeneralVariables& rVariables,
-				    unsigned int& ndi,unsigned int& ndj,
-				    unsigned int& idir,unsigned int& jdir);
+    void CalcContactStiffness (double &Kcont,GeneralVariables& rVariables,
+			       unsigned int& ndi,unsigned int& ndj,
+			       unsigned int& idir,unsigned int& jdir);
 
 
     /**

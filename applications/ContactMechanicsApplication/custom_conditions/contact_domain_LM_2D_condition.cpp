@@ -303,7 +303,7 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
     mContactVariables.PreviousGap.Normal  = 0;
     mContactVariables.PreviousGap.Tangent = 0;
 
-    //(g_N)3
+
     mContactVariables.PreviousGap.Normal = inner_prod((PS-P1),mContactVariables.PreStepSurface.Normal);
     mContactVariables.PreviousGap.Tangent = mContactVariables.PreviousGap.Normal;
 
@@ -313,7 +313,7 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
     mContactVariables.PreviousGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(D2*(-PreviousBase.B/PreviousBase.L)));
     mContactVariables.PreviousGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,DS);
 
-    //(g_T)3
+
     mContactVariables.PreviousGap.Tangent*= inner_prod(mContactVariables.ReferenceSurface.Tangent,mContactVariables.PreStepSurface.Normal);
 
     mContactVariables.PreviousGap.Tangent+=inner_prod(mContactVariables.ReferenceSurface.Tangent,(D1*(-PreviousBase.A/PreviousBase.L)));
@@ -977,8 +977,7 @@ double& ContactDomainLM2DCondition::CalculateIntegrationWeight(double& rIntegrat
 
     if ( dimension == 2 ){   
       ElementType& MasterElement = mContactVariables.GetMasterElement();
-      if ( MasterElement.GetProperties()[THICKNESS] > 0)
-	rIntegrationWeight *= MasterElement.GetProperties()[THICKNESS];
+      rIntegrationWeight *= MasterElement.GetProperties()[THICKNESS];
     }
 	
     return rIntegrationWeight;
@@ -1038,7 +1037,7 @@ void ContactDomainLM2DCondition::CalculateTangentSlipForce (double &F,GeneralVar
 //************************************************************************************
 //************************************************************************************
 
-void ContactDomainLM2DCondition::CalculateContactStiffness (double &Kcont,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir)
+void ContactDomainLM2DCondition::CalcContactStiffness (double &Kcont,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir)
 {
     Kcont=0;
 

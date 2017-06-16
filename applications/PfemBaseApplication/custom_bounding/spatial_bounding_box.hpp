@@ -233,7 +233,7 @@ protected:
     
     void Initialize()
     {
-      Dimension = 3;
+      Dimension = 2;
       Axisymmetric = false;
       Convexity = 1;
       Radius = 0;
@@ -487,8 +487,8 @@ public:
 	    if(Maximum[1]<in->Y())
 	      Maximum[1]=in->Y();
 
-	    if(Maximum[2]<in->Z())
-	      Maximum[2]=in->Z();
+	    if(Maximum[3]<in->Z())
+	      Maximum[3]=in->Z();
 
 	    //get minimum
 	    if(Minimum[0]>in->X())
@@ -497,8 +497,8 @@ public:
 	    if(Minimum[1]>in->Y())
 	      Minimum[1]=in->Y();
 	  
-	    if(Minimum[2]>in->Z())
-	      Minimum[2]=in->Z();	 
+	    if(Minimum[3]>in->Z())
+	      Minimum[3]=in->Z();	 
 	  } 
 
 	}
@@ -527,7 +527,7 @@ public:
       Side[2] = mBox.Radius;
 
       mBox.UpperPoint = mBox.Center + Side;
-      mBox.LowerPoint = mBox.Center - Side;
+      mBox.LowerPoint  = mBox.Center - Side;
 
       //set to local frame
       this->MapToLocalFrame(mBox.InitialLocalQuaternion,mBox);
@@ -893,8 +893,10 @@ public:
     //**************************************************************************
 
     /// Compute vertices
-    void GetVertices(std::vector<PointType >& rVertices, const double& rCurrentTime, const unsigned int& rDimension)
+    std::vector<PointType > GetVertices(const double& rCurrentTime, const unsigned int& rDimension)
     {
+    
+      std::vector<PointType> vertices;
 
       PointType Displacement = this->GetBoxDisplacement( rCurrentTime );
 
@@ -902,201 +904,53 @@ public:
       
       PointType Side = mBox.UpperPoint - mBox.LowerPoint;
 
-      Reference[1] -= Side[1];
-      
-      //point 0
-      rVertices.push_back(Reference);
-     
-      Reference[1] += Side[1];
-      
       //point 1
-      rVertices.push_back(Reference);
+      vertices.push_back(Reference);
       
       Reference[0] -= Side[0];
       
       //point 2
-      rVertices.push_back(Reference);
+      vertices.push_back(Reference);
       
       Reference[1] -= Side[1];
       
       //point 3
-      rVertices.push_back(Reference);
+      vertices.push_back(Reference);
+      
+      Reference[0] += Side[0];
+      
+      //point 4
+      vertices.push_back(Reference);
       
 
       if( rDimension == 3 ){ 
 
 	Reference = mBox.LowerPoint + Displacement;
-
-	Reference[0] += Side[0];
-	
-	//point 4    
-	rVertices.push_back(Reference);
-
-	Reference[0] -= Side[0];
 	
 	//point 5
-	rVertices.push_back(Reference);
+	vertices.push_back(Reference);
+      
+	Reference[0] += Side[0];
+      
+	//point 6
+	vertices.push_back(Reference);
       
 	Reference[1] += Side[1];
       
-	//point 6
-	rVertices.push_back(Reference);
-      
-	Reference[0] += Side[0];
-      
 	//point 7
-	rVertices.push_back(Reference);
+	vertices.push_back(Reference);
+      
+	Reference[0] -= Side[0];
+      
+	//point 8
+	vertices.push_back(Reference);
 
       }
+
+      return vertices;
            
     }
 
-    //************************************************************************************
-    //************************************************************************************
-
-    void GetTriangularFaces(boost::numeric::ublas::matrix<unsigned int>& rFaces, const unsigned int& rDimension)
-    {
-      KRATOS_TRY
-	
-      if( rDimension == 2 ){
-
-	if(rFaces.size1() != 4 || rFaces.size2() != 2)
-	  rFaces.resize(4,2,false);
-
-	rFaces(0,0)=0;
-	rFaces(0,1)=1;
-	
-	rFaces(1,0)=1;
-	rFaces(1,1)=2;
-
-	rFaces(2,0)=2;
-	rFaces(2,1)=3;
-	
-	rFaces(3,0)=3;
-	rFaces(3,1)=4;
-
-      }
-      else if ( rDimension == 3 ){
-
-	if(rFaces.size1() != 12 || rFaces.size2() != 3)
-	  rFaces.resize(12,3,false);
-
-	rFaces(0,0)=0;
-	rFaces(0,1)=1;
-	rFaces(0,2)=3;
-
-	rFaces(1,0)=3;
-	rFaces(1,1)=1;
-	rFaces(1,2)=2;
-
-	rFaces(2,0)=3;
-	rFaces(2,1)=2;
-	rFaces(2,2)=6;
-
-	rFaces(3,0)=6;
-	rFaces(3,1)=5;
-	rFaces(3,2)=3;
-
-	rFaces(4,0)=5;
-	rFaces(4,1)=6;
-	rFaces(4,2)=7;
-
-	rFaces(5,0)=7;
-	rFaces(5,1)=4;
-	rFaces(5,2)=5;
-
-	rFaces(6,0)=0;
-	rFaces(6,1)=4;
-	rFaces(6,2)=7;
-
-	rFaces(7,0)=7;
-	rFaces(7,1)=1;
-	rFaces(7,2)=0;
-
-	rFaces(8,0)=0;
-	rFaces(8,1)=3;
-	rFaces(8,2)=5;
-
-	rFaces(9,0)=5;
-	rFaces(9,1)=4;
-	rFaces(9,2)=0;
-
-	rFaces(10,0)=1;
-	rFaces(10,1)=7;
-	rFaces(10,2)=6;
-
-	rFaces(11,0)=6;
-	rFaces(11,1)=2;
-	rFaces(11,2)=1;
-	
-      }
-      
-      KRATOS_CATCH("")
-    }
-
-
-    void GetQuadrilateralFaces(boost::numeric::ublas::matrix<unsigned int>& rFaces, const unsigned int& rDimension)
-    {
-      KRATOS_TRY
-	
-      if( rDimension == 2 ){
-
-	if(rFaces.size1() != 4 || rFaces.size2() != 2)
-	  rFaces.resize(4,2,false);
-
-	rFaces(0,0)=0;
-	rFaces(0,1)=1;
-	
-	rFaces(1,0)=1;
-	rFaces(1,1)=2;
-
-	rFaces(2,0)=2;
-	rFaces(2,1)=3;
-	
-	rFaces(3,0)=3;
-	rFaces(3,1)=4;
-
-      }
-      else if ( rDimension == 3 ){
-
-	if(rFaces.size1() != 6 || rFaces.size2() != 4)
-	  rFaces.resize(6,4,false);
-
-	rFaces(0,0)=0;
-	rFaces(0,1)=1;
-	rFaces(0,2)=2;
-	rFaces(0,3)=3;
-
-	rFaces(1,0)=3;
-	rFaces(1,1)=2;
-	rFaces(1,2)=6;
-	rFaces(1,3)=5;
-
-	rFaces(2,0)=5;
-	rFaces(2,1)=6;
-	rFaces(2,2)=7;
-	rFaces(2,3)=4;
-
-	rFaces(3,0)=4;
-	rFaces(3,1)=7;
-	rFaces(3,2)=1;
-	rFaces(3,3)=0;
-
-	rFaces(4,0)=0;
-	rFaces(4,1)=3;
-	rFaces(4,2)=5;
-	rFaces(4,3)=4;	
-
-	rFaces(5,0)=1;
-	rFaces(5,1)=7;
-	rFaces(5,2)=6;
-	rFaces(5,3)=2;	
-
-      }
-      
-      KRATOS_CATCH("")
-    }
-    
     //************************************************************************************
     //************************************************************************************
     

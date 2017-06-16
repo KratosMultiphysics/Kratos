@@ -175,8 +175,3 @@ class MeshModeler(object):
         self.mesher.ExecuteMeshing(self.model_part)
         
         self.FinalizeMeshing()    #set execution flags and modeler flags
-
-    #
-    def SetEchoLevel(self, echo_level):
-        self.echo_level = echo_level
-

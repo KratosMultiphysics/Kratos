@@ -243,7 +243,7 @@ public:
     double pwdDistance = 0.0f;
 
     for(std::size_t i = 0; i < Dimension; i++) {
-      pwdDistance += std::pow((*rObj_1)[i] - (*rObj_2)[i], 2);
+      pwdDistance += std::pow((*rObj_2)[i] - (*rObj_2)[i], 2);
     }
 
     distance = std::sqrt(pwdDistance);

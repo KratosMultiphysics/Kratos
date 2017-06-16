@@ -2,12 +2,12 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//                   Multi-Physics 
 //
-//  License:		 BSD License
+//  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
+//  Main authors:    Pooyan Dadvand 
 //
 
 #if !defined(KRATOS_DEFINE_H_INCLUDED )
@@ -403,6 +403,10 @@ typedef const char* PointerToConstCharType;
 
 #define KRATOS_TRACE(A,B)
 #endif
+
+#define KRATOS_TRIANGULAR_MEMBRANE_ELEMENT_INCLUDED
+#define KRATOS_QUADRILATERAL_DIFFUSION_CONVECTION_ELEMENT_INCLUDED
+#define KRATOS_TETRAHEDRAL_HEAT_CONDUCTIVITY_ELEMENT_INCLUDED
 
 #define KRATOS_WATCH(variable) \
   std::cout << #variable << " : " << variable << std::endl;

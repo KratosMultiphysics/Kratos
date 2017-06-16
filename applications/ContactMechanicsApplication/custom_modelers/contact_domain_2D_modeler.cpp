@@ -71,7 +71,7 @@ namespace Kratos
       SpatialBoundingBox DomainBox (rModelPart, extra_radius);
       
       ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-      DomainBox.GetVertices( BoxVertices, CurrentProcessInfo[TIME], dimension );
+      BoxVertices = DomainBox.GetVertices( CurrentProcessInfo[TIME], dimension );
     }
 
     //input mesh: NODES
@@ -122,8 +122,6 @@ namespace Kratos
 	  PointList[base+j]   = Coordinates[j] + Offset[j];
 	}
 	
-	//std::cout<<"   BodyNodes ["<<i<<"]= ("<<PointList[base]<<", "<<PointList[base+1]<<"). Id = "<<direct<<" Pre: "<<rMeshingVariables.NodalPreIds[direct]<<std::endl;
-	
 	base+=dimension;
 	direct+=1;
       }
@@ -166,20 +164,20 @@ namespace Kratos
     const unsigned int dimension = rModelPart.ConditionsBegin(MeshId)->GetGeometry().WorkingSpaceDimension();
 
     //*********************************************************************
-    if(in.segmentlist){
+    if( in.segmentlist != NULL ){
       delete [] in.segmentlist;
       in.numberofsegments = 0;
     }
 
-    if(in.segmentmarkerlist)
+    if( in.segmentmarkerlist != NULL )
       delete [] in.segmentmarkerlist;
     
-    if(in.holelist){
+    if( in.holelist != NULL ){
       delete [] in.holelist;
       in.numberofholes = 0;
     }
     
-    if(in.regionlist){
+    if( in.regionlist != NULL ){
       delete [] in.regionlist;
       in.numberofregions = 0;
     }
@@ -192,7 +190,7 @@ namespace Kratos
     SpatialBoundingBox DomainBox (rModelPart, extra_radius);
     
     ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-    DomainBox.GetVertices( BoxVertices, CurrentProcessInfo[TIME], dimension );
+    BoxVertices = DomainBox.GetVertices( CurrentProcessInfo[TIME], dimension );
     
     
     in.numberofsegments           = rModelPart.NumberOfConditions() + BoxVertices.size();
@@ -200,7 +198,6 @@ namespace Kratos
     in.segmentlist                = new int[in.numberofsegments*2];
     
     ModelPart::ConditionsContainerType::iterator conditions_begin = rModelPart.ConditionsBegin();
-
     
     int base = 0;
     for(unsigned int i = 0; i<rModelPart.Conditions(MeshId).size(); i++)
@@ -208,29 +205,25 @@ namespace Kratos
 	Geometry< Node<3> >& rGeometry = (conditions_begin + i)->GetGeometry();
 	in.segmentlist[base]   = rGeometry[0].Id();
 	in.segmentlist[base+1] = rGeometry[1].Id();
-	//std::cout<<" Facet["<<i<<"]: ("<<in.segmentlist[base]<<" "<<in.segmentlist[base+1]<<")"<<std::endl;
 	
 	base+=2;
       }  
 
     ModelerUtilities::MeshContainer& InMesh = rMeshingVariables.InMesh;
-    int& NumberOfPoints = InMesh.GetNumberOfPoints();
+    int& NumberOfPoints   = InMesh.GetNumberOfPoints();
 
-    
     int ids = NumberOfPoints - BoxVertices.size() + 1;
-    for(unsigned int i=ids; i<ids+BoxVertices.size()-1; i++) //2d (rectangular box of 4 sides)
+    for(unsigned int i = 0; i<BoxVertices.size()-1; i++) //2d (rectangular box of 4 sides)
       {
-	in.segmentlist[base]   = i;
-	in.segmentlist[base+1] = i+1;
+	in.segmentlist[base]   = ids;
+	in.segmentlist[base+1] = ids+1;
 	
-	//std::cout<<" BFacet[]: ("<<in.segmentlist[base]<<" "<<in.segmentlist[base+1]<<")"<<std::endl;
+	ids+=1;
 	base+=2;
       }  
     
-    in.segmentlist[base]   = ids+BoxVertices.size()-1;
-    in.segmentlist[base+1] = ids;
-
-    //std::cout<<" BFacet[]: ("<<in.segmentlist[base]<<" "<<in.segmentlist[base+1]<<")"<<std::endl;
+    in.segmentlist[base]   = ids;
+    in.segmentlist[base+1] = NumberOfPoints - BoxVertices.size() + 1;
     
     //PART 3: (area) hole list    
     std::vector<bounded_vector<double, 3> >& Holes = rMeshingVariables.GetHoles();

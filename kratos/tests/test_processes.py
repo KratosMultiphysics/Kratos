@@ -548,9 +548,9 @@ class TestProcesses(KratosUnittest.TestCase):
             {
                 "process_list" : [
                     {
-                        "python_module"   : "assign_scalar_to_conditions_process",
+                        "python_module"   : "assign_scalar_field_to_conditions_process",
                         "kratos_module" : "KratosMultiphysics",
-                        "process_name"          : "AssignScalarToConditionsProcess",
+                        "process_name"          : "AssignScalarFieldToConditionsProcess",
                         "Parameters"            : {
                             "model_part_name":"Main",
                             "variable_name": "INITIAL_STRAIN",

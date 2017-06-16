@@ -509,29 +509,10 @@ public:
         KRATOS_CATCH("");
     }
 
-    /**
-     * The method to calculate 2 ernrichment shape functions for given tetrahedra.
-     * the first one is the gradient, just like the previous function, and the second is a jump.
-     * another difference with the previous function is that fixed size arrays and matrices are used if possible.
-     * @param rPoints A 4x3 matrix where row i has the coordinates of node i.
-     * @param DN_DX The gradient of the shape functions Ni respect to the reference coordinates
-     * @param rDistances is an input  vector of 4 size which holds relative distance (not need to be exact) for each node.
-     *        it is used internally to mark the position of the zero level
-     * @param rVolumes Result vector with size 6 (maximumn number of partitions) holding the volume of each partition
-     * @param rShapeFunctionValues Result 6x4 matrix where each row represents a partition and holds the shape functions N1 to N4
-     *        of the original tetrahedra evaluated in the gauss point (center) of the partition.
-     *        so that it is  N(gauss_index, node_index)
-     * @param rPartitionsSign A result vector of 6 holding the sign of the distance for the partition.
-     *        The value -1 represents the negative distance sign, 1 represents positive distance and 0 stands for not used partition
-     * @param rGradientsValue Restult vector of size 6 holding the gradient of the enriched shape funcitons for each volume.
-     *        Each element of vector is a 2x3 matrix representing the gradients of enriched shape functions. The row indicates enrichemnt function
-     *        and the colum the direction of the gradient
-     * @param Nenriched is a Matrix of size 6x2 that contains for every gauss point the values of the enriched shape functions at the position of the gauss point
-     *        so that Nenriched(1,0) contains the value of the enriched shape function "0" at the gauss point "1" 
-     * @return number of partitions created which can be from 1 to 6.
-     *         1 holds for only 1 partition which is the original element. (No partitioning needed)
-     */
-
+    ///*************************************************************************
+    ///the folliwng fuction is a copy of the previous one (enrichment for thetrahedrons) but using array_1d as arguments.
+    ///the next one is for triangles. therefore both functions have the same name anc can be overloaded to have a cleaner code:
+    ///*************************************************************************
 
     //3d: (tetrahedrons)
     static int CalculateEnrichedShapeFuncions(boost::numeric::ublas::bounded_matrix<double,4, 3 >& rPoints,
@@ -544,19 +525,6 @@ public:
             boost::numeric::ublas::bounded_matrix<double,6, 2>& NEnriched)
     {
         KRATOS_TRY
-
-		//the first thing we do is checking if the rGradientsValue has the right lenght
-		if (rGradientsValue.size()!=6)
-			rGradientsValue.resize(6);
-		// now we check if matrices contained in rGradientsValue have the right size:
-		for (unsigned int i = 0; i < 6; i++)
-		{
-			if (rGradientsValue[i].size1() != 2 || rGradientsValue[i].size2() != 3)
-			{
-				std::cout << "resizing rGradientsValue[i] to 2x3, please modify your element" << std::endl;
-				rGradientsValue[i].resize(2, 3, false);  //2 values of the 2 shape functions, and derivates in (xyz) direction).
-			}
-		}
 
         const int n_nodes = 4; // it works only for tetrahedra
         const int n_edges = 6; // it works only for tetrahedra

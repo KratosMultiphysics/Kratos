@@ -7,12 +7,12 @@ BaseAlgorithm = swimming_DEM_algorithm.Algorithm
 import h5py
 
 class Algorithm(BaseAlgorithm):
-    def __init__(self, varying_parameters = dict()):
-        BaseAlgorithm.__init__(self, varying_parameters)
+    def __init__(self, pp):
+        BaseAlgorithm.__init__(self, pp)
         self.fluid_loader_counter = self.GetFluidLoaderCounter()
 
-    def SetBetaParameters(self):
-        BaseAlgorithm.SetBetaParameters(self)
+    def SetBetaParamters(self):
+        BaseAlgorithm.SetBetaParamters(self)
         self.pp.CFD_DEM.alpha = 0.01
         self.pp.CFD_DEM.fluid_already_calculated = 1
         self.pp.CFD_DEM.load_derivatives = 0

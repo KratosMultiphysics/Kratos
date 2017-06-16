@@ -219,39 +219,23 @@ namespace Kratos
    /*  ///@name Member Variables  */
    /*  ///@{  */
    /*  //updated lagrangian */
-
-    /// 2D two step v-p fluid element
+    /// 2D two step element for fluid
     const TwoStepUpdatedLagrangianVPElement<2> mTwoStepUpdatedLagrangianVPElement2D;
-    const TwoStepUpdatedLagrangianVPElement<2> mTwoStepUpdatedLagrangianVPElement2Dquadratic;
-
-    /// 3D two step v-p fluid element
+    /// 3D two step element for fluid
     const TwoStepUpdatedLagrangianVPElement<3> mTwoStepUpdatedLagrangianVPElement3D;
-    const TwoStepUpdatedLagrangianVPElement<3> mTwoStepUpdatedLagrangianVPElement3Dquadratic;
-
-    /// 2D two step v-p solid element
+   /*  /// 2D two step element for solid */
     const TwoStepUpdatedLagrangianVPSolidElement<2> mTwoStepUpdatedLagrangianVPSolidElement2D;
-    const TwoStepUpdatedLagrangianVPSolidElement<2> mTwoStepUpdatedLagrangianVPSolidElement2Dquadratic;
-
-    /// 3D two step v-p solid element
+    /// 3D two step element for solid
     const TwoStepUpdatedLagrangianVPSolidElement<3> mTwoStepUpdatedLagrangianVPSolidElement3D;
-    const TwoStepUpdatedLagrangianVPSolidElement<3> mTwoStepUpdatedLagrangianVPSolidElement3Dquadratic;
-
-    /// 2D velocity solid element
+   /*  /// 2D two step element for solid */
     const UpdatedLagrangianVSolidElement<2> mUpdatedLagrangianVSolidElement2D;
-    const UpdatedLagrangianVSolidElement<2> mUpdatedLagrangianVSolidElement2Dquadratic;
-
-    /// 3D velocity solid element
+    /// 3D two step element for solid
     const UpdatedLagrangianVSolidElement<3> mUpdatedLagrangianVSolidElement3D;
-    const UpdatedLagrangianVSolidElement<3> mUpdatedLagrangianVSolidElement3Dquadratic;
-
-    /// 2D two step v-p fluid element
+   /// 2D two step element for solid
     const TwoStepUpdatedLagrangianVPFluidElement<2> mTwoStepUpdatedLagrangianVPFluidElement2D;
-    const TwoStepUpdatedLagrangianVPFluidElement<2> mTwoStepUpdatedLagrangianVPFluidElement2Dquadratic;
-
-    /// 3D two step v-p fluid element
+    /// 3D two step element for solid
     const TwoStepUpdatedLagrangianVPFluidElement<3> mTwoStepUpdatedLagrangianVPFluidElement3D;
-    const TwoStepUpdatedLagrangianVPFluidElement<3> mTwoStepUpdatedLagrangianVPFluidElement3Dquadratic;
-
+    
 
     ///@} 
     ///@name Private Operators

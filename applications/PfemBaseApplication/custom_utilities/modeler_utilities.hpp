@@ -189,7 +189,7 @@ public:
 
       void CreatePointList(const unsigned int NumberOfPoints, const unsigned int Dimension)
       {
-	if( mpPointList ){
+	if( mpPointList != NULL && PointListFlag == true){
 	  delete [] mpPointList;
 	}
 	mNumberOfPoints = NumberOfPoints;
@@ -199,7 +199,7 @@ public:
 
       void CreateElementList(const unsigned int NumberOfElements, const unsigned int NumberOfVertices)
       {
-	if( mpElementList ){
+	if( mpElementList != NULL && ElementListFlag == true){
 	  delete [] mpElementList;
 	}
 	mNumberOfElements = NumberOfElements;
@@ -209,7 +209,7 @@ public:
 
       void CreateElementSizeList(const unsigned int NumberOfElements)
       {
-	if( mpElementSizeList ){
+	if( mpElementSizeList != NULL ){
 	  delete [] mpElementSizeList;
 	}
 	mpElementSizeList     = new double[NumberOfElements];
@@ -218,7 +218,7 @@ public:
 
       void CreateElementNeighbourList(const unsigned int NumberOfElements, const unsigned int NumberOfFaces)
       {
-	if( mpElementNeighbourList ){
+	if( mpElementNeighbourList != NULL ){
 	  delete [] mpElementNeighbourList;
 	}
 	mpElementNeighbourList     = new int[NumberOfElements * NumberOfFaces];
@@ -243,23 +243,35 @@ public:
 
       void Finalize()
       {
-	if( mpPointList && PointListFlag ){
+	if( mpPointList!= NULL && PointListFlag ){
 	  delete [] mpPointList;
 	}
 
-	if( mpElementList && ElementListFlag ){
-	  delete [] mpElementList;
-	}
+	// mesher deletes it always...
+	// if( mpElementList!= NULL && ElementListFlag ){
+	//   delete [] mpElementList;
+	// }
 
-	if( mpElementSizeList && ElementSizeListFlag ){
+	if( mpElementSizeList!= NULL && ElementSizeListFlag ){
 	  delete [] mpElementSizeList;
 	}
 
-	if( mpElementNeighbourList && ElementNeighbourListFlag ){
+	if( mpElementNeighbourList!= NULL && ElementNeighbourListFlag ){
 	  delete [] mpElementNeighbourList;
 	}
 
-	Initialize();
+	mpPointList            = (double*) NULL;
+	mpElementList          = (int*)    NULL;
+	mpElementSizeList      = (double*) NULL;
+	mpElementNeighbourList = (int*)    NULL;
+
+	mNumberOfPoints        = 0;
+	mNumberOfElements      = 0;
+
+	PointListFlag            = false;
+	ElementListFlag          = false;
+	ElementSizeListFlag      = false;
+	ElementNeighbourListFlag = false;
       }
 
     };

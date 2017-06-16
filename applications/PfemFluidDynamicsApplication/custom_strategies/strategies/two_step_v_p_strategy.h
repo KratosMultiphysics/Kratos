@@ -14,9 +14,7 @@
 #include "includes/deprecated_variables.h"
 #include "includes/cfd_variables.h"
 #include "geometries/triangle_2d_3.h"
-#include "geometries/triangle_2d_6.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "geometries/tetrahedra_3d_10.h"
 #include "utilities/openmp_utils.h"
 #include "processes/process.h"
 #include "solving_strategies/schemes/scheme.h"
@@ -313,6 +311,7 @@ public:
     }
 
     virtual void InitializeSolutionStep(){
+
       TimeIntervalDurationControl();
     }
 
@@ -397,7 +396,7 @@ public:
       double newTimeInterval = rCurrentProcessInfo[DELTA_TIME];
       double milestoneGap=fabs(newTimeInterval-deltaTimeToNewMilestone);
       if(milestoneGap<0.49*newTimeInterval && milestoneTimeReached==false){
-	/* std::cout<<"the milestone is very close, I add "<<milestoneGap<<" to "<<newTimeInterval<<std::endl;*/
+	/* std::cout<<"the milestone is very close, I add "<<milestoneGap<<" to  "<<newTimeInterval<<std::endl; */
 	newTimeInterval+=milestoneGap;
 	rCurrentProcessInfo.SetValue(DELTA_TIME,newTimeInterval);
 	milestoneTimeReached=true;
@@ -516,17 +515,9 @@ public:
 		  Point<3> updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval;
 		  updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
 		}
-
-	      double newArea=0;
-	      if(itElem->GetGeometry().size()==3){
-		Triangle2D3<Node<3> > myGeometry(updatedElementCoordinates);
-		newArea=myGeometry.Area();
-	      }else if(itElem->GetGeometry().size()==6){
-		Triangle2D6<Node<3> > myGeometry(updatedElementCoordinates);
-		newArea=myGeometry.Area();
-	      }else{
-		std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
-	      }
+	      
+	      Triangle2D3<Node<3> > myGeometry(updatedElementCoordinates);
+	      double newArea=myGeometry.Area();
 
 	      if(solidElement==true){
 		newArea=currentElementalArea;
@@ -553,19 +544,12 @@ public:
 
 		  }
 
-		if(itElem->GetGeometry().size()==3){
-		  Triangle2D3<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
-		  newArea=myGeometry.Area();
-		}else if(itElem->GetGeometry().size()==6){
-		  Triangle2D6<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
-		  newArea=myGeometry.Area();
-		}else{
-		  std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
-		}
+		Triangle2D3<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
+		newArea=myGeometry.Area();
 
 		if(newArea<0.001*currentElementalArea){
 		  increaseTimeInterval=false;
-		  /*std::cout<<"I'll not reduce the time step but I'll not allow to increase it"<<std::endl;*/
+		  /* std::cout<<"I will not reduce the time step but I will not allow to increase it"<<std::endl; */
 		}
 
 	      }
@@ -583,17 +567,9 @@ public:
 		  Point<3> updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval;
 		  updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
 		}
-
-	      double newVolume=0;
-	      if(itElem->GetGeometry().size()==4){
-		Tetrahedra3D4<Node<3> > myGeometry(updatedElementCoordinates);
-		newVolume=myGeometry.Volume();
-	      }else if(itElem->GetGeometry().size()==10){
-		Tetrahedra3D10<Node<3> > myGeometry(updatedElementCoordinates);
-		newVolume=myGeometry.Volume();
-	      }else{
-		std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
-	      }
+	      
+	      Tetrahedra3D4<Node<3> > myGeometry(updatedElementCoordinates);
+	      double newVolume=myGeometry.Volume();
 
 	      if(solidElement==true){
 		newVolume=currentElementalVolume;
@@ -619,19 +595,12 @@ public:
 		    updatedEnlargedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
 		  }
 
-		if(itElem->GetGeometry().size()==4){
-		  Tetrahedra3D4<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
-		  newVolume=myGeometry.Volume();
-		}else if(itElem->GetGeometry().size()==10){
-		  Tetrahedra3D10<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
-		  newVolume=myGeometry.Volume();
-		}else{
-		  std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
-		}
+		Tetrahedra3D4<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
+		newVolume=myGeometry.Volume();
 
 		if(newVolume<0.001*currentElementalVolume){
 		  increaseTimeInterval=false;
-		  /* std::cout<<"I'll not reduce the time step but I'll not allow to increase it"<<std::endl; */
+		  /* std::cout<<"I will not reduce the time step but I will not allow to increase it"<<std::endl; */
 		}
 
 

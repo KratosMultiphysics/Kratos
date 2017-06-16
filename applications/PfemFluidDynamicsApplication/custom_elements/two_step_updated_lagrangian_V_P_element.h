@@ -450,11 +450,10 @@ namespace Kratos
        * @param rN Elemental shape functions.
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
-      void ComputeMassMatrix(Matrix& rMassMatrix,
-			     const ShapeFunctionsType& rN,
-			     const double Weight,
-			     double& MeanValue);
-      
+      void ComputeMomentumMassTerm(Matrix& rMassMatrix,
+				   const ShapeFunctionsType& rN,
+				   const double Weight);
+
       void ComputeLumpedMassMatrix(Matrix& rMassMatrix,
 				   const double Weight,
 				   double& MeanValue);
@@ -489,24 +488,20 @@ namespace Kratos
 						 double& MeanValueMass,
 						 const double TimeStep){};
 
-      virtual void ComputeBulkReductionCoefficient(MatrixType MassMatrix,
-						   MatrixType StiffnessMatrix,
-						   double& meanValueStiff,
-						   double& bulkCoefficient,
-						   double timeStep){};
-
-      void ComputeCompleteTangentTerm(ElementalVariables& rElementalVariables,
-				      MatrixType& rDampingMatrix,
-				      const ShapeFunctionDerivativesType& rShapeDeriv,
-				      const double secondLame,
-				      const double bulkModulus,
-				      const double theta,
-				      const double Weight);
+      void AddCompleteTangentTerm(ElementalVariables& rElementalVariables,
+					  MatrixType& rDampingMatrix,
+					  const ShapeFunctionDerivativesType& rShapeDeriv,
+					  const double secondLame,
+					  const double bulkModulus,
+					  const double theta,
+					  const double Weight);
 	
       virtual void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix,
+						   const ShapeFunctionsType& rN,
 						   const double Weight){};
       
       virtual void ComputeBulkMatrixForPressureAccLump(MatrixType& BulkAccMatrix,
+						   const ShapeFunctionsType& rN,
 						   const double Weight){};
 
       virtual void ComputeBulkMatrixForPressureVel(MatrixType& BulkVelMatrix,
@@ -577,8 +572,10 @@ namespace Kratos
       void CalcDeviatoricInvariant(VectorType &SpatialDefRate,
 				   double &DeviatoricInvariant);
 
-      void CalcNormalProjectionDefRate(VectorType &SpatialDefRate,
-				       double &NormalProjSpatialDefRate);
+      void CalcNormalProjectionsForBoundRHSVector(VectorType &SpatialDefRate,
+						  double &NormalAcceleration,
+						  double &NormalProjSpatialDefRate,
+						  const double TimeStep);
 
       void CheckStrain1(double &VolumetricDefRate,
 			MatrixType &SpatialVelocityGrad);
@@ -738,7 +735,6 @@ namespace Kratos
 					std::vector<TValueType>& rOutput)
 	{
 	  unsigned int NumValues = this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
-	  /* unsigned int NumValues = this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_4); */
 	  rOutput.resize(NumValues);
 	  /*
 	    The cast is done to avoid modification of the element's data. Data modification

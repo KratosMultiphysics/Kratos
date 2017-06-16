@@ -31,8 +31,7 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
     #
     def InitializeMeshing(self):
 
-        if(self.echo_level>0):
-            print("::[fluid_pre_refining_modeler]:: -START InitializeMeshing-")
+        print("::[fluid_pre_refining_modeler]:: -START InitializeMeshing-")
 
         self.MeshingParameters.InitializeMeshing()
    
@@ -88,9 +87,8 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
 
     #
     def SetPreMeshingProcesses(self):
-
-        if(self.echo_level>0):
-            print("::[fluid_pre_refining_modeler]:: -START SetPreMeshingProcesses-")
+        
+        print("::[fluid_pre_refining_modeler]:: -START SetPreMeshingProcesses-")
 
         refining_parameters = self.MeshingParameters.GetRefiningParameters()
         refining_options = refining_parameters.GetRefiningOptions()
@@ -113,8 +111,7 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
     def SetPostMeshingProcesses(self):
 
         # The order set is the order of execution:
-        if(self.echo_level>0):
-            print("::[fluid_pre_refining_modeler]:: -START SetPostMeshingProcesses-")
+        print("::[fluid_pre_refining_modeler]:: -START SetPostMeshingProcesses-")
 
 
         refining_parameters = self.MeshingParameters.GetRefiningParameters()
@@ -156,8 +153,8 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
     #
     def FinalizeMeshing(self):
         
-        if(self.echo_level>0):
-            print("::[fluid_pre_refining_modeler]:: -START FinalizeMeshing-")
+
+        print("::[fluid_pre_refining_modeler]:: -START FinalizeMeshing-")
 
         # reset execution flags: to unset the options to be executed in methods and processes
         refining_parameters = self.MeshingParameters.GetRefiningParameters()

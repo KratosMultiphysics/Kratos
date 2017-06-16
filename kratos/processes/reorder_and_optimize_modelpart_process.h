@@ -41,7 +41,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class KRATOS_API(KRATOS_CORE) ReorderAndOptimizeModelPartProcess : public Process
+class ReorderAndOptimizeModelPartProcess : public Process
 {
 public:
     using GeometryType = Geometry<Point<3> >;
@@ -59,7 +59,7 @@ public:
     ReorderAndOptimizeModelPartProcess() = delete;
 
     /// Constructor to be used. Takes the geometry to be meshed and ModelPart to be filled
-    ReorderAndOptimizeModelPartProcess( ModelPart& rModelPart, Parameters settings);
+    ReorderAndOptimizeModelPartProcess( ModelPart& rOutputModelPart, Parameters settings);
 
     /// The object is not copyable.
     ReorderAndOptimizeModelPartProcess(ReorderAndOptimizeModelPartProcess const& rOther) = delete;
@@ -228,6 +228,7 @@ protected:
                     // The graph contains another connected component that we
                     // cannot reach.  Search for a node that has not yet been
                     // included in a level set, and start exploring from it.
+                    bool found = false;
                     for(int i = 0; i < n; ++i)
                     {
                         if (levelSet[i] == 0)
@@ -237,16 +238,17 @@ protected:
                             levelSet[i] = currentLevelSet;
                             maxDegreeInCurrentLevelSet = degree[i];
                             firstWithDegree[maxDegreeInCurrentLevelSet] = i;
+                            found = true;
                             break;
                         }
                     }
                 }
             }
-
+            
             //computing the inverse permutation
             #pragma omp parallel for
             for(int i = 0; i < n; ++i) invperm[perm[i]] = i;
-
+            
         }
     };
 

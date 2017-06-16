@@ -39,7 +39,7 @@ namespace Kratos
 
 class ContactDomainLM3DCondition
     : public ContactDomainCondition
-{ 
+{
 public:
 
 
@@ -168,13 +168,6 @@ protected:
     ///@name Protected Operators
     ///@{
 
-
-    /**
-     * Check and resolve the element type EDGE_TO_EDGE (EdgeType) or FaceType
-     */
-    void ResolveElementType();
-  
-  
     /**
      * Calculation of the Contact Master Nodes and Mechanical variables
      */
@@ -235,9 +228,9 @@ protected:
     /**
      * Calculation of the Material Stiffness Matrix by components
      */
-    virtual void CalculateContactStiffness (double &Kcont,GeneralVariables& rVariables,
-					    unsigned int& ndi,unsigned int& ndj,
-					    unsigned int& idir,unsigned int& jdir);
+    virtual void CalcContactStiffness (double &Kcont,GeneralVariables& rVariables,
+				       unsigned int& ndi,unsigned int& ndj,
+				       unsigned int& idir,unsigned int& jdir);
 
 
     /**
@@ -265,9 +258,9 @@ protected:
 
     PointType& CalculateCurrentTangent(PointType &rTangent);
 
-    void FSigmaP(GeneralVariables& rVariables, std::vector<Vector >& rSigmaP, PointType& rDirVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndl,unsigned int &ndm,unsigned int &ndn);
+    void FSigmaP(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, PointType& DirVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndl,unsigned int &ndm,unsigned int &ndn);
 
-    void FSigmaPnd(GeneralVariables& rVariables, std::vector<Vector >& rSigmaP, PointType& rDirVector,unsigned int &ndi,unsigned int &ndj);
+    void FSigmaPnd(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, PointType& DirVector,unsigned int &ndi,unsigned int &ndj);
 
 
 

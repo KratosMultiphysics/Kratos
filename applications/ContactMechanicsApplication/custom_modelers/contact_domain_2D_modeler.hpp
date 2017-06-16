@@ -202,13 +202,13 @@ private:
      
     //set nodes to a mesh
     void SetNodes(ModelPart& rModelPart,
-		  MeshingParametersType& rMeshingVariables) override;
+		  MeshingParametersType& rMeshingVariables);
 
 
     //set faces in the triangulateio before the Delaunay Tesselation
     void SetFaces ( ModelPart &rModelPart,
 		    MeshingParametersType & rMeshingVariables,
-		    struct triangulateio &in ) override;
+		    struct triangulateio &in );
 
     ///@}
     ///@name Private  Access

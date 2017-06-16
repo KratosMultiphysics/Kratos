@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
 KratosMultiphysics.CheckForPreviousImport()
 
-#from multiprocessing import Pool
+from multiprocessing import Pool
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -23,7 +23,6 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "echo_level"            : 0,
             "model_part_name"       : "Solid Domain",
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 1.0,
@@ -36,7 +35,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        self.echo_level        = self.settings["echo_level"].GetInt()
+        self.echo_level        = 1
         self.domain_size       = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         self.meshing_frequency = self.settings["meshing_frequency"].GetDouble()
         
@@ -93,11 +92,10 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
 
             print("::[Meshing_Process]:: Initialize Domains")
             import domain_utilities
-            domain_utils = domain_utilities.DomainUtilities()            
+            domain_utils = domain_utilities.DomainUtilities()
             domain_utils.InitializeDomains(self.main_model_part,self.echo_level)
 
             for domain in self.meshing_domains:
-                domain.SetEchoLevel(self.echo_level)
                 domain.Initialize()
                 #domain.Check()
                          

@@ -5,8 +5,8 @@ BaseAlgorithm = swimming_DEM_algorithm.Algorithm
 import math
 
 class Algorithm(BaseAlgorithm):
-    def __init__(self, varying_parameters = dict()):
-        BaseAlgorithm.__init__(self, varying_parameters)
+    def __init__(self, pp):
+        BaseAlgorithm.__init__(self, pp)
 
     def GetFluidSolveCounter(self):
         return SDP.Counter(is_dead = True)
@@ -20,10 +20,10 @@ class Algorithm(BaseAlgorithm):
     def GetDebugInfo(self):
         return SDP.Counter(self.pp.CFD_DEM.debug_tool_cycle, 1, is_dead = 1)
 
-    def SetBetaParameters(self):
-        BaseAlgorithm.SetBetaParameters(self)
+    def SetBetaParamters(self):
+        BaseAlgorithm.SetBetaParamters(self)
 
-    def SetCustomBetaParameters(self, dictionary): # These are input parameters that have not yet been transferred to the interface
+    def SetCustomBetaParamters(self, dictionary): # These are input parameters that have not yet been transferred to the interface
         var_names = [k for k in dictionary.keys()]
         var_values = [k for k in dictionary.values()]
 
@@ -89,7 +89,7 @@ class Algorithm(BaseAlgorithm):
         self.results_database = candelier_hdf5.ResultsCandelier(self.pp, self.main_path)
 
     def DEMSolve(self, time = 'None'):
-        self.disperse_phase_algorithm.solver.Solve()
+        self.solver.Solve()
         for node in self.spheres_model_part.Nodes:
             coor_calculated = [node.X, node.Y, node.Z]
             self.radial_error = self.results_database.CalculateError(time, coor_calculated)

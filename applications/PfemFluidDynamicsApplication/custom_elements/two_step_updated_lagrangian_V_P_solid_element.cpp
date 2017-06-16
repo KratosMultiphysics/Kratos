@@ -95,7 +95,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
     // LargeDisplacementElement::Initialize();
     const GeometryType& rGeom = this->GetGeometry();
     SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
-    // SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_4);
     const unsigned int dimension       = rGeom.WorkingSpaceDimension();
 
     if ( this->mCurrentFgrad.size() != integration_points_number )
@@ -142,7 +141,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 
     const GeometryType& rGeom = this->GetGeometry();
     SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
-    // SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_4);
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
       {
@@ -262,38 +260,18 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPSolidElement<TDim>::ComputeBulkMatrixForPressureVelLump(Matrix& BulkVelMatrix,
+											 const ShapeFunctionsType& rN,
 											 const double Weight)
   {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
     double coeff=1.0+TDim;
-    // coeff=6.0;
-    if(TDim==2 && NumNodes ==6){
-      double Mij = Weight/57.0;
-      double consistent=1.0;
-      for (SizeType i = 0; i < NumNodes; ++i)
-	{
-	  if(i<3){
-	    consistent=coeff;
-	  }else{
-	    consistent=16.0;
-	  }
 
-	  BulkVelMatrix(i,i) +=  Mij*consistent;
-	 
-	}
-    }else{
-      for (SizeType i = 0; i < NumNodes; ++i)
-	{
-	  // LHS contribution
-	  double Mij  = Weight /coeff;
-	  BulkVelMatrix(i,i) +=  Mij;
-	}
-      if(NumNodes>4){
-	std::cout<<"ComputeBulkMatrixForPressureVelLump 3D not yet implemented!"<<std::endl;
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+	// LHS contribution
+	double Mij  = Weight /coeff;
+	BulkVelMatrix(i,i) +=  Mij;
       }
-    }
-
-
   }
 
 
@@ -302,19 +280,18 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 										     const ShapeFunctionsType& rN,
 										     const double Weight)
   {
-
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
     for (SizeType i = 0; i < NumNodes; ++i)
       {
-    	for (SizeType j = 0; j < NumNodes; ++j)
-    	  {
-    	    // LHS contribution
-    	    double Mij  = Weight*rN[i]*rN[j];
-    	    BulkVelMatrix(i,j) +=  Mij;
-    	  }
+	for (SizeType j = 0; j < NumNodes; ++j)
+	  {
+	    // LHS contribution
+	    double Mij  = Weight*rN[i]*rN[j];
+	    BulkVelMatrix(i,j) +=  Mij;
+	  }
 
       }
- 
+
   }
  
 
@@ -329,6 +306,7 @@ bool TwoStepUpdatedLagrangianVPSolidElement<TDim>::CalcMechanicsUpdated(Elementa
   double theta=this->GetThetaMomentum();
   computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,g,theta);
   const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
+
   this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
   return computeElement;
 } 
@@ -449,13 +427,13 @@ void TwoStepUpdatedLagrangianVPSolidElement<2>:: CalcElasticPlasticCauchySplitte
   sigmaDev_yy+=rElementalVariables.CurrentDeviatoricCauchyStress[1];
   sigmaDev_xy+=rElementalVariables.CurrentDeviatoricCauchyStress[2];
 
-  sigmaTot_xx= sigmaDev_xx + rElementalVariables.MeanPressure;
-  sigmaTot_yy= sigmaDev_yy + rElementalVariables.MeanPressure;
-  sigmaTot_xy= sigmaDev_xy;
-
   // sigmaTot_xx+=rElementalVariables.CurrentTotalCauchyStress[0];
   // sigmaTot_yy+=rElementalVariables.CurrentTotalCauchyStress[1];
   // sigmaTot_xy+=rElementalVariables.CurrentTotalCauchyStress[2];
+
+  sigmaTot_xx= sigmaDev_xx + rElementalVariables.MeanPressure;
+  sigmaTot_yy= sigmaDev_yy + rElementalVariables.MeanPressure;
+  sigmaTot_xy= sigmaDev_xy;
 
   rElementalVariables.UpdatedDeviatoricCauchyStress[0]=sigmaDev_xx;
   rElementalVariables.UpdatedDeviatoricCauchyStress[1]=sigmaDev_yy;
@@ -469,6 +447,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<2>:: CalcElasticPlasticCauchySplitte
   this->mUpdatedTotalCauchyStress[g]=rElementalVariables.UpdatedTotalCauchyStress;
   // this->mCurrentDeviatoricCauchyStress[g]=rElementalVariables.CurrentDeviatoricCauchyStress;
   this->mUpdatedDeviatoricCauchyStress[g]=rElementalVariables.UpdatedDeviatoricCauchyStress;
+
 
 
 }
@@ -619,8 +598,17 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPSolidElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
   {
+
+
     GeometryType& rGeom = this->GetGeometry();
+    // const SizeType NumNodes = rGeom.PointsNumber();
     const unsigned int NumNodes = rGeom.PointsNumber();
+    // for (unsigned int n = 0; n < NumNodes; n++)
+    //   {
+    // 	if(rGeom[n].Is(BOUNDARY)){
+    // 	  rGeom[n].Set(FLUID);	  
+    // 	}
+    //   }
 
     // Check sizes and initialize
     if( rLeftHandSideMatrix.size1() != NumNodes ) 
@@ -633,70 +621,89 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
 
     rRightHandSideVector = ZeroVector(NumNodes);
  
-    MatrixType BulkVelMatrix = ZeroMatrix(NumNodes,NumNodes);
-    
-    // Shape functions and integration points
-    ShapeFunctionDerivativesArrayType DN_DX;
-    Matrix NContainer;
-    VectorType GaussWeights;
-    this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
-    const unsigned int NumGauss = GaussWeights.size();
 
-    const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
-    double theta=this->GetThetaContinuity();
+    bool computeElement=false;
+    // computeElement=CheckSliverElements();
+     computeElement=true;
 
-    ElementalVariables rElementalVariables;
-    this->InitializeElementalVariables(rElementalVariables);
- 
-    double Density  = 0;
-    double DeviatoricCoeff = 0;
-    double VolumetricCoeff = 0;   
-    this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep);
-    
-    double totalVolume=0;
+    if(computeElement==true){
+      // Shape functions and integration points
+      ShapeFunctionDerivativesArrayType DN_DX;
+      Matrix NContainer;
+      VectorType GaussWeights;
+      this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
+      const unsigned int NumGauss = GaussWeights.size();
 
-    // Loop on integration points
-    for (unsigned int g = 0; g < NumGauss; g++)
-      {
-	bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,g,theta);
-	if(computeElement==true){
-	  const double GaussWeight = GaussWeights[g];
-	  totalVolume+=GaussWeight;
-	  const ShapeFunctionsType& N = row(NContainer,g);
+      // Stabilization parameters
 
-	  double BulkCoeff =GaussWeight/(VolumetricCoeff);
-	  this->ComputeBulkMatrixForPressureVel(BulkVelMatrix,N,BulkCoeff);
+      MatrixType BulkVelMatrix = ZeroMatrix(NumNodes,NumNodes);
+      MatrixType BulkVelMatrixLump = ZeroMatrix(NumNodes,NumNodes);
 
-	  for (SizeType i = 0; i < NumNodes; ++i)
-	    {
-	      // RHS contribution
-	      // Velocity divergence
-	      double RHSi =  N[i] * rElementalVariables.VolumetricDefRate;
-	      rRightHandSideVector[i] += GaussWeight * RHSi;
+      const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
+
+      double Density  = 0;
+      double DeviatoricCoeff = 0;
+      double VolumetricCoeff = 0;
+
+
+      ElementalVariables rElementalVariables;
+      this->InitializeElementalVariables(rElementalVariables);
+
+      // Loop on integration points
+      for (unsigned int g = 0; g < NumGauss; g++)
+	{
+
+	  double theta=this->GetThetaContinuity();
+	  computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,g,theta);
+	  if(computeElement==true){
+	    // this->UpdateCauchyStress(g);
+	    const double GaussWeight = fabs(GaussWeights[g]);
+	    const ShapeFunctionsType& N = row(NContainer,g);
+	    const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
+	    this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep);
+
+	    double BulkCoeff =GaussWeight/(VolumetricCoeff);
+	    if(rCurrentProcessInfo[STEP]>-1){
+	      // this->ComputeBulkMatrixForPressureVel(BulkVelMatrix,N,BulkCoeff);
+	      // rLeftHandSideMatrix+=BulkVelMatrix;	
+
+	      this->ComputeBulkMatrixForPressureVelLump(BulkVelMatrixLump,N,BulkCoeff);
+	      rLeftHandSideMatrix+=BulkVelMatrixLump;	
 	    }
 
-	}
+	    VectorType UpdatedPressure;
+	    VectorType CurrentPressure;
 
-      }   
-    
-    MatrixType BulkVelMatrixLump = ZeroMatrix(NumNodes,NumNodes);
-    double lumpedBulkCoeff =totalVolume/(VolumetricCoeff);
-    this->ComputeBulkMatrixForPressureVelLump(BulkVelMatrixLump,lumpedBulkCoeff);
-  
-    // rLeftHandSideMatrix+=BulkVelMatrixLump;
-    rLeftHandSideMatrix+=BulkVelMatrix;	
+	    UpdatedPressure = ZeroVector(NumNodes);
+	    CurrentPressure = ZeroVector(NumNodes);
 
-    VectorType UpdatedPressure = ZeroVector(NumNodes);
-    VectorType CurrentPressure = ZeroVector(NumNodes);;
+	    this->GetPressureValues(UpdatedPressure,0);
+	    this->GetPressureValues(CurrentPressure,1);
 
-    this->GetPressureValues(UpdatedPressure,0);
-    this->GetPressureValues(CurrentPressure,1);
+	    VectorType DeltaPressure = UpdatedPressure-CurrentPressure;
 
-    VectorType DeltaPressure = UpdatedPressure-CurrentPressure;
+	    rRightHandSideVector -= prod(BulkVelMatrixLump,DeltaPressure);
+	    // rRightHandSideVector -= prod(BulkVelMatrix,DeltaPressure);
+	    double DivU=0;
+	    this->EvaluateDivergenceInPoint(DivU,VELOCITY,rDN_DX);
+	    DivU=rElementalVariables.VolumetricDefRate;
 
-    // rRightHandSideVector -= prod(BulkVelMatrixLump,DeltaPressure);
-    rRightHandSideVector -= prod(BulkVelMatrix,DeltaPressure);
+	    // Add convection, stabilization and RHS contributions to the local system equation
+	    for (SizeType i = 0; i < NumNodes; ++i)
+	      {
+		// RHS contribution
+		// Velocity divergence
+		double RHSi =  N[i] * DivU;
+		rRightHandSideVector[i] += GaussWeight * RHSi;
 
+	      }
+
+	  }
+
+	}   
+   
+
+    }
   }
   
 

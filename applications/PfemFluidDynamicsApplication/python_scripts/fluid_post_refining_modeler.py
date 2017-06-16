@@ -27,9 +27,8 @@ class PostRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
            
     #
     def InitializeMeshing(self):
-
-        if(self.echo_level>0):
-            print("::[fluid_post_refining_modeler]:: -START InitializeMeshing-")
+        
+        print("::[fluid_post_refining_modeler]:: -START InitializeMeshing-")
 
         self.MeshingParameters.InitializeMeshing()
 
@@ -116,8 +115,7 @@ class PostRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
     def SetPostMeshingProcesses(self):
 
         # The order set is the order of execution:
-        if(self.echo_level>0):
-            print("::[fluid_post_refining_modeler]:: -START SetPostMeshingProcesses-")
+        print("::[fluid_post_refining_modeler]:: -START SetPostMeshingProcesses-")
 
         #select mesh elements
         #generate_particles  = KratosPfemBase.GenerateNewNodes(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)

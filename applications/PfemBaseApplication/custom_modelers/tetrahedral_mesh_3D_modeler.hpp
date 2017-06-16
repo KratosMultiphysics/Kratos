@@ -207,7 +207,7 @@ private:
     void DeleteOutContainer(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr);
 
     //set faces in the tetgenio before the Delaunay Tesselation
-    virtual void SetFaces( ModelPart &rModelPart, MeshingParametersType & rMeshingVariables, tetgenio &in );
+    void SetFaces( ModelPart &rModelPart, MeshingParametersType & rMeshingVariables, tetgenio &in );
 
     //check points
     void CheckInOutPoints    ( tetgenio& in, tetgenio& out );

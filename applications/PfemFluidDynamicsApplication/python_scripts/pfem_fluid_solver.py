@@ -192,8 +192,8 @@ class PfemFluidSolver:
                 params.AddValue("bodies_list",self.settings["bodies_list"])         
 
             # CheckAndPrepareModelProcess creates the fluid_computational model part
-            import pfem_check_and_prepare_model_process_fluid
-            pfem_check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
+            import check_and_prepare_model_process_fluid
+            check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
             # Set Properties to nodes : Deprecated
             #self.SetProperties()

@@ -107,7 +107,7 @@ namespace Kratos
 
       boost::timer auxiliary;
 	
-      if( mEchoLevel > 0 )
+      if( mEchoLevel >= -1 )
 	std::cout<<" [ Build Boundary on ModelPart ["<<mrModelPart.Name()<<"] ]"<<std::endl;
 
       success=this->UniqueSkinSearch(mrModelPart);

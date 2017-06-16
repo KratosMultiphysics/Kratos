@@ -288,10 +288,13 @@ void NonLinearAssociativePlasticFlowRule::CalculateThermalDissipation( YieldCrit
       mThermalVariables.PlasticDissipation = mpYieldCriterion->CalculatePlasticDissipation( mThermalVariables.PlasticDissipation, rCriterionParameters);
   
 
+      std::cout<<" PlasticDissipation "<<mThermalVariables.PlasticDissipation<<std::endl;
+
       //2.- Thermal Dissipation Increment:
 
       mThermalVariables.DeltaPlasticDissipation = mpYieldCriterion->CalculateDeltaPlasticDissipation( mThermalVariables.DeltaPlasticDissipation, rCriterionParameters );
 		    		    
+      std::cout<<" DeltaPlasticDissipation "<<mThermalVariables.DeltaPlasticDissipation<<std::endl;
 }
 
 
@@ -302,7 +305,7 @@ void NonLinearAssociativePlasticFlowRule::CalculateImplexThermalDissipation( Yie
 {
  
       //1.- Thermal Dissipation:
-  
+	
       mThermalVariables.PlasticDissipation = mpYieldCriterion->CalculateImplexPlasticDissipation( mThermalVariables.PlasticDissipation, rCriterionParameters );
   
       //2.- Thermal Dissipation Increment:
@@ -321,6 +324,8 @@ void NonLinearAssociativePlasticFlowRule::UpdateConfiguration( RadialReturnVaria
 {
 	//Back Stress update
         
+        std::cout<< " ElasticIsoStress "<<rIsoStressMatrix<<std::endl;
+
 	//Plastic Strain Update
         if( rReturnMappingVariables.NormIsochoricStress > 0 ){
     
@@ -333,6 +338,7 @@ void NonLinearAssociativePlasticFlowRule::UpdateConfiguration( RadialReturnVaria
 	  
 	}
 
+	std::cout<< " PlasticIsoStress "<<rIsoStressMatrix<<std::endl;
 }
 
 //***************************UPDATE INTERNAL VARIABLES********************************
@@ -351,6 +357,9 @@ bool NonLinearAssociativePlasticFlowRule::UpdateInternalVariables( RadialReturnV
  	
 	//update thermal variables
 	// mThermalVariables = rReturnMappingVariables.Thermal;
+
+	std::cout<<" Update Internal Variables "<<mInternalVariables.EquivalentPlasticStrain<<" old "<<mInternalVariables.EquivalentPlasticStrainOld<<std::endl;
+	std::cout<<" Thermal Dissipation "<<mThermalVariables.PlasticDissipation<<" delta "<<mThermalVariables.DeltaPlasticDissipation<<std::endl;
 	
 	// mInternalVariables.print();
 	// mThermalVariables.print();

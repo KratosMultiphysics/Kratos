@@ -22,9 +22,7 @@
 #include "includes/model_part.h"
 #include "custom_utilities/modeler_utilities.hpp"
 #include "geometries/triangle_2d_3.h"
-#include "geometries/triangle_2d_6.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "geometries/tetrahedra_3d_10.h"
 
 ///VARIABLES used:
 //Data:     
@@ -282,19 +280,16 @@ public:
 	      // 	  }
 	      // 	}
 	      // }
-		// if(numisolated>1){
-		//   Alpha*=0;
-		// }
+		if(numisolated>1){
+		  Alpha*=0;
+		}
 	      if(dimension==2){
 		if(numfreesurf==nds || (numisolated+numfreesurf)==nds){
-		  Alpha*=0;
-		  // Alpha*=0.8;
+		  Alpha*=0.8;
 		}else if((numrigid+numisolated+numfreesurf)==nds){
-		  // Alpha*=0.9;
-		  Alpha*=0.95;
+		  Alpha*=0.9;
 		}else if(numfreesurf==2 || (numisolated+numfreesurf)==2){
-		  // Alpha*=0.95;
-		  Alpha*=0.975;
+		  Alpha*=0.95;
 		}
 		if(numrigid==0 && numfreesurf==0 && numisolated==0){
 		  Alpha*=1.75;
@@ -303,11 +298,9 @@ public:
 		}
 	      }else  if(dimension==3){
 		if(numfreesurf==nds || (numisolated+numfreesurf)==nds){
-		  // Alpha*=0.9;
-		  Alpha*=0;
+		  Alpha*=0.9;
 		}else if((numrigid+numisolated+numfreesurf)==nds){
-		  // Alpha*=0.95;
-		  Alpha*=0.975;
+		  Alpha*=0.95;
 		}// else if(numfreesurf==3 || (numisolated+numfreesurf)==3){
 		//   Alpha*=0.975;
 		// }
@@ -321,8 +314,7 @@ public:
 		Alpha*=1.15;
 	      }
 
-	      // Alpha*=1.175;
-
+	      
 	      bool accepted=false;
 	      
 	      ModelerUtilities ModelerUtils;

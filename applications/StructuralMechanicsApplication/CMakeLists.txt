@@ -38,9 +38,6 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   # Adding the nodal concentrated element
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/nodal_concentrated_element.cpp
 
-  # Adding the spring + damper element
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spring_damper_element_3D2N.cpp  
-
   ## CONDITIONS
   # Beam's moment conditions
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_3D_condition.cpp

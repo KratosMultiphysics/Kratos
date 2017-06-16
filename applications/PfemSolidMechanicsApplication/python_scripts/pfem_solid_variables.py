@@ -28,7 +28,7 @@ def AddVariables(main_model_part):
     main_model_part.AddNodalSolutionStepVariable(KratosContact.EFFECTIVE_CONTACT_FORCE);
     
     #transfer variables
-    main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DETERMINANT_F);
+    main_model_part.AddNodalSolutionStepVariable(KratosSolid.DETERMINANT_F);
     main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CAUCHY_STRESS_VECTOR)
     main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DEFORMATION_GRADIENT)
             

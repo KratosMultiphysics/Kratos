@@ -114,12 +114,8 @@ class SetOfModelParts(object):
     def Get(self, name):
         return self.model_parts[name]
 
-    def Add(self, model_part, name = None):
-        if name != None:
-            self.model_parts[name] = model_part
-        else:
-            self.model_parts[model_part.Name] = model_part
-            
+    def Add(self, model_part):
+        self.model_parts[model_part.Name] = model_part
         self.mp_list.append(model_part)
         
 class GranulometryUtils(object):

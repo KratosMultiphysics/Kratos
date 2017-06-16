@@ -64,30 +64,23 @@ class JsonOutputProcess(KratosMultiphysics.Process):
             for i in range(self.params["output_variables"].size()):
                 out = self.params["output_variables"][i]
                 variable = KratosMultiphysics.KratosGlobals.GetVariable( out.GetString() )
-                value = node.GetSolutionStepValue(variable, 0)
-                if isinstance(value,float):
+                val = node.GetSolutionStepValue(variable, 0)
+                if isinstance(val,float):
                     if (self.resultant_solution == False):
                         data["NODE_"+str(node.Id)][out.GetString() ] = []
                     else:
                         if (count == 0):
                             data["RESULTANT"][out.GetString() ] = []
                 else: # It is a vector
-                    if (KratosMultiphysics.KratosGlobals.HasVariable( out.GetString() + "_X" )): # We will asume to be components
-                        if (self.resultant_solution == False):
-                            data["NODE_"+str(node.Id)][out.GetString()  + "_X"] = []
-                            data["NODE_"+str(node.Id)][out.GetString()  + "_Y"] = []
-                            data["NODE_"+str(node.Id)][out.GetString()  + "_Z"] = []
-                        else:
-                            if (count == 0):
-                                data["RESULTANT"][out.GetString()  + "_X"] = []
-                                data["RESULTANT"][out.GetString()  + "_Y"] = []
-                                data["RESULTANT"][out.GetString()  + "_Z"] = []
+                    if (self.resultant_solution == False):
+                        data["NODE_"+str(node.Id)][out.GetString()  + "_X"] = []
+                        data["NODE_"+str(node.Id)][out.GetString()  + "_Y"] = []
+                        data["NODE_"+str(node.Id)][out.GetString()  + "_Z"] = []
                     else:
-                        if (self.resultant_solution == False):
-                            data["NODE_"+str(node.Id)][out.GetString() ] = []
-                        else:
-                            if (count == 0):
-                                data["RESULTANT"][out.GetString() ] = []
+                        if (count == 0):
+                            data["RESULTANT"][out.GetString()  + "_X"] = []
+                            data["RESULTANT"][out.GetString()  + "_Y"] = []
+                            data["RESULTANT"][out.GetString()  + "_Z"] = []
             count += 1
             
         write_external_json(self.output_file_name, data)
@@ -109,9 +102,10 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                 for i in range(self.params["output_variables"].size()):
                     out = self.params["output_variables"][i]
                     variable = KratosMultiphysics.KratosGlobals.GetVariable( out.GetString() )
+                    val = node.GetSolutionStepValue(variable, 0)
 
                     value = node.GetSolutionStepValue(variable, 0)
-                    if isinstance(value,float):
+                    if isinstance(val,float):
                         if (self.resultant_solution == False):
                             data["NODE_"+str(node.Id)][out.GetString() ].append(value)
                         else:
@@ -120,32 +114,19 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                             else:
                                 data["RESULTANT"][out.GetString() ][-1] += value
                     else: # It is a vector
-                        
-                        if (KratosMultiphysics.KratosGlobals.HasVariable( out.GetString() + "_X" )): # We will asume to be components
-                            if (self.resultant_solution == False):
-                                data["NODE_"+str(node.Id)][out.GetString()  + "_X"].append(value[0])
-                                data["NODE_"+str(node.Id)][out.GetString()  + "_Y"].append(value[1])
-                                data["NODE_"+str(node.Id)][out.GetString()  + "_Z"].append(value[2])
-                            else:
-                                if (count == 0):
-                                    data["RESULTANT"][out.GetString()  + "_X"].append(value[0])
-                                    data["RESULTANT"][out.GetString()  + "_Y"].append(value[1])
-                                    data["RESULTANT"][out.GetString()  + "_Z"].append(value[2])
-                                else:
-                                    data["RESULTANT"][out.GetString()  + "_X"][-1] += value[0]
-                                    data["RESULTANT"][out.GetString()  + "_Y"][-1] += value[1]
-                                    data["RESULTANT"][out.GetString()  + "_Z"][-1] += value[2]
+                        if (self.resultant_solution == False):
+                            data["NODE_"+str(node.Id)][out.GetString()  + "_X"].append(value[0])
+                            data["NODE_"+str(node.Id)][out.GetString()  + "_Y"].append(value[1])
+                            data["NODE_"+str(node.Id)][out.GetString()  + "_Z"].append(value[2])
                         else:
-                            if (self.resultant_solution == False):
-                                data["NODE_"+str(node.Id)][out.GetString() ].append(value)
+                            if (count == 0):
+                                data["RESULTANT"][out.GetString()  + "_X"].append(value[0])
+                                data["RESULTANT"][out.GetString()  + "_Y"].append(value[1])
+                                data["RESULTANT"][out.GetString()  + "_Z"].append(value[2])
                             else:
-                                aux = 0.0
-                                for index in range(len(value)):
-                                    aux += value[index]
-                                if (count == 0):
-                                    data["RESULTANT"][out.GetString() ].append(aux)
-                                else:
-                                    data["RESULTANT"][out.GetString() ][-1] += aux
+                                data["RESULTANT"][out.GetString()  + "_X"][-1] += value[0]
+                                data["RESULTANT"][out.GetString()  + "_Y"][-1] += value[1]
+                                data["RESULTANT"][out.GetString()  + "_Z"][-1] += value[2]
                 count += 1
               
         write_external_json(self.output_file_name, data)

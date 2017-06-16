@@ -224,11 +224,6 @@ namespace Kratos {
     KRATOS_CATCH("");
   }
 
-  // template< unsigned int TDim >
-  // GeometryData::IntegrationMethod TwoStepUpdatedLagrangianVPElement<TDim>::GetIntegrationMethod() const
-  // {
-  //   return GeometryData::GI_GAUSS_4;
-  // }
   template< unsigned int TDim >
   GeometryData::IntegrationMethod TwoStepUpdatedLagrangianVPElement<TDim>::GetIntegrationMethod() const
   {
@@ -245,10 +240,14 @@ namespace Kratos {
     GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int LocalSize = TDim * NumNodes;
+    // const SizeType NumNodes = rGeom.PointsNumber();
+    // const SizeType LocalSize = TDim * NumNodes;
 
-    MatrixType MassMatrix= ZeroMatrix(LocalSize,LocalSize);
-    MatrixType StiffnessMatrix= ZeroMatrix(LocalSize,LocalSize);
-    MatrixType BulkMatrix= ZeroMatrix(LocalSize,LocalSize);
+    MatrixType MassMatrix;
+    MatrixType BulkMatrix;
+
+    MassMatrix = ZeroMatrix(LocalSize,LocalSize);
+    BulkMatrix = ZeroMatrix(LocalSize,LocalSize);
 
     // Check sizes and initialize
     if( rLeftHandSideMatrix.size1() != LocalSize )
@@ -261,6 +260,8 @@ namespace Kratos {
 
     rRightHandSideVector = ZeroVector(LocalSize);
 
+    bool computeElement=true;
+
     // Shape functions and integration points
     ShapeFunctionDerivativesArrayType DN_DX;
     Matrix NContainer;
@@ -269,23 +270,17 @@ namespace Kratos {
     const unsigned int NumGauss = GaussWeights.size();
 
     const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
-    double theta=this->GetThetaMomentum();
 
     ElementalVariables rElementalVariables;
     this->InitializeElementalVariables(rElementalVariables);
 
-    double totalVolume=0;
-    double MeanValueMass=0;
-    double Density=0.0;
-    double DeviatoricCoeff = 0;
-    double VolumetricCoeff = 0;
-    this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep);
+    double theta=this->GetThetaMomentum();
  
     // Loop on integration points
     for (unsigned int g = 0; g < NumGauss; g++)
       {
+	// const double GaussWeight = fabs(GaussWeights[g]);
 	const double GaussWeight = GaussWeights[g];
-	totalVolume+=GaussWeight;
 	const ShapeFunctionsType& N = row(NContainer,g);
 	const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g]; 
 
@@ -298,54 +293,53 @@ namespace Kratos {
 
 	rElementalVariables.MeanPressure=OldPressure*(1-theta)+Pressure*theta;  
 
-	bool computeElement=this->CalcMechanicsUpdated(rElementalVariables,rCurrentProcessInfo,g);
+	computeElement=this->CalcMechanicsUpdated(rElementalVariables,rCurrentProcessInfo,g);
 	if(computeElement==true){
 
 	  // Evaluate required variables at the integration point
+	  double Density=0.0;
 	  array_1d<double,3> BodyForce(3,0.0);
 
 	  this->EvaluateInPoint(BodyForce,BODY_FORCE,N);
 
-	  // Add integration point contribution to the local mass matrix
-	  // double DynamicWeight=GaussWeight*Density;
-	  // this->ComputeMassMatrix(MassMatrix,N,DynamicWeight,MeanValueMass);
+	  double DeviatoricCoeff = 0;
+	  double VolumetricCoeff = 0;
 
+	  this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep);
+
+	  // Add integration point contribution to the local mass matrix
+	  double DynamicWeight=GaussWeight*Density;
+	  double MeanValueMass=0;
+	  this->ComputeLumpedMassMatrix(MassMatrix,DynamicWeight,MeanValueMass);
+	      
+	  // this->ComputeMomentumMassTerm(MassMatrix,N,dynamicWeight);
 	  this->AddExternalForces(rRightHandSideVector,Density,BodyForce,N,GaussWeight);
 
 	  this->AddInternalForces(rRightHandSideVector,rDN_DX,rElementalVariables,GaussWeight);
 
-	  // double lumpedDynamicWeight=GaussWeight*Density;
-	  // this->ComputeLumpedMassMatrix(MassMatrix,lumpedDynamicWeight,MeanValueMass);   
-
+	  double MeanValueMaterial=0.0;
+	  this->ComputeMeanValueMaterialTangentMatrix(rElementalVariables,MeanValueMaterial,rDN_DX,DeviatoricCoeff,VolumetricCoeff,GaussWeight,MeanValueMass,TimeStep);
 	  // double MeanValueMaterial=0.0;
-	  // this->ComputeMeanValueMaterialTangentMatrix(rElementalVariables,MeanValueMaterial,rDN_DX,DeviatoricCoeff,VolumetricCoeff,GaussWeight,MeanValueMass,TimeStep);    
+	  // this->ComputeMeanValueMaterialTangentMatrix(rElementalVariables,MeanValueMaterial,rDN_DX,DeviatoricCoeff,VolumetricCoeff,GaussWeight);
+	  // if(MeanValueMass!=0 && MeanValueMaterial!=0){
+	  //   VolumetricCoeff*=MeanValueMass*2/TimeStep/MeanValueMaterial;
+	  // }else{
+	  //   std::cout<<" DANGEROUS ELEMENT!!!!!!!!!!!!!!!!!!!!!"<<std::endl;
+	  //   std::cout<<" MeanValueMass="<<MeanValueMass;
+	  //   std::cout<<"\t MeanValueMaterial= "<<MeanValueMaterial;
+	  //   std::cout<<"\t GaussWeight= "<<GaussWeight<<std::endl;
+	  //   std::cout<<"\t Density= "<<Density;
+	  //   std::cout<<"\t DeviatoricCoeff= "<<DeviatoricCoeff;
+	  //   std::cout<<"\t VolumetricCoeff= "<<VolumetricCoeff<<std::endl;
+	  //   VolumetricCoeff*=TimeStep;
+	  // }
+      
 
-	  // // Add viscous term
-	  // this->ComputeCompleteTangentTerm(rElementalVariables,rLeftHandSideMatrix,rDN_DX,DeviatoricCoeff,VolumetricCoeff,theta,GaussWeight);
-	  this->ComputeCompleteTangentTerm(rElementalVariables,StiffnessMatrix,rDN_DX,DeviatoricCoeff,VolumetricCoeff,theta,GaussWeight);
+	  // Add viscous term
+	  this->AddCompleteTangentTerm(rElementalVariables,rLeftHandSideMatrix,rDN_DX,DeviatoricCoeff,VolumetricCoeff,theta,GaussWeight);
 	}
       }
-
-    double lumpedDynamicWeight=totalVolume*Density;
-    this->ComputeLumpedMassMatrix(MassMatrix,lumpedDynamicWeight,MeanValueMass);    
-
-    double BulkReductionCoefficient=1.0;
-    double MeanValueStiffness=0.0;
-    this->ComputeBulkReductionCoefficient(MassMatrix,StiffnessMatrix,MeanValueStiffness,BulkReductionCoefficient,TimeStep);
-    if(BulkReductionCoefficient!=1.0){
-      // VolumetricCoeff*=BulkReductionCoefficient;
-      VolumetricCoeff*=MeanValueMass*2.0/(TimeStep*MeanValueStiffness);
-      StiffnessMatrix= ZeroMatrix(LocalSize,LocalSize);
-
-      for (unsigned int g = 0; g < NumGauss; g++)
-    	{
-    	  const double GaussWeight = GaussWeights[g];
-    	  const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g]; 
-    	  this->ComputeCompleteTangentTerm(rElementalVariables,StiffnessMatrix,rDN_DX,DeviatoricCoeff,VolumetricCoeff,theta,GaussWeight);
-    	}
-    }
-
-
+    
     // Add residual of previous iteration to RHS
     VectorType VelocityValues = ZeroVector(LocalSize);
     VectorType UpdatedAccelerations = ZeroVector(LocalSize);
@@ -368,7 +362,6 @@ namespace Kratos {
     this->GetVelocityValues(VelocityValues,1);
     UpdatedAccelerations += -2.0*VelocityValues/TimeStep - LastAccValues; 
     noalias( rRightHandSideVector ) += -prod(MassMatrix,UpdatedAccelerations);
-    noalias( rLeftHandSideMatrix ) +=  StiffnessMatrix;
     noalias( rLeftHandSideMatrix ) +=  MassMatrix*2/TimeStep;
 
     KRATOS_CATCH( "" );
@@ -377,13 +370,13 @@ namespace Kratos {
 
 
   template<>
-  void TwoStepUpdatedLagrangianVPElement<2>::ComputeCompleteTangentTerm(ElementalVariables & rElementalVariables,
-									MatrixType& rDampingMatrix,
-									const ShapeFunctionDerivativesType& rDN_DX,
-									const double secondLame,
-									const double bulkModulus,
-									const double theta,
-									const double Weight)
+  void TwoStepUpdatedLagrangianVPElement<2>::AddCompleteTangentTerm(ElementalVariables & rElementalVariables,
+								    MatrixType& rDampingMatrix,
+								    const ShapeFunctionDerivativesType& rDN_DX,
+								    const double secondLame,
+								    const double bulkModulus,
+								    const double theta,
+								    const double Weight)
   {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
     const double FourThirds = 4.0 / 3.0;
@@ -426,14 +419,14 @@ namespace Kratos {
  
 
   template<>
-  void TwoStepUpdatedLagrangianVPElement<3>::ComputeCompleteTangentTerm(ElementalVariables & rElementalVariables,
-									MatrixType& rDampingMatrix,
-									const ShapeFunctionDerivativesType& rDN_DX,
-									const double secondLame,
-									const double bulkModulus,
-									const double theta,
-									const double Weight){
-    
+  void TwoStepUpdatedLagrangianVPElement<3>::AddCompleteTangentTerm(ElementalVariables & rElementalVariables,
+								    MatrixType& rDampingMatrix,
+								    const ShapeFunctionDerivativesType& rDN_DX,
+								    const double secondLame,
+								    const double bulkModulus,
+								    const double theta,
+								    const double Weight){
+
    const SizeType NumNodes = this->GetGeometry().PointsNumber();
     const double FourThirds = 4.0 / 3.0;
     const double nTwoThirds = -2.0 / 3.0;
@@ -734,17 +727,14 @@ namespace Kratos {
    
     double velX=0;
     double velY=0;
-    double coeff=0.0;
-
     for (SizeType i = 0; i < NumNodes; ++i)
       {
-        velX += rGeom[i].FastGetSolutionStepValue(VELOCITY_X,Step);
-        velY += rGeom[i].FastGetSolutionStepValue(VELOCITY_Y,Step);
-	coeff+=1.0;
+        velX += rGeom[i].FastGetSolutionStepValue(VELOCITY_X,Step)/3.0;
+        velY += rGeom[i].FastGetSolutionStepValue(VELOCITY_Y,Step)/3.0;
       }
 
     meanVelocity=velX*velX+velY*velY;
-    meanVelocity=sqrt(meanVelocity)/coeff;
+    meanVelocity=sqrt(meanVelocity);
 
   }
 
@@ -763,18 +753,15 @@ namespace Kratos {
     double velX=0;
     double velY=0;
     double velZ=0;
-    double coeff=0.0;
-
     for (SizeType i = 0; i < NumNodes; ++i)
       {
-        velX += rGeom[i].FastGetSolutionStepValue(VELOCITY_X,Step);
-        velY += rGeom[i].FastGetSolutionStepValue(VELOCITY_Y,Step);
-        velZ += rGeom[i].FastGetSolutionStepValue(VELOCITY_Z,Step);
-	coeff+=1.0;
+        velX += rGeom[i].FastGetSolutionStepValue(VELOCITY_X,Step)*0.25;
+        velY += rGeom[i].FastGetSolutionStepValue(VELOCITY_Y,Step)*0.25;
+        velZ += rGeom[i].FastGetSolutionStepValue(VELOCITY_Z,Step)*0.25;
       }
 
     meanVelocity=velX*velX+velY*velY+velZ*velZ;
-    meanVelocity=sqrt(meanVelocity)/coeff;
+    meanVelocity=sqrt(meanVelocity);
 
   }
 
@@ -948,33 +935,12 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
 
 
 
-  // template< unsigned int TDim >
-  // void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateGeometryData(ShapeFunctionDerivativesArrayType &rDN_DX,
-  // 								      Matrix &NContainer,
-  // 								      Vector &rGaussWeights)
-  // {
-  //   const GeometryType& rGeom = this->GetGeometry();
-  //   Vector DetJ;
-  //   rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX,DetJ,GeometryData::GI_GAUSS_4);
-  //   NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_4);
-  //   const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_4);
-
-  //   rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_4),false);
-
-  //   for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_4); g++){
-  //     rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
-  //     if(rGaussWeights[g]<0)
-  // 	std::cout<<"NEGATIVE GAUSS WEIGHT "<<rGaussWeights[g]<<std::endl;
-  
-  //   }
-
-  // }
 
 
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateGeometryData(ShapeFunctionDerivativesArrayType &rDN_DX,
-  								      Matrix &NContainer,
-  								      Vector &rGaussWeights)
+								      Matrix &NContainer,
+								      Vector &rGaussWeights)
   {
     const GeometryType& rGeom = this->GetGeometry();
     Vector DetJ;
@@ -988,8 +954,11 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
       // rGaussWeights[g] = fabs(DetJ[g] * IntegrationPoints[g].Weight());
       rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
       if(rGaussWeights[g]<0)
-    	std::cout<<"NEGATIVE GAUSS WEIGHT "<<rGaussWeights[g]<<std::endl;
+	std::cout<<"NEGATIVE GAUSS WEIGHT "<<rGaussWeights[g]<<std::endl;
+  
     }
+    
+
   }
 
   template< unsigned int TDim >
@@ -1467,32 +1436,57 @@ void TwoStepUpdatedLagrangianVPElement<3>::CalcDeviatoricInvariant(VectorType &S
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPElement<2>::CalcNormalProjectionDefRate(VectorType &SpatialDefRate,
-								       double& NormalProjSpatialDefRate)
+void TwoStepUpdatedLagrangianVPElement<2>::CalcNormalProjectionsForBoundRHSVector(VectorType &SpatialDefRate,
+										  double& NormalAcceleration,
+										  double& NormalProjSpatialDefRate,
+										  const double TimeStep)
 {
-  GeometryType& rGeom = this->GetGeometry();
-  const SizeType NumNodes = rGeom.PointsNumber();
+  array_1d<double, 3>  NormalA(3,0.0);
+  NormalA.clear();
+  array_1d<double, 3>  NormalB(3,0.0);
+  NormalB.clear();
   array_1d<double, 3>  NormalMean(3,0.0);
+  NormalMean.clear();
+  array_1d<double, 3>  AccA(3,0.0);
+  AccA.clear();
+  array_1d<double, 3>  AccB(3,0.0);
+  AccB.clear();
+  array_1d<double, 3>  AccMean(3,0.0);
+  AccMean.clear();
+  // VectorType ElementalAcceleration = ZeroVector(2);
+  // this->GetElementalAcceleration(ElementalAcceleration,0,TimeStep);
+  GeometryType& rGeom = this->GetGeometry();
 
-  for (SizeType i = 0; i < (NumNodes-1); i++)
-      {
-        for (SizeType j = (i+1); j < NumNodes; j++)
-	  {
-	    if(rGeom[i].Is(FREE_SURFACE) && rGeom[j].Is(FREE_SURFACE)){
-	      NormalMean += (rGeom[i].FastGetSolutionStepValue(NORMAL) +
-			     rGeom[j].FastGetSolutionStepValue(NORMAL))*0.5;
-	    }
-	  }
+  if(rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE)){
+    AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-
+rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
+    AccB= 0.5/TimeStep*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-
+rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
+    AccMean = AccA*0.5+ AccB*0.5;
+    NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
+    NormalB    = rGeom[1].FastGetSolutionStepValue(NORMAL);
+    NormalMean = NormalA*0.5+ NormalB*0.5;
+  }else if(rGeom[0].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE)){
+    AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-
+rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
+    AccB= 0.5/TimeStep*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-
+rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
+    AccMean = AccA*0.5+ AccB*0.5;
+    NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
+    NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
+    NormalMean = NormalA*0.5+ NormalB*0.5;
+  }else if(rGeom[1].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE)){
+    AccA= 0.5/TimeStep*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-
+rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
+    AccB= 0.5/TimeStep*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-
+rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
+    AccMean = AccA*0.5+ AccB*0.5;
+    NormalA    = rGeom[1].FastGetSolutionStepValue(NORMAL);
+    NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
+    NormalMean = NormalA*0.5+ NormalB*0.5;
+  }
 
-      }
-
-  // if(rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE)){
-  //   NormalMean = (rGeom[0].FastGetSolutionStepValue(NORMAL) + rGeom[1].FastGetSolutionStepValue(NORMAL))*0.5;
-  // }else if(rGeom[0].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE)){
-  //   NormalMean = (rGeom[0].FastGetSolutionStepValue(NORMAL) + rGeom[2].FastGetSolutionStepValue(NORMAL))*0.5;
-  // }else if(rGeom[1].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE)){
-  //   NormalMean = (rGeom[1].FastGetSolutionStepValue(NORMAL) + rGeom[2].FastGetSolutionStepValue(NORMAL))*0.5;
-  // }
+  NormalAcceleration=0.5*(NormalA[0]*AccA[0]+NormalA[1]*AccA[1]) +0.5*(NormalB[0]*AccB[0]+NormalB[1]*AccB[1]);
 
  NormalProjSpatialDefRate=NormalMean[0]*SpatialDefRate[0]*NormalMean[0]+
     NormalMean[1]*SpatialDefRate[1]*NormalMean[1]+
@@ -1502,55 +1496,91 @@ void TwoStepUpdatedLagrangianVPElement<2>::CalcNormalProjectionDefRate(VectorTyp
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPElement<3>::CalcNormalProjectionDefRate(VectorType &SpatialDefRate,
-								       double& NormalProjSpatialDefRate)
+void TwoStepUpdatedLagrangianVPElement<3>::CalcNormalProjectionsForBoundRHSVector(VectorType &SpatialDefRate,
+										  double& NormalAcceleration,
+										  double& NormalProjSpatialDefRate,
+										  const double TimeStep)
 {
-
-  GeometryType& rGeom = this->GetGeometry();
-  const SizeType NumNodes = rGeom.PointsNumber();
+  array_1d<double, 3>  NormalA(3,0.0);
+  NormalA.clear();
+  array_1d<double, 3>  NormalB(3,0.0);
+  NormalB.clear();
+  array_1d<double, 3>  NormalC(3,0.0);
+  NormalC.clear();
   array_1d<double, 3>  NormalMean(3,0.0);
+  NormalMean.clear();
+  array_1d<double, 3>  AccA(3,0.0);
+  AccA.clear();
+  array_1d<double, 3>  AccB(3,0.0);
+  AccB.clear();
+  array_1d<double, 3>  AccC(3,0.0);
+  AccC.clear();
+  array_1d<double, 3>  AccMean(3,0.0);
+  AccMean.clear();
+  GeometryType& rGeom = this->GetGeometry();
 
-    for (SizeType i = 0; i < (NumNodes-2); i++)
-      {
-        for (SizeType j = (i+1); j < (NumNodes-1); j++)
-	  {
-	    for (SizeType k = (j+1); k < NumNodes; k++)
-	      {
-		if(rGeom[i].Is(FREE_SURFACE) && rGeom[j].Is(FREE_SURFACE) && rGeom[k].Is(FREE_SURFACE)){
-		  NormalMean += (rGeom[i].FastGetSolutionStepValue(NORMAL) +
-				 rGeom[j].FastGetSolutionStepValue(NORMAL) +
-				 rGeom[k].FastGetSolutionStepValue(NORMAL)) / 3.0;
-		}
-	      }
-	  }
+  const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
-      }
+  if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
+    AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
+    AccB= 0.5/TimeStep*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
+    AccC= 0.5/TimeStep*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
+    AccMean = (AccA+AccB+AccC)*0.33333333;
+    NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
+    NormalB    = rGeom[1].FastGetSolutionStepValue(NORMAL);
+    NormalC    = rGeom[2].FastGetSolutionStepValue(NORMAL);
+    NormalMean = (NormalA + NormalB + NormalC)*0.33333333;
+    NormalAcceleration=0.33333333*(NormalA[0]*AccA[0] + NormalA[1]*AccA[1] + NormalA[2]*AccA[2] + 
+				   NormalB[0]*AccB[0] + NormalB[1]*AccB[1] + NormalB[2]*AccB[2] + 
+				   NormalC[0]*AccC[0] + NormalC[1]*AccC[1] + NormalC[2]*AccC[2]);
+  }else if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
+    AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
+    AccB= 0.5/TimeStep*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
+    AccC= 0.5/TimeStep*(rGeom[3].FastGetSolutionStepValue(VELOCITY,0)-rGeom[3].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[3].FastGetSolutionStepValue(ACCELERATION,1); 
+    AccMean = (AccA+AccB+AccC)*0.33333333;
+    NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
+    NormalB    = rGeom[1].FastGetSolutionStepValue(NORMAL);
+    NormalC    = rGeom[3].FastGetSolutionStepValue(NORMAL);
+    NormalMean = (NormalA + NormalB + NormalC)*0.33333333;
+    NormalAcceleration=0.33333333*(NormalA[0]*AccA[0] + NormalA[1]*AccA[1] + NormalA[2]*AccA[2] + 
+				   NormalB[0]*AccB[0] + NormalB[1]*AccB[1] + NormalB[2]*AccB[2] + 
+				   NormalC[0]*AccC[0] + NormalC[1]*AccC[1] + NormalC[2]*AccC[2]);
+  }else if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
+    AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
+    AccB= 0.5/TimeStep*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
+    AccC= 0.5/TimeStep*(rGeom[3].FastGetSolutionStepValue(VELOCITY,0)-rGeom[3].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[3].FastGetSolutionStepValue(ACCELERATION,1); 
+    AccMean = (AccA+AccB+AccC)*0.33333333;
+    NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
+    NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
+    NormalC    = rGeom[3].FastGetSolutionStepValue(NORMAL);
+    NormalMean = (NormalA + NormalB + NormalC)*0.33333333;
+    NormalAcceleration=0.33333333*(NormalA[0]*AccA[0] + NormalA[1]*AccA[1] + NormalA[2]*AccA[2] + 
+				   NormalB[0]*AccB[0] + NormalB[1]*AccB[1] + NormalB[2]*AccB[2] + 
+				   NormalC[0]*AccC[0] + NormalC[1]*AccC[1] + NormalC[2]*AccC[2]);
+  }else if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){      
+    AccA= 0.5/TimeStep*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
+    AccB= 0.5/TimeStep*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
+    AccC= 0.5/TimeStep*(rGeom[3].FastGetSolutionStepValue(VELOCITY,0)-rGeom[3].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[3].FastGetSolutionStepValue(ACCELERATION,1); 
+    AccMean = (AccA+AccB+AccC)*0.33333333;
+    NormalA    = rGeom[1].FastGetSolutionStepValue(NORMAL);
+    NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
+    NormalC    = rGeom[3].FastGetSolutionStepValue(NORMAL);
+    NormalMean = (NormalA + NormalB + NormalC)*0.33333333;
+    NormalAcceleration=0.33333333*(NormalA[0]*AccA[0] + NormalA[1]*AccA[1] + NormalA[2]*AccA[2] + 
+				   NormalB[0]*AccB[0] + NormalB[1]*AccB[1] + NormalB[2]*AccB[2] + 
+				   NormalC[0]*AccC[0] + NormalC[1]*AccC[1] + NormalC[2]*AccC[2]);
+  }
 
 
-  // if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
-  //   NormalMean = (rGeom[0].FastGetSolutionStepValue(NORMAL) + 
-  // 		  rGeom[1].FastGetSolutionStepValue(NORMAL) + 
-  // 		  rGeom[2].FastGetSolutionStepValue(NORMAL))/3.0;
-  // }else if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
-  //   NormalMean = (rGeom[0].FastGetSolutionStepValue(NORMAL) +
-  // 		  rGeom[1].FastGetSolutionStepValue(NORMAL) +
-  // 		  rGeom[3].FastGetSolutionStepValue(NORMAL))/3.0;
-  // }else if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
-  //   NormalMean = (rGeom[0].FastGetSolutionStepValue(NORMAL) +
-  // 		  rGeom[2].FastGetSolutionStepValue(NORMAL) +
-  // 		  rGeom[3].FastGetSolutionStepValue(NORMAL))/3.0;
-  // }else if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){      
-  //   NormalMean = (rGeom[1].FastGetSolutionStepValue(NORMAL) +
-  // 		  rGeom[2].FastGetSolutionStepValue(NORMAL) +
-  // 		  rGeom[3].FastGetSolutionStepValue(NORMAL))/3.0;
-  // }
 
+   
     NormalProjSpatialDefRate=NormalMean[0]*SpatialDefRate[0]*NormalMean[0]+
       NormalMean[1]*SpatialDefRate[1]*NormalMean[1]+
       NormalMean[2]*SpatialDefRate[2]*NormalMean[2]+
       2*NormalMean[0]*SpatialDefRate[3]*NormalMean[1]+
       2*NormalMean[0]*SpatialDefRate[4]*NormalMean[2]+
       2*NormalMean[1]*SpatialDefRate[5]*NormalMean[2];
+
 
 }
 
@@ -1703,91 +1733,59 @@ void TwoStepUpdatedLagrangianVPElement<3>::CheckStrain2(MatrixType &SpatialVeloc
   }
 
 
+
+
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPElement<TDim>::ComputeLumpedMassMatrix(Matrix& rMassMatrix,
 									const double Weight,
 									double & MeanValue)
   {
-
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
+
+    double Coeff=1.0+TDim;
     double Count=0;
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+    
+	double Mij = Weight/Coeff;
 
-    if((NumNodes==3 && TDim==2) || (NumNodes==4 && TDim==3)){
-      double Coeff=1.0+TDim;
-      for (SizeType i = 0; i < NumNodes; ++i)
-	{
-	  double Mij = Weight/Coeff;
-
-	  for ( unsigned int j = 0; j <  TDim; j++ )
-	    {
-	      unsigned int index = i * TDim + j;
-	      rMassMatrix( index, index ) += Mij;
-	      Count+=1.0;
-	      MeanValue+=Mij;
-	    }
-
-	}
-    }
-    else if(NumNodes==6 && TDim==2){
-      double Mij = Weight/57.0;
-      double consistent=1.0;
-      for (SizeType i = 0; i < NumNodes; ++i)
-	{
-	  if(i<3){
-	    consistent=3.0;
-	  }else{
-	    consistent=16.0;
+        for ( unsigned int j = 0; j <  TDim; j++ )
+	  {
+            unsigned int index = i * TDim + j;
+            rMassMatrix( index, index ) += Mij;
+	    Count+=1.0;
+	    MeanValue+=Mij;
 	  }
-	  for ( unsigned int j = 0; j <  TDim; j++ )
-	    {
-	      unsigned int index = i * TDim + j;
-	      rMassMatrix( index, index ) += Mij*consistent;
-	      Count+=1.0;
-	      MeanValue+=Mij;
-	    }
 
-	}
-
-    }else{
-      std::cout<<"ComputeLumpedMassMatrix 3D quadratic not yet implemented!"<<std::endl;
-    }
-      MeanValue*=1.0/Count;
-
+      }
+    MeanValue*=1.0/Count;
   }
 
 
 
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPElement<TDim>::ComputeMassMatrix(Matrix& rMassMatrix,
-								  const ShapeFunctionsType& rN,
-								  const double Weight,
-								  double & MeanValue)
+  void TwoStepUpdatedLagrangianVPElement<TDim>::ComputeMomentumMassTerm(Matrix& rMassMatrix,
+									     const ShapeFunctionsType& rN,
+									     const double Weight)
   {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
     IndexType FirstRow = 0;
     IndexType FirstCol = 0;
-    double Count=0;
 
     for (SizeType i = 0; i < NumNodes; ++i)
       {
         for (SizeType j = 0; j < NumNodes; ++j)
 	  {
             const double Mij = Weight * rN[i] * rN[j];
-		
-            for (SizeType d =  0; d < TDim; ++d){
+            for (SizeType d =  0; d < TDim; ++d)
 	      rMassMatrix(FirstRow+d,FirstCol+d) += Mij;
-	      MeanValue+=fabs(Mij);
-	      Count+=1.0;
-	    }
             FirstCol += TDim;
 	  }
         FirstRow += TDim;
         FirstCol = 0;
       }
-    MeanValue*=1.0/Count;
-
   }
 
  
@@ -1811,11 +1809,13 @@ void TwoStepUpdatedLagrangianVPElement<3>::CheckStrain2(MatrixType &SpatialVeloc
 	  for (SizeType d = 0; d < TDim; ++d)
 	    {
 	      // Body force
-	      rRHSVector[FirstRow+d] += Weight * Density * rN[i] * VolumeAcceleration[d];
+	      double RHSi = 0;
+	       RHSi =  Density * rN[i] * VolumeAcceleration[d];
+
+	      rRHSVector[FirstRow+d] += Weight * RHSi;
 	    }
 
 	}
-
         FirstRow += TDim;
 
       }
@@ -1903,6 +1903,10 @@ void TwoStepUpdatedLagrangianVPElement<3>::CheckStrain2(MatrixType &SpatialVeloc
 
   }
 
+
+
+  //template< unsigned int TDim >
+  //static const TwoStepUpdatedLagrangianVPElement<TDim>::ShapeFunctionsType TwoStepUpdatedLagrangianVPElement<TDim>::msNg = TwoStepUpdatedLagrangianVPElement<TDim>::InitializeShapeFunctions();
 
   /*
    * Template class definition (this should allow us to compile the desired template instantiations)
