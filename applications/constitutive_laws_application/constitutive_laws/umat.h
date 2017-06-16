@@ -25,7 +25,6 @@ class Umat : public HyperElastic3DLaw
 public:
 
     // Type Definitions
-    typedef HyperElastic3DLaw ConstitutiveLaw;
     typedef array_1d<double, 81> MaterialTensorType;
     KRATOS_CLASS_POINTER_DEFINITION( Umat );
     typedef array_1d<double, 3 > PlaneArrayType;
@@ -36,12 +35,15 @@ public:
     //destructor
     virtual ~Umat();
 
-    //clone
-    virtual BaseType::Pointer Clone() const
+    /**
+     * Clone function (has to be implemented by any derived class)
+     * @return a pointer to a new instance of this constitutive law
+     */
+    virtual ConstitutiveLaw::Pointer Clone() const override
     {
-        BaseType::Pointer p_clone ( new Umat() );
-        return p_clone;
-    }
+       Umat::Pointer p_clone(new Umat() );
+       return p_clone;
+    };
 
     size_t WorkingSpaceDimension()
     {
