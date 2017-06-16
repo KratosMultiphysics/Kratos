@@ -1043,15 +1043,15 @@ public:
 
 
         typename DofsContainerType::iterator itDoF = mDofs.find(SourceDof.GetVariable());
-        if(i_dof != mDofs.end())
+        if(itDoF != mDofs.end())
         {
-            if(i_dof->GetReaction() != SourceDof.GetReaction())
+            if(itDoF->GetReaction() != SourceDof.GetReaction())
             {
-                *i_dof = SourceDof;
-                i_dof->SetId(Id());
-                i_dof->SetSolutionStepsData(&mSolutionStepsNodalData);
+                *itDoF = SourceDof;
+                itDoF->SetId(Id());
+                itDoF->SetSolutionStepsData(&mSolutionStepsNodalData);
             }
-            return *(i_dof.base());
+            return *(itDoF.base());
         }
 
         typename DofType::Pointer pNewDoF =  boost::make_shared<DofType>(SourceDof);
