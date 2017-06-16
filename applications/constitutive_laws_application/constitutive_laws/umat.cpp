@@ -74,6 +74,7 @@ namespace Kratos
    //constructor:
    Umat::Umat() : HyperElastic3DLaw() {}
 
+
    //destructor:
    Umat::~Umat()
    {
@@ -226,7 +227,7 @@ namespace Kratos
 
       for (unsigned int i = 0; i < 6; i++)
          STRESS[i] = STRESS_END[i];
-      for (unsigned int i = 0; i < NSTATV[0]; i++)
+      for (int i = 0; i < NSTATV[0]; i++)
          STATEV[i] = STATEV_END[i];
 
       KRATOS_CATCH("")
@@ -245,7 +246,7 @@ namespace Kratos
 
 
       const ProcessInfo & rCurrentProcessInfo = rValues.GetProcessInfo();
-      const Properties& MaterialProperties  = rValues.GetMaterialProperties();
+      //const Properties& MaterialProperties  = rValues.GetMaterialProperties();
 
       Vector& rStrainVector                  = rValues.GetStrainVector();
       Vector& rStressVector                  = rValues.GetStressVector();
@@ -289,16 +290,6 @@ namespace Kratos
             DDSDDE[i][j] = 0.0;
          }
       }
-
-      std::cout << " STRAN " << StrainVector << std::endl;
-      std::cout << " DSTRAN" << DSTRAN << std::endl;
-      for (unsigned int i = 0; i < 6; i++)
-         std::cout << " , " << DSTRAN[i];
-      std::cout << std::endl;
-      std::cout << " STATEV " << STATEV << std::endl;
-      for (unsigned int i = 0; i < 12; i++)
-         std::cout << "  ,  " << STATEV[i];
-      std::cout << std::endl;
 
       Matrix AlgorithmicTangent = ZeroMatrix(6,6);
       Vector StressVector = ZeroVector(6);
@@ -346,7 +337,7 @@ namespace Kratos
       //does nothing
       for (unsigned int i = 0; i < 6; i++)
          STRESS_END[i] = STRESS[i];
-      for (unsigned int i = 0; i < NSTATV[0]; i++)
+      for (int i = 0; i < NSTATV[0]; i++)
          STATEV_END[i] = STATEV[i];
 
       KRATOS_CATCH("")
