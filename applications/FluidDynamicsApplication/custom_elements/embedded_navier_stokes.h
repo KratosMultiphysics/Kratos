@@ -100,6 +100,8 @@ public:
 
         array_1d<double, TDim>      intersection_normal;    // Intersection plane unit normal vector
 
+        double          intersection_area;                  // Intersection plane area
+
         unsigned int    ndivisions;                         // Number of element subdivisions
         unsigned int    ncutpoints;                         // Number of intersected edges
         unsigned int    n_pos;                              // Number of postivie distance nodes
@@ -580,6 +582,13 @@ protected:
         noalias(rSplittingData.intersection_normal) = -prod(trans(rData.DN_DX), rDistances);
         rSplittingData.intersection_normal /= (norm_2(rSplittingData.intersection_normal)+1e-15);
 
+        // Compute the intersection area
+        rSplittingData.intersection_area = 0.0;
+        for (unsigned int icut = 0; icut<rSplittingData.ncutpoints; ++icut)
+        {
+            rSplittingData.intersection_area += rSplittingData.cut_edge_areas(icut);
+        }
+
     }
 
 
@@ -696,13 +705,6 @@ protected:
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
-        // Get the intersection area
-        double intersection_area = 0.0;
-        for (unsigned int icut = 0; icut<rSplittingData.ncutpoints; icut++)
-        {
-            intersection_area += rSplittingData.cut_edge_areas(icut);
-        }
-
         // Compute the penalty coefficient as K*max(LHS(i,i))*IntArea (we integrate P_gamma over the intersection area)
         double diag_max = 0.0;
         for (unsigned int i=0; i<MatrixSize; i++)
@@ -714,7 +716,7 @@ protected:
         }
 
         const double K = 100.0;
-        const double denominator = std::max(0.0001*rData.h*rData.h, intersection_area);
+        const double denominator = std::max(0.0001*rData.h*rData.h, rSplittingData.intersection_area);
         const double pen_coef = K*diag_max/denominator;
 
         return pen_coef;
@@ -1704,9 +1706,39 @@ protected:
             prev_sol(i*BlockSize+TDim) = rData.p(i);
         }
 
-        // Nitsche coefficient
+        // Nitsche coefficient computation
         const double eff_mu = BaseType::ComputeEffectiveViscosity(rData);
-        const double cons_coef = 10000.0*eff_mu/rData.h;
+        // const double cons_coef = 10*eff_mu/rData.h;
+
+        // Compute the element average velocity norm
+        std::vector<double> avg_vel;
+        for (unsigned int comp=0; comp<TDim; ++comp)
+        {
+            double aux_vel = 0.0;
+            for (unsigned int j=0; j<TNumNodes; ++j)
+            {
+                aux_vel += rData.v(j,comp);
+            }
+            avg_vel.push_back(aux_vel/TNumNodes);
+        }
+        double v_norm = 0.0;
+        for (unsigned int i=0; i<TDim; ++i)
+        {
+            v_norm += avg_vel[i]*avg_vel[i];
+        }
+        v_norm = std::sqrt(v_norm);
+
+        // Compute the element average density
+        double avg_rho = 0.0;
+        for (unsigned int j=0; j<TNumNodes; ++j)
+        {
+            avg_rho += (this->GetGeometry())[j].FastGetSolutionStepValue(DENSITY);
+        }
+        avg_rho /= TNumNodes;
+
+        // Compute the Nitsche coefficient
+        const double penalty = 10.0;
+        const double cons_coef = penalty*(eff_mu + eff_mu + avg_rho*v_norm*rData.h + avg_rho*rData.h*rData.h/rData.dt)/rData.h;
 
         // Declare auxiliar arrays
         array_1d<double, MatrixSize> auxRightHandSideVector = ZeroVector(MatrixSize);
@@ -1730,10 +1762,10 @@ protected:
                     N_aux(comp,i*BlockSize+comp) = aux_cut(i);
                 }
             }
-            const bounded_matrix<double, MatrixSize, TDim> aux_trans = trans(N_aux);
+            const bounded_matrix<double, MatrixSize, TDim> N_aux_trans = trans(N_aux);
 
             // Compute the current cut point auxLHS contribution
-            const bounded_matrix<double, MatrixSize, TDim> aux_1 = prod(aux_trans, normal_projection_matrix);
+            const bounded_matrix<double, MatrixSize, TDim> aux_1 = prod(N_aux_trans, normal_projection_matrix);
             const bounded_matrix<double, MatrixSize, MatrixSize> aux_2 = prod(aux_1, N_aux);
             auxLeftHandSideMatrix += cons_coef*weight*aux_2;
         }
@@ -1793,9 +1825,6 @@ protected:
             prev_sol(i*BlockSize+TDim) = rData.p(i);
         }
 
-        // Nitsche coefficient
-        const double eff_mu = BaseType::ComputeEffectiveViscosity(rData);
-
         // Declare auxiliar arrays
         array_1d<double, MatrixSize> auxRightHandSideVector = ZeroVector(MatrixSize);
         bounded_matrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
@@ -1827,6 +1856,8 @@ protected:
 
         // Compute some element constant matrices
         const bounded_matrix<double, MatrixSize, (TDim-1)*3> aux_matrix_BC = prod(trans_B_matrix_exp, trans(rData.C));
+        const bounded_matrix<double, (TDim-1)*3, TDim> aux_matrix_APnorm = prod(trans(voigt_normal_projection_matrix), normal_projection_matrix);
+        const bounded_matrix<double, MatrixSize, TDim> aux_matrix_BCAPnorm = prod(aux_matrix_BC, aux_matrix_APnorm);
 
         for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
         {
@@ -1853,16 +1884,12 @@ protected:
                 }
             }
 
-            const bounded_matrix<double, TDim, MatrixSize> N_aux_proj = prod(normal_projection_matrix, N_aux);
-            const bounded_matrix<double, (TDim-1)*3, MatrixSize> N_aux_proj_voigt = prod(trans(voigt_normal_projection_matrix), N_aux_proj);
-
             // Contribution coming fron the shear stress operator
-            //TODO: CHECK THE CONSISTENCY PARAMETERS
-            auxLeftHandSideMatrix += eff_mu*weight*prod(aux_matrix_BC, N_aux_proj_voigt);
+            auxLeftHandSideMatrix += weight*prod(aux_matrix_BCAPnorm, N_aux);
 
             // Contribution coming from the pressure terms
-            //TODO: CHECK THE CONSISTENCY PARAMETERS
-            auxLeftHandSideMatrix -= eff_mu*weight*prod(trans_pres_to_voigt_matrix_op, N_aux_proj_voigt);
+            const bounded_matrix<double, MatrixSize, TDim> aux_matrix_VAPnorm = prod(trans_pres_to_voigt_matrix_op, aux_matrix_BCAPnorm);
+            auxLeftHandSideMatrix -= weight*prod(aux_matrix_VAPnorm, N_aux);
 
         }
 
@@ -1889,7 +1916,7 @@ protected:
 
         // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
         rRightHandSideVector -= auxRightHandSideVector;
-        rRightHandSideVector += prod(auxLeftHandSideMatrix, prev_sol); // The plus sign comes from the Nitsche formulation
+        rRightHandSideVector += prod(auxLeftHandSideMatrix, prev_sol);
 
     }
 
@@ -1901,10 +1928,10 @@ protected:
     * @param rData: reference to element data structure
     * @param rSplittingData: reference to the intersection data structure
     */
-    void AddSlipNoPenetrationFreundNitscheNullTangentialStressContribution(MatrixType& rLeftHandSideMatrix,
-                                                                           VectorType& rRightHandSideVector,
-                                                                           const ElementDataType& rData,
-                                                                           const ElementSplittingDataStruct& rSplittingData)
+    void AddSlipFreundNitscheNullTangentialStressContribution(MatrixType& rLeftHandSideMatrix,
+                                                              VectorType& rRightHandSideVector,
+                                                              const ElementDataType& rData,
+                                                              const ElementSplittingDataStruct& rSplittingData)
     {
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
@@ -1951,7 +1978,8 @@ protected:
 
         // Compute some element constant matrices
         const bounded_matrix<double, TDim, (TDim-1)*3> projection_matrix = prod(normal_projection_matrix, voigt_normal_projection_matrix);
-        const bounded_matrix<double, (TDim-1)*3, MatrixSize> aux_matrix_BC = prod(rData.C, B_matrix_exp);
+        const bounded_matrix<double, (TDim-1)*3, MatrixSize> aux_matrix_CB = prod(rData.C, B_matrix_exp);
+        const bounded_matrix<double, TDim, MatrixSize> aux_matrix_PnormACB = prod(projection_matrix, aux_matrix_CB);
 
         for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
         {
@@ -1978,12 +2006,11 @@ protected:
                 }
             }
 
-            const bounded_matrix<double, MatrixSize, (TDim-1)*3> N_aux_proj = prod(N_aux_trans, projection_matrix);
-
             // Contribution coming fron the shear stress operator
-            auxLeftHandSideMatrix += weight*prod(N_aux_proj, aux_matrix_BC);
+            auxLeftHandSideMatrix += weight*prod(N_aux_trans, aux_matrix_PnormACB);
 
             // Contribution coming from the pressure terms
+            const bounded_matrix<double, MatrixSize, (TDim-1)*3> N_aux_proj = prod(N_aux_trans, projection_matrix);
             auxLeftHandSideMatrix -= weight*prod(N_aux_proj, pres_to_voigt_matrix_op);
 
         }
@@ -2035,8 +2062,8 @@ protected:
 
                 // Pure Nitche implementation (Freund and Stenberg)
                 AddSlipNoPenetrationFreundNitschePenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
-                AddSlipNoPenetrationFreundNitscheSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
-                AddSlipNoPenetrationFreundNitscheNullTangentialStressContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
+                // AddSlipNoPenetrationFreundNitscheSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
+                // AddSlipFreundNitscheNullTangentialStressContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
             }
             else
             {
