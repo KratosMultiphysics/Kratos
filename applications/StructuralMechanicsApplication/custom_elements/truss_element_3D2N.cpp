@@ -50,7 +50,7 @@ namespace Kratos
 
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const int local_size = number_of_nodes * dimension;
+		const unsigned int local_size = number_of_nodes * dimension;
 
 		if (rResult.size() != local_size) rResult.resize(local_size);
 
@@ -71,7 +71,7 @@ namespace Kratos
 
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const int local_size = number_of_nodes * dimension;
+		const unsigned int local_size = number_of_nodes * dimension;
 
 		if (rElementalDofList.size() != local_size) {
 			rElementalDofList.resize(local_size);
@@ -92,26 +92,6 @@ namespace Kratos
 	void TrussElement3D2N::Initialize() {
 
 		KRATOS_TRY
-		this->mArea = this->GetProperties()[CROSS_AREA];
-		this->mYoungsModulus = this->GetProperties()[YOUNG_MODULUS];
-		this->mLength = this->CalculateReferenceLength();
-		this->mCurrentLength = this->CalculateCurrentLength();
-		this->mDensity = this->GetProperties()[DENSITY];
-
-		if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2) == false) {
-			this->mPreStress = 0.00;
-		}
-		else this->mPreStress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
-
-		if (this->GetProperties().Has(TRUSS_IS_CABLE) == false) {
-			this->mIsCable = false;
-		}
-		else this->mIsCable = this->GetProperties()[TRUSS_IS_CABLE];
-
-		if (this->mLength == 0.00) {
-			KRATOS_ERROR << ("Zero length found in element #", this->Id()) <<
-				std::endl;
-		}
 		KRATOS_CATCH("")
 	}
 
@@ -120,11 +100,16 @@ namespace Kratos
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const int local_size = number_of_nodes * dimension;
+		const unsigned int local_size = number_of_nodes * dimension;
 
-		const double E = this->mYoungsModulus;
-		double A = this->mArea;
-		const double S_pre = this->mPreStress;
+		const double E = this->GetProperties()[YOUNG_MODULUS];
+		double A = this->GetProperties()[CROSS_AREA];
+
+		double S_pre = 0.00;
+		if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2) == true) {
+			S_pre = this->GetProperties()[TRUSS_PRESTRESS_PK2];
+		}
+
 		MatrixType LocalStiffnessMatrix = ZeroMatrix(local_size, local_size);
 
 		// du... delta displacement in x-direction
@@ -143,8 +128,8 @@ namespace Kratos
 		const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
 		const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
 		const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-		const double L = this->mLength;
-		const double l = this->mCurrentLength;
+		const double L = this->CalculateReferenceLength();
+		const double l = this->CalculateCurrentLength();
 	    double e_gL = (l*l - L*L) / (2.00 * L*L);
 		const double L2 = L*L;
 		const double L4 = L2*L2;
@@ -162,7 +147,7 @@ namespace Kratos
 		const double K_1 = e_gL*E + S_pre;
 
 		//if cable + compressed -> no contribution to global K
-		if (this->mIsCable == true && this->mIsCompressed == true) A = 0;
+		if (this->ReturnIfIsCable() == true && this->mIsCompressed == true) A = 0;
 
 		LocalStiffnessMatrix(0, 0) = A*L*(K_1 / L2 + E*(dx + du)*(dx + du) / L4); 
 		LocalStiffnessMatrix(3, 3) = LocalStiffnessMatrix(0, 0); 
@@ -228,7 +213,7 @@ namespace Kratos
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const int MatSize = number_of_nodes * dimension;
+		const unsigned int MatSize = number_of_nodes * dimension;
 
 		if (rDampingMatrix.size1() != MatSize)
 		{
@@ -277,7 +262,7 @@ namespace Kratos
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const int MatSize = number_of_nodes * dimension;
+		const unsigned int MatSize = number_of_nodes * dimension;
 
 		if (rMassMatrix.size1() != MatSize) {
 			rMassMatrix.resize(MatSize, MatSize, false);
@@ -285,7 +270,11 @@ namespace Kratos
 
 		rMassMatrix = ZeroMatrix(MatSize, MatSize);
 
-		const double TotalMass = this->mArea * this->mLength * this->mDensity;
+		const double A = this->GetProperties()[CROSS_AREA];
+		const double L = this->CalculateReferenceLength();
+		const double rho = this->GetProperties()[DENSITY];
+
+		const double TotalMass = A * L * rho;
 
 		Vector LumpFact = ZeroVector(number_of_nodes);
 
@@ -310,14 +299,18 @@ namespace Kratos
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const int MatSize = number_of_nodes * dimension;
+		const unsigned int MatSize = number_of_nodes * dimension;
 
 		//getting shapefunctionvalues 
 		const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues(
 			GeometryData::GI_GAUSS_1);
 
 		//creating necessary values 
-		double TotalMass = this->mArea * this->mLength * this->mDensity;
+		const double A = this->GetProperties()[CROSS_AREA];
+		const double L = this->CalculateReferenceLength();
+		const double rho = this->GetProperties()[DENSITY];
+
+		double TotalMass = A * L * rho;
 		VectorType BodyForcesNode = ZeroVector(dimension);
 		VectorType BodyForcesGlobal = ZeroVector(MatSize);
 
@@ -340,7 +333,7 @@ namespace Kratos
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const int element_size = number_of_nodes * dimension;
+		const unsigned int element_size = number_of_nodes * dimension;
 
 		if (rValues.size() != element_size) rValues.resize(element_size, false);
 
@@ -362,7 +355,7 @@ namespace Kratos
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const int element_size = number_of_nodes * dimension;
+		const unsigned int element_size = number_of_nodes * dimension;
 
 		if (rValues.size() != element_size) rValues.resize(element_size, false);
 
@@ -384,7 +377,7 @@ namespace Kratos
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const int element_size = number_of_nodes * dimension;
+		const unsigned int element_size = number_of_nodes * dimension;
 
 		if (rValues.size() != element_size) rValues.resize(element_size, false);
 
@@ -436,11 +429,9 @@ namespace Kratos
 			rRightHandSideVector += this->CalculateBodyForces();
 		}
 
-		if (this->mIsCable == true && this->mIsCompressed == true) {
+		if (this->ReturnIfIsCable() == true && this->mIsCompressed == true) {
 			rRightHandSideVector = ZeroVector(LocalSize);
 		}
-
-		this->mIterCount++;
 		KRATOS_CATCH("")
 	}
 
@@ -472,7 +463,7 @@ namespace Kratos
 		//add bodyforces 
 		rRightHandSideVector += this->CalculateBodyForces();
 
-		if (this->mIsCable == true && this->mIsCompressed == true) {
+		if (this->ReturnIfIsCable() == true && this->mIsCompressed == true) {
 			rRightHandSideVector = ZeroVector(LocalSize);
 		}
 
@@ -505,7 +496,12 @@ namespace Kratos
 		if (rOutput.size() != integration_points.size()) {
 			rOutput.resize(integration_points.size());
 		}
-		if (rVariable == TRUSS_PRESTRESS_PK2) rOutput[0] = this->mPreStress;
+		if (rVariable == TRUSS_PRESTRESS_PK2) {
+			rOutput[0] = 0.00;
+			if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2) == true) {
+				rOutput[0] = this->GetProperties()[TRUSS_PRESTRESS_PK2];
+			}
+		}
 		KRATOS_CATCH("")
 	}
 
@@ -551,6 +547,17 @@ namespace Kratos
 	}
 
 
+	bool TrussElement3D2N::ReturnIfIsCable()
+	{
+		KRATOS_TRY;
+		bool IsCable = false;
+		if (this->GetProperties().Has(TRUSS_IS_CABLE) == true) {
+			IsCable = this->GetProperties()[TRUSS_IS_CABLE];
+		}
+		return IsCable;
+		KRATOS_CATCH("")
+	}
+
 	int  TrussElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo){
 		KRATOS_TRY
 
@@ -561,22 +568,22 @@ namespace Kratos
 			}
 		//verify that the variables are correctly initialized
 		if (VELOCITY.Key() == 0)
-			KRATOS_ERROR << ("VELOCITY has Key zero! (check if the application is correctly registered", "") << std::endl;
+			KRATOS_ERROR << "VELOCITY has Key zero! (check if the application is correctly registered" << "" << std::endl;
 		if (DISPLACEMENT.Key() == 0)
-			KRATOS_ERROR << ("DISPLACEMENT has Key zero! (check if the application is correctly registered", "") << std::endl;
+			KRATOS_ERROR << "DISPLACEMENT has Key zero! (check if the application is correctly registered" << "" << std::endl;
 		if (ACCELERATION.Key() == 0)
-			KRATOS_ERROR << ("ACCELERATION has Key zero! (check if the application is correctly registered", "") << std::endl;
+			KRATOS_ERROR << "ACCELERATION has Key zero! (check if the application is correctly registered" << "" << std::endl;
 		if (DENSITY.Key() == 0)
-			KRATOS_ERROR << ("DENSITY has Key zero! (check if the application is correctly registered", "") << std::endl;
+			KRATOS_ERROR << "DENSITY has Key zero! (check if the application is correctly registered" << "" << std::endl;
 		if (CROSS_AREA.Key() == 0)
-			KRATOS_ERROR << ("CROSS_AREA has Key zero! (check if the application is correctly registered", "") << std::endl;
+			KRATOS_ERROR << "CROSS_AREA has Key zero! (check if the application is correctly registered" << "" << std::endl;
 		//verify that the dofs exist
-		for (int i = 0; i<this->GetGeometry().PointsNumber(); ++i)
+		for (unsigned int i = 0; i<this->GetGeometry().PointsNumber(); ++i)
 			{
 			if (this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false)
-				KRATOS_ERROR << ("missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id()) << std::endl;
+				KRATOS_ERROR << "missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
 			if (this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Z) == false)
-				KRATOS_ERROR << ("missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id()) << std::endl;
+				KRATOS_ERROR << "missing one of the dofs for the variable DISPLACEMENT on node " << GetGeometry()[i].Id() << std::endl;
 			}
 
 
@@ -584,17 +591,17 @@ namespace Kratos
 		if (this->GetProperties().Has(CROSS_AREA) == false ||
 			this->GetProperties()[CROSS_AREA] == 0)
 		{
-			KRATOS_ERROR << ( "CROSS_AREA not provided for this element", this->Id()) << std::endl;
+			KRATOS_ERROR <<  "CROSS_AREA not provided for this element" << this->Id() << std::endl;
 		}
 
 		if (this->GetProperties().Has(YOUNG_MODULUS) == false ||
 			this->GetProperties()[YOUNG_MODULUS] == 0)
 		{
-			KRATOS_ERROR << ("YOUNG_MODULUS not provided for this element", this->Id()) << std::endl;
+			KRATOS_ERROR << "YOUNG_MODULUS not provided for this element" << this->Id() << std::endl;
 		}
 		if (this->GetProperties().Has(DENSITY) == false)
 		{
-			KRATOS_ERROR << ("DENSITY not provided for this element", this->Id()) << std::endl;
+			KRATOS_ERROR << "DENSITY not provided for this element" << this->Id() << std::endl;
 		}
 
 
@@ -606,7 +613,7 @@ namespace Kratos
 
 		KRATOS_TRY
 		const double l = this->CalculateCurrentLength();
-		const double L = this->mLength;
+		const double L = this->CalculateReferenceLength();
 		const double e = ((l * l - L * L) / (2.00 * L * L));
 		return e;
 		KRATOS_CATCH("")
@@ -650,10 +657,15 @@ namespace Kratos
 		this->CreateTransformationMatrix(TransformationMatrix);
 		const double InternalStrainGL = this->CalculateGreenLagrangeStrain();
 		const double l = this->CalculateCurrentLength();
-		const double L0 = this->mLength;
-		const double E = this->mYoungsModulus;
-		const double A = this->mArea;
-		const double S_pre = this->mPreStress;
+		const double L0 = this->CalculateReferenceLength();
+		const double E = this->GetProperties()[YOUNG_MODULUS];
+		const double A = this->GetProperties()[CROSS_AREA];
+
+		double S_pre = 0.00;
+		if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2) == true) {
+			S_pre = this->GetProperties()[TRUSS_PRESTRESS_PK2];
+		}
+
 		const double N = ((E*InternalStrainGL + S_pre) * l * A) / L0;
 
 		if (N < 0.00) this->mIsCompressed = true;
@@ -665,7 +677,7 @@ namespace Kratos
 		f_local[3] = 1.00 * N;
 		
 
-		this->mCurrentLength = l;
+		//this->mCurrentLength = l;
 		rinternalForces = ZeroVector(LocalSize);
 		noalias(rinternalForces) = prod(TransformationMatrix, f_local);
 		KRATOS_CATCH("");
@@ -676,7 +688,7 @@ namespace Kratos
 		KRATOS_TRY
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const int local_size = number_of_nodes * dimension;
+		const unsigned int local_size = number_of_nodes * dimension;
 
 		//1st calculate transformation matrix
 		Vector DirectionVectorX = ZeroVector(dimension);
@@ -739,7 +751,7 @@ namespace Kratos
 			rRotationMatrix.resize(local_size, local_size, false);
 		}
 		//Building the rotation matrix for the local element matrix
-		for (int kk = 0; kk < local_size; kk += dimension)
+		for (unsigned int kk = 0; kk < local_size; kk += dimension)
 		{
 			for (int i = 0; i<dimension; ++i)
 			{
@@ -763,7 +775,6 @@ namespace Kratos
 		KRATOS_TRY;
 		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const int element_size = number_of_nodes * dimension;
 		
 		if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL)
 		{
@@ -794,13 +805,6 @@ namespace Kratos
 	{
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 		rSerializer.save("mIscompressed", this->mIsCompressed);
-		rSerializer.save("mIsCable", this->mIsCable);
-		rSerializer.save("Area", this->mArea);
-		rSerializer.save("Density", this->mDensity);
-		rSerializer.save("YoungsModulus", this->mYoungsModulus);
-		rSerializer.save("LengthRef", this->mLength);
-		rSerializer.save("LengthCur", this->mCurrentLength);
-		rSerializer.save("Prestress", this->mPreStress);
 		rSerializer.save("LinerEle", this->mIsLinearElement);
 
 	}
@@ -808,13 +812,6 @@ namespace Kratos
 	{
 		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
 		rSerializer.load("mIscompressed", this->mIsCompressed);
-		rSerializer.load("mIsCable", this->mIsCable);
-		rSerializer.load("Area", this->mArea);
-		rSerializer.load("Density", this->mDensity);
-		rSerializer.load("YoungsModulus", this->mYoungsModulus);
-		rSerializer.load("LengthRef", this->mLength);
-		rSerializer.load("LengthCur", this->mCurrentLength);
-		rSerializer.load("Prestress", this->mPreStress);
 		rSerializer.load("LinerEle", this->mIsLinearElement);
 	}
 } // namespace Kratos.

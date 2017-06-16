@@ -169,14 +169,11 @@ namespace Kratos
 
 		VectorType CalculateBodyForces();  
 
+		bool ReturnIfIsCable();
+
 
 
 	private:
-		double mPreStress, mArea, mYoungsModulus, mLength, mDensity;
-		double mCurrentLength;
-		MatrixType mLHS;
-		int mIterCount = 0; 
-		bool mIsCable;
 		bool mIsCompressed;
 		bool mIsLinearElement = false;
 
