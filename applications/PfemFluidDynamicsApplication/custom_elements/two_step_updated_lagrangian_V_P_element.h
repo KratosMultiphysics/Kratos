@@ -533,11 +533,12 @@ namespace Kratos
       
       virtual bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
 					const ProcessInfo& rCurrentProcessInfo,
+					const ShapeFunctionDerivativesType& rDN_DX,
 					unsigned int g){return true;};
 
       bool CalcStrainRate(ElementalVariables & rElementalVariables,
 			  const ProcessInfo& rCurrentProcessInfo,
-			  unsigned int g,
+			  const ShapeFunctionDerivativesType& rDN_DX,
 			  const double theta);
 
       void CalcVelDefGrad(const ShapeFunctionDerivativesType& rDN_DX,
@@ -655,7 +656,12 @@ namespace Kratos
 
 	  for(SizeType i = 0; i < NumNodes; i++)
 	    {
+	      double density =rGeom[i].FastGetSolutionStepValue(DENSITY);
 	      if(rGeom[i].IsNot(RIGID)){
+		if(density<999 || density>1001){
+		  std::cout<<"master Density was "<<density<<std::endl;
+		  std::cout<<rGeom[i].X()<<" "<<rGeom[i].Y()<<std::endl;
+		    }
 		rResult = rGeom[i].FastGetSolutionStepValue(Var);
 		break;
 	      }

@@ -335,7 +335,7 @@ private:
     array_1d<unsigned int,3> FirstEdgeNode(3,0);
     array_1d<unsigned int,3> SecondEdgeNode(3,0);
     double WallCharacteristicDistance=0;
-    array_1d<double,2> CoorDifference(2,0.0);
+    array_1d<double,3> CoorDifference(3,0.0);
     CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
     double SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1];
     Edges[0]=sqrt(SquaredLength);
@@ -386,7 +386,7 @@ private:
 
     if(dangerousElement==false && toEraseNodeFound==false){
 
-      array_1d<double,2> NewPosition(2,0.0);
+      array_1d<double,3> NewPosition(3,0.0);
       unsigned int maxCount=3;
       double LargestEdge=0;
 

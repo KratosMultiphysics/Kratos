@@ -192,8 +192,8 @@ class PfemFluidSolver:
                 params.AddValue("bodies_list",self.settings["bodies_list"])         
 
             # CheckAndPrepareModelProcess creates the fluid_computational model part
-            import check_and_prepare_model_process_fluid
-            check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
+            import pfem_check_and_prepare_model_process_fluid
+            pfem_check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
             # Set Properties to nodes : Deprecated
             #self.SetProperties()
@@ -274,6 +274,10 @@ class PfemFluidSolver:
 
     def InitializeSolutionStep(self):
         #pass
+  
+        #split_elements = KratosPfemFluid.SplitElementsProcess(self.main_model_part,self.settings["echo_level"].GetInt())
+        #split_elements.ExecuteInitialize()
+
         self.fluid_solver.InitializeSolutionStep()
 
     def Predict(self):
@@ -287,6 +291,9 @@ class PfemFluidSolver:
     def FinalizeSolutionStep(self):
         #pass
         self.fluid_solver.FinalizeSolutionStep()
+     
+        #split_elements = KratosPfemFluid.SplitElementsProcess(self.main_model_part,self.settings["echo_level"].GetInt())
+        #split_elements.ExecuteFinalize()
         
         #self.fluid_solver.CalculateAccelerations()  # ACCELERATION
         #self.fluid_solver.CalculateDisplacements()  # DISPLACEMENTS

@@ -443,7 +443,7 @@ public:
 
 	    for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
 	      {
-		if(itNode->IsNot(ISOLATED) && itNode->IsNot(SOLID)){
+		if(itNode->IsNot(TO_ERASE) && itNode->IsNot(ISOLATED) && itNode->IsNot(SOLID)){
 		  const array_1d<double,3> &Vel = itNode->FastGetSolutionStepValue(VELOCITY);
 		  double NormVelNode=0;
 		  for (unsigned int d = 0; d < 3; ++d){
@@ -473,7 +473,7 @@ public:
 		      double reducedTimeInterval=0.5*updatedTimeInterval;
 		      if(reducedTimeInterval<temporaryTimeInterval){
 			rCurrentProcessInfo.SetValue(DELTA_TIME,reducedTimeInterval);
-			/* std::cout<<"reducing time step (nodal criterion)"<<reducedTimeInterval<<std::endl; */
+			std::cout<<"reducing time step (nodal criterion)"<<reducedTimeInterval<<std::endl;
 			rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
 			timeIntervalReduced=true;
 			break;
@@ -509,9 +509,10 @@ public:
 	      bool solidElement=false;
 	      for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
 		{
-		  if(itElem->GetGeometry()[i].Is(SOLID)){
+		  if(itElem->GetGeometry()[i].Is(SOLID) || itElem->GetGeometry()[i].Is(TO_ERASE) || itElem->IsNot(ACTIVE)){
 		    solidElement=true;
 		  }
+	
 		  const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
 		  Point<3> updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval;
 		  updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
@@ -532,12 +533,13 @@ public:
 		newArea=currentElementalArea;
 	      }
 
-	      if(newArea<0.001*currentElementalArea){
+	      if(newArea<0.001*currentElementalArea && currentElementalArea>0){
 		double reducedTimeInterval=0.5*temporaryTimeInterval;
 	      
 		if(reducedTimeInterval<temporaryTimeInterval){
 		  rCurrentProcessInfo.SetValue(DELTA_TIME,reducedTimeInterval);
-		  /* std::cout<<"reducing time step (elemental inversion)"<<reducedTimeInterval<<std::endl; */
+		  std::cout<<"reducing time step (elemental inversion)"<<reducedTimeInterval<<std::endl;
+		  std::cout<<"areas:"<<newArea<<" "<<currentElementalArea<<std::endl;
 		  rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
 		  increaseTimeInterval=false;
 		  break;
@@ -563,9 +565,9 @@ public:
 		  std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
 		}
 
-		if(newArea<0.001*currentElementalArea){
+		if(newArea<0.001*currentElementalArea && currentElementalArea>0){
 		  increaseTimeInterval=false;
-		  /*std::cout<<"I'll not reduce the time step but I'll not allow to increase it"<<std::endl;*/
+		  /* std::cout<<"I'll not reduce the time step but I'll not allow to increase it"<<std::endl; */
 		}
 
 	      }
@@ -599,7 +601,7 @@ public:
 		newVolume=currentElementalVolume;
 	      }
 
-	      if(newVolume<0.001*currentElementalVolume){
+	      if(newVolume<0.001*currentElementalVolume && currentElementalVolume>0){
 		double reducedTimeInterval=0.5*temporaryTimeInterval;
 	      
 		if(reducedTimeInterval<temporaryTimeInterval){
@@ -629,7 +631,7 @@ public:
 		  std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
 		}
 
-		if(newVolume<0.001*currentElementalVolume){
+		if(newVolume<0.001*currentElementalVolume && currentElementalVolume>0){
 		  increaseTimeInterval=false;
 		  /* std::cout<<"I'll not reduce the time step but I'll not allow to increase it"<<std::endl; */
 		}
@@ -816,9 +818,10 @@ public:
 	ModelPart::ElementIterator ElemBegin;
 	ModelPart::ElementIterator ElemEnd;
 	OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd);
-
+	unsigned int count=0;
 	for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
 	  {
+	    count++;
 	    double ElementalVolume =  0;
 	    const unsigned int dimension = (itElem)->GetGeometry().WorkingSpaceDimension();
 	    if(dimension==2){
@@ -829,13 +832,18 @@ public:
 	      ElementalVolume = 0;
 	    }
 	    double CriticalVolume=-10;
-	    if(ElementalVolume<CriticalVolume){
-	      (itElem)->Reset(ACTIVE);
+	    if((itElem)->IsNot(ACTIVE)){
+	      /* std::cout<<"count in twoStepVPstrategy "<<count<<std::endl; */
+	      /* std::cout<<"not active "<<std::endl; */
+	      (itElem)->Set(ACTIVE,false);
+	    }else if(ElementalVolume<CriticalVolume){
+	      (itElem)->Set(ACTIVE,false);
 	      std::cout<<"RESET ACTIVE FOR THIS SLIVER! \t";
 	      std::cout<<"its volume is "<<ElementalVolume<<" vs CriticalVolume "<<CriticalVolume<<std::endl;
 	    }else{
-	      (itElem)->Set(ACTIVE);
+	      (itElem)->Set(ACTIVE,true);
 	    }
+
 	  }
 
       }

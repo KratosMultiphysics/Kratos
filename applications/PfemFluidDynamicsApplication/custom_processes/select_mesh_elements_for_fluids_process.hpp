@@ -287,7 +287,7 @@ public:
 		// }
 	      if(dimension==2){
 		if(numfreesurf==nds || (numisolated+numfreesurf)==nds){
-		  Alpha*=0;
+		  // Alpha*=0;
 		  // Alpha*=0.8;
 		}else if((numrigid+numisolated+numfreesurf)==nds){
 		  // Alpha*=0.9;
@@ -322,7 +322,6 @@ public:
 	      }
 
 	      // Alpha*=1.175;
-
 	      bool accepted=false;
 	      
 	      ModelerUtilities ModelerUtils;
