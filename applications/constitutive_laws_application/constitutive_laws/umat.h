@@ -94,6 +94,7 @@ public:
 
 protected:
 
+    void LoadPreviousInformation();
 private:
 
     //member variables for umat
@@ -102,6 +103,9 @@ private:
     double* PROPS;
     int* NSTATV;
     int* NPROPS;
+
+    double* STRESS_END;
+    double* STATEV_END;
 
     //static member variables for umat
     double* STRAN;
