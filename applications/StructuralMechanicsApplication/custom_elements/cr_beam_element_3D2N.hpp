@@ -18,7 +18,6 @@
 #include "includes/element.h"
 #include "includes/define.h"
 #include "includes/variables.h"
-#include "structural_mechanics_application_variables.h"
 #include "includes/serializer.h"
 
 namespace Kratos
@@ -138,6 +137,7 @@ namespace Kratos
 
 		double CalculateCurrentLength();
 		double CalculatePsi(const double I, const double A_eff);
+		double CalculateShearModulus();
 		double CalculateReferenceLength();
 		void UpdateIncrementDeformation();
 
@@ -171,9 +171,6 @@ namespace Kratos
 			const double GeometryLength);
 
 	private:
-		double mArea, mYoungsModulus, mLength, mDensity, mInertiaX, mInertiaY;
-		double mInertiaZ, mCurrentLength, mPsiY, mPsiZ;
-		double mEffAreaY, mEffAreaZ, mShearModulus, mPoisson, mtheta;
 		double mdPhi_x_a, mRotInertiaY, mRotInertiaZ;
 		Vector mNX, mNY, mNZ, mRHS, mTotalDef, mTotalPos;
 		Vector mTotalNodalDeformation, mTotalNodalPosistion, mBodyForces;

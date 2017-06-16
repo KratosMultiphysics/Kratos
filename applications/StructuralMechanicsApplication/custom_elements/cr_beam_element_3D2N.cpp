@@ -11,6 +11,7 @@
 //                   
 //
 #include "custom_elements/cr_beam_element_3D2N.hpp"
+#include "structural_mechanics_application_variables.h"
 #include "includes/define.h"
 
 
@@ -110,50 +111,6 @@ namespace Kratos
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const unsigned int local_size = number_of_nodes * dimension;
 
-
-		this->mPoisson = this->GetProperties()[POISSON_RATIO];
-		this->mArea = this->GetProperties()[CROSS_AREA];
-		this->mYoungsModulus = this->GetProperties()[YOUNG_MODULUS];
-		this->mShearModulus = this->mYoungsModulus / (2.0 * (1.0 + this->mPoisson));
-		this->mLength = this->CalculateReferenceLength();
-		this->mCurrentLength = this->CalculateCurrentLength();
-		this->mDensity = this->GetProperties()[DENSITY];
-		this->mInertiaX = this->GetProperties()[IT];
-		this->mInertiaY = this->GetProperties()[IY];
-		this->mInertiaZ = this->GetProperties()[IZ];
-		//effecive shear Area
-		if (this->GetProperties().Has(AREA_EFFECTIVE_Y) == true) {
-			this->mEffAreaY = GetProperties()[AREA_EFFECTIVE_Y];
-		}
-		else this->mEffAreaY = 0.00;
-		if (this->GetProperties().Has(AREA_EFFECTIVE_Z) == true) {
-			this->mEffAreaZ = GetProperties()[AREA_EFFECTIVE_Z];
-		}
-		else this->mEffAreaZ = 0.00;
-
-		//rotational inertia
-		if (this->GetProperties().Has(INERTIA_ROT_Y) == true) {
-			this->mRotInertiaY = GetProperties()[INERTIA_ROT_Y];
-		}
-		else this->mRotInertiaY = this->mInertiaY;
-		if (this->GetProperties().Has(INERTIA_ROT_Z) == true) {
-			this->mRotInertiaZ = GetProperties()[INERTIA_ROT_Z];
-		}
-		else this->mRotInertiaZ = this->mInertiaZ;
-
-		//caluclate Psi,y,z
-		this->mPsiY = this->CalculatePsi(this->mInertiaY, this->mEffAreaZ);
-		this->mPsiZ = this->CalculatePsi(this->mInertiaZ, this->mEffAreaY);
-		//manual beam rotation
-		if (this->GetProperties().Has(ANG_ROT) == true) {
-			this->mtheta = this->GetProperties()[ANG_ROT];
-		}
-		else this->mtheta = 0.00;
-		if (this->mLength == 0.00) {
-			KRATOS_ERROR << "Zero length found in element #" << this->Id() <<
-				std::endl;
-		}
-
 		if (this->mIterationCount == 0)
 		{
 			this->mNodalForces = ZeroVector(local_size * 2);
@@ -163,22 +120,34 @@ namespace Kratos
 
 	Matrix CrBeamElement3D2N::CreateElementStiffnessMatrix_Material() {
 
-		KRATOS_TRY
-			const int number_of_nodes = this->GetGeometry().PointsNumber();
+		KRATOS_TRY;
+		const int number_of_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const unsigned int local_size = number_of_nodes * dimension * 2;
 
-		const double E = this->mYoungsModulus;
-		const double G = this->mShearModulus;
-		const double A = this->mArea;
-		const double L = this->mLength;
+		const double E = this->GetProperties()[YOUNG_MODULUS];
+		const double G = this->CalculateShearModulus();
+		const double A = this->GetProperties()[CROSS_AREA];
+		const double L = this->CalculateReferenceLength();
 
-		const double J = this->mInertiaX;
-		const double Iy = this->mInertiaY;
-		const double Iz = this->mInertiaZ;
+		const double J = this->GetProperties()[IT];
+		const double Iy = this->GetProperties()[IY];
+		const double Iz = this->GetProperties()[IZ];
 
-		const double Psi_y = this->mPsiY;
-		const double Psi_z = this->mPsiZ;
+
+		double Ay = 0.00;
+		if (this->GetProperties().Has(AREA_EFFECTIVE_Y) == true) {
+			Ay = GetProperties()[AREA_EFFECTIVE_Y];
+		}
+
+		double Az = 0.00;
+		if (this->GetProperties().Has(AREA_EFFECTIVE_Z) == true) {
+			Az = GetProperties()[AREA_EFFECTIVE_Z];
+		}
+		const double Psi_y = this->CalculatePsi(Iy, Az);
+		const double Psi_z = this->CalculatePsi(Iz, Ay);
+
+
 
 		Matrix LocalStiffnessMatrix = ZeroMatrix(local_size, local_size);
 		const double L3 = L*L*L;
@@ -253,7 +222,7 @@ namespace Kratos
 		const double my_B = qe[10];
 		const double mz_B = qe[11];
 
-		const double L = this->mCurrentLength;
+		const double L = this->CalculateCurrentLength();
 		const double Qy = -1.00 * (mz_A + mz_B) / L;
 		const double Qz = (my_A + my_B) / L;
 
@@ -371,16 +340,25 @@ namespace Kratos
 		const unsigned int local_size = number_of_nodes * dimension;
 
 		Matrix Kd = ZeroMatrix(local_size, local_size);
-		const double E = this->mYoungsModulus;
-		const double G = this->mShearModulus;
-		const double A = this->mArea;
-		const double L = this->mLength;
-		const double J = this->mInertiaX;
-		const double Iy = this->mInertiaY;
-		const double Iz = this->mInertiaZ;
+		const double E = this->GetProperties()[YOUNG_MODULUS];
+		const double G = this->CalculateShearModulus();
+		const double A = this->GetProperties()[CROSS_AREA];
+		const double L = this->CalculateReferenceLength();
+		const double J = this->GetProperties()[IT];
+		const double Iy = this->GetProperties()[IY];
+		const double Iz = this->GetProperties()[IZ];
 
-		const double Psi_y = this->mPsiY;
-		const double Psi_z = this->mPsiZ;
+		double Ay = 0.00;
+		if (this->GetProperties().Has(AREA_EFFECTIVE_Y) == true) {
+			Ay = GetProperties()[AREA_EFFECTIVE_Y];
+		}
+
+		double Az = 0.00;
+		if (this->GetProperties().Has(AREA_EFFECTIVE_Z) == true) {
+			Az = GetProperties()[AREA_EFFECTIVE_Z];
+		}
+		const double Psi_y = this->CalculatePsi(Iy, Az);
+		const double Psi_z = this->CalculatePsi(Iz, Ay);
 
 		Kd(0, 0) = G * J / L;
 		Kd(1, 1) = E * Iy / L;
@@ -393,7 +371,7 @@ namespace Kratos
 		//add geometric stiffness part
 		if (this->mIsLinearElement == false)
 		{
-			const double l = this->mCurrentLength;
+			const double l = this->CalculateCurrentLength();
 			const double N = this->mNodalForces[6];
 
 			const double Qy = -1.00 * (this->mNodalForces[5] +
@@ -449,7 +427,13 @@ namespace Kratos
 		}
 
 		//use orientation class 1st constructor
-		Orientation element_axis(DirectionVectorX, this->mtheta);
+		double theta_costum = 0.00;
+		if (this->GetProperties().Has(ANG_ROT) == true) {
+			theta_costum = this->GetProperties()[ANG_ROT];
+		}
+
+
+		Orientation element_axis(DirectionVectorX, theta_costum);
 		element_axis.CalculateBasisVectors(DirectionVectorX, DirectionVectorY,
 			DirectionVectorZ);
 		//save them to update the local axis in every following iter. step
@@ -499,7 +483,7 @@ namespace Kratos
 		const int size = number_of_nodes * dimension;
 		const unsigned int MatSize = 2 * size;
 
-		const double L = this->mCurrentLength;
+		const double L = this->CalculateCurrentLength();
 		Matrix S = ZeroMatrix(MatSize, size);
 		S(0, 3) = -1.00;
 		S(1, 5) = 2.00 / L;
@@ -909,10 +893,14 @@ namespace Kratos
 		Vector EquivalentLineLoad = ZeroVector(dimension);
 		Vector BodyForcesGlobal = ZeroVector(MatSize);
 
+		const double A = this->GetProperties()[CROSS_AREA];
+		const double l = this->CalculateCurrentLength();
+		const double rho = this->GetProperties()[DENSITY];
+
 		//calculating equivalent line load
 		for (int i = 0; i < number_of_nodes; ++i)
 		{
-			EquivalentLineLoad += this->mArea*this->mDensity*
+			EquivalentLineLoad += A * rho*
 				this->GetGeometry()[i].
 				FastGetSolutionStepValue(VOLUME_ACCELERATION)*Ncontainer(0, i);
 		}
@@ -925,13 +913,13 @@ namespace Kratos
 			for (int j = 0; j < dimension; ++j)
 			{
 				BodyForcesGlobal[j + index] =
-					EquivalentLineLoad[j] * Ncontainer(0, i) * this->mCurrentLength;
+					EquivalentLineLoad[j] * Ncontainer(0, i) * l;
 			}
 		}
 
 		// adding the nodal moments
 		this->CalculateAndAddWorkEquivalentNodalForcesLineLoad
-			(EquivalentLineLoad, BodyForcesGlobal, this->mCurrentLength);
+			(EquivalentLineLoad, BodyForcesGlobal, l);
 
 
 		// return the total ForceVector
@@ -1168,13 +1156,16 @@ namespace Kratos
 
 	Vector CrBeamElement3D2N::CalculateElementForces() {
 
-		KRATOS_TRY
-			const int NumNodes = this->GetGeometry().PointsNumber();
+		KRATOS_TRY;
+		const int NumNodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
 		const int LocalSize = NumNodes * dimension;
 
 		Vector deformation_modes_total_V = ZeroVector(LocalSize);
-		deformation_modes_total_V[3] = this->mCurrentLength - this->mLength;
+		const double L = this->CalculateReferenceLength();
+		const double l = this->CalculateCurrentLength();
+
+		deformation_modes_total_V[3] = l - L;
 		for (int i = 0; i < 3; ++i) deformation_modes_total_V[i] = this->mPhiS[i];
 		for (int i = 0; i < 2; ++i) deformation_modes_total_V[i + 4] = this->mPhiA[i + 1];
 		//calculate element forces
@@ -1191,8 +1182,8 @@ namespace Kratos
 
 	double CrBeamElement3D2N::CalculateCurrentLength() {
 
-		KRATOS_TRY
-			const double du = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X)
+		KRATOS_TRY;
+		const double du = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X)
 			- this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
 		const double dv = this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y)
 			- this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
@@ -1207,12 +1198,13 @@ namespace Kratos
 		KRATOS_CATCH("")
 
 	}
+
 	double CrBeamElement3D2N::CalculatePsi(const double I, const double A_eff) {
 
-		KRATOS_TRY
-			const double E = this->mYoungsModulus;
-		const double L = this->mCurrentLength;
-		const double G = this->mShearModulus;
+		KRATOS_TRY;
+		const double E = this->GetProperties()[YOUNG_MODULUS];
+		const double L = this->CalculateCurrentLength();
+		const double G = this->CalculateShearModulus();
 
 		const double phi = (12.0 * E * I) / (L*L * G*A_eff);
 		double psi;
@@ -1226,8 +1218,8 @@ namespace Kratos
 
 	double CrBeamElement3D2N::CalculateReferenceLength() {
 
-		KRATOS_TRY
-			const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
+		KRATOS_TRY;
+		const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
 		const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
 		const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
 		const double L = sqrt(dx*dx + dy*dy + dz*dz);
@@ -1271,8 +1263,6 @@ namespace Kratos
 			+ actualDeformation[7];
 		this->mTotalNodalPosistion[5] = this->GetGeometry()[1].Z0()
 			+ actualDeformation[8];
-
-		this->mCurrentLength = this->CalculateCurrentLength();
 		KRATOS_CATCH("")
 	}
 
@@ -1520,18 +1510,34 @@ namespace Kratos
 		}
 		rMassMatrix = ZeroMatrix(MatSize, MatSize);
 
-		const double L = this->mLength;
+		const double L = this->CalculateReferenceLength();
 		const double L2 = L * L;
-		const double rho = this->mDensity;
-		const double A = this->mArea;
-		const double E = this->mYoungsModulus;
-		const double Iy = this->mInertiaY;
-		const double Iz = this->mInertiaZ;
-		const double G = this->mShearModulus;
-		const double Ay = this->mEffAreaY;
-		const double Az = this->mEffAreaZ;
-		const double IRy = this->mRotInertiaY;
-		const double IRz = this->mRotInertiaZ;
+		const double rho = this->GetProperties()[DENSITY];
+		const double A = this->GetProperties()[CROSS_AREA];
+		const double E = this->GetProperties()[YOUNG_MODULUS];
+		const double Iy = this->GetProperties()[IY];
+		const double Iz = this->GetProperties()[IZ];
+		const double G = this->CalculateShearModulus();
+
+		double Ay = 0.00;
+		if (this->GetProperties().Has(AREA_EFFECTIVE_Y) == true) {
+			Ay = GetProperties()[AREA_EFFECTIVE_Y];
+		}
+
+		double Az = 0.00;
+		if (this->GetProperties().Has(AREA_EFFECTIVE_Z) == true) {
+			Az = GetProperties()[AREA_EFFECTIVE_Z];
+		}
+
+		double IRy = Iy;
+		if (this->GetProperties().Has(INERTIA_ROT_Y) == true) {
+			IRy = GetProperties()[INERTIA_ROT_Y];
+		}
+
+		double IRz = Iz;
+		if (this->GetProperties().Has(INERTIA_ROT_Y) == true) {
+			IRz = GetProperties()[INERTIA_ROT_Z];
+		}
 
 		double Phiy = 0.00;
 		double Phiz = 0.00;
@@ -1607,8 +1613,11 @@ namespace Kratos
 			rMassMatrix.resize(MatSize, MatSize, false);
 		}
 		rMassMatrix = ZeroMatrix(MatSize, MatSize);
+		const double A = this->GetProperties()[CROSS_AREA];
+		const double L = this->CalculateReferenceLength();
+		const double rho = this->GetProperties()[DENSITY];
 
-		const double TotalMass = this->mArea * this->mLength * this->mDensity;
+		const double TotalMass = A * L * rho;
 		const double temp = 0.50 * TotalMass;
 
 		//translatonal mass	
@@ -1687,8 +1696,16 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
+	double CrBeamElement3D2N::CalculateShearModulus() {
+		KRATOS_TRY;
+		const double nu = this->GetProperties()[POISSON_RATIO];
+		const double E = this->GetProperties()[YOUNG_MODULUS];
+		const double G = E / (2.0 * (1.0 + nu));
+		return G;
+		KRATOS_CATCH("")
+	}
 
-	int  CrBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
+	int CrBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 
@@ -1940,23 +1957,6 @@ namespace Kratos
 		rSerializer.save("QuaternionScaA", this->mQuaternionSCA_A);
 		rSerializer.save("QuaternionScaB", this->mQuaternionSCA_B);
 
-		rSerializer.save("Poisson", this->mPoisson);
-		rSerializer.save("Area", this->mArea);
-		rSerializer.save("YoungsModulus", this->mYoungsModulus);
-		rSerializer.save("ShearModulus", this->mShearModulus);
-		rSerializer.save("LengthRef", this->mLength);
-		rSerializer.save("LengthCurr", this->mCurrentLength);
-		rSerializer.save("Density", this->mDensity);
-		rSerializer.save("InertiaIT", this->mInertiaX);
-		rSerializer.save("InertiaIY", this->mInertiaY);
-		rSerializer.save("InertiaIZ", this->mInertiaZ);
-		rSerializer.save("EffAreaY", this->mEffAreaY);
-		rSerializer.save("EffAreaZ", this->mEffAreaZ);
-		rSerializer.save("RotInertiaY", this->mRotInertiaY);
-		rSerializer.save("RotInertiaZ", this->mRotInertiaZ);
-		rSerializer.save("PsiY", this->mPsiY);
-		rSerializer.save("PsiZ", this->mPsiZ);
-		rSerializer.save("ThetaInitialRot", this->mtheta);
 		rSerializer.save("mIsLumpedMassMatrix", this->mIsLumpedMassMatrix);
 	}
 
@@ -1978,24 +1978,6 @@ namespace Kratos
 		rSerializer.load("QuaternionVecB", this->mQuaternionVEC_B);
 		rSerializer.load("QuaternionScaA", this->mQuaternionSCA_A);
 		rSerializer.load("QuaternionScaB", this->mQuaternionSCA_B);
-
-		rSerializer.load("Poisson", this->mPoisson);
-		rSerializer.load("Area", this->mArea);
-		rSerializer.load("YoungsModulus", this->mYoungsModulus);
-		rSerializer.load("ShearModulus", this->mShearModulus);
-		rSerializer.load("LengthRef", this->mLength);
-		rSerializer.load("LengthCurr", this->mCurrentLength);
-		rSerializer.load("Density", this->mDensity);
-		rSerializer.load("InertiaIT", this->mInertiaX);
-		rSerializer.load("InertiaIY", this->mInertiaY);
-		rSerializer.load("InertiaIZ", this->mInertiaZ);
-		rSerializer.load("EffAreaY", this->mEffAreaY);
-		rSerializer.load("EffAreaZ", this->mEffAreaZ);
-		rSerializer.load("RotInertiaY", this->mRotInertiaY);
-		rSerializer.load("RotInertiaZ", this->mRotInertiaZ);
-		rSerializer.load("PsiY", this->mPsiY);
-		rSerializer.load("PsiZ", this->mPsiZ);
-		rSerializer.load("ThetaInitialRot", this->mtheta);
 		rSerializer.load("mIsLumpedMassMatrix", this->mIsLumpedMassMatrix);
 	}
 
