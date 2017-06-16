@@ -14,9 +14,9 @@
 
 
 // Project includes
-#include "includes/define.h"
-#include "constitutive_laws_application.h"
 #include "custom_python/add_constitutive_laws_to_python.h"
+
+#include "constitutive_laws_application.h"
 
 namespace Kratos
 {
