@@ -150,7 +150,7 @@ def AssambleTestSuites():
             TALMSimplePatchNotMatchingATestContact,
             TALMSimplePatchNotMatchingBTestContact,
             TALMThreeDSimplestPatchMatchingTestContact,
-            TALMThreeDSimplestPatchMatchingAdaptativeTestContact,
+            ##TALMThreeDSimplestPatchMatchingAdaptativeTestContact, # FIXME: This test requieres TL or UL to work
             TALMThreeDSimplestPatchMatchingSlopeTestContact,
             TALMThreeDPatchComplexGeomTestContact,
             TALMTThreeDPatchMatchingTestContact,
@@ -162,8 +162,8 @@ def AssambleTestSuites():
             TALMTaylorPatchDynamicTestContact, # NOTE: Check that in debug dynamic gives an error
             TALMHertzSimpleTestContact,
             TALMHertzSimpleSphereTestContact,
-            TALMHertzSphereTestContact,
-            TALMHertzCompleteTestContact,
+            ##TALMHertzSphereTestContact,  # FIXME: This test requieres the axisimetric to work
+            #TALMHertzCompleteTestContact,
             # VALIDATION
             ##TALMIroningTestContact,
             ##TALMIroningDieTestContact,

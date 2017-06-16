@@ -42,51 +42,45 @@
         										]
     },
     "constraints_process_list" : [{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module"   : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "process_name"          : "AssignVectorVariableProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_fixed_support",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
+            "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0]
         }
     },{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module"   : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "process_name"          : "AssignVectorVariableProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_rolling_support_y",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : false,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
+            "constrained"     : [false,true,true],
             "value"           : [0.0,0.0,0.0]
         }
     },{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module"   : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "process_name"          : "AssignVectorVariableProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_rolling_support_x",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : false,
-            "is_fixed_z"      : true,
+            "constrained"     : [true,false,true],
             "value"           : [0.0,0.0,0.0]
         }
     }],
     "loads_process_list"       : [{
-        "python_module"   : "apply_vector_on_conditions_process",
-        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "python_module"   : "assign_vector_by_direction_to_condition_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process sets a vector variable value over a condition",
         "check"                 : "DirectorVectorNonZero direction",
         "process_name"          : "ApplyVectorOnConditionsProcess",

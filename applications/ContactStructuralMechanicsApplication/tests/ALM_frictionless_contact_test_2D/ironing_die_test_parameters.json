@@ -38,31 +38,27 @@
         "rotation_dofs"                      : false
     },
     "constraints_process_list" : [{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module"   : "assign_vector_to_condition_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "process_name"          : "AssignVectorToConditionProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_bc_fix",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
+            "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0]
         }
     },{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module"   : "assign_vector_to_condition_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "process_name"          : "AssignVectorToConditionProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_bc_rolling_support",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : false,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
+            "constrained"     : [false,true,true],
             "value"           : [0.0,0.0,0.0]
         }
     },{

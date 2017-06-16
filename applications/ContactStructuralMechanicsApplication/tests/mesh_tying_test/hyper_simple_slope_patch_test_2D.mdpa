@@ -28,11 +28,11 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UpdatedLagrangianElement2D4N// GUI group identifier: Parts Auto2
+Begin Elements SmallDisplacementElement2D4N// GUI group identifier: Parts Auto2
          1          1         1         2         3         4 
 End Elements
 
-Begin Elements UpdatedLagrangianElement2D4N// GUI group identifier: Parts Auto3
+Begin Elements SmallDisplacementElement2D4N// GUI group identifier: Parts Auto3
          2          2         5         6         7         8 
 End Elements
 

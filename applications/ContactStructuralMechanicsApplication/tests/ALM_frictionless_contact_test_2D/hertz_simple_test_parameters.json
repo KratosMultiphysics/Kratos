@@ -36,26 +36,24 @@
         "rotation_dofs"                      : false
     },
     "constraints_process_list" : [{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module"   : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "process_name"          : "AssignVectorVariableProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "Parts_parts_plate",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
+            "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0]
         }
     }],
     "loads_process_list"       : [{
-        "python_module"   : "apply_scalar_on_conditions_process",
-        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "python_module"   : "assign_scalar_to_conditions_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process sets a vector variable value over a condition",
         "check"                 : "DirectorVectorNonZero direction",
-        "process_name"          : "ApplyVectorOnConditionsProcess",
+        "process_name"          : "AssignScalarToConditionsProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_bc_pressure",

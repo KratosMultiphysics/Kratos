@@ -46,63 +46,67 @@
                                                 ]
     },
     "constraints_process_list" : [{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module"   : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "process_name"          : "AssignVectorVariableProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_fixed_support",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
+            "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0]
         }
     },{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module"   : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "process_name"          : "AssignVectorVariableProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_rolling_support_y",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : false,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
+            "constrained"     : [false,true,true],
             "value"           : [0.0,0.0,0.0]
         }
     },{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module"   : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "process_name"          : "AssignVectorVariableProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_rolling_support_x",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : false,
-            "is_fixed_z"      : true,
+            "constrained"     : [true,false,true],
             "value"           : [0.0,0.0,0.0]
         }
     }],
     "loads_process_list"       : [{
-        "python_module"   : "apply_vector_on_conditions_over_time_process",
-        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "python_module"   : "assign_vector_to_condition_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process sets a vector variable value over a condition",
         "check"                 : "DirectorVectorNonZero direction",
-        "process_name"          : "ApplyVectorOnConditionsProcess",
+        "process_name"          : "AssignVectorToConditionProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_line_load",
             "variable_name"   : "LINE_LOAD",
-            "factor1"         : 0,
-            "factor2"         : 1,
-            "interval"        : [0.0, 10.0],
-            "direction"       : [0.0,-1.0,0.0],
-            "step_type"		  : "linear"
+            "interval"        : [0.0, 1e1],
+            "value"           : [0.0, "-1.0e-1*t", 0.0]
+        }
+    },{
+        "python_module"   : "assign_vector_to_condition_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process sets a vector variable value over a condition",
+        "check"                 : "DirectorVectorNonZero direction",
+        "process_name"          : "AssignVectorToConditionProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "LineLoad2D_line_load",
+            "variable_name"   : "LINE_LOAD",
+            "interval"        : [1.0e1, 2e1],
+            "value"           : [0.0, -1.0e0, 0.0]
         }
     }],
     "list_other_processes" :[{

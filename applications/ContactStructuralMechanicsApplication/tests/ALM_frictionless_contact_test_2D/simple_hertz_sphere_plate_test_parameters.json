@@ -40,48 +40,42 @@
         "rotation_dofs"                      : false
     },
     "constraints_process_list" : [{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module"   : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "process_name"          : "AssignVectorVariableProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "Parts_parts_plate",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
+            "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0]
         }
     },{
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module"   : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "process_name"          : "AssignVectorVariableProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_bc_rolling_x",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : false,
-            "is_fixed_z"      : true,
+            "constrained"     : [true,false,true],
             "value"           : [0.0,0.0,0.0]
         }
     }],
     "loads_process_list"       : [{
-        "python_module"   : "apply_vector_on_conditions_over_time_process",
-        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ApplyVaryingVectorOverTimeIntervalProcess",
+        "python_module"   : "assign_vector_to_condition_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process sets a vector variable value over a condition",
+        "check"                 : "DirectorVectorNonZero direction",
+        "process_name"          : "AssignVectorToConditionProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_bc_pressure",
             "variable_name"   : "LINE_LOAD",
-            "factor1"         : 0.0,
-            "factor2"         : 1.30,
-            "direction"       : [0.0,-1.0,0.0],
-            "interval"        : [0.0, 0.5],
-            "step_type"       : "linear"
+            "interval"        : [0.0, 5e-1],
+            "value"           : [0.0, "-1.3e0*t/0.5", 0.0]
         }
     }],
     "list_other_processes" :[{

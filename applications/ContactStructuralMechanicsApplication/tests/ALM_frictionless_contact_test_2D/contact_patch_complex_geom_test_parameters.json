@@ -41,7 +41,7 @@
     },
     "constraints_process_list" : [{
         "python_module" : "assign_vector_components_to_nodes_process",
-        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorComponentsToNodesProcess",
         "Parameters"    : {
@@ -53,7 +53,7 @@
         }
     },{
         "python_module" : "assign_vector_components_to_nodes_process",
-        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorComponentsToNodesProcess",
         "Parameters"    : {
@@ -90,7 +90,7 @@
     }],
     "loads_process_list"       : [{
         "python_module" : "assign_modulus_and_direction_to_nodes_process",
-        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes all the components of a given vector variable",
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignModulusAndDirectionToNodesProcess",

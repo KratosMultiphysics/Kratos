@@ -39,10 +39,10 @@
         }
     },
     "constraints_process_list" : [{
-        "python_module" : "assign_vector_components_to_nodes_process",
-        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorComponentsToNodesProcess",
+        "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
@@ -51,10 +51,10 @@
             "interval"        : [0.0,"End"]
         }
     },{
-        "python_module" : "assign_vector_components_to_nodes_process",
-        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorComponentsToNodesProcess",
+        "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
@@ -87,10 +87,10 @@
             "debug_mode"                  : false
         }
     },{
-        "python_module" : "assign_vector_components_to_nodes_process",
-        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorComponentsToNodesProcess",
+        "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "CUSTOM",
@@ -99,34 +99,65 @@
             "interval"        : [0.0,1.1]
         }
     },{
-        "python_module"   : "impose_scalar_value_over_time_process",
-        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
-        "process_name"          : "ImposeScalarValueOverTimeProcess",
+        "python_module"   : "assign_scalar_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"          : "AssignScalarVariableProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "CUSTOM",
             "variable_name"   : "DISPLACEMENT_X",
-            "step_type"       : "linear",
-            "values"          : [0.0, 0.0, 1.0, 0.0],
-            "intervals"       : [0.0,2.0,10.0,18.0]
+            "value"           : 0.0,
+            "interval"        : [0.0,2.0]
+        }
+    },{
+        "python_module"   : "assign_scalar_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"          : "AssignScalarVariableProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "CUSTOM",
+            "variable_name"   : "DISPLACEMENT_X",
+            "value"           : "1.0*(t-2.0)/8.0",
+            "interval"        : [2.0,10.0]
+        }
+    },{
+        "python_module"   : "assign_scalar_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"          : "AssignScalarVariableProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "CUSTOM",
+            "variable_name"   : "DISPLACEMENT_X",
+            "value"           : "1.0 - 1.0*(t-10.0)/8.0",
+            "interval"        : [10.0,18.0]
         }
     }],
     "loads_process_list"       : [
     {
-        "python_module"   : "apply_vector_on_conditions_over_time_process",
-        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "python_module"   : "assign_vector_to_condition_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process sets a vector variable value over a condition",
         "check"                 : "DirectorVectorNonZero direction",
-        "process_name"          : "ApplyVectorOnConditionsProcess",
+        "process_name"          : "AssignVectorToConditionProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "CUSTOM",
             "variable_name"   : "LINE_LOAD",
-            "factor1"         : 0,
-            "factor2"         : 1.0e3,
-            "interval"        : [0.0, 1.0],
-            "direction"       : [0.0,-1.0,0.0],
-            "step_type"		  : "linear"
+            "interval"             : [0.0, 1e0],
+            "value"                : [0.0, "-1.0e3*t", 0.0]
+        }
+    },{
+        "python_module"   : "assign_vector_to_condition_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process sets a vector variable value over a condition",
+        "check"                 : "DirectorVectorNonZero direction",
+        "process_name"          : "AssignVectorToConditionProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "CUSTOM",
+            "variable_name"   : "LINE_LOAD",
+            "interval"             : [1.0e0, 18e0],
+            "value"                : [0.0, -1.0e3, 0.0]
         }
     }],
     "list_other_processes" :[],

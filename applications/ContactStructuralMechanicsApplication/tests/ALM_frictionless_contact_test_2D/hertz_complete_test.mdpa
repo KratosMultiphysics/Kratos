@@ -3362,7 +3362,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UpdatedLagrangianElement2D4N// GUI group identifier: body_lower
+Begin Elements SmallDisplacementElement2D4N// GUI group identifier: body_lower
       1601          1       2849       2846       2929       2935 
       1602          1       2755       2752       2846       2849 
       1603          1       2658       2654       2752       2755 
@@ -4965,7 +4965,7 @@ Begin Elements UpdatedLagrangianElement2D4N// GUI group identifier: body_lower
       3200          1       1010       1045       1066       1026 
 End Elements
 
-Begin Elements UpdatedLagrangianElement2D4N// GUI group identifier: body_upper
+Begin Elements SmallDisplacementElement2D4N// GUI group identifier: body_upper
          1          2       2937       2825       2822       2934 
          2          2       2941       2831       2825       2937 
          3          2       2945       2844       2831       2941 

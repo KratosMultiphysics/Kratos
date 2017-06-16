@@ -47,7 +47,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements TotalLagrangianElement2D4N// GUI group identifier: Parts Auto2
+Begin Elements SmallDisplacementElement2D4N// GUI group identifier: Parts Auto2
          1          2         12         13         19         18 
          2          2          6          8         13         12 
          3          2          2          4          8          6 
@@ -58,7 +58,7 @@ Begin Elements TotalLagrangianElement2D4N// GUI group identifier: Parts Auto2
          8          2          3          5          7          4 
 End Elements
 
-Begin Elements TotalLagrangianElement2D4N// GUI group identifier: Parts Auto3
+Begin Elements SmallDisplacementElement2D4N// GUI group identifier: Parts Auto3
          9          1         11         17         21         16 
         10          1          9         14         17         11 
         11          1         17         23         24         21 
