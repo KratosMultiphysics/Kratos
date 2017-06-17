@@ -36,7 +36,8 @@ void AddCustomIOToPython()
 {
     using namespace boost::python;
 
-    class_<HDF5IO, HDF5IO::Pointer, bases<IO>, boost::noncopyable >("HDF5IO", init<>())
+    class_<HDF5IO, HDF5IO::Pointer, bases<IO>, boost::noncopyable >("HDF5IO", init<std::string, Flags>())
+        .def("WriteModelPart",&HDF5IO::WriteModelPart)
     ;
 
 }

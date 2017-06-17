@@ -5,13 +5,19 @@
 namespace Kratos
 {
 
-HDF5IO::HDF5IO():
-  IO()
+HDF5IO::HDF5IO(std::string FileName, Flags Options):
+  IO(),
+  mFileName(FileName)
 {
 
 }
 
 HDF5IO::~HDF5IO()
+{
+
+}
+
+void HDF5IO::WriteModelPart(ModelPart& rModelPart)
 {
 
 }

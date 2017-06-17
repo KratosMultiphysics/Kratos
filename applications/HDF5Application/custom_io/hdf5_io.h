@@ -68,10 +68,10 @@ namespace Kratos
     ///@{
 
     /// Default constructor.
-    HDF5IO();
+    HDF5IO(std::string FileName, Flags Options = IO::WRITE);
 
     /// Destructor.
-    virtual ~HDF5IO();
+    virtual ~HDF5IO() override;
 
     ///@}
     ///@name Operators
@@ -80,6 +80,8 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
+
+    virtual void WriteModelPart(ModelPart& rModelPart) override;
 
     ///@}
     ///@name Access
@@ -94,13 +96,13 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    virtual std::string Info() const /*override*/;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    virtual void PrintInfo(std::ostream& rOStream) const /*override*/;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    virtual void PrintData(std::ostream& rOStream) const /*override*/;
 
     ///@}
     ///@name Friends
@@ -144,6 +146,8 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
+
+    const std::string mFileName;
 
     ///@}
     ///@name Private Operators
