@@ -64,6 +64,9 @@ from SmallTests import Simple3D2NTrussDynamicTest as T3D2NTrussDynamicTest
 from SmallTests import Simple3D2NBeamCrTest as T3D2NBeamCrTest
 from SmallTests import Simple3D2NBeamCrLinearTest as T3D2NBeamCrLinearTest
 from SmallTests import Simple3D2NBeamCrDynamicTest as T3D2NBeamCrDynamicTest
+# Nodal damping test
+from test_nodal_damping import NodalDampingTests        as TNodalDampingTests
+from test_spring_damper_element import SpringDamperElementTests as TSpringDamperElementTests
 
 # ## NIGTHLY TESTS
 # from NightlyTests import ShellT3IsotropicScordelisTests as TShellT3IsotropicScordelisTests
@@ -113,6 +116,9 @@ def AssambleTestSuites():
     smallSuite.addTest(TMembraneQ4PointLoadTests('test_execution'))
     # # Nodal damping test
     # smallSuite.addTest(TNodalDampingTests('test_execution'))
+    # Nodal damping test
+    smallSuite.addTest(TNodalDampingTests('test_execution'))
+    smallSuite.addTest(TSpringDamperElementTests('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -149,6 +155,11 @@ def AssambleTestSuites():
             #TMpcSmallDispElemTests
             #TIsotropicDamageSimoJuPSTest,
             #TNodalDampingTests
+            TShellT3ThinDrillingRollUpTests,
+            TShellT3IsotropicScordelisTests,
+            TIsotropicDamageSimoJuPSTest,
+            TNodalDampingTests,
+            TSpringDamperElementTests
             ######TSprismPanTests
         ])
     )

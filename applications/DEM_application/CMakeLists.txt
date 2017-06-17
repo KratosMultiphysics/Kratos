@@ -106,7 +106,13 @@ if(${ACTIVATE_DEBUG_MACRO} MATCHES ON)        #MSI: Flag defined for debug Macro
     add_definitions(-DDEBUG_MACRO)
 endif(${ACTIVATE_DEBUG_MACRO} MATCHES ON)
 
-add_definitions( -Wsuggest-override )
+# Warn about overriding virtual fuctions not marked as override
+# Warding since it is not compatible with any version of MSVC and GCC > 5.1
+if(GCC_VERSION VERSION_GREATER 5.1 OR GCC_VERSION VERSION_EQUAL 5.1)
+  if(${CMAKE_COMPILER_IS_GNUCXX})
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
+  endif(${CMAKE_COMPILER_IS_GNUCXX})
+endif()
 
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
