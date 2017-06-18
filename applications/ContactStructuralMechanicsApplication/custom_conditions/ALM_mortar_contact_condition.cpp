@@ -941,7 +941,7 @@ bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     AeData& rAeData
     )
 {        
-    double auxdet = 0.0;
+    double AuxDet;
     const double Tolerance = std::numeric_limits<double>::epsilon();
     
     // We compute the norm
@@ -951,12 +951,12 @@ bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     const bounded_matrix<double, TNumNodes, TNumNodes> NormalizedMe = rAeData.Me/NormMe;
     
     // We compute the normalized inverse
-    const double DetNormalizedMe = MathUtils<double>::DetMat<TNumNodes>(NormalizedMe);
-    if (std::abs(DetNormalizedMe) < Tolerance)
+    AuxDet = MathUtils<double>::DetMat<TNumNodes>(NormalizedMe);
+    if (std::abs(AuxDet) < Tolerance)
     {
         return false;
     }
-    const bounded_matrix<double, TNumNodes, TNumNodes> NormalizedInvMe = MathUtils<double>::InvertMatrix<TNumNodes>(NormalizedMe, auxdet, Tolerance); 
+    const bounded_matrix<double, TNumNodes, TNumNodes> NormalizedInvMe = MathUtils<double>::InvertMatrix<TNumNodes>(NormalizedMe, AuxDet, Tolerance); 
     
     // Now we compute the inverse
     const bounded_matrix<double, TNumNodes, TNumNodes> InvMe = NormalizedInvMe/NormMe;
