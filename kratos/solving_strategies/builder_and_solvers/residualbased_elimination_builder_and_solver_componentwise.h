@@ -227,10 +227,6 @@ public:
 		if ((*it)->IsDefined(ACTIVE))
 		  element_is_active = (*it)->Is(ACTIVE);
 
-		if ((*it)->IsNot(ACTIVE)){
-		  element_is_active = false;
-		}
-
 		if (element_is_active)
 		  {
 
