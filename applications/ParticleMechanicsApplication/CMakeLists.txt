@@ -20,10 +20,21 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 	##${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian.cpp
 	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/your_new_element_2d.h
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/viscoplastic_flow_rule.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/bingham_viscoplastic_flow_rule.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/bingham_viscoplastic_flow_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_viscoplastic_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_viscoplastic_2D_plain_strain_law.cpp
-
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_3d_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_plane_strain_2d_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_plane_strain_2D_law.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_3D_law.cpp
+        
+	
+	###yield criteria
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/yield_criteria/mc_yield_criterion.cpp
+        
+        ###flow rules
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/MPM_flow_rule.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/mc_plastic_flow_rule.cpp
 )
 
 ###############################################################

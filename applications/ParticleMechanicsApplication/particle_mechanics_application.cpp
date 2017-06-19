@@ -72,11 +72,16 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( double, MP_STRAIN_ENERGY )
     KRATOS_CREATE_VARIABLE( double, MP_TOTAL_ENERGY )
     //KRATOS_CREATE_VARIABLE( double, NODAL_MASS )
-    
+    KRATOS_CREATE_VARIABLE( double, MP_EQUIVALENT_PLASTIC_STRAIN )
     
     //constitutive law
     KRATOS_CREATE_VARIABLE( ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW_POINTER )
     
+    KRATOS_CREATE_VARIABLE( double, DILATANCY_COEFFICIENT )
+    
+    
+    KRATOS_CREATE_VARIABLE(double, COHESION )
+    KRATOS_CREATE_VARIABLE(double, INTERNAL_DILATANCY_ANGLE )
     //nodal dofs
     //KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_DISPLACEMENT )
     KRATOS_CREATE_VARIABLE( double, AUX_R)
@@ -163,6 +168,11 @@ namespace Kratos
         
         KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW_POINTER )
         
+        KRATOS_REGISTER_VARIABLE( DILATANCY_COEFFICIENT )
+        
+        
+        KRATOS_REGISTER_VARIABLE(COHESION )
+        KRATOS_REGISTER_VARIABLE(INTERNAL_DILATANCY_ANGLE )
         ////nodal dofs
         //KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_DISPLACEMENT )
 	KRATOS_REGISTER_VARIABLE( AUX_R )
@@ -198,6 +208,13 @@ namespace Kratos
 		//Hyperelastic ViscoPlastic laws
         Serializer::Register( "HyperElasticViscoplastic3DLaw", mHyperElasticViscoplastic3DLaw );
         Serializer::Register( "HyperElasticViscoplasticPlaneStrain2DLaw", mHyperElasticViscoplasticPlaneStrain2DLaw );
+        Serializer::Register("HenckyMCPlastic3DLaw", mHenckyMCPlastic3DLaw);
+        Serializer::Register("HenckyMCPlasticPlaneStrain2DLaw", mHenckyMCPlasticPlaneStrain2DLaw);
+        
+        //Register Flow Rules
+        Serializer::Register("MCPlasticFlowRule", mMCPlasticFlowRule);
+        //Register Yield Criterion
+        Serializer::Register("MCYieldCriterion", mMCYieldCriterion);
  
     }
 

@@ -45,9 +45,16 @@
 //constitutive laws
 #include "custom_constitutive/hyperelastic_viscoplastic_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_viscoplastic_2D_plain_strain_law.hpp"
+#include "custom_constitutive/hencky_mc_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hencky_mc_3D_law.hpp"
 //flow rules
 #include "custom_constitutive/flow_rules/viscoplastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/bingham_viscoplastic_flow_rule.hpp"
+#include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
+//#include "custom_constitutive/flow_rules/drucker_prager_flow_rule.hpp"
+//yield criteria
+#include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
+//#include "custom_constitutive/yield_criteria/drucker_prager_yield_criterion.hpp"
 namespace Kratos
 {
 	///@name Type Definitions
@@ -72,13 +79,18 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE(double, MP_KINETIC_ENERGY )
     KRATOS_DEFINE_VARIABLE(double, MP_STRAIN_ENERGY )
     KRATOS_DEFINE_VARIABLE(double, MP_TOTAL_ENERGY )
-    
+    KRATOS_DEFINE_VARIABLE(double, MP_EQUIVALENT_PLASTIC_STRAIN )
     
     
     //constitutive law
 	
     KRATOS_DEFINE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW_POINTER )
     
+    KRATOS_DEFINE_VARIABLE( double, DILATANCY_COEFFICIENT )
+    
+    
+    KRATOS_DEFINE_VARIABLE(double, COHESION )
+    KRATOS_DEFINE_VARIABLE(double, INTERNAL_DILATANCY_ANGLE )
     
     ////nodal dofs
     //KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_DISPLACEMENT )
@@ -276,6 +288,8 @@ namespace Kratos
         const HyperElasticViscoplastic3DLaw                mHyperElasticViscoplastic3DLaw;
         const HyperElasticViscoplasticPlaneStrain2DLaw     mHyperElasticViscoplasticPlaneStrain2DLaw;
 
+	const HenckyMCPlastic3DLaw                mHenckyMCPlastic3DLaw;
+	const HenckyMCPlasticPlaneStrain2DLaw                mHenckyMCPlasticPlaneStrain2DLaw;
 		
         //Flow Rules
         //const NonLinearAssociativePlasticFlowRule     mNonLinearAssociativePlasticFlowRule;
@@ -283,11 +297,13 @@ namespace Kratos
         //const IsotropicDamageFlowRule                 mIsotropicDamageFlowRule;
         const ViscoplasticFlowRule                    mViscoplasticFlowRule;
         const BinghamViscoplasticFlowRule             mBinghamViscoplasticFlowRule;
-        
+        const MCPlasticFlowRule                         mMCPlasticFlowRule; 
+        //const DruckerPragerFlowRule                   mDruckerPragerFlowRule;
         //Yield Criteria
         //const MisesHuberYieldCriterion                mMisesHuberYieldCriterion;
         //const SimoJuYieldCriterion                    mSimoJuYieldCriterion;
-        
+        //const DruckerPragerYieldCriterion             mDruckerPragerYieldCriterion;
+        const MCYieldCriterion                   mMCYieldCriterion;
         //Hardening Laws
         //const NonLinearIsotropicKinematicHardeningLaw mNonLinearIsotropicKinematicHardeningLaw;
         //const LinearIsotropicKinematicHardeningLaw    mLinearIsotropicKinematicHardeningLaw;
