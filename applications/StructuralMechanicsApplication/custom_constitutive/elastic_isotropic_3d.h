@@ -63,7 +63,7 @@ public:
      */
     ElasticIsotropic3D();
 
-    ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Copy constructor.
@@ -87,12 +87,12 @@ public:
      * This function is designed to be called once to check compatibility with element
      * @param rFeatures: The Features of the law
      */
-    void GetLawFeatures(Features& rFeatures);
+    void GetLawFeatures(Features& rFeatures) override;
     
     /**
      * Voigt tensor size:
      */
-    SizeType GetStrainSize()
+    SizeType GetStrainSize() override
     {
         return 6;
     };
@@ -174,7 +174,7 @@ public:
         const Properties& rMaterialProperties, 
         const GeometryType& rElementGeometry, 
         const ProcessInfo& rCurrentProcessInfo
-        );
+        ) override;
     
 protected:
 
@@ -259,12 +259,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
     }

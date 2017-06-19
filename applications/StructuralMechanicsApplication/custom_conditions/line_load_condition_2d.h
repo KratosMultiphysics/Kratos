@@ -85,13 +85,13 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
-        ) const;
+        ) const override;
         
     Condition::Pointer Create( 
         IndexType NewId, 
         NodesArrayType const& ThisNodes, 
         PropertiesType::Pointer pProperties 
-        ) const;
+        ) const override;
 
     ///@}
     ///@name Access
@@ -226,12 +226,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    virtual void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseLoadCondition );
     }
 
-    virtual void load( Serializer& rSerializer )
+    virtual void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseLoadCondition );
     }

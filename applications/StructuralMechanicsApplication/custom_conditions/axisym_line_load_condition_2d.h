@@ -71,12 +71,18 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    /**
-     * Returns the currently selected integration method
-     * @return current integration method selected
-     */
-    //TODO: ADD THE OTHER CREATE FUNCTION
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
+        
+    Condition::Pointer Create( 
+        IndexType NewId, 
+        NodesArrayType const& ThisNodes, 
+        PropertiesType::Pointer pProperties 
+        ) const override;
 
     //std::string Info() const;
 
@@ -174,9 +180,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    virtual void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    virtual void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{

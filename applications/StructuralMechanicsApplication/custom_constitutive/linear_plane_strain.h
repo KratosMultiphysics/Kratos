@@ -47,7 +47,7 @@ public:
      */
     LinearPlaneStrain();
 
-    ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Copy constructor.
@@ -72,16 +72,47 @@ public:
      * This function is designed to be called once to check compatibility with element
      * @param rFeatures
      */
-    void GetLawFeatures(Features& rFeatures);
+    void GetLawFeatures(Features& rFeatures) override;
     
-    SizeType GetStrainSize(){return 3;};
+    /**
+     * Voigt tensor size:
+     */
+    SizeType GetStrainSize() override
+    {
+        return 3;
+        
+    }
     
-    void CalculateMaterialResponsePK2 (Parameters & rValues);
+    /**
+     * Computes the material response:
+     * PK2 stresses and algorithmic ConstitutiveMatrix
+     * @param rValues: The Internalvalues of the law
+     * @see   Parameters
+     */
+    void CalculateMaterialResponsePK2 (Parameters & rValues) override;
 
-    void CalculateMaterialResponseKirchhoff (Parameters & rValues);
+    /**
+     * Computes the material response:
+     * Kirchhoff stresses and algorithmic ConstitutiveMatrix
+     * @param rValues: The Internalvalues of the law
+     * @see   Parameters
+     */
+    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
 
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
-
+    /**
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rMaterialProperties: The properties of the material 
+     * @param rElementGeometry: The geometry of the element
+     * @param rCurrentProcessInfo: The current process info instance
+     */
+    int Check(
+        const Properties& rMaterialProperties, 
+        const GeometryType& rElementGeometry, 
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
 
 protected:
@@ -162,12 +193,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw)
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
     }

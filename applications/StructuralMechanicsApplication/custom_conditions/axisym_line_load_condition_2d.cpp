@@ -46,13 +46,25 @@ namespace Kratos
     //********************************* CREATE *******************************************
     //************************************************************************************
     
+    Condition::Pointer AxisymLineLoadCondition2D::Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const
+    {
+        return boost::make_shared<AxisymLineLoadCondition2D>(NewId, pGeom, pProperties);
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+    
     Condition::Pointer AxisymLineLoadCondition2D::Create( 
         IndexType NewId, 
-        NodesArrayType const& ThisNodes, 
+        NodesArrayType const& ThisNodes,  
         PropertiesType::Pointer pProperties 
         ) const
     {
-        return Condition::Pointer( new AxisymLineLoadCondition2D( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+        return boost::make_shared<AxisymLineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
     }
 
     //******************************* DESTRUCTOR *****************************************

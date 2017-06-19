@@ -96,7 +96,7 @@ public:
     /**
       * This resets the constitutive law
       */
-    void ResetConstitutiveLaw();
+    void ResetConstitutiveLaw() override;
 
     /**
      * Called at the beginning of each solution step
@@ -130,7 +130,7 @@ public:
     virtual void EquationIdVector(
         EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo 
-        );
+        ) override;
 
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
@@ -140,7 +140,7 @@ public:
     virtual void GetDofList(
         DofsVectorType& rElementalDofList,
         ProcessInfo& rCurrentProcessInfo 
-        );
+        ) override;
 
     /**
      * Sets on rValues the nodal displacements
@@ -150,7 +150,7 @@ public:
     virtual void GetValuesVector(
         Vector& rValues,
         int Step = 0 
-        );
+        ) override;
     
     /**
      * Sets on rValues the nodal velocities
@@ -160,7 +160,7 @@ public:
     virtual void GetFirstDerivativesVector(
         Vector& rValues,
         int Step = 0 
-        );
+        ) override;
 
     /**
      * Sets on rValues the nodal accelerations
@@ -170,7 +170,7 @@ public:
     virtual void GetSecondDerivativesVector(
         Vector& rValues,
         int Step = 0 
-        );
+        ) override;
 
     /**
      * This function provides a more general interface to the element. 
@@ -204,7 +204,7 @@ public:
     virtual void CalculateMassMatrix(
         MatrixType& rMassMatrix,
         ProcessInfo& rCurrentProcessInfo 
-        );
+        ) override;
 
     /**
       * This is called during the assembling process in order
@@ -215,7 +215,7 @@ public:
     virtual void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
         ProcessInfo& rCurrentProcessInfo 
-        );
+        ) override;
 
     /**
      * Calculate a double Variable on the Element Constitutive Law
@@ -342,7 +342,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo );
+    virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     ///@}
     ///@name Access
@@ -466,12 +466,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    virtual void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element );
     }
 
-    virtual void load( Serializer& rSerializer )
+    virtual void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element );
     }

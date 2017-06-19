@@ -43,7 +43,11 @@ namespace Kratos
     //********************************* CREATE *******************************************
     //************************************************************************************
     
-    Condition::Pointer LineLoadCondition2D::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
+    Condition::Pointer LineLoadCondition2D::Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const
     {
         return boost::make_shared<LineLoadCondition2D>(NewId, pGeom, pProperties);
     }
@@ -51,7 +55,11 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
     
-    Condition::Pointer LineLoadCondition2D::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
+    Condition::Pointer LineLoadCondition2D::Create( 
+        IndexType NewId, 
+        NodesArrayType const& ThisNodes,  
+        PropertiesType::Pointer pProperties 
+        ) const
     {
         return boost::make_shared<LineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
     }
