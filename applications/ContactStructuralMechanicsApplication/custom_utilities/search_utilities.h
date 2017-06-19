@@ -84,12 +84,12 @@ public:
     /**
      * This function fills the ConditionSet for the Mortar condition
      * @param ConditionPointers: The map storing the potential contact conditions
-     * @param Geom1: The geometry of the slave 
-     * @param Geom2: The geometry of the master 
+     * @param geom_1: The geometry of the slave 
+     * @param geom_2: The geometry of the master 
      * @param ContactNormal1: The normals of the slave
      * @param ContactNormal2: The normals of the master
      * @param ActiveCheckLength: The threshold distance to check the potential contact
-     * @return ConditionIsActive: True if the condition is active, false otherwise
+     * @return condition_is_active: True if the condition is active, false otherwise
      */
     
     static inline void ContactContainerFiller(
@@ -104,42 +104,42 @@ public:
         )
     {
         // Initialize geometries
-        GeometryType& Geom1 = pCond1->GetGeometry(); // SLAVE
-        GeometryType& Geom2 = pCond2->GetGeometry(); // MASTER
+        GeometryType& geom_1 = pCond1->GetGeometry(); // SLAVE
+        GeometryType& geom_2 = pCond2->GetGeometry(); // MASTER
         
 //         // Initialize variables
-//         bool ConditionIsActive = false;
-//         const unsigned int Dimension  = Geom1.WorkingSpaceDimension();
-//         const unsigned int NumberOfNodes = Geom1.size();
+//         bool condition_is_active = false;
+//         const unsigned int dimension  = geom_1.WorkingSpaceDimension();
+//         const unsigned int number_of_nodes = geom_1.size();
 //         
-//         if (Dimension == 2 && NumberOfNodes == 2)
+//         if (dimension == 2 && number_of_nodes == 2)
 //         {
 //             ExactMortarIntegrationUtility<2, 2> IntUtil = ExactMortarIntegrationUtility<2, 2>();
 //             std::vector<array_1d<PointType,2>>  ConditionsPointsSlave;
-//             ConditionIsActive = IntUtil.GetExactIntegration(Geom1, ContactNormal1, Geom2, ContactNormal2, ConditionsPointsSlave);
+//             condition_is_active = IntUtil.GetExactIntegration(geom_1, ContactNormal1, geom_2, ContactNormal2, ConditionsPointsSlave);
 //         }
-//         else if (Dimension == 3 && NumberOfNodes == 3)
+//         else if (dimension == 3 && number_of_nodes == 3)
 //         {
 //             ExactMortarIntegrationUtility<3, 3> IntUtil = ExactMortarIntegrationUtility<3, 3>();
 //             std::vector<array_1d<PointType,3>>  ConditionsPointsSlave;
-//             ConditionIsActive = IntUtil.GetExactIntegration(Geom1, ContactNormal1, Geom2, ContactNormal2, ConditionsPointsSlave);
+//             condition_is_active = IntUtil.GetExactIntegration(geom_1, ContactNormal1, geom_2, ContactNormal2, ConditionsPointsSlave);
 //         }
-//         else if (Dimension == 3 && NumberOfNodes == 4)
+//         else if (dimension == 3 && number_of_nodes == 4)
 //         {
 //             ExactMortarIntegrationUtility<3, 4> IntUtil = ExactMortarIntegrationUtility<3, 4>();
 //             std::vector<array_1d<PointType,3>>  ConditionsPointsSlave;
-//             ConditionIsActive = IntUtil.GetExactIntegration(Geom1, ContactNormal1, Geom2, ContactNormal2, ConditionsPointsSlave);
+//             condition_is_active = IntUtil.GetExactIntegration(geom_1, ContactNormal1, geom_2, ContactNormal2, ConditionsPointsSlave);
 //         }
 //         else
 //         {
 //             KRATOS_ERROR << "INTEGRATION NOT IMPLEMENTED" << std::endl;
 //         }
 //         
-//         if (ConditionIsActive == true)
+//         if (condition_is_active == true)
 //         {
-//             for (unsigned int iNode = 0; iNode < Geom1.size(); iNode++)
+//             for (unsigned int i_node = 0; i_node < geom_1.size(); i_node++)
 //             {
-//                 Geom1[iNode].Set(ACTIVE, true);
+//                 geom_1[i_node].Set(ACTIVE, true);
 //             }
 //         }
         
@@ -148,54 +148,54 @@ public:
 //         const double Tolerance = 1.0e-12;
         const double Tolerance = std::numeric_limits<double>::epsilon();
         
-        bool ConditionIsActive = false;
+        bool condition_is_active = false;
 //         #pragma omp for
-        for (unsigned int iNode = 0; iNode < Geom1.size(); iNode++)
+        for (unsigned int i_node = 0; i_node < geom_1.size(); i_node++)
         {
-            if (Geom1[iNode].Is(ACTIVE) == false)
+            if (geom_1[i_node].Is(ACTIVE) == false)
             {
-                Point<3> ProjectedPoint;
-                double AuxDistance = 0.0;
-                const array_1d<double, 3> Normal = Geom1[iNode].GetValue(NORMAL);
-                if (norm_2(Normal) < Tolerance)
+                Point<3> projected_point;
+                double aux_distance = 0.0;
+                const array_1d<double, 3> normal = geom_1[i_node].GetValue(NORMAL);
+                if (norm_2(normal) < Tolerance)
                 {
-                    AuxDistance = ContactUtilities::FastProjectDirection(Geom2, Geom1[iNode], ProjectedPoint, ContactNormal2, ContactNormal1);
+                    aux_distance = ContactUtilities::FastProjectDirection(geom_2, geom_1[i_node], projected_point, ContactNormal2, ContactNormal1);
                 }
                 else
                 {
-                    AuxDistance = ContactUtilities::FastProjectDirection(Geom2, Geom1[iNode], ProjectedPoint, ContactNormal2, Normal);
+                    aux_distance = ContactUtilities::FastProjectDirection(geom_2, geom_1[i_node], projected_point, ContactNormal2, normal);
                 }  
                 
-                array_1d<double, 3> Result;
-                if (AuxDistance <= ActiveCheckLength && (StrictCheck == true ? Geom2.IsInside(ProjectedPoint, Result, Tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
+                array_1d<double, 3> result;
+                if (aux_distance <= ActiveCheckLength && (StrictCheck == true ? geom_2.IsInside(projected_point, result, Tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
                 {
-                    ConditionIsActive = true;
+                    condition_is_active = true;
                     
-                    // Geom1[iNode].SetLock();
-                    Geom1[iNode].Set(ACTIVE, true);
-                    // Geom1[iNode].UnSetLock();
+                    // geom_1[i_node].SetLock();
+                    geom_1[i_node].Set(ACTIVE, true);
+                    // geom_1[i_node].UnSetLock();
                 }
                 else if (DualCheck == true)
                 {
-                    AuxDistance = ContactUtilities::FastProjectDirection(Geom2, Geom1[iNode], ProjectedPoint, ContactNormal2, -ContactNormal2);
-                    if (AuxDistance <= ActiveCheckLength && (StrictCheck == true ? Geom2.IsInside(ProjectedPoint, Result, Tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
+                    aux_distance = ContactUtilities::FastProjectDirection(geom_2, geom_1[i_node], projected_point, ContactNormal2, -ContactNormal2);
+                    if (aux_distance <= ActiveCheckLength && (StrictCheck == true ? geom_2.IsInside(projected_point, result, Tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
                     {
-                        ConditionIsActive = true;
+                        condition_is_active = true;
                         
-                        // Geom1[iNode].SetLock();
-                        Geom1[iNode].Set(ACTIVE, true);
-                        // Geom1[iNode].UnSetLock();
+                        // geom_1[i_node].SetLock();
+                        geom_1[i_node].Set(ACTIVE, true);
+                        // geom_1[i_node].UnSetLock();
                     }
                 }
              }
              else
              {
-                 ConditionIsActive = true;
+                 condition_is_active = true;
              }
          }
         
         // If condition is active we add
-        if (ConditionIsActive == true)
+        if (condition_is_active == true)
         {
             ConditionPointers->AddNewCondition(pCond2);
         }
