@@ -24,9 +24,9 @@ class FracturePropagationUtility:
         
         import platform
         if platform.system()=="Windows":
-            self.execute_gid = "gidx"
+            self.execute_gid = "gid"
         else:
-            self.execute_gid = "./gidx"
+            self.execute_gid = "./gid"
         
         self.move_mesh_flag = move_mesh_flag
         
