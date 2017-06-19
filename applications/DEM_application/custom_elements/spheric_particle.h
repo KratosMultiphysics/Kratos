@@ -22,7 +22,6 @@
 #include "../custom_utilities/properties_proxies.h"
 #include "includes/kratos_flags.h"
 
-
 namespace Kratos
 {
 
@@ -30,6 +29,7 @@ class DEMWall;
 
 class KRATOS_API(DEM_APPLICATION) SphericParticle : public DiscreteElement
 {
+
 public:
 
 /// Pointer definition of SphericParticle
@@ -41,7 +41,6 @@ typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
 typedef WeakPointerVector<Element> ParticleWeakVectorType;
 typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
 typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
-
 /// Default constructor.
 SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry );
 SphericParticle( IndexType NewId, NodesArrayType const& ThisNodes);
@@ -51,6 +50,74 @@ Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, Proper
 
 /// Destructor.
 virtual ~SphericParticle();
+
+class ParticleDataBuffer
+{
+public:
+    ParticleDataBuffer(SphericParticle* p_this_particle): mpThisParticle(p_this_particle)
+    {}
+
+    virtual ~ParticleDataBuffer(){}
+
+bool SetNextNeighbourOrExit(const int& i)
+{
+    if (i < int(mpThisParticle->mNeighbourElements.size())){
+        SetCurrentNeighbour(mpThisParticle->mNeighbourElements[i]);
+        return true;
+    }
+
+    else { // other_neighbour is nullified upon exiting loop
+        mpOtherParticle = NULL;
+        return false;
+    }
+}
+
+void SetCurrentNeighbour(SphericParticle* p_neighbour)
+{
+    mpOtherParticle = p_neighbour;
+}
+
+void SetBoundingBox(const bool periodicity, const array_1d<double, 3> domain_min, const array_1d<double, 3> domain_max)
+{
+    mDomainIsPeriodic = periodicity;
+    mDomainMin = domain_min;
+    mDomainMax = domain_max;
+}
+
+bool mMultiStageRHS;
+bool mDomainIsPeriodic;
+double mDistance;
+double mRadiusSum;
+double mDt;
+double mOtherRadius;
+double mIndentation;
+double mMyCoors[3];
+double mOtherCoors[3];
+double mLocalRelVel[3];
+array_1d<double, 3> mOtherToMeVector;
+array_1d<double, 3> mDomainMin;
+array_1d<double, 3> mDomainMax;
+SphericParticle* mpThisParticle;
+SphericParticle* mpOtherParticle;
+};
+
+typedef std::unique_ptr<ParticleDataBuffer> BufferPointerType;
+
+
+virtual std::unique_ptr<ParticleDataBuffer> CreateParticleDataBuffer(SphericParticle* p_this_particle)
+{
+    return std::unique_ptr<ParticleDataBuffer>(new ParticleDataBuffer(p_this_particle));
+}
+
+void TransformNeighbourCoorsToClosestInPeriodicDomain(ParticleDataBuffer & data_buffer);
+void TransformNeighbourCoorsToClosestInPeriodicDomain(ParticleDataBuffer & data_buffer,
+                                                      const array_1d<double, 3>& coors,
+                                                      array_1d<double, 3>& neighbour_coors);
+void TransformNeighbourCoorsToClosestInPeriodicDomain(const ProcessInfo& r_process_info,
+                                                      const double coors[3],
+                                                      double neighbour_coors[3]);
+
+virtual void CalculateRelativePositions(ParticleDataBuffer & data_buffer);
 
 using DiscreteElement::Initialize; //To avoid Clang Warning. We tell the compiler that we are aware of the existence of this function, but we overload it still.
 virtual void Initialize(const ProcessInfo& r_process_info);
@@ -62,6 +129,7 @@ virtual void FirstCalculateRightHandSide(ProcessInfo& r_process_info, double dt,
 virtual void CollectCalculateRightHandSide(ProcessInfo& r_process_info);
 virtual void FinalCalculateRightHandSide(ProcessInfo& r_process_info, double dt, const array_1d<double,3>& gravity);
 virtual void InitializeForceComputation(ProcessInfo& r_process_info);
+virtual void FinalizeForceComputation(ParticleDataBuffer & data_buffer){}
 virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_process_info) override;
 virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info) override;
 virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info) override;
@@ -77,7 +145,7 @@ virtual void Calculate(const Variable<double>& rVariable, double& Output, const 
 virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& r_process_info) override;
 virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info) override;
 virtual void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info) override;
-virtual void CalculateMaxBallToBallIndentation(double& rCurrentMaxIndentation);
+virtual void CalculateMaxBallToBallIndentation(double& rCurrentMaxIndentation, const ProcessInfo& r_process_info);
 virtual void CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation);
 virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info);
 
@@ -104,10 +172,12 @@ virtual double GetRadius();
 virtual void   SetRadius(double radius);
 virtual void   SetRadius();
 virtual double CalculateVolume();
-virtual double GetInteractionRadius();
-virtual void SetInteractionRadius(const double radius);
+virtual double GetInteractionRadius(const int radius_index = 0);
+virtual void SetInteractionRadius(const double radius, const int radius_index = 0);
 virtual double GetSearchRadius();
 virtual double GetSearchRadiusWithFem();
+DEMDiscontinuumConstitutiveLaw::Pointer GetConstitutiveLawPointer();
+virtual void SetDefaultRadiiHierarchy(const double radius);
 virtual void SetSearchRadius(const double radius);
 virtual void SetSearchRadiusWithFem(const double radius);
 virtual double GetMass();
@@ -185,6 +255,7 @@ double mElasticEnergy;
 double mInelasticFrictionalEnergy;
 double mInelasticViscodampingEnergy;
 std::vector<SphericParticle*>     mNeighbourElements;
+std::vector<int>                  mContactingNeighbourIds;
 std::vector<DEMWall*>             mNeighbourRigidFaces;
 std::vector<DEMWall*>             mNeighbourPotentialRigidFaces;
 
@@ -228,27 +299,24 @@ virtual void CalculateMomentum(array_1d<double, 3>& rMomentum);
 
 virtual void CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum);
 
-virtual void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
-                                           array_1d<double, 3>& rContactForce,
-                                           double& RollingResistance,
+virtual void ComputeBallToBallContactForce(ParticleDataBuffer & data_buffer,
                                            ProcessInfo& r_process_info,
-                                           const double dt,
-                                           const bool multi_stage_RHS);
+                                           array_1d<double, 3>& rElasticForce,
+                                           array_1d<double, 3>& rContactForce,
+                                           double& RollingResistance);
 
-virtual void EvaluateDeltaDisplacement(double DeltDisp[3],
+virtual void EvaluateDeltaDisplacement(ParticleDataBuffer & data_buffer,
+                                       double DeltDisp[3],
                                        double RelVel[3],
                                        double LocalCoordSystem[3][3],
                                        double OldLocalCoordSystem[3][3],
-                                       const array_1d<double, 3> &other_to_me_vect,
                                        const array_1d<double, 3> &vel,
-                                       const array_1d<double, 3> &delta_displ,
-                                       SphericParticle* neighbour_iterator,
-                                       double& distance);
+                                       const array_1d<double, 3> &delta_displ);
 
 virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotation(const double indentation,
                                                                         double DeltDesp[3],
                                                                         double RelVel[3],
-                                                                        double OldLocalCoordSystem[3][3],
+                                                                        const double OldLocalCoordSystem[3][3],
                                                                         const double &other_radius,
                                                                         const double &dt,
                                                                         const array_1d<double, 3> &angl_vel,
@@ -263,7 +331,7 @@ virtual void RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(cons
 
 virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotationMatrix(double DeltDisp[3],
                                                                               double RelVel[3],
-                                                                              double OldLocalCoordSystem[3][3],
+                                                                              const double OldLocalCoordSystem[3][3],
                                                                               const double& other_radius,
                                                                               const double& dt,
                                                                               const array_1d<double, 3>& ang_vel,
@@ -282,6 +350,22 @@ virtual void ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_mome
 virtual double GetInitialDeltaWithFEM(int index);
 
 virtual void ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces);
+
+virtual void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
+                                                              const ProcessInfo& r_process_info,
+                                                              double LocalElasticContactForce[3],
+                                                              double DeltDisp[3],
+                                                              double LocalDeltDisp[3],
+                                                              double RelVel[3],
+                                                              double indentation,
+                                                              double ViscoDampingLocalContactForce[3],
+                                                              double& cohesive_force,
+                                                              SphericParticle* element2,
+                                                              bool& sliding,
+                                                              double LocalCoordSystem[3][3],
+                                                              double OldLocalCoordSystem[3][3],
+                                                              array_1d<double, 3>& neighbour_elastic_contact_force);
+
 
 virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
                                    double LocalCoordSystem[3][3],

@@ -491,7 +491,7 @@ namespace Kratos
                   {
 
                      //setting up the Vectors involved to the correct size
-                     pBuilderAndSolver->ResizeAndInitializeVectors(mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
+                     pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
 
                      TSystemMatrixType& mA = *mpA;
                      TSystemVectorType& mDx = *mpDx;
@@ -780,7 +780,7 @@ namespace Kratos
                   TSystemVectorType& mDx = *mpDx;
                   TSystemVectorType& mb  = *mpb;
 
-                  LineSearchCalculationUtilities<TSparseSpace, TDenseSpace, TLinearSolver> LineSearch(this->GetEchoLevel());
+                  LineSearchCalculationUtilities<TSparseSpace, TDenseSpace, TLinearSolver> LineSearch(this->GetEchoLevel(), BaseType::MoveMeshFlag());
 
                   double ComputedAlpha = LineSearch.ExecuteLineSearch(mpBuilderAndSolver, mpScheme, this->GetModelPart(), mA, mDx, mb, rCurrentAlpha, rPreviousAlpha); 
 

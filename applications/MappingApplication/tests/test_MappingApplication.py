@@ -1,6 +1,5 @@
 # import Kratos
 from KratosMultiphysics import *
-from KratosMultiphysics.MappingApplication import *
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -9,6 +8,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from generalTests import KratosMappingGeneralTests
 
 from SmallTests import NearestNeighborTest_1 as TNearestNeighborTest_1
+from SmallTests import NearestElementTest2D_1 as TNearestElementTest2D_1
+from SmallTests import MapperTests as TMapperTests
 
 
 def AssambleTestSuites():
@@ -31,6 +32,8 @@ def AssambleTestSuites():
     # - testSmallExample
     smallSuite = suites['small']
     smallSuite.addTest(TNearestNeighborTest_1('test_execution'))
+    smallSuite.addTest(TNearestElementTest2D_1('test_execution'))
+    smallSuite.addTest(TMapperTests('test_execution'))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
@@ -38,14 +41,16 @@ def AssambleTestSuites():
     # - testNightlyFirstExample
     # - testNightlySecondExample
     nightSuite = suites['nightly']
-    # nightSuite.addTests(KratosMappingGeneralTests)
+    nightSuite.addTests(smallSuite)
 
     # Create a test suit that contains all the tests from every testCase
     # in the list:
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            TNearestNeighborTest_1
+            TNearestElementTest2D_1,
+            TNearestNeighborTest_1,
+            TMapperTests
         ])
     )
 

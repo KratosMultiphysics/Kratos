@@ -57,6 +57,7 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
                 self.assertTrue( cond.Id in new_part.Conditions)
             for elem in part.Elements:
                 self.assertTrue( elem.Id in new_part.Elements)
-                
+
+        
 if __name__ == '__main__':
     KratosUnittest.main()

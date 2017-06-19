@@ -304,8 +304,7 @@ namespace Kratos
       void ComputeMaterialParameters (double& Density,
 				      double& DeviatoricCoeff,
 				      double& VolumetricCoeff,
-				      double timeStep,
-				      const ShapeFunctionsType& rN);
+				      double timeStep);
 
 
       /// Add integration point contribution to the mass matrix.
@@ -351,8 +350,7 @@ namespace Kratos
 
       virtual bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
 					const ProcessInfo& rCurrentProcessInfo,
-					unsigned int g,
-					const ShapeFunctionsType& N);
+					unsigned int g);
 	
       void GetPositions(Vector& rValues,
 			const ProcessInfo& rCurrentProcessInfo,
@@ -360,13 +358,15 @@ namespace Kratos
 	
       virtual void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 						    double TimeStep,
-						    unsigned int g,
-						    const ShapeFunctionsType& rN);
+						    unsigned int g);
      
       virtual void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
 							 VectorType& rRightHandSideVector,
 							 ProcessInfo& rCurrentProcessInfo);
  
+      double GetThetaMomentum (){return 1.0;};
+
+      double GetThetaContinuity (){return 1.0;};
 
       ///@}
       ///@name Protected  Access

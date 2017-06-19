@@ -94,7 +94,7 @@ proc WriteFractureData {FileVar} {
     puts $MyFileVar "        \"propagation_damage\":                   [GiD_AccessValue get gendata Propagation_Damage],"
     puts $MyFileVar "        \"propagation_length\":                   [GiD_AccessValue get gendata Propagation_Length],"
     puts $MyFileVar "        \"propagation_width\":                    [GiD_AccessValue get gendata Propagation_Width],"
-    puts $MyFileVar "        \"propagation_cosangle\":                 [GiD_AccessValue get gendata Propagation_CosAngle],"
+    puts $MyFileVar "        \"correction_tolerance\":                 [GiD_AccessValue get gendata Correction_Tolerance],"
     puts $MyFileVar "        \"propagation_frequency\":                [GiD_AccessValue get gendata Propagation_Frequency],"
     # body_domain_sub_model_part_list
     set PutStrings \[
@@ -116,9 +116,9 @@ proc WriteBodySurfacesList {FileVar BodySurfacesDict} {
     puts $MyFileVar "    \"body_surfaces_list\": \[\{"
     dict for {Id BodySurface} $BodySurfacesDict {
         incr iter
-        puts $MyFileVar "        \"id\":     $Id,"
+        puts $MyFileVar "        \"id\":        $Id,"
         if {[llength [dict get $BodySurface Groups]] eq 0} {
-            puts $MyFileVar "        \"groups\": \[\],"
+            puts $MyFileVar "        \"groups\":    \[\],"
         } else {
             set PutStrings \[
             for {set i 0} {$i < [llength [dict get $BodySurface Groups]]} {incr i} {
@@ -126,7 +126,7 @@ proc WriteBodySurfacesList {FileVar BodySurfacesDict} {
             }
             set PutStrings [string trimright $PutStrings ,]
             append PutStrings \]
-            puts $MyFileVar "        \"groups\": $PutStrings,"
+            puts $MyFileVar "        \"groups\":    $PutStrings,"
         }
         set PutStrings \[
         for {set i 0} {$i < [llength [dict get $BodySurface Lines]]} {incr i} {
@@ -134,7 +134,9 @@ proc WriteBodySurfacesList {FileVar BodySurfacesDict} {
         }
         set PutStrings [string trimright $PutStrings ,]
         append PutStrings \]
-        puts $MyFileVar "        \"lines\":  $PutStrings"
+        puts $MyFileVar "        \"lines\":     $PutStrings,"
+        puts $MyFileVar "        \"elem_type\": \"[dict get $BodySurface ElemType]\","
+        puts $MyFileVar "        \"mesh_size\": [dict get $BodySurface MeshSize]"
         if {$iter < [dict size $BodySurfacesDict]} {
             puts $MyFileVar "    \},\{"
         } else {

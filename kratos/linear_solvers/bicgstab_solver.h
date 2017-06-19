@@ -118,7 +118,7 @@ public:
     guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         if(this->IsNotConsistent(rA, rX, rB))
             return false;
@@ -144,7 +144,7 @@ public:
     guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
+    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
     {
         //GetTimeTable()->Start(Info());
 
@@ -186,7 +186,7 @@ public:
     ///@{
 
     /// Return information about this object.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Biconjugate gradient stabilized linear solver with " << BaseType::GetPreconditioner()->Info();
@@ -194,14 +194,14 @@ public:
     }
 
     /// Print information about this object.
-    void  PrintInfo(std::ostream& OStream) const
+    void  PrintInfo(std::ostream& OStream) const override
     {
         OStream << "Biconjugate gradient stabilized linear solver with ";
         BaseType::GetPreconditioner()->PrintInfo(OStream);
     }
 
     /// Print object's data.
-    void  PrintData(std::ostream& OStream) const
+    void  PrintData(std::ostream& OStream) const override
     {
         BaseType::PrintData(OStream);
     }

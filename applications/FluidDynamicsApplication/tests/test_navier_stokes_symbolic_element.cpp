@@ -28,8 +28,8 @@
 namespace Kratos {
 	namespace Testing {
 
-		typedef typename ModelPart::IndexType										 IndexType;
-		typedef typename ModelPart::NodeIterator					          NodeIteratorType;
+		typedef ModelPart::IndexType									 IndexType;
+		typedef ModelPart::NodeIterator					          NodeIteratorType;
 
 	    /** Checks the NavierStokes2D3N element.
 	     * Checks the LHS and RHS computation using a small perturbation.

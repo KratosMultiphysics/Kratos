@@ -173,7 +173,7 @@ public:
     @param rX Unknows vector
     @param rB Right side linear system of equations.
     */
-    virtual void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    virtual void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         // ILU(0) preconditioner
         // Incomplete LU factorization with same sparcity pattern as original matrix.
@@ -431,20 +431,20 @@ public:
     ///@{
 
     /// Return information about this object.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "ILU0Preconditioner";
     }
 
 
     /// Print information about this object.
-    virtual void  PrintInfo(std::ostream& OStream) const
+    virtual void  PrintInfo(std::ostream& OStream) const override
     {
         OStream << "ILU0Preconditioner";
     }
 
 
-    virtual void PrintData(std::ostream& OStream) const
+    virtual void PrintData(std::ostream& OStream) const override
     {
     }
 

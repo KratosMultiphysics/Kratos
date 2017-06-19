@@ -151,20 +151,16 @@ public:
      * @param rWorkVector: Vector in where the inverse Jacobian is to be projected
      * @param rProjectedVector: Projected vector output
      */
-    // void ApplyPrevStepJacobian(const VectorType& rWorkVector,
-    //                            VectorType& rProjectedVector)
     void ApplyPrevStepJacobian(const VectorPointerType pWorkVector,
                                VectorPointerType pProjectedVector)
     {
         // Security check for the empty observation matrices case (when no correction has been done in the previous step)
         if (mpOldJacobianEmulator->mJacobianObsMatrixV.size() != 0)
         {
-            // mpOldJacobianEmulator->ApplyJacobian(rWorkVector, rProjectedVector);
             mpOldJacobianEmulator->ApplyJacobian(pWorkVector, pProjectedVector);
         }
         else
         {
-            // TSpace::Assign(rProjectedVector, -1.0, rWorkVector); // Consider minus the identity matrix as inverse Jacobian
             TSpace::Assign(*pProjectedVector, -1.0, *pWorkVector); // Consider minus the identity matrix as inverse Jacobian
         }
     }
@@ -174,8 +170,6 @@ public:
      * @param rWorkVector: Vector in where the inverse Jacobian is to be projected
      * @param rProjectedVector: Projected vector output
      */
-    // void ApplyJacobian(const VectorType& rWorkVector,
-    //                    VectorType& rProjectedVector)
     void ApplyJacobian(const VectorPointerType pWorkVector,
                        VectorPointerType pProjectedVector)
     {
@@ -197,11 +191,6 @@ public:
         }
         else
         {
-            // VectorType y(TSpace::Size(mJacobianObsMatrixV[0]));
-            // VectorType w(TSpace::Size(mJacobianObsMatrixV[0]));
-            // VectorType zQR(mJacobianObsMatrixV.size());
-            // VectorType WorkVectorCopy(rWorkVector);
-            // Matrix auxMatQR(TSpace::Size(mJacobianObsMatrixV[0]), mJacobianObsMatrixV.size());
 
             VectorPointerType pY(new VectorType(mJacobianObsMatrixV[0]));
             VectorPointerType pW(new VectorType(mJacobianObsMatrixV[0]));
@@ -222,49 +211,36 @@ public:
 
             // QR decomposition to compute ((V_k.T*V_k)^-1)*V_k.T*r_k
             // TODO: Implement an if(!frozen) to avoid the recomputation of the inverse matrix each time the OldJacobianEmulator is called
-            // mQR_decomposition.compute(TSpace::Size(mJacobianObsMatrixV[0]), mJacobianObsMatrixV.size(), &auxMatQR(0,0));
-            // mQR_decomposition.solve(&WorkVectorCopy[0], &zQR[0]);
             mQR_decomposition.compute(TSpace::Size(mJacobianObsMatrixV[0]), mJacobianObsMatrixV.size(), &(*pAuxMatQR)(0,0));
             mQR_decomposition.solve(&(*pWorkVectorCopy)(0), &(*pzQR)(0));
 
             // TODO: PARALLELIZE THIS OPERATION (it cannot be done with TSpace::Dot beacuse the obs matrices are stored by columns)
-            // y = V_k*zQR - r_k
-            // TSpace::SetToZero(y);
             TSpace::SetToZero(*pY);
             for (unsigned int j = 0; j < mJacobianObsMatrixV.size(); j++)
             {
-                // TSpace::UnaliasedAdd(y,zQR(j), mJacobianObsMatrixV[j]);
                 TSpace::UnaliasedAdd(*pY, (*pzQR)(j), mJacobianObsMatrixV[j]);
             }
-            // TSpace::UnaliasedAdd(y, -1.0, rWorkVector);
+
             TSpace::UnaliasedAdd(*pY, -1.0, *pWorkVector);
 
             if (mpOldJacobianEmulator == nullptr)
             {
-                // rProjectedVector = y; // Consider minus the identity as previous step Jacobian
                 TSpace::Copy(*pY, *pProjectedVector); // Consider minus the identity as previous step Jacobian
             }
             else
             {
-                // VectorType y_minus(y);
-                // TSpace::Assign(y_minus,-1.0,y);
                 VectorPointerType pYminus(new VectorType(*pY));
                 TSpace::Assign(*pYminus, -1.0, *pY);
-                // mpOldJacobianEmulator->ApplyJacobian(y_minus, rProjectedVector); // The minus comes from the fact that we want to apply r_k - V_k*zQR
                 mpOldJacobianEmulator->ApplyJacobian(pYminus, pProjectedVector); // The minus comes from the fact that we want to apply r_k - V_k*zQR
             }
 
             // w = W_k*z
-            // TSpace::SetToZero(w);
             TSpace::SetToZero(*pW);
             for (unsigned int j = 0; j < mJacobianObsMatrixV.size(); j++)
             {
-                // TSpace::UnaliasedAdd(w, zQR(j), mJacobianObsMatrixW[j]);
                 TSpace::UnaliasedAdd(*pW, (*pzQR)(j), mJacobianObsMatrixW[j]);
             }
 
-            // rProjectedVector += w;
-            // TSpace::UnaliasedAdd(*pProjectedVector, 1.0, w);
             TSpace::UnaliasedAdd(*pProjectedVector, 1.0, *pW);
 
         }
@@ -463,6 +439,7 @@ public:
         mJacobianBufferSize = rJacobianBufferSize;
         mConvergenceAcceleratorStep = 0;
         mConvergenceAcceleratorIteration = 0;
+        mConvergenceAcceleratorFirstCorrectionPerformed = false;
     }
 
     /**
@@ -474,6 +451,7 @@ public:
         mJacobianBufferSize = rOther.mJacobianBufferSize;
         mConvergenceAcceleratorStep = 0;
         mConvergenceAcceleratorIteration = 0;
+        mConvergenceAcceleratorFirstCorrectionPerformed = false;
     }
 
     /**
@@ -548,23 +526,21 @@ public:
 
         if (mConvergenceAcceleratorIteration == 0)
         {
-            if (mConvergenceAcceleratorStep == 1)
+            if (mConvergenceAcceleratorFirstCorrectionPerformed == false)
             {
                 // The very first correction of the problem is done with a fixed point iteration
-                // rIterationGuess += mOmega_0*mResidualVector_1;
                 TSpace::UnaliasedAdd(rIterationGuess, mOmega_0, *mpResidualVector_1);
+
+                mConvergenceAcceleratorFirstCorrectionPerformed = true;
             }
             else
             {
                 //~ std::cout << "First step correction" << std::endl;
-                // VectorType InitialCorrection(mProblemSize);
                 VectorPointerType pInitialCorrection(new VectorType(rResidualVector)); // Hack in case the Epetra copy constructor needs to be called
 
                 // The first correction of the current step is done with the previous step inverse Jacobian approximation
-                // mpCurrentJacobianEmulatorPointer->ApplyPrevStepJacobian(mResidualVector_1, InitialCorrection);
                 mpCurrentJacobianEmulatorPointer->ApplyPrevStepJacobian(mpResidualVector_1, pInitialCorrection);
 
-                // rIterationGuess -= InitialCorrection; // Recall the minus sign coming from the Taylor expansion of the residual (Newton-Raphson)
                 TSpace::UnaliasedAdd(rIterationGuess, -1.0, *pInitialCorrection); // Recall the minus sign coming from the Taylor expansion of the residual (Newton-Raphson)
             }
         }
@@ -573,15 +549,6 @@ public:
             //~ std::cout << "Gathering information" << std::endl;
 
             // Gather the new observation matrices column information
-            // VectorType newColV(mProblemSize);
-            // VectorType newColW(mProblemSize);
-
-            // for (unsigned int i = 0; i < mProblemSize; i++)
-            // {
-                // newColV[i] = mResidualVector_1(i) - mResidualVector_0(i);
-                // newColW[i] = mIterationValue_1(i) - mIterationValue_0(i);
-            // }
-
             VectorPointerType pNewColV(new VectorType(rResidualVector)); // Hack in case the Epetra copy constructor needs to be called
             VectorPointerType pNewColW(new VectorType(rResidualVector)); // Hack in case the Epetra copy constructor needs to be called
 
@@ -592,8 +559,6 @@ public:
             if (mConvergenceAcceleratorIteration <= mProblemSize)
             {
                 // Append the new information to the existent observation matrices
-                // (mpCurrentJacobianEmulatorPointer)->AppendColToV(newColV);
-                // (mpCurrentJacobianEmulatorPointer)->AppendColToW(newColW);
                 (mpCurrentJacobianEmulatorPointer)->AppendColToV(*pNewColV);
                 (mpCurrentJacobianEmulatorPointer)->AppendColToW(*pNewColW);
 
@@ -601,8 +566,6 @@ public:
             }
             else
             {
-                // (mpCurrentJacobianEmulatorPointer)->DropAndAppendColToV(newColV);
-                // (mpCurrentJacobianEmulatorPointer)->DropAndAppendColToW(newColW);
                 (mpCurrentJacobianEmulatorPointer)->DropAndAppendColToV(*pNewColV);
                 (mpCurrentJacobianEmulatorPointer)->DropAndAppendColToW(*pNewColW);
 
@@ -612,12 +575,9 @@ public:
             //~ std::cout << "Jacobian approximation computation starts..." << std::endl;
 
             // Apply the current step inverse Jacobian emulator to the residual vector
-            // VectorType IterationCorrection(mProblemSize);
-            // mpCurrentJacobianEmulatorPointer->ApplyJacobian(rResidualVector, IterationCorrection);
             VectorPointerType pIterationCorrection(new VectorType(rResidualVector)); // Hack in case the Epetra copy constructor needs to be called
             mpCurrentJacobianEmulatorPointer->ApplyJacobian(mpResidualVector_1, pIterationCorrection);
 
-            // rIterationGuess -= IterationCorrection; // Recall the minus sign coming from the Taylor expansion of the residual (Newton-Raphson)
             TSpace::UnaliasedAdd(rIterationGuess, -1.0, *pIterationCorrection); // Recall the minus sign coming from the Taylor expansion of the residual (Newton-Raphson)
         }
 
@@ -632,8 +592,6 @@ public:
         KRATOS_TRY;
 
         // Variables update
-        // TSpace::Copy(mIterationValue_1, mIterationValue_0);
-        // TSpace::Copy(mResidualVector_1, mResidualVector_0);
         mpIterationValue_0 = mpIterationValue_1;
         mpResidualVector_0 = mpResidualVector_1;
 
@@ -668,25 +626,20 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    unsigned int mProblemSize;
-    unsigned int mJacobianBufferSize;
-    unsigned int mCurrentJacobianBufferSize;
-    unsigned int mConvergenceAcceleratorStep;
-    unsigned int mConvergenceAcceleratorIteration;
+    double mOmega_0;                                                    // Relaxation factor for the initial fixed point iteration
+    unsigned int mProblemSize;                                          // Residual to minimize size
+    unsigned int mJacobianBufferSize;                                   // User-defined Jacobian buffer-size
+    unsigned int mCurrentJacobianBufferSize;                            // Current Jacobian buffer-size (expected to be less or equal to the user-defined one)
+    unsigned int mConvergenceAcceleratorStep;                           // Convergence accelerator steps counter
+    unsigned int mConvergenceAcceleratorIteration;                      // Convergence accelerator iteration counter
+    bool mConvergenceAcceleratorFirstCorrectionPerformed;               // Indicates that the initial fixed point iteration has been already performed
 
-    double mOmega_0;
-    //
-    // VectorType mResidualVector_0;                                               // Previous iteration residual vector
-    // VectorType mResidualVector_1;                                               // Current iteration residual vector
-    // VectorType mIterationValue_0;                                               // Previous iteration guess
-    // VectorType mIterationValue_1;                                               // Current iteration guess
+    VectorPointerType mpResidualVector_0;                               // Previous iteration residual vector pointer
+    VectorPointerType mpResidualVector_1;                               // Current iteration residual vector pointer
+    VectorPointerType mpIterationValue_0;                               // Previous iteration guess pointer
+    VectorPointerType mpIterationValue_1;                               // Current iteration guess pointer
 
-    VectorPointerType mpResidualVector_0;                                       // Previous iteration residual vector pointer
-    VectorPointerType mpResidualVector_1;                                       // Current iteration residual vector pointer
-    VectorPointerType mpIterationValue_0;                                       // Previous iteration guess pointer
-    VectorPointerType mpIterationValue_1;                                       // Current iteration guess pointer
-
-    JacobianEmulatorPointerType mpCurrentJacobianEmulatorPointer;               // Current step Jacobian approximator pointer
+    JacobianEmulatorPointerType mpCurrentJacobianEmulatorPointer;       // Current step Jacobian approximator pointer
 
     ///@}
 

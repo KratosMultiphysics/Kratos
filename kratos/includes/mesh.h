@@ -271,13 +271,17 @@ public:
     /** Returns the Node::Pointer  corresponding to it's identifier */
     typename NodeType::Pointer pGetNode(IndexType NodeId)
     {
-        return (*mpNodes)(NodeId);
+        auto i = mpNodes->find(NodeId);
+        KRATOS_ERROR_IF(i == mpNodes->end()) << " node index not found: " << NodeId << ".";
+        return *i.base();
     }
 
     /** Returns a reference node corresponding to it's identifier */
     NodeType& GetNode(IndexType NodeId)
     {
-        return (*mpNodes)[NodeId];
+        auto i = mpNodes->find(NodeId);
+        KRATOS_ERROR_IF(i == mpNodes->end()) << " node index not found: " << NodeId << ".";
+        return *i;
     }
 
     /** Remove the node with given Id from mesh.
@@ -460,13 +464,17 @@ public:
     /** Returns the Element::Pointer  corresponding to it's identifier */
     typename ElementType::Pointer pGetElement(IndexType ElementId)
     {
-        return (*mpElements)(ElementId);
+        auto i = mpElements->find(ElementId);
+        KRATOS_ERROR_IF(i == mpElements->end()) << " element index not found: " << ElementId << ".";
+        return *i.base();
     }
 
     /** Returns a reference element corresponding to it's identifier */
     ElementType& GetElement(IndexType ElementId)
     {
-        return (*mpElements)[ElementId];
+        auto i = mpElements->find(ElementId);
+        KRATOS_ERROR_IF(i == mpElements->end()) << " element index not found: " << ElementId << ".";
+        return *i;
     }
 
     /** Remove the element with given Id from mesh.
@@ -555,13 +563,17 @@ public:
     /** Returns the Condition::Pointer  corresponding to it's identifier */
     typename ConditionType::Pointer pGetCondition(IndexType ConditionId)
     {
-        return (*mpConditions)(ConditionId);
+        auto i = mpConditions->find(ConditionId);
+        KRATOS_ERROR_IF(i == mpConditions->end()) << " condition index not found: " << ConditionId << ".";
+        return *i.base();
     }
 
     /** Returns a reference condition corresponding to it's identifier */
     ConditionType& GetCondition(IndexType ConditionId)
     {
-        return (*mpConditions)[ConditionId];
+        auto i = mpConditions->find(ConditionId);
+        KRATOS_ERROR_IF(i == mpConditions->end()) << " condition index not found: " << ConditionId << ".";
+        return *i;
     }
 
     /** Remove the condition with given Id from mesh.
@@ -645,19 +657,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "Mesh";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         rOStream << "    Number of Nodes      : " << mpNodes->size() << std::endl;
         rOStream << "    Number of Properties : " << mpProperties->size() << std::endl;
@@ -759,7 +771,7 @@ private:
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DataValueContainer );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
@@ -769,7 +781,7 @@ private:
         rSerializer.save("Conditions",mpConditions);
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DataValueContainer );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );

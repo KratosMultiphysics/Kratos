@@ -147,7 +147,7 @@ public:
     @param rX Unknows vector
     @param rB Right side linear system of equations.
     */
-    void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         mDiagonal.resize(int(TSparseSpaceType::Size(rX)));
         mTemp.resize(int(TSparseSpaceType::Size(rX)));
@@ -176,12 +176,12 @@ public:
 
     }
 
-    void Initialize(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
+    void Initialize(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
     {
         BaseType::Initialize(rA, rX, rB);
     }
 
-    void Mult(SparseMatrixType& rA, VectorType& rX, VectorType& rY)
+    void Mult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
     {
         int i;
         #pragma omp parallel for private(i)
@@ -191,7 +191,7 @@ public:
         ApplyLeft(rY);
     }
 
-    void TransposeMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY)
+    void TransposeMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
     {
         int i;
         #pragma omp parallel for private(i)
@@ -201,7 +201,7 @@ public:
         ApplyRight(rY);
     }
 
-    VectorType& ApplyLeft(VectorType& rX)
+    VectorType& ApplyLeft(VectorType& rX) override
     {
         int i;
         #pragma omp parallel for private(i)
@@ -211,7 +211,7 @@ public:
         return rX;
     }
 
-    VectorType& ApplyRight(VectorType& rX)
+    VectorType& ApplyRight(VectorType& rX) override
     {
         int i;
         #pragma omp parallel for private(i)
@@ -227,7 +227,7 @@ public:
     @param rXVector  Unknows of preconditioner suystem
     @param rYVector  Right side of preconditioner system.
     */
-    VectorType& ApplyTransposeLeft(VectorType& rX)
+    VectorType& ApplyTransposeLeft(VectorType& rX) override
     {
         int i;
         #pragma omp parallel for private(i)
@@ -237,7 +237,7 @@ public:
         return rX;
     }
 
-    VectorType& ApplyTransposeRight(VectorType& rX)
+    VectorType& ApplyTransposeRight(VectorType& rX) override
     {
         int i;
         #pragma omp parallel for private(i)
@@ -247,7 +247,7 @@ public:
         return rX;
     }
 
-    VectorType& ApplyInverseRight(VectorType& rX)
+    VectorType& ApplyInverseRight(VectorType& rX) override
     {
 // 	  const DataType zero = DataType();
 
@@ -260,7 +260,7 @@ public:
         return rX;
     }
 
-    VectorType& Finalize(VectorType& rX)
+    VectorType& Finalize(VectorType& rX) override
     {
         int i;
         #pragma omp parallel for private(i)
@@ -284,13 +284,13 @@ public:
     ///@{
 
     /// Return information about this object.
-    virtual std::string  Info() const
+    virtual std::string  Info() const override
     {
         return "Diagonal preconditioner";
     }
 
     /// Print information about this object.
-    virtual void  PrintInfo(std::ostream& OStream) const
+    virtual void  PrintInfo(std::ostream& OStream) const override
     {
         OStream << "Diagonal preconditioner";
     }

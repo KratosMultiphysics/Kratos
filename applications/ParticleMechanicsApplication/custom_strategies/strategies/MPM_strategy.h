@@ -214,8 +214,8 @@ public:
 
     /*@{ */
     
-    MPMStrategy(ModelPart& grid_model_part, ModelPart& mpm_model_part, typename TLinearSolver::Pointer plinear_solver,Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType", std::string GeometryElement = "Triangle", int NumPar = 3)
-    : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_mpm_model_part(mpm_model_part), m_GeometryElement(GeometryElement), m_NumPar(NumPar)
+    MPMStrategy(ModelPart& grid_model_part, ModelPart& initial_model_part, ModelPart& mpm_model_part, typename TLinearSolver::Pointer plinear_solver,Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType", std::string GeometryElement = "Triangle", int NumPar = 3)
+    : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_initial_model_part(initial_model_part), mr_mpm_model_part(mpm_model_part), m_GeometryElement(GeometryElement), m_NumPar(NumPar)
     {   
         
          //populate for the first time the mpm_model_part
@@ -225,13 +225,13 @@ public:
         
         mpm_model_part.SetProcessInfo(grid_model_part.pGetProcessInfo());
         mpm_model_part.SetBufferSize(grid_model_part.GetBufferSize());
-        mpm_model_part.SetProperties(grid_model_part.pProperties());
+        mpm_model_part.SetProperties(initial_model_part.pProperties());
         mpm_model_part.SetConditions(grid_model_part.pConditions());
         
         
         
         
-        array_1d<double,3> xg ;
+        array_1d<double,3> xg = ZeroVector(3); 
         array_1d<double,3> MP_Displacement = ZeroVector(3); 
         array_1d<double,3> MP_Velocity = ZeroVector(3);
         //double MP_KineticEnergy = 0.0;
@@ -247,8 +247,8 @@ public:
         const unsigned int number_nodes = grid_model_part.NumberOfNodes();
         int new_element_id = 0;
         
-        for (ModelPart::ElementIterator i = grid_model_part.ElementsBegin();
-                    i != grid_model_part.ElementsEnd(); i++)
+        for (ModelPart::ElementIterator i = initial_model_part.ElementsBegin();
+                    i != initial_model_part.ElementsEnd(); i++)
             {   
                 if(i->IsDefined(ACTIVE))
                 {
@@ -292,8 +292,12 @@ public:
 							{
 								shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
 							}
+						else if(m_NumPar == 16)
+							{
+								shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
+							}
 					}
-		    //Matrix shape_functions_values = this->MP16ShapeFunctions();
+                    //Matrix shape_functions_values = this->MP16ShapeFunctions();
                     //std::cout<<"shape_functions_values "<< shape_functions_values<<std::endl;
                     //const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( GeometryData::GI_GAUSS_4); 
                     
@@ -434,7 +438,8 @@ public:
     
     
     
-    
+    initial_model_part.Nodes().clear();
+    initial_model_part.Elements().clear();    
     
     
     
@@ -998,10 +1003,11 @@ protected:
     //bool mStiffnessMatrixIsBuilt;
     
     ModelPart& mr_grid_model_part;
+    ModelPart& mr_initial_model_part;
     ModelPart& mr_mpm_model_part;
     std::string m_GeometryElement;
     int m_NumPar;
-
+   
     SolvingStrategyType::Pointer mp_solving_strategy;
 
     /*@} */

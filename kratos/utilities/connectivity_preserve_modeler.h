@@ -59,9 +59,14 @@ public:
         ModelPart& DestinationModelPart,
         Element const& rReferenceElement,
         Condition const& rReferenceBoundaryCondition
-    )
+    ) override
     {
         KRATOS_TRY;
+
+        //TODO: do this better, with the remove function
+//         DestinationModelPart.Nodes().clear();
+//         DestinationModelPart.Conditions().clear();
+//         DestinationModelPart.Elements().clear();
         
         for(auto it = DestinationModelPart.NodesBegin(); it != DestinationModelPart.NodesEnd(); it++)
             it->Set(TO_ERASE);
@@ -130,14 +135,13 @@ public:
         //generating tables
 	DestinationModelPart.Tables() = OriginModelPart.Tables();
 
-        
-        
+
         Communicator::Pointer pComm = OriginModelPart.GetCommunicator().Create();
         DestinationModelPart.SetCommunicator(pComm);
 
         KRATOS_CATCH("");
     }
-    
+
 protected:
     
     void PopulateSubModelParts(
@@ -160,8 +164,6 @@ protected:
             PopulateSubModelParts(*part, destination_part);
         }
     }
-
-
     //**********************************************************************************************
     //**********************************************************************************************
 private:

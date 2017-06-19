@@ -130,8 +130,8 @@ class FracturePropagationUtility:
             # Call GiD to generate new mesh
             import subprocess
             os.chdir(self.gid_path)
-            #~ subprocess.call(str(self.execute_gid) + " -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
-            #~ subprocess.call(str(self.execute_gid) + " -n -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
+            # subprocess.call(str(self.execute_gid) + " -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
+            # subprocess.call(str(self.execute_gid) + " -n -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
             subprocess.call(str(self.execute_gid) + " -c " + str(self.gid_preferences_path) + " -n -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
             os.chdir(self.problem_path)
             
@@ -281,3 +281,15 @@ class FracturePropagationUtility:
         #IsConverged = solver._CheckConvergence()
         
         return main_model_part,solver,list_of_processes,gid_output
+
+    def Finalize(self):
+                
+        # Save old .post.list file
+        all_list_filename = str(self.problem_name)+"_all.post.lst"
+        all_list_file = open(all_list_filename,'a')
+        partial_list_filename = str(self.problem_name)+".post.lst"
+        with open(partial_list_filename) as partial_list_file:
+            next(partial_list_file)
+            for line in partial_list_file:
+                    all_list_file.write(line)
+        all_list_file.close()

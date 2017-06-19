@@ -2,10 +2,10 @@
     "problem_data"                     : {
         "problem_name"    : "reservoir",
         "model_part_name" : "MainModelPart",
+        "parallel_type"   : "OpenMP",
         "domain_size"     : 3,
         "start_step"      : 0.0,
-        "end_time"        : 1,
-        "time_step"       : 0.1
+        "end_time"        : 1
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -34,7 +34,7 @@
         "Restart_Step"     : 0
     },
     "solver_settings"                  : {
-        "solver_type"                  : "navier_stokes_embedded_solver",
+        "solver_type"                  : "Embedded",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
             "input_filename" : "EmbeddedReservoirTest/reservoir"
@@ -63,18 +63,24 @@
         },
         "volume_model_part_name"       : "Parts_Fluid",
         "skin_parts"                   : ["Outlet3D","NoSlip3D"],
-        "no_skin_parts"                : []
+        "no_skin_parts"                : [],
+        "time_stepping"                : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.1
+        }
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{
-        "python_module" : "impose_scalar_value_process",
-        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"  : "ApplyOutletProcess",
+        "python_module" : "assign_scalar_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignScalarVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Outlet3D",
             "variable_name"   : "PRESSURE",
-            "value"           : 0
+            "constrained"     : true,
+            "interval"        : [0.0,"End"],
+            "value"           : 0.0
         }
     },{
         "python_module" : "apply_noslip_process",
@@ -85,9 +91,9 @@
             "model_part_name" : "NoSlip3D"
         }
     },{
-        "python_module" : "EmbeddedReservoirTest_local_process",
+        "python_module" : "embedded_reservoir_test_local_process",
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"  : "ApplyLocalProcess",
+        "process_name"  : "EmbeddedReservoirTestLocalProcess",
         "Parameters"    : {
             "mesh_id"                : 0,
             "distance"               : 0.5,

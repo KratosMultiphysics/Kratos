@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,6 @@ THE SOFTWARE.
 #include <boost/property_tree/ptree.hpp>
 #include <boost/preprocessor/stringize.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
-#include <boost/preprocessor/facilities/empty.hpp>
 
 /* Performance measurement macros
  *
@@ -72,8 +71,14 @@ namespace amgcl {
 /// Throws \p message if \p condition is not true.
 template <class Condition, class Message>
 void precondition(const Condition &condition, const Message &message) {
-    if ( !static_cast<bool>(condition) )
-        throw std::runtime_error(message);
+#ifdef _MSC_VER
+#  pragma warning(push)
+#  pragma warning(disable: 4800)
+#endif
+    if (!condition) throw std::runtime_error(message);
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 }
 
 #define AMGCL_PARAMS_IMPORT_VALUE(p, name)                                     \
@@ -123,9 +128,9 @@ inline const boost::property_tree::ptree& empty_ptree() {
 struct empty_params {
     empty_params() {}
     empty_params(const boost::property_tree::ptree &p) {
-        //AMGCL_PARAMS_CHECK(p, );
-		AMGCL_PARAMS_CHECK(p, BOOST_PP_EMPTY());
-	}
+        for(boost::property_tree::ptree::const_iterator v = p.begin(), e = p.end(); v != e; ++v)
+            AMGCL_PARAM_UNKNOWN(v->first);
+    }
     void get(boost::property_tree::ptree&, const std::string&) const {}
 };
 
