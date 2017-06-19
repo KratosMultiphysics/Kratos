@@ -706,7 +706,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
         }
     }
 
-    if (IsFluidVariableToBeTimeFiltered(PARTICLE_VEL_FILTERED)){
+    if ( (r_fluid_model_part.GetNodalSolutionStepVariablesList()).Has(PARTICLE_VEL_FILTERED) && IsFluidVariableToBeTimeFiltered(PARTICLE_VEL_FILTERED)){
         const double alpha = GetAlpha(PARTICLE_VEL_FILTERED);
 
         #pragma omp parallel firstprivate(alpha)
@@ -1867,7 +1867,9 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ResetFlu
         }
 
         if (mTimeAveragingType == 0 || mTimeAveragingType == 2){
-            ClearVariable(node_it, PHASE_FRACTION);
+            if (IsFluidVariable(PHASE_FRACTION)){
+                ClearVariable(node_it, PHASE_FRACTION);
+            }
             if (IsFluidVariable(TIME_AVERAGED_ARRAY_3)){
                 array_1d<double, 3>& particle_velocity = node_it->FastGetSolutionStepValue(TIME_AVERAGED_ARRAY_3);
                 particle_velocity = ZeroVector(3);
