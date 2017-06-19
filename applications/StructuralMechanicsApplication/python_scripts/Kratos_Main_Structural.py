@@ -34,7 +34,7 @@ def StopTimeMeasuring(time_ip, process, report):
 
 # Import define_output
 parameter_file = open("ProjectParameters.json",'r')
-ProjectParameters = Parameters( parameter_file.read())
+ProjectParameters = KratosMultiphysics.Parameters( parameter_file.read())
 
 # Set echo level
 echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
@@ -75,6 +75,7 @@ if(echo_level>1):
         print(properties)
 
 # Obtain the list of the processes to be applied
+import process_factory
 list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses(ProjectParameters["constraints_process_list"])
 list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses(ProjectParameters["loads_process_list"])
 if (ProjectParameters.Has("list_other_processes") == True): 
