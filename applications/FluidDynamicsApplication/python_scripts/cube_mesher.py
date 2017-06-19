@@ -629,6 +629,108 @@ def generate_mesh_groups(mdpa, box):
         mdpa.write("End Mesh\n\n")
 
 
+def generate_sub_model_parts(mdpa, box):
+    index = 1
+    nx = box.nx()
+    ny = box.ny()
+    nz = box.nz()
+
+    # Front group
+    if "front" in box.cond_range:
+        mdpa.write("Begin SubModelPart Front\n")
+        mdpa.write("Begin SubModelPartNodes\n")
+        for iz in range(nz + 1):
+            for iy in range(ny + 1):
+                mdpa.write("{0}\n".format(box.get_id(0, iy, iz)))
+        mdpa.write("End SubModelPartNodes\n\n")
+
+        mdpa.write("Begin SubModelPartConditions\n")
+        for i in range(*box.cond_range["front"]):
+            mdpa.write("{0}\n".format(i))
+        mdpa.write("End SubModelPartConditions\n\n")
+
+        mdpa.write("End SubModelPart\n\n")
+
+    # Back group
+    if "back" in box.cond_range:
+        mdpa.write("Begin SubModelPart Back\n")
+        mdpa.write("Begin SubModelPartNodes\n")
+        for iz in range(nz + 1):
+            for iy in range(ny + 1):
+                mdpa.write("{0}\n".format(box.get_id(nx, iy, iz)))
+        mdpa.write("End SubModelPartNodes\n\n")
+
+        mdpa.write("Begin SubModelPartConditions\n")
+        for i in range(*box.cond_range["back"]):
+            mdpa.write("{0}\n".format(i))
+        mdpa.write("End SubModelPartConditions\n\n")
+
+        mdpa.write("End SubModelPart\n\n")
+
+    # Right group
+    if "right" in box.cond_range:
+        mdpa.write("Begin SubModelPart Right\n")
+        mdpa.write("Begin SubModelPartNodes\n")
+        for iz in range(nz + 1):
+            for ix in range(nx + 1):
+                mdpa.write("{0}\n".format(box.get_id(ix, 0, iz)))
+        mdpa.write("End SubModelPartNodes\n\n")
+
+        mdpa.write("Begin SubModelPartConditions\n")
+        for i in range(*box.cond_range["right"]):
+            mdpa.write("{0}\n".format(i))
+        mdpa.write("End SubModelPartConditions\n\n")
+
+        mdpa.write("End SubModelPart\n\n")
+
+    # Left group
+    if "left" in box.cond_range:
+        mdpa.write("Begin SubModelPart Left\n")
+        mdpa.write("Begin SubModelPartNodes\n")
+        for iz in range(nz + 1):
+            for ix in range(nx + 1):
+                mdpa.write("{0}\n".format(box.get_id(ix, ny, iz)))
+        mdpa.write("End SubModelPartNodes\n\n")
+
+        mdpa.write("Begin SubModelPartConditions\n")
+        for i in range(*box.cond_range["left"]):
+            mdpa.write("{0}\n".format(i))
+        mdpa.write("End SubModelPartConditions\n\n")
+
+        mdpa.write("End SubModelPart\n\n")
+
+    # Bottom group
+    if "bottom" in box.cond_range:
+        mdpa.write("Begin SubModelPart Bottom\n")
+        mdpa.write("Begin SubModelPartNodes\n")
+        for iy in range(ny + 1):
+            for ix in range(nx + 1):
+                mdpa.write("{0}\n".format(box.get_id(ix, iy, 0)))
+        mdpa.write("End SubModelPartNodes\n\n")
+
+        mdpa.write("Begin SubModelPartConditions\n")
+        for i in range(*box.cond_range["bottom"]):
+            mdpa.write("{0}\n".format(i))
+        mdpa.write("End SubModelPartConditions\n\n")
+
+        mdpa.write("End SubModelPart\n\n")
+
+    # Top group
+    if "top" in box.cond_range:
+        mdpa.write("Begin SubModelPart Top\n")
+        mdpa.write("Begin SubModelPartNodes\n")
+        for iy in range(ny + 1):
+            for ix in range(nx + 1):
+                mdpa.write("{0}\n".format(box.get_id(ix, iy, nz)))
+        mdpa.write("End SubModelPartNodes\n\n")
+
+        mdpa.write("Begin SubModelPartConditions\n")
+        for i in range(*box.cond_range["top"]):
+            mdpa.write("{0}\n".format(i))
+        mdpa.write("End SubModelPartConditions\n\n")
+
+        mdpa.write("End SubModelPart\n\n")
+
 if __name__ == "__main__":
     import sys
 

@@ -170,7 +170,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Initialize(ModelPart& rModelPart)
+    virtual void Initialize(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
@@ -223,7 +223,7 @@ public:
     virtual void InitializeSolutionStep(ModelPart& rModelPart,
                                         SystemMatrixType& rA,
                                         SystemVectorType& rDx,
-                                        SystemVectorType& rb)
+                                        SystemVectorType& rb) override
     {
         KRATOS_TRY
 
@@ -258,7 +258,7 @@ public:
     virtual void FinalizeSolutionStep(ModelPart& rModelPart,
                                       SystemMatrixType& rA,
                                       SystemVectorType& rDx,
-                                      SystemVectorType& rb)
+                                      SystemVectorType& rb) override
     {
         KRATOS_TRY
 
@@ -278,7 +278,7 @@ public:
                         DofsArrayType& rDofSet,
                         SystemMatrixType& rA,
                         SystemVectorType& rDx,
-                        SystemVectorType& rb)
+                        SystemVectorType& rb) override
     {
         KRATOS_TRY
 
@@ -418,7 +418,7 @@ public:
                                               LocalSystemMatrixType& rLHS_Contribution,
                                               LocalSystemVectorType& rRHS_Contribution,
                                               Element::EquationIdVectorType& rEquationId,
-                                              ProcessInfo& rCurrentProcessInfo)
+                                              ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -489,7 +489,7 @@ public:
     virtual void Calculate_LHS_Contribution(Element::Pointer pCurrentElement,
                                             LocalSystemMatrixType& LHS_Contribution,
                                             Element::EquationIdVectorType& EquationId,
-                                            ProcessInfo& CurrentProcessInfo)
+                                            ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -508,9 +508,12 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Condition::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
+
+        BaseType::Condition_CalculateSystemContributions(
+            pCurrentCondition, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -518,16 +521,19 @@ public:
     virtual void Condition_Calculate_LHS_Contribution(Condition::Pointer pCurrentCondition,
                                                       LocalSystemMatrixType& LHS_Contribution,
                                                       Condition::EquationIdVectorType& EquationId,
-                                                      ProcessInfo& CurrentProcessInfo)
+                                                      ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
+
+        BaseType::Condition_Calculate_LHS_Contribution(
+            pCurrentCondition, LHS_Contribution, EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
 
     virtual void GetElementalDofList(Element::Pointer rCurrentElement,
                                      Element::DofsVectorType& ElementalDofList,
-                                     ProcessInfo& CurrentProcessInfo)
+                                     ProcessInfo& CurrentProcessInfo) override
     {
         rCurrentElement->GetDofList(ElementalDofList, CurrentProcessInfo);
     }

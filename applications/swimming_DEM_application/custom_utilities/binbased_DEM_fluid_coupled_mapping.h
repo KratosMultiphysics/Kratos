@@ -126,6 +126,7 @@ KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMFluidCoupledMapping_TDim_TBaseTypeOfS
 // 3:   Linear         Filtered            Filtered
 //----------------------------------------------------------------
 
+
 BinBasedDEMFluidCoupledMapping(double min_fluid_fraction,
                                const int coupling_type,
                                const int time_averaging_type,
@@ -137,7 +138,7 @@ BinBasedDEMFluidCoupledMapping(double min_fluid_fraction,
                                mMinFluidFraction(min_fluid_fraction),
                                mMaxNodalAreaInv(0.0),
                                mCouplingType(coupling_type),
-                               mTimeAveragingTipe(time_averaging_type),
+                               mTimeAveragingType(time_averaging_type),
                                mViscosityModificationType(viscosity_modification_type),
                                mParticlesPerDepthDistance(n_particles_per_depth_distance),
                                mNumberOfDEMSamplesSoFarInTheCurrentFluidStep(0)
@@ -172,6 +173,10 @@ void AddFluidCouplingVariable(const VariableData& r_variable){
 
 void AddDEMVariablesToImpose(const VariableData& r_variable){
     mDEMVariablesToBeImposed.Add(r_variable);
+}
+
+void AddFluidVariableToBeTimeAveraged(const VariableData& r_variable){
+    mFluidVariablesToBeTimeAveraged.Add(r_variable);
 }
 
 void InterpolateFromFluidMesh(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid, const double alpha);
@@ -261,7 +266,7 @@ double mFluidLastCouplingFromDEMTime;
 double mMinFluidFraction;
 double mMaxNodalAreaInv;
 int mCouplingType;
-int mTimeAveragingTipe;
+int mTimeAveragingType;
 int mViscosityModificationType;
 int mParticlesPerDepthDistance;
 int mNumberOfDEMSamplesSoFarInTheCurrentFluidStep;
@@ -270,6 +275,7 @@ array_1d<double, 3> mGravity;
 VariablesList mDEMCouplingVariables;
 VariablesList mFluidCouplingVariables;
 VariablesList mDEMVariablesToBeImposed;
+VariablesList mFluidVariablesToBeTimeAveraged;
 PointPointSearch::Pointer mpPointPointSearch;
 
 FluidFieldUtility mFlowField;
@@ -290,6 +296,7 @@ void SearchParticleNodalNeighboursFixedRadius(ModelPart& r_fluid_model_part, Mod
 void RecalculateDistances(ModelPart& r_dem_model_part);
 bool IsDEMVariable(const VariableData& var);
 bool IsFluidVariable(const VariableData& var);
+bool IsFluidVariableToBeAveraged(const VariableData& var);
 array_1d<double, 3> CalculateAcceleration(const Geometry<Node<3> >& geom, const array_1d<double, TDim + 1>& N);
 double CalculateNormOfSymmetricGradient(const Geometry<Node<3> >& geom, const int index);
 array_1d<double, 3> CalculateVorticity(const Geometry<Node<3> >& geom, const int index);
@@ -299,6 +306,7 @@ void DistributeDimensionalContributionToFluidFraction(Element::Pointer p_elem, c
 void Distribute(Element::Pointer p_elem, const array_1d<double, TDim + 1>& N, Node<3>::Pointer p_node,const VariableData *r_destination_variable);
 void ComputeHomogenizedNodalVariable(const Node<3>::Pointer p_node, const ResultNodesContainerType& neighbours, const DistanceType& weights, const VariableData *r_destination_variable);
 void CalculateFluidFraction(ModelPart& r_fluid_model_part);
+void CalculateFluidMassFraction(ModelPart& r_fluid_model_part);
 void Interpolate(Element::Pointer p_elem, const array_1d<double, TDim + 1>& N, Node<3>::Pointer p_node, Variable<array_1d<double, 3> >& r_origin_variable, Variable<array_1d<double, 3> >& r_destination_variable);
 void Interpolate(Element::Pointer p_elem, const array_1d<double, TDim + 1>& N, Node<3>::Pointer p_node, Variable<array_1d<double, 3> >& r_origin_variable, Variable<array_1d<double, 3> >& r_destination_variable, double alpha);
 void Interpolate(Element::Pointer p_elem, const array_1d<double, TDim + 1>& N, Node<3>::Pointer p_node, Variable<double>& r_origin_variable, Variable<double>& r_destination_variable);

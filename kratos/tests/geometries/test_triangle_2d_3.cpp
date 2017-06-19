@@ -26,6 +26,8 @@
 namespace Kratos {
 namespace Testing {
 
+  static bool exceptionThrown = false;
+    
   /// Factory functions
 
   /** Generates a sample triangle2D3.

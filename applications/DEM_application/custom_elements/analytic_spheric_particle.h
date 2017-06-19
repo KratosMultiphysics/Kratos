@@ -76,7 +76,7 @@ virtual ~ParticleDataBuffer(){}
 std::vector<int> mCurrentContactingNeighbourIds;
 };
 
-virtual std::unique_ptr<SphericParticle::ParticleDataBuffer> CreateParticleDataBuffer(SphericParticle* p_this_particle)
+std::unique_ptr<SphericParticle::ParticleDataBuffer> CreateParticleDataBuffer(SphericParticle* p_this_particle) override
 {
     ClearImpactMemberVariables();
     return std::unique_ptr<SphericParticle::ParticleDataBuffer>(new ParticleDataBuffer(p_this_particle));
@@ -114,7 +114,7 @@ ParticleDataBuffer* GetPointerToDerivedDataBuffer(BaseBufferType& data_buffer)
 
 void ClearImpactMemberVariables();
 
-void FinalizeForceComputation(BaseBufferType & data_buffer);
+void FinalizeForceComputation(BaseBufferType & data_buffer) override;
 
 void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
                                                        const ProcessInfo& r_process_info,

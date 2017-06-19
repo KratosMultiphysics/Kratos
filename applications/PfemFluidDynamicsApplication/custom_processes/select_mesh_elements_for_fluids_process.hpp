@@ -21,7 +21,10 @@
 
 #include "includes/model_part.h"
 #include "custom_utilities/modeler_utilities.hpp"
+#include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_2d_6.h"
 #include "geometries/tetrahedra_3d_4.h"
+#include "geometries/tetrahedra_3d_10.h"
 
 ///VARIABLES used:
 //Data:     
@@ -127,7 +130,6 @@ public:
       bool wrong_added_node = false;
 
       int number_of_slivers = 0;
-      int sliverNodes = 0;
 
       if(mrRemesh.ExecutionOptions.IsNot(ModelerUtilities::SELECT_TESSELLATION_ELEMENTS))
 	{
@@ -139,7 +141,7 @@ public:
 	}
       else
 	{
-	  if( mEchoLevel > 0 )
+	  if( mEchoLevel > 1 )
 	    std::cout<<"   Start Element Selection "<<OutNumberOfElements<<std::endl;
 
 	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
@@ -173,7 +175,6 @@ public:
 	      box_side_element = false;
 	      for(unsigned int pn=0; pn<nds; pn++)
 		{
-		  // std::cout<<" pn "<<pn<<std::endl;
 		  //set vertices
 		  if(mrRemesh.NodalPreIds[OutElementList[el*nds+pn]]<0){
 		    if(mrRemesh.Options.IsNot(ModelerUtilities::CONTACT_SEARCH))
@@ -281,14 +282,19 @@ public:
 	      // 	  }
 	      // 	}
 	      // }
-
+		// if(numisolated>1){
+		//   Alpha*=0;
+		// }
 	      if(dimension==2){
 		if(numfreesurf==nds || (numisolated+numfreesurf)==nds){
-		  Alpha*=0.7;
+		  Alpha*=0;
+		  // Alpha*=0.8;
 		}else if((numrigid+numisolated+numfreesurf)==nds){
-		  Alpha*=0.9;
-		}else if(numfreesurf==2 || (numisolated+numfreesurf)==2){
+		  // Alpha*=0.9;
 		  Alpha*=0.95;
+		}else if(numfreesurf==2 || (numisolated+numfreesurf)==2){
+		  // Alpha*=0.95;
+		  Alpha*=0.975;
 		}
 		if(numrigid==0 && numfreesurf==0 && numisolated==0){
 		  Alpha*=1.75;
@@ -297,9 +303,11 @@ public:
 		}
 	      }else  if(dimension==3){
 		if(numfreesurf==nds || (numisolated+numfreesurf)==nds){
-		  Alpha*=0.85;
+		  // Alpha*=0.9;
+		  Alpha*=0;
 		}else if((numrigid+numisolated+numfreesurf)==nds){
-		  Alpha*=0.95;
+		  // Alpha*=0.95;
+		  Alpha*=0.975;
 		}// else if(numfreesurf==3 || (numisolated+numfreesurf)==3){
 		//   Alpha*=0.975;
 		// }
@@ -312,8 +320,9 @@ public:
 	      if(firstMesh==true){
 		Alpha*=1.15;
 	      }
-	      
-    
+
+	      // Alpha*=1.175;
+
 	      bool accepted=false;
 	      
 	      ModelerUtilities ModelerUtils;
@@ -351,27 +360,35 @@ public:
 	      //5.- to control that the element has a good shape
 	      if(accepted)
 		{
-		  if(nds==4){
-		    Geometry<Node<3> >* tetrahedron = new Tetrahedra3D4<Node<3> > (vertices);
-		    double Volume = tetrahedron->Volume();
-		    // int sliver=0;
-		    // accepted=ModelerUtils.CheckGeometryShape(*tetrahedron,sliver);
-		    double CriticalVolume=0.01*mrRemesh.Refine->MeanVolume;
-		    if(Volume<CriticalVolume){
-		      // accepted=ModelerUtils.CheckGeometryShape(*tetrahedron,sliver);
-		      // std::cout<<"SLIVER! VOLUME IS "<<Volume<<" VS CRITICAL VOLUME "<<CriticalVolume<<std::endl;
-		      // if( sliver){
-		      for( unsigned int n=0; n<nds; n++)
-		    	{
-		    	  vertices[n].Set(INTERFACE);
-		    	  sliverNodes++;
-       		    	}
-		      // accepted = false;
+		  if(dimension==2 && nds==3){
+
+		    Geometry<Node<3> >* triangle = new Triangle2D3<Node<3> > (vertices);
+		    double Area = triangle->Area();
+		    double CriticalArea=0.01*mrRemesh.Refine->MeanVolume;
+		    if(Area<CriticalArea){
+		      std::cout<<"SLIVER! Area= "<<Area<<" VS Critical Area="<<CriticalArea<<std::endl;
+		      accepted = false;
 		      number_of_slivers++;
 		    }
+		    delete triangle;
 
+		  }else if(dimension==3 && nds==4){
+		    Geometry<Node<3> >* tetrahedron = new Tetrahedra3D4<Node<3> > (vertices);
+		    double Volume = tetrahedron->Volume();
+		    double CriticalVolume=0.01*mrRemesh.Refine->MeanVolume;
+		    if(Volume<CriticalVolume){
+		      std::cout<<"SLIVER! Volume="<<Volume<<" VS Critical Volume="<<CriticalVolume<<std::endl;
+		      // for( unsigned int n=0; n<nds; n++)
+		      // 	{
+		      // 	  vertices[n].Set(INTERFACE);
+		      // 	  sliverNodes++;
+       		      // 	}
+		      accepted = false;
+		      number_of_slivers++;
+		    }
 		    delete tetrahedron;
 		  }
+
 		}
 
 	      if(accepted)
@@ -380,11 +397,6 @@ public:
 		  number+=1;
 		  mrRemesh.PreservedElements[el] = number;
 		}
-	      // else{
-	      
-	      //   std::cout<<" Element DID NOT pass INNER/OUTER check "<<std::endl;
-	      // }
-
 
 	    }
 
@@ -392,12 +404,10 @@ public:
 
 	}
 
-
-      std::cout<<" sliver nodes= "<<sliverNodes<<std::endl;
-      // mrRemesh.Info->RemovedNodes+=sliverNodes;
-      std::cout<<"  fluid Number of Preserved Elements "<<mrRemesh.Info->NumberOfElements<<" (slivers detected: "<<number_of_slivers<<") "<<std::endl;
-      std::cout<<"  TOTAL removed nodes "<<mrRemesh.Info->RemovedNodes<<std::endl;
-
+      if( mEchoLevel > 1 ){
+	std::cout<<"Number of Preserved Fluid Elements "<<mrRemesh.Info->NumberOfElements<<" (slivers detected: "<<number_of_slivers<<") "<<std::endl;
+	std::cout<<"TOTAL removed nodes "<<mrRemesh.Info->RemovedNodes<<std::endl;
+      }
       if(mrRemesh.ExecutionOptions.IsNot(ModelerUtilities::KEEP_ISOLATED_NODES)){
 
 
@@ -450,18 +460,11 @@ public:
       else{
 	
 	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes(mMeshId);
-	int count_sliver = 0;
 
 	for(ModelPart::NodesContainerType::iterator i_node = rNodes.begin() ; i_node != rNodes.end() ; i_node++)
 	  { 
 	    i_node->Reset(BLOCKED);
-	      
-	    if( i_node->Is(INTERFACE)){
-	      count_sliver++;
-	    }
-
 	  }
-	// std::cout<<"count_sliver++ "<<count_sliver<<std::endl;
 
       }
 
@@ -471,7 +474,7 @@ public:
       mModelerUtilities.SetNodes(mrModelPart,mrRemesh);
       mrRemesh.InputInitializedFlag = true;
 
-      if( mEchoLevel > 0 ){
+      if( mEchoLevel > 1 ){
 	std::cout<<"   Generated_Elements :"<<OutNumberOfElements<<std::endl;
 	std::cout<<"   Passed_AlphaShape  :"<<mrRemesh.Info->NumberOfElements<<std::endl;
 	std::cout<<"   SELECT MESH ELEMENTS ]; "<<std::endl;

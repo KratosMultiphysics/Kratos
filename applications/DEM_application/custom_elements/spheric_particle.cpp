@@ -151,6 +151,8 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
 
     SphericParticle::BufferPointerType p_buffer = CreateParticleDataBuffer(this); // all memory will be freed once this shared pointer goes out of scope
     ParticleDataBuffer& data_buffer = *p_buffer;
+    data_buffer.SetBoundingBox(r_process_info[DOMAIN_IS_PERIODIC], r_process_info[DOMAIN_MIN_CORNER], r_process_info[DOMAIN_MAX_CORNER]);
+
     NodeType& this_node = GetGeometry()[0];
 
     data_buffer.mDt = dt;
@@ -171,12 +173,28 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
 
     double RollingResistance = 0.0;
 
+//    KRATOS_WATCH("*****************************");
+//    KRATOS_WATCH(this->GetGeometry()[0].Id());
+//    KRATOS_WATCH(GetRadius());
+//    KRATOS_WATCH(GetSearchRadius());
+//    KRATOS_WATCH(GetInteractionRadius());
+//    KRATOS_WATCH("*****************************");
+
+//    for (unsigned int i = 0; i < mNeighbourElements.size(); ++i){
+
+//         KRATOS_WATCH(mNeighbourElements[i]->GetGeometry()[0].Id())
+
+//    }
+
     ComputeBallToBallContactForce(data_buffer, r_process_info, elastic_force, contact_force, RollingResistance);
 
     ComputeBallToRigidFaceContactForce(elastic_force, contact_force, RollingResistance, rigid_element_force, r_process_info, data_buffer.mDt, search_control);
 
     if (this->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)){
         ComputeAdditionalForces(additional_forces, additionally_applied_moment, r_process_info, gravity);
+        
+        DemDebugFunctions::CheckIfNan(additional_forces, "NAN in Additional Force in RHS of Ball");
+        DemDebugFunctions::CheckIfNan(additionally_applied_moment, "NAN in Additional Torque in RHS of Ball");     
     }
     
     // ROLLING FRICTION
@@ -201,6 +219,9 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
     total_moment[0] = mContactMoment[0] + additionally_applied_moment[0];
     total_moment[1] = mContactMoment[1] + additionally_applied_moment[1];
     total_moment[2] = mContactMoment[2] + additionally_applied_moment[2];
+    
+    DemDebugFunctions::CheckIfNan(total_forces, "NAN in Total Forces in RHS of Ball"); 
+    DemDebugFunctions::CheckIfNan(total_moment, "NAN in Total Torque in RHS of Ball"); 
 
     FinalizeForceComputation(data_buffer);
     KRATOS_CATCH("")
@@ -214,7 +235,7 @@ void SphericParticle::CollectCalculateRightHandSide(ProcessInfo& r_process_info)
 
 void SphericParticle::FinalCalculateRightHandSide(ProcessInfo& r_process_info, double dt, const array_1d<double,3>& gravity){}
 
-void SphericParticle::CalculateMaxBallToBallIndentation(double& r_current_max_indentation)
+void SphericParticle::CalculateMaxBallToBallIndentation(double& r_current_max_indentation, const ProcessInfo& r_process_info)
 {
     r_current_max_indentation = - std::numeric_limits<double>::max();
 
@@ -222,15 +243,15 @@ void SphericParticle::CalculateMaxBallToBallIndentation(double& r_current_max_in
         SphericParticle* ineighbour = mNeighbourElements[i];
 
         array_1d<double, 3> other_to_me_vect;
-
-        if (!DiscreteParticleConfigure<3>::GetDomainPeriodicity()){ // default infinite-domain case
+        if (!r_process_info[DOMAIN_IS_PERIODIC]){ // default infinite-domain case
             noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - ineighbour->GetGeometry()[0].Coordinates();
         }
 
         else { // periodic domain
             double my_coors[3] = {this->GetGeometry()[0][0], this->GetGeometry()[0][1], this->GetGeometry()[0][2]};
             double other_coors[3] = {ineighbour->GetGeometry()[0][0], ineighbour->GetGeometry()[0][1], ineighbour->GetGeometry()[0][2]};
-            DiscreteParticleConfigure<3>::TransformToClosestPeriodicCoordinates(my_coors, other_coors);
+
+            TransformNeighbourCoorsToClosestInPeriodicDomain(r_process_info, my_coors, other_coors);
             other_to_me_vect[0] = my_coors[0] - other_coors[0];
             other_to_me_vect[1] = my_coors[1] - other_coors[1];
             other_to_me_vect[2] = my_coors[2] - other_coors[2];
@@ -363,33 +384,31 @@ void SphericParticle::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& 
     rMassMatrix(0,0) = GetMass();
 }
 
-void SphericParticle::EvaluateDeltaDisplacement(double RelDeltDisp[3],
+void SphericParticle::EvaluateDeltaDisplacement(ParticleDataBuffer & data_buffer,
+                                                double RelDeltDisp[3],
                                                 double RelVel[3],
                                                 double LocalCoordSystem[3][3],
                                                 double OldLocalCoordSystem[3][3],
-                                                const array_1d<double, 3>& other_to_me_vect,
                                                 const array_1d<double, 3>& vel,
-                                                const array_1d<double, 3>& delta_displ,
-                                                SphericParticle* p_neighbour,
-                                                double& distance)
+                                                const array_1d<double, 3>& delta_displ)
 {
     // FORMING LOCAL COORDINATES
 
     // Notes: Since we will normally inherit the mesh from GiD, we respect the global system X,Y,Z [0],[1],[2]
     // In the local coordinates we will define the normal direction of the contact as the [2] component.
     // Compression is positive.
-    GeometryFunctions::ComputeContactLocalCoordSystem(other_to_me_vect, distance, LocalCoordSystem); //new Local Coordinate System (normalizes other_to_me_vect)
+    GeometryFunctions::ComputeContactLocalCoordSystem(data_buffer.mOtherToMeVector, data_buffer.mDistance, LocalCoordSystem); //new Local Coordinate System (normalizes data_buffer.mOtherToMeVector)
 
     // FORMING OLD LOCAL COORDINATES
     array_1d<double, 3> old_coord_target;
     noalias(old_coord_target) = this->GetGeometry()[0].Coordinates() - delta_displ;
 
-    const array_1d<double, 3>& other_delta_displ = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+    const array_1d<double, 3>& other_delta_displ = data_buffer.mpOtherParticle->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
     array_1d<double, 3> old_coord_neigh;
-    noalias(old_coord_neigh) = p_neighbour->GetGeometry()[0].Coordinates() - other_delta_displ;
+    noalias(old_coord_neigh) = data_buffer.mpOtherParticle->GetGeometry()[0].Coordinates() - other_delta_displ;
 
-    if (DiscreteParticleConfigure<3>::GetDomainPeriodicity()){ // the domain is periodic
-        DiscreteParticleConfigure<3>::TransformToClosestPeriodicCoordinates(old_coord_target, old_coord_neigh);
+    if (data_buffer.mDomainIsPeriodic){ // the domain is periodic
+        TransformNeighbourCoorsToClosestInPeriodicDomain(data_buffer, old_coord_target, old_coord_neigh);
     }
 
     array_1d<double, 3> old_other_to_me_vect;
@@ -400,7 +419,7 @@ void SphericParticle::EvaluateDeltaDisplacement(double RelDeltDisp[3],
     GeometryFunctions::ComputeContactLocalCoordSystem(old_other_to_me_vect, old_distance, OldLocalCoordSystem); //Old Local Coordinate System
 
     // VELOCITIES AND DISPLACEMENTS
-    const array_1d<double, 3 >& other_vel = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+    const array_1d<double, 3 >& other_vel = data_buffer.mpOtherParticle->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 
     RelVel[0] = (vel[0] - other_vel[0]);
     RelVel[1] = (vel[1] - other_vel[1]);
@@ -488,10 +507,6 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
 
         const array_1d<double, 3>& coors = this->GetGeometry()[0].Coordinates();
         array_1d<double, 3> neigh_coors = p_neighbour->GetGeometry()[0].Coordinates();
-
-        if (DiscreteParticleConfigure<3>::GetDomainPeriodicity()){ // the domain is periodic
-            DiscreteParticleConfigure<3>::TransformToClosestPeriodicCoordinates(coors, neigh_coors);
-        }
 
         const array_1d<double, 3> other_to_me_vect = coors - neigh_coors;
         const double distance            = DEM_MODULUS_3(other_to_me_vect);
@@ -660,11 +675,23 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
     //LOOP OVER NEIGHBORS:
     for (int i = 0; data_buffer.SetNextNeighbourOrExit(i); ++i){
         if (this->Is(NEW_ENTITY) && data_buffer.mpOtherParticle->Is(BLOCKED)) continue;
+        if (this->Is(BLOCKED) && data_buffer.mpOtherParticle->Is(NEW_ENTITY)) continue;
         if (data_buffer.mMultiStageRHS  &&  this->Id() > data_buffer.mpOtherParticle->Id()) continue;
 
         CalculateRelativePositions(data_buffer);
+//        KRATOS_WATCH(this->GetGeometry()[0].Id());
 
-        EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, data_buffer.mOtherToMeVector, velocity, delta_displ, data_buffer.mpOtherParticle, data_buffer.mDistance);
+//        for (unsigned int i = 0; i < 3; ++i){
+//            KRATOS_WATCH(i);
+//            KRATOS_WATCH(data_buffer.mMyCoors[i]);
+//            KRATOS_WATCH(data_buffer.mOtherCoors[i]);
+//        }
+//        KRATOS_WATCH(data_buffer.mOtherToMeVector);
+//        KRATOS_WATCH(data_buffer.mOtherToMeVector);
+        
+        if(data_buffer.mDistance < std::numeric_limits<double>::epsilon()) continue;
+
+        EvaluateDeltaDisplacement(data_buffer, DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, velocity, delta_displ);
 
         if (this->Is(DEMFlags::HAS_ROTATION)) {
             RelativeDisplacementAndVelocityOfContactPointDueToRotation(data_buffer.mIndentation, DeltDisp, RelVel, LocalCoordSystem, data_buffer.mOtherRadius, data_buffer.mDt, ang_velocity, data_buffer.mpOtherParticle);
@@ -713,6 +740,10 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
         DEM_SET_COMPONENTS_TO_ZERO_3x3(OldLocalCoordSystem)
 
     }// for each neighbor
+    
+    DemDebugFunctions::CheckIfNan(GlobalContactForce, "NAN in Force in Ball to Ball contact"); 
+    DemDebugFunctions::CheckIfNan(mContactMoment, "NAN in Torque in Ball to Ball contact"); 
+    
 
     KRATOS_CATCH("")
 }// ComputeBallToBallContactForce
@@ -1547,27 +1578,21 @@ void SphericParticle::RotateOldContactForces(const double OldLocalCoordSystem[3]
 
 void SphericParticle::CalculateRelativePositions(ParticleDataBuffer & data_buffer)
 {
-    if (!this->GetDomainPeriodicity()){ // default infinite-domain case
-        noalias(data_buffer.mOtherToMeVector) = this->GetGeometry()[0].Coordinates() - data_buffer.mpOtherParticle->GetGeometry()[0].Coordinates();
+    NodeType& this_node = this->GetGeometry()[0];
+    DEM_COPY_SECOND_TO_FIRST_3(data_buffer.mMyCoors, this_node)
+    NodeType& other_node = data_buffer.mpOtherParticle->GetGeometry()[0];
+    DEM_COPY_SECOND_TO_FIRST_3(data_buffer.mOtherCoors, other_node)
+
+    if (data_buffer.mDomainIsPeriodic){
+        TransformNeighbourCoorsToClosestInPeriodicDomain(data_buffer);
     }
 
-    else { // periodic domain
-        NodeType& this_node = this->GetGeometry()[0];
-        data_buffer.mMyCoors[0] = this_node[0];
-        data_buffer.mMyCoors[1] = this_node[1];
-        data_buffer.mMyCoors[2] = this_node[2];
-        NodeType& other_node = data_buffer.mpOtherParticle->GetGeometry()[0];
-        data_buffer.mOtherCoors[0] = other_node[0];
-        data_buffer.mOtherCoors[1] = other_node[1];
-        data_buffer.mOtherCoors[2] = other_node[2];
-        TransformToClosestPeriodicCoordinates(data_buffer.mMyCoors, data_buffer.mOtherCoors);
-        data_buffer.mOtherToMeVector[0] = data_buffer.mMyCoors[0] - data_buffer.mOtherCoors[0];
-        data_buffer.mOtherToMeVector[1] = data_buffer.mMyCoors[1] - data_buffer.mOtherCoors[1];
-        data_buffer.mOtherToMeVector[2] = data_buffer.mMyCoors[2] - data_buffer.mOtherCoors[2];
-    }
+    data_buffer.mOtherToMeVector[0] = data_buffer.mMyCoors[0] - data_buffer.mOtherCoors[0];
+    data_buffer.mOtherToMeVector[1] = data_buffer.mMyCoors[1] - data_buffer.mOtherCoors[1];
+    data_buffer.mOtherToMeVector[2] = data_buffer.mMyCoors[2] - data_buffer.mOtherCoors[2];
 
-    data_buffer.mOtherRadius = data_buffer.mpOtherParticle->GetInteractionRadius();
     data_buffer.mDistance    = DEM_MODULUS_3(data_buffer.mOtherToMeVector);
+    data_buffer.mOtherRadius = data_buffer.mpOtherParticle->GetInteractionRadius();
     data_buffer.mRadiusSum   = this->GetInteractionRadius() + data_buffer.mOtherRadius;
     data_buffer.mIndentation = data_buffer.mRadiusSum - data_buffer.mDistance;
 }
@@ -1581,16 +1606,40 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToOtherRea
 
 void SphericParticle::SendForcesToFEM(){}
 
-bool SphericParticle::GetDomainPeriodicity()
+void SphericParticle::TransformNeighbourCoorsToClosestInPeriodicDomain(ParticleDataBuffer & data_buffer)
 {
-    return DiscreteParticleConfigure<3>::GetDomainPeriodicity();
+    const double periods[3] = {data_buffer.mDomainMax[0] - data_buffer.mDomainMin[0],
+                               data_buffer.mDomainMax[1] - data_buffer.mDomainMin[1],
+                               data_buffer.mDomainMax[2] - data_buffer.mDomainMin[2]};
+
+    DiscreteParticleConfigure<3>::TransformToClosestPeriodicCoordinates(data_buffer.mMyCoors, data_buffer.mOtherCoors, periods);
 }
 
-
-void SphericParticle::TransformToClosestPeriodicCoordinates(double my_coors[3], double other_coors[3])
+void SphericParticle::TransformNeighbourCoorsToClosestInPeriodicDomain(ParticleDataBuffer & data_buffer,
+                                                                       const array_1d<double, 3>& coors,
+                                                                       array_1d<double, 3>& neighbour_coors)
 {
-   DiscreteParticleConfigure<3>::TransformToClosestPeriodicCoordinates(my_coors, other_coors);
+    const double periods[3] = {data_buffer.mDomainMax[0] - data_buffer.mDomainMin[0],
+                               data_buffer.mDomainMax[1] - data_buffer.mDomainMin[1],
+                               data_buffer.mDomainMax[2] - data_buffer.mDomainMin[2]};
+
+    DiscreteParticleConfigure<3>::TransformToClosestPeriodicCoordinates(coors, neighbour_coors, periods);
 }
+
+void SphericParticle::TransformNeighbourCoorsToClosestInPeriodicDomain(const ProcessInfo& r_process_info,
+                                                                       const double coors[3],
+                                                                       double neighbour_coors[3])
+{
+    const array_1d<double,3>& domain_min = r_process_info[DOMAIN_MIN_CORNER];
+    const array_1d<double,3>& domain_max = r_process_info[DOMAIN_MAX_CORNER];
+
+    const double periods[3] = {domain_min[0] - domain_max[0],
+                               domain_min[1] - domain_max[1],
+                               domain_min[2] - domain_max[2]};
+
+    DiscreteParticleConfigure<3>::TransformToClosestPeriodicCoordinates(coors, neighbour_coors, periods);
+}
+
 
 void SphericParticle::Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) {
     GetIntegrationScheme().Move(GetGeometry()[0], delta_t, rotation_option, force_reduction_factor, StepFlag);

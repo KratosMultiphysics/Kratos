@@ -241,7 +241,7 @@ namespace Kratos {
         virtual void SearchRigidFaceNeighbours();
         void DoubleHierarchyMethod();
         /* This should work only with one iteration, but it with mpi does not */
-        void CalculateInitialMaxIndentations();
+        void CalculateInitialMaxIndentations(ProcessInfo& r_process_info);
         void PrepareContactModelPart(ModelPart& r_model_part, ModelPart& mcontacts_model_part);
         void PrepareElementsForPrinting();
         void SynchronizeHistoricalVariables(ModelPart& r_model_part);

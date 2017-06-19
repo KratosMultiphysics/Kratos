@@ -41,8 +41,6 @@ void DEM_Force_Based_Inlet::FixInjectorConditions(Element* p_element)
 
 array_1d<double, 3> DEM_Force_Based_Inlet::GetInjectionForce(Element* p_element)
 {
-    KRATOS_WATCH(mInjectionForce)
-
     return mInjectionForce;
 }
 

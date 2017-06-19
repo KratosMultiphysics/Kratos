@@ -376,8 +376,11 @@ namespace Kratos
       virtual void ComputeMaterialParameters (double& Density,
 					      double& DeviatoricCoeff,
 					      double& VolumetricCoeff,
-					      double timeStep,
-					      const ShapeFunctionsType& N){};
+					      double timeStep){};
+
+      virtual double GetThetaMomentum (){return 1.0;};
+
+      virtual double GetThetaContinuity (){return 1.0;};
       
       void VelocityEquationIdVector(EquationIdVectorType& rResult,
 				    ProcessInfo& rCurrentProcessInfo);
@@ -404,6 +407,9 @@ namespace Kratos
 
       void GetVelocityValues(Vector& rValues,
 			     const int Step = 0);
+
+      void GetDisplacementValues(Vector& rValues,
+				 const int Step = 0);
 
       virtual void GetPositions(Vector& rValues,
 				const ProcessInfo& rCurrentProcessInfo,
@@ -444,10 +450,11 @@ namespace Kratos
        * @param rN Elemental shape functions.
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
-      void ComputeMomentumMassTerm(Matrix& rMassMatrix,
-				   const ShapeFunctionsType& rN,
-				   const double Weight);
-
+      void ComputeMassMatrix(Matrix& rMassMatrix,
+			     const ShapeFunctionsType& rN,
+			     const double Weight,
+			     double& MeanValue);
+      
       void ComputeLumpedMassMatrix(Matrix& rMassMatrix,
 				   const double Weight,
 				   double& MeanValue);
@@ -482,20 +489,24 @@ namespace Kratos
 						 double& MeanValueMass,
 						 const double TimeStep){};
 
-      void AddCompleteTangentTerm(ElementalVariables& rElementalVariables,
-					  MatrixType& rDampingMatrix,
-					  const ShapeFunctionDerivativesType& rShapeDeriv,
-					  const double secondLame,
-					  const double bulkModulus,
-					  const double theta,
-					  const double Weight);
+      virtual void ComputeBulkReductionCoefficient(MatrixType MassMatrix,
+						   MatrixType StiffnessMatrix,
+						   double& meanValueStiff,
+						   double& bulkCoefficient,
+						   double timeStep){};
+
+      void ComputeCompleteTangentTerm(ElementalVariables& rElementalVariables,
+				      MatrixType& rDampingMatrix,
+				      const ShapeFunctionDerivativesType& rShapeDeriv,
+				      const double secondLame,
+				      const double bulkModulus,
+				      const double theta,
+				      const double Weight);
 	
       virtual void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix,
-						   const ShapeFunctionsType& rN,
 						   const double Weight){};
       
       virtual void ComputeBulkMatrixForPressureAccLump(MatrixType& BulkAccMatrix,
-						   const ShapeFunctionsType& rN,
 						   const double Weight){};
 
       virtual void ComputeBulkMatrixForPressureVel(MatrixType& BulkVelMatrix,
@@ -522,8 +533,7 @@ namespace Kratos
       
       virtual bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
 					const ProcessInfo& rCurrentProcessInfo,
-					unsigned int g,
-					const ShapeFunctionsType& N){return true;};
+					unsigned int g){return true;};
 
       bool CalcStrainRate(ElementalVariables & rElementalVariables,
 			  const ProcessInfo& rCurrentProcessInfo,
@@ -567,10 +577,8 @@ namespace Kratos
       void CalcDeviatoricInvariant(VectorType &SpatialDefRate,
 				   double &DeviatoricInvariant);
 
-      void CalcNormalProjectionsForBoundRHSVector(VectorType &SpatialDefRate,
-						  double &NormalAcceleration,
-						  double &NormalProjSpatialDefRate,
-						  const double TimeStep);
+      void CalcNormalProjectionDefRate(VectorType &SpatialDefRate,
+				       double &NormalProjSpatialDefRate);
 
       void CheckStrain1(double &VolumetricDefRate,
 			MatrixType &SpatialVelocityGrad);
@@ -586,12 +594,10 @@ namespace Kratos
 	
       virtual void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 						    double TimeStep,
-						    unsigned int g,
-						    const ShapeFunctionsType& N){};
+						    unsigned int g){};
 
       virtual void CalculateTauFIC(double& TauOne,
 				   double ElemSize,
-				   const array_1d< double, 3 > & rAdvVel,
 				   const double Density,
 				   const double Viscosity,
 				   const ProcessInfo& rCurrentProcessInfo){};
@@ -732,6 +738,7 @@ namespace Kratos
 					std::vector<TValueType>& rOutput)
 	{
 	  unsigned int NumValues = this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
+	  /* unsigned int NumValues = this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_4); */
 	  rOutput.resize(NumValues);
 	  /*
 	    The cast is done to avoid modification of the element's data. Data modification

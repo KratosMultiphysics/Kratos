@@ -63,7 +63,8 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
                 "maximum_delta_time"  : 0.01
             },
             "periodic": "periodic",
-            "move_mesh_flag": false
+            "move_mesh_flag": false,
+            "reorder": false
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -128,6 +129,8 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
                                                        self.settings["absolute_velocity_tolerance"].GetDouble(),
                                                        self.settings["relative_pressure_tolerance"].GetDouble(),
                                                        self.settings["absolute_pressure_tolerance"].GetDouble())
+
+        (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
 
         self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(self.computing_model_part,
                                                                             self.settings["time_order"].GetInt())

@@ -42,7 +42,7 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas  ")
     set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -Wall -Wno-unknown-pragmas  ")
     set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
-    message("additional default options were set for intel compiler")
+    message("additional default options were set for clang compiler")
     message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
     message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
   endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
@@ -65,40 +65,43 @@ else(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   endif(${CMAKE_C_COMPILER} MATCHES "icc.*$")
 endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+# Old non-compatible versions of VS
 if(${MSVC80})
-  message("detected compiler as MSVC80")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES")
+  message( "DEPRECATED: detected compiler as MSVC80")
+  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
 endif(${MSVC80})
 
 if(${MSVC90})
-  message("detected compiler as MSVC90")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES")
+  message( "DEPRECATED: detected compiler as MSVC90")
+  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
 endif(${MSVC90})
 
 if(${MSVC10})
-  message("detected compiler as MSVC10")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES")
+  message( "DEPRECATED: detected compiler as MSVC10")
+  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
 endif(${MSVC10})
 
 if(${MSVC11})
-  message("detected compiler as MSVC11")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  message( "DEPRECATED: detected compiler as MSVC11")
+  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
 endif(${MSVC11})
 
 if(${MSVC12})
-  message("detected compiler as MSVC12")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  message( "DEPRECATED: detected compiler as MSVC12")
+  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
 endif(${MSVC12})
 
+# Common flags for MSVC
+if(${MSVC})
+  message("Detected compiler as MSVC")
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
+endif(${MSVC})
+
+# Specific flags for different versions of MSVC
 if(${MSVC14})
-  message("detected compiler as MSVC14")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  # message("Adding additional flags for MSVC14")
+  # Nothing needed right now
 endif(${MSVC14})
 
 # Tell the linker to give an error if undefined functions are found
@@ -328,6 +331,11 @@ install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DE
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/application_importer.py" DESTINATION KratosMultiphysics )
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_unittest.py" DESTINATION KratosMultiphysics RENAME KratosUnittest.py )
 
+# Remove the tags in the event of multiple versions of boost being found
+# in the same directory
+list(REMOVE_ITEM Boost_LIBRARIES "debug" "optimized")
+
+# Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)
 install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
 
@@ -348,19 +356,11 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
     #take care: do not indent the lines below
 file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/KratosLoader.py "import sys
-# # kratos_libs=\"${CMAKE_INSTALL_PREFIX}/libs\"
-# # kratos_applications=\"${CMAKE_INSTALL_PREFIX}/applications\"
-# # kratos_scripts=\"${CMAKE_INSTALL_PREFIX}/kratos/python_scripts\"
-# # kratos_tests=\"${CMAKE_INSTALL_PREFIX}/kratos/tests\"
-# # sys.path.append(kratos_libs)
-# # sys.path.append(kratos_applications)
-# # sys.path.append(kratos_scripts)
-# # sys.path.append(kratos_tests)
 import os.path
-kratos_libs=os.path.join(os.path.dirname(__file__),'../libs')
-kratos_applications=os.path.join(os.path.dirname(__file__),'../applications')
-kratos_scripts=os.path.join(os.path.dirname(__file__),'../kratos/python_scripts')
-kratos_tests=os.path.join(os.path.dirname(__file__),'../kratos/tests')
+kratos_libs=os.path.abspath(os.path.join(os.path.dirname(__file__),'../libs'))
+kratos_applications=os.path.abspath(os.path.join(os.path.dirname(__file__),'../applications'))
+kratos_scripts=os.path.abspath(os.path.join(os.path.dirname(__file__),'../kratos/python_scripts'))
+kratos_tests=os.path.abspath(os.path.join(os.path.dirname(__file__),'../kratos/tests'))
 sys.path.append(kratos_libs)
 sys.path.append(kratos_applications)
 sys.path.append(kratos_scripts)

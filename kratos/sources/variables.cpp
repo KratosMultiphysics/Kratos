@@ -586,6 +586,7 @@ namespace Kratos
       KratosApplication::RegisterCFDVariables(); //TODO: move to application
       KratosApplication::RegisterALEVariables(); //TODO: move to application
       KratosApplication::RegisterDEMVariables(); //TODO: move to application
+      KratosApplication::RegisterMATVariables(); //TODO: move to application
       KratosApplication::RegisterLegacyStructuralAppVariables(); //TODO: move to application
 
       // Variables that should be moved to applications (but have too many dependencies)
@@ -1236,6 +1237,7 @@ namespace Kratos
       KRATOS_REGISTER_FLAG(FREE_SURFACE);
       KRATOS_REGISTER_FLAG(BLOCKED);
       KRATOS_REGISTER_FLAG(MARKER);
+      KRATOS_REGISTER_FLAG(PERIODIC);
 
   }
 }  // namespace Kratos.

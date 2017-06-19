@@ -1,6 +1,5 @@
 # import Kratos
 from KratosMultiphysics import *
-from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 
 # Import Kratos "wrapper" for unittests
@@ -15,6 +14,8 @@ from SmallTests import EmbeddedReservoirTest as TEmbeddedReservoirTest
 from SmallTests import EmbeddedSlipBoundaryConditionTest as TEmbeddedSlipBoundaryConditionTest
 from SmallTests import ManufacturedSolutionTest as TManufacturedSolutionTest
 from SmallTests import NavierStokesWallConditionTest as TNavierStokesWallConditionTest
+
+from buoyancy_test import BuoyancyTest
 
 ## NIGTHLY TESTS
 
@@ -34,7 +35,7 @@ def AssambleTestSuites():
     '''
     suites = KratosUnittest.KratosSuites
 
-    # Create a test suit with the selected tests (Small tests):
+    # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
     smallSuite.addTest(TEmbeddedArtificialCompressibilityTest('test_execution'))
     smallSuite.addTest(TEmbeddedCouetteTest('test_execution'))
@@ -43,27 +44,22 @@ def AssambleTestSuites():
     smallSuite.addTest(TEmbeddedSlipBoundaryConditionTest('test_execution'))
     smallSuite.addTest(TManufacturedSolutionTest('test_execution'))
     smallSuite.addTest(TNavierStokesWallConditionTest('test_execution'))
+    smallSuite.addTest(BuoyancyTest('testEulerian'))
+    smallSuite.addTest(BuoyancyTest('testThermalExpansionCoefficient'))
+    #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
 
-    # Create a test suit with the selected tests plus all small tests
+    # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTests(smallSuite)
+    validationSuite.addTest(BuoyancyTest('validationEulerian'))
 
-    # Create a test suit that contains all the tests:
+    # Create a test suite that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-            TEmbeddedArtificialCompressibilityTest,
-            TEmbeddedCouetteTest,
-            TEmbeddedCouetteImposedTest,
-            TEmbeddedReservoirTest,
-            TManufacturedSolutionTest,
-            TNavierStokesWallConditionTest
-        ])
-    )
+    allSuite.addTests(nightSuite)
 
     return suites
 
