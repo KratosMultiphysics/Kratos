@@ -21,6 +21,10 @@
 #include "contact_structural_mechanics_application_variables.h"
 #include "includes/model_part.h"
 #include "geometries/point.h"
+
+/* Utilities */
+#include "utilities/math_utils.h"
+#include "custom_utilities/exact_mortar_segmentation_utility.h"
 #include "custom_utilities/contact_utilities.h"
 
 namespace Kratos
@@ -45,6 +49,13 @@ class SearchUtilities
 public:
     ///@name Type Definitions
     ///@{
+    
+    typedef Point<3>                                  PointType;
+    typedef Node<3>                                    NodeType;
+    typedef Geometry<NodeType>                     GeometryType;
+    typedef Geometry<PointType>               GeometryPointType;
+    ///Type definition for integration methods
+    typedef GeometryData::IntegrationMethod   IntegrationMethod;
     
     ///@}
     ///@name Life Cycle
@@ -71,7 +82,8 @@ public:
     ///@{
     
     /**
-     * This function checks if there is potential contact between two geometries (two conditions) 
+     * This function fills the ConditionSet for the Mortar condition
+     * @param ConditionPointers: The map storing the potential contact conditions
      * @param Geom1: The geometry of the slave 
      * @param Geom2: The geometry of the master 
      * @param ContactNormal1: The normals of the slave
@@ -79,23 +91,64 @@ public:
      * @param ActiveCheckLength: The threshold distance to check the potential contact
      * @return ConditionIsActive: True if the condition is active, false otherwise
      */
-
-    static inline bool ContactChecker(
-            GeometryType& Geom1, // SLAVE
-            GeometryType& Geom2, // MASTER
-            const array_1d<double, 3>& ContactNormal1, // SLAVE
-            const array_1d<double, 3>& ContactNormal2, // MASTER
-            const double ActiveCheckLength,
-            const bool DualCheck = false,
-            const bool StrictCheck = true
-            )
+    
+    static inline void ContactContainerFiller(
+        boost::shared_ptr<ConditionSet>& ConditionPointers,
+        Condition::Pointer & pCond1,       // SLAVE
+        const Condition::Pointer & pCond2, // MASTER
+        const array_1d<double, 3> & ContactNormal1, // SLAVE
+        const array_1d<double, 3> & ContactNormal2, // MASTER
+        const double ActiveCheckLength,
+        const bool DualCheck = false, 
+        const bool StrictCheck = true 
+        )
     {
+        // Initialize geometries
+        GeometryType& Geom1 = pCond1->GetGeometry(); // SLAVE
+        GeometryType& Geom2 = pCond2->GetGeometry(); // MASTER
+        
+//         // Initialize variables
+//         bool ConditionIsActive = false;
+//         const unsigned int Dimension  = Geom1.WorkingSpaceDimension();
+//         const unsigned int NumberOfNodes = Geom1.size();
+//         
+//         if (Dimension == 2 && NumberOfNodes == 2)
+//         {
+//             ExactMortarIntegrationUtility<2, 2> IntUtil = ExactMortarIntegrationUtility<2, 2>();
+//             std::vector<array_1d<PointType,2>>  ConditionsPointsSlave;
+//             ConditionIsActive = IntUtil.GetExactIntegration(Geom1, ContactNormal1, Geom2, ContactNormal2, ConditionsPointsSlave);
+//         }
+//         else if (Dimension == 3 && NumberOfNodes == 3)
+//         {
+//             ExactMortarIntegrationUtility<3, 3> IntUtil = ExactMortarIntegrationUtility<3, 3>();
+//             std::vector<array_1d<PointType,3>>  ConditionsPointsSlave;
+//             ConditionIsActive = IntUtil.GetExactIntegration(Geom1, ContactNormal1, Geom2, ContactNormal2, ConditionsPointsSlave);
+//         }
+//         else if (Dimension == 3 && NumberOfNodes == 4)
+//         {
+//             ExactMortarIntegrationUtility<3, 4> IntUtil = ExactMortarIntegrationUtility<3, 4>();
+//             std::vector<array_1d<PointType,3>>  ConditionsPointsSlave;
+//             ConditionIsActive = IntUtil.GetExactIntegration(Geom1, ContactNormal1, Geom2, ContactNormal2, ConditionsPointsSlave);
+//         }
+//         else
+//         {
+//             KRATOS_ERROR << "INTEGRATION NOT IMPLEMENTED" << std::endl;
+//         }
+//         
+//         if (ConditionIsActive == true)
+//         {
+//             for (unsigned int iNode = 0; iNode < Geom1.size(); iNode++)
+//             {
+//                 Geom1[iNode].Set(ACTIVE, true);
+//             }
+//         }
+        
+        // LEGACY WAY
         // Define the basic information
 //         const double Tolerance = 1.0e-12;
         const double Tolerance = std::numeric_limits<double>::epsilon();
         
         bool ConditionIsActive = false;
-        
 //         #pragma omp for
         for (unsigned int iNode = 0; iNode < Geom1.size(); iNode++)
         {
@@ -118,9 +171,9 @@ public:
                 {
                     ConditionIsActive = true;
                     
-					// Geom1[iNode].SetLock();
+                    // Geom1[iNode].SetLock();
                     Geom1[iNode].Set(ACTIVE, true);
-					// Geom1[iNode].UnSetLock();
+                    // Geom1[iNode].UnSetLock();
                 }
                 else if (DualCheck == true)
                 {
@@ -129,9 +182,9 @@ public:
                     {
                         ConditionIsActive = true;
                         
-						// Geom1[iNode].SetLock();
-						Geom1[iNode].Set(ACTIVE, true);
-						// Geom1[iNode].UnSetLock();
+                        // Geom1[iNode].SetLock();
+                        Geom1[iNode].Set(ACTIVE, true);
+                        // Geom1[iNode].UnSetLock();
                     }
                 }
              }
@@ -140,34 +193,8 @@ public:
                  ConditionIsActive = true;
              }
          }
-         
-         return ConditionIsActive;
-    }
-    
-    /**
-     * This function fills the ConditionSet for the Mortar condition
-     * @param ConditionPointers: The map storing the potential contact conditions
-     * @param Geom1: The geometry of the slave 
-     * @param Geom2: The geometry of the master 
-     * @param ContactNormal1: The normals of the slave
-     * @param ContactNormal2: The normals of the master
-     * @param ActiveCheckLength: The threshold distance to check the potential contact
-     * @return ConditionIsActive: True if the condition is active, false otherwise
-     */
-    
-    static inline void ContactContainerFiller(
-        boost::shared_ptr<ConditionSet>& ConditionPointers,
-        Condition::Pointer & pCond1,       // SLAVE
-        const Condition::Pointer & pCond2, // MASTER
-        const array_1d<double, 3> & ContactNormal1, // SLAVE
-        const array_1d<double, 3> & ContactNormal2, // MASTER
-        const double ActiveCheckLength,
-        const bool DualCheck = false, 
-        const bool StrictCheck = true 
-        )
-    {
-        const bool ConditionIsActive = ContactChecker(pCond1->GetGeometry(), pCond2->GetGeometry(), ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck);
         
+        // If condition is active we add
         if (ConditionIsActive == true)
         {
             ConditionPointers->AddNewCondition(pCond2);
