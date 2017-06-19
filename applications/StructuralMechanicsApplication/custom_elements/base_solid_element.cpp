@@ -131,19 +131,19 @@ namespace Kratos
     {
         KRATOS_TRY;
         
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
+        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         
-        if (rResult.size() != Dimension * NumberOfNodes)
+        if (rResult.size() != dimension * number_of_nodes)
         {
-            rResult.resize(Dimension * NumberOfNodes,false);
+            rResult.resize(dimension * number_of_nodes,false);
         }
 
         const unsigned int pos = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
 
-        if(Dimension == 2)
+        if(dimension == 2)
         {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
+            for (unsigned int i = 0; i < number_of_nodes; ++i)
             {
                 const unsigned int index = i * 2;
                 rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_X,pos).EquationId();
@@ -152,7 +152,7 @@ namespace Kratos
         }
         else
         {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
+            for (unsigned int i = 0; i < number_of_nodes; ++i)
             {
                 const unsigned int index = i * 3;
                 rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_X,pos).EquationId();
@@ -174,14 +174,14 @@ namespace Kratos
     {
         KRATOS_TRY;
         
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
+        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         rElementalDofList.resize(0);
-        rElementalDofList.reserve(Dimension*NumberOfNodes);
+        rElementalDofList.reserve(dimension*number_of_nodes);
 
-        if(Dimension == 2)
+        if(dimension == 2)
         {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
+            for (unsigned int i = 0; i < number_of_nodes; ++i)
             {
                 rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
                 rElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
@@ -189,7 +189,7 @@ namespace Kratos
         }
         else
         {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
+            for (unsigned int i = 0; i < number_of_nodes; ++i)
             {
                 rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
                 rElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
@@ -208,20 +208,20 @@ namespace Kratos
         int Step 
         )
     {
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
-        const unsigned int MatSize = NumberOfNodes * Dimension;
-        if (rValues.size() != MatSize)
+        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        const unsigned int mat_size = number_of_nodes * dimension;
+        if (rValues.size() != mat_size)
         {
-            rValues.resize(MatSize, false);
+            rValues.resize(mat_size, false);
         }
-        for (unsigned int i = 0; i < NumberOfNodes; i++)
+        for (unsigned int i = 0; i < number_of_nodes; i++)
         {
-            const array_1d<double, 3 >& Displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-            const unsigned int index = i * Dimension;
-            for(unsigned int k = 0; k < Dimension; ++k)
+            const array_1d<double, 3 >& displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+            const unsigned int index = i * dimension;
+            for(unsigned int k = 0; k < dimension; ++k)
             {
-                rValues[index + k] = Displacement[k];
+                rValues[index + k] = displacement[k];
             }
         }
     }
@@ -234,20 +234,20 @@ namespace Kratos
         int Step 
         )
     {
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
-        const unsigned int MatSize = NumberOfNodes * Dimension;
-        if (rValues.size() != MatSize)
+        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        const unsigned int mat_size = number_of_nodes * dimension;
+        if (rValues.size() != mat_size)
         {
-            rValues.resize(MatSize, false);
+            rValues.resize(mat_size, false);
         }
-        for (unsigned int i = 0; i < NumberOfNodes; i++)
+        for (unsigned int i = 0; i < number_of_nodes; i++)
         {
-            const array_1d<double, 3 >& Velocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
-            const unsigned int index = i * Dimension;
-            for(unsigned int k = 0; k < Dimension; ++k)
+            const array_1d<double, 3 >& velocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
+            const unsigned int index = i * dimension;
+            for(unsigned int k = 0; k < dimension; ++k)
             {
-                rValues[index + k] = Velocity[k];
+                rValues[index + k] = velocity[k];
             }
         }
     }
@@ -260,20 +260,20 @@ namespace Kratos
         int Step 
         )
     {
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
-        const unsigned int MatSize = NumberOfNodes * Dimension;
-        if (rValues.size() != MatSize)
+        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        const unsigned int mat_size = number_of_nodes * dimension;
+        if (rValues.size() != mat_size)
         {
-            rValues.resize(MatSize, false);
+            rValues.resize(mat_size, false);
         }
-        for (unsigned int i = 0; i < NumberOfNodes; i++)
+        for (unsigned int i = 0; i < number_of_nodes; i++)
         {
-            const array_1d<double, 3 >& Acceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
-            const unsigned int index = i * Dimension;
-            for(unsigned int k = 0; k < Dimension; ++k)
+            const array_1d<double, 3 >& acceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
+            const unsigned int index = i * dimension;
+            for(unsigned int k = 0; k < dimension; ++k)
             {
-                rValues[index + k] = Acceleration[k];
+                rValues[index + k] = acceleration[k];
             }
         }
     }
@@ -320,48 +320,48 @@ namespace Kratos
         KRATOS_TRY;
 
         // Lumped
-        unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
-        unsigned int NumberOfNodes = GetGeometry().size();
-        unsigned int MatSize = Dimension * NumberOfNodes;
+        unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        unsigned int number_of_nodes = GetGeometry().size();
+        unsigned int mat_size = dimension * number_of_nodes;
 
-        if ( rMassMatrix.size1() != MatSize )
+        if ( rMassMatrix.size1() != mat_size )
         {
-            rMassMatrix.resize( MatSize, MatSize, false );
+            rMassMatrix.resize( mat_size, mat_size, false );
         }
 
-        rMassMatrix = ZeroMatrix( MatSize, MatSize );
+        rMassMatrix = ZeroMatrix( mat_size, mat_size );
         
-        Matrix DN_DX( NumberOfNodes, Dimension );
-        Matrix J0(Dimension,Dimension), InvJ0(Dimension,Dimension);
+        Matrix DN_DX( number_of_nodes, dimension );
+        Matrix J0(dimension,dimension), InvJ0(dimension,dimension);
         
         // Reading integration points and local gradients
-        IntegrationMethod ThisIntegrationMethod = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(GetGeometry());
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints( ThisIntegrationMethod );
-        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(ThisIntegrationMethod);
+        IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(GetGeometry());
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( integration_method );
+        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(integration_method);
         
         const double density = GetProperties()[DENSITY];
         double thickness = 1.0;
-        if ( Dimension == 2 && GetProperties().Has( THICKNESS )) 
+        if ( dimension == 2 && GetProperties().Has( THICKNESS )) 
         {
             thickness = GetProperties()[THICKNESS];
         }
         
-        for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
+        for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
         {   
-            const double detJ0 = CalculateDerivativesOnReference(J0, InvJ0, DN_DX, PointNumber, ThisIntegrationMethod);
-            const double IntegrationWeight = GetIntegrationWeight(IntegrationPoints, PointNumber, detJ0) * thickness;
-            const Vector& N = row(Ncontainer,PointNumber);
+            const double detJ0 = CalculateDerivativesOnReference(J0, InvJ0, DN_DX, point_number, integration_method);
+            const double IntegrationWeight = GetIntegrationWeight(integration_points, point_number, detJ0) * thickness;
+            const Vector& N = row(Ncontainer,point_number);
             
-            for ( unsigned int i = 0; i < NumberOfNodes; i++ )
+            for ( unsigned int i = 0; i < number_of_nodes; i++ )
             {
-                const unsigned int index_i = i * Dimension;
+                const unsigned int index_i = i * dimension;
                 
-                for ( unsigned int j = 0; j < NumberOfNodes; ++j )
+                for ( unsigned int j = 0; j < number_of_nodes; ++j )
                 {
-                    const unsigned int index_j = j * Dimension;
+                    const unsigned int index_j = j * dimension;
                     const double NiNj_weight = N[i] * N[j] * IntegrationWeight * density;
                     
-                    for ( unsigned int k = 0; k < Dimension; k++ )
+                    for ( unsigned int k = 0; k < dimension; k++ )
                     {
                         rMassMatrix( index_i + k, index_j + k ) += NiNj_weight;
                     }
@@ -381,18 +381,18 @@ namespace Kratos
     {
         KRATOS_TRY;
         
-        unsigned int NumberOfNodes = GetGeometry().size();
-        unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
+        unsigned int number_of_nodes = GetGeometry().size();
+        unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
         //resizing as needed the LHS
-        unsigned int MatSize = NumberOfNodes * Dimension;
+        unsigned int mat_size = number_of_nodes * dimension;
 
-        if ( rDampingMatrix.size1() != MatSize )
+        if ( rDampingMatrix.size1() != mat_size )
         {
-            rDampingMatrix.resize( MatSize, MatSize, false );
+            rDampingMatrix.resize( mat_size, mat_size, false );
         }
 
-        noalias( rDampingMatrix ) = ZeroMatrix( MatSize, MatSize );
+        noalias( rDampingMatrix ) = ZeroMatrix( mat_size, mat_size );
 
         KRATOS_CATCH( "" )
     }
@@ -477,10 +477,10 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo 
         )
     {
-        for ( unsigned int PointNumber = 0; PointNumber < GetGeometry().IntegrationPoints(  ).size(); PointNumber++ )
+        for ( unsigned int point_number = 0; point_number < GetGeometry().IntegrationPoints(  ).size(); point_number++ )
         {
-            mConstitutiveLawVector[PointNumber]->SetValue( rVariable,
-                    rValues[PointNumber], rCurrentProcessInfo );
+            mConstitutiveLawVector[point_number]->SetValue( rVariable,
+                    rValues[point_number], rCurrentProcessInfo );
         }
 
     }
@@ -495,10 +495,10 @@ namespace Kratos
         )
     {
 
-        for ( unsigned int PointNumber = 0; PointNumber < GetGeometry().IntegrationPoints(  ).size(); PointNumber++ )
+        for ( unsigned int point_number = 0; point_number < GetGeometry().IntegrationPoints(  ).size(); point_number++ )
         {
-            mConstitutiveLawVector[PointNumber]->SetValue( rVariable,
-                    rValues[PointNumber], rCurrentProcessInfo );
+            mConstitutiveLawVector[point_number]->SetValue( rVariable,
+                    rValues[point_number], rCurrentProcessInfo );
         }
     }
 
@@ -511,10 +511,10 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        for ( unsigned int PointNumber = 0; PointNumber < GetGeometry().IntegrationPoints(  ).size(); PointNumber++ )
+        for ( unsigned int point_number = 0; point_number < GetGeometry().IntegrationPoints(  ).size(); point_number++ )
         {
-            mConstitutiveLawVector[PointNumber]->SetValue( rVariable,
-                    rValues[PointNumber], rCurrentProcessInfo );
+            mConstitutiveLawVector[point_number]->SetValue( rVariable,
+                    rValues[point_number], rCurrentProcessInfo );
         }
 
     }
@@ -559,12 +559,12 @@ namespace Kratos
         //TODO: decide which is the correct one
 //         if ( rVariable == INSITU_STRESS || rVariable == PRESTRESS )
 //         {
-//             for ( unsigned int PointNumber = 0;
-//                     PointNumber < GetGeometry().IntegrationPoints(  ).size();
-//                     PointNumber++ )
+//             for ( unsigned int point_number = 0;
+//                     point_number < GetGeometry().IntegrationPoints(  ).size();
+//                     point_number++ )
 //             {
-//                 rValues[PointNumber] =
-//                     mConstitutiveLawVector[PointNumber]->GetValue( PRESTRESS, rValues[PointNumber] );
+//                 rValues[point_number] =
+//                     mConstitutiveLawVector[point_number]->GetValue( PRESTRESS, rValues[point_number] );
 //             }
 //         }
 //         if ( rVariable == PLASTIC_STRAIN_VECTOR )
@@ -590,19 +590,19 @@ namespace Kratos
         }
         if ( rVariable == MATERIAL_PARAMETERS )
         {
-            for ( unsigned int PointNumber = 0; PointNumber < GetGeometry().IntegrationPoints(  ).size(); PointNumber++ )
+            for ( unsigned int point_number = 0; point_number < GetGeometry().IntegrationPoints(  ).size(); point_number++ )
             {
-                rValues[PointNumber] =
-                    mConstitutiveLawVector[PointNumber]->GetValue( MATERIAL_PARAMETERS, rValues[PointNumber] );
+                rValues[point_number] =
+                    mConstitutiveLawVector[point_number]->GetValue( MATERIAL_PARAMETERS, rValues[point_number] );
             }
         }
 
         if ( rVariable == INTERNAL_VARIABLES )
         {
-            for ( unsigned int PointNumber = 0; PointNumber < GetGeometry().IntegrationPoints(  ).size(); PointNumber++ )
+            for ( unsigned int point_number = 0; point_number < GetGeometry().IntegrationPoints(  ).size(); point_number++ )
             {
-                rValues[PointNumber] =
-                    mConstitutiveLawVector[PointNumber]->GetValue( INTERNAL_VARIABLES, rValues[PointNumber] );
+                rValues[point_number] =
+                    mConstitutiveLawVector[point_number]->GetValue( INTERNAL_VARIABLES, rValues[point_number] );
             }
         }
     }
@@ -656,12 +656,12 @@ namespace Kratos
 // 
 //         if ( rVariable == DELTA_TIME )
 //         {
-//             for ( unsigned int PointNumber = 0;
-//                     PointNumber < GetGeometry().IntegrationPoints(  ).size();
-//                     PointNumber++ )
+//             for ( unsigned int point_number = 0;
+//                     point_number < GetGeometry().IntegrationPoints(  ).size();
+//                     point_number++ )
 //             {
-//                 mConstitutiveLawVector[PointNumber]-> GetValue( DELTA_TIME, c1 );
-//                 Values[PointNumber] = c1;
+//                 mConstitutiveLawVector[point_number]-> GetValue( DELTA_TIME, c1 );
+//                 Values[point_number] = c1;
 //             }
 //         }
 // 
@@ -733,12 +733,12 @@ namespace Kratos
     //***********************************************************************
 
     double BaseSolidElement::GetIntegrationWeight(
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const GeometryType::IntegrationPointsArrayType& ThisIntegrationMethod,
         const unsigned int PointNumber,
         const double detJ
         )
     {
-        return IntegrationPoints[PointNumber].Weight() * detJ;
+        return ThisIntegrationMethod[PointNumber].Weight() * detJ;
     }
     
     //************************************************************************************
