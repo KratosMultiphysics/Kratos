@@ -133,7 +133,7 @@
         }
     }
     ],
-    "list_other_processes" :[
+    "contact_processes" :[
     {
         "python_module"   : "alm_contact_process",
         "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",

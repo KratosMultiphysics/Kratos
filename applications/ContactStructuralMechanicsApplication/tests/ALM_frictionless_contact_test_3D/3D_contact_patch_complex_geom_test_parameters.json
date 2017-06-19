@@ -62,7 +62,23 @@
             "value"           : [0.0,0.0,null],
             "interval"        : [0.0,"End"]
         }
-    },{
+    }],
+    "loads_process_list"       : [{
+        "python_module" : "assign_modulus_and_direction_to_nodes_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes all the components of a given vector variable",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "AssignModulusAndDirectionToNodesProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "SelfWeight3D_Self_weight_Auto1",
+            "variable_name"   : "VOLUME_ACCELERATION",
+            "modulus"         : 9.81,
+            "direction"       : [0.0,0.0,-1.0],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "contact_processes" : [{
         "python_module" : "alm_contact_process",
         "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
         "help"          : "This process computes the contact between different surfaces",
@@ -89,21 +105,6 @@
             "penalty"                   : 5.0e3,
             "scale_factor"              : 5.0e3,
             "debug_mode"                : false
-        }
-    }],
-    "loads_process_list"       : [{
-        "python_module" : "assign_modulus_and_direction_to_nodes_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes all the components of a given vector variable",
-        "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignModulusAndDirectionToNodesProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "SelfWeight3D_Self_weight_Auto1",
-            "variable_name"   : "VOLUME_ACCELERATION",
-            "modulus"         : 9.81,
-            "direction"       : [0.0,0.0,-1.0],
-            "interval"        : [0.0,"End"]
         }
     }],
     "json_check_process" : [
