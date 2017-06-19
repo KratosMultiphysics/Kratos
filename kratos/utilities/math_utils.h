@@ -375,8 +375,7 @@ public:
             InvertMatrix4(InputMatrix, InvertedMatrix, InputMatrixDet);
         }
         else
-        {
-//             KRATOS_ERROR << "::WARNING: Size not implemented. Size: " << TDim << std::endl;
+        {   
             int singular = 0;
             using namespace boost::numeric::ublas;
             typedef permutation_matrix<std::size_t> pmatrix;
@@ -385,6 +384,16 @@ public:
             singular = lu_factorize(A,pm);
             InvertedMatrix.assign( IdentityMatrix(A.size1()));
             lu_substitute(A, pm, InvertedMatrix);
+             
+            // Calculating determinant
+            InputMatrixDet = 1.0;
+            
+            for (unsigned int i = 0; i < A.size1();i++)
+            {
+                unsigned int ki = pm[i] == i ? 0 : 1;
+                InputMatrixDet *= std::pow(-1.0, ki) * A(i,i);
+            }
+            
             if (singular == 1)
             {
                 KRATOS_ERROR << "::WARNING: Matrix is singular: " << InputMatrix << std::endl;
