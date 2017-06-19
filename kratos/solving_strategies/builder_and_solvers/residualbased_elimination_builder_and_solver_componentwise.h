@@ -276,8 +276,8 @@ public:
 	      {
 
 		bool condition_is_active = true;
-		if ((it)->IsDefined(ACTIVE))
-		  condition_is_active = (it)->Is(ACTIVE);
+		if ((*it)->IsDefined(ACTIVE))
+		  condition_is_active = (*it)->Is(ACTIVE);
 
 		if (condition_is_active)
 		  {
