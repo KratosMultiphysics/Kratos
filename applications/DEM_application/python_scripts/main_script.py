@@ -396,7 +396,6 @@ class Solution(object):
         self.demio.InitializeMesh(self.all_model_parts)
         
     def PrintResultsForGid(self, time):
-
         if self.solver.poisson_ratio_option:
             self.DEMFEMProcedures.PrintPoisson(self.spheres_model_part, DEM_parameters, "Poisson_ratio.txt", time)
 
