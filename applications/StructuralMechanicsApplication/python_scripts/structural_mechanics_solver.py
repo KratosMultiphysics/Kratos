@@ -314,7 +314,8 @@ class MechanicalSolver(object):
             read_materials_process.ReadMaterialsProcess(Model, self.settings["material_import_settings"])
             print("    Constitutive law initialized.")
         else:
-            raise NameError("    Constitutive law not initialized.")
+            #raise NameError("    Constitutive law not initialized.")
+            print("    Constitutive law not initialized.")
 
     def _SetAndFillBuffer(self):
         # Set buffer size
