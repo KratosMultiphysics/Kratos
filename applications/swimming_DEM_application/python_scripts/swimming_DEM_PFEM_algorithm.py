@@ -42,19 +42,32 @@ class Algorithm(BaseAlgorithm):
         self.fluid_algorithm.Initialize()   
         self.fluid_model_part = self.fluid_algorithm.main_model_part.GetSubModelPart("Body1")
         
+    def TransferTimeToFluidSolver(self):
+        if self.step < 3 or self.stationarity:
+            self.fluid_algorithm.time = self.time
+            #self.fluid_algorithm.step = self.step #DO NOT INCREASE STEP IN PFEM, IT CRASHES (PROBABLY IT MUST DO SPECIAL THINGS FOR STEP=0)
+            #self.fluid_algorithm.main_model_part.ProcessInfo[STEP] = self.step #DO NOT INCREASE STEP IN PFEM, IT CRASHES (PROBABLY IT MUST DO SPECIAL THINGS FOR STEP=0)
+            print(" [STEP:",self.step," TIME:",self.time,"]")
+    
     def CloneTimeStep(self):
-        pass
+        
+        if self.step < 3 or self.stationarity:
+            self.fluid_algorithm.main_model_part.CloneTimeStep(self.time) 
         
     def FluidSolve(self, time = 'None'):
         
         self.fluid_algorithm.InitializeSolutionStep()
         self.fluid_algorithm.SolveSolutionStep()
-        self.fluid_algorithm.FinalizeSolutionStep()                
+        self.fluid_algorithm.FinalizeSolutionStep() 
+        self.projection_module.UpdateDatabase(self.h_min)
         
     def SetCutsOutput(self):
         pass
     
     def SetDragOutput(self):
+        pass
+    
+    def FinalizeDragOutput(self): 
         pass
     
     def SetPointGraphPrinter(self):

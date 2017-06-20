@@ -391,6 +391,10 @@ def ConstructListsOfVariablesForCoupling(pp):
     if pp.CFD_DEM.apply_time_filter_to_fluid_fraction:
         pp.time_filtered_vars += [FLUID_FRACTION_FILTERED]
 
+    if pp.CFD_DEM.filter_velocity_option:
+        pp.time_filtered_vars += [PARTICLE_VEL_FILTERED]
+
+
 def ChangeListOfFluidNodalResultsToPrint(pp):
     pp.nodal_results += ["TORQUE"]
     if pp.CFD_DEM.store_full_gradient and pp.CFD_DEM.print_VELOCITY_GRADIENT_option:    
