@@ -209,6 +209,7 @@ namespace Kratos
         rVariables.conductivity = 0.0;
         rVariables.specific_heat = 0.0;
         rVariables.density = 0.0;
+        rVariables.volumetric_source = 0.0;
         rVariables.beta = 0.0;
         rVariables.div_v = 0.0;
 
@@ -268,6 +269,7 @@ namespace Kratos
         const bool IsDefinedDensityVariable = my_settings->IsDefinedDensityVariable();
         const bool IsDefinedSpecificHeatVariableVariable = my_settings->IsDefinedSpecificHeatVariable();
         const bool IsDefinedDiffusionVariable = my_settings->IsDefinedDiffusionVariable();
+        const bool IsDefinedVolumeSourceVariable = my_settings->IsDefinedVolumeSourceVariable();
 
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
@@ -317,6 +319,12 @@ namespace Kratos
 				rVariables.conductivity += GetGeometry()[i].FastGetSolutionStepValue(rDiffusionVar);
 			}
 			//if not, then the conductivity = 0
+
+            if (IsDefinedVolumeSourceVariable)
+            {
+                const Variable<double>& rVolumeSourceVar = my_settings->GetDiffusionVariable();
+                rVariables.volumetric_source += GetGeometry()[i].FastGetSolutionStepValue(rVolumeSourceVar);
+            }
         }
 
         //array_1d<double,TDim> grad_phi_halfstep = prod(trans(DN_DX), 0.5*(phi+phi_old));
@@ -325,6 +333,7 @@ namespace Kratos
         rVariables.conductivity *= rVariables.lumping_factor;
         rVariables.density *= rVariables.lumping_factor;
         rVariables.specific_heat *= rVariables.lumping_factor;
+        rVariables.volumetric_source *= rVariables.volumetric_source;
 
     }
 

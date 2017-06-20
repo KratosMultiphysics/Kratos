@@ -138,6 +138,7 @@ protected:
         double conductivity;
         double specific_heat;
         double density;
+        double volumetric_source;
         double beta;
         double div_v;
 
