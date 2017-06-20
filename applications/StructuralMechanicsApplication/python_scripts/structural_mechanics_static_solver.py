@@ -51,7 +51,7 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             "block_builder": true,
             "clear_storage": false,
             "move_mesh_flag": true,
-            "convergence_criterion": "Residual_criteria",
+            "convergence_criterion": "Residual_criterion",
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
             "residual_relative_tolerance": 1.0e-4,
