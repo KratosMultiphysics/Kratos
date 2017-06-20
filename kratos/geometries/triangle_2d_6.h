@@ -582,6 +582,13 @@ public:
         return 3;
     }
 
+
+    virtual SizeType FacesNumber() const override
+    {
+        return 3;
+    }
+
+
     /** This method gives you all edges of this geometry. This
     method will gives you all the edges with one dimension less
     than this geometry. for example a triangle would return
@@ -602,6 +609,44 @@ public:
         edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 5 ), this->pGetPoint( 0 ) ) );
         return edges;
     }
+
+
+   //Connectivities of faces required
+    virtual void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const override
+    {
+        if(NumberNodesInFaces.size() != 3 )
+            NumberNodesInFaces.resize(3,false);
+
+        NumberNodesInFaces[0]=3;
+        NumberNodesInFaces[1]=3;
+        NumberNodesInFaces[2]=3;
+
+    }
+
+
+    virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const override
+    {
+        if(NodesInFaces.size1() != 4 || NodesInFaces.size2() != 3)
+            NodesInFaces.resize(4,3,false);
+
+	//compatible to Edges() function. Triangle library considers a different order
+        NodesInFaces(0,0)=0;//face or master node
+        NodesInFaces(1,0)=1;
+        NodesInFaces(2,0)=4;
+        NodesInFaces(3,0)=2;
+ 
+        NodesInFaces(0,1)=1;//face or master node
+        NodesInFaces(1,1)=2;
+        NodesInFaces(2,1)=5;
+        NodesInFaces(3,1)=0;
+
+        NodesInFaces(0,2)=2;//face or master node
+        NodesInFaces(1,2)=0;
+        NodesInFaces(2,2)=3;
+        NodesInFaces(3,2)=1;
+
+    }
+
 
     /**
      * Calculates the local gradients for all integration points for

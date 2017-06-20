@@ -78,7 +78,8 @@ class FluidMeshModeler(mesh_modeler.MeshModeler):
 
     def FinalizeMeshing(self):
 
-        print("::[fluid_mesh_modeler]:: -START FinalizeMeshing-")
+        if(self.echo_level>0):
+            print("::[fluid_mesh_modeler]:: -END FinalizeMeshing-")
         
         # reset execution flags: to unset the options to be executed in methods and processes
         execution_options = KratosMultiphysics.Flags()
