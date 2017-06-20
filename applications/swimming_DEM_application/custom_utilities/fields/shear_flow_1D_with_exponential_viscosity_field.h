@@ -64,6 +64,7 @@ virtual void PrintInfo(std::ostream& rOStream) const override {}
 virtual void PrintData(std::ostream& rOStream) const override {}
 
 void SetRimZoneThickness(const double z_max);
+void SetViscosity(const double viscosity);
 
 protected:
 
