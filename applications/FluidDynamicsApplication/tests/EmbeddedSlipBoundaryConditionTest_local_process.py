@@ -29,8 +29,6 @@ class ApplyLocalProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
         b = 0
         c = self.distance_inlet
 
-        self.distance_inlet = 0.5
-
         # Set the distance function
         for node in self.fluid_model_part.Nodes:
             distance = node.Z - (a*node.X*node.X + b*node.X + c)
