@@ -129,7 +129,7 @@ public:
 
     //* Destructor.
     
-    virtual ~ResidualDisplacementAndOtherDoFCriteria() {}
+    ~ResidualDisplacementAndOtherDoFCriteria() override {}
 
 
     ///@} 

@@ -65,7 +65,7 @@ public:
     NodalConcentratedElement(NodalConcentratedElement const& rOther);
 
     /// Destructor.
-    virtual ~NodalConcentratedElement();
+    ~NodalConcentratedElement() override;
 
     ///@}
     ///@name Operators
@@ -189,7 +189,7 @@ public:
     void CalculateRightHandSide( 
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo
-        );
+        ) override;
 
     /**
      * This calculates just the LHS
@@ -201,7 +201,7 @@ public:
     void CalculateLeftHandSide( 
         MatrixType& rLeftHandSideMatrix,
         ProcessInfo& rCurrentProcessInfo
-        );
+        ) override;
 
     /**
       * this is called during the assembling process in order
@@ -309,9 +309,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry

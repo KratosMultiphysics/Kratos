@@ -368,7 +368,7 @@ public:
     SprismElement3D6N(SprismElement3D6N const& rOther);
 
     /* Destructor */
-    virtual ~SprismElement3D6N();
+    ~SprismElement3D6N() override;
 
     ///@}
     ///@name Operators
@@ -391,7 +391,7 @@ public:
     Element::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties) const;
+        PropertiesType::Pointer pProperties) const override;
 
     /**
      * Clones the selected element variables, creating a new one
@@ -401,7 +401,7 @@ public:
      */
     Element::Pointer Clone(
             IndexType NewId,
-            NodesArrayType const& ThisNodes) const;
+            NodesArrayType const& ThisNodes) const override;
 
     //************* GETTING  METHODS *************//
 
@@ -409,7 +409,7 @@ public:
      * Returns the currently selected integration method
      * @return current integration method selected
      */
-     IntegrationMethod GetIntegrationMethod() const;
+     IntegrationMethod GetIntegrationMethod() const override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
@@ -419,7 +419,7 @@ public:
      void EquationIdVector(
              EquationIdVectorType& rResult,
              ProcessInfo& rCurrentProcessInfo
-             );
+             ) override;
 
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
@@ -429,7 +429,7 @@ public:
      void GetDofList(
              DofsVectorType& rElementalDofList,
              ProcessInfo& rCurrentProcessInfo
-             );
+             ) override;
 
     /**
      * Sets on rValues the nodal displacements
@@ -439,7 +439,7 @@ public:
      void GetValuesVector(
              Vector& rValues,
              int Step = 0
-             );
+             ) override;
 
     /**
      * Sets on rValues the nodal velocities
@@ -449,7 +449,7 @@ public:
     void GetFirstDerivativesVector(
             Vector& rValues,
             int Step = 0
-            );
+            ) override;
 
     /**
      * Sets on rValues the nodal accelerations
@@ -459,7 +459,7 @@ public:
     void GetSecondDerivativesVector(
             Vector& rValues,
             int Step = 0
-            );
+            ) override;
 
     //************* COMPUTING  METHODS *************//
 
@@ -472,7 +472,7 @@ public:
      void CalculateRightHandSide(
              VectorType& rRightHandSideVector,
              ProcessInfo& rCurrentProcessInfo
-             );
+             ) override;
 
      /**
       * This function provides a more general interface to the element.
@@ -485,7 +485,7 @@ public:
              std::vector< VectorType >& rRightHandSideVectors,
              const std::vector< Variable< VectorType > >& rRHSVariables,
              ProcessInfo& rCurrentProcessInfo
-             );
+             ) override;
 
      /**
       * This is called during the assembling process in order
@@ -496,7 +496,7 @@ public:
      void CalculateLeftHandSide(
              MatrixType& rLeftHandSideMatrix,
              ProcessInfo& rCurrentProcessInfo
-             );
+             ) override;
 
     /**
      * This is called during the assembling process in order
@@ -510,7 +510,7 @@ public:
             MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
             ProcessInfo& rCurrentProcessInfo
-            );
+            ) override;
 
      /**
       * This function provides a more general interface to the element.
@@ -528,7 +528,7 @@ public:
              std::vector< VectorType >& rRightHandSideVectors,
              const std::vector< Variable< VectorType > >& rRHSVariables,
              ProcessInfo& rCurrentProcessInfo
-             );
+             ) override;
 
     /**
       * This is called during the assembling process in order
@@ -539,7 +539,7 @@ public:
     void CalculateMassMatrix(
             MatrixType& rMassMatrix,
             ProcessInfo& rCurrentProcessInfo
-            );
+            ) override;
 
     /**
       * This is called during the assembling process in order
@@ -550,7 +550,7 @@ public:
     void CalculateDampingMatrix(
             MatrixType& rDampingMatrix,
             ProcessInfo& rCurrentProcessInfo
-            );
+            ) override;
     
     /**
       * This is called during the assembling process in order
@@ -579,7 +579,7 @@ public:
             const Variable<double>& rVariable,
             std::vector<double>& rOutput,
             const ProcessInfo& rCurrentProcessInfo
-            );
+            ) override;
 
     /**
      * Calculate a Vector Variable on the Element Constitutive Law
@@ -591,7 +591,7 @@ public:
             const Variable<Vector>& rVariable,
             std::vector<Vector>& rOutput,
             const ProcessInfo& rCurrentProcessInfo
-            );
+            ) override;
 
     /**
      * Calculate a Matrix Variable on the Element Constitutive Law
@@ -603,7 +603,7 @@ public:
             const Variable<Matrix >& rVariable,
             std::vector< Matrix >& rOutput,
             const ProcessInfo& rCurrentProcessInfo
-            );
+            ) override;
 
 
     //************* ON INTEGRATION POINTS *************//
@@ -625,11 +625,11 @@ public:
      * @param rValues: Values of the ContstitutiveLaw
      * @param rCurrentProcessInfo: The current process info instance
      */
-    virtual void SetValueOnIntegrationPoints(
+    void SetValueOnIntegrationPoints(
             const Variable<double>& rVariable,
             std::vector<double>& rValues,
             const ProcessInfo& rCurrentProcessInfo
-            );
+            ) override;
 
     /**
      * Set a Vector Value on the Element Constitutive Law
@@ -641,7 +641,7 @@ public:
             const Variable<Vector>& rVariable,
             std::vector<Vector>& rValues,
             const ProcessInfo& rCurrentProcessInfo
-            );
+            ) override;
 
     /**
      * Set a Matrix Value on the Element Constitutive Law
@@ -653,7 +653,7 @@ public:
             const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
             const ProcessInfo& rCurrentProcessInfo
-            );
+            ) override;
 
     /**
     * Set a Constitutive Law Value
@@ -665,7 +665,7 @@ public:
             const Variable<ConstitutiveLaw::Pointer>& rVariable,
             std::vector<ConstitutiveLaw::Pointer>& rValues,
             const ProcessInfo& rCurrentProcessInfo
-            );
+            ) override;
 
     //GET:
     /**
@@ -674,11 +674,11 @@ public:
      * @param rValues: Values of the ContstitutiveLaw
      * @param rCurrentProcessInfo: The current process info instance
      */
-    virtual void GetValueOnIntegrationPoints(
+    void GetValueOnIntegrationPoints(
             const Variable<double>& rVariable,
             std::vector<double>& rValues,
             const ProcessInfo& rCurrentProcessInfo
-            );
+            ) override;
 
     /**
      * Get on rVariable a Vector Value from the Element Constitutive Law
@@ -686,11 +686,11 @@ public:
      * @param rValues: Values of the ContstitutiveLaw
      * @param rCurrentProcessInfo: The current process info instance
      */
-    virtual void GetValueOnIntegrationPoints(
+    void GetValueOnIntegrationPoints(
             const Variable<Vector>& rVariable,
             std::vector<Vector>& rValues,
             const ProcessInfo& rCurrentProcessInfo
-            );
+            ) override;
 
     /**
      * Get on rVariable a Matrix Value from the Element Constitutive Law
@@ -698,11 +698,11 @@ public:
      * @param rValues: Values of the ContstitutiveLaw
      * @param rCurrentProcessInfo: The current process info instance
      */
-    virtual void GetValueOnIntegrationPoints(
+    void GetValueOnIntegrationPoints(
             const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
             const ProcessInfo& rCurrentProcessInfo
-            );
+            ) override;
 
     /**
      * Get a Constitutive Law Value
@@ -714,7 +714,7 @@ public:
             const Variable<ConstitutiveLaw::Pointer>& rVariable,
             std::vector<ConstitutiveLaw::Pointer>& rValues,
             const ProcessInfo& rCurrentProcessInfo
-            );
+            ) override;
 
     //****************** CHECK VALUES *****************//
     /**
@@ -724,14 +724,14 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo: The current process info instance
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output
     ///@{
 
     // Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "SPRISM Element #" << Id();
@@ -739,13 +739,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "SPRISM Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -756,31 +756,31 @@ public:
      * Called at the beginning of each solution step
      * @param rCurrentProcessInfo: The current process info instance
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the end of each solution step
      * @param rCurrentProcessInfo: The current process info instance
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This is called for non-linear analysis at the beginning of the iteration process
      * @param rCurrentProcessInfo: The current process info instance
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This is called for non-linear analysis at the beginning of the iteration process
      * @param rCurrentProcessInfo: The current process info instance
      */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    virtual void Initialize();
+    void Initialize() override;
 
 protected:
 
@@ -1369,7 +1369,7 @@ protected:
     /**
      * Reset the Constitutive Law Parameters
      */
-    void ResetConstitutiveLaw();
+    void ResetConstitutiveLaw() override;
 
     /**
      * Clear Nodal Forces
@@ -1554,9 +1554,9 @@ private:
     /**
      * Serialization, load and save respectively
      */
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     // Constructor
 

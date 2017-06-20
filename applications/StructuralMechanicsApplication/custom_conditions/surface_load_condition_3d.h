@@ -77,7 +77,7 @@ public:
         );
 
     // Destructor
-    virtual ~SurfaceLoadCondition3D();
+    ~SurfaceLoadCondition3D() override;
     
     ///@}
     ///@name Operators
@@ -144,7 +144,7 @@ protected:
      * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
      * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
      */
-    virtual void CalculateAll(
+    void CalculateAll(
         MatrixType& rLeftHandSideMatrix, 
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
@@ -225,12 +225,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const override
+    void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseLoadCondition );
     }
 
-    virtual void load( Serializer& rSerializer ) override
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseLoadCondition );
     }

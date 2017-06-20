@@ -74,7 +74,7 @@ public:
     {};
 
     // Destructor
-    virtual ~BaseLoadCondition()
+    ~BaseLoadCondition() override
     {};
 
     ///@}
@@ -90,38 +90,38 @@ public:
      * Called to initialize the element.
      * Must be called before any calculation is done
      */
-    virtual void Initialize() override;
+    void Initialize() override;
 
     /**
      * Called at the beginning of each solution step
      * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
     /**
      * This is called for non-linear analysis at the beginning of the iteration process
      * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This is called for non-linear analysis at the beginning of the iteration process
      * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
     
     /**
      * Called at the end of eahc solution step
      * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
     
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      * @param rResult: The vector containing the equation id
      * @param rCurrentProcessInfo: The current process info instance
      */
-    virtual void EquationIdVector(
+    void EquationIdVector(
         EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo 
         ) override;
@@ -131,7 +131,7 @@ public:
      * @param rElementalDofList: The vector containing the dof of the element
      * @param rCurrentProcessInfo: The current process info instance
      */
-    virtual void GetDofList(
+    void GetDofList(
         DofsVectorType& ElementalDofList,
         ProcessInfo& rCurrentProcessInfo
         ) override;
@@ -141,7 +141,7 @@ public:
      * @param rValues: The values of displacements
      * @param Step: The step to be computed
      */
-    virtual void GetValuesVector(
+    void GetValuesVector(
         Vector& rValues,
         int Step = 0 
         ) override;
@@ -151,7 +151,7 @@ public:
      * @param rValues: The values of velocities
      * @param Step: The step to be computed
      */
-    virtual void GetFirstDerivativesVector(
+    void GetFirstDerivativesVector(
         Vector& rValues,
         int Step = 0 
         ) override;
@@ -161,7 +161,7 @@ public:
      * @param rValues: The values of accelerations
      * @param Step: The step to be computed
      */
-    virtual void GetSecondDerivativesVector(
+    void GetSecondDerivativesVector(
         Vector& rValues,
         int Step = 0 
         ) override;
@@ -195,7 +195,7 @@ public:
       * @param rMassMatrix: the elemental mass matrix
       * @param rCurrentProcessInfo: The current process info instance
       */
-    virtual void CalculateMassMatrix(
+    void CalculateMassMatrix(
         MatrixType& rMassMatrix,
         ProcessInfo& rCurrentProcessInfo 
         ) override;
@@ -206,7 +206,7 @@ public:
       * @param rDampingMatrix: the elemental damping matrix
       * @param rCurrentProcessInfo: The current process info instance
       */
-    virtual void CalculateDampingMatrix(
+    void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
         ProcessInfo& rCurrentProcessInfo 
         ) override;
@@ -218,7 +218,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
     
     ///@}
     ///@name Access
@@ -330,12 +330,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const override
+    void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
     }
 
-    virtual void load( Serializer& rSerializer ) override
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
     }

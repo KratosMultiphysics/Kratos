@@ -65,7 +65,7 @@ public:
     PointTorque3DCondition( PointTorque3DCondition const& rOther);
 
     /// Destructor.
-    virtual ~PointTorque3DCondition();
+    ~PointTorque3DCondition() override;
 
 
     ///@}
@@ -96,7 +96,7 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
     //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
@@ -201,9 +201,9 @@ private:
     // A private default constructor necessary for serialization
     PointTorque3DCondition() {};
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer)override;
+    void load(Serializer& rSerializer)override;
 
     ///@}
     ///@name Private Operators

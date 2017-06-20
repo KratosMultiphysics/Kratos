@@ -81,7 +81,7 @@ public:
     KinematicLinear(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~KinematicLinear();
+    ~KinematicLinear() override;
 
     ///@}
     ///@name Operators
@@ -102,7 +102,7 @@ public:
      * @param rOutput: The values obtained int the integration points
      * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void CalculateOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<Matrix >& rVariable, 
         std::vector< Matrix >& rOutput, 
         const ProcessInfo& rCurrentProcessInfo
@@ -163,7 +163,7 @@ protected:
      * \f$ K^e = w\,B^T\,D\,B \f$ and
      * \f$ r^e \f$
      */
-    virtual void CalculateAll(
+    void CalculateAll(
         MatrixType& rLeftHandSideMatrix, 
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
@@ -260,9 +260,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{

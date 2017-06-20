@@ -133,7 +133,7 @@ public:
     EigensolverStrategy(const EigensolverStrategy& Other) = delete;
 
     /// Destructor.
-    virtual ~EigensolverStrategy()
+    ~EigensolverStrategy() override
     {
         // Clear() controls order of deallocation to avoid invalid memory access
         // in some special cases.
@@ -241,7 +241,7 @@ public:
     /**
      * Initialization to be performed once before using the strategy.
      */
-    virtual void Initialize() override
+    void Initialize() override
     {
         KRATOS_TRY
 
@@ -351,7 +351,7 @@ public:
     /**
      * Clears the internal storage
      */
-    virtual void Clear() override
+    void Clear() override
     {
         KRATOS_TRY
 
@@ -386,7 +386,7 @@ public:
      * before solving the solution step.
      * A member variable should be used as a flag to make sure this function is called only once per step.
      */
-    virtual void InitializeSolutionStep() override
+    void InitializeSolutionStep() override
     {
         KRATOS_TRY
 
@@ -488,7 +488,7 @@ public:
      * Function to perform expensive checks.
      * It is designed to be called ONCE to verify that the input is correct.
      */
-    virtual int Check() override
+    int Check() override
     {
         KRATOS_TRY
 

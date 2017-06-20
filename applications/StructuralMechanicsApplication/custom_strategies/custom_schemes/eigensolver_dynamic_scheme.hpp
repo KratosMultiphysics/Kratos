@@ -80,7 +80,7 @@ public:
     EigensolverDynamicScheme() : Scheme<TSparseSpace,TDenseSpace>() {}
 
     /// Destructor.
-    virtual ~EigensolverDynamicScheme() {}
+    ~EigensolverDynamicScheme() override {}
 
     ///@}
     ///@name Operators
@@ -90,13 +90,13 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void CalculateSystemContributions(
+    void CalculateSystemContributions(
         Element::Pointer pCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
         ProcessInfo& CurrentProcessInfo
-    )
+    ) override
     {
         KRATOS_TRY
 
@@ -122,11 +122,11 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void Calculate_LHS_Contribution(
+    void Calculate_LHS_Contribution(
         Element::Pointer pCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -142,12 +142,12 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void Condition_CalculateSystemContributions(
+    void Condition_CalculateSystemContributions(
         Condition::Pointer pCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Condition::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -175,11 +175,11 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void Condition_Calculate_LHS_Contribution(
+    void Condition_Calculate_LHS_Contribution(
             Condition::Pointer pCurrentCondition,
             LocalSystemMatrixType& LHS_Contribution,
             Condition::EquationIdVectorType& EquationId,
-            ProcessInfo& CurrentProcessInfo)
+            ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 

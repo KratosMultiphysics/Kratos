@@ -157,7 +157,7 @@ public:
     /************************************* DESTRUCTOR **********************************/
     /***********************************************************************************/
     
-    virtual ~ResidualBasedArcLengthStrategy() {}
+    ~ResidualBasedArcLengthStrategy() override {}
 
     /************************************* OPERATIONS **********************************/
     /***********************************************************************************/
@@ -219,7 +219,7 @@ public:
     // 2 -> Printing linear solver data
     // 3 -> Print of debug informations:
     // Echo of stiffness matrix, Dx, b...
-    void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
         BaseType::mEchoLevel = Level;
         GetBuilderAndSolver()->SetEchoLevel(Level);
@@ -245,7 +245,7 @@ public:
     * values of the solution step of interest are assumed equal to the old values
     */
     
-    void Predict()
+    void Predict() override
     {
         KRATOS_TRY;
         
@@ -296,7 +296,7 @@ public:
     * It solves the problem
     */
     
-    double Solve()
+    double Solve() override
     {
         KRATOS_TRY;
 
@@ -813,7 +813,7 @@ public:
     *  the convergence criteria used is the one used inside the "solve" step
     */
 
-    bool IsConverged()
+    bool IsConverged() override
     {
         KRATOS_TRY;
 
@@ -843,7 +843,7 @@ public:
     * This operations should be called only when needed, before printing as it can involve a non negligible cost
     */
 
-    void CalculateOutputData()
+    void CalculateOutputData() override
     {
         TSystemMatrixType& mA  = *mpA;
         TSystemVectorType& mDx = *mpDx;
@@ -860,7 +860,7 @@ public:
     * It clears the variables of the arc length
     */
     
-    void Clear()
+    void Clear() override
     {
         KRATOS_TRY;
         if (this->GetEchoLevel() > 0)
@@ -1212,7 +1212,7 @@ private:
     * Initilise the variables, schemes and convergence criterias
     */
 
-    void Initialize()
+    void Initialize() override
     {
         KRATOS_TRY;
 
@@ -1258,7 +1258,7 @@ private:
     * It initialises the solution step
     */
 
-    void InitializeSolutionStep()
+    void InitializeSolutionStep() override
     {
         KRATOS_TRY;
 
@@ -1311,7 +1311,7 @@ private:
     * @param mReduceArcLenght: Boolean that tells if the arc length has been computed with the reduced method
     */
 
-    void FinalizeSolutionStep()
+    void FinalizeSolutionStep() override
     {
         KRATOS_TRY;
 

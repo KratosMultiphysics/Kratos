@@ -145,7 +145,7 @@ public:
     SmallDisplacementBeamElement3D2N(SmallDisplacementBeamElement3D2N const& rOther);
 
     /// Destructor.
-    virtual ~SmallDisplacementBeamElement3D2N();
+    ~SmallDisplacementBeamElement3D2N() override;
 
 
     ///@}
@@ -160,7 +160,7 @@ public:
       * @param pProperties: the properties assigned to the new element
       * @return a Pointer to the new element
       */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
 
     //************* GETTING METHODS
@@ -170,7 +170,7 @@ public:
      * @return current integration method selected
      */
 
-    IntegrationMethod GetIntegrationMethod() const;
+    IntegrationMethod GetIntegrationMethod() const override;
 
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
@@ -185,17 +185,17 @@ public:
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0);
+    void GetValuesVector(Vector& rValues, int Step = 0) override;
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
     //on integration points:
     /**
@@ -256,7 +256,7 @@ public:
      * @param rRightHandSideVector: the elemental right hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -265,7 +265,7 @@ public:
      * @param rLeftHandSideVector: the elemental left hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -306,7 +306,7 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Beam Element #" << Id();
@@ -314,13 +314,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Beam Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         GetGeometry().PrintData(rOStream);
     }
@@ -478,12 +478,12 @@ private:
     // A private default constructor necessary for serialization
 
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }

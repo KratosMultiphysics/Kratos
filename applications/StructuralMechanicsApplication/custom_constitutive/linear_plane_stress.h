@@ -58,7 +58,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~LinearPlaneStress();
+    ~LinearPlaneStress() override;
 
     /**
      * Operators
@@ -112,7 +112,7 @@ public:
         const Properties& rMaterialProperties, 
         const GeometryType& rElementGeometry, 
         const ProcessInfo& rCurrentProcessInfo
-        );
+        ) override;
 
 
 
@@ -192,12 +192,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw)
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
     }

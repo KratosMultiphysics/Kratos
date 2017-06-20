@@ -48,13 +48,13 @@ namespace Kratos
 						bool rLinear = false);
 
 
-		virtual ~CrBeamElement3D2N();
+		~CrBeamElement3D2N() override;
 
 
 		BaseType::Pointer Create(
 			IndexType NewId,
 			NodesArrayType const& rThisNodes,
-			PropertiesType::Pointer pProperties) const;
+			PropertiesType::Pointer pProperties) const override;
 
 		void EquationIdVector(
 			EquationIdVectorType& rResult,
@@ -64,7 +64,7 @@ namespace Kratos
 			DofsVectorType& rElementalDofList,
 			ProcessInfo& rCurrentProcessInfo) override;
 
-		void Initialize();
+		void Initialize() override;
 
 		Matrix CreateElementStiffnessMatrix_Material();
 		Matrix CreateElementStiffnessMatrix_Geometry(const Vector qe);
@@ -132,7 +132,7 @@ namespace Kratos
 
 		void AssembleSmallInBigMatrix(Matrix SmallMatrix, Matrix& BigMatrix);
 
-		int Check(const ProcessInfo& rCurrentProcessInfo);
+		int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 
 		double CalculateCurrentLength();
@@ -191,8 +191,8 @@ namespace Kratos
 
 
 		friend class Serializer;
-		virtual void save(Serializer& rSerializer) const;
-		virtual void load(Serializer& rSerializer);
+		void save(Serializer& rSerializer) const override;
+		void load(Serializer& rSerializer) override;
 	};
 
 

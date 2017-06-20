@@ -125,7 +125,7 @@ public:
 
     /** Destructor.
     */
-    virtual ~DisplacementAndOtherDoFCriteria() {}
+    ~DisplacementAndOtherDoFCriteria() override {}
 
 
     ///@}
