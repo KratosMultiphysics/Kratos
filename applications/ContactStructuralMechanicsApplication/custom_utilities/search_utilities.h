@@ -84,11 +84,13 @@ public:
     /**
      * This function fills the ConditionSet for the Mortar condition
      * @param ConditionPointers: The map storing the potential contact conditions
-     * @param geom_1: The geometry of the slave 
-     * @param geom_2: The geometry of the master 
+     * @param pCond1: The condition pointer of the slave 
+     * @param pCond2: The  condition pointer of the master 
      * @param ContactNormal1: The normals of the slave
      * @param ContactNormal2: The normals of the master
      * @param ActiveCheckLength: The threshold distance to check the potential contact
+     * @param DualCheck: The threshold distance to check the potential contact
+     * @param StrictCheck: If the node must be inside or not
      * @return condition_is_active: True if the condition is active, false otherwise
      */
     
@@ -103,60 +105,15 @@ public:
         const bool StrictCheck = true 
         )
     {
+        // Define the basic information
+        const double tolerance = std::numeric_limits<double>::epsilon();
+        
         // Initialize geometries
         GeometryType& geom_1 = pCond1->GetGeometry(); // SLAVE
         GeometryType& geom_2 = pCond2->GetGeometry(); // MASTER
         
         // LEGACY WAY
-        // Define the basic information
-//         const double Tolerance = 1.0e-12;
-        const double Tolerance = std::numeric_limits<double>::epsilon();
-        
-        bool condition_is_active = false;
-//         #pragma omp for
-        for (unsigned int i_node = 0; i_node < geom_1.size(); i_node++)
-        {
-            if (geom_1[i_node].Is(ACTIVE) == false)
-            {
-                Point<3> projected_point;
-                double aux_distance = 0.0;
-                const array_1d<double, 3> normal = geom_1[i_node].GetValue(NORMAL);
-                if (norm_2(normal) < Tolerance)
-                {
-                    aux_distance = ContactUtilities::FastProjectDirection(geom_2, geom_1[i_node], projected_point, ContactNormal2, ContactNormal1);
-                }
-                else
-                {
-                    aux_distance = ContactUtilities::FastProjectDirection(geom_2, geom_1[i_node], projected_point, ContactNormal2, normal);
-                }  
-                
-                array_1d<double, 3> result;
-                if (aux_distance <= ActiveCheckLength && (StrictCheck == true ? geom_2.IsInside(projected_point, result, Tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
-                {
-                    condition_is_active = true;
-                    
-                    // geom_1[i_node].SetLock();
-                    geom_1[i_node].Set(ACTIVE, true);
-                    // geom_1[i_node].UnSetLock();
-                }
-                else if (DualCheck == true)
-                {
-                    aux_distance = ContactUtilities::FastProjectDirection(geom_2, geom_1[i_node], projected_point, ContactNormal2, -ContactNormal2);
-                    if (aux_distance <= ActiveCheckLength && (StrictCheck == true ? geom_2.IsInside(projected_point, result, Tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
-                    {
-                        condition_is_active = true;
-                        
-                        // geom_1[i_node].SetLock();
-                        geom_1[i_node].Set(ACTIVE, true);
-                        // geom_1[i_node].UnSetLock();
-                    }
-                }
-             }
-             else
-             {
-                 condition_is_active = true;
-             }
-         }
+        const bool condition_is_active = CheckGeometryNodes( geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
         
         // If condition is active we add
         if (condition_is_active == true)
@@ -177,7 +134,7 @@ public:
 //             
 //             if (condition_is_active == true)
 //             {
-//                 condition_is_active = CheckPointsInside<2>(conditions_points_slave, geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, StrictCheck);
+//                 condition_is_active = CheckPointsInside<2>(conditions_points_slave, geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
 //             }
 //         }
 //         else if (dimension == 3 && number_of_nodes == 3)
@@ -188,7 +145,7 @@ public:
 //             
 //             if (condition_is_active == true)
 //             {
-//                 condition_is_active = CheckPointsInside<3>(conditions_points_slave, geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, StrictCheck);
+//                 condition_is_active = CheckPointsInside<3>(conditions_points_slave, geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
 //             }
 //         }
 //         else if (dimension == 3 && number_of_nodes == 4)
@@ -199,7 +156,7 @@ public:
 //             
 //             if (condition_is_active == true)
 //             {
-//                 condition_is_active = CheckPointsInside<3>(conditions_points_slave, geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, StrictCheck);
+//                 condition_is_active = CheckPointsInside<3>(conditions_points_slave, geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
 //             }
 //         }
 //         else
@@ -207,13 +164,15 @@ public:
 //             KRATOS_ERROR << "INTEGRATION NOT IMPLEMENTED" << std::endl;
 //         }
 //         
+//         // FIXME: Solve this!!!
+// //         const bool test = CheckGeometryNodes( geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
+// //         
+// //         std::cout << pCond1->Id() << " " << pCond2->Id() << " " << condition_is_active << " " << test << std::endl;
+//         
 //         // If condition is active we add
 //         if (condition_is_active == true)
 //         {
-//             for (unsigned int i_node = 0; i_node < geom_1.size(); i_node++)
-//             {
-//                 geom_1[i_node].Set(ACTIVE, true);
-//             }
+//             CheckGeometryNodes( geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
 //             
 //             ConditionPointers->AddNewCondition(pCond2);
 //         }
@@ -264,6 +223,86 @@ private:
     ///@name Private Operations
     ///@{
     
+    /**
+     * This function check the nodes of the geometry if they can be potentially in contact
+     * @param Geom1: The geometry of the slave 
+     * @param Geom1: The geometry of the master 
+     * @param ContactNormal1: The normals of the slave
+     * @param ContactNormal2: The normals of the master
+     * @param ActiveCheckLength: The threshold distance to check the potential contact
+     * @param DualCheck: The threshold distance to check the potential contact
+     * @param StrictCheck: If the node must be inside or not
+     * @param tolerance: The tolerance considered in the calculations
+     * @return at_least_one_node_potential_contact: True if at least one node is active, false otherwise
+     */
+    static inline bool CheckGeometryNodes(
+        GeometryType& Geom1, // SLAVE
+        GeometryType& Geom2,  // MASTER
+        const array_1d<double, 3> & ContactNormal1, // SLAVE
+        const array_1d<double, 3> & ContactNormal2, // MASTER
+        const double ActiveCheckLength,
+        const bool DualCheck = false, 
+        const bool StrictCheck = true,
+        const double tolerance = std::numeric_limits<double>::epsilon()
+        )
+    {
+        bool at_least_one_node_potential_contact = false;
+        for (unsigned int i_node = 0; i_node < Geom1.size(); i_node++)
+        {
+            if (Geom1[i_node].Is(ACTIVE) == false)
+            {
+                Point<3> projected_point;
+                double aux_distance = 0.0;
+                const array_1d<double, 3> normal = Geom1[i_node].GetValue(NORMAL);
+                if (norm_2(normal) < tolerance)
+                {
+                    aux_distance = ContactUtilities::FastProjectDirection(Geom2, Geom1[i_node], projected_point, ContactNormal2, ContactNormal1);
+                }
+                else
+                {
+                    aux_distance = ContactUtilities::FastProjectDirection(Geom2, Geom1[i_node], projected_point, ContactNormal2, normal);
+                }  
+                
+                array_1d<double, 3> result;
+                if (aux_distance <= ActiveCheckLength && (StrictCheck == true ? Geom2.IsInside(projected_point, result, tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
+                {
+                    at_least_one_node_potential_contact = true;
+                    
+                    Geom1[i_node].Set(ACTIVE, true);
+                }
+                else if (DualCheck == true)
+                {
+                    aux_distance = ContactUtilities::FastProjectDirection(Geom2, Geom1[i_node], projected_point, ContactNormal2, -ContactNormal2);
+                    if (aux_distance <= ActiveCheckLength && (StrictCheck == true ? Geom2.IsInside(projected_point, result, tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
+                    {
+                        at_least_one_node_potential_contact = true;
+                        
+                        Geom1[i_node].Set(ACTIVE, true);
+                    }
+                }
+             }
+             else
+             {
+                 at_least_one_node_potential_contact = true;
+             }
+         }
+         
+         return at_least_one_node_potential_contact;
+    }
+    
+    /**
+     * This function check the points inside of the geometry if they can be potentially in contact
+     * @param ConditionsPointsSlave: The list containing the points inside the geometry
+     * @param Geom1: The geometry of the slave 
+     * @param Geom1: The geometry of the master 
+     * @param ContactNormal1: The normals of the slave
+     * @param ContactNormal2: The normals of the master
+     * @param ActiveCheckLength: The threshold distance to check the potential contact
+     * @param DualCheck: The threshold distance to check the potential contact
+     * @param StrictCheck: If the node must be inside or not
+     * @param tolerance: The tolerance considered in the calculations
+     * @return True if the condition is active, false otherwise
+     */
     template<unsigned int TDim>
     static inline bool CheckPointsInside(
         std::vector<array_1d<PointType,TDim>> ConditionsPointsSlave,
@@ -272,7 +311,9 @@ private:
         const array_1d<double, 3> & ContactNormal1, // SLAVE
         const array_1d<double, 3> & ContactNormal2, // MASTER
         const double ActiveCheckLength,
-        const bool StrictCheck = true
+        const bool DualCheck = false, 
+        const bool StrictCheck = true,
+        const double tolerance = std::numeric_limits<double>::epsilon()
         )
     {        
         // Define the basic information
@@ -291,7 +332,7 @@ private:
                 Geom1.ShapeFunctionsValues( N, LocalPoint );
                 const array_1d<double, 3> normal = ContactUtilities::GaussPointNormal(N, Geom1);
                 
-                if (norm_2(normal) < std::numeric_limits<double>::epsilon())
+                if (norm_2(normal) < tolerance)
                 {
                     aux_distance = ContactUtilities::FastProjectDirection(Geom2, GlobalPoint, projected_point, ContactNormal2, ContactNormal1);
                 }
@@ -301,9 +342,17 @@ private:
                 }  
                 
                 array_1d<double, 3> result;
-                if (aux_distance <= ActiveCheckLength && (StrictCheck == true ? Geom2.IsInside(projected_point, result, std::numeric_limits<double>::epsilon()) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
+                if (aux_distance <= ActiveCheckLength && (StrictCheck == true ? Geom2.IsInside(projected_point, result, tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
                 {
                     return true;
+                }
+                else if (DualCheck == true)
+                {
+                    aux_distance = ContactUtilities::FastProjectDirection(Geom2, GlobalPoint, projected_point, ContactNormal2, -ContactNormal2);
+                    if (aux_distance <= ActiveCheckLength && (StrictCheck == true ? Geom2.IsInside(projected_point, result, tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
+                    {
+                        return true;
+                    }
                 }
             }
         }

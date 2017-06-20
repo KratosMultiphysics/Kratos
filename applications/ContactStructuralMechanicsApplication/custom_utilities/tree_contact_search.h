@@ -417,7 +417,7 @@ public:
                         {   
                             Condition::Pointer pCondOrigin = PointsFound[i]->GetCondition();
                             
-							const bool ConditionCheckedRight = CheckCondition(ConditionPointersDestination, (*itCond.base()), pCondOrigin);
+                            const bool ConditionCheckedRight = CheckCondition(ConditionPointersDestination, (*itCond.base()), pCondOrigin);
 
                             if (ConditionCheckedRight == true)
                             {    
