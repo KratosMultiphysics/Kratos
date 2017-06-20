@@ -208,24 +208,44 @@ namespace Kratos
 		// LHS += bdf*M
 		noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * msM;
 
-		// Add Discontinuity capturing term
+		// Add Discontinuity capturing term via adding artificial diffusion to velocity
+		//~ double divergence_is_zero = 1e-1;
+		//~ double max_viscosity = 100;
+		//~ double m_residual;
+		//~ double m_divergence;
+		//~ m_residual = norm_2(gravity*prod(msDN_DX_height, ms_depth - ms_unknown) + BDFcoeffs[1]*prod(msN_vel, (ms_proj_unknown - ms_unknown) ) );
+		//~ this->SetValue(RESIDUAL_NORM,m_residual);
+		//~ m_divergence = norm_2(prod(msDN_DX_vel, ms_step_velocity));
+		//~ if (m_divergence < divergence_is_zero){
+			//~ k_dc = 0;
+			//~ m_divergence = 0;
+		//~ }
+		//~ else {
+			//~ k_dc = 0.1*0.5*m_residual/m_divergence;
+		//~ }
+		//~ this->SetValue(MIU,m_divergence);
+		//~ if (k_dc > max_viscosity){
+			//~ k_dc = 0;
+		//~ }
+		//~ this->SetValue(VEL_ART_VISC,k_dc);
+		//~ noalias(rLeftHandSideMatrix) += k_dc * prod(trans(msDN_DX_vel), msDN_DX_vel);
+
+		// Add discontinuity capturing term via adding artificial diffusion to height
 		double m_residual;
-		double m_divergence;
-		m_residual = gravity*norm_2(prod(msDN_DX_height, ms_depth-ms_unknown) + BDFcoeffs[1]*prod(msN_vel, ms_proj_unknown-ms_unknown));
-		//~ KRATOS_WATCH(m_residual)
-		//~ KRATOS_WATCH(msDN_DX_vel)
-		//~ KRATOS_WATCH(ms_step_velocity)
-		m_divergence = norm_2(prod(msDN_DX_vel, ms_step_velocity));
-		if (m_divergence == 0){
+		double m_grad_norm;
+		double gradient_is_zero = 1e-3;
+		m_residual = norm_1(prod(msN_height,ms_unknown)) * norm_1(prod(msDN_DX_vel,ms_unknown)) + BDFcoeffs[1]*norm_1(prod(msN_vel, (ms_unknown - ms_proj_unknown)));
+		m_grad_norm = norm_2(prod(msDN_DX_height,ms_unknown));
+		if (m_grad_norm < gradient_is_zero){
 			k_dc = 0;
 		}
-		else {
-			k_dc = 1e-2*0.5*m_residual/m_divergence;
+		else{
+			k_dc = 0.02*0.5*m_residual; ///m_grad_norm;
 		}
-		this->SetValue(VISCOSITY,k_dc);
-		//~ KRATOS_WATCH(k_dc)
-		noalias(rLeftHandSideMatrix) += k_dc*prod(trans(msDN_DX_vel), msDN_DX_vel);
-		//~ KRATOS_WATCH(k_dc*prod(trans(msDN_DX_vel), msDN_DX_vel))
+		this->SetValue(RESIDUAL_NORM,m_residual);
+		this->SetValue(MIU,m_grad_norm);
+		this->SetValue(PR_ART_VISC,k_dc);
+		noalias(rLeftHandSideMatrix) += k_dc * prod(trans(msDN_DX_height), msDN_DX_height);
 
 		// RHS
 		// TODO: SOURCE TERM
@@ -287,22 +307,33 @@ namespace Kratos
 		unsigned int number_of_nodes = GetGeometry().PointsNumber();
 		if(rElementalDofList.size() != number_of_nodes*3)
 			rElementalDofList.resize(number_of_nodes*3);
-			
+		
 		int counter=0;
-
+		
 		for (unsigned int i=0;i<number_of_nodes;i++){
 			rElementalDofList[counter++] = GetGeometry()[i].pGetDof(VELOCITY_X);
 			rElementalDofList[counter++] = GetGeometry()[i].pGetDof(VELOCITY_Y);
 			rElementalDofList[counter++] = GetGeometry()[i].pGetDof(HEIGHT);
 		}
-
 	}
 
 	void NonConservativeDC::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
 	{
-		if (rVariable == VISCOSITY){
+		if (rVariable == VEL_ART_VISC){
 			for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) 
-				rValues[PointNumber] = double(this->GetValue(VISCOSITY));
+				rValues[PointNumber] = double(this->GetValue(VEL_ART_VISC));
+		}
+		if (rVariable == PR_ART_VISC){
+			for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) 
+				rValues[PointNumber] = double(this->GetValue(PR_ART_VISC));
+		}
+		if (rVariable == RESIDUAL_NORM){
+			for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) 
+				rValues[PointNumber] = double(this->GetValue(RESIDUAL_NORM));
+		}
+		if (rVariable == MIU){
+			for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) 
+				rValues[PointNumber] = double(this->GetValue(MIU));
 		}
     }
 	//~ {
