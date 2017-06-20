@@ -317,17 +317,6 @@ namespace Kratos {
         const double wall_tg_of_friction_angle = wall->GetTgOfFrictionAngle();
         double equiv_tg_of_fri_ang             = 0.5 * (my_tg_of_friction_angle + wall_tg_of_friction_angle);
         
-//         if (fabs(equiv_tg_of_fri_ang) > 1.0e-12) {
-//             
-//             double critical_force = 0.16666666666666667 * pow((KRATOS_M_PI * element->GetParticleMaxStress()), 3) * pow((equiv_radius / equiv_young), 2);
-// //           double critical_force = 0.6666666666666667 * KRATOS_M_PI * equiv_radius * indentation * element->GetParticleMaxStress();
-//             
-//             if (normal_contact_force < critical_force) {
-//                 double critical_force_inv = 1.0  / critical_force;
-//                 equiv_tg_of_fri_ang *= pow((normal_contact_force * critical_force_inv), element->GetParticleGamma());
-//             }
-//         }
-
         MaximumAdmisibleShearForce = normal_contact_force * equiv_tg_of_fri_ang;
         
         const double tangential_contact_force_0 = LocalElasticContactForce[0] + ViscoDampingLocalContactForce[0];
