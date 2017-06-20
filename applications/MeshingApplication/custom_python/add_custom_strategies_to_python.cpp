@@ -56,7 +56,9 @@ void  AddCustomStrategiesToPython()
     // Custom scheme types
 
     // Custom convergence criterion types
-    typedef ErrorMeshCriteria< SparseSpaceType,  LocalSpaceType > ErrorMeshCriteriaType;
+    #ifdef INCLUDE_MMG
+        typedef ErrorMeshCriteria< SparseSpaceType,  LocalSpaceType > ErrorMeshCriteriaType;
+    #endif
     
     // Custom builder and solvers types
     
