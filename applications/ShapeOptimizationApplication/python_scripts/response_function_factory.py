@@ -87,6 +87,10 @@ class ResponseFunctionCreator:
             responseFunctionSolverIsNotImplemented = False
             self.inputModelPart.AddNodalSolutionStepVariable(MASS_SHAPE_GRADIENT)
             self.listOfResponseFunctions["mass"] = MassResponseFunction( self.inputModelPart, solverSettings )   
+        elif responseId == "eigenfrequency":
+            responseFunctionSolverIsNotImplemented = False
+            self.inputModelPart.AddNodalSolutionStepVariable(EIGENFREQUENCY_SHAPE_GRADIENT)
+            self.listOfResponseFunctions["eigenfrequency"] = EigenfrequencyResponseFunction( self.inputModelPart, solverSettings ) 
         else:
             raise NameError("The following response function is not specified: " + responseId)
 

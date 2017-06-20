@@ -33,6 +33,7 @@
 #include "custom_utilities/response_functions/mass_response_function.h"
 #include "custom_utilities/input_output/universal_file_io.h"
 #include "custom_utilities/input_output/vtk_file_io.h"
+#include "custom_utilities/response_functions/eigenfrequency_response_function.h"
 
 
 // ==============================================================================
