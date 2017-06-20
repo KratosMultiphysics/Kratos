@@ -184,6 +184,9 @@ namespace Kratos
         noalias(rLeftHandSideMatrix) += Variables.density*Variables.specific_heat*Variables.theta*aux2;
         noalias(rRightHandSideVector) -= Variables.density*Variables.specific_heat*(1.0-Variables.theta)*prod(aux2,Variables.phi_old);
 
+        // volume source terms (affecting the RHS only)
+        noalias(rRightHandSideVector) += prod(aux1, Variables.volumetric_source);
+
         //take out the dirichlet part to finish computing the residual
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, Variables.phi);
 
@@ -209,7 +212,6 @@ namespace Kratos
         rVariables.conductivity = 0.0;
         rVariables.specific_heat = 0.0;
         rVariables.density = 0.0;
-        rVariables.volumetric_source = 0.0;
         rVariables.beta = 0.0;
         rVariables.div_v = 0.0;
 
@@ -281,6 +283,7 @@ namespace Kratos
 
 			rVariables.v[i]=ZeroVector(3);
 			rVariables.vold[i]=ZeroVector(3);
+            rVariables.volumetric_source[i] = 0.0;
             if (IsDefinedVelocityVariable)
             {
 				  const Variable<array_1d<double, 3 > >& rVelocityVar = my_settings->GetVelocityVariable();
@@ -323,7 +326,7 @@ namespace Kratos
             if (IsDefinedVolumeSourceVariable)
             {
                 const Variable<double>& rVolumeSourceVar = my_settings->GetDiffusionVariable();
-                rVariables.volumetric_source += GetGeometry()[i].FastGetSolutionStepValue(rVolumeSourceVar);
+                rVariables.volumetric_source[i] += GetGeometry()[i].FastGetSolutionStepValue(rVolumeSourceVar);
             }
         }
 
@@ -333,7 +336,6 @@ namespace Kratos
         rVariables.conductivity *= rVariables.lumping_factor;
         rVariables.density *= rVariables.lumping_factor;
         rVariables.specific_heat *= rVariables.lumping_factor;
-        rVariables.volumetric_source *= rVariables.volumetric_source;
 
     }
 
