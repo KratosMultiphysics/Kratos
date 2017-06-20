@@ -128,7 +128,7 @@ def AssambleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            # SMALL
+            ## SMALL
             TTestLineExactIntegration1,
             TTestLineExactIntegration2,
             TTestLineExactIntegration3,
@@ -140,7 +140,7 @@ def AssambleTestSuites():
             TSimplePatchTestTwoDMeshTying,
             TSimpleSlopePatchTestTwoDMeshTying,
             TSimplestPatchTestThreeDMeshTying,
-            ##TSimplePatchTestThreeDMeshTying, # FIXME: Some error in the mesh tying condition
+            TSimplePatchTestThreeDMeshTying,
             TALMHyperSimplePatchTestContact,
             TALMHyperSimpleSlopePatchTestContact,
             TALMTwoDPatchComplexGeomTestContact,
@@ -162,8 +162,8 @@ def AssambleTestSuites():
             TALMTaylorPatchDynamicTestContact, # NOTE: Check that in debug dynamic gives an error
             TALMHertzSimpleTestContact,
             TALMHertzSimpleSphereTestContact,
-            ##TALMHertzSphereTestContact,  # FIXME: This test requieres the axisimetric to work
-            #TALMHertzCompleteTestContact,
+            #TALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work
+            TALMHertzCompleteTestContact,
             # VALIDATION
             ##TALMIroningTestContact,
             ##TALMIroningDieTestContact,

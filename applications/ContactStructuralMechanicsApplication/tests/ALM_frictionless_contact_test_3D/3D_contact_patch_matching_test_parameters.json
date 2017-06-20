@@ -18,7 +18,7 @@
             "input_filename" : "ALM_frictionless_contact_test_3D/3D_contact_patch_matching_test"
         },
         "mortar_type"                        : "ALMContactFrictionless",
-        "block_builder"                      : true,
+        "block_builder"                      : false,
         "line_search"                        : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"	         : true,
@@ -27,8 +27,6 @@
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "split_factor"			             : 0.0,
-        "max_number_splits"	                 : 0,
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
             "solver_type" : "SkylineLUFactorizationSolver"
@@ -118,6 +116,18 @@
             "constrained"     : [true,false,false],
             "value"           : [0.0,0.0,0.0]
         }
+    },{
+        "python_module"   : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "AssignVectorVariableProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "SurfaceLoad3D_SurfaceLoad",
+            "variable_name"   : "DISPLACEMENT",
+            "constrained"     : [true,false,true],
+            "value"           : [0.0,0.0,0.0]
+        }
     }],
     "loads_process_list"       : [{
         "python_module"   : "assign_vector_by_direction_to_condition_process",
@@ -146,6 +156,9 @@
             "contact_type"                : "Frictionless",
             "search_factor"               : 2.0,
             "max_number_results"          : 1000,
+            "manual_ALM"                  : false,
+            "penalty"                     : 1.0e10,
+            "scale_factor"                : 1.0e10,
             "type_search"                 : "InRadius",
             "integration_order"           : 2
         }

@@ -10,7 +10,7 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "contact_structural_mechanics_static_solver",
-        "echo_level"                         : 1,
+        "echo_level"                         : 0,
         "solution_type"                      : "Static",
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
@@ -29,9 +29,9 @@
         "residual_absolute_tolerance"        : 1e-9,
         "split_factor"						 : 0.0,
         "max_number_splits"					 : 0,
-        "max_iteration"                      : 1,
+        "max_iteration"                      : 10,
         "linear_solver_settings"             : {
-            "solver_type" : "SkylineLUFactorizationSolver"
+            "solver_type" : "SuperLUSolver"
         },
         "problem_domain_sub_model_part_list" : ["Parts_Part_foundation","Parts_Part_punch"],
         "processes_sub_model_part_list"      : ["Tying_Part",
@@ -118,6 +118,18 @@
             "constrained"     : [true,false,false],
             "value"           : [0.0,0.0,0.0]
         }
+    },{
+        "python_module"   : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "AssignVectorVariableProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "SurfaceLoad3D_SurfaceLoad",
+            "variable_name"   : "DISPLACEMENT",
+            "constrained"     : [true,false,true],
+            "value"           : [0.0,0.0,0.0]
+        }
     }],
     "loads_process_list"       : [{
         "python_module"   : "assign_vector_by_direction_to_condition_process",
@@ -150,7 +162,7 @@
         }
     }
     ],
-    "output_configuration"     : {
+    "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -170,7 +182,7 @@
         },
         "point_data_configuration"  : []
     },
-    "_json_check_process" : [
+    "json_check_process" : [
     {
         "python_module"   : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",
