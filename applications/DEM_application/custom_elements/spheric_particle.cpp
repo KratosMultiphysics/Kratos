@@ -620,14 +620,8 @@ void SphericParticle::ComputeRollingFriction(array_1d<double, 3>& rolling_resist
     const array_1d<double, 3>& ang_velocity           = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
     const array_1d<double, 3> initial_rotation_moment = coeff_acc * ang_velocity; // the moment needed to stop the spin in one time step
 
-<<<<<<< HEAD
-    double MaxRotaMoment[3]      = {initial_rotation_moment[0] + mContactMoment[0], initial_rotation_moment[1] + mContactMoment[1], initial_rotation_moment[2] + mContactMoment[2]};
-    double MR_max = DEM_MODULUS_3(MaxRotaMoment);
-=======
-    const double MaxRotaMoment[3] = {initial_rotation_moment[0] + mContactMoment[0], initial_rotation_moment[1] + mContactMoment[1], initial_rotation_moment[2] + mContactMoment[2]};
-    double CoordSystemMoment[3]   = {0.0};
->>>>>>> master
-
+    const double MaxRotaMoment[3]      = {initial_rotation_moment[0] + mContactMoment[0], initial_rotation_moment[1] + mContactMoment[1], initial_rotation_moment[2] + mContactMoment[2]};
+    double MR_max                = DEM_MODULUS_3(MaxRotaMoment);
 
     if (MR_max > RollingResistance) {
         
@@ -1711,16 +1705,9 @@ double SphericParticle::GetParticleCohesion()                                   
 double SphericParticle::GetParticleKNormal()                                             { return GetFastProperties()->GetParticleKNormal();           }
 double SphericParticle::GetParticleKTangential()                                         { return GetFastProperties()->GetParticleKTangential();       }
 
-<<<<<<< HEAD
 // Dependent Friction
 double SphericParticle::GetParticleContactRadius()                                       { return GetFastProperties()->GetParticleContactRadius();     }
 double SphericParticle::GetParticleMaxStress()                                           { return GetFastProperties()->GetParticleMaxStress();         }
-=======
-// Conical damage
-double SphericParticle::GetParticleContactRadius()                                               { return GetFastProperties()->GetParticleContactRadius();     }
-double SphericParticle::GetParticleMaxStress()                                           { return GetFastProperties()->GetParticleMaxStress();         }
-double SphericParticle::GetParticleAlpha()                                               { return GetFastProperties()->GetParticleAlpha();             }
->>>>>>> master
 double SphericParticle::GetParticleGamma()                                               { return GetFastProperties()->GetParticleGamma();             }
 
 array_1d<double, 3>& SphericParticle::GetForce()                                                 { return GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);}
@@ -1740,13 +1727,9 @@ void   SphericParticle::SetParticleCohesionFromProperties(double* particle_cohes
 void   SphericParticle::SetParticleKNormalFromProperties(double* particle_k_normal)      { GetFastProperties()->SetParticleKNormalFromProperties( particle_k_normal);       }
 void   SphericParticle::SetParticleKTangentialFromProperties(double* particle_k_tangential) { GetFastProperties()->SetParticleKTangentialFromProperties( particle_k_tangential); }
 
-<<<<<<< HEAD
-// Dependent Friction
-=======
 DEMDiscontinuumConstitutiveLaw::Pointer SphericParticle::GetConstitutiveLawPointer(){return mDiscontinuumConstitutiveLaw;}
 
-// Conical damage
->>>>>>> master
+// Dependent Friction
 void   SphericParticle::SetParticleContactRadiusFromProperties(double* particle_contact_radius) { GetFastProperties()->SetParticleContactRadiusFromProperties( particle_contact_radius); }
 void   SphericParticle::SetParticleMaxStressFromProperties(double* particle_max_stress)  { GetFastProperties()->SetParticleMaxStressFromProperties( particle_max_stress);   }
 void   SphericParticle::SetParticleGammaFromProperties(double* particle_gamma)           { GetFastProperties()->SetParticleGammaFromProperties( particle_gamma);            }
