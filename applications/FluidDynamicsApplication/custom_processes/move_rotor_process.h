@@ -39,7 +39,7 @@ public:
                     const double coordinates_of_stator_center_y,
                     const double initial_coordinates_of_rotor_center_x,
                     const double initial_coordinates_of_rotor_center_y,
-                    const double max_radius_of_rotor): Process(), mrModelPart(rModelPart)
+                    const unsigned int number_of_rotor_lobules): Process(), mrModelPart(rModelPart)
     {
         mW1[0] = 0.0;
         mW1[1] = 0.0;
@@ -54,7 +54,7 @@ public:
         mEccentricity = sqrt(centers_distance[0]*centers_distance[0] + centers_distance[1]*centers_distance[1]);
         mW2[0] = 0.0;
         mW2[1] = 0.0;
-        mW2[2] = -mW1[2] * mEccentricity / max_radius_of_rotor;
+        mW2[2] = -mW1[2] / number_of_rotor_lobules;
     }
 
     MoveRotorProcess(ModelPart& rModelPart,
@@ -68,26 +68,18 @@ public:
                 "coordinates_of_stator_center_y":0.0,
                 "initial_coordinates_of_rotor_center_x":0.0,
                 "initial_coordinates_of_rotor_center_y":0.0,
-                "max_radius_of_rotor":0.0
+                "number_of_rotor_lobules": 0
             }  )" );
 
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-
-        mW1[0] = 0.0;
-        mW1[1] = 0.0;
-        mW1[2] = rParameters["angular_velocity_with_respect_to_stator_center"].GetDouble();
-        mCoordinatesOfStatorCenter[0] = rParameters["coordinates_of_stator_center_x"].GetDouble();
-        mCoordinatesOfStatorCenter[1] = rParameters["coordinates_of_stator_center_y"].GetDouble();
-        mCoordinatesOfStatorCenter[2] = 0.0;
-        mInitialCoordinatesOfRotorCenter[0] = rParameters["initial_coordinates_of_rotor_center_x"].GetDouble();
-        mInitialCoordinatesOfRotorCenter[1] = rParameters["initial_coordinates_of_rotor_center_y"].GetDouble();
-        mInitialCoordinatesOfRotorCenter[2] = 0.0;
-        const array_1d<double,3> centers_distance = mInitialCoordinatesOfRotorCenter - mCoordinatesOfStatorCenter;
-        mEccentricity = sqrt(centers_distance[0]*centers_distance[0] + centers_distance[1]*centers_distance[1]);
-        mW2[0] = 0.0;
-        mW2[1] = 0.0;
-        mW2[2] = -mW1[2] * mEccentricity / rParameters["max_radius_of_rotor"].GetDouble();
+        MoveRotorProcess(rModelPart,
+                        rParameters["angular_velocity_with_respect_to_stator_center"].GetDouble(),
+                        rParameters["coordinates_of_stator_center_x"].GetDouble(),
+                        rParameters["coordinates_of_stator_center_y"].GetDouble(),
+                        rParameters["initial_coordinates_of_rotor_center_x"].GetDouble(),
+                        rParameters["initial_coordinates_of_rotor_center_y"].GetDouble(),
+                        rParameters["number_of_rotor_lobules"].GetInt());
     }
 
     /// Destructor.

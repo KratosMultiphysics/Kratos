@@ -5,7 +5,6 @@ import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 KratosMultiphysics.CheckForPreviousImport()
 
-from multiprocessing import Pool
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -24,6 +23,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
+            "echo_level"            : 0,
             "model_part_name"       : "Fluid Domain",
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 1.0,
@@ -36,7 +36,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        self.echo_level        = 1
+        self.echo_level        = self.settings["echo_level"].GetInt()
         self.domain_size       = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         self.meshing_frequency = self.settings["meshing_frequency"].GetDouble()
         
@@ -73,6 +73,9 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
 
         self.fileTotalVolume = None
+        #self.probe1 = None
+        #self.probe2 = None
+        #self.probe3 = None
 
         # check restart
         self.restart = False
@@ -96,6 +99,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
             self.InitializeDomains()
 
             for domain in self.meshing_domains:
+                domain.SetEchoLevel(self.echo_level)
                 domain.Initialize()
                 if(domain.Active()):
                     domain.ComputeInitialAverageMeshParameters()      
@@ -168,8 +172,33 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
 
         if currentStep >= 2 and self.fileTotalVolume is None:
             self.fileTotalVolume = open("totalVolumeBeforeMeshing.txt",'w')
+            #self.probe1 = open("probe1.txt",'w')
+            #self.probe2 = open("probe2.txt",'w')
+            #self.probe3 = open("probe3.txt",'w')
 
         if(currentStep > 1 and self.fileTotalVolume is not None):
+            #maxYprobe1=0.1
+            #maxYprobe2=0.1
+            #maxYprobe3=0.1
+            #for node in self.main_model_part.Nodes:
+                #if(node.IsNot(KratosMultiphysics.ISOLATED)):
+                    #if(node.X>5.9 and node.X<6.1):
+                        #if(node.Y>maxYprobe1):
+                            #maxYprobe1=node.Y
+                    #if(node.X>8.9 and node.X<9.1):
+                        #if(node.Y>maxYprobe2):
+                            #maxYprobe2=node.Y
+                    #if(node.X>11.9 and node.X<12.1):
+                        #if(node.Y>maxYprobe3):
+                            #maxYprobe3=node.Y
+
+            #outstring = str(currentTime) + " " +  str(maxYprobe1) + "\n"
+            #self.probe1.write(outstring)
+            #outstring = str(currentTime) + " " +  str(maxYprobe2) + "\n"
+            #self.probe2.write(outstring)
+            #outstring = str(currentTime) + " " +  str(maxYprobe3) + "\n"
+            #self.probe3.write(outstring)
+
             for domain in self.meshing_domains:
                 if(domain.Active()):
                     domain.ComputeAverageMeshParameters()  
@@ -213,11 +242,17 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
                     self.fileTotalVolume.write(outstring)
         if self.fileTotalVolume is not None:
             self.fileTotalVolume.flush()
+            #self.probe1.flush()
+            #self.probe2.flush()
+            #self.probe3.flush()
 
 
     def ExecuteFinalize(self):
         if self.fileTotalVolume is not None:
             self.fileTotalVolume.close()
+            #self.probe1.close()
+            #self.probe2.close()
+            #self.probe3.close()
 
 
       #if(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] == 1):
@@ -330,18 +365,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         for domain in self.meshing_domains:
             domain.ExecuteMeshing()
         
-        
-        #parallel (not working pickling instances not enabled)
-        #domains_number = len(self.meshing_domains)
-        #if(domains_number>8):
-        #    domains_number = 8
-        
-        #pool = Pool(domains_number)
-        #pool.map(self.ExecuteMeshing,self.meshing_domains)
-        #pool.close()
-        #pool.joint()        
-        #
-        
+                
         self.model_meshing.ExecuteFinalize()
         
         self.counter += 1 

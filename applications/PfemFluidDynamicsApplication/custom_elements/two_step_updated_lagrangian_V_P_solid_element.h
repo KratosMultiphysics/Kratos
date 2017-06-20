@@ -328,9 +328,14 @@ namespace Kratos
 						 const double Weight,
 						 double& MeanValueMass,
 						 const double TimeStep){};
-	
+      
+      void ComputeBulkReductionCoefficient(MatrixType MassMatrix,
+					   MatrixType StiffnessMatrix,
+					   double& meanValueStiff,
+					   double& bulkCoefficient,
+					   double timeStep){};
+      
       void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix,
-					       const ShapeFunctionsType& rN,
 					       const double Weight);
 
 

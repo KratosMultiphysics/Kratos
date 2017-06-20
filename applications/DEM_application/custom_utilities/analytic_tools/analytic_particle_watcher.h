@@ -125,6 +125,18 @@ class ParticleHistoryDatabase // It holds the historical information gathered fo
             }
         }
 
+        void GetMaxVelocities(double& db_normal_impact_velocity, double& db_tangential_impact_velocity){
+            if(mRelVelNormal.size()){
+                db_normal_impact_velocity = std::abs(*(std::max_element(mRelVelNormal.begin(), mRelVelNormal.end())));
+                db_tangential_impact_velocity = std::abs(*(std::max_element(mRelVelTangential.begin(), mRelVelTangential.end())));
+            }
+            else {
+                db_normal_impact_velocity = 0.0;
+                db_tangential_impact_velocity = 0.0;
+            }
+
+        }
+
     private:
 
         int mNImpacts;
@@ -155,6 +167,8 @@ void GetTimeStepsData(boost::python::list ids,
                       boost::python::list tangential_relative_vel);
 
 virtual void MakeMeasurements(ModelPart &analytic_model_part);
+
+virtual void SetNodalMaxImpactVelocities(ModelPart &analytic_model_part);
 
 virtual ParticleHistoryDatabase& GetParticleDataBase(int id);
 

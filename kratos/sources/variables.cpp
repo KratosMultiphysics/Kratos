@@ -115,6 +115,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, START_TIME )
   KRATOS_CREATE_VARIABLE( double, END_TIME )
   KRATOS_CREATE_VARIABLE( double, DELTA_TIME )
+  KRATOS_CREATE_VARIABLE( double, PREVIOUS_DELTA_TIME )
   KRATOS_CREATE_VARIABLE( double, INTERVAL_END_TIME )
 
   KRATOS_CREATE_VARIABLE( double, RESIDUAL_NORM )
@@ -586,6 +587,7 @@ namespace Kratos
       KratosApplication::RegisterCFDVariables(); //TODO: move to application
       KratosApplication::RegisterALEVariables(); //TODO: move to application
       KratosApplication::RegisterDEMVariables(); //TODO: move to application
+      KratosApplication::RegisterMATVariables(); //TODO: move to application
       KratosApplication::RegisterLegacyStructuralAppVariables(); //TODO: move to application
 
       // Variables that should be moved to applications (but have too many dependencies)
@@ -615,6 +617,7 @@ namespace Kratos
       KRATOS_REGISTER_VARIABLE( START_TIME )
       KRATOS_REGISTER_VARIABLE( END_TIME )
       KRATOS_REGISTER_VARIABLE( DELTA_TIME )
+      KRATOS_REGISTER_VARIABLE( PREVIOUS_DELTA_TIME )
       KRATOS_REGISTER_VARIABLE( INTERVAL_END_TIME )
 
       KRATOS_REGISTER_VARIABLE( RESIDUAL_NORM )
