@@ -293,6 +293,7 @@ public:
 	int number_of_nodes = mr_model_part.NumberOfNodes();
 	ModelPart::NodeConstantIterator nodes_begin = mr_model_part.NodesBegin();
 
+	/*
 	//generating the dofs for the initial node
 	AddNodalDofs(nodes_begin);
 	ModelPart::NodeType::DofsContainerType& reference_dofs = nodes_begin->GetDofs();

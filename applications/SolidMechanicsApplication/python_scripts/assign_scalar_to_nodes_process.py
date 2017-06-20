@@ -121,38 +121,9 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         params.AddValue("variable_name", self.settings["variable_name"])
         
         if( self.interval_string != "initial" and self.constrained == True ):
-            fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
-            self.FixDofsProcesses.append(fix_dof_process)
-            free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
-            self.FreeDofsProcesses.append(free_dof_process)
-
-            self.fix_derivated_variable = False
-            for dynamic_variable in self.AngularDynamicVariables:
-                if dynamic_variable in self.variable_name:
-                    self.derivated_variable_name = "ROTATION" + self.variable_name[-2:]
-                    self.fix_derivated_variable = True
-
-            if( self.fix_derivated_variable == False ):
-                for dynamic_variable in self.LinearDynamicVariables:
-                    if dynamic_variable in self.variable_name:
-                        self.derivated_variable_name = "DISPLACEMENT" + self.variable_name[-2:]
-                        self.fix_derivated_variable = True
-                     
-            if( self.fix_derivated_variable ):
-                params["variable_name"].SetString(self.derivated_variable_name)
-                fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
-                self.FixDofsProcesses.append(fix_dof_process)
-                free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
-                self.FreeDofsProcesses.append(free_dof_process)
-                params["variable_name"].SetString(self.settings["variable_name"].GetString())
+            self.SetFixAndFreeProcesses(params)                                            
                 
-                
-        if( self.value_is_numeric ):
-            params.AddEmptyValue("value").SetDouble(self.value)
-            self.AssignValueProcess = KratosSolid.AssignScalarToNodesProcess(self.model_part, params)
-        else:
-            self.AssignValueProcess = KratosSolid.AssignScalarFieldToNodesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
-        
+        self.CreateAssignmentProcess(params)
                    
         if ( self.IsInsideInterval() and self.interval_string == "initial" ):
             self.AssignValueProcess.Execute()
@@ -175,9 +146,48 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
 
             for process in self.FreeDofsProcesses:
                 process.Execute()
-            
-            
 
+
+    #
+    def SetFixAndFreeProcesses(self,params):
+
+        params["variable_name"].SetString(self.settings["variable_name"])
+        fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
+        self.FixDofsProcesses.append(fix_dof_process)
+        free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
+        self.FreeDofsProcesses.append(free_dof_process)
+        
+        self.fix_derivated_variable = False
+        for dynamic_variable in self.AngularDynamicVariables:
+            if dynamic_variable in self.variable_name:
+                self.derivated_variable_name = "ROTATION" + self.variable_name[-2:]
+                self.fix_derivated_variable = True
+
+        if( self.fix_derivated_variable == False ):
+            for dynamic_variable in self.LinearDynamicVariables:
+                if dynamic_variable in self.variable_name:
+                    self.derivated_variable_name = "DISPLACEMENT" + self.variable_name[-2:]
+                    self.fix_derivated_variable = True
+                    
+        if( self.fix_derivated_variable ):
+            params["variable_name"].SetString(self.derivated_variable_name)
+            fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
+            self.FixDofsProcesses.append(fix_dof_process)
+            free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
+            self.FreeDofsProcesses.append(free_dof_process)
+            params["variable_name"].SetString(self.settings["variable_name"].GetString())
+   
+
+    #
+    def CreateAssignmentProcess(self, params):
+        
+        if( self.value_is_numeric ):
+            params.AddEmptyValue("value").SetDouble(self.value)
+            self.AssignValueProcess = KratosSolid.AssignScalarToNodesProcess(self.model_part, params)
+        else:
+            self.AssignValueProcess = KratosSolid.AssignScalarFieldToNodesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
+
+            
     #
     def IsInsideInterval(self):
         
