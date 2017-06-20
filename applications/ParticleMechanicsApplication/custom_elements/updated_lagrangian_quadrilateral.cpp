@@ -1651,9 +1651,9 @@ void UpdatedLagrangianQuadrilateral::IterativeExtrapolation( ProcessInfo& rCurre
     this->SetValue(MP_CAUCHY_STRESS_VECTOR, rVariables.StressVector);
     this->SetValue(MP_ALMANSI_STRAIN_VECTOR, rVariables.StrainVector);
     //std::cout<<" before get equivalent plastic strain "<<std::endl;
-    //double EquivalentPlasticStrain = mConstitutiveLawVector->GetValue(PLASTIC_STRAIN, EquivalentPlasticStrain );
+    double EquivalentPlasticStrain = mConstitutiveLawVector->GetValue(PLASTIC_STRAIN, EquivalentPlasticStrain );
     ////std::cout<<" EquivalentPlasticStrain in the element "<<EquivalentPlasticStrain<<std::endl;
-    //this->SetValue(MP_EQUIVALENT_PLASTIC_STRAIN, EquivalentPlasticStrain);
+    this->SetValue(MP_EQUIVALENT_PLASTIC_STRAIN, EquivalentPlasticStrain);
     
     
     
@@ -1691,7 +1691,7 @@ void UpdatedLagrangianQuadrilateral::IterativeExtrapolation( ProcessInfo& rCurre
         array_1d<double,3> delta_xg = ZeroVector(3);
         array_1d<double,3> MP_Acceleration = ZeroVector(3);
         array_1d<double,3> MP_Velocity = ZeroVector(3);
-        //double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
+        double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
         
         
         rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, xg);
@@ -1730,7 +1730,7 @@ void UpdatedLagrangianQuadrilateral::IterativeExtrapolation( ProcessInfo& rCurre
                 
                 delta_xg[j] += rVariables.N[i] * rVariables.CurrentDisp(i,j);
                 MP_Acceleration[j] += rVariables.N[i] * NodalAcceleration[j];
-                MP_Velocity[j] += rVariables.N[i] * NodalVelocity[j];           
+                //MP_Velocity[j] += rVariables.N[i] * NodalVelocity[j];           
                 
                 //MP_Acceleration[j] +=NodalInertia[j]/(rVariables.N[i] * MP_Mass * MP_number);//
                 //MP_Velocity[j] += NodalMomentum[j]/(rVariables.N[i] * MP_Mass * MP_number);
@@ -1754,7 +1754,7 @@ void UpdatedLagrangianQuadrilateral::IterativeExtrapolation( ProcessInfo& rCurre
         
         //**************************************************************************************************************************
         //Another way to update the MP velocity (see paper Guilkey and Weiss, 2003) !!!USING THIS EXPRESSION I CONSERVE MORE ENERGY   
-        //MP_Velocity = MP_PreviousVelocity + 0.5 * DeltaTime * (MP_Acceleration + MP_PreviousAcceleration);
+        MP_Velocity = MP_PreviousVelocity + 0.5 * DeltaTime * (MP_Acceleration + MP_PreviousAcceleration);
         //MP_Velocity += MP_PreviousVelocity;
         //Update the MP Velocity
         

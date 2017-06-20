@@ -1499,9 +1499,9 @@ void UpdatedLagrangian::IterativeExtrapolation( ProcessInfo& rCurrentProcessInfo
     //this->SetValue(MP_CONSTITUTIVE_PRESSURE, MP_Pressure);
     //this->SetValue(MP_PRESSURE, MP_Pressure);
     
-    //double EquivalentPlasticStrain = mConstitutiveLawVector->GetValue(PLASTIC_STRAIN, EquivalentPlasticStrain );
+    double EquivalentPlasticStrain = mConstitutiveLawVector->GetValue(PLASTIC_STRAIN, EquivalentPlasticStrain );
     //std::cout<<" EquivalentPlasticStrain in the element "<<EquivalentPlasticStrain<<std::endl;
-    //this->SetValue(MP_EQUIVALENT_PLASTIC_STRAIN, EquivalentPlasticStrain);
+    this->SetValue(MP_EQUIVALENT_PLASTIC_STRAIN, EquivalentPlasticStrain);
     
     //double Pressure = mConstitutiveLawVector->GetValue(PRESSURE, Pressure );
     //this->SetValue(MP_PRESSURE, Pressure);
@@ -1534,7 +1534,7 @@ void UpdatedLagrangian::IterativeExtrapolation( ProcessInfo& rCurrentProcessInfo
         array_1d<double,3> delta_xg = ZeroVector(3);
         array_1d<double,3> MP_Acceleration = ZeroVector(3);
         array_1d<double,3> MP_Velocity = ZeroVector(3);
-        //double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
+        double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
         
         
         rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, xg);
@@ -1573,7 +1573,7 @@ void UpdatedLagrangian::IterativeExtrapolation( ProcessInfo& rCurrentProcessInfo
                 
                 delta_xg[j] += rVariables.N[i] * rVariables.CurrentDisp(i,j);
                 MP_Acceleration[j] += rVariables.N[i] * NodalAcceleration[j];
-                MP_Velocity[j] += rVariables.N[i] * NodalVelocity[j];
+                //MP_Velocity[j] += rVariables.N[i] * NodalVelocity[j];
                 
                 //MP_Acceleration[j] +=NodalInertia[j]/(rVariables.N[i] * MP_Mass * MP_number);//
                 //MP_Velocity[j] += NodalMomentum[j]/(rVariables.N[i] * MP_Mass * MP_number);
@@ -1590,7 +1590,7 @@ void UpdatedLagrangian::IterativeExtrapolation( ProcessInfo& rCurrentProcessInfo
         
         //**************************************************************************************************************************
         //Another way to update the MP velocity (see paper Guilkey and Weiss, 2003) 
-        //MP_Velocity = MP_PreviousVelocity + 0.5 * DeltaTime * (MP_Acceleration + MP_PreviousAcceleration);
+        MP_Velocity = MP_PreviousVelocity + 0.5 * DeltaTime * (MP_Acceleration + MP_PreviousAcceleration);
         //MP_Acceleration = 4/(DeltaTime * DeltaTime) * delta_xg - 4/DeltaTime * MP_PreviousVelocity;
         //MP_Velocity = 2/DeltaTime * delta_xg - MP_PreviousVelocity;
         

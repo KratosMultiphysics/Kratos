@@ -71,8 +71,13 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( double, MP_KINETIC_ENERGY )
     KRATOS_CREATE_VARIABLE( double, MP_STRAIN_ENERGY )
     KRATOS_CREATE_VARIABLE( double, MP_TOTAL_ENERGY )
-    //KRATOS_CREATE_VARIABLE( double, NODAL_MASS )
+    KRATOS_CREATE_VARIABLE( double, MP_PRESSURE )
+    KRATOS_CREATE_VARIABLE( double, MP_JACOBIAN )
     KRATOS_CREATE_VARIABLE( double, MP_EQUIVALENT_PLASTIC_STRAIN )
+    KRATOS_CREATE_VARIABLE( double, MP_CONSTITUTIVE_PRESSURE )
+    KRATOS_CREATE_VARIABLE( double, NODAL_MPRESSURE )
+    KRATOS_CREATE_VARIABLE( double, AUX_PRESSURE)
+    KRATOS_CREATE_VARIABLE( double, AUX_MP_PRESSURE)
     
     //constitutive law
     KRATOS_CREATE_VARIABLE( ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW_POINTER )
@@ -116,7 +121,7 @@ namespace Kratos
     KratosParticleMechanicsApplication::KratosParticleMechanicsApplication():
         mUpdatedLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
         mUpdatedLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
-        //mUpdatedLagrangianUP2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+        mUpdatedLagrangianUP2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
         //mUpdatedLagrangianUP3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
         mUpdatedLagrangian2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4) ) ) )
         //mUpdatedLagrangianUP2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) )
@@ -142,7 +147,7 @@ namespace Kratos
         //Registering elements and conditions here
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian2D3N", mUpdatedLagrangian2D3N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian3D4N", mUpdatedLagrangian3D4N )
-        //KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUP2D3N", mUpdatedLagrangianUP2D3N )
+        KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUP2D3N", mUpdatedLagrangianUP2D3N )
         //KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUP3D4N", mUpdatedLagrangianUP3D4N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian2D4N", mUpdatedLagrangian2D4N )
         //KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUP2D4N", mUpdatedLagrangianUP2D4N )
@@ -161,8 +166,14 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( MP_KINETIC_ENERGY )
         KRATOS_REGISTER_VARIABLE( MP_STRAIN_ENERGY )
         KRATOS_REGISTER_VARIABLE( MP_TOTAL_ENERGY )
-        
-        
+        KRATOS_REGISTER_VARIABLE( MP_PRESSURE )
+        KRATOS_REGISTER_VARIABLE( MP_JACOBIAN )
+        KRATOS_REGISTER_VARIABLE( MP_EQUIVALENT_PLASTIC_STRAIN )
+        KRATOS_REGISTER_VARIABLE( MP_CONSTITUTIVE_PRESSURE )
+        KRATOS_REGISTER_VARIABLE( NODAL_MPRESSURE )
+        KRATOS_REGISTER_VARIABLE( AUX_PRESSURE )
+        KRATOS_REGISTER_VARIABLE( AUX_MP_PRESSURE )
+
               
         //consitutive law
         
@@ -210,6 +221,12 @@ namespace Kratos
         Serializer::Register( "HyperElasticViscoplasticPlaneStrain2DLaw", mHyperElasticViscoplasticPlaneStrain2DLaw );
         Serializer::Register("HenckyMCPlastic3DLaw", mHenckyMCPlastic3DLaw);
         Serializer::Register("HenckyMCPlasticPlaneStrain2DLaw", mHenckyMCPlasticPlaneStrain2DLaw);
+        Serializer::Register("HenckyMCPlasticUP3DLaw", mHenckyMCPlasticUP3DLaw);
+		Serializer::Register("HenckyMCPlasticPlaneStrainUP2DLaw", mHenckyMCPlasticPlaneStrainUP2DLaw);
+		
+        //Hyperelastic Drucker-Prager laws
+		
+        //Hyperelastic Plastic Drucker-Prager specilization laws U-P
         
         //Register Flow Rules
         Serializer::Register("MCPlasticFlowRule", mMCPlasticFlowRule);

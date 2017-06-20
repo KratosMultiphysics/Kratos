@@ -44,6 +44,8 @@
 #include "custom_constitutive/hencky_mc_3D_law.hpp"
 #include "custom_constitutive/hencky_mc_plane_strain_2D_law.hpp"
 
+#include "custom_constitutive/hencky_mc_UP_3D_law.hpp"
+#include "custom_constitutive/hencky_mc_plane_strain_UP_2D_law.hpp"
 
 namespace Kratos
 {
@@ -94,7 +96,16 @@ void  AddCustomConstitutiveLawsToPython()
       init<>() )
       .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
-   
+    class_<HenckyMCPlasticUP3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HenckyMCPlasticUP3DLaw",
+      init<>() )
+      .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    ;
+    class_<HenckyMCPlasticPlaneStrainUP2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HenckyMCPlasticPlaneStrainUP2DLaw",
+      init<>() )
+      .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    ;
 }
 
 }  // namespace Python.

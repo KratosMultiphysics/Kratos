@@ -37,7 +37,7 @@
 
 //element
 #include "custom_elements/updated_lagrangian.hpp"
-//#include "custom_elements/updated_lagrangian_UP.hpp"
+#include "custom_elements/updated_lagrangian_UP.hpp"
 #include "custom_elements/updated_lagrangian_quadrilateral.hpp"
 //#include "custom_elements/updated_lagrangian_UP_quadrilateral.hpp"
 //#include "custom_elements/total_lagrangian.hpp"
@@ -46,7 +46,11 @@
 #include "custom_constitutive/hyperelastic_viscoplastic_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_viscoplastic_2D_plain_strain_law.hpp"
 #include "custom_constitutive/hencky_mc_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hencky_mc_plane_strain_UP_2D_law.hpp"
+
+
 #include "custom_constitutive/hencky_mc_3D_law.hpp"
+#include "custom_constitutive/hencky_mc_UP_3D_law.hpp"
 //flow rules
 #include "custom_constitutive/flow_rules/viscoplastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/bingham_viscoplastic_flow_rule.hpp"
@@ -79,7 +83,13 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE(double, MP_KINETIC_ENERGY )
     KRATOS_DEFINE_VARIABLE(double, MP_STRAIN_ENERGY )
     KRATOS_DEFINE_VARIABLE(double, MP_TOTAL_ENERGY )
+    KRATOS_DEFINE_VARIABLE(double, MP_PRESSURE )
+    KRATOS_DEFINE_VARIABLE(double, MP_JACOBIAN )
     KRATOS_DEFINE_VARIABLE(double, MP_EQUIVALENT_PLASTIC_STRAIN )
+    KRATOS_DEFINE_VARIABLE(double, MP_CONSTITUTIVE_PRESSURE )
+    KRATOS_DEFINE_VARIABLE(double, NODAL_MPRESSURE )
+    KRATOS_DEFINE_VARIABLE(double, AUX_PRESSURE)
+    KRATOS_DEFINE_VARIABLE(double, AUX_MP_PRESSURE)
     
     
     //constitutive law
@@ -275,7 +285,7 @@ namespace Kratos
 		///@{ 
  		const UpdatedLagrangian mUpdatedLagrangian2D3N;
  		const UpdatedLagrangian mUpdatedLagrangian3D4N;
- 		//const UpdatedLagrangianUP mUpdatedLagrangianUP2D3N;
+ 		const UpdatedLagrangianUP mUpdatedLagrangianUP2D3N;
  		//const UpdatedLagrangianUP mUpdatedLagrangianUP3D4N;
  		const UpdatedLagrangianQuadrilateral mUpdatedLagrangian2D4N;
  		//const UpdatedLagrangianUPQuadrilateral mUpdatedLagrangianUP2D4N;
@@ -288,8 +298,10 @@ namespace Kratos
         const HyperElasticViscoplastic3DLaw                mHyperElasticViscoplastic3DLaw;
         const HyperElasticViscoplasticPlaneStrain2DLaw     mHyperElasticViscoplasticPlaneStrain2DLaw;
 
-	const HenckyMCPlastic3DLaw                mHenckyMCPlastic3DLaw;
-	const HenckyMCPlasticPlaneStrain2DLaw                mHenckyMCPlasticPlaneStrain2DLaw;
+		const HenckyMCPlastic3DLaw                mHenckyMCPlastic3DLaw;
+		const HenckyMCPlasticPlaneStrain2DLaw     mHenckyMCPlasticPlaneStrain2DLaw;
+		const HenckyMCPlasticUP3DLaw              mHenckyMCPlasticUP3DLaw;
+		const HenckyMCPlasticPlaneStrainUP2DLaw   mHenckyMCPlasticPlaneStrainUP2DLaw;
 		
         //Flow Rules
         //const NonLinearAssociativePlasticFlowRule     mNonLinearAssociativePlasticFlowRule;
