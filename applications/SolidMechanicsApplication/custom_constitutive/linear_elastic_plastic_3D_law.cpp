@@ -196,7 +196,7 @@ void  LinearElasticPlastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValu
         if (Options.Is(ConstitutiveLaw::COMPUTE_STRESS))
         {
             Vector& rStressVector = rValues.GetStressVector();
-            this->UpdateStressVector(rStressVector,ReturnMappingVariables,EffectiveStressVector)
+            this->UpdateStressVector(rStressVector,ReturnMappingVariables,EffectiveStressVector);
         }
     }
 }
@@ -305,7 +305,7 @@ void LinearElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
         if (Options.Is(ConstitutiveLaw::COMPUTE_STRESS))
         {
             Vector& rStressVector = rValues.GetStressVector();
-            this->UpdateStressVector(rStressVector,ReturnMappingVariables,EffectiveStressVector)
+            this->UpdateStressVector(rStressVector,ReturnMappingVariables,EffectiveStressVector);
         }
     }
 }

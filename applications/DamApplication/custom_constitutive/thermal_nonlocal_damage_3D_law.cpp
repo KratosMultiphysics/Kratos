@@ -285,7 +285,7 @@ void ThermalNonlocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rVa
         // COMPUTE_STRESS
         Vector& rStressVector = rValues.GetStressVector();
         
-        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
+        this->UpdateStressVector(rStressVector,ReturnMappingVariables,EffectiveStressVector);
     }
 }
 

@@ -242,7 +242,7 @@ void ThermalLocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValue
         // COMPUTE_STRESS
         Vector& rStressVector = rValues.GetStressVector();
         
-        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
+        this->UpdateStressVector(rStressVector,ReturnMappingVariables,EffectiveStressVector);
     }
 }
 
