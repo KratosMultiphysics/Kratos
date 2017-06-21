@@ -15,6 +15,7 @@ from SmallTests import ManufacturedSolutionTest as TManufacturedSolutionTest
 from SmallTests import NavierStokesWallConditionTest as TNavierStokesWallConditionTest
 
 from buoyancy_test import BuoyancyTest
+from volume_source_test import VolumeSourceTest
 
 ## NIGTHLY TESTS
 #~ from NightlyTests import MokBenchmarkTest as TMokBenchmarkTest
@@ -46,6 +47,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TNavierStokesWallConditionTest('test_execution'))
     smallSuite.addTest(BuoyancyTest('testEulerian'))
     smallSuite.addTest(BuoyancyTest('testThermalExpansionCoefficient'))
+    smallSuite.addTest(VolumeSourceTest('validationEulerian'))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
 
     # Create a test suite with the selected tests plus all small tests
