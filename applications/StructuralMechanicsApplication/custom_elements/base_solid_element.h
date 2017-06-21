@@ -50,6 +50,68 @@ namespace Kratos
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  BaseSolidElement
     : public Element
 {
+protected:
+    /**
+     * Internal variables used in the kinematic calculations
+     */
+    struct KinematicVariables
+    {
+        Vector  StrainVector;
+        Vector  StressVector;
+        Vector  N;
+        Matrix  B;
+        double  detF;
+        Matrix  F;
+        double  detJ;
+        double  detJ0;
+        Matrix  J0;
+        Matrix  InvJ0;
+        Matrix  DN_DX;
+        Matrix  D;
+        
+        /**
+         * The variables are initialized
+         * @param StrainSize: The size of the strain vector in Voigt notation
+         * @param Dimension: The size of the strain vector in Voigt notation
+         */
+        void Initialize( 
+            const unsigned int& StrainSize, 
+            const unsigned int& Dimension, 
+            const unsigned int& NumberOfNodes 
+            )
+        {
+            detF = 1.0;
+            detJ0 = 1.0;
+            detJ0 = 1.0;
+            
+            StrainVector.resize(StrainSize, false);
+            noalias(StrainVector) = ZeroVector(StrainSize);
+            
+            StressVector.resize(StrainSize, false);
+            noalias(StressVector) = ZeroVector(StrainSize);
+            
+            N.resize(NumberOfNodes, false);
+            noalias(N) = ZeroVector(NumberOfNodes);
+            
+            B.resize(StrainSize, Dimension * NumberOfNodes, false);
+            noalias(B)  = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
+            
+            F.resize(Dimension, Dimension,false);
+            noalias(F)  = IdentityMatrix(Dimension);
+            
+            DN_DX.resize(NumberOfNodes, Dimension,false);
+            noalias(DN_DX) = ZeroMatrix(NumberOfNodes, Dimension);
+            
+            D.resize(StrainSize, StrainSize,false);
+            noalias(D) = ZeroMatrix(StrainSize, StrainSize);
+            
+            J0.resize(Dimension,Dimension, false);
+            noalias(J0) = ZeroMatrix(Dimension, Dimension);
+            
+            InvJ0.resize(Dimension,Dimension, false);
+            noalias(InvJ0) = ZeroMatrix(Dimension, Dimension);
+        }
+    };
 public:
 
     ///@name Type Definitions
@@ -402,6 +464,24 @@ protected:
         const bool CalculateResidualVectorFlag
         );
     
+    /**
+     * This functions updates the kinematics variables
+     * @param rThisKinematicVariables: The kinematic variables to be calculated 
+     * @param rValues: The CL parameters
+     * @param PointNumber: The integration point considered
+     * @param Displacements: The displacements vector
+     */ 
+    virtual void UpdateKinematics(
+        KinematicVariables& rThisKinematicVariables, 
+        ConstitutiveLaw::Parameters& rValues,
+        const unsigned int PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const Vector Displacements
+        );
+    
+    /**
+     * This functions calculate the derivatives in the reference frame
+     */ 
     double CalculateDerivativesOnReference(
         Matrix& J0, 
         Matrix& InvJ0, 

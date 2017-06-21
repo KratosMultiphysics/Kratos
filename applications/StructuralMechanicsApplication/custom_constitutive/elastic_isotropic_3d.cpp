@@ -69,17 +69,27 @@ namespace Kratos
         const double& NU    = MaterialProperties[POISSON_RATIO];
 
         //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-        if(Options.IsNot( ConstitutiveLaw::COMPUTE_STRAIN )) //large strains
+        if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN )) //large strains
         {
             CalculateStrain(rValues, StrainVector);
         }
 
+        if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+        {
+            Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+            CalculateElasticMatrix( ConstitutiveMatrix, E, NU );
+        }
+        
         if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
         {
+            if (rValues.GetDeformationGradientF().size1() > 0)  
+            {
+                CalculateStrain(rValues, StrainVector);
+            }
+            
             if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
             {
                 Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-                CalculateElasticMatrix( ConstitutiveMatrix, E, NU );
                 noalias(StressVector) = prod(ConstitutiveMatrix, StrainVector);
             }
             else 
@@ -88,12 +98,6 @@ namespace Kratos
             }
         
         }
-        else if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
-        {
-            Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-            CalculateElasticMatrix( ConstitutiveMatrix, E, NU );
-        }
-        
     }
 
     // NOTE: Since we are in the hypothesis of small strains we can use the same function for everything

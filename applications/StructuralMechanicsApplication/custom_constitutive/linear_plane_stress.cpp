@@ -67,25 +67,28 @@ void  LinearPlaneStress::CalculateMaterialResponsePK2 (Parameters& rValues)
     const double& NU    = MaterialProperties[POISSON_RATIO];
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-    if(Options.IsNot( ConstitutiveLaw::COMPUTE_STRAIN )) //large strains
+    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN )) //large strains
     {
-        //1.-Compute total deformation gradient
-        const Matrix& F = rValues.GetDeformationGradientF();
-        
-        Matrix Etensor = prod(trans(F),F);
-        Etensor -= IdentityMatrix(2,2);
-        Etensor *= 0.5;
-        
-        noalias(StrainVector) = MathUtils<double>::StrainTensorToVector(Etensor);
+        CalculateStrain(rValues, StrainVector);
     }
 
+    if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+    {
+        Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+        CalculateElasticMatrix( ConstitutiveMatrix, E, NU );
+    }
+    
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
     {
+        if (rValues.GetDeformationGradientF().size1() > 0) 
+        {
+            CalculateStrain(rValues, StrainVector);
+        }
+        
         if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
         {
-          Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-          CalculateElasticMatrix( ConstitutiveMatrix, E, NU );
-          noalias(StressVector) = prod(ConstitutiveMatrix, StrainVector);
+            Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+            noalias(StressVector) = prod(ConstitutiveMatrix, StrainVector);
         }
         else 
         {
@@ -93,14 +96,6 @@ void  LinearPlaneStress::CalculateMaterialResponsePK2 (Parameters& rValues)
         }
       
     }
-    else if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
-    {
-
-        Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-        CalculateElasticMatrix( ConstitutiveMatrix, E, NU );
-
-    }
-    
 }
 
 //note that since we are in the hypothesis of small strains we can use the same function for everything
