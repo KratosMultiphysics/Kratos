@@ -197,7 +197,7 @@ void VelocityField::ImposeVelocityOnNodes(ModelPart& r_model_part, const Variabl
     const double time = r_model_part.GetProcessInfo()[TIME];
     int thread_number = OpenMPUtils::ThisThread();
 
-    for (int i = 0; i < (int)r_model_part.Nodes().size(); i++){
+    for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
         ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
         Node<3>::Pointer p_node = *(i_particle.base());
         const array_1d<double, 3>& coor = p_node->Coordinates();

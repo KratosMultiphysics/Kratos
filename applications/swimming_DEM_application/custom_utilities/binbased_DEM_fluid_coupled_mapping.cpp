@@ -312,7 +312,6 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
-//  data_to_project to fluid mesh = current DEM data
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::VariingRadiusHomogenizeFromDEMMesh(
     ModelPart& r_dem_model_part,
@@ -353,27 +352,17 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::VariingR
 
     // transferring fluid fraction information onto the fluid (not a naturally parallel task)
 
-    for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
-        NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
-        CalculateNodalFluidFractionByAveraging(*(i_particle.base()), mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i]);
-    }
-
-    #pragma omp parallel for
-    for (int i = 0; i < (int)r_fluid_model_part.Nodes().size(); ++i){
-        NodeIteratorType i_node = r_fluid_model_part.NodesBegin() + i;
-        const double area = i_node->GetSolutionStepValue(NODAL_AREA);
-        double& fluid_fraction = i_node->FastGetSolutionStepValue(FLUID_FRACTION);
-        fluid_fraction = 1.0 - fluid_fraction / area;
-    }
+    ComputeHomogenizedFluidFraction(r_fluid_model_part, r_dem_model_part);
 
     // transferring the rest of effects onto the fluid (not a naturally parallel task)
 
     for (unsigned int j = 0; j != mFluidCouplingVariables.size(); ++j){
 
         for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
-            NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
+            //NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
+            ParticleType& particle = dynamic_cast<ParticleType&> (*mSwimmingSphereElementPointers[i]);
 
-            ComputeHomogenizedNodalVariable(*(i_particle.base()), mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i], mFluidCouplingVariables[j]);
+            ComputeHomogenizedNodalVariable(particle, mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i], mFluidCouplingVariables[j]);
         }
     }
 
@@ -381,8 +370,6 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::VariingR
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
-//  data_to_project to fluid mesh = current DEM data
-
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::HomogenizeFromDEMMesh(
     ModelPart& r_dem_model_part,
@@ -419,11 +406,46 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Homogeni
 
     // transferring fluid fraction information onto the fluid (not a naturally parallel task)
 
-    for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
-        NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
-        CalculateNodalFluidFractionByAveraging(*(i_particle.base()), mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i]);
+    ComputeHomogenizedFluidFraction(r_fluid_model_part, r_dem_model_part);
+
+    // transferring the rest of effects onto the fluid (not a naturally parallel task)
+
+    for (unsigned int j = 0; j != mFluidCouplingVariables.size(); ++j){
+        if (IsFluidVariableToBeTimeFiltered(*mFluidCouplingVariables[j])){ // hold the current value in an auxiliary variable
+            CopyValues(r_fluid_model_part, mFluidCouplingVariables[j]);
+            Clear(r_fluid_model_part, mFluidCouplingVariables[j]);
+        }
+
+        for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
+            ParticleType& particle = dynamic_cast<ParticleType&> (*mSwimmingSphereElementPointers[i]);
+            ComputeHomogenizedNodalVariable(particle, mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i], mFluidCouplingVariables[j]);
+        }
+
+        if (IsFluidVariableToBeTimeFiltered(*mFluidCouplingVariables[j])){ // average current avalue and previous (averaged) value
+            ApplyExponentialTimeFiltering(r_fluid_model_part, mFluidCouplingVariables[j]);
+        }
     }
 
+    KRATOS_CATCH("")
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ComputeHomogenizedFluidFraction(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part)
+{
+    if (IsFluidVariableToBeTimeFiltered(FLUID_FRACTION)){ // hold the current value in an auxiliary variable
+        CopyValues(r_fluid_model_part, FLUID_FRACTION, TIME_AVERAGED_DOUBLE);
+        Clear(r_fluid_model_part, FLUID_FRACTION);
+    }
+
+    // distribution the particles' volumes to the nodes; not a parallel task
+    for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
+        //NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
+        ParticleType& particle = dynamic_cast<ParticleType&> (*mSwimmingSphereElementPointers[i]);
+        CalculateNodalFluidFractionByAveraging(particle, mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i]);
+    }
+
+    // dividing by the nodal area (measure)
     #pragma omp parallel for
     for (int i = 0; i < (int)r_fluid_model_part.Nodes().size(); ++i){
         NodeIteratorType i_node = r_fluid_model_part.NodesBegin() + i;
@@ -432,18 +454,108 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Homogeni
         fluid_fraction = 1.0 - fluid_fraction / area;
     }
 
-    // transferring the rest of effects onto the fluid (not a naturally parallel task)
-
-    for (unsigned int j = 0; j != mFluidCouplingVariables.size(); ++j){
-
-        for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
-            NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
-
-            ComputeHomogenizedNodalVariable(*(i_particle.base()), mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i], mFluidCouplingVariables[j]);
-        }
+    if (IsFluidVariableToBeTimeFiltered(FLUID_FRACTION)){ // average current avalue and previous (averaged) value
+        ApplyExponentialTimeFiltering(r_fluid_model_part, FLUID_FRACTION, TIME_AVERAGED_DOUBLE);
     }
-
-    KRATOS_CATCH("")
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Clear(
+        ModelPart& r_model_part,
+        const VariableData* r_variable)
+{
+    if (*r_variable == FLUID_FRACTION){
+        Clear(r_model_part, FLUID_FRACTION);
+    }
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::CopyValues(
+        ModelPart& r_model_part,
+        const VariableData* r_origin_variable)
+{
+    if (*r_origin_variable == PARTICLE_VEL_FILTERED){
+        CopyValues(r_model_part, PARTICLE_VEL_FILTERED, TIME_AVERAGED_ARRAY_3);
+    }
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::CopyValues(
+        ModelPart& r_model_part,
+        const Variable<double>& r_origin_variable,
+        const Variable<double>& r_destination_variable)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
+        NodeIteratorType i_node = r_model_part.NodesBegin() + i;
+        const double& origin_value = i_node->FastGetSolutionStepValue(r_origin_variable);
+        double& destination_value = i_node->FastGetSolutionStepValue(r_destination_variable);
+        destination_value = origin_value;
+    }
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::CopyValues(
+        ModelPart& r_model_part,
+        const Variable<array_1d<double, 3> >& r_origin_variable,
+        const Variable<array_1d<double, 3> >& r_destination_variable)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
+        NodeIteratorType i_node = r_model_part.NodesBegin() + i;
+        const array_1d<double, 3>& origin_value = i_node->FastGetSolutionStepValue(r_origin_variable);
+        array_1d<double, 3>& destination_value = i_node->FastGetSolutionStepValue(r_destination_variable);
+        noalias(destination_value) = origin_value;
+    }
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ApplyExponentialTimeFiltering(
+        ModelPart& r_model_part,
+        const VariableData* r_current_variable)
+{
+    if (*r_current_variable == PARTICLE_VEL_FILTERED){
+        ApplyExponentialTimeFiltering(r_model_part, PARTICLE_VEL_FILTERED, TIME_AVERAGED_ARRAY_3);
+    }
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ApplyExponentialTimeFiltering(
+        ModelPart& r_model_part,
+        const Variable<double>& r_current_variable,
+        const Variable<double>& r_previous_averaged_variable)
+{
+    const double alpha = GetAlpha(r_current_variable);
+    #pragma omp parallel for firstprivate(alpha)
+    for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
+        NodeIteratorType i_node = r_model_part.NodesBegin() + i;
+        const double& previous_value = i_node->FastGetSolutionStepValue(r_previous_averaged_variable);
+        double& current_value = i_node->FastGetSolutionStepValue(r_current_variable);
+        current_value = (1.0 - alpha) * previous_value + alpha * current_value;
+    }
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ApplyExponentialTimeFiltering(
+        ModelPart& r_model_part,
+        const Variable<array_1d<double, 3> >& r_current_variable,
+        const Variable<array_1d<double, 3> >& r_previous_averaged_variable)
+{
+    const double alpha = GetAlpha(r_current_variable);
+    #pragma omp parallel for firstprivate(alpha)
+    for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
+        NodeIteratorType i_node = r_model_part.NodesBegin() + i;
+        const array_1d<double, 3>& previous_value = i_node->FastGetSolutionStepValue(r_previous_averaged_variable);
+        array_1d<double, 3>& current_value = i_node->FastGetSolutionStepValue(r_current_variable);
+        noalias(current_value) = (1.0 - alpha) * previous_value + alpha * current_value;
+    }
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
@@ -524,6 +636,10 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
     ModelPart& r_fluid_model_part,
     BinBasedFastPointLocator<TDim>& bin_of_objects_fluid) // this is a bin of objects which contains the FLUID model part
 {
+    if (IsFluidVariableToBeTimeFiltered(FLUID_FRACTION)){ // hold the current value in an auxiliary variable
+        CopyValues(r_fluid_model_part, FLUID_FRACTION, TIME_AVERAGED_DOUBLE);
+    }
+
     array_1d<double, TDim + 1> N;
     const int max_results = 10000;
     typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
@@ -548,6 +664,10 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
 
     CalculateFluidFraction(r_fluid_model_part);
 
+    if (IsFluidVariableToBeTimeFiltered(FLUID_FRACTION)){ // average current avalue and previous (averaged) value
+        ApplyExponentialTimeFiltering(r_fluid_model_part, FLUID_FRACTION, TIME_AVERAGED_DOUBLE);
+    }
+
     if (IsFluidVariable(PHASE_FRACTION)){
         CalculateFluidMassFraction(r_fluid_model_part);
     }
@@ -559,7 +679,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
     ModelPart& r_dem_model_part,
     ModelPart& r_fluid_model_part,
     BinBasedFastPointLocator<TDim>& bin_of_objects_fluid) // this is a bin of objects that contains the FLUID model part
-{
+{   
     // resetting the variables to be mapped
     array_1d<double, TDim + 1> N;
     const int max_results = 10000;
@@ -586,19 +706,17 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
         }
     }
 
-    if ( (r_fluid_model_part.GetNodalSolutionStepVariablesList()).Has(PARTICLE_VEL_FILTERED) ) {
-        
-        const double alpha = 0.1; // Needs to be an input
-            #pragma omp parallel firstprivate(alpha)
-            for (int i = 0; i < (int)r_fluid_model_part.Nodes().size(); ++i){
-                NodeIteratorType i_node = r_fluid_model_part.NodesBegin() + i;
-                array_1d<double, 3>& particles_filtered_vel = i_node->FastGetSolutionStepValue(PARTICLE_VEL_FILTERED);
-                const array_1d<double, 3>& particles_vel = i_node->FastGetSolutionStepValue(TIME_AVERAGED_ARRAY_3);
-                particles_filtered_vel = (1.0 - alpha) * particles_filtered_vel + alpha * particles_vel;
-        }
-    
-    }
+    if ( (r_fluid_model_part.GetNodalSolutionStepVariablesList()).Has(PARTICLE_VEL_FILTERED) && IsFluidVariableToBeTimeFiltered(PARTICLE_VEL_FILTERED)){
+        const double alpha = GetAlpha(PARTICLE_VEL_FILTERED);
 
+        #pragma omp parallel firstprivate(alpha)
+        for (int i = 0; i < (int)r_fluid_model_part.Nodes().size(); ++i){
+            NodeIteratorType i_node = r_fluid_model_part.NodesBegin() + i;
+            array_1d<double, 3>& particles_filtered_vel = i_node->FastGetSolutionStepValue(PARTICLE_VEL_FILTERED);
+            const array_1d<double, 3>& particles_vel = i_node->FastGetSolutionStepValue(TIME_AVERAGED_ARRAY_3);
+            particles_filtered_vel = (1.0 - alpha) * particles_filtered_vel + alpha * particles_vel;
+        }
+    }
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
@@ -743,11 +861,11 @@ bool BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::IsFluidV
 //***************************************************************************************************************
 //***************************************************************************************************************
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
-bool BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::IsFluidVariableToBeAveraged(const VariableData& var)
+bool BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::IsFluidVariableToBeTimeFiltered(const VariableData& var)
 {
-    for (unsigned int i = 0; i != mFluidVariablesToBeTimeAveraged.size(); ++i){
+    for (unsigned int i = 0; i != mFluidVariablesToBeTimeFiltered.size(); ++i){
 
-        if (*mFluidVariablesToBeTimeAveraged[i] == var){
+        if (*mFluidVariablesToBeTimeFiltered[i] == var){
             return true;
         }
     }
@@ -1072,13 +1190,19 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Distribu
 //***************************************************************************************************************
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ComputeHomogenizedNodalVariable(
-    const Node<3>::Pointer p_node,
+    const ParticleType& particle,
     const ResultNodesContainerType& neighbours,
     const DistanceType& weights,
     const VariableData *r_destination_variable)
 {
     if (*r_destination_variable == BODY_FORCE){
-        TransferByAveraging(p_node, neighbours, weights, BODY_FORCE, HYDRODYNAMIC_FORCE);
+        //TransferByAveraging(p_node, neighbours, weights, BODY_FORCE, HYDRODYNAMIC_FORCE);
+        TransferByAveraging(particle, neighbours, weights, BODY_FORCE, HYDRODYNAMIC_FORCE);
+    }
+
+    if (*r_destination_variable == PARTICLE_VEL_FILTERED){
+        //TransferByAveraging(p_node, neighbours, weights, TIME_AVERAGED_ARRAY_3, VELOCITY);
+        TransferByAveraging(particle, neighbours, weights, PARTICLE_VEL_FILTERED, VELOCITY);
     }
 }
 
@@ -1106,15 +1230,22 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
             if (fluid_fraction < mMinFluidFraction){
                 fluid_fraction = mMinFluidFraction;
             }
-            const double alpha = 0.1; // Needs to be an input
-
-            if (IsFluidVariableToBeAveraged(FLUID_FRACTION)){
-                double& last_filtering_step_fluid_fraction = i_node->FastGetSolutionStepValue(FLUID_FRACTION_FILTERED);
-                fluid_fraction = (1.0 - alpha) * last_filtering_step_fluid_fraction + alpha * fluid_fraction;
-                last_filtering_step_fluid_fraction = fluid_fraction;
-            }
         }
     }
+
+//    const double alpha = GetAlpha(FLUID_FRACTION);
+
+//    if (IsFluidVariableToBeTimeFiltered(FLUID_FRACTION)){
+//        #pragma omp parallel for firstprivate(alpha)
+//        for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
+//            for (NodesArrayType::iterator i_node = this->GetNodePartitionBegin(r_fluid_model_part, k); i_node != this->GetNodePartitionEnd(r_fluid_model_part, k); ++i_node){
+//                double& fluid_fraction = i_node->FastGetSolutionStepValue(FLUID_FRACTION);
+//                double& last_filtering_step_fluid_fraction = i_node->FastGetSolutionStepValue(FLUID_FRACTION_FILTERED);
+//                fluid_fraction = (1.0 - alpha) * last_filtering_step_fluid_fraction + alpha * fluid_fraction;
+//                last_filtering_step_fluid_fraction = fluid_fraction;
+//            }
+//        }
+//    }
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
@@ -1548,63 +1679,64 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
-template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
-void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::CalculateFluidFractionGradient(ModelPart& r_model_part)
-{
-    for (NodeIteratorType i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); i_node++){
-        noalias(i_node->FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT)) = ZeroVector(3);
-    }
+//template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
+//void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::CalculateFluidFractionGradient(ModelPart& r_model_part)
+//{
+//    for (NodeIteratorType i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); i_node++){
+//        noalias(i_node->FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT)) = ZeroVector(3);
+//    }
 
-    array_1d <double, 3> grad = ZeroVector(3); // its dimension is always 3
-    array_1d <double, TDim + 1> elemental_fluid_fractions;
-    array_1d <double, TDim + 1> N; // shape functions vector
-    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
+//    array_1d <double, 3> grad = ZeroVector(3); // its dimension is always 3
+//    array_1d <double, TDim + 1> elemental_fluid_fractions;
+//    array_1d <double, TDim + 1> N; // shape functions vector
+//    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
 
-    for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ielem++){
-        // computing the shape function derivatives
-        Geometry<Node<3> >& geom = ielem->GetGeometry();
-        double volume;
-        GeometryUtils::CalculateGeometryData(geom, DN_DX, N, volume);
+//    for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ielem++){
+//        // computing the shape function derivatives
+//        Geometry<Node<3> >& geom = ielem->GetGeometry();
+//        double volume;
+//        GeometryUtils::CalculateGeometryData(geom, DN_DX, N, volume);
 
-        // getting the fluid fraction gradients;
+//        // getting the fluid fraction gradients;
 
-        for (unsigned int i = 0; i < TDim + 1; ++i){
-            elemental_fluid_fractions[i] = geom[i].FastGetSolutionStepValue(FLUID_FRACTION);
-        }
+//        for (unsigned int i = 0; i < TDim + 1; ++i){
+//            elemental_fluid_fractions[i] = geom[i].FastGetSolutionStepValue(FLUID_FRACTION);
+//        }
 
-        array_1d <double, TDim> grad_aux = prod(trans(DN_DX), elemental_fluid_fractions); // its dimension may be 2
+//        array_1d <double, TDim> grad_aux = prod(trans(DN_DX), elemental_fluid_fractions); // its dimension may be 2
 
-        for (unsigned int i = 0; i < TDim; ++i){
-            grad[i] = grad_aux[i];
-        }
+//        for (unsigned int i = 0; i < TDim; ++i){
+//            grad[i] = grad_aux[i];
+//        }
 
-        double nodal_area = volume / (TDim + 1);
-        grad *= nodal_area;
+//        double nodal_area = volume / (TDim + 1);
+//        grad *= nodal_area;
 
-        for (unsigned int i = 0; i < TDim + 1; ++i){
-            geom[i].FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT) += grad;
-        }
-    }
+//        for (unsigned int i = 0; i < TDim + 1; ++i){
+//            geom[i].FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT) += grad;
+//        }
+//    }
 
-    for (NodeIteratorType i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); i_node++){
-        i_node->GetSolutionStepValue(FLUID_FRACTION_GRADIENT) /= i_node->GetSolutionStepValue(NODAL_AREA);
-    }
- }
+//    for (NodeIteratorType i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); i_node++){
+//        i_node->GetSolutionStepValue(FLUID_FRACTION_GRADIENT) /= i_node->GetSolutionStepValue(NODAL_AREA);
+//    }
+// }
 //***************************************************************************************************************
 //***************************************************************************************************************
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::TransferByAveraging(
-    const Node<3>::Pointer p_node,
+    const ParticleType& particle,
     const ResultNodesContainerType& neighbours,
     const DistanceType& weights,
     Variable<array_1d<double, 3> >& r_destination_variable,
     Variable<array_1d<double, 3> >& r_origin_variable)
 {
-    if (p_node->IsNot(INSIDE)){
+    const Node<3>& node = particle.GetGeometry()[0];
+    if (node.IsNot(INSIDE)){
         return;
     }
 
-    const array_1d<double, 3>& origin_data = p_node->FastGetSolutionStepValue(r_origin_variable);
+    const array_1d<double, 3>& origin_data = node.FastGetSolutionStepValue(r_origin_variable);
 
     if (r_origin_variable == HYDRODYNAMIC_FORCE){
 
@@ -1632,19 +1764,28 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
             }
         }
     }
+
+    else if (r_origin_variable == VELOCITY){
+        for (unsigned int i = 0; i != neighbours.size(); ++i){
+            array_1d<double, 3> contribution = weights[i] * origin_data;
+            //neighbours[i]->FastGetSolutionStepValue(r_destination_variable) += contribution;
+            array_1d<double, 3>& particles_filtered_vel = neighbours[i]->FastGetSolutionStepValue(PARTICLE_VEL_FILTERED);
+            particles_filtered_vel += contribution;
+        }
+    }
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::CalculateNodalFluidFractionByAveraging( // it is actually calculating its complementary here; (1 - this value) is performed later
-    const Node<3>::Pointer p_node,
+    ParticleType& particle,
     const ResultNodesContainerType& neighbours,
     const DistanceType& weights)
 {
     unsigned int vector_size = neighbours.size();
-    if (vector_size && p_node->Is(INSIDE)){
-        const double& radius = p_node->FastGetSolutionStepValue(RADIUS);
-        double solid_volume = 4.0 * KRATOS_M_PI_3 * radius * radius * radius;
+    const Node<3>& node = particle.GetGeometry()[0];
+    if (vector_size && node.Is(INSIDE)){
+        double solid_volume = particle.CalculateVolume();
 
         for (unsigned int i = 0; i != vector_size; ++i){
             neighbours[i]->GetSolutionStepValue(FLUID_FRACTION) += weights[i] * solid_volume;
@@ -1721,7 +1862,9 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ResetFlu
     const array_1d<double, 3>& gravity = r_fluid_model_part.GetProcessInfo()[GRAVITY];
 
     for (NodeIteratorType node_it = r_fluid_model_part.NodesBegin(); node_it != r_fluid_model_part.NodesEnd(); ++node_it){
-        ClearVariable(node_it, FLUID_FRACTION);
+        if (!IsFluidVariableToBeTimeFiltered(FLUID_FRACTION)){
+            ClearVariable(node_it, FLUID_FRACTION);
+        }
 
         if (mTimeAveragingType == 0 || mTimeAveragingType == 2){
             if (IsFluidVariable(PHASE_FRACTION)){
@@ -1765,13 +1908,6 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ResetFLu
 //***************************************************************************************************************
 //***************************************************************************************************************
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
-inline void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ClearVariable(const NodeIteratorType& node_it, const VariableData *var)
-{
-    var->AssignZero(node_it->SolutionStepData().Data(*var));
-}
-//***************************************************************************************************************
-//***************************************************************************************************************
-template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::CalculateFluidNodesMaxNodalArea(ModelPart& r_fluid_model_part)
 {
     double max_nodal_area = 0.0;
@@ -1790,9 +1926,27 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
 //***************************************************************************************************************
 //***************************************************************************************************************
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
+inline void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ClearVariable(const NodeIteratorType& node_it, const VariableData *var)
+{
+    var->AssignZero(node_it->SolutionStepData().Data(*var));
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 inline void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ClearVariable(const NodeIteratorType& node_it, const VariableData& var)
 {
     var.AssignZero(node_it->SolutionStepData().Data(var));
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Clear(ModelPart& r_model_part, const Variable<double>& r_variable)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
+        NodeIteratorType i_node = r_model_part.NodesBegin() + i;
+        i_node->FastGetSolutionStepValue(r_variable) = 0.0;
+    }
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
@@ -1835,6 +1989,21 @@ double inline BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>:
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
+template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
+double  BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::GetAlpha(const VariableData& r_variable)
+{
+    if (mIsFirstTimeFiltering[r_variable]){ // only the present value should be used
+        mIsFirstTimeFiltering[r_variable] = false;
+        return 1.0;
+    }
+
+    else {
+        return mAlphas[r_variable];
+    }
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+
 
 // Explicit instantiations
 template class BinBasedDEMFluidCoupledMapping<2, SphericParticle>;
