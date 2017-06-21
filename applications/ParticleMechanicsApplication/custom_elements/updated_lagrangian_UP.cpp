@@ -1,53 +1,13 @@
-/*
-==============================================================================
-KratosStructuralApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-janosch.stascheit@rub.de
-nagel@sd.rub.de
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-- Ruhr-University Bochum, Institute for Structural Mechanics, Germany
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
-
+//    |  /           | 
+//    ' /   __| _` | __|  _ \   __| 
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/ 
+//                   Multi-Physics  
 //
-//   Project Name:        KratosParticleMechanicsApplication $
-//   Last modified by:    $Author:                 ilaria $
-//   Date:                $Date:                July 2016 $
-//   Revision:            $Revision:                  0.0 $
+//  License:		BSD License 
+//					Kratos default license: kratos/license.txt
 //
+//  Main authors:    Ilaria Iaconeta
 //
 
 
@@ -326,7 +286,7 @@ namespace Kratos
         array_1d<double,3> xg = this->GetValue(GAUSS_COORD);
         array_1d<double,3> MP_PreviousAcceleration = this->GetValue(MP_ACCELERATION);
         array_1d<double,3> MP_PreviousVelocity = this->GetValue(MP_VELOCITY);
-        double MP_Mass = this->GetValue(MP_MASS);
+        //double MP_Mass = this->GetValue(MP_MASS);
         array_1d<double,3> delta_xg = ZeroVector(3);
         array_1d<double,3> MP_Acceleration = ZeroVector(3);
         array_1d<double,3> MP_Velocity = ZeroVector(3);
@@ -338,7 +298,7 @@ namespace Kratos
         
         
         rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, xg);
-        int MP_number = this->GetValue(MP_NUMBER);
+        //int MP_number = this->GetValue(MP_NUMBER);
         
         //double total_nodal_mass = 0.0;
         //for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -351,7 +311,7 @@ namespace Kratos
             {
             array_1d<double, 3 > & NodalAcceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION);
             array_1d<double, 3 > & NodalVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3 > & PreviousNodalVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
+            //array_1d<double, 3 > & PreviousNodalVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
             double NodalMass = GetGeometry()[i].GetSolutionStepValue(NODAL_MASS, 0);
             array_1d<double,3> NodalMomentum = NodalMass * NodalVelocity;
             array_1d<double,3> NodalInertia = NodalMass * NodalAcceleration;
@@ -775,7 +735,7 @@ namespace Kratos
                 
         
         
-        int MP_bool = this->GetValue(MP_BOOL);
+        //int MP_bool = this->GetValue(MP_BOOL);
         
         //std::cout<<" in InitializeSolutionStep2"<<std::endl;
             unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -811,7 +771,7 @@ namespace Kratos
             double MP_Mass = this->GetValue(MP_MASS);
             array_1d<double,3> MP_Momentum;
             array_1d<double,3> MP_Inertia;
-            double MP_MPressure;
+            //double MP_MPressure;
             array_1d<double,3> NodalMomentum;
             array_1d<double,3> NodalInertia;
             double NodalMPressure;

@@ -1,9 +1,13 @@
+//    |  /           | 
+//    ' /   __| _` | __|  _ \   __| 
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/ 
+//                   Multi-Physics  
 //
-//   Project Name:        KratosParticleMechanicsApplication $
-//   Created by:          $Author:                 IIaconeta $
-//   Date:                $Date:               February 2017 $
-//   Revision:            $Revision:                     0.0 $
+//  License:		BSD License 
+//					Kratos default license: kratos/license.txt
 //
+//  Main authors:    Ilaria Iaconeta
 //
 
 #if !defined (KRATOS_HENCKY_PLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED)
@@ -210,12 +214,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HenckyElasticPlastic3DLaw )
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HenckyElasticPlastic3DLaw )
     }

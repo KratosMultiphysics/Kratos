@@ -1,9 +1,13 @@
+//    |  /           | 
+//    ' /   __| _` | __|  _ \   __| 
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/ 
+//                   Multi-Physics  
 //
-//   Project Name:        KratosParticleMechanicsApplication $
-//   Created by:          $Author:                 IIaconeta $
-//   Date:                $Date:               February 2017 $
-//   Revision:            $Revision:                     0.0 $
+//  License:		BSD License 
+//					Kratos default license: kratos/license.txt
 //
+//  Main authors:    Ilaria Iaconeta
 //
 // System includes
 #include <iostream>
@@ -473,7 +477,7 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
    if(t1 > 0 || t2 > 0) //check: both the conditions have to be satisfied
    {
 	   region = 4;
-	   double StateFunction     = rReturnMappingVariables.TrialStateFunction;
+	   //double StateFunction     = rReturnMappingVariables.TrialStateFunction;
 	   rPrincipalStressUpdated(0) = apex;	   
 	   rPrincipalStressUpdated(1) = apex;	   
 	   rPrincipalStressUpdated(2) = apex;	   
@@ -486,7 +490,7 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
    else if(pI_II < 0)
    {
 	   region = 2;
-	   double StateFunction     = rReturnMappingVariables.TrialStateFunction;
+	   //double StateFunction     = rReturnMappingVariables.TrialStateFunction;
 	   rPrincipalStressUpdated(0) = t1 + apex;
 	   rPrincipalStressUpdated(1) = t1 + apex;
 	   rPrincipalStressUpdated(2) = t1 * FrictionCoefficient + apex;
@@ -516,7 +520,7 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
    else
    {
 	   region = 3;
-	   double StateFunction     = rReturnMappingVariables.TrialStateFunction;
+	   //double StateFunction     = rReturnMappingVariables.TrialStateFunction;
 	   rPrincipalStressUpdated(0) = t2 + apex;
 	   rPrincipalStressUpdated(1) = t2 * FrictionCoefficient + apex;
 	   rPrincipalStressUpdated(2) = t2 * FrictionCoefficient + apex;

@@ -1,10 +1,13 @@
+//    |  /           | 
+//    ' /   __| _` | __|  _ \   __| 
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/ 
+//                   Multi-Physics  
 //
-//   Project Name:        KratosParticleMechanicsApplication $
-//   Created by:          $Author:                 IIaconeta $
-//   Last modified by:    $Co-Author:                        $
-//   Date:                $Date:                   June 2017 $
-//   Revision:            $Revision:                     0.0 $
+//  License:		BSD License 
+//					Kratos default license: kratos/license.txt
 //
+//  Main authors:    Ilaria Iaconeta
 //
 
 // System includes

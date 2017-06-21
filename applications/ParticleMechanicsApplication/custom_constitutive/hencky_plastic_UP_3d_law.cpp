@@ -1,9 +1,13 @@
+//    |  /           | 
+//    ' /   __| _` | __|  _ \   __| 
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/ 
+//                   Multi-Physics  
 //
-//   Project Name:        KratosParticleMechanicsApplication $
-//   Created by:          $Author:                 IIaconeta $
-//   Date:                $Date:               February 2017 $
-//   Revision:            $Revision:                     0.0 $
+//  License:		BSD License 
+//					Kratos default license: kratos/license.txt
 //
+//  Main authors:    Ilaria Iaconeta
 //
 
 // System includes
@@ -86,7 +90,7 @@ void HenckyElasticPlasticUP3DLaw::CalculatePrincipalStressTrial(const MaterialRe
    
    //1- calculate the deviatoric elastic streches eigenvalues
    Vector MainStrain      = ZeroVector(3); 
-   const GeometryType&  DomainGeometry =  rElasticVariables.GetElementGeometry();
+   //const GeometryType&  DomainGeometry =  rElasticVariables.GetElementGeometry();
    for (unsigned int i = 0; i<3; ++i)
    {
 		MainStrain[i] = rNewElasticLeftCauchyGreen(i,i);
@@ -173,7 +177,7 @@ void HenckyElasticPlasticUP3DLaw::CalculatePrincipalStressTrial(const MaterialRe
 
 void HenckyElasticPlasticUP3DLaw::CorrectDomainPressure( Matrix& rStressMatrix, const MaterialResponseVariables & rElasticVariables)
 {
-	const GeometryType&  DomainGeometry =  rElasticVariables.GetElementGeometry();
+	//const GeometryType&  DomainGeometry =  rElasticVariables.GetElementGeometry();
 	double MeanPressure = 0.0;
     for (unsigned int i = 0; i < 3; ++i)
         MeanPressure += rStressMatrix(i,i);
