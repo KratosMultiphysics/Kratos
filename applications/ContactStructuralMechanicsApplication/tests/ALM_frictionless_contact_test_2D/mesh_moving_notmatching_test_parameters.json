@@ -19,6 +19,9 @@
             "input_filename"   : "ALM_frictionless_contact_test_2D/mesh_moving_notmatching_test",
             "input_file_label" : 0
         },
+        "material_import_settings" :{
+            "materials_filename": "ALM_frictionless_contact_test_2D/mesh_moving_notmatching_test_materials.json"
+        },
         "mortar_type"                        : "ALMContactFrictionless",
         "block_builder"                      : true,
         "line_search"                        : false,

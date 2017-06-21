@@ -17,8 +17,11 @@
             "input_type"     : "mdpa",
             "input_filename" : "mesh_tying_test/simple_patch_test_3D"
         },
+        "material_import_settings" :{
+            "materials_filename": "mesh_tying_test/simple_patch_test_3D_materials.json"
+        },
         "mortar_type"                        : "ComponentsMeshTying",
-        "block_builder"                      : true,
+        "block_builder"                      : false,
         "line_search"                        : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"	         : true,

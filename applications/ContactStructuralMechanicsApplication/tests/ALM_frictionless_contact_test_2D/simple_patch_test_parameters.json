@@ -17,6 +17,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "ALM_frictionless_contact_test_2D/simple_patch_test"
         },
+        "material_import_settings" :{
+            "materials_filename": "ALM_frictionless_contact_test_2D/simple_patch_test_materials.json"
+        },
         "mortar_type"                        : "ALMContactFrictionless",
         "block_builder"                      : true,
         "clear_storage"                      : true,

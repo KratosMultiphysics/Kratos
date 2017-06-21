@@ -19,8 +19,11 @@
             "input_filename"   : "ALM_frictionless_contact_test_2D/contact_patch_complex_geom_test",
             "input_file_label" : 0
         },
+        "material_import_settings" :{
+            "materials_filename": "ALM_frictionless_contact_test_2D/contact_patch_complex_geom_test_materials.json"
+        },
         "mortar_type"                        : "ALMContactFrictionless",
-        "block_builder"                      : true,
+        "block_builder"                      : false,
         "line_search"                        : false,
         "clear_storage"                      : false,
         "ensure_contact"                     : true,
@@ -31,19 +34,18 @@
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 1000,
+        "max_iteration"                      : 10,
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","CONTACT_Contact_Auto1","SelfWeight2D_Self_weight_Auto1"],
-        "rotation_dofs"                      : false,
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","DISPLACEMENT_Displacement_Auto3","CONTACT_Contact_Auto1","SelfWeight2D_Self_weight_Auto1"],
         "linear_solver_settings"             : {
             "solver_type" : "SkylineLUFactorizationSolver"
         }
     },
     "constraints_process_list" : [{
-        "python_module" : "assign_vector_components_to_nodes_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorComponentsToNodesProcess",
+        "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
@@ -52,10 +54,10 @@
             "interval"        : [0.0,"End"]
         }
     },{
-        "python_module" : "assign_vector_components_to_nodes_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorComponentsToNodesProcess",
+        "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
@@ -63,7 +65,24 @@
             "value"           : [0.0,null,0.0],
             "interval"        : [0.0,"End"]
         }
-    },{
+    }],
+    "loads_process_list"       : [{
+        "python_module" : "assign_vector_by_direction_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes all the components of a given vector variable",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "AssignVectorByDirectionProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "SelfWeight2D_Self_weight_Auto1",
+            "variable_name"   : "VOLUME_ACCELERATION",
+            "modulus"         : 9.81,
+            "direction"       : [0.0,-1.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "contact_processes" :[
+    {
         "python_module" : "alm_contact_process",
         "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
         "help"          : "This process computes the contact between different surfaces",
@@ -76,33 +95,19 @@
             "search_factor"               : 30.0,
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
-            "integration_order"           : 5,
+            "integration_order"           : 2,
             "active_check_factor"         : 1.0e1,
             "normal_variation"            : false,
             "dual_search_check"           : true,
             "stiffness_factor"            : 10.0,
             "penalty_scale_factor"        : 1.0,
             "manual_ALM"                  : true,
-            "penalty"                     : 1.0e3,
+            "penalty"                     : 1.0e0,
             "scale_factor"                : 1.0e0,
             "debug_mode"                  : false
         }
-    }],
-    "loads_process_list"       : [{
-        "python_module" : "assign_modulus_and_direction_to_nodes_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes all the components of a given vector variable",
-        "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignModulusAndDirectionToNodesProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "SelfWeight2D_Self_weight_Auto1",
-            "variable_name"   : "VOLUME_ACCELERATION",
-            "modulus"         : 9.81,
-            "direction"       : [0.0,-1.0,0.0],
-            "interval"        : [0.0,"End"]
-        }
-    }],
+    }
+    ],
     "json_check_process" : [
     {
         "python_module"   : "from_json_check_result_process",

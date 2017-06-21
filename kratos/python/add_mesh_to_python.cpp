@@ -124,6 +124,15 @@ NodeType::Pointer GetNodeFromCondition( Condition& dummy, unsigned int index )
     return( dummy.GetGeometry().pGetPoint(index) );
 }
 
+void ConditionCalculateLocalSystemStandard( Condition& dummy, 
+                                                Matrix& rLeftHandSideMatrix,
+                                                Vector& rRightHandSideVector,
+                                                ProcessInfo& rCurrentProcessInfo)
+{
+    dummy.CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+}
+
+
 boost::python::list GetNodesFromCondition( Condition& dummy )
 {
     boost::python::list nodes_list;
@@ -151,12 +160,22 @@ boost::python::list GetIntegrationPointsFromElement( Element& dummy )
     return( integration_points_list );
 }
 
-boost::python::list CalculateOnIntegrationPointsVector( ModelPart& rModelPart,
-        Element& dummy, const Variable<Vector>& rVariable )
+boost::python::list CalculateOnIntegrationPointsVector(
+        Element& dummy, const Variable<Vector>& rVariable, ProcessInfo& rProcessInfo )
 {
     std::vector<Vector> Output;
-    dummy.CalculateOnIntegrationPoints( rVariable, Output,
-                                        rModelPart.GetProcessInfo() );
+    dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
+    boost::python::list result;
+    for( unsigned int j=0; j<Output.size(); j++ )
+        result.append( Output[j] );
+    return result;
+}
+
+boost::python::list CalculateOnIntegrationPointsMatrix(
+        Element& dummy, const Variable<Matrix>& rVariable, ProcessInfo& rProcessInfo )
+{
+    std::vector<Matrix> Output;
+    dummy.CalculateOnIntegrationPoints( rVariable, Output,rProcessInfo );
     boost::python::list result;
     for( unsigned int j=0; j<Output.size(); j++ )
         result.append( Output[j] );
@@ -435,6 +454,7 @@ void  AddMeshToPython()
     .def("GetNodes", GetNodesFromElement )
     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsVector)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsMatrix)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsDouble<Element>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsArray1d<Element>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsVector<Element>)
@@ -557,7 +577,7 @@ void  AddMeshToPython()
     				.def(SolutionStepVariableIndexingPython<Condition, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
     */
     .def("Initialize", &Condition::Initialize)
-    //.def("CalculateLocalSystem", &Condition::CalculateLocalSystem)
+    .def("CalculateLocalSystem", &ConditionCalculateLocalSystemStandard)
     .def("Info", &Condition::Info)
     .def(self_ns::str(self))
     ;

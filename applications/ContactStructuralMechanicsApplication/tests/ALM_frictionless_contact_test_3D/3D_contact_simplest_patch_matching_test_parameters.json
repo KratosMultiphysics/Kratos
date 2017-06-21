@@ -18,6 +18,9 @@
             "input_filename"   : "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test",
             "input_file_label" : 0
         },
+        "material_import_settings" :{
+            "materials_filename": "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test_materials.json"
+        },
         "mortar_type"                        : "ALMContactFrictionless",
         "block_builder"                      : true,
         "line_search"                        : false,
@@ -36,10 +39,10 @@
         "processes_sub_model_part_list"      : ["Contact_Part","Parts_Parts_Auto1","Parts_Parts_Auto2","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2"]
     },
     "constraints_process_list" : [{
-        "python_module" : "assign_vector_components_to_nodes_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorComponentsToNodesProcess",
+        "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
@@ -48,10 +51,10 @@
             "interval"        : [0.0,"End"]
         }
     },{
-        "python_module" : "assign_vector_components_to_nodes_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorComponentsToNodesProcess",
+        "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto2",

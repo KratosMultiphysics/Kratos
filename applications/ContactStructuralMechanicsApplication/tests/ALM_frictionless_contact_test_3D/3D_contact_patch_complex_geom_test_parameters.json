@@ -19,6 +19,9 @@
             "input_filename"   : "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test",
             "input_file_label" : 0
         },
+        "material_import_settings" :{
+            "materials_filename": "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test_materials.json"
+        },
         "mortar_type"                        : "ALMContactFrictionless",
         "block_builder"                      : false,
         "line_search"                        : false,
@@ -39,10 +42,10 @@
         }
     },
     "constraints_process_list" : [{
-        "python_module" : "assign_vector_components_to_nodes_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorComponentsToNodesProcess",
+        "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
@@ -51,10 +54,10 @@
             "interval"        : [0.0,"End"]
         }
     },{
-        "python_module" : "assign_vector_components_to_nodes_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorComponentsToNodesProcess",
+        "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
@@ -64,11 +67,11 @@
         }
     }],
     "loads_process_list"       : [{
-        "python_module" : "assign_modulus_and_direction_to_nodes_process",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes all the components of a given vector variable",
         "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignModulusAndDirectionToNodesProcess",
+        "process_name"  : "AssignVectorByDirectionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "SelfWeight3D_Self_weight_Auto1",

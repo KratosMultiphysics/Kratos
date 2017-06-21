@@ -19,6 +19,9 @@
             "input_filename"   : "ALM_frictionless_contact_test_2D/contact_patch_complex_geom_slope_test",
             "input_file_label" : 0
         },
+        "material_import_settings" :{
+            "materials_filename": "ALM_frictionless_contact_test_2D/contact_patch_complex_geom_slope_test_materials.json"
+        },
         "mortar_type"                        : "ALMContactFrictionless",
         "block_builder"                      : true,
         "line_search"                        : false,
@@ -65,11 +68,11 @@
         }
     }],
     "loads_process_list"       : [{
-        "python_module" : "assign_modulus_and_direction_to_nodes_process",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes all the components of a given vector variable",
         "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignModulusAndDirectionToNodesProcess",
+        "process_name"  : "AssignVectorByDirectionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "SelfWeight2D_Self_weight_Auto1",

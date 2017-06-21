@@ -16,6 +16,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "ALM_frictionless_contact_test_2D/simple_hertz_sphere_plate_test"
         },
+        "material_import_settings" :{
+            "materials_filename": "ALM_frictionless_contact_test_2D/simple_hertz_sphere_plate_test_materials.json"
+        },
         "mortar_type"                        : "ALMContactFrictionless",
         "block_builder"                      : true,
         "line_search"                        : false,

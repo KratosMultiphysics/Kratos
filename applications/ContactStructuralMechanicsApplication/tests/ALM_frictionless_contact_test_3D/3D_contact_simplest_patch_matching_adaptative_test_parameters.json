@@ -18,6 +18,9 @@
             "input_filename"   : "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test",
             "input_file_label" : 0
         },
+        "material_import_settings" :{
+            "materials_filename": "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test_materials.json"
+        },
         "mortar_type"                        : "ALMContactFrictionless",
         "block_builder"                      : true,
         "line_search"                        : false,
@@ -63,16 +66,14 @@
             "interval"        : [0.0,"End"]
         }
     },{
-        "python_module"   : "impose_scalar_value_over_time_process",
-        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
-        "process_name"          : "ImposeScalarValueOverTimeProcess",
+        "python_module"   : "assign_scalar_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"          : "AssignScalarVariableProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
             "variable_name"   : "DISPLACEMENT_Z",
-            "step_type"       : "linear",
-            "values"          : [0.0,-0.25],
-            "intervals"       : [0.0,1.1]
+            "value"          : "-0.25*t"
         }
     }],
     "loads_process_list"       : [],

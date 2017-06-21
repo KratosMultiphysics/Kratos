@@ -17,6 +17,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "mesh_tying_test/hyper_simple_slope_patch_test_2D"
         },
+        "material_import_settings" :{
+            "materials_filename": "mesh_tying_test/hyper_simple_slope_patch_test_2D_materials.json"
+        },
         "mortar_type"                        : "ComponentsMeshTying",
         "block_builder"                      : true,
         "clear_storage"                      : true,
