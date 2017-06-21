@@ -19,7 +19,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	NonConservativeDC::NonConservativeDC(IndexType NewId, GeometryType::Pointer pGeometry)
+	EulerianNonConservative::EulerianNonConservative(IndexType NewId, GeometryType::Pointer pGeometry)
 		: Element(NewId, pGeometry)
 	{
 		// DO NOT ADD DOFS HERE
@@ -27,23 +27,23 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	NonConservativeDC::NonConservativeDC(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+	EulerianNonConservative::EulerianNonConservative(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
 		: Element(NewId, pGeometry, pProperties)
 	{
 	}
 
-	Element::Pointer NonConservativeDC::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
+	Element::Pointer EulerianNonConservative::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 	{
-		return Element::Pointer(new NonConservativeDC(NewId, GetGeometry().Create(ThisNodes), pProperties));
+		return Element::Pointer(new EulerianNonConservative(NewId, GetGeometry().Create(ThisNodes), pProperties));
 	}
 
-	NonConservativeDC::~NonConservativeDC()
+	EulerianNonConservative::~EulerianNonConservative()
 	{
 	}
 
 	//************************************************************************************
 	//************************************************************************************
-	void NonConservativeDC::CalculateConsistentMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix) 
+	void EulerianNonConservative::CalculateConsistentMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix) 
 	{
 		const unsigned int number_of_nodes = 3;
 		//~ const unsigned int number_of_dof = 3;
@@ -57,7 +57,7 @@ namespace Kratos
 		rMassMatrix *= 1.0/(12.0);
 	}
 
-	void NonConservativeDC::CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix) 
+	void EulerianNonConservative::CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix) 
 	{
 		const unsigned int number_of_nodes = 3;
 		rMassMatrix = IdentityMatrix(number_of_nodes*3, number_of_nodes*3);
@@ -66,7 +66,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void NonConservativeDC::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+	void EulerianNonConservative::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 
@@ -80,6 +80,7 @@ namespace Kratos
 		boost::numeric::ublas::bounded_matrix<double,9,9> msM      = ZeroMatrix(9,9);     // Mass matrix
 		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX  = ZeroMatrix(3,2);     // Shape functions gradients
 		boost::numeric::ublas::bounded_matrix<double,3,3> msA      = ZeroMatrix(3,3);     // Parameters matrix
+		boost::numeric::ublas::bounded_matrix<double,3,1> msU      = ZeroMatrix(3,1);     // Iteration matrix: velocity unknown
 		boost::numeric::ublas::bounded_matrix<double,3,9> msB      = ZeroMatrix(3,9);     // Gradients and derivatives matrix
 		boost::numeric::ublas::bounded_matrix<double,9,9> msC      = ZeroMatrix(9,9);     // Nt*A*B (LHS)
 		boost::numeric::ublas::bounded_matrix<double,3,9> msN      = ZeroMatrix(3,9);     // Shape functions type
@@ -91,10 +92,12 @@ namespace Kratos
 		//
 		array_1d<double,3> msNGauss;                                    // Dimension = number of nodes . Position of the gauss point
 		array_1d<double,9> ms_depth;
+		array_1d<double,2> ms_velocity;
 		array_1d<double,9> ms_step_height;
 		array_1d<double,9> ms_step_velocity;
 		array_1d<double,9> ms_unknown;
-		array_1d<double,9> ms_proj_unknown;
+		array_1d<double,9> ms_prev_unknown;
+		array_1d<double,9> ms_proj_unknown;  // TODO: this variable and dependencies should be removed
 		double k_dc;                                                                       // Discontinuity capturing
 
 		const unsigned int number_of_points = GetGeometry().size();
@@ -185,22 +188,27 @@ namespace Kratos
 		msN_vel(1,5) = msNGauss[1];
 		msN_vel(1,7) = msNGauss[2];
 
-		// A matrix: gravity and previous height
+		// A matrix: gravity and previous iteration height
 		msA(0,0) = gravity;
 		msA(1,1) = gravity;
 		msA(2,2) = norm_1(prod(msN_height,ms_step_height));
-		//~ for (unsigned int iii = 0; iii < number_of_points; iii++)  // One Gauss point
-			//~ msA(2,2) += ms_step_height(iii*3+2) * msNGauss(iii);
+
+		// B matrix: previous iteration velocity
+		ms_velocity = (prod(msN_vel,ms_unknown));
+		msU(0,0) = ms_velocity[0];
+		msU(1,0) = ms_velocity[1];
+		msU(2,0) = 0;
 
 		// End loop on Gauss point
 
 
 		// Main loop
 		// LHS
-		// const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
-		noalias(msC) = prod(trans(msN),Matrix(prod(msA,msB)));  // Nt*A*B
-		noalias(rLeftHandSideMatrix) = msC;
-		//~ noalias(rLeftHandSideMatrix) = prod(trans(msN),Matrix(prod(msA,msB)));  // Nt*A*B
+		// Shock term
+		noalias(rLeftHandSideMatrix) = prod(trans(msN),Matrix(prod(msA,msB)));  // Nt*A*B
+
+		// Convective term
+		noalias(rLeftHandSideMatrix) += prod(trans(msN),Matrix(prod(msU,msDN_DX_vel)));
 
 		// Inertia terms
 		// Compute the mass matrix
@@ -208,113 +216,6 @@ namespace Kratos
 		//~ CalculateLumpedMassMatrix(msM);
 		// LHS += bdf*M
 		noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * msM;
-
-		// Add Discontinuity capturing term via adding artificial diffusion to velocity
-		//~ double divergence_is_zero = 1e-1;
-		//~ double max_viscosity = 100;
-		//~ double m_residual;
-		//~ double m_divergence;
-		//~ m_residual = norm_2(gravity*prod(msDN_DX_height, ms_depth - ms_unknown) + BDFcoeffs[1]*prod(msN_vel, (ms_proj_unknown - ms_unknown) ) );
-		//~ this->SetValue(RESIDUAL_NORM,m_residual);
-		//~ m_divergence = norm_2(prod(msDN_DX_vel, ms_step_velocity));
-		//~ if (m_divergence < divergence_is_zero){
-			//~ k_dc = 0;
-			//~ m_divergence = 0;
-		//~ }
-		//~ else {
-			//~ k_dc = 0.1*0.5*m_residual/m_divergence;
-		//~ }
-		//~ this->SetValue(MIU,m_divergence);
-		//~ if (k_dc > max_viscosity){
-			//~ k_dc = 0;
-		//~ }
-		//~ this->SetValue(VEL_ART_VISC,k_dc);
-		//~ noalias(rLeftHandSideMatrix) += k_dc * prod(trans(msDN_DX_vel), msDN_DX_vel);
-
-		// Add discontinuity capturing term via adding artificial diffusion to height
-		double gradient_is_zero = 1e-6;
-		
-		// A. Artificial diffusion via RESIDUAL
-		//~ double m_residual;
-		//~ double m_grad_norm;
-		
-		//~ m_residual = norm_1(prod(msN_height,ms_unknown)) * norm_1(prod(msDN_DX_vel,ms_unknown)) + BDFcoeffs[1]*norm_1(prod(msN_height, (ms_unknown - ms_proj_unknown)));
-		//~ m_grad_norm = norm_2(prod(msDN_DX_height,ms_unknown));
-		//~ if (m_height_grad_norm < gradient_is_zero){
-			//~ k_dc = 0;
-		//~ }
-		//~ else{
-			//~ k_dc = 0.5*0.2*elem_size*m_residual;//m_grad_norm;  // Residual formulation
-		//~ }
-		
-		
-		// B. Artificial diffusion via "VELOCITY PROJECTION"
-		//~ array_1d<double,2> m_velocity;
-		//~ array_1d<double,2> m_height_grad;
-		//~ double m_height_grad_norm;
-		//~ double m_vel_project_norm;
-		//~ 
-		//~ m_velocity = prod(msN_vel,ms_unknown);
-		//~ m_height_grad = prod(msDN_DX_height,ms_unknown);
-		//~ m_height_grad_norm = norm_2(m_height_grad);
-		//~ m_vel_project_norm = abs(inner_prod(m_velocity,m_height_grad));
-		//~ if (m_height_grad_norm < gradient_is_zero){
-			//~ k_dc = 0;
-		//~ }
-		//~ else{
-			//~ k_dc = 0.5*0.1*elem_size*m_vel_project_norm/m_height_grad_norm;
-		//~ }
-		
-		
-		// C. Artificial diffusion via ORTHOGONAL PROJECTION
-		//~ array_1d<double,2> m_velocity;
-		//~ array_1d<double,2> m_height_grad;
-		//~ double m_height_grad_norm;
-		//~ double m_vel_norm;
-		//~ double m_orthogonalP;
-		//~ boost::numeric::ublas::bounded_matrix<double,2,9> mP_height;
-		//~ 
-		//~ m_velocity    = prod(msN_vel,ms_unknown);
-		//~ m_height_grad = prod(msDN_DX_height,ms_unknown);
-		//~ m_vel_norm         = norm_2(m_velocity);
-		//~ m_height_grad_norm = norm_2(m_height_grad);
-		//~ 
-		//~ for (unsigned int iii = 0; iii<3*number_of_points; iii++){
-			//~ mP_height(0,iii) = msDN_DX_height(0,iii) * msDN_DX_height(0,iii);
-			//~ mP_height(1,iii) = msDN_DX_height(1,iii) * msDN_DX_height(1,iii);
-		//~ }
-		//~ m_orthogonalP = norm_2(m_height_grad - prod(mP_height,ms_unknown));
-		//~ 
-		//~ if (m_height_grad_norm < gradient_is_zero){
-			//~ k_dc = 0;
-		//~ }
-		//~ else{
-			//~ k_dc = 0.5*0.2*elem_size*m_vel_norm*m_orthogonalP/m_height_grad_norm;
-		//~ }
-		//~ this->SetValue(RESIDUAL_NORM,m_orthogonalP);
-		//~ this->SetValue(MIU,m_height_grad_norm);
-		//~ this->SetValue(PR_ART_VISC,k_dc);
-		//~ KRATOS_WATCH(m_vel_project_norm)
-		//~ KRATOS_WATCH(m_height_grad_norm)
-		//~ KRATOS_WATCH(k_dc)
-		//~ KRATOS_WATCH(k_dc * prod(trans(msDN_DX_height), msDN_DX_height))
-		
-		
-		// D. My own artificial diffusion
-		array_1d<double,2> m_height_grad;
-		double m_height_grad_norm;
-		m_height_grad = prod(msDN_DX_height,ms_unknown);
-		m_height_grad_norm = norm_2(m_height_grad);
-		if (m_height_grad_norm < gradient_is_zero){
-			k_dc = 0;
-		}
-		else{
-			k_dc = 0.5*0.2*elem_size*m_height_grad_norm;
-		}
-		this->SetValue(MIU,m_height_grad_norm);
-		this->SetValue(PR_ART_VISC,k_dc);
-		
-		noalias(rLeftHandSideMatrix) += k_dc * prod(trans(msDN_DX_height), msDN_DX_height);
 
 		// RHS
 		// TODO: SOURCE TERM
@@ -337,7 +238,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void NonConservativeDC::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+	void EulerianNonConservative::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
 	}
@@ -346,7 +247,7 @@ namespace Kratos
 	//************************************************************************************
 	// This subroutine calculates the nodal contributions for the explicit steps of the
 	// Fractional step procedure
-	void NonConservativeDC::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+	void EulerianNonConservative::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 
@@ -355,7 +256,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void NonConservativeDC::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+	void EulerianNonConservative::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 	{
 		unsigned int number_of_nodes = GetGeometry().PointsNumber();
 		if(rResult.size() != number_of_nodes*3)
@@ -371,7 +272,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void NonConservativeDC::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo)
+	void EulerianNonConservative::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo)
 	{
 		unsigned int number_of_nodes = GetGeometry().PointsNumber();
 		if(rElementalDofList.size() != number_of_nodes*3)
@@ -386,7 +287,7 @@ namespace Kratos
 		}
 	}
 
-	void NonConservativeDC::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
+	void EulerianNonConservative::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
 	{
 		if (rVariable == VEL_ART_VISC){
 			for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) 
@@ -405,37 +306,7 @@ namespace Kratos
 				rValues[PointNumber] = double(this->GetValue(MIU));
 		}
     }
-	//~ {
-		//~ if (rVariable == MU)
-		//~ {
-			//~ // Shape functions and integration points
-			//~ ShapeFunctionDerivativesArrayType DN_DX;
-			//~ Matrix NContainer;
-			//~ VectorType GaussWeights;
-			//~ this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
-			//~ const unsigned int NumGauss = GaussWeights.size();
-//~ 
-			//~ rValues.resize(NumGauss);
-//~ 
-			//~ double Density = 0.0;
-//~ 
-			//~ // Loop on integration points
-			//~ for (unsigned int g = 0; g < NumGauss; g++)
-			//~ {
-				//~ const ShapeFunctionsType& N = row(NContainer,g);
-				//~ const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
-//~ 
-				//~ this->EvaluateInPoint(Density,DENSITY,N);
-				//~ double ElemSize = this->ElementSize();
-//~ 
-				//~ rValues[g] = this->EffectiveViscosity(Density,N,rDN_DX,ElemSize,rCurrentProcessInfo);
-			//~ }
-//~ 
-		//~ }
-		//~ else
-		//~ {
-		//~ }
-	//~ }
+
 
 
 

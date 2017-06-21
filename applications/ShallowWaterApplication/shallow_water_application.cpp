@@ -28,7 +28,8 @@ namespace Kratos
 
 	KratosShallowWaterApplication::KratosShallowWaterApplication():
 	mProjectedSWE ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) ),
-	mNonConservativeDC ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) )
+	mNonConservativeDC ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) ),
+	mEulerianNonConservative ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) )
 	{}
 	
 	void KratosShallowWaterApplication::Register()
@@ -56,6 +57,7 @@ namespace Kratos
 		// Registering elements and conditions here
 		KRATOS_REGISTER_ELEMENT("ProjectedSWE", mProjectedSWE)   // mesh stage element
 		KRATOS_REGISTER_ELEMENT("NonConservativeDC", mNonConservativeDC)   // mesh stage element with discontinuity capturing
+		KRATOS_REGISTER_ELEMENT("EulerianNonConservative", mEulerianNonConservative)   // eulerian element
 
 	}
 

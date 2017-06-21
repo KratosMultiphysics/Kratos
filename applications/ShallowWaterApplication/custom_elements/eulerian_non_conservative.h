@@ -1,13 +1,13 @@
 //   
 //   Project Name:        Kratos       
 //   Last modified by:    $Author:  Miguel Masó Sotomayor $
-//   Date:                $Date:             june 14 2017 $
+//   Date:                $Date:             june 21 2017 $
 //   Revision:            $Revision:                  1.1 $
 //
 //
 
-#if !defined(KRATOS_NON_CONSERVATIVE_DC_ELEM_H_INCLUDED)
-#define  KRATOS_NON_CONSERVATIVE_DC_ELEM_H_INCLUDED 
+#if !defined(KRATOS_EULERIAN_NON_CONSERVATIVEC_ELEM_H_INCLUDED)
+#define  KRATOS_EUELRIAN_NON_CONSERVATIVE_ELEM_H_INCLUDED 
 
 // System includes 
 
@@ -25,20 +25,20 @@
 namespace Kratos
 {
 
-  class NonConservativeDC : public Element
+  class EulerianNonConservative : public Element
   {
     public:
      
-    /// Counted pointer of NonConservativeDC
-    KRATOS_CLASS_POINTER_DEFINITION(NonConservativeDC);
+    /// Counted pointer of EulerianNonConservative
+    KRATOS_CLASS_POINTER_DEFINITION(EulerianNonConservative);
 
 
     /// Default constructor.
-    NonConservativeDC(IndexType NewId, GeometryType::Pointer pGeometry);
-    NonConservativeDC(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    EulerianNonConservative(IndexType NewId, GeometryType::Pointer pGeometry);
+    EulerianNonConservative(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~ NonConservativeDC();
+    virtual ~ EulerianNonConservative();
 
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
@@ -68,12 +68,12 @@ namespace Kratos
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-    NonConservativeDC() : Element()
+    EulerianNonConservative() : Element()
     {
     }
        
        
-  }; // Class NonConservativeDC
+  }; // Class EulerianNonConservative
 }  // namespace Kratos.
 
-#endif // KRATOS_NON_CONSERVATIVE_DC_ELEM_H_INCLUDED  defined
+#endif // KRATOS_EUELRIAN_NON_CONSERVATIVE_ELEM_H_INCLUDED  defined
