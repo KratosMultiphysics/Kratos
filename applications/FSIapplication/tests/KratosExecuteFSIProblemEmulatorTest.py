@@ -1,16 +1,11 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-#~ from KratosMultiphysics import *
-#~ from KratosMultiphysics.FSIApplication import *
-#~ from KratosMultiphysics.SolidMechanicsApplication import *
-
 # Import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.FSIApplication as KratosFSI
 try:
     import KratosMultiphysics.ALEApplication as KratosALE
     import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-    import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
     import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 except ImportError as e:
     pass
@@ -187,7 +182,7 @@ class KratosExecuteFSIProblemEmulatorTest(KratosUnittest.TestCase):
             point_load[1] = - K*self.iteration_value[i+1]
             point_load[2] = 0.0
 
-            node.SetSolutionStepValue(KratosSolid.POINT_LOAD, 0, point_load)
+            node.SetSolutionStepValue(KratosStructural.POINT_LOAD, 0, point_load)
 
             i += 2
 

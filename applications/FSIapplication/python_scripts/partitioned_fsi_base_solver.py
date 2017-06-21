@@ -9,7 +9,6 @@ import KratosMultiphysics
 import KratosMultiphysics.ALEApplication as KratosALE
 import KratosMultiphysics.FSIApplication as KratosFSI
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 # Check that KratosMultiphysics was imported in the main script
@@ -476,7 +475,7 @@ class PartitionedFSIBaseSolver:
             keep_sign = False
             distribute_load = True
             self.interface_mapper.FluidToStructure_VectorMap(KratosMultiphysics.REACTION,
-                                                             KratosSolid.POINT_LOAD,
+                                                             KratosStructural.POINT_LOAD,
                                                              keep_sign,
                                                              distribute_load)
 
@@ -517,7 +516,7 @@ class PartitionedFSIBaseSolver:
             for node in self._GetStructureInterfaceSubmodelPart().Nodes:
                 pos_face_force = node.GetSolutionStepValue(KratosFSI.POSITIVE_MAPPED_VECTOR_VARIABLE)
                 neg_face_force = node.GetSolutionStepValue(KratosFSI.NEGATIVE_MAPPED_VECTOR_VARIABLE)
-                node.SetSolutionStepValue(KratosSolid.POINT_LOAD, 0, pos_face_force+neg_face_force)
+                node.SetSolutionStepValue(KratosStructural.POINT_LOAD, 0, pos_face_force+neg_face_force)
 
             # Solve the current step structure problem with the previous step fluid interface nodal fluxes
             self.structure_solver.SolverSolveSolutionStep()
