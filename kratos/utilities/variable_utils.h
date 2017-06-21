@@ -21,6 +21,7 @@
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
 
+
 /* External includes */
 
 
@@ -694,28 +695,86 @@ public:
         KRATOS_TRY
         
         if(rVar.Key() == 0)
+        {
             KRATOS_ERROR << " Variable : " << rVar << " has a 0 key. Check if the application was correctly registered.";
+        }
         if(rReactionVar.Key() == 0)
+        {
             KRATOS_ERROR << " Variable : " << rReactionVar << " has a 0 key. Check if the application was correctly registered.";
+        }
 
         if(rModelPart.NumberOfNodes() != 0)
         {
             if(rModelPart.NodesBegin()->SolutionStepsDataHas(rVar) == false)
+            {
                 KRATOS_ERROR << " Variable : " << rVar << "not included in the Soluttion step data ";
+            }
             if(rModelPart.NodesBegin()->SolutionStepsDataHas(rReactionVar) == false)
+            {
                 KRATOS_ERROR << " Variable : " << rReactionVar << "not included in the Soluttion step data ";
+            }
         }
         
         #pragma omp parallel for 
         for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k)
         {
             auto it = rModelPart.NodesBegin() + k;
+
+            #ifdef KRATOS_DEBUG
+                if (it->SolutionStepsDataHas(rVar) == false)
+                {
+                        KRATOS_ERROR << " Variable : " << rVar << "not included in the Soluttion step data ";
+                }
+                if (it->SolutionStepsDataHas(rReactionVar) == false)
+                {
+                        KRATOS_ERROR << " Variable : " << rReactionVar << "not included in the Soluttion step data ";
+                }
+            #endif
+            
             it->AddDof(rVar,rReactionVar);
         }
 
         KRATOS_CATCH("")
     }
+
+        bool CheckVariableKeys()
+        {
+            KRATOS_TRY
+
+            CheckVariableKeysHelper< Variable<double> >();
+            CheckVariableKeysHelper< Variable<array_1d<double,3> > >();
+            CheckVariableKeysHelper< Variable<bool> >();
+            CheckVariableKeysHelper< Variable<int> >();
+            CheckVariableKeysHelper< Variable<unsigned int> >();
+            CheckVariableKeysHelper< Variable<Vector> >();
+            CheckVariableKeysHelper< Variable<Matrix> >();
+            CheckVariableKeysHelper< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >();
+                
+            return true;
+            
+            KRATOS_CATCH("")
+	}
     
+        bool CheckDofs(ModelPart& rModelPart)
+        {
+            KRATOS_TRY
+
+            for(auto& node : rModelPart.Nodes())
+            {
+                for (auto& dof : node.GetDofs())
+                {
+                    //if (!node.SolutionStepsDataHas(dof.GetVariable()))
+                    //	KRATOS_ERROR << "node : " << node << " does not have allocated space for the variable " << dof << std::endl;
+                    if (dof.GetVariable().Key() == 0)
+                    {
+                            KRATOS_ERROR << "found a zero key on a dof of node " << node << std::endl;
+                    }
+
+                }
+            }
+            return true;
+            KRATOS_CATCH("")
+        }
     /*@} */
     /**@name Acces */
     /*@{ */
@@ -741,6 +800,35 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
+	template< class TVarType >
+	bool CheckVariableKeysHelper()
+	{
+            KRATOS_TRY
+
+            for (const auto& var : KratosComponents< TVarType >::GetComponents())
+            {
+                if (var.first == "NONE" || var.first == "")
+                {
+                        std::cout << " var first is NONE or empty " << var.first << var.second << std::endl;
+                }
+                if (var.second->Name() == "NONE" || var.second->Name() == "")
+                {
+                        std::cout << var.first << var.second << std::endl;
+                }
+                if (var.first != var.second->Name()) //name of registration does not correspond to the var name
+                {
+                        std::cout << "Registration Name = " << var.first << " Variable Name = " << std::endl;
+                }
+                if (var.second->Key() == 0)
+                {
+                        KRATOS_ERROR << "found a key of zero for the variable registered with the name : " << var.first << std::endl;
+                        return false;
+                }
+            }
+
+            return true;
+            KRATOS_CATCH("")
+	}
 
 
     /*@} */
