@@ -222,34 +222,25 @@ public:
 
             // assemble all elements
             for (typename ElementsArrayType::ptr_iterator it=it_begin; it!=it_end; ++it)
-	      {  
-		bool element_is_active = true;
-		if ((*it)->IsDefined(ACTIVE))
-		  element_is_active = (*it)->Is(ACTIVE);
+            {
 
-		if (element_is_active)
-		  {
+                //calculate elemental contribution
+                (*it)->InitializeNonLinearIteration(CurrentProcessInfo);
+                (*it)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
-		    //calculate elemental contribution
-		    (*it)->InitializeNonLinearIteration(CurrentProcessInfo);
-		    (*it)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+                Geometry< Node<3> >& geom = (*it)->GetGeometry();
+                if(EquationId.size() != geom.size()) EquationId.resize(geom.size(),false);
 
-		    Geometry< Node<3> >& geom = (*it)->GetGeometry();
-		    if(EquationId.size() != geom.size()) EquationId.resize(geom.size(),false);
+                for(unsigned int i=0; i<geom.size(); i++)
+                    EquationId[i] = geom[i].GetDof(rVar,pos).EquationId();
 
-		    for(unsigned int i=0; i<geom.size(); i++)
-		      EquationId[i] = geom[i].GetDof(rVar,pos).EquationId();
-
-		    //assemble the elemental contribution
+                //assemble the elemental contribution
 #ifdef _OPENMP
-		    this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
+                this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
 #else
-		    this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId);
+                this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId);
 #endif
-
-		  }
-
-	      }
+            }
         }
 
         vector<unsigned int> condition_partition;
