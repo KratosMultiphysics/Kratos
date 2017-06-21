@@ -21,6 +21,7 @@
 #include "processes/process.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "custom_utilities/modeler_utilities.hpp"
 
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
@@ -255,11 +256,9 @@ public:
       /* unsigned int timeStep = rCurrentProcessInfo[STEP]; */
       /* if(timeStep==1){ */
       /* 	unsigned int iter=0; */
-      /* 	this->SetActiveLabel(); */
       /* 	continuityConverged = this->SolveContinuityIteration(iter,maxNonLinearIterations); */
       /* }else if(timeStep==2){ */
       /* 	unsigned int iter=0; */
-      /* 	this->SetActiveLabel(); */
       /* 	momentumConverged = this->SolveMomentumIteration(iter,maxNonLinearIterations,fixedTimeStep); */
       /* }else{ */
 
@@ -268,9 +267,6 @@ public:
 	  if ( BaseType::GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)
 	    std::cout << "----- > iteration: " << it << std::endl;
 
-	  if(it==0){
-	    this->SetActiveLabel();
-	  }
 
 	  momentumConverged = this->SolveMomentumIteration(it,maxNonLinearIterations,fixedTimeStep);
 
@@ -313,6 +309,7 @@ public:
     }
 
     virtual void InitializeSolutionStep(){
+      /* this->ResetActiveToSlivers(); */
       TimeIntervalDurationControl();
     }
 
@@ -809,7 +806,7 @@ public:
       noalias(CurrentDisplacement) = 0.5*timeInterval*(CurrentVelocity+PreviousVelocity) + PreviousDisplacement ; 
     }
 
-    void SetActiveLabel()
+    void ResetActiveToSlivers()
     {
 
 #pragma omp parallel
@@ -817,11 +814,10 @@ public:
 	ModelPart& rModelPart = BaseType::GetModelPart();
 	ModelPart::ElementIterator ElemBegin;
 	ModelPart::ElementIterator ElemEnd;
+	ModelerUtilities ModelerUtils;
 	OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd);
-	unsigned int count=0;
 	for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
 	  {
-	    count++;
 	    double ElementalVolume =  0;
 	    const unsigned int dimension = (itElem)->GetGeometry().WorkingSpaceDimension();
 	    if(dimension==2){
@@ -831,18 +827,17 @@ public:
 	    }else{
 	      ElementalVolume = 0;
 	    }
-	    double CriticalVolume=-10;
-	    if((itElem)->IsNot(ACTIVE)){
-	      /* std::cout<<"count in twoStepVPstrategy "<<count<<std::endl; */
-	      /* std::cout<<"not active "<<std::endl; */
-	      (itElem)->Set(ACTIVE,false);
-	    }else if(ElementalVolume<CriticalVolume){
+	    double ModelPartVolume=ModelerUtils.ComputeModelPartVolume(rModelPart);
+	    double CriticalVolume=0.01*ModelPartVolume/double(rModelPart.Elements().size());
+
+	    if(ElementalVolume<CriticalVolume && ElementalVolume>0){
 	      (itElem)->Set(ACTIVE,false);
 	      std::cout<<"RESET ACTIVE FOR THIS SLIVER! \t";
 	      std::cout<<"its volume is "<<ElementalVolume<<" vs CriticalVolume "<<CriticalVolume<<std::endl;
 	    }else{
 	      (itElem)->Set(ACTIVE,true);
 	    }
+	   
 
 	  }
 

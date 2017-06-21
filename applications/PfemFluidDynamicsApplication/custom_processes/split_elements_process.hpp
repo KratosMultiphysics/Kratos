@@ -176,7 +176,9 @@ namespace Kratos
 		    // if((numRigid+numFreeSurface)==vertices.size() && vertices.size()>2 && elementalVolume>criticalVolume){
 		    if(numRigid>0 && numFreeSurface==0 && vertices.size()>2 && elementalVolume>criticalVolume){
 		      i_elem->Set(ACTIVE,false);
-      		    }
+      		    }else{
+		      i_elem->Set(ACTIVE,true);
+		    }
 		  }else{
 		    std::cout<<"split_element_process not yet implemented for quadratic elements"<<std::endl;
 		  }
@@ -186,6 +188,8 @@ namespace Kratos
 		  if(numNodes==4){
 		    if(numRigid==0 && (numRigid+numFreeSurface)==vertices.size() && vertices.size()>3 && elementalVolume>criticalVolume){
 		      i_elem->Set(ACTIVE,false);
+		    }else{
+		      i_elem->Set(ACTIVE,true);
 		    }
 		  }else{
 		    std::cout<<"split_element_process not yet implemented for quadratic elements"<<std::endl;

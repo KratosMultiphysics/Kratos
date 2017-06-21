@@ -274,11 +274,12 @@ class PfemFluidSolver:
 
     def InitializeSolutionStep(self):
         #pass
+
+        self.fluid_solver.InitializeSolutionStep()
   
         #split_elements = KratosPfemFluid.SplitElementsProcess(self.main_model_part,self.settings["echo_level"].GetInt())
         #split_elements.ExecuteInitialize()
 
-        self.fluid_solver.InitializeSolutionStep()
 
     def Predict(self):
         pass

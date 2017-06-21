@@ -422,7 +422,6 @@ namespace Kratos
 	    
     	    for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; i_elem++)
     	      {
-    		i_elem->Set(ACTIVE,true);
     		rComputingModelPart.AddElement(*(i_elem.base()));
     	      }
     	  }
