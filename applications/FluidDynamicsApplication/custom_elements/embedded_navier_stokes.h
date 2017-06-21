@@ -176,7 +176,7 @@ public:
                               VectorType& rRightHandSideVector,
                               ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);
 
@@ -231,7 +231,7 @@ public:
             ComputeElementAsMixed<MatrixSize>(rLeftHandSideMatrix, rRightHandSideVector, data, rCurrentProcessInfo, distances);
         }
 
-        KRATOS_CATCH("Error in embedded Navier-Stokes element")
+        KRATOS_CATCH("Error in embedded Navier-Stokes element");
     }
 
 
@@ -246,7 +246,7 @@ public:
      */
     virtual int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         // Base element check
         int ErrorCode = NavierStokes<TDim, TNumNodes>::Check(rCurrentProcessInfo);
@@ -383,7 +383,7 @@ public:
         }
 
         // Add level set boundary terms, penalty and modified Nitche contributions
-        AddBoundaryConditionElementContribution(rLeftHandSideMatrix, rRightHandSideVector, rDistances, rData, SplittingData);
+        AddBoundaryConditionElementContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, SplittingData);
     }
 
     ///@}
@@ -611,15 +611,7 @@ protected:
 
         // Obtain the previous iteration velocity solution
         array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
-
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            for (unsigned int comp=0; comp<TDim; comp++)
-            {
-                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
-            }
-            prev_sol(i*BlockSize+TDim) = rData.p(i);
-        }
+        GetPreviousSolutionVector(rData, prev_sol);
 
         // Declare auxiliar arrays
         bounded_matrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
@@ -740,14 +732,7 @@ protected:
 
         // Obtain the previous iteration velocity solution
         array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
-
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            for (unsigned int comp=0; comp<TDim; comp++)
-            {
-                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
-            }
-        }
+        GetPreviousSolutionVector(rData, prev_sol);
 
         MatrixType P_gamma(TNumNodes, TNumNodes);    // Penalty matrix
         noalias(P_gamma) = ZeroMatrix(TNumNodes, TNumNodes);
@@ -811,128 +796,6 @@ protected:
 
 
     /**
-    * This functions adds the slip no penetration penalty extra term level set contribution.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
-    * @param rSplittingData: reference to the intersection data structure
-    */
-    void AddSlipBoundaryConditionPenaltyContribution(MatrixType& rLeftHandSideMatrix,
-                                                     VectorType& rRightHandSideVector,
-                                                     const ElementDataType& rData,
-                                                     const ElementSplittingDataStruct& rSplittingData)
-    {
-        constexpr unsigned int BlockSize = TDim+1;
-        constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
-
-        // Obtain the previous iteration velocity solution
-        array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
-
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            for (unsigned int comp=0; comp<TDim; comp++)
-            {
-                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
-            }
-        }
-
-        // Compute the consistency coefficient
-        const double h = rData.h; // Characteristic element size
-        const double eff_mu = BaseType::ComputeEffectiveViscosity(rData);
-        const double cons_coef = eff_mu/h;
-
-        // Declare the auxiliar matrices used in the assembly
-        MatrixType auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
-        MatrixType auxLeftHandSideMatrixNoPenetration = ZeroMatrix(MatrixSize, MatrixSize);
-        MatrixType auxLeftHandSideMatrixNoShearStress = ZeroMatrix(MatrixSize, MatrixSize);
-
-        // Compute the normal projection matrix
-        bounded_matrix<double, TDim, TDim> normal_projection_matrix;
-        SetNormalProjectionMatrix(rSplittingData, normal_projection_matrix);
-
-        // Compute the Voigt notation tangential projection matrix
-        bounded_matrix<double, TDim, (TDim-1)*3> voigt_tang_proj_matrix;        // Set the Voigt notation tangential projection matrix
-        SetVoigtTangentialProjectionMatrix2(rSplittingData, voigt_tang_proj_matrix);
-
-        // Compute the constant contribution in the null tangential stress slip requirement
-        // const bounded_matrix<double, TDim, (TDim-1)*3> tensor_C_proj = prod(voigt_tang_proj_matrix, rData.C);
-        // bounded_matrix<double, (TDim-1)*3, TNumNodes*TDim> B_matrix;
-        // SetStrainMatrix(rData, B_matrix);
-        // const bounded_matrix<double, TDim, TNumNodes*TDim> aux_stress_matrix = prod(tensor_C_proj, B_matrix);
-
-        // Compute the penalty LHS contribution
-        for (unsigned int icut = 0; icut<rSplittingData.ncutpoints; icut++)
-        {
-            const double weight = rSplittingData.cut_edge_areas(icut);
-            const VectorType aux_cut = row(rSplittingData.N_container_cut, icut);
-
-            MatrixType shfunc_matrix_vel = ZeroMatrix(TNumNodes*TDim,TDim);
-            // Fill the velocity shape functions matrix
-            for (unsigned int i=0; i<TNumNodes; ++i)
-            {
-                for (unsigned int j=0; j<TDim; ++j)
-                {
-                    shfunc_matrix_vel(i*TDim+j,j) = aux_cut(i);
-                }
-            }
-
-            // No penetration condition penalty contribution computation
-            const bounded_matrix<double, TNumNodes*TDim, TDim> aux_matrix_1 = prod(shfunc_matrix_vel, normal_projection_matrix);
-            const bounded_matrix<double, TNumNodes*TDim, TNumNodes*TDim> aux_matrix_2 = prod(aux_matrix_1, trans(shfunc_matrix_vel));
-
-            // No tangential stres condition penalty contribution computation
-            // const bounded_matrix<double, TNumNodes*TDim, TNumNodes*TDim> aux_matrix_3 = prod(shfunc_matrix_vel, aux_stress_matrix);
-
-            // Assemble the previous contribution
-            for (unsigned int i=0; i<TNumNodes; ++i)
-            {
-                for (unsigned int j=0; j<TNumNodes; ++j)
-                {
-                    for (unsigned int ii=0; ii<TDim; ++ii)
-                    {
-                        for (unsigned int jj=0; jj<TDim; ++jj)
-                        {
-                            auxLeftHandSideMatrixNoPenetration(i*BlockSize+ii,j*BlockSize+jj) += cons_coef*weight*aux_matrix_2(i*TDim+ii,j*TDim+jj);
-                            // auxLeftHandSideMatrixNoShearStress(i*BlockSize+ii,j*BlockSize+jj) += weight*aux_matrix_3(i*TDim+ii,j*TDim+jj);
-                        }
-                    }
-                }
-            }
-        }
-
-        // Add both LHS contributions
-        auxLeftHandSideMatrix = auxLeftHandSideMatrixNoPenetration + auxLeftHandSideMatrixNoShearStress;
-
-        // Multiply the LHS contribution by the penalty coefficient
-        const double pen_coef = ComputePenaltyCoefficient(rLeftHandSideMatrix, rData, rSplittingData);
-        auxLeftHandSideMatrix *= pen_coef;
-
-        // Add the LHS penalty contribution
-        rLeftHandSideMatrix += auxLeftHandSideMatrix;
-
-        // RHS penalty contribution assembly
-        if (this->Has(EMBEDDED_VELOCITY))
-        {
-            const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-            array_1d<double, MatrixSize> aux_embedded_vel = ZeroVector(MatrixSize);
-
-            for (unsigned int i=0; i<TNumNodes; i++)
-            {
-                for (unsigned int comp=0; comp<TDim; comp++)
-                {
-                    aux_embedded_vel(i*BlockSize+comp) = embedded_vel(comp);
-                }
-            }
-
-            rRightHandSideVector += prod(auxLeftHandSideMatrixNoPenetration, aux_embedded_vel);
-        }
-
-        rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol); // Residual contribution assembly
-
-    }
-
-
-    /**
     * This functions adds the level set strong boundary condition imposition contribution.
     * @param rLeftHandSideMatrix: reference to the LHS matrix
     * @param rRightHandSideVector: reference to the RHS vector
@@ -950,14 +813,7 @@ protected:
 
         // Obtain the previous iteration velocity solution
         array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
-
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            for (unsigned int comp=0; comp<TDim; comp++)
-            {
-                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
-            }
-        }
+        GetPreviousSolutionVector(rData, prev_sol);
 
         // Compute the BCs imposition matrices
         MatrixType M_gamma = ZeroMatrix(rSplittingData.n_neg, rSplittingData.n_neg);      // Outside nodes matrix (Nitche contribution)
@@ -1058,557 +914,6 @@ protected:
         }
     }
 
-    /**
-    * This functions adds the level set strong slip boundary no penetration condition imposition.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
-    * @param rSplittingData: reference to the intersection data structure
-    */
-    void AddSlipNoPenetrationNitcheContribution(MatrixType& rLeftHandSideMatrix,
-                                                VectorType& rRightHandSideVector,
-                                                const ElementDataType& rData,
-                                                const ElementSplittingDataStruct& rSplittingData)
-    {
-        constexpr unsigned int BlockSize = TDim+1;                 // Block size
-        constexpr unsigned int MatrixSize = TNumNodes*BlockSize;   // Matrix size
-
-        // Obtain the previous iteration velocity solution
-        array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
-
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            for (unsigned int comp=0; comp<TDim; comp++)
-            {
-                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
-            }
-            prev_sol(i*BlockSize+TDim) = rData.p(i);
-        }
-
-        // Compute the consistency coefficient
-        const double h = rData.h; // Characteristic element size
-        const double eff_mu = BaseType::ComputeEffectiveViscosity(rData);
-        const double cons_coef = eff_mu/h;
-
-        // Compute the normal projection matrix
-        bounded_matrix<double, TDim, TDim> normal_projection_matrix;
-        SetNormalProjectionMatrix(rSplittingData, normal_projection_matrix);
-
-        // Declare auxLeftHandSideNormalMatrix
-        MatrixType auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
-
-        // Compute the no penetration condition contributions
-        for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
-        {
-            const double weight = rSplittingData.cut_edge_areas(icut);
-
-            const VectorType aux_out = row(rSplittingData.N_container_out, icut);
-            const VectorType aux_int = row(rSplittingData.N_container_int, icut);
-
-            MatrixType aux_out_mat = ZeroMatrix(TDim, rSplittingData.n_neg*TDim);
-            MatrixType aux_int_mat = ZeroMatrix(TDim, rSplittingData.n_pos*TDim);
-
-            // Fill the previous auxiliar matrices
-            for (unsigned int i=0; i<TDim; ++i)
-            {
-                for (unsigned int j=0; j<rSplittingData.n_neg; ++j)
-                {
-                    aux_out_mat(i,j*TDim+i) = aux_out(j);
-                }
-            }
-
-            for (unsigned int i=0; i<TDim; ++i)
-            {
-                for (unsigned int j=0; j<rSplittingData.n_pos; ++j)
-                {
-                    aux_int_mat(i,j*TDim+i) = aux_int(j);
-                }
-            }
-
-            const MatrixType aux_matrix = prod(trans(aux_out_mat), normal_projection_matrix);
-            const MatrixType M_gamma_normal = prod(aux_matrix, aux_out_mat);
-            const MatrixType N_gamma_normal = prod(aux_matrix, aux_int_mat);
-
-            // Outer nodes contribution assembly
-            for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
-            {
-                const unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
-
-                for (unsigned int j=0; j<rSplittingData.n_neg; ++j)
-                {
-                    const unsigned int out_node_col_id = rSplittingData.out_vec_identifiers[j];
-
-                    for (unsigned int ii=0; ii<TDim; ++ii)
-                    {
-                        for (unsigned int jj=0; jj<TDim; ++jj)
-                        {
-                            auxLeftHandSideMatrix(out_node_row_id*BlockSize+ii, out_node_col_id*BlockSize+jj) += cons_coef*weight*M_gamma_normal(i*TDim+ii, j*TDim+jj);
-                        }
-                    }
-                }
-            }
-
-            // Interior nodes contribution assembly
-            for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
-            {
-                const unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
-
-                for (unsigned int j=0; j<rSplittingData.n_pos; ++j)
-                {
-                    const unsigned int int_node_col_id = rSplittingData.int_vec_identifiers[j];
-
-                    for (unsigned int ii=0; ii<TDim; ++ii)
-                    {
-                        for (unsigned int jj=0; jj<TDim; ++jj)
-                        {
-                            auxLeftHandSideMatrix(out_node_row_id*BlockSize+ii, int_node_col_id*BlockSize+jj) += cons_coef*weight*N_gamma_normal(i*TDim+ii, j*TDim+jj);
-                        }
-                    }
-                }
-            }
-
-        }
-
-        // LHS outside Nitche contribution assembly
-        rLeftHandSideMatrix += auxLeftHandSideMatrix;
-
-        // RHS outside Nitche contribution assembly
-        // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
-        rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol);
-
-        // Compute f_gamma if level set velocity is not 0
-        if (this->Has(EMBEDDED_VELOCITY))
-        {
-            auxLeftHandSideMatrix.clear();
-
-            const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-            array_1d<double, MatrixSize> aux_embedded_vel = ZeroVector(MatrixSize);
-
-            for (unsigned int i=0; i<TNumNodes; i++)
-            {
-                aux_embedded_vel(i*BlockSize) = embedded_vel(0);
-                aux_embedded_vel(i*BlockSize+1) = embedded_vel(1);
-                aux_embedded_vel(i*BlockSize+2) = embedded_vel(2);
-            }
-
-            // Compute and assemble the level set velocity contribution
-            for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
-            {
-                const double weight = rSplittingData.cut_edge_areas(icut);
-
-                const VectorType aux_out = row(rSplittingData.N_container_out, icut);
-                const VectorType aux_cut = row(rSplittingData.N_container_cut, icut);
-
-                MatrixType aux_out_mat = ZeroMatrix(TDim, rSplittingData.n_neg*TDim);
-                MatrixType aux_cut_mat = ZeroMatrix(TDim, TNumNodes*TDim);
-
-                // Fill the previous auxiliar matrices
-                for (unsigned int i=0; i<TDim; ++i)
-                {
-                    for (unsigned int j=0; j<rSplittingData.n_neg; ++j)
-                    {
-                        aux_out_mat(i,j*TDim+i) = aux_out(j);
-                    }
-                }
-
-                for (unsigned int i=0; i<TDim; ++i)
-                {
-                    for (unsigned int j=0; j<TNumNodes; ++j)
-                    {
-                        aux_cut_mat(i,j*TDim+i) = aux_cut(j);
-                    }
-                }
-
-                const MatrixType aux_matrix = prod(trans(aux_out_mat), normal_projection_matrix);
-                const MatrixType f_gamma_normal = prod(aux_matrix, aux_cut_mat);
-
-                // Asemble the RHS f_gamma contribution
-                for (unsigned int i=0; i<rSplittingData.n_neg; i++)
-                {
-                    unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
-
-                    for (unsigned int j=0; j<TNumNodes; j++)
-                    {
-                        for (unsigned int ii = 0; ii<TDim; ++ii)
-                        {
-                            for (unsigned int jj = 0; jj<TDim; ++jj)
-                            {
-                                auxLeftHandSideMatrix(out_node_row_id*BlockSize+ii, j*BlockSize+jj) -= cons_coef*weight*f_gamma_normal(i*TDim+ii,j*TDim+jj);
-                            }
-                        }
-                    }
-                }
-            }
-
-            rRightHandSideVector += prod(auxLeftHandSideMatrix, aux_embedded_vel);
-        }
-    }
-
-
-    /**
-    * This functions adds the level set strong slip boundary null tangential stress condition imposition.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
-    * @param rSplittingData: reference to the intersection data structure
-    */
-    void AddSlipNoTangentialStressNitcheContribution(MatrixType& rLeftHandSideMatrix,
-                                                     VectorType& rRightHandSideVector,
-                                                     const ElementDataType& rData,
-                                                     const ElementSplittingDataStruct& rSplittingData)
-    {
-        constexpr unsigned int BlockSize = TDim+1;
-        constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
-
-        // Obtain the previous iteration velocity solution
-        array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
-        array_1d<double, TNumNodes*TDim> prev_vel = ZeroVector(TNumNodes*TDim);
-
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            for (unsigned int comp=0; comp<TDim; comp++)
-            {
-                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
-                prev_vel(i*TDim+comp) = rData.v(i,comp);
-            }
-            prev_sol(i*BlockSize+TDim) = rData.p(i);
-        }
-
-        // Compute the effective viscosity with the previous iteration data
-        const double eff_mu = BaseType::ComputeEffectiveViscosity(rData);
-
-        // Declare auxLeftHandSideNormalMatrix
-        MatrixType auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
-
-        bounded_matrix<double, (TDim-1)*3, (TDim-1)*3> voigt_tang_proj_matrix;        // Set the Voigt notation tangential projection matrix
-        SetVoigtTangentialProjectionMatrix(rSplittingData, voigt_tang_proj_matrix);
-
-        MatrixType OuterNodesB_matrix;    // Set outer nodes strain matrix (constant since linear elements are used)
-        SetOuterNodesStrainMatrix(rData, rSplittingData, OuterNodesB_matrix);
-
-        MatrixType InnerNodesB_matrix;    // Set inner nodes strain matrix (constant since linear elements are used)
-        SetInnerNodesStrainMatrix(rData, rSplittingData, InnerNodesB_matrix);
-
-        // Compute the auxiliar matrix that is used in all contributions
-        const bounded_matrix<double, (TDim-1)*3, (TDim-1)*3> aux_matrix_1 = prod(trans(rData.C), voigt_tang_proj_matrix);
-        const MatrixType aux_matrix_2 = prod(trans(OuterNodesB_matrix), aux_matrix_1);
-        const MatrixType aux_matrix_3 = prod(aux_matrix_2, rData.C);
-
-        // Compute the no tangential stress condition contribution matrices
-        const MatrixType Aux_M_gamma_tang = prod(aux_matrix_3, OuterNodesB_matrix);
-        const MatrixType Aux_N_gamma_tang = prod(aux_matrix_3, InnerNodesB_matrix);
-
-        for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
-        {
-            const double weight = rSplittingData.cut_edge_areas(icut);
-
-            // LHS outside nodes null tangential stress contribution assembly
-            // Outer nodes contribution assembly
-            for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
-            {
-                const unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
-
-                for (unsigned int j=0; j<rSplittingData.n_neg; ++j)
-                {
-                    const unsigned int out_node_col_id = rSplittingData.out_vec_identifiers[j];
-
-                    for (unsigned int ii = 0; ii<TDim; ++ii)
-                    {
-                        for (unsigned int jj = 0; jj<TDim; ++jj)
-                        {
-                            auxLeftHandSideMatrix(out_node_row_id*BlockSize+ii, out_node_col_id*BlockSize+jj) += (1/eff_mu)*weight*Aux_M_gamma_tang(i*TDim+ii, j*TDim+jj);
-                        }
-                    }
-                }
-            }
-
-            // Interior nodes contribution assembly
-            for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
-            {
-                const unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
-
-                for (unsigned int j=0; j<rSplittingData.n_pos; ++j)
-                {
-                    const unsigned int int_node_col_id = rSplittingData.int_vec_identifiers[j];
-
-                    for (unsigned int ii = 0; ii<TDim; ++ii)
-                    {
-                        for (unsigned int jj = 0; jj<TDim; ++jj)
-                        {
-                            auxLeftHandSideMatrix(out_node_row_id*BlockSize+ii, int_node_col_id*BlockSize+jj) += (1/eff_mu)*weight*Aux_N_gamma_tang(i*TDim+ii, j*TDim+jj);
-                        }
-                    }
-                }
-            }
-
-            // Pressure contribution assembly
-            // Set the current Gauss pt. pressure to Voigt notation matrix
-            const VectorType aux_cut = row(rSplittingData.N_container_cut, icut);
-            MatrixType press_to_voigt_mat = ZeroMatrix((TDim-1)*3,BlockSize*TNumNodes);
-            for (unsigned int i=0; i<TDim; ++i)
-            {
-                for (unsigned int j=0; j<TNumNodes; ++j)
-                {
-                    press_to_voigt_mat(i,j*BlockSize) = aux_cut(j);
-                }
-            }
-
-            const MatrixType Aux_Pres_gamma_tang = prod(aux_matrix_2, press_to_voigt_mat);
-
-            for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
-            {
-                const unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
-
-                for (unsigned int j=0; j<TNumNodes; ++j)
-                {
-                    for (unsigned int ii = 0; ii<TDim; ++ii)
-                    {
-                        auxLeftHandSideMatrix(out_node_row_id*BlockSize+ii, j*BlockSize) -= weight*Aux_Pres_gamma_tang(i*TDim+ii, j*BlockSize);
-                    }
-                }
-            }
-        }
-
-        // LHS outside Nitche contribution assembly
-        rLeftHandSideMatrix += auxLeftHandSideMatrix;
-
-        // RHS outside Nitche contribution assembly
-        // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
-        rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol);
-
-    }
-
-
-    /**
-    * This functions adds the level set strong slip boundary null tangential stress condition imposition.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
-    * @param rSplittingData: reference to the intersection data structure
-    */
-    void AddSlipNoTangentialStressNitcheContribution2(MatrixType& rLeftHandSideMatrix,
-                                                      VectorType& rRightHandSideVector,
-                                                      const ElementDataType& rData,
-                                                      const ElementSplittingDataStruct& rSplittingData)
-    {
-        constexpr unsigned int BlockSize = TDim+1;
-        constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
-
-        // Obtain the previous iteration velocity solution
-        array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
-        array_1d<double, TNumNodes*TDim> prev_vel = ZeroVector(TNumNodes*TDim);
-
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            for (unsigned int comp=0; comp<TDim; comp++)
-            {
-                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
-                prev_vel(i*TDim+comp) = rData.v(i,comp);
-            }
-            prev_sol(i*BlockSize+TDim) = rData.p(i);
-        }
-
-        // Declare auxLeftHandSideNormalMatrix
-        MatrixType auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
-
-        bounded_matrix<double, TDim, (TDim-1)*3> voigt_tang_proj_matrix;        // Set the Voigt notation tangential projection matrix
-        SetVoigtTangentialProjectionMatrix2(rSplittingData, voigt_tang_proj_matrix);
-
-        MatrixType OuterNodesB_matrix;    // Set outer nodes strain matrix (constant since linear elements are used)
-        SetOuterNodesStrainMatrix(rData, rSplittingData, OuterNodesB_matrix);
-
-        MatrixType InnerNodesB_matrix;    // Set inner nodes strain matrix (constant since linear elements are used)
-        SetInnerNodesStrainMatrix(rData, rSplittingData, InnerNodesB_matrix);
-
-        // Compute the auxiliar matrix that is used in all contributions
-        // const bounded_matrix<double, (TDim-1)*3, (TDim-1)*3> aux_matrix_1 = prod(trans(rData.C), voigt_tang_proj_matrix);
-        const bounded_matrix<double, TDim, (TDim-1)*3> aux_matrix = prod(voigt_tang_proj_matrix, rData.C);
-        const MatrixType aux_matrix_out = prod(aux_matrix, OuterNodesB_matrix);
-        const MatrixType aux_matrix_int = prod(aux_matrix, InnerNodesB_matrix);
-
-        for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
-        {
-            const double weight = rSplittingData.cut_edge_areas(icut);
-
-            const VectorType aux_out = row(rSplittingData.N_container_out, icut);
-            const VectorType aux_cut = row(rSplittingData.N_container_cut, icut);
-
-            MatrixType shfunc_matrix_out = ZeroMatrix(rSplittingData.n_neg*BlockSize, TDim);
-            MatrixType pres_to_voigt_matrix_op = ZeroMatrix((TDim-1)*3, TNumNodes*BlockSize);
-
-            // Fill the test function matrix
-            for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
-            {
-                for (unsigned int comp=0; comp<TDim; ++comp)
-                {
-                    shfunc_matrix_out(i*BlockSize+comp, comp) = aux_out(i);
-                }
-            }
-
-            // Fill the pressure to Voigt notation operator matrix
-            for (unsigned int i=0; i<TNumNodes; ++i)
-            {
-                for (unsigned int comp=0; comp<TDim; ++comp)
-                {
-                    pres_to_voigt_matrix_op(comp,i*BlockSize+TDim) = aux_cut(i);
-                }
-            }
-
-            const bounded_matrix<double, TDim, TNumNodes*BlockSize> voigt_proj_pressure = prod(aux_matrix, pres_to_voigt_matrix_op);
-
-            MatrixType out_nodes_contribution = prod(shfunc_matrix_out, aux_matrix_out);
-            MatrixType int_nodes_contribution = prod(shfunc_matrix_out, aux_matrix_int);
-            MatrixType pressure_contribution  = prod(shfunc_matrix_out, voigt_proj_pressure);
-
-            // LHS outside nodes null tangential stress contribution assembly
-            // Outer nodes contribution assembly
-            for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
-            {
-                const unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
-
-                for (unsigned int j=0; j<rSplittingData.n_neg; ++j)
-                {
-                    const unsigned int out_node_col_id = rSplittingData.out_vec_identifiers[j];
-
-                    for (unsigned int ii = 0; ii<TDim; ++ii)
-                    {
-                        for (unsigned int jj = 0; jj<TDim; ++jj)
-                        {
-                            auxLeftHandSideMatrix(out_node_row_id*BlockSize+ii, out_node_col_id*BlockSize+jj) += weight*out_nodes_contribution(i*BlockSize+ii, j*TDim+jj);
-                        }
-                    }
-                }
-            }
-
-            // Interior nodes contribution assembly
-            for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
-            {
-                const unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
-
-                for (unsigned int j=0; j<rSplittingData.n_pos; ++j)
-                {
-                    const unsigned int int_node_col_id = rSplittingData.int_vec_identifiers[j];
-
-                    for (unsigned int ii = 0; ii<TDim; ++ii)
-                    {
-                        for (unsigned int jj = 0; jj<TDim; ++jj)
-                        {
-                            auxLeftHandSideMatrix(out_node_row_id*BlockSize+ii, int_node_col_id*BlockSize+jj) += weight*int_nodes_contribution(i*BlockSize+ii, j*TDim+jj);
-                        }
-                    }
-                }
-            }
-
-            // Pressure contribution assembly
-            for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
-            {
-                const unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
-
-                for (unsigned int j=0; j<TNumNodes; ++j)
-                {
-                    for (unsigned int ii = 0; ii<TDim; ++ii)
-                    {
-                        auxLeftHandSideMatrix(out_node_row_id*BlockSize+ii, j*BlockSize) -= weight*pressure_contribution(i*BlockSize+ii, j*BlockSize);
-                    }
-                }
-            }
-        }
-
-        // LHS outside Nitche contribution assembly
-        rLeftHandSideMatrix += auxLeftHandSideMatrix;
-
-        // RHS outside Nitche contribution assembly
-        // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
-        rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol);
-
-    }
-
-
-    /**
-    * This functions adds the pressure equations slip level set BC contributions.
-    * The idea is to use the pressure as a Lagrange multiplier for the no penetration condition.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
-    * @param rSplittingData: reference to the intersection data structure
-    */
-    void AddSlipNoPenetrationNitchePressureContribution(MatrixType& rLeftHandSideMatrix,
-                                                        VectorType& rRightHandSideVector,
-                                                        const ElementDataType& rData,
-                                                        const ElementSplittingDataStruct& rSplittingData)
-    {
-        constexpr unsigned int BlockSize = TDim+1;
-        constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
-
-        // Obtain the previous iteration velocity solution
-        array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
-
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            for (unsigned int comp=0; comp<TDim; comp++)
-            {
-                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
-            }
-            prev_sol(i*BlockSize+TDim) = rData.p(i);
-        }
-
-        // Compute the consistency coefficient
-        const double h = rData.h; // Characteristic element size
-        const double eff_mu = BaseType::ComputeEffectiveViscosity(rData);
-        const double cons_coef = eff_mu/h;
-
-        // Declare auxLeftHandSideNormalMatrix
-        MatrixType auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
-
-        for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
-        {
-            const double weight = rSplittingData.cut_edge_areas(icut);
-
-            const VectorType aux_out = row(rSplittingData.N_container_out, icut);
-            const VectorType aux_cut = row(rSplittingData.N_container_cut, icut);
-
-            for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
-            {
-                const unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
-
-                for (unsigned int j=0; j<TNumNodes; ++j)
-                {
-                    for (unsigned int comp=0; comp<TDim; ++comp)
-                    {
-                        auxLeftHandSideMatrix(out_node_row_id*BlockSize+TDim, j*BlockSize+comp) += cons_coef*weight*aux_out(i)*aux_cut(j)*rSplittingData.intersection_normal(comp);
-                    }
-                }
-            }
-        }
-
-        // LHS outside Nitche contribution assembly
-        // rLeftHandSideMatrix += auxLeftHandSideMatrix;
-        rLeftHandSideMatrix -= auxLeftHandSideMatrix;
-
-        // RHS outside Nitche contribution assembly
-        // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
-        rRightHandSideVector += prod(auxLeftHandSideMatrix, prev_sol);
-
-        // If level set velocity is not 0, add its contribution to the RHS
-        if (this->Has(EMBEDDED_VELOCITY))
-        {
-            auxLeftHandSideMatrix.clear();
-
-            const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-            array_1d<double, MatrixSize> aux_embedded_vel = ZeroVector(MatrixSize);
-
-            for (unsigned int i=0; i<TNumNodes; i++)
-            {
-                aux_embedded_vel(i*BlockSize)   = embedded_vel(0);
-                aux_embedded_vel(i*BlockSize+1) = embedded_vel(1);
-                aux_embedded_vel(i*BlockSize+2) = embedded_vel(2);
-            }
-
-            //TODO: Check this! A clear has been done before
-            rRightHandSideVector += prod(auxLeftHandSideMatrix, aux_embedded_vel);
-        }
-    }
-
 
     /**
     * This drops the outer nodes velocity constributions in both LHS and RHS matrices.
@@ -1647,64 +952,23 @@ protected:
 
 
     /**
-    * This drops the outer nodes velocity constributions in both LHS and RHS matrices.
+    * This function adds the Nitsche normal component of the penalty contribution (Winter formulation).
     * @param rLeftHandSideMatrix: reference to the LHS matrix
     * @param rRightHandSideVector: reference to the RHS vector
     * @param rData: reference to element data structure
     * @param rSplittingData: reference to the intersection data structure
     */
-    void DropOuterNodesPressureContribution(MatrixType& rLeftHandSideMatrix,
-                                            VectorType& rRightHandSideVector,
-                                            const ElementDataType& rData,
-                                            const ElementSplittingDataStruct& rSplittingData)
-    {
-        constexpr unsigned int BlockSize = TDim+1;
-        constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
-
-        // Set the LHS and RHS u_out rows to zero (outside nodes used to impose the BC)
-        for (unsigned int i=0; i<rSplittingData.n_neg; ++i)
-        {
-            const unsigned int out_node_row_id = rSplittingData.out_vec_identifiers[i];
-
-            // LHS matrix u_out zero set (note that just the velocity rows are set to 0)
-            for (unsigned int col = 0; col<MatrixSize; col++)
-            {
-                rLeftHandSideMatrix(out_node_row_id*BlockSize+TDim, col) = 0.0;
-            }
-
-            // RHS vector u_out zero set (note that just the velocity rows are set to 0)
-            rRightHandSideVector(out_node_row_id*BlockSize+TDim) = 0.0;
-        }
-
-    }
-
-
-    /**
-    * This function adds the penalty Nitsche term (Freund and Stenberg formulation).
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
-    * @param rSplittingData: reference to the intersection data structure
-    */
-    void AddSlipNoPenetrationFreundNitschePenaltyContribution(MatrixType& rLeftHandSideMatrix,
-                                                              VectorType& rRightHandSideVector,
-                                                              const ElementDataType& rData,
-                                                              const ElementSplittingDataStruct& rSplittingData)
+    void AddSlipWinterNormalPenaltyContribution(MatrixType& rLeftHandSideMatrix,
+                                                VectorType& rRightHandSideVector,
+                                                const ElementDataType& rData,
+                                                const ElementSplittingDataStruct& rSplittingData)
     {
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
         // Obtain the previous iteration velocity solution
         array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
-
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            for (unsigned int comp=0; comp<TDim; comp++)
-            {
-                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
-            }
-            prev_sol(i*BlockSize+TDim) = rData.p(i);
-        }
+        GetPreviousSolutionVector(rData, prev_sol);
 
         // Nitsche coefficient computation
         const double eff_mu = BaseType::ComputeEffectiveViscosity(rData);
@@ -1799,136 +1063,13 @@ protected:
 
 
     /**
-    * This function adds the Nitsche symmetric counterpart of the fluxes (Freund and Stenberg formulation).
+    * This function adds the Nitsche normal component of the symmetric counterpart of the fluxes (Winter formulation).
     * @param rLeftHandSideMatrix: reference to the LHS matrix
     * @param rRightHandSideVector: reference to the RHS vector
     * @param rData: reference to element data structure
     * @param rSplittingData: reference to the intersection data structure
     */
-    void AddSlipNoPenetrationFreundNitscheSymmetricCounterpartContribution(MatrixType& rLeftHandSideMatrix,
-                                                                           VectorType& rRightHandSideVector,
-                                                                           const ElementDataType& rData,
-                                                                           const ElementSplittingDataStruct& rSplittingData)
-    {
-        constexpr unsigned int BlockSize = TDim+1;
-        constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
-
-        // Obtain the previous iteration velocity solution
-        array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
-
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            for (unsigned int comp=0; comp<TDim; comp++)
-            {
-                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
-            }
-            prev_sol(i*BlockSize+TDim) = rData.p(i);
-        }
-
-        // Declare auxiliar arrays
-        array_1d<double, MatrixSize> auxRightHandSideVector = ZeroVector(MatrixSize);
-        bounded_matrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
-
-        // Get the normal projection matrix
-        bounded_matrix<double, TDim, TDim> normal_projection_matrix = ZeroMatrix(TDim, TDim);
-        SetNormalProjectionMatrix(rSplittingData, normal_projection_matrix);
-
-        // Get the normal projection matrix in Voigt notation
-        bounded_matrix<double, TDim, (TDim-1)*3> voigt_normal_projection_matrix = ZeroMatrix(TDim, (TDim-1)*3);
-        SetVoigtNormalProjectionMatrix(rSplittingData, voigt_normal_projection_matrix);
-
-        // Get the strain matrix (constant since linear elements are used)
-        bounded_matrix<double, (TDim-1)*3, TNumNodes*TDim> B_matrix = ZeroMatrix((TDim-1)*3, TNumNodes*TDim);
-        SetStrainMatrix(rData, B_matrix);
-
-        // Expand the B matrix to set 0 in the pressure rows. Besides, transpose it.
-        bounded_matrix<double, MatrixSize, (TDim-1)*3> trans_B_matrix_exp = ZeroMatrix(MatrixSize, (TDim-1)*3);
-        for (unsigned int i=0; i<TNumNodes; ++i)
-        {
-            for (unsigned int j=0; j<TDim; ++j)
-            {
-                for (unsigned int k=0; k<(TDim-1)*3; ++k)
-                {
-                    trans_B_matrix_exp(i*BlockSize+j, k) = B_matrix(k, i*TDim+j);
-                }
-            }
-        }
-
-        // Compute some element constant matrices
-        const bounded_matrix<double, MatrixSize, (TDim-1)*3> aux_matrix_BC = prod(trans_B_matrix_exp, trans(rData.C));
-        const bounded_matrix<double, (TDim-1)*3, TDim> aux_matrix_APnorm = prod(trans(voigt_normal_projection_matrix), normal_projection_matrix);
-        const bounded_matrix<double, MatrixSize, TDim> aux_matrix_BCAPnorm = prod(aux_matrix_BC, aux_matrix_APnorm);
-
-        for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
-        {
-            const double weight = rSplittingData.cut_edge_areas(icut);
-            const VectorType aux_cut = row(rSplittingData.N_container_cut, icut);
-
-            // Fill the pressure to Voigt notation operator matrix
-            bounded_matrix<double, MatrixSize, (TDim-1)*3> trans_pres_to_voigt_matrix_op = ZeroMatrix(MatrixSize, (TDim-1)*3);
-            for (unsigned int i=0; i<TNumNodes; ++i)
-            {
-                for (unsigned int comp=0; comp<TDim; ++comp)
-                {
-                    trans_pres_to_voigt_matrix_op(i*BlockSize+TDim, comp) = aux_cut(i);
-                }
-            }
-
-            // Set the shape functions auxiliar matrix
-            bounded_matrix<double, TDim, MatrixSize> N_aux = ZeroMatrix(TDim, MatrixSize);
-            for (unsigned int i=0; i<TNumNodes; ++i)
-            {
-                for (unsigned int comp=0; comp<TDim; ++comp)
-                {
-                    N_aux(comp,i*BlockSize+comp) = aux_cut(i);
-                }
-            }
-
-            // Contribution coming fron the shear stress operator
-            auxLeftHandSideMatrix += weight*prod(aux_matrix_BCAPnorm, N_aux);
-
-            // Contribution coming from the pressure terms
-            const bounded_matrix<double, MatrixSize, TDim> aux_matrix_VAPnorm = prod(trans_pres_to_voigt_matrix_op, aux_matrix_BCAPnorm);
-            auxLeftHandSideMatrix -= weight*prod(aux_matrix_VAPnorm, N_aux);
-
-        }
-
-        // LHS outside Nitche contribution assembly
-        rLeftHandSideMatrix -= auxLeftHandSideMatrix; // The minus sign comes from the Nitsche formulation
-
-        // RHS outside Nitche contribution assembly
-        // If level set velocity is not 0, add its contribution to the RHS
-        if (this->Has(EMBEDDED_VELOCITY))
-        {
-            const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-            array_1d<double, MatrixSize> embedded_vel_exp = ZeroVector(MatrixSize);
-
-            for (unsigned int i=0; i<TNumNodes; ++i)
-            {
-                for (unsigned int comp=0; comp<TDim; ++comp)
-                {
-                    embedded_vel_exp(i*BlockSize+comp) = embedded_vel(comp);
-                }
-            }
-
-            auxRightHandSideVector += prod(auxLeftHandSideMatrix, embedded_vel_exp);
-        }
-
-        // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
-        rRightHandSideVector -= auxRightHandSideVector;
-        rRightHandSideVector += prod(auxLeftHandSideMatrix, prev_sol);
-
-    }
-
-
-    /**
-    * This function adds the Nitsche symmetric counterpart of the fluxes (Freund and Stenberg formulation).
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
-    * @param rSplittingData: reference to the intersection data structure
-    */
-    void AddSlipWinterSymmetricCounterpartNormalContribution(MatrixType& rLeftHandSideMatrix,
+    void AddSlipWinterNormalSymmetricCounterpartContribution(MatrixType& rLeftHandSideMatrix,
                                                              VectorType& rRightHandSideVector,
                                                              const ElementDataType& rData,
                                                              const ElementSplittingDataStruct& rSplittingData)
@@ -1938,15 +1079,7 @@ protected:
 
         // Obtain the previous iteration velocity solution
         array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
-
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            for (unsigned int comp=0; comp<TDim; comp++)
-            {
-                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
-            }
-            prev_sol(i*BlockSize+TDim) = rData.p(i);
-        }
+        GetPreviousSolutionVector(rData, prev_sol);
 
         // Set if the shear stress term is adjoint consistent (1.0) or not (-1.0)
         const double adjoint_consistency_term = -1.0;
@@ -2048,7 +1181,7 @@ protected:
 
 
     /**
-    * This function adds the Nitsche symmetric counterpart of the fluxes (Freund and Stenberg formulation).
+    * This function adds the Nitsche tangential component of the penalty contribution (Winter formulation).
     * @param rLeftHandSideMatrix: reference to the LHS matrix
     * @param rRightHandSideVector: reference to the RHS vector
     * @param rData: reference to element data structure
@@ -2064,15 +1197,7 @@ protected:
 
         // Obtain the previous iteration velocity solution
         array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
-
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            for (unsigned int comp=0; comp<TDim; comp++)
-            {
-                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
-            }
-            prev_sol(i*BlockSize+TDim) = rData.p(i);
-        }
+        GetPreviousSolutionVector(rData, prev_sol);
 
         // Compute the penalty coefficients
         const double eff_mu = BaseType::ComputeEffectiveViscosity(rData);
@@ -2170,15 +1295,14 @@ protected:
     }
 
 
-
     /**
-    * This function adds the Nitsche symmetric counterpart of the fluxes (Freund and Stenberg formulation).
+    * This function adds the Nitsche tangential component of the symmetric counterpart of the fluxes (Winter formulation).
     * @param rLeftHandSideMatrix: reference to the LHS matrix
     * @param rRightHandSideVector: reference to the RHS vector
     * @param rData: reference to element data structure
     * @param rSplittingData: reference to the intersection data structure
     */
-    void AddSlipWinterSymmetricCounterpartTangentialContribution(MatrixType& rLeftHandSideMatrix,
+    void AddSlipWinterTangentialSymmetricCounterpartContribution(MatrixType& rLeftHandSideMatrix,
                                                                  VectorType& rRightHandSideVector,
                                                                  const ElementDataType& rData,
                                                                  const ElementSplittingDataStruct& rSplittingData)
@@ -2188,15 +1312,7 @@ protected:
 
         // Obtain the previous iteration velocity solution
         array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
-
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            for (unsigned int comp=0; comp<TDim; comp++)
-            {
-                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
-            }
-            prev_sol(i*BlockSize+TDim) = rData.p(i);
-        }
+        GetPreviousSolutionVector(rData, prev_sol);
 
         // Set if the shear stress term is adjoint consistent (1.0) or not (-1.0)
         const double adjoint_consistency_term = -1.0;
@@ -2299,109 +1415,6 @@ protected:
 
 
     /**
-    * This function adds the null tangential stress contribution (Freund and Stenberg formulation).
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
-    * @param rSplittingData: reference to the intersection data structure
-    */
-    void AddSlipFreundNitscheNullTangentialStressContribution(MatrixType& rLeftHandSideMatrix,
-                                                              VectorType& rRightHandSideVector,
-                                                              const ElementDataType& rData,
-                                                              const ElementSplittingDataStruct& rSplittingData)
-    {
-        constexpr unsigned int BlockSize = TDim+1;
-        constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
-
-        // Obtain the previous iteration velocity solution
-        array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
-
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            for (unsigned int comp=0; comp<TDim; comp++)
-            {
-                prev_sol(i*BlockSize+comp) = rData.v(i,comp);
-            }
-            prev_sol(i*BlockSize+TDim) = rData.p(i);
-        }
-
-        // Declare auxiliar arrays
-        bounded_matrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
-
-        // Get the normal projection matrix
-        bounded_matrix<double, TDim, TDim> normal_projection_matrix = ZeroMatrix(TDim, TDim);
-        SetNormalProjectionMatrix(rSplittingData, normal_projection_matrix);
-
-        // Get the normal projection matrix in Voigt notation
-        bounded_matrix<double, TDim, (TDim-1)*3> voigt_normal_projection_matrix = ZeroMatrix(TDim, (TDim-1)*3);
-        SetVoigtNormalProjectionMatrix(rSplittingData, voigt_normal_projection_matrix);
-
-        // Get the strain matrix (constant since linear elements are used)
-        bounded_matrix<double, (TDim-1)*3, TNumNodes*TDim> B_matrix = ZeroMatrix((TDim-1)*3, TNumNodes*TDim);
-        SetStrainMatrix(rData, B_matrix);
-
-        // Expand the B matrix to set 0 in the pressure rows.
-        bounded_matrix<double, (TDim-1)*3, MatrixSize> B_matrix_exp = ZeroMatrix((TDim-1)*3, MatrixSize);
-        for (unsigned int i=0; i<TNumNodes; ++i)
-        {
-            for (unsigned int j=0; j<TDim; ++j)
-            {
-                for (unsigned int k=0; k<(TDim-1)*3; ++k)
-                {
-                    B_matrix_exp(k, i*BlockSize+j) = B_matrix(k, i*TDim+j);
-                }
-            }
-        }
-
-        // Compute some element constant matrices
-        const bounded_matrix<double, TDim, (TDim-1)*3> projection_matrix = prod(normal_projection_matrix, voigt_normal_projection_matrix);
-        const bounded_matrix<double, (TDim-1)*3, MatrixSize> aux_matrix_CB = prod(rData.C, B_matrix_exp);
-        const bounded_matrix<double, TDim, MatrixSize> aux_matrix_PnormACB = prod(projection_matrix, aux_matrix_CB);
-
-        for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
-        {
-            const double weight = rSplittingData.cut_edge_areas(icut);
-            const VectorType aux_cut = row(rSplittingData.N_container_cut, icut);
-
-            // Fill the pressure to Voigt notation operator matrix
-            bounded_matrix<double, (TDim-1)*3, MatrixSize> pres_to_voigt_matrix_op = ZeroMatrix((TDim-1)*3, MatrixSize);
-            for (unsigned int i=0; i<TNumNodes; ++i)
-            {
-                for (unsigned int comp=0; comp<TDim; ++comp)
-                {
-                    pres_to_voigt_matrix_op(comp, i*BlockSize+TDim) = aux_cut(i);
-                }
-            }
-
-            // Set the shape functions auxiliar transpose matrix
-            bounded_matrix<double, MatrixSize, TDim> N_aux_trans = ZeroMatrix(MatrixSize, TDim);
-            for (unsigned int i=0; i<TNumNodes; ++i)
-            {
-                for (unsigned int comp=0; comp<TDim; ++comp)
-                {
-                    N_aux_trans(i*BlockSize+comp, comp) = aux_cut(i);
-                }
-            }
-
-            // Contribution coming fron the shear stress operator
-            auxLeftHandSideMatrix += weight*prod(N_aux_trans, aux_matrix_PnormACB);
-
-            // Contribution coming from the pressure terms
-            const bounded_matrix<double, MatrixSize, (TDim-1)*3> N_aux_proj = prod(N_aux_trans, projection_matrix);
-            auxLeftHandSideMatrix -= weight*prod(N_aux_proj, pres_to_voigt_matrix_op);
-
-        }
-
-        // LHS outside Nitche contribution assembly
-        rLeftHandSideMatrix -= auxLeftHandSideMatrix; // The minus sign comes from the Nitsche formulation
-
-        // RHS outside Nitche contribution assembly
-        rRightHandSideVector += prod(auxLeftHandSideMatrix, prev_sol); // The plus sign comes from the Nitsche formulation
-
-    }
-
-
-    /**
     * This functions collects and adds all the level set boundary condition contributions
     * @param rLeftHandSideMatrix: reference to the LHS matrix
     * @param rRightHandSideVector: reference to the RHS vector
@@ -2410,11 +1423,9 @@ protected:
     */
     void AddBoundaryConditionElementContribution(MatrixType& rLeftHandSideMatrix,
                                                  VectorType& rRightHandSideVector,
-                                                 const array_1d<double,TNumNodes>& rDistances,
                                                  const ElementDataType& rData,
                                                  const ElementSplittingDataStruct& rSplittingData)
     {
-
         // TODO: CREATE A METHOD TO COMPUTE THE PREVIOUS SOLUTION ONCE
 
         // Add all the boundary intersection terms in those elements that are split
@@ -2423,131 +1434,87 @@ protected:
             // Compute and assemble the boundary terms comping from the integration by parts
             AddIntersectionBoundaryTermsContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
 
-            // First, compute and assemble the penalty level set BC imposition contribution
-            // Secondly, compute and assemble the modified Nitche method level set BC imposition contribution
-            // Note that the Nitche contribution has to be computed the last since it drops the outer nodes rows previous constributions
-            if (this->Is(SLIP)) // TODO: Now, all the elements are marked with the SLIP flag. Even though the contribution is only added
+            // Winter Navier-slip condition
+            if (this->Is(SLIP))
             {
-                // Previous implementation and tests
-                // AddSlipBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData); //TODO: Check and decoment this when finished
-                // DropOuterNodesVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
-                // // DropOuterNodesPressureContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
-                // AddSlipNoPenetrationNitcheContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
-                // AddSlipNoTangentialStressNitcheContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData); // Joan and Ramon
-                // // AddSlipNoTangentialStressNitcheContribution2(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);   // Just testing against W
-                // // AddSlipNoPenetrationNitchePressureContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
-
-                // Pure Nitche implementation (Freund and Stenberg)
-                // AddSlipNoPenetrationFreundNitschePenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
-                // AddSlipNoPenetrationFreundNitscheSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
-                // AddSlipFreundNitscheNullTangentialStressContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
-
-                // Winter Navier-slip condition
-                AddSlipNoPenetrationFreundNitschePenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
-                AddSlipWinterSymmetricCounterpartNormalContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
+                AddSlipWinterNormalPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
+                AddSlipWinterNormalSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
                 AddSlipWinterTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
-                AddSlipWinterSymmetricCounterpartTangentialContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
+                AddSlipWinterTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
 
             }
+            // First, compute and assemble the penalty level set BC imposition contribution
+            // Secondly, compute and assemble the modified Nitche method level set BC imposition contribution (Codina and Baiges, 2009)
+            // Note that the Nitche contribution has to be computed the last since it drops the outer nodes rows previous constributions
             else
             {
                 AddBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
                 DropOuterNodesVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
                 AddBoundaryConditionModifiedNitcheContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rSplittingData);
+
+                // TODO: Add slip version
+                // Add a penalty contribution to enforce the BC imposition at the level set when the distance value is close to 0
+                // Note that this is an excepcional case in where there are both positive and negative distance value but the intersection
+                // utility determines that there are no intersections (this might happen if the level set is too close to a node).
+                // else if (rSplittingData.ndivisions == 1)
+                // {
+                //     constexpr unsigned int BlockSize = TDim+1;                 // Block size
+                //     constexpr unsigned int MatrixSize = TNumNodes*BlockSize;   // Matrix size
+                //
+                //     double diag_max = 0.0;
+                //
+                //     for (unsigned int i=0; i<MatrixSize; i++)
+                //     {
+                //         if ((fabs(rLeftHandSideMatrix(i,i)) > diag_max) && ((i+1)%BlockSize != 0))
+                //         {
+                //             diag_max = fabs(rLeftHandSideMatrix(i,i));
+                //         }
+                //     }
+                //
+                //     double tol_d;
+                //
+                //     if (TDim == 2)
+                //     {
+                //         tol_d = 1e-2*sqrt(rData.h);
+                //     }
+                //     else
+                //     {
+                //         tol_d = 1e-2*pow(rData.h, 1.0/3.0);
+                //     }
+                //
+                //     double pen_coef = std::max((diag_max/(0.1*rData.h*rData.h)),(1000*rData.h*rData.h));
+                //
+                //     for (unsigned int i=0; i<TNumNodes; i++)
+                //     {
+                //         if (fabs(rDistances[i])<tol_d)
+                //         {
+                //             // LHS penalty contribution assembly
+                //             for (unsigned int comp=0; comp<TDim; comp++)
+                //             {
+                //                 rLeftHandSideMatrix(i*BlockSize+comp,i*BlockSize+comp) += pen_coef;
+                //             }
+                //
+                //             // RHS penalty contribution assembly
+                //             if (this->Has(EMBEDDED_VELOCITY))
+                //             {
+                //                 const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
+                //                 for (unsigned int comp = 0; comp<TDim; comp++)
+                //                 {
+                //                     rRightHandSideVector(i*BlockSize+comp) += pen_coef*embedded_vel(comp);
+                //                 }
+                //             }
+                //
+                //             // RHS residual contribution assembly
+                //             for (unsigned int comp = 0; comp<TDim; comp++)
+                //             {
+                //                 rRightHandSideVector(i*BlockSize+comp) -= pen_coef*rData.v(i,comp);
+                //             }
+                //         }
+                //     }
+                // }
             }
         }
-        // Add a penalty contribution to enforce the BC imposition at the level set when the distance value is close to 0
-        // Note that this is an excepcional case in where there are both positive and negative distance value but the intersection
-        // utility determines that there are no intersections (this might happen if the level set is too close to a node).
-        // TODO: Add slip version
-        // else if (rSplittingData.ndivisions == 1)
-        // {
-        //     constexpr unsigned int BlockSize = TDim+1;                 // Block size
-        //     constexpr unsigned int MatrixSize = TNumNodes*BlockSize;   // Matrix size
-        //
-        //     double diag_max = 0.0;
-        //
-        //     for (unsigned int i=0; i<MatrixSize; i++)
-        //     {
-        //         if ((fabs(rLeftHandSideMatrix(i,i)) > diag_max) && ((i+1)%BlockSize != 0))
-        //         {
-        //             diag_max = fabs(rLeftHandSideMatrix(i,i));
-        //         }
-        //     }
-        //
-        //     double tol_d;
-        //
-        //     if (TDim == 2)
-        //     {
-        //         tol_d = 1e-2*sqrt(rData.h);
-        //     }
-        //     else
-        //     {
-        //         tol_d = 1e-2*pow(rData.h, 1.0/3.0);
-        //     }
-        //
-        //     double pen_coef = std::max((diag_max/(0.1*rData.h*rData.h)),(1000*rData.h*rData.h));
-        //
-        //     for (unsigned int i=0; i<TNumNodes; i++)
-        //     {
-        //         if (fabs(rDistances[i])<tol_d)
-        //         {
-        //             // LHS penalty contribution assembly
-        //             for (unsigned int comp=0; comp<TDim; comp++)
-        //             {
-        //                 rLeftHandSideMatrix(i*BlockSize+comp,i*BlockSize+comp) += pen_coef;
-        //             }
-        //
-        //             // RHS penalty contribution assembly
-        //             if (this->Has(EMBEDDED_VELOCITY))
-        //             {
-        //                 const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        //                 for (unsigned int comp = 0; comp<TDim; comp++)
-        //                 {
-        //                     rRightHandSideVector(i*BlockSize+comp) += pen_coef*embedded_vel(comp);
-        //                 }
-        //             }
-        //
-        //             // RHS residual contribution assembly
-        //             for (unsigned int comp = 0; comp<TDim; comp++)
-        //             {
-        //                 rRightHandSideVector(i*BlockSize+comp) -= pen_coef*rData.v(i,comp);
-        //             }
-        //         }
-        //     }
-        // }
-    }
 
-
-    /**
-    * This functions sets the intersection normal matrix
-    * @param rIntersection_normal: reference to intersection normal vector
-    * @param rNormal_matrix: reference to the computed intersection normal matrix
-    */
-    void SetNormalMatrix(const VectorType& rIntersection_normal,
-                         bounded_matrix<double, TDim, (TDim-1)*3>& rNormal_matrix)
-    {
-        rNormal_matrix.clear();
-
-        if (TDim == 3)
-        {
-            rNormal_matrix(0,0) = rIntersection_normal(0);
-            rNormal_matrix(0,3) = rIntersection_normal(1);
-            rNormal_matrix(0,5) = rIntersection_normal(2);
-            rNormal_matrix(1,1) = rIntersection_normal(1);
-            rNormal_matrix(1,3) = rIntersection_normal(0);
-            rNormal_matrix(1,4) = rIntersection_normal(2);
-            rNormal_matrix(2,2) = rIntersection_normal(2);
-            rNormal_matrix(2,4) = rIntersection_normal(1);
-            rNormal_matrix(2,5) = rIntersection_normal(0);
-        }
-        else
-        {
-            rNormal_matrix(0,0) = rIntersection_normal(0);
-            rNormal_matrix(0,2) = rIntersection_normal(1);
-            rNormal_matrix(1,1) = rIntersection_normal(1);
-            rNormal_matrix(1,2) = rIntersection_normal(0);
-        }
     }
 
 
@@ -2590,283 +1557,114 @@ protected:
 
 
     /**
-    * This functions sets the B strain matrix for the outer nodes
-    * @param rData: reference to element data structure
+    * This functions sets the normal projection matrix nxn
     * @param rSplittingData: reference to the intersection data structure
-    * @param rOuterNodesB_matrix: reference to the computed B strain matrix
-    */
-    void SetOuterNodesStrainMatrix(const ElementDataType& rData,
-                                   const ElementSplittingDataStruct& rSplittingData,
-                                   MatrixType& rOuterNodesB_matrix)
-    {
-        rOuterNodesB_matrix = ZeroMatrix((TDim-1)*3, rSplittingData.n_neg*TDim);
-
-        if (TDim == 3)
-        {
-            for (unsigned int i=0; i<rSplittingData.n_neg; i++)
-            {
-                const unsigned int out_node_id = rSplittingData.out_vec_identifiers[i];
-
-                rOuterNodesB_matrix(0,i*TDim)   = rData.DN_DX(out_node_id,0);
-                rOuterNodesB_matrix(1,i*TDim+1) = rData.DN_DX(out_node_id,1);
-                rOuterNodesB_matrix(2,i*TDim+2) = rData.DN_DX(out_node_id,2);
-                rOuterNodesB_matrix(3,i*TDim)   = rData.DN_DX(out_node_id,1);
-                rOuterNodesB_matrix(3,i*TDim+1) = rData.DN_DX(out_node_id,0);
-                rOuterNodesB_matrix(4,i*TDim+1) = rData.DN_DX(out_node_id,2);
-                rOuterNodesB_matrix(4,i*TDim+2) = rData.DN_DX(out_node_id,1);
-                rOuterNodesB_matrix(5,i*TDim)   = rData.DN_DX(out_node_id,2);
-                rOuterNodesB_matrix(5,i*TDim+2) = rData.DN_DX(out_node_id,0);
-            }
-        }
-        else
-        {
-            for (unsigned int i=0; i<rSplittingData.n_neg; i++)
-            {
-                const unsigned int out_node_id = rSplittingData.out_vec_identifiers[i];
-
-                rOuterNodesB_matrix(0,i*TDim)   = rData.DN_DX(out_node_id,0);
-                rOuterNodesB_matrix(1,i*TDim+1) = rData.DN_DX(out_node_id,1);
-                rOuterNodesB_matrix(2,i*TDim)   = rData.DN_DX(out_node_id,1);
-                rOuterNodesB_matrix(2,i*TDim+1) = rData.DN_DX(out_node_id,0);
-            }
-        }
-    }
-
-
-    /**
-    * This functions sets the B strain matrix for the inner nodes
-    * @param rData: reference to element data structure
-    * @param rSplittingData: reference to the intersection data structure
-    * @param rInnerNodesB_matrix: reference to the computed B strain matrix
-    */
-    void SetInnerNodesStrainMatrix(const ElementDataType& rData,
-                                   const ElementSplittingDataStruct& rSplittingData,
-                                   MatrixType& rInnerNodesB_matrix)
-    {
-        rInnerNodesB_matrix = ZeroMatrix((TDim-1)*3, rSplittingData.n_pos*TDim);
-
-        if (TDim == 3)
-        {
-            for (unsigned int i=0; i<rSplittingData.n_pos; i++)
-            {
-                const unsigned int int_node_id = rSplittingData.int_vec_identifiers[i];
-
-                rInnerNodesB_matrix(0,i*TDim)   = rData.DN_DX(int_node_id,0);
-                rInnerNodesB_matrix(1,i*TDim+1) = rData.DN_DX(int_node_id,1);
-                rInnerNodesB_matrix(2,i*TDim+2) = rData.DN_DX(int_node_id,2);
-                rInnerNodesB_matrix(3,i*TDim)   = rData.DN_DX(int_node_id,1);
-                rInnerNodesB_matrix(3,i*TDim+1) = rData.DN_DX(int_node_id,0);
-                rInnerNodesB_matrix(4,i*TDim+1) = rData.DN_DX(int_node_id,2);
-                rInnerNodesB_matrix(4,i*TDim+2) = rData.DN_DX(int_node_id,1);
-                rInnerNodesB_matrix(5,i*TDim)   = rData.DN_DX(int_node_id,2);
-                rInnerNodesB_matrix(5,i*TDim+2) = rData.DN_DX(int_node_id,0);
-            }
-        }
-        else
-        {
-            for (unsigned int i=0; i<rSplittingData.n_pos; i++)
-            {
-                const unsigned int int_node_id = rSplittingData.int_vec_identifiers[i];
-
-                rInnerNodesB_matrix(0,i*TDim)   = rData.DN_DX(int_node_id,0);
-                rInnerNodesB_matrix(1,i*TDim+1) = rData.DN_DX(int_node_id,1);
-                rInnerNodesB_matrix(2,i*TDim)   = rData.DN_DX(int_node_id,1);
-                rInnerNodesB_matrix(2,i*TDim+1) = rData.DN_DX(int_node_id,0);
-            }
-        }
-    }
-
-    /**
-    * This functions sets the auxiliar matrix to compute the tangential projection in Voigt notation
-    * @param rSplittingData: reference to the intersection data structure
-    * @param rVoigtTangProj_matrix: reference to the computed tangential projection auxiliar matrix
+    * @param rNormProjMatrix: reference to the computed normal projection matrix
     */
     void SetNormalProjectionMatrix(const ElementSplittingDataStruct& rSplittingData,
-                                   bounded_matrix<double, TDim, TDim>& rNormProj_matrix)
+                                   bounded_matrix<double, TDim, TDim>& rNormProjMatrix)
     {
-        rNormProj_matrix.clear();
+        rNormProjMatrix.clear();
 
         if (TDim == 3)
         {
             // Fill the normal projection matrix (nxn)
-            noalias(rNormProj_matrix) = outer_prod(rSplittingData.intersection_normal, rSplittingData.intersection_normal);
+            noalias(rNormProjMatrix) = outer_prod(rSplittingData.intersection_normal, rSplittingData.intersection_normal);
         }
         else
         {
             // Fill the normal projection matrix (nxn)
-            rNormProj_matrix(0,0) = rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(0);
-            rNormProj_matrix(0,1) = rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(1);
-            rNormProj_matrix(1,0) = rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(0);
-            rNormProj_matrix(1,1) = rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(1);
+            rNormProjMatrix(0,0) = rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(0);
+            rNormProjMatrix(0,1) = rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(1);
+            rNormProjMatrix(1,0) = rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(0);
+            rNormProjMatrix(1,1) = rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(1);
         }
     }
 
+
     /**
-    * This functions sets the auxiliar matrix to compute the tangential projection in Voigt notation
+    * This functions sets the tangential projection matrix I - nxn
     * @param rSplittingData: reference to the intersection data structure
-    * @param rVoigtTangProj_matrix: reference to the computed tangential projection auxiliar matrix
+    * @param rTangProjMatrix: reference to the computed tangential projection matrix
     */
     void SetTangentialProjectionMatrix(const ElementSplittingDataStruct& rSplittingData,
-                                       bounded_matrix<double, TDim, TDim>& rTangProj_matrix)
+                                       bounded_matrix<double, TDim, TDim>& rTangProjMatrix)
     {
-        rTangProj_matrix.clear();
+        rTangProjMatrix.clear();
 
         if (TDim == 3)
         {
             // Fill the normal projection matrix (nxn)
             identity_matrix<double> id_matrix(TDim);
-            noalias(rTangProj_matrix) = id_matrix - outer_prod(rSplittingData.intersection_normal, rSplittingData.intersection_normal);
+            noalias(rTangProjMatrix) = id_matrix - outer_prod(rSplittingData.intersection_normal, rSplittingData.intersection_normal);
         }
         else
         {
             // Fill the normal projection matrix (nxn)
-            rTangProj_matrix(0,0) = 1.0 - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(0);
-            rTangProj_matrix(0,1) = - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(1);
-            rTangProj_matrix(1,0) = - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(0);
-            rTangProj_matrix(1,1) = 1.0 - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(1);
+            rTangProjMatrix(0,0) = 1.0 - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(0);
+            rTangProjMatrix(0,1) = - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(1);
+            rTangProjMatrix(1,0) = - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(0);
+            rTangProjMatrix(1,1) = 1.0 - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(1);
         }
     }
+
 
     /**
     * This functions sets the auxiliar matrix to compute the tangential projection in Voigt notation
     * @param rSplittingData: reference to the intersection data structure
-    * @param rVoigtTangProj_matrix: reference to the computed tangential projection auxiliar matrix
+    * @param rVoigtNormProjMatrix: reference to the computed tangential projection auxiliar matrix
     */
     void SetVoigtNormalProjectionMatrix(const ElementSplittingDataStruct& rSplittingData,
-                                        bounded_matrix<double, TDim, (TDim-1)*3>& rVoigtNormProj_matrix)
+                                        bounded_matrix<double, TDim, (TDim-1)*3>& rVoigtNormProjMatrix)
     {
-        rVoigtNormProj_matrix.clear();
+        rVoigtNormProjMatrix.clear();
 
         if (TDim == 3)
         {
             // Fill the normal projection matrix for Voigt notation
-            rVoigtNormProj_matrix(0,0) = rSplittingData.intersection_normal(0);
-            rVoigtNormProj_matrix(0,3) = rSplittingData.intersection_normal(1);
-            rVoigtNormProj_matrix(0,5) = rSplittingData.intersection_normal(2);
-            rVoigtNormProj_matrix(1,1) = rSplittingData.intersection_normal(1);
-            rVoigtNormProj_matrix(1,3) = rSplittingData.intersection_normal(0);
-            rVoigtNormProj_matrix(1,4) = rSplittingData.intersection_normal(2);
-            rVoigtNormProj_matrix(2,2) = rSplittingData.intersection_normal(2);
-            rVoigtNormProj_matrix(2,4) = rSplittingData.intersection_normal(1);
-            rVoigtNormProj_matrix(2,5) = rSplittingData.intersection_normal(0);
+            rVoigtNormProjMatrix(0,0) = rSplittingData.intersection_normal(0);
+            rVoigtNormProjMatrix(0,3) = rSplittingData.intersection_normal(1);
+            rVoigtNormProjMatrix(0,5) = rSplittingData.intersection_normal(2);
+            rVoigtNormProjMatrix(1,1) = rSplittingData.intersection_normal(1);
+            rVoigtNormProjMatrix(1,3) = rSplittingData.intersection_normal(0);
+            rVoigtNormProjMatrix(1,4) = rSplittingData.intersection_normal(2);
+            rVoigtNormProjMatrix(2,2) = rSplittingData.intersection_normal(2);
+            rVoigtNormProjMatrix(2,4) = rSplittingData.intersection_normal(1);
+            rVoigtNormProjMatrix(2,5) = rSplittingData.intersection_normal(0);
         }
         else
         {
             // Fill the noromal projection matrix for Voigt notation
-            rVoigtNormProj_matrix(0,0) = rSplittingData.intersection_normal(0);
-            rVoigtNormProj_matrix(0,2) = rSplittingData.intersection_normal(1);
-            rVoigtNormProj_matrix(1,1) = rSplittingData.intersection_normal(1);
-            rVoigtNormProj_matrix(1,2) = rSplittingData.intersection_normal(0);
+            rVoigtNormProjMatrix(0,0) = rSplittingData.intersection_normal(0);
+            rVoigtNormProjMatrix(0,2) = rSplittingData.intersection_normal(1);
+            rVoigtNormProjMatrix(1,1) = rSplittingData.intersection_normal(1);
+            rVoigtNormProjMatrix(1,2) = rSplittingData.intersection_normal(0);
 
         }
     }
+
 
     /**
     * This functions sets the auxiliar matrix to compute the tangential projection in Voigt notation
-    * @param rSplittingData: reference to the intersection data structure
-    * @param rVoigtTangProj_matrix: reference to the computed tangential projection auxiliar matrix
+    * @param rData: reference to the element data structure
+    * @param rPrevSolVector: reference to the previous solution vector
     */
-    void SetVoigtTangentialProjectionMatrix(const ElementSplittingDataStruct& rSplittingData,
-                                            bounded_matrix<double, (TDim-1)*3, (TDim-1)*3>& rVoigtTangProj_matrix)
+    void GetPreviousSolutionVector(const ElementDataType& rData,
+                                   array_1d<double, TNumNodes*(TDim+1)>& rPrevSolVector)
     {
-        rVoigtTangProj_matrix.clear();
+        rPrevSolVector.clear();
 
-        bounded_matrix<double, TDim, TDim> tang_vector_matrix;
-        bounded_matrix<double, TDim, (TDim-1)*3> voigt_normal_projection_matrix;
-
-        if (TDim == 3)
+        for (unsigned int i=0; i<TNumNodes; i++)
         {
-            // Fill the tangential projection matrix (I-nxn)
-            const bounded_matrix<double, TDim, TDim> norm_vector_matrix = outer_prod(rSplittingData.intersection_normal,
-                                                                                     rSplittingData.intersection_normal);
-            tang_vector_matrix.clear();
-            for (unsigned int i=0; i<TDim; ++i) {tang_vector_matrix(i,i) = 1.0;}
-            tang_vector_matrix -= norm_vector_matrix;
-
-            // Fill the Voigt notation normal projection matrix
-            voigt_normal_projection_matrix.clear();
-            voigt_normal_projection_matrix(0,0) = rSplittingData.intersection_normal(0);
-            voigt_normal_projection_matrix(0,3) = rSplittingData.intersection_normal(1);
-            voigt_normal_projection_matrix(0,5) = rSplittingData.intersection_normal(2);
-            voigt_normal_projection_matrix(1,1) = rSplittingData.intersection_normal(1);
-            voigt_normal_projection_matrix(1,3) = rSplittingData.intersection_normal(0);
-            voigt_normal_projection_matrix(1,4) = rSplittingData.intersection_normal(2);
-            voigt_normal_projection_matrix(2,2) = rSplittingData.intersection_normal(2);
-            voigt_normal_projection_matrix(2,4) = rSplittingData.intersection_normal(1);
-            voigt_normal_projection_matrix(2,5) = rSplittingData.intersection_normal(0);
-        }
-        else
-        {
-            // Fill the tangential projection matrix (I-nxn)
-            tang_vector_matrix(0,0) = 1.0 - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(0);
-            tang_vector_matrix(0,1) =     - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(1);
-            tang_vector_matrix(1,0) =     - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(0);
-            tang_vector_matrix(1,1) = 1.0 - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(1);
-
-            // Fill the Voigt notation normal projection matrix
-            voigt_normal_projection_matrix.clear();
-            voigt_normal_projection_matrix(0,0) = rSplittingData.intersection_normal(0);
-            voigt_normal_projection_matrix(0,2) = rSplittingData.intersection_normal(1);
-            voigt_normal_projection_matrix(1,1) = rSplittingData.intersection_normal(1);
-            voigt_normal_projection_matrix(1,2) = rSplittingData.intersection_normal(0);
+            for (unsigned int comp=0; comp<TDim; comp++)
+            {
+                rPrevSolVector(i*(TDim+1)+comp) = rData.v(i,comp);
+            }
+            rPrevSolVector(i*(TDim+1)+TDim) = rData.p(i);
         }
 
-        const bounded_matrix<double, TDim, (TDim-1)*3> aux_proj_voigt = prod(tang_vector_matrix, voigt_normal_projection_matrix);
-        rVoigtTangProj_matrix = prod(trans(voigt_normal_projection_matrix), aux_proj_voigt);
     }
 
-    /**
-    * This functions sets the auxiliar matrix to compute the tangential projection in Voigt notation
-    * @param rSplittingData: reference to the intersection data structure
-    * @param rVoigtTangProj_matrix: reference to the computed tangential projection auxiliar matrix
-    */
-    void SetVoigtTangentialProjectionMatrix2(const ElementSplittingDataStruct& rSplittingData,
-                                             bounded_matrix<double, TDim, (TDim-1)*3>& rVoigtTangProj_matrix)
-    {
-        rVoigtTangProj_matrix.clear();
-
-        bounded_matrix<double, TDim, TDim> tang_vector_matrix;
-        bounded_matrix<double, TDim, (TDim-1)*3> voigt_normal_projection_matrix;
-
-        if (TDim == 3)
-        {
-            // Fill the tangential projection matrix (I-nxn)
-            const bounded_matrix<double, TDim, TDim> norm_vector_matrix = outer_prod(rSplittingData.intersection_normal,
-                                                                                     rSplittingData.intersection_normal);
-            tang_vector_matrix.clear();
-            for (unsigned int i=0; i<TDim; ++i) {tang_vector_matrix(i,i) = 1.0;}
-            tang_vector_matrix -= norm_vector_matrix;
-
-            // Fill the Voigt notation normal projection matrix
-            voigt_normal_projection_matrix.clear();
-            voigt_normal_projection_matrix(0,0) = rSplittingData.intersection_normal(0);
-            voigt_normal_projection_matrix(0,3) = rSplittingData.intersection_normal(1);
-            voigt_normal_projection_matrix(0,5) = rSplittingData.intersection_normal(2);
-            voigt_normal_projection_matrix(1,1) = rSplittingData.intersection_normal(1);
-            voigt_normal_projection_matrix(1,3) = rSplittingData.intersection_normal(0);
-            voigt_normal_projection_matrix(1,4) = rSplittingData.intersection_normal(2);
-            voigt_normal_projection_matrix(2,2) = rSplittingData.intersection_normal(2);
-            voigt_normal_projection_matrix(2,4) = rSplittingData.intersection_normal(1);
-            voigt_normal_projection_matrix(2,5) = rSplittingData.intersection_normal(0);
-        }
-        else
-        {
-            // Fill the tangential projection matrix (I-nxn)
-            tang_vector_matrix(0,0) = 1.0 - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(0);
-            tang_vector_matrix(0,1) =     - rSplittingData.intersection_normal(0)*rSplittingData.intersection_normal(1);
-            tang_vector_matrix(1,0) =     - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(0);
-            tang_vector_matrix(1,1) = 1.0 - rSplittingData.intersection_normal(1)*rSplittingData.intersection_normal(1);
-
-            // Fill the Voigt notation normal projection matrix
-            voigt_normal_projection_matrix.clear();
-            voigt_normal_projection_matrix(0,0) = rSplittingData.intersection_normal(0);
-            voigt_normal_projection_matrix(0,2) = rSplittingData.intersection_normal(1);
-            voigt_normal_projection_matrix(1,1) = rSplittingData.intersection_normal(1);
-            voigt_normal_projection_matrix(1,2) = rSplittingData.intersection_normal(0);
-        }
-
-        rVoigtTangProj_matrix = prod(tang_vector_matrix, voigt_normal_projection_matrix);
-    }
 
     ///@}
     ///@name Protected  Access
