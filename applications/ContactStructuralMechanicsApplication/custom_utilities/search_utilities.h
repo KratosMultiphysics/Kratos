@@ -102,7 +102,8 @@ public:
         const array_1d<double, 3> & ContactNormal2, // MASTER
         const double ActiveCheckLength,
         const bool DualCheck = false, 
-        const bool StrictCheck = true 
+        const bool StrictCheck = true,
+        const bool FilterCandidates = true
         )
     {
         // Define the basic information
@@ -112,70 +113,70 @@ public:
         GeometryType& geom_1 = pCond1->GetGeometry(); // SLAVE
         GeometryType& geom_2 = pCond2->GetGeometry(); // MASTER
         
-        // LEGACY WAY
-        const bool condition_is_active = CheckGeometryNodes( geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
-        
-        // If condition is active we add
-        if (condition_is_active == true)
+        if (FilterCandidates == false)
         {
-            ConditionPointers->AddNewCondition(pCond2);
+            // LEGACY WAY
+            const bool condition_is_active = CheckGeometryNodes( geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
+            
+            // If condition is active we add
+            if (condition_is_active == true)
+            {
+                ConditionPointers->AddNewCondition(pCond2);
+            }
         }
-        
-//         // Initialize variables
-//         bool condition_is_active = false;
-//         const unsigned int dimension  = geom_1.WorkingSpaceDimension();
-//         const unsigned int number_of_nodes = geom_1.size();
-//         
-//         if (dimension == 2 && number_of_nodes == 2)
-//         {
-//             ExactMortarIntegrationUtility<2, 2> IntUtil = ExactMortarIntegrationUtility<2, 2>();
-//             std::vector<array_1d<PointType,2>> conditions_points_slave;
-//             condition_is_active = IntUtil.GetExactIntegration(geom_1, ContactNormal1, geom_2, ContactNormal2, conditions_points_slave);
-//             
-//             if (condition_is_active == true)
-//             {
-//                 condition_is_active = CheckPointsInside<2>(conditions_points_slave, geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
-//             }
-//         }
-//         else if (dimension == 3 && number_of_nodes == 3)
-//         {
-//             ExactMortarIntegrationUtility<3, 3> IntUtil = ExactMortarIntegrationUtility<3, 3>();
-//             std::vector<array_1d<PointType,3>> conditions_points_slave;
-//             condition_is_active = IntUtil.GetExactIntegration(geom_1, ContactNormal1, geom_2, ContactNormal2, conditions_points_slave);
-//             
-//             if (condition_is_active == true)
-//             {
-//                 condition_is_active = CheckPointsInside<3>(conditions_points_slave, geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
-//             }
-//         }
-//         else if (dimension == 3 && number_of_nodes == 4)
-//         {
-//             ExactMortarIntegrationUtility<3, 4> IntUtil = ExactMortarIntegrationUtility<3, 4>();
-//             std::vector<array_1d<PointType,3>> conditions_points_slave;
-//             condition_is_active = IntUtil.GetExactIntegration(geom_1, ContactNormal1, geom_2, ContactNormal2, conditions_points_slave);
-//             
-//             if (condition_is_active == true)
-//             {
-//                 condition_is_active = CheckPointsInside<3>(conditions_points_slave, geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
-//             }
-//         }
-//         else
-//         {
-//             KRATOS_ERROR << "INTEGRATION NOT IMPLEMENTED" << std::endl;
-//         }
-//         
-//         // FIXME: Solve this!!!
-// //         const bool test = CheckGeometryNodes( geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
-// //         
-// //         std::cout << pCond1->Id() << " " << pCond2->Id() << " " << condition_is_active << " " << test << std::endl;
-//         
-//         // If condition is active we add
-//         if (condition_is_active == true)
-//         {
-//             CheckGeometryNodes( geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
-//             
-//             ConditionPointers->AddNewCondition(pCond2);
-//         }
+        else
+        {
+            // Initialize variables
+            bool condition_is_active = false;
+            const unsigned int dimension  = geom_1.WorkingSpaceDimension();
+            const unsigned int number_of_nodes = geom_1.size();
+            
+            if (dimension == 2 && number_of_nodes == 2)
+            {
+                ExactMortarIntegrationUtility<2, 2> IntUtil = ExactMortarIntegrationUtility<2, 2>();
+                std::vector<array_1d<PointType,2>> conditions_points_slave;
+                condition_is_active = IntUtil.GetExactIntegration(geom_1, ContactNormal1, geom_2, ContactNormal2, conditions_points_slave);
+                
+                if (condition_is_active == true)
+                {
+                    condition_is_active = CheckPointsInside<2>(conditions_points_slave, geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
+                }
+            }
+            else if (dimension == 3 && number_of_nodes == 3)
+            {
+                ExactMortarIntegrationUtility<3, 3> IntUtil = ExactMortarIntegrationUtility<3, 3>();
+                std::vector<array_1d<PointType,3>> conditions_points_slave;
+                condition_is_active = IntUtil.GetExactIntegration(geom_1, ContactNormal1, geom_2, ContactNormal2, conditions_points_slave);
+                
+                if (condition_is_active == true)
+                {
+                    condition_is_active = CheckPointsInside<3>(conditions_points_slave, geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
+                }
+            }
+            else if (dimension == 3 && number_of_nodes == 4)
+            {
+                ExactMortarIntegrationUtility<3, 4> IntUtil = ExactMortarIntegrationUtility<3, 4>();
+                std::vector<array_1d<PointType,3>> conditions_points_slave;
+                condition_is_active = IntUtil.GetExactIntegration(geom_1, ContactNormal1, geom_2, ContactNormal2, conditions_points_slave);
+                
+                if (condition_is_active == true)
+                {
+                    condition_is_active = CheckPointsInside<3>(conditions_points_slave, geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
+                }
+            }
+            else
+            {
+                KRATOS_ERROR << "INTEGRATION NOT IMPLEMENTED" << std::endl;
+            }
+            
+            // If condition is active we add
+            if (condition_is_active == true)
+            {
+                CheckGeometryNodes( geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
+                
+                ConditionPointers->AddNewCondition(pCond2);
+            }
+        }
     }
     
 protected:

@@ -118,7 +118,8 @@ public:
             "type_search"                          : "InRadius", 
             "active_check_factor"                  : 0.01,
             "dual_search_check"                    : false,
-            "strict_search_check"                  : true
+            "strict_search_check"                  : true,
+            "filter_candidates"                    : true
         })" );
         
         ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
@@ -128,6 +129,7 @@ public:
         mActiveCheckFactor = ThisParameters["active_check_factor"].GetDouble();
         mDualSearchCheck = ThisParameters["dual_search_check"].GetBool();
         mStrictSearchCheck = ThisParameters["strict_search_check"].GetBool();
+        mFilterCandidates = ThisParameters["filter_candidates"].GetBool();
         mSearchTreeType = ConvertSearchTree(ThisParameters["type_search"].GetString());
         mBucketSize = ThisParameters["bucket_size"].GetInt();
         
@@ -422,7 +424,7 @@ public:
                             if (ConditionCheckedRight == true)
                             {    
                                 // If not active we check if can be potentially in contact
-                                SearchUtilities::ContactContainerFiller(ConditionPointersDestination, (*itCond.base()), pCondOrigin, itCond->GetValue(NORMAL), pCondOrigin->GetValue(NORMAL), mActiveCheckFactor, mDualSearchCheck, mStrictSearchCheck); 
+                                SearchUtilities::ContactContainerFiller(ConditionPointersDestination, (*itCond.base()), pCondOrigin, itCond->GetValue(NORMAL), pCondOrigin->GetValue(NORMAL), mActiveCheckFactor, mDualSearchCheck, mStrictSearchCheck, mFilterCandidates); 
                             }
                             
                             if (ConditionPointersDestination->size() > 0)
@@ -689,6 +691,7 @@ private:
     double mActiveCheckFactor;                // The check factor to be considered
     bool mDualSearchCheck;                    // The search is done reciprocally
     bool mStrictSearchCheck;                  // The search is done requiring IsInside as true
+    bool mFilterCandidates;                   // The search filter the results with th exact integration
     SearchTreeType mSearchTreeType;           // The search tree considered
     unsigned int mBucketSize;                 // Bucket size for kd-tree
     PointVector mPointListDestination;        // A list that contents the all the points (from nodes) from the modelpart 
