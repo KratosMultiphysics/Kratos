@@ -38,9 +38,13 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                 structural_computational_model_part.AddNode(node,0)
             for elem in part.Elements:
                 structural_computational_model_part.AddElement(elem,0)
-            
+                
+        #do some gymnastics to have this done fast. - create an ordered list to be added
+        list_of_ids_cond = set()
         for part in processes_parts:
             for cond in part.Conditions:
-                structural_computational_model_part.AddCondition(cond,0)  
+                list_of_ids_cond.add(cond.Id)
+            
+        structural_computational_model_part.AddConditions(list(list_of_ids_cond))
                 
         print(structural_computational_model_part)
