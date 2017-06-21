@@ -44,10 +44,13 @@ class PartitionedFSIBaseSolver:
         {
         "structure_solver_settings":
             {
-            "solver_type": "solid_mechanics_implicit_dynamic_solver",
+            "solver_type": "structural_mechanics_implicit_dynamic_solver",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
+            },
+            "material_import_settings" :{
+                "materials_filename": "materials.json"
             },
             "echo_level": 0,
             "time_integration_method": "Implicit",
