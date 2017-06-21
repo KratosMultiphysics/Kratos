@@ -181,10 +181,10 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             reference_strain[5] = 2.0*Etensor[0,2]
             
         for elem in mp.Elements:
-            out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_TENSOR, mp.ProcessInfo)
+            out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_VECTOR, mp.ProcessInfo)
             for strain in out:
                 for i in range(len(reference_strain)):
-                    self.assertAlmostEqual(reference_strain[i], strain[0,i])
+                    self.assertAlmostEqual(reference_strain[i], strain[i])
                     
         #finally compute stress
         if(dim == 2):
@@ -210,10 +210,10 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             reference_stress[5] = c4*reference_strain[5]
             
         for elem in mp.Elements:
-            out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.PK2_STRESS_TENSOR, mp.ProcessInfo)
+            out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.PK2_STRESS_VECTOR, mp.ProcessInfo)
             for stress in out:
                 for i in range(len(reference_stress)):
-                    self.assertAlmostEqual(reference_stress[i], stress[0,i],2)        
+                    self.assertAlmostEqual(reference_stress[i], stress[i],2)        
         
         
 

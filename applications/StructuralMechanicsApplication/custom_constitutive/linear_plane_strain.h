@@ -144,6 +144,7 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
+    
     void CalculateElasticMatrix(Matrix& C, const double E, const double NU)
     {
         const double c0 = E / ((1.00 + NU)*(1-2*NU));
@@ -174,6 +175,21 @@ private:
         StressVector[1] = c1*StrainVector[1] + c2 * (StrainVector[0])	;
         StressVector[2] = c3*StrainVector[2];
 
+    }
+    
+    void CalculateStrain(
+        Parameters& rValues, 
+        Vector& StrainVector
+        )
+    {
+        //1.-Compute total deformation gradient
+        const Matrix& F = rValues.GetDeformationGradientF();
+        
+        Matrix Etensor = prod(trans(F),F);
+        Etensor -= IdentityMatrix(2,2);
+        Etensor *= 0.5;
+        
+        noalias(StrainVector) = MathUtils<double>::StrainTensorToVector(Etensor);
     }
 
 

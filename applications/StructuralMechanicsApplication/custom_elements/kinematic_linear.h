@@ -95,19 +95,6 @@ public:
      */
     //TODO: ADD THE OTHER CREATE FUNCTION
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
-
-    /**
-     * Calculate a Matrix Variable on the Element Constitutive Law
-     * @param rVariable: The variable we want to get
-     * @param rOutput: The values obtained int the integration points
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateOnIntegrationPoints(
-        const Variable<Matrix >& rVariable, 
-        std::vector< Matrix >& rOutput, 
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
     
     /**
      * This function provides the place to perform checks on the completeness of the input.
@@ -159,9 +146,12 @@ protected:
     }
 
     /**
-     * Calculates the elemental contributions
-     * \f$ K^e = w\,B^T\,D\,B \f$ and
-     * \f$ r^e \f$
+     * This functions calculates both the RHS and the LHS
+     * @param rLeftHandSideMatrix: The LHS
+     * @param rRightHandSideVector: The RHS
+     * @param rCurrentProcessInfo: The current process info instance
+     * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
+     * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
      */
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix, 
@@ -170,6 +160,22 @@ protected:
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
+    
+    /**
+     * This functions updates the kinematics variables
+     * @param rThisKinematicVariables: The kinematic variables to be calculated 
+     * @param rValues: The CL parameters
+     * @param PointNumber: The integration point considered
+     * @param Displacements: The displacements vector
+     */ 
+    void UpdateKinematics(
+        KinematicVariables& rThisKinematicVariables, 
+        ConstitutiveLaw::Parameters& rValues,
+        const unsigned int PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const Vector Displacements
+        ) override;
+        
 
     /**
      * Calculation of the Deformation Matrix B

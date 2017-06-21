@@ -174,6 +174,21 @@ private:
         StressVector[2] = c3*StrainVector[2];
 
     }
+    
+    void CalculateStrain(
+        Parameters& rValues, 
+        Vector& StrainVector
+        )
+    {
+        //1.-Compute total deformation gradient
+        const Matrix& F = rValues.GetDeformationGradientF();
+        
+        Matrix Etensor = prod(trans(F),F);
+        Etensor -= IdentityMatrix(2,2);
+        Etensor *= 0.5;
+        
+        noalias(StrainVector) = MathUtils<double>::StrainTensorToVector(Etensor);
+    }
 
 
     ///@}
