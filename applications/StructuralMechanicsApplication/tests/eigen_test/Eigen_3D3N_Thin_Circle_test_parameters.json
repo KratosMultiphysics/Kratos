@@ -19,6 +19,9 @@
             "input_filename"   : "eigen_test/Eigen_3D3N_Thin_Circle_test",
             "input_file_label" : 0
         },
+        "material_import_settings" :{
+            "materials_filename": "eigen_test/Eigen_3D3N_Thin_Circle_test_materials.json"
+        },
         "eigensolver_settings":{
             "solver_type": "FEAST",
             "print_feast_output": false,
