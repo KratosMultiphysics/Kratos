@@ -67,7 +67,7 @@ class KratosExecuteFSIProblemEmulatorTest(KratosUnittest.TestCase):
 
     def Solve(self):
 
-        self.structure_solver.SolverInitialize()
+        self.structure_solver.InitializeStrategy()
 
         # Stepping and time settings
         Dt = self.ProjectParameters["structure_solver_settings"]["problem_data"]["time_step"].GetDouble()
@@ -104,8 +104,8 @@ class KratosExecuteFSIProblemEmulatorTest(KratosUnittest.TestCase):
             for process in self.list_of_processes:
                 process.ExecuteInitializeSolutionStep()
 
-            self.structure_solver.SolverInitializeSolutionStep()
-            self.structure_solver.SolverPredict()
+            self.structure_solver.InitializeSolutionStep()
+            self.structure_solver.Predict()
 
             self.coupling_utility.InitializeSolutionStep()
 
@@ -127,7 +127,7 @@ class KratosExecuteFSIProblemEmulatorTest(KratosUnittest.TestCase):
                     self.coupling_utility.UpdateSolution(disp_residual, self.iteration_value)
                     self.coupling_utility.FinalizeNonLinearIteration()
 
-            self.structure_solver.SolverFinalizeSolutionStep()
+            self.structure_solver.FinalizeSolutionStep()
             self.coupling_utility.FinalizeSolutionStep()
 
             for process in self.list_of_processes:
@@ -187,7 +187,7 @@ class KratosExecuteFSIProblemEmulatorTest(KratosUnittest.TestCase):
             i += 2
 
         # Solve structure problem
-        self.structure_solver.SolverSolveSolutionStep()
+        self.structure_solver.SolveSolutionStep()
 
         # Compute the displacement residual
         disp_residual = KratosMultiphysics.Vector(self._GetInterfaceProblemSize()*2)
