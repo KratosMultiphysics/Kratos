@@ -639,7 +639,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
 
     rRightHandSideVector = ZeroVector(NumNodes);
  
-    MatrixType BulkVelMatrix = ZeroMatrix(NumNodes,NumNodes);
+    // MatrixType BulkVelMatrix = ZeroMatrix(NumNodes,NumNodes);
     
     // Shape functions and integration points
     ShapeFunctionDerivativesArrayType DN_DX;
@@ -670,8 +670,8 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
 	const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
 	bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
 	if(computeElement==true){
-	  double BulkCoeff =GaussWeight/(VolumetricCoeff);
-	  this->ComputeBulkMatrixForPressureVel(BulkVelMatrix,N,BulkCoeff);
+	  // double BulkCoeff =GaussWeight/(VolumetricCoeff);
+	  // this->ComputeBulkMatrixForPressureVel(BulkVelMatrix,N,BulkCoeff);
 
 	  for (SizeType i = 0; i < NumNodes; ++i)
 	    {
@@ -689,8 +689,8 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
     double lumpedBulkCoeff =totalVolume/(VolumetricCoeff);
     this->ComputeBulkMatrixForPressureVelLump(BulkVelMatrixLump,lumpedBulkCoeff);
   
-    // rLeftHandSideMatrix+=BulkVelMatrixLump;
-    rLeftHandSideMatrix+=BulkVelMatrix;	
+    rLeftHandSideMatrix+=BulkVelMatrixLump;
+    // rLeftHandSideMatrix+=BulkVelMatrix;	
 
     VectorType UpdatedPressure = ZeroVector(NumNodes);
     VectorType CurrentPressure = ZeroVector(NumNodes);;
@@ -700,8 +700,8 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
 
     VectorType DeltaPressure = UpdatedPressure-CurrentPressure;
 
-    // rRightHandSideVector -= prod(BulkVelMatrixLump,DeltaPressure);
-    rRightHandSideVector -= prod(BulkVelMatrix,DeltaPressure);
+    rRightHandSideVector -= prod(BulkVelMatrixLump,DeltaPressure);
+    // rRightHandSideVector -= prod(BulkVelMatrix,DeltaPressure);
 
   }
   
