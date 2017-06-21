@@ -597,16 +597,19 @@ void SphericParticle::ComputeMoments(double NormalLocalContactForce,
 
     // ROLLING FRICTION
     if (this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
-        const double my_rolling_friction_coeff    = GetRollingFriction() * GetRadius();
-        double equiv_rolling_friction_coeff = GetRadius();
+        double equiv_rolling_friction_coeff;
 
         if (!wall) {
+            const double my_rolling_friction_coeff      = GetRollingFriction() * GetRadius();
             const double other_rolling_friction_coeff   = p_neighbour->GetRollingFriction() * p_neighbour->GetRadius();
             const double rolling_friction_coeff_sum     = my_rolling_friction_coeff + other_rolling_friction_coeff;
             const double rolling_friction_coeff_sum_inv = 1.0 / rolling_friction_coeff_sum;
-            equiv_rolling_friction_coeff          = my_rolling_friction_coeff * other_rolling_friction_coeff * rolling_friction_coeff_sum_inv;
+            equiv_rolling_friction_coeff                = my_rolling_friction_coeff * other_rolling_friction_coeff * rolling_friction_coeff_sum_inv;
         }
-        
+
+        if (wall) {
+            equiv_rolling_friction_coeff = GetRollingFriction() * GetRadius(); // Should be wall->GetRollingFriction() * GetRadius();
+        }        
 
         if (equiv_rolling_friction_coeff != 0.0) {
             RollingResistance += fabs(NormalLocalContactForce) * equiv_rolling_friction_coeff;
@@ -620,8 +623,8 @@ void SphericParticle::ComputeRollingFriction(array_1d<double, 3>& rolling_resist
     const array_1d<double, 3>& ang_velocity           = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
     const array_1d<double, 3> initial_rotation_moment = coeff_acc * ang_velocity; // the moment needed to stop the spin in one time step
 
-    const double MaxRotaMoment[3]      = {initial_rotation_moment[0] + mContactMoment[0], initial_rotation_moment[1] + mContactMoment[1], initial_rotation_moment[2] + mContactMoment[2]};
-    double MR_max                = DEM_MODULUS_3(MaxRotaMoment);
+    const double MaxRotaMoment[3] = {initial_rotation_moment[0] + mContactMoment[0], initial_rotation_moment[1] + mContactMoment[1], initial_rotation_moment[2] + mContactMoment[2]};
+    double MR_max                 = DEM_MODULUS_3(MaxRotaMoment);
 
     if (MR_max > RollingResistance) {
         
