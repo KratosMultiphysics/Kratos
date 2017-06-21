@@ -3,12 +3,8 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
-#from beam_sections_python_utility import SetProperties
-#from beam_sections_python_utility import SetMaterialProperties
 
 def AssignMaterial(Properties):
-    # material for solid material
-
     prop_id = 1;
     prop = Properties[prop_id]
     mat = LinearElasticPlaneStress2DLaw()
