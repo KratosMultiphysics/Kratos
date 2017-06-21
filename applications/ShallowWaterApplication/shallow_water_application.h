@@ -25,9 +25,10 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 #include "shallow_water_application_variables.h"
-#include "custom_elements/projected_swe.h"       // Including the file for the element
-#include "custom_elements/non_conservative_dc.h" // Inlcuding the file for the element with discontinuity capturing
-#include "includes/condition.h"                  // We'll also need conditions for the point heat loads
+#include "custom_elements/projected_swe.h"             // Including the file for the element
+#include "custom_elements/non_conservative_dc.h"       // Inlcuding the file for the element with discontinuity capturing
+#include "custom_elements/eulerian_non_conservative.h" // Inlcuding the file for the element with discontinuity capturing
+#include "includes/condition.h"                        // We'll also need conditions for the point heat loads
 #include "includes/ublas_interface.h"
 
 
@@ -188,8 +189,9 @@ namespace Kratos
 		///@} 
 		///@name Member Variables 
 		///@{ 
-		const ProjectedSWE mProjectedSWE;            // Element
-		const NonConservativeDC mNonConservativeDC;  // Element with discontinuty capturing
+		const ProjectedSWE mProjectedSWE;                        // Element
+		const NonConservativeDC mNonConservativeDC;              // Element with discontinuty capturing
+		const EulerianNonConservative mEulerianNonConservative;  // Eulerian element
 
 
 		///@} 
