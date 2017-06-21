@@ -19,6 +19,9 @@
                 "input_type"     : "mdpa",
                 "input_filename" : "MokBenchmark/mok_benchmark_Structural"
             },
+            "material_import_settings" :{
+                "materials_filename": "MokBenchmark/materials_Mok.json"
+            },
             "line_search"                        : false,
             "convergence_criterion"              : "Residual_criterion",
             "displacement_relative_tolerance"    : 1e-5,
@@ -41,9 +44,9 @@
             "Custom1" : ["0.0","0.5"]
         },
         "constraints_process_list" : [{
-            "python_module"         : "experimental_assign_vector_process",
+            "python_module"         : "assign_vector_variable_process",
             "kratos_module"         : "KratosMultiphysics",
-            "process_name"          : "ExperimentalAssignVectorProcess",
+            "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
                 "model_part_name" : "DISPLACEMENT_Displacement_BC",
@@ -101,7 +104,7 @@
             "model_part_name" : "MainModelPart",
             "parallel_type"   : "OpenMP",
             "domain_size"     : 2,
-            "start_step"      : 0.0,
+            "start_time"      : 0.0,
             "end_time"        : 25.0
         },
         "output_configuration"             : {
@@ -169,9 +172,9 @@
         },
         "initial_conditions_process_list"  : [],
         "boundary_conditions_process_list" : [{
-            "python_module"         : "experimental_assign_vector_by_direction_process",
+            "python_module"         : "assign_vector_by_direction_process",
             "kratos_module"         : "KratosMultiphysics",
-            "process_name"          : "AssignAutomaticDirectionVectorProcess",
+            "process_name"          : "AssignVectorByDirectionProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
                 "model_part_name" : "Inlet2D_Inlet",
@@ -182,9 +185,9 @@
                 "interval"        : [0.0,10.0]
             }
         },{
-            "python_module"         : "experimental_assign_vector_by_direction_process",
+            "python_module"         : "assign_vector_by_direction_process",
             "kratos_module"         : "KratosMultiphysics",
-            "process_name"          : "AssignAutomaticDirectionVectorProcess",
+            "process_name"          : "AssignVectorByDirectionProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
                 "model_part_name" : "Inlet2D_Inlet",
@@ -195,9 +198,9 @@
                 "interval"        : [10.0,"End"]
             }
         },{
-            "python_module"         : "experimental_assign_value_process",
+            "python_module"         : "assign_scalar_variable_process",
             "kratos_module"         : "KratosMultiphysics",
-            "process_name"          : "ExperimentalAssignValueProcess",
+            "process_name"          : "AssignScalarVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
                 "model_part_name" : "Outlet2D_Outlet",
@@ -223,9 +226,9 @@
                 "model_part_name" : "NoSlip2D_No_slip"
             }
         },{
-            "python_module"         : "experimental_assign_vector_process",
+            "python_module"         : "assign_vector_variable_process",
             "kratos_module"         : "KratosMultiphysics",
-            "process_name"          : "ExperimentalAssignVectorProcess",
+            "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
                 "model_part_name" : "DISPLACEMENT_ALE_mesh_BC",
@@ -281,13 +284,12 @@
     },
     "coupling_solver_settings"  : {
         "solver_settings" : {
-            "coupling_scheme"            : "DirichletNeumann",
-            "solver_type"                : "partitioned_fsi_solver",
-            "nl_tol"                     : 1e-7,
-            "nl_max_it"                  : 25,
-            "move_interface"             : true,
-            "mesh_prediction"            : true,
-            "coupling_strategy"          : {
+            "coupling_scheme"              : "DirichletNeumann",
+            "solver_type"                  : "partitioned_fsi_dirichlet_neumann_solver",
+            "nl_tol"                       : 1e-7,
+            "nl_max_it"                    : 25,
+            "solve_mesh_at_each_iteration" : true,
+            "coupling_strategy"            : {
                 "solver_type"       : "MVQN_recursive",
                 "buffer_size"       : 7,
                 "w_0"               : 0.825
@@ -296,6 +298,11 @@
             "mesh_reform_dofs_each_step" : false,
             "structure_interfaces_list"  : ["Interface2D_Structure_interface"],
             "fluid_interfaces_list"      : ["FluidNoSlipInterface2D_Interface"]
-        }
+        },
+        "mapper_settings"              : [{
+            "mapper_face"                           : "Unique",
+            "fluid_interface_submodelpart_name"     : "FluidNoSlipInterface2D_Interface",
+            "structure_interface_submodelpart_name" : "Interface2D_Structure_interface"
+        }]
     }
 }
