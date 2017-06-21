@@ -162,12 +162,14 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             if dynamic_variable in self.variable_name:
                 self.derivated_variable_name = "ROTATION" + self.variable_name[-2:]
                 self.fix_derivated_variable = True
+                break
 
         if( self.fix_derivated_variable == False ):
             for dynamic_variable in self.LinearDynamicVariables:
                 if dynamic_variable in self.variable_name:
                     self.derivated_variable_name = "DISPLACEMENT" + self.variable_name[-2:]
                     self.fix_derivated_variable = True
+                    break
                     
         if( self.fix_derivated_variable ):
             params["variable_name"].SetString(self.derivated_variable_name)

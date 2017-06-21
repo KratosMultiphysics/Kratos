@@ -26,7 +26,7 @@ class ApplyRigidBodyRotationProcess(BaseProcess.AssignScalarToNodesProcess):
              "help" : "This process assigns a rotation to nodes given by a rotation vector, modulus and direction",
              "model_part_name": "MODEL_PART_NAME",
              "mesh_id": 0,
-             "variable_name": "VARIABLE_NAME",
+             "variable_name": "VARIABLE_NAME",             
              "modulus" : 0.0,
              "direction": [0.0, 0.0, 0.0],
              "center": [0.0, 0.0, 0.0],
@@ -48,12 +48,13 @@ class ApplyRigidBodyRotationProcess(BaseProcess.AssignScalarToNodesProcess):
         self.var = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["variable_name"].GetString())
         if( type(self.var) != KratosMultiphysics.Array1DVariable3 ):
             raise Exception("Variable type is incorrect. Must be a three-component vector.")
-        
+
+                
         ###assign scalar process
         params = KratosMultiphysics.Parameters("{}")           
         params.AddValue("model_part_name", self.settings["model_part_name"])
         params.AddValue("mesh_id", self.settings["mesh_id"])
-        params["variable_name"].SetString("DISPLACEMENT")
+        params.AddValue("variable_name",self.settings["variable_name"])
         params.AddValue("value", self.settings["modulus"])
         params.AddValue("constrained", self.settings["constrained"])
         params.AddValue("interval",self.settings["interval"])
@@ -84,10 +85,49 @@ class ApplyRigidBodyRotationProcess(BaseProcess.AssignScalarToNodesProcess):
         self.FreeDofsProcesses.append(free_dof_process)
 
         self.fix_derivated_variable = False
-
+        if( self.fix_derivated_variable == False ):
+            for dynamic_variable in self.LinearDynamicVariables:
+                if dynamic_variable in self.variable_name:
+                    self.derivated_variable_name = "DISPLACEMENT"
+                    self.fix_derivated_variable = True
+                    break
+                    
+        if( self.fix_derivated_variable ):
+            
+            params["variable_name"].SetString(self.derivated_variable_name+"_X")
+            fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
+            self.FixDofsProcesses.append(fix_dof_process)
+            free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
+            self.FreeDofsProcesses.append(free_dof_process)
+            
+            params["variable_name"].SetString(self.derivated_variable_name+"_Y")
+            fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
+            self.FixDofsProcesses.append(fix_dof_process)
+            free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
+            self.FreeDofsProcesses.append(free_dof_process)
+          
+            params["variable_name"].SetString(self.derivated_variable_name+"_Z")
+            fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
+            self.FixDofsProcesses.append(fix_dof_process)
+            free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
+            self.FreeDofsProcesses.append(free_dof_process)
+            
+            params["variable_name"].SetString(self.settings["variable_name"].GetString())
     #
     def CreateAssignmentProcess(self, params):
 
+        if( self.fix_derivated_variable == False ):
+            self.variable_name = "ROTATION"
+        elif:
+            for dynamic_variable in self.LinearDynamicVariables:
+                counter = 0
+                if dynamic_variable in self.variable_name:
+                    self.variable_name = self.AngularDynamicVariables[counter]
+                    break
+                 counter = counter + 1
+                                        
+        params["variable_name"].SetString(self.variable_name)
+        
         params.AddValue("direction", self.settings["direction"])
         params.AddValue("center", self.settings["center"])
         if( self.value_is_numeric ):

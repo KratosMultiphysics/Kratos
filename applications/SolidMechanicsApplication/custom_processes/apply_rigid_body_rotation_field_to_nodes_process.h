@@ -17,10 +17,7 @@
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
-#include "includes/kratos_parameters.h"
-#include "processes/process.h"
-#include "utilities/beam_math_utilities.hpp"
+#include "custom_processes/apply_rigid_body_rotation_to_nodes_process.h"
 
 namespace Kratos
 {
@@ -31,7 +28,7 @@ namespace Kratos
 /// The base class for assigning a value to scalar variables or array_1d components processes in Kratos.
 /** This function assigns a value to a variable belonging to all of the nodes in a given mesh
 */
-class ApplyRigidBodyRotationFieldToNodesProcess : public Process
+class ApplyRigidBodyRotationFieldToNodesProcess : public ApplyRigidBodyRotationToNodesProcess
 {
 public:
     ///@name Type Definitions
@@ -48,10 +45,10 @@ public:
 					 const char* pPyMethodName,
 					 const bool SpatialFieldFunction,
 					 Parameters rParameters
-				       ) : Process(Flags()) , mr_model_part(model_part)
+				       ) : ApplyRigidBodyRotationToNodesProcess(model_part)
     {
         KRATOS_TRY
-			 
+	
         Parameters default_parameters( R"(
             {
                 "model_part_name":"MODEL_PART_NAME",
@@ -109,13 +106,26 @@ public:
     {
 
         KRATOS_TRY;
- 
-	ApplyRigidBodyRotation();
+
+	if( ! mIsSpatialField ){
+
+	  const ProcessInfo& rCurrentProcessInfo = mr_model_part.GetProcessInfo();
+	  const double& rCurrentTime = rCurrentProcessInfo[TIME];
+
+	  this->CallTimeFunction(rCurrentTime, mvalue);
+	  
+	  ApplyRigidBodyRotationToNodesProcess::Execute();
+
+	}
+	else{
+	  
+	  ApplyRigidBodyRotation();
+	}
 
         KRATOS_CATCH("");
 
     }
-
+    
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
     virtual void ExecuteInitialize()
@@ -232,16 +242,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mr_model_part;
-    std::string mvariable_name;
-
     PyObject* mpPyObject;  
     const char* mpPyMethodName;
-
-    array_1d<double,3> mdirection;
-    array_1d<double,3> mcenter;
-    std::size_t mmesh_id;
-    
+   
     bool mIsSpatialField;
 
     ///@}
@@ -254,7 +257,7 @@ private:
 	
       if( mIsSpatialField ){
 
-	double x = 0.0, y = 0.0, z = 0.0;
+	double x = pNode->X(), y = pNode->Y(), z = pNode->Z();
 	   
 	rValue = boost::python::call_method<double>(mpPyObject, mpPyMethodName, x, y, z, time);
 	
@@ -266,6 +269,17 @@ private:
       }
       
      KRATOS_CATCH( "" )
+      
+    }
+
+    void CallTimeFunction(const double& time, double& rValue)
+    {
+      
+      KRATOS_TRY
+	
+      rValue = boost::python::call_method<double>(mpPyObject, mpPyMethodName, 0.0, 0.0, 0.0, time);
+	      
+      KRATOS_CATCH( "" )
       
     }
 
@@ -293,7 +307,8 @@ private:
 
 	  //Possible prescribed variables: ROTATION / ANGULAR_VELOCITY / ANGULAR_ACCELERATION
 	  double value = 0.0;
-	  bool angular_dynamics = false;
+	  bool dynamic_angular_velocity = false;
+	  bool dynamic_angular_acceleration = false;
 
 	  const ProcessInfo& rCurrentProcessInfo = mr_model_part.GetProcessInfo();
 	  const double& rDeltaTime = rCurrentProcessInfo[DELTA_TIME];
@@ -312,19 +327,19 @@ private:
 	  }
 	  else if(mvariable_name == "ANGULAR_VELOCITY"){
 	    
-	    angular_dynamics = true;
+	    dynamic_angular_velocity = true;
 	    time_factor = rDeltaTime;
 	      
 	  }
 	  else if(mvariable_name == "ANGULAR_ACCELERATION"){
 
-	    angular_dynamics = true;
+	    dynamic_angular_velocity = true;
+	    dynamic_angular_acceleration = true;
 	    time_factor = rDeltaTime * rDeltaTime;
-
 	  }
 
-	  
-          //#pragma omp parallel for  //it does not work in parallel
+
+         //#pragma omp parallel for  //it does not work in parallel
 	  for(int i = 0; i<nnodes; i++)
             {
 	      ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -335,9 +350,11 @@ private:
 
 	      rotation *= time_factor;
 	      
-	      if( angular_dynamics ){
+	      if( dynamic_angular_velocity ){
 		angular_velocity = rotation / rDeltaTime;
-		angular_acceleration = angular_velocity / rDeltaTime;
+		if( dynamic_angular_acceleration ){
+		  angular_acceleration = angular_velocity / rDeltaTime;
+		}
 	      }
 	      
 	      //Get rotation matrix
@@ -351,7 +368,7 @@ private:
 
 	      it->FastGetSolutionStepValue(DISPLACEMENT) =  (mcenter + radius) - it->GetInitialPosition();
 	      
-	      if( angular_dynamics ){
+	      if( dynamic_angular_velocity ){
 
 		//compute the skewsymmmetric tensor of the angular velocity
 		BeamMathUtils<double>::VectorToSkewSymmetricTensor(angular_velocity, rotation_matrix);
@@ -360,15 +377,15 @@ private:
 		array_1d<double,3>& velocity = it->FastGetSolutionStepValue(VELOCITY);
 		velocity += prod(rotation_matrix,radius);
 
-		
-		//compute the contribution of the centripetal acceleration ac = Wx(Wxr)
-		array_1d<double,3>& acceleration = it->FastGetSolutionStepValue(ACCELERATION);
-		acceleration += prod(rotation_matrix,velocity);
-
-		//compute the contribution of the angular acceleration to the acceleration a = Axr
-		BeamMathUtils<double>::VectorToSkewSymmetricTensor(angular_acceleration, rotation_matrix);
-		acceleration += prod(rotation_matrix,radius);	
-
+		if( dynamic_angular_acceleration ){ 
+		  //compute the contribution of the centripetal acceleration ac = Wx(Wxr)
+		  array_1d<double,3>& acceleration = it->FastGetSolutionStepValue(ACCELERATION);
+		  acceleration += prod(rotation_matrix,velocity);
+		  
+		  //compute the contribution of the angular acceleration to the acceleration a = Axr
+		  BeamMathUtils<double>::VectorToSkewSymmetricTensor(angular_acceleration, rotation_matrix);
+		  acceleration += prod(rotation_matrix,radius);	
+		}
 	      }
 	    }
  
