@@ -656,12 +656,7 @@ namespace Kratos
 
 	  for(SizeType i = 0; i < NumNodes; i++)
 	    {
-	      double density =rGeom[i].FastGetSolutionStepValue(DENSITY);
 	      if(rGeom[i].IsNot(RIGID)){
-		if(density<999 || density>1001){
-		  std::cout<<"master Density was "<<density<<std::endl;
-		  std::cout<<rGeom[i].X()<<" "<<rGeom[i].Y()<<std::endl;
-		    }
 		rResult = rGeom[i].FastGetSolutionStepValue(Var);
 		break;
 	      }

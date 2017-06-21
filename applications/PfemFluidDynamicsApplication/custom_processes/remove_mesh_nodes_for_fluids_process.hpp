@@ -459,6 +459,7 @@ private:
     Node<3> work_point(0,0.0,0.0,0.0);
     unsigned int n_points_in_radius;
        
+       
     for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(mMeshId); in != mrModelPart.NodesEnd(mMeshId); in++)
       {
 	if(in->Is(TO_ERASE)){

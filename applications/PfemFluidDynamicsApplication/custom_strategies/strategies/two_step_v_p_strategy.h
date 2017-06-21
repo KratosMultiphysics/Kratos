@@ -470,7 +470,7 @@ public:
 		      double reducedTimeInterval=0.5*updatedTimeInterval;
 		      if(reducedTimeInterval<temporaryTimeInterval){
 			rCurrentProcessInfo.SetValue(DELTA_TIME,reducedTimeInterval);
-			std::cout<<"reducing time step (nodal criterion)"<<reducedTimeInterval<<std::endl;
+			/* std::cout<<"reducing time step (nodal criterion)"<<reducedTimeInterval<<std::endl; */
 			rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
 			timeIntervalReduced=true;
 			break;
@@ -535,8 +535,7 @@ public:
 	      
 		if(reducedTimeInterval<temporaryTimeInterval){
 		  rCurrentProcessInfo.SetValue(DELTA_TIME,reducedTimeInterval);
-		  std::cout<<"reducing time step (elemental inversion)"<<reducedTimeInterval<<std::endl;
-		  std::cout<<"areas:"<<newArea<<" "<<currentElementalArea<<std::endl;
+		  /* std::cout<<"reducing time step (elemental inversion)"<<reducedTimeInterval<<std::endl; */
 		  rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
 		  increaseTimeInterval=false;
 		  break;

@@ -984,45 +984,11 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
 
     rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1),false);
 
-    // if(this->Is(TO_ERASE)){
-    //   std::cout<<rGeom[0].X()<<" "<<rGeom[0].Y()<<"     "<<rGeom[1].X()<<" "<<rGeom[1].Y()<<"     "<<rGeom[2].X()<<" "<<rGeom[2].Y()<<std::endl;
-    // }
-
     for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); g++){
-
       // rGaussWeights[g] = fabs(DetJ[g] * IntegrationPoints[g].Weight());
       rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
-     //  if(rGeom[0].Is(TO_ERASE))
-     // 	std::cout<<rGeom[0]<<std::endl;
-     // if(rGeom[1].Is(TO_ERASE))
-     // 	std::cout<<rGeom[1]<<std::endl;
-     // if(rGeom[2].Is(TO_ERASE))
-     // 	std::cout<<rGeom[2]<<std::endl;
-
-      // if(rGeom[0].Is(TO_ERASE) || rGeom[1].Is(TO_ERASE) || rGeom[2].Is(TO_ERASE)  || rGeom[3].Is(TO_ERASE)){
-      	// std::cout<<rGeom[0].X()<<" "<<rGeom[0].Y()<<"     "<<rGeom[1].X()<<" "<<rGeom[1].Y()<<"     "<<rGeom[2].X()<<" "<<rGeom[2].Y()<<std::endl;
-      	// std::cout<<"velocity     "<<rGeom[0].FastGetSolutionStepValue(VELOCITY_X,0)<<" "<<rGeom[1].FastGetSolutionStepValue(VELOCITY_X,0)<<"     "<<rGeom[2].FastGetSolutionStepValue(VELOCITY_X,0)<<std::endl;
-      	// std::cout<<"previous velocity     "<<rGeom[0].FastGetSolutionStepValue(VELOCITY_X,1)<<" "<<rGeom[1].FastGetSolutionStepValue(VELOCITY_X,1)<<"     "<<rGeom[2].FastGetSolutionStepValue(VELOCITY_X,1)<<std::endl;
-      	// std::cout<<"acceleration     "<<rGeom[0].FastGetSolutionStepValue(ACCELERATION_X,0)<<" "<<rGeom[1].FastGetSolutionStepValue(ACCELERATION_X,0)<<"     "<<rGeom[2].FastGetSolutionStepValue(ACCELERATION_X,0)<<std::endl;
-      	// std::cout<<"previous acceleration     "<<rGeom[0].FastGetSolutionStepValue(ACCELERATION_X,1)<<" "<<rGeom[1].FastGetSolutionStepValue(ACCELERATION_X,1)<<"     "<<rGeom[2].FastGetSolutionStepValue(ACCELERATION_X,1)<<std::endl;
-      	// std::cout<<"PRESSURE     "<<rGeom[0].FastGetSolutionStepValue(PRESSURE,0)<<"     "<<rGeom[1].FastGetSolutionStepValue(PRESSURE,0)<<" "<<rGeom[2].FastGetSolutionStepValue(PRESSURE,0)<<std::endl;
-      	// std::cout<<"previous PRESSURE     "<<rGeom[0].FastGetSolutionStepValue(PRESSURE,1)<<"     "<<rGeom[1].FastGetSolutionStepValue(PRESSURE,1)<<" "<<rGeom[2].FastGetSolutionStepValue(PRESSURE,1)<<std::endl;
-      	// double Density=0;
-      	// double FluidBulkModulus=0;
-      	// double FluidViscosity=0;
-      	// this->EvaluatePropertyFromANotRigidNode(Density,DENSITY);
-      	// this->EvaluatePropertyFromANotRigidNode(FluidViscosity,VISCOSITY);
-      	// this->EvaluatePropertyFromANotRigidNode(FluidBulkModulus,BULK_MODULUS);
-      	// std::cout<<" material properties "<<Density<<"     "<<FluidViscosity<<" "<<FluidBulkModulus<<std::endl;
-      	// std::cout<<"GAUSS WEIGHT "<<rGaussWeights[g]<<std::endl;
-      	// std::cout<<"detJ "<<DetJ[g]<<std::endl;
-      	// std::cout<<"IntegrationPoints[g] "<<IntegrationPoints[g]<<std::endl;
-      // 	rGaussWeights[g] = fabs(DetJ[g] * IntegrationPoints[g].Weight());
-      // }
-      if(rGaussWeights[g]<0){
+      if(rGaussWeights[g]<0)
     	std::cout<<"NEGATIVE GAUSS WEIGHT "<<rGaussWeights[g]<<std::endl;
-      }
- 
     }
   }
 
@@ -1087,13 +1053,6 @@ bool TwoStepUpdatedLagrangianVPElement<TDim>::CalcStrainRate(ElementalVariables 
 							     const double theta)
 {
 
-  // ShapeFunctionDerivativesArrayType DN_DX;
-  // Matrix NContainer;
-  // VectorType GaussWeights;
-  // this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
-
-  // // const GeometryType& rGeom = this->this->GetGeometry();
-  // const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
 
   bool computeElement=true;
 

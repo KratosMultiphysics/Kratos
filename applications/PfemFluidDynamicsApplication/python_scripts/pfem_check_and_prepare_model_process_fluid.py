@@ -151,7 +151,6 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                 self.SetMaterialPropertiesToSolidNodes(solid_part)
 
             entity_type = "Nodes"
-
             for fluid_part in fluid_body_model_parts:
 
                 print("SetMaterialPropertiesToFluidNodes")

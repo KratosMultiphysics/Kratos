@@ -1181,26 +1181,6 @@ namespace Kratos {
   void TwoStepUpdatedLagrangianVPFluidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,double TimeStep, unsigned int g)
   {
 
-    // const unsigned int numNodes = this->GetGeometry().size();
-    // if(this->Is(TO_ERASE)){
-    //   std::cout<<"TO ERASE ELEMENT!!!!"<<std::endl;
-    // }
-    // for(unsigned int i=0; i<numNodes; i++)
-    //   {
-    // 	// std::cout<<i<<" "<<this->GetGeometry()[i]<<std::endl;
-    // 	if(this->Is(TO_ERASE)){
-    // 	  std::cout<<"         TO ERASE ELEMENT!!!!"<<std::endl;
-    // 	}
-    // 	if(this->GetGeometry()[i].Is(TO_ERASE)){
-    // 	  std::cout<<i<<") coordinates "<<this->GetGeometry()[0].X()<<" "<<this->GetGeometry()[0].Y()<<std::endl;
-    // 	  if(this->GetGeometry()[i].Is(FREE_SURFACE)){
-    // 	    std::cout<<"ATTENTION FREE SURFACE NODE!!!!"<<std::endl;
-
-    // 	  }
-    // 	}
-    //   }
-    
-    // this->Initialize();
     // rElementalVariables.CurrentTotalCauchyStress=mCurrentTotalCauchyStress[g];
     // rElementalVariables.CurrentDeviatoricCauchyStress=mCurrentDeviatoricCauchyStress[g];
 
@@ -1208,8 +1188,8 @@ namespace Kratos {
     double CurrSecondLame  = 0;
     double CurrBulkModulus = 0;
 
-
     this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep);
+ 
     double CurrFirstLame  = 0;
     CurrFirstLame  =CurrBulkModulus - 2.0*CurrSecondLame/3.0;
 
