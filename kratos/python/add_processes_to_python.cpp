@@ -23,6 +23,7 @@
 
 #include "processes/process.h"
 #include "python/add_processes_to_python.h"
+#include "processes/fast_transfer_between_model_parts_process.h"
 #include "processes/find_nodal_h_process.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "processes/find_conditions_neighbours_process.h"
@@ -68,8 +69,6 @@ void  AddProcessesToPython()
 {
     using namespace boost::python;
 
-
-
     class_<Process>("Process")
     .def("Execute",&Process::Execute)
     .def("ExecuteInitialize",&Process::ExecuteInitialize)
@@ -82,9 +81,14 @@ void  AddProcessesToPython()
     .def(self_ns::str(self))
     ;
 
+    class_<FastTransferBetweenModelPartsProcess, bases<Process> >("FastTransferBetweenModelPartsProcess",init<ModelPart&, ModelPart&, const std::string>())
+    .def("Execute",&FastTransferBetweenModelPartsProcess::Execute)
+    ;
+    
     class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",init<ModelPart&>())
     .def("Execute",&FindNodalHProcess::Execute)
     ;
+    
     class_<FindNodalNeighboursProcess, bases<Process> >("FindNodalNeighboursProcess",
             init<ModelPart&, int, int>())
     .def("ClearNeighbours",&FindNodalNeighboursProcess::ClearNeighbours)
