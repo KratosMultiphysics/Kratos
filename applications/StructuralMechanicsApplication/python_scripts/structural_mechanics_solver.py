@@ -341,7 +341,7 @@ class MechanicalSolver(object):
 
         self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
-    def _GetSolutionScheme(self, scheme_type, component_wise, compute_contact_forces):
+    def _GetSolutionScheme(self, analysis_type):
         raise Exception("please implement the Custom Choice of your Scheme (_GetSolutionScheme) in your solver")
     
     def _GetConvergenceCriterion(self):
@@ -371,5 +371,5 @@ class MechanicalSolver(object):
         
         return builder_and_solver
         
-    def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search, implex):
+    def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, line_search):
         raise Exception("please implement the Custom Choice of your Mechanical Solver (_GetMechanicalSolver) in your solver")
