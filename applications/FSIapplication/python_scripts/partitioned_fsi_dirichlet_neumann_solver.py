@@ -136,7 +136,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
 
         ## Finalize solution step
         self.fluid_solver.SolverFinalizeSolutionStep()
-        self.structure_solver.SolverFinalizeSolutionStep()
+        self.structure_solver.FinalizeSolutionStep()
         self.coupling_utility.FinalizeSolutionStep()
 
 
@@ -210,7 +210,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
                                                          distribute_load)
 
         # Solve the structure problem
-        self.structure_solver.SolverSolveSolutionStep()
+        self.structure_solver.SolveSolutionStep()
 
 
     def _SolveStructureDoubleFaced(self):
@@ -235,7 +235,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
             node.SetSolutionStepValue(KratosStructural.POINT_LOAD, 0, pos_face_force+neg_face_force)
 
         # Solve the structure problem
-        self.structure_solver.SolverSolveSolutionStep()
+        self.structure_solver.SolveSolutionStep()
 
 
     def _ComputeDisplacementResidualSingleFaced(self):

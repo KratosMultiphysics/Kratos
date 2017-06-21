@@ -260,21 +260,21 @@ class PartitionedFSIBaseSolver:
     def Initialize(self):
         # Initialize fluid, structure and coupling solvers
         self.fluid_solver.SolverInitialize()
-        self.structure_solver.SolverInitialize()
+        self.structure_solver.InitializeStrategy()
         self.coupling_utility.Initialize()
 
 
     def InitializeSolutionStep(self):
         # Initialize solution step of fluid, structure and coupling solvers
         self.fluid_solver.SolverInitializeSolutionStep()
-        self.structure_solver.SolverInitializeSolutionStep()
+        self.structure_solver.InitializeSolutionStep()
         self.coupling_utility.InitializeSolutionStep()
 
 
     def Predict(self):
         # Perform fluid and structure solvers predictions
         self.fluid_solver.SolverPredict()
-        self.structure_solver.SolverPredict()
+        self.structure_solver.Predict()
 
 
     def GetComputingModelPart(self):
@@ -480,7 +480,7 @@ class PartitionedFSIBaseSolver:
                                                              distribute_load)
 
             # Solve the current step structure problem with the previous step fluid interface nodal fluxes
-            self.structure_solver.SolverSolveSolutionStep()
+            self.structure_solver.SolveSolutionStep()
 
             # Map the obtained structure displacement to the fluid interface
             keep_sign = True
@@ -519,7 +519,7 @@ class PartitionedFSIBaseSolver:
                 node.SetSolutionStepValue(KratosStructural.POINT_LOAD, 0, pos_face_force+neg_face_force)
 
             # Solve the current step structure problem with the previous step fluid interface nodal fluxes
-            self.structure_solver.SolverSolveSolutionStep()
+            self.structure_solver.SolveSolutionStep()
 
             # Map the obtained structure displacement to both positive and negative fluid interfaces
             keep_sign = True
