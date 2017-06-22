@@ -215,7 +215,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
                 for i in range(len(reference_stress)):
                     self.assertAlmostEqual(reference_stress[i], stress[i],2)        
 
-    def _test_SmallDisplacementElement_2D_triangle(self):
+    def test_SmallDisplacementElement_2D_triangle(self):
         dim = 2
         mp = KratosMultiphysics.ModelPart("solid_part")
         self._add_variables(mp)
@@ -263,7 +263,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
                         coeff = Area/12.0
                     self.assertAlmostEqual(M[i*dim+k,j*dim+k],coeff)
                     
-    def _test_SmallDisplacementElement_2D_quadrilateral(self):
+    def test_SmallDisplacementElement_2D_quadrilateral(self):
         dim = 2
         mp = KratosMultiphysics.ModelPart("solid_part")
         self._add_variables(mp)
@@ -302,78 +302,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
         
-    def _test_SmallDisplacementElement_3D_tetra(self): 
-        dim = 3
-        mp = KratosMultiphysics.ModelPart("solid_part")
-        self._add_variables(mp)
-        self._apply_material_properties(mp,dim)        
-        
-        #create nodes
-        mp.CreateNewNode(1,0.00,3.00,3.00)
-        mp.CreateNewNode(2,1.00,2.25,3.00)
-        mp.CreateNewNode(3,0.75,1.00,3.00)
-        mp.CreateNewNode(4,2.25,2.00,3.00)
-        mp.CreateNewNode(5,0.00,3.00,0.00)
-        mp.CreateNewNode(6,0.00,0.00,3.00)
-        mp.CreateNewNode(7,3.00,3.00,3.00)
-        mp.CreateNewNode(8,2.00,0.75,3.00)
-        mp.CreateNewNode(9,1.00,2.25,0.00)
-        mp.CreateNewNode(10,0.75,1.00,0.00)
-        mp.CreateNewNode(11,2.25,2.00,0.00)
-        mp.CreateNewNode(12,0.00,0.00,0.00)
-        mp.CreateNewNode(13,3.00,3.00,0.00)
-        mp.CreateNewNode(14,3.00,0.00,3.00)
-        mp.CreateNewNode(15,2.00,0.75,0.00)
-        mp.CreateNewNode(16,3.00,0.00,0.00)   
-        
-        for node in mp.Nodes:
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z)
-            
-        #create a submodelpart for boundary conditions
-        bcs = mp.CreateSubModelPart("BoundaryCondtions")
-        bcs.AddNodes([1,5,6,7,12,13,14,16])
-
-        #create Element
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 1,[12,10,3,15], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 2,[15,8,3,12], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 3,[6,3,8,12], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 4,[12,6,14,8], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 5,[12,16,15,8], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 6,[16,14,8,12], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 7,[13,7,4,16], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 8,[16,13,11,4], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 9,[14,8,4,16], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 10,[16,15,8,4], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 11,[16,14,7,4], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 12,[15,11,4,16], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 13,[5,1,2,13], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 14,[13,5,9,2], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 15,[7,4,2,13], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 16,[13,11,4,2], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 17,[13,7,1,2], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 18,[11,9,2,13], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 19,[11,4,2,15], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 20,[15,11,9,2], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 21,[8,3,2,15], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 22,[15,10,3,2], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 23,[15,8,4,2], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 24,[10,9,2,15], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 25,[10,3,2,12], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 26,[12,10,9,2], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 27,[6,1,2,12], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 28,[12,5,1,2], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 29,[12,6,3,2], mp.GetProperties()[1]) 
-        mp.CreateNewElement("SmallDisplacementElement3D4N", 30,[5,9,2,12], mp.GetProperties()[1]) 
-        
-        A,b = self._define_movement(dim)
-        self._apply_BCs(bcs,A,b)
-        self._solve(mp)
-        self._check_results(mp,A,b)
-        self._check_outputs(mp,A,dim)
-        
-    def _test_SmallDisplacementElement_3D_hexa(self): 
+    def test_SmallDisplacementElement_3D_hexa(self): 
         dim = 3
         mp = KratosMultiphysics.ModelPart("solid_part")
         self._add_variables(mp)
@@ -420,12 +349,6 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         self._solve(mp)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
-    
-    def test_execution(self):
-        self._test_SmallDisplacementElement_2D_triangle()
-        self._test_SmallDisplacementElement_2D_quadrilateral()
-        #self._test_SmallDisplacementElement_3D_tetra()
-        self._test_SmallDisplacementElement_3D_hexa()
         
 if __name__ == '__main__':
     KratosUnittest.main()
