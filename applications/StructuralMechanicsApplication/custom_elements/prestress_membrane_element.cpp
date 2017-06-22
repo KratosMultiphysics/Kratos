@@ -788,7 +788,6 @@ void PrestressMembraneElement::CalculateAll(
     // change to: array_1d<double, 3> StrainVector;
     Vector StrainVector(3);
     Vector StressVector(3);
-    Matrix F;
     
     // set up Constitutive Law
     ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -801,7 +800,6 @@ void PrestressMembraneElement::CalculateAll(
     
     Values.SetStrainVector(StrainVector);       // this is the input parameter
     Values.SetStressVector(StressVector);       // this is an output parameter
-    Values.SetDeformationGradientF(F);
 
     // resizing as needed the LHS
     if (CalculateStiffnessMatrixFlag == true)    // calculation of the matrix is required

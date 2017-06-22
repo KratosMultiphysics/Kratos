@@ -453,8 +453,7 @@ namespace Kratos
             const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
             const unsigned int strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
 
-            KinematicVariables this_kinematic_variables;
-            this_kinematic_variables.Initialize(strain_size, dimension, number_of_nodes);
+            KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
 
             // Create constitutive law parameters:
             ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -505,8 +504,7 @@ namespace Kratos
             const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
             const unsigned int strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
 
-            KinematicVariables this_kinematic_variables;
-            this_kinematic_variables.Initialize(strain_size, dimension, number_of_nodes);
+            KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
             
             // Create constitutive law parameters:
             ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -624,8 +622,7 @@ namespace Kratos
             const unsigned int number_of_nodes = GetGeometry().size();
             const unsigned int strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
 
-            KinematicVariables this_kinematic_variables;
-            this_kinematic_variables.Initialize(strain_size, dimension, number_of_nodes);
+            KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
 
             // Create constitutive law parameters:
             ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -669,8 +666,7 @@ namespace Kratos
             const unsigned int number_of_nodes = GetGeometry().size();
             const unsigned int strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
 
-            KinematicVariables this_kinematic_variables;
-            this_kinematic_variables.Initialize(strain_size, dimension, number_of_nodes);
+            KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
 
             // Reading integration points
             const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
