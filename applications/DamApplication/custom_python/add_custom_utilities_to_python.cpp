@@ -38,7 +38,7 @@ void  AddCustomUtilitiesToPython()
     .def("ComputeOutputStep",&StreamlinesOutput3DUtilities::ComputeOutputStep)
     ;
   
-    class_< GlobalJointStressUtility > ("GlobalJointStressUtility", init<>())
+    class_< GlobalJointStressUtility > ("GlobalJointStressUtility", init<ModelPart&, Parameters>())
     .def("ComputingGlobalStress",&GlobalJointStressUtility::ComputingGlobalStress)
     ;
     

@@ -32,10 +32,10 @@
 // It can be called from MainKratos.py following next commmands.
 //
 // Example of use from python:
+// import global_joint_stress_utility
+// global_joint_stress_utility.GlobalJoinStresstUtility(main_model_part.GetSubModelPart("Parts_Parts_Auto3")).ComputingGlobalStress()
 //
-// global_stress_utility = KratosDam.GlobalJointStressUtility()
-// global_stress_utility.ComputingGlobalStress(main_model_part.GetSubModelPart("Parts_Parts_Auto4"))
-//
+// The input plane must be introduce in the global_joint_stress_utility.py
 
 namespace Kratos
 {
@@ -48,7 +48,25 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    GlobalJointStressUtility() {}
+    GlobalJointStressUtility(ModelPart& model_part,
+                            Parameters rParameters
+                            ) : mr_model_part(model_part)
+    {
+        KRATOS_TRY
+
+        // Getting values of the interested plane
+        mpmid0_0 = rParameters["pmid0_0"].GetDouble();
+        mpmid0_1 = rParameters["pmid0_1"].GetDouble();
+        mpmid0_2 = rParameters["pmid0_2"].GetDouble();
+        mpmid1_0 = rParameters["pmid1_0"].GetDouble();
+        mpmid1_1 = rParameters["pmid1_1"].GetDouble();
+        mpmid1_2 = rParameters["pmid1_2"].GetDouble();
+        mpmid2_0 = rParameters["pmid2_0"].GetDouble();
+        mpmid2_1 = rParameters["pmid2_1"].GetDouble();
+        mpmid2_2 = rParameters["pmid2_2"].GetDouble();
+
+        KRATOS_CATCH("");
+    }
 
     ///------------------------------------------------------------------------------------
     
@@ -59,12 +77,12 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Transforming local stress vector in global coordinates 
-    void ComputingGlobalStress( ModelPart& r_model_part)
+    void ComputingGlobalStress()
     {
-        const int nelements = static_cast<int>(r_model_part.Elements().size());
-        ModelPart::ElementsContainerType::iterator el_begin = r_model_part.ElementsBegin();
+        const int nelements = static_cast<int>(mr_model_part.Elements().size());
+        ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
         GeometryData::IntegrationMethod MyIntegrationMethod;
-        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
         boost::numeric::ublas::bounded_matrix<double,3,3> RotationPlane;
 
         //Definition of the plane
@@ -73,17 +91,17 @@ public:
         array_1d<double, 3> pmid2;
 
         // Coordinates of interest plane
-        pmid0[0]=247.67;
-        pmid0[1]=-368.92;
-        pmid0[2]=242.6;
+        pmid0[0]= mpmid0_0;
+        pmid0[1]= mpmid0_1;
+        pmid0[2]= mpmid0_2;
 
-        pmid1[0]=247.15;
-        pmid1[1]=-385.15;
-        pmid1[2]=242.6;
+        pmid1[0]= mpmid1_0;
+        pmid1[1]= mpmid1_1;
+        pmid1[2]= mpmid1_2;
 
-        pmid2[0]=313.88;
-        pmid2[1]=-373.26;
-        pmid2[2]=242.6;
+        pmid2[0]= mpmid2_0;
+        pmid2[1]= mpmid2_1;
+        pmid2[2]= mpmid2_2;
 
         this->CalculateRotationMatrix(RotationPlane,pmid0,pmid1,pmid2);
         array_1d<double,3> VectorForceinPlane;
@@ -136,7 +154,17 @@ public:
 
 protected:
 
-    /// Member Variables
+        /// Member Variables
+        ModelPart& mr_model_part;
+        double mpmid0_0;
+        double mpmid0_1;
+        double mpmid0_2;
+        double mpmid1_0;
+        double mpmid1_1;
+        double mpmid1_2;
+        double mpmid2_0;
+        double mpmid2_1;
+        double mpmid2_2;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
