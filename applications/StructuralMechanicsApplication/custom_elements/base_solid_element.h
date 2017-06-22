@@ -56,8 +56,6 @@ protected:
      */
     struct KinematicVariables
     {
-        Vector  StrainVector;
-        Vector  StressVector;
         Vector  N;
         Matrix  B;
         double  detF;
@@ -67,7 +65,6 @@ protected:
         Matrix  J0;
         Matrix  InvJ0;
         Matrix  DN_DX;
-        Matrix  D;
         
         /**
          * The default constructor
@@ -84,15 +81,33 @@ protected:
             detF = 1.0;
             detJ0 = 1.0;
             detJ0 = 1.0;
-            StrainVector = ZeroVector(StrainSize);
-            StressVector = ZeroVector(StrainSize);
             N = ZeroVector(NumberOfNodes);
             B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
             F = IdentityMatrix(Dimension);
             DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
-            D = ZeroMatrix(StrainSize, StrainSize);
             J0 = ZeroMatrix(Dimension, Dimension);
             InvJ0 = ZeroMatrix(Dimension, Dimension);
+        }
+    };
+    
+    /**
+     * Internal variables used in the kinematic calculations
+     */
+    struct ConstitutiveVariables
+    {
+        Vector  StrainVector;
+        Vector  StressVector;
+        Matrix  D;
+        
+        /**
+         * The default constructor
+         * @param StrainSize: The size of the strain vector in Voigt notation
+         */
+        ConstitutiveVariables(const unsigned int& StrainSize)
+        {
+            StrainVector = ZeroVector(StrainSize);
+            StressVector = ZeroVector(StrainSize);
+            D = ZeroMatrix(StrainSize, StrainSize);
         }
     };
 public:
@@ -450,12 +465,27 @@ protected:
     /**
      * This functions updates the kinematics variables
      * @param rThisKinematicVariables: The kinematic variables to be calculated 
-     * @param rValues: The CL parameters
      * @param PointNumber: The integration point considered
-     * @param Displacements: The displacements vector
+     * @param IntegrationPoints: The list of integration points
      */ 
     virtual void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables, 
+        const unsigned int PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+        );
+        
+    /**
+     * This functions updates the constitutive variables
+     * @param rThisKinematicVariables: The kinematic variables to be calculated 
+     * @param rThisConstitutiveVariables: The constitutive variables
+     * @param rValues: The CL parameters
+     * @param PointNumber: The integration point considered
+     * @param IntegrationPoints: The list of integration points
+     * @param Displacements: The displacements vector
+     */ 
+    virtual void CalculateConstitutiveVariables(
+        KinematicVariables& rThisKinematicVariables, 
+        ConstitutiveVariables& rThisConstitutiveVariables, 
         ConstitutiveLaw::Parameters& rValues,
         const unsigned int PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,

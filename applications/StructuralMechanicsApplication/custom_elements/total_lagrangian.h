@@ -166,12 +166,26 @@ protected:
     /**
      * This functions updates the kinematics variables
      * @param rThisKinematicVariables: The kinematic variables to be calculated 
-     * @param rValues: The CL parameters
      * @param PointNumber: The integration point considered
-     * @param Displacements: The displacements vector
      */ 
     void CalculateKinematicVariables(
+        KinematicVariables& rThisKinematicVariables,
+        const unsigned int PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+        ) override;
+        
+     /**
+     * This functions updates the constitutive variables
+     * @param rThisKinematicVariables: The kinematic variables to be calculated 
+     * @param rThisConstitutiveVariables: The constitutive variables
+     * @param rValues: The CL parameters
+     * @param PointNumber: The integration point considered
+     * @param IntegrationPoints: The list of integration points
+     * @param Displacements: The displacements vector
+     */ 
+    void CalculateConstitutiveVariables(
         KinematicVariables& rThisKinematicVariables, 
+        ConstitutiveVariables& rThisConstitutiveVariables, 
         ConstitutiveLaw::Parameters& rValues,
         const unsigned int PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
