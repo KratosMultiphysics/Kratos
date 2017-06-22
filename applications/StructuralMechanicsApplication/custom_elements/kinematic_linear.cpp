@@ -113,7 +113,7 @@ namespace Kratos
         for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
         {
             // Compute element kinematics B, F, DN_DX ...
-            UpdateKinematics(this_kinematic_variables, Values, point_number, integration_points, displacements);
+            CalculateKinematicVariables(this_kinematic_variables, Values, point_number, integration_points, displacements);
             
             // Calculating weights for integration on the reference configuration
             double int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0); 
@@ -156,7 +156,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
     
-    void KinematicLinear::UpdateKinematics(
+    void KinematicLinear::CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables, 
         ConstitutiveLaw::Parameters& rValues,
         const unsigned int PointNumber,
