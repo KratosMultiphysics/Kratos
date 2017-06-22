@@ -454,6 +454,7 @@ namespace Kratos
             const unsigned int strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+            ConstitutiveVariables this_constitutive_variables(strain_size);
 
             // Create constitutive law parameters:
             ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -464,7 +465,7 @@ namespace Kratos
             ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
             ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-            Values.SetStrainVector(this_kinematic_variables.StrainVector);
+            Values.SetStrainVector(this_constitutive_variables.StrainVector);
             
             // Reading integration points
             const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
@@ -477,7 +478,10 @@ namespace Kratos
             for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
             {
                 // Compute element kinematics B, F, DN_DX ...
-                CalculateKinematicVariables(this_kinematic_variables, Values, point_number, integration_points, displacements);
+                CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
+                
+                // Compute material reponse
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, displacements);
 
                 //call the constitutive law to update material variables
                 if( rVariable == CAUCHY_STRESS_VECTOR)
@@ -494,7 +498,7 @@ namespace Kratos
                     rOutput[point_number].resize( strain_size, false );
                 }
 
-                rOutput[point_number] = this_kinematic_variables.StressVector;
+                rOutput[point_number] = this_constitutive_variables.StressVector;
             }
         }
         else if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR )
@@ -505,6 +509,7 @@ namespace Kratos
             const unsigned int strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+            ConstitutiveVariables this_constitutive_variables(strain_size);
             
             // Create constitutive law parameters:
             ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -515,7 +520,7 @@ namespace Kratos
             ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
             ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
             
-            Values.SetStrainVector(this_kinematic_variables.StrainVector);
+            Values.SetStrainVector(this_constitutive_variables.StrainVector);
             
             // Reading integration points
             const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
@@ -528,14 +533,17 @@ namespace Kratos
             for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
             {
                 // Compute element kinematics B, F, DN_DX ...
-                CalculateKinematicVariables(this_kinematic_variables, Values, point_number, integration_points, displacements);
+                CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
+
+                // Compute material reponse
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, displacements);
 
                 if ( rOutput[point_number].size() != strain_size)
                 {
                     rOutput[point_number].resize( strain_size, false );
                 }
 
-                rOutput[point_number] = this_kinematic_variables.StrainVector;
+                rOutput[point_number] = this_constitutive_variables.StrainVector;
             }
         }
         else
@@ -623,6 +631,7 @@ namespace Kratos
             const unsigned int strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+            ConstitutiveVariables this_constitutive_variables(strain_size);
 
             // Create constitutive law parameters:
             ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -633,7 +642,7 @@ namespace Kratos
             ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
             ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-            Values.SetConstitutiveMatrix(this_kinematic_variables.D); //this is the output parameter
+            Values.SetConstitutiveMatrix(this_constitutive_variables.D); //this is the output parameter
             
             // Reading integration points
             const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
@@ -646,18 +655,21 @@ namespace Kratos
             for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); point_number++ )
             {
                 // Compute element kinematics B, F, DN_DX ...
-                CalculateKinematicVariables(this_kinematic_variables, Values, point_number, integration_points, displacements);
+                CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
+
+                // Compute material reponse
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, displacements);
 
                 // Call the constitutive law to update material variables
                 mConstitutiveLawVector[point_number]->CalculateMaterialResponseCauchy(Values);
                 //mConstitutiveLawVector[point_number]->CalculateMaterialResponsePK2(Values);
 
-                if( rOutput[point_number].size2() != this_kinematic_variables.D.size2() )
+                if( rOutput[point_number].size2() != this_constitutive_variables.D.size2() )
                 {
-                    rOutput[point_number].resize( this_kinematic_variables.D.size1() , this_kinematic_variables.D.size2() , false );
+                    rOutput[point_number].resize( this_constitutive_variables.D.size1() , this_constitutive_variables.D.size2() , false );
                 }
 
-                rOutput[point_number] = this_kinematic_variables.D;
+                rOutput[point_number] = this_constitutive_variables.D;
             }
         }
         else if ( rVariable == DEFORMATION_GRADIENT )  // VARIABLE SET FOR TRANSFER PURPOUSES
@@ -667,6 +679,7 @@ namespace Kratos
             const unsigned int strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+            ConstitutiveVariables this_constitutive_variables(strain_size);
 
             // Reading integration points
             const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
@@ -682,7 +695,10 @@ namespace Kratos
             for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); point_number++ )
             {
                 // Compute element kinematics B, F, DN_DX ...
-                CalculateKinematicVariables(this_kinematic_variables, Values, point_number, integration_points, displacements);
+                CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
+
+                // Compute material reponse
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, displacements);
 
                 if( rOutput[point_number].size2() != this_kinematic_variables.F.size2() )
                 {
@@ -980,13 +996,26 @@ namespace Kratos
     
     void BaseSolidElement::CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables, 
+        const unsigned int PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+        )
+    {
+        KRATOS_ERROR << "You have called to the CalculateKinematicVariables from the base class for solid elements" << std::endl;
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
+    
+    void BaseSolidElement::CalculateConstitutiveVariables(
+        KinematicVariables& rThisKinematicVariables, 
+        ConstitutiveVariables& rThisConstitutiveVariables, 
         ConstitutiveLaw::Parameters& rValues,
         const unsigned int PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const Vector Displacements
         )
     {
-        KRATOS_ERROR << "You have called to the CalculateKinematicVariables from the base class for solid elements" << std::endl;
+        KRATOS_ERROR << "You have called to the CalculateConstitutiveVariables from the base class for solid elements" << std::endl;
     }
     
     //************************************************************************************
