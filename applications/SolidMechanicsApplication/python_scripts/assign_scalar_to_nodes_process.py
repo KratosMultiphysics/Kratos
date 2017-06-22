@@ -53,9 +53,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         self.settings.ValidateAndAssignDefaults(default_settings)
                 
         ##check if variable type is a scalar or a vector component
-        self.var = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["variable_name"].GetString())
-        if(type(self.var) != KratosMultiphysics.Array1DComponentVariable and type(self.var) != KratosMultiphysics.DoubleVariable and type(self.var) != KratosMultiphysics.VectorVariable):
-            raise Exception("Variable type is incorrect. Must be a scalar or a component")
+        self.CheckVariableType(self.settings["variable_name"].GetString())
 
         self.model_part    = Model[self.settings["model_part_name"].GetString()]
         self.variable_name = self.settings["variable_name"].GetString()
@@ -149,9 +147,17 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
 
 
     #
+    def CheckVariableType(self,name):
+        
+        self.var = KratosMultiphysics.KratosGlobals.GetVariable(name)
+        if(type(self.var) != KratosMultiphysics.Array1DComponentVariable and type(self.var) != KratosMultiphysics.DoubleVariable and type(self.var) != KratosMultiphysics.VectorVariable):
+            raise Exception("Variable type is incorrect. Must be a scalar or a component")
+
+                
+    #
     def SetFixAndFreeProcesses(self,params):
 
-        params["variable_name"].SetString(self.settings["variable_name"])
+        params["variable_name"].SetString(self.settings["variable_name"].GetString())
         fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
         self.FixDofsProcesses.append(fix_dof_process)
         free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
@@ -166,7 +172,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
 
         if( self.fix_derivated_variable == False ):
             for dynamic_variable in self.LinearDynamicVariables:
-                if dynamic_variable in self.variable_name:
+                if dynamic_variable is self.variable_name:
                     self.derivated_variable_name = "DISPLACEMENT" + self.variable_name[-2:]
                     self.fix_derivated_variable = True
                     break
@@ -209,11 +215,12 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
     def IsFixingStep(self):
 
         if( self.interval_started == False ):
-            self.interval_started == True
+            self.interval_started = True
             return True
         else:
             interval_time = self.model_part.ProcessInfo[KratosMultiphysics.INTERVAL_END_TIME]
             previous_time = self.model_part.ProcessInfo.GetPreviousSolutionStepInfo()[KratosMultiphysics.TIME]
+            
             if(previous_time == interval_time):
                 return True
             else:
@@ -231,7 +238,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             tolerance = delta_time * 0.001
             
             if( (current_time + delta_time) > (self.interval[1] + tolerance) ):
-                self.interval_ended == True
+                self.interval_ended = True
                 self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, current_time)
                 return True
             else:

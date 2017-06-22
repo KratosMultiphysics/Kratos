@@ -72,7 +72,7 @@ public:
 	
 	for( unsigned int i=0; i<3; i++)
 	  {
-	    mdirection[i] = rParameters["origin"][i].GetDouble();
+	    mdirection[i] = rParameters["direction"][i].GetDouble();
 	    mcenter[i] = rParameters["center"][i].GetDouble();
 	  }
 
@@ -366,7 +366,8 @@ private:
 
 	      noalias(radius) = prod(rotation_matrix, distance);
 
-	      it->FastGetSolutionStepValue(DISPLACEMENT) =  (mcenter + radius) - it->GetInitialPosition();
+	      array_1d<double,3>& displacement = it->FastGetSolutionStepValue(DISPLACEMENT);
+	      displacement =  radius - distance; //(mcenter + radius) - it->GetInitialPosition();
 	      
 	      if( dynamic_angular_velocity ){
 

@@ -28,10 +28,10 @@ class ApplyRigidBodyRotationProcess(BaseProcess.AssignScalarToNodesProcess):
              "mesh_id": 0,
              "variable_name": "VARIABLE_NAME",             
              "modulus" : 0.0,
-             "direction": [0.0, 0.0, 0.0],
+             "direction": [0.0, 0.0, 1.0],
              "center": [0.0, 0.0, 0.0],
              "constrained": true,
-             "interval": [0.0, "End"],
+             "interval": [0.0, "End"]
         }
         """)
 
@@ -41,8 +41,10 @@ class ApplyRigidBodyRotationProcess(BaseProcess.AssignScalarToNodesProcess):
                 default_settings["modulus"].SetString("0.0")
                 
         ##overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
+        self.settings = custom_settings        
         self.settings.ValidateAndAssignDefaults(default_settings)
+
+        self.custom_settings = custom_settings
                 
         ##check if variable type is a vector
         self.var = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["variable_name"].GetString())
@@ -58,14 +60,19 @@ class ApplyRigidBodyRotationProcess(BaseProcess.AssignScalarToNodesProcess):
         params.AddValue("value", self.settings["modulus"])
         params.AddValue("constrained", self.settings["constrained"])
         params.AddValue("interval",self.settings["interval"])
-        params.AddValue("local_axes", self.settings["local_axes"])
-
+ 
         BaseProcess.AssignScalarToNodesProcess.__init__(self, Model, params)
 
     #
+    def CheckVariableType(self,name):
+        
+        self.var = KratosMultiphysics.KratosGlobals.GetVariable(name)
+        if(type(self.var) != KratosMultiphysics.Array1DVariable3):
+            raise Exception("Variable type is incorrect. Must be an array_1d vector")
+        
+    #
     def SetFixAndFreeProcesses(self,params):
 
-        
         params["variable_name"].SetString(self.variable_name+"_X")
         fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
         self.FixDofsProcesses.append(fix_dof_process)
@@ -87,7 +94,7 @@ class ApplyRigidBodyRotationProcess(BaseProcess.AssignScalarToNodesProcess):
         self.fix_derivated_variable = False
         if( self.fix_derivated_variable == False ):
             for dynamic_variable in self.LinearDynamicVariables:
-                if dynamic_variable in self.variable_name:
+                if dynamic_variable is self.variable_name:
                     self.derivated_variable_name = "DISPLACEMENT"
                     self.fix_derivated_variable = True
                     break
@@ -118,18 +125,18 @@ class ApplyRigidBodyRotationProcess(BaseProcess.AssignScalarToNodesProcess):
 
         if( self.fix_derivated_variable == False ):
             self.variable_name = "ROTATION"
-        elif:
+        else:
             for dynamic_variable in self.LinearDynamicVariables:
                 counter = 0
-                if dynamic_variable in self.variable_name:
+                if dynamic_variable is self.variable_name:
                     self.variable_name = self.AngularDynamicVariables[counter]
                     break
-                 counter = counter + 1
+                counter = counter + 1
                                         
         params["variable_name"].SetString(self.variable_name)
         
-        params.AddValue("direction", self.settings["direction"])
-        params.AddValue("center", self.settings["center"])
+        params.AddValue("direction", self.custom_settings["direction"])
+        params.AddValue("center", self.custom_settings["center"])
         if( self.value_is_numeric ):
             params.AddEmptyValue("modulus").SetDouble(self.value)
             self.AssignValueProcess = KratosSolid.ApplyRigidBodyRotationToNodesProcess(self.model_part, params)
