@@ -119,7 +119,7 @@ public:
             "active_check_factor"                  : 0.01,
             "dual_search_check"                    : false,
             "strict_search_check"                  : true,
-            "filter_candidates"                    : true
+            "filter_candidates"                    : false
         })" );
         
         ThisParameters.ValidateAndAssignDefaults(DefaultParameters);

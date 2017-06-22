@@ -103,7 +103,7 @@ public:
         const double ActiveCheckLength,
         const bool DualCheck = false, 
         const bool StrictCheck = true,
-        const bool FilterCandidates = true
+        const bool FilterCandidates = false
         )
     {
         // Define the basic information
