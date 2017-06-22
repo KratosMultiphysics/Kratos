@@ -169,10 +169,10 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             reference_strain[5] = 2.0*Etensor[0,2]
             
         for elem in mp.Elements:
-            out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_TENSOR, mp.ProcessInfo)
+            out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_VECTOR, mp.ProcessInfo)
             for strain in out:
                 for i in range(len(reference_strain)):
-                    self.assertAlmostEqual(reference_strain[i], strain[0,i])
+                    self.assertAlmostEqual(reference_strain[i], strain[i])
                     
         #finally compute stress
         if(dim == 2):
@@ -198,14 +198,12 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             reference_stress[5] = c4*reference_strain[5]
             
         for elem in mp.Elements:
-            out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.PK2_STRESS_TENSOR, mp.ProcessInfo)
+            out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.PK2_STRESS_VECTOR, mp.ProcessInfo)
             for stress in out:
                 for i in range(len(reference_stress)):
-                    self.assertAlmostEqual(reference_stress[i], stress[0,i],2)        
+                    self.assertAlmostEqual(reference_stress[i], stress[i],2)        
         
-        
-
-    def _test_TL_2D_triangle(self):
+    def test_TL_2D_triangle(self):
         dim = 2
         mp = KratosMultiphysics.ModelPart("solid_part")
         self._add_variables(mp)
@@ -240,7 +238,46 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
         
-    def _test_TL_3D_hexa(self):  
+    def test_TL_2D_quadrilateral(self):
+        dim = 2
+        mp = KratosMultiphysics.ModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+        
+        #create nodes
+        mp.CreateNewNode(1,0.00,3.00,0.00)
+        mp.CreateNewNode(2,1.00,2.25,0.00)
+        mp.CreateNewNode(3,0.75,1.00,0.00)
+        mp.CreateNewNode(4,2.25,2.00,0.00)
+        mp.CreateNewNode(5,0.00,0.00,0.00)
+        mp.CreateNewNode(6,3.00,3.00,0.00)
+        mp.CreateNewNode(7,2.00,0.75,0.00)
+        mp.CreateNewNode(8,3.00,0.00,0.00)
+        
+        for node in mp.Nodes:
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X)
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y)
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z)
+            
+        #create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,5,6,8])
+                
+        #create Element
+        mp.CreateNewElement("TotalLagrangianElement2D4N", 1, [8,7,3,5], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement2D4N", 2, [6,4,7,8], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement2D4N", 3, [1,2,4,6], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement2D4N", 4, [4,2,3,7], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement2D4N", 5, [2,1,5,3], mp.GetProperties()[1])
+        
+        A,b = self._define_movement(dim)
+        
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp)
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+        
+    def test_TL_3D_hexa(self):  
         dim = 3
         mp = KratosMultiphysics.ModelPart("solid_part")
         self._add_variables(mp)
@@ -289,10 +326,6 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         self._solve(mp)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
-        
-    def test_execution(self):
-        self._test_TL_2D_triangle()
-        self._test_TL_3D_hexa()
 
 if __name__ == '__main__':
     KratosUnittest.main()

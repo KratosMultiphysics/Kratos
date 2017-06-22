@@ -23,34 +23,34 @@ namespace Kratos
 {
 ///@name Kratos Globals
 ///@{
-    
+
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
-    
+
 ///@}
 ///@name Kratos Classes
 ///@{
-    
+
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AxisymElasticIsotropic : public ElasticIsotropic3D
 {
 public:
-    
+
     ///@name Type Definitions
     ///@{
-    
+
     typedef ProcessInfo      ProcessInfoType;
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
-    
+
     /**
      * Counted pointer of AxisymElasticIsotropic
      */
@@ -89,7 +89,7 @@ public:
      * @param rFeatures: The Features of the law
      */
     void GetLawFeatures(Features& rFeatures) override;
-    
+
     /**
      * Voigt tensor size:
      */
@@ -97,7 +97,7 @@ public:
     {
         return 4;
     }
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -105,34 +105,34 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
-    
+
     ///@}
     ///@name Input and output
     ///@{
-    
+
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
 
 protected:
 
     ///@name Protected static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     ///@}
 
 private:
@@ -147,7 +147,7 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     /**
      * It calculates the constitutive matrix C
      * @param C: The constitutive matrix
@@ -155,21 +155,21 @@ private:
      * @param NU: The poisson coefficient
      */
     void CalculateElasticMatrix(
-        Matrix& C, 
-        const double E, 
+        Matrix& C,
+        const double E,
         const double NU
-        ) override;
-    
+    ) override;
+
     /**
      * It calculates the strain vector
      * @param rValues: The Internalvalues of the law
      * @param rStrainVector: The strain vector in Voigt notation
      */
-    void CalculateStrain(
+    void CalculateCauchyGreenStrain(
         Parameters& rValues,
         Vector& rStrainVector
-        ) override;
-        
+    ) override;
+
     ///@}
     ///@name Private Operations
     ///@{
