@@ -110,7 +110,7 @@ namespace Kratos
 
         for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
         {
-            UpdateKinematics(this_kinematic_variables, Values, point_number, integration_points);
+            CalculateKinematicVariables(this_kinematic_variables, Values, point_number, integration_points);
 
             // Calculating weights for integration on the reference configuration
             double IntToReferenceWeight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0); 
@@ -156,7 +156,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
     
-    void TotalLagrangian::UpdateKinematics(
+    void TotalLagrangian::CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables, 
         ConstitutiveLaw::Parameters& rValues,
         const unsigned int PointNumber,

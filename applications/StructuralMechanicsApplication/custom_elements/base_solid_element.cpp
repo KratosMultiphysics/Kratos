@@ -477,7 +477,7 @@ namespace Kratos
             for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
             {
                 // Compute element kinematics B, F, DN_DX ...
-                UpdateKinematics(this_kinematic_variables, Values, point_number, integration_points, displacements);
+                CalculateKinematicVariables(this_kinematic_variables, Values, point_number, integration_points, displacements);
 
                 //call the constitutive law to update material variables
                 if( rVariable == CAUCHY_STRESS_VECTOR)
@@ -528,7 +528,7 @@ namespace Kratos
             for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
             {
                 // Compute element kinematics B, F, DN_DX ...
-                UpdateKinematics(this_kinematic_variables, Values, point_number, integration_points, displacements);
+                CalculateKinematicVariables(this_kinematic_variables, Values, point_number, integration_points, displacements);
 
                 if ( rOutput[point_number].size() != strain_size)
                 {
@@ -646,7 +646,7 @@ namespace Kratos
             for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); point_number++ )
             {
                 // Compute element kinematics B, F, DN_DX ...
-                UpdateKinematics(this_kinematic_variables, Values, point_number, integration_points, displacements);
+                CalculateKinematicVariables(this_kinematic_variables, Values, point_number, integration_points, displacements);
 
                 // Call the constitutive law to update material variables
                 mConstitutiveLawVector[point_number]->CalculateMaterialResponseCauchy(Values);
@@ -682,7 +682,7 @@ namespace Kratos
             for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); point_number++ )
             {
                 // Compute element kinematics B, F, DN_DX ...
-                UpdateKinematics(this_kinematic_variables, Values, point_number, integration_points, displacements);
+                CalculateKinematicVariables(this_kinematic_variables, Values, point_number, integration_points, displacements);
 
                 if( rOutput[point_number].size2() != this_kinematic_variables.F.size2() )
                 {
@@ -978,7 +978,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
     
-    void BaseSolidElement::UpdateKinematics(
+    void BaseSolidElement::CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables, 
         ConstitutiveLaw::Parameters& rValues,
         const unsigned int PointNumber,
@@ -986,7 +986,7 @@ namespace Kratos
         const Vector Displacements
         )
     {
-        KRATOS_ERROR << "You have called to the UpdateKinematics from the base class for solid elements" << std::endl;
+        KRATOS_ERROR << "You have called to the CalculateKinematicVariables from the base class for solid elements" << std::endl;
     }
     
     //************************************************************************************

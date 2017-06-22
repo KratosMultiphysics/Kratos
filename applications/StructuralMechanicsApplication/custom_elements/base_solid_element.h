@@ -454,7 +454,7 @@ protected:
      * @param PointNumber: The integration point considered
      * @param Displacements: The displacements vector
      */ 
-    virtual void UpdateKinematics(
+    virtual void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables, 
         ConstitutiveLaw::Parameters& rValues,
         const unsigned int PointNumber,
