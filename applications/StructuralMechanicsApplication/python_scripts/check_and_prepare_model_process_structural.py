@@ -33,14 +33,28 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         structural_computational_model_part.ProcessInfo = self.main_model_part.ProcessInfo
         structural_computational_model_part.Properties  = self.main_model_part.Properties
         
-        for part in structural_parts:
-            for node in part.Nodes:
-                structural_computational_model_part.AddNode(node,0)
-            for elem in part.Elements:
-                structural_computational_model_part.AddElement(elem,0)
+        #node_ids = set()
+        #elem_ids = set()
+        #for part in structural_parts:
+            #for node in part.Nodes:
+                #node_ids.add(node.Id)
+            #for elem in part.Elements:
+                #elem_ids.add(elem.Id)
+                
+        #structural_computational_model_part.AddNodes(list(node_ids))
+        #structural_computational_model_part.AddElements(list(elem_ids))
             
+        #cond_ids = set()
+        #for part in processes_parts:
+            #for cond in part.Conditions:
+                #cond_ids.add(cond.Id)
+        #structural_computational_model_part.AddConditions(list(cond_ids)) 
+        
+        for part in structural_parts:
+            transfer_process = KratosMultiphysics.FastTransferBetweenModelPartsProcess( structural_computational_model_part, part, "NodesAndElements")
+            transfer_process.Execute()
         for part in processes_parts:
-            for cond in part.Conditions:
-                structural_computational_model_part.AddCondition(cond,0)  
+            transfer_process = KratosMultiphysics.FastTransferBetweenModelPartsProcess( structural_computational_model_part, part, "Conditions")
+            transfer_process.Execute()
                 
         print(structural_computational_model_part)
