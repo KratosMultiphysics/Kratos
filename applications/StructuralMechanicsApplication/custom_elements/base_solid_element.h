@@ -70,11 +70,12 @@ protected:
         Matrix  D;
         
         /**
-         * The variables are initialized
+         * The default constructor
          * @param StrainSize: The size of the strain vector in Voigt notation
          * @param Dimension: The size of the strain vector in Voigt notation
+         * @param NumberOfNodes: The size of the strain vector in Voigt notation
          */
-        void Initialize( 
+        KinematicVariables( 
             const unsigned int& StrainSize, 
             const unsigned int& Dimension, 
             const unsigned int& NumberOfNodes 

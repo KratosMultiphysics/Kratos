@@ -73,16 +73,16 @@ public:
      * @param rFeatures
      */
     void GetLawFeatures(Features& rFeatures) override;
-    
+
     /**
      * Voigt tensor size:
      */
     SizeType GetStrainSize() override
     {
         return 3;
-        
+
     }
-    
+
     /**
      * Computes the material response:
      * PK2 stresses and algorithmic ConstitutiveMatrix
@@ -104,15 +104,15 @@ public:
      * It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
      * or that no common error is found.
-     * @param rMaterialProperties: The properties of the material 
+     * @param rMaterialProperties: The properties of the material
      * @param rElementGeometry: The geometry of the element
      * @param rCurrentProcessInfo: The current process info instance
      */
     int Check(
-        const Properties& rMaterialProperties, 
-        const GeometryType& rElementGeometry, 
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
-        ) override;
+    ) override;
 
 
 
@@ -162,7 +162,7 @@ private:
         C(2,2) = c3;
     }
 
-    void CalculateStress(const Vector& StrainVector, Vector& StressVector, const double E, const double NU)
+    void CalculatePK2Stress(const Vector& StrainVector, Vector& StressVector, const double E, const double NU)
     {
         double c1 = E / (1.00 - NU*NU);
         double c2 = c1 * NU;
@@ -174,19 +174,19 @@ private:
         StressVector[2] = c3*StrainVector[2];
 
     }
-    
-    void CalculateStrain(
-        Parameters& rValues, 
+
+    void CalculateCauchyGreenStrain(
+        Parameters& rValues,
         Vector& StrainVector
-        )
+    )
     {
         //1.-Compute total deformation gradient
         const Matrix& F = rValues.GetDeformationGradientF();
-        
+
         Matrix Etensor = prod(trans(F),F);
         Etensor -= IdentityMatrix(2,2);
         Etensor *= 0.5;
-        
+
         noalias(StrainVector) = MathUtils<double>::StrainTensorToVector(Etensor);
     }
 
