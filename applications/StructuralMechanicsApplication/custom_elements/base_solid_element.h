@@ -84,33 +84,15 @@ protected:
             detF = 1.0;
             detJ0 = 1.0;
             detJ0 = 1.0;
-            
-            StrainVector.resize(StrainSize, false);
-            noalias(StrainVector) = ZeroVector(StrainSize);
-            
-            StressVector.resize(StrainSize, false);
-            noalias(StressVector) = ZeroVector(StrainSize);
-            
-            N.resize(NumberOfNodes, false);
-            noalias(N) = ZeroVector(NumberOfNodes);
-            
-            B.resize(StrainSize, Dimension * NumberOfNodes, false);
-            noalias(B)  = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
-            
-            F.resize(Dimension, Dimension,false);
-            noalias(F)  = IdentityMatrix(Dimension);
-            
-            DN_DX.resize(NumberOfNodes, Dimension,false);
-            noalias(DN_DX) = ZeroMatrix(NumberOfNodes, Dimension);
-            
-            D.resize(StrainSize, StrainSize,false);
-            noalias(D) = ZeroMatrix(StrainSize, StrainSize);
-            
-            J0.resize(Dimension,Dimension, false);
-            noalias(J0) = ZeroMatrix(Dimension, Dimension);
-            
-            InvJ0.resize(Dimension,Dimension, false);
-            noalias(InvJ0) = ZeroMatrix(Dimension, Dimension);
+            StrainVector = ZeroVector(StrainSize);
+            StressVector = ZeroVector(StrainSize);
+            N = ZeroVector(NumberOfNodes);
+            B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
+            F = IdentityMatrix(Dimension);
+            DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
+            D = ZeroMatrix(StrainSize, StrainSize);
+            J0 = ZeroMatrix(Dimension, Dimension);
+            InvJ0 = ZeroMatrix(Dimension, Dimension);
         }
     };
 public:
