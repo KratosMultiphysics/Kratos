@@ -102,8 +102,12 @@ def AssambleTestSuites():
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
     # Simple patch tests
-    smallSuite.addTest(TTestPatchTestSmallStrain('test_execution'))
-    smallSuite.addTest(TTestPatchTestLargeStrain('test_execution'))
+    smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_2D_triangle'))
+    smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_2D_quadrilateral'))
+    smallSuite.addTest(TTestPatchTestSmallStrain('test_SmallDisplacementElement_3D_hexa'))
+    smallSuite.addTest(TTestPatchTestLargeStrain('test_TL_2D_triangle'))
+    smallSuite.addTest(TTestPatchTestLargeStrain('test_TL_2D_quadrilateral'))
+    smallSuite.addTest(TTestPatchTestLargeStrain('test_TL_3D_hexa'))
     # Test loading conditions
     smallSuite.addTest(TestLoadingConditions('test_execution'))
     # Basic moving mesh test
