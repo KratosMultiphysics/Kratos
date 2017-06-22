@@ -69,7 +69,7 @@ namespace Kratos
         const double& NU    = MaterialProperties[POISSON_RATIO];
 
         //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-        if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN )) //large strains
+        if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
         {
             CalculateStrain(rValues, StrainVector);
         }
