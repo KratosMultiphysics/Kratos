@@ -5,7 +5,7 @@ from KratosMultiphysics.FSIApplication import *
 try:
     from KratosMultiphysics.ALEApplication import *
     from KratosMultiphysics.FluidDynamicsApplication import *
-    from KratosMultiphysics.SolidMechanicsApplication import *
+    from KratosMultiphysics.StructuralMechanicsApplication import *
 except ImportError:
     pass
 
