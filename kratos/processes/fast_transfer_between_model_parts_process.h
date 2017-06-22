@@ -107,7 +107,6 @@ public:
         if (num_nodes != 0 && (mEntity == All || mEntity == Nodes || mEntity == NodesAndElements))
         {
             mrDestinationModelPart.AddNodes(mrOriginModelPart.NodesBegin(),mrOriginModelPart.NodesEnd());
-            mrDestinationModelPart.Nodes().Unique();
         }
 
         const int num_elements = mrOriginModelPart.Elements().size();
@@ -115,7 +114,6 @@ public:
         if (num_elements != 0 && (mEntity == All || mEntity == Elements || mEntity == NodesAndElements))
         {
             mrDestinationModelPart.AddElements(mrOriginModelPart.ElementsBegin(),mrOriginModelPart.ElementsEnd());
-            mrDestinationModelPart.Elements().Unique();
         }
 
         const int num_conditions = mrOriginModelPart.Conditions().size();
@@ -123,7 +121,6 @@ public:
         if (num_conditions != 0 && (mEntity == All || mEntity == Conditions))
         {
              mrDestinationModelPart.AddConditions(mrOriginModelPart.ConditionsBegin(),mrOriginModelPart.ConditionsEnd());
-            mrDestinationModelPart.Conditions().Unique();
         }
 
         KRATOS_CATCH("");
