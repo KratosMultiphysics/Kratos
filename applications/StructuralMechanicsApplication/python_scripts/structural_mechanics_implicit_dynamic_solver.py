@@ -1,19 +1,18 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication
-import KratosMultiphysics.StructuralMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
 # Import the implicit solver (the explicit one is derived from it)
-import solid_mechanics_implicit_dynamic_solver
+import structural_mechanics_solver
 
 def CreateSolver(main_model_part, custom_settings):
     return ImplicitMechanicalSolver(main_model_part, custom_settings)
 
-class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver):
+class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     
     ##constructor. the constructor shall only take care of storing the settings 
     ##and the pointer to the main_model part. This is needed since at the point of constructing the 
@@ -34,6 +33,9 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
+            "material_import_settings" :{
+                "materials_filename": ""
+            },
             "echo_level": 0,
             "buffer_size": 2,
             "solution_type": "Dynamic",
@@ -46,12 +48,10 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             "stabilization_factor": 1.0,
             "reform_dofs_at_each_step": false,
             "line_search": false,
-            "implex": false,
             "compute_reactions": true,
             "compute_contact_forces": false,
-            "block_builder": false,
+            "block_builder": true,
             "clear_storage": false,
-            "component_wise": false,
             "move_mesh_flag": true,
             "convergence_criterion": "Residual_criteria",
             "displacement_relative_tolerance": 1.0e-4,
@@ -83,10 +83,48 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
         
         print("Construction of MechanicalSolver finished")
 
+    def Initialize(self):
+
+        print("::[Mechanical Solver]:: -START-")
+        
+        # Get the solid computing model part
+        self.computing_model_part = self.GetComputingModelPart()
+        
+        # Builder and solver creation
+        builder_and_solver = self._GetBuilderAndSolver(self.settings["block_builder"].GetBool())
+        
+        # Solution scheme creation
+        mechanical_scheme = self._GetSolutionScheme(self.settings["scheme_type"].GetString())
+        
+        # Get the convergence criterion
+        mechanical_convergence_criterion = self._GetConvergenceCriterion()
+        
+        # Mechanical solver creation
+        self._CreateMechanicalSolver(mechanical_scheme,
+                                     mechanical_convergence_criterion,
+                                     builder_and_solver,
+                                     self.settings["max_iteration"].GetInt(),
+                                     self.settings["compute_reactions"].GetBool(),
+                                     self.settings["reform_dofs_at_each_step"].GetBool(),
+                                     self.settings["move_mesh_flag"].GetBool(),
+                                     self.settings["line_search"].GetBool()
+                                     )
+
+        # Set echo_level
+        self.mechanical_solver.SetEchoLevel(self.settings["echo_level"].GetInt())
+
+        # Set initialize flag
+        if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True ):
+            self.mechanical_solver.SetInitializePerformedFlag(True)
+        
+        # Check if everything is assigned correctly
+        self.Check();
+
+        print("::[Mechanical Solver]:: -END- ")
 
     def AddVariables(self):
         
-        solid_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver.AddVariables(self)
+        structural_mechanics_solver.MechanicalSolver.AddVariables(self)
             
         if self.settings["rotation_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs)
@@ -95,10 +133,26 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
         print("::[Mechanical Solver]:: Variables ADDED")
 
     
-    def _GetSolutionScheme(self, scheme_type, component_wise, compute_contact_forces):
+    def _GetSolutionScheme(self, scheme_type):
 
         if(scheme_type == "Newmark") or (scheme_type == "Bossak"):
-            mechanical_scheme = super(ImplicitMechanicalSolver,self)._GetSolutionScheme(scheme_type, component_wise, compute_contact_forces)
+            if(scheme_type == "Newmark"):
+                self.settings.AddEmptyValue("damp_factor_m")  
+                self.settings.AddEmptyValue("dynamic_factor")
+                self.settings["damp_factor_m"].SetDouble(0.0)
+                self.settings["dynamic_factor"].SetDouble(1.0)
+                                                                            
+            elif(scheme_type == "Bossak"):
+                self.settings.AddEmptyValue("damp_factor_m")  
+                self.settings.AddEmptyValue("dynamic_factor")
+                self.settings["damp_factor_m"].SetDouble(-0.01)
+                self.settings["dynamic_factor"].SetDouble(1.0)    
+            
+            # Creating the implicit solution scheme:  
+            #self.main_model_part.ProcessInfo[KratosStructural.RAYLEIGH_ALPHA] = 0.0
+            #self.main_model_part.ProcessInfo[KratosStructural.RAYLEIGH_BETA ] = 0.0
+            
+            mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(self.settings["damp_factor_m"].GetDouble())
 
         elif(scheme_type == "Relaxation"):
           #~ self.main_model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString()).AddNodalSolutionStepVariable(DISPLACEMENT)  
@@ -109,6 +163,31 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             self.settings["dynamic_factor_m"].SetDouble(10.0) 
             
             mechanical_scheme = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedRelaxationScheme(self.settings["damp_factor_f"].GetDouble(),
-                                                                                                                self.settings["dynamic_factor_m"].GetDouble())
+                                                                                            self.settings["dynamic_factor_m"].GetDouble())
                                 
         return mechanical_scheme
+
+        
+    def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, line_search):
+        if(line_search):
+            self.mechanical_solver = KratosMultiphysics.LineSearchStrategy(self.computing_model_part, 
+                                                                            mechanical_scheme, 
+                                                                            self.linear_solver, 
+                                                                            mechanical_convergence_criterion, 
+                                                                            builder_and_solver, 
+                                                                            max_iters, 
+                                                                            compute_reactions, 
+                                                                            reform_step_dofs, 
+                                                                            move_mesh_flag)
+
+
+        else:
+            self.mechanical_solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.computing_model_part, 
+                                                                                            mechanical_scheme, 
+                                                                                            self.linear_solver, 
+                                                                                            mechanical_convergence_criterion, 
+                                                                                            builder_and_solver, 
+                                                                                            max_iters, 
+                                                                                            compute_reactions, 
+                                                                                            reform_step_dofs, 
+                                                                                            move_mesh_flag)

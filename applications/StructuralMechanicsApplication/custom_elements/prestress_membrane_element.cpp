@@ -829,7 +829,7 @@ void PrestressMembraneElement::CalculateAll(
     // set up Constitutive Law
     ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
-    //Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRAIN, false);        // why set to false?
+    Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRAIN, true);        // why set to false?
     //Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
     Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR); 
     
