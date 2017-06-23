@@ -7,12 +7,13 @@ import os
 
 CheckForPreviousImport()
 
-path_of_the_application =  os.path.dirname((os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))) # script directory
-# print(path_of_the_appli)
 # Import the mapper library
-# This is pre compiled and is put in the external library. Also a header file is put in the header file folder to give the
-# users the syntax for the mapping routines.
-libMapper = ctp.cdll.LoadLibrary(path_of_the_application+"/custom_external_libraries/libEMPIRE_MapperLib.so")
+# A header file is put in the header file folder to give the users the syntax for the mapping routines.
+# TODO Aditya does the first case work all the time? Also should we change the two cases?
+try: # OpenMPI
+    libMapper = ctp.CDLL(os.environ['EMPIRE_MAPPER_LIBSO_ON_MACHINE'], ctp.RTLD_GLOBAL)
+except: # Intel MPI & OpenMPI with "–disable-dlopen"
+    libMapper = ctp.cdll.LoadLibrary(os.environ['EMPIRE_MAPPER_LIBSO_ON_MACHINE'])
 
 ## Wrapper class for the mapper
 # Consturctor will have two model parts as arguments, type of mapper and then options to the mapper. 
