@@ -82,7 +82,7 @@ class ReadMaterialsProcess(Process):
             "properties_id" : 1,
             "Material" : {
                 "constitutive_law" : {
-                    "name" : "LinearElasticPlaneStress2DLaw"
+                    "name" : "KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw"
                 },
                 "Variables" : {
                     "YOUNG_MODULUS" : 200e9,
