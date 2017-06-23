@@ -10,15 +10,8 @@ from numpy import linalg as la
 import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.ExternalSolversApplication import *
-from KratosMultiphysics.MeshingApplication import *
-from KratosMultiphysics.SolidMechanicsApplication import *
-
-# ADI BEGIN
-from KratosMultiphysics.ALEApplication import *
 from KratosMultiphysics.EmpireApplication import *
 import empire_mapper
-# ADI END
 
 # defining variables to be used
 # GID IO IS NOT USING THIS NOW. TO BE REMOVED ONCE THE "PRINT IN POINTS"
