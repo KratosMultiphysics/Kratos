@@ -960,6 +960,10 @@ namespace Kratos {
     if(Tau<0.0000001){
       Tau=0.0000001;
     }
+
+    if(MeanVelocity==0){
+      Tau=0;
+    }
   }
 
   template< unsigned int TDim >
