@@ -86,6 +86,15 @@ class EmbeddedCouetteImposedTest(EmbeddedTestFactory):
 class EmbeddedReservoirTest(EmbeddedTestFactory):
     file_name = "EmbeddedReservoirTest/EmbeddedReservoirTest"
 
+
+class EmbeddedSlipBoundaryConditionTest(EmbeddedTestFactory):
+    file_name = "EmbeddedSlipBoundaryConditionTest/EmbeddedSlipBoundaryConditionTest"
+
+
+class EmbeddedSlipReservoirTest(EmbeddedTestFactory):
+    file_name = "EmbeddedSlipReservoirTest/EmbeddedSlipReservoirTest"
+
+
 @KratosUnittest.skipUnless(have_external_solvers, "Missing required application: ExternalSolversApplication")
 class ManufacturedSolutionTest(ManufacturedSolutionTestFactory):
     file_name = "ManufacturedSolutionTest/ManufacturedSolutionTest"
