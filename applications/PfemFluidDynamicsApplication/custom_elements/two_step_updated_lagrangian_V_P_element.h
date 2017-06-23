@@ -462,7 +462,6 @@ namespace Kratos
     
       void AddExternalForces( Vector& rRHSVector,
 			      const double Density,
-			      const array_1d<double,3>& rBodyForce,
 			      const ShapeFunctionsType& rN,
 			      const double Weight);
       
@@ -528,15 +527,20 @@ namespace Kratos
 					      const ShapeFunctionDerivativesType& rShapeDeriv,
 					      const double Weight){};
       
-      virtual bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
-					const ProcessInfo& rCurrentProcessInfo,
-					const ShapeFunctionDerivativesType& rDN_DX,
-					unsigned int g){return true;};
+      bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
+				const ProcessInfo& rCurrentProcessInfo,
+				const ShapeFunctionDerivativesType& rDN_DX,
+				unsigned int g);
 
       bool CalcStrainRate(ElementalVariables & rElementalVariables,
 			  const ProcessInfo& rCurrentProcessInfo,
 			  const ShapeFunctionDerivativesType& rDN_DX,
 			  const double theta);
+
+      bool CalcCompleteStrainRate(ElementalVariables & rElementalVariables,
+				  const ProcessInfo& rCurrentProcessInfo,
+				  const ShapeFunctionDerivativesType& rDN_DX,
+				  const double theta);
 
       void CalcVelDefGrad(const ShapeFunctionDerivativesType& rDN_DX,
 			  MatrixType &FgradVel,
@@ -575,8 +579,7 @@ namespace Kratos
       void CalcDeviatoricInvariant(VectorType &SpatialDefRate,
 				   double &DeviatoricInvariant);
 
-      void CalcNormalProjectionDefRate(VectorType &SpatialDefRate,
-				       double &NormalProjSpatialDefRate);
+      double CalcNormalProjectionDefRate(VectorType &SpatialDefRate);
 
       void CheckStrain1(double &VolumetricDefRate,
 			MatrixType &SpatialVelocityGrad);
@@ -613,7 +616,6 @@ namespace Kratos
       virtual void AddStabilizationNodalTermsRHS(VectorType& rRightHandSideVector,
 						 const double Tau,
 						 const double Density,
-						 const array_1d<double,3> BodyForce,
 						 const double Weight,
 						 const ShapeFunctionDerivativesType& rDN_DX,
 						 const SizeType i){};

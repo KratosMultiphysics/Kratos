@@ -88,26 +88,26 @@ Element::Pointer UpdatedLagrangianVSolidElement<TDim>::Clone( IndexType NewId, N
 
 
 
-template< unsigned int TDim>
-bool UpdatedLagrangianVSolidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
-								const ProcessInfo& rCurrentProcessInfo,
-								const ShapeFunctionDerivativesType& rDN_DX,
-								unsigned int g)
-{
+// template< unsigned int TDim>
+// bool UpdatedLagrangianVSolidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
+// 								const ProcessInfo& rCurrentProcessInfo,
+// 								const ShapeFunctionDerivativesType& rDN_DX,
+// 								unsigned int g)
+// {
 
-  bool computeElement=false;
-  double theta=this->GetThetaMomentum();
-  computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
-  const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
-  this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
-  return computeElement;
-} 
+//   bool computeElement=false;
+//   double theta=this->GetThetaMomentum();
+//   computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+//   const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
+//   this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
+//   return computeElement;
+// } 
 
 
 
 
 template < > 
-void UpdatedLagrangianVSolidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,double TimeStep, unsigned int g)
+void UpdatedLagrangianVSolidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
 {
 
   rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
