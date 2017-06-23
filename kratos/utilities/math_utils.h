@@ -376,6 +376,13 @@ public:
         }
         else
         {   
+            const unsigned int size1 = InputMatrix.size1();
+            const unsigned int size2 = InputMatrix.size2();
+            if(InvertedMatrix.size1() != size1 || InvertedMatrix.size2() != size2)
+            {
+                InvertedMatrix.resize(size1, size2,false);
+            }
+            
             int singular = 0;
             using namespace boost::numeric::ublas;
             typedef permutation_matrix<std::size_t> pmatrix;
