@@ -26,16 +26,15 @@ namespace Kratos
 void RoccoNetElement3D4N::Initialize()
 {
 	KRATOS_TRY
-	this->mKb = this->GetProperties()[KB_ROCCO];
-	this->mNumberWindings = this->GetProperties()[WIRE_WINDINGS_ROCCO];
-	this->mThicknessWire = this->GetProperties()[WIRE_THICKNESS_ROCCO];
-	this->mDiameter = this->GetProperties()[DIAMETER_ROCCO];
-	this->mNodalMass_custom = this->GetProperties()[NODAL_MASS_ROCCO];
-	const int Kt_multiplyer = this->GetProperties()[KT_MULT_ROCCO];
+	this->mKb = this->GetProperties()[KB_RING];
+	this->mNumberWindings = this->GetProperties()[WIRE_WINDINGS_RING];
+	this->mThicknessWire = this->GetProperties()[WIRE_THICKNESS_RING];
+	this->mDiameter = this->GetProperties()[DIAMETER_RING];
+	this->mNodalMass_custom = this->GetProperties()[NODAL_MASS_RING];
+	this->mKt = this->GetProperties()[KT_RING];
 
 
 	//this is calculated from input variables
-	this->mKt = this->mKb * Kt_multiplyer;
 	this->mCircumference = this->mDiameter * PI;
 	this->mLengthDiagonalReference = this->mDiameter -
 		(this->mThicknessWire*sqrt(this->mNumberWindings));
@@ -72,6 +71,11 @@ void RoccoNetElement3D4N::CalculateRightHandSide(VectorType& rRightHandSideVecto
 	TempInternalForces = ZeroVector(element_size);
 	this->AddCableRHSForces(TempInternalForces);
 	rRightHandSideVector -= TempInternalForces;
+
+	//bodyForces
+	Vector BodyForcesGlobal = ZeroVector(element_size);
+	BodyForcesGlobal = this->CalculateBodyForces();
+	rRightHandSideVector += BodyForcesGlobal;
 	KRATOS_CATCH("")
 }
 void RoccoNetElement3D4N::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
@@ -739,40 +743,40 @@ int RoccoNetElement3D4N::Check(const ProcessInfo& rCurrentProcessInfo)
 			KRATOS_THROW_ERROR(std::logic_error, "This Element needs at least a buffer size = 2", "");
 	}
 
-	if (this->GetProperties().Has(KB_ROCCO) == false ||
-		this->GetProperties()[KB_ROCCO] == 0)
+	if (this->GetProperties().Has(KB_RING) == false ||
+		this->GetProperties()[KB_RING] == 0)
 	{
-		KRATOS_ERROR << ("KB_ROCCO not provided for this element", this->Id()) << std::endl;
+		KRATOS_ERROR << ("KB_RING not provided for this element", this->Id()) << std::endl;
 	}
 
-	if (this->GetProperties().Has(WIRE_WINDINGS_ROCCO) == false ||
-		this->GetProperties()[WIRE_WINDINGS_ROCCO] == 0)
+	if (this->GetProperties().Has(WIRE_WINDINGS_RING) == false ||
+		this->GetProperties()[WIRE_WINDINGS_RING] == 0)
 	{
-		KRATOS_ERROR << ("WIRE_WINDINGS_ROCCO not provided for this element", this->Id()) << std::endl;
+		KRATOS_ERROR << ("WIRE_WINDINGS_RING not provided for this element", this->Id()) << std::endl;
 	}
 
-	if (this->GetProperties().Has(WIRE_THICKNESS_ROCCO) == false ||
-		this->GetProperties()[WIRE_THICKNESS_ROCCO] == 0)
+	if (this->GetProperties().Has(WIRE_THICKNESS_RING) == false ||
+		this->GetProperties()[WIRE_THICKNESS_RING] == 0)
 	{
-		KRATOS_ERROR << ("WIRE_THICKNESS_ROCCO not provided for this element", this->Id()) << std::endl;
+		KRATOS_ERROR << ("WIRE_THICKNESS_RING not provided for this element", this->Id()) << std::endl;
 	}
 
-	if (this->GetProperties().Has(DIAMETER_ROCCO) == false ||
-		this->GetProperties()[DIAMETER_ROCCO] == 0)
+	if (this->GetProperties().Has(DIAMETER_RING) == false ||
+		this->GetProperties()[DIAMETER_RING] == 0)
 	{
-		KRATOS_ERROR << ("DIAMETER_ROCCO not provided for this element", this->Id()) << std::endl;
+		KRATOS_ERROR << ("DIAMETER_RING not provided for this element", this->Id()) << std::endl;
 	}
 
-	if (this->GetProperties().Has(NODAL_MASS_ROCCO) == false ||
-		this->GetProperties()[NODAL_MASS_ROCCO] == 0)
+	if (this->GetProperties().Has(NODAL_MASS_RING) == false ||
+		this->GetProperties()[NODAL_MASS_RING] == 0)
 	{
-		KRATOS_ERROR << ("NODAL_MASS_ROCCO not provided for this element", this->Id()) << std::endl;
+		KRATOS_ERROR << ("NODAL_MASS_RING not provided for this element", this->Id()) << std::endl;
 	}
 
-	if (this->GetProperties().Has(KT_MULT_ROCCO) == false ||
-		this->GetProperties()[KT_MULT_ROCCO] == 0)
+	if (this->GetProperties().Has(KT_RING) == false ||
+		this->GetProperties()[KT_RING] == 0)
 	{
-		KRATOS_ERROR << ("KT_MULT_ROCCO not provided for this element", this->Id()) << std::endl;
+		KRATOS_ERROR << ("KT_RING not provided for this element", this->Id()) << std::endl;
 	}
 
 	
@@ -966,6 +970,34 @@ void RoccoNetElement3D4N::AddExplicitContribution(const VectorType& rRHSVector,
 	KRATOS_CATCH("")
 }
 
+RoccoNetElement3D4N::VectorType RoccoNetElement3D4N::CalculateBodyForces()
+{
+	KRATOS_TRY;
+	const int number_of_nodes = this->GetGeometry().PointsNumber();
+	const int dimension = this->GetGeometry().WorkingSpaceDimension();
+	const unsigned int MatSize = number_of_nodes * dimension;
+	const double NodalMassRocco = this->mNodalMass_custom;
+
+	Vector NodalForceVector = ZeroVector(dimension);
+	Vector ElementForceVector = ZeroVector(MatSize);
+	int index = 0;
+
+	for (int i = 0; i < number_of_nodes; ++i) 
+	{
+		index = i*dimension;
+		NodalForceVector.clear();
+		NodalForceVector = this->GetGeometry()[i]
+			.FastGetSolutionStepValue(VOLUME_ACCELERATION)*NodalMassRocco;
+
+		for (int j = 0; j < dimension; ++j)
+		{
+			ElementForceVector[index + j] = NodalForceVector[j];
+		}
+
+	}
+	return ElementForceVector;
+	KRATOS_CATCH("");
+}
 
 
 
