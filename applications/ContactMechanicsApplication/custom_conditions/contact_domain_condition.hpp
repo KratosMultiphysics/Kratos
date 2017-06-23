@@ -80,12 +80,12 @@ public:
     typedef ContactDomainUtilities::SurfaceBase           SurfaceBase;
 
 protected:
-
+ 
     /**
      * Parameters to be used in the Condition as they are. Direct interface to Parameters Struct
      */
 
-      typedef struct
+    typedef struct
     {
       //Geometrical surface tangent gaps:
       ScalarBaseType   CurrentGap;     //tangential gap
@@ -114,15 +114,18 @@ protected:
       SurfaceBase    ContravariantBase;
       
       //geometrical variables
-      double EquivalentArea;
+      double ReferenceArea;
+      double CurrentArea;
+
+      double FactorArea;
       
       double EquivalentHeigh;
       
       double ElementSize;
-
                   
     } ContactTangentParameters;
 
+  
     typedef struct
     {
         Flags           Options;               //calculation options
@@ -244,7 +247,7 @@ protected:
         //The stabilization parameter and penalty parameter
         double          StabilizationFactor;
 	double          PenaltyFactor;
-
+      
         //Geometrical gaps:
         SurfaceScalar        PreviousGap;     //effective normal and tangential gap in previous time step configuration
 
@@ -849,9 +852,9 @@ protected:
     /**
      * Calculation of the Material Stiffness Matrix by components
      */
-    virtual void CalcContactStiffness (double &Kcont,GeneralVariables& rVariables,
-				       unsigned int& ndi,unsigned int& ndj,
-				       unsigned int& idir,unsigned int& jdir)
+    virtual void CalculateContactStiffness (double &Kcont,GeneralVariables& rVariables,
+					    unsigned int& ndi,unsigned int& ndj,
+					    unsigned int& idir,unsigned int& jdir)
 	{
 		KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
 

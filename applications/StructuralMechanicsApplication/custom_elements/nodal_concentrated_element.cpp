@@ -17,7 +17,6 @@
 #include "includes/define.h"
 #include "custom_elements/nodal_concentrated_element.hpp"
 
-#include "solid_mechanics_application_variables.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -25,7 +24,11 @@ namespace Kratos
 //***********************DEFAULT CONSTRUCTOR******************************************
 //************************************************************************************
 
-NodalConcentratedElement::NodalConcentratedElement( IndexType NewId, GeometryType::Pointer pGeometry, const bool UseRayleighDamping)
+NodalConcentratedElement::NodalConcentratedElement( 
+    IndexType NewId, 
+    GeometryType::Pointer pGeometry, 
+    const bool UseRayleighDamping
+    )
     : Element( NewId, pGeometry )
     , mUseRayleighDamping( UseRayleighDamping )
 {
@@ -36,7 +39,11 @@ NodalConcentratedElement::NodalConcentratedElement( IndexType NewId, GeometryTyp
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-NodalConcentratedElement::NodalConcentratedElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, const bool UseRayleighDamping)
+NodalConcentratedElement::NodalConcentratedElement( 
+    IndexType NewId, GeometryType::Pointer pGeometry, 
+    PropertiesType::Pointer pProperties, 
+    const bool UseRayleighDamping
+    )
     : Element( NewId, pGeometry, pProperties )
     , mUseRayleighDamping( UseRayleighDamping )
 {
@@ -58,7 +65,6 @@ NodalConcentratedElement::NodalConcentratedElement( NodalConcentratedElement con
 
 NodalConcentratedElement&  NodalConcentratedElement::operator=(NodalConcentratedElement const& rOther)
 {
-
     //ALL MEMBER VARIABLES THAT MUST BE KEPT IN AN "=" OPERATION NEEDS TO BE COPIED HERE
 
     Element::operator=(rOther);
@@ -69,7 +75,11 @@ NodalConcentratedElement&  NodalConcentratedElement::operator=(NodalConcentrated
 //*********************************OPERATIONS*****************************************
 //************************************************************************************
 
-Element::Pointer NodalConcentratedElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+Element::Pointer NodalConcentratedElement::Create( 
+    IndexType NewId, 
+    NodesArrayType const& rThisNodes, 
+    PropertiesType::Pointer pProperties 
+    ) const
 {
     //NEEDED TO CREATE AN ELEMENT   
     return Element::Pointer( new NodalConcentratedElement( NewId, GetGeometry().Create( rThisNodes ), pProperties, mUseRayleighDamping ) );
@@ -79,7 +89,10 @@ Element::Pointer NodalConcentratedElement::Create( IndexType NewId, NodesArrayTy
 //************************************CLONE*******************************************
 //************************************************************************************
 
-Element::Pointer NodalConcentratedElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+Element::Pointer NodalConcentratedElement::Clone( 
+    IndexType NewId, 
+    NodesArrayType const& rThisNodes 
+    ) const
 {
     //YOU CREATE A NEW ELEMENT CLONING THEIR VARIABLES
     //ALL MEMBER VARIABLES THAT MUST BE CLONED HAVE TO BE DEFINED HERE
@@ -101,7 +114,10 @@ NodalConcentratedElement::~NodalConcentratedElement()
 //************************************************************************************
 //************************************************************************************
 
-void NodalConcentratedElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+void NodalConcentratedElement::GetDofList( 
+    DofsVectorType& rElementalDofList, 
+    ProcessInfo& rCurrentProcessInfo
+    )
 {
     //NEEDED TO DEFINE THE DOFS OF THE ELEMENT 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -120,10 +136,13 @@ void NodalConcentratedElement::GetDofList( DofsVectorType& rElementalDofList, Pr
 //************************************************************************************
 //************************************************************************************
 
-void NodalConcentratedElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void NodalConcentratedElement::EquationIdVector( 
+    EquationIdVectorType& rResult, 
+    ProcessInfo& rCurrentProcessInfo
+    )
 {
     //NEEDED TO DEFINE GLOBAL IDS FOR THE CORRECT ASSEMBLY
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     if ( rResult.size() != dimension )
     {
@@ -145,7 +164,7 @@ void NodalConcentratedElement::EquationIdVector( EquationIdVectorType& rResult, 
 void NodalConcentratedElement::GetValuesVector( Vector& rValues, int Step )
 {
     //GIVES THE VECTOR WITH THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT DISPLACEMENTS)
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     if ( rValues.size() != dimension ) 
     {
@@ -249,9 +268,6 @@ void NodalConcentratedElement::FinalizeNonLinearIteration( ProcessInfo& rCurrent
 void NodalConcentratedElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
-    
-    // Explicit case:
-    this->ClearNodalForces();
 
     KRATOS_CATCH( "" );
 }
@@ -342,82 +358,6 @@ void NodalConcentratedElement::CalculateLeftHandSide( MatrixType& rLeftHandSideM
     
 }
 
-//***********************************************************************************
-//***********************************************************************************
-
-void NodalConcentratedElement::AddExplicitContribution(const VectorType& rRHSVector, 
-						    const Variable<VectorType>& rRHSVariable, 
-						    Variable<array_1d<double,3> >& rDestinationVariable, 
-						    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    if( rRHSVariable == EXTERNAL_FORCES_VECTOR && rDestinationVariable == EXTERNAL_FORCE )
-    {
-        GetGeometry()[0].SetLock();
-
-        array_1d<double, 3 > &ExternalForce = GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_FORCE);
-        for(unsigned int j = 0; j < dimension; j++)
-        {
-            ExternalForce[j] += rRHSVector[j];
-        }
-
-        GetGeometry()[0].UnSetLock();
-    }
-
-    if( rRHSVariable == INTERNAL_FORCES_VECTOR && rDestinationVariable == INTERNAL_FORCE )
-    {
-        GetGeometry()[0].SetLock();
-
-        array_1d<double, 3 > &InternalForce = GetGeometry()[0].FastGetSolutionStepValue(INTERNAL_FORCE);
-        for(unsigned int j = 0; j < dimension; j++)
-        {
-            InternalForce[j] += rRHSVector[j];
-        }
-
-        GetGeometry()[0].UnSetLock();
-    }
-
-    if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL )
-    {
-        GetGeometry()[0].SetLock();
-
-        array_1d<double, 3 > &ForceResidual = GetGeometry()[0].FastGetSolutionStepValue(FORCE_RESIDUAL);
-        for(unsigned int j = 0; j < dimension; j++)
-        {
-            ForceResidual[j] += rRHSVector[j];
-        }
-
-        GetGeometry()[0].UnSetLock();
-    }
-
-    KRATOS_CATCH( "" );
-
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void NodalConcentratedElement::ClearNodalForces()
-{
-    KRATOS_TRY;
-
-    if( GetGeometry()[0].SolutionStepsDataHas(EXTERNAL_FORCE) && GetGeometry()[0].SolutionStepsDataHas(INTERNAL_FORCE) )
-    {
-        array_1d<double, 3 > & ExternalForce = GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_FORCE);
-        array_1d<double, 3 > & InternalForce = GetGeometry()[0].FastGetSolutionStepValue(INTERNAL_FORCE);
-
-        GetGeometry()[0].SetLock();
-        ExternalForce.clear();
-        InternalForce.clear();
-        GetGeometry()[0].UnSetLock();
-    }
-    
-    KRATOS_CATCH( "" );
-}
-
 //*************************COMPUTE DELTA POSITION*************************************
 //************************************************************************************
 
@@ -475,14 +415,17 @@ void NodalConcentratedElement::CalculateMassMatrix( MatrixType& rMassMatrix, Pro
 //************************************************************************************
 //************************************************************************************
 
-void NodalConcentratedElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+void NodalConcentratedElement::CalculateDampingMatrix( 
+    MatrixType& rDampingMatrix, 
+    ProcessInfo& rCurrentProcessInfo 
+    )
 {
     KRATOS_TRY;
 
     //0.-Initialize the DampingMatrix:
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    //resizing as needed the LHS
+    // Resizing as needed the LHS
     const unsigned int SystemSize = dimension;
 
     rDampingMatrix = ZeroMatrix( SystemSize, SystemSize );
@@ -549,9 +492,9 @@ void NodalConcentratedElement::CalculateDampingMatrix( MatrixType& rDampingMatri
 //************************************************************************************
 
 int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY;
-
+{    
+    KRATOS_TRY
+    
     // Verify that the variables are correctly initialized
 
     if ( VELOCITY.Key() == 0 )
@@ -589,7 +532,7 @@ int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo )
         KRATOS_ERROR << "VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered" << std::endl;
     }
 
-    for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
+    for ( std::size_t i = 0; i < this->GetGeometry().size(); i++ )
     {
         if ( this->GetGeometry()[i].SolutionStepsDataHas( VOLUME_ACCELERATION ) == false )
         {
@@ -598,7 +541,7 @@ int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo )
     }
 
     // Verify that the dofs exist
-    for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
+    for ( std::size_t i = 0; i < this->GetGeometry().size(); i++ )
     {
         if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
         {
@@ -610,10 +553,10 @@ int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo )
             KRATOS_ERROR << "Missing one of the dofs for the variable DISPLACEMENT on node " << GetGeometry()[i].Id() << std::endl;
         }
     }
-
+    
     return 0;
 
-    KRATOS_CATCH( "" );
+    KRATOS_CATCH( "Problem in the Check in the NodalConcentratedElement" )
 }
 
 

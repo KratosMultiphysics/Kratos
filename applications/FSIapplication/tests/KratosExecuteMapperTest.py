@@ -5,7 +5,7 @@ from KratosMultiphysics.FSIApplication import *
 try:
     from KratosMultiphysics.ALEApplication import *
     from KratosMultiphysics.FluidDynamicsApplication import *
-    from KratosMultiphysics.SolidMechanicsApplication import *
+    from KratosMultiphysics.StructuralMechanicsApplication import *
 except ImportError:
     pass
 
@@ -61,8 +61,8 @@ class KratosExecuteMapperTest:
         prepare_model_part_settings_structure.AddEmptyValue("computing_model_part_name").SetString(computing_model_part_name)
         prepare_model_part_settings_structure.AddValue("problem_domain_sub_model_part_list",ProjectParametersSolid["solver_settings"]["problem_domain_sub_model_part_list"])
         prepare_model_part_settings_structure.AddValue("processes_sub_model_part_list",ProjectParametersSolid["solver_settings"]["processes_sub_model_part_list"])
-        import check_and_prepare_model_process_solid
-        check_and_prepare_model_process_solid.CheckAndPrepareModelProcess(self.structure_main_model_part, prepare_model_part_settings_structure).Execute()
+        import check_and_prepare_model_process_structural
+        check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.structure_main_model_part, prepare_model_part_settings_structure).Execute()
 
         # Get the list of the skin submodel parts where the fluid interface submodel part is stored
         for i in range(ProjectParametersFluid["solver_settings"]["skin_parts"].size()):

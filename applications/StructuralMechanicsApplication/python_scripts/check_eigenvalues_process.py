@@ -1,5 +1,4 @@
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as SolidMechanicsApplication
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Import KratosUnittest

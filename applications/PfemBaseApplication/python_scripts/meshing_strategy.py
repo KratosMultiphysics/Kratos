@@ -38,7 +38,8 @@ class MeshingStrategy(object):
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-                
+
+        self.echo_level = 1
         #print("::[Modeler_Strategy]:: Construction of Mesh Strategy finished")
         
     #
@@ -48,8 +49,6 @@ class MeshingStrategy(object):
 
         #parameters
         self.mesh_id = meshing_parameters.GetMeshId()
-
-        self.echo_level = 1
         
         #meshing parameters
         self.MeshingParameters = meshing_parameters  
@@ -92,6 +91,7 @@ class MeshingStrategy(object):
             self.model_part = self.main_model_part.GetSubModelPart(self.MeshingParameters.GetSubModelPartName())
 
         for mesher in self.mesh_modelers:
+            mesher.SetEchoLevel(self.echo_level)
             mesher.Initialize(domain_size)
 
         self.number_of_nodes      = 0
@@ -202,3 +202,9 @@ class MeshingStrategy(object):
             mesher.ExecuteMeshing()
         
         self.FinalizeMeshGeneration()
+
+
+    #
+    def SetEchoLevel(self, echo_level):
+        self.echo_level = echo_level
+
