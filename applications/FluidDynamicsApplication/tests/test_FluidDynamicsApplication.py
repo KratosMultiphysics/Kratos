@@ -19,10 +19,8 @@ from SmallTests import NavierStokesWallConditionTest as TNavierStokesWallConditi
 from buoyancy_test import BuoyancyTest
 
 ## NIGTHLY TESTS
-#~ from NightlyTests import MokBenchmarkTest as TMokBenchmarkTest
 
 ## VALIDATION TESTS
-#~ from ValidationTests import TurekBenchmarkTest as TTurekBenchmarkTest
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
