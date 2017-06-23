@@ -46,8 +46,7 @@ namespace Kratos
     //Creating the containers for the input and output
     tetgenio in;
     tetgenio out;
-    out.initialize();
-
+    
     BuildInput(rModelPart,rMeshingVariables,in);    
 
     //*********************************************************************
@@ -136,9 +135,6 @@ namespace Kratos
 
     tetgenio vorout;
 
-    //initilize all to avoid memory problems
-    ClearTetgenIO(vorout);
-
     if( this->GetEchoLevel() > 0 )
       std::cout<<" [ REMESH: (in POINTS "<<in.numberofpoints<<") "<<std::endl;
 
@@ -179,7 +175,7 @@ namespace Kratos
 
     if(rMeshingVariables.Options.IsNot(ModelerUtilities::REFINE) && in.numberofpoints<out.numberofpoints){
       fail=3;
-      std::cout<<"  fail error: [NODES ADDED] something is wrong with the geometry "<<std::endl;
+      std::cout<<"  warning : [NODES ADDED] check mesh geometry "<<std::endl;
     }
 
     if( this->GetEchoLevel() > 0 ){
@@ -224,7 +220,6 @@ namespace Kratos
     }
     
     //input mesh: NODES
-    in.initialize();
     in.firstnumber    = 1;
     in.mesh_dim       = 3;
     GetFromContainer(rMeshingVariables.InMesh,in);
@@ -246,37 +241,36 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    unsigned int& MeshId = rMeshingVariables.MeshId;
-
     //*********************************************************************
 
-    if( in.facetlist != NULL ){
-       delete [] in.facetlist;
-       in.numberoffacets = 0;       
+    if(in.facetlist){
+      delete [] in.facetlist;
+      in.numberoffacets = 0;       
     }
-
-     if( in.facetmarkerlist != NULL )
-       delete [] in.facetmarkerlist;
-
-     if( in.holelist != NULL ){
+    
+    if(in.facetmarkerlist){
+      delete [] in.facetmarkerlist;
+    }
+    
+    if(in.holelist){
       delete [] in.holelist;
       in.numberofholes = 0;
-     }
-
-     if( in.regionlist != NULL ){
+    }
+    
+    if(in.regionlist){
       delete [] in.regionlist;
       in.numberofregions = 0;
-     }
- 
+    }
+    
 
     //PART 2: facet list (we can have holes in facets != volume holes)
     
-    in.numberoffacets           = rModelPart.NumberOfConditions(MeshId);
+    in.numberoffacets           = rModelPart.NumberOfConditions();
     in.facetmarkerlist          = new int[in.numberoffacets];
     in.facetlist                = new tetgenio::facet[in.numberoffacets];
 
 
-    ModelPart::ConditionsContainerType::iterator conditions_begin = rModelPart.ConditionsBegin(MeshId);
+    ModelPart::ConditionsContainerType::iterator conditions_begin = rModelPart.ConditionsBegin();
     
     //facets
     tetgenio::facet   *f;
@@ -287,13 +281,10 @@ namespace Kratos
 	f = &in.facetlist[fc];
 	
 	f->numberofpolygons = 1;
-	f->polygonlist      = new tetgenio::polygon[f->numberofpolygons];
-	
+	f->polygonlist      = new tetgenio::polygon[f->numberofpolygons];	
 	f->numberofholes    = 0;
-	f->holelist         = NULL;
-            
+	f->holelist         = NULL;            
 	p = &f->polygonlist[0];
-
 	p->numberofvertices = 3; //face is a triangle
 	p->vertexlist       = new int[p->numberofvertices];
 	  
@@ -308,7 +299,7 @@ namespace Kratos
 	    p->vertexlist[nd] = rGeometry[nd].Id();
 	  }      
 
-	in.facetmarkerlist[fc] = MeshId+1;
+	in.facetmarkerlist[fc] = 0;
 	
       }
     
@@ -341,7 +332,7 @@ namespace Kratos
     in.regionlist[2] = rGeometry[0][2]-(Normal[2]*rMeshingVariables.OffsetFactor*inside_factor);
     
     //region attribute (regional attribute or marker "A" must be switched)
-    in.regionlist[3] = MeshId;
+    in.regionlist[3] = 0;
     
     //region maximum volume attribute (maximum volume attribute "a" (with no number following) must be switched)
     in.regionlist[4] = -1;
@@ -409,16 +400,11 @@ namespace Kratos
   {
     KRATOS_TRY
 
-
-
-    //deinitialize and initialize again to null input 
-    //tr.deinitialize();
-    DeleteTetrahedraList(tr);
-    tr.initialize();
-  
     //delete modeler container
     rMesh.Finalize();
+    ClearTetgenIO(tr); // blocks tetgen automatic destructor deletation of a NULL pointer []
     
+         
     KRATOS_CATCH( "" )
   }
 
@@ -429,15 +415,10 @@ namespace Kratos
   {
     KRATOS_TRY
 
-	 
-    //deinitialize and initialize again to null input 
-    //tr.deinitialize();
-    DeleteTetrahedraList(tr);
-    tr.initialize();
-  
     //delete modeler container
-    rMesh.Finalize();
-    
+    rMesh.Finalize();   
+    ClearTetgenIO(tr); // blocks tetgen automatic destructor deletation of a NULL pointer []
+   
     KRATOS_CATCH( "" )
   }
 
@@ -524,85 +505,17 @@ namespace Kratos
     KRATOS_TRY
     
     tr.pointlist                     = (REAL*) NULL;
-    tr.pointattributelist            = (REAL*) NULL;
-    tr.pointmarkerlist               = (int*)  NULL;
     tr.numberofpoints                = 0;
     tr.numberofpointattributes       = 0;
     
     tr.tetrahedronlist               = (int*) NULL;
-    tr.tetrahedronattributelist      = (REAL*) NULL;
     tr.tetrahedronvolumelist         = (REAL*) NULL;
     tr.neighborlist                  = (int*) NULL;
     tr.numberoftetrahedra            = 0;
-    tr.numberofcorners               = 4; //for tetrahedra
-    tr.numberoftetrahedronattributes = 0;
-    
-    //tr.facetlist                   = (facet*) NULL;
-    tr.facetmarkerlist               = (int*) NULL;
-    tr.numberoffacets                = 0;
-    
-    tr.holelist                      = (REAL*) NULL;
-    tr.numberofholes                 = 0;
-    
-    tr.regionlist                    = (REAL*) NULL;
-    tr.numberofregions               = 0;
-    
-    tr.edgelist                      = (int*) NULL;
-    tr.edgemarkerlist                = (int*) NULL;
-    tr.numberofedges                 = 0;
-
-    KRATOS_CATCH(" ")
-
-  }
-
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-  void TetrahedralMesh3DModeler::DeleteTetrahedraList(tetgenio& tr)
-  {
-    KRATOS_TRY
-      
-    //always for "out":   
-    // trifree (tr.tetrahedronlist);
-    if( tr.tetrahedronattributelist != NULL )
-      delete [] tr.tetrahedronattributelist;
-
-    if( tr.holelist != NULL )
-      delete [] tr.holelist;
-    
-    if( tr.regionlist != NULL )
-      delete [] tr.regionlist;
-    
-    //in case of n switch used 
-    // delete [] tr.neighborlist;
-    // delete [] tr.tetrahedronvolumelist;
-
-    //if p is switched they in and out are pointed:(free only once)
-    // delete [] tr.facetlist;
-    // delete [] tr.facetmarkerlist;
-        
-    // delete [] tr.edgelist;
-    // delete [] tr.edgemarkerlist;
-  
-    KRATOS_CATCH(" ")
-  }
-
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-  void TetrahedralMesh3DModeler::DeletePointsList (tetgenio& tr)
-  {
-    KRATOS_TRY
-
-    delete [] tr.pointlist;
-    delete [] tr.pointmarkerlist;
-    delete [] tr.pointattributelist;
 
     KRATOS_CATCH(" ")
   }
 
-  //*******************************************************************************************
-  //*******************************************************************************************
 
 
 } // Namespace Kratos

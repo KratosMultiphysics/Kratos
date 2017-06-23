@@ -34,6 +34,7 @@
 #include "custom_processes/inlet_management_process.hpp"
 #include "custom_processes/set_inlet_process.hpp"
 #include "custom_processes/model_start_end_meshing_for_fluids_process.hpp"
+#include "custom_processes/split_elements_process.hpp"
 #include "custom_processes/transfer_model_part_elements_process.hpp"
 
 //Processes
@@ -93,7 +94,13 @@ namespace Kratos
       	 )
       	;
 
-      class_<ModelStartEndMeshingForFluidsProcess, bases<ModelStartEndMeshingProcessType>, boost::noncopyable >
+      class_<SplitElementsProcess, bases<ProcessBaseType>, boost::noncopyable >
+	(
+	 "SplitElementsProcess", init<ModelPart&, int>()
+	 )
+	;
+
+     class_<ModelStartEndMeshingForFluidsProcess, bases<ModelStartEndMeshingProcessType>, boost::noncopyable >
 	(
 	 "ModelMeshingForFluids", init<ModelPart&, Flags, int>()
 	 )

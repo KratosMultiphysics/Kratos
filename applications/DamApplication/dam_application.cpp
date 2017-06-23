@@ -76,8 +76,11 @@ KratosDamApplication::KratosDamApplication():
     
     mUPCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType(2)))),
     mUPCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType(3)))),
-    mUPCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType(4))))
+    mUPCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType(4)))),
 
+    mAddedMassCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType(2)))),
+    mAddedMassCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType(3)))),
+    mAddedMassCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType(4))))
 {}
 
 void KratosDamApplication::Register()
@@ -119,6 +122,9 @@ void KratosDamApplication::Register()
     KRATOS_REGISTER_CONDITION( "UPCondition2D2N", mUPCondition2D2N )
     KRATOS_REGISTER_CONDITION( "UPCondition3D3N", mUPCondition3D3N )
     KRATOS_REGISTER_CONDITION( "UPCondition3D4N", mUPCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "AddedMassCondition2D2N", mAddedMassCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "AddedMassCondition3D3N", mAddedMassCondition3D3N )
+    KRATOS_REGISTER_CONDITION( "AddedMassCondition3D4N", mAddedMassCondition3D4N )
 
     //Register Constitutive Laws    
     Serializer::Register("ThermalLinearElastic3DLaw",mThermalLinearElastic3DLaw);
@@ -166,7 +172,6 @@ void KratosDamApplication::Register()
     KRATOS_REGISTER_VARIABLE( MECHANICAL_STRESS_TENSOR )
     KRATOS_REGISTER_VARIABLE( THERMAL_STRAIN_TENSOR )
     
-    
     KRATOS_REGISTER_VARIABLE( THERMAL_STRESS_VECTOR )
     KRATOS_REGISTER_VARIABLE( MECHANICAL_STRESS_VECTOR )
     KRATOS_REGISTER_VARIABLE( THERMAL_STRAIN_VECTOR )
@@ -183,7 +188,8 @@ void KratosDamApplication::Register()
     KRATOS_REGISTER_VARIABLE( VELOCITY_PRESSURE_COEFFICIENT )
     KRATOS_REGISTER_VARIABLE( ACCELERATION_PRESSURE_COEFFICIENT )  
 
-    KRATOS_REGISTER_VARIABLE( NODAL_YOUNG_MODULUS ) 
+    KRATOS_REGISTER_VARIABLE( NODAL_YOUNG_MODULUS )
+    KRATOS_REGISTER_VARIABLE( ADDED_MASS ) 
     
 }
 
