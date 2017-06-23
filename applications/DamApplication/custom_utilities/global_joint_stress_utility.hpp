@@ -55,15 +55,15 @@ public:
         KRATOS_TRY
 
         // Getting values of the interested plane
-        mpmid0_0 = rParameters["pmid0_0"].GetDouble();
-        mpmid0_1 = rParameters["pmid0_1"].GetDouble();
-        mpmid0_2 = rParameters["pmid0_2"].GetDouble();
-        mpmid1_0 = rParameters["pmid1_0"].GetDouble();
-        mpmid1_1 = rParameters["pmid1_1"].GetDouble();
-        mpmid1_2 = rParameters["pmid1_2"].GetDouble();
-        mpmid2_0 = rParameters["pmid2_0"].GetDouble();
-        mpmid2_1 = rParameters["pmid2_1"].GetDouble();
-        mpmid2_2 = rParameters["pmid2_2"].GetDouble();
+        m_plane_coordinates[0] = rParameters["pmid0_0"].GetDouble();
+        m_plane_coordinates[1] = rParameters["pmid0_1"].GetDouble();
+        m_plane_coordinates[2] = rParameters["pmid0_2"].GetDouble();
+        m_plane_coordinates[3] = rParameters["pmid1_0"].GetDouble();
+        m_plane_coordinates[4] = rParameters["pmid1_1"].GetDouble();
+        m_plane_coordinates[5] = rParameters["pmid1_2"].GetDouble();
+        m_plane_coordinates[6] = rParameters["pmid2_0"].GetDouble();
+        m_plane_coordinates[7] = rParameters["pmid2_1"].GetDouble();
+        m_plane_coordinates[8] = rParameters["pmid2_2"].GetDouble();
 
         KRATOS_CATCH("");
     }
@@ -86,41 +86,41 @@ public:
         boost::numeric::ublas::bounded_matrix<double,3,3> RotationPlane;
 
         //Definition of the plane
-        array_1d<double, 3> pmid0;
-        array_1d<double, 3> pmid1;
-        array_1d<double, 3> pmid2;
+        array_1d<double, 3> point_mid0;
+        array_1d<double, 3> point_mid1;
+        array_1d<double, 3> point_mid2;
 
         // Coordinates of interest plane
-        pmid0[0]= mpmid0_0;
-        pmid0[1]= mpmid0_1;
-        pmid0[2]= mpmid0_2;
+        point_mid0[0]= m_plane_coordinates[0];
+        point_mid0[1]= m_plane_coordinates[1];
+        point_mid0[2]= m_plane_coordinates[2];
 
-        pmid1[0]= mpmid1_0;
-        pmid1[1]= mpmid1_1;
-        pmid1[2]= mpmid1_2;
+        point_mid1[0]= m_plane_coordinates[3];
+        point_mid1[1]= m_plane_coordinates[4];
+        point_mid1[2]= m_plane_coordinates[5];
 
-        pmid2[0]= mpmid2_0;
-        pmid2[1]= mpmid2_1;
-        pmid2[2]= mpmid2_2;
+        point_mid2[0]= m_plane_coordinates[6];
+        point_mid2[1]= m_plane_coordinates[7];
+        point_mid2[2]= m_plane_coordinates[8];
 
-        this->CalculateRotationMatrix(RotationPlane,pmid0,pmid1,pmid2);
+        this->CalculateRotationMatrix(RotationPlane,point_mid0,point_mid1,point_mid2);
         array_1d<double,3> VectorForceinPlane;
         array_1d<double,3> GlobalElementVectorForce = ZeroVector(3);
 
         for(int k = 0; k<nelements; k++)
         {
             ModelPart::ElementsContainerType::iterator it = el_begin + k;
-            Element::GeometryType& Geom = it->GetGeometry();
+            Element::GeometryType& rGeom = it->GetGeometry();
             boost::numeric::ublas::bounded_matrix<double,3,3> RotationMatrix;
 
             //Define mid-plane points for prism_interface_3d_6
-            noalias(pmid0) = 0.5 * (Geom.GetPoint( 0 ) + Geom.GetPoint( 3 ));
-            noalias(pmid1) = 0.5 * (Geom.GetPoint( 1 ) + Geom.GetPoint( 4 ));
-            noalias(pmid2) = 0.5 * (Geom.GetPoint( 2 ) + Geom.GetPoint( 5 ));
+            noalias(point_mid0) = 0.5 * (rGeom.GetPoint( 0 ) + rGeom.GetPoint( 3 ));
+            noalias(point_mid1) = 0.5 * (rGeom.GetPoint( 1 ) + rGeom.GetPoint( 4 ));
+            noalias(point_mid2) = 0.5 * (rGeom.GetPoint( 2 ) + rGeom.GetPoint( 5 ));
 
-            this->CalculateRotationMatrix(RotationMatrix,pmid0,pmid1,pmid2);
+            this->CalculateRotationMatrix(RotationMatrix,point_mid0,point_mid1,point_mid2);
             MyIntegrationMethod = it->GetIntegrationMethod();
-            const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints(MyIntegrationMethod);
+            const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(MyIntegrationMethod);
             unsigned int NumGPoints = IntegrationPoints.size();
             std::vector<array_1d<double,3>> LocalStressVector;
             array_1d<double,3> LocalElementStress = ZeroVector(3);
@@ -138,13 +138,13 @@ public:
             LocalElementStress[1] *= InvNumGP;
             LocalElementStress[2] *= InvNumGP;
             double Area;
-            this->AreaMidPlane(Area,pmid0,pmid1,pmid2);
+            this->AreaMidPlane(Area,point_mid0,point_mid1,point_mid2);
             noalias(LocalElementVectorForce) = LocalElementStress*Area;
             noalias(GlobalElementVectorForce) += prod(trans(RotationMatrix),LocalElementVectorForce);
         }
 
         noalias(VectorForceinPlane) = prod(RotationPlane,GlobalElementVectorForce);
-        double TangentialForce = sqrt(VectorForceinPlane[0]*VectorForceinPlane[0] + VectorForceinPlane[1]*VectorForceinPlane[1]);
+        const double TangentialForce = sqrt(VectorForceinPlane[0]*VectorForceinPlane[0] + VectorForceinPlane[1]*VectorForceinPlane[1]);
         
         std::cout<< " Tangential Force (N) "<<TangentialForce<<std::endl;
         std::cout<< " Normal Force (N) "<<fabs(VectorForceinPlane[2])<<std::endl;
@@ -156,27 +156,19 @@ protected:
 
         /// Member Variables
         ModelPart& mr_model_part;
-        double mpmid0_0;
-        double mpmid0_1;
-        double mpmid0_2;
-        double mpmid1_0;
-        double mpmid1_1;
-        double mpmid1_2;
-        double mpmid2_0;
-        double mpmid2_1;
-        double mpmid2_2;
+        array_1d<double, 9> m_plane_coordinates;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     //Currently is just working for prism element
 
-   void CalculateRotationMatrix(boost::numeric::ublas::bounded_matrix<double,3,3>& rRotationMatrix, array_1d<double, 3>& pmid0, array_1d<double, 3>& pmid1, array_1d<double, 3>& pmid2 )
+   void CalculateRotationMatrix(boost::numeric::ublas::bounded_matrix<double,3,3>& rRotationMatrix, array_1d<double, 3>& point_mid0, array_1d<double, 3>& point_mid1, array_1d<double, 3>& point_mid2 )
     {
         KRATOS_TRY
         
         //Unitary vector in local x direction
         array_1d<double, 3> Vx;
-        noalias(Vx) = pmid1 - pmid0;
+        noalias(Vx) = point_mid1 - point_mid0;
         double inv_norm_x = 1.0/norm_2(Vx);
         Vx[0] *= inv_norm_x;
         Vx[1] *= inv_norm_x;
@@ -184,7 +176,7 @@ protected:
         
         //Unitary vector in local z direction
         array_1d<double, 3> Vy;
-        noalias(Vy) = pmid2 - pmid0;
+        noalias(Vy) = point_mid2 - point_mid0;
         array_1d<double, 3> Vz;
         MathUtils<double>::CrossProduct(Vz, Vx, Vy);
         double inv_norm_z = 1.0/norm_2(Vz);
@@ -214,7 +206,7 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    void AreaMidPlane(double& rArea, array_1d<double, 3>& pmid0, array_1d<double, 3>& pmid1, array_1d<double, 3>& pmid2 )
+    void AreaMidPlane(double& rArea, array_1d<double, 3>& point_mid0, array_1d<double, 3>& point_mid1, array_1d<double, 3>& point_mid2 )
     {
         KRATOS_TRY
         
@@ -224,8 +216,8 @@ protected:
         array_1d<double, 3> Vz;
 
         // Computing distances and area
-        noalias(Vx) = pmid1 - pmid0;        
-        noalias(Vy) = pmid2 - pmid0;
+        noalias(Vx) = point_mid1 - point_mid0;        
+        noalias(Vy) = point_mid2 - point_mid0;
         MathUtils<double>::CrossProduct(Vz, Vx, Vy);
         rArea = sqrt(Vz[0]*Vz[0]+ Vz[1]*Vz[1]+Vz[2]*Vz[2])/2.0;
 
