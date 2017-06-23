@@ -52,7 +52,7 @@ class ReadMaterialsProcess(Process):
         """Return the python object named by the string argument.
 
         Example:
-        constitutive_law = self._GetItemFromModule('StructuralMechanicsApplication.LinearElastic3DLaw')
+        constitutive_law = self._GetItemFromModule('KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw')
         model_part.GetProperties(prop_id).SetValue(CONSTITUTIVE_LAW, constitutive_law)
         """
         splitted = my_string.split(".")
