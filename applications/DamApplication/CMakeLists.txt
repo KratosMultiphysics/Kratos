@@ -34,6 +34,7 @@ if(${USE_DAM_MPI} MATCHES ON)
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/UP_condition.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/free_surface_condition.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/infinite_domain_condition.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/added_mass_condition.cpp
 
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_linear_elastic_3D_law.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_linear_elastic_2D_plane_strain.cpp
@@ -86,6 +87,7 @@ else()
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/UP_condition.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/free_surface_condition.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/infinite_domain_condition.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/added_mass_condition.cpp
 
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_linear_elastic_3D_law.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_linear_elastic_2D_plane_strain.cpp
