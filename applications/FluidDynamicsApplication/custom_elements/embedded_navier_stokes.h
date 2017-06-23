@@ -221,11 +221,6 @@ public:
         {
             ComputeElementAsFluid<MatrixSize>(rLeftHandSideMatrix, rRightHandSideVector, data, rCurrentProcessInfo);
         }
-        else if(nneg == TNumNodes) // All nodes belong to structure domain
-        {
-            rLeftHandSideMatrix.clear();
-            rRightHandSideVector.clear();
-        }
         else // Element intersects both fluid and structure domains
         {
             ComputeElementAsMixed<MatrixSize>(rLeftHandSideMatrix, rRightHandSideVector, data, rCurrentProcessInfo, distances);
@@ -254,7 +249,13 @@ public:
 
         // Specific embedded element check
         if(DISTANCE.Key() == 0)
-            KRATOS_ERROR << "DISTANCE Key is 0. Check if the application was correctly registered.";
+            KRATOS_THROW_ERROR(std::invalid_argument, "DISTANCE Key is 0. Check if the application was correctly registered.","");
+
+        for(unsigned int i=0; i<(this->GetGeometry()).size(); ++i)
+        {
+            if(this->GetGeometry()[i].SolutionStepsDataHas(DISTANCE) == false)
+                KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+        }
 
         return 0;
 
@@ -644,7 +645,7 @@ protected:
         for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
         {
             const double weight = rSplittingData.cut_edge_areas(icut);
-            const VectorType aux_cut = row(rSplittingData.N_container_cut, icut);
+            const array_1d<double, TNumNodes> aux_cut = row(rSplittingData.N_container_cut, icut);
 
             // Fill the pressure to Voigt notation operator matrix
             bounded_matrix<double, (TDim-1)*3, MatrixSize> pres_to_voigt_matrix_op = ZeroMatrix((TDim-1)*3, MatrixSize);
@@ -740,7 +741,7 @@ protected:
         for (unsigned int icut = 0; icut<rSplittingData.ncutpoints; icut++)
         {
             const double weight = rSplittingData.cut_edge_areas(icut);
-            const VectorType aux_cut = row(rSplittingData.N_container_cut, icut);
+            const array_1d<double, TNumNodes> aux_cut = row(rSplittingData.N_container_cut, icut);
 
             P_gamma += weight*outer_prod(aux_cut,aux_cut);
         }
@@ -972,10 +973,9 @@ protected:
 
         // Nitsche coefficient computation
         const double eff_mu = BaseType::ComputeEffectiveViscosity(rData);
-        // const double cons_coef = 10*eff_mu/rData.h;
 
         // Compute the element average velocity norm
-        std::vector<double> avg_vel;
+        double v_norm = 0.0;
         for (unsigned int comp=0; comp<TDim; ++comp)
         {
             double aux_vel = 0.0;
@@ -983,12 +983,8 @@ protected:
             {
                 aux_vel += rData.v(j,comp);
             }
-            avg_vel.push_back(aux_vel/TNumNodes);
-        }
-        double v_norm = 0.0;
-        for (unsigned int i=0; i<TDim; ++i)
-        {
-            v_norm += avg_vel[i]*avg_vel[i];
+            aux_vel /= TNumNodes;
+            v_norm += aux_vel*aux_vel;
         }
         v_norm = std::sqrt(v_norm);
 
@@ -996,7 +992,7 @@ protected:
         double avg_rho = 0.0;
         for (unsigned int j=0; j<TNumNodes; ++j)
         {
-            avg_rho += (this->GetGeometry())[j].FastGetSolutionStepValue(DENSITY);
+            avg_rho += rData.rho(j);
         }
         avg_rho /= TNumNodes;
 
@@ -1015,7 +1011,7 @@ protected:
         for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
         {
             const double weight = rSplittingData.cut_edge_areas(icut);
-            const VectorType aux_cut = row(rSplittingData.N_container_cut, icut);
+            const array_1d<double, TNumNodes> aux_cut = row(rSplittingData.N_container_cut, icut);
 
             // Set the shape functions auxiliar matrices
             bounded_matrix<double, TDim, MatrixSize> N_aux = ZeroMatrix(TDim, MatrixSize);
@@ -1121,7 +1117,7 @@ protected:
         for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
         {
             const double weight = rSplittingData.cut_edge_areas(icut);
-            const VectorType aux_cut = row(rSplittingData.N_container_cut, icut);
+            const array_1d<double, TNumNodes> aux_cut = row(rSplittingData.N_container_cut, icut);
 
             // Fill the pressure to Voigt notation operator normal projected matrix
             bounded_matrix<double, MatrixSize, TDim> trans_pres_to_voigt_matrix_normal_op = ZeroMatrix(MatrixSize, TDim);
@@ -1244,7 +1240,7 @@ protected:
         for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
         {
             const double weight = rSplittingData.cut_edge_areas(icut);
-            const VectorType aux_cut = row(rSplittingData.N_container_cut, icut);
+            const array_1d<double, TNumNodes> aux_cut = row(rSplittingData.N_container_cut, icut);
 
             // Set the shape functions auxiliar matrix
             bounded_matrix<double, MatrixSize, TDim> N_aux_trans = ZeroMatrix(MatrixSize, TDim);
@@ -1364,7 +1360,7 @@ protected:
         for (unsigned int icut=0; icut<rSplittingData.ncutpoints; icut++)
         {
             const double weight = rSplittingData.cut_edge_areas(icut);
-            const VectorType aux_cut = row(rSplittingData.N_container_cut, icut);
+            const array_1d<double, TNumNodes> aux_cut = row(rSplittingData.N_container_cut, icut);
 
             // Set the shape functions auxiliar matrix
             bounded_matrix<double, TDim, MatrixSize> N_aux = ZeroMatrix(TDim, MatrixSize);
