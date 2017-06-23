@@ -49,6 +49,6 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( double, ACCELERATION_PRESSURE_COEFFICIENT )  
 
     KRATOS_CREATE_VARIABLE( double, NODAL_YOUNG_MODULUS )  
-    
+    KRATOS_CREATE_VARIABLE( double, ADDED_MASS )
 
 }// namespace Kratos.

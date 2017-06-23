@@ -50,6 +50,66 @@ namespace Kratos
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  BaseSolidElement
     : public Element
 {
+protected:
+    /**
+     * Internal variables used in the kinematic calculations
+     */
+    struct KinematicVariables
+    {
+        Vector  N;
+        Matrix  B;
+        double  detF;
+        Matrix  F;
+        double  detJ;
+        double  detJ0;
+        Matrix  J0;
+        Matrix  InvJ0;
+        Matrix  DN_DX;
+        
+        /**
+         * The default constructor
+         * @param StrainSize: The size of the strain vector in Voigt notation
+         * @param Dimension: The size of the strain vector in Voigt notation
+         * @param NumberOfNodes: The size of the strain vector in Voigt notation
+         */
+        KinematicVariables( 
+            const unsigned int& StrainSize, 
+            const unsigned int& Dimension, 
+            const unsigned int& NumberOfNodes 
+            )
+        {
+            detF = 1.0;
+            detJ0 = 1.0;
+            detJ0 = 1.0;
+            N = ZeroVector(NumberOfNodes);
+            B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
+            F = IdentityMatrix(Dimension);
+            DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
+            J0 = ZeroMatrix(Dimension, Dimension);
+            InvJ0 = ZeroMatrix(Dimension, Dimension);
+        }
+    };
+    
+    /**
+     * Internal variables used in the kinematic calculations
+     */
+    struct ConstitutiveVariables
+    {
+        Vector  StrainVector;
+        Vector  StressVector;
+        Matrix  D;
+        
+        /**
+         * The default constructor
+         * @param StrainSize: The size of the strain vector in Voigt notation
+         */
+        ConstitutiveVariables(const unsigned int& StrainSize)
+        {
+            StrainVector = ZeroVector(StrainSize);
+            StressVector = ZeroVector(StrainSize);
+            D = ZeroMatrix(StrainSize, StrainSize);
+        }
+    };
 public:
 
     ///@name Type Definitions
@@ -402,6 +462,39 @@ protected:
         const bool CalculateResidualVectorFlag
         );
     
+    /**
+     * This functions updates the kinematics variables
+     * @param rThisKinematicVariables: The kinematic variables to be calculated 
+     * @param PointNumber: The integration point considered
+     * @param IntegrationPoints: The list of integration points
+     */ 
+    virtual void CalculateKinematicVariables(
+        KinematicVariables& rThisKinematicVariables, 
+        const unsigned int PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+        );
+        
+    /**
+     * This functions updates the constitutive variables
+     * @param rThisKinematicVariables: The kinematic variables to be calculated 
+     * @param rThisConstitutiveVariables: The constitutive variables
+     * @param rValues: The CL parameters
+     * @param PointNumber: The integration point considered
+     * @param IntegrationPoints: The list of integration points
+     * @param Displacements: The displacements vector
+     */ 
+    virtual void CalculateConstitutiveVariables(
+        KinematicVariables& rThisKinematicVariables, 
+        ConstitutiveVariables& rThisConstitutiveVariables, 
+        ConstitutiveLaw::Parameters& rValues,
+        const unsigned int PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const Vector Displacements
+        );
+    
+    /**
+     * This functions calculate the derivatives in the reference frame
+     */ 
     double CalculateDerivativesOnReference(
         Matrix& J0, 
         Matrix& InvJ0, 
