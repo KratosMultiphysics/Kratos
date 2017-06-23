@@ -41,7 +41,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "scale_factor"                : 1.0,
             "tangent_factor"              : 0.1,
             "type_search"                 : "InRadius",
-            "filter_candidates"           : false,
+            "use_exact_integration"       : true,
             "integration_order"           : 2,
             "debug_mode"                  : false
         }
@@ -209,13 +209,14 @@ class ALMContactProcess(KratosMultiphysics.Process):
         search_parameters.AddValue("active_check_factor",self.params["active_check_factor"])
         search_parameters.AddValue("dual_search_check",self.params["dual_search_check"])
         search_parameters.AddValue("strict_search_check",self.params["strict_search_check"])
-        search_parameters.AddValue("filter_candidates",self.params["filter_candidates"])
+        search_parameters.AddValue("use_exact_integration",self.params["use_exact_integration"])
         self.contact_search = ContactStructuralMechanicsApplication.TreeContactSearch(computing_model_part, search_parameters)
         
         # We initialize the conditions    
         self.alm_init_var = ContactStructuralMechanicsApplication.ALMFastInit(self.contact_model_part) 
         self.alm_init_var.Execute()
         
+        # We initialize the search utility
         self.contact_search.CreatePointListMortar()
         self.contact_search.InitializeMortarConditions()
         

@@ -103,7 +103,7 @@ public:
         const double ActiveCheckLength,
         const bool DualCheck = false, 
         const bool StrictCheck = true,
-        const bool FilterCandidates = false
+        const bool UseExactIntegration = true
         )
     {
         // Define the basic information
@@ -113,7 +113,7 @@ public:
         GeometryType& geom_1 = pCond1->GetGeometry(); // SLAVE
         GeometryType& geom_2 = pCond2->GetGeometry(); // MASTER
         
-        if (FilterCandidates == false)
+        if (UseExactIntegration == false)
         {
             // LEGACY WAY
             const bool condition_is_active = CheckGeometryNodes( geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
@@ -169,13 +169,21 @@ public:
                 KRATOS_ERROR << "INTEGRATION NOT IMPLEMENTED" << std::endl;
             }
             
+            const bool at_least_one_node_is_active = CheckGeometryNodes( geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
+            
             // If condition is active we add
-            if (condition_is_active == true)
+            if (condition_is_active || at_least_one_node_is_active == true)
             {
-                CheckGeometryNodes( geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
-                
                 ConditionPointers->AddNewCondition(pCond2);
             }
+            
+//             // If condition is active we add
+//             if (condition_is_active == true)
+//             {
+//                 CheckGeometryNodes( geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
+//                 
+//                 ConditionPointers->AddNewCondition(pCond2);
+//             }
         }
     }
     

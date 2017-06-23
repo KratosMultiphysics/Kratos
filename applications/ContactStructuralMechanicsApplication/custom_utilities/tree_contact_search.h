@@ -119,7 +119,7 @@ public:
             "active_check_factor"                  : 0.01,
             "dual_search_check"                    : false,
             "strict_search_check"                  : true,
-            "filter_candidates"                    : false
+            "use_exact_integration"                : true
         })" );
         
         ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
@@ -129,7 +129,7 @@ public:
         mActiveCheckFactor = ThisParameters["active_check_factor"].GetDouble();
         mDualSearchCheck = ThisParameters["dual_search_check"].GetBool();
         mStrictSearchCheck = ThisParameters["strict_search_check"].GetBool();
-        mFilterCandidates = ThisParameters["filter_candidates"].GetBool();
+        mUseExactIntegration = ThisParameters["use_exact_integration"].GetBool();
         mSearchTreeType = ConvertSearchTree(ThisParameters["type_search"].GetString());
         mBucketSize = ThisParameters["bucket_size"].GetInt();
         
@@ -235,7 +235,7 @@ public:
      */
     
     void TotalClearALMFrictionlessMortarConditions()
-    {
+    {        
         ResetContactOperators(mrMainModelPart);
         
         NodesArrayType& nodes_array = mrMainModelPart.Nodes();
@@ -343,10 +343,10 @@ public:
     
     void UpdatePointListMortar()
     {
-        const int numPoints = static_cast<int>(mPointListDestination.size());
+        const int num_points = static_cast<int>(mPointListDestination.size());
         
         #pragma omp parallel for 
-        for(int i = 0; i < numPoints; i++) 
+        for(int i = 0; i < num_points; i++) 
         {
             mPointListDestination[i]->UpdatePoint();
         }
@@ -423,7 +423,7 @@ public:
                             if (condition_checked_right == true)
                             {    
                                 // If not active we check if can be potentially in contact
-                                SearchUtilities::ContactContainerFiller(condition_pointersDestination, (*it_cond.base()), p_cond_origin, it_cond->GetValue(NORMAL), p_cond_origin->GetValue(NORMAL), mActiveCheckFactor, mDualSearchCheck, mStrictSearchCheck, mFilterCandidates); 
+                                SearchUtilities::ContactContainerFiller(condition_pointersDestination, (*it_cond.base()), p_cond_origin, it_cond->GetValue(NORMAL), p_cond_origin->GetValue(NORMAL), mActiveCheckFactor, mDualSearchCheck, mStrictSearchCheck, mUseExactIntegration); 
                             }
                             
                             if (condition_pointersDestination->size() > 0)
@@ -447,7 +447,6 @@ public:
         ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
         const int num_conditions = static_cast<int>(conditions_array.size());
 
-//         #pragma omp parallel for 
         for(int i = 0; i < num_conditions; i++) 
         {
             auto it_cond = conditions_array.begin() + i;
@@ -471,7 +470,6 @@ public:
         NodesArrayType& nodes_array = mrMainModelPart.Nodes();
         const int num_nodes = static_cast<int>(nodes_array.size());
         
-//         #pragma omp parallel for 
         for(int i = 0; i < num_nodes; i++) 
         {
             auto it_node = nodes_array.begin() + i;
@@ -690,7 +688,7 @@ private:
     double mActiveCheckFactor;                // The check factor to be considered
     bool mDualSearchCheck;                    // The search is done reciprocally
     bool mStrictSearchCheck;                  // The search is done requiring IsInside as true
-    bool mFilterCandidates;                   // The search filter the results with th exact integration
+    bool mUseExactIntegration;                // The search filter the results with the exact integration
     SearchTreeType mSearchTreeType;           // The search tree considered
     unsigned int mBucketSize;                 // Bucket size for kd-tree
     PointVector mPointListDestination;        // A list that contents the all the points (from nodes) from the modelpart 
