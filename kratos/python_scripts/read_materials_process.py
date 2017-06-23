@@ -36,7 +36,6 @@ class ReadMaterialsProcess(Process):
             )
             
         settings.ValidateAndAssignDefaults(default_settings)
-        print(Model.keys())
         self.Model = Model
         
         #TODO: change to use the KratosParameters once dictionary iterators are exported
