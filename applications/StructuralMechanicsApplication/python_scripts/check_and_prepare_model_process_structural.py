@@ -28,8 +28,10 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             processes_parts.append(self.main_model_part.GetSubModelPart(self.processes_model_part_names[i].GetString()))
         
         #construct a model part which contains both the skin and the volume
-        self.main_model_part.CreateSubModelPart(self.computing_model_part_name )
-        structural_computational_model_part = self.main_model_part.GetSubModelPart(self.computing_model_part_name )
+        if (self.main_model_part.HasSubModelPart(self.computing_model_part_name )):
+            structural_computational_model_part = self.main_model_part.GetSubModelPart(self.computing_model_part_name )
+        else:
+            structural_computational_model_part = self.main_model_part.CreateSubModelPart(self.computing_model_part_name )
         structural_computational_model_part.ProcessInfo = self.main_model_part.ProcessInfo
         structural_computational_model_part.Properties  = self.main_model_part.Properties
         
