@@ -471,9 +471,6 @@ namespace Kratos
 			      ElementalVariables& rElementalVariables,
 			      const double Weight);
 
-      void AddDynamicForces(Vector& rRHSVector,
-			    const double Weight,
-			    const double TimeStep);
 
       void AddDeviatoricInternalForces( Vector& rRHSVector,
 					const ShapeFunctionDerivativesType& rDN_DX,
@@ -533,11 +530,12 @@ namespace Kratos
       
       virtual bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
 					const ProcessInfo& rCurrentProcessInfo,
+					const ShapeFunctionDerivativesType& rDN_DX,
 					unsigned int g){return true;};
 
       bool CalcStrainRate(ElementalVariables & rElementalVariables,
 			  const ProcessInfo& rCurrentProcessInfo,
-			  unsigned int g,
+			  const ShapeFunctionDerivativesType& rDN_DX,
 			  const double theta);
 
       void CalcVelDefGrad(const ShapeFunctionDerivativesType& rDN_DX,
@@ -590,7 +588,6 @@ namespace Kratos
       bool CheckStrain3(VectorType &SpatialDefRate,
 			MatrixType &SpatialVelocityGrad);
 
-      bool CheckSliverElements();
 	
       virtual void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 						    double TimeStep,

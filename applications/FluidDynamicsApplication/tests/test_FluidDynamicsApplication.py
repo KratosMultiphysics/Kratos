@@ -11,6 +11,8 @@ from SmallTests import EmbeddedArtificialCompressibilityTest as TEmbeddedArtific
 from SmallTests import EmbeddedCouetteTest as TEmbeddedCouetteTest
 from SmallTests import EmbeddedCouetteImposedTest as TEmbeddedCouetteImposedTest
 from SmallTests import EmbeddedReservoirTest as TEmbeddedReservoirTest
+from SmallTests import EmbeddedSlipReservoirTest as TEmbeddedSlipReservoirTest
+from SmallTests import EmbeddedSlipBoundaryConditionTest as TEmbeddedSlipBoundaryConditionTest
 from SmallTests import ManufacturedSolutionTest as TManufacturedSolutionTest
 from SmallTests import NavierStokesWallConditionTest as TNavierStokesWallConditionTest
 
@@ -18,10 +20,8 @@ from buoyancy_test import BuoyancyTest
 from volume_source_test import VolumeSourceTest
 
 ## NIGTHLY TESTS
-#~ from NightlyTests import MokBenchmarkTest as TMokBenchmarkTest
 
 ## VALIDATION TESTS
-#~ from ValidationTests import TurekBenchmarkTest as TTurekBenchmarkTest
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -43,6 +43,8 @@ def AssambleTestSuites():
     smallSuite.addTest(TEmbeddedCouetteTest('test_execution'))
     smallSuite.addTest(TEmbeddedCouetteImposedTest('test_execution'))
     smallSuite.addTest(TEmbeddedReservoirTest('test_execution'))
+    smallSuite.addTest(TEmbeddedSlipBoundaryConditionTest('test_execution'))
+    smallSuite.addTest(TEmbeddedSlipReservoirTest('test_execution'))
     smallSuite.addTest(TManufacturedSolutionTest('test_execution'))
     smallSuite.addTest(TNavierStokesWallConditionTest('test_execution'))
     smallSuite.addTest(BuoyancyTest('testEulerian'))
