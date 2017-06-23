@@ -133,26 +133,26 @@ public:
         mSearchTreeType = ConvertSearchTree(ThisParameters["type_search"].GetString());
         mBucketSize = ThisParameters["bucket_size"].GetInt();
         
-        NodesArrayType& NodesArray = mrMainModelPart.Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size());
+        NodesArrayType& nodes_array = mrMainModelPart.Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size());
         
         #pragma omp parallel for 
-        for(int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < num_nodes; i++) 
         {
-            auto itNode = NodesArray.begin() + i;
-            itNode->Set(ACTIVE, false);
+            auto it_node = nodes_array.begin() + i;
+            it_node->Set(ACTIVE, false);
         }
         
         // Iterate in the conditions
-        ConditionsArrayType& ConditionsArray = mrMainModelPart.Conditions();
-        const int numConditions = static_cast<int>(ConditionsArray.size());
+        ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
+        const int num_conditions = static_cast<int>(conditions_array.size());
 
         #pragma omp parallel for 
-        for(int i = 0; i < numConditions; i++) 
+        for(int i = 0; i < num_conditions; i++) 
         {
-            auto itCond = ConditionsArray.begin() + i;
+            auto it_cond = conditions_array.begin() + i;
             
-            itCond->Set(ACTIVE, false);
+            it_cond->Set(ACTIVE, false);
         }
     }
     
@@ -173,16 +173,16 @@ public:
     void InitializeMortarConditions()
     {
         // Iterate in the conditions
-        ConditionsArrayType& ConditionsArray = mrMainModelPart.Conditions();
-        const int numConditions = static_cast<int>(ConditionsArray.size());
+        ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
+        const int num_conditions = static_cast<int>(conditions_array.size());
 
 //         #pragma omp parallel for 
-        for(int i = 0; i < numConditions; i++) 
+        for(int i = 0; i < num_conditions; i++) 
         {
-            auto itCond = ConditionsArray.begin() + i;
+            auto it_cond = conditions_array.begin() + i;
 
-            itCond->GetValue(CONTACT_SETS) = boost::shared_ptr<ConditionSet>(new ConditionSet); 
-//             itCond->GetValue(CONTACT_SETS)->reserve(mAllocationSize); 
+            it_cond->GetValue(CONTACT_SETS) = boost::shared_ptr<ConditionSet>(new ConditionSet); 
+//             it_cond->GetValue(CONTACT_SETS)->reserve(mAllocationSize); 
         }
     }
     
@@ -194,18 +194,18 @@ public:
     {
         ResetContactOperators(mrMainModelPart);
         
-        NodesArrayType& NodesArray = mrMainModelPart.Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size());
+        NodesArrayType& nodes_array = mrMainModelPart.Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size());
         
         #pragma omp parallel for 
-        for(int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < num_nodes; i++) 
         {
-            auto itNode = NodesArray.begin() + i;
+            auto it_node = nodes_array.begin() + i;
             
-            if (itNode->Is(ACTIVE) == true)
+            if (it_node->Is(ACTIVE) == true)
             {
-                itNode->Set( ACTIVE, false );
-                itNode->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
+                it_node->Set( ACTIVE, false );
+                it_node->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
             }
         }  
     }
@@ -214,18 +214,18 @@ public:
     {
         ResetContactOperators(mrMainModelPart);
         
-        NodesArrayType& NodesArray = mrMainModelPart.Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size());
+        NodesArrayType& nodes_array = mrMainModelPart.Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size());
         
         #pragma omp parallel for 
-        for(int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < num_nodes; i++) 
         {
-            auto itNode = NodesArray.begin() + i;
+            auto it_node = nodes_array.begin() + i;
             
-            if (itNode->Is(ACTIVE) == true)
+            if (it_node->Is(ACTIVE) == true)
             {
-                itNode->Set( ACTIVE, false );
-                itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector(3);
+                it_node->Set( ACTIVE, false );
+                it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector(3);
             }
         }  
     }
@@ -238,18 +238,18 @@ public:
     {
         ResetContactOperators(mrMainModelPart);
         
-        NodesArrayType& NodesArray = mrMainModelPart.Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size());
+        NodesArrayType& nodes_array = mrMainModelPart.Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size());
         
         #pragma omp parallel for 
-        for(int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < num_nodes; i++) 
         {
-            auto itNode = NodesArray.begin() + i;
+            auto it_node = nodes_array.begin() + i;
             
-            if (itNode->Is(ACTIVE) == true)
+            if (it_node->Is(ACTIVE) == true)
             {
-                itNode->Set( ACTIVE, false );
-                itNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
+                it_node->Set( ACTIVE, false );
+                it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
             }
         }  
     }
@@ -260,16 +260,16 @@ public:
     
     void PartialClearScalarMortarConditions()
     {
-        NodesArrayType& NodesArray = mrMainModelPart.Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size());
+        NodesArrayType& nodes_array = mrMainModelPart.Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size());
         
         #pragma omp parallel for 
-        for(int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < num_nodes; i++) 
         {
-            auto itNode = NodesArray.begin() + i;
-            if (itNode->Is(ACTIVE) == false)
+            auto it_node = nodes_array.begin() + i;
+            if (it_node->Is(ACTIVE) == false)
             {
-                itNode->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
+                it_node->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
             }
         } 
     }
@@ -280,16 +280,16 @@ public:
         
     void PartialClearComponentsMortarConditions()
     {
-        NodesArrayType& NodesArray = mrMainModelPart.Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size());
+        NodesArrayType& nodes_array = mrMainModelPart.Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size());
         
         #pragma omp parallel for 
-        for(int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < num_nodes; i++) 
         {
-            auto itNode = NodesArray.begin() + i;
-            if (itNode->Is(ACTIVE) == false)
+            auto it_node = nodes_array.begin() + i;
+            if (it_node->Is(ACTIVE) == false)
             {
-                itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector(3);
+                it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector(3);
             }
         } 
     }
@@ -300,16 +300,16 @@ public:
     
     void PartialClearALMFrictionlessMortarConditions()
     {
-        NodesArrayType& NodesArray = mrMainModelPart.Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size());
+        NodesArrayType& nodes_array = mrMainModelPart.Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size());
         
         #pragma omp parallel for 
-        for(int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < num_nodes; i++) 
         {
-            auto itNode = NodesArray.begin() + i;
-            if (itNode->Is(ACTIVE) == false)
+            auto it_node = nodes_array.begin() + i;
+            if (it_node->Is(ACTIVE) == false)
             {
-                itNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
+                it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
             }
         } 
     }
@@ -321,18 +321,18 @@ public:
     void CreatePointListMortar()
     {
         // Iterate in the conditions
-        ConditionsArrayType& ConditionsArray = mrMainModelPart.Conditions();
-        const int numConditions = static_cast<int>(ConditionsArray.size());
+        ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
+        const int num_conditions = static_cast<int>(conditions_array.size());
 
         #pragma omp for nowait schedule(static)
-        for(int i = 0; i < numConditions; i++) 
+        for(int i = 0; i < num_conditions; i++) 
         {
-            auto itCond = ConditionsArray.begin() + i;
+            auto it_cond = conditions_array.begin() + i;
             
-            if (itCond->Is(MASTER) == true)
+            if (it_cond->Is(MASTER) == true)
             {
-                PointTypePointer pPoint = PointTypePointer(new PointItem((*itCond.base())));
-                (mPointListDestination).push_back(pPoint);
+                PointTypePointer p_point = PointTypePointer(new PointItem((*it_cond.base())));
+                (mPointListDestination).push_back(p_point);
             }
         }
     }
@@ -343,14 +343,13 @@ public:
     
     void UpdatePointListMortar()
     {
-        int numPoints = static_cast<int>(mPointListDestination.size());
+        const int numPoints = static_cast<int>(mPointListDestination.size());
         
         #pragma omp parallel for 
         for(int i = 0; i < numPoints; i++) 
         {
             mPointListDestination[i]->UpdatePoint();
         }
-
     }
 
     /**
@@ -371,65 +370,65 @@ public:
 //         #pragma omp parallel 
 //         {
             // Initialize values
-            PointVector PointsFound(mAllocationSize);
-            unsigned int NumberPointsFound = 0;    
+            PointVector points_found(mAllocationSize);
+            unsigned int number_points_found = 0;    
             
             // Create a tree
             // It will use a copy of mNodeList (a std::vector which contains pointers)
             // Copying the list is required because the tree will reorder it for efficiency
-            KDTree TreePoints(mPointListDestination.begin(), mPointListDestination.end(), mBucketSize);
+            KDTree tree_points(mPointListDestination.begin(), mPointListDestination.end(), mBucketSize);
             
             // Iterate in the conditions
-            ConditionsArrayType& ConditionsArray = mrMainModelPart.Conditions();
-            const int numConditions = static_cast<int>(ConditionsArray.size());
+            ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
+            const int num_conditions = static_cast<int>(conditions_array.size());
 
 //             #pragma omp for 
-            for(int i = 0; i < numConditions; i++) 
+            for(int i = 0; i < num_conditions; i++) 
             {
-                auto itCond = ConditionsArray.begin() + i;
+                auto it_cond = conditions_array.begin() + i;
                 
-                if (itCond->Is(SLAVE) == true)
+                if (it_cond->Is(SLAVE) == true)
                 {
                     if (mSearchTreeType == KdtreeInRadius)
                     {                        
-                        const Point<3> Center = itCond->GetGeometry().Center();
-                        const double SearchRadius = mSearchFactor * Radius(itCond->GetGeometry());
+                        const Point<3> center = it_cond->GetGeometry().Center();
+                        const double search_radius = mSearchFactor * Radius(it_cond->GetGeometry());
 
-                        NumberPointsFound = TreePoints.SearchInRadius(Center, SearchRadius, PointsFound.begin(), mAllocationSize);
+                        number_points_found = tree_points.SearchInRadius(center, search_radius, points_found.begin(), mAllocationSize);
                     }
                     else if (mSearchTreeType == KdtreeInBox)
                     {
-                        const Point<3> Center = itCond->GetGeometry().Center();
-                        Node<3> MinPoint, MaxPoint;
-                        itCond->GetGeometry().BoundingBox(MinPoint, MaxPoint);
-                        ContactUtilities::ScaleNode<Node<3>>(MinPoint, Center, mSearchFactor);
-                        ContactUtilities::ScaleNode<Node<3>>(MaxPoint, Center, mSearchFactor);
-                        NumberPointsFound = TreePoints.SearchInBox(MinPoint, MaxPoint, PointsFound.begin(), mAllocationSize);
+                        const Point<3> center = it_cond->GetGeometry().Center();
+                        Node<3> min_point, max_point;
+                        it_cond->GetGeometry().BoundingBox(min_point, max_point);
+                        ContactUtilities::ScaleNode<Node<3>>(min_point, center, mSearchFactor);
+                        ContactUtilities::ScaleNode<Node<3>>(max_point, center, mSearchFactor);
+                        number_points_found = tree_points.SearchInBox(min_point, max_point, points_found.begin(), mAllocationSize);
                     }
                     else
                     {
                         KRATOS_ERROR << " The type search is not implemented yet does not exist!!!!. SearchTreeType = " << mSearchTreeType << std::endl;
                     }
 
-                    if (NumberPointsFound > 0)
+                    if (number_points_found > 0)
                     {                           
-                        boost::shared_ptr<ConditionSet>& ConditionPointersDestination = itCond->GetValue(CONTACT_SETS);
+                        boost::shared_ptr<ConditionSet>& condition_pointersDestination = it_cond->GetValue(CONTACT_SETS);
                         
-                        for(unsigned int i = 0; i < NumberPointsFound; i++)
+                        for(unsigned int i = 0; i < number_points_found; i++)
                         {   
-                            Condition::Pointer pCondOrigin = PointsFound[i]->GetCondition();
+                            Condition::Pointer p_cond_origin = points_found[i]->GetCondition();
                             
-                            const bool ConditionCheckedRight = CheckCondition(ConditionPointersDestination, (*itCond.base()), pCondOrigin);
+                            const bool condition_checked_right = CheckCondition(condition_pointersDestination, (*it_cond.base()), p_cond_origin);
 
-                            if (ConditionCheckedRight == true)
+                            if (condition_checked_right == true)
                             {    
                                 // If not active we check if can be potentially in contact
-                                SearchUtilities::ContactContainerFiller(ConditionPointersDestination, (*itCond.base()), pCondOrigin, itCond->GetValue(NORMAL), pCondOrigin->GetValue(NORMAL), mActiveCheckFactor, mDualSearchCheck, mStrictSearchCheck, mFilterCandidates); 
+                                SearchUtilities::ContactContainerFiller(condition_pointersDestination, (*it_cond.base()), p_cond_origin, it_cond->GetValue(NORMAL), p_cond_origin->GetValue(NORMAL), mActiveCheckFactor, mDualSearchCheck, mStrictSearchCheck, mFilterCandidates); 
                             }
                             
-                            if (ConditionPointersDestination->size() > 0)
+                            if (condition_pointersDestination->size() > 0)
                             {                        
-                                itCond->Set(ACTIVE, true);
+                                it_cond->Set(ACTIVE, true);
                             }
                         }
                     }
@@ -445,41 +444,41 @@ public:
     void CheckMortarConditions()
     {
         // Iterate in the conditions
-        ConditionsArrayType& ConditionsArray = mrMainModelPart.Conditions();
-        const int numConditions = static_cast<int>(ConditionsArray.size());
+        ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
+        const int num_conditions = static_cast<int>(conditions_array.size());
 
 //         #pragma omp parallel for 
-        for(int i = 0; i < numConditions; i++) 
+        for(int i = 0; i < num_conditions; i++) 
         {
-            auto itCond = ConditionsArray.begin() + i;
+            auto it_cond = conditions_array.begin() + i;
             
-            if (itCond->Is(MASTER) == true && itCond->Is(ACTIVE) == true)
+            if (it_cond->Is(MASTER) == true && it_cond->Is(ACTIVE) == true)
             {
-                KRATOS_WATCH(itCond->Id());
+                KRATOS_WATCH(it_cond->Id());
                 KRATOS_ERROR << "THIS IS NOT SUPPOSED TO HAPPEN" << std::endl; 
             }
             
-            if (itCond->Is(SLAVE) == true && itCond->Is(ACTIVE) == true)
+            if (it_cond->Is(SLAVE) == true && it_cond->Is(ACTIVE) == true)
             {
-                KRATOS_WATCH(itCond->GetGeometry());
+                KRATOS_WATCH(it_cond->GetGeometry());
                 
-                boost::shared_ptr<ConditionSet>& ConditionPointersDestination = itCond->GetValue(CONTACT_SETS);
-                KRATOS_WATCH(ConditionPointersDestination->size());
-                ConditionPointersDestination->print();
+                boost::shared_ptr<ConditionSet>& condition_pointersDestination = it_cond->GetValue(CONTACT_SETS);
+                KRATOS_WATCH(condition_pointersDestination->size());
+                condition_pointersDestination->print();
             }
         }
         
-        NodesArrayType& NodesArray = mrMainModelPart.Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size());
+        NodesArrayType& nodes_array = mrMainModelPart.Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size());
         
 //         #pragma omp parallel for 
-        for(int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < num_nodes; i++) 
         {
-            auto itNode = NodesArray.begin() + i;
+            auto it_node = nodes_array.begin() + i;
             
-            if (itNode->Is(ACTIVE) == true)
+            if (it_node->Is(ACTIVE) == true)
             {
-                std::cout << "Node: " << itNode->Id() << " is active" << std::endl;
+                std::cout << "Node: " << it_node->Id() << " is active" << std::endl;
             }
         }
     }
@@ -539,34 +538,34 @@ protected:
     
     double Radius(GeometryType& Geom) const 
     { 
-        double Radius = 0.0; 
-        const Point<3> Center = Geom.Center(); 
+        double radius = 0.0; 
+        const Point<3> center = Geom.Center(); 
          
-        array_1d<double, 3> AuxVector; 
-        for(unsigned int iNode = 0; iNode < Geom.PointsNumber(); iNode++) 
+        array_1d<double, 3> aux_vector; 
+        for(unsigned int i_node = 0; i_node < Geom.PointsNumber(); i_node++) 
         { 
-            noalias(AuxVector) = Center.Coordinates() - Geom[iNode].Coordinates();; 
+            noalias(aux_vector) = center.Coordinates() - Geom[i_node].Coordinates();; 
              
-            const double AuxValue = inner_prod(AuxVector, AuxVector); 
+            const double aux_value = inner_prod(aux_vector, aux_vector); 
  
-            if(AuxValue > Radius) 
+            if(aux_value > radius) 
             { 
-                Radius = AuxValue; 
+                radius = aux_value; 
             } 
         } 
  
-        return std::sqrt(Radius); 
+        return std::sqrt(radius); 
     } 
     
     /**
      * It check the conditions if they are correctly detected
-     * @return ConditionPointers1: A vector containing the pointers to the conditions 
+     * @return condition_pointers1: A vector containing the pointers to the conditions 
      * @param pCond1: The pointer to the condition in the destination model part
      * @param pCond2: The pointer to the condition in the destination model part  
      */
     
     bool CheckCondition(
-        boost::shared_ptr<ConditionSet>& ConditionPointers1,
+        boost::shared_ptr<ConditionSet>& condition_pointers1,
         const Condition::Pointer & pCond1,
         const Condition::Pointer & pCond2
         )
@@ -577,23 +576,23 @@ protected:
         }
 
         // Avoid conditions oriented in the same direction
-        const double Tolerance = 1.0e-16;
-        if (norm_2(pCond1->GetValue(NORMAL) - pCond2->GetValue(NORMAL)) < Tolerance)
+        const double tolerance = 1.0e-16;
+        if (norm_2(pCond1->GetValue(NORMAL) - pCond2->GetValue(NORMAL)) < tolerance)
         {
             return false;
         }
 
-		// To avoid to repeat twice the same condition 
-		if (ConditionPointers1->find(pCond2) != ConditionPointers1->end())
-		{
-			return false;
-		}
+        // To avoid to repeat twice the same condition 
+        if (condition_pointers1->find(pCond2) != condition_pointers1->end())
+        {
+            return false;
+        }
 
         if (pCond2->Is(SLAVE) == true) // Otherwise will not be necessary to check
         {
-            auto& ConditionPointers2 = pCond2->GetValue(CONTACT_SETS);
+            auto& condition_pointers2 = pCond2->GetValue(CONTACT_SETS);
             
-            if (ConditionPointers2->find(pCond1) != ConditionPointers2->end())
+            if (condition_pointers2->find(pCond1) != condition_pointers2->end())
             {
                 return false;
             }
@@ -609,23 +608,23 @@ protected:
         
     void ResetContactOperators(ModelPart & rModelPart)
     {
-        ConditionsArrayType& ConditionsArray = rModelPart.Conditions();
-        const int numConditions = static_cast<int>(ConditionsArray.size());
+        ConditionsArrayType& conditions_array = rModelPart.Conditions();
+        const int num_conditions = static_cast<int>(conditions_array.size());
         
         #pragma omp parallel for 
-        for(int i = 0; i < numConditions; i++) 
+        for(int i = 0; i < num_conditions; i++) 
         {
-            auto itCond = ConditionsArray.begin() + i;
-            if (itCond->Is(SLAVE) == true && itCond->Is(ACTIVE) == true)
+            auto it_cond = conditions_array.begin() + i;
+            if (it_cond->Is(SLAVE) == true && it_cond->Is(ACTIVE) == true)
             {
-                itCond->Set(ACTIVE, false);
+                it_cond->Set(ACTIVE, false);
                 
-                auto& ConditionPointers = itCond->GetValue(CONTACT_SETS);
+                auto& condition_pointers = it_cond->GetValue(CONTACT_SETS);
                 
-                if (ConditionPointers != nullptr)
+                if (condition_pointers != nullptr)
                 {
-                    ConditionPointers->clear();
-//                     ConditionPointers->reserve(mAllocationSize); 
+                    condition_pointers->clear();
+//                     condition_pointers->reserve(mAllocationSize); 
                 }
             }
         }   
