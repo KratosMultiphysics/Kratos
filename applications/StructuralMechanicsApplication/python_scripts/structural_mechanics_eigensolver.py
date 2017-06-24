@@ -1,121 +1,104 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-#import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import structural_mechanics_solver
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
-import structural_mechanics_solver
 
 def CreateSolver(main_model_part, custom_settings):
     return EigenSolver(main_model_part, custom_settings)
 
-class EigenSolver(structural_mechanics_solver.MechanicalSolver):
 
-    def __init__(self, main_model_part, custom_settings): 
-        
-        self.main_model_part = main_model_part
-        
-        ##settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
+class EigenSolver(structural_mechanics_solver.MechanicalSolver):
+    """The structural mechanics eigen solver.
+
+    This class creates the mechanical solvers for eigenvalue analysis.
+    It currently supports the Feast solver.
+
+    Member variables from base class:
+    settings -- Kratos parameters containing general solver settings.
+    main_model_part -- the model part used to construct the solver.
+
+    Additional member variables:
+    eigensolver_settings -- settings for the eigenvalue solvers.
+    """
+    def __init__(self, main_model_part, custom_settings):
+        settings = custom_settings.Clone()
+        self.eigensolver_settings = self.remove_settings(settings, "eigensolver_settings")
+
+        # Construct the base solver.
+        super().__init__(main_model_part, settings)
+
+        # Set defaults and validate custom settings.
+        default_eigensolver_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "structural_mechanics_eigensolver",
-            "echo_level": 0,
-            "buffer_size": 1,
-            "solution_type": "Dynamic",
-            "analysis_type": "Linear",
-            "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name",
-                "input_file_label": 0
-            },
-            "material_import_settings" :{
-                "materials_filename": ""
-            },
-            "rotation_dofs": false,
-            "pressure_dofs": false,
-            "eigensolver_settings":{
-                "solver_type": "FEAST"
-            },
-            "problem_domain_sub_model_part_list": ["solid_model_part"],
-            "processes_sub_model_part_list": [""]
+            "solver_type": "FEAST"
         }
         """)
-        
-        ##overwrite the default settings with user-provided parameters 
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
-        
-        # eigensolver_settings are validated/assigned in the linear_solver
-        print("Construction of Eigensolver finished")
+        self.eigensolver_settings.ValidateAndAssignDefaults(default_eigensolver_settings)
+        print("::[EigenSolver]:: Construction finished")
 
     def Initialize(self):
-        self.compute_model_part = self.GetComputeModelPart()
-
-        self.eigensolver_settings = self.settings["eigensolver_settings"] 
-        if self.eigensolver_settings["solver_type"].GetString() == "FEAST":
-            linear_solver_settings = self.eigensolver_settings["linear_solver_settings"]
-            if linear_solver_settings["solver_type"].GetString() == "skyline_lu":
-                # default built-in feast system solver
-                self.eigen_solver = ExternalSolversApplication.FEASTSolver(self.eigensolver_settings)            
-            else:
-                # external feast system solver
-                feast_system_solver = self._GetFEASTSystemSolver(linear_solver_settings)
-                self.eigen_solver = ExternalSolversApplication.FEASTSolver(self.eigensolver_settings, feast_system_solver)
-        else:
-            raise Exception("solver_type is not yet implemented: " + self.eigensolver_settings["solver_type"].GetString())
-
-        if self.settings["solution_type"].GetString() == "Dynamic":
-            self.scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
-        else:
-            raise Exception("solution_type is not yet implemented.")
-
-        self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.eigen_solver)
-
-        self.solver = StructuralMechanicsApplication.EigensolverStrategy(
-            self.compute_model_part,
-            self.scheme,
-            self.builder_and_solver)
-
-    def AddVariables(self):
-        
-        structural_mechanics_solver.MechanicalSolver.AddVariables(self)
-   
-        print("::[Structural EigenSolver]:: Variables ADDED")
+        print("::[EigenSolver]:: Initializing ...")
+        # The solver is created here.
+        super().Initialize()
+        print("::[EigenSolver]:: Finished initialization.")
 
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
-            
         if self.settings["rotation_dofs"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,self.main_model_part)
-                
-        if self.settings["pressure_dofs"].GetBool():                
-            for node in self.main_model_part.Nodes:
-                node.AddDof(KratosMultiphysics.PRESSURE, StructuralMechanicsApplication.PRESSURE_REACTION)
-
+        if self.settings["pressure_dofs"].GetBool():    
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.PRESSURE_REACTION,self.main_model_part)
         print("::[Structural EigenSolver]:: DOF's ADDED")
 
-    def GetComputeModelPart(self):
-        
-        return self.main_model_part
-    
-    def Solve(self):
-            
-        self.solver.Solve()
+    #### Private functions ####
 
-    def SetEchoLevel(self, level):
+    def _create_solution_scheme(self):
+        """Create the scheme for the eigenvalue problem.
 
-        self.solver.SetEchoLevel(level)
-
-    def _GetFEASTSystemSolver(self, settings):
-
-        if (settings["solver_type"].GetString() == "pastix"):
-            return ExternalSolversApplication.PastixComplexSolver(settings)
+        The scheme determines the left- and right-hand side matrices in the
+        generalized eigenvalue problem. 
+        """
+        if self.settings["solution_type"].GetString() == "Dynamic":
+            solution_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
         else:
-            raise Exception("Unsupported feast system solver: " + settings["solver_type"].GetString())
+            raise Exception("Unsupported solution_type: " + self.settings["solution_type"])
+        return solution_scheme
+
+    def _create_linear_solver(self):
+        """Create the eigensolver.
+        
+        This overrides the base class method and replaces the usual linear solver
+        with an eigenvalue problem solver.
+        """
+        if self.eigensolver_settings["solver_type"].GetString() == "FEAST":
+            feast_system_solver_settings = self.eigensolver_settings["linear_solver_settings"]
+            if feast_system_solver_settings["solver_type"].GetString() == "skyline_lu":
+                # default built-in feast system solver
+                linear_solver = ExternalSolversApplication.FEASTSolver(self.eigensolver_settings)
+            elif feast_system_solver_settings["solver_type"].GetString() == "pastix":
+                feast_system_solver = ExternalSolversApplication.PastixComplexSolver(feast_system_solver_settings)
+                linear_solver = ExternalSolversApplication.FEASTSolver(self.eigensolver_settings, feast_system_solver)
+            else:
+                raise Exception("Unsupported FEAST system solver_type: " + feast_system_solver_settings["solver_type"].GetString())
+        else:
+            raise Exception("Unsupported eigensolver solver_type: " + self.eigensolver_settings["solver_type"].GetString())
+        return linear_solver
+
+    def _create_mechanical_solver(self):
+        eigen_scheme = self.get_solution_scheme() # The scheme defines the matrices of the eigenvalue problem.
+        builder_and_solver = self.get_builder_and_solver() # The eigensolver is created here.
+        computing_model_part = self.GetComputingModelPart()
+
+        return StructuralMechanicsApplication.EigensolverStrategy(
+            computing_model_part,
+            eigen_scheme,
+            builder_and_solver)
