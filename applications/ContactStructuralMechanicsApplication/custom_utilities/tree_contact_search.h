@@ -409,27 +409,27 @@ public:
                     {
                         KRATOS_ERROR << " The type search is not implemented yet does not exist!!!!. SearchTreeType = " << mSearchTreeType << std::endl;
                     }
-
+                    
                     if (number_points_found > 0)
                     {                           
-                        boost::shared_ptr<ConditionSet>& condition_pointersDestination = it_cond->GetValue(CONTACT_SETS);
+                        boost::shared_ptr<ConditionSet>& conditions_pointers_destination = it_cond->GetValue(CONTACT_SETS);
                         
                         for(unsigned int i = 0; i < number_points_found; i++)
                         {   
                             Condition::Pointer p_cond_origin = points_found[i]->GetCondition();
                             
-                            const bool condition_checked_right = CheckCondition(condition_pointersDestination, (*it_cond.base()), p_cond_origin);
-
+                            const bool condition_checked_right = CheckCondition(conditions_pointers_destination, (*it_cond.base()), p_cond_origin);
+                            
                             if (condition_checked_right == true)
                             {    
                                 // If not active we check if can be potentially in contact
-                                SearchUtilities::ContactContainerFiller(condition_pointersDestination, (*it_cond.base()), p_cond_origin, it_cond->GetValue(NORMAL), p_cond_origin->GetValue(NORMAL), mActiveCheckFactor, mDualSearchCheck, mStrictSearchCheck, mUseExactIntegration); 
+                                SearchUtilities::ContactContainerFiller(conditions_pointers_destination, (*it_cond.base()), p_cond_origin, it_cond->GetValue(NORMAL), p_cond_origin->GetValue(NORMAL), mActiveCheckFactor, mDualSearchCheck, mStrictSearchCheck, mUseExactIntegration); 
                             }
-                            
-                            if (condition_pointersDestination->size() > 0)
-                            {                        
-                                it_cond->Set(ACTIVE, true);
-                            }
+                        }
+                        
+                        if (conditions_pointers_destination->size() > 0)
+                        {                        
+                            it_cond->Set(ACTIVE, true);
                         }
                     }
                 }
@@ -461,9 +461,9 @@ public:
             {
                 KRATOS_WATCH(it_cond->GetGeometry());
                 
-                boost::shared_ptr<ConditionSet>& condition_pointersDestination = it_cond->GetValue(CONTACT_SETS);
-                KRATOS_WATCH(condition_pointersDestination->size());
-                condition_pointersDestination->print();
+                boost::shared_ptr<ConditionSet>& conditions_pointers_destination = it_cond->GetValue(CONTACT_SETS);
+                KRATOS_WATCH(conditions_pointers_destination->size());
+                conditions_pointers_destination->print();
             }
         }
         
