@@ -27,7 +27,11 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
     """
     def __init__(self, main_model_part, custom_settings):
         settings = custom_settings.Clone()
-        self.eigensolver_settings = self.remove_settings(settings, "eigensolver_settings")
+        if settings.Has("eigensolver_settings"):
+            self.eigensolver_settings = settings["eigensolver_settings"].Clone()
+            settings.RemoveValue("eigensolver_settings")
+        else:
+            self.eigensolver_settings = KratosMultiphysics.Parameters("{}")
 
         # Construct the base solver.
         super().__init__(main_model_part, settings)
@@ -35,7 +39,16 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
         # Set defaults and validate custom settings.
         default_eigensolver_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "FEAST"
+            "solver_type": "FEAST",
+            "print_feast_output": true,
+            "perform_stochastic_estimate": true,
+            "solve_eigenvalue_problem": true,
+            "lambda_min": 0.0,
+            "lambda_max": 1.0,
+            "search_dimension": 10,
+            "linear_solver_settings": {
+                "solver_type": "skyline_lu"
+            }
         }
         """)
         self.eigensolver_settings.ValidateAndAssignDefaults(default_eigensolver_settings)

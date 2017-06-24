@@ -27,7 +27,7 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     def __init__(self, main_model_part, custom_settings):
         settings = custom_settings.Clone()
         if settings.Has("arc_length_settings"):
-            self.arc_length_settings = settings["arc_length_settings"]
+            self.arc_length_settings = settings["arc_length_settings"].Clone()
             settings.RemoveValue("arc_length_settings")
         else:
             self.arc_length_settings = KratosMultiphysics.Parameters("{}")

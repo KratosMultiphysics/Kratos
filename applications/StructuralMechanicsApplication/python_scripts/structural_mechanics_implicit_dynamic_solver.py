@@ -24,16 +24,17 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     Additional member variables:
     dynamic_settings -- settings for the implicit dynamic solvers.
     """
-    def __init__(self, main_model_part, custom_settings): 
+    def __init__(self, main_model_part, custom_settings):
         settings = custom_settings.Clone()
         self.dynamic_settings = KratosMultiphysics.Parameters("{}")
         if settings.Has("damp_factor_m"):
-            self.dynamic_settings.AddValue("damp_factor_m", settings["damp_factor_m"])
+            self.dynamic_settings.AddEmptyValue("damp_factor_m")
+            self.dynamic_settings["damp_factor_m"].SetDouble(settings["damp_factor_m"].GetDouble())
             settings.RemoveValue("damp_factor_m")
         if not settings.Has("scheme_type"): # Assign the default dynamic scheme.
             settings.AddEmptyValue("scheme_type")
             settings["scheme_type"].SetString("Newmark")
-
+        
         # Construct the base solver.
         super().__init__(main_model_part, settings)
 
