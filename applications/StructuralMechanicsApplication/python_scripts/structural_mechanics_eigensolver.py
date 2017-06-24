@@ -18,12 +18,10 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
     This class creates the mechanical solvers for eigenvalue analysis.
     It currently supports the Feast solver.
 
-    Member variables from base class:
-    settings -- Kratos parameters containing general solver settings.
-    main_model_part -- the model part used to construct the solver.
-
-    Additional member variables:
+    Public member variables:
     eigensolver_settings -- settings for the eigenvalue solvers.
+
+    See structural_mechanics_solver.py for more information.
     """
     def __init__(self, main_model_part, custom_settings):
         settings = custom_settings.Clone()

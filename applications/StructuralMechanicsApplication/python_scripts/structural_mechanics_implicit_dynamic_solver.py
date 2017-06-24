@@ -15,14 +15,12 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     """The structural mechanics implicit dynamic solver.
 
     This class creates the mechanical solvers for implicit dynamic analysis.
-    It supports Newmark, Bossak and dynamic relaxation schemes.
+    It currently supports Newmark, Bossak and dynamic relaxation schemes.
 
-    Member variables from base class:
-    settings -- Kratos parameters containing general solver settings.
-    main_model_part -- the model part used to construct the solver.
-
-    Additional member variables:
+    Public member variables:
     dynamic_settings -- settings for the implicit dynamic solvers.
+
+    See structural_mechanics_solver.py for more information.
     """
     def __init__(self, main_model_part, custom_settings):
         settings = custom_settings.Clone()

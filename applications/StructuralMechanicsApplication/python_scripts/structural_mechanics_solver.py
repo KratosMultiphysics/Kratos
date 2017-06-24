@@ -14,14 +14,26 @@ def CreateSolver(main_model_part, custom_settings):
 class MechanicalSolver(object):
     """The base class for structural mechanics solvers.
 
-    This class provides functions for importing and exporting models, calling
-    the solving strategy, getting the computing model part and adding nodal
-    variables and dofs which are common to all structural mechanics solvers.
+    This class provides functions for importing and exporting models,
+    adding nodal variables and dofs and solving each solution step.
 
-    Derived classes must override the _create* functions to create custom
-    solvers.
+    Derived classes must override the function _create_mechanical_solver which
+    constructs and returns a valid solving strategy. Depending on the type of
+    solver, derived classes may also need to override the following functions:
 
-    Member variables:
+    _create_solution_scheme
+    _create_convergence_criterion
+    _create_linear_solver
+    _create_builder_and_solver
+    _create_mechanical_solver
+
+    The mechanical_solver, builder_and_solver, etc. should alway be retrieved
+    using the getter functions get_mechanical_solver, get_builder_and_solver,
+    etc. from this base class.
+    
+    Only the member variables listed below should be accessed directly.
+
+    Public member variables:
     settings -- Kratos parameters containing solver settings.
     main_model_part -- the model part used to construct the solver.
     """
@@ -370,4 +382,3 @@ class MechanicalSolver(object):
         The mechanical solver must provide the functions defined in SolutionStrategy.
         """
         raise Exception("Mechanical solver must be implemented in the derived class.")
-

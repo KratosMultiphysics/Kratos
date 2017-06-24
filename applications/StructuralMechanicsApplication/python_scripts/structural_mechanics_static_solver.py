@@ -14,15 +14,14 @@ def CreateSolver(main_model_part, custom_settings):
 class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     """The structural mechanics static solver.
 
-    This class creates the mechanical solvers for static analysis. It supports
-    line search, linear, arc-length, formfinding and Newton-Raphson strategies.
+    This class creates the mechanical solvers for static analysis. It currently
+    supports line search, linear, arc-length, form-finding and Newton-Raphson
+    strategies.
 
-    Member variables from base class:
-    settings -- Kratos parameters containing general solver settings.
-    main_model_part -- the model part used to construct the solver.
-
-    Additional member variables:
+    Public member variables:
     arc_length_settings -- settings for the arc length method.
+
+    See structural_mechanics_solver.py for more information.
     """
     def __init__(self, main_model_part, custom_settings):
         settings = custom_settings.Clone()
