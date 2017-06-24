@@ -1,11 +1,11 @@
 {
     "problem_data"                     : {
-        "problem_name"    : "embedded_slip_boundary_condition",
+        "problem_name"    : "slip_reservoir",
         "model_part_name" : "MainModelPart",
         "parallel_type"   : "OpenMP",
         "domain_size"     : 3,
         "start_step"      : 0.0,
-        "end_time"        : 5.0
+        "end_time"        : 10.0
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -37,10 +37,10 @@
         "solver_type"                  : "Embedded",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "EmbeddedSlipBoundaryConditionTest/slip_boundary_condition"
+            "input_filename" : "EmbeddedSlipReservoirTest/reservoir"
         },
         "maximum_iterations"           : 10,
-        "dynamic_tau"                  : 0.01,
+        "dynamic_tau"                  : 0.001,
         "echo_level"                   : 0,
         "time_order"                   : 2,
         "compute_reactions"            : false,
@@ -52,9 +52,9 @@
         "absolute_pressure_tolerance"  : 1e-7,
         "linear_solver_settings"       : {
             "solver_type"         : "AMGCL",
-            "max_iteration"       : 500,
-            "tolerance"           : 1e-8,
-            "provide_coordinates" : false,
+            "max_iteration"       : 100,
+            "tolerance"           : 1e-9,
+            "provide_coordinates" : true,
             "smoother_type"       : "ilu0",
             "krylov_type"         : "gmres",
             "coarsening_type"     : "aggregation",
@@ -62,45 +62,42 @@
             "verbosity"           : 0
         },
         "volume_model_part_name"       : "Parts_Fluid",
-        "skin_parts"                   : ["Inlet3D","Outlet3D","Top3D","Sides3D"],
+        "skin_parts"                   : ["Outlet3D","NoSlip3D"],
         "no_skin_parts"                : [],
         "time_stepping"                : {
             "automatic_time_step" : false,
-            "time_step"           : 0.1
+            "time_step"           : 0.25
         }
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{
-        "python_module" : "embedded_slip_boundary_condition_test_local_process",
-        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"  : "EmbeddedSlipBoundaryConditionTestLocalProcess",
-        "Parameters"    : {
-            "mesh_id"                : 0,
-            "distance_inlet"         : 0.25,
-            "distance_outlet"        : 0.25,
-            "fluid_model_part_name"  : "Parts_Fluid"
-        }
-    },{
-        "python_module" : "assign_vector_variable_process",
+        "python_module" : "assign_scalar_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignVectorVariableProcess",
+        "process_name"  : "AssignScalarVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Outlet3D",
-            "variable_name"   : "VELOCITY",
-            "value"           : [null, 0.0, 0.0],
-            "constrained"     : [false,true,true]
+            "variable_name"   : "PRESSURE",
+            "constrained"     : true,
+            "interval"        : [0.0,"End"],
+            "value"           : 0.0
         }
     },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignVectorVariableProcess",
+        "python_module" : "apply_noslip_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"  : "ApplyNoSlipProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "Sides3D",
-            "variable_name"   : "VELOCITY",
-            "value"           : [null, 0.0, null],
-            "constrained"     : [false,true,false]
+            "model_part_name" : "NoSlip3D"
+        }
+    },{
+        "python_module" : "embedded_slip_reservoir_test_local_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"  : "EmbeddedSlipReservoirTestLocalProcess",
+        "Parameters"    : {
+            "mesh_id"                : 0,
+            "distance"               : 1.0,
+            "fluid_model_part_name"  : "Parts_Fluid"
         }
     },{
         "python_module" : "apply_distance_modification_process",
@@ -120,7 +117,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "Parts_Fluid",
             "variable_name"   : "BODY_FORCE",
-            "modulus"         : 0.0,
+            "modulus"         : 9.8,
             "direction"       : [0.0,0.0,-1.0]
         }
     }]
