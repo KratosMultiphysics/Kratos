@@ -44,9 +44,9 @@ class MechanicalSolver(object):
             "echo_level": 0,
             "buffer_size": 2,
             "solution_type": "Dynamic",
-            "analysis_type": "Non-Linear",
+            "analysis_type": "Linear",
             "time_integration_method": "Implicit",
-            "scheme_type": "Static",
+            "scheme_type": "Newmark",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name",
@@ -97,10 +97,6 @@ class MechanicalSolver(object):
         # Add displacements.
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        # Add dynamic variables.
-        if(self.settings["solution_type"].GetString() == "Dynamic"):
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         # Add specific variables for the problem conditions.
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
@@ -114,9 +110,6 @@ class MechanicalSolver(object):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LOCAL_POINT_MOMENT)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
-            if(self.settings["solution_type"].GetString() == "Dynamic"):
-                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
-                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
         if self.settings["pressure_dofs"].GetBool(): # TODO: The creation of UP and USigma elements is pending
             # Add specific variables for the problem (pressure dofs).
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
@@ -130,28 +123,12 @@ class MechanicalSolver(object):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
-        if(self.settings["solution_type"].GetString() == "Dynamic"):
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_X,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Y,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Z,self.main_model_part)
         if self.settings["rotation_dofs"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,self.main_model_part)
-        if(self.settings["solution_type"].GetString() == "Dynamic" and self.settings["rotation_dofs"].GetBool()):
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_VELOCITY_X,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Y,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Z,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_X,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Y,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Z,self.main_model_part)
         if self.settings["pressure_dofs"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.PRESSURE_REACTION,self.main_model_part)
-        if not self.settings["stabilization_factor"].IsNull():
-            self.main_model_part.ProcessInfo[KratosMultiphysics.STABILIZATION_FACTOR] = self.settings["stabilization_factor"].GetDouble()
         print("::[MechanicalSolver]:: DOF's ADDED")
 
     def ImportModelPart(self):
@@ -197,6 +174,8 @@ class MechanicalSolver(object):
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         print("::[MechanicalSolver]:: Initializing ...")
+        if not self.settings["stabilization_factor"].IsNull():
+            self.main_model_part.ProcessInfo[KratosMultiphysics.STABILIZATION_FACTOR] = self.settings["stabilization_factor"].GetDouble()
         # The mechanical solver is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
@@ -210,7 +189,7 @@ class MechanicalSolver(object):
             if hasattr(mechanical_solver, SetInitializePerformedFlag):
                 mechanical_solver.SetInitializePerformedFlag(True)
         self.Check()
-        print("::[StaticMechanicalSolver]:: Finished initialization.")
+        print("::[MechanicalSolver]:: Finished initialization.")
 
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())

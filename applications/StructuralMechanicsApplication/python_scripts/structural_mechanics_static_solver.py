@@ -30,6 +30,9 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             settings.RemoveValue("arc_length_settings")
         else:
             self.arc_length_settings = KratosMultiphysics.Parameters("{}")
+        if not settings.Has("scheme_type"):
+            settings.AddEmptyValue("scheme_type")
+            settings["scheme_type"].SetString("Static")
 
         # Construct the base solver.
         super().__init__(main_model_part, settings)
@@ -52,20 +55,19 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         """)
         self.arc_length_settings.ValidateAndAssignDefaults(default_arc_length_settings)
         print("::[StaticMechanicalSolver]:: Construction finished")
-        
-    def Initialize(self):
-        print("::[StaticMechanicalSolver]:: Initializing ...")
-        # The solver is created here.
-        super().Initialize()
-        print("::[StaticMechanicalSolver]:: Finished initialization.")
 
     def AddVariables(self):
         super().AddVariables()
         if self.settings["rotation_dofs"].GetBool():
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_TORQUE)
+        print("::[StaticMechanicalSolver]:: Variables ADDED")
+    
+    def Initialize(self):
+        print("::[StaticMechanicalSolver]:: Initializing ...")
         if self.settings["analysis_type"].GetString() == "Arc-Length":
             self.main_model_part.ProcessInfo[StructuralMechanicsApplication.LAMBDA] = 0.0
-        print("::[StaticMechanicalSolver]:: Variables ADDED")
+        super().Initialize() # The mechanical solver is created here.
+        print("::[StaticMechanicalSolver]:: Finished initialization.")
     
     def Solve(self):
         super().Solve()
@@ -73,7 +75,7 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             lambda_value = self.main_model_part.ProcessInfo[StructuralMechanicsApplication.LAMBDA]
             if self.settings["echo_level"].GetInt() > 0:
                 print("LAMBDA: ", lambda_value)
-            self._update_arclength_point_load(lambda_value)
+            self._update_arc_length_point_load(lambda_value)
 
     #### Private functions ####
     
@@ -85,7 +87,7 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     #    for node in forcing_nodes_list:
     #        node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0, disp)
 
-    def _update_arclength_point_load(self, lambda_value):
+    def _update_arc_length_point_load(self, lambda_value):
         force_x = 0.0
         force_y = 0.0
         force_z = 0.0

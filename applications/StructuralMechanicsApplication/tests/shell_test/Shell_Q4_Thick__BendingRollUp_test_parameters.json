@@ -11,7 +11,8 @@
     "solver_settings"          : {
         "solver_type"                        : "structural_mechanics_static_solver",
         "solution_type"                      : "Static",
-        "echo_level"      					 : 0,
+        "analysis_type"                      : "Non-Linear",
+        "echo_level"                         : 0,
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "shell_test/Shell_Q4_Thick__BendingRollUp"

@@ -45,18 +45,34 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         self.dynamic_settings.ValidateAndAssignDefaults(default_dynamic_settings)
         print("::[ImplicitMechanicalSolver]:: Construction finished")
 
-    def Initialize(self):
-        print("::[ImplicitMechanicalSolver]:: Initializing ...")
-        # The solver is created here.
-        super().Initialize()
-        print("::[ImplicitMechanicalSolver]:: Finished initialization.")
-
     def AddVariables(self):
         super().AddVariables()
+        # Add dynamic variables.
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         if self.settings["rotation_dofs"].GetBool():
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_TORQUE)
         print("::[ImplicitMechanicalSolver]:: Variables ADDED")
     
+    def AddDofs(self):
+        super().AddDofs()
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_X,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Y,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Z,self.main_model_part)
+        if(self.settings["rotation_dofs"].GetBool()):
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_VELOCITY_X,self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Y,self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Z,self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_X,self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Y,self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Z,self.main_model_part)
+        print("::[ImplicitMechanicalSolver]:: DOF's ADDED")
+
     #### Private functions ####
 
     def _create_solution_scheme(self):

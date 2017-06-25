@@ -52,24 +52,6 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
         self.eigensolver_settings.ValidateAndAssignDefaults(default_eigensolver_settings)
         print("::[EigenSolver]:: Construction finished")
 
-    def Initialize(self):
-        print("::[EigenSolver]:: Initializing ...")
-        # The solver is created here.
-        super().Initialize()
-        print("::[EigenSolver]:: Finished initialization.")
-
-    def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
-        if self.settings["rotation_dofs"].GetBool():
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,self.main_model_part)
-        if self.settings["pressure_dofs"].GetBool():    
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.PRESSURE_REACTION,self.main_model_part)
-        print("::[Structural EigenSolver]:: DOF's ADDED")
-
     #### Private functions ####
 
     def _create_solution_scheme(self):
