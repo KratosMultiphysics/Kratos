@@ -23,26 +23,20 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     See structural_mechanics_solver.py for more information.
     """
     def __init__(self, main_model_part, custom_settings):
-        settings = custom_settings.Clone()
-        self.dynamic_settings = KratosMultiphysics.Parameters("{}")
-        if settings.Has("damp_factor_m"):
-            self.dynamic_settings.AddEmptyValue("damp_factor_m")
-            self.dynamic_settings["damp_factor_m"].SetDouble(settings["damp_factor_m"].GetDouble())
-            settings.RemoveValue("damp_factor_m")
-        if not settings.Has("scheme_type"): # Assign the default dynamic scheme.
-            settings.AddEmptyValue("scheme_type")
-            settings["scheme_type"].SetString("Newmark")
-        
-        # Construct the base solver.
-        super().__init__(main_model_part, settings)
-
         # Set defaults and validate custom settings.
-        default_dynamic_settings = KratosMultiphysics.Parameters("""
+        self.dynamic_settings = KratosMultiphysics.Parameters("""
         {
-            "damp_factor_m" : -0.01
+            "damp_factor_m" :-0.01
         }
         """)
-        self.dynamic_settings.ValidateAndAssignDefaults(default_dynamic_settings)
+        self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
+        # Validate the remaining settings in the base class.
+        if not custom_settings.Has("scheme_type"): # Override defaults in the base class.
+            custom_settings.AddEmptyValue("scheme_type")
+            custom_settings["scheme_type"].SetString("Newmark")
+        
+        # Construct the base solver.
+        super().__init__(main_model_part, custom_settings)
         print("::[ImplicitMechanicalSolver]:: Construction finished")
 
     def AddVariables(self):

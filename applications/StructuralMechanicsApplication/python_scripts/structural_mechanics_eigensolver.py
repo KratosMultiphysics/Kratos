@@ -24,32 +24,32 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
     See structural_mechanics_solver.py for more information.
     """
     def __init__(self, main_model_part, custom_settings):
-        settings = custom_settings.Clone()
-        if settings.Has("eigensolver_settings"):
-            self.eigensolver_settings = settings["eigensolver_settings"].Clone()
-            settings.RemoveValue("eigensolver_settings")
-        else:
-            self.eigensolver_settings = KratosMultiphysics.Parameters("{}")
-
-        # Construct the base solver.
-        super().__init__(main_model_part, settings)
-
         # Set defaults and validate custom settings.
-        default_eigensolver_settings = KratosMultiphysics.Parameters("""
+        eigensolver_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "FEAST",
-            "print_feast_output": true,
-            "perform_stochastic_estimate": true,
-            "solve_eigenvalue_problem": true,
-            "lambda_min": 0.0,
-            "lambda_max": 1.0,
-            "search_dimension": 10,
-            "linear_solver_settings": {
-                "solver_type": "skyline_lu"
+            "eigensolver_settings" : {
+                "solver_type": "FEAST",
+                "print_feast_output": true,
+                "perform_stochastic_estimate": true,
+                "solve_eigenvalue_problem": true,
+                "lambda_min": 0.0,
+                "lambda_max": 1.0,
+                "search_dimension": 10,
+                "linear_solver_settings": {
+                    "solver_type": "skyline_lu"
+                }
             }
         }
         """)
-        self.eigensolver_settings.ValidateAndAssignDefaults(default_eigensolver_settings)
+        self.validate_and_transfer_matching_settings(custom_settings, eigensolver_settings)
+        self.eigensolver_settings = eigensolver_settings["eigensolver_settings"]
+        # Validate the remaining settings in the base class.
+        if not custom_settings.Has("scheme_type"): # Override defaults in the base class.
+            custom_settings.AddEmptyValue("scheme_type")
+            custom_settings["scheme_type"].SetString("Dynamic")
+        
+        # Construct the base solver.
+        super().__init__(main_model_part, custom_settings)
         print("::[EigenSolver]:: Construction finished")
 
     #### Private functions ####
@@ -91,7 +91,6 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
         builder_and_solver = self.get_builder_and_solver() # The eigensolver is created here.
         computing_model_part = self.GetComputingModelPart()
 
-        return StructuralMechanicsApplication.EigensolverStrategy(
-            computing_model_part,
-            eigen_scheme,
-            builder_and_solver)
+        return StructuralMechanicsApplication.EigensolverStrategy(computing_model_part,
+                                                                  eigen_scheme,
+                                                                  builder_and_solver)

@@ -24,36 +24,33 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     See structural_mechanics_solver.py for more information.
     """
     def __init__(self, main_model_part, custom_settings):
-        settings = custom_settings.Clone()
-        if settings.Has("arc_length_settings"):
-            self.arc_length_settings = settings["arc_length_settings"].Clone()
-            settings.RemoveValue("arc_length_settings")
-        else:
-            self.arc_length_settings = KratosMultiphysics.Parameters("{}")
-        if not settings.Has("scheme_type"):
-            settings.AddEmptyValue("scheme_type")
-            settings["scheme_type"].SetString("Static")
-
-        # Construct the base solver.
-        super().__init__(main_model_part, settings)
-
         # Set defaults and validate custom settings.
-        default_arc_length_settings = KratosMultiphysics.Parameters("""
+        static_settings = KratosMultiphysics.Parameters("""
         {
-            "Ide": 5,
-            "factor_delta_lmax": 1.00,
-            "max_iteration": 20,
-            "max_recursive": 50,
-            "toler": 1.0E-10,
-            "norm": 1.0E-7,
-            "MaxLineSearchIterations": 20,
-            "tolls": 0.000001,
-            "amp": 1.618,
-            "etmxa": 5,
-            "etmna": 0.1
+            "arc_length_settings" : {
+                "Ide": 5,
+                "factor_delta_lmax": 1.00,
+                "max_iteration": 20,
+                "max_recursive": 50,
+                "toler": 1.0E-10,
+                "norm": 1.0E-7,
+                "MaxLineSearchIterations": 20,
+                "tolls": 0.000001,
+                "amp": 1.618,
+                "etmxa": 5,
+                "etmna": 0.1
+            }
         }
         """)
-        self.arc_length_settings.ValidateAndAssignDefaults(default_arc_length_settings)
+        self.validate_and_transfer_matching_settings(custom_settings, static_settings)
+        self.arc_length_settings = static_settings["arc_length_settings"]
+        # Validate the remaining settings in the base class.
+        if not custom_settings.Has("scheme_type"): # Override defaults in the base class.
+            custom_settings.AddEmptyValue("scheme_type")
+            custom_settings["scheme_type"].SetString("Static")
+
+        # Construct the base solver.
+        super().__init__(main_model_part, custom_settings)
         print("::[StaticMechanicalSolver]:: Construction finished")
 
     def Initialize(self):
