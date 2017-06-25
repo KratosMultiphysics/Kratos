@@ -56,12 +56,6 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         self.arc_length_settings.ValidateAndAssignDefaults(default_arc_length_settings)
         print("::[StaticMechanicalSolver]:: Construction finished")
 
-    def AddVariables(self):
-        super().AddVariables()
-        if self.settings["rotation_dofs"].GetBool():
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_TORQUE)
-        print("::[StaticMechanicalSolver]:: Variables ADDED")
-    
     def Initialize(self):
         print("::[StaticMechanicalSolver]:: Initializing ...")
         if self.settings["analysis_type"].GetString() == "Arc-Length":

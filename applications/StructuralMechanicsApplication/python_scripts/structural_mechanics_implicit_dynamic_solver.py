@@ -53,7 +53,6 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         if self.settings["rotation_dofs"].GetBool():
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_TORQUE)
         print("::[ImplicitMechanicalSolver]:: Variables ADDED")
     
     def AddDofs(self):
