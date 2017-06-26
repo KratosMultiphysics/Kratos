@@ -79,8 +79,7 @@
 
 The following document presents the formulation employed in the derivation of the mesh tying condition formulation with dual \textit{Lagrange multiplier}, based in the work of \textit{Alexander Popp}\cite{popp1,popp2}. The mesh tying problem is based on the \textbf{IBVP} of non-linear solid mechanics  and the tied contact constraints. After recapitulating some basic notation and the strong formulation, a weak formulation of the mesh tying problem with two subdomains will be introduced. Here, only the interpretation as constrained minimization problem is considered, leading to an indefinite saddle point formulation based on \textit{Lagrange multipliers}.
 
-The motivation for dual \textit{Lagrange multipliers}\cite{wohlmuth} lies in the fact that an extension of the master side basis functions to the slave side of the interface has a global support for standard \textit{Lagrange multipliers}. Based on duality arguments, it is however possible to construct dual shape functions such that the interface coupling subproblem
-in reduces to a localized form. Unfortunely, despite the dual formulation has been already implemented, the reduction of the system has not neing used.
+The motivation for dual \textit{Lagrange multipliers}\cite{wohlmuth} lies in the fact that an extension of the master side basis functions to the slave side of the interface has a global support for standard \textit{Lagrange multipliers}. Based on duality arguments, it is however possible to construct dual shape functions such that the interface coupling subproblem in reduces to a localized form. Unfortunately, despite the dual formulation has been already implemented, the reduction of the system has not being used.
 
 \section{Content}
 
@@ -121,7 +120,7 @@ weighting spaces $\mathbfcal{V}^(i)$ need to be defined as \eqref{eq:eq7}.
 Additionally the \textit{Lagrange multiplier} vector $\boldsymbol{\lambda} = -\mathbf{t}_c^{(1)}$, which enforce the mesh tying constraint\eqref{eq:eq6}, represents the negative slave side contact traction $\mathbf{t}_c^{(1)}$, is chosen from a
 corresponding solution space denoted as $\mathbfcal{M}$.  In terms of its classification in functional analysis, this space represents the dual space of the trace space $\mathbfcal{W}^{(1)}$ of $\mathbfcal{V}^{(1)}$. In the given context, this means that $\mathcal{M} = H^{−1/2} (\Gamma_c)$ and $\mathcal{W}^{(1)} = H^{1/2} (\Gamma_c)$, where $\mathcal{M}$  and $\mathcal{W}^{(1)}$ denote single scalar components of the corresponding vector-valued spaces $\mathbfcal{M}$ and $\mathbfcal{W}$.
 
-Based on these considerations, a saddle point type weak formulation is derived next. This can be done by extending the standard weak formulation of nonlinear solid mechanics as defined to two subdomains and combining it with the \textit{Lagrange multiplier} coupling terms introduced in generic form. Find $\mathbf{u}^{(i)} \in \mathbfcal{U}^{(i)}$ and $\boldsymbol{\lambda} ∈ \mathbfcal{M}$ such that we obtain \eqref{eq:eq8}.
+Based on these considerations, a saddle point type weak formulation is derived next. This can be done by extending the standard weak formulation of non-linear solid mechanics as defined to two subdomains and combining it with the \textit{Lagrange multiplier} coupling terms introduced in generic form. Find $\mathbf{u}^{(i)} \in \mathbfcal{U}^{(i)}$ and $\boldsymbol{\lambda} ∈ \mathbfcal{M}$ such that we obtain \eqref{eq:eq8}.
 
 \begin{subequations}
  \begin{align}
@@ -141,19 +140,19 @@ Herein, the kinetic contribution $\delta \mathcal{W}_{kin}$ , the internal and e
  \end{align}
 \end{subequations}
 
-The coupling terms on $\Gamma_c$ also allow for a direct interpretation in terms of variational formulations and the principle of virtual work. Whereas the contribution in \eqref{eq:subeq12} represents the virtual work of the unknown interface tractions $\boldsymbol{\lambda} = −\mathbf{t}_c^{(1)} = \mathbf{t}_c^{(2)}$, the contribution in \eqref{eq:subeq13} ensures a weak, variationally consistent enforcement of the tied contact constraint \eqref{eq:eq6}. Nevertheless, the concrete choice of the discrete Lagrange multiplier space $\mathbfcal{M}_h$ in the context of mortar finite element discretizations is decisive for the stability of the method and for optimal a priori error bounds. Finally, it is pointed out that the weak formulation \eqref{eq:subeq8} and \eqref{eq:subeq9} possesses all characteristics of saddle point problems and \textit{Lagrange multiplier} methods.
+The coupling terms on $\Gamma_c$ also allow for a direct interpretation in terms of variational formulations and the principle of virtual work. Whereas the contribution in \eqref{eq:subeq12} represents the virtual work of the unknown interface tractions $\boldsymbol{\lambda} = −\mathbf{t}_c^{(1)} = \mathbf{t}_c^{(2)}$, the contribution in \eqref{eq:subeq13} ensures a weak, variationally consistent enforcement of the tied contact constraint \eqref{eq:eq6}. Nevertheless, the concrete choice of the discrete Lagrange multiplier space $\mathbfcal{M}_h$ in the context of mortar finite element discretisations is decisive for the stability of the method and for optimal a priori error bounds. Finally, it is pointed out that the weak formulation \eqref{eq:subeq8} and \eqref{eq:subeq9} possesses all characteristics of saddle point problems and \textit{Lagrange multiplier} methods.
 
-\subsection{Discretization and numerical integration}
+\subsection{Discretisation and numerical integration}
 
 \subsubsection{Dual Lagrange multipliers}
 
-The discretiations of the displacements correspond with the standard ones in the finite element formulation, for more information check the literature\cite{Zienkiewicz1}. In addition, an adequate discretization of the Lagrange multiplier vector $\boldsymbol{\lambda}$ is needed, and will be based on a discrete \textit{Lagrange multiplier} space $\mathbfcal{M}_h$ being an approximation of $\mathbfcal{M}$. Thus, we can define the discete \textit{Lagrange multiplier} as \eqref{eq:eq14}, with the shape functions $\Phi_j$ and the discrete nodal Lagrange multipliers $\boldsymbol{\lambda}_h$.
+The discretisations of the displacements correspond with the standard ones in the finite element formulation, for more information check the literature\cite{Zienkiewicz1}. In addition, an adequate discretisation of the Lagrange multiplier vector $\boldsymbol{\lambda}$ is needed, and will be based on a discrete \textit{Lagrange multiplier} space $\mathbfcal{M}_h$ being an approximation of $\mathbfcal{M}$. Thus, we can define the discete \textit{Lagrange multiplier} as \eqref{eq:eq14}, with the shape functions $\Phi_j$ and the discrete nodal Lagrange multipliers $\boldsymbol{\lambda}_h$.
 
 \begin{equation}\label{eq:eq14}
  \boldsymbol{\lambda}_h = \sum_{i=1}^{m^{(1)}} \Phi_j\left(\xi^{(1)},\eta^{(1)} \right) \boldsymbol{\lambda}_j
 \end{equation}
 
-Details on how to define dual Lagrange multiplier shape functions $\Phi_j$ using the so-called biorthogonality relationship with the standard displacement shape functions $N_k$ have first been presented in Wohlmuth\cite{wohlmuth}. A common notation of the biorthogonality condition is \eqref{eq:eq15}.
+Details on how to define dual Lagrange multiplier shape functions $\Phi_j$ using the so-called biorthogonality relationship with the standard displacement shape functions $N_k$ have first been presented in \textit{Wohlmuth}\cite{wohlmuth}. A common notation of the biorthogonality condition is \eqref{eq:eq15}.
 
 \begin{equation}\label{eq:eq15}
  \int_{\Gamma_{c,h}^{(1)}}\Phi_j N_k^{(1)} \text{d}A_0 = \delta_{jk} \int_{\Gamma_{c,h}^{(1)}} N_k^{(1)} \text{d}A_0 \text{ , } j,k=1,...,m^{(1)}
@@ -214,7 +213,7 @@ Wit these matrices we can express the functional \eqref{eq:eq20} in the followin
 
 Herein, the discrete mortar mesh tying operator $\mathbf{B}_{mt}$ and the resulting discrete vector of mesh tying forces $\mathbf{f}_mt (\boldsymbol{\lambda}) = \mathbf{B}_{mt}\boldsymbol{\lambda}$ acting on the slave and the master side of the interface are introduced. 
 
-To finalize the discretization of the considered mesh tying problem, a closer look needs to
+To finalize the discretisation of the considered mesh tying problem, a closer look needs to
 be taken at the weak constraint contribution $\delta \mathcal{W}_{\lambda,h} $ in \eqref{eq:subeq9}. Due to the saddle point characteristics and resulting symmetry of the mixed variational formulation in \eqref{eq:subeq8}  and \eqref{eq:subeq9}, all discrete components of $\delta \mathcal{W}_{\lambda,h}$ have already been introduced and the final formulation is given as \eqref{eq:eq23}, with $\mathbf{g}_{mt}(\mathbf{d}) = \mathbf{B}_{mt} \mathbf{d}$ representing the discrete mesh tying constraint at the coupling interface.
 
 \begin{equation}\label{eq:eq23}
