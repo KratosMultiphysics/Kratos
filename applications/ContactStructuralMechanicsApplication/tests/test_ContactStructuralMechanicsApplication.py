@@ -136,10 +136,10 @@ def AssambleTestSuites():
             TTestTriangleExactIntegration3,
             TTestQuadrilateralExactIntegration1,
             TTestQuadrilateralExactIntegration2,
-            TSimplePatchTestTwoDMeshTying,
-            TSimpleSlopePatchTestTwoDMeshTying,
-            TSimplestPatchTestThreeDMeshTying,
-            ##TSimplePatchTestThreeDMeshTying, # FIXME: Some problem in the mesh tying
+            #TSimplePatchTestTwoDMeshTying,
+            #TSimpleSlopePatchTestTwoDMeshTying,
+            #TSimplestPatchTestThreeDMeshTying,
+            ###TSimplePatchTestThreeDMeshTying, # FIXME: Some problem in the mesh tying
             TALMHyperSimplePatchTestContact,
             TALMHyperSimpleSlopePatchTestContact,
             ##TALMTwoDPatchComplexGeomTestContact, # FIXME: There is a kinematic problem!!!
@@ -154,7 +154,7 @@ def AssambleTestSuites():
             ##TALMThreeDPatchComplexGeomTestContact, # FIXME: There is a kinematic problem!!!
             TALMTThreeDPatchMatchingTestContact,
             TALMThreeDPatchNotMatchingTestContact,
-            # NIGTHLY
+            ## NIGTHLY
             TALMMeshMovingMatchingTestContact,
             TALMMeshMovingNotMatchingTestContact,
             TALMTaylorPatchTestContact,
@@ -163,7 +163,7 @@ def AssambleTestSuites():
             TALMHertzSimpleSphereTestContact,
             ##TALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
             TALMHertzCompleteTestContact,
-            # VALIDATION
+            ## VALIDATION
             ##TALMIroningTestContact,
             ##TALMIroningDieTestContact,
         ])

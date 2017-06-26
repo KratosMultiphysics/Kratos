@@ -21,14 +21,17 @@
         "material_import_settings" :{
             "materials_filename": "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test_materials.json"
         },
-        "mortar_type"                        : "ALMContactFrictionless",
+        "contact_settings":
+        {
+            "mortar_type"                    : "ALMContactFrictionless",
+            "adaptative_strategy"            : true,
+            "split_factor"                   : 11.0,
+            "max_number_splits"              : 1
+        },
         "block_builder"                      : true,
         "line_search"                        : false,
         "clear_storage"                      : false,
         "reform_dofs_at_each_step"           : true,
-        "adaptative_strategy"                : true,
-        "split_factor"                       : 11.0,
-        "max_number_splits"                  : 1,
         "convergence_criterion"              : "Contact_Mixed_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,

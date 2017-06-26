@@ -20,10 +20,13 @@
         "material_import_settings" :{
             "materials_filename": "ALM_frictionless_contact_test_2D/ironing_die_test_materials.json"
         },
-        "mortar_type"                        : "ALMContactFrictionless",
+        "contact_settings":
+        {
+            "mortar_type"                    : "ALMContactFrictionless",
+            "ensure_contact"                 : false
+        },
         "block_builder"                      : true,
         "line_search"                        : false,
-        "ensure_contact"                     : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"           : true,
         "convergence_criterion"              : "Contact_Residual_criterion",

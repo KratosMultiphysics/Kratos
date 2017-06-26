@@ -22,13 +22,16 @@
         "material_import_settings" :{
             "materials_filename": "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test_materials.json"
         },
-        "mortar_type"                        : "ALMContactFrictionless",
+        "contact_settings":
+        {
+            "mortar_type"                    : "ALMContactFrictionless",
+            "ensure_contact"                 : true,
+            "contact_tolerance"              : 0.0e0
+        },
         "block_builder"                      : false,
         "line_search"                        : false,
         "clear_storage"                      : true,
-        "ensure_contact"                     : true,
         "reform_dofs_at_each_step"           : true,
-        "contact_tolerance"                  : 0.0e0,
         "convergence_criterion"              : "Contact_Mixed_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
