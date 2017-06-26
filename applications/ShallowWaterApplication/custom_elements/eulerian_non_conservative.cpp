@@ -43,7 +43,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void EulerianNonConservative::CalculateConsistentMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix) 
+	void EulerianNonConservative::CalculateConsistentMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix)
 	{
 		const unsigned int number_of_nodes = 3;
 		//~ const unsigned int number_of_dof = 3;
@@ -57,7 +57,7 @@ namespace Kratos
 		rMassMatrix *= 1.0/(12.0);
 	}
 
-	void EulerianNonConservative::CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix) 
+	void EulerianNonConservative::CalculateLumpedMassMatrix(boost::numeric::ublas::bounded_matrix<double,9,9>& rMassMatrix)
 	{
 		const unsigned int number_of_nodes = 3;
 		rMassMatrix = IdentityMatrix(number_of_nodes*3, number_of_nodes*3);
@@ -74,16 +74,14 @@ namespace Kratos
 		// The coefficients INCLUDE the time step
 		const double delta_t = rCurrentProcessInfo[DELTA_TIME];
 		//~ const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-		//~ array_1d<double,2> BDFcoeffs = {1.0, 1.0};  
+		//~ array_1d<double,2> BDFcoeffs = {1.0, 1.0};
 		double BDFcoeffs[2] = {1.0/delta_t, 1.0/delta_t};
 
 		boost::numeric::ublas::bounded_matrix<double,9,9> msM      = ZeroMatrix(9,9);     // Mass matrix
 		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX  = ZeroMatrix(3,2);     // Shape functions gradients
-		boost::numeric::ublas::bounded_matrix<double,3,3> msA      = ZeroMatrix(3,3);     // Parameters matrix
+		boost::numeric::ublas::bounded_matrix<double,2,2> msG      = ZeroMatrix(2,2);     // Gravity matrix
 		boost::numeric::ublas::bounded_matrix<double,3,1> msU      = ZeroMatrix(3,1);     // Iteration matrix: velocity unknown
-		boost::numeric::ublas::bounded_matrix<double,3,9> msB      = ZeroMatrix(3,9);     // Gradients and derivatives matrix
 		boost::numeric::ublas::bounded_matrix<double,9,9> msC      = ZeroMatrix(9,9);     // Nt*A*B (LHS)
-		boost::numeric::ublas::bounded_matrix<double,3,9> msN      = ZeroMatrix(3,9);     // Shape functions type
 		//
 		boost::numeric::ublas::bounded_matrix<double,2,9> msN_vel        = ZeroMatrix(2,9);   // Shape functions type matrix (for velocity unknown)
 		boost::numeric::ublas::bounded_matrix<double,1,9> msN_height     = ZeroMatrix(1,9);   // Shape functions type matrix (for height unknown)
@@ -92,13 +90,12 @@ namespace Kratos
 		//
 		array_1d<double,3> msNGauss;                                    // Dimension = number of nodes . Position of the gauss point
 		array_1d<double,9> ms_depth;
-		array_1d<double,2> ms_velocity;
-		array_1d<double,9> ms_step_height;
-		array_1d<double,9> ms_step_velocity;
 		array_1d<double,9> ms_unknown;
 		array_1d<double,9> ms_prev_unknown;
 		array_1d<double,9> ms_proj_unknown;  // TODO: this variable and dependencies should be removed
-		double k_dc;                                                                       // Discontinuity capturing
+		array_1d<double,2> ms_velocity;
+		double ms_height;
+		double k_dc;                                                        // Discontinuity capturing
 
 		const unsigned int number_of_points = GetGeometry().size();
 		if(rLeftHandSideMatrix.size1() != number_of_points*3)
@@ -109,7 +106,7 @@ namespace Kratos
 		// Getting data for the given geometry
 		double Area;
 		GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msNGauss, Area); // Asking for gradients and other info
-		double elem_size = pow(Area,0.5);
+		// double elem_size = pow(Area,0.5);
 
 		// Reading properties and conditions
 		//~ const double gravity = rCurrentProcessInfo[GRAVITY_Z];
@@ -119,23 +116,20 @@ namespace Kratos
 		int counter = 0;
 		for(unsigned int iii = 0; iii<number_of_points; iii++){
 			ms_depth[counter] = 0;
-			ms_step_height[counter] = 0;
-			ms_step_velocity[counter] = GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY_X);
 			ms_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY_X);
+			ms_prev_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY_X,1);
 			ms_proj_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(PROJECTED_VELOCITY_X);
 			counter++;
 
 			ms_depth[counter] = 0;
-			ms_step_height[counter] = 0;
-			ms_step_velocity[counter] = GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY_Y);
 			ms_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY_Y);
+			ms_prev_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY_Y,1);
 			ms_proj_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(PROJECTED_VELOCITY_Y);
 			counter++;
 
 			ms_depth[counter]   = GetGeometry()[iii].FastGetSolutionStepValue(BATHYMETRY);
-			ms_step_height[counter] = GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT);
-			ms_step_velocity[counter] = 0;
 			ms_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT);
+			ms_prev_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(HEIGHT,1);
 			ms_proj_unknown[counter] = GetGeometry()[iii].FastGetSolutionStepValue(PROJECTED_HEIGHT);
 			counter++;
 		}
@@ -143,19 +137,6 @@ namespace Kratos
 		// Compute parameters and derivatives matrices
 		// Loop on Gauss points: ONE GAUSS POINT
 
-		// B matrix: shape functions derivatives
-		msB(0,2) = msDN_DX(0,0);
-		msB(0,5) = msDN_DX(1,0);
-		msB(0,8) = msDN_DX(2,0);
-		msB(1,2) = msDN_DX(0,1);
-		msB(1,5) = msDN_DX(1,1);
-		msB(1,8) = msDN_DX(2,1);
-		msB(2,0) = msDN_DX(0,0);
-		msB(2,1) = msDN_DX(0,1);
-		msB(2,3) = msDN_DX(1,0);
-		msB(2,4) = msDN_DX(1,1);
-		msB(2,6) = msDN_DX(2,0);
-		msB(2,7) = msDN_DX(2,1);
 		// Height gradient
 		msDN_DX_height(0,2) = msDN_DX(0,0);
 		msDN_DX_height(0,5) = msDN_DX(1,0);
@@ -171,16 +152,12 @@ namespace Kratos
 		msDN_DX_vel(0,6) = msDN_DX(2,0);
 		msDN_DX_vel(0,7) = msDN_DX(2,1);
 
-		// N matrix: shape functions
-		for (unsigned int jjj = 0; jjj < number_of_points; jjj++) {
-			for (unsigned int iii = 0; iii < number_of_points; iii++)
-				msN(iii,iii+3*jjj) = msNGauss[jjj];
-		}
-		//noalias(msNmass) = row(msN, 2);
+		// Shape functions for height (Mass)
 		msN_height(0,2) = msNGauss[0];
 		msN_height(0,5) = msNGauss[1];
 		msN_height(0,8) = msNGauss[2];
-		//noalias(msNmoment) = row(msN, 0,1);
+
+		// Shape functions for velocity (Momentum)
 		msN_vel(0,0) = msNGauss[0];
 		msN_vel(0,3) = msNGauss[1];
 		msN_vel(0,6) = msNGauss[2];
@@ -189,12 +166,12 @@ namespace Kratos
 		msN_vel(1,7) = msNGauss[2];
 
 		// A matrix: gravity and previous iteration height
-		msA(0,0) = gravity;
-		msA(1,1) = gravity;
-		msA(2,2) = norm_1(prod(msN_height,ms_step_height));
+		msG(0,0) = gravity;
+		msG(1,1) = gravity;
+		ms_height = norm_1(prod(msN_height,ms_unknown));
 
-		// B matrix: previous iteration velocity
-		ms_velocity = (prod(msN_vel,ms_unknown));
+		// B matrix: previous iteration velocity at current step
+		ms_velocity = prod(msN_vel,ms_unknown);
 		msU(0,0) = ms_velocity[0];
 		msU(1,0) = ms_velocity[1];
 		msU(2,0) = 0;
@@ -204,11 +181,14 @@ namespace Kratos
 
 		// Main loop
 		// LHS
-		// Shock term
-		noalias(rLeftHandSideMatrix) = prod(trans(msN),Matrix(prod(msA,msB)));  // Nt*A*B
+		// Cross terms
+		noalias(rLeftHandSideMatrix)  = prod(trans(msN_vel),Matrix(prod(msG,msDN_DX_height)));  // Momentum: w*g*grad(h)
+		noalias(msC) = ms_height*prod(trans(msN_height),msDN_DX_vel);                           // Mass: q*h*div(u)
+		noalias(rLeftHandSideMatrix) += msC;
 
-		// Convective term
-		noalias(rLeftHandSideMatrix) += prod(trans(msN),Matrix(prod(msU,msDN_DX_vel)));
+		// Convective terms
+		noalias(rLeftHandSideMatrix) += prod(trans(msN_vel),Matrix(prod(msU,msDN_DX_vel)));                // Momentum: w*U*div(U)
+		noalias(rLeftHandSideMatrix) += prod(trans(msN_height),Matrix(prod(trans(msU),msDN_DX_height)));   // Mass: q*U*grad(h)
 
 		// Inertia terms
 		// Compute the mass matrix
@@ -217,13 +197,17 @@ namespace Kratos
 		// LHS += bdf*M
 		noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * msM;
 
+		// Add artificial diffusion
+		k_dc = 0.2;
+		noalias(rLeftHandSideMatrix) += k_dc * prod(trans(msDN_DX_height), msDN_DX_height);
+
 		// RHS
-		// TODO: SOURCE TERM
+		// Body force
 		noalias(rRightHandSideVector) = prod(msC, ms_depth);
 
 		// Inertia terms
 		// RHS += M*vhistory
-		noalias(rRightHandSideVector) += BDFcoeffs[1] * prod(msM, ms_proj_unknown);
+		noalias(rRightHandSideVector) += BDFcoeffs[1] * prod(msM, ms_prev_unknown);
 
 		// Substracting the dirichlet term
 		// RHS -= LHS*UNKNOWNs
@@ -262,7 +246,7 @@ namespace Kratos
 		if(rResult.size() != number_of_nodes*3)
 			rResult.resize(number_of_nodes*3,false);
 		int counter=0;
-		
+
 		for (unsigned int i=0;i<number_of_nodes;i++){
 			rResult[counter++] = GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
 			rResult[counter++] = GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
@@ -277,9 +261,9 @@ namespace Kratos
 		unsigned int number_of_nodes = GetGeometry().PointsNumber();
 		if(rElementalDofList.size() != number_of_nodes*3)
 			rElementalDofList.resize(number_of_nodes*3);
-		
+
 		int counter=0;
-		
+
 		for (unsigned int i=0;i<number_of_nodes;i++){
 			rElementalDofList[counter++] = GetGeometry()[i].pGetDof(VELOCITY_X);
 			rElementalDofList[counter++] = GetGeometry()[i].pGetDof(VELOCITY_Y);
@@ -289,25 +273,11 @@ namespace Kratos
 
 	void EulerianNonConservative::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
 	{
-		if (rVariable == VEL_ART_VISC){
-			for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) 
-				rValues[PointNumber] = double(this->GetValue(VEL_ART_VISC));
+		if (rVariable == VEL_ART_VISC || PR_ART_VISC || RESIDUAL_NORM || MIU){
+			for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++)
+				rValues[PointNumber] = double(this->GetValue(rVariable));
 		}
-		if (rVariable == PR_ART_VISC){
-			for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) 
-				rValues[PointNumber] = double(this->GetValue(PR_ART_VISC));
-		}
-		if (rVariable == RESIDUAL_NORM){
-			for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) 
-				rValues[PointNumber] = double(this->GetValue(RESIDUAL_NORM));
-		}
-		if (rVariable == MIU){
-			for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) 
-				rValues[PointNumber] = double(this->GetValue(MIU));
-		}
-    }
-
-
+  }
 
 
 } // namespace Kratos
