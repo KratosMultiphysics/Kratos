@@ -406,14 +406,40 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo 
         )
     {
-        if ( rOutput.size() != GetGeometry().IntegrationPoints(  ).size() )
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
+        if ( rOutput.size() != integration_points.size() )
         {
-            rOutput.resize( GetGeometry().IntegrationPoints(  ).size() );
+            rOutput.resize( integration_points.size() );
         }
 
-        for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
+        if (rVariable == GAUSS_WEIGHT)
         {
-            rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rOutput[ii] );
+            const unsigned int number_of_nodes = GetGeometry().size();
+            const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+            //const unsigned int strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+
+            Matrix DN_DX( number_of_nodes, dim );
+            Matrix J0(dim, dim);
+            Matrix InvJ0(dim, dim);
+
+            for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
+            {
+                const double detJ = CalculateDerivativesOnReference(J0, InvJ0, DN_DX, point_number, GetGeometry().GetDefaultIntegrationMethod());
+
+                // weights computed on the "reference" configuration
+                double integration_weight = integration_points[point_number].Weight() * detJ;
+                if( dim == 2 && this->GetProperties().Has( THICKNESS ) )
+                {
+                    integration_weight *= this->GetProperties()[THICKNESS];
+                }
+                rOutput[point_number] = integration_weight;
+             }
+        }
+        else{
+            for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
+            {
+                rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rOutput[ii] );
+            }
         }
     }
 

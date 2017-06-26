@@ -49,6 +49,8 @@ BOOST_PYTHON_MODULE(KratosStructuralMechanicsApplication)
     AddCrossSectionsToPython();
 
     //registering variables in python
+    // geometry eigenvalue problem
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( GAUSS_WEIGHT )
     // Generalized eigenvalue problem
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( EIGENVALUE_VECTOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( EIGENVECTOR_MATRIX )
