@@ -31,8 +31,7 @@
 #include "add_modeler_to_python.h"
 #include "modeler/modeler.h"
 #include "modeler/edge_swapping_2d_modeler.h"
-#include "modeler/mpi_connectivity_preserve_modeler.h"
-//#include "sources/mpi_connectivity_preserve_modeler.cpp"
+#include "modeler/connectivity_preserve_modeler.h"
 
 
 namespace Kratos
@@ -70,7 +69,7 @@ void  AddModelerToPython()
     .def(self_ns::str(self))
     ;
 
-    class_<MPIConnectivityPreserveModeler,MPIConnectivityPreserveModeler::Pointer,bases<Modeler>,boost::noncopyable>("MPIConnectivityPreserveModeler")
+    class_<ConnectivityPreserveModeler,MPIConnectivityPreserveModeler::Pointer,bases<Modeler>,boost::noncopyable>("ConnectivityPreserveModeler")
             ;
 
 
