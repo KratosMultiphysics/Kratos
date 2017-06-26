@@ -523,14 +523,9 @@ public:
         {
             auto it_cond = conditions_array.begin() + i;
             
-            if (it_cond->Is(MASTER) == true && it_cond->Is(ACTIVE) == true)
-            {
-                KRATOS_WATCH(it_cond->Id());
-                KRATOS_ERROR << "THIS IS NOT SUPPOSED TO HAPPEN" << std::endl; 
-            }
-            
             if (it_cond->Is(SLAVE) == true && it_cond->Is(ACTIVE) == true)
             {
+                KRATOS_WATCH(it_cond->Id());
                 KRATOS_WATCH(it_cond->GetGeometry());
                 
                 boost::shared_ptr<ConditionSet>& conditions_pointers_destination = it_cond->GetValue(CONTACT_SETS);

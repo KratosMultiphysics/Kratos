@@ -22,7 +22,7 @@ class MeshTyingProcess(KratosMultiphysics.Process):
             "mesh_id"                     : 0,
             "model_part_name"             : "Structure",
             "computing_model_part_name"   : "computing_domain",
-            "mesh_tying_model_part"          : "Contact_Part",
+            "mesh_tying_model_part"       : "Tying_Part",
             "assume_master_slave"         : "",
             "type_variable"               : "Components",
             "geometry_element"            : "Quadrilateral",
@@ -51,9 +51,9 @@ class MeshTyingProcess(KratosMultiphysics.Process):
             for node in model_part[self.params["assume_master_slave"].GetString()].Nodes:
                 node.Set(KratosMultiphysics.SLAVE, True)
 
-        self.type_variable            = self.params["type_variable"].GetString() 
-        self.geometry_element         = self.params["geometry_element"].GetString() 
-        self.integration_order        = self.params["integration_order"].GetInt() 
+        self.type_variable     = self.params["type_variable"].GetString() 
+        self.geometry_element  = self.params["geometry_element"].GetString() 
+        self.integration_order = self.params["integration_order"].GetInt() 
         
     def ExecuteInitialize(self):
         
@@ -118,23 +118,19 @@ class MeshTyingProcess(KratosMultiphysics.Process):
         ZeroVector[1] = 0.0
         ZeroVector[2] = 0.0
         
-        # Initilialize weighted variables and LM
+        # Initilialize weighted variables and LM # TODO: Move this an independent process
         for node in self.mesh_tying_model_part.Nodes:
             if (self.type_variable == "Scalar"):
                 node.SetSolutionStepValue(ContactStructuralMechanicsApplication.WEIGHTED_SCALAR_RESIDUAL, 0.0)
             else:
                 node.SetSolutionStepValue(ContactStructuralMechanicsApplication.WEIGHTED_VECTOR_RESIDUAL, ZeroVector)
             node.SetValue(KratosMultiphysics.NODAL_AREA, 0.0)
-            node.SetValue(KratosMultiphysics.NORMAL,      ZeroVector)
-            node.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector)
-            node.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector)
+            node.SetValue(KratosMultiphysics.NORMAL, ZeroVector)
         del node
         
         # Setting the conditions 
         for cond in self.mesh_tying_model_part.Conditions:
-            cond.SetValue(KratosMultiphysics.NORMAL,      ZeroVector) 
-            cond.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector) 
-            cond.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector) 
+            cond.SetValue(KratosMultiphysics.NORMAL, ZeroVector) 
         del cond
         
         self.contact_search.CreatePointListMortar()
@@ -147,8 +143,15 @@ class MeshTyingProcess(KratosMultiphysics.Process):
             self.contact_search.TotalClearComponentsMortarConditions()
             
         self.contact_search.UpdateMortarConditions()
+        #self.contact_search.CheckMortarConditions()
+        
+        # We initialize the conditions (just in case, technically already done)
+        for cond in self.mesh_tying_model_part.Conditions:
+            cond.Initialize()
+        del cond
     
     def ExecuteInitializeSolutionStep(self):
+        #self.contact_search.CheckMortarConditions()
         pass
         
     def ExecuteFinalizeSolutionStep(self):

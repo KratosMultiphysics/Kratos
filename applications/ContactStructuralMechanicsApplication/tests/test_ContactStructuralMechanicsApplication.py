@@ -127,7 +127,7 @@ def AssambleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            # SMALL
+            ## SMALL
             TTestLineExactIntegration1,
             TTestLineExactIntegration2,
             TTestLineExactIntegration3,
@@ -136,10 +136,10 @@ def AssambleTestSuites():
             TTestTriangleExactIntegration3,
             TTestQuadrilateralExactIntegration1,
             TTestQuadrilateralExactIntegration2,
-            #TSimplePatchTestTwoDMeshTying,
-            #TSimpleSlopePatchTestTwoDMeshTying,
-            #TSimplestPatchTestThreeDMeshTying,
-            ###TSimplePatchTestThreeDMeshTying, # FIXME: Some problem in the mesh tying
+            TSimplePatchTestTwoDMeshTying,
+            TSimpleSlopePatchTestTwoDMeshTying,
+            TSimplestPatchTestThreeDMeshTying,
+            ##TSimplePatchTestThreeDMeshTying, # FIXME: Some problem in the mesh tying
             TALMHyperSimplePatchTestContact,
             TALMHyperSimpleSlopePatchTestContact,
             ##TALMTwoDPatchComplexGeomTestContact, # FIXME: There is a kinematic problem!!!

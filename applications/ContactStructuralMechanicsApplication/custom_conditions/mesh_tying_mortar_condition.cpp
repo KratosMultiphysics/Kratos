@@ -92,6 +92,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
     IntegrationMethod ThisIntegrationMethod = GetIntegrationMethod();
     
     mPairSize = 0;
+    mIntegrationPointsVector.clear();
     ExactMortarIntegrationUtility<TDim, NumNodes> IntUtil = ExactMortarIntegrationUtility<TDim, NumNodes>(mIntegrationOrder);
     
     // Create and initialize condition variables:

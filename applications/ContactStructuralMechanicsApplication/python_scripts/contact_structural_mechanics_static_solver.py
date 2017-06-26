@@ -64,7 +64,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         # Initialize the processes list
         self.processes_list = None
         
-        print("Construction of MechanicalSolver finished")
+        print("Construction of ContactMechanicalSolver finished")
         
     def AddVariables(self):
         
@@ -83,7 +83,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)                   # Add vector LM
                 self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_VECTOR_RESIDUAL)  # Add vector LM residual
                 
-        print("::[Mechanical Solver]:: Variables ADDED")
+        print("::[Contact Mechanical Solver]:: Variables ADDED")
     
     def AddDofs(self):
 
@@ -98,7 +98,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Y, ContactStructuralMechanicsApplication.WEIGHTED_VECTOR_RESIDUAL_Y, self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Z, ContactStructuralMechanicsApplication.WEIGHTED_VECTOR_RESIDUAL_Z, self.main_model_part)
 
-        print("::[Mechanical Solver]:: DOF's ADDED")
+        print("::[Contact Mechanical Solver]:: DOF's ADDED")
     
     def Initialize(self):
         super().Initialize() # The mechanical solver is created here.
