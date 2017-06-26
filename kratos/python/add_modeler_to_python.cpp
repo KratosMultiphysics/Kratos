@@ -69,7 +69,7 @@ void  AddModelerToPython()
     .def(self_ns::str(self))
     ;
 
-    class_<ConnectivityPreserveModeler,MPIConnectivityPreserveModeler::Pointer,bases<Modeler>,boost::noncopyable>("ConnectivityPreserveModeler")
+    class_<ConnectivityPreserveModeler,ConnectivityPreserveModeler::Pointer,bases<Modeler>,boost::noncopyable>("ConnectivityPreserveModeler")
             ;
 
 

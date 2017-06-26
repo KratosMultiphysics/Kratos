@@ -76,13 +76,13 @@ private:
         ModelPart &rOriginModelPart,
         ModelPart &rDestinationModelPart,
         Element const &rReferenceElement
-    )
+    );
 
     void DuplicateConditions(
         ModelPart &rOriginModelPart,
         ModelPart &rDestinationModelPart,
         Condition const &rReferenceBoundaryCondition
-    )
+    );
 
     void DuplicateCommunicatorData(
         ModelPart &rOriginModelPart,
