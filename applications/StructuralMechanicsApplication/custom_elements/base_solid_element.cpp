@@ -377,14 +377,15 @@ namespace Kratos
 
     void BaseSolidElement::CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo )
+        ProcessInfo& rCurrentProcessInfo 
+        )
     {
         KRATOS_TRY;
         
         unsigned int number_of_nodes = GetGeometry().size();
         unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-        //resizing as needed the LHS
+        // Resizing as needed the LHS
         unsigned int mat_size = number_of_nodes * dimension;
 
         if ( rDampingMatrix.size1() != mat_size )
@@ -393,6 +394,46 @@ namespace Kratos
         }
 
         noalias( rDampingMatrix ) = ZeroMatrix( mat_size, mat_size );
+
+        // 1.-Calculate StiffnessMatrix:
+
+        MatrixType StiffnessMatrix  = Matrix();
+        VectorType ResidualVector  = Vector();
+
+        this->CalculateAll(StiffnessMatrix, ResidualVector, rCurrentProcessInfo, true, false);
+        
+        // 2.-Calculate MassMatrix:
+
+        MatrixType MassMatrix  = Matrix();
+
+        this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
+
+        // 3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+        double alpha = 0.0;
+        if( GetProperties().Has(RAYLEIGH_ALPHA) )
+        {
+            alpha = GetProperties()[RAYLEIGH_ALPHA];
+        }
+        else if( rCurrentProcessInfo.Has(RAYLEIGH_ALPHA) )
+        {
+            alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
+        }
+
+        double beta  = 0.0;
+        if( GetProperties().Has(RAYLEIGH_BETA) )
+        {
+            beta = GetProperties()[RAYLEIGH_BETA];
+        }
+        else if( rCurrentProcessInfo.Has(RAYLEIGH_BETA) )
+        {
+            beta = rCurrentProcessInfo[RAYLEIGH_BETA];
+        }
+
+        // 4.-Compose the Damping Matrix:
+
+        // Rayleigh Damping Matrix: alpha*M + beta*K
+        noalias( rDampingMatrix ) += alpha * MassMatrix;
+        noalias( rDampingMatrix ) += beta  * StiffnessMatrix;
 
         KRATOS_CATCH( "" )
     }

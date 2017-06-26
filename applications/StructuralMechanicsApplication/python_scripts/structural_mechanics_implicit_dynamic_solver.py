@@ -26,7 +26,9 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         # Set defaults and validate custom settings.
         self.dynamic_settings = KratosMultiphysics.Parameters("""
         {
-            "damp_factor_m" :-0.01
+            "damp_factor_m" :-0.01,
+            "rayleigh_alpha": 0.0,
+            "rayleigh_beta" : 0.0
         }
         """)
         self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
@@ -70,6 +72,8 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
     def _create_solution_scheme(self):
         scheme_type = self.settings["scheme_type"].GetString()
+        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
+        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.dynamic_settings["rayleigh_beta"].GetDouble()
         if(scheme_type == "Newmark"):
             damp_factor_m = 0.0
             mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
