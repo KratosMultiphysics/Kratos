@@ -42,6 +42,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "tangent_factor"              : 0.1,
             "type_search"                 : "InRadius",
             "use_exact_integration"       : true,
+            "hard_clear_after_step"       : false,
             "integration_order"           : 2,
             "debug_mode"                  : false
         }
@@ -75,6 +76,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
         self.integration_order = self.params["integration_order"].GetInt() 
         self.frictional_law = self.params["frictional_law"].GetString()
         self.debug_mode = self.params["debug_mode"].GetBool()
+        self.hard_clear_after_step = self.params["hard_clear_after_step"].GetBool()
         
         # Debug
         if (self.debug_mode == True):
@@ -257,10 +259,16 @@ class ALMContactProcess(KratosMultiphysics.Process):
         pass
 
     def ExecuteAfterOutputStep(self):
-        if self.params["contact_type"].GetString() == "Frictionless":
-            self.contact_search.PartialClearALMFrictionlessMortarConditions()
+        if (self.hard_clear_after_step == True):
+            if self.params["contact_type"].GetString() == "Frictionless":  
+                self.contact_search.HardClearALMFrictionlessMortarConditions()
+            else:
+                self.contact_search.HardClearComponentsMortarConditions()
         else:
-            self.contact_search.PartialClearComponentsMortarConditions()
+            if self.params["contact_type"].GetString() == "Frictionless":
+                self.contact_search.PartialClearALMFrictionlessMortarConditions()
+            else:
+                self.contact_search.PartialClearComponentsMortarConditions()
             
     def ExecuteFinalize(self):
         pass

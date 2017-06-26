@@ -313,6 +313,78 @@ public:
             }
         } 
     }
+    
+    /**
+     * This function hard clears the mortar conditions already created (scalar version)
+     */
+    
+    void HardClearScalarMortarConditions()
+    {
+        NodesArrayType& nodes_array = mrMainModelPart.Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size());
+        
+        #pragma omp parallel for 
+        for(int i = 0; i < num_nodes; i++) 
+        {
+            auto it_node = nodes_array.begin() + i;
+            if (it_node->Is(ACTIVE) == false)
+            {
+                it_node->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
+            }
+            else
+            {
+                it_node->Set(ACTIVE, false);
+            }
+        } 
+    }
+    
+    /**
+     * This function hard clears the mortar conditions already created (components version)
+     */
+        
+    void HardClearComponentsMortarConditions()
+    {
+        NodesArrayType& nodes_array = mrMainModelPart.Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size());
+        
+        #pragma omp parallel for 
+        for(int i = 0; i < num_nodes; i++) 
+        {
+            auto it_node = nodes_array.begin() + i;
+            if (it_node->Is(ACTIVE) == false)
+            {
+                it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector(3);
+            }
+            else
+            {
+                it_node->Set(ACTIVE, false);
+            }
+        } 
+    }
+    
+    /**
+     * This function hard clears the ALM frictionless mortar conditions already created 
+     */
+    
+    void HardClearALMFrictionlessMortarConditions()
+    {
+        NodesArrayType& nodes_array = mrMainModelPart.Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size());
+        
+        #pragma omp parallel for 
+        for(int i = 0; i < num_nodes; i++) 
+        {
+            auto it_node = nodes_array.begin() + i;
+            if (it_node->Is(ACTIVE) == false)
+            {
+                it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
+            }
+            else
+            {
+                it_node->Set(ACTIVE, false);
+            }
+        } 
+    }
       
     /**
      * This function creates a lists  points ready for the Mortar method
