@@ -74,9 +74,28 @@ void ConnectivityPreserveModeler::CopyCommonData(
     ModelPart &rOriginModelPart,
     ModelPart &rDestinationModelPart)
 {
-    // Copy general ModelPart properites
-    rDestinationModelPart.GetNodalSolutionStepVariablesList() = rOriginModelPart.GetNodalSolutionStepVariablesList();
-    rDestinationModelPart.SetBufferSize( rOriginModelPart.GetBufferSize() );
+    // Do not try to change some of the things we need to change if the destination is a SubModelPart
+    if( rDestinationModelPart.IsSubModelPart() )
+    {
+        if( !(rOriginModelPart.GetNodalSolutionStepVariablesList() == rDestinationModelPart.GetNodalSolutionStepVariablesList()) )
+        {
+            KRATOS_ERROR << "Attempting to change the SolutionStepVariablesList of the Destination Model Part, which is a SubModelPart." << std::endl
+                         << "Aborting, since this would break its parent ModelPart." << std::endl;
+        }
+
+        if( rDestinationModelPart.GetBufferSize() != rOriginModelPart.GetBufferSize() )
+        {
+            KRATOS_ERROR << "Attempting to change the BufferSize of the Destination Model Part, which is a SubModelPart." << std::endl
+                         << "Aborting, since this would break its parent ModelPart." << std::endl;
+        }
+    }
+    else
+    {
+        rDestinationModelPart.GetNodalSolutionStepVariablesList() = rOriginModelPart.GetNodalSolutionStepVariablesList();
+        rDestinationModelPart.SetBufferSize( rOriginModelPart.GetBufferSize() );
+    }
+
+    // These should be safe for SubModelParts
     rDestinationModelPart.SetProcessInfo( rOriginModelPart.pGetProcessInfo() );
     rDestinationModelPart.SetProperties( rOriginModelPart.pProperties() );
 
