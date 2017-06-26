@@ -209,7 +209,7 @@ protected:
      */
     virtual Matrix ComputeEquivalentF(const Vector& StrainVector);
 
-    void KinematicLinear::CalculateOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
