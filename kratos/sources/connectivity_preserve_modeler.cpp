@@ -25,7 +25,7 @@ void ConnectivityPreserveModeler::GenerateModelPart(
 
     this->ResetModelPart(rDestinationModelPart);
 
-    this->CopyCommonData(rOriginModelPart);
+    this->CopyCommonData(rOriginModelPart, rDestinationModelPart);
 
     this->DuplicateElements(rOriginModelPart, rDestinationModelPart, rReferenceElement);
 
@@ -113,7 +113,7 @@ void ConnectivityPreserveModeler::DuplicateConditions(
         temp_conditions.push_back(p_condition);
     }
 
-    DestinationModelPart.AddConditions(temp_conditions.begin(), temp_conditions.end());
+    rDestinationModelPart.AddConditions(temp_conditions.begin(), temp_conditions.end());
 }
 
 void ConnectivityPreserveModeler::DuplicateCommunicatorData(
@@ -140,7 +140,7 @@ void ConnectivityPreserveModeler::DuplicateCommunicatorData(
 
     // This is a dirty hack to detect if the communicator is a Communicator or an MPICommunicator
     // Note that downcasting would not work here because MPICommunicator is not compiled in non-MPI builds
-    bool is_mpi = ( rOriginModelPart.pElements() == rReferenceComm.LocalMesh().pElemets() );
+    bool is_mpi = ( rOriginModelPart.pElements() == rReferenceComm.LocalMesh().pElements() );
 
     if (is_mpi)
     {

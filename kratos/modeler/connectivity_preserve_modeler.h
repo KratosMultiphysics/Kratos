@@ -39,6 +39,8 @@ class ConnectivityPreserveModeler : public Modeler
 {
 public:
 
+    KRATOS_CLASS_POINTER_DEFINITION(ConnectivityPreserveModeler);
+
     /// Constructor
     ConnectivityPreserveModeler();
 
