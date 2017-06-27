@@ -335,11 +335,6 @@ namespace Kratos
 
 		///@}
 	private:
-		///@name Static Member Variables
-		///@{
-
-
-		///@}
 		///@name Member Variables
 		///@{
 
@@ -364,8 +359,6 @@ namespace Kratos
 
 
 		void SetPosition(IndexType Key, SizeType ThePosition) {
-			//if (mPositions.size() <= TheIndex)
-			//	mPositions.resize(TheIndex + 1, static_cast<IndexType>(-1));
 			if (mPositions.empty())
 				ResizePositions();
 
@@ -381,13 +374,7 @@ namespace Kratos
 		}
 
 		SizeType GetPosition(IndexType Key) const {
-			// This is the fastest way I found to do the TheIndex % mPositions.size(); Pooyan.
-			//SizeType index = TheIndex - mPositions.size() * static_cast<SizeType>(TheIndex * mSizeInverse);
-
 			SizeType index = GetHashIndex(Key,mPositions.size(),mHashFunctionIndex);
-
-			//SizeType index = GetModulus(TheIndex);
-			//SizeType index = ( ( TheIndex * 193) + ( ( TheIndex & 0xffff0000) >> 16) * 5373) & (mPositions.size() - 1);
 			return mPositions[index];
 		}
 
@@ -401,8 +388,6 @@ namespace Kratos
 					new_hash_function_index = 0;
 					new_size *= 2;
 				}
-				//if (new_hash_function_index == 10)
-				//	break;
 				KeysContainerType new_keys(new_size, static_cast<IndexType>(-1));
 				PositionsContainerType new_positions(new_size, static_cast<IndexType>(-1));
 				size_is_ok = true;
@@ -422,27 +407,7 @@ namespace Kratos
 					mKeys.swap(new_keys);
 					mHashFunctionIndex = new_hash_function_index;
 				}
-				//std::cout << "New size " << new_size << " with hash index " << new_hash_function_index << std::endl;
 			}
-			//bool size_is_ok = false;
-			//SizeType new_size = mPositions.size();
-			//while (size_is_ok != true) {
-			//	new_size++;
-			//	PositionsContainerType new_positions(new_size, static_cast<IndexType>(-1));
-			//	size_is_ok = true;
-
-			//	for (auto i_variable = mVariables.begin(); i_variable != mVariables.end(); i_variable++)
-			//		if (new_positions[(*i_variable)->Key() % new_size] > mDataSize)
-			//			new_positions[(*i_variable)->Key() % new_size] = mPositions[(*i_variable)->Key() % mPositions.size()];
-			//		else {
-			//			size_is_ok = false;
-			//			break;
-			//		}
-			//		if (size_is_ok)
-			//			mPositions.swap(new_positions);
-			//		KRATOS_WATCH(new_size);
-			//}
-
 		}
 
 		///@}
@@ -474,31 +439,7 @@ namespace Kratos
 			}
 		}
 
-
-		///@}
-		///@name Private  Access
-		///@{
-
-
-		///@}
-		///@name Private Inquiry
-		///@{
-
-
-		///@}
-		///@name Un accessible methods
-		///@{
-
-
-		///@}
-
 	}; // Class VariablesList
-
-	   ///@}
-
-	   ///@name Type Definitions
-	   ///@{
-
 
 	   ///@}
 	   ///@name Input and output
