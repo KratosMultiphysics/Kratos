@@ -334,6 +334,7 @@ public:
             else
             {
                 it_node->Set(ACTIVE, false);
+                it_node->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
             }
         } 
     }
@@ -358,6 +359,7 @@ public:
             else
             {
                 it_node->Set(ACTIVE, false);
+                it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector(3);
             }
         } 
     }
@@ -382,6 +384,7 @@ public:
             else
             {
                 it_node->Set(ACTIVE, false);
+                it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
             }
         } 
     }

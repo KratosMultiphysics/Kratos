@@ -138,8 +138,9 @@ public:
         NormalSlave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry,  NORMAL);
         
         // Displacements and velocities of the slave       
-        u1 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 0);
-        X1 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(SlaveGeometry, false);
+        u1 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 0) 
+           - ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 1);
+        X1 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(SlaveGeometry, false, 1);
         
         // We get the ALM variables
         PenaltyParameter = rCurrentProcessInfo[PENALTY_PARAMETER];
@@ -158,7 +159,8 @@ public:
         
         #if (TFrictional == true)
             TangentFactor = rCurrentProcessInfo[TANGENT_FACTOR];
-            u1old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 1);
+            u1old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 1) 
+                  - ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 2);
         #endif
     }
     
@@ -190,8 +192,9 @@ public:
         NormalMaster = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry,  NORMAL);
         
         // Displacements, coordinates and normals of the master
-        u2 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 0);
-        X2 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(MasterGeometry, false);
+        u2 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 0)
+           - ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1);
+        X2 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(MasterGeometry, false, 1);
 
         // Derivative of master's normal
         for (unsigned int i = 0; i < TNumNodes * TDim; i++)
@@ -200,7 +203,8 @@ public:
         }
         
         #if (TFrictional == true)
-            u2old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1);
+            u2old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1)
+                  - ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 2);
         #endif
     }
 };  // Class DerivativeData
@@ -865,7 +869,8 @@ protected:
         const PointType& LocalPointDecomp,
         const PointType& LocalPointParent,
         GeometryPointType& GeometryDecomp,
-        const bool DualLM = true
+        const bool DualLM = true,
+        Matrix DeltaPosition = ZeroMatrix(TNumNodes, TDim)
         );
 
     /********************************************************************************/
