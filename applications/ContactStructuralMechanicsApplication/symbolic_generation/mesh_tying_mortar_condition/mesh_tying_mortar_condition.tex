@@ -107,8 +107,8 @@ In the course of deriving a weak formulation, the balance of linear momentum at 
 
 \subsection{Weak formulation}
 
-To start the derivation of a weak formulation of \eqref{eq:eq0}, appropriate solution spaces $\mathbfcal{U}^(i)$ and
-weighting spaces $\mathbfcal{V}^(i)$ need to be defined as \eqref{eq:eq7}.
+To start the derivation of a weak formulation of \eqref{eq:eq0}, appropriate solution spaces $\mathbfcal{U}^{(i)}$ and
+weighting spaces $\mathbfcal{V}^{(i)}$ need to be defined as \eqref{eq:eq7}.
 
 \begin{equation}\label{eq:eq7}
  \begin{cases}
@@ -120,7 +120,7 @@ weighting spaces $\mathbfcal{V}^(i)$ need to be defined as \eqref{eq:eq7}.
 Additionally the \textit{Lagrange multiplier} vector $\boldsymbol{\lambda} = -\mathbf{t}_c^{(1)}$, which enforce the mesh tying constraint\eqref{eq:eq6}, represents the negative slave side contact traction $\mathbf{t}_c^{(1)}$, is chosen from a
 corresponding solution space denoted as $\mathbfcal{M}$.  In terms of its classification in functional analysis, this space represents the dual space of the trace space $\mathbfcal{W}^{(1)}$ of $\mathbfcal{V}^{(1)}$. In the given context, this means that $\mathcal{M} = H^{−1/2} (\Gamma_c)$ and $\mathcal{W}^{(1)} = H^{1/2} (\Gamma_c)$, where $\mathcal{M}$  and $\mathcal{W}^{(1)}$ denote single scalar components of the corresponding vector-valued spaces $\mathbfcal{M}$ and $\mathbfcal{W}$.
 
-Based on these considerations, a saddle point type weak formulation is derived next. This can be done by extending the standard weak formulation of non-linear solid mechanics as defined to two subdomains and combining it with the \textit{Lagrange multiplier} coupling terms introduced in generic form. Find $\mathbf{u}^{(i)} \in \mathbfcal{U}^{(i)}$ and $\boldsymbol{\lambda} ∈ \mathbfcal{M}$ such that we obtain \eqref{eq:eq8}.
+Based on these considerations, a saddle point type weak formulation is derived next. This can be done by extending the standard weak formulation of non-linear solid mechanics as defined to two subdomains and combining it with the \textit{Lagrange multiplier} coupling terms introduced in generic form. Find $\mathbf{u}^{(i)} \in \mathbfcal{U}^{(i)}$ and $\boldsymbol{\lambda} \in \mathbfcal{M}$ such that we obtain \eqref{eq:eq8}.
 
 \begin{subequations}
  \begin{align}
@@ -129,13 +129,13 @@ Based on these considerations, a saddle point type weak formulation is derived n
  \end{align}
 \end{subequations}
 
-Herein, the kinetic contribution $\delta \mathcal{W}_{kin}$ , the internal and external contributions $\delta \mathcal{W}_{int,ext}$ and the mesh tying interface contribution $\delta\mathcal{W}_{mnt}$ to the overall virtual work on the two subdomains, as well as the weak form of the mesh tying constraint $\delta\mathcal{W}_{\lambda}($, have been abbreviated as
+Herein, the kinetic contribution $\delta \mathcal{W}_{kin}$ , the internal and external contributions $\delta \mathcal{W}_{int,ext}$ and the mesh tying interface contribution $\delta\mathcal{W}_{mnt}$ to the overall virtual work on the two subdomains, as well as the weak form of the mesh tying constraint $\delta\mathcal{W}_{\lambda}($, have been abbreviated as \eqref{eq:constributions}.
 
-\begin{subequations}
+\begin{subequations}\label{eq:constributions}
  \begin{align}
   & -\delta \mathcal{W}_{kin} = \sum_{i = 1}^2 \left[\int_{\Omega_0^{(i)}} \rho_0^{(i)} \ddot{\mathbf{u}}^{(i)} \cdot \delta \mathbf{u}^{(i)} \text{d}V_0\right] \label{eq:subeq10} \\
  & -\delta \mathcal{W}_{int,ext} = \sum_{i = 1}^2 \left[\int_{\Omega_0^{(i)}} \left(\mathbf{S}^{(i)} : \delta \mathbf{E}^{(i)} - \hat{\mathbf{b}}\cdot \delta\mathbf{u}^{(i)} \right) \text{d}V_0 - \int_{\Gamma_\sigma^{(i)}} \hat{\mathbf{t}}_0^{(i)}\cdot\delta\mathbf{u}^{(i)} \text{d}A_0 \right] \label{eq:subeq11} \\
- & -\delta \mathcal{W}_{mt} = \sum_{i = 1}^2 \left[\int_{\Gamma_c^{(i)}} \boldsymbol{\lambda} \cdot \left(\delta \mathbf{u}^{(1)} - \delta \mathbf{u}^{(2)}\right) \text{d}A_0\right] \label{eq:subeq12} \\ 
+ & -\delta \mathcal{W}_{mnt} = \sum_{i = 1}^2 \left[\int_{\Gamma_c^{(i)}} \boldsymbol{\lambda} \cdot \left(\delta \mathbf{u}^{(1)} - \delta \mathbf{u}^{(2)}\right) \text{d}A_0\right] \label{eq:subeq12} \\ 
  & -\delta \mathcal{W}_{\lambda} = \sum_{i = 1}^2 \left[\int_{\Gamma_c^{(i)}} \delta \boldsymbol{\lambda} \cdot \left( \mathbf{u}^{(1)} - \mathbf{u}^{(2)}\right) \text{d}A_0\right] \label{eq:subeq13}
  \end{align}
 \end{subequations}
@@ -146,7 +146,7 @@ The coupling terms on $\Gamma_c$ also allow for a direct interpretation in terms
 
 \subsubsection{Dual Lagrange multipliers}
 
-The discretisations of the displacements correspond with the standard ones in the finite element formulation, for more information check the literature\cite{Zienkiewicz1}. In addition, an adequate discretisation of the Lagrange multiplier vector $\boldsymbol{\lambda}$ is needed, and will be based on a discrete \textit{Lagrange multiplier} space $\mathbfcal{M}_h$ being an approximation of $\mathbfcal{M}$. Thus, we can define the discete \textit{Lagrange multiplier} as \eqref{eq:eq14}, with the shape functions $\Phi_j$ and the discrete nodal Lagrange multipliers $\boldsymbol{\lambda}_h$.
+The discretisations of the displacements correspond with the standard ones in the finite element formulation, for more information check the literature\cite{Zienkiewicz1}. In addition, an adequate discretisation of the Lagrange multiplier vector $\boldsymbol{\lambda}$ is needed, and will be based on a discrete \textit{Lagrange multiplier} space $\mathbfcal{M}_h$ being an approximation of $\mathbfcal{M}$. Thus, we can define the discrete \textit{Lagrange multiplier} as \eqref{eq:eq14}, with the shape functions $\Phi_j$ and the discrete nodal Lagrange multipliers $\boldsymbol{\lambda}_h$.
 
 \begin{equation}\label{eq:eq14}
  \boldsymbol{\lambda}_h = \sum_{i=1}^{m^{(1)}} \Phi_j\left(\xi^{(1)},\eta^{(1)} \right) \boldsymbol{\lambda}_j
@@ -205,19 +205,19 @@ Numerical integration of the mortar coupling terms is exclusively performed on t
  \end{align}
 \end{subequations}
 
-Wit these matrices we can express the functional \eqref{eq:eq20} in the following way \eqref{}
+Wit these matrices we can express the functional \eqref{eq:eq20} in the following way \eqref{eq:eq22}.
 
 \begin{equation}\label{eq:eq22}
- -\delta \mathcal{W}_{mt,h} = \delta \mathbf{d}_{\mathcal{S}}^T\mathbf{D}^T\boldsymbol{\lambda} - \delta \mathbf{d}_{\mathcal{M}}^T\mathbf{M}^T\boldsymbol{\lambda} = \delta \mathbf{d} \underbrace{\left[\begin{array}{c} \mathbf{0} \\ -\mathbf{M}^T \\ \mathbf{D}^T\end{array} \right]}_{\mathbf{B}^T_{mt}} \boldsymbol{\lambda} = \delta \mathbf{d}^T \mathbf{f}_{mt}(\boldsymbol{\lambda})
+ -\delta \mathcal{W}_{mnt,h} = \delta \mathbf{d}_{\mathcal{S}}^T\mathbf{D}^T\boldsymbol{\lambda} - \delta \mathbf{d}_{\mathcal{M}}^T\mathbf{M}^T\boldsymbol{\lambda} = \delta \mathbf{d} \underbrace{\left[\begin{array}{c} \mathbf{0} \\ -\mathbf{M}^T \\ \mathbf{D}^T\end{array} \right]}_{\mathbf{B}^T_{mnt}} \boldsymbol{\lambda} = \delta \mathbf{d}^T \mathbf{f}_{mnt}(\boldsymbol{\lambda})
 \end{equation}
 
-Herein, the discrete mortar mesh tying operator $\mathbf{B}_{mt}$ and the resulting discrete vector of mesh tying forces $\mathbf{f}_mt (\boldsymbol{\lambda}) = \mathbf{B}_{mt}\boldsymbol{\lambda}$ acting on the slave and the master side of the interface are introduced. 
+Herein, the discrete mortar mesh tying operator $\mathbf{B}_{mnt}$ and the resulting discrete vector of mesh tying forces $\mathbf{f}_{mnt} (\boldsymbol{\lambda}) = \mathbf{B}_{mnt}\boldsymbol{\lambda}$ acting on the slave and the master side of the interface are introduced. 
 
 To finalize the discretisation of the considered mesh tying problem, a closer look needs to
-be taken at the weak constraint contribution $\delta \mathcal{W}_{\lambda,h} $ in \eqref{eq:subeq9}. Due to the saddle point characteristics and resulting symmetry of the mixed variational formulation in \eqref{eq:subeq8}  and \eqref{eq:subeq9}, all discrete components of $\delta \mathcal{W}_{\lambda,h}$ have already been introduced and the final formulation is given as \eqref{eq:eq23}, with $\mathbf{g}_{mt}(\mathbf{d}) = \mathbf{B}_{mt} \mathbf{d}$ representing the discrete mesh tying constraint at the coupling interface.
+be taken at the weak constraint contribution $\delta \mathcal{W}_{\lambda,h} $ in \eqref{eq:subeq9}. Due to the saddle point characteristics and resulting symmetry of the mixed variational formulation in \eqref{eq:subeq8}  and \eqref{eq:subeq9}, all discrete components of $\delta \mathcal{W}_{\lambda,h}$ have already been introduced and the final formulation is given as \eqref{eq:eq23}, with $\mathbf{g}_{mnt}(\mathbf{d}) = \mathbf{B}_{mnt} \mathbf{d}$ representing the discrete mesh tying constraint at the coupling interface.
 
 \begin{equation}\label{eq:eq23}
- -\delta \mathcal{W}_{\lambda,h} = \delta \boldsymbol{\lambda}^T\mathbf{D}\mathbf{d}_{\mathcal{S}} - \delta \boldsymbol{\lambda}^T\mathbf{M}\mathbf{d}_{\mathcal{M}}= \delta \boldsymbol{\lambda}^T \mathbf{B}_{mt} \mathbf{d} \ = \delta \boldsymbol{\lambda}^T \mathbf{g}_{mt}(\mathbf{d})
+ -\delta \mathcal{W}_{\lambda,h} = \delta \boldsymbol{\lambda}^T\mathbf{D}\mathbf{d}_{\mathcal{S}} - \delta \boldsymbol{\lambda}^T\mathbf{M}\mathbf{d}_{\mathcal{M}}= \delta \boldsymbol{\lambda}^T \mathbf{B}_{mnt} \mathbf{d} = \delta \boldsymbol{\lambda}^T \mathbf{g}_{mnt}(\mathbf{d})
 \end{equation}
 
 \subsubsection{Matrix form of the problem}
