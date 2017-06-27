@@ -29,11 +29,11 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             custom_settings.AddValue("linear_solver_settings", linear_solver_settings)
 
         # Construct the base solver.
-        super().__init__(main_model_part, custom_settings)
+        super(TrilinosMechanicalSolver, self).__init__(main_model_part, custom_settings)
         print("::[TrilinosMechanicalSolver]:: Construction finished")
 
     def AddVariables(self):
-        super().AddVariables()
+        super(TrilinosMechanicalSolver, self).AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
         print("::[TrilinosMechanicalSolver]:: Variables ADDED")
 
@@ -45,9 +45,9 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         # Execute the Metis partitioning and reading.
         TrilinosModelPartImporter.ExecutePartitioningAndReading()
         # Call the base class execute after reading (check and prepare model process and set the constitutive law).
-        super()._execute_after_reading()
+        super(TrilinosMechanicalSolver, self)._execute_after_reading()
         # Call the base class set and fill buffer size.
-        super()._set_and_fill_buffer()
+        super(TrilinosMechanicalSolver, self)._set_and_fill_buffer()
         # Construct the communicators
         TrilinosModelPartImporter.CreateCommunicators()
         print ("::[TrilinosMechanicalSolver]:: Finished importing model part.")

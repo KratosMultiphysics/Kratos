@@ -38,11 +38,11 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             custom_settings["scheme_type"].SetString("Newmark")
         
         # Construct the base solver.
-        super().__init__(main_model_part, custom_settings)
+        super(ImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
         print("::[ImplicitMechanicalSolver]:: Construction finished")
 
     def AddVariables(self):
-        super().AddVariables()
+        super(ImplicitMechanicalSolver, self).AddVariables()
         # Add dynamic variables.
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
@@ -52,7 +52,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         print("::[ImplicitMechanicalSolver]:: Variables ADDED")
     
     def AddDofs(self):
-        super().AddDofs()
+        super(ImplicitMechanicalSolver, self).AddDofs()
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z,self.main_model_part)
