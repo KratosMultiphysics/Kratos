@@ -49,7 +49,7 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
             custom_settings["scheme_type"].SetString("Dynamic")
         
         # Construct the base solver.
-        super().__init__(main_model_part, custom_settings)
+        super(EigenSolver, self).__init__(main_model_part, custom_settings)
         print("::[EigenSolver]:: Construction finished")
 
     #### Private functions ####

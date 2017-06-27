@@ -50,18 +50,18 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             custom_settings["scheme_type"].SetString("Static")
 
         # Construct the base solver.
-        super().__init__(main_model_part, custom_settings)
+        super(StaticMechanicalSolver, self).__init__(main_model_part, custom_settings)
         print("::[StaticMechanicalSolver]:: Construction finished")
 
     def Initialize(self):
         print("::[StaticMechanicalSolver]:: Initializing ...")
         if self.settings["analysis_type"].GetString() == "Arc-Length":
             self.main_model_part.ProcessInfo[StructuralMechanicsApplication.LAMBDA] = 0.0
-        super().Initialize() # The mechanical solver is created here.
+        super(StaticMechanicalSolver, self).Initialize() # The mechanical solver is created here.
         print("::[StaticMechanicalSolver]:: Finished initialization.")
     
     def Solve(self):
-        super().Solve()
+        super(StaticMechanicalSolver, self).Solve()
         if self.settings["analysis_type"].GetString() == "Arc-Length":
             lambda_value = self.main_model_part.ProcessInfo[StructuralMechanicsApplication.LAMBDA]
             if self.settings["echo_level"].GetInt() > 0:
