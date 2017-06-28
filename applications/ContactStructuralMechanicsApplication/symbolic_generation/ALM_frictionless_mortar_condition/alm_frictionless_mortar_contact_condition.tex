@@ -160,13 +160,13 @@ Based on these considerations, a saddle point type weak formulation is derived n
 
 \begin{subequations}
 \begin{equation}\label{eq:eqfunct0}
- \mathcal{W}^{co}(\mathbf{u},\boldsymbol{\lambda}_n) = \sum_{i = 1}^2 \left[\int_{\Gamma_c^{(i)}} \boldsymbol{\lambda}_n \cdot \mathbf{g}_n \text{d}A_0\right]
+ \mathcal{W}^{co}(\mathbf{u},\boldsymbol{\lambda}_n) = \int_{\Gamma_c^{(1)}} \boldsymbol{\lambda}_n \cdot \mathbf{g}_n \text{d}A_0
 \end{equation}
 
 Where $\mathbf{g}_n$ is the continuous normal gap, that can be defined as \eqref{eq:eqgap}.
 
 \begin{equation}\label{eq:eqgap}
- \mathbf{g}_n = \sum_{i = 1}^2 \left[\int_{\Gamma_c^{(i)}} \mathbf{n}^{(1)}\cdot\left( \mathbf{u}^{(1)} - \mathbf{u}^{(2)}\right) \text{d}A_0\right]
+ \mathbf{g}_n = \int_{\Gamma_c^{(1)}} \mathbf{n}^{(1)}\cdot\left( \mathbf{u}^{(1)} - \mathbf{u}^{(2)}\right) \text{d}A_0
 \end{equation}
 \end{subequations}
 
