@@ -130,7 +130,6 @@ g_n \geq 0 \text{ , } p_n \leq 0 \text{ , } p_n g_n = 0 \text{ on } \Gamma_c^{(i
 \end{center}
 \end{figure}
 
- 
 In the course of deriving a weak formulation, the balance of linear momentum at the unilateral contact problem  for the interface $\Gamma_c^{(i)}$ is typically exploited and a \textit{Lagrange multiplier} vector field $\boldsymbol{\lambda}_n$ is introduced, thus setting the basis for a mixed variational approach. Unilateral contact constraints are typically
 formulated (and later also numerically evaluated) in the current configuration.
 
@@ -160,7 +159,7 @@ Based on these considerations, a saddle point type weak formulation is derived n
 
 \begin{subequations}
 \begin{equation}\label{eq:eqfunct0}
- \mathcal{W}^{co}(\mathbf{u},\boldsymbol{\lambda}_n) = \int_{\Gamma_c^{(1)}} \boldsymbol{\lambda}_n \cdot \mathbf{g}_n \text{d}A_0
+ \delta \mathcal{W}^{co}(\mathbf{u},\boldsymbol{\lambda}_n) = \int_{\Gamma_c^{(1)}} \boldsymbol{\lambda}_n \cdot \mathbf{g}_n \text{d}A_0
 \end{equation}
 
 Where $\mathbf{g}_n$ is the continuous normal gap, that can be defined as \eqref{eq:eqgap}.
