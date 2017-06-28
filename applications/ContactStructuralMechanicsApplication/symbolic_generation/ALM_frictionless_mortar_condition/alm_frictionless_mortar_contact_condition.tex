@@ -8,6 +8,8 @@
 \usepackage{mathtools}
 \usepackage{anysize}
 \usepackage{pgfplots}
+\usetikzlibrary{arrows.meta}
+\tikzset{myarrow/.style={-{Triangle[length=3mm,width=1mm]}}}
 \marginsize{2cm}{2cm}{2cm}{2cm}
 
 %Highligh code
@@ -97,12 +99,38 @@ On each subdomain $\Omega_0^{(i)}$ , the initial boundary value problem of finit
  \end{align}
 \end{subequations}
 
-The contact constraints in normal direction are typically given in form of \textit{Karush-Kuhn-Tucker}\textbf{KKT} conditions as given in \eqref{eq:eq6}.
+The contact constraints in normal direction are typically given in form of \textit{Karush-Kuhn-Tucker}\textbf{KKT} conditions as given in \eqref{eq:eq6}, and Figure \ref{fig:kkt}.
  
  \begin{equation}\label{eq:eq6}
 g_n \geq 0 \text{ , } p_n \leq 0 \text{ , } p_n g_n = 0 \text{ on } \Gamma_c^{(i)} \times [0, T]
  \end{equation}
 
+\begin{figure}[h]
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+%         grid= major ,
+		width=0.8\textwidth ,
+		xlabel style={font=\Large},
+		xlabel = {$g_n$} ,
+		ylabel style={font=\Large},
+		ylabel = {$p_n$} ,
+		xmin = -1, 
+		xmax = 1,
+		ymin = -1, 
+		ymax = 1,
+		axis lines=middle,
+		axis line style={myarrow}
+		]
+\addplot[red, thick] expression[domain=-1:1, domain y=-1:1, samples=200] {(x>0? 0 : -10^9)}; 
+\end{axis} 
+\end{tikzpicture}
+\caption{\textit{Karush–Kuhn–Tucker} (\textbf{KKT}) conditions of non-penetration.}
+\label{fig:kkt}
+\end{center}
+\end{figure}
+
+ 
 In the course of deriving a weak formulation, the balance of linear momentum at the unilateral contact problem  for the interface $\Gamma_c^{(i)}$ is typically exploited and a \textit{Lagrange multiplier} vector field $\boldsymbol{\lambda}_n$ is introduced, thus setting the basis for a mixed variational approach. Unilateral contact constraints are typically
 formulated (and later also numerically evaluated) in the current configuration.
 
