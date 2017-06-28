@@ -10,7 +10,13 @@ def Factory(settings, Model):
 
 ##all the processes python processes should be derived from "python_process"
 class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
-    def __init__(self, main_model_part, Parameters ):
+    """Prepare the computing model part.
+
+    The computing model part is created if it does not exist. Nodes and elements
+    from the domain sub model parts are added to the computing model part.
+    Conditions are added from the processes sub model parts.
+    """
+    def __init__(self, main_model_part, Parameters):
         self.main_model_part = main_model_part
         
         self.computing_model_part_name  = Parameters["computing_model_part_name"].GetString()
@@ -28,10 +34,10 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             processes_parts.append(self.main_model_part.GetSubModelPart(self.processes_model_part_names[i].GetString()))
         
         #construct a model part which contains both the skin and the volume
-        if (self.main_model_part.HasSubModelPart(self.computing_model_part_name )):
-            structural_computational_model_part = self.main_model_part.GetSubModelPart(self.computing_model_part_name )
+        if (self.main_model_part.HasSubModelPart(self.computing_model_part_name)):
+            structural_computational_model_part = self.main_model_part.GetSubModelPart(self.computing_model_part_name)
         else:
-            structural_computational_model_part = self.main_model_part.CreateSubModelPart(self.computing_model_part_name )
+            structural_computational_model_part = self.main_model_part.CreateSubModelPart(self.computing_model_part_name)
         structural_computational_model_part.ProcessInfo = self.main_model_part.ProcessInfo
         structural_computational_model_part.Properties  = self.main_model_part.Properties
         
@@ -53,10 +59,11 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         #structural_computational_model_part.AddConditions(list(cond_ids)) 
         
         for part in structural_parts:
-            transfer_process = KratosMultiphysics.FastTransferBetweenModelPartsProcess( structural_computational_model_part, part, "NodesAndElements")
+            transfer_process = KratosMultiphysics.FastTransferBetweenModelPartsProcess(structural_computational_model_part, part, "NodesAndElements")
             transfer_process.Execute()
         for part in processes_parts:
-            transfer_process = KratosMultiphysics.FastTransferBetweenModelPartsProcess( structural_computational_model_part, part, "Conditions")
+            transfer_process = KratosMultiphysics.FastTransferBetweenModelPartsProcess(structural_computational_model_part, part, "Conditions")
             transfer_process.Execute()
-                
+
+        print("Computing model part:")        
         print(structural_computational_model_part)

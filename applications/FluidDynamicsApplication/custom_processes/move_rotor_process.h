@@ -73,13 +73,21 @@ public:
 
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        MoveRotorProcess(rModelPart,
-                        rParameters["angular_velocity_with_respect_to_stator_center"].GetDouble(),
-                        rParameters["coordinates_of_stator_center_x"].GetDouble(),
-                        rParameters["coordinates_of_stator_center_y"].GetDouble(),
-                        rParameters["initial_coordinates_of_rotor_center_x"].GetDouble(),
-                        rParameters["initial_coordinates_of_rotor_center_y"].GetDouble(),
-                        rParameters["number_of_rotor_lobules"].GetInt());
+        mW1[0] = 0.0;
+        mW1[1] = 0.0;
+        mW1[2] = rParameters["angular_velocity_with_respect_to_stator_center"].GetDouble();
+        mCoordinatesOfStatorCenter[0] = rParameters["coordinates_of_stator_center_x"].GetDouble();
+        mCoordinatesOfStatorCenter[1] = rParameters["coordinates_of_stator_center_y"].GetDouble();
+        mCoordinatesOfStatorCenter[2] = 0.0;
+        mInitialCoordinatesOfRotorCenter[0] = rParameters["initial_coordinates_of_rotor_center_x"].GetDouble();
+        mInitialCoordinatesOfRotorCenter[1] = rParameters["initial_coordinates_of_rotor_center_y"].GetDouble();
+        mInitialCoordinatesOfRotorCenter[2] = 0.0;
+        const array_1d<double,3> centers_distance = mInitialCoordinatesOfRotorCenter - mCoordinatesOfStatorCenter;
+        mEccentricity = sqrt(centers_distance[0]*centers_distance[0] + centers_distance[1]*centers_distance[1]);
+        mW2[0] = 0.0;
+        mW2[1] = 0.0;
+        mW2[2] = -mW1[2] / rParameters["number_of_rotor_lobules"].GetInt();
+
     }
 
     /// Destructor.
@@ -89,8 +97,6 @@ public:
     void ExecuteBeforeSolutionLoop() override
     {
         KRATOS_TRY;
-
-
 
         KRATOS_CATCH("");
     }
