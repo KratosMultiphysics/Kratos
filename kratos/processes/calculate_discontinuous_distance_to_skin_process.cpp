@@ -24,7 +24,7 @@
 namespace Kratos
 {
 	CalculateDiscontinuousDistanceToSkinProcess::CalculateDiscontinuousDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart)
-		: mrSkinPart(rSkinPart), mrVolumePart(rVolumePart), mFindIntersectedObjectsProcess(rVolumePart, rSkinPart)
+		: mFindIntersectedObjectsProcess(rVolumePart, rSkinPart), mrSkinPart(rSkinPart), mrVolumePart(rVolumePart)
 	{
 	}
 
