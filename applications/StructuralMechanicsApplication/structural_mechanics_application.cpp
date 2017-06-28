@@ -64,8 +64,10 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     mIsotropicShellElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mShellThickElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ), false ),
     mShellThickCorotationalElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ), true ),
+    mShellThinCorotationalElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4))), true),
     mShellThinElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ), false ),
     mShellThinCorotationalElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ), true ),
+    mShellThickCorotationalElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3 <Node<3> >(Element::GeometryType::PointsArrayType(3))), true),
     // Adding the membrane element
     mMembraneElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mMembraneElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
@@ -204,6 +206,30 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(SHELL_CURVATURE_GLOBAL)
     KRATOS_REGISTER_VARIABLE( SHELL_MOMENT )
     KRATOS_REGISTER_VARIABLE( SHELL_MOMENT_GLOBAL )
+    KRATOS_REGISTER_VARIABLE( SHELL_STRESS_TOP_SURFACE)
+	KRATOS_REGISTER_VARIABLE( SHELL_STRESS_TOP_SURFACE_GLOBAL)
+	KRATOS_REGISTER_VARIABLE( SHELL_STRESS_MIDDLE_SURFACE)
+	KRATOS_REGISTER_VARIABLE( SHELL_STRESS_MIDDLE_SURFACE_GLOBAL)
+	KRATOS_REGISTER_VARIABLE( SHELL_STRESS_BOTTOM_SURFACE)
+	KRATOS_REGISTER_VARIABLE( SHELL_STRESS_BOTTOM_SURFACE_GLOBAL)
+	KRATOS_REGISTER_VARIABLE(VON_MISES_STRESS_TOP_SURFACE)
+	KRATOS_REGISTER_VARIABLE(VON_MISES_STRESS_MIDDLE_SURFACE)
+	KRATOS_REGISTER_VARIABLE(VON_MISES_STRESS_BOTTOM_SURFACE)
+	KRATOS_REGISTER_VARIABLE(SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE)
+	KRATOS_REGISTER_VARIABLE(SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE)
+	KRATOS_REGISTER_VARIABLE(SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE_GLOBAL)
+	KRATOS_REGISTER_VARIABLE(SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE_GLOBAL)
+	KRATOS_REGISTER_VARIABLE(SHELL_ORTHOTROPIC_4PLY_THROUGH_THICKNESS)
+	KRATOS_REGISTER_VARIABLE(TSAI_WU_RESERVE_FACTOR)
+	KRATOS_REGISTER_VARIABLE( SHELL_ORTHOTROPIC_LAMINA_STRENGTHS)
+
+    // Shell energies
+	KRATOS_REGISTER_VARIABLE(SHELL_ELEMENT_MEMBRANE_ENERGY)
+	KRATOS_REGISTER_VARIABLE(SHELL_ELEMENT_BENDING_ENERGY)
+	KRATOS_REGISTER_VARIABLE(SHELL_ELEMENT_SHEAR_ENERGY)
+	KRATOS_REGISTER_VARIABLE(SHELL_ELEMENT_MEMBRANE_ENERGY_FRACTION)
+	KRATOS_REGISTER_VARIABLE(SHELL_ELEMENT_BENDING_ENERGY_FRACTION)
+	KRATOS_REGISTER_VARIABLE(SHELL_ELEMENT_SHEAR_ENERGY_FRACTION)
 
     // Prestresse membrane generalized vairiables
     KRATOS_REGISTER_VARIABLE( MEMBRANE_PRESTRESS )
@@ -276,7 +302,9 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT( "IsotropicShellElement3D3N", mIsotropicShellElement3D3N )
     KRATOS_REGISTER_ELEMENT( "ShellThickElement3D4N", mShellThickElement3D4N )
     KRATOS_REGISTER_ELEMENT( "ShellThickElementCorotational3D4N", mShellThickCorotationalElement3D4N )
+    KRATOS_REGISTER_ELEMENT("ShellThinElementCorotational3D4N", mShellThinCorotationalElement3D4N)
     KRATOS_REGISTER_ELEMENT( "ShellThinElement3D3N", mShellThinElement3D3N )
+	KRATOS_REGISTER_ELEMENT("ShellThickElementCorotational3D3N", mShellThickCorotationalElement3D3N)
     KRATOS_REGISTER_ELEMENT( "ShellThinElementCorotational3D3N", mShellThinCorotationalElement3D3N )
 
     // Register the membrane element
