@@ -15,11 +15,10 @@
 #include "testing/testing.h"
 #include "includes/checks.h"
 #include "includes/gid_io.h"
-// #include "processes/find_intersected_geometrical_objects_process.h"
-#include "processes/calculate_signed_distance_to_3d_skin_process.h" // TODO: Change the tested process as soon as the new distance process is available
 #include "processes/structured_mesh_generator_process.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "processes/calculate_distance_to_skin_process.h"
+#include "processes/calculate_signed_distance_to_3d_skin_process.h"
 
 namespace Kratos {
   namespace Testing {
@@ -246,10 +245,19 @@ namespace Kratos {
 
 		  CalculateDistanceToSkinProcess(volume_part, skin_part).Execute();
 
-		  KRATOS_CHECK_NEAR(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE), -12.00, 1e-6);
+        //   GidIO<> gid_io_fluid("/home/rzorrilla/Desktop/Tetrahedra3IntersectionDistanceProcess", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+        //   gid_io_fluid.InitializeMesh(0.00);
+        //   gid_io_fluid.WriteMesh(volume_part.GetMesh());
+        //   gid_io_fluid.FinalizeMesh();
+        //   gid_io_fluid.InitializeResults(0, volume_part.GetMesh());
+        //   gid_io_fluid.WriteNodalResults(DISTANCE, volume_part.Nodes(), 0, 0);
+        //   gid_io_fluid.FinalizeResults();
+
+		  KRATOS_CHECK_NEAR(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE), 12.00, 1e-6);
 		  KRATOS_CHECK_NEAR(volume_part.GetNode(2).GetSolutionStepValue(DISTANCE), 8.00, 1e-6);
-		  KRATOS_CHECK_NEAR(volume_part.GetNode(3).GetSolutionStepValue(DISTANCE), -2.00, 1e-6);
-		  KRATOS_CHECK_NEAR(volume_part.GetNode(4).GetSolutionStepValue(DISTANCE), -2.00, 1e-6);
+		  KRATOS_CHECK_NEAR(volume_part.GetNode(3).GetSolutionStepValue(DISTANCE), 2.00, 1e-6);
+		  KRATOS_CHECK_NEAR(volume_part.GetNode(4).GetSolutionStepValue(DISTANCE), 2.00, 1e-6);
+
 
 	  }
 
@@ -284,7 +292,15 @@ namespace Kratos {
 
 		  //volume_part.GetNode(1).GetSolutionStepValue(DISTANCE) = -(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE));
 
-		  KRATOS_CHECK_NEAR(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE), -2.0, 1e-6);
+        //   GidIO<> gid_io_fluid("/home/rzorrilla/Desktop/Tetrahedra5IntersectionDistanceProcess", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+        //   gid_io_fluid.InitializeMesh(0.00);
+        //   gid_io_fluid.WriteMesh(volume_part.GetMesh());
+        //   gid_io_fluid.FinalizeMesh();
+        //   gid_io_fluid.InitializeResults(0, volume_part.GetMesh());
+        //   gid_io_fluid.WriteNodalResults(DISTANCE, volume_part.Nodes(), 0, 0);
+        //   gid_io_fluid.FinalizeResults();
+
+		  KRATOS_CHECK_NEAR(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE), 2.0, 1e-6);
 		  KRATOS_CHECK_NEAR(volume_part.GetNode(2).GetSolutionStepValue(DISTANCE), -0.132068, 1e-6);
 		  KRATOS_CHECK_NEAR(volume_part.GetNode(3).GetSolutionStepValue(DISTANCE), 0.968496, 1e-6);
 		  KRATOS_CHECK_NEAR(volume_part.GetNode(4).GetSolutionStepValue(DISTANCE), 0.52827, 1e-6);
