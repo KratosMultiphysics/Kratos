@@ -389,10 +389,6 @@ namespace Kratos
 		if (this->ReturnIfIsCable() == true && this->mIsCompressed == true) {
 			rRightHandSideVector = ZeroVector(LocalSize);
 		}
-
-		//KRATOS_WATCH(this->Id());
-		//KRATOS_WATCH(rRightHandSideVector);
-		//std::cout << "+++++++++++++++++++++++++" << std::endl;
 		KRATOS_CATCH("")
 	}
 
@@ -602,12 +598,6 @@ namespace Kratos
 		VectorType f_local = ZeroVector(LocalSize);
 		f_local[0] = -1.00 * N;
 		f_local[3] = 1.00 * N;
-
-
-		//KRATOS_WATCH(f_local);
-
-
-		//this->mCurrentLength = l;
 		rinternalForces = ZeroVector(LocalSize);
 		noalias(rinternalForces) = prod(TransformationMatrix, f_local);
 		KRATOS_CATCH("");
@@ -726,8 +716,6 @@ namespace Kratos
 				GetGeometry()[i].UnSetLock();
 			}
 		}
-
-		//KRATOS_WATCH(rRHSVector);
 		KRATOS_CATCH("")
 	}
 

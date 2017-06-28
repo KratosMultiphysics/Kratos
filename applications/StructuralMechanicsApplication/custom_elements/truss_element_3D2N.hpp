@@ -73,13 +73,13 @@ namespace Kratos
 						bool rLinear = false);
 
 
-		virtual ~TrussElement3D2N();
+		~TrussElement3D2N() override;
 
 
 		BaseType::Pointer Create(
 			IndexType NewId,
 			NodesArrayType const& rThisNodes,
-			PropertiesType::Pointer pProperties) const;
+			PropertiesType::Pointer pProperties) const override;
 
 		void EquationIdVector(
 			EquationIdVectorType& rResult,
@@ -89,7 +89,7 @@ namespace Kratos
 			DofsVectorType& rElementalDofList,
 			ProcessInfo& rCurrentProcessInfo) override;
 
-		void Initialize();
+		void Initialize() override;
 
 		MatrixType CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
 
@@ -161,7 +161,7 @@ namespace Kratos
 			int Step = 0) override;
 
 		int  Check(
-			const ProcessInfo& rCurrentProcessInfo);
+			const ProcessInfo& rCurrentProcessInfo) override;
 
 
 		double CalculateGreenLagrangeStrain();
@@ -185,8 +185,8 @@ namespace Kratos
 		TrussElement3D2N() {};
 
 		friend class Serializer;
-		virtual void save(Serializer& rSerializer) const;
-		virtual void load(Serializer& rSerializer);
+		void save(Serializer& rSerializer) const override;
+		void load(Serializer& rSerializer) override;
 	};
 
 
