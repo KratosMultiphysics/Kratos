@@ -94,25 +94,25 @@ public:
         )
     {    
         // We define the tolerance
-        const double Tolerance = std::numeric_limits<double>::epsilon();
+        const double tolerance = std::numeric_limits<double>::epsilon();
         
         // We define the distance
-        double Distance = 0.0;
+        double distance = 0.0;
         
-        const array_1d<double,3> VectorPoints = Geom[0].Coordinates() - PointDestiny.Coordinates();
+        const array_1d<double,3> vector_points = Geom[0].Coordinates() - PointDestiny.Coordinates();
 
-        if( norm_2( Vector ) < Tolerance && norm_2( Normal ) > Tolerance )
+        if( norm_2( Vector ) < tolerance && norm_2( Normal ) > tolerance )
         {
-            Distance = inner_prod(VectorPoints, Normal)/norm_2(Normal);
+            distance = inner_prod(vector_points, Normal)/norm_2(Normal);
 
-            PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * Distance;
+            PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * distance;
             std::cout << " :: Warning: Zero projection vector. Projection using the condition vector instead." << std::endl;
         }
-        else if (std::abs(inner_prod(Vector, Normal) ) > Tolerance)
+        else if (std::abs(inner_prod(Vector, Normal) ) > tolerance)
         {
-            Distance = inner_prod(VectorPoints, Normal)/inner_prod(Vector, Normal); 
+            distance = inner_prod(vector_points, Normal)/inner_prod(Vector, Normal); 
 
-            PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * Distance;
+            PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * distance;
         }
         else
         {
@@ -120,7 +120,7 @@ public:
             std::cout << " The line and the plane are coplanar, something wrong happened " << std::endl;
         }
         
-        return Distance;
+        return distance;
     }
     
     /**
@@ -142,9 +142,9 @@ public:
     {
 //         ResultingPoint.clear();
         
-        double OldDeltaXi = 0.0;
+        double old_delta_xi = 0.0;
 
-        array_1d<double, 3> CurrentGlobalCoords;
+        array_1d<double, 3> current_global_coords;
 
         array_1d<array_1d<double, 3>, 2> normals;
         normals[0] = GeomOrigin[0].GetValue(NORMAL);
@@ -162,31 +162,31 @@ public:
         
         //Newton iteration:
 
-        const unsigned int MaxIter = 20;
+        const unsigned int max_iter = 20;
 
-        for ( unsigned int k = 0; k < MaxIter; k++ )
+        for ( unsigned int k = 0; k < max_iter; k++ )
         {
-            array_1d<double, 2> NOrigin;
-            NOrigin[0] = 0.5 * ( 1.0 - ResultingPoint[0]);
-            NOrigin[1] = 0.5 * ( 1.0 + ResultingPoint[0]);
+            array_1d<double, 2> N_origin;
+            N_origin[0] = 0.5 * ( 1.0 - ResultingPoint[0]);
+            N_origin[1] = 0.5 * ( 1.0 + ResultingPoint[0]);
             
-            array_1d<double,3> NormalXi = ZeroVector(3);
-            for( unsigned int iNode = 0; iNode < 2; ++iNode )
+            array_1d<double,3> normal_xi = ZeroVector(3);
+            for( unsigned int i_node = 0; i_node < 2; ++i_node )
             {
-                NormalXi += NOrigin[iNode] * normals[iNode]; 
+                normal_xi += N_origin[i_node] * normals[i_node]; 
             }
             
-            NormalXi = NormalXi/norm_2(NormalXi); 
+            normal_xi = normal_xi/norm_2(normal_xi); 
             
-            CurrentGlobalCoords = ZeroVector( 3 );
-            for( unsigned int iNode = 0; iNode < 2; ++iNode )
+            current_global_coords = ZeroVector( 3 );
+            for( unsigned int i_node = 0; i_node < 2; ++i_node )
             {
-                CurrentGlobalCoords += NOrigin[iNode] * GeomOrigin[iNode].Coordinates(); 
+                current_global_coords += N_origin[i_node] * GeomOrigin[i_node].Coordinates(); 
             }
             
             const array_1d<double,3> VectorPoints = GeomOrigin.Center() - PointDestiny;
-            const double Distance = inner_prod(VectorPoints, Normal)/inner_prod(-NormalXi, Normal); 
-            const array_1d<double, 3> CurrentDestinyGlobalCoords = PointDestiny - NormalXi * Distance;
+            const double distance = inner_prod(VectorPoints, Normal)/inner_prod(-normal_xi, Normal); 
+            const array_1d<double, 3> current_destiny_global_coords = PointDestiny - normal_xi * distance;
             
             // Derivatives of shape functions
             Matrix ShapeFunctionsGradients;
@@ -194,9 +194,9 @@ public:
             noalias(DN) = prod(X,ShapeFunctionsGradients);
 
             noalias(J) = prod(trans(DN),DN); // TODO: Add the non linearity concerning the normal
-            Vector RHS = prod(trans(DN),subrange(CurrentDestinyGlobalCoords - CurrentGlobalCoords,0,2));
+            Vector RHS = prod(trans(DN),subrange(current_destiny_global_coords - current_global_coords,0,2));
             
-            OldDeltaXi = DeltaXi;
+            old_delta_xi = DeltaXi;
             DeltaXi = RHS[0]/J(0, 0);
             
             ResultingPoint[0] += DeltaXi;
@@ -210,7 +210,7 @@ public:
                 ResultingPoint[0] = 1.0;
             }
             
-            if ( std::abs(DeltaXi - OldDeltaXi) < Tolerance )
+            if ( std::abs(DeltaXi - old_delta_xi) < Tolerance )
             {
                 return true;
             }
@@ -236,9 +236,9 @@ public:
         const array_1d<double,3>& Normal
         )
     {
-        array_1d<double,3> VectorPoints = PointDestiny.Coordinates() - PointOrigin.Coordinates();
+        array_1d<double,3> vector_points = PointDestiny.Coordinates() - PointOrigin.Coordinates();
 
-        Distance = inner_prod(VectorPoints, Normal); 
+        Distance = inner_prod(vector_points, Normal); 
 
         PointProjected.Coordinates() = PointDestiny.Coordinates() - Normal * Distance;
     }
@@ -258,14 +258,14 @@ public:
         const array_1d<double,3>& Normal
         )
     {
-        array_1d<double,3> VectorPoints = PointDestiny.Coordinates() - PointOrigin.Coordinates();
+        array_1d<double,3> vector_points = PointDestiny.Coordinates() - PointOrigin.Coordinates();
 
-        const double Distance = inner_prod(VectorPoints, Normal); 
+        const double distance = inner_prod(vector_points, Normal); 
         
-        PointType PointProjected;
-        PointProjected.Coordinates() = PointDestiny.Coordinates() - Normal * Distance;
+        PointType point_projected;
+        point_projected.Coordinates() = PointDestiny.Coordinates() - Normal * distance;
         
-        return PointProjected;
+        return point_projected;
     }
     
     /**
@@ -283,9 +283,9 @@ public:
         const double lx = GeometryLine[0].X() - GeometryLine[1].X();
         const double ly = GeometryLine[0].Y() - GeometryLine[1].Y();
 
-        const double Length = std::sqrt(lx * lx + ly * ly);
+        const double length = std::sqrt(lx * lx + ly * ly);
         
-        return (Length < Tolerance) ? true : false;
+        return (length < Tolerance) ? true : false;
     }
     
     /**
@@ -348,14 +348,14 @@ public:
         )
     {
         // We calculate the new distance
-        const double Distance = ScaleFactor * DistancePoints(PointToScale.Coordinates(), Center.Coordinates());
+        const double distance = ScaleFactor * DistancePoints(PointToScale.Coordinates(), Center.Coordinates());
         
         // Now the vector between nodes
-        array_1d<double, 3> VectorPoints = PointToScale.Coordinates() - Center.Coordinates();
-        VectorPoints /= norm_2(VectorPoints);
+        array_1d<double, 3> vector_points = PointToScale.Coordinates() - Center.Coordinates();
+        vector_points /= norm_2(vector_points);
         
         // Finally we rescale
-        PointToScale.Coordinates() = Center.Coordinates() + VectorPoints * Distance;
+        PointToScale.Coordinates() = Center.Coordinates() + vector_points * distance;
     }
     
     /**
@@ -384,20 +384,18 @@ public:
         const GeometryType & Geom
         )
     {
-        array_1d<double,3> Normal = ZeroVector(3);
-        for( unsigned int iNode = 0; iNode < Geom.PointsNumber(); ++iNode )
+        array_1d<double,3> normal = ZeroVector(3);
+        for( unsigned int i_node = 0; i_node < Geom.PointsNumber(); ++i_node )
         {
-            Normal += N[iNode] * Geom[iNode].GetValue(NORMAL); 
+            normal += N[i_node] * Geom[i_node].GetValue(NORMAL); 
         }
         
-        const double Tolerance = std::numeric_limits<double>::epsilon();
-        
-        if (norm_2(Normal) > Tolerance)
+        if (norm_2(normal) > std::numeric_limits<double>::epsilon())
         {
-            Normal = Normal/norm_2(Normal); // It is suppossed to be already unitary (just in case)
+            normal = normal/norm_2(normal); // It is suppossed to be already unitary (just in case)
         }
         
-        return Normal;
+        return normal;
     }
     
     /**
@@ -409,62 +407,62 @@ public:
     static inline void ComputeNodesMeanNormalModelPart(ModelPart & rModelPart) 
     {
         // Tolerance
-        const double Tolerance = std::numeric_limits<double>::epsilon();
+        const double tolerance = std::numeric_limits<double>::epsilon();
 
         // Initialize normal vectors
-        const array_1d<double,3> ZeroVect = ZeroVector(3);
+        const array_1d<double,3> zero_vect = ZeroVector(3);
         
-        NodesArrayType& NodesArray = rModelPart.Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size()); 
+        NodesArrayType& nodes_array = rModelPart.Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size()); 
         
         #pragma omp parallel for
-        for(int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < num_nodes; i++) 
         {
-            auto itNode = NodesArray.begin() + i;
-            itNode->GetValue(NODAL_AREA)      = 0.0;
-            noalias(itNode->GetValue(NORMAL)) = ZeroVect;
+            auto it_node = nodes_array.begin() + i;
+            it_node->GetValue(NODAL_AREA)      = 0.0;
+            noalias(it_node->GetValue(NORMAL)) = zero_vect;
         }
         
         // Aux coordinates
-        CoordinatesArrayType AuxCoords;
-        AuxCoords.clear();
+        CoordinatesArrayType aux_coords;
+        aux_coords.clear();
         
         // Sum all the nodes normals
-        ConditionsArrayType& ConditionsArray = rModelPart.Conditions();
-        const int numConditions = static_cast<int>(ConditionsArray.size());
+        ConditionsArrayType& conditions_array = rModelPart.Conditions();
+        const int numConditions = static_cast<int>(conditions_array.size());
         
         #pragma omp parallel for
         for(int i = 0; i < numConditions; i++) 
         {
-            auto itCond = ConditionsArray.begin() + i;
+            auto it_cond = conditions_array.begin() + i;
             
-            if (itCond->Is(SLAVE) || itCond->Is(MASTER) || itCond->Is(ACTIVE))
+            if (it_cond->Is(SLAVE) || it_cond->Is(MASTER) || it_cond->Is(ACTIVE))
             {
-                array_1d<double, 3> & rNormal = itCond->GetValue(NORMAL);
-                rNormal = itCond->GetGeometry().Normal(AuxCoords);
+                array_1d<double, 3> & rNormal = it_cond->GetValue(NORMAL);
+                rNormal = it_cond->GetGeometry().Normal(aux_coords);
                 
-                const unsigned int NumberNodes = itCond->GetGeometry().PointsNumber();
-                const double & rArea = itCond->GetGeometry().Area()/NumberNodes;
+                const unsigned int number_nodes = it_cond->GetGeometry().PointsNumber();
+                const double & rArea = it_cond->GetGeometry().Area()/number_nodes;
                 
-                for (unsigned int i = 0; i < NumberNodes; i++)
+                for (unsigned int i = 0; i < number_nodes; i++)
                 {
                     #pragma omp atomic
-                    itCond->GetGeometry()[i].GetValue(NODAL_AREA)        += rArea;
+                    it_cond->GetGeometry()[i].GetValue(NODAL_AREA)        += rArea;
                     #pragma omp critical
-                    noalias( itCond->GetGeometry()[i].GetValue(NORMAL) ) += rArea * rNormal;
+                    noalias( it_cond->GetGeometry()[i].GetValue(NORMAL) ) += rArea * rNormal;
                 }
             }
         }
         
         #pragma omp parallel for 
-        for(int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < num_nodes; i++) 
         {
-            auto itNode = NodesArray.begin() + i;
+            auto it_node = nodes_array.begin() + i;
 
-            const double TotalArea = itNode->GetValue(NODAL_AREA);
-            if (TotalArea > Tolerance)
+            const double total_area = it_node->GetValue(NODAL_AREA);
+            if (total_area > tolerance)
             {
-                itNode->GetValue(NORMAL) /= TotalArea;
+                it_node->GetValue(NORMAL) /= total_area;
             }
         }
         
@@ -475,15 +473,15 @@ public:
         }
 
         #pragma omp parallel for 
-        for(int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < num_nodes; i++) 
         {
-            auto itNode = NodesArray.begin() + i;
+            auto it_node = nodes_array.begin() + i;
 
-            const double NormNormal = norm_2(itNode->GetValue(NORMAL));
+            const double norm_normal = norm_2(it_node->GetValue(NORMAL));
             
-            if (NormNormal > Tolerance)
+            if (norm_normal > tolerance)
             {
-                itNode->GetValue(NORMAL) /= NormNormal;
+                it_node->GetValue(NORMAL) /= norm_normal;
             }
         }
     }
@@ -705,7 +703,7 @@ public:
      * It calculates the matrix of coordinates of a geometry
      * @param nodes: The geometry to calculate
      * @param current: If we calculate the current coordinates or the initial ones
-     * @return Coordinates: The matrix containing the coordinates of the geometry
+     * @return coordinates: The matrix containing the coordinates of the geometry
      */
     
     template< unsigned int TDim, unsigned int TNumNodes>
@@ -716,34 +714,34 @@ public:
         )
     {
         /* DEFINITIONS */            
-        bounded_matrix<double, TNumNodes, TDim> Coordinates;
+        bounded_matrix<double, TNumNodes, TDim> coordinates;
         
-        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
         {
             
             array_1d<double, 3> coord;
             
             if (current == true)
             {
-                coord = nodes[iNode].Coordinates();
+                coord = nodes[i_node].Coordinates();
             }
             else
             {
-                coord = nodes[iNode].GetInitialPosition();
+                coord = nodes[i_node].GetInitialPosition();
                 
                 if (step > 0)
                 {
-                    coord += nodes[iNode].FastGetSolutionStepValue(DISPLACEMENT, step);
+                    coord += nodes[i_node].FastGetSolutionStepValue(DISPLACEMENT, step);
                 }
             }
 
-            for (unsigned int iDof = 0; iDof < TDim; iDof++)
+            for (unsigned int i_dof = 0; i_dof < TDim; i_dof++)
             {
-                Coordinates(iNode, iDof) = coord[iDof];
+                coordinates(i_node, i_dof) = coord[i_dof];
             }
         }
         
-        return Coordinates;
+        return coordinates;
     }
 
     /**
@@ -751,7 +749,7 @@ public:
      * @param nodes: The geometry to calculate
      * @param rVarName: The name of the variable to calculate
      * @param step: The step where calculate
-     * @return VarVector: The vector containing the variables of the geometry
+     * @return var_vector: The vector containing the variables of the geometry
      */
     
     template< unsigned int TNumNodes >
@@ -762,14 +760,14 @@ public:
         )
     {
         /* DEFINITIONS */        
-        array_1d<double, TNumNodes> VarVector;
+        array_1d<double, TNumNodes> var_vector;
         
-        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
         {
-            VarVector[iNode] = nodes[iNode].FastGetSolutionStepValue(rVarName, step);
+            var_vector[i_node] = nodes[i_node].FastGetSolutionStepValue(rVarName, step);
         }
         
-        return VarVector;
+        return var_vector;
     }
     
     /**
@@ -777,7 +775,7 @@ public:
      * @param nodes: The geometry to calculate
      * @param rVarName: The name of the variable to calculate
      * @param step: The step where calculate
-     * @return VarVector: The vector containing the variables of the geometry
+     * @return var_vector: The vector containing the variables of the geometry
      */
         
     template< unsigned int TNumNodes >
@@ -788,21 +786,21 @@ public:
         )
     {
         /* DEFINITIONS */        
-        bounded_matrix<double, TNumNodes, 1> VarVector;
+        bounded_matrix<double, TNumNodes, 1> var_vector;
         
-        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
         {
-            VarVector(iNode, 0) = nodes[iNode].FastGetSolutionStepValue(rVarName, step);
+            var_vector(i_node, 0) = nodes[i_node].FastGetSolutionStepValue(rVarName, step);
         }
         
-        return VarVector;
+        return var_vector;
     }
 
     /**
      * It calculates the vector of a non-historical variable of a geometry
      * @param nodes: The geometry to calculate
      * @param rVarName: The name of the variable to calculate
-     * @return VarVector: The vector containing the variables of the geometry
+     * @return var_vector: The vector containing the variables of the geometry
      */
         
     template< unsigned int TNumNodes >
@@ -812,21 +810,21 @@ public:
         )
     {
         /* DEFINITIONS */        
-        array_1d<double, TNumNodes> VarVector;
+        array_1d<double, TNumNodes> var_vector;
         
-        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
         {
-            VarVector[iNode] = nodes[iNode].GetValue(rVarName);
+            var_vector[i_node] = nodes[i_node].GetValue(rVarName);
         }
         
-        return VarVector;
+        return var_vector;
     }
     
     /**
      * It calculates the vector of a non-historical variable of a geometry
      * @param nodes: The geometry to calculate
      * @param rVarName: The name of the variable to calculate
-     * @return VarVector: The vector containing the variables of the geometry
+     * @return var_vector: The vector containing the variables of the geometry
      */
     
     template< unsigned int TNumNodes >
@@ -836,14 +834,14 @@ public:
         )
     {
         /* DEFINITIONS */        
-        bounded_matrix<double, TNumNodes, 1> VarVector;
+        bounded_matrix<double, TNumNodes, 1> var_vector;
         
-        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
         {
-            VarVector(iNode, 0) = nodes[iNode].GetValue(rVarName);
+            var_vector(i_node, 0) = nodes[i_node].GetValue(rVarName);
         }
         
-        return VarVector;
+        return var_vector;
     }
     
     /**
@@ -851,7 +849,7 @@ public:
      * @param Nodes: The geometry to calculate
      * @param rVarName: The name of the variable to calculate
      * @param step: The step where calculate
-     * @return VarMatrix: The matrix containing the variables of the geometry
+     * @return var_matrix: The matrix containing the variables of the geometry
      */
     
     template< unsigned int TDim, unsigned int TNumNodes>
@@ -862,25 +860,25 @@ public:
         )
     {
         /* DEFINITIONS */        
-        Matrix VarMatrix(TNumNodes, TDim);
+        Matrix var_matrix(TNumNodes, TDim);
         
-        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
         {
-            const array_1d<double, 3> Value = Nodes[iNode].FastGetSolutionStepValue(rVarName, step);
-            for (unsigned int iDof = 0; iDof < TDim; iDof++)
+            const array_1d<double, 3> value = Nodes[i_node].FastGetSolutionStepValue(rVarName, step);
+            for (unsigned int i_dof = 0; i_dof < TDim; i_dof++)
             {
-                VarMatrix(iNode, iDof) = Value[iDof];
+                var_matrix(i_node, i_dof) = value[i_dof];
             }
         }
         
-        return VarMatrix;
+        return var_matrix;
     }
 
     /**
      * It calculates the matrix of a non-historical variable of a geometry
      * @param Nodes: The geometry to calculate
      * @param rVarName: The name of the variable to calculate
-     * @return VarMatrix: The matrix containing the variables of the geometry
+     * @return var_matrix: The matrix containing the variables of the geometry
      */
         
     template< unsigned int TDim, unsigned int TNumNodes>
@@ -890,18 +888,18 @@ public:
         )
     {
         /* DEFINITIONS */        
-        Matrix VarMatrix(TNumNodes, TDim);
+        Matrix var_matrix(TNumNodes, TDim);
         
-        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
         {
-            const array_1d<double, 3> Value = Nodes[iNode].GetValue(rVarName);
-            for (unsigned int iDof = 0; iDof < TDim; iDof++)
+            const array_1d<double, 3> value = Nodes[i_node].GetValue(rVarName);
+            for (unsigned int i_dof = 0; i_dof < TDim; i_dof++)
             {
-                VarMatrix(iNode, iDof) = Value[iDof];
+                var_matrix(i_node, i_dof) = value[i_dof];
             }
         }
         
-        return VarMatrix;
+        return var_matrix;
     }
     
     /**
@@ -916,11 +914,11 @@ public:
         /* DEFINITIONS */        
         bounded_matrix<double, TNumNodes, TDim> AbsMatrix;
         
-        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
         {
-            for (unsigned int iDof = 0; iDof < TDim; iDof++)
+            for (unsigned int i_dof = 0; i_dof < TDim; i_dof++)
             {
-                AbsMatrix(iNode, iDof) = std::abs(InputMatrix(iNode, iDof));
+                AbsMatrix(i_node, i_dof) = std::abs(InputMatrix(i_node, i_dof));
             }
         }
         
