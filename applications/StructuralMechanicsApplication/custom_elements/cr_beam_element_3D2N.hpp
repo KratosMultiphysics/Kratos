@@ -67,7 +67,7 @@ namespace Kratos
 		void Initialize();
 
 		Matrix CreateElementStiffnessMatrix_Material();
-		Matrix CreateElementStiffnessMatrix_Geometry(const Vector qe);
+		Matrix CreateElementStiffnessMatrix_Geometry();
 		Matrix CalculateDeformationStiffness();
 		Matrix CalculateTransformationS();
 
@@ -169,6 +169,13 @@ namespace Kratos
 		void CalculateAndAddWorkEquivalentNodalForcesLineLoad(
 			const Vector ForceInput, VectorType& rRightHandSideVector,
 			const double GeometryLength);
+
+
+		void CalculateGeometricStiffnessMatrix(MatrixType& rGeometricStiffnessMatrix,
+			ProcessInfo& rCurrentProcessInfo);
+
+		void CalculateElasticStiffnessMatrix(MatrixType& rElasticStiffnessMatrix,
+			ProcessInfo& rCurrentProcessInfo);
 
 	private:
 		double mdPhi_x_a, mRotInertiaY, mRotInertiaZ;

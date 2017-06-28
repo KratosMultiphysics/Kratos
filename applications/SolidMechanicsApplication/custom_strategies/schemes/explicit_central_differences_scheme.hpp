@@ -419,7 +419,6 @@ virtual void Update(ModelPart& r_model_part,
 
           array_1d<double,3>& current_acceleration    = i->FastGetSolutionStepValue(ACCELERATION);
 
-
           //Solution of the explicit equation:
           current_acceleration = current_residual/nodal_mass;
 
@@ -498,6 +497,7 @@ virtual void Update(ModelPart& r_model_part,
           array_1d<double,3>& middle_velocity         = i->FastGetSolutionStepValue(MIDDLE_VELOCITY);
 
           array_1d<double,3>& current_acceleration    = i->FastGetSolutionStepValue(ACCELERATION);
+
 
 
           //Solution of the explicit equation:

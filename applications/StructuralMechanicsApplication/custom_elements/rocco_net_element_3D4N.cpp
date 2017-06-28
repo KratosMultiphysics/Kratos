@@ -75,7 +75,11 @@ void RoccoNetElement3D4N::CalculateRightHandSide(VectorType& rRightHandSideVecto
 	//bodyForces
 	Vector BodyForcesGlobal = ZeroVector(element_size);
 	BodyForcesGlobal = this->CalculateBodyForces();
+
+
+
 	rRightHandSideVector += BodyForcesGlobal;
+
 	KRATOS_CATCH("")
 }
 void RoccoNetElement3D4N::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
@@ -200,10 +204,15 @@ void RoccoNetElement3D4N::AddCableRHSForces(Vector& rInternalForces)
 	const double U_cable = ActualCableLength - ReferenceCableLength;
 	const double StiffnessKt = this->mKt;
 
-
-
 	double N_cable = 0.00;
 	if (U_cable > 0.00) N_cable = StiffnessKt * U_cable;
+	if (U_cable > 0.00 & this->tensileReachedTEst == false)
+	{
+		std::cout << "tensile reaction!" << std::endl;
+		this->tensileReachedTEst = true; 
+	}
+
+
 
 	Vector Cable_Inner_Forces = ZeroVector(spring_size);
 	Vector Temp_Inner_Forces = ZeroVector(spring_size);

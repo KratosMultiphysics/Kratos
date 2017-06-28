@@ -142,10 +142,10 @@ def AssambleTestSuites():
             #TSprismBendingPatchTests,
             #TShellQ4ThickBendingRollUpTests,
             #TShellQ4ThickDrillingRollUpTests,
-            TShellT3ThinBendingRollUpTests,
+            #TShellT3ThinBendingRollUpTests,
             #TShellT3ThinDrillingRollUpTests,
             #TShellT3IsotropicScordelisTests,
-            TMembraneQ4PointLoadTests,
+            #TMembraneQ4PointLoadTests,
             T3D2NTrussTest,
             T3D2NTrussLinearTest,
             T3D2NTrussDynamicTest,
@@ -155,11 +155,11 @@ def AssambleTestSuites():
             #TMpcSmallDispElemTests
             #TIsotropicDamageSimoJuPSTest,
             #TNodalDampingTests
-            TShellT3ThinDrillingRollUpTests,
-            TShellT3IsotropicScordelisTests,
-            TIsotropicDamageSimoJuPSTest,
-            TNodalDampingTests,
-            TSpringDamperElementTests
+            #TShellT3ThinDrillingRollUpTests,
+            #TShellT3IsotropicScordelisTests,
+            #TIsotropicDamageSimoJuPSTest,
+            #TNodalDampingTests,
+            #TSpringDamperElementTests
             ######TSprismPanTests
         ])
     )

@@ -163,6 +163,9 @@ private:
 	Matrix mLHS;
 	double mNodalMass_custom;
 
+	//test
+	bool tensileReachedTEst = false;
+
 	RoccoNetElement3D4N() : Element() {}
 
     friend class Serializer;
