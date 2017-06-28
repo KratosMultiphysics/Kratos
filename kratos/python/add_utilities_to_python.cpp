@@ -136,6 +136,8 @@ void AddUtilitiesToPython()
     .def("AddDof", &VariableUtils::AddDof< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
     .def("AddDof", &VariableUtils::AddDofWithReaction< Variable<double> > )
     .def("AddDof", &VariableUtils::AddDofWithReaction< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
+	.def("CheckVariableKeys", &VariableUtils::CheckVariableKeys)
+	.def("CheckDofs", &VariableUtils::CheckDofs)
     ;
 
     // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex

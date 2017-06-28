@@ -114,8 +114,12 @@ class SetOfModelParts(object):
     def Get(self, name):
         return self.model_parts[name]
 
-    def Add(self, model_part):
-        self.model_parts[model_part.Name] = model_part
+    def Add(self, model_part, name = None):
+        if name != None:
+            self.model_parts[name] = model_part
+        else:
+            self.model_parts[model_part.Name] = model_part
+            
         self.mp_list.append(model_part)
         
 class GranulometryUtils(object):
@@ -1290,12 +1294,14 @@ class MaterialTest(object):
 
 class MultifileList(object):
 
-    def __init__(self, post_path, name, step):
+    def __init__(self, post_path, name, step, which_folder):
         os.chdir(post_path)
         self.index = 0
         self.step = step
         self.name = name
-        self.file = open("_list_" + self.name + "_" + str(step) + ".post.lst","w")
+        self.which_folder = which_folder
+        absolute_path_to_file = os.path.join(post_path, "_list_" + self.name + "_" + str(step) + ".post.lst")
+        self.file = open(absolute_path_to_file,"w")
 
 
 class DEMIo(object):
@@ -1371,13 +1377,15 @@ class DEMIo(object):
 
         self.continuum_element_types = ["SphericContPartDEMElement3D", "CylinderContPartDEMElement2D", "IceContPartDEMElement3D"]
         
-        self.multifiles = (
-            MultifileList(self.post_path, DEM_parameters.problem_name, 1),
-            MultifileList(self.post_path, DEM_parameters.problem_name, 2),
-            MultifileList(self.post_path, DEM_parameters.problem_name, 5),
-            MultifileList(self.post_path, DEM_parameters.problem_name,10),
-            MultifileList(self.post_path, DEM_parameters.problem_name,20),
-            MultifileList(self.post_path, DEM_parameters.problem_name,50),
+        one_level_up_path = os.path.join(self.post_path,"..")
+        self.multifiles = (            
+            MultifileList(one_level_up_path, DEM_parameters.problem_name, 1, "outer"),
+            MultifileList(self.post_path, DEM_parameters.problem_name, 1, "inner"),
+            MultifileList(self.post_path, DEM_parameters.problem_name, 2, "inner"),
+            MultifileList(self.post_path, DEM_parameters.problem_name, 5, "inner"),
+            MultifileList(self.post_path, DEM_parameters.problem_name,10, "inner"),
+            MultifileList(self.post_path, DEM_parameters.problem_name,20, "inner"),
+            MultifileList(self.post_path, DEM_parameters.problem_name,50, "inner"),
             )
             
         self.SetMultifileLists(self.multifiles)
@@ -1568,15 +1576,22 @@ class DEMIo(object):
             if mfilelist.index == mfilelist.step:
                 
                 if (self.encoding == GiDPostMode.GiD_PostBinary):
-                    mfilelist.file.write(os.path.join(post_path,self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%time+".post.bin\n"))
+                    text_to_print = self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%time+".post.bin\n"
+                    if mfilelist.which_folder == "outer":
+                        path_of_file = os.path.dirname(mfilelist.file.name)                    
+                        text_to_print = os.path.join(os.path.relpath(post_path, path_of_file), text_to_print)                        
+                    mfilelist.file.write(text_to_print)                    
                 else:
-                    mfilelist.file.write(os.path.join(post_path,self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%time+".post.msh\n"))
-                    mfilelist.file.write(os.path.join(post_path,self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%time+".post.res\n"))
+                    text_to_print1 = self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%time+".post.msh\n"
+                    text_to_print2 = self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%time+".post.res\n"
+                    if mfilelist.which_folder == "outer":
+                        path_of_file = os.path.dirname(mfilelist.file.name)
+                        text_to_print1 = os.path.join(os.path.relpath(post_path, path_of_file), text_to_print1)  
+                        text_to_print2 = os.path.join(os.path.relpath(post_path, path_of_file), text_to_print2) 
+                    mfilelist.file.write(text_to_print1)
+                    mfilelist.file.write(text_to_print2)
                 self.Flush(mfilelist.file)
-                mfilelist.index = 0
-                
-                if mfilelist.step == 1:                
-                    shutil.copyfile(os.path.join(post_path,mfilelist.file.name), os.path.join(post_path,"..",mfilelist.name+".post.lst"))
+                mfilelist.index = 0                                
                 
             mfilelist.index += 1
             

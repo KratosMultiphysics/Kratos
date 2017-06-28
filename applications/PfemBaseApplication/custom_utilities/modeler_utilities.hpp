@@ -189,7 +189,7 @@ public:
 
       void CreatePointList(const unsigned int NumberOfPoints, const unsigned int Dimension)
       {
-	if( mpPointList != NULL && PointListFlag == true){
+	if( mpPointList ){
 	  delete [] mpPointList;
 	}
 	mNumberOfPoints = NumberOfPoints;
@@ -199,7 +199,7 @@ public:
 
       void CreateElementList(const unsigned int NumberOfElements, const unsigned int NumberOfVertices)
       {
-	if( mpElementList != NULL && ElementListFlag == true){
+	if( mpElementList ){
 	  delete [] mpElementList;
 	}
 	mNumberOfElements = NumberOfElements;
@@ -209,7 +209,7 @@ public:
 
       void CreateElementSizeList(const unsigned int NumberOfElements)
       {
-	if( mpElementSizeList != NULL ){
+	if( mpElementSizeList ){
 	  delete [] mpElementSizeList;
 	}
 	mpElementSizeList     = new double[NumberOfElements];
@@ -218,7 +218,7 @@ public:
 
       void CreateElementNeighbourList(const unsigned int NumberOfElements, const unsigned int NumberOfFaces)
       {
-	if( mpElementNeighbourList != NULL ){
+	if( mpElementNeighbourList ){
 	  delete [] mpElementNeighbourList;
 	}
 	mpElementNeighbourList     = new int[NumberOfElements * NumberOfFaces];
@@ -243,35 +243,23 @@ public:
 
       void Finalize()
       {
-	if( mpPointList!= NULL && PointListFlag ){
+	if( mpPointList && PointListFlag ){
 	  delete [] mpPointList;
 	}
 
-	// mesher deletes it always...
-	// if( mpElementList!= NULL && ElementListFlag ){
-	//   delete [] mpElementList;
-	// }
+	if( mpElementList && ElementListFlag ){
+	  delete [] mpElementList;
+	}
 
-	if( mpElementSizeList!= NULL && ElementSizeListFlag ){
+	if( mpElementSizeList && ElementSizeListFlag ){
 	  delete [] mpElementSizeList;
 	}
 
-	if( mpElementNeighbourList!= NULL && ElementNeighbourListFlag ){
+	if( mpElementNeighbourList && ElementNeighbourListFlag ){
 	  delete [] mpElementNeighbourList;
 	}
 
-	mpPointList            = (double*) NULL;
-	mpElementList          = (int*)    NULL;
-	mpElementSizeList      = (double*) NULL;
-	mpElementNeighbourList = (int*)    NULL;
-
-	mNumberOfPoints        = 0;
-	mNumberOfElements      = 0;
-
-	PointListFlag            = false;
-	ElementListFlag          = false;
-	ElementSizeListFlag      = false;
-	ElementNeighbourListFlag = false;
+	Initialize();
       }
 
     };
@@ -1233,9 +1221,9 @@ public:
 	//std::fill( rShapeFunctionsN.begin(), rShapeFunctionsN.end(), 0 );
       }
 
-      rShapeFunctionsN[0] = CalculateTetrahedronVolume(x1,y1,z1,x2,y2,z2,x3,y3,z3,xc,yc,zc) / volume;
-      rShapeFunctionsN[1] = CalculateTetrahedronVolume(x2,y2,z2,x3,y3,z3,x0,y0,z0,xc,yc,zc) / volume;
-      rShapeFunctionsN[2] = CalculateTetrahedronVolume(x3,y3,z3,x0,y0,z0,x1,y1,z1,xc,yc,zc) / volume;
+      rShapeFunctionsN[0] = CalculateTetrahedronVolume(xc,yc,zc,x1,y1,z1,x2,y2,z2,x3,y3,z3) / volume;
+      rShapeFunctionsN[1] = CalculateTetrahedronVolume(x0,y0,z0,xc,yc,zc,x2,y2,z2,x3,y3,z3) / volume;
+      rShapeFunctionsN[2] = CalculateTetrahedronVolume(x0,y0,z0,x1,y1,z1,xc,yc,zc,x3,y3,z3) / volume;
       rShapeFunctionsN[3] = CalculateTetrahedronVolume(x0,y0,z0,x1,y1,z1,x2,y2,z2,xc,yc,zc) / volume;
 
       //std::cout<<" N "<<rShapeFunctionsN[0]<<" "<<rShapeFunctionsN[1]<<" "<<rShapeFunctionsN[2]<<" "<<rShapeFunctionsN[3]<<" "<<std::endl;

@@ -59,13 +59,13 @@ public:
     ReorderAndOptimizeModelPartProcess() = delete;
 
     /// Constructor to be used. Takes the geometry to be meshed and ModelPart to be filled
-    ReorderAndOptimizeModelPartProcess( ModelPart& rModelPart, Parameters settings);
+	ReorderAndOptimizeModelPartProcess(ModelPart& rModelPart, Parameters settings);
 
     /// The object is not copyable.
     ReorderAndOptimizeModelPartProcess(ReorderAndOptimizeModelPartProcess const& rOther) = delete;
 
     /// Destructor.
-    virtual ~ReorderAndOptimizeModelPartProcess() ;
+	virtual ~ReorderAndOptimizeModelPartProcess() {};
 
     ///@}
     ///@name Operators

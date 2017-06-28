@@ -39,7 +39,7 @@ public:
                     const double coordinates_of_stator_center_y,
                     const double initial_coordinates_of_rotor_center_x,
                     const double initial_coordinates_of_rotor_center_y,
-                    const double max_radius_of_rotor): Process(), mrModelPart(rModelPart)
+                    const unsigned int number_of_rotor_lobules): Process(), mrModelPart(rModelPart)
     {
         mW1[0] = 0.0;
         mW1[1] = 0.0;
@@ -54,7 +54,7 @@ public:
         mEccentricity = sqrt(centers_distance[0]*centers_distance[0] + centers_distance[1]*centers_distance[1]);
         mW2[0] = 0.0;
         mW2[1] = 0.0;
-        mW2[2] = -mW1[2] * mEccentricity / max_radius_of_rotor;
+        mW2[2] = -mW1[2] / number_of_rotor_lobules;
     }
 
     MoveRotorProcess(ModelPart& rModelPart,
@@ -68,11 +68,10 @@ public:
                 "coordinates_of_stator_center_y":0.0,
                 "initial_coordinates_of_rotor_center_x":0.0,
                 "initial_coordinates_of_rotor_center_y":0.0,
-                "max_radius_of_rotor":0.0
+                "number_of_rotor_lobules": 0
             }  )" );
 
         rParameters.ValidateAndAssignDefaults(default_parameters);
-
 
         mW1[0] = 0.0;
         mW1[1] = 0.0;
@@ -87,7 +86,8 @@ public:
         mEccentricity = sqrt(centers_distance[0]*centers_distance[0] + centers_distance[1]*centers_distance[1]);
         mW2[0] = 0.0;
         mW2[1] = 0.0;
-        mW2[2] = -mW1[2] * mEccentricity / rParameters["max_radius_of_rotor"].GetDouble();
+        mW2[2] = -mW1[2] / rParameters["number_of_rotor_lobules"].GetInt();
+
     }
 
     /// Destructor.
@@ -97,8 +97,6 @@ public:
     void ExecuteBeforeSolutionLoop() override
     {
         KRATOS_TRY;
-
-
 
         KRATOS_CATCH("");
     }
