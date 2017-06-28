@@ -328,9 +328,14 @@ namespace Kratos
 						 const double Weight,
 						 double& MeanValueMass,
 						 const double TimeStep){};
-	
+      
+      void ComputeBulkReductionCoefficient(MatrixType MassMatrix,
+					   MatrixType StiffnessMatrix,
+					   double& meanValueStiff,
+					   double& bulkCoefficient,
+					   double timeStep){};
+      
       void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix,
-					       const ShapeFunctionsType& rN,
 					       const double Weight);
 
 
@@ -350,6 +355,7 @@ namespace Kratos
 
       virtual bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
 					const ProcessInfo& rCurrentProcessInfo,
+					const ShapeFunctionDerivativesType& rDN_DX,
 					unsigned int g);
 	
       void GetPositions(Vector& rValues,

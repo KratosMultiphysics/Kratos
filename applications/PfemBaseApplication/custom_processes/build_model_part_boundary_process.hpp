@@ -27,8 +27,10 @@
 #include "includes/model_part.h"
 
 #include "geometries/line_2d_2.h"
+#include "geometries/line_2d_3.h"
 #include "geometries/line_3d_2.h"
 #include "geometries/triangle_3d_3.h"
+#include "geometries/triangle_3d_6.h"
 
 #include "custom_conditions/composite_condition.hpp"
 #include "custom_utilities/boundary_normals_calculation_utilities.hpp"
@@ -571,7 +573,10 @@ namespace Kratos
 		      
 		    }
 		    else if ( NumberNodesInFace == 3 ){
-		      ConditionVertices = Condition::GeometryType::Pointer(new Triangle3D3< Node<3> >(FaceNodes) );
+		      if( dimension == 2 )
+			ConditionVertices = Condition::GeometryType::Pointer(new Line2D3< Node<3> >(FaceNodes) );
+		      else
+			ConditionVertices = Condition::GeometryType::Pointer(new Triangle3D3< Node<3> >(FaceNodes) );
 		    }
 
 		    rConditionId +=1;
@@ -739,7 +744,7 @@ namespace Kratos
 	  }
 	}
 	
-      std::cout<<"   recovered conditions "<<counter<<std::endl;
+      //std::cout<<"   recovered conditions "<<counter<<std::endl;
 
       //control if all previous conditions have been added:
       bool all_assigned = true;

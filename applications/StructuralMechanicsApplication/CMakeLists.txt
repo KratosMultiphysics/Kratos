@@ -3,7 +3,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosStructuralMechanicsApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/MeshingApplication )
 
@@ -17,14 +16,25 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/structural_mechanics_python_application.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
 
   ## UTILITIES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
 
+  ##CONSTITUTIVE LAW
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_plane_stress.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_plane_strain.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/elastic_isotropic_3d.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/axisym_elastic_isotropic.cpp
+  
   ## ELEMENTS
+  #Adding truss element
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_element_3D2N.cpp
+   
   # Adding the beam element
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_beam_element_3D2N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_3D2N.cpp
 
   # Adding shells and membranes elements
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp
@@ -32,25 +42,38 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thick_element_3D4N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thin_element_3D3N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/prestress_membrane_element.cpp
+
+  # Solid elements
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_solid_element.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_total_lagrangian.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/kinematic_linear.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_kinematic_linear.cpp
+  
   # Adding the SPRISM element
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/SprismElement3D6N.cpp
 
   # Adding the nodal concentrated element
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/nodal_concentrated_element.cpp
 
+  # Adding the spring + damper element
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spring_damper_element_3D2N.cpp  
+
   ## CONDITIONS
-  # Beam's moment conditions
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_3D_condition.cpp
-
-  # Torques conditions
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_torque_3D_condition.cpp
-
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_3D_condition.cpp # Beam's moment conditions
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_torque_3D_condition.cpp # Torques conditions
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/base_load_condition.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_condition.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_point_load_condition.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_condition_2d.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_line_load_condition_2d.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_condition_3d.cpp
 )
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosStructuralMechanicsApplication SHARED ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES})
-target_link_libraries(KratosStructuralMechanicsApplication KratosCore KratosSolidMechanicsApplication)
+target_link_libraries(KratosStructuralMechanicsApplication KratosCore) # KratosSolidMechanicsApplication)
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES PREFIX "")
 install(TARGETS KratosStructuralMechanicsApplication DESTINATION libs )

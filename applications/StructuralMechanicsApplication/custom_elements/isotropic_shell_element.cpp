@@ -16,7 +16,7 @@
 
 // Project includes
 #include "custom_elements/isotropic_shell_element.hpp"
-#include "custom_utilities/solid_mechanics_math_utilities.hpp"
+// #include "custom_utilities/solid_mechanics_math_utilities.hpp"
 #include "structural_mechanics_application_variables.h"
 
 
