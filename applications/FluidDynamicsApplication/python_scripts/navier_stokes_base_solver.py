@@ -178,27 +178,28 @@ class NavierStokesBaseSolver(object):
     def SetEchoLevel(self, level):
         (self.solver).SetEchoLevel(level)
 
-    def SolverInitialize(self):
+    def StrategyInitialize(self):
         (self.solver).Initialize()
 
-    def SolverInitializeSolutionStep(self):
+    def StrategyInitializeSolutionStep(self):
         (self.solver).InitializeSolutionStep()
 
-    def SolverPredict(self):
+    def StrategyPredict(self):
         (self.solver).Predict()
 
-    def SolverSolveSolutionStep(self):
-        (self.solver).SolveSolutionStep()
+    def StrategySolveSolutionStep(self):
+        is_converged = (self.solver).SolveSolutionStep()
+        return is_converged
 
-    def SolverFinalizeSolutionStep(self):
+    def StrategyFinalizeSolutionStep(self):
         (self.solver).FinalizeSolutionStep()
 
     def Solve(self):
-        self.SolverInitialize()
-        self.SolverInitializeSolutionStep()
-        self.SolverPredict()
-        self.SolverSolveSolutionStep()
-        self.SolverFinalizeSolutionStep()
+        self.StrategyInitialize()
+        self.StrategyInitializeSolutionStep()
+        self.StrategyPredict()
+        self.StrategySolveSolutionStep()
+        self.StrategyFinalizeSolutionStep()
 
     def _ModelPartReading(self):
         ## Model part reading

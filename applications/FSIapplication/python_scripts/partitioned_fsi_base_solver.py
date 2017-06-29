@@ -261,23 +261,22 @@ class PartitionedFSIBaseSolver:
 
     def Initialize(self):
         # Initialize fluid, structure and coupling solvers
-        self.fluid_solver.SolverInitialize()
-        self.structure_solver.InitializeStrategy()
+        self.fluid_solver.StrategyInitialize()
+        self.structure_solver.StrategyInitialize()
         self.coupling_utility.Initialize()
 
 
     def InitializeSolutionStep(self):
         # Initialize solution step of fluid, structure and coupling solvers
-        self.fluid_solver.SolverInitializeSolutionStep()
-        self.structure_solver.InitializeSolutionStep()
+        self.fluid_solver.StrategyInitializeSolutionStep()
+        self.structure_solver.StrategyInitializeSolutionStep()
         self.coupling_utility.InitializeSolutionStep()
 
 
     def Predict(self):
         # Perform fluid and structure solvers predictions
-        self.fluid_solver.SolverPredict()
-        self.structure_solver.Predict()
-
+        self.fluid_solver.StrategyPredict()
+        self.structure_solver.StrategyPredict()
 
     def GetComputingModelPart(self):
         pass

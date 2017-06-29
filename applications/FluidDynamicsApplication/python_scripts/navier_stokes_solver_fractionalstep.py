@@ -182,7 +182,7 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
         print ("Initialization NavierStokesSolver_FractionalStep finished.")
 
 
-    def SolverFinalizeSolutionStep(self):
+    def StrategyFinalizeSolutionStep(self):
         (self.solver).FinalizeSolutionStep()
         if(self.compute_reactions):
             (self.solver).CalculateReactions()
