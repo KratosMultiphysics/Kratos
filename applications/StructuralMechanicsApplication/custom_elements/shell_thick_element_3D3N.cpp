@@ -13,6 +13,8 @@
 #include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
 #include "structural_mechanics_application_variables.h"
 
+#include "custom_constitutive/linear_elastic_orthotropic_2D_law.hpp"
+
 #include "geometries/triangle_3d_3.h"
 
 #include <string>
