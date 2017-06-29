@@ -1066,7 +1066,7 @@ namespace Kratos
         Matrix& J0, 
         Matrix& InvJ0, 
         Matrix& DN_DX, 
-        const unsigned int point_number,
+        const unsigned int PointNumber,
         IntegrationMethod ThisIntegrationMethod
         )
     {
@@ -1074,7 +1074,7 @@ namespace Kratos
         
         double detJ0;
         
-        const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[point_number];
+        const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
         
         for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
         {
@@ -1093,6 +1093,59 @@ namespace Kratos
         noalias( DN_DX ) = prod( DN_De, InvJ0);
         
         return detJ0;
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
+    
+    Vector BaseSolidElement::GetBodyForce()
+    {
+        Vector body_force = ZeroVector(3);
+        
+        double density = 0.0;
+        if (GetProperties().Has( DENSITY ) == true)
+        {
+            density = GetProperties()[DENSITY];
+        }
+        if (GetProperties().Has( VOLUME_ACCELERATION ) == true)
+        {
+            body_force += density * GetProperties()[VOLUME_ACCELERATION];
+        }
+        if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) )
+        {
+            body_force += density * GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+        }
+        
+        return body_force;
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
+
+    void BaseSolidElement::CalculateAndAddExtForceContribution(
+        const Vector& N,
+        const ProcessInfo& CurrentProcessInfo,
+        const Vector& BodyForce,
+        VectorType& rRightHandSideVector,
+        const double Weight
+        )
+    {
+        KRATOS_TRY;
+        
+        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            const unsigned int index = dimension * i;
+
+            for ( unsigned int j = 0; j < dimension; j++ ) 
+            {
+                rRightHandSideVector[index + j] += Weight * N[i] * BodyForce[j];
+            }
+        }
+
+        KRATOS_CATCH( "" )
     }
 
 } // Namespace Kratos
