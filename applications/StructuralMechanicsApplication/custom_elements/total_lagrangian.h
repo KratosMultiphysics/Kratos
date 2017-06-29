@@ -241,14 +241,6 @@ private:
 
     void InitializeVariables();
 
-    void CalculateAndAdd_ExtForceContribution(
-        const Vector& N,
-        const ProcessInfo& CurrentProcessInfo,
-        Vector& BodyForce,
-        VectorType& mResidualVector,
-        double weight
-    );
-
     void CalculateB(
         Matrix& B,
         Matrix& F,
