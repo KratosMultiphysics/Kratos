@@ -2,7 +2,7 @@
 //   Project Name:        Kratos       
 //   Last Modified by:    $Author:  Miguel Masó Sotomayor$
 //   Date:                $Date:            april 26 2017$
-//   Revision:            $Revision:                 1.3 $
+//   Revision:            $Revision:                 1.4 $
 //
 //
 
@@ -27,7 +27,8 @@
 #include "shallow_water_application_variables.h"
 #include "custom_elements/projected_swe.h"             // Including the file for the element
 #include "custom_elements/non_conservative_dc.h"       // Inlcuding the file for the element with discontinuity capturing
-#include "custom_elements/eulerian_non_conservative.h" // Inlcuding the file for the element with discontinuity capturing
+#include "custom_elements/non_conservative_stab.h"     // Inlcuding the file for the element with stabilization
+#include "custom_elements/eulerian_non_conservative.h" // Inlcuding the file for the eulerian element
 #include "includes/condition.h"                        // We'll also need conditions for the point heat loads
 #include "includes/ublas_interface.h"
 
@@ -191,6 +192,7 @@ namespace Kratos
 		///@{ 
 		const ProjectedSWE mProjectedSWE;                        // Element
 		const NonConservativeDC mNonConservativeDC;              // Element with discontinuty capturing
+		const NonConservativeStab mNonConservativeStab;          // Element with stabilization
 		const EulerianNonConservative mEulerianNonConservative;  // Eulerian element
 
 

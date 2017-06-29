@@ -15,6 +15,7 @@ set( KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/projected_swe.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/non_conservative_dc.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/non_conservative_stab.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/eulerian_non_conservative.cpp
 )
 
