@@ -12,7 +12,21 @@ def AddNodalVariables(model_part, variable_list):
     for var in variable_list:
         model_part.AddNodalSolutionStepVariable(var)
 
-def AddingExtraProcessInfoVariables(pp, fluid_model_part, dem_model_part):
+def AddingExtraProcessInfoVariables(pp, fluid_model_part, dem_model_part): #DEPRECATED!
+    
+    AddExtraProcessInfoVariablesToFluidModelPart(pp, fluid_model_part)
+    AddExtraProcessInfoVariablesToDispersePhaseModelPart(pp, dem_model_part)
+    
+# constructing lists of variables to add
+# * Performing modifications to the input parameters for consistency (provisional until interface does it)
+# * Choosing the variables to be printed
+# * Choosing the variables to be passed as a parameter to the constructor of a ProjectionModule
+#       instance to be filled with the other phase's info through the coupling process
+# * Listing nodal variables to be added to the model parts (memory will be allocated for them).
+#       Note that additional variables may be added as well by the fluid and/or DEM strategies.
+
+def AddExtraProcessInfoVariablesToFluidModelPart(pp, fluid_model_part):
+    
     fluid_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1)
     gravity = Vector(3)
     if pp.CFD_DEM.body_force_on_fluid_option:
@@ -28,7 +42,9 @@ def AddingExtraProcessInfoVariables(pp, fluid_model_part, dem_model_part):
 
     if pp.CFD_DEM.material_acceleration_calculation_type == 5 or pp.CFD_DEM.material_acceleration_calculation_type == 6:
          fluid_model_part.ProcessInfo.SetValue(CURRENT_COMPONENT, 0)
-
+         
+def AddExtraProcessInfoVariablesToDispersePhaseModelPart(pp, dem_model_part):
+    
     dem_model_part.ProcessInfo.SetValue(COUPLING_TYPE, pp.CFD_DEM.coupling_level_type)
     dem_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, pp.CFD_DEM.buoyancy_force_type)
     dem_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, pp.CFD_DEM.drag_force_type)
@@ -50,14 +66,7 @@ def AddingExtraProcessInfoVariables(pp, fluid_model_part, dem_model_part):
         dem_model_part.ProcessInfo.SetValue(TIME_STEPS_PER_QUADRATURE_STEP, pp.CFD_DEM.time_steps_per_quadrature_step)
         dem_model_part.ProcessInfo.SetValue(LAST_TIME_APPENDING, 0.0)
         dem_model_part.ProcessInfo.SetValue(QUADRATURE_ORDER, pp.CFD_DEM.quadrature_order)
-
-# constructing lists of variables to add
-# * Performing modifications to the input parameters for concistency (provisional until interface does it)
-# * Choosing the variables to be printed
-# * Choosing the variables to be passed as a parameter to the constructor of a ProjectionModule
-#       instance to be filled with the other phase's info through the coupling process
-# * Listing nodal variables to be added to the model parts (memory will be allocated for them).
-#       Note that additional variables may be added as well by the fluid and/or DEM strategies.
+    
 
 def ConstructListsOfVariables(pp):
 
@@ -113,6 +122,9 @@ def ConstructListsOfVariables(pp):
         pp.fluid_vars += [GEL_STRENGTH]
         pp.fluid_vars += [YIELD_STRESS]
         pp.fluid_vars += [BINGHAM_SMOOTHER]
+
+    if pp.CFD_DEM.calculate_diffusivity_option:
+        pp.fluid_vars += [CONDUCTIVITY]
 
     # dem variables
     pp.dem_vars = []
@@ -216,6 +228,9 @@ def ConstructListsOfResultsToPrint(pp):
         if pp.CFD_DEM.print_FLUID_FRACTION_PROJECTED_option:
             pp.dem_nodal_results += ["FLUID_FRACTION_PROJECTED"]
 
+        if pp.CFD_DEM.print_FLUID_FRACTION_GRADIENT_PROJECTED_option:
+            pp.dem_nodal_results += ["FLUID_FRACTION_GRADIENT_PROJECTED"]
+
         if pp.CFD_DEM.print_FLUID_VISCOSITY_PROJECTED_option:
             pp.dem_nodal_results += ["FLUID_VISCOSITY_PROJECTED"]
 
@@ -251,6 +266,7 @@ def ConstructListsOfResultsToPrint(pp):
     pp.clusters_printing_vars = []
     pp.fluid_printing_vars = []
     pp.rigid_faces_printing_vars = []
+    pp.time_filtered_vars = []
 
     for variable in pp.nodal_results:
         pp.fluid_printing_vars += [eval(variable)]
@@ -273,7 +289,7 @@ def ConstructListsOfResultsToPrint(pp):
         if var in pp.nodal_results:
             pp.nodal_results.remove(var)
             
-    if (not pp.CFD_DEM.print_PRESSURE_option):
+    if not pp.CFD_DEM.print_PRESSURE_option:
         if "PRESSURE" in pp.nodal_results:
             pp.nodal_results.remove("PRESSURE")
 
@@ -298,8 +314,13 @@ def ConstructListsOfVariablesForCoupling(pp):
     if pp.CFD_DEM.fluid_model_type == 0 or pp.CFD_DEM.coupling_level_type >= 1 or pp.CFD_DEM.drag_force_type == 4:
         pp.coupling_fluid_vars += [FLUID_FRACTION]
         
-        if pp.CFD_DEM.print_SOLID_FRACTION_option:
-            pp.coupling_fluid_vars += [SOLID_FRACTION]
+        if pp.CFD_DEM.print_DISPERSE_FRACTION_option:
+            pp.coupling_fluid_vars += [DISPERSE_FRACTION]
+
+        if pp.CFD_DEM.filter_velocity_option:
+            pp.coupling_fluid_vars += [PARTICLE_VEL_FILTERED]
+            pp.coupling_fluid_vars += [TIME_AVERAGED_ARRAY_3]
+            pp.coupling_fluid_vars += [PHASE_FRACTION]
 
     if pp.CFD_DEM.fluid_model_type >= 1:
         pp.coupling_fluid_vars += [FLUID_FRACTION_GRADIENT]
@@ -345,6 +366,9 @@ def ConstructListsOfVariablesForCoupling(pp):
     if pp.CFD_DEM.coupling_level_type >= 1 or pp.CFD_DEM.fluid_model_type == 0:
         pp.coupling_dem_vars += [FLUID_FRACTION_PROJECTED]
 
+    if pp.CFD_DEM.coupling_level_type >= 1 and pp.CFD_DEM.print_FLUID_FRACTION_GRADIENT_PROJECTED_option:
+        pp.coupling_dem_vars += [FLUID_FRACTION_GRADIENT_PROJECTED]
+
     if pp.CFD_DEM.lift_force_type == 1:
         pp.coupling_dem_vars += [FLUID_VORTICITY_PROJECTED]
         pp.coupling_dem_vars += [SHEAR_RATE_PROJECTED]
@@ -364,6 +388,13 @@ def ConstructListsOfVariablesForCoupling(pp):
     if pp.CFD_DEM.print_REYNOLDS_NUMBER_option:
         pp.coupling_dem_vars += [REYNOLDS_NUMBER]
 
+    if pp.CFD_DEM.apply_time_filter_to_fluid_fraction:
+        pp.time_filtered_vars += [FLUID_FRACTION_FILTERED]
+
+    if pp.CFD_DEM.filter_velocity_option:
+        pp.time_filtered_vars += [PARTICLE_VEL_FILTERED]
+
+
 def ChangeListOfFluidNodalResultsToPrint(pp):
     pp.nodal_results += ["TORQUE"]
     if pp.CFD_DEM.store_full_gradient and pp.CFD_DEM.print_VELOCITY_GRADIENT_option:    
@@ -377,8 +408,15 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
     if pp.CFD_DEM.print_FLUID_FRACTION_option:
         pp.nodal_results += ["FLUID_FRACTION"]
 
-    if pp.CFD_DEM.print_SOLID_FRACTION_option:
-        pp.nodal_results += ["SOLID_FRACTION"]
+    if pp.CFD_DEM.print_PARTICLE_VEL_option:
+        pp.nodal_results += ["PARTICLE_VEL_FILTERED"]
+
+    if pp.CFD_DEM.print_FLUID_FRACTION_GRADIENT_option:
+        pp.nodal_results += ["FLUID_FRACTION_GRADIENT"]
+
+    if pp.CFD_DEM.print_DISPERSE_FRACTION_option:
+        pp.nodal_results += ["DISPERSE_FRACTION"]
+        pp.nodal_results += ["PHASE_FRACTION"]
 
     if pp.CFD_DEM.fluid_model_type == 0 and pp.CFD_DEM.print_AVERAGED_FLUID_VELOCITY_option:
         pp.nodal_results += ["AVERAGED_FLUID_VELOCITY"]
@@ -409,6 +447,9 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
 
     if pp.CFD_DEM.print_VELOCITY_LAPLACIAN_RATE_option:
         pp.nodal_results += ["VELOCITY_LAPLACIAN_RATE"]
+
+    if pp.CFD_DEM.print_CONDUCTIVITY_option:
+        pp.nodal_results += ["CONDUCTIVITY"]
 
 def ChangeInputDataForConsistency(pp):
     pp.CFD_DEM.project_at_every_substep_option *= (pp.CFD_DEM.coupling_level_type > 0)

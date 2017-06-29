@@ -47,10 +47,10 @@ class MechanicalSolver(object):
             "implex": false,
             "compute_reactions": true,
             "compute_contact_forces": false,
-            "block_builder": false,
+            "block_builder": true,
+            "move_mesh_flag": true,
             "clear_storage": false,
             "component_wise": false,
-            "move_mesh_flag": true,
             "convergence_criterion": "Residual_criteria",
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
@@ -80,90 +80,71 @@ class MechanicalSolver(object):
         
         print("Warning: Construction of Base Mechanical Solver finished")
 
+    
+    def SetVariables(self):
         
-    def AddVariables(self):
+        self.nodal_variables = []
+        self.dof_variables   = []
+        self.dof_reactions   = [] 
         
         # Add displacements
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        self.dof_variables = self.dof_variables + ['DISPLACEMENT']
+        self.dof_reactions = self.dof_reactions + ['REACTION'] 
+        
         # Add dynamic variables
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
-        # Add reactions for the displacements
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        # Add nodal force variables
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FORCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_FORCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
+        if(self.settings["solution_type"].GetString() == "Dynamic"):
+            self.dof_variables = self.dof_variables + ['VELOCITY','ACCELERATION']
+            self.dof_reactions = self.dof_reactions + ['NOT_DEFINED','NOT_DEFINED']
+        
         # Add specific variables for the problem conditions
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.POINT_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.LINE_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.SURFACE_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
-
+        self.nodal_variables = self.nodal_variables + ['VOLUME_ACCELERATION','POSITIVE_FACE_PRESSURE','NEGATIVE_FACE_PRESSURE','POINT_LOAD','LINE_LOAD','SURFACE_LOAD']
+        
+        # Add nodal force variables for component wise calculation
+        if self.settings["component_wise"].GetBool():
+            self.nodal_variables = self.nodal_variables + ['INTERNAL_FORCE','EXTERNAL_FORCE']
+ 
+        # Add rotational variables
         if self.settings["rotation_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
+            self.dof_variables = self.dof_variables + ['ROTATION']
+            self.dof_reactions = self.dof_reactions + ['TORQUE']
+            if(self.settings["solution_type"].GetString() == "Dynamic"):
+                self.dof_variables = self.dof_variables + ['ANGULAR_VELOCITY','ANGULAR_ACCELERATION']
+                self.dof_reactions = self.dof_reactions + ['NOT_DEFINED','NOT_DEFINED']
+            # Add specific variables for the problem conditions
+            self.nodal_variables = self.nodal_variables + ['POINT_MOMENT']
+
+        # Add pressure variables
         if self.settings["pressure_dofs"].GetBool():
             # Add specific variables for the problem (pressure dofs)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.PRESSURE_REACTION)
-                    
+            self.dof_variables = self.dof_variables + ['PRESSURE']
+            self.dof_reactions = self.dof_reactions + ['PRESSURE_REACTION']
+                
+        
+    def AddVariables(self):
+
+        self.SetVariables()
+        
+        self.nodal_variables = self.nodal_variables + self.dof_variables + self.dof_reactions 
+
+        self.nodal_variables = [self.nodal_variables[i] for i in range(0,len(self.nodal_variables)) if self.nodal_variables[i] is not 'NOT_DEFINED']
+
+        for variable in self.nodal_variables:
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
         print("::[Mechanical Solver]:: Variables ADDED")
-
-
+                                                              
+    
     def GetMinimumBufferSize(self):
         return 2;
 
+    
     def AddDofs(self):
 
-        for node in self.main_model_part.Nodes:
-            # adding dofs
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X);
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y);
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z);
-            
-        if(self.settings["solution_type"].GetString() == "Dynamic"):
-            for node in self.main_model_part.Nodes:
-                # adding first derivatives as dofs
-                node.AddDof(KratosMultiphysics.VELOCITY_X);
-                node.AddDof(KratosMultiphysics.VELOCITY_Y);
-                node.AddDof(KratosMultiphysics.VELOCITY_Z);
-                # adding second derivatives as dofs
-                node.AddDof(KratosMultiphysics.ACCELERATION_X);
-                node.AddDof(KratosMultiphysics.ACCELERATION_Y);
-                node.AddDof(KratosMultiphysics.ACCELERATION_Z);                
-            
-        if self.settings["rotation_dofs"].GetBool():
-            for node in self.main_model_part.Nodes:
-                node.AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X);
-                node.AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y);
-                node.AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z);
+        AddDofsProcess = KratosSolid.AddDofsProcess(self.main_model_part, self.dof_variables, self.dof_reactions)
+        AddDofsProcess.Execute()
                 
-        if(self.settings["solution_type"].GetString() == "Dynamic" and self.settings["rotation_dofs"].GetBool()):
-            for node in self.main_model_part.Nodes:       
-                # adding first derivatives as dofs
-                node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_X);
-                node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Y);
-                node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Z);
-                # adding second derivatives as dofs
-                node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_X);
-                node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Y);
-                node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Z);
-                    
-        if self.settings["pressure_dofs"].GetBool():                
-            for node in self.main_model_part.Nodes:
-                node.AddDof(KratosMultiphysics.PRESSURE, KratosSolid.PRESSURE_REACTION);
-            if not self.settings["stabilization_factor"].IsNull():
-                self.main_model_part.ProcessInfo[KratosMultiphysics.STABILIZATION_FACTOR] = self.settings["stabilization_factor"].GetDouble()
-
         print("::[Mechanical Solver]:: DOF's ADDED")
-
-
+        
     def ImportModelPart(self):
         
         print("::[Mechanical Solver]:: Model reading starts.")
@@ -209,6 +190,11 @@ class MechanicalSolver(object):
 
         else:
             raise Exception("Other input options are not yet implemented.")
+
+
+        if self.settings["pressure_dofs"].GetBool():
+            if not self.settings["stabilization_factor"].IsNull():
+                self.main_model_part.ProcessInfo[KratosMultiphysics.STABILIZATION_FACTOR] = self.settings["stabilization_factor"].GetDouble()
         
         print ("::[Mechanical Solver]:: Model reading finished.")
  

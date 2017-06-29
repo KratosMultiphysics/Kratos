@@ -46,7 +46,8 @@ void Bentonite_Force_Based_Inlet::UpdateInjectionForce(Element* p_element)
 }
 
 void Bentonite_Force_Based_Inlet::FixInjectorConditions(Element* p_element)
-{
+{    //AddRandomPerpendicularComponentToGivenVector(mInjectionForce, 60); // the max angle should be an INPUT
+
     Node<3>& node = p_element->GetGeometry()[0];
     node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = GetInjectionForce(p_element);
 }
@@ -55,7 +56,9 @@ array_1d<double, 3> Bentonite_Force_Based_Inlet::GetInjectionForce(Element* p_el
 {
     DEM_D_Bentonite_Colloid* p_law = dynamic_cast<DEM_D_Bentonite_Colloid*>(dynamic_cast<SphericParticle*>(p_element)->GetConstitutiveLawPointer().get());
     const double normal_force_modulus = fabs(p_law->CalculateNormalForce(1e-7, mCationConcentration));
-    return normal_force_modulus * mInjectionForce;
+    array_1d<double, 3 > unitary_vector = mInjectionForce;
+    //AddRandomPerpendicularComponentToGivenVector(unitary_vector, 60); // the max angle should be an INPUT
+    return normal_force_modulus * unitary_vector;
 }
 
 } // namespace Kratos

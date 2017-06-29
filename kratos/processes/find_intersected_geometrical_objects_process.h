@@ -250,12 +250,28 @@ namespace Kratos
 	  /// Destructor.
 	  virtual ~FindIntersectedGeometricalObjectsProcess() {}
 
+	  ///@name Member Variables
+	  ///@{
+
+	  std::vector<PointerVector<GeometricalObject>> mIntersectedObjects;
 
       ///@}
       ///@name Operations
       ///@{
 
 	  virtual void Initialize();
+
+	  virtual void FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults);
+
+	  virtual void FindIntersections();
+
+	  virtual std::vector<PointerVector<GeometricalObject>>& GetIntersections();
+
+	  virtual ModelPart& GetModelPart1();
+
+	  virtual OctreeBinary<OctreeBinaryCell<Internals::DistanceSpatialContainersConfigure>>* GetOctreePointer();
+
+	  virtual void Clear();
 
 	  virtual void Execute() override;
 
@@ -264,20 +280,15 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const;
+      virtual std::string Info() const override;
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const;
+      virtual void PrintInfo(std::ostream& rOStream) const override;
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const;
+      virtual void PrintData(std::ostream& rOStream) const override;
 
       ///@}
-
-	protected:
-
-		void FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults);
-		ModelPart& GetModelPart1();
 
     private:
       ///@name Static Member Variables

@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import math
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import *
+#from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 import sys
@@ -25,7 +25,7 @@ class ProjectionModule:
         self.do_impose_flow_from_field   = pp.CFD_DEM.do_impose_flow_from_field
         self.flow_field                  = flow_field
 
-        if (self.dimension == 3):
+        if self.dimension == 3:
 
             if pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
                 self.projector = BinBasedNanoDEMFluidCoupledMapping3D(self.min_fluid_fraction, self.coupling_type, self.time_averaging_type , self.viscosity_modification_type)
@@ -53,7 +53,11 @@ class ProjectionModule:
         for var in pp.coupling_dem_vars:
             if var in {FLUID_VEL_PROJECTED, FLUID_ACCEL_PROJECTED, FLUID_VEL_LAPL_PROJECTED, FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED}:
                 self.projector.AddDEMVariablesToImpose(var)
+                pp.coupling_dem_vars.remove(var)
             self.projector.AddDEMVariablesToImpose(SLIP_VELOCITY)
+
+        for var in pp.time_filtered_vars:
+            self.projector.AddFluidVariableToBeTimeFiltered(var, 0.004)
 
         # calculating the fluid nodal areas that are needed for the coupling
 
@@ -62,7 +66,7 @@ class ProjectionModule:
 
     def UpdateDatabase(self, HMin):
 
-        if (self.dimension == 3):
+        if self.dimension == 3:
             self.bin_of_objects_fluid.UpdateSearchDatabase()
 
         else:
@@ -71,7 +75,7 @@ class ProjectionModule:
     def ApplyForwardCoupling(self, alpha = None):
         if self.do_impose_flow_from_field:
             self.ImposeFluidFlowOnParticles()
-        elif alpha == None:
+        if alpha == None:
             self.ProjectFromNewestFluid()
         else:
             self.ProjectFromFluid(alpha)
@@ -98,8 +102,8 @@ class ProjectionModule:
         self.projector.ImposeVelocityOnDEMFromField(self.flow_field, self.particles_model_part)
 
     def ProjectFromParticles(self, recalculate_neigh = True):
-        print("\nProjecting from particles to the fluid...")
-        sys.stdout.flush()
+        #print("\nProjecting from particles to the fluid...")
+        #sys.stdout.flush()
 
         if self.coupling_type != 3:
             self.projector.InterpolateFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.bin_of_objects_fluid)
@@ -107,8 +111,8 @@ class ProjectionModule:
         else:
             self.projector.HomogenizeFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.meso_scale_length, self.shape_factor, recalculate_neigh)
 
-        print("\nFinished projecting from particles to the fluid...")
-        sys.stdout.flush()
+        #print("\nFinished projecting from particles to the fluid...")
+        #sys.stdout.flush()
 
     def ComputePostProcessResults(self, particles_process_info):
         self.projector.ComputePostProcessResults(self.particles_model_part, self.fluid_model_part, self.FEM_DEM_model_part, self.bin_of_objects_fluid, particles_process_info)

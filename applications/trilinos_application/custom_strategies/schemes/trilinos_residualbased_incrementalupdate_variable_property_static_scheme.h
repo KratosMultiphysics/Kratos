@@ -65,7 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
 #include "includes/convection_diffusion_settings.h"
 
-#include "includes/dem_variables.h" ///@TODO:Remove this once we have app-specific variables that work properly
+#include "includes/deprecated_variables.h"  // For SOLID_FRACTION and SOLID_FRACTION_RATE
 
 namespace Kratos
 {
@@ -181,7 +181,7 @@ public:
 //          const Variable<double>& rDiffusionVar = my_settings->GetDiffusionVariable();
 //          const Variable<double>& rTransferCoef = my_settings->GetTransferCoefficientVariable();
 //          // const double amb_temp = CurrentProcessInfo[AMBIENT_TEMPERATURE];
-	      
+
 
 //        ModelPart::TableType rDensityVar_table = r_model_part.GetTable(1);
 //        ModelPart::TableType C_table = r_model_part.GetTable(2);
@@ -191,8 +191,8 @@ public:
 //        ModelPart::TableType HTC_table = r_model_part.GetTable(7);
 
 //        double density_var = r_model_part.GetProcessInfo()[DENSITY];
-	    
-	    
+
+
 //// 	      for(typename ModelPart::NodesContainerType::iterator ind=r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
 //          #pragma omp parallel for
 //          for (int k = 0; k< static_cast<int> (r_model_part.Nodes().size()); k++)
@@ -207,7 +207,7 @@ public:
 //              ind->FastGetSolutionStepValue(rTransferCoef) = htc_var/(rho*cc);	*/
 //              double htc_var = HTC_table.GetValue(unknown_val);
 //              ind->FastGetSolutionStepValue(rTransferCoef) = htc_var;
-		      
+
 //            if(dist < 0){
 //             // double density_var = rDensityVar_table.GetValue(unknown_val);
 //              double specific_heat_var =C_table.GetValue(unknown_val);
@@ -216,19 +216,19 @@ public:
 //              double conductvity_var = rDiffusionVar_table.GetValue(unknown_val);
 //              //double htc_var = HTC_table.GetValue(unknown_val);
 
-		      
+
 //              ind->FastGetSolutionStepValue(rDensityVar) = density_var;
 //              ind->FastGetSolutionStepValue(rDensityVar,1) = density_var;
-		      
+
 //              ind->FastGetSolutionStepValue(SPECIFIC_HEAT) = specific_heat_var;
 //              ind->FastGetSolutionStepValue(SPECIFIC_HEAT,1) = specific_heat_var;
-		      
+
 //              ind->FastGetSolutionStepValue(SOLID_FRACTION) = solid_fraction_var;
 //              ind->FastGetSolutionStepValue(SOLID_FRACTION,1) = solid_fraction_var;
-		      
+
 //              ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = solid_fraction_rate_var;
 //              ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE,1) = solid_fraction_rate_var;
-		      
+
 //              ind->FastGetSolutionStepValue(rDiffusionVar) = conductvity_var;
 //              ind->FastGetSolutionStepValue(rDiffusionVar,1) = conductvity_var;
 
@@ -246,7 +246,7 @@ public:
 //              ind->FastGetSolutionStepValue(rTransferCoef) = 1.0;
 //             // ind->FastGetSolutionStepValue(rUnknownVar) = amb_temp;
 //            }
-			
+
 //          }
 ////               mSchemeIsInitialized = true;
 //      }
@@ -752,7 +752,7 @@ private:
 //        double solid_fraction_var = F_table.GetValue(unknown_val);
 //        double solid_fraction_rate_var = DF_DT_table.GetValue(unknown_val);
 //        double conductvity_var = rDiffusionVar_table.GetValue(unknown_val);
-		
+
 //        ind->FastGetSolutionStepValue(rDensityVar) = density_var;
 //        ind->FastGetSolutionStepValue(SPECIFIC_HEAT) = specific_heat_var;
 //        ind->FastGetSolutionStepValue(SOLID_FRACTION) = solid_fraction_var;
@@ -769,7 +769,7 @@ private:
 //        ind->FastGetSolutionStepValue(rTransferCoef) = 1.0;
 //        //ind->FastGetSolutionStepValue(rUnknownVar) = amb_temp;
 //        }
-			
+
 //    }
    }
 
@@ -808,4 +808,3 @@ private:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_TRILINOS_STANDARD_STATIC_SCHEME  defined */
-

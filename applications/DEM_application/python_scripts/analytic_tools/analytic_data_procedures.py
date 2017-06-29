@@ -3,7 +3,16 @@ import h5py
 import numpy as np
 import os
 
-class WatcherAnalyzer:
+class ParticleWatcherAnalyzer:
+    def __init__(self, analytic_particle_watcher, path, do_clear_data = True):
+        self.particle_watcher = analytic_particle_watcher
+
+    # call everytime post results are generated
+    def SetNodalMaxImpactVelocities(self, analytic_model_part):
+        self.analytic_particle_watcher.SetNodalMaxImpactVelocities(analytic_model_part)
+
+
+class FaceWatcherAnalyzer:
     def __init__(self, analytic_face_watcher, path, do_clear_data = True):
         self.face_watcher = analytic_face_watcher
         self.dtype = np.float64
@@ -27,7 +36,7 @@ class WatcherAnalyzer:
         length = len(times)
         assert length == len(number_flux) == len(mass_flux)
         shape = (length, )
-        number_flux, mass_flux = self.CalculateAccumulated(length, number_flux, mass_flux)
+        number_flux, mass_flux = self.CalculateAccumulatedVectors(length, number_flux, mass_flux)
         if self.inlet is not None:
             self.inlet_accumulated_mass.append(self.inlet.GetMassInjectedSoFar())
             self.inlet_accumulated_number_of_particles.append(self.inlet.GetNumberOfParticlesInjectedSoFar())
@@ -56,7 +65,7 @@ class WatcherAnalyzer:
 
         return joint_list
 
-    def CalculateAccumulated(self, length, number_flux, mass_flux):
+    def CalculateAccumulatedVectors(self, length, number_flux, mass_flux):
         acc_number_flux = self.CalculateAccumulated(original_list = number_flux, old_accumulated = self.n_particles_accumulated)
         acc_mass_flux = self.CalculateAccumulated(original_list = mass_flux, old_accumulated = self.mass_accumulated)
 

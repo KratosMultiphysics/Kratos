@@ -65,7 +65,7 @@
         }
     }],
     "loads_process_list"       : [{
-        "python_module"   : "apply_scalar_on_conditions_process",
+        "python_module"   : "assign_scalar_to_conditions_process",
         "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
         "help"                  : "This process sets a scalar variable value over a condition",
         "process_name"          : "ApplyScalarOnConditionsProcess",
@@ -115,13 +115,15 @@
         }],
         "constraints" : [],
         "design_variables" : {
-            "variable_type"             : "vertex_morphing", 
+            "design_variables_type"     : "vertex_morphing", 
             "input_model_part_name"     : "3D_Hook",
             "design_submodel_part_name" : "design_surface",
             "domain_size"               : 3,
             "filter" : {
-                "filter_function_type" : "linear",
-                "filter_radius"        : 30
+                "filter_function_type"       : "linear",
+                "filter_radius"              : 30,
+                "max_nodes_in_filter_radius" : 10000,
+                "matrix_free_filtering"      : true 
             },
             "damping" : {
                 "perform_damping" : true,
