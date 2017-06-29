@@ -94,6 +94,11 @@ class KratosExecuteConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         return v
 
     def setUp(self):
+
+        # So far, the MPI convergence accelerator tests must be run with 2 processes
+        if (mpi.size != 2):
+            raise Exception("The MPI convergence accelerator tests must be run with 2 processes.")
+
         self.print_gid_output = False
         self.aitken_tolelance = 1e-10
         self.aitken_iterations = 50
