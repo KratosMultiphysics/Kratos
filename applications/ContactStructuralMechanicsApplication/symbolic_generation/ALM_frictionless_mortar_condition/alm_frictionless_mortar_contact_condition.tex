@@ -352,10 +352,10 @@ Considering the discrete \textit{Lagrange multiplier}\eqref{eq:eq14} in \eqref{e
 
 Numerical integration of the mortar coupling terms is exclusively performed on the slave side $\Gamma_{c,h}$ of the interface. In \eqref{eq:eq20}, nodal blocks of the two mortar integral matrices commonly denoted as $\mathbf{D}$ and $\mathbf{M}$ can be identified. This leads to the following definitions \eqref{eq:eq21}.
 
-\begin{subequations}\label{eq:eq21}
+ \begin{subequations}\label{eq:eq21}
  \begin{align}
- & \mathbf{D}[j,k] = D_{jk} \mathbf{I}_{ndim} = \int_{\Gamma_{c,h}^{(1)}} \Phi_j N_k^{(1)}\text{d}A_0\mathbf{I}_{ndim}\text{ , } j=1,...m^{(1)}\text{ , } k= 1, ...n^{(1)} \\
- & \mathbf{M}[j,l] = M_{jl} \mathbf{I}_{ndim} = \int_{\Gamma_{c,h}^{(1)}} \Phi_j \left(N_l^{(2)} \circ \chi_h \right)\text{d}A_0\mathbf{I}_{ndim}\text{ , } j=1,...m^{(1)}\text{ , } k= 1, ...n^{(2)}
+ & \mathbf{D}[j,k] = D_{jk} \mathbf{I}_{ndim} = \int_{\Gamma_{c,h}^{(1)}} \Phi_j N_k^{(1)}\text{d}A_0\mathbf{I}_{ndim}\text{ , } j=1,...m^{(1)}\text{ , } k= 1, ...n^{(1)} = \sum_{g = 1}^{n_{gp}} w_g \phi_{gj} N_{gk}^{(1)} J_g^{(1)} \\
+ & \mathbf{M}[j,l] = M_{jl} \mathbf{I}_{ndim} = \int_{\Gamma_{c,h}^{(1)}} \Phi_j \left(N_l^{(2)} \circ \chi_h \right)\text{d}A_0\mathbf{I}_{ndim}\text{ , } j=1,...m^{(1)}\text{ , } k= 1, ...n^{(2)} = \sum_{g = 1}^{n_{gp}} w_g \phi_{gj} N_{gk}^{(2)} J_g^{(1)} 
  \end{align}
 \end{subequations}
 
