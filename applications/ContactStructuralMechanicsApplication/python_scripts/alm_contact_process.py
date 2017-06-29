@@ -44,6 +44,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "use_exact_integration"       : true,
             "hard_clear_after_step"       : false,
             "integration_order"           : 2,
+            "predict_with_linear_solver"  : false,
             "debug_mode"                  : false
         }
         """)
@@ -75,6 +76,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
         self.pair_variation  = self.params["pair_variation"].GetBool()
         self.integration_order = self.params["integration_order"].GetInt() 
         self.frictional_law = self.params["frictional_law"].GetString()
+        self.predict_with_linear_solver = self.params["predict_with_linear_solver"].GetBool()
         self.debug_mode = self.params["debug_mode"].GetBool()
         self.hard_clear_after_step = self.params["hard_clear_after_step"].GetBool()
         
@@ -229,6 +231,32 @@ class ALMContactProcess(KratosMultiphysics.Process):
             self.contact_search.TotalClearComponentsMortarConditions()
     
     def ExecuteInitializeSolutionStep(self):
+        # We solve one linear step with a linear strategy if needed
+        if (self.predict_with_linear_solver == True and self.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS] > 1):
+            linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+            scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+            convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
+            
+            compute_reactions = True
+            reform_step_dofs = True
+            calculate_norm_dx = False
+            move_mesh_flag = True
+            strategy = KratosMultiphysics.ResidualBasedLinearStrategy(self.main_model_part, 
+                                                                    scheme, 
+                                                                    linear_solver, 
+                                                                    builder_and_solver, 
+                                                                    compute_reactions, 
+                                                                    reform_step_dofs, 
+                                                                    calculate_norm_dx,
+                                                                    move_mesh_flag
+                                                                    )
+            strategy.SetEchoLevel(0)
+            strategy.Check()
+            strategy.Solve()
+            
+            self._clear_sets()
+        
         self.contact_search.UpdateMortarConditions()
         #self.contact_search.CheckMortarConditions()
             
@@ -259,6 +287,13 @@ class ALMContactProcess(KratosMultiphysics.Process):
         pass
 
     def ExecuteAfterOutputStep(self):
+        if (self.predict_with_linear_solver == False):
+            self._clear_sets()
+            
+    def ExecuteFinalize(self):
+        pass
+
+    def _clear_sets(self):
         if (self.hard_clear_after_step == True):
             if self.params["contact_type"].GetString() == "Frictionless":  
                 self.contact_search.HardClearALMFrictionlessMortarConditions()
@@ -269,7 +304,3 @@ class ALMContactProcess(KratosMultiphysics.Process):
                 self.contact_search.PartialClearALMFrictionlessMortarConditions()
             else:
                 self.contact_search.PartialClearComponentsMortarConditions()
-            
-    def ExecuteFinalize(self):
-        pass
-            

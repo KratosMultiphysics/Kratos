@@ -192,7 +192,7 @@ public:
     
     void TotalClearScalarMortarConditions()
     {
-        ResetContactOperators(mrMainModelPart);
+        ResetContactOperators();
         
         NodesArrayType& nodes_array = mrMainModelPart.Nodes();
         const int num_nodes = static_cast<int>(nodes_array.size());
@@ -212,7 +212,7 @@ public:
     
     void TotalClearComponentsMortarConditions()
     {
-        ResetContactOperators(mrMainModelPart);
+        ResetContactOperators();
         
         NodesArrayType& nodes_array = mrMainModelPart.Nodes();
         const int num_nodes = static_cast<int>(nodes_array.size());
@@ -236,7 +236,7 @@ public:
     
     void TotalClearALMFrictionlessMortarConditions()
     {        
-        ResetContactOperators(mrMainModelPart);
+        ResetContactOperators();
         
         NodesArrayType& nodes_array = mrMainModelPart.Nodes();
         const int num_nodes = static_cast<int>(nodes_array.size());
@@ -320,6 +320,8 @@ public:
     
     void HardClearScalarMortarConditions()
     {
+        ResetContactOperators();
+        
         NodesArrayType& nodes_array = mrMainModelPart.Nodes();
         const int num_nodes = static_cast<int>(nodes_array.size());
         
@@ -671,12 +673,11 @@ protected:
     
     /**
      * This resets the contact operators
-     * @param rModelPart: The model part where the contact operators are reset
      */
         
-    void ResetContactOperators(ModelPart & rModelPart)
+    void ResetContactOperators()
     {
-        ConditionsArrayType& conditions_array = rModelPart.Conditions();
+        ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
         const int num_conditions = static_cast<int>(conditions_array.size());
         
         #pragma omp parallel for 

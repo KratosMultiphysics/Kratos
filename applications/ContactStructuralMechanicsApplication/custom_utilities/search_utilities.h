@@ -106,6 +106,9 @@ public:
         const bool UseExactIntegration = true
         )
     {
+        // First we check if it is far away
+        if (ContactUtilities::DistanceCheck(pCond1->GetGeometry(), pCond2->GetGeometry()) == true) return;
+        
         // Define the basic information
         const double tolerance = std::numeric_limits<double>::epsilon();
         
