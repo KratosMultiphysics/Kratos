@@ -237,10 +237,11 @@ public:
 
         // Assemble the final consistent residual values
         auto& rLocalMesh = rInterfaceModelPart.GetCommunicator().LocalMesh();
-        #pragma omp parallel for firstprivate(rLocalMesh)
+        ModelPart::NodeIterator local_mesh_nodes_begin = rLocalMesh.NodesBegin();
+        #pragma omp parallel for firstprivate(local_mesh_nodes_begin)
         for(int k=0; k<static_cast<int>(rLocalMesh.NumberOfNodes()); ++k)
         {
-            const ModelPart::NodeIterator it_node = rLocalMesh.NodesBegin()+k;
+            const ModelPart::NodeIterator it_node = local_mesh_nodes_begin+k;
             const unsigned int base_i = k*TDim;
 
             const array_1d<double,3>& fsi_res = it_node->FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL);
@@ -302,10 +303,11 @@ public:
                                        VectorType& rCorrectedGuess)
     {
         auto& rLocalMesh = rInterfaceModelPart.GetCommunicator().LocalMesh();
-        #pragma omp parallel for firstprivate(rLocalMesh)
+        ModelPart::NodeIterator local_mesh_nodes_begin = rLocalMesh.NodesBegin();
+        #pragma omp parallel for firstprivate(local_mesh_nodes_begin)
         for(int k=0; k<static_cast<int>(rLocalMesh.NumberOfNodes()); ++k)
         {
-            const ModelPart::NodeIterator it_node = rLocalMesh.NodesBegin()+k;
+            const ModelPart::NodeIterator it_node = local_mesh_nodes_begin+k;
             const unsigned int base_i = k*TDim;
 
             array_1d<double,3>& updated_value = it_node->FastGetSolutionStepValue(rSolutionVariable);

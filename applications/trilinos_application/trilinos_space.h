@@ -556,15 +556,13 @@ public:
 
         const Epetra_CrsGraph& rGraph = pp->Graph();
         MatrixPointerType paux = boost::make_shared<Epetra_FECrsMatrix>( ::Copy, rGraph, false );
-        
-        IndexType NumMyRows = rGraph.RowMap().NumMyElements();
 
         IndexType NumMyRows = rGraph.RowMap().NumMyElements();
 
         int* MyGlobalElements = new int[NumMyRows];
         rGraph.RowMap().MyGlobalElements(MyGlobalElements);
-        
-        
+
+
         for(IndexType i = 0; i < NumMyRows; ++i)
         {
 //             std::cout << pA->Comm().MyPID() << " : I=" << i << std::endl;
