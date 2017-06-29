@@ -275,7 +275,7 @@ The functional \eqref{eq:eqalmfunct0} can be separated in two different parts, a
 Finally we can derive \eqref{eq:eqalmfunct1} to obtain the variational form from \eqref{eq:eqalmfunct2}, where to simplify we define the augmented normal pressure $\hat{\boldsymbol{\lambda}}_{n} = k\boldsymbol{\lambda}_n +\varepsilon \mathbf{g}_n $.
 
 \begin{equation}\label{eq:eqalmfunct2}
-  \mathcal{W}^{co}(\mathbf{u},\boldsymbol{\lambda}_n) = \sum_{i = 1}^2 \int_{\Gamma_c^{(i)}}\begin{cases}  \hat{\boldsymbol{\lambda}}_{n} \cdot \delta\mathbf{g}_n + k \mathbf{g}_n \delta\boldsymbol{\lambda}_n & \text{ if } \hat{\boldsymbol{\lambda}}_{n} \leq 0 \text{ (Contact zone)} \\  - \frac{k^2}{\varepsilon} \boldsymbol{\lambda}_n \delta\boldsymbol{\lambda}_n & \text{ if } \hat{\boldsymbol{\lambda}}_{n} > 0 \text{ (Gap zone)} \end{cases} \text{d}A_0 
+  \delta \mathcal{W}^{co}(\mathbf{u},\boldsymbol{\lambda}_n) = \sum_{i = 1}^2 \int_{\Gamma_c^{(i)}}\begin{cases}  \hat{\boldsymbol{\lambda}}_{n} \cdot \delta\mathbf{g}_n + k \mathbf{g}_n \delta\boldsymbol{\lambda}_n & \text{ if } \hat{\boldsymbol{\lambda}}_{n} \leq 0 \text{ (Contact zone)} \\  - \frac{k^2}{\varepsilon} \boldsymbol{\lambda}_n \delta\boldsymbol{\lambda}_n & \text{ if } \hat{\boldsymbol{\lambda}}_{n} > 0 \text{ (Gap zone)} \end{cases} \text{d}A_0 
 \end{equation}
 
 The functional from \eqref{eq:eqalmfunct2} makes that the system obtained varies in function if the nodes are present in the contact or the gap zone, so the system is not a priori known and in the following to present the numerical discretisation will focus in the solution obtained in the gap zone. Once this is derived the solution in the gap zone can be obtained in a in a straight-forward way.
