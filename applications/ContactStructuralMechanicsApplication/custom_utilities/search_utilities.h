@@ -106,9 +106,6 @@ public:
         const bool UseExactIntegration = true
         )
     {
-        // First we check if it is far away
-        if (ContactUtilities::DistanceCheck(pCond1->GetGeometry(), pCond2->GetGeometry()) == true) return;
-        
         // Define the basic information
         const double tolerance = std::numeric_limits<double>::epsilon();
         
@@ -136,7 +133,7 @@ public:
             
             if (dimension == 2 && number_of_nodes == 2)
             {
-                ExactMortarIntegrationUtility<2, 2> IntUtil = ExactMortarIntegrationUtility<2, 2>();
+                ExactMortarIntegrationUtility<2, 2> IntUtil = ExactMortarIntegrationUtility<2, 2>(1,-1.0);
                 std::vector<array_1d<PointType,2>> conditions_points_slave;
                 condition_is_active = IntUtil.GetExactIntegration(geom_1, ContactNormal1, geom_2, ContactNormal2, conditions_points_slave);
                 
@@ -147,7 +144,7 @@ public:
             }
             else if (dimension == 3 && number_of_nodes == 3)
             {
-                ExactMortarIntegrationUtility<3, 3> IntUtil = ExactMortarIntegrationUtility<3, 3>();
+                ExactMortarIntegrationUtility<3, 3> IntUtil = ExactMortarIntegrationUtility<3, 3>(1,-1.0);
                 std::vector<array_1d<PointType,3>> conditions_points_slave;
                 condition_is_active = IntUtil.GetExactIntegration(geom_1, ContactNormal1, geom_2, ContactNormal2, conditions_points_slave);
                 
@@ -158,7 +155,7 @@ public:
             }
             else if (dimension == 3 && number_of_nodes == 4)
             {
-                ExactMortarIntegrationUtility<3, 4> IntUtil = ExactMortarIntegrationUtility<3, 4>();
+                ExactMortarIntegrationUtility<3, 4> IntUtil = ExactMortarIntegrationUtility<3, 4>(1,-1.0);
                 std::vector<array_1d<PointType,3>> conditions_points_slave;
                 condition_is_active = IntUtil.GetExactIntegration(geom_1, ContactNormal1, geom_2, ContactNormal2, conditions_points_slave);
                 

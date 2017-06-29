@@ -712,6 +712,12 @@ public:
         const double DistFactor = 1.3333333333
         ) 
     {
+        // We do a little check that help us to extend the functionality
+        if (DistFactor < 0.0) 
+        {
+            return false;
+        }
+        
         const double distance = ContactUtilities::DistancePoints(OriginalSlaveGeometry.Center(), OriginalMasterGeometry.Center());
         
         const double length_threshold = DistFactor * OriginalSlaveGeometry.Length();   

@@ -101,9 +101,11 @@ public:
      */
     
     ExactMortarIntegrationUtility(
-        const unsigned int IntegrationOrder = 0
+        const unsigned int IntegrationOrder = 0,
+        const double DistanceThreshold = 1.3333
         )
-    :mIntegrationOrder(IntegrationOrder)
+    :mIntegrationOrder(IntegrationOrder),
+     mDistanceThreshold(DistanceThreshold)
     {
         GetIntegrationMethod();
     }
@@ -831,8 +833,6 @@ protected:
         return idx;
     }
     
-
-    
     ///@}
     ///@name Protected  Access
     ///@{
@@ -853,6 +853,7 @@ private:
     ///@{
 
     unsigned int mIntegrationOrder;          // The integration order to consider
+    double mDistanceThreshold;               // The distance threshold considered
     IntegrationMethod mAuxIntegrationMethod; // The auxiliar list of Gauss Points taken from the geometry
     
     ///@}
@@ -898,7 +899,7 @@ private:
         // First we check if the geometries are far away
         if (FilterFarGeometries == true)
         {
-            if (ContactUtilities::DistanceCheck(OriginalSlaveGeometry, OriginalMasterGeometry) == true)
+            if (ContactUtilities::DistanceCheck(OriginalSlaveGeometry, OriginalMasterGeometry, mDistanceThreshold) == true)
             {
                 ConditionsPointsSlave.clear();
                 return false;
@@ -1054,7 +1055,7 @@ private:
         // First we check if the geometries are far away
         if (FilterFarGeometries == true)
         {
-            if (ContactUtilities::DistanceCheck(OriginalSlaveGeometry, OriginalMasterGeometry) == true)
+            if (ContactUtilities::DistanceCheck(OriginalSlaveGeometry, OriginalMasterGeometry, mDistanceThreshold) == true)
             {
                 ConditionsPointsSlave.clear();
                 return false;
@@ -1210,7 +1211,7 @@ private:
         // First we check if the geometries are far away
         if (FilterFarGeometries == true)
         {
-            if (ContactUtilities::DistanceCheck(OriginalSlaveGeometry, OriginalMasterGeometry) == true)
+            if (ContactUtilities::DistanceCheck(OriginalSlaveGeometry, OriginalMasterGeometry, mDistanceThreshold) == true)
             {
                 ConditionsPointsSlave.clear();
                 return false;
