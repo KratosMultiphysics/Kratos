@@ -182,12 +182,12 @@ namespace Kratos
 		// Main loop
 		// LHS
 		// Cross terms
-		noalias(rLeftHandSideMatrix)  = prod(trans(msN_vel),Matrix(prod(msG,msDN_DX_height)));  // Momentum: w*g*grad(h)
-		noalias(msC) = ms_height*prod(trans(msN_height),msDN_DX_vel);                           // Mass: q*h*div(u)
+		noalias(rLeftHandSideMatrix)  = ms_height*prod(trans(msN_height),msDN_DX_vel);          // Mass: q*h*div(u)
+		noalias(msC)                  = prod(trans(msN_vel),Matrix(prod(msG,msDN_DX_height)));  // Momentum: w*g*grad(h)
 		noalias(rLeftHandSideMatrix) += msC;
 
 		// Convective terms
-		noalias(rLeftHandSideMatrix) += prod(trans(msN_vel),Matrix(prod(msU,msDN_DX_vel)));                // Momentum: w*U*div(U)
+		noalias(rLeftHandSideMatrix) += prod(trans(msN_vel),Matrix(prod(msU,msDN_DX_vel)));                // Momentum: w*U*div(u)
 		noalias(rLeftHandSideMatrix) += prod(trans(msN_height),Matrix(prod(trans(msU),msDN_DX_height)));   // Mass: q*U*grad(h)
 
 		// Inertia terms
@@ -198,7 +198,7 @@ namespace Kratos
 		noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * msM;
 
 		// Add artificial diffusion
-		k_dc = 0.2;
+		k_dc = 0.4;
 		noalias(rLeftHandSideMatrix) += k_dc * prod(trans(msDN_DX_height), msDN_DX_height);
 
 		// RHS
