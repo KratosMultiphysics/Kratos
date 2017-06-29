@@ -45,6 +45,13 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "hard_clear_after_step"       : false,
             "integration_order"           : 2,
             "predict_with_linear_solver"  : false,
+            "linear_solver_settings"      : {
+                "solver_type"             : "SuperLUSolver",
+                "max_iteration"           : 500,
+                "tolerance"               : 1e-9,
+                "scaling"                 : false,
+                "verbosity"               : 1
+            },
             "debug_mode"                  : false
         }
         """)
@@ -232,29 +239,9 @@ class ALMContactProcess(KratosMultiphysics.Process):
     
     def ExecuteInitializeSolutionStep(self):
         # We solve one linear step with a linear strategy if needed
-        if (self.predict_with_linear_solver == True and self.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS] > 1):
-            linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
-            scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-            convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
-            
-            compute_reactions = True
-            reform_step_dofs = True
-            calculate_norm_dx = False
-            move_mesh_flag = True
-            strategy = KratosMultiphysics.ResidualBasedLinearStrategy(self.main_model_part, 
-                                                                    scheme, 
-                                                                    linear_solver, 
-                                                                    builder_and_solver, 
-                                                                    compute_reactions, 
-                                                                    reform_step_dofs, 
-                                                                    calculate_norm_dx,
-                                                                    move_mesh_flag
-                                                                    )
-            strategy.SetEchoLevel(0)
-            strategy.Check()
-            strategy.Solve()
-            
+        step = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]
+        if (self.predict_with_linear_solver == True and step > 1):
+            self._linear_solver_predict()
             self._clear_sets()
         
         self.contact_search.UpdateMortarConditions()
@@ -304,3 +291,27 @@ class ALMContactProcess(KratosMultiphysics.Process):
                 self.contact_search.PartialClearALMFrictionlessMortarConditions()
             else:
                 self.contact_search.PartialClearComponentsMortarConditions()
+                
+    def _linear_solver_predict(self):
+        import linear_solver_factory
+        linear_solver = linear_solver_factory.ConstructSolver(self.params["linear_solver_settings"])
+        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
+        
+        compute_reactions = True
+        reform_step_dofs = True
+        calculate_norm_dx = False
+        move_mesh_flag = True
+        strategy = KratosMultiphysics.ResidualBasedLinearStrategy(self.main_model_part, 
+                                                                scheme, 
+                                                                linear_solver, 
+                                                                builder_and_solver, 
+                                                                compute_reactions, 
+                                                                reform_step_dofs, 
+                                                                calculate_norm_dx,
+                                                                move_mesh_flag
+                                                                )
+        strategy.SetEchoLevel(0)
+        strategy.Check()
+        strategy.Solve()
