@@ -212,17 +212,20 @@ class MechanicalSolver(object):
         mechanical_solver = self.get_mechanical_solver()
         mechanical_solver.Solve()
         
-    def InitializeSolutionStep(self):
+    def StrategyInitialize(self):
+        self.get_mechanical_solver().Initialize()
+        
+    def StrategyInitializeSolutionStep(self):
         self.get_mechanical_solver().InitializeSolutionStep()
 
-    def Predict(self):
+    def StrategyPredict(self):
         self.get_mechanical_solver().Predict()
 
-    def SolveSolutionStep(self):
+    def StrategySolveSolutionStep(self):
         is_converged = self.get_mechanical_solver().SolveSolutionStep()
         return is_converged
 
-    def FinalizeSolutionStep(self):
+    def StrategyFinalizeSolutionStep(self):
         self.get_mechanical_solver().FinalizeSolutionStep()
 
     def SetEchoLevel(self, level):

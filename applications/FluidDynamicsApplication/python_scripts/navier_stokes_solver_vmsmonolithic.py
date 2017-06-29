@@ -212,15 +212,13 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
             print("Finished divergence clearance.")
 
 
-    def SolverInitialize(self):
+    def StrategyInitialize(self):
         self.DivergenceClearance()
         (self.solver).Initialize()
-
 
     def Solve(self):
         self.DivergenceClearance()
         (self.solver).Solve()
-
 
     def _ExecuteAfterReading(self):
         super(NavierStokesSolver_VMSMonolithic, self)._ExecuteAfterReading()
