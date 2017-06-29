@@ -17,7 +17,6 @@
 // External includes
 
 // Project includes
-//#include "custom_constitutive/hyperelastic_3D_law.hpp"
 #include "includes/constitutive_law.h"
 
 namespace Kratos
@@ -32,7 +31,7 @@ namespace Kratos
 	*/
 
 	//class KRATOS_API(SOLID_MECHANICS_APPLICATION) LinearElasticOrthotropic2DLaw : public HyperElastic3DLaw
-	class KRATOS_API(SOLID_MECHANICS_APPLICATION) LinearElasticOrthotropic2DLaw : public ConstitutiveLaw
+	class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearElasticOrthotropic2DLaw : public ConstitutiveLaw
 	{
 	public:
 		/**

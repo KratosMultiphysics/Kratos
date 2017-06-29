@@ -13,6 +13,8 @@
 #include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
 #include "structural_mechanics_application_variables.h"
 
+#include "custom_constitutive/linear_elastic_orthotropic_2D_law.hpp"
+
 #include "geometries/quadrilateral_3d_4.h"
 
 #include <string>
@@ -2539,9 +2541,7 @@ namespace Kratos
 			rLeftHandSideMatrix,
 			rRightHandSideVector,
 			RHSrequired,
-			LHSrequired,
-			extractKm,
-			extractKg);
+			LHSrequired);
 
 		// Add body forces contributions. This doesn't depend on the coordinate
 		// system
