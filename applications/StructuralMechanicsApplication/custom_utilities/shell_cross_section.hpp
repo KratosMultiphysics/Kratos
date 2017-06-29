@@ -629,7 +629,7 @@ public:
     /**
     * Destructor
     */
-    ~ShellCrossSection() override;
+    ~ShellCrossSection();
 
     ///@}
 
@@ -1102,6 +1102,54 @@ public:
         }
     }
 
+	/**
+	* Stores the thicknesses of plies of this cross section.
+	*/
+	void GetPlyThicknesses(Vector& rply_thicknesses)
+	{
+		int counter = 0;
+		for(PlyCollection::const_iterator it = mStack.begin(); it != mStack.end(); ++it)
+		{
+			const Ply& iPly = *it;
+			rply_thicknesses[counter] = iPly.GetThickness();
+			++counter;
+		}
+	}
+
+	/**
+	* Setup to get the integrated constitutive matrices for each ply
+	*/
+	void SetupGetPlyConstitutiveMatrices(const double shear_stabilization = 1.0)
+	{
+		//this is an ugly solution - need to fix
+		mStorePlyConstitutiveMatrices = true;
+		mPlyConstitutiveMatrices = std::vector<Matrix>(this->NumberOfPlies());
+
+		for (unsigned int ply = 0; ply < this->NumberOfPlies(); ++ply)
+		{
+			if (mBehavior == Thick)
+			{
+				mPlyConstitutiveMatrices[ply].resize(8, 8, false);
+			}
+			else
+			{
+				mPlyConstitutiveMatrices[ply].resize(6, 6, false);
+			}
+			
+			mPlyConstitutiveMatrices[ply].clear();
+		}
+		mDSG_shear_stabilization = shear_stabilization;
+	}
+
+	/**
+	* Setup to get the integrated constitutive matrices for each ply
+	*/
+	Matrix GetPlyConstitutiveMatrix(const unsigned int ply_number)
+	{
+		// TODO p3 maybe think of a different solution to this
+		return mPlyConstitutiveMatrices[ply_number];
+	}
+
     /**
     * Returns the number of plies of this cross section.
     * @return the number of plies
@@ -1222,13 +1270,32 @@ public:
         return mDrillingPenalty;
     }
 
+	/**
+	* Checks if the shell is an orthotropic material
+	* @return the true/false
+	*/
+	bool CheckIsOrthotropic(Properties& rProps);
+
+	/**
+	* Parses the shell orthotropic material data from properties
+	*/
+	void ParseOrthotropicPropertyMatrix(Properties& rProps, Element* myElement);
+
+	/**
+	* Get orientation of laminae
+	*/
+	void GetLaminaeOrientation(Vector& rOrientation_Vector);
+
+	/**
+	* Get strengths of laminae
+	*/
+	void GetLaminaeStrengths(std::vector<Matrix>& rLamina_Strengths, Properties& rProps);
     ///@}
 
 private:
 
     ///@name Private Methods
     ///@{
-
     void InitializeParameters(Parameters& rValues, ConstitutiveLaw::Parameters& rMaterialValues, GeneralVariables& rVariables);
 
     void UpdateIntegrationPointParameters(IntegrationPoint& rPoint, ConstitutiveLaw::Parameters& rMaterialValues, GeneralVariables& rVariables);
@@ -1237,7 +1304,8 @@ private:
                                            ConstitutiveLaw::Parameters& rMaterialValues,
                                            Parameters& rValues,
                                            GeneralVariables& rVariables,
-                                           const ConstitutiveLaw::StressMeasure& rStressMeasure);
+                                           const ConstitutiveLaw::StressMeasure& rStressMeasure,
+										   const unsigned int& plyNumber);
 
     /**
     * Creates a deep copy of this cross section.
@@ -1272,6 +1340,9 @@ private:
     bool mNeedsOOPCondensation;
     Vector mOOP_CondensedStrains;
     Vector mOOP_CondensedStrains_converged;
+	bool mStorePlyConstitutiveMatrices = false;
+	std::vector<Matrix> mPlyConstitutiveMatrices;
+	double mDSG_shear_stabilization;
 
     ///@}
 
@@ -1280,7 +1351,7 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
         rSerializer.save("th", mThickness);
@@ -1298,7 +1369,7 @@ private:
         rSerializer.save("OOP_eps", mOOP_CondensedStrains_converged);
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
         rSerializer.load("th", mThickness);
