@@ -15,10 +15,9 @@
 #include "testing/testing.h"
 #include "includes/checks.h"
 #include "includes/gid_io.h"
-#include "processes/structured_mesh_generator_process.h"
 #include "geometries/hexahedra_3d_8.h"
+#include "processes/structured_mesh_generator_process.h"
 #include "processes/calculate_distance_to_skin_process.h"
-#include "processes/calculate_signed_distance_to_3d_skin_process.h"
 
 namespace Kratos {
   namespace Testing {
