@@ -486,33 +486,27 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
     #             aux_count+=1
 
 
-    # FROM BASE SOLVER
-    # def _ComputeMeshPredictionSingleFaced(self):
-    #
-    #         print("Computing time step ",self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]," prediction...")
-    #         # Get the previous step fluid interface nodal fluxes
-    #         keep_sign = False
-    #         distribute_load = True
-    #         self.interface_mapper.FluidToStructure_VectorMap(KratosMultiphysics.REACTION,
-    #                                                          KratosStructural.POINT_LOAD,
-    #                                                          keep_sign,
-    #                                                          distribute_load)
-    #
-    #         # Solve the current step structure problem with the previous step fluid interface nodal fluxes
-    #         self.structure_solver.SolveSolutionStep()
-    #
-    #         # Map the obtained structure displacement to the fluid interface
-    #         keep_sign = True
-    #         distribute_load = False
-    #         self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
-    #                                                          KratosMultiphysics.MESH_DISPLACEMENT,
-    #                                                          keep_sign,
-    #                                                          distribute_load)
-    #
-    #         # Solve the mesh problem
-    #         self.mesh_solver.Solve()
-    #
-    #         print("Mesh prediction computed.")
+    # TODO: GET IT FROM THE SERIAL BASE SOLVER ONCE THE MAPPER IN MAPPING APPLICATION IS USED IN SERIAL PROBLEMS AS WELL
+    def _ComputeMeshPredictionSingleFaced(self):
+
+            print("Computing time step ",self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]," prediction...")
+            # Get the previous step fluid interface nodal fluxes
+            self.interface_mapper.Map(KratosMultiphysics.REACTION,
+                                      KratosStructural.POINT_LOAD,
+                                      KratosMapping.MapperFactory.SWAP_SIGN |
+                                      KratosMapping.MapperFactory.CONSERVATIVE)
+
+            # Solve the current step structure problem with the previous step fluid interface nodal fluxes
+            self.structure_solver.SolveSolutionStep()
+
+            # Map the obtained structure displacement to the fluid interface
+            self.interface_mapper.InverseMap(KratosMultiphysics.DISPLACEMENT,
+                                             KratosMultiphysics.MESH_DISPLACEMENT)
+
+            # Solve the mesh problem
+            self.mesh_solver.Solve()
+
+            print("Mesh prediction computed.")
 
 
     # FROM BASE SOLVER
