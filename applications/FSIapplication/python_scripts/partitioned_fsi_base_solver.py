@@ -62,7 +62,7 @@ class PartitionedFSIBaseSolver:
             "line_search"              : false,
             "compute_reactions"        : true,
             "compute_contact_forces"   : false,
-            "block_builder"            : false,
+            "block_builder"            : true,
             "move_mesh_flag"           : true,
             "solution_type"            : "Dynamic",
             "scheme_type"              : "Newmark",
