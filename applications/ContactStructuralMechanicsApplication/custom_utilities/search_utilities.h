@@ -279,7 +279,8 @@ private:
                     
                     Geom1[i_node].Set(ACTIVE, true);
                 }
-                else if (DualCheck == true)
+                
+                if (DualCheck == true)
                 {
                     aux_distance = ContactUtilities::FastProjectDirection(Geom2, Geom1[i_node], projected_point, ContactNormal2, -ContactNormal2);
                     if (aux_distance <= ActiveCheckLength && (StrictCheck == true ? Geom2.IsInside(projected_point, result, tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
@@ -355,7 +356,8 @@ private:
                 {
                     return true;
                 }
-                else if (DualCheck == true)
+                
+                if (DualCheck == true)
                 {
                     aux_distance = ContactUtilities::FastProjectDirection(Geom2, GlobalPoint, projected_point, ContactNormal2, -ContactNormal2);
                     if (aux_distance <= ActiveCheckLength && (StrictCheck == true ? Geom2.IsInside(projected_point, result, tolerance) : true)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)

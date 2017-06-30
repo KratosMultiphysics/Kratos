@@ -142,7 +142,7 @@ def AssambleTestSuites():
             ##TSimplePatchTestThreeDMeshTying, # FIXME: Some problem in the mesh tying
             TALMHyperSimplePatchTestContact,
             TALMHyperSimpleSlopePatchTestContact,
-            ##TALMTwoDPatchComplexGeomTestContact, # FIXME: There is a kinematic problem!!!
+            TALMTwoDPatchComplexGeomTestContact,
             TALMTwoDPatchComplexGeomSlopeTestContact,
             TALMSimplePatchTestContact,
             TALMSimpleSlopePatchTestContact, 
