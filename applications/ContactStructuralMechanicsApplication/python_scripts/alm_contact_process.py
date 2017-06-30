@@ -92,7 +92,6 @@ class ALMContactProcess(KratosMultiphysics.Process):
         
         # Debug
         if (self.debug_mode == True):
-            self.label = 0
             self.output_file = "POSTSEARCH"
 
             self.gid_mode = KratosMultiphysics.GiDPostMode.GiD_PostBinary
@@ -247,32 +246,19 @@ class ALMContactProcess(KratosMultiphysics.Process):
         if (self.database_step >= self.database_step_update or self.global_step == 1):
             # We solve one linear step with a linear strategy if needed
             
-            if (self.predict_with_linear_solver == True and self.global_step > 1):
-                self._linear_solver_predict()
-                self._clear_sets()
-            
             self.contact_search.UpdateMortarConditions()
             #self.contact_search.CheckMortarConditions()
                 
+            if (self.predict_with_linear_solver == True and self.global_step > 1):
+                # Debug
+                if (self.debug_mode == True):
+                    self._debug_output(self.database_step, "_LINEARPRED")
+                self._linear_solver_predict()
+                self.contact_search.CleanMortarConditions()
+                
             # Debug
             if (self.debug_mode == True):
-                self.label += 1
-                
-                gid_io = KratosMultiphysics.GidIO(self.output_file+"_STEP_"+str(self.label), self.gid_mode, self.singlefile, self.deformed_mesh_flag, self.write_conditions)
-                
-                gid_io.InitializeMesh(self.label)
-                gid_io.WriteMesh(self.main_model_part.GetMesh())
-                gid_io.FinalizeMesh()
-                gid_io.InitializeResults(self.label, self.main_model_part.GetMesh())
-                
-                gid_io.WriteNodalFlags(KratosMultiphysics.INTERFACE, "INTERFACE", self.main_model_part.Nodes, self.label)
-                gid_io.WriteNodalFlags(KratosMultiphysics.ACTIVE, "ACTIVE", self.main_model_part.Nodes, self.label)
-                gid_io.WriteNodalResultsNonHistorical(KratosMultiphysics.NORMAL, self.main_model_part.Nodes, self.label)
-                gid_io.WriteNodalResults(KratosMultiphysics.DISPLACEMENT, self.main_model_part.Nodes, self.label, 0)
-                
-                gid_io.FinalizeResults()
-                
-                #raise NameError("DEBUG")
+               self._debug_output(self.database_step, "")
         
     def ExecuteFinalizeSolutionStep(self):
         pass
@@ -282,8 +268,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
 
     def ExecuteAfterOutputStep(self):
         if (self.database_step >= self.database_step_update or self.global_step == 1):
-            if (self.predict_with_linear_solver == False):
-                self._clear_sets()
+            self._clear_sets()
             
     def ExecuteFinalize(self):
         pass
@@ -325,3 +310,22 @@ class ALMContactProcess(KratosMultiphysics.Process):
         strategy.SetEchoLevel(0)
         strategy.Check()
         strategy.Solve()
+        strategy.Clear()
+    
+    def _debug_output(self, label, name):
+
+        gid_io = KratosMultiphysics.GidIO(self.output_file+name+"_STEP_"+str(label), self.gid_mode, self.singlefile, self.deformed_mesh_flag, self.write_conditions)
+        
+        gid_io.InitializeMesh(label)
+        gid_io.WriteMesh(self.main_model_part.GetMesh())
+        gid_io.FinalizeMesh()
+        gid_io.InitializeResults(label, self.main_model_part.GetMesh())
+        
+        gid_io.WriteNodalFlags(KratosMultiphysics.INTERFACE, "INTERFACE", self.main_model_part.Nodes, label)
+        gid_io.WriteNodalFlags(KratosMultiphysics.ACTIVE, "ACTIVE", self.main_model_part.Nodes, label)
+        gid_io.WriteNodalResultsNonHistorical(KratosMultiphysics.NORMAL, self.main_model_part.Nodes, label)
+        gid_io.WriteNodalResults(KratosMultiphysics.DISPLACEMENT, self.main_model_part.Nodes, label, 0)
+        
+        gid_io.FinalizeResults()
+        
+        #raise NameError("DEBUG")
