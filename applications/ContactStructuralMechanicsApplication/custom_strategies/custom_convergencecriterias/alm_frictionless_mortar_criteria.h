@@ -158,48 +158,48 @@ public:
         BaseType::CalculateContactReactions(rModelPart, rDofSet, b);
         
         // Defining the convergence
-        bool IsConverged = true;
+        bool is_converged = true;
         
-        const double Epsilon = rModelPart.GetProcessInfo()[PENALTY_PARAMETER]; 
-        const double ScaleFactor = rModelPart.GetProcessInfo()[SCALE_FACTOR]; 
+        const double epsilon = rModelPart.GetProcessInfo()[PENALTY_PARAMETER]; 
+        const double scale_factor = rModelPart.GetProcessInfo()[SCALE_FACTOR]; 
         
-        NodesArrayType& NodesArray = rModelPart.GetSubModelPart("Contact").Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size());
+        NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size());
 
         #pragma omp parallel for 
-        for(int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < num_nodes; i++) 
         {
-            auto itNode = NodesArray.begin() + i;
+            auto it_node = nodes_array.begin() + i;
             
             // Check if the node is slave
-            bool NodeIsSlave = true;
-            if ((itNode)->IsDefined(SLAVE))
+            bool node_is_slave = true;
+            if ((it_node)->IsDefined(SLAVE))
             {
-                NodeIsSlave = (itNode)->Is(SLAVE);
+                node_is_slave = (it_node)->Is(SLAVE);
             }
             
-            if (NodeIsSlave == true)
+            if (node_is_slave == true)
             {
-                const double AugmentedNormalPressure = ScaleFactor * (itNode)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + Epsilon * (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);     
+                const double augmented_normal_pressure = scale_factor * (it_node)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + epsilon * (it_node)->FastGetSolutionStepValue(WEIGHTED_GAP);     
                     
-                (itNode)->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, AugmentedNormalPressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
+                (it_node)->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
 
-                if (AugmentedNormalPressure < mTolerance * ScaleFactor) // NOTE: This could be conflictive (< or <=)
+                if (augmented_normal_pressure < mTolerance * scale_factor) // NOTE: This could be conflictive (< or <=)
                 {
-                    if ((itNode)->Is(ACTIVE) == false )
+                    if ((it_node)->Is(ACTIVE) == false )
                     {
-                        (itNode)->Set(ACTIVE, true);
-                        IsConverged = false;
+                        (it_node)->Set(ACTIVE, true);
+                        is_converged = false;
                     }
                 }
                 else
                 {
-                    (itNode)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0; // NOTE: To clear the value (can affect future iterations)
+                    (it_node)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0; // NOTE: To clear the value (can affect future iterations)
                     
-                    if ((itNode)->Is(ACTIVE) == true )
+                    if ((it_node)->Is(ACTIVE) == true )
                     {
-                        (itNode)->Set(ACTIVE, false);
-                        IsConverged = false;
+                        (it_node)->Set(ACTIVE, false);
+                        is_converged = false;
                     }
                 }
             }
@@ -208,30 +208,30 @@ public:
         // We update the pairs if necessary
         if (rModelPart.GetProcessInfo()[CONSIDER_PAIR_VARIATION] == true)
         {
-            ConditionsArrayType& ConditionsArray = rModelPart.GetSubModelPart("Contact").Conditions();
-            const int numConditions = static_cast<int>(ConditionsArray.size());
+            ConditionsArrayType& conditions_array = rModelPart.GetSubModelPart("Contact").Conditions();
+            const int num_conditions = static_cast<int>(conditions_array.size());
 
             #pragma omp parallel for 
-            for(int i = 0; i < numConditions; i++) 
+            for(int i = 0; i < num_conditions; i++) 
             {
-                auto itCond = ConditionsArray.begin() + i;
-                if ( (itCond)->Is(ACTIVE) == true )
+                auto it_cond = conditions_array.begin() + i;
+                if ( (it_cond)->Is(ACTIVE) == true )
                 {
-                    bool DeactivateCondition = true;
+                    bool deactivate_condition = true;
                     
-                    for(unsigned int iNode = 0; iNode < itCond->GetGeometry().size(); iNode++)
+                    for(unsigned int i_node = 0; i_node < it_cond->GetGeometry().size(); i_node++)
                     {
-                        if (itCond->GetGeometry()[iNode].Is(ACTIVE) == true)
+                        if (it_cond->GetGeometry()[i_node].Is(ACTIVE) == true)
                         {
-                            DeactivateCondition = false;
+                            deactivate_condition = false;
                             break;
                         }
                     }
                     
                     // We deactivate the condition if necessary
-                    if (DeactivateCondition == true)
+                    if (deactivate_condition == true)
                     {
-                        itCond->Set(ACTIVE, false);
+                        it_cond->Set(ACTIVE, false);
                     }
                 }
             }
@@ -241,13 +241,13 @@ public:
         {
             if (mpTable != nullptr)
             {
-                auto& Table = mpTable->GetTable();
-                if (IsConverged == true)
+                auto& table = mpTable->GetTable();
+                if (is_converged == true)
                 {
                     #if !defined(_WIN32)
-                            Table << BOLDFONT(FGRN("       Achieved"));
+                            table << BOLDFONT(FGRN("       Achieved"));
                     #else
-                            Table << "Achieved";
+                            table << "Achieved";
                             //const std::basic_ostream<char, std::char_traits<char>>& ThisStream = std::cout << colorwin::color(colorwin::green) << "Achieved";
                             //Table << &ThisStream;
                     #endif
@@ -255,9 +255,9 @@ public:
                 else
                 {
                     #if !defined(_WIN32)
-                            Table << BOLDFONT(FRED("   Not achieved"));
+                            table << BOLDFONT(FRED("   Not achieved"));
                     #else
-                            Table << "Not achieved";
+                            table << "Not achieved";
                         //std::basic_ostream<char, std::char_traits<char>>& ThisStream = std::cout << colorwin::color(colorwin::red) << "   Not achieved";
                             //Table << (&ThisStream);
                     #endif
@@ -265,7 +265,7 @@ public:
             }
             else
             {
-                if (IsConverged == true)
+                if (is_converged == true)
                 {
                     #if !defined(_WIN32)
                             std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
@@ -284,7 +284,7 @@ public:
             }
         }
         
-        return IsConverged;
+        return is_converged;
     }
     
     /**
@@ -298,8 +298,8 @@ public:
         
         if (mpTable != nullptr && mTableIsInitialized == false)
         {
-            auto& Table = mpTable->GetTable();
-            Table.AddColumn("ACTIVE SET CONV", 15);
+            auto& table = mpTable->GetTable();
+            table.AddColumn("ACTIVE SET CONV", 15);
             mTableIsInitialized = true;
         }
     }

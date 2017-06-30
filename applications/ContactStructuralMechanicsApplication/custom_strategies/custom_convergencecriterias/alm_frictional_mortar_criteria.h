@@ -156,86 +156,86 @@ public:
         BaseType::CalculateContactReactions(rModelPart, rDofSet, b);
         
         // Defining the convergence
-        bool IsConvergedActive = true;
-        bool IsConvergedSlip = true;
+        bool is_converged_active = true;
+        bool is_converged_slip = true;
         
-        const double Epsilon = rModelPart.GetProcessInfo()[PENALTY_PARAMETER]; 
-        const double ScaleFactor = rModelPart.GetProcessInfo()[SCALE_FACTOR];
-        const double TangentFactor = rModelPart.GetProcessInfo()[TANGENT_FACTOR];
+        const double epsilon = rModelPart.GetProcessInfo()[PENALTY_PARAMETER]; 
+        const double scale_factor = rModelPart.GetProcessInfo()[SCALE_FACTOR];
+        const double tangent_factor = rModelPart.GetProcessInfo()[TANGENT_FACTOR];
         
-        const array_1d<double,3> ZeroVector(0.0);
+        const array_1d<double,3> zero_vector(0.0);
         
-        NodesArrayType& NodesArray = rModelPart.GetSubModelPart("Contact").Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size());
+        NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size());
 
         #pragma omp parallel for 
-        for(int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < num_nodes; i++) 
         {
-            auto itNode = NodesArray.begin() + i;
+            auto it_node = nodes_array.begin() + i;
             
             // Check if the node is slave
-            bool NodeIsSlave = true;
-            if ((itNode)->IsDefined(SLAVE))
+            bool node_is_slave = true;
+            if ((it_node)->IsDefined(SLAVE))
             {
-                NodeIsSlave = (itNode)->Is(SLAVE);
+                node_is_slave = (it_node)->Is(SLAVE);
             }
             
-            if (NodeIsSlave == true)
+            if (node_is_slave == true)
             {
-                const array_1d<double,3> LagrangeMultiplier = (itNode)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-                const array_1d<double,3> NodalNormal = (itNode)->GetValue(NORMAL);
-                const double NormalLagrangeMultiplier = inner_prod(NodalNormal, LagrangeMultiplier);
+                const array_1d<double,3> lagrange_multiplier = (it_node)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                const array_1d<double,3> nodal_normal = (it_node)->GetValue(NORMAL);
+                const double normal_lagrange_multiplier = inner_prod(nodal_normal, lagrange_multiplier);
                 
-                const double AugmentedNormalPressure = ScaleFactor * NormalLagrangeMultiplier + Epsilon * (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);     
+                const double augmented_normal_pressure = scale_factor * normal_lagrange_multiplier + epsilon * (it_node)->FastGetSolutionStepValue(WEIGHTED_GAP);     
                 
-                itNode->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, AugmentedNormalPressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
+                it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
                 
-                if (AugmentedNormalPressure < mTolerance * ScaleFactor) // NOTE: This could be conflictive (< or <=)
+                if (augmented_normal_pressure < mTolerance * scale_factor) // NOTE: This could be conflictive (< or <=)
                 {
-                    if ((itNode)->Is(ACTIVE) == false )
+                    if ((it_node)->Is(ACTIVE) == false )
                     {
-                        (itNode)->Set(ACTIVE, true);
-                        IsConvergedActive = false;
+                        (it_node)->Set(ACTIVE, true);
+                        is_converged_active = false;
                     }
                     
                     // Computing the augmented tangent pressure
-                    const array_1d<double,3> TangentLagrangeMultiplier = LagrangeMultiplier - NormalLagrangeMultiplier * NodalNormal;
-                    const double LambdaTangent = norm_2(TangentLagrangeMultiplier); 
+                    const array_1d<double,3> tangent_lagrange_multiplier = lagrange_multiplier - normal_lagrange_multiplier * nodal_normal;
+                    const double lambda_tangent = norm_2(tangent_lagrange_multiplier); 
                     
                     // The friction coefficient
-                    const double mu = (itNode)->GetValue(WEIGHTED_FRICTION);
+                    const double mu = (it_node)->GetValue(WEIGHTED_FRICTION);
                     
                     // Finally we compute the augmented tangent pressure
-                    const double gt = (itNode)->FastGetSolutionStepValue(WEIGHTED_SLIP);
-                    const double AugmentedTangentPressure = std::abs(ScaleFactor * LambdaTangent + TangentFactor * Epsilon * gt) + mu * AugmentedNormalPressure;
+                    const double gt = (it_node)->FastGetSolutionStepValue(WEIGHTED_SLIP);
+                    const double augmented_tangent_pressure = std::abs(scale_factor * lambda_tangent + tangent_factor * epsilon * gt) + mu * augmented_normal_pressure;
                     
-                    (itNode)->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, AugmentedTangentPressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
+                    (it_node)->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, augmented_tangent_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
                     
-                    if (AugmentedTangentPressure <= 0.0) // TODO: Check if it is minor equal or just minor
+                    if (augmented_tangent_pressure <= 0.0) // TODO: Check if it is minor equal or just minor
                     {
-                        if ((itNode)->Is(SLIP) == true )
+                        if ((it_node)->Is(SLIP) == true )
                         {
-                            (itNode)->Set(SLIP, false);
-                            IsConvergedSlip = false;
+                            (it_node)->Set(SLIP, false);
+                            is_converged_slip = false;
                         }
                     }
                     else
                     {
-                        if ((itNode)->Is(SLIP) == false )
+                        if ((it_node)->Is(SLIP) == false )
                         {
-                            (itNode)->Set(SLIP, true);
-                            IsConvergedSlip = false;
+                            (it_node)->Set(SLIP, true);
+                            is_converged_slip = false;
                         }
                     }   
                 }
                 else
                 {
-                    (itNode)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector; // NOTE: To clear the value (can affect future iterations)
+                    (it_node)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = zero_vector; // NOTE: To clear the value (can affect future iterations)
                     
-                    if ((itNode)->Is(ACTIVE) == true )
+                    if ((it_node)->Is(ACTIVE) == true )
                     {
-                        (itNode)->Set(ACTIVE, false);
-                        IsConvergedActive = false;
+                        (it_node)->Set(ACTIVE, false);
+                        is_converged_active = false;
                     }
                 }
             }
@@ -244,28 +244,28 @@ public:
         // We update the pairs if necessary
         if (rModelPart.GetProcessInfo()[CONSIDER_PAIR_VARIATION] == true)
         {
-            ConditionsArrayType& ConditionsArray = rModelPart.GetSubModelPart("Contact").Conditions();
-            const int numConditions = static_cast<int>(ConditionsArray.size());
+            ConditionsArrayType& conditions_array = rModelPart.GetSubModelPart("Contact").Conditions();
+            const int num_conditions = static_cast<int>(conditions_array.size());
 
             #pragma omp parallel for 
-            for(int i = 0; i < numConditions; i++) 
+            for(int i = 0; i < num_conditions; i++) 
             {
-                auto itCond = ConditionsArray.begin() + i;
+                auto itCond = conditions_array.begin() + i;
                 if ( (itCond)->Is(ACTIVE) == true )
                 {
-                    bool DeactivateCondition = true;
+                    bool deactivate_condition = true;
                     
-                    for(unsigned int iNode = 0; iNode < itCond->GetGeometry().size(); iNode++)
+                    for(unsigned int i_node = 0; i_node < itCond->GetGeometry().size(); i_node++)
                     {
-                        if (itCond->GetGeometry()[iNode].Is(ACTIVE) == true)
+                        if (itCond->GetGeometry()[i_node].Is(ACTIVE) == true)
                         {
-                            DeactivateCondition = false;
+                            deactivate_condition = false;
                             break;
                         }
                     }
                     
                     // We deactivate the condition if necessary
-                    if (DeactivateCondition == true)
+                    if (deactivate_condition == true)
                     {
                         itCond->Set(ACTIVE, false);
                     }
@@ -277,43 +277,43 @@ public:
         {
             if (mpTable != nullptr)
             {
-                auto& Table = mpTable->GetTable();
-                if (IsConvergedActive == true)
+                auto& table = mpTable->GetTable();
+                if (is_converged_active == true)
                 {
                     #if !defined(_WIN32)
-                            Table << BOLDFONT(FGRN("       Achieved"));
+                            table << BOLDFONT(FGRN("       Achieved"));
                     #else
-                            Table << "Achieved";
+                            table << "Achieved";
                     #endif
                 }
                 else
                 {
                     #if !defined(_WIN32)
-                            Table << BOLDFONT(FRED("   Not achieved"));
+                            table << BOLDFONT(FRED("   Not achieved"));
                     #else
-                            Table << "Not achieved";
+                            table << "Not achieved";
                     #endif
                 }
-                if (IsConvergedSlip == true)
+                if (is_converged_slip == true)
                 {
                     #if !defined(_WIN32)
-                            Table << BOLDFONT(FGRN("       Achieved"));
+                            table << BOLDFONT(FGRN("       Achieved"));
                     #else
-                            Table << "Achieved";
+                            table << "Achieved";
                     #endif
                 }
                 else
                 {
                     #if !defined(_WIN32)
-                            Table << BOLDFONT(FRED("   Not achieved"));
+                            table << BOLDFONT(FRED("   Not achieved"));
                     #else
-                            Table << "Not achieved";
+                            table << "Not achieved";
                     #endif
                 }
             }
             else
             {
-                if (IsConvergedActive == true)
+                if (is_converged_active == true)
                 {
                     #if !defined(_WIN32)
                             std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
@@ -330,7 +330,7 @@ public:
                     #endif
                 }
                 
-                if (IsConvergedSlip == true)
+                if (is_converged_slip == true)
                 {
                     #if !defined(_WIN32)
                             std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
@@ -349,7 +349,7 @@ public:
             }
         }
         
-        return IsConvergedActive && IsConvergedSlip;
+        return is_converged_active && is_converged_slip;
     }
     
     /**
@@ -363,8 +363,9 @@ public:
         
         if (mpTable != nullptr && mTableIsInitialized == false)
         {
-            mpTable->AddColumn("ACTIVE SET CONV.", 16);
-            mpTable->AddColumn("SLIP/STICK CONV.", 16);
+            auto& table = mpTable->GetTable();
+            table.AddColumn("ACTIVE SET CONV", 15);
+            table.AddColumn("SLIP/STICK CONV", 15);
             mTableIsInitialized = true;
         }
     }

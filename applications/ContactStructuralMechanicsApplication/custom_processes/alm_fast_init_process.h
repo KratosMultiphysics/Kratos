@@ -109,69 +109,67 @@ public:
         KRATOS_TRY;
         
         // We initialize the zero vector
-        const array_1d<double, 3> zerovector(3, 0.0);
+        const array_1d<double, 3> zero_vector(3, 0.0);
         
         // We differentiate between frictional or frictionless
-        const bool IsFrictional = mrThisModelPart.Is(SLIP);
+        const bool is_frictional = mrThisModelPart.Is(SLIP);
         
-        bool InitDeltaNormal = false;
-        Matrix ZeroDeltaNormal;
+        bool init_delta_normal = false;
+        Matrix zero_delta_normal;
         if (mrThisModelPart.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] == true)
         {
-            InitDeltaNormal = true;
-            const unsigned int Dimension = mrThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
-            ZeroDeltaNormal = ZeroMatrix( Dimension, Dimension );
+            init_delta_normal = true;
+            const unsigned int dimension = mrThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
+            zero_delta_normal = ZeroMatrix( dimension, dimension );
         }
         
         // We iterate over the node
-        NodesArrayType& NodesArray = mrThisModelPart.Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size());
+        NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size());
         
-        #pragma omp parallel for firstprivate(zerovector)
-        for(int i = 0; i < numNodes; i++) 
+        #pragma omp parallel for firstprivate(zero_vector)
+        for(int i = 0; i < num_nodes; i++) 
         {
-            auto itNode = NodesArray.begin() + i;
+            auto it_node = nodes_array.begin() + i;
             
             // Weighted values
-            itNode->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
-            if (IsFrictional == true)
+            it_node->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
+            if (is_frictional == true)
             {
-                itNode->FastGetSolutionStepValue(WEIGHTED_SLIP) = 0.0;
+                it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = 0.0;
             }
             
             // Nodal area
-            itNode->SetValue(NODAL_AREA, 0.0);
+            it_node->SetValue(NODAL_AREA, 0.0);
             
             // Auxiliar values
-            itNode->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, 0.0);
-            if (IsFrictional == true)
+            it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, 0.0);
+            if (is_frictional == true)
             {
-                itNode->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, 0.0);
+                it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, 0.0);
             }
             
             // The normal and tangents vectors
-            itNode->SetValue(NORMAL, zerovector);
+            it_node->SetValue(NORMAL, zero_vector);
             
             // The delta normal if necessary
-            if (InitDeltaNormal == true)
+            if (init_delta_normal == true)
             {
-                itNode->SetValue(DELTA_NORMAL, ZeroDeltaNormal);
+                it_node->SetValue(DELTA_NORMAL, zero_delta_normal);
             }
-            
-            
         }
         
         // Now we iterate over the conditions
-        ConditionsArrayType& ConditionsArray = mrThisModelPart.Conditions();
-        const int numConditions = static_cast<int>(ConditionsArray.size());
+        ConditionsArrayType& conditions_array = mrThisModelPart.Conditions();
+        const int num_conditions = static_cast<int>(conditions_array.size());
         
-        #pragma omp parallel for firstprivate(zerovector)
-        for(int i = 0; i < numConditions; i++) 
+        #pragma omp parallel for firstprivate(zero_vector)
+        for(int i = 0; i < num_conditions; i++) 
         {
-            auto itCond = ConditionsArray.begin() + i;
+            auto it_cond = conditions_array.begin() + i;
             
             // The normal and tangents vectors
-            itCond->SetValue(NORMAL, zerovector);
+            it_cond->SetValue(NORMAL, zero_vector);
         }
 
         KRATOS_CATCH("");
