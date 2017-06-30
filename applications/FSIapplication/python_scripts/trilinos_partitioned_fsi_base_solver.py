@@ -6,6 +6,9 @@ import python_solvers_wrapper_fluid            # Import the fluid Python solvers
 
 # Import kratos core and applications
 import KratosMultiphysics
+import KratosMultiphysics.mpi as KratosMPI
+import KratosMultiphysics.MetisApplication as KratosMetis
+import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 import KratosMultiphysics.ALEApplication as KratosALE
 import KratosMultiphysics.FSIApplication as KratosFSI
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
@@ -28,7 +31,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         print("** Calling the partitioned FSI Trilinos base solver constructor...")
 
         #TODO: Overwrite the fields in the base class default_settings and call the base class constructor?¿?¿
-        
+
         # Initial tests
         start_time_structure = project_parameters["structure_solver_settings"]["problem_data"]["start_time"].GetDouble()
         start_time_fluid = project_parameters["fluid_solver_settings"]["problem_data"]["start_time"].GetDouble()
@@ -49,52 +52,50 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         {
         "structure_solver_settings":
             {
-            "solver_type": "trilinos_structural_mechanics_implicit_dynamic_solver",
-            "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name"
+            "solver_type" : "trilinos_structural_mechanics_implicit_dynamic_solver",
+            "model_import_settings" : {
+                "input_type"     : "mdpa",
+                "input_filename" : "unknown_name"
             },
             "material_import_settings" :{
-                "materials_filename": "materials.json"
+                "materials_filename" : "materials.json"
             },
-            "echo_level": 0,
-            "time_integration_method": "Implicit",
-            "analysis_type": "nonlinear",
-            "rotation_dofs": false,
-            "pressure_dofs": false,
-            "stabilization_factor": 1.0,
-            "reform_dofs_at_each_step": false,
-            "line_search": false,
-            "compute_reactions": true,
-            "compute_contact_forces": false,
-            "block_builder": false,
-            "move_mesh_flag": true,
-            "solution_type": "Dynamic",
-            "scheme_type": "Newmark",
-            "convergence_criterion": "Residual_criteria",
+            "echo_level"               : 0,
+            "time_integration_method"  : "Implicit",
+            "analysis_type"            : "nonlinear",
+            "rotation_dofs"            : false,
+            "pressure_dofs"            : false,
+            "reform_dofs_at_each_step" : false,
+            "line_search"              : false,
+            "compute_reactions"        : true,
+            "compute_contact_forces"   : false,
+            "block_builder"            : false,
+            "move_mesh_flag"           : true,
+            "solution_type"            : "Dynamic",
+            "scheme_type"              : "Newmark",
+            "convergence_criterion"    : "Residual_criteria",
             "displacement_relative_tolerance" : 1.0e-3,
             "displacement_absolute_tolerance" : 1.0e-5,
             "residual_relative_tolerance"     : 1.0e-3,
             "residual_absolute_tolerance"     : 1.0e-5,
-            "max_iteration": 10,
-            "linear_solver_settings":{
+            "max_iteration"          : 10,
+            "linear_solver_settings" :{
                 "solver_type" : "Klu",
-                "scaling" : false
+                "scaling"     : false
             },
-            "processes_sub_model_part_list": [""],
-            "problem_domain_sub_model_part_list": [""]
+            "processes_sub_model_part_list"      : [""],
+            "problem_domain_sub_model_part_list" : [""]
             },
-        "fluid_solver_settings":
-            {
-            "solver_type": "trilinos_navier_stokes_solver_vmsmonolithic",
-            "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name"
+        "fluid_solver_settings" : {
+            "solver_type"       : "Monolithic",
+            "model_import_settings" : {
+                "input_type"     : "mdpa",
+                "input_filename" : "unknown_name"
             },
-            "maximum_iterations": 10,
-            "dynamic_tau" : 0.0,
-            "oss_switch"  : 0,
-            "echo_level"  : 0,
+            "maximum_iterations" : 10,
+            "dynamic_tau"        : 0.01,
+            "oss_switch"         : 0,
+            "echo_level"         : 0,
             "consider_periodic_conditions" : false,
             "compute_reactions"            : true,
             "divergence_clearance_steps"   : 0,
@@ -119,30 +120,29 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
                 "automatic_time_step" : false,
                 "time_step"           : 0.1
             },
-            "alpha"                  :-0.3,
-            "move_mesh_strategy"     : 0,
-            "periodic"               : "periodic",
-            "move_mesh_flag"         : false,
-            "turbulence_model"       : "None"
+            "alpha"              :-0.3,
+            "move_mesh_strategy" : 0,
+            "periodic"           : "periodic",
+            "move_mesh_flag"     : false,
+            "turbulence_model"   : "None"
             },
-        "coupling_solver_settings":
-            {
-            "coupling_scheme"                : "DirichletNeumann",
-            "solver_type"                    : "trilinos_partitioned_fsi_solver",
-            "nl_tol"                         : 1e-5,
-            "nl_max_it"                      : 50,
-            "solve_mesh_at_each_iteration"   : true,
+        "coupling_solver_settings": {
+            "coupling_scheme"              : "DirichletNeumann",
+            "solver_type"                  : "trilinos_partitioned_fsi_solver",
+            "nl_tol"                       : 1e-5,
+            "nl_max_it"                    : 50,
+            "solve_mesh_at_each_iteration" : true,
             "coupling_strategy" : {
                 "solver_type"       : "Relaxation",
                 "acceleration_type" : "Aitken",
                 "w_0"               : 0.825
-                },
-            "mesh_solver"                    : "trilinos_mesh_solver_structural_similarity",
-            "mesh_reform_dofs_each_step"     : false,
-            "structure_interfaces_list"      : [""],
-            "fluid_interfaces_list"          : [""]
             },
-        "mapper_settings"              : [{
+            "mesh_solver"                : "trilinos_mesh_solver_structural_similarity",
+            "mesh_reform_dofs_each_step" : false,
+            "structure_interfaces_list"  : [""],
+            "fluid_interfaces_list"      : [""]
+            },
+        "mapper_settings" : [{
             "mapper_face"                                : "Unique",
             "positive_fluid_interface_submodelpart_name" : "Default_interface_submodelpart_name",
             "structure_interface_submodelpart_name"      : "Default_interface_submodelpart_name"
@@ -235,12 +235,12 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
 
         ## FSIApplication variables addition
         # NonConformant_OneSideMap.AddVariables(self.fluid_solver.main_model_part,self.structure_solver.main_model_part) TODO: Add MAPPING app variables
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.VECTOR_PROJECTED)
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.FSI_INTERFACE_RESIDUAL)
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.FSI_INTERFACE_MESH_RESIDUAL)
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.POSITIVE_MAPPED_VECTOR_VARIABLE)
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.NEGATIVE_MAPPED_VECTOR_VARIABLE)
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.VECTOR_PROJECTED)
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_PROJECTED)
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_RESIDUAL)
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_MESH_RESIDUAL)
+        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_MAPPED_VECTOR_VARIABLE)
+        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_MAPPED_VECTOR_VARIABLE)
+        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_PROJECTED)
 
 
     # FROM BASE SOLVER
@@ -351,9 +351,9 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
     def _GetPartitionedFSIUtilities(self):
 
         if (self.domain_size == 2):
-            return KratosTrilinos.TrilinosPartitionedFSIUtilities2D()
+            return KratosTrilinos.TrilinosPartitionedFSIUtilities2D(self.epetra_communicator)
         else:
-            return KratosTrilinos.TrilinosPartitionedFSIUtilities3D()
+            return KratosTrilinos.TrilinosPartitionedFSIUtilities3D(self.epetra_communicator)
 
     ### TODO: SUBSTITUTE IN THIS METHOD THE OLD MAPPER BY THE ONE IN THE FSI APPLICATION
     def _SetUpMapper(self):
