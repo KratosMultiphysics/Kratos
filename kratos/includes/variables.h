@@ -430,6 +430,8 @@ namespace Kratos
             
     KRATOS_DEFINE_VARIABLE(double, SEARCH_RADIUS )
 
+    KRATOS_DEFINE_VARIABLE(double, INTEGRATION_WEIGHT )
+
     // for Vulcan application
 //     KRATOS_DEFINE_VARIABLE(double,  LAST_AIR)
 //     KRATOS_DEFINE_VARIABLE(double,  PRESSURES)

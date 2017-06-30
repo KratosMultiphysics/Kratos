@@ -92,9 +92,6 @@ namespace Kratos
 
         // Reading integration points and local gradients
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
-
-        // Auxiliary terms
-        Vector body_force = ZeroVector(3);
         
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
@@ -110,6 +107,9 @@ namespace Kratos
         // Displacements vector
         Vector displacements;
         GetValuesVector(displacements);
+        
+        // Contribution to external forces
+        const Vector body_force = this->GetBodyForce();
         
         for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
         {
@@ -136,18 +136,8 @@ namespace Kratos
 
             if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
             {
-                // Contribution to external forces
-                if (GetProperties().Has( VOLUME_ACCELERATION ) == true)
-                {
-                    body_force += GetProperties()[VOLUME_ACCELERATION];
-                }
-                if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) )
-                {
-                    body_force += GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-                }
-
                 // Operation performed: rRightHandSideVector += ExtForce*int_to_reference_weight
-                CalculateAndAdd_ExtForceContribution( this_kinematic_variables.N, rCurrentProcessInfo, body_force, rRightHandSideVector, int_to_reference_weight );
+                this->CalculateAndAddExtForceContribution( this_kinematic_variables.N, rCurrentProcessInfo, body_force, rRightHandSideVector, int_to_reference_weight );
 
                 // Operation performed: rRightHandSideVector -= IntForce*int_to_reference_weight
                 noalias( rRightHandSideVector ) -= int_to_reference_weight * prod( trans( this_kinematic_variables.B ), this_constitutive_variables.StressVector );
@@ -170,6 +160,11 @@ namespace Kratos
         rThisKinematicVariables.N = GetGeometry().ShapeFunctionsValues(rThisKinematicVariables.N, IntegrationPoints[PointNumber].Coordinates());
         
         rThisKinematicVariables.detJ0 = CalculateDerivativesOnReference(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, GetGeometry().GetDefaultIntegrationMethod()); 
+        
+        if (rThisKinematicVariables.detJ0 < 0.0)
+        {
+            KRATOS_ERROR << "WARNING:: ELEMENT ID: " << this->Id() << " INVERTED. DETJ0: " << rThisKinematicVariables.detJ0 << std::endl;
+        }
         
         // Compute B
         CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.DN_DX, IntegrationPoints, PointNumber );
@@ -204,35 +199,6 @@ namespace Kratos
         
         // Actually do the computations in the ConstitutiveLaw    
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(rValues); //here the calculations are actually done 
-    }
-    
-    //************************************************************************************
-    //************************************************************************************
-
-    inline void KinematicLinear::CalculateAndAdd_ExtForceContribution(
-        const Vector& N,
-        const ProcessInfo& CurrentProcessInfo,
-        Vector& body_force,
-        VectorType& rRightHandSideVector,
-        const double weight
-        )
-    {
-        KRATOS_TRY;
-        
-        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            const unsigned int index = dimension * i;
-
-            for ( unsigned int j = 0; j < dimension; j++ ) 
-            {
-                rRightHandSideVector[index + j] += weight * N[i] * body_force[j];
-            }
-        }
-
-        KRATOS_CATCH( "" )
     }
 
     //************************************************************************************

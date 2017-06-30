@@ -94,9 +94,6 @@ namespace Kratos
 
         // Reading integration points
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
-
-        // Auxiliary terms
-        Vector body_force = ZeroVector(3);
         
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
         
@@ -109,6 +106,9 @@ namespace Kratos
         // If strain has to be computed inside of the constitutive law with PK2
         Values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter
 
+        // Contribution to external forces
+        const Vector body_force = this->GetBodyForce();
+        
         for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
         {
             // Compute element kinematics B, F, DN_DX ...
@@ -138,18 +138,8 @@ namespace Kratos
 
             if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
             {
-                // Contribution to external forces
-                if (GetProperties().Has( VOLUME_ACCELERATION ) == true)
-                {
-                    body_force += GetProperties()[VOLUME_ACCELERATION];
-                }
-                if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) )
-                {
-                    body_force += GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-                }
-
                 // Operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-                CalculateAndAdd_ExtForceContribution( this_kinematic_variables.N, rCurrentProcessInfo, body_force, rRightHandSideVector, IntToReferenceWeight );
+                this->CalculateAndAddExtForceContribution( this_kinematic_variables.N, rCurrentProcessInfo, body_force, rRightHandSideVector, IntToReferenceWeight );
 
                 // Operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
                 noalias( rRightHandSideVector ) -= IntToReferenceWeight * prod( trans( this_kinematic_variables.B ), this_constitutive_variables.StressVector );
@@ -177,6 +167,11 @@ namespace Kratos
     
         rThisKinematicVariables.detJ0 = CalculateDerivativesOnReference(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, GetGeometry().GetDefaultIntegrationMethod());
 
+        if (rThisKinematicVariables.detJ0 < 0.0)
+        {
+            KRATOS_ERROR << "WARNING:: ELEMENT ID: " << this->Id() << " INVERTED. DETJ0: " << rThisKinematicVariables.detJ0 << std::endl;
+        }
+        
         // Deformation gradient
         noalias( rThisKinematicVariables.F ) = prod( J, rThisKinematicVariables.InvJ0 );
 
@@ -224,35 +219,6 @@ namespace Kratos
         
         // Actually do the computations in the ConstitutiveLaw    
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(rValues); //here the calculations are actually done 
-    }
-
-    //************************************************************************************
-    //************************************************************************************
-
-    inline void TotalLagrangian::CalculateAndAdd_ExtForceContribution(
-        const Vector& N,
-        const ProcessInfo& CurrentProcessInfo,
-        Vector& body_force,
-        VectorType& rRightHandSideVector,
-        double weight
-    )
-    {
-        KRATOS_TRY
-        
-        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            const unsigned int index = dimension * i;
-
-            for ( unsigned int j = 0; j < dimension; j++ ) 
-            {
-                rRightHandSideVector[index + j] += weight * N[i] * body_force[j];
-            }
-        }
-
-        KRATOS_CATCH( "" )
     }
 
     //************************************************************************************

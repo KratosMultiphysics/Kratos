@@ -338,7 +338,7 @@ public:
             bounded_matrix<double,nvolumes, 2> NEnriched;
             
             for(unsigned int i=0; i<GradientsValue.size(); ++i)
-                GradientsValue[i].resize(1,Dim,false);
+                GradientsValue[i].resize(2,Dim,false);
            
             
             
