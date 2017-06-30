@@ -151,7 +151,7 @@ def AssambleTestSuites():
             TALMThreeDSimplestPatchMatchingTestContact,
             TALMThreeDSimplestPatchMatchingAdaptativeTestContact,
             TALMThreeDSimplestPatchMatchingSlopeTestContact,
-            ##TALMThreeDPatchComplexGeomTestContact, # FIXME: There is a kinematic problem!!!
+            TALMThreeDPatchComplexGeomTestContact,
             TALMTThreeDPatchMatchingTestContact,
             TALMThreeDPatchNotMatchingTestContact,
             ## NIGTHLY
@@ -163,9 +163,9 @@ def AssambleTestSuites():
             TALMHertzSimpleSphereTestContact,
             ##TALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
             TALMHertzCompleteTestContact,
-            ## VALIDATION
-            ##TALMIroningTestContact,
-            ##TALMIroningDieTestContact,
+            ### VALIDATION
+            ###TALMIroningTestContact,
+            ###TALMIroningDieTestContact,
         ])
     )
 
