@@ -139,7 +139,7 @@ def AssambleTestSuites():
             TSimplePatchTestTwoDMeshTying,
             TSimpleSlopePatchTestTwoDMeshTying,
             TSimplestPatchTestThreeDMeshTying,
-            ##TSimplePatchTestThreeDMeshTying, # FIXME: Some problem in the mesh tying
+            TSimplePatchTestThreeDMeshTying,
             TALMHyperSimplePatchTestContact,
             TALMHyperSimpleSlopePatchTestContact,
             TALMTwoDPatchComplexGeomTestContact,
@@ -163,9 +163,9 @@ def AssambleTestSuites():
             TALMHertzSimpleSphereTestContact,
             ##TALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
             TALMHertzCompleteTestContact,
-            ### VALIDATION
-            ###TALMIroningTestContact,
-            ###TALMIroningDieTestContact,
+            ## VALIDATION
+            ##TALMIroningTestContact,
+            ##TALMIroningDieTestContact,
         ])
     )
 

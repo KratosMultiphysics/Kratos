@@ -159,7 +159,7 @@
             "type_variable"               : "Components",
             "geometry_element"            : "Hexahedron",
             "search_factor"               : 10.0,
-            "active_check_factor"         : 0.5,
+            "active_check_factor"         : 1.0,
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
             "integration_order"           : 2
