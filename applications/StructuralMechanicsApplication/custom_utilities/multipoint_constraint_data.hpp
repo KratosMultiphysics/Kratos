@@ -213,6 +213,30 @@ class MpcData
         return mDofConstraints[std::make_pair(SlaveDof.Id(), SlaveDof.GetVariable().Key())].size();
     }
 
+    /**
+		Set the name for the current set of constraints. 
+		 */
+    void SetName(const std::string name)
+    {
+        mName = name;
+    }
+    /**
+		Get the name for the current set of constraints. 
+		 */
+    const std::string GetName()
+    {
+        return mName;
+    }    
+
+    /**
+		Set the activeness for current set of constraints. 
+		 */
+    void SetActive(const bool isActive)
+    {
+        mActive = isActive;
+    }
+
+
     ///@
 
     ///@name Static Operations
@@ -253,6 +277,9 @@ class MpcData
                        std::unordered_map<unsigned int, double>>
         mEquationIdToWeightsMap;
 
+
+    bool mActive;
+    std::string mName;
     ///@}
 
     ///@name Serialization

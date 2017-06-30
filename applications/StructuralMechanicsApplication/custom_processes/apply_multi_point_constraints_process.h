@@ -47,6 +47,8 @@ public:
     typedef MpcData::VariableComponentType VariableComponentType;
     typedef ProcessInfo      ProcessInfoType;
     typedef ProcessInfo::Pointer      ProcessInfoPointerType;
+    typedef unsigned int IndexType;
+    typedef std::vector<MpcDataPointerType>*  MpcDataPointerVectorType;
 
     /// Constructor.
     ApplyMultipointConstraintsProcess(  ModelPart& model_part,
@@ -58,12 +60,11 @@ public:
             {
                 "master_model_part_name":"default_master",
                 "slave_model_part_name":"default_slave",
-                "constraint_sets":["default"],
+                "constraint_name":"default",
                 "interpolation_type":"nearest_element"            
             }  )" );
 
         rParameters.ValidateAndAssignDefaults(default_parameters);
-        //mrMpcData(model_part.GetValue(KratosComponents< Variable<MpcData> >::Get( "MPC_DATA" ))
         mpcDataMap["default"] = MpcDataPointerType( new MpcData() );
         ProcessInfoPointerType info = mr_model_part.pGetProcessInfo();
         info->SetValue(MPC_POINTER, mpcDataMap["default"]);
@@ -77,11 +78,30 @@ public:
         mpcDataMap["default"] = MpcDataPointerType( new MpcData() );
         ProcessInfoPointerType info = mr_model_part.pGetProcessInfo();
         info->SetValue(MPC_POINTER, mpcDataMap["default"]);
+        
+        
+        
+        mpcDataMap["default"]->SetName("default");
+        mpcDataMap["default"]->SetActive(true);
+        info->SetValue(MPC_DATA_CONTAINER, new std::vector<MpcDataPointerType>());
+        MpcDataPointerVectorType mpcDataVector = info->GetValue(MPC_DATA_CONTAINER);
+        (*mpcDataVector).push_back(mpcDataMap["default"]);
 
     }    
 
     void AddMasterSlaveRelation(Node<3> &MasterNode, VariableComponentType& MasterVariable, Node<3> &SlaveNode, VariableComponentType& SlaveVariable, double weight, int PartitionId=0)
     {
+        SlaveNode.Set(SLAVE);        
+        DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
+    	DofType &pointerMasterDOF = MasterNode.GetDof(MasterVariable);
+        AddMasterSlaveRelationWithDofs(pointerSlaveDOF, pointerMasterDOF, weight, PartitionId);
+    }
+
+    void AddMasterSlaveRelationWithNodeIds(IndexType MasterNodeId, VariableComponentType& MasterVariable, IndexType SlaveNodeId, VariableComponentType& SlaveVariable, double weight, int PartitionId=0)
+    {
+
+        Node<3>& SlaveNode = mr_model_part.Nodes()[SlaveNodeId];
+        Node<3>& MasterNode = mr_model_part.Nodes()[MasterNodeId];        
         SlaveNode.Set(SLAVE);        
         DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
     	DofType &pointerMasterDOF = MasterNode.GetDof(MasterVariable);
@@ -95,6 +115,17 @@ public:
         pMpc->AddConstraint(slaveDOF, masterDOF,  masterWeight, PartitionId);
     }
 
+
+    void SetActive(std::string mpcDataSetName, bool isActive=true)
+    {
+        ProcessInfoType info = mr_model_part.GetProcessInfo();
+        MpcDataPointerVectorType mpcDataVector = info.GetValue(MPC_DATA_CONTAINER);
+
+        for(auto mpcDataPointer : (*mpcDataVector)){
+            if(mpcDataPointer->GetName() == mpcDataSetName)
+                mpcDataPointer->SetActive(isActive);
+        }
+    }
 
     /// Destructor.
     virtual ~ApplyMultipointConstraintsProcess(){

@@ -14,6 +14,7 @@
 
 // System includes
 #include<map>
+#include<string>
 
 // External includes
 
@@ -30,6 +31,7 @@ namespace Kratos
 {
     typedef array_1d<double, 3> Vector3;
     typedef MpcData::Pointer MpcDataPointerType;
+    typedef std::vector<MpcDataPointerType>*  MpcDataPointerVectorType;
 
 
     // Generalized eigenvalue problem
@@ -128,6 +130,7 @@ namespace Kratos
 
     // For MPC implementations
     KRATOS_DEFINE_VARIABLE(MpcDataPointerType, MPC_POINTER);
+    KRATOS_DEFINE_VARIABLE(MpcDataPointerVectorType, MPC_DATA_CONTAINER)
 }
 
 #endif /* KRATOS_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED */

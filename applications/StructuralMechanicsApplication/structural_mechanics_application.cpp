@@ -345,6 +345,7 @@ void KratosStructuralMechanicsApplication::Register()
 
     // For MPC implementations
     KRATOS_REGISTER_VARIABLE(MPC_POINTER)
+    KRATOS_REGISTER_VARIABLE(MPC_DATA_CONTAINER)
     // Register linear elastics laws
     Serializer::Register( "LinearElastic3DLaw", mElasticIsotropic3D );
     Serializer::Register( "LinearElasticPlaneStrain2DLaw", mLinearPlaneStrain );

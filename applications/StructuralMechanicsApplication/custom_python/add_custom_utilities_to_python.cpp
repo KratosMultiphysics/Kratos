@@ -29,7 +29,7 @@
 
 //Processes
 #include "custom_processes/apply_multi_point_constraints_process.h"
-
+#include "custom_processes/duplicate_interface_process.h"
 
 
 namespace Kratos
@@ -80,6 +80,10 @@ void  AddCustomUtilitiesToPython()
     .def(init< ModelPart&, Parameters& >())
 	.def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelation)
     .def("PrintData", &ApplyMultipointConstraintsProcess::PrintData);
+
+    class_<DuplicateInterfaceProcess, boost::noncopyable, bases<Process>>("DuplicateInterfaceProcess", init<ModelPart&>())
+	.def("DuplicateInterface", &DuplicateInterfaceProcess::DuplicateInterface)
+    .def("PrintData", &DuplicateInterfaceProcess::PrintData);    
 
 
 }
