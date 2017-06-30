@@ -43,6 +43,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "type_search"                 : "InRadius",
             "use_exact_integration"       : true,
             "hard_clear_after_step"       : false,
+            "database_step_update"        : 1,
             "integration_order"           : 2,
             "predict_with_linear_solver"  : false,
             "linear_solver_settings"      : {
@@ -82,6 +83,8 @@ class ALMContactProcess(KratosMultiphysics.Process):
             raise NameError("3D and axisymmetric makes no sense")
         self.pair_variation  = self.params["pair_variation"].GetBool()
         self.integration_order = self.params["integration_order"].GetInt() 
+        self.database_step_update = self.params["database_step_update"].GetInt() 
+        self.database_step = 0
         self.frictional_law = self.params["frictional_law"].GetString()
         self.predict_with_linear_solver = self.params["predict_with_linear_solver"].GetBool()
         self.debug_mode = self.params["debug_mode"].GetBool()
@@ -238,34 +241,38 @@ class ALMContactProcess(KratosMultiphysics.Process):
             self.contact_search.TotalClearComponentsMortarConditions()
     
     def ExecuteInitializeSolutionStep(self):
-        # We solve one linear step with a linear strategy if needed
-        step = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]
-        if (self.predict_with_linear_solver == True and step > 1):
-            self._linear_solver_predict()
-            self._clear_sets()
+        self.database_step += 1
+        self.global_step = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]
         
-        self.contact_search.UpdateMortarConditions()
-        #self.contact_search.CheckMortarConditions()
+        if (self.database_step >= self.database_step_update or self.global_step == 1):
+            # We solve one linear step with a linear strategy if needed
             
-        # Debug
-        if (self.debug_mode == True):
-            self.label += 1
+            if (self.predict_with_linear_solver == True and self.global_step > 1):
+                self._linear_solver_predict()
+                self._clear_sets()
             
-            gid_io = KratosMultiphysics.GidIO(self.output_file+"_STEP_"+str(self.label), self.gid_mode, self.singlefile, self.deformed_mesh_flag, self.write_conditions)
-            
-            gid_io.InitializeMesh(self.label)
-            gid_io.WriteMesh(self.main_model_part.GetMesh())
-            gid_io.FinalizeMesh()
-            gid_io.InitializeResults(self.label, self.main_model_part.GetMesh())
-            
-            gid_io.WriteNodalFlags(KratosMultiphysics.INTERFACE, "INTERFACE", self.main_model_part.Nodes, self.label)
-            gid_io.WriteNodalFlags(KratosMultiphysics.ACTIVE, "ACTIVE", self.main_model_part.Nodes, self.label)
-            gid_io.WriteNodalResultsNonHistorical(KratosMultiphysics.NORMAL, self.main_model_part.Nodes, self.label)
-            gid_io.WriteNodalResults(KratosMultiphysics.DISPLACEMENT, self.main_model_part.Nodes, self.label, 0)
-            
-            gid_io.FinalizeResults()
-            
-            #raise NameError("DEBUG")
+            self.contact_search.UpdateMortarConditions()
+            #self.contact_search.CheckMortarConditions()
+                
+            # Debug
+            if (self.debug_mode == True):
+                self.label += 1
+                
+                gid_io = KratosMultiphysics.GidIO(self.output_file+"_STEP_"+str(self.label), self.gid_mode, self.singlefile, self.deformed_mesh_flag, self.write_conditions)
+                
+                gid_io.InitializeMesh(self.label)
+                gid_io.WriteMesh(self.main_model_part.GetMesh())
+                gid_io.FinalizeMesh()
+                gid_io.InitializeResults(self.label, self.main_model_part.GetMesh())
+                
+                gid_io.WriteNodalFlags(KratosMultiphysics.INTERFACE, "INTERFACE", self.main_model_part.Nodes, self.label)
+                gid_io.WriteNodalFlags(KratosMultiphysics.ACTIVE, "ACTIVE", self.main_model_part.Nodes, self.label)
+                gid_io.WriteNodalResultsNonHistorical(KratosMultiphysics.NORMAL, self.main_model_part.Nodes, self.label)
+                gid_io.WriteNodalResults(KratosMultiphysics.DISPLACEMENT, self.main_model_part.Nodes, self.label, 0)
+                
+                gid_io.FinalizeResults()
+                
+                #raise NameError("DEBUG")
         
     def ExecuteFinalizeSolutionStep(self):
         pass
@@ -274,8 +281,9 @@ class ALMContactProcess(KratosMultiphysics.Process):
         pass
 
     def ExecuteAfterOutputStep(self):
-        if (self.predict_with_linear_solver == False):
-            self._clear_sets()
+        if (self.database_step >= self.database_step_update or self.global_step == 1):
+            if (self.predict_with_linear_solver == False):
+                self._clear_sets()
             
     def ExecuteFinalize(self):
         pass
@@ -291,6 +299,8 @@ class ALMContactProcess(KratosMultiphysics.Process):
                 self.contact_search.PartialClearALMFrictionlessMortarConditions()
             else:
                 self.contact_search.PartialClearComponentsMortarConditions()
+                
+        self.database_step = 0
                 
     def _linear_solver_predict(self):
         import linear_solver_factory
