@@ -129,8 +129,7 @@ namespace Kratos
             {
                 // Contributions to stiffness matrix calculated on the reference config
                 /* Material stiffness matrix */
-                Matrix temp = prod(this_constitutive_variables.D, this_kinematic_variables.B);
-                noalias( rLeftHandSideMatrix ) += IntToReferenceWeight *prod( trans( this_kinematic_variables.B ), temp);
+                CalculateAndAddKm( rLeftHandSideMatrix, this_kinematic_variables.B, this_constitutive_variables.D, IntToReferenceWeight );
                 
                 /* Geometric stiffness matrix */
                 CalculateAndAddKg( rLeftHandSideMatrix, this_kinematic_variables.DN_DX, this_constitutive_variables.StressVector, IntToReferenceWeight );
@@ -224,17 +223,37 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void TotalLagrangian::CalculateAndAddKg(
+    void TotalLagrangian::CalculateAndAddKm(
         MatrixType& K,
-        Matrix& DN_DX,
-        Vector& stress_vector,
-        double weight )
+        const Matrix& B,
+        const Matrix& D,
+        const double Weight
+        )
     {
         KRATOS_TRY
-        unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        Matrix StressTensor = MathUtils<double>::StressVectorToTensor( stress_vector );
-        Matrix ReducedKg = prod( DN_DX, weight * Matrix( prod( StressTensor, trans( DN_DX ) ) ) ); //to be optimized
-        MathUtils<double>::ExpandAndAddReducedMatrix( K, ReducedKg, dimension );
+        
+        Matrix temp = prod(D, B);
+        noalias( K ) += Weight *prod( trans( B ), temp);
+
+        KRATOS_CATCH( "" )
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
+
+    void TotalLagrangian::CalculateAndAddKg(
+        MatrixType& K,
+        const Matrix& DN_DX,
+        const Vector& StressVector,
+        const double Weight
+        )
+    {
+        KRATOS_TRY
+        
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( StressVector );
+        Matrix reduced_Kg = prod( DN_DX, Weight * Matrix( prod( stress_tensor, trans( DN_DX ) ) ) ); //to be optimized
+        MathUtils<double>::ExpandAndAddReducedMatrix( K, reduced_Kg, dimension );
 
         KRATOS_CATCH( "" )
     }

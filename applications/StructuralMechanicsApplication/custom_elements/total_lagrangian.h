@@ -218,26 +218,30 @@ private:
     ///@name Private Operators
     ///@{
 
+    /**
+     * Calculation of the Material Stiffness Matrix. Kg = B^T*D*B
+     */
     void CalculateAndAddKm(
         MatrixType& K,
-        Matrix& B,
-        Matrix& D,
-        double weight);
+        const Matrix& B,
+        const Matrix& D,
+        const double Weight
+        );
 
     /**
      * Calculation of the Geometric Stiffness Matrix. Kg = dB * S
      */
     void CalculateAndAddKg(
         MatrixType& K,
-        Matrix& DN_DX,
-        Vector& StressVector,
-        double weight
-    );
+        const Matrix& DN_DX,
+        const Vector& StressVector,
+        const double Weight
+        );
 
     void CalculateBodyForces(
         Vector& BodyForce,
         const ProcessInfo& CurrentProcessInfo
-    );
+        );
 
     void InitializeVariables();
 
