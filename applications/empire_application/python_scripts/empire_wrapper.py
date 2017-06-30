@@ -13,25 +13,25 @@ CheckForPreviousImport()
 class EmpireWrapper:
 
     # -------------------------------------------------------------------------------------------------
-    def __init__(self, model_part, libempire_api, xml_input_file, is_2d = False):
+    def __init__(self, model_part, libempire_api, is_2d = False):
         self.libempire_api = libempire_api
         self.model_part = model_part
-        self.number_of_nodes = self.model_part.NumberOfNodes()
-        self.xml_input_file = xml_input_file
         self.is_2d = is_2d
-        self.wrapper = empire_tools.EmpireTools(self.model_part)
+        self.tools = empire_tools.EmpireTools(self.model_part)
     # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
-    def Connect(self):
+    @staticmethod
+    def Connect(libempire_api, xml_input_file):
         ''' Establishes the necessary connection with the Emperor '''
-        self.libempire_api.EMPIRE_API_Connect(self.xml_input_file.encode()) # TODO check if this works
+        libempire_api.EMPIRE_API_Connect(xml_input_file.encode()) # TODO check if this works
     # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
-    def Disconnect(self):
+    @staticmethod
+    def Disconnect(libempire_api):
         ''' Performs disconnection and finalization operations to the Emperor '''
-        self.libempire_api.EMPIRE_API_Disconnect()
+        libempire_api.EMPIRE_API_Disconnect()
     # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
@@ -71,7 +71,7 @@ class EmpireWrapper:
         nodeIDs = []
         numNodesPerElem = []
         elemTable = []
-        self.wrapper.ExtractInterface(numNodes, numElems, nodeCoors, nodeIDs, numNodesPerElem, elemTable)
+        self.tools.ExtractInterface(numNodes, numElems, nodeCoors, nodeIDs, numNodesPerElem, elemTable)
         
         # extend mesh to 3d
         if self.is_2d:
@@ -142,20 +142,65 @@ class EmpireWrapper:
     # -------------------------------------------------------------------------------------------------
     
     # -------------------------------------------------------------------------------------------------
-    def ReceiveMesh(self):
-      ''' Recieve mesh from the server
-      \param[in] name name of the mesh
-      \param[in] numNodes number of nodes
-      \param[in] numElems number of elements
-      \param[in] nodes coordinates of all nodes
-      \param[in] nodeIDs IDs of all nodes
-      \param[in] numNodesPerElem number of nodes per element
-      \param[in] elems connectivity table of all elements
-       
-      void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double **nodes, int **nodeIDs,
-              int **numNodesPerElem, int **elem); '''
+    def ReceiveMesh(self, construct_conditions=False):
+        ''' Recieve mesh from the server
+        \param[in] name name of the mesh
+        \param[in] numNodes number of nodes
+        \param[in] numElems number of elements
+        \param[in] nodes coordinates of all nodes
+        \param[in] nodeIDs IDs of all nodes
+        \param[in] numNodesPerElem number of nodes per element
+        \param[in] elems connectivity table of all elements
+        
+        void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double **nodes, int **nodeIDs,
+                int **numNodesPerElem, int **elem); '''
 
-      pass
+        # numNodes = []
+        # numElems = []
+        # nodeCoors = []
+        # nodeIDs = []
+        # numNodesPerElem = []
+        # elemTable = []
+
+        # c_numNodes = (ctp.c_int * len(numNodes))(*numNodes)
+        # c_numElems = (ctp.c_int * len(numElems))(*numElems)
+        # c_nodeCoors = (ctp.c_double * len(nodeCoors))(*nodeCoors)
+        # c_nodeIDs = (ctp.c_int * len(nodeIDs))(*nodeIDs)
+        # c_numNodesPerElem = (ctp.c_int * len(numNodesPerElem))(*numNodesPerElem)
+        # c_elemTable = (ctp.c_int * len(elemTable))(*elemTable)
+
+        # c_numNodes = ctp.POINTER(ctp.c_int)
+        # c_numElems = ctp.POINTER(ctp.c_int)
+
+        # ***********
+        # numNodes = ctp.c_int(0)
+        # numElems = ctp.c_int(0)
+        # nodeCoors = ctp.c_double(0)
+        # nodeIDs = ctp.c_int(0)
+        # numNodesPerElem = ctp.c_int(0)
+        # elemTable = ctp.c_int(0)
+
+        c_numNodes = ctp.pointer(ctp.c_int(0))
+        c_numElems = ctp.pointer(ctp.c_int(0))
+        c_nodeCoors = ctp.pointer(ctp.pointer(ctp.c_double(0)))
+        c_nodeIDs = ctp.pointer(ctp.pointer(ctp.c_int(0)))
+        c_numNodesPerElem = ctp.pointer(ctp.pointer(ctp.c_int(0)))
+        c_elemTable = ctp.pointer(ctp.pointer(ctp.c_int(0)))
+        
+        self.libempire_api.EMPIRE_API_recvMesh("defaultMesh", 
+                                                c_numNodes, c_numElems, 
+                                                c_nodeCoors, c_nodeIDs, 
+                                                c_numNodesPerElem, c_elemTable)
+
+        numNodes = c_numNodes.contents.value
+        numElems = c_numElems.contents.value
+        nodeCoors = c_nodeCoors.contents
+        nodeIDs = c_nodeIDs.contents
+        numNodesPerElem = c_numNodesPerElem.contents
+        elemTable = c_elemTable.contents
+        
+        self.tools.ConstructMesh(numNodes, numElems, nodeCoors, nodeIDs, numNodesPerElem, elemTable, construct_conditions)
+
     # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
@@ -169,10 +214,10 @@ class EmpireWrapper:
 
         # extract data field from nodes
         data_field = []
-        self.wrapper.GetDataField(kratos_variable, data_field)
+        self.tools.GetDataField(kratos_variable, data_field)
 
         # convert list containg the displacements to ctypes
-        c_data_field = (c_double * len(data_field))(*data_field)
+        c_data_field = (ctp.c_double * len(data_field))(*data_field)
         c_size = len(c_data_field)
 
         # send displacements to empire
@@ -196,9 +241,9 @@ class EmpireWrapper:
         # # extract dataField as simulation result from interface nodes
         # dataField = []
         # if(dataFieldName_inKRATOS=="FORCE"):
-        #    self.wrapper.extract_data_field(POINT_LOAD,dataField)
+        #    self.tools.extract_data_field(POINT_LOAD,dataField)
         # if(dataFieldName_inKRATOS=="DISPLACEMENT"):
-        #    self.wrapper.extract_data_field(DISPLACEMENT,dataField)        
+        #    self.tools.extract_data_field(DISPLACEMENT,dataField)        
         
         # # extend to 3d
         # if self.is_2d:
@@ -238,9 +283,20 @@ class EmpireWrapper:
         
         void EMPIRE_API_recvDataField(char *name, int sizeOfArray, double *dataField); '''
 
+        # Determine Size of Variable
+        try:
+            first_node = next(iter(self.model_part.Nodes))
+            value = first_node.GetSolutionStepValue(kratos_variable)
+            if (isinstance(value, float) or isinstance(value, int)): # Variable is a scalar
+                size_of_variable = 1
+            else:
+                size_of_variable = len(first_node.GetSolutionStepValue(kratos_variable))
+        except StopIteration:
+            raise Exception("size_of_variable could not be determined")
+
         # initialize vector storing the values
-        size_data_field = self.number_of_nodes * 3
-        c_data_field = (c_double * size_data_field)(0)
+        size_data_field = self.model_part.NumberOfNodes() * size_of_variable
+        c_data_field = (ctp.c_double * size_data_field)(0)
         
         # receive displacements from empire
         self.libempire_api.EMPIRE_API_recvDataField("defaultField", size_data_field, c_data_field)
@@ -250,7 +306,7 @@ class EmpireWrapper:
 
         # if(type(self.var) != KratosMultiphysics.Array1DComponentVariable and type(self.var) != KratosMultiphysics.DoubleVariable and type(self.var) != KratosMultiphysics.VectorVariable):
 
-        self.wrapper.SetDataField(kratos_variable, c_data_field)
+        self.tools.SetDataField(kratos_variable, c_data_field, size_of_variable)
     # -------------------------------------------------------------------------------------------------
     
     
@@ -459,7 +515,7 @@ class EmpireWrapper:
     # -------------------------------------------------------------------------------------------------
     # extract interface nodes and conditions from the fluid model part which have a flag "IS_INTERFACE"
     def extractInterface(self):
-        for wrapper_process in self.wrapper_processes_list:
+        for wrapper_process in self.tools_processes_list:
             wrapper_process.ExtractInterface()
     # -------------------------------------------------------------------------------------------------
 
@@ -497,7 +553,7 @@ class EmpireWrapper:
 
     # -------------------------------------------------------------------------------------------------
     def sendPressure(self):
-        for wrapper_process in self.wrapper_processes_list:
+        for wrapper_process in self.tools_processes_list:
             # extract pressure from interface nodes as result of the CFD simulation
             pressure = []
             wrapper_process.ExtractPressureFromModelPart(pressure)
@@ -512,7 +568,7 @@ class EmpireWrapper:
 
     # -------------------------------------------------------------------------------------------------
     def sendForces(self):
-        for wrapper_process in self.wrapper_processes_list:
+        for wrapper_process in self.tools_processes_list:
             # extract pressure from interface nodes as result of the CFD simulation
             forces = []
             wrapper_process.ExtractForcesFromModelPart(forces)
@@ -527,7 +583,7 @@ class EmpireWrapper:
 
     # -------------------------------------------------------------------------------------------------
     def sendMesh(self):
-        for wrapper_process in self.wrapper_processes_list:
+        for wrapper_process in self.tools_processes_list:
             numNodes = []
             numElems = []
             nodes = []
@@ -611,7 +667,7 @@ class EmpireWrapper:
 
     # -------------------------------------------------------------------------------------------------
     def sendDisplacements(self):
-        for wrapper_process in self.wrapper_processes_list:
+        for wrapper_process in self.tools_processes_list:
             # extract displacements from interface nodes as result of the CFD simulation
             displacements = []
             wrapper_process.ExtractDisplacementsFromModelPart(displacements)
