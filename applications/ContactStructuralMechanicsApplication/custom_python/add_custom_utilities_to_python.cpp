@@ -55,6 +55,7 @@ void  AddCustomUtilitiesToPython()
     .def("CreatePointListMortar",&TreeContactSearch::CreatePointListMortar)
     .def("UpdatePointListMortar",&TreeContactSearch::UpdatePointListMortar)
     .def("UpdateMortarConditions",&TreeContactSearch::UpdateMortarConditions)
+    .def("CleanMortarConditions",&TreeContactSearch::CleanMortarConditions)
     .def("CheckMortarConditions",&TreeContactSearch::CheckMortarConditions)
     ;
     

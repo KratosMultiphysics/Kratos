@@ -490,6 +490,7 @@ public:
                     if (number_points_found > 0)
                     {                           
                         boost::shared_ptr<ConditionSet>& conditions_pointers_destination = it_cond->GetValue(CONTACT_SETS);
+                        const array_1d<double, 3> contact_normal_origin = it_cond->GetValue(NORMAL);
                         
                         for(unsigned int i = 0; i < number_points_found; i++)
                         {   
@@ -500,7 +501,7 @@ public:
                             if (condition_checked_right == true)
                             {    
                                 // If not active we check if can be potentially in contact
-                                SearchUtilities::ContactContainerFiller(conditions_pointers_destination, (*it_cond.base()), p_cond_origin, it_cond->GetValue(NORMAL), p_cond_origin->GetValue(NORMAL), mActiveCheckFactor, mDualSearchCheck, mStrictSearchCheck, mUseExactIntegration); 
+                                SearchUtilities::ContactContainerFiller<true>(conditions_pointers_destination, (*it_cond.base()), p_cond_origin, contact_normal_origin, p_cond_origin->GetValue(NORMAL), mActiveCheckFactor, mDualSearchCheck, mStrictSearchCheck, mUseExactIntegration); 
                             }
                         }
                         
@@ -512,6 +513,57 @@ public:
                 }
             }
 //         }
+    }
+    
+    
+    void CleanMortarConditions()
+    {
+        ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
+        const int num_conditions = static_cast<int>(conditions_array.size());
+
+        #pragma omp parallel for 
+        for(int i = 0; i < num_conditions; i++) 
+        {
+            auto it_cond = conditions_array.begin() + i;
+            if ( (it_cond)->Is(ACTIVE) == true )
+            {
+                auto& condition_pointers = it_cond->GetValue(CONTACT_SETS);
+                
+                // Initialize geometries
+                const array_1d<double, 3> contact_normal = it_cond->GetValue(NORMAL);
+                
+                for (auto it_pair = condition_pointers->begin(); it_pair != condition_pointers->end(); ++it_pair )
+                {
+                    SearchUtilities::ContactContainerFiller<false>(condition_pointers, (*it_cond.base()), (*(it_pair)), contact_normal, (*(it_pair))->GetValue(NORMAL), mActiveCheckFactor, mDualSearchCheck, mStrictSearchCheck, mUseExactIntegration);
+                }
+                
+                bool deactivate_condition = (condition_pointers->size() == 0) ? true : false;
+                
+                if (deactivate_condition == false)
+                {
+                    deactivate_condition = true;
+                    for(unsigned int iNode = 0; iNode < it_cond->GetGeometry().size(); iNode++)
+                    {
+                        if (it_cond->GetGeometry()[iNode].Is(ACTIVE) == true)
+                        {
+                            deactivate_condition = false;
+                            break;
+                        }
+                    }
+                }
+                
+                // We deactivate the condition if necessary
+                if (deactivate_condition == true)
+                {
+                    it_cond->Set(ACTIVE, false);
+                    
+                    if (condition_pointers != nullptr)
+                    {
+                        condition_pointers->clear();
+                    }
+                }
+            }
+        }
     }
     
     /**

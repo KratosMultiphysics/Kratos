@@ -91,9 +91,11 @@ public:
      * @param ActiveCheckLength: The threshold distance to check the potential contact
      * @param DualCheck: The threshold distance to check the potential contact
      * @param StrictCheck: If the node must be inside or not
+     * @param UseExactIntegration: If use the exact integration or not
      * @return condition_is_active: True if the condition is active, false otherwise
      */
     
+    template<bool TFill>
     static inline void ContactContainerFiller(
         boost::shared_ptr<ConditionSet>& ConditionPointers,
         Condition::Pointer & pCond1,       // SLAVE
@@ -172,18 +174,20 @@ public:
             const bool at_least_one_node_is_active = CheckGeometryNodes( geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
             
             // If condition is active we add
-            if (condition_is_active || at_least_one_node_is_active == true)
+            if (TFill == true)
             {
-                ConditionPointers->AddNewCondition(pCond2);
+                if ((condition_is_active || at_least_one_node_is_active) == true)
+                {
+                    ConditionPointers->AddNewCondition(pCond2);
+                }
             }
-            
-//             // If condition is active we add
-//             if (condition_is_active == true)
-//             {
-//                 CheckGeometryNodes( geom_1, geom_2, ContactNormal1, ContactNormal2, ActiveCheckLength, DualCheck, StrictCheck, tolerance);
-//                 
-//                 ConditionPointers->AddNewCondition(pCond2);
-//             }
+            else
+            {
+                if ((condition_is_active == false) && (at_least_one_node_is_active == false))
+                {
+                    ConditionPointers->RemoveCondition(pCond2);
+                }
+            }
         }
     }
     
