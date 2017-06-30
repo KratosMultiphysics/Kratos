@@ -30,7 +30,7 @@ class MechanicalSolver(object):
     The mechanical_solver, builder_and_solver, etc. should alway be retrieved
     using the getter functions get_mechanical_solver, get_builder_and_solver,
     etc. from this base class.
-    
+
     Only the member variables listed below should be accessed directly.
 
     Public member variables:
@@ -211,21 +211,18 @@ class MechanicalSolver(object):
             self.Clear()
         mechanical_solver = self.get_mechanical_solver()
         mechanical_solver.Solve()
-        
-    def StrategyInitialize(self):
-        self.get_mechanical_solver().Initialize()
-        
-    def StrategyInitializeSolutionStep(self):
+
+    def InitializeSolutionStep(self):
         self.get_mechanical_solver().InitializeSolutionStep()
 
-    def StrategyPredict(self):
+    def Predict(self):
         self.get_mechanical_solver().Predict()
 
-    def StrategySolveSolutionStep(self):
+    def SolveSolutionStep(self):
         is_converged = self.get_mechanical_solver().SolveSolutionStep()
         return is_converged
 
-    def StrategyFinalizeSolutionStep(self):
+    def FinalizeSolutionStep(self):
         self.get_mechanical_solver().FinalizeSolutionStep()
 
     def SetEchoLevel(self, level):
@@ -258,12 +255,12 @@ class MechanicalSolver(object):
         if not hasattr(self, '_builder_and_solver'):
             self._builder_and_solver = self._create_builder_and_solver()
         return self._builder_and_solver
-    
+
     def get_mechanical_solver(self):
         if not hasattr(self, '_mechanical_solver'):
             self._mechanical_solver = self._create_mechanical_solver()
         return self._mechanical_solver
-    
+
     def import_constitutive_laws(self):
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
         if (materials_filename != ""):
@@ -282,7 +279,7 @@ class MechanicalSolver(object):
         else:
             materials_imported = False
         return materials_imported
-    
+
     def validate_and_transfer_matching_settings(self, origin_settings, destination_settings):
         """Transfer matching settings from origin to destination.
 
@@ -406,7 +403,7 @@ class MechanicalSolver(object):
         import convergence_criteria_factory
         convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params)
         return convergence_criterion.mechanical_convergence_criterion
-    
+
     def _create_linear_solver(self):
         import linear_solver_factory
         linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
@@ -422,7 +419,7 @@ class MechanicalSolver(object):
 
     def _create_mechanical_solver(self):
         """Create the mechanical solver for the structural problem.
-        
+
         The mechanical solver must provide the functions defined in SolutionStrategy.
         """
         raise Exception("Mechanical solver must be implemented in the derived class.")
