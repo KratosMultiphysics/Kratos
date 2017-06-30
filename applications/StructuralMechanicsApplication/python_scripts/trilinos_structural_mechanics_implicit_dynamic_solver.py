@@ -40,6 +40,16 @@ class TrilinosImplicitMechanicalSolver(trilinos_structural_mechanics_solver.Tril
         # Construct the base solver.
         super(TrilinosImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
 
+    def AddVariables(self):
+        super(TrilinosImplicitMechanicalSolver, self).AddVariables()
+        # Add dynamic variables.
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+        if self.settings["rotation_dofs"].GetBool():
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
+        print("::[TrilinosImplicitMechanicalSolver]:: Variables ADDED")
+
     #### Private functions ####
 
     def _create_solution_scheme(self):
