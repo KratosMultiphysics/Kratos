@@ -1052,7 +1052,7 @@ protected:
      */
     
     bounded_matrix<double, TNumNodes, TNumNodes> ComputeDe(        
-        const array_1d<double, TNumNodes> N1, 
+        const VectorType N1, 
         const double detJ 
         );
     

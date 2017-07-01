@@ -914,7 +914,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 bounded_matrix<double, TNumNodes, TNumNodes> AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::ComputeDe(
-        const array_1d<double, TNumNodes> N1, 
+        const VectorType N1, 
         const double detJ 
         )
 {

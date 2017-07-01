@@ -906,7 +906,7 @@ protected:
         GeneralVariables& rVariables,
         const array_1d<double, 3> MasterNormal,
         const PointType& local_point 
-    );
+        );
 
     /*
      * Calculates the mortar operators (D and M)
@@ -915,7 +915,7 @@ protected:
         MortarConditionMatrices& rThisMortarConditionMatrices,
         GeneralVariables& rVariables,
         const double& rIntegrationWeight
-    );
+        );
     
     /*
      * Calculates the Ae components necessary to compute the Phi_LagrangeMultipliers shpae functions
@@ -924,13 +924,13 @@ protected:
         GeneralVariables& rVariables,
         AeData& rAeData,
         const double& rIntegrationWeight
-    );
+        );
     
     /*
      * Calculates the matrix De
      */
     boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> ComputeDe(        
-        const array_1d<double, NumNodes> N1, 
+        const VectorType N1, 
         const double detJ 
         )
     {
