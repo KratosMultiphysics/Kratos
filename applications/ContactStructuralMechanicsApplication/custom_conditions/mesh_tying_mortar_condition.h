@@ -224,30 +224,39 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
 
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+    
    /**
     * Called at the beginning of each solution step
     */
-    void Initialize();
+    void Initialize() override;
 
    /**
     * Called at the beginning of each solution step
     */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
    /**
     * Called at the beginning of each iteration
     */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * Called at the ending of each solution step
     */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
     
    /**
     * Called at the end of each iteration
     */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
     
     /**
     * Initialize System Matrices
@@ -262,17 +271,17 @@ public:
     * Initialize Mass Matrix
     */
     void CalculateMassMatrix( 
-    MatrixType& rMassMatrix, 
-    ProcessInfo& rCurrentProcessInfo
-    );
+        MatrixType& rMassMatrix, 
+        ProcessInfo& rCurrentProcessInfo
+        ) override;
     
     /**
     * Initialize Damping Matrix
     */
     void CalculateDampingMatrix( 
-    MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
-    );
+        MatrixType& rDampingMatrix,
+        ProcessInfo& rCurrentProcessInfo
+        ) override;
     
     /**
      * Creates a new element pointer from an arry of nodes
@@ -285,7 +294,7 @@ public:
         IndexType NewId,
         NodesArrayType const& rThisNodes,
         PropertiesType::Pointer pProperties 
-        ) const;
+        ) const override;
     
     /**
      * Creates a new element pointer from an existing geometry
@@ -297,7 +306,8 @@ public:
     Condition::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties) const;
+        PropertiesType::Pointer pProperties
+        ) const override;
         
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
@@ -311,7 +321,7 @@ public:
     void EquationIdVector( 
         EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo
-        );
+        ) override;
 
     /**
      * Sets on ConditionalDofList the degrees of freedom of the considered element geometry
@@ -321,7 +331,7 @@ public:
     void GetDofList( 
         DofsVectorType& rConditionalDofList,
         ProcessInfo& rCurrentProcessInfo 
-        );
+        ) override;
 
     /**
      * Get on rVariable a double Value
@@ -330,7 +340,7 @@ public:
         const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo 
-        );
+        ) override;
     
     /**
      * Get on rVariable a array_1d Value
@@ -339,7 +349,7 @@ public:
         const Variable<array_1d<double, 3 > >& rVariable,
         std::vector<array_1d<double, 3 > >& rValues,
         const ProcessInfo& rCurrentProcessInfo
-        );
+        ) override;
     
     /**
      * Get on rVariable a Vector Value
@@ -348,7 +358,7 @@ public:
         const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo
-        );
+        ) override;
 
     /**
      * Calculate a double Variable
@@ -357,7 +367,7 @@ public:
         const Variable<double>& rVariable,
         std::vector<double>& rOutput,
         const ProcessInfo& rCurrentProcessInfo 
-        );
+        ) override;
     
     /**
      * Calculate a array_1d Variable
@@ -366,7 +376,7 @@ public:
         const Variable<array_1d<double, 3 > >& rVariable,
         std::vector< array_1d<double, 3 > >& rOutput,
         const ProcessInfo& rCurrentProcessInfo
-        );
+        ) override;
     
     /**
      * Calculate a Vector Variable
@@ -375,7 +385,7 @@ public:
         const Variable<Vector>& rVariable, 
         std::vector<Vector>& rOutput, 
         const ProcessInfo& rCurrentProcessInfo
-        );
+        ) override;
 
     ///@}
     ///@name Access

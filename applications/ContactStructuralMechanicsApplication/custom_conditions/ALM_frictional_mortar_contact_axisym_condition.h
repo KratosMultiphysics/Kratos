@@ -124,6 +124,15 @@ public:
     /// Destructor.
    virtual  ~AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition();
 
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+   
     /**
      * Creates a new element pointer from an arry of nodes
      * @param NewId: the ID of the new element
