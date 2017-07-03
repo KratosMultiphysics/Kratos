@@ -267,13 +267,15 @@ public:
 
 
 		//SURFACE SOURCE VARIABLE
-		if(my_settings->IsDefinedSurfaceSourceVariable()==true)
-		{
-			if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(my_settings->GetSurfaceSourceVariable()) == false)
-				KRATOS_ERROR << "ConvDiffSettings: SurfaceSource Variable defined but not contained in the model part" << std::endl;
-		}
-		else
-			std::cout << "No SurfaceSource variable assigned for ConvDiff. Assuming SurfaceSource=0" << std::endl;
+		//if(my_settings->IsDefinedSurfaceSourceVariable()==true)
+		//{
+		//	if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(my_settings->GetSurfaceSourceVariable()) == false)
+		//		KRATOS_ERROR << "ConvDiffSettings: SurfaceSource Variable defined but not contained in the model part" << std::endl;
+		//}
+		//else
+		//	std::cout << "No SurfaceSource variable assigned for ConvDiff. Assuming SurfaceSource=0" << std::endl;
+        if(my_settings->IsDefinedSurfaceSourceVariable()==true)
+			KRATOS_ERROR << "ConvDiffSettings: SurfaceSource not yet implemented" << std::endl;
 
 		//PROJECTION VARIABLE
 		//if(my_settings->IsDefinedProjectionVariable()==true)
