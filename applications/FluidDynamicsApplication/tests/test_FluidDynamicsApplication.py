@@ -49,7 +49,6 @@ def AssambleTestSuites():
     smallSuite.addTest(TNavierStokesWallConditionTest('test_execution'))
     smallSuite.addTest(BuoyancyTest('testEulerian'))
     smallSuite.addTest(BuoyancyTest('testThermalExpansionCoefficient'))
-    smallSuite.addTest(VolumeSourceTest('validationEulerian'))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
 
     # Create a test suite with the selected tests plus all small tests
@@ -60,6 +59,7 @@ def AssambleTestSuites():
     validationSuite = suites['validation']
     validationSuite.addTests(smallSuite)
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
+    #validationSuite.addTest(VolumeSourceTest('validationEulerian'))
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
