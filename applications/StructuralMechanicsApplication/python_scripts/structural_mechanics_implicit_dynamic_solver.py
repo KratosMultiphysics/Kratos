@@ -26,7 +26,9 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         # Set defaults and validate custom settings.
         self.dynamic_settings = KratosMultiphysics.Parameters("""
         {
-            "damp_factor_m" :-0.01
+            "damp_factor_m" :-0.01,
+            "rayleigh_alpha": 0.0,
+            "rayleigh_beta" : 0.0
         }
         """)
         self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
@@ -36,11 +38,11 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             custom_settings["scheme_type"].SetString("Newmark")
         
         # Construct the base solver.
-        super().__init__(main_model_part, custom_settings)
+        super(ImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
         print("::[ImplicitMechanicalSolver]:: Construction finished")
 
     def AddVariables(self):
-        super().AddVariables()
+        super(ImplicitMechanicalSolver, self).AddVariables()
         # Add dynamic variables.
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
@@ -50,7 +52,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         print("::[ImplicitMechanicalSolver]:: Variables ADDED")
     
     def AddDofs(self):
-        super().AddDofs()
+        super(ImplicitMechanicalSolver, self).AddDofs()
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z,self.main_model_part)
@@ -70,6 +72,8 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
     def _create_solution_scheme(self):
         scheme_type = self.settings["scheme_type"].GetString()
+        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
+        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.dynamic_settings["rayleigh_beta"].GetDouble()
         if(scheme_type == "Newmark"):
             damp_factor_m = 0.0
             mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)

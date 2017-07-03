@@ -377,14 +377,15 @@ namespace Kratos
 
     void BaseSolidElement::CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo )
+        ProcessInfo& rCurrentProcessInfo 
+        )
     {
         KRATOS_TRY;
         
         unsigned int number_of_nodes = GetGeometry().size();
         unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-        //resizing as needed the LHS
+        // Resizing as needed the LHS
         unsigned int mat_size = number_of_nodes * dimension;
 
         if ( rDampingMatrix.size1() != mat_size )
@@ -393,6 +394,46 @@ namespace Kratos
         }
 
         noalias( rDampingMatrix ) = ZeroMatrix( mat_size, mat_size );
+
+        // 1.-Calculate StiffnessMatrix:
+
+        MatrixType StiffnessMatrix  = Matrix();
+        VectorType ResidualVector  = Vector();
+
+        this->CalculateAll(StiffnessMatrix, ResidualVector, rCurrentProcessInfo, true, false);
+        
+        // 2.-Calculate MassMatrix:
+
+        MatrixType MassMatrix  = Matrix();
+
+        this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
+
+        // 3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+        double alpha = 0.0;
+        if( GetProperties().Has(RAYLEIGH_ALPHA) )
+        {
+            alpha = GetProperties()[RAYLEIGH_ALPHA];
+        }
+        else if( rCurrentProcessInfo.Has(RAYLEIGH_ALPHA) )
+        {
+            alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
+        }
+
+        double beta  = 0.0;
+        if( GetProperties().Has(RAYLEIGH_BETA) )
+        {
+            beta = GetProperties()[RAYLEIGH_BETA];
+        }
+        else if( rCurrentProcessInfo.Has(RAYLEIGH_BETA) )
+        {
+            beta = rCurrentProcessInfo[RAYLEIGH_BETA];
+        }
+
+        // 4.-Compose the Damping Matrix:
+
+        // Rayleigh Damping Matrix: alpha*M + beta*K
+        noalias( rDampingMatrix ) += alpha * MassMatrix;
+        noalias( rDampingMatrix ) += beta  * StiffnessMatrix;
 
         KRATOS_CATCH( "" )
     }
@@ -1025,7 +1066,7 @@ namespace Kratos
         Matrix& J0, 
         Matrix& InvJ0, 
         Matrix& DN_DX, 
-        const unsigned int point_number,
+        const unsigned int PointNumber,
         IntegrationMethod ThisIntegrationMethod
         )
     {
@@ -1033,7 +1074,7 @@ namespace Kratos
         
         double detJ0;
         
-        const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[point_number];
+        const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
         
         for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
         {
@@ -1052,6 +1093,59 @@ namespace Kratos
         noalias( DN_DX ) = prod( DN_De, InvJ0);
         
         return detJ0;
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
+    
+    Vector BaseSolidElement::GetBodyForce()
+    {
+        Vector body_force = ZeroVector(3);
+        
+        double density = 0.0;
+        if (GetProperties().Has( DENSITY ) == true)
+        {
+            density = GetProperties()[DENSITY];
+        }
+        if (GetProperties().Has( VOLUME_ACCELERATION ) == true)
+        {
+            body_force += density * GetProperties()[VOLUME_ACCELERATION];
+        }
+        if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) )
+        {
+            body_force += density * GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+        }
+        
+        return body_force;
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
+
+    void BaseSolidElement::CalculateAndAddExtForceContribution(
+        const Vector& N,
+        const ProcessInfo& CurrentProcessInfo,
+        const Vector& BodyForce,
+        VectorType& rRightHandSideVector,
+        const double Weight
+        )
+    {
+        KRATOS_TRY;
+        
+        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            const unsigned int index = dimension * i;
+
+            for ( unsigned int j = 0; j < dimension; j++ ) 
+            {
+                rRightHandSideVector[index + j] += Weight * N[i] * BodyForce[j];
+            }
+        }
+
+        KRATOS_CATCH( "" )
     }
 
 } // Namespace Kratos
