@@ -79,6 +79,7 @@ class MpcData
     typedef std::unordered_map<unsigned int, double> MasterIdWeightMapType;
     typedef std::pair<unsigned int, unsigned int> SlavePairType;
     typedef std::tuple<unsigned int, unsigned int, int> key_tupple;
+    typedef Kratos::Variable<double> VariableType;
 
     struct key_hash_tuple : public std::unary_function<key_tupple, std::size_t>
     {
@@ -124,6 +125,8 @@ class MpcData
             return seed0;
         }
     };
+
+    //friend bool operator == (MpcData &obj1, MpcData &obj2);
 
     typedef std::unordered_map<const key_tupple, double, key_hash_tuple, key_equal_tuple> MasterDofWeightMapType;
     //typedef std::unordered_map<std::tuple<unsigned int, VariableComponentType, int>, double> ;
@@ -223,7 +226,7 @@ class MpcData
     /**
 		Get the name for the current set of constraints. 
 		 */
-    const std::string GetName()
+    std::string GetName()
     {
         return mName;
     }    
@@ -236,11 +239,20 @@ class MpcData
         mActive = isActive;
     }
 
+    /**
+		Returns true if the constraint set is active
+		 */
+    bool IsActive()
+    {
+        return mActive;
+    }    
+
 
     ///@
 
     ///@name Static Operations
-    ///@{
+    ///
+    //@{
     /**
 		 * Returns the string containing a detailed description of this object.
 		 * @return the string with informations
@@ -301,6 +313,11 @@ class MpcData
 
 ///@name Input/Output funcitons
 ///@{
+
+/*bool operator== (MpcData &obj1, MpcData &obj2) 
+{
+        return obj1.GetName() == obj2.GetName();
+}    */
 
 inline std::istream &operator>>(std::istream &rIStream, MpcData &rThis);
 
