@@ -502,6 +502,22 @@ protected:
         const unsigned int PointNumber,
         IntegrationMethod ThisIntegrationMethod
         );
+    
+    /**
+     * This function computes the body force
+     */ 
+    Vector GetBodyForce();
+    
+    /**
+     * This function add the external force contribution
+     */ 
+    void CalculateAndAddExtForceContribution(
+        const Vector& N,
+        const ProcessInfo& CurrentProcessInfo,
+        const Vector& BodyForce,
+        VectorType& mResidualVector,
+        const double Weight
+        );
 
     /**
      * This functions computes the integration weight to consider

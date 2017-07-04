@@ -73,9 +73,8 @@ public:
     ///@{
 
     /// Constructor.
-    EmbeddedNodesInitializationProcess(ModelPart& rModelPart, unsigned int MaxIterations = 10)
+    EmbeddedNodesInitializationProcess(ModelPart& rModelPart, unsigned int MaxIterations = 10) : mrModelPart(rModelPart)
     {
-        mrModelPart = rModelPart;
         mMaxIterations = MaxIterations;
     }
 
@@ -231,7 +230,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart                                  mrModelPart;
+    ModelPart&                                 mrModelPart;
     unsigned int                            mMaxIterations;
 
     ///@}
@@ -291,13 +290,13 @@ private:
     ///@{
 
     /// Default constructor.
-    EmbeddedNodesInitializationProcess(){}
+    EmbeddedNodesInitializationProcess() = delete;
 
     /// Assignment operator.
-    EmbeddedNodesInitializationProcess& operator=(EmbeddedNodesInitializationProcess const& rOther){return *this;}
+    EmbeddedNodesInitializationProcess& operator=(EmbeddedNodesInitializationProcess const& rOther) = delete;
 
     /// Copy constructor.
-    EmbeddedNodesInitializationProcess(EmbeddedNodesInitializationProcess const& rOther){}
+    EmbeddedNodesInitializationProcess(EmbeddedNodesInitializationProcess const& rOther) = delete;
 
 
     ///@}

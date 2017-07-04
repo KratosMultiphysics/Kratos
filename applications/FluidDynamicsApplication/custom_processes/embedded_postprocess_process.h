@@ -69,9 +69,9 @@ public:
     ///@{
 
     /// Constructor.
-    EmbeddedPostprocessProcess(ModelPart& rModelPart)
+    EmbeddedPostprocessProcess(ModelPart& rModelPart) : mrModelPart(rModelPart)
     {
-        mrModelPart = rModelPart;
+
     }
 
     /// Destructor.
@@ -166,7 +166,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart                                  mrModelPart;
+    ModelPart&                                  mrModelPart;
 
     ///@}
     ///@name Protected Operators
@@ -230,13 +230,13 @@ private:
     ///@{
 
     /// Default constructor.
-    EmbeddedPostprocessProcess(){}
+    EmbeddedPostprocessProcess() = delete;
 
     /// Assignment operator.
-    EmbeddedPostprocessProcess& operator=(EmbeddedPostprocessProcess const& rOther){return *this;}
+    EmbeddedPostprocessProcess& operator=(EmbeddedPostprocessProcess const& rOther) = delete;
 
     /// Copy constructor.
-    EmbeddedPostprocessProcess(EmbeddedPostprocessProcess const& rOther){}
+    EmbeddedPostprocessProcess(EmbeddedPostprocessProcess const& rOther) = delete;
 
 
     ///@}

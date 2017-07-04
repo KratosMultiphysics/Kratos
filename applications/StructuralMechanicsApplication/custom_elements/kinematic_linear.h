@@ -209,6 +209,12 @@ protected:
      */
     virtual Matrix ComputeEquivalentF(const Vector& StrainVector);
 
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    );
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -245,17 +251,9 @@ private:
     void CalculateBodyForces(
         Vector& BodyForce,
         const ProcessInfo& CurrentProcessInfo
-    );
+        );
 
     void InitializeVariables();
-
-    void CalculateAndAdd_ExtForceContribution(
-        const Vector& N,
-        const ProcessInfo& CurrentProcessInfo,
-        Vector& BodyForce,
-        VectorType& mResidualVector,
-        const double weight
-    );
 
     void CalculateStrain(
         const Matrix& C,
