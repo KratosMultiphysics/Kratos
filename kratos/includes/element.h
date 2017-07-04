@@ -876,18 +876,15 @@ public:
     virtual int Check(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-        if (this->Id() < 1)
-        {
-            KRATOS_THROW_ERROR(std::logic_error, "Element found with Id 0 or negative","")
-        }
-        if (this->GetGeometry().Area() <= 0)
-        {
-            std::cout << "error on element -> " << this->Id() << std::endl;
-            KRATOS_THROW_ERROR(std::logic_error, "Area cannot be less than or equal to 0","")
-        }
+
+        KRATOS_ERROR_IF( this->Id() < 1 ) << "Element found with Id " << this->Id() << std::endl;
+
+        const double domain_size = this->GetGeometry().DomainSize();
+        KRATOS_ERROR_IF( domain_size <= 0.0 ) << "Element found with non-positive size " << domain_size << std::endl;
+
         return 0;
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     //METHODS TO BE CLEANED: DEPRECATED start
