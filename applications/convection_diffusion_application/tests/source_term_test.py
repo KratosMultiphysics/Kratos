@@ -14,6 +14,21 @@ class WorkFolderScope:
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
 
+class TestCaseConfiguration(object):
+    def __init__(self):
+        self.xmin = 0.0
+        self.xmax = 10.0
+        self.ymin = 0.0
+        self.ymax = 1.0
+
+        self.rho = 1.0
+        self.c = 1.0
+        self.k = 1.0
+
+        self.ux = 0.0
+        self.source = 0.0
+        
+
 class SourceTermTest(UnitTest.TestCase):
 
     def setUp(self):
@@ -21,13 +36,16 @@ class SourceTermTest(UnitTest.TestCase):
         self.input_file = "source_test"
         self.reference_file = "source_reference"
 
-        self.convection_diffusion_solver = "eulerian"
         self.dt = 1e10 # This is steady state test
-        self.nsteps = 3
+        self.nsteps = 1
+        self.theta = 1 # Since it is steady state, use backward Euler
+        # Note: Crank-Nicolson (theta=0.5) won't converge in a single iteration (or at all, for huge dt)
 
         self.check_tolerance = 1e-6
-        self.print_output = True
-        self.print_reference_values = True
+        self.print_output = False
+        self.print_reference_values = False
+
+        self.config = TestCaseConfiguration()
 
     def tearDown(self):
         import os
@@ -37,8 +55,54 @@ class SourceTermTest(UnitTest.TestCase):
             except FileNotFoundError as e:
                 pass
 
-    def testEulerian(self):
-        #self.reference_file = "reference10_eulerian"
+    def testPureDiffusion(self):
+        self.reference_file = "pure_diffusion"
+        self.config.T_xmin = 0.0
+        self.config.T_xmax = 0.0
+        self.config.source = 1.0
+        self.config.ux = 0.0
+
+        # What follows is the analytical solution
+        #def F(x):
+        #    L = self.config.xmax - self.config.xmin
+        #    return self.config.source * x * (L-x) / 2.
+        #print( [ F(float(i)) for i in range(0, 10) ] )
+
+        self.testSourceTerm()
+
+    def testDiffusionDominated(self):
+        self.reference_file = "diffusion_dominated"
+        self.config.T_xmin = 0.0
+        self.config.T_xmax = 0.0
+        self.config.ux = 0.1
+        self.config.source = self.config.ux * self.config.rho / (self.config.xmax - self.config.xmin)
+
+        # What follows is the analytical solution
+        #def F(x):
+        #    import math
+        #    L = self.config.xmax - self.config.xmin
+        #    a = self.config.rho*self.config.ux / self.config.k
+        #    return x / L - (1.0 - math.exp( a*x ) ) / ( 1.0 - math.exp( a*L ) ) 
+        #print( [ F(float(i)) for i in range(0, 10) ] )            
+        
+        self.testSourceTerm()
+
+
+    def testConvectionDominated(self):
+        self.reference_file = "convection_dominated"
+        self.config.T_xmin = 0.0
+        self.config.T_xmax = 0.0
+        self.config.ux = 2.0
+        self.config.source = self.config.ux * self.config.rho / (self.config.xmax - self.config.xmin)
+
+        # What follows is the analytical solution
+        #def F(x):
+        #    import math
+        #    L = self.config.xmax - self.config.xmin
+        #    a = self.config.rho*self.config.ux / self.config.k
+        #    return x / L - (1.0 - math.exp( a*x ) ) / ( 1.0 - math.exp( a*L ) ) 
+        #print( [ F(float(i)) for i in range(0, 10) ] )  
+        
         self.testSourceTerm()
 
     def testSourceTerm(self):
@@ -86,38 +150,31 @@ class SourceTermTest(UnitTest.TestCase):
 
         # thermal solver
         self.thermal_solver = thermal_solver.ConvectionDiffusionSolver(self.model_part,self.domain_size)
+        self.thermal_solver.theta = self.theta
         self.thermal_solver.Initialize()
 
 
     def setUpProblem(self):
-        xmin = 0.0
-        xmax = 10.0
-        ymin = 0.0
-        ymax = 1.0
 
-        rho = 1.0
-        c = 1.0
-        k = 1.0
-        ux = 1.0
         velocity = Array3()
-        velocity[0] = ux
+        velocity[0] = self.config.ux
         velocity[1] = 0.0
         velocity[2] = 0.0
 
-        source = ux*rho / (xmax-xmin)
-
         ## Set initial and boundary conditions
         for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(DENSITY,rho)
-            node.SetSolutionStepValue(CONDUCTIVITY,k)
-            node.SetSolutionStepValue(SPECIFIC_HEAT,c)
+            node.SetSolutionStepValue(DENSITY,self.config.rho)
+            node.SetSolutionStepValue(CONDUCTIVITY,self.config.k)
+            node.SetSolutionStepValue(SPECIFIC_HEAT,self.config.c)
+            node.SetSolutionStepValue(HEAT_FLUX,self.config.source)
+            node.SetSolutionStepValue(VELOCITY,velocity)
 
-            if node.X == xmin:
+            if node.X == self.config.xmin:
                 node.Fix(TEMPERATURE)
-                node.SetSolutionStepValue(TEMPERATURE,T_xmin)
-            elif node.X == xmax:
+                node.SetSolutionStepValue(TEMPERATURE,self.config.T_xmin)
+            elif node.X == self.config.xmax:
                 node.Fix(TEMPERATURE)
-                node.SetSolutionStepValue(TEMPERATURE,T_xmax)
+                node.SetSolutionStepValue(TEMPERATURE,self.config.T_xmax)
 
     def runTest(self):
         time = 0.0
@@ -125,19 +182,16 @@ class SourceTermTest(UnitTest.TestCase):
         for step in range(self.nsteps):
             time = time+self.dt
             self.model_part.CloneTimeStep(time)
-            self.buoyancy_process.ExecuteInitializeSolutionStep()
-            self.fluid_solver.Solve()
             self.thermal_solver.Solve()
 
     def checkResults(self):
 
         if self.print_reference_values:
             with open(self.reference_file+'.csv','w') as ref_file:
-                ref_file.write("#ID, VELOCITY_X, VELOCITY_Y, TEMPERATURE\n")
+                ref_file.write("#ID, TEMPERATURE\n")
                 for node in self.model_part.Nodes:
-                    vel = node.GetSolutionStepValue(VELOCITY,0)
                     temp = node.GetSolutionStepValue(TEMPERATURE,0)
-                    ref_file.write("{0}, {1}, {2}, {3}\n".format(node.Id, vel[0], vel[1], temp))
+                    ref_file.write("{0}, {1}\n".format(node.Id, temp))
         else:
             with open(self.reference_file+'.csv','r') as reference_file:
                 reference_file.readline() # skip header
@@ -147,13 +201,8 @@ class SourceTermTest(UnitTest.TestCase):
                 for node in self.model_part.Nodes:
                     values = [ float(i) for i in line.rstrip('\n ').split(',') ]
                     node_id = values[0]
-                    reference_vel_x = values[1]
-                    reference_vel_y = values[2]
-                    reference_temp = values[3]
+                    reference_temp = values[1]
 
-                    velocity = node.GetSolutionStepValue(VELOCITY)
-                    self.assertAlmostEqual(reference_vel_x, velocity[0], delta=self.check_tolerance)
-                    self.assertAlmostEqual(reference_vel_y, velocity[1], delta=self.check_tolerance)
                     temperature = node.GetSolutionStepValue(TEMPERATURE)
                     self.assertAlmostEqual(reference_temp, temperature, delta=self.check_tolerance)
 
@@ -176,18 +225,18 @@ class SourceTermTest(UnitTest.TestCase):
 
         label = self.model_part.ProcessInfo[TIME]
         gid_io.WriteNodalResults(VELOCITY,self.model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(PRESSURE,self.model_part.Nodes,label,0)
         gid_io.WriteNodalResults(TEMPERATURE,self.model_part.Nodes,label,0)
         gid_io.WriteNodalResults(DENSITY,self.model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(VISCOSITY,self.model_part.Nodes,label,0)
         gid_io.WriteNodalResults(CONDUCTIVITY,self.model_part.Nodes,label,0)
         gid_io.WriteNodalResults(SPECIFIC_HEAT,self.model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(BODY_FORCE,self.model_part.Nodes,label,0)
+        gid_io.WriteNodalResults(HEAT_FLUX,self.model_part.Nodes,label,0)
 
         gid_io.FinalizeResults()
 
 if __name__ == '__main__':
     a = SourceTermTest()
     a.setUp()
-    a.testEulerian()
+    a.testPureDiffusion()
+    #a.testConvectionDominated()
+    #a.testDiffusionDominated()
     a.tearDown()
