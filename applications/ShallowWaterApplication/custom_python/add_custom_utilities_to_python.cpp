@@ -96,18 +96,19 @@ namespace Python
 			.def("CopyVectorVarToPreviousTimeStep", &MoveShallowWaterParticleUtility<2>::CopyVectorVarToPreviousTimeStep)
 		;
 
-		class_< MoveShallowWaterParticleHUUtility<2> > ("MoveShallowWaterParticleUtility", init<ModelPart& , int >())
-			.def("MountBin", &MoveShallowWaterParticleUtility<2>::MountBin)
-			.def("MoveParticles", &MoveShallowWaterParticleUtility<2>::MoveParticles)
-			.def("CorrectParticlesWithoutMovingUsingDeltaVariables", &MoveShallowWaterParticleUtility<2>::CorrectParticlesWithoutMovingUsingDeltaVariables)
-			.def("PreReseed", &MoveShallowWaterParticleUtility<2>::PreReseed)
-			.def("PostReseed", &MoveShallowWaterParticleUtility<2>::PostReseed)
-			.def("ResetBoundaryConditions", &MoveShallowWaterParticleUtility<2>::ResetBoundaryConditions)
-			.def("TransferLagrangianToEulerian",&MoveShallowWaterParticleUtility<2>::TransferLagrangianToEulerian)
-			.def("CalculateVelOverElemSize", &MoveShallowWaterParticleUtility<2>::CalculateVelOverElemSize)
-			.def("CalculateDeltaVariables", &MoveShallowWaterParticleUtility<2>::CalculateDeltaVariables)
-			.def("CopyScalarVarToPreviousTimeStep", &MoveShallowWaterParticleUtility<2>::CopyScalarVarToPreviousTimeStep)
-			.def("CopyVectorVarToPreviousTimeStep", &MoveShallowWaterParticleUtility<2>::CopyVectorVarToPreviousTimeStep)
+		class_< MoveShallowWaterParticleHUUtility<2> > ("MoveShallowWaterParticleHUUtility", init<ModelPart& , int >())
+			.def("MountBin", &MoveShallowWaterParticleHUUtility<2>::MountBin)
+			.def("MoveParticles", &MoveShallowWaterParticleHUUtility<2>::MoveParticles)
+			.def("CorrectParticlesWithoutMovingUsingDeltaVariables", &MoveShallowWaterParticleHUUtility<2>::CorrectParticlesWithoutMovingUsingDeltaVariables)
+			.def("PreReseed", &MoveShallowWaterParticleHUUtility<2>::PreReseed)
+			.def("PostReseed", &MoveShallowWaterParticleHUUtility<2>::PostReseed)
+			.def("ResetBoundaryConditions", &MoveShallowWaterParticleHUUtility<2>::ResetBoundaryConditions)
+			.def("TransferLagrangianToEulerian",&MoveShallowWaterParticleHUUtility<2>::TransferLagrangianToEulerian)
+			.def("CalculateVelOverElemSize", &MoveShallowWaterParticleHUUtility<2>::CalculateVelOverElemSize)
+			.def("CalculateDeltaVariables", &MoveShallowWaterParticleHUUtility<2>::CalculateDeltaVariables)
+			.def("CopyScalarVarToPreviousTimeStep", &MoveShallowWaterParticleHUUtility<2>::CopyScalarVarToPreviousTimeStep)
+			.def("CopyVectorVarToPreviousTimeStep", &MoveShallowWaterParticleHUUtility<2>::CopyVectorVarToPreviousTimeStep)
+			.def("ComputeVelocity", &MoveShallowWaterParticleHUUtility<2>::ComputeVelocity)
 		;
 
   }
