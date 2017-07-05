@@ -849,15 +849,12 @@ public:
     virtual int Check(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-        if (this->Id() < 1)
-        {
-            KRATOS_THROW_ERROR(std::logic_error, "Condition found with Id 0 or negative","")
-        }
-        if (this->GetGeometry().Area() < 0)
-        {
-            std::cout << "error on condition -> " << this->Id() << std::endl;
-            KRATOS_THROW_ERROR(std::logic_error, "Area cannot be less than 0","")
-        }
+
+        KRATOS_ERROR_IF( this->Id() < 1 ) << "Condition found with Id " << this->Id() << std::endl;
+
+        const double domain_size = this->GetGeometry().DomainSize();
+        KRATOS_ERROR_IF( domain_size < 0.0 ) << "Condition " << this->Id() << " has negative size " << domain_size << std::endl;
+
         return 0;
 
         KRATOS_CATCH("")
