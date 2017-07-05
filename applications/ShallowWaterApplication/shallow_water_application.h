@@ -28,6 +28,7 @@
 #include "custom_elements/projected_swe.h"             // Including the file for the element
 #include "custom_elements/non_conservative_dc.h"       // Inlcuding the file for the element with discontinuity capturing
 #include "custom_elements/non_conservative_stab.h"     // Inlcuding the file for the element with stabilization
+#include "custom_elements/conservative.h"              // Inlcuding the file for the conservative lagrangian element
 #include "custom_elements/eulerian_non_conservative.h" // Inlcuding the file for the eulerian element
 #include "includes/condition.h"                        // We'll also need conditions for the point heat loads
 #include "includes/ublas_interface.h"
@@ -193,6 +194,7 @@ namespace Kratos
 		const ProjectedSWE mProjectedSWE;                        // Element
 		const NonConservativeDC mNonConservativeDC;              // Element with discontinuty capturing
 		const NonConservativeStab mNonConservativeStab;          // Element with stabilization
+		const Conservative mConservative;                        // Conservative fomrulation element
 		const EulerianNonConservative mEulerianNonConservative;  // Eulerian element
 
 
