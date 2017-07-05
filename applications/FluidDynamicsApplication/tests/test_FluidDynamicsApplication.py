@@ -57,7 +57,6 @@ def AssambleTestSuites():
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
-    validationSuite.addTests(smallSuite)
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
     #validationSuite.addTest(VolumeSourceTest('validationEulerian'))
 
