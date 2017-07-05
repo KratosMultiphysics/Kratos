@@ -880,7 +880,7 @@ public:
         KRATOS_ERROR_IF( this->Id() < 1 ) << "Element found with Id " << this->Id() << std::endl;
 
         const double domain_size = this->GetGeometry().DomainSize();
-        KRATOS_ERROR_IF( domain_size <= 0.0 ) << "Element found with non-positive size " << domain_size << std::endl;
+        KRATOS_ERROR_IF( domain_size <= 0.0 ) << "Element " << this->Id() << " has non-positive size " << domain_size << std::endl;
 
         return 0;
 
