@@ -38,7 +38,7 @@ class SourceTermTest(UnitTest.TestCase):
 
         self.dt = 1e10 # This is steady state test
         self.nsteps = 1
-        self.theta = 1 # Since it is steady state, use backward Euler
+        self.theta = 1.0 # Since it is steady state, use backward Euler
         # Note: Crank-Nicolson (theta=0.5) won't converge in a single iteration (or at all, for huge dt)
 
         self.check_tolerance = 1e-6
