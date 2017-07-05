@@ -447,7 +447,7 @@ namespace Kratos
 						ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 						inode->FastGetSolutionStepValue(DELTA_HEIGHT)   = inode->FastGetSolutionStepValue(HEIGHT)   - inode->FastGetSolutionStepValue(PROJECTED_HEIGHT) ;
 						inode->FastGetSolutionStepValue(DELTA_MOMENTUM) = inode->FastGetSolutionStepValue(MOMENTUM) - inode->FastGetSolutionStepValue(PROJECTED_MOMENTUM) ;
-						inode->FastGetSolutionStepValue(DELTA_VELOCITY) = inode->FastGetSolutionStepValue(VELOCITY) - inode->FastGetSolutionStepValue(PROJECTED_VELOCITY) ;
+						//~ inode->FastGetSolutionStepValue(DELTA_VELOCITY) = inode->FastGetSolutionStepValue(VELOCITY) - inode->FastGetSolutionStepValue(PROJECTED_VELOCITY) ;
 				}
 			}
 			KRATOS_CATCH("")
@@ -500,6 +500,31 @@ namespace Kratos
 				{
 					ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 					noalias(inode->GetSolutionStepValue(OriginVariable,1)) = inode->FastGetSolutionStepValue(OriginVariable);
+				}
+			}
+			KRATOS_CATCH("")
+		}
+
+
+		void ComputeVelocity(ModelPart::NodesContainerType& rNodes)
+		{
+			KRATOS_TRY
+			ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
+			vector<unsigned int> node_partition;
+			#ifdef _OPENMP
+				int number_of_threads = omp_get_max_threads();
+			#else
+				int number_of_threads = 1;
+			#endif
+			OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), node_partition);
+			
+			#pragma omp parallel for
+			for(int kkk=0; kkk<number_of_threads; kkk++)
+			{
+				for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
+				{
+					ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+					noalias(inode->GetSolutionStepValue(VELOCITY)) = inode->FastGetSolutionStepValue(MOMENTUM) / inode->FastGetSolutionStepValue(HEIGHT);
 				}
 			}
 			KRATOS_CATCH("")
@@ -706,7 +731,7 @@ namespace Kratos
 					ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 					inode->FastGetSolutionStepValue(PROJECTED_HEIGHT)=0.0; 
 					inode->FastGetSolutionStepValue(PROJECTED_MOMENTUM)=ZeroVector(3); 
-					inode->FastGetSolutionStepValue(PROJECTED_VELOCITY)=ZeroVector(3); 
+					//~ inode->FastGetSolutionStepValue(PROJECTED_VELOCITY)=ZeroVector(3); 
 					inode->FastGetSolutionStepValue(YP)=0.0;
 				}
 			}
@@ -805,9 +830,9 @@ namespace Kratos
 						geom[i].FastGetSolutionStepValue(PROJECTED_MOMENTUM_Y) +=nodes_added_vector1[3*i+1];
 						geom[i].FastGetSolutionStepValue(PROJECTED_MOMENTUM_Z) +=nodes_added_vector1[3*i+2];
 						
-						geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_X) +=nodes_added_convect[3*i+0];
-						geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_Y) +=nodes_added_convect[3*i+1];
-						geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_Z) +=nodes_added_convect[3*i+2];
+						//~ geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_X) +=nodes_added_convect[3*i+0];
+						//~ geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_Y) +=nodes_added_convect[3*i+1];
+						//~ geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_Z) +=nodes_added_convect[3*i+2];
 						
 						geom[i].FastGetSolutionStepValue(YP) +=nodes_added_weights[i];
 						geom[i].UnSetLock();
@@ -828,14 +853,14 @@ namespace Kratos
 						double & height = inode->FastGetSolutionStepValue(PROJECTED_HEIGHT);
 						height /=sum_weights; //resetting the density	
 						inode->FastGetSolutionStepValue(PROJECTED_MOMENTUM)=(inode->FastGetSolutionStepValue(PROJECTED_MOMENTUM))/sum_weights; // Resetting the velocity
-						inode->FastGetSolutionStepValue(PROJECTED_VELOCITY)=(inode->FastGetSolutionStepValue(PROJECTED_VELOCITY))/sum_weights; // Resetting the velocity
+						//~ inode->FastGetSolutionStepValue(PROJECTED_VELOCITY)=(inode->FastGetSolutionStepValue(PROJECTED_VELOCITY))/sum_weights; // Resetting the velocity
 					}
 						
 					else // This should never happen because other ways to recover the information have been executed before, but leaving it just in case..
 					{
 						inode->FastGetSolutionStepValue(PROJECTED_HEIGHT)=inode->FastGetSolutionStepValue(HEIGHT,1); // Resetting the height
-						inode->FastGetSolutionStepValue(PROJECTED_MOMENTUM)=inode->GetSolutionStepValue(MOMENTUM,1); // Resetting the velocity
-						inode->FastGetSolutionStepValue(PROJECTED_VELOCITY)=inode->GetSolutionStepValue(VELOCITY,1); // Resetting the velocity
+						inode->FastGetSolutionStepValue(PROJECTED_MOMENTUM)=inode->GetSolutionStepValue(MOMENTUM,1); // Resetting the momentum
+						//~ inode->FastGetSolutionStepValue(PROJECTED_VELOCITY)=inode->GetSolutionStepValue(VELOCITY,1); // Resetting the velocity
 					}
 					// Finally, if there was an inlet that had a fixed position for the distance function, that has to remain unchanged:
 					//~ if (inode->IsFixed(HEIGHT))
@@ -1340,7 +1365,7 @@ namespace Kratos
 		{
 			delta_scalar1 += geom[j].FastGetSolutionStepValue(DELTA_HEIGHT)*N[j];
 			noalias(delta_vector1) += geom[j].FastGetSolutionStepValue(DELTA_MOMENTUM)*N[j];
-			noalias(delta_convect) += geom[j].FastGetSolutionStepValue(DELTA_VELOCITY)*N[j];
+			//~ noalias(delta_convect) += geom[j].FastGetSolutionStepValue(DELTA_VELOCITY)*N[j];
 		}
 		particle_scalar1 = particle_scalar1 + delta_scalar1;
 		particle_vector1 = particle_vector1 + delta_vector1;
@@ -2269,8 +2294,8 @@ namespace Kratos
 		if (mr_model_part.NodesBegin()->SolutionStepsDataHas(DELTA_MOMENTUM) == false)
 				KRATOS_THROW_ERROR(std::logic_error, "Add DELTA_MOMENTUM variable to model part!", "");
 
-		if (mr_model_part.NodesBegin()->SolutionStepsDataHas(DELTA_VELOCITY) == false)
-				KRATOS_THROW_ERROR(std::logic_error, "Add DELTA_VELOCITY variable to model part!", "");
+		//~ if (mr_model_part.NodesBegin()->SolutionStepsDataHas(DELTA_VELOCITY) == false)
+				//~ KRATOS_THROW_ERROR(std::logic_error, "Add DELTA_VELOCITY variable to model part!", "");
         return 0;
 
         KRATOS_CATCH("")
