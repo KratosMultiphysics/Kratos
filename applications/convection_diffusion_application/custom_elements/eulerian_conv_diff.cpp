@@ -172,6 +172,8 @@ namespace Kratos
             noalias(aux2) += tau*outer_prod(a_dot_grad, a_dot_grad);
         }
 
+        KRATOS_WATCH(Variables.volumetric_source)
+
         //adding the second and third term in the formulation
         noalias(rLeftHandSideMatrix)  = (Variables.dt_inv*Variables.density*Variables.specific_heat + Variables.theta*Variables.beta*Variables.div_v)*aux1;
         noalias(rRightHandSideVector) = (Variables.dt_inv*Variables.density*Variables.specific_heat - (1.0-Variables.theta)*Variables.beta*Variables.div_v)*prod(aux1,Variables.phi_old);
@@ -325,7 +327,7 @@ namespace Kratos
 
             if (IsDefinedVolumeSourceVariable)
             {
-                const Variable<double>& rVolumeSourceVar = my_settings->GetDiffusionVariable();
+                const Variable<double>& rVolumeSourceVar = my_settings->GetVolumeSourceVariable();
                 rVariables.volumetric_source[i] += GetGeometry()[i].FastGetSolutionStepValue(rVolumeSourceVar);
             }
         }
