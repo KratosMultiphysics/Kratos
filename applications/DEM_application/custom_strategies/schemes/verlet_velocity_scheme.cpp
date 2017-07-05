@@ -204,7 +204,7 @@ namespace Kratos {
         for (int j = 0; j < 3; j++) {
             //Euler equations in Explicit (Forward Euler) scheme:
             local_angular_acceleration[j] = (local_torque[j] - (local_angular_velocity[(j + 1) % 3] * moments_of_inertia[(j + 2) % 3] * local_angular_velocity[(j + 2) % 3] - local_angular_velocity[(j + 2) % 3] * moments_of_inertia[(j + 1) % 3] * local_angular_velocity[(j + 1) % 3])) / moments_of_inertia[j];
-            local_angular_acceleration[j] = local_angular_acceleration[j] * moment_reduction_factor;            
+            local_angular_acceleration[j] = local_angular_acceleration[j] * moment_reduction_factor;
         }
     }
     

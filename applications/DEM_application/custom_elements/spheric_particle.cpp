@@ -128,7 +128,32 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     inelastic_frictional_energy = 0.0;
     double& inelastic_viscodamping_energy = this->GetInelasticViscodampingEnergy();
     inelastic_viscodamping_energy = 0.0;
+    
+    GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+    GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = 0.0;
+    GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = 0.0;
+        
+    array_1d<double, 3> base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
+    
+    Quaternion<double> Orientation;
+    Orientation = Quaternion<double>(1.0, 0.0, 0.0, 0.0);
 
+    GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION) = Orientation;
+    
+    array_1d<double, 3> angular_velocity = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+        
+    array_1d<double, 3> angular_momentum;
+    double LocalTensor[3][3];
+    double GlobalTensor[3][3];
+    GeometryFunctions::ConstructLocalTensor(base_principal_moments_of_inertia, LocalTensor);
+    GeometryFunctions::QuaternionTensorLocal2Global(Orientation, LocalTensor, GlobalTensor);                   
+    GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensor, angular_velocity, angular_momentum);
+    noalias(this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_MOMENTUM)) = angular_momentum;
+
+    array_1d<double, 3> local_angular_velocity;
+    GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
+    noalias(this->GetGeometry()[0].FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY)) = local_angular_velocity;
+    
     mBoundDeltaDispSq = 0.0;
 
     CreateDiscontinuumConstitutiveLaws(r_process_info);

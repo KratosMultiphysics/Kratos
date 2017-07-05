@@ -29,8 +29,8 @@ namespace Kratos {
 
         KRATOS_TRY
         double radius_sum = radius + other_radius;
-        double equiv_radius = radius * other_radius / radius_sum;
-        //double equiv_radius = 0.5 * radius_sum;
+//         double equiv_radius = radius * other_radius / radius_sum;
+        double equiv_radius = 0.5 * radius_sum;
         calculation_area = KRATOS_M_PI * equiv_radius * equiv_radius;
         KRATOS_CATCH("")  
     }
@@ -354,14 +354,14 @@ namespace Kratos {
         const double equivalent_radius = sqrt(calculation_area / KRATOS_M_PI);
         const double Inertia_I = 0.25 * KRATOS_M_PI * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
         const double Inertia_J = 2.0 * Inertia_I; // This is the polar inertia
-        const double debugging_rotational_factor = 5.0; //1.0; // Hardcoded only for testing purposes. Obviously, this parameter should be always 1.0
+        const double debugging_rotational_factor = 1.0; //1.0; // Hardcoded only for testing purposes. Obviously, this parameter should be always 1.0
                         
         const double element_mass  = element->GetMass();
         const double neighbor_mass = neighbor->GetMass();
         const double equiv_mass    = element_mass * neighbor_mass / (element_mass + neighbor_mass);
         
         // Viscous parameter taken from J.S.Marshall, 'Discrete-element modeling of particle aerosol flows', section 4.3. Twisting resistance
-        const double alpha = 0.9; // TODO: Hardcoded only for testing purposes. This value depends on the restitution coefficient and goes from 0.1 to 1.0
+        const double alpha = 0.0; // TODO: Hardcoded only for testing purposes. This value depends on the restitution coefficient and goes from 0.1 to 1.0
         const double visc_param = 0.5 * equivalent_radius * equivalent_radius * alpha * sqrt(1.33333333333333333 * equiv_mass * equiv_young * equivalent_radius);
              
         //equiv_young or G in torsor (LocalRotationalMoment[2]) ///////// TODO

@@ -118,7 +118,7 @@ namespace Kratos {
                 const array_1d<double, 3>& angular_momentum,
                 array_1d<double, 3>& angular_velocity);
 
-        virtual void CalculateRotationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag);
+//         virtual void CalculateRotationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag);
         
         virtual void UpdateLocalAngularVelocity(
                 const Node < 3 > & i,
@@ -144,7 +144,7 @@ namespace Kratos {
                                     const double delta_t,
                                     const bool Fix_Ang_vel[3]);
 
-        virtual void CalculateRotationalMotionOfClusters(ModelPart& rcluster_model_part, int StepFlag);
+//         virtual void CalculateRotationalMotionOfClusters(ModelPart& rcluster_model_part, int StepFlag);
         
         virtual void RotateClusterNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag);
 
