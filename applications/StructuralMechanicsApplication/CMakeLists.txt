@@ -5,6 +5,7 @@ message("**** configuring KratosStructuralMechanicsApplication ****")
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/MeshingApplication )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/MappingApplication )
 
 ## generate variables with the sources
 set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
@@ -73,7 +74,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosStructuralMechanicsApplication SHARED ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES})
-target_link_libraries(KratosStructuralMechanicsApplication KratosCore) # KratosSolidMechanicsApplication)
+target_link_libraries(KratosStructuralMechanicsApplication KratosCore KratosMappingApplication) # KratosSolidMechanicsApplication)
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES PREFIX "")
 install(TARGETS KratosStructuralMechanicsApplication DESTINATION libs )

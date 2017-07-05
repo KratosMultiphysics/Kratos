@@ -423,6 +423,37 @@ public:
                 mpConvergenceCriteria->Initialize(BaseType::GetModelPart());
             }
 
+            if(1)
+            {
+                //pointers needed in the solution
+                typename TSchemeType::Pointer pScheme = GetScheme();
+                typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+                int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+
+                //set up the system, operation performed just once unless it is required
+                //to reform the dof set at each iteration
+                if (pBuilderAndSolver->GetDofSetIsInitializedFlag() == false ||
+                        mReformDofSetAtEachStep == true)
+                {
+                    //setting up the list of the DOFs to be solved
+                    double setup_dofs_begintime = OpenMPUtils::GetCurrentTime();
+                    pBuilderAndSolver->SetUpDofSet(pScheme, BaseType::GetModelPart());
+                    if (this->GetEchoLevel() > 0 && rank == 0)
+                    {
+                        double setup_dofs_endtime = OpenMPUtils::GetCurrentTime();
+                        std::cout << "setup_dofs_time : " << setup_dofs_endtime- setup_dofs_begintime << std::endl;
+                    }
+                    //shaping correctly the system
+                    double setup_system_begin = OpenMPUtils::GetCurrentTime();
+                    pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
+                    if (this->GetEchoLevel() > 0 && rank == 0)
+                    {
+                        double setup_system_end = OpenMPUtils::GetCurrentTime();
+                        std::cout << rank << ": setup_system_time : " << setup_system_end- setup_system_begin << std::endl;
+                    }
+                }
+            }
+
             mInitializeWasPerformed = true;
         }
 
@@ -439,10 +470,15 @@ public:
     virtual double Solve() override
     {
         Initialize();
+        std::cout << "Test :: 1 " << std::endl;
         InitializeSolutionStep();
+        std::cout << "Test :: 2 " << std::endl;
         Predict();
+        std::cout << "Test :: 3 " << std::endl;
         SolveSolutionStep();
+        std::cout << "Test :: 4 " << std::endl;
         FinalizeSolutionStep();
+        std::cout << "Test :: 5 " << std::endl;
         return 0.00;
     }
 
@@ -591,7 +627,6 @@ public:
 
             //initial operations ... things that are constant over the Solution Step
             pScheme->InitializeSolutionStep(BaseType::GetModelPart(), A, Dx, b);
-
             mSolutionStepIsInitialized = true;
         }
 

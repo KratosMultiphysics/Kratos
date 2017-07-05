@@ -167,6 +167,15 @@ class MpcData
     /**
 		Adds a constraints between the given slave and master with a weight. 		
 		*/
+
+    // Takes in a slave dof equationId and a master dof equationId
+    void AddConstraint(unsigned int SlaveDofEquationId, unsigned int MasterDofEquationId, double weight, int PartitionId = 0)
+    {
+        mEquationIdToWeightsMap[SlaveDofEquationId].insert(  std::pair<unsigned int, double>(MasterDofEquationId, weight)  );
+        //mDofConstraints[std::make_pair(SlaveDof.Id(), slaveVariableKey)][std::tie(MasterNodeId, MasterVariableKey, PartitionId)] += weight;
+    }
+
+
     // Takes in a slave dof and a master dof
     void AddConstraint(DofType &SlaveDof, DofType &MasterDof, double weight, int PartitionId = 0)
     {
