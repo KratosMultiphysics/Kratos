@@ -202,7 +202,11 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         # Compute the velocity associated to the iteration_value displacement and set it to VELOCITY and MESH_VELOCITY
         # Note that the VELOCITY and the MESH_VELOCITY values only coincide if the same time schemes are used
         # Currently, the mesh solver only includes the BDF2 so the MESH_VELOCITY values are forced to be the fluid ones
-        self._ComputeCorrectedInterfaceDisplacementDerivatives()
+        # self._ComputeCorrectedInterfaceDisplacementDerivatives() ## TODO: REMOVE THIS, HAS BEEN MIGRATED TO THE PARTITIONED UTILITIES
+        self.trilinos_partitioned_fsi_utilities.ComputeCorrectedInterfaceDisplacementDerivatives(self._GetFluidInterfaceSubmodelPart(),
+                                                                                                 self.settings["fluid_solver_settings"]["alpha"].GetDouble(),
+                                                                                                 self.time_step,
+                                                                                                 self.iteration_value.GetReference())
 
         # Solve fluid problem
         self.fluid_solver.SolveSolutionStep()
@@ -254,11 +258,11 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         # Compute the fluid interface residual vector by means of the VECTOR_PROJECTED variable
         # Besides, its norm is stored within the ProcessInfo.
         disp_residual = self.trilinos_space.CreateEmptyVectorPointer(self.epetra_communicator)
-        self.partitioned_utilities.SetUpInterfaceVector(self.fluid_solver.main_model_part, disp_residual)
-        self.partitioned_utilities.ComputeInterfaceVectorResidual(self.fluid_solver.main_model_part,
-                                                                  KratosMultiphysics.MESH_DISPLACEMENT,
-                                                                  KratosMultiphysics.VECTOR_PROJECTED,
-                                                                  disp_residual.GetReference())
+        self.trilinos_partitioned_fsi_utilities.SetUpInterfaceVector(self.fluid_solver.main_model_part, disp_residual)
+        self.trilinos_partitioned_fsi_utilities.ComputeInterfaceVectorResidual(self.fluid_solver.main_model_part,
+                                                                               KratosMultiphysics.MESH_DISPLACEMENT,
+                                                                               KratosMultiphysics.VECTOR_PROJECTED,
+                                                                               disp_residual.GetReference())
 
         return disp_residual
 
@@ -291,62 +295,64 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
     ### INTERFACE MOVEMENT UTILITY ###
     # Function to update the velocity and acceleration according to the displacement in self.iteration_value.
     # Note that at the moment only the Bossak scheme is considered
-    def _ComputeCorrectedInterfaceDisplacementDerivatives(self):
-
-        # Bossak parameters
-        alpha = self.settings["fluid_solver_settings"]["alpha"].GetDouble()
-        gamma = 0.5*(1-2*alpha)
-        beta = ((1-alpha)**2)/4
-
-        i = 0
-        if (self.domain_size == 2):
-            for node in self._GetFluidInterfaceSubmodelPart().Nodes:
-                u_n = node.GetSolutionStepValue(KratosMultiphysics.MESH_DISPLACEMENT,1)
-                v_n = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1)
-                a_n = node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION,1)
-
-                u_n1 = KratosMultiphysics.Vector(3)
-                u_n1[0] = self.iteration_value[i]
-                u_n1[1] = self.iteration_value[i+1]
-                u_n1[2] = 0.0
-                i+=2
-
-                a_n1 = KratosMultiphysics.Vector(3)
-                a_n1[0] = (u_n1[0] - u_n[0] - self.time_step*v_n[0] - (self.time_step**2)*(0.5-beta+beta*alpha)*a_n[0])/((self.time_step**2)*beta*(1-alpha))
-                a_n1[1] = (u_n1[1] - u_n[1] - self.time_step*v_n[1] - (self.time_step**2)*(0.5-beta+beta*alpha)*a_n[1])/((self.time_step**2)*beta*(1-alpha))
-                a_n1[2] = 0.0
-
-                v_n1 = KratosMultiphysics.Vector(3)
-                v_n1[0] = v_n[0] + self.time_step*(1-gamma)*a_n[0] + self.time_step*gamma*(1-alpha)*a_n1[0] + self.time_step*gamma*alpha*a_n[0]
-                v_n1[1] = v_n[1] + self.time_step*(1-gamma)*a_n[1] + self.time_step*gamma*(1-alpha)*a_n1[1] + self.time_step*gamma*alpha*a_n[1]
-                v_n1[2] = 0.0
-
-                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,0,v_n1)
-                node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,0,v_n1)
-                node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION,0,a_n1)
-
-        else:
-            for node in self._GetFluidInterfaceSubmodelPart().Nodes:
-                u_n = node.GetSolutionStepValue(KratosMultiphysics.MESH_DISPLACEMENT,1)
-                v_n = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1)
-                a_n = node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION,1)
-
-                u_n1 = KratosMultiphysics.Vector(3)
-                u_n1[0] = self.iteration_value[i]
-                u_n1[1] = self.iteration_value[i+1]
-                u_n1[2] = self.iteration_value[i+2]
-                i+=3
-
-                a_n1 = KratosMultiphysics.Vector(3)
-                a_n1[0] = (u_n1[0] - u_n[0] - self.time_step*v_n[0] - (self.time_step**2)*(0.5-beta+beta*alpha)*a_n[0])/((self.time_step**2)*beta*(1-alpha))
-                a_n1[1] = (u_n1[1] - u_n[1] - self.time_step*v_n[1] - (self.time_step**2)*(0.5-beta+beta*alpha)*a_n[1])/((self.time_step**2)*beta*(1-alpha))
-                a_n1[2] = (u_n1[2] - u_n[2] - self.time_step*v_n[2] - (self.time_step**2)*(0.5-beta+beta*alpha)*a_n[2])/((self.time_step**2)*beta*(1-alpha))
-
-                v_n1 = KratosMultiphysics.Vector(3)
-                v_n1[0] = v_n[0] + self.time_step*(1-gamma)*a_n[0] + self.time_step*gamma*(1-alpha)*a_n1[0] + self.time_step*gamma*alpha*a_n[0]
-                v_n1[1] = v_n[1] + self.time_step*(1-gamma)*a_n[1] + self.time_step*gamma*(1-alpha)*a_n1[1] + self.time_step*gamma*alpha*a_n[1]
-                v_n1[2] = v_n[2] + self.time_step*(1-gamma)*a_n[2] + self.time_step*gamma*(1-alpha)*a_n1[2] + self.time_step*gamma*alpha*a_n[2]
-
-                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,0,v_n1)
-                node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,0,v_n1)
-                node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION,0,a_n1)
+    # TODO: REMOVE THIS, IT HAS BEEN MIGRATED TO THE PARTITIONED UTILITIES
+    # def _ComputeCorrectedInterfaceDisplacementDerivatives(self):
+    #
+    #     # Bossak parameters
+    #     alpha = self.settings["fluid_solver_settings"]["alpha"].GetDouble()
+    #     gamma = 0.5*(1-2*alpha)
+    #     beta = ((1-alpha)**2)/4
+    #
+    #     if (self.domain_size == 2):
+    #         for i,node in enumerate(self._GetFluidInterfaceSubmodelPart().GetCommunicator().LocalMesh().Nodes):
+    #             j = i*self.domain_size
+    #
+    #             u_n = node.GetSolutionStepValue(KratosMultiphysics.MESH_DISPLACEMENT,1)
+    #             v_n = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1)
+    #             a_n = node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION,1)
+    #
+    #             u_n1 = KratosMultiphysics.Vector(3)
+    #             u_n1[0] = self.trilinos_partitioned_fsi_utilities.GetLocalValue(self.iteration_value, j)
+    #             u_n1[1] = self.trilinos_partitioned_fsi_utilities.GetLocalValue(self.iteration_value, j+1)
+    #             u_n1[2] = 0.0
+    #
+    #             a_n1 = KratosMultiphysics.Vector(3)
+    #             a_n1[0] = (u_n1[0] - u_n[0] - self.time_step*v_n[0] - (self.time_step**2)*(0.5-beta+beta*alpha)*a_n[0])/((self.time_step**2)*beta*(1-alpha))
+    #             a_n1[1] = (u_n1[1] - u_n[1] - self.time_step*v_n[1] - (self.time_step**2)*(0.5-beta+beta*alpha)*a_n[1])/((self.time_step**2)*beta*(1-alpha))
+    #             a_n1[2] = 0.0
+    #
+    #             v_n1 = KratosMultiphysics.Vector(3)
+    #             v_n1[0] = v_n[0] + self.time_step*(1-gamma)*a_n[0] + self.time_step*gamma*(1-alpha)*a_n1[0] + self.time_step*gamma*alpha*a_n[0]
+    #             v_n1[1] = v_n[1] + self.time_step*(1-gamma)*a_n[1] + self.time_step*gamma*(1-alpha)*a_n1[1] + self.time_step*gamma*alpha*a_n[1]
+    #             v_n1[2] = 0.0
+    #
+    #             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,0,v_n1)
+    #             node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,0,v_n1)
+    #             node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION,0,a_n1)
+    #
+    #     else:
+    #         for i,node in enumerate(self._GetFluidInterfaceSubmodelPart().GetCommunicator().LocalMesh().Nodes):
+    #             j = i*self.domain_size
+    #
+    #             u_n = node.GetSolutionStepValue(KratosMultiphysics.MESH_DISPLACEMENT,1)
+    #             v_n = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1)
+    #             a_n = node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION,1)
+    #
+    #             u_n1 = KratosMultiphysics.Vector(3)
+    #             u_n1[0] = self.trilinos_partitioned_fsi_utilities.GetLocalValue(self.iteration_value, j)
+    #             u_n1[1] = self.trilinos_partitioned_fsi_utilities.GetLocalValue(self.iteration_value, j+1)
+    #             u_n1[2] = self.trilinos_partitioned_fsi_utilities.GetLocalValue(self.iteration_value, j+2)
+    #
+    #             a_n1 = KratosMultiphysics.Vector(3)
+    #             a_n1[0] = (u_n1[0] - u_n[0] - self.time_step*v_n[0] - (self.time_step**2)*(0.5-beta+beta*alpha)*a_n[0])/((self.time_step**2)*beta*(1-alpha))
+    #             a_n1[1] = (u_n1[1] - u_n[1] - self.time_step*v_n[1] - (self.time_step**2)*(0.5-beta+beta*alpha)*a_n[1])/((self.time_step**2)*beta*(1-alpha))
+    #             a_n1[2] = (u_n1[2] - u_n[2] - self.time_step*v_n[2] - (self.time_step**2)*(0.5-beta+beta*alpha)*a_n[2])/((self.time_step**2)*beta*(1-alpha))
+    #
+    #             v_n1 = KratosMultiphysics.Vector(3)
+    #             v_n1[0] = v_n[0] + self.time_step*(1-gamma)*a_n[0] + self.time_step*gamma*(1-alpha)*a_n1[0] + self.time_step*gamma*alpha*a_n[0]
+    #             v_n1[1] = v_n[1] + self.time_step*(1-gamma)*a_n[1] + self.time_step*gamma*(1-alpha)*a_n1[1] + self.time_step*gamma*alpha*a_n[1]
+    #             v_n1[2] = v_n[2] + self.time_step*(1-gamma)*a_n[2] + self.time_step*gamma*(1-alpha)*a_n1[2] + self.time_step*gamma*alpha*a_n[2]
+    #
+    #             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,0,v_n1)
+    #             node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,0,v_n1)
+    #             node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION,0,a_n1)

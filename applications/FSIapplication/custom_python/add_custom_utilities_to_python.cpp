@@ -35,32 +35,34 @@ void  AddCustomUtilitiesToPython()
 
     class_<FSIUtils>("FSIUtils", init<>())
 //		.def("FSIUtils",&FSIUtils::GenerateCouplingElements)
-    .def("CheckPressureConvergence",&FSIUtils::CheckPressureConvergence)
-    .def("StructuralPressurePrediction",&FSIUtils::StructuralPressurePrediction)
-    ;
+        .def("CheckPressureConvergence",&FSIUtils::CheckPressureConvergence)
+        .def("StructuralPressurePrediction",&FSIUtils::StructuralPressurePrediction)
+        ;
 
     class_<AitkenUtils>("AitkenUtils", init<>())
-    .def("ComputeAitkenFactor",&AitkenUtils::ComputeAitkenFactor)
-    .def("ComputeRelaxedDisplacement",&AitkenUtils::ComputeRelaxedDisplacement)
-    ;
+        .def("ComputeAitkenFactor",&AitkenUtils::ComputeAitkenFactor)
+        .def("ComputeRelaxedDisplacement",&AitkenUtils::ComputeRelaxedDisplacement)
+        ;
 
     class_<PartitionedFSIUtilities <TSpace,2>, boost::noncopyable >("PartitionedFSIUtilities2D", init< >())
-    .def("GetInterfaceArea",&PartitionedFSIUtilities<TSpace,2>::GetInterfaceArea)
-    .def("GetInterfaceResidualSize",&PartitionedFSIUtilities<TSpace,2>::GetInterfaceResidualSize)
-    .def("SetInterfaceVectorVariable",&PartitionedFSIUtilities<TSpace,2>::SetInterfaceVectorVariable)
-    .def("SetAndFixInterfaceVectorVariable",&PartitionedFSIUtilities<TSpace,2>::SetAndFixInterfaceVectorVariable)
-    .def("ComputeInterfaceVectorResidual",&PartitionedFSIUtilities<TSpace,2>::ComputeInterfaceVectorResidual)
-    .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&PartitionedFSIUtilities<TSpace,2>::ComputeFluidInterfaceMeshVelocityResidualNorm)
-    ;
+        .def("GetInterfaceArea",&PartitionedFSIUtilities<TSpace,2>::GetInterfaceArea)
+        .def("GetInterfaceResidualSize",&PartitionedFSIUtilities<TSpace,2>::GetInterfaceResidualSize)
+        .def("SetInterfaceVectorVariable",&PartitionedFSIUtilities<TSpace,2>::SetInterfaceVectorVariable)
+        .def("SetAndFixInterfaceVectorVariable",&PartitionedFSIUtilities<TSpace,2>::SetAndFixInterfaceVectorVariable)
+        .def("ComputeInterfaceVectorResidual",&PartitionedFSIUtilities<TSpace,2>::ComputeInterfaceVectorResidual)
+        .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&PartitionedFSIUtilities<TSpace,2>::ComputeFluidInterfaceMeshVelocityResidualNorm)
+        .def("ComputeCorrectedInterfaceDisplacementDerivatives",&PartitionedFSIUtilities<TSpace,2>::ComputeCorrectedInterfaceDisplacementDerivatives)
+        ;
 
     class_<PartitionedFSIUtilities <TSpace,3>, boost::noncopyable >("PartitionedFSIUtilities3D", init< >())
-    .def("GetInterfaceArea",&PartitionedFSIUtilities<TSpace,3>::GetInterfaceArea)
-    .def("GetInterfaceResidualSize",&PartitionedFSIUtilities<TSpace,3>::GetInterfaceResidualSize)
-    .def("SetInterfaceVectorVariable",&PartitionedFSIUtilities<TSpace,3>::SetInterfaceVectorVariable)
-    .def("SetAndFixInterfaceVectorVariable",&PartitionedFSIUtilities<TSpace,3>::SetAndFixInterfaceVectorVariable)
-    .def("ComputeInterfaceVectorResidual",&PartitionedFSIUtilities<TSpace,3>::ComputeInterfaceVectorResidual)
-    .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&PartitionedFSIUtilities<TSpace,3>::ComputeFluidInterfaceMeshVelocityResidualNorm)
-    ;
+        .def("GetInterfaceArea",&PartitionedFSIUtilities<TSpace,3>::GetInterfaceArea)
+        .def("GetInterfaceResidualSize",&PartitionedFSIUtilities<TSpace,3>::GetInterfaceResidualSize)
+        .def("SetInterfaceVectorVariable",&PartitionedFSIUtilities<TSpace,3>::SetInterfaceVectorVariable)
+        .def("SetAndFixInterfaceVectorVariable",&PartitionedFSIUtilities<TSpace,3>::SetAndFixInterfaceVectorVariable)
+        .def("ComputeInterfaceVectorResidual",&PartitionedFSIUtilities<TSpace,3>::ComputeInterfaceVectorResidual)
+        .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&PartitionedFSIUtilities<TSpace,3>::ComputeFluidInterfaceMeshVelocityResidualNorm)
+        .def("ComputeCorrectedInterfaceDisplacementDerivatives",&PartitionedFSIUtilities<TSpace,3>::ComputeCorrectedInterfaceDisplacementDerivatives)
+        ;
 
 }
 
