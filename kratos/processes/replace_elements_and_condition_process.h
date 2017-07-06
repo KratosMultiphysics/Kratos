@@ -111,7 +111,6 @@ public:
     {
         ModelPart& r_root_model_part = ObtainRootModelPart( mr_model_part );
         
-	KRATOS_WATCH(mSettings.PrettyPrintJsonString());
         const Element& rReferenceElement = KratosComponents<Element>::Get(mSettings["element_name"].GetString());
         const Condition& rReferenceCondition = KratosComponents<Condition>::Get(mSettings["condition_name"].GetString());
         
@@ -122,8 +121,10 @@ public:
             
             Element::Pointer p_element = rReferenceElement.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
             
+            //deep copy elemental data
+            p_element->Data() = it->Data();
+            
             (*it.base()) = p_element;
-
         }
         
         #pragma omp parallel for
@@ -132,6 +133,9 @@ public:
             ModelPart::ConditionsContainerType::iterator it = r_root_model_part.ConditionsBegin() + i;
             
             Condition::Pointer p_condition = rReferenceCondition.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
+            
+            //deep copy elemental data
+            p_condition->Data() = it->Data();
             
             (*it.base()) = p_condition;
 
