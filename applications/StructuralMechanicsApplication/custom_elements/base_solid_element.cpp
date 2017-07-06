@@ -7,6 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrándiz
 //
 
 // System includes
@@ -1119,6 +1120,67 @@ namespace Kratos
         return body_force;
     }
     
+    //************************************************************************************
+    //************************************************************************************
+
+    void BaseSolidElement::CalculateAndAddKm(
+        MatrixType& rLeftHandSideMatrix,
+        const Matrix& B,
+        const Matrix& D,
+        const double IntegrationWeight
+        )
+    {
+        KRATOS_TRY
+        
+        Matrix temp = prod(D, B);
+        noalias( rLeftHandSideMatrix ) += IntegrationWeight * prod( trans( B ), temp);
+        
+        KRATOS_CATCH( "" ) 
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
+
+    void BaseSolidElement::CalculateAndAddKg(
+        MatrixType& rLeftHandSideMatrix,
+        const Matrix& DN_DX,
+        const Vector& StressVector,
+        const double IntegrationWeight
+        )
+    {
+        KRATOS_TRY
+        
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( StressVector );
+        Matrix reduced_Kg = prod( DN_DX, IntegrationWeight * Matrix( prod( stress_tensor, trans( DN_DX ) ) ) ); //to be optimized
+        MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, reduced_Kg, dimension );
+
+        KRATOS_CATCH( "" ) 
+    }
+        
+    //************************************************************************************
+    //************************************************************************************
+
+    void BaseSolidElement::CalculateAndAddResidualVector(
+        VectorType& rRightHandSideVector,
+        const KinematicVariables& rThisKinematicVariables,
+        const ProcessInfo& rCurrentProcessInfo,
+        const Vector& BodyForce,
+        const Vector& StressVector,
+        const double IntegrationWeight
+        )
+    {
+        KRATOS_TRY
+        
+        // Operation performed: rRightHandSideVector += ExtForce * IntegrationWeight
+        this->CalculateAndAddExtForceContribution( rThisKinematicVariables.N, rCurrentProcessInfo, BodyForce, rRightHandSideVector, IntegrationWeight );
+
+        // Operation performed: rRightHandSideVector -= IntForce * IntegrationWeight
+        noalias( rRightHandSideVector ) -= IntegrationWeight * prod( trans( rThisKinematicVariables.B ), StressVector );
+        
+        KRATOS_CATCH( "" ) 
+    }
+        
     //************************************************************************************
     //************************************************************************************
 

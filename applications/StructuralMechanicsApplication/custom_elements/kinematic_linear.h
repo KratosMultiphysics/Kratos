@@ -7,13 +7,12 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrándiz
 //
 
 
 #if !defined(KRATOS_KINEMATIC_LINEAR_H_INCLUDED )
 #define  KRATOS_KINEMATIC_LINEAR_H_INCLUDED
-
-
 
 // System includes
 
@@ -241,12 +240,6 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-
-    void CalculateAndAddKm(
-        MatrixType& K,
-        Matrix& B,
-        Matrix& D,
-        double weight);
 
     void CalculateBodyForces(
         Vector& BodyForce,

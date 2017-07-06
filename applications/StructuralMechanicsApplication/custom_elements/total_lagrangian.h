@@ -7,12 +7,12 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrándiz
 //
 
 
 #if !defined(KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED )
 #define  KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED
-
 
 
 // System includes
@@ -218,26 +218,10 @@ private:
     ///@name Private Operators
     ///@{
 
-    void CalculateAndAddKm(
-        MatrixType& K,
-        Matrix& B,
-        Matrix& D,
-        double weight);
-
-    /**
-     * Calculation of the Geometric Stiffness Matrix. Kg = dB * S
-     */
-    void CalculateAndAddKg(
-        MatrixType& K,
-        Matrix& DN_DX,
-        Vector& StressVector,
-        double weight
-    );
-
     void CalculateBodyForces(
         Vector& BodyForce,
         const ProcessInfo& CurrentProcessInfo
-    );
+        );
 
     void InitializeVariables();
 

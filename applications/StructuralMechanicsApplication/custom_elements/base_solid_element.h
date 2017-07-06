@@ -7,6 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrándiz
 //
 
 #if !defined(KRATOS_BASE_SOLID_ELEMENT_H_INCLUDED )
@@ -509,6 +510,38 @@ protected:
     Vector GetBodyForce();
     
     /**
+     * Calculation of the Material Stiffness Matrix. Km = B^T * D *B
+     */
+    void CalculateAndAddKm(
+        MatrixType& rLeftHandSideMatrix,
+        const Matrix& B,
+        const Matrix& D,
+        const double IntegrationWeight
+        );
+
+    /**
+     * Calculation of the Geometric Stiffness Matrix. Kg = dB * S
+     */
+    void CalculateAndAddKg(
+        MatrixType& rLeftHandSideMatrix,
+        const Matrix& DN_DX,
+        const Vector& StressVector,
+        const double IntegrationWeight
+        );
+    
+    /**
+     * Calculation of the RHS
+     */
+    void CalculateAndAddResidualVector(
+        VectorType& rRightHandSideVector,
+        const KinematicVariables& rThisKinematicVariables,
+        const ProcessInfo& CurrentProcessInfo,
+        const Vector& BodyForce,
+        const Vector& StressVector,
+        const double IntegrationWeight
+        );
+    
+    /**
      * This function add the external force contribution
      */ 
     void CalculateAndAddExtForceContribution(
@@ -516,7 +549,7 @@ protected:
         const ProcessInfo& CurrentProcessInfo,
         const Vector& BodyForce,
         VectorType& mResidualVector,
-        const double Weight
+        const double IntegrationWeight
         );
 
     /**

@@ -7,6 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrándiz
 //
 
 // System includes
@@ -130,17 +131,12 @@ namespace Kratos
             if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
             {
                 // Contributions to stiffness matrix calculated on the reference config
-                Matrix temp = prod(this_constitutive_variables.D, this_kinematic_variables.B);
-                noalias( rLeftHandSideMatrix ) += int_to_reference_weight * prod( trans( this_kinematic_variables.B ), temp);
+                this->CalculateAndAddKm( rLeftHandSideMatrix, this_kinematic_variables.B, this_constitutive_variables.D, int_to_reference_weight );
             }
 
             if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
             {
-                // Operation performed: rRightHandSideVector += ExtForce*int_to_reference_weight
-                this->CalculateAndAddExtForceContribution( this_kinematic_variables.N, rCurrentProcessInfo, body_force, rRightHandSideVector, int_to_reference_weight );
-
-                // Operation performed: rRightHandSideVector -= IntForce*int_to_reference_weight
-                noalias( rRightHandSideVector ) -= int_to_reference_weight * prod( trans( this_kinematic_variables.B ), this_constitutive_variables.StressVector );
+                this->CalculateAndAddResidualVector(rRightHandSideVector, this_kinematic_variables, rCurrentProcessInfo, body_force, this_constitutive_variables.StressVector, int_to_reference_weight);
             }
         }
         
