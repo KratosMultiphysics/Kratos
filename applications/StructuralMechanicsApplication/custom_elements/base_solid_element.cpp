@@ -448,14 +448,46 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo 
         )
     {
+        const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints();
+        
         if ( rOutput.size() != GetGeometry().IntegrationPoints(  ).size() )
         {
             rOutput.resize( GetGeometry().IntegrationPoints(  ).size() );
         }
 
-        for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
+        if (rVariable == INTEGRATION_WEIGHT)
         {
-            rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rOutput[ii] );
+            const unsigned int nr_of_nodes = GetGeometry().size();
+            const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+            const unsigned int strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+
+            KinematicVariables this_kinematic_variables(strain_size, dim, nr_of_nodes);
+            
+            for (unsigned int point_number = 0; point_number < integration_points.size(); point_number++)
+            {
+                this_kinematic_variables.detJ0 = CalculateDerivativesOnReference(this_kinematic_variables.J0,
+                                                                                 this_kinematic_variables.InvJ0,
+                                                                                 this_kinematic_variables.DN_DX,
+                                                                                 point_number,
+                                                                                 GetGeometry().GetDefaultIntegrationMethod());
+                double integration_weight = GetIntegrationWeight(integration_points,
+                                                                 point_number,
+                                                                 this_kinematic_variables.detJ0);
+                
+                if (dim == 2 && this->GetProperties().Has(THICKNESS))
+                {
+                    integration_weight *= this->GetProperties()[THICKNESS];
+                }
+                
+                rOutput[point_number] = integration_weight;
+            }
+        }
+        else
+        {
+            for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
+            {
+                rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rOutput[ii] );
+            }
         }
     }
 

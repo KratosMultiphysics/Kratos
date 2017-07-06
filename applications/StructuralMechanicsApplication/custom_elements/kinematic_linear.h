@@ -208,12 +208,6 @@ protected:
      */
     virtual Matrix ComputeEquivalentF(const Vector& StrainVector);
 
-    void CalculateOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-    );
-
     ///@}
     ///@name Protected Operations
     ///@{
