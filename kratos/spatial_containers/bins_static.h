@@ -124,7 +124,7 @@ public:
     //************************************************************************
 
     // destructor
-    virtual ~Bins() { }
+    ~Bins() override { }
 
     //************************************************************************
 
@@ -786,7 +786,7 @@ public:
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const override
+    void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const override
     {
         rOStream << Perfix << "Bin[" << SearchUtils::PointerDistance(mPointBegin, mPointEnd) << "] : " << std::endl;
         for(IteratorConstIterator i_cell = mIndexCell.begin() ; i_cell != mIndexCell.end()-1 ; i_cell++)
