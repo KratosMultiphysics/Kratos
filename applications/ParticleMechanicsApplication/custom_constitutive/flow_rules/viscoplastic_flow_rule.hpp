@@ -22,31 +22,31 @@
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
+///@addtogroup ApplicationNameApplication
+///@{
 
-  ///@name Kratos Globals
-  ///@{
+///@name Kratos Globals
+///@{
 
-  ///@}
-  ///@name Type Definitions
-  ///@{
+///@}
+///@name Type Definitions
+///@{
 
-  ///@}
-  ///@name  Enum's
-  ///@{
+///@}
+///@name  Enum's
+///@{
 
-  ///@}
-  ///@name  Functions
-  ///@{
+///@}
+///@name  Functions
+///@{
 
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@}
+///@name Kratos Classes
+///@{
 
-  /// Short class definition.
-  /** Detail class definition.
-   */
+/// Short class definition.
+/** Detail class definition.
+ */
 
 class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ViscoplasticFlowRule
     :public NonLinearAssociativePlasticFlowRule
@@ -56,36 +56,36 @@ public:
 ///@{
 
 /// Pointer definition of NonLinearAssociativePlasticFlowRule
-  KRATOS_CLASS_POINTER_DEFINITION( ViscoplasticFlowRule );
+    KRATOS_CLASS_POINTER_DEFINITION( ViscoplasticFlowRule );
 
 ///@}
 ///@name Life Cycle
 ///@{
 
 /// Default constructor.
-ViscoplasticFlowRule();
+    ViscoplasticFlowRule();
 
 /// Initialization constructor.
-ViscoplasticFlowRule(YieldCriterionPointer pYieldCriterion);
+    ViscoplasticFlowRule(YieldCriterionPointer pYieldCriterion);
 
 /// Copy constructor.
-ViscoplasticFlowRule(ViscoplasticFlowRule const& rOther);
+    ViscoplasticFlowRule(ViscoplasticFlowRule const& rOther);
 
 /// Assignment operator.
-ViscoplasticFlowRule& operator=(ViscoplasticFlowRule const& rOther);
+    ViscoplasticFlowRule& operator=(ViscoplasticFlowRule const& rOther);
 
 /// Destructor.
-~ViscoplasticFlowRule() override;
+    ~ViscoplasticFlowRule() override;
 
 ///@}
 ///@name Operators
 ///@{
 
-/**
- * Clone function (has to be implemented by any derived class)
- * @return a pointer to a new instance of this flow rule
- */
-FlowRule::Pointer Clone() const override;
+    /**
+     * Clone function (has to be implemented by any derived class)
+     * @return a pointer to a new instance of this flow rule
+     */
+    FlowRule::Pointer Clone() const override;
 
 ///@}
 ///@name Operations
@@ -94,7 +94,7 @@ FlowRule::Pointer Clone() const override;
 
 ///virtual void CalculateScalingFactors( const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors );
 
-bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables ) override;
+    bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables ) override;
 
 
 ///@}
@@ -135,10 +135,10 @@ protected:
 ///virtual void SetCriterionParameters( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters );
 
 
-bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters) override;
+    bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters) override;
 
 
-void UpdateConfiguration( RadialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix );
+    void UpdateConfiguration( RadialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix );
 
 
 ///void CalculateThermalDissipation( YieldCriterion::Parameters& rCriterionParameters, ThermalVariables& rThermalVariables );
@@ -156,13 +156,13 @@ void UpdateConfiguration( RadialReturnVariables& rReturnMappingVariables, Matrix
 ///@name Protected LifeCycle
 ///@{
 private:
-friend class Serializer;
+    friend class Serializer;
 
 // A private default constructor necessary for serialization
 
-void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
 

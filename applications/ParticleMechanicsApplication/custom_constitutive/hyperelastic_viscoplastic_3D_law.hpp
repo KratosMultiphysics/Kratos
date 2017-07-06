@@ -25,7 +25,7 @@ namespace Kratos
  * With stress split in an isochoric and volumetric parts
  * This material law is defined by the parameters needed by the yield criterion:
 
- * The functionality is limited to large displacements 
+ * The functionality is limited to large displacements
  */
 
 class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) HyperElasticViscoplastic3DLaw : public HyperElastic3DLaw
@@ -163,12 +163,12 @@ public:
 
     void InitializeSolutionStep( const Properties& rMaterialProperties,
                                  const GeometryType& rElementGeometry, //this is just to give the array of nodes
-                                 const Vector& rShapeFunctionsValues ,
+                                 const Vector& rShapeFunctionsValues,
                                  const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep( const Properties& rMaterialProperties,
                                const GeometryType& rElementGeometry, //this is just to give the array of nodes
-                               const Vector& rShapeFunctionsValues ,
+                               const Vector& rShapeFunctionsValues,
                                const ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -208,15 +208,15 @@ public:
     /**
      * Turn back information as a string.
      */
-       //virtual String Info() const;
+    //virtual String Info() const;
     /**
      * Print information about this object.
      */
-       //virtual void PrintInfo(std::ostream& rOStream) const;
+    //virtual void PrintInfo(std::ostream& rOStream) const;
     /**
      * Print object's data.
      */
-       //virtual void PrintData(std::ostream& rOStream) const;
+    //virtual void PrintData(std::ostream& rOStream) const;
 
 protected:
 
@@ -225,15 +225,15 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-  
+
     Matrix mElasticLeftCauchyGreen;
-    
+
     FlowRulePointer       mpFlowRule;
 
     YieldCriterionPointer mpYieldCriterion;
-	
+
     HardeningLawPointer   mpHardeningLaw;
-	
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -250,8 +250,8 @@ protected:
      * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
      */
     virtual void CalculatePlasticConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-						     FlowRule::RadialReturnVariables & rReturnMappingVariables,		     
-						     Matrix& rConstitutiveMatrix);
+            FlowRule::RadialReturnVariables & rReturnMappingVariables,
+            Matrix& rConstitutiveMatrix);
 
 
     /**
@@ -259,11 +259,11 @@ protected:
      */
 
     double& PlasticConstitutiveComponent( double & rCabcd,
-            const MaterialResponseVariables& rElasticVariables,
-            const Matrix & rIsoStressMatrix,
-            const FlowRule::PlasticFactors & rScalingFactors,			 
-            const unsigned int& a, const unsigned int& b,
-            const unsigned int& c, const unsigned int& d);
+                                          const MaterialResponseVariables& rElasticVariables,
+                                          const Matrix & rIsoStressMatrix,
+                                          const FlowRule::PlasticFactors & rScalingFactors,
+                                          const unsigned int& a, const unsigned int& b,
+                                          const unsigned int& c, const unsigned int& d);
 
 
     /**
@@ -275,10 +275,10 @@ protected:
      * @param rIsoStressVector vector where the stress result is stored
      */
     virtual void CalculatePlasticIsochoricStress( MaterialResponseVariables & rElasticVariables,
-						  FlowRule::RadialReturnVariables & rReturnMappingVariables,
-						  StressMeasure rStressMeasure,
-						  Matrix& rIsoStressMatrix,
-						  Vector& rIsoStressVector);
+            FlowRule::RadialReturnVariables & rReturnMappingVariables,
+            StressMeasure rStressMeasure,
+            Matrix& rIsoStressMatrix,
+            Vector& rIsoStressVector);
 
 
 
@@ -314,21 +314,21 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElastic3DLaw )
-	
-	rSerializer.save("mElasticLeftCauchyGreen",mElasticLeftCauchyGreen);
-	rSerializer.save("mpFlowRule",mpFlowRule);
-	rSerializer.save("mpYieldCriterion",mpYieldCriterion);
-	rSerializer.save("mpHardeningLaw",mpHardeningLaw);
+
+        rSerializer.save("mElasticLeftCauchyGreen",mElasticLeftCauchyGreen);
+        rSerializer.save("mpFlowRule",mpFlowRule);
+        rSerializer.save("mpYieldCriterion",mpYieldCriterion);
+        rSerializer.save("mpHardeningLaw",mpHardeningLaw);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElastic3DLaw )
-	  
-	rSerializer.load("mElasticLeftCauchyGreen",mElasticLeftCauchyGreen);
-	rSerializer.load("mpFlowRule",mpFlowRule);
-	rSerializer.load("mpYieldCriterion",mpYieldCriterion);
-	rSerializer.load("mpHardeningLaw",mpHardeningLaw);
+
+        rSerializer.load("mElasticLeftCauchyGreen",mElasticLeftCauchyGreen);
+        rSerializer.load("mpFlowRule",mpFlowRule);
+        rSerializer.load("mpYieldCriterion",mpYieldCriterion);
+        rSerializer.load("mpHardeningLaw",mpHardeningLaw);
     }
 
 

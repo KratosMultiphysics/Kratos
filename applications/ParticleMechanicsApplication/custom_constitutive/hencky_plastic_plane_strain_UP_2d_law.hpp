@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		BSD License 
+//  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ilaria Iaconeta
@@ -24,11 +24,11 @@
 namespace Kratos
 {
 /**
- * Defines a hyperelastic-plastic isotropic constitutive law in plane strain 2D 
+ * Defines a hyperelastic-plastic isotropic constitutive law in plane strain 2D
  * With stress split in an isochoric and volumetric parts
  * This material law is defined by the parameters needed by the yield criterion:
 
- * The functionality is limited to large displacements 
+ * The functionality is limited to large displacements
  */
 
 class HenckyElasticPlasticPlaneStrainUP2DLaw : public HenckyElasticPlasticUP3DLaw
@@ -62,7 +62,7 @@ public:
     HenckyElasticPlasticPlaneStrainUP2DLaw();
 
 
-    HenckyElasticPlasticPlaneStrainUP2DLaw(MPMFlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    HenckyElasticPlasticPlaneStrainUP2DLaw(MPMFlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
@@ -112,7 +112,7 @@ public:
     };
 
 
-	void GetLawFeatures(Features& rFeatures) override;
+    void GetLawFeatures(Features& rFeatures) override;
     /**
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
@@ -162,7 +162,7 @@ protected:
      * @param rStrainVector
      */
     void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
-            Vector& rStrainVector ) override;
+                                       Vector& rStrainVector ) override;
 
 
     /**
@@ -171,17 +171,17 @@ protected:
      * @param rStrainVector
      */
     void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
-                                         Vector& rStrainVector ) override;
+                                 Vector& rStrainVector ) override;
 
-							      
+
     //virtual void ConvertConstitutiveMatrixToAppropiateDimension(Matrix& rConstitutiveMatrix);
-	Matrix SetConstitutiveMatrixToAppropiateDimension(Matrix& rConstitutiveMatrix,const Matrix& rElastoPlasticTangentMatrix) override;
-	
-	Vector SetStressMatrixToAppropiateVectorDimension(Vector& rStressVector, const Matrix& rStressMatrix) override;
-	
-    //virtual void CalculateHenckyMainStrain(const Matrix& rCauchyGreeMatrix, 
-					   //FlowRule::RadialReturnVariables& rReturnMappingVariables, 
-					   //Vector& rMainStrain);
+    Matrix SetConstitutiveMatrixToAppropiateDimension(Matrix& rConstitutiveMatrix,const Matrix& rElastoPlasticTangentMatrix) override;
+
+    Vector SetStressMatrixToAppropiateVectorDimension(Vector& rStressVector, const Matrix& rStressMatrix) override;
+
+    //virtual void CalculateHenckyMainStrain(const Matrix& rCauchyGreeMatrix,
+    //FlowRule::RadialReturnVariables& rReturnMappingVariables,
+    //Vector& rMainStrain);
 private:
 
     ///@name Static Member Variables

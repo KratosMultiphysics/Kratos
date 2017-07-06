@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		BSD License 
+//  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ilaria Iaconeta
@@ -27,8 +27,8 @@ namespace Kratos
 {
 
 /**
- * Defines a hencky-plastic isotropic constitutive law in 3D 
- * The functionality is limited to large and small displacements 
+ * Defines a hencky-plastic isotropic constitutive law in 3D
+ * The functionality is limited to large and small displacements
  */
 
 
@@ -84,7 +84,7 @@ public:
     HenckyElasticPlastic3DLaw();
 
 
-    HenckyElasticPlastic3DLaw(MPMFlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    HenckyElasticPlastic3DLaw(MPMFlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
@@ -159,7 +159,7 @@ public:
     void SetValue( const Variable<Matrix>& rThisVariable,
                    const Matrix& rValue,
                    const ProcessInfo& rCurrentProcessInfo ) override;
-   
+
 
     /**
      * Material parameters are inizialized
@@ -171,12 +171,12 @@ public:
 
     void InitializeSolutionStep( const Properties& rMaterialProperties,
                                  const GeometryType& rElementGeometry, //this is just to give the array of nodes
-                                 const Vector& rShapeFunctionsValues ,
+                                 const Vector& rShapeFunctionsValues,
                                  const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep( const Properties& rMaterialProperties,
                                const GeometryType& rElementGeometry, //this is just to give the array of nodes
-                               const Vector& rShapeFunctionsValues ,
+                               const Vector& rShapeFunctionsValues,
                                const ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -236,13 +236,13 @@ protected:
     double mPlasticRegion;
     Matrix mPlasticDeformationGradient;
     Matrix mElasticLeftCauchyGreen;
-    
+
     MPMFlowRulePointer mpMPMFlowRule;
 
     YieldCriterionPointer mpYieldCriterion;
-	
+
     HardeningLawPointer   mpHardeningLaw;
-	
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -251,71 +251,71 @@ protected:
     ///@{
 
 
-    /** First and secod term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS 
+    /** First and secod term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS
         in a pullback fashion
     */
     void GetDomainPressure( double& rPressure, const MaterialResponseVariables& rElasticVariables);
-    
+
     virtual Matrix SetConstitutiveMatrixToAppropiateDimension(Matrix& rConstitutiveMatrix, const Matrix& rElastoPlasticTangentMatrix);
-    
+
     virtual Vector SetStressMatrixToAppropiateVectorDimension(Vector& rStressVector, const Matrix& rStressMatrix );
-    
+
     virtual void CorrectDomainPressure( Matrix& rStressMatrix, const MaterialResponseVariables& rElasticVariables);
-    
+
     virtual void CalculateElastoPlasticTangentMatrix( const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen,const double& rAlpha, Matrix& rElastoPlasticMatrix, const MaterialResponseVariables& rElasticVariables);
 
     //virtual void CalculatePlasticConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-						     //MPMFlowRule::RadialReturnVariables & rReturnMappingVariables,		     
-						     //Matrix& rConstitutiveMatrix);
-	double& TensorComponent(double & rCabcd,
-						 const Matrix& rMA, const Matrix& rMB, 
-						 const unsigned int& a, const unsigned int& b,
-						 const unsigned int& c, const unsigned int& d);
-	
-	virtual void MyTensorProduct(const Matrix& rMA, const Matrix& rMB, 
-						      Matrix& rEigenbasesProductMatrix);
-						      
-    double& TensorComponent2(double & rCabcd,
-						 const Matrix& rMA, const Matrix& rMB, 
-						 const unsigned int& a, const unsigned int& b,
-						 const unsigned int& c, const unsigned int& d);
-	
-	virtual void MyTensorProduct2(const Matrix& rMA, const Matrix& rMB, 
-						      Matrix& rEigenbasesProductMatrix);
-						     
-	double& TensorComponent3(double & rCabcd,
-						 const Matrix& rMA, 
-						 const unsigned int& a, const unsigned int& b,
-						 const unsigned int& c, const unsigned int& d);
-	
-	virtual void MyTensorProduct3(const Matrix& rMA, 
-						      Matrix& rEigenbasesProductMatrix);
-						      
-	double& TensorComponent4(double & rCabcd,
-						 const Matrix& rMA, 
-						 const unsigned int& a, const unsigned int& b,
-						 const unsigned int& c, const unsigned int& d);
-	
-	virtual void MyTensorProduct4(const Matrix& rMA, 
-						      Matrix& rEigenbasesProductMatrix);
-						      
-						      
-	virtual Matrix CalculateEigenbases(const MPMFlowRule::RadialReturnVariables& rReturnMappingVariables, Matrix& rEigenbasesMatrix);
-	
-	//virtual void CalculateElastoPlasticTangentMatrix( const FlowRule::RadialReturnVariables & rReturnMappingVariables, 
-													  //const Matrix& rTrialElasticLeftCauchyGreen, const Matrix& rStressMatrix,
-													  //Matrix& rElastoPlasticTangentMatrix, Matrix& rConsistentMatrix );
+    //MPMFlowRule::RadialReturnVariables & rReturnMappingVariables,
+    //Matrix& rConstitutiveMatrix);
+    double& TensorComponent(double & rCabcd,
+                            const Matrix& rMA, const Matrix& rMB,
+                            const unsigned int& a, const unsigned int& b,
+                            const unsigned int& c, const unsigned int& d);
 
-    /** First and secod term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS 
+    virtual void MyTensorProduct(const Matrix& rMA, const Matrix& rMB,
+                                 Matrix& rEigenbasesProductMatrix);
+
+    double& TensorComponent2(double & rCabcd,
+                             const Matrix& rMA, const Matrix& rMB,
+                             const unsigned int& a, const unsigned int& b,
+                             const unsigned int& c, const unsigned int& d);
+
+    virtual void MyTensorProduct2(const Matrix& rMA, const Matrix& rMB,
+                                  Matrix& rEigenbasesProductMatrix);
+
+    double& TensorComponent3(double & rCabcd,
+                             const Matrix& rMA,
+                             const unsigned int& a, const unsigned int& b,
+                             const unsigned int& c, const unsigned int& d);
+
+    virtual void MyTensorProduct3(const Matrix& rMA,
+                                  Matrix& rEigenbasesProductMatrix);
+
+    double& TensorComponent4(double & rCabcd,
+                             const Matrix& rMA,
+                             const unsigned int& a, const unsigned int& b,
+                             const unsigned int& c, const unsigned int& d);
+
+    virtual void MyTensorProduct4(const Matrix& rMA,
+                                  Matrix& rEigenbasesProductMatrix);
+
+
+    virtual Matrix CalculateEigenbases(const MPMFlowRule::RadialReturnVariables& rReturnMappingVariables, Matrix& rEigenbasesMatrix);
+
+    //virtual void CalculateElastoPlasticTangentMatrix( const FlowRule::RadialReturnVariables & rReturnMappingVariables,
+    //const Matrix& rTrialElasticLeftCauchyGreen, const Matrix& rStressMatrix,
+    //Matrix& rElastoPlasticTangentMatrix, Matrix& rConsistentMatrix );
+
+    /** First and secod term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS
         in the actual configuration
     */
 
     //double& PlasticConstitutiveComponent( double & rCabcd,
-            //const MaterialResponseVariables& rElasticVariables,
-            //const Matrix & rIsoStressMatrix,
-            //const MPMFlowRule::PlasticFactors & rScalingFactors,			 
-            //const unsigned int& a, const unsigned int& b,
-            //const unsigned int& c, const unsigned int& d);
+    //const MaterialResponseVariables& rElasticVariables,
+    //const Matrix & rIsoStressMatrix,
+    //const MPMFlowRule::PlasticFactors & rScalingFactors,
+    //const unsigned int& a, const unsigned int& b,
+    //const unsigned int& c, const unsigned int& d);
 
 
     /**
@@ -327,24 +327,24 @@ protected:
      * @param rIsoStressVector vector where the stress result is stored
      */
     //virtual void CalculatePlasticIsochoricStress( MaterialResponseVariables & rElasticVariables,
-						  //MPMFlowRule::RadialReturnVariables & rReturnMappingVariables,
-						  //StressMeasure rStressMeasure,
-						  //Matrix& rIsoStressMatrix,
-						  //Vector& rIsoStressVector);
+    //MPMFlowRule::RadialReturnVariables & rReturnMappingVariables,
+    //StressMeasure rStressMeasure,
+    //Matrix& rIsoStressMatrix,
+    //Vector& rIsoStressVector);
 
 
 
 
-     Vector& GetStressVectorFromMatrix(const Matrix& rStressMatrix, 
-				       Vector& rMainStress, 
-				       const Matrix& rEigenVectors);
+    Vector& GetStressVectorFromMatrix(const Matrix& rStressMatrix,
+                                      Vector& rMainStress,
+                                      const Matrix& rEigenVectors);
 
-     virtual void CalculateHenckyMainStrain(const Matrix& rCauchyGreeMatrix, 
-					    MPMFlowRule::RadialReturnVariables& rReturnMappingVariables, 
-					    Vector& rMainStrain);
-					    
-	 virtual void CalculatePrincipalStressTrial(const MaterialResponseVariables & rElasticVariables,Parameters & rValues, const MPMFlowRule::RadialReturnVariables& rReturnMappingVariables, 
-					    Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix);
+    virtual void CalculateHenckyMainStrain(const Matrix& rCauchyGreeMatrix,
+                                           MPMFlowRule::RadialReturnVariables& rReturnMappingVariables,
+                                           Vector& rMainStrain);
+
+    virtual void CalculatePrincipalStressTrial(const MaterialResponseVariables & rElasticVariables,Parameters & rValues, const MPMFlowRule::RadialReturnVariables& rReturnMappingVariables,
+            Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix);
 
 
     /**
@@ -353,7 +353,7 @@ protected:
      * @param Parameters
      * @return
      */
-     bool CheckParameters(Parameters& rValues) override;
+    bool CheckParameters(Parameters& rValues) override;
 
 
 private:
@@ -392,20 +392,20 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElastic3DLaw )
 
-	rSerializer.save("mElasticLeftCauchyGreen",mElasticLeftCauchyGreen);
-	rSerializer.save("mpMPMFlowRule",mpMPMFlowRule);
-	rSerializer.save("mpYieldCriterion",mpYieldCriterion);
-	rSerializer.save("mpHardeningLaw",mpHardeningLaw);
+        rSerializer.save("mElasticLeftCauchyGreen",mElasticLeftCauchyGreen);
+        rSerializer.save("mpMPMFlowRule",mpMPMFlowRule);
+        rSerializer.save("mpYieldCriterion",mpYieldCriterion);
+        rSerializer.save("mpHardeningLaw",mpHardeningLaw);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElastic3DLaw )
-	  
-	rSerializer.load("mElasticLeftCauchyGreen",mElasticLeftCauchyGreen);
-	rSerializer.load("mpMPMFlowRule",mpMPMFlowRule);
-	rSerializer.load("mpYieldCriterion",mpYieldCriterion);
-	rSerializer.load("mpHardeningLaw",mpHardeningLaw);
+
+        rSerializer.load("mElasticLeftCauchyGreen",mElasticLeftCauchyGreen);
+        rSerializer.load("mpMPMFlowRule",mpMPMFlowRule);
+        rSerializer.load("mpYieldCriterion",mpYieldCriterion);
+        rSerializer.load("mpHardeningLaw",mpHardeningLaw);
     }
 
 

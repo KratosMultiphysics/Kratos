@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		BSD License 
+//  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ilaria Iaconeta
@@ -77,7 +77,7 @@ public:
 
     /// Empty constructor needed for serialization
     UpdatedLagrangianUP();
-  
+
 
     /// Default constructors
     UpdatedLagrangianUP(IndexType NewId, GeometryType::Pointer pGeometry);
@@ -174,21 +174,21 @@ public:
     //virtual void SetValueOnIntegrationPoints(const Variable<double>& rVariable, double& rValues, ProcessInfo& rCurrentProcessInfo);
 
     ///**
-     //* Set a Vector Value on the Element Constitutive Law
-     //*/
+    //* Set a Vector Value on the Element Constitutive Law
+    //*/
     //void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, Vector& rValues, ProcessInfo& rCurrentProcessInfo);
 
     ///**
-     //* Set a Matrix Value on the Element Constitutive Law
-     //*/
+    //* Set a Matrix Value on the Element Constitutive Law
+    //*/
     //void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, Matrix& rValues, ProcessInfo& rCurrentProcessInfo);
 
     ///**
     //* Set a Constitutive Law Value
     //*/
     //void SetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                                      //ConstitutiveLaw::Pointer& rValues,
-                                      //ProcessInfo& rCurrentProcessInfo );
+    //ConstitutiveLaw::Pointer& rValues,
+    //ProcessInfo& rCurrentProcessInfo );
 
 
     //GET:
@@ -198,21 +198,21 @@ public:
     //virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable, double& rValues, ProcessInfo& rCurrentProcessInfo);
 
     ///**
-     //* Get on rVariable a Vector Value from the Element Constitutive Law
-     //*/
+    //* Get on rVariable a Vector Value from the Element Constitutive Law
+    //*/
     //virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, Vector& rValues, ProcessInfo& rCurrentProcessInfo);
 
     ///**
-     //* Get on rVariable a Matrix Value from the Element Constitutive Law
-     //*/
+    //* Get on rVariable a Matrix Value from the Element Constitutive Law
+    //*/
     //virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, Matrix& rValues, ProcessInfo& rCurrentProcessInfo);
 
     ///**
-     //* Get a Constitutive Law Value
-     //*/
+    //* Get a Constitutive Law Value
+    //*/
     //void GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                                      //ConstitutiveLaw::Pointer& rValues,
-                                      //ProcessInfo& rCurrentProcessInfo );
+    //ConstitutiveLaw::Pointer& rValues,
+    //ProcessInfo& rCurrentProcessInfo );
 
 
 
@@ -228,7 +228,7 @@ public:
      * Called at the beginning of each solution step
      */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-    
+
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
@@ -244,10 +244,10 @@ public:
      * Called at the end of eahc solution step
      */
     //void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
-	
-	//void Calculate(const Variable<Vector >& rVariable,
-                           //Vector& Output,
-                           //const ProcessInfo& rCurrentProcessInfo);
+
+    //void Calculate(const Variable<Vector >& rVariable,
+    //Vector& Output,
+    //const ProcessInfo& rCurrentProcessInfo);
 
     //************* COMPUTING  METHODS
 
@@ -261,53 +261,53 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
 
-    //void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
-			      //VectorType& rRightHandSideVector, 
-			      //ProcessInfo& rCurrentProcessInfo);
+    //void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    //VectorType& rRightHandSideVector,
+    //ProcessInfo& rCurrentProcessInfo);
 
     ///**
-     //* this function provides a more general interface to the element.
-     //* it is designed so that rLHSvariables and rRHSvariables are passed TO the element
-     //* thus telling what is the desired output
-     //* @param rLeftHandSideMatrices: container with the output left hand side matrices
-     //* @param rLHSVariables: paramter describing the expected LHSs
-     //* @param rRightHandSideVectors: container for the desired RHS output
-     //* @param rRHSVariables: parameter describing the expected RHSs
-     //*/
+    //* this function provides a more general interface to the element.
+    //* it is designed so that rLHSvariables and rRHSvariables are passed TO the element
+    //* thus telling what is the desired output
+    //* @param rLeftHandSideMatrices: container with the output left hand side matrices
+    //* @param rLHSVariables: paramter describing the expected LHSs
+    //* @param rRightHandSideVectors: container for the desired RHS output
+    //* @param rRHSVariables: parameter describing the expected RHSs
+    //*/
     //void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
-			      //const std::vector< Variable< MatrixType > >& rLHSVariables,
-			      //std::vector< VectorType >& rRightHandSideVectors,
-			      //const std::vector< Variable< VectorType > >& rRHSVariables,
-			      //ProcessInfo& rCurrentProcessInfo);
+    //const std::vector< Variable< MatrixType > >& rLHSVariables,
+    //std::vector< VectorType >& rRightHandSideVectors,
+    //const std::vector< Variable< VectorType > >& rRHSVariables,
+    //ProcessInfo& rCurrentProcessInfo);
 
     ///**
-      //* this is called during the assembling process in order
-      //* to calculate the elemental right hand side vector only
-      //* @param rRightHandSideVector: the elemental right hand side vector
-      //* @param rCurrentProcessInfo: the current process info instance
-      //*/
-    //void CalculateRightHandSide(VectorType& rRightHandSideVector, 
-				//ProcessInfo& rCurrentProcessInfo);
+    //* this is called during the assembling process in order
+    //* to calculate the elemental right hand side vector only
+    //* @param rRightHandSideVector: the elemental right hand side vector
+    //* @param rCurrentProcessInfo: the current process info instance
+    //*/
+    //void CalculateRightHandSide(VectorType& rRightHandSideVector,
+    //ProcessInfo& rCurrentProcessInfo);
 
     ///**
-     //* this function provides a more general interface to the element.
-     //* it is designed so that rRHSvariables are passed TO the element
-     //* thus telling what is the desired output
-     //* @param rRightHandSideVectors: container for the desired RHS output
-     //* @param rRHSVariables: parameter describing the expected RHSs
-     //*/
+    //* this function provides a more general interface to the element.
+    //* it is designed so that rRHSvariables are passed TO the element
+    //* thus telling what is the desired output
+    //* @param rRightHandSideVectors: container for the desired RHS output
+    //* @param rRHSVariables: parameter describing the expected RHSs
+    //*/
     //void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
-				//const std::vector< Variable< VectorType > >& rRHSVariables,
-				//ProcessInfo& rCurrentProcessInfo);
+    //const std::vector< Variable< VectorType > >& rRHSVariables,
+    //ProcessInfo& rCurrentProcessInfo);
 
     ///**
-     //* this is called during the assembling process in order
-     //* to calculate the elemental left hand side vector only
-     //* @param rLeftHandSideVector: the elemental left hand side vector
-     //* @param rCurrentProcessInfo: the current process info instance
-     //*/
-    //void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix, 
-				//ProcessInfo& rCurrentProcessInfo);
+    //* this is called during the assembling process in order
+    //* to calculate the elemental left hand side vector only
+    //* @param rLeftHandSideVector: the elemental left hand side vector
+    //* @param rCurrentProcessInfo: the current process info instance
+    //*/
+    //void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix,
+    //ProcessInfo& rCurrentProcessInfo);
 
     /**
       * this is called during the assembling process in order
@@ -315,8 +315,8 @@ public:
       * @param rMassMatrix: the elemental mass matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, 
-		    ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix,
+                             ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -324,8 +324,8 @@ public:
       * @param rDampingMatrix: the elemental damping matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    //void CalculateDampingMatrix(MatrixType& rDampingMatrix, 
-		    //ProcessInfo& rCurrentProcessInfo);
+    //void CalculateDampingMatrix(MatrixType& rDampingMatrix,
+    //ProcessInfo& rCurrentProcessInfo);
 
 
     /**
@@ -334,13 +334,13 @@ public:
      * rDestinationVariable.
      * @param rRHSVector: input variable containing the RHS vector to be assembled
      * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
-     */     
-    //virtual void AddExplicitContribution(const VectorType& rRHSVector, 
-					 //const Variable<VectorType>& rRHSVariable, 
-					 //Variable<array_1d<double,3> >& rDestinationVariable, 
-					 //const ProcessInfo& rCurrentProcessInfo);
+     */
+    //virtual void AddExplicitContribution(const VectorType& rRHSVector,
+    //const Variable<VectorType>& rRHSVariable,
+    //Variable<array_1d<double,3> >& rDestinationVariable,
+    //const ProcessInfo& rCurrentProcessInfo);
 
     //on integration points:
     /**
@@ -349,15 +349,15 @@ public:
     //void CalculateOnIntegrationPoints(const Variable<double>& rVariable, double& rOutput, ProcessInfo& rCurrentProcessInfo);
 
     ///**
-     //* Calculate a Vector Variable on the Element Constitutive Law
-     //*/
+    //* Calculate a Vector Variable on the Element Constitutive Law
+    //*/
     //void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, Vector& rOutput, ProcessInfo& rCurrentProcessInfo);
 
     ///**
-     //* Calculate a Matrix Variable on the Element Constitutive Law
-     //*/
+    //* Calculate a Matrix Variable on the Element Constitutive Law
+    //*/
     //void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, Matrix& rOutputz, ProcessInfo& rCurrentProcessInfo);
-    
+
 
 
 
@@ -400,7 +400,7 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-      GetGeometry().PrintData(rOStream);
+        GetGeometry().PrintData(rOStream);
     }
     ///@}
     ///@name Friends
@@ -430,7 +430,7 @@ protected:
      * Container for the total Jacobian determinants
      */
     //double mDeterminantJ0;
-	
+
     /**
      * Currently selected integration methods
      */
@@ -447,39 +447,39 @@ protected:
      */
     //bool mFinalizedStep;
 
-	
+
     ///@}
     ///@name Protected Operators
     ///@{
- 
+
     /**
      * Calculates the elemental contributions
      * \f$ K^e = w\,B^T\,D\,B \f$ and
      * \f$ r^e \f$
      */
     //virtual void CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
-                                          //ProcessInfo& rCurrentProcessInfo);
+    //ProcessInfo& rCurrentProcessInfo);
     ///@}
     ///@name Protected Operations
     ///@{
-	void FinalizeStepVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeStepVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculation and addition of the matrices of the LHS
      */
 
     void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
-                                    double& rIntegrationWeight) override;
+                            GeneralVariables& rVariables,
+                            double& rIntegrationWeight) override;
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
 
     void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
-                                    Vector& rVolumeForce,
-                                    double& rIntegrationWeight) override;
+                            GeneralVariables& rVariables,
+                            Vector& rVolumeForce,
+                            double& rIntegrationWeight) override;
 
 
     /**
@@ -487,15 +487,15 @@ protected:
      */
 
     void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-                                     GeneralVariables& rVariables,
-                                     double& rIntegrationWeight) override;
+                             GeneralVariables& rVariables,
+                             double& rIntegrationWeight) override;
 
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
     void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-                                     GeneralVariables& rVariables,
-                                     double& rIntegrationWeight) override;
+                             GeneralVariables& rVariables,
+                             double& rIntegrationWeight) override;
 
     /**
      * Calculation of the Kup matrix
@@ -534,17 +534,17 @@ protected:
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
     void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-					       GeneralVariables& rVariables,
-					       Vector& rVolumeForce,
-					       double& rIntegrationWeight) override;
+                                       GeneralVariables& rVariables,
+                                       Vector& rVolumeForce,
+                                       double& rIntegrationWeight) override;
 
 
     /**
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
     void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-					       GeneralVariables & rVariables,
-					       double& rIntegrationWeight) override;
+                                       GeneralVariables & rVariables,
+                                       double& rIntegrationWeight) override;
 
     /**
      * Calculation of the Internal Forces due to Pressure-Balance
@@ -564,10 +564,10 @@ protected:
                                                   );
 
     ///**
-     //* Set Variables of the Element to the Parameters of the Constitutive Law
-     //*/
+    //* Set Variables of the Element to the Parameters of the Constitutive Law
+    //*/
     //virtual void SetGeneralVariables(GeneralVariables& rVariables,
-                                     //ConstitutiveLaw::Parameters& rValues);
+    //ConstitutiveLaw::Parameters& rValues);
 
 
 
@@ -575,8 +575,8 @@ protected:
      * Initialize System Matrices
      */
     void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-                                          VectorType& rRightHandSideVector,
-                                          Flags& rCalculationFlags) override;
+                                  VectorType& rRightHandSideVector,
+                                  Flags& rCalculationFlags) override;
 
 
 
@@ -587,34 +587,34 @@ protected:
 
 
     ///**
-     //* Reset the Constitutive Law Parameters
-     //*/
+    //* Reset the Constitutive Law Parameters
+    //*/
     //void ResetConstitutiveLaw();
 
 
     ///**
-     //* Clear Nodal Forces
-     //*/
+    //* Clear Nodal Forces
+    //*/
     //void ClearNodalForces ();
     /**
      * Clear Nodal Displacement Velocity and Acceleration
      */
-    
+
     /**
      * Calculate Element Kinematics
      */
     void CalculateKinematics(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo) override;
 
 
-    
-	/**
+
+    /**
      * Calculation of the Current Displacement
      */
     //Matrix& CalculateCurrentDisp(Matrix & rCurrentDisp, const ProcessInfo& rCurrentProcessInfo);
-    
+
     ///**
-     //* Correct Precision Errors (for rigid free movements)
-     //*/
+    //* Correct Precision Errors (for rigid free movements)
+    //*/
     //void DecimalCorrection(Vector& rVector);
 
 
@@ -624,10 +624,10 @@ protected:
     void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
     /**
      * Update the position of the MP or Gauss point when Finalize Element Internal Variables is called
-     */    
-    
+     */
+
     void UpdateGaussPoint(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
-   
+
 
     /**
      * Calculation of the constitutive coefficient for pressure of the Element
@@ -638,17 +638,17 @@ protected:
      * Calculation of the constitutive coefficient derivative for pressure  of the Element
      */
     virtual double& CalculatePUDeltaCoefficient(double& rCoefficient, GeneralVariables & rVariables);
-   /**
-     * Finalize Element Internal Variables
-     */
+    /**
+      * Finalize Element Internal Variables
+      */
     //virtual void FinalizeStepVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
-    
-   /**
-     * Update the position of the MP or Gauss point when Finalize Element Internal Variables is called
-     */    
-    
+
+    /**
+      * Update the position of the MP or Gauss point when Finalize Element Internal Variables is called
+      */
+
     //virtual void UpdateGaussPoint(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
-   
+
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
@@ -659,28 +659,28 @@ protected:
      * Calculation of the Green Lagrange Strain Vector
      */
     //virtual void CalculateGreenLagrangeStrain(const Matrix& rF,
-            //Vector& rStrainVector);
+    //Vector& rStrainVector);
 
     ///**
-     //* Calculation of the Almansi Strain Vector
-     //*/
+    //* Calculation of the Almansi Strain Vector
+    //*/
     //virtual void CalculateAlmansiStrain(const Matrix& rF,
-                                        //Vector& rStrainVector);
+    //Vector& rStrainVector);
 
 
 
     // /**
-     //* Calculation of the Velocity Gradient
-     //*/
+    //* Calculation of the Velocity Gradient
+    //*/
     //void CalculateVelocityGradient(const Matrix& rDN_DX,
-                                   //Matrix& rDF );
+    //Matrix& rDF );
 
     /**
      * Calculation of the Deformation Matrix  BL
      */
     void CalculateDeformationMatrix(Matrix& rB,
-                                            Matrix& rF,
-                                            Matrix& rDN_DX) override;
+                                    Matrix& rF,
+                                    Matrix& rDN_DX) override;
 
     /**
      * Calculation of the Integration Weight
@@ -691,27 +691,27 @@ protected:
      * Calculate Jacobian in a given point
      */
     //virtual Matrix& MPMJacobian(Matrix& rResult, array_1d<double,3>& rPoint);
-    
+
     ///**
-     //* Calculate Jacobian in a given point and given a delta position
-     //*/
+    //* Calculate Jacobian in a given point and given a delta position
+    //*/
     //virtual Matrix& MPMJacobianDelta(Matrix& rResult, array_1d<double,3>& rPoint, Matrix& rDeltaPosition);
 
     ///**
-     //* Calculate Shape Function Values in a given point
-     //*/
-    
+    //* Calculate Shape Function Values in a given point
+    //*/
+
     //virtual Vector& MPMShapeFunctionPointValues(Vector& rResult, array_1d<double,3>& rPoint);
-    
+
     ///**
-     //* Calculate Shape Function grandient local Values in a given point in 3 dimension
-     //*/
+    //* Calculate Shape Function grandient local Values in a given point in 3 dimension
+    //*/
     //virtual Matrix& MPMShapeFunctionsLocalGradients(Matrix& rResult);
     ///**
-     //* Calculate local coordinated of a given point in 3 dimension
-     //*/
+    //* Calculate local coordinated of a given point in 3 dimension
+    //*/
     //virtual Vector& MPMLocalCoordinates(Vector& rResult, array_1d<double,3>& rPoint);
-     
+
     /**
      * Calculation of the Volume Change of the Element
      */

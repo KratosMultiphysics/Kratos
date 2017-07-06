@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosParticleMechanicsApplication 
+KratosParticleMechanicsApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,23 +41,23 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author:  ilaria $
 //   Date:                $Date: July 2015$
 //   Revision:            $Revision: 1.3 $
 //
 //
 
-// System includes 
+// System includes
 
 #if defined(KRATOS_PYTHON)
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
-// Project includes 
+// Project includes
 #include "includes/define.h"
 
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -74,8 +74,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "geometries/triangle_2d_3.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
- 
- 
+
+
 #include "particle_mechanics_application.h"
 
 namespace Kratos
@@ -84,113 +84,113 @@ namespace Kratos
 namespace Python
 {
 
-  using namespace boost::python;
+using namespace boost::python;
 
 Element::Pointer CreateUpdatedLagragian2D3N()
 {
-	UpdatedLagrangian::Pointer NewElement( 
-	new UpdatedLagrangian( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ));
-	return NewElement;
-	
-	}
-	
+    UpdatedLagrangian::Pointer NewElement(
+        new UpdatedLagrangian( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ));
+    return NewElement;
+
+}
+
 Element::Pointer CreateUpdatedLagragianUP2D3N()
 {
-	UpdatedLagrangianUP::Pointer NewElement( 
-	new UpdatedLagrangianUP( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ));
-	return NewElement;
-	
-	}	
-	
+    UpdatedLagrangianUP::Pointer NewElement(
+        new UpdatedLagrangianUP( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ));
+    return NewElement;
+
+}
+
 Element::Pointer CreateUpdatedLagragian3D4N()
 {
-	UpdatedLagrangian::Pointer NewElement( 
-	new UpdatedLagrangian( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ));
-	return NewElement;
-	
-	}
+    UpdatedLagrangian::Pointer NewElement(
+        new UpdatedLagrangian( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ));
+    return NewElement;
+
+}
 Element::Pointer CreateUpdatedLagragian2D4N()
 {
-	UpdatedLagrangianQuadrilateral::Pointer NewElement( 
-	new UpdatedLagrangianQuadrilateral( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ));
-	return NewElement;
-	
-	}	
-	
+    UpdatedLagrangianQuadrilateral::Pointer NewElement(
+        new UpdatedLagrangianQuadrilateral( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ));
+    return NewElement;
+
+}
+
 
 //Element::Pointer CreateUpdatedLagragianUP2D4N()
 //{
-	//UpdatedLagrangianUPQuadrilateral::Pointer NewElement( 
-	//new UpdatedLagrangianUPQuadrilateral( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ));
-	//return NewElement;
-	
-	//}
-	
-	
- 
-  BOOST_PYTHON_MODULE(KratosParticleMechanicsApplication)
-  {
+//UpdatedLagrangianUPQuadrilateral::Pointer NewElement(
+//new UpdatedLagrangianUPQuadrilateral( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ));
+//return NewElement;
 
-	  class_<KratosParticleMechanicsApplication, 
-			  KratosParticleMechanicsApplication::Pointer, 
-			  bases<KratosApplication>, boost::noncopyable >("KratosParticleMechanicsApplication")
-			;
+//}
 
-	AddCustomStrategiesToPython();
-	AddCustomUtilitiesToPython();
-	AddCustomConstitutiveLawsToPython();
 
-	def("CreateUpdatedLagragian2D3N", &CreateUpdatedLagragian2D3N);
-	def("CreateUpdatedLagragianUP2D3N", &CreateUpdatedLagragianUP2D3N);
-	def("CreateUpdatedLagragian3D4N", &CreateUpdatedLagragian3D4N);
-	def("CreateUpdatedLagragian2D4N", &CreateUpdatedLagragian2D4N);
+
+BOOST_PYTHON_MODULE(KratosParticleMechanicsApplication)
+{
+
+    class_<KratosParticleMechanicsApplication,
+           KratosParticleMechanicsApplication::Pointer,
+           bases<KratosApplication>, boost::noncopyable >("KratosParticleMechanicsApplication")
+           ;
+
+    AddCustomStrategiesToPython();
+    AddCustomUtilitiesToPython();
+    AddCustomConstitutiveLawsToPython();
+
+    def("CreateUpdatedLagragian2D3N", &CreateUpdatedLagragian2D3N);
+    def("CreateUpdatedLagragianUP2D3N", &CreateUpdatedLagragianUP2D3N);
+    def("CreateUpdatedLagragian3D4N", &CreateUpdatedLagragian3D4N);
+    def("CreateUpdatedLagragian2D4N", &CreateUpdatedLagragian2D4N);
 //	def("CreateUpdatedLagragianUP2D4N", &CreateUpdatedLagragianUP2D4N);
-    
-	//def("CreateTotalLagragian2D3N", &CreateTotalLagragian2D3N);
-	//def("CreateTotalLagragian3D4N", &CreateTotalLagragian3D4N);
-	
-	
-	//registering variables in python
-	
-	KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( GAUSS_COORD )
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(COUNTER);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_NUMBER);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_BOOL);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(WEIGHT);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_MASS);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_DENSITY);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_VOLUME);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_KINETIC_ENERGY);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_STRAIN_ENERGY);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_TOTAL_ENERGY);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_PRESSURE);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_JACOBIAN);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_EQUIVALENT_PLASTIC_STRAIN);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_CONSTITUTIVE_PRESSURE);
-	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_MASS);
-	KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(AUX_VELOCITY);
-	KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(AUX_ACCELERATION);
-	
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_DISPLACEMENT);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_VELOCITY);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_ACCELERATION);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(AUX_MP_VELOCITY);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(AUX_MP_ACCELERATION);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_VOLUME_ACCELERATION);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_INTERNAL_FORCE);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(DISPLACEMENT_AUX);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_CAUCHY_STRESS_VECTOR);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_ALMANSI_STRAIN_VECTOR);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(PREVIOUS_MP_CAUCHY_STRESS_VECTOR);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(PREVIOUS_MP_ALMANSI_STRAIN_VECTOR);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_CONSTITUTIVE_MATRIX);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_MOMENTUM);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_INERTIA);
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE( DILATANCY_COEFFICIENT );
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_MPRESSURE);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(AUX_PRESSURE);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(AUX_MP_PRESSURE);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE( AUX_R )
+
+    //def("CreateTotalLagragian2D3N", &CreateTotalLagragian2D3N);
+    //def("CreateTotalLagragian3D4N", &CreateTotalLagragian3D4N);
+
+
+    //registering variables in python
+
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( GAUSS_COORD )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(COUNTER);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_NUMBER);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_BOOL);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(WEIGHT);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_MASS);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_DENSITY);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_VOLUME);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_KINETIC_ENERGY);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_STRAIN_ENERGY);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_TOTAL_ENERGY);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_PRESSURE);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_JACOBIAN);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_EQUIVALENT_PLASTIC_STRAIN);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_CONSTITUTIVE_PRESSURE);
+    //KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_MASS);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(AUX_VELOCITY);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(AUX_ACCELERATION);
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_DISPLACEMENT);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_VELOCITY);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_ACCELERATION);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(AUX_MP_VELOCITY);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(AUX_MP_ACCELERATION);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_VOLUME_ACCELERATION);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_INTERNAL_FORCE);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(DISPLACEMENT_AUX);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_CAUCHY_STRESS_VECTOR);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_ALMANSI_STRAIN_VECTOR);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(PREVIOUS_MP_CAUCHY_STRESS_VECTOR);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(PREVIOUS_MP_ALMANSI_STRAIN_VECTOR);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MP_CONSTITUTIVE_MATRIX);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_MOMENTUM);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_INERTIA);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DILATANCY_COEFFICIENT );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_MPRESSURE);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(AUX_PRESSURE);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(AUX_MP_PRESSURE);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( AUX_R )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( AUX_T )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( AUX_R_VEL )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( AUX_T_VEL )
@@ -198,11 +198,11 @@ Element::Pointer CreateUpdatedLagragian2D4N()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( AUX_T_ACC )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_LUMPED_MASS )
 
-  }
-  
-  
+}
+
+
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

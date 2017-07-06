@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		BSD License 
+//  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ilaria Iaconeta
@@ -27,17 +27,17 @@
 namespace Kratos
 {
 /**
- * Defines a hyperelastic-plastic isotropic constitutive law J2 in plane strain 2D 
+ * Defines a hyperelastic-plastic isotropic constitutive law J2 in plane strain 2D
  * With stress split in an isochoric and volumetric parts
  * This material law is defined by the parameters needed by the yield criterion:
 
- * The functionality is limited to large displacements 
+ * The functionality is limited to large displacements
  */
 
 
 
-class HenckyMCPlasticUP3DLaw 
-  : public HenckyElasticPlasticUP3DLaw
+class HenckyMCPlasticUP3DLaw
+    : public HenckyElasticPlasticUP3DLaw
 
 {
 public:
@@ -69,7 +69,7 @@ public:
     HenckyMCPlasticUP3DLaw();
 
 
-    HenckyMCPlasticUP3DLaw(MPMFlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    HenckyMCPlasticUP3DLaw(MPMFlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
@@ -139,7 +139,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-	
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -181,7 +181,8 @@ private:
     ///@{
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override {
+    void save(Serializer& rSerializer) const override
+    {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HenckyElasticPlasticUP3DLaw )
     }
 

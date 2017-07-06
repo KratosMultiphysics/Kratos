@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		BSD License 
+//  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ilaria Iaconeta
@@ -25,57 +25,57 @@
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
+///@addtogroup ApplicationNameApplication
+///@{
 
-  ///@name Kratos Globals
-  ///@{
+///@name Kratos Globals
+///@{
 
-  ///@}
-  ///@name Type Definitions
-  ///@{
+///@}
+///@name Type Definitions
+///@{
 
-   //struct MCStressInvariants {
+//struct MCStressInvariants {
 
-       //double MeanStress;
-       //double J2InvSQ;
-       //double LodeAngle;
+//double MeanStress;
+//double J2InvSQ;
+//double LodeAngle;
 
-   //};
+//};
 
-   //struct MCSmoothingConstants {
+//struct MCSmoothingConstants {
 
-       //double A;
-       //double B;
+//double A;
+//double B;
 
-   //};
-  ///@}
-  ///@name  Enum's
-  ///@{
+//};
+///@}
+///@name  Enum's
+///@{
 
-  ///@}
-  ///@name  Functions
-  ///@{
+///@}
+///@name  Functions
+///@{
 
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@}
+///@name Kratos Classes
+///@{
 
-  /// Short class definition.
-  /** Detail class definition.
-   */
-  class MCPlasticFlowRule
-          :public MPMFlowRule
-  {
-  
+/// Short class definition.
+/** Detail class definition.
+ */
+class MCPlasticFlowRule
+    :public MPMFlowRule
+{
 
 
-   public:
+
+public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of NonLinearAssociativePlasticFlowRule
-      KRATOS_CLASS_POINTER_DEFINITION( MCPlasticFlowRule );
+    KRATOS_CLASS_POINTER_DEFINITION( MCPlasticFlowRule );
 
     ///@}
     ///@name Life Cycle
@@ -92,20 +92,20 @@ namespace Kratos
 
     /// Assignment operator.
     MCPlasticFlowRule& operator=(MCPlasticFlowRule const& rOther);
-	
+
     // CLONE
     MPMFlowRule::Pointer Clone() const override;
 
     /// Destructor.
     ~MCPlasticFlowRule() override;
 
-	bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen) override;
+    bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen) override;
 
     bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables ) override;
-    
+
     Matrix GetElasticLeftCauchyGreen(RadialReturnVariables& rReturnMappingVariables) override;
-    
-    
+
+
     //virtual void GetPrincipalStressAndStrain(Vector& PrincipalStresses, Vector& PrincipalStrains);
     void ComputeElastoPlasticTangentMatrix(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& alfa, Matrix& rConsistMatrix) override;
     ///@}
@@ -116,7 +116,7 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
-    
+
 
     ///@}
     ///@name Access
@@ -149,7 +149,7 @@ namespace Kratos
 
     ///@}
 
-  protected:
+protected:
     Vector mElasticPrincipalStrain;
     Vector mPlasticPrincipalStrain;
     Vector mElasticPreviousPrincipalStrain;
@@ -166,7 +166,7 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
-	
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -175,47 +175,47 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
-	void InitializeMaterial(YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw, const Properties& rProp);
+    void InitializeMaterial(YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw, const Properties& rProp);
 
 
-      virtual void ComputePlasticHardeningParameter(const Vector& rHenckyStrainVector, const double& rAlpha, double& rH);
+    virtual void ComputePlasticHardeningParameter(const Vector& rHenckyStrainVector, const double& rAlpha, double& rH);
 
 //    virtual bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables );
 
-	bool CalculateConsistencyCondition(RadialReturnVariables& rReturnMappingVariables, Vector& rPrincipalStress, Vector& rPrincipalStrain, int& region, Vector& rPrincipalStressUpdated);
-    //void UpdateConfiguration( ExponentialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix );	  
-    
-    //void CalculatePlasticPotentialDerivatives(const Vector& rStressVector, Vector& rFirstDerivative, Matrix& rSecondDerivative); 
-           
-	void ComputeElasticMatrix_3X3(const RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticMatrix);
-	
-	void CalculateDepSurface(Matrix& rElasticMatrix, Vector& rFNorm, Vector& rGNorm, Matrix& rAuxDep);
-	
-	void CalculateDepLine(Matrix& rInvD, Vector& rFNorm, Vector& rGNorm, Matrix& rAuxDep);
-	
-	void CalculateElastoPlasticMatrix(const RadialReturnVariables& rReturnMappingVariables, int& rRegion, Vector& DiffPrincipalStress, Matrix& rDep);
+    bool CalculateConsistencyCondition(RadialReturnVariables& rReturnMappingVariables, Vector& rPrincipalStress, Vector& rPrincipalStrain, int& region, Vector& rPrincipalStressUpdated);
+    //void UpdateConfiguration( ExponentialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix );
 
-	void ReturnStressFromPrincipalAxis(const Matrix& rEigenVectors, const Vector& rPrincipalStress, Matrix& rStressMatrix);
+    //void CalculatePlasticPotentialDerivatives(const Vector& rStressVector, Vector& rFirstDerivative, Matrix& rSecondDerivative);
 
-    
+    void ComputeElasticMatrix_3X3(const RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticMatrix);
+
+    void CalculateDepSurface(Matrix& rElasticMatrix, Vector& rFNorm, Vector& rGNorm, Matrix& rAuxDep);
+
+    void CalculateDepLine(Matrix& rInvD, Vector& rFNorm, Vector& rGNorm, Matrix& rAuxDep);
+
+    void CalculateElastoPlasticMatrix(const RadialReturnVariables& rReturnMappingVariables, int& rRegion, Vector& DiffPrincipalStress, Matrix& rDep);
+
+    void ReturnStressFromPrincipalAxis(const Matrix& rEigenVectors, const Vector& rPrincipalStress, Matrix& rStressMatrix);
+
+
     void CalculateInverseElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rInverseElasticMatrix);
     void CalculateElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticMatrix);
     void CalculateModificationMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rAuxT, Matrix& rInvAuxT);
-    
+
     //void CalculateElastoPlasticMatrix(const RadialReturnVariables& rReturnMappingVariables, int& Region, Vector& DiffPrincipalStress, Matrix& Dep);
-    
+
     void CalculateTransformationMatrix(const Matrix& rMainDirection, Matrix& rA);
     //void CalculateSmoothingConstants( MCSmoothingConstants& rSmoothingConstants, const MCStressInvariants& rStressInvariants);
 
-   // void CalculateStressInvariants( const Vector& rStressVector, MCStressInvariants& rStressInvariants);
+    // void CalculateStressInvariants( const Vector& rStressVector, MCStressInvariants& rStressInvariants);
 
     double GetSmoothingLodeAngle();
 
     double GetPI();
- 
+
     double GetSmoothingHiperbolic();
 
-	//virtual void GetPrincipalStressAndStrain(Vector& PrincipalStresses, Vector& PrincipalStrains);
+    //virtual void GetPrincipalStressAndStrain(Vector& PrincipalStresses, Vector& PrincipalStrains);
     ///@}
     ///@name Protected  Access
     ///@{
@@ -233,7 +233,7 @@ namespace Kratos
 
     ///@}
 
-  private:
+private:
     ///@name Static Member Variables
     ///@{
 
@@ -241,8 +241,8 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-	
-	
+
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -280,45 +280,45 @@ namespace Kratos
 
     ///@}
 
-  }; // Class NonLinearAssociativePlasticFlowRule
+}; // Class NonLinearAssociativePlasticFlowRule
 
-  ///@}
+///@}
 
-  ///@name Type Definitions
-  ///@{
-
-
-  ///@}
-  ///@name Input and output
-  ///@{
+///@name Type Definitions
+///@{
 
 
-  /// input stream function
-  // inline std::istream& operator >> (std::istream& rIStream,
-  // 				    NonLinearAssociativePlasticFlowRule& rThis);
-
-  // /// output stream function
-  // inline std::ostream& operator << (std::ostream& rOStream,
-  // 				    const NonLinearAssociativePlasticFlowRule& rThis)
-  // {
-  //   rThis.PrintInfo(rOStream);
-  //   rOStream << std::endl;
-  //   rThis.PrintData(rOStream);
-
-  //   return rOStream;
-  // }
-  ///@}
-
-  ///@} addtogroup block
+///@}
+///@name Input and output
+///@{
 
 
+/// input stream function
+// inline std::istream& operator >> (std::istream& rIStream,
+// 				    NonLinearAssociativePlasticFlowRule& rThis);
 
-  ///@}
-  ///@ Template Operations
-  ///@{
+// /// output stream function
+// inline std::ostream& operator << (std::ostream& rOStream,
+// 				    const NonLinearAssociativePlasticFlowRule& rThis)
+// {
+//   rThis.PrintInfo(rOStream);
+//   rOStream << std::endl;
+//   rThis.PrintData(rOStream);
+
+//   return rOStream;
+// }
+///@}
+
+///@} addtogroup block
 
 
-  ///@}
+
+///@}
+///@ Template Operations
+///@{
+
+
+///@}
 
 
 }  // namespace Kratos.

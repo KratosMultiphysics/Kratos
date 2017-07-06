@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		BSD License 
+//  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ilaria Iaconeta
@@ -30,41 +30,41 @@
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
+///@addtogroup ApplicationNameApplication
+///@{
 
-  ///@name Kratos Globals
-  ///@{
+///@name Kratos Globals
+///@{
 
-  ///@}
-  ///@name Type Definitions
-  ///@{
+///@}
+///@name Type Definitions
+///@{
 
-  ///@}
-  ///@name  Enum's
-  ///@{
+///@}
+///@name  Enum's
+///@{
 
-  ///@}
-  ///@name  Functions
-  ///@{
+///@}
+///@name  Functions
+///@{
 
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@}
+///@name Kratos Classes
+///@{
 
-  /// Short class definition.
-  /** Detail class definition.
-   */
-  class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMFlowRule
-  {
-  public:
+/// Short class definition.
+/** Detail class definition.
+ */
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMFlowRule
+{
+public:
     ///@name Type Definitions
     ///@{
 
     typedef YieldCriterion::Pointer    YieldCriterionPointer;
     typedef HardeningLaw::Pointer        HardeningLawPointer;
     typedef const Properties*              PropertiesPointer;
-    
+
 
     KRATOS_DEFINE_LOCAL_FLAG( IMPLEX_ACTIVE );
     KRATOS_DEFINE_LOCAL_FLAG( PLASTIC_REGION );
@@ -74,117 +74,117 @@ namespace Kratos
 
     struct PlasticFactors
     {
-      double Beta0;
-      double Beta1;
-      double Beta2;
-      double Beta3;
-      double Beta4;
-      double Beta5;   
+        double Beta0;
+        double Beta1;
+        double Beta2;
+        double Beta3;
+        double Beta4;
+        double Beta5;
 
-      Matrix  Normal;
-      Matrix  Dev_Normal;
+        Matrix  Normal;
+        Matrix  Dev_Normal;
     };
 
     struct ThermalVariables
     {
-      double PlasticDissipation;
-      double DeltaPlasticDissipation;
+        double PlasticDissipation;
+        double DeltaPlasticDissipation;
 
     public:
 
         void clear()
         {
-	  PlasticDissipation = 0;
-	  DeltaPlasticDissipation = 0;
-	}
+            PlasticDissipation = 0;
+            DeltaPlasticDissipation = 0;
+        }
 
         void print()
         {
-	  std::cout<<" Internal Thermal Variables "<<std::endl;
-	  std::cout<<" PlasticDissipation: "<<PlasticDissipation<<std::endl;
-	  std::cout<<" DeltaPlasticDissipation: "<<DeltaPlasticDissipation<<std::endl;
-	}
+            std::cout<<" Internal Thermal Variables "<<std::endl;
+            std::cout<<" PlasticDissipation: "<<PlasticDissipation<<std::endl;
+            std::cout<<" DeltaPlasticDissipation: "<<DeltaPlasticDissipation<<std::endl;
+        }
 
     private:
 
-      friend class Serializer;
+        friend class Serializer;
 
-      // A private default constructor necessary for serialization
-      
-      void save(Serializer& rSerializer) const
-      {
-	rSerializer.save("PlasticDissipation",PlasticDissipation);
-	rSerializer.save("DeltaPlasticDissipation",DeltaPlasticDissipation);
-      };
+        // A private default constructor necessary for serialization
 
-      void load(Serializer& rSerializer)
-      {
-	rSerializer.load("PlasticDissipation",PlasticDissipation);
-	rSerializer.load("DeltaPlasticDissipation",DeltaPlasticDissipation);
-      };
+        void save(Serializer& rSerializer) const
+        {
+            rSerializer.save("PlasticDissipation",PlasticDissipation);
+            rSerializer.save("DeltaPlasticDissipation",DeltaPlasticDissipation);
+        };
+
+        void load(Serializer& rSerializer)
+        {
+            rSerializer.load("PlasticDissipation",PlasticDissipation);
+            rSerializer.load("DeltaPlasticDissipation",DeltaPlasticDissipation);
+        };
 
     };
 
 
     struct RadialReturnVariables
     {
-      Flags  Options;
+        Flags  Options;
 
-      double NormIsochoricStress;
-      double TrialStateFunction;
-      double TraceStress;
+        double NormIsochoricStress;
+        double TrialStateFunction;
+        double TraceStress;
 
-      double DeltaGamma;
-      double DeltaBeta;
+        double DeltaGamma;
+        double DeltaBeta;
 
-      double LameMu_bar;
-      double Friction;
-      double Dilatancy;
-      double BulkModulus;
-      double DeltaTime;
+        double LameMu_bar;
+        double Friction;
+        double Dilatancy;
+        double BulkModulus;
+        double DeltaTime;
 
-      double IncrementalPlasticShearStrain; 
+        double IncrementalPlasticShearStrain;
 
-      double Temperature;
-      
-      double CharacteristicSize;
-      
-      Matrix TrialIsoStressMatrix;
-    
-      Matrix StrainMatrix;
-      Matrix MainDirections;
+        double Temperature;
 
-      ThermalVariables Thermal;
+        double CharacteristicSize;
+
+        Matrix TrialIsoStressMatrix;
+
+        Matrix StrainMatrix;
+        Matrix MainDirections;
+
+        ThermalVariables Thermal;
 
     public:
-      
-      void clear()
+
+        void clear()
         {
-	  NormIsochoricStress = 0;
-	  TrialStateFunction  = 0;
-          TraceStress = 0;
+            NormIsochoricStress = 0;
+            TrialStateFunction  = 0;
+            TraceStress = 0;
 
-	  DeltaGamma  = 0;
-	  DeltaBeta   = 0;
+            DeltaGamma  = 0;
+            DeltaBeta   = 0;
 
-	  LameMu_bar  = 0;
-          Friction    = 0;
-	  Dilatancy   = 0;
-	  BulkModulus = 0;
-	  DeltaTime   = 1;
-	  Temperature = 0;
-	}
-      
+            LameMu_bar  = 0;
+            Friction    = 0;
+            Dilatancy   = 0;
+            BulkModulus = 0;
+            DeltaTime   = 1;
+            Temperature = 0;
+        }
 
-      void initialize()
+
+        void initialize()
         {
-	  Options.Set(IMPLEX_ACTIVE,false);
-          Options.Set(PLASTIC_REGION,false);
-          Options.Set(PLASTIC_RATE_REGION,false);
-          Options.Set(RETURN_MAPPING_COMPUTED,false);
+            Options.Set(IMPLEX_ACTIVE,false);
+            Options.Set(PLASTIC_REGION,false);
+            Options.Set(PLASTIC_RATE_REGION,false);
+            Options.Set(RETURN_MAPPING_COMPUTED,false);
 
-	  clear();
-	}
+            clear();
+        }
 
     };
 
@@ -193,7 +193,7 @@ namespace Kratos
         double EquivalentPlasticStrain;
         double DeltaPlasticStrain;
         Matrix  Normal;
-        
+
         double LameMu_bar;
         double Friction;
         double Dilatancy;
@@ -201,49 +201,49 @@ namespace Kratos
         //needed in IMPLEX calculation
         double EquivalentPlasticStrainOld;
 
-        
+
     public:
 
         void clear()
         {
-	  EquivalentPlasticStrain = 0;
-	  DeltaPlasticStrain = 0;
-	  Normal.clear();
-	  LameMu_bar  = 0;
-	  Friction    = 0;
-	  Dilatancy   = 0;
-	  BulkModulus = 0;
-	  EquivalentPlasticStrainOld = 0;
-	}
+            EquivalentPlasticStrain = 0;
+            DeltaPlasticStrain = 0;
+            Normal.clear();
+            LameMu_bar  = 0;
+            Friction    = 0;
+            Dilatancy   = 0;
+            BulkModulus = 0;
+            EquivalentPlasticStrainOld = 0;
+        }
 
 
         void print()
         {
-	  std::cout<<" Internal Variables "<<std::endl;
-	  std::cout<<" EquivalentPlasticStrain: "<<EquivalentPlasticStrain<<std::endl;
-	  std::cout<<" DeltaPlasticStrain: "<<DeltaPlasticStrain<<std::endl;
-	  std::cout<<" EquivalentPlasticStrainOld: "<<EquivalentPlasticStrainOld<<std::endl;
-	}
+            std::cout<<" Internal Variables "<<std::endl;
+            std::cout<<" EquivalentPlasticStrain: "<<EquivalentPlasticStrain<<std::endl;
+            std::cout<<" DeltaPlasticStrain: "<<DeltaPlasticStrain<<std::endl;
+            std::cout<<" EquivalentPlasticStrainOld: "<<EquivalentPlasticStrainOld<<std::endl;
+        }
 
     private:
 
-      friend class Serializer;
+        friend class Serializer;
 
-      // A private default constructor necessary for serialization
-      
-      void save(Serializer& rSerializer) const
-      {
-	rSerializer.save("EquivalentPlasticStrain",EquivalentPlasticStrain);
-	rSerializer.save("DeltaPlasticStrain",DeltaPlasticStrain);
-	rSerializer.save("EquivalentPlasticStrainOld",EquivalentPlasticStrainOld);
-      };
+        // A private default constructor necessary for serialization
 
-      void load(Serializer& rSerializer)
-      {
-	rSerializer.load("EquivalentPlasticStrain",EquivalentPlasticStrain);
-	rSerializer.load("DeltaPlasticStrain",DeltaPlasticStrain);
-	rSerializer.load("EquivalentPlasticStrainOld",EquivalentPlasticStrainOld);
-      };
+        void save(Serializer& rSerializer) const
+        {
+            rSerializer.save("EquivalentPlasticStrain",EquivalentPlasticStrain);
+            rSerializer.save("DeltaPlasticStrain",DeltaPlasticStrain);
+            rSerializer.save("EquivalentPlasticStrainOld",EquivalentPlasticStrainOld);
+        };
+
+        void load(Serializer& rSerializer)
+        {
+            rSerializer.load("EquivalentPlasticStrain",EquivalentPlasticStrain);
+            rSerializer.load("DeltaPlasticStrain",DeltaPlasticStrain);
+            rSerializer.load("EquivalentPlasticStrainOld",EquivalentPlasticStrainOld);
+        };
     };
 
 
@@ -257,36 +257,36 @@ namespace Kratos
     /// Default constructor.
     MPMFlowRule()
     {
-      //KRATOS_THROW_ERROR( std::logic_error, "calling the default constructor in FlowRule ... illegal operation!!", "" )
+        //KRATOS_THROW_ERROR( std::logic_error, "calling the default constructor in FlowRule ... illegal operation!!", "" )
     };
 
     /// Initialization constructor.
     MPMFlowRule(YieldCriterionPointer pYieldCriterion)
-    :mpYieldCriterion(pYieldCriterion)
+        :mpYieldCriterion(pYieldCriterion)
     {
     };
 
     /// Copy constructor.
     MPMFlowRule(MPMFlowRule const& rOther)
-    :mInternalVariables(rOther.mInternalVariables)
-    ,mThermalVariables(rOther.mThermalVariables)
-    ,mpYieldCriterion(rOther.mpYieldCriterion)
-     //,mpHardeningLaw(rOther.mpHardeningLaw)
-     //,mpProperties(rOther.mpProperties)
+        :mInternalVariables(rOther.mInternalVariables)
+        ,mThermalVariables(rOther.mThermalVariables)
+        ,mpYieldCriterion(rOther.mpYieldCriterion)
+         //,mpHardeningLaw(rOther.mpHardeningLaw)
+         //,mpProperties(rOther.mpProperties)
     {
     };
 
 
     /// Assignment operator.
-    MPMFlowRule& operator=(MPMFlowRule const& rOther) 
-    { 
-       mInternalVariables = rOther.mInternalVariables;
-       mThermalVariables  = rOther.mThermalVariables;
-       mpYieldCriterion   = rOther.mpYieldCriterion;
-       //mpHardeningLaw     = rOther.mpHardeningLaw;
-       //mpProperties       = rOther.mpProperties;
+    MPMFlowRule& operator=(MPMFlowRule const& rOther)
+    {
+        mInternalVariables = rOther.mInternalVariables;
+        mThermalVariables  = rOther.mThermalVariables;
+        mpYieldCriterion   = rOther.mpYieldCriterion;
+        //mpHardeningLaw     = rOther.mpHardeningLaw;
+        //mpProperties       = rOther.mpProperties;
 
-       return *this; 
+        return *this;
     };
 
     /// Destructor.
@@ -304,8 +304,8 @@ namespace Kratos
      */
     virtual MPMFlowRule::Pointer Clone() const
     {
-      MPMFlowRule::Pointer p_clone(new MPMFlowRule(*this));
-      return p_clone;
+        MPMFlowRule::Pointer p_clone(new MPMFlowRule(*this));
+        return p_clone;
     }
 
 
@@ -315,77 +315,77 @@ namespace Kratos
 
     virtual void InitializeMaterial (YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties)
     {
-      //set yield criterion
-      mpYieldCriterion = pYieldCriterion;
-      mpYieldCriterion->InitializeMaterial(pHardeningLaw, rMaterialProperties);	
+        //set yield criterion
+        mpYieldCriterion = pYieldCriterion;
+        mpYieldCriterion->InitializeMaterial(pHardeningLaw, rMaterialProperties);
 
-      //initialize material variables
-      mInternalVariables.clear();
-      mThermalVariables.clear();
+        //initialize material variables
+        mInternalVariables.clear();
+        mThermalVariables.clear();
 
     };
 
     virtual void InitializeMaterial (const Properties& rMaterialProperties)
     {
 
-      mpYieldCriterion->GetHardeningLaw().InitializeMaterial(rMaterialProperties);	
+        mpYieldCriterion->GetHardeningLaw().InitializeMaterial(rMaterialProperties);
 
-      //initialize material variables
-      mInternalVariables.clear();
-      mThermalVariables.clear();
+        //initialize material variables
+        mInternalVariables.clear();
+        mThermalVariables.clear();
 
     };
 
     const Properties & GetProperties()
     {
-      return mpYieldCriterion->GetHardeningLaw().GetProperties();
+        return mpYieldCriterion->GetHardeningLaw().GetProperties();
     };
-	
+
     const InternalVariables & GetInternalVariables()
     {
-      return mInternalVariables;
+        return mInternalVariables;
     };
-	
+
 
     const ThermalVariables & GetThermalVariables()
     {
-      return mThermalVariables;
+        return mThermalVariables;
     };
 
     virtual bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix )
     {
-	    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation!!", "" )
-	    return 0;
+        KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation!!", "" )
+        return 0;
     };
 
     virtual bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen)
     {
-	    KRATOS_THROW_ERROR(std::logic_error, "calling the base class function in FlowRule ... illegal operation!!","");
+        KRATOS_THROW_ERROR(std::logic_error, "calling the base class function in FlowRule ... illegal operation!!","");
 
     };
- 
+
     virtual void ComputeElastoPlasticTangentMatrix( const RadialReturnVariables& rReturnMappingVariables, const Matrix& rElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticMatrix)
     {
-	    KRATOS_THROW_ERROR(std::logic_error, "calling the base class function in FlowRule ... illegal operation!!","");
+        KRATOS_THROW_ERROR(std::logic_error, "calling the base class function in FlowRule ... illegal operation!!","");
 
     };
 
     virtual void CalculateScalingFactors(const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors )
     {
-	    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation!!", "" )
+        KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation!!", "" )
     };
-    
+
 
     virtual bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables )
     {
-	    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation!!", "" )
+        KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation!!", "" )
 
-	    return 0;
+        return 0;
     };
-    
+
     virtual Matrix GetElasticLeftCauchyGreen( RadialReturnVariables& rReturnMappingVariables )
     {
-	    KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation for calling GetElasticLeftCauchyGreen!!", "" )
+        KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation for calling GetElasticLeftCauchyGreen!!", "" )
 
 
     };
@@ -422,7 +422,7 @@ namespace Kratos
 
     ///@}
 
-  protected:
+protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -430,7 +430,7 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     InternalVariables   mInternalVariables;
     ThermalVariables    mThermalVariables;
 
@@ -438,7 +438,7 @@ namespace Kratos
 
     //HardeningLawPointer     mpHardeningLaw;
     //PropertiesPointer       mpProperties;
-	  
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -450,9 +450,9 @@ namespace Kratos
 
     virtual double& CalculateStressNorm ( Matrix & rStressMatrix, double& rStressNorm )
     {
-            KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation!!", "" )
+        KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation!!", "" )
 
-	    return rStressNorm;
+        return rStressNorm;
     };
 
 
@@ -474,7 +474,7 @@ namespace Kratos
 
     ///@}
 
-  private:
+private:
     ///@name Static Member Variables
     ///@{
 
@@ -482,8 +482,8 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-	
-	
+
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -508,23 +508,23 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const
     {
-	    rSerializer.save("InternalVariables",mInternalVariables);
-	    rSerializer.save("ThermalVariables",mThermalVariables);
-	    rSerializer.save("YieldCriterion",mpYieldCriterion);
-	    //rSerializer.save("HardeningLaw",mpHardeningLaw);
-	    //std::cout<<" for (mpProperties) the typeid is : " << typeid(*mpProperties).name() << std::endl;
-	    //rSerializer.save("Properties",mpProperties);
+        rSerializer.save("InternalVariables",mInternalVariables);
+        rSerializer.save("ThermalVariables",mThermalVariables);
+        rSerializer.save("YieldCriterion",mpYieldCriterion);
+        //rSerializer.save("HardeningLaw",mpHardeningLaw);
+        //std::cout<<" for (mpProperties) the typeid is : " << typeid(*mpProperties).name() << std::endl;
+        //rSerializer.save("Properties",mpProperties);
     };
 
     virtual void load(Serializer& rSerializer)
     {
-	    rSerializer.load("InternalVariables",mInternalVariables);
-	    rSerializer.load("ThermalVariables",mThermalVariables);
-	    rSerializer.load("YieldCriterion",mpYieldCriterion);
-	    //rSerializer.load("HardeningLaw",mpHardeningLaw);
-	    //Properties* pProperties;
-	    //rSerializer.load("Properties",pProperties);
-	    //mpProperties = pProperties;
+        rSerializer.load("InternalVariables",mInternalVariables);
+        rSerializer.load("ThermalVariables",mThermalVariables);
+        rSerializer.load("YieldCriterion",mpYieldCriterion);
+        //rSerializer.load("HardeningLaw",mpHardeningLaw);
+        //Properties* pProperties;
+        //rSerializer.load("Properties",pProperties);
+        //mpProperties = pProperties;
     };
 
     ///@}
@@ -539,44 +539,44 @@ namespace Kratos
 
     ///@}
 
-  }; // Class FlowRule
+}; // Class FlowRule
 
-  ///@}
+///@}
 
-  ///@name Type Definitions
-  ///@{
-
-
-  ///@}
-  ///@name Input and output
-  ///@{
+///@name Type Definitions
+///@{
 
 
-  // /// input stream function
-  // inline std::istream& operator >> (std::istream& rIStream,
-  // 				    FlowRule& rThis);
-
-  // /// output stream function
-  // inline std::ostream& operator << (std::ostream& rOStream,
-  // 				    const FlowRule& rThis)
-  // {
-  //   rThis.PrintInfo(rOStream);
-  //   rOStream << std::endl;
-  //   rThis.PrintData(rOStream);
-
-  //   return rOStream;
-  // }
-  ///@}
-
-  ///@} addtogroup block
+///@}
+///@name Input and output
+///@{
 
 
+// /// input stream function
+// inline std::istream& operator >> (std::istream& rIStream,
+// 				    FlowRule& rThis);
 
-  ///@}
-  ///@ Template Operations
-  ///@{
+// /// output stream function
+// inline std::ostream& operator << (std::ostream& rOStream,
+// 				    const FlowRule& rThis)
+// {
+//   rThis.PrintInfo(rOStream);
+//   rOStream << std::endl;
+//   rThis.PrintData(rOStream);
 
-  ///@}
+//   return rOStream;
+// }
+///@}
+
+///@} addtogroup block
+
+
+
+///@}
+///@ Template Operations
+///@{
+
+///@}
 
 
 }  // namespace Kratos.

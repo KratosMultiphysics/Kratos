@@ -79,32 +79,32 @@ void  AddCustomConstitutiveLawsToPython()
     class_<HyperElasticViscoplastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "HyperElasticViscoplastic3DLaw",
       init<>() )
-      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
     class_<HyperElasticViscoplasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "HyperElasticViscoplasticPlaneStrain2DLaw",
       init<>() )
-      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
     class_<HenckyMCPlasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "HenckyMCPlasticPlaneStrain2DLaw",
       init<>() )
-      .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
     class_<HenckyMCPlastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "HenckyMCPlastic3DLaw",
       init<>() )
-      .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
     class_<HenckyMCPlasticUP3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "HenckyMCPlasticUP3DLaw",
       init<>() )
-      .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
     class_<HenckyMCPlasticPlaneStrainUP2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "HenckyMCPlasticPlaneStrainUP2DLaw",
       init<>() )
-      .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
 }
 

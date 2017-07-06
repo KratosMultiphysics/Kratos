@@ -20,31 +20,31 @@
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
+///@addtogroup ApplicationNameApplication
+///@{
 
-  ///@name Kratos Globals
-  ///@{
+///@name Kratos Globals
+///@{
 
-  ///@}
-  ///@name Type Definitions
-  ///@{
+///@}
+///@name Type Definitions
+///@{
 
-  ///@}
-  ///@name  Enum's
-  ///@{
+///@}
+///@name  Enum's
+///@{
 
-  ///@}
-  ///@name  Functions
-  ///@{
+///@}
+///@name  Functions
+///@{
 
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@}
+///@name Kratos Classes
+///@{
 
-  /// Short class definition.
-  /** Detail class definition.
-   */
+/// Short class definition.
+/** Detail class definition.
+ */
 
 class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) BinghamViscoplasticFlowRule
     :public NonLinearAssociativePlasticFlowRule
@@ -54,7 +54,7 @@ public:
     ///@{
 
     /// Pointer definition of NonLinearAssociativePlasticFlowRule
-      KRATOS_CLASS_POINTER_DEFINITION( BinghamViscoplasticFlowRule );
+    KRATOS_CLASS_POINTER_DEFINITION( BinghamViscoplasticFlowRule );
 
     ///@}
     ///@name Life Cycle
@@ -75,7 +75,7 @@ public:
     /// Destructor.
     ~BinghamViscoplasticFlowRule() override;
 
-	void CalculateScalingFactors( const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors ) override;
+    void CalculateScalingFactors( const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors ) override;
     ///@}
     ///@name Operators
     ///@{
