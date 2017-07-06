@@ -28,6 +28,8 @@ def AddVariables(model_part):
             model_part.AddNodalSolutionStepVariable(settings.GetVolumeSourceVariable())
         if settings.IsDefinedSurfaceSourceVariable():
             model_part.AddNodalSolutionStepVariable(settings.GetSurfaceSourceVariable())
+        if settings.IsDefinedReactionVariable():
+            model_part.AddNodalSolutionStepVariable(settings.GetReactionVariable())
     else:
         raise Exception("the provided model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
 
@@ -44,8 +46,14 @@ def AddDofs(model_part):
 
     unknown_variable = settings.GetUnknownVariable()
 
-    for node in model_part.Nodes:
-        node.AddDof(unknown_variable)
+    if settings.IsDefinedReactionVariable():
+        reaction_variable = settings.GetReactionVariable()
+
+        for node in model_part.Nodes:
+            node.AddDof(unknown_variable,reaction_variable)    
+    else:
+        for node in model_part.Nodes:
+            node.AddDof(unknown_variable)
 
     print("DOFs for the convection diffusion solver added correctly")
 
