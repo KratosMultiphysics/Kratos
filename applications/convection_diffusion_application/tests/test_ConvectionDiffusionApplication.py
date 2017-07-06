@@ -27,6 +27,7 @@ def AssembleTestSuites():
     smallSuite.addTest(SourceTermTest('testPureDiffusion'))
     smallSuite.addTest(SourceTermTest('testDiffusionDominated'))
     smallSuite.addTest(SourceTermTest('testConvectionDominated'))
+    smallSuite.addTest(SourceTermTest('testReaction'))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
