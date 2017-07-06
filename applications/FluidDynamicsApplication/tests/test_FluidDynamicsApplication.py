@@ -17,6 +17,7 @@ from SmallTests import ManufacturedSolutionTest as TManufacturedSolutionTest
 from SmallTests import NavierStokesWallConditionTest as TNavierStokesWallConditionTest
 
 from buoyancy_test import BuoyancyTest
+from volume_source_test import VolumeSourceTest
 
 ## NIGTHLY TESTS
 
@@ -56,8 +57,8 @@ def AssambleTestSuites():
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
-    validationSuite.addTests(smallSuite)
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
+    #validationSuite.addTest(VolumeSourceTest('validationEulerian'))
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
