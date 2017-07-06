@@ -154,8 +154,6 @@ class SourceTermTest(UnitTest.TestCase):
         import convection_diffusion_solver as thermal_solver
         thermal_solver.AddVariables(self.model_part)
 
-        thermal_solver.AddVariables(self.model_part)
-
         model_part_io = ModelPartIO(self.input_file)
         model_part_io.ReadModelPart(self.model_part)
 
