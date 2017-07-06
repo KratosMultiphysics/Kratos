@@ -84,7 +84,7 @@ public:
 
 
     /// Destructor.
-    virtual ~AssignScalarFieldToConditionsProcess() {}
+    ~AssignScalarFieldToConditionsProcess() override {}
 
 
     ///@}
@@ -104,7 +104,7 @@ public:
 
 
     /// Execute method is used to execute the AssignScalarFieldToConditionsProcess algorithms.
-    virtual void Execute() override
+    void Execute() override
     {
 
         KRATOS_TRY;
@@ -132,7 +132,7 @@ public:
     }
 
     /// this function will be executed at every time step BEFORE performing the solve phase
-    virtual void ExecuteInitializeSolutionStep() override
+    void ExecuteInitializeSolutionStep() override
     {
         Execute();
     }
@@ -153,19 +153,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "AssignScalarFieldToConditionsProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "AssignScalarFieldToConditionsProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
