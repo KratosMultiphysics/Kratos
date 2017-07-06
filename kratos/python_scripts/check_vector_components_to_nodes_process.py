@@ -53,7 +53,7 @@ class CheckVectorComponentsToNodesProcess(KratosMultiphysics.Process, KratosUnit
             x_params = KratosMultiphysics.Parameters("{}")
             x_params.AddValue("model_part_name",settings["model_part_name"])
             x_params.AddValue("mesh_id",settings["mesh_id"])
-            x_params.AddEmptyValue("tolerance_rank")).SetInt(settings["tolerance_rank"].GetInt()
+            x_params.AddEmptyValue("tolerance_rank").SetInt(settings["tolerance_rank"].GetInt())
             x_params.AddValue("interval",settings["interval"])
             x_params.AddValue("value",settings["value"][0])
             x_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_X")

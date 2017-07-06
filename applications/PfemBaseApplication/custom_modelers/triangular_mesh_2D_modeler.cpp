@@ -252,20 +252,20 @@ namespace Kratos
 
      //*********************************************************************
 
-     if( in.segmentlist != NULL ){
+     if(in.segmentlist){
        delete [] in.segmentlist;
        in.numberofsegments = 0;
      }
 
-     if( in.segmentmarkerlist != NULL )
+     if(in.segmentmarkerlist)
        delete [] in.segmentmarkerlist;
 
-     if( in.holelist != NULL ){
+     if(in.holelist){
       delete [] in.holelist;
       in.numberofholes = 0;
      }
 
-     if( in.regionlist != NULL ){
+     if(in.regionlist){
       delete [] in.regionlist;
       in.numberofregions = 0;
      }
@@ -509,10 +509,10 @@ namespace Kratos
     if(tr.numberoftriangles)
       trifree (tr.trianglelist);
 
-    if( tr.triangleattributelist != NULL ) 
+    if(tr.triangleattributelist) 
       delete [] tr.triangleattributelist;
 
-    if( tr.holelist != NULL )
+    if(tr.holelist)
       delete [] tr.holelist;
     
     // if( tr.regionlist != NULL )
@@ -554,25 +554,25 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    if(tr.pointlist != NULL) free(tr.pointlist );
-    if(tr.pointattributelist != NULL) free(tr.pointattributelist );
-    if(tr.pointmarkerlist != NULL) free(tr.pointmarkerlist   );
+    if(tr.pointlist) free(tr.pointlist );
+    if(tr.pointattributelist) free(tr.pointattributelist );
+    if(tr.pointmarkerlist) free(tr.pointmarkerlist   );
      
-    if(tr.trianglelist != NULL) free(tr.trianglelist  );
-    if(tr.triangleattributelist != NULL) free(tr.triangleattributelist );
-    if(tr.trianglearealist != NULL) free(tr.trianglearealist );
-    if(tr.neighborlist != NULL) free(tr.neighborlist   );
+    if(tr.trianglelist) free(tr.trianglelist  );
+    if(tr.triangleattributelist) free(tr.triangleattributelist );
+    if(tr.trianglearealist) free(tr.trianglearealist );
+    if(tr.neighborlist) free(tr.neighborlist   );
 
-    if(tr.segmentlist != NULL) free(tr.segmentlist    );
-    if(tr.segmentmarkerlist != NULL) free(tr.segmentmarkerlist   );
+    if(tr.segmentlist) free(tr.segmentlist    );
+    if(tr.segmentmarkerlist) free(tr.segmentmarkerlist   );
 
-    if(tr.holelist != NULL) free(tr.holelist      );
+    if(tr.holelist) free(tr.holelist      );
 
-    if(tr.regionlist != NULL) free(tr.regionlist  );
+    if(tr.regionlist) free(tr.regionlist  );
 
-    if(tr.edgelist != NULL) free(tr.edgelist   );
-    if(tr.edgemarkerlist != NULL) free(tr.edgemarkerlist   );
-    if(tr.normlist != NULL) free(tr.normlist  );
+    if(tr.edgelist) free(tr.edgelist   );
+    if(tr.edgemarkerlist) free(tr.edgemarkerlist   );
+    if(tr.normlist) free(tr.normlist  );
 
     KRATOS_CATCH(" ")
   }

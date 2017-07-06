@@ -462,6 +462,9 @@ private:
        
     for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(mMeshId); in != mrModelPart.NodesEnd(mMeshId); in++)
       {
+	if(in->Is(TO_ERASE)){
+	  any_node_removed = true;
+	}
 	bool on_contact_tip = false;
 	bool contact_active = false;
 	   

@@ -116,8 +116,6 @@ class NavierStokesBaseSolver(object):
         self._ExecuteAfterReading()
         ## Set buffer size
         self._SetBufferSize()
-        
-
 
         print ("Base class model reading finished.")
 
@@ -134,7 +132,7 @@ class NavierStokesBaseSolver(object):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
-        
+
         #print("main",self.main_model_part.Nodes[12091])
         #print("compute",self.main_model_part.GetSubModelPart("fluid_computational_model_part").Nodes[12091])
         #err
@@ -178,41 +176,35 @@ class NavierStokesBaseSolver(object):
     def SetEchoLevel(self, level):
         (self.solver).SetEchoLevel(level)
 
-    def SolverInitialize(self):
-        (self.solver).Initialize()
-
-    def SolverInitializeSolutionStep(self):
+    def InitializeSolutionStep(self):
         (self.solver).InitializeSolutionStep()
 
-    def SolverPredict(self):
+    def Predict(self):
         (self.solver).Predict()
 
-    def SolverSolveSolutionStep(self):
-        (self.solver).SolveSolutionStep()
+    def SolveSolutionStep(self):
+        is_converged = (self.solver).SolveSolutionStep()
+        return is_converged
 
-    def SolverFinalizeSolutionStep(self):
+    def FinalizeSolutionStep(self):
         (self.solver).FinalizeSolutionStep()
 
     def Solve(self):
-        self.SolverInitialize()
-        self.SolverInitializeSolutionStep()
-        self.SolverPredict()
-        self.SolverSolveSolutionStep()
-        self.SolverFinalizeSolutionStep()
+        (self.solver).Solve()
 
     def _ModelPartReading(self):
         ## Model part reading
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             ## Here it would be the place to import restart data if required
             KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
-            
+
             if(self.settings["reorder"].GetBool()):
                 print("******************************************************* REORDERING ********************************************************")
                 tmp = KratosMultiphysics.Parameters("{}")
                 KratosMultiphysics.ReorderAndOptimizeModelPartProcess(self.main_model_part,tmp).Execute()
         else:
             raise Exception("Other input options are not yet implemented.")
-        
+
 
 
     def _ExecuteAfterReading(self):
@@ -237,7 +229,7 @@ class NavierStokesBaseSolver(object):
         # KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
 
 
-        
+
     def _SetBufferSize(self):
         ## Set the buffer size
         current_buffer_size = self.main_model_part.GetBufferSize()

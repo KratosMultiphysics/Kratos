@@ -376,7 +376,7 @@ namespace Kratos
 	for(unsigned int i = 0; i < size; i++)
 	  {
 	   
-	    //std::cout<<" V: ("<<rGeometry[i].Id()<<"): ["<<rGeometry[i].X()<<", "<<rGeometry[i].Y()<<"]  Normal:"<<rGeometry[i].FastGetSolutionStepValue(NORMAL)<<std::endl;
+	    //std::cout<<" V: ("<<rGeometry[i].Id()<<"): ["<<rGeometry[i].X()<<", "<<rGeometry[i].Y()<<", "<<rGeometry[i].Z()<<"]  Normal:"<<rGeometry[i].FastGetSolutionStepValue(NORMAL)<<std::endl;
 
 	    Normal = rGeometry[i].FastGetSolutionStepValue(NORMAL); 
 
@@ -386,7 +386,7 @@ namespace Kratos
 				
 
 	    //change position to be the vector from the vertex to the geometry center
-	    Corner = Vertices[i]-Center;
+	    Corner = Center-Vertices[i];
 
 	    if(norm_2(Corner))
 	      Corner/= norm_2(Corner);
@@ -421,8 +421,6 @@ namespace Kratos
 
 	  }
 
-	//std::cout<<std::endl;
-	//std::cout<<"  [ no:"<<numouter<<";ne:"<<numextra<<";nc:"<<numcoplanar<<";ns: "<<numsamedirection<<";nor:"<<numorthogonal<<"]"<<std::endl;
 	
 	int num = (int)size;
 
@@ -451,7 +449,8 @@ namespace Kratos
 	// if(numorthogonal>=1)
 	//   outer=false;
 	    
-
+	std::cout<<std::endl;
+	std::cout<<"  [ no:"<<numouter<<";ne:"<<numextra<<";nc:"<<numcoplanar<<";ns: "<<numsamedirection<<";nor:"<<numorthogonal<<"] ACCEPTED: "<<outer<<std::endl;
       }
 
     return outer; //if is outside the body domain returns true
@@ -564,9 +563,12 @@ namespace Kratos
   {
 
     KRATOS_TRY
-   
+
+    Vector VectorZero(3);
+    noalias(VectorZero) = ZeroVector(3);
+    
     std::vector<Vector> FaceNormals(rGeometry.FacesNumber());
-    std::fill(FaceNormals.begin(),FaceNormals.end(),ZeroVector(3));
+    std::fill(FaceNormals.begin(),FaceNormals.end(),VectorZero);
 
     std::vector<double> FaceAreas(rGeometry.FacesNumber());
     std::fill(FaceAreas.begin(),FaceAreas.end(), 0.0 );
@@ -580,11 +582,13 @@ namespace Kratos
     rGeometry.NumberNodesInFaces(lnofa);
 
     //calculate face normals
-    Vector FirstVectorPlane  = ZeroVector(3);
-    Vector SecondVectorPlane = ZeroVector(3);
+    Vector FirstVectorPlane(3);
+    noalias(FirstVectorPlane) = VectorZero;
+    Vector SecondVectorPlane(3);
+    noalias(SecondVectorPlane)= VectorZero;
 
     double FaceArea = 0;
-    for(unsigned int i=0; i<lpofa.size2(); i++)
+    for(unsigned int i=0; i<rGeometry.FacesNumber(); i++)
       {
 	std::vector<Vector> FaceCoordinates(lnofa[i]); // (3)
 	std::fill(FaceCoordinates.begin(),FaceCoordinates.end(),ZeroVector(3));
@@ -774,7 +778,7 @@ namespace Kratos
 
     if( ContactType != NonContact ){
 
-      std::cout<<" contact type "<<std::endl;
+      //std::cout<<" contact type "<<std::endl;
 
       if( ContactType == PointToFace ){ //POINT_FACE
       
@@ -1332,6 +1336,10 @@ namespace Kratos
     //std::cout<<" lpofa "<<lpofa<<std::endl;
     //std::cout<<" rGeometry "<<rGeometry<<std::endl;
 
+    unsigned int face_elements = 0;
+    unsigned int edge_elements = 0;
+
+    
     if( rGeometry.size() == 3 ){ //triangles of 3 nodes
      
       condition_found=false;
@@ -1365,7 +1373,9 @@ namespace Kratos
 	}
     }else if( rGeometry.size() == 4 ){ //tetraheda of 4 nodes
 
-
+      face_elements = 0;
+      edge_elements = 0;
+      
       condition_found=false;
       for(ModelPart::ConditionsContainerType::iterator ic=rModelConditions.begin(); ic!=rModelConditions.end(); ic++)
 	{
@@ -1377,15 +1387,16 @@ namespace Kratos
 	  	      
 	    for(unsigned int iface=0; iface<lpofa.size2(); iface++)
 	      {
-		if( (   rConditionGeometry[0].Id() == rGeometry[lpofa(1,iface)].Id() 
+		//detection for contact elements clockwise numeration of the contact geometry.
+		if( (   rConditionGeometry[2].Id() == rGeometry[lpofa(1,iface)].Id() 
 			&& rConditionGeometry[1].Id() == rGeometry[lpofa(2,iface)].Id()
-			&& rConditionGeometry[2].Id() == rGeometry[lpofa(3,iface)].Id() ) || 
-		    (   rConditionGeometry[0].Id() == rGeometry[lpofa(3,iface)].Id() 
+			&& rConditionGeometry[0].Id() == rGeometry[lpofa(3,iface)].Id() ) || 
+		    (   rConditionGeometry[2].Id() == rGeometry[lpofa(3,iface)].Id() 
 			&& rConditionGeometry[1].Id() == rGeometry[lpofa(1,iface)].Id()
-			&& rConditionGeometry[2].Id() == rGeometry[lpofa(2,iface)].Id() ) ||
-		    (   rConditionGeometry[0].Id() == rGeometry[lpofa(2,iface)].Id() 
+			&& rConditionGeometry[0].Id() == rGeometry[lpofa(2,iface)].Id() ) ||
+		    (   rConditionGeometry[2].Id() == rGeometry[lpofa(2,iface)].Id() 
 			&& rConditionGeometry[1].Id() == rGeometry[lpofa(3,iface)].Id()
-			&& rConditionGeometry[2].Id() == rGeometry[lpofa(1,iface)].Id() ) )
+			&& rConditionGeometry[0].Id() == rGeometry[lpofa(1,iface)].Id() ) )
 		  {
 		    pMasterCondition= *(ic.base());
 		    condition_found=true;
@@ -1398,6 +1409,8 @@ namespace Kratos
 
 	  if(condition_found)
 	    {
+	      pCondition->Set(NOT_SELECTED); //meaning that is a element that shares faces
+	      face_elements++;
 	      break;
 	    }
 			
@@ -1405,7 +1418,7 @@ namespace Kratos
 
       if(!condition_found) {
 
-	//check if it is SELECTED element sharing only edges with the conditions
+	//check if it is EDGE_TO_EDGE element sharing only edges with the conditions
 	
 	condition_found=false;
 	for(ModelPart::ConditionsContainerType::iterator ic=rModelConditions.begin(); ic!=rModelConditions.end(); ic++)
@@ -1444,6 +1457,7 @@ namespace Kratos
 	    if(condition_found)
 	      {
 		pCondition->Set(SELECTED); //meaning that is a element that shares edges instead of faces
+		edge_elements++;
 		break;
 	      }
 			
@@ -1466,6 +1480,11 @@ namespace Kratos
       std::cout<<" ]"<<std::endl;
       
     }
+    else{
+      
+      std::cout<<"    [Face Elements: "<<face_elements<<" Edge Elements: "<<edge_elements<<"]"<<std::endl;
+    }
+      
 
     return pMasterCondition;
 	
@@ -1649,8 +1668,8 @@ namespace Kratos
   
       }
 
-    if( minimum_h < rCriticalRadius )
-      std::cout<<"  [ FAULT :: CRITICAL MESH SIZE :: supplied size "<<rCriticalRadius<<" is bigger than initial mesh size "<<minimum_h<<" ] "<<std::endl;
+    //if( minimum_h < rCriticalRadius )
+    //  std::cout<<"  [ FAULT :: CRITICAL MESH SIZE :: supplied size "<<rCriticalRadius<<" is bigger than initial mesh size "<<minimum_h<<" ] "<<std::endl;
 
     return minimum_h;
     
