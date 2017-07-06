@@ -5,7 +5,7 @@ from KratosMultiphysics import *
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import Kratos_Execute_Solid_Test as Execute_Test
+import Kratos_Execute_Structural_Test as Execute_Test
 
 # This utiltiy will control the execution scope in case we need to acces files or we depend
 # on specific relative locations of the files.
@@ -23,7 +23,7 @@ class controlledExecutionScope:
         os.chdir(self.currentPath)
 
 
-class StructrualMechanichsTestFactory(KratosUnittest.TestCase):
+class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
 
     def setUp(self):
         # Within this location context:
@@ -43,8 +43,20 @@ class StructrualMechanichsTestFactory(KratosUnittest.TestCase):
     def tearDown(self):
         pass
     
-class IsotropicDamageSimoJuPSTest(StructrualMechanichsTestFactory):
+class IsotropicDamageSimoJuPSTest(StructuralMechanichsTestFactory):
     file_name = "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test"
 
-class ShellT3IsotropicScordelisTests(StructrualMechanichsTestFactory):
+class ShellQ4ThickBendingRollUpTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_Q4_Thick__BendingRollUp_test"
+
+class ShellQ4ThickDrillingRollUpTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_Q4_Thick__DrillingRollUp_test"
+
+class ShellT3ThinBendingRollUpTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3_Thin__BendingRollUp_test"
+
+class ShellT3ThinDrillingRollUpTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3_Thin__DrillingRollUp_test"
+
+class ShellT3IsotropicScordelisTests(StructuralMechanichsTestFactory):
     file_name = "shell_test/Shell_T3_Isotropic_Scordelis_test"
