@@ -89,12 +89,12 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this constitutive law
      */
-    ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Destructor.
      */
-    virtual ~HenckyElasticPlasticUP3DLaw();
+    ~HenckyElasticPlasticUP3DLaw() override;
 
     /**
      * Operators
@@ -107,7 +107,7 @@ public:
     /**
      * Dimension of the law:
      */
-    SizeType WorkingSpaceDimension()
+    SizeType WorkingSpaceDimension() override
     {
         return 3;
     };
@@ -115,12 +115,12 @@ public:
     /**
      * Voigt tensor size:
      */
-    SizeType GetStrainSize()
+    SizeType GetStrainSize() override
     {
         return 6;
     };
 
-	virtual void GetLawFeatures(Features& rFeatures);
+	void GetLawFeatures(Features& rFeatures) override;
 /*  bool Has( const Variable<double>& rThisVariable );
     bool Has( const Variable<Vector>& rThisVariable );
     bool Has( const Variable<Matrix>& rThisVariable );
@@ -221,7 +221,7 @@ protected:
     
     //virtual Vector SetStressMatrixToAppropiateVectorDimension(Vector& rStressVector, const Matrix& rStressMatrix );
     
-    virtual void CorrectDomainPressure( Matrix& rStressMatrix, const MaterialResponseVariables& rElasticVariables);
+    void CorrectDomainPressure( Matrix& rStressMatrix, const MaterialResponseVariables& rElasticVariables) override;
     
     //virtual void CalculateElastoPlasticTangentMatrix( const FlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen,const double& rAlpha, Matrix& rElastoPlasticMatrix, const MaterialResponseVariables& rElasticVariables);
 
@@ -230,15 +230,15 @@ protected:
     void GetDomainPressure( double& rPressure, const MaterialResponseVariables& rElasticVariables);
 
 
-    void CalculateElastoPlasticTangentMatrix( const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen,const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables);
+    void CalculateElastoPlasticTangentMatrix( const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen,const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables) override;
 
 	 /**
      * Calculates the GreenLagrange strains
      * @param rRightCauchyGreen
      * @param rStrainVector
      */
-    virtual void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
-            Vector& rStrainVector );
+    void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
+            Vector& rStrainVector ) override;
 
 
     /**
@@ -246,12 +246,12 @@ protected:
      * @param rRightCauchyGreen
      * @param rStrainVector
      */
-    virtual void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
-                                         Vector& rStrainVector );
+    void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
+                                         Vector& rStrainVector ) override;
                                          
-    virtual void CalculatePrincipalStressTrial(const MaterialResponseVariables & rElasticVariables,Parameters & rValues, 
+    void CalculatePrincipalStressTrial(const MaterialResponseVariables & rElasticVariables,Parameters & rValues, 
 						const MPMFlowRule::RadialReturnVariables& rReturnMappingVariables, 
-					    Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix);
+					    Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix) override;
 	//double& TensorComponent(double & rCabcd,
 						 //const Matrix& rMA, const Matrix& rMB, 
 						 //const unsigned int& a, const unsigned int& b,
@@ -345,12 +345,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HenckyElasticPlastic3DLaw )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HenckyElasticPlastic3DLaw )
     }

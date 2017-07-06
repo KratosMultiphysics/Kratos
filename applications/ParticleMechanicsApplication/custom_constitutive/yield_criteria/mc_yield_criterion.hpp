@@ -93,7 +93,7 @@ class MCYieldCriterion
 
 
         /// Destructor.
-        virtual ~MCYieldCriterion();
+        ~MCYieldCriterion() override;
 
 
         ///@}
@@ -105,7 +105,7 @@ class MCYieldCriterion
         ///@name Operations
         ///@{
 
-        double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rAlpha);
+        double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rAlpha) override;
         
         //double& CalculateNormYieldFunctionDerivative(double & rStateFunction);
 
@@ -218,9 +218,9 @@ class MCYieldCriterion
 
 	// A private default constructor necessary for serialization
 
-	virtual void save(Serializer& rSerializer) const;
+	void save(Serializer& rSerializer) const override;
 
-	virtual void load(Serializer& rSerializer);
+	void load(Serializer& rSerializer) override;
 
         ///@}
         ///@name Private Inquiry

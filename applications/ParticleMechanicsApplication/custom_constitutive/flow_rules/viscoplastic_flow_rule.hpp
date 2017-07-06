@@ -75,7 +75,7 @@ ViscoplasticFlowRule(ViscoplasticFlowRule const& rOther);
 ViscoplasticFlowRule& operator=(ViscoplasticFlowRule const& rOther);
 
 /// Destructor.
-virtual ~ViscoplasticFlowRule();
+~ViscoplasticFlowRule() override;
 
 ///@}
 ///@name Operators
@@ -85,7 +85,7 @@ virtual ~ViscoplasticFlowRule();
  * Clone function (has to be implemented by any derived class)
  * @return a pointer to a new instance of this flow rule
  */
-virtual FlowRule::Pointer Clone() const;
+FlowRule::Pointer Clone() const override;
 
 ///@}
 ///@name Operations
@@ -94,7 +94,7 @@ virtual FlowRule::Pointer Clone() const;
 
 ///virtual void CalculateScalingFactors( const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors );
 
-virtual bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables );
+bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables ) override;
 
 
 ///@}
@@ -135,7 +135,7 @@ protected:
 ///virtual void SetCriterionParameters( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters );
 
 
-virtual bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters);
+bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters) override;
 
 
 void UpdateConfiguration( RadialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix );
@@ -160,9 +160,9 @@ friend class Serializer;
 
 // A private default constructor necessary for serialization
 
-virtual void save(Serializer& rSerializer) const;
+void save(Serializer& rSerializer) const override;
 
-virtual void load(Serializer& rSerializer);
+void load(Serializer& rSerializer) override;
 
 
 

@@ -73,9 +73,9 @@ public:
     BinghamViscoplasticFlowRule& operator=(BinghamViscoplasticFlowRule const& rOther);
 
     /// Destructor.
-    virtual ~BinghamViscoplasticFlowRule();
+    ~BinghamViscoplasticFlowRule() override;
 
-	virtual void CalculateScalingFactors( const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors );
+	void CalculateScalingFactors( const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors ) override;
     ///@}
     ///@name Operators
     ///@{
@@ -84,19 +84,19 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this flow rule
      */
-    virtual FlowRule::Pointer Clone() const;
+    FlowRule::Pointer Clone() const override;
 
 protected:
-    virtual bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters);
+    bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters) override;
 
 private:
     friend class Serializer;
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
 };// class BinghamViscoplasticFlowRule
 

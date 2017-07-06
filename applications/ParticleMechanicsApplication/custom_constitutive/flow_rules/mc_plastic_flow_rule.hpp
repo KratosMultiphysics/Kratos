@@ -94,20 +94,20 @@ namespace Kratos
     MCPlasticFlowRule& operator=(MCPlasticFlowRule const& rOther);
 	
     // CLONE
-    virtual MPMFlowRule::Pointer Clone() const;
+    MPMFlowRule::Pointer Clone() const override;
 
     /// Destructor.
-    virtual ~MCPlasticFlowRule();
+    ~MCPlasticFlowRule() override;
 
-	virtual bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
+	bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen) override;
 
-    virtual bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables );
+    bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables ) override;
     
-    virtual Matrix GetElasticLeftCauchyGreen(RadialReturnVariables& rReturnMappingVariables);
+    Matrix GetElasticLeftCauchyGreen(RadialReturnVariables& rReturnMappingVariables) override;
     
     
     //virtual void GetPrincipalStressAndStrain(Vector& PrincipalStresses, Vector& PrincipalStrains);
-    virtual void ComputeElastoPlasticTangentMatrix(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& alfa, Matrix& rConsistMatrix);
+    void ComputeElastoPlasticTangentMatrix(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& alfa, Matrix& rConsistMatrix) override;
     ///@}
     ///@name Operators
     ///@{
@@ -265,9 +265,9 @@ namespace Kratos
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Inquiry
