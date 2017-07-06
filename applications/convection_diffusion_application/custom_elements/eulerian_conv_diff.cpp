@@ -184,6 +184,9 @@ namespace Kratos
         noalias(rLeftHandSideMatrix) += Variables.density*Variables.specific_heat*Variables.theta*aux2;
         noalias(rRightHandSideVector) -= Variables.density*Variables.specific_heat*(1.0-Variables.theta)*prod(aux2,Variables.phi_old);
 
+        // volume source terms (affecting the RHS only)
+        noalias(rRightHandSideVector) += prod(aux1, Variables.volumetric_source);
+
         //take out the dirichlet part to finish computing the residual
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, Variables.phi);
 
@@ -268,6 +271,7 @@ namespace Kratos
         const bool IsDefinedDensityVariable = my_settings->IsDefinedDensityVariable();
         const bool IsDefinedSpecificHeatVariableVariable = my_settings->IsDefinedSpecificHeatVariable();
         const bool IsDefinedDiffusionVariable = my_settings->IsDefinedDiffusionVariable();
+        const bool IsDefinedVolumeSourceVariable = my_settings->IsDefinedVolumeSourceVariable();
 
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
@@ -279,6 +283,7 @@ namespace Kratos
 
 			rVariables.v[i]=ZeroVector(3);
 			rVariables.vold[i]=ZeroVector(3);
+            rVariables.volumetric_source[i] = 0.0;
             if (IsDefinedVelocityVariable)
             {
 				  const Variable<array_1d<double, 3 > >& rVelocityVar = my_settings->GetVelocityVariable();
@@ -317,6 +322,12 @@ namespace Kratos
 				rVariables.conductivity += GetGeometry()[i].FastGetSolutionStepValue(rDiffusionVar);
 			}
 			//if not, then the conductivity = 0
+
+            if (IsDefinedVolumeSourceVariable)
+            {
+                const Variable<double>& rVolumeSourceVar = my_settings->GetVolumeSourceVariable();
+                rVariables.volumetric_source[i] += GetGeometry()[i].FastGetSolutionStepValue(rVolumeSourceVar);
+            }
         }
 
         //array_1d<double,TDim> grad_phi_halfstep = prod(trans(DN_DX), 0.5*(phi+phi_old));
@@ -325,7 +336,6 @@ namespace Kratos
         rVariables.conductivity *= rVariables.lumping_factor;
         rVariables.density *= rVariables.lumping_factor;
         rVariables.specific_heat *= rVariables.lumping_factor;
-
     }
 
     template< unsigned int TDim, unsigned int TNumNodes >
