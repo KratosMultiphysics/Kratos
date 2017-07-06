@@ -143,6 +143,7 @@ protected:
 
         array_1d<double,TNumNodes> phi;
         array_1d<double,TNumNodes> phi_old;
+        array_1d<double,TNumNodes> volumetric_source;
         array_1d< array_1d<double,3 >, TNumNodes> v;
         array_1d< array_1d<double,3 >, TNumNodes> vold;
     };
