@@ -1,10 +1,14 @@
-/* *********************************************************   
-*          
-*   Last Modified by:    $Author: julio.marti $
-*   Date:                $Date: $
-*   Revision:            $Revision: $
-*
-* ***********************************************************/
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
+//
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Author Julio Marti
+//
 
 
 #if !defined(KRATOS_RESIDUALBASED_CONVECTION_DIFFUSIONr_STRATEGY_NONLINEAR )
@@ -173,31 +177,7 @@ namespace Kratos
       double Solve()
       {
 	KRATOS_TRY
-	  //calculate the BDF coefficients
-	  ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
-	double Dt = rCurrentProcessInfo[DELTA_TIME];
-	
-	
-	if(mOldDt == 0.00) //needed for the first step
-	  mOldDt = Dt;
-	if(mtime_order == 2)
-	  {
-	    if(BaseType::GetModelPart().GetBufferSize() < 3)
-	      KRATOS_THROW_ERROR(std::logic_error,"insufficient buffer size for BDF2","")
-		
-		rCurrentProcessInfo[BDF_COEFFICIENTS].resize(3);
-	    Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-	    BDFcoeffs[0] =	1.5 / Dt;	//coefficient for step n+1
-	    BDFcoeffs[1] =	-2.0 / Dt;//coefficient for step n
-	    BDFcoeffs[2] =	0.5 / Dt;//coefficient for step n-1
-	  }
-	else
-	  {
-	    rCurrentProcessInfo[BDF_COEFFICIENTS].resize(2);
-	    Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-	    BDFcoeffs[0] =	1.0 / Dt;	//coefficient for step n+1
-	    BDFcoeffs[1] =	-1.0 / Dt;//coefficient for step n
-	  }
+        ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 	
 	unsigned int iter = 0;
 	double ratio;
@@ -205,16 +185,8 @@ namespace Kratos
 	double dT_norm=0.0;
 	double T_norm=0.0;
 	
-	/*
-	  rCurrentProcessInfo[FRACTIONAL_STEP] = 1;
-	  dT_norm = mstep1->Solve();
-		
-	  return  dT_norm;
-	  
-	  KRATOS_CATCH("")*/
 
-	
-	while (iter++ <2 /*mmax_iter && is_converged == false*/)
+	while (mmax_iter && is_converged == false) //iter++ <2
 	  {
 	    rCurrentProcessInfo[FRACTIONAL_STEP] = 1;
 	    dT_norm = mstep1->Solve();
@@ -242,12 +214,7 @@ namespace Kratos
 	return  dT_norm;
 	
 	KRATOS_CATCH("")
-	  
-	  
 	  }
-      
-      
-      
       //******************************************************************************************************
       //******************************************************************************************************
       //calculation of projection 
@@ -257,7 +224,7 @@ namespace Kratos
 	
 	double norm = 0.00;
 	ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
-	double Dt = rCurrentProcessInfo[DELTA_TIME];
+	
 	RadiationSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(RADIATION_SETTINGS);
 	const Variable<double>& rUnknownVar= my_settings->GetUnknownVariable();
 	
@@ -276,48 +243,6 @@ namespace Kratos
       
       //******************************************************************************************************
       //******************************************************************************************************
-      //calculation of projection 
-      void CalculateProjection()
-      {
-	KRATOS_TRY;
-	
-	ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
-	
-	//first of all set to zero the nodal variables to be updated nodally
-	for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
-	    i != BaseType::GetModelPart().NodesEnd() ; ++i)
-	  {
-	    if( (i->GetValue(NEIGHBOUR_ELEMENTS)).size() != 0)
-	      {
-		(i)->FastGetSolutionStepValue(TEMP_CONV_PROJ) = 0.00;
-		(i)->FastGetSolutionStepValue(NODAL_AREA) = 0.00;
-	      }
-	    else
-	      {
-		(i)->FastGetSolutionStepValue(NODAL_AREA) = 1.00;
-	      }
-	  }
-	
-	//add the elemental contributions for the calculation of the velocity
-	//and the determination of the nodal area
-	rCurrentProcessInfo[FRACTIONAL_STEP] = 2;
-	for(ModelPart::ElementIterator i = BaseType::GetModelPart().ElementsBegin() ; 
-	    i != BaseType::GetModelPart().ElementsEnd() ; ++i)
-	  {
-	    (i)->InitializeSolutionStep(rCurrentProcessInfo);
-	  }
-	
-	//solve nodally for the velocity
-	for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
-	    i != BaseType::GetModelPart().NodesEnd() ; ++i)
-	  {
-	    double& conv_proj = (i)->FastGetSolutionStepValue(TEMP_CONV_PROJ);
-	    double temp = 1.00 / (i)->FastGetSolutionStepValue(NODAL_AREA);
-	    conv_proj *= temp; 
-	  }
-	
-	KRATOS_CATCH("")
-	  }
       
       virtual void SetEchoLevel(int Level) 
       {
