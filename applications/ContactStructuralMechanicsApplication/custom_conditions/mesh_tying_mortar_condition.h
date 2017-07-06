@@ -24,11 +24,15 @@
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
 #include "includes/condition.h"
-#include "utilities/math_utils.h"
 #include "includes/kratos_flags.h"
 
 /* Utilities */
-#include "custom_utilities/logging_settings.hpp"
+#include "utilities/math_utils.h"
+
+/* Custom includes */
+#include "custom_includes/mortar_operator.h"
+#include "custom_includes/dual_LM_operators.h"
+#include "custom_includes/mortar_kinematic_variables.h"
 
 /* Geometries */
 #include "geometries/line_2d_2.h"
@@ -115,77 +119,11 @@ public:
     
 //     static constexpr unsigned int DimensionLocalElem = TTensor * TNumNodesElem;
     
-    /**
-     * Parameters to be used in the Condition as they are.
-     */
-    struct GeneralVariables
-    {
-    private:
-        // Contact pair information
-        GeometryType* pMasterElement;   // Pointer to the master contact segment only
-        unsigned int mMasterElementIndex;
-
-    public:
-        // Shape functions for contact pair
-        VectorType N_Master;
-        VectorType N_Slave;
-        VectorType Phi_LagrangeMultipliers;
-
-        // Determinant of slave cell's jacobian
-        double DetJSlave;
-        
-        /********************************************************/
-        /******************** STRUCT METHODS ********************/
-        /********************************************************/
-
-        // Initializer method 
-        void Initialize()
-        {
-            pMasterElement = NULL;
-            mMasterElementIndex = 0;
-
-            // Shape functions
-            N_Master                = ZeroVector(NumNodes);
-            N_Slave                 = ZeroVector(NumNodes);
-            Phi_LagrangeMultipliers = ZeroVector(NumNodes);
-            
-            // Jacobian of slave
-            DetJSlave = 0.0;
-        }
-
-        /* Setters and getters for the master element */
-        void SetMasterElement( GeometryType& rMasterElement ) 
-        { 
-            pMasterElement = &rMasterElement;
-        }
-        
-        GeometryType& GetMasterElement( ) 
-        { 
-            return *pMasterElement;
-        }
-
-        /* Setters and getters for the master element index */
-        void SetMasterElementIndex( const unsigned int& index ) 
-        { 
-            mMasterElementIndex = index; 
-        }
-        
-        const unsigned int& GetMasterElementIndex( ) 
-        { 
-            return mMasterElementIndex; 
-        }
-        
-        void print( )
-        {
-            KRATOS_WATCH( N_Slave );
-//             LOG_VECTOR_PRETTY( N_Slave );
-            KRATOS_WATCH( N_Master );
-//             LOG_VECTOR_PRETTY( N_Master );
-            KRATOS_WATCH( Phi_LagrangeMultipliers );
-//             LOG_VECTOR_PRETTY( Phi_LagrangeMultipliers );
-            KRATOS_WATCH( DetJSlave );
-        }
-    };
+    typedef MortarKinematicVariables<NumNodes>                                   GeneralVariables;
+    
+    typedef DualLagrangeMultiplierOperators<NumNodes>                                      AeData;
+    
+    typedef MortarOperator<NumNodes>                                      MortarConditionMatrices;
          
     ///@}
     ///@name Life Cycle
@@ -540,68 +478,6 @@ protected:
 
     };
     
-    /** 
-     * This data will be used to compute the Ae matrix
-     */ 
-    struct AeData
-    {
-    public:
-        
-        // Auxiliar types
-        typedef boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> Type3;
-        
-        // Matrices
-        Type3 Me;
-        Type3 De;
-        
-        // Default destructor
-        ~AeData(){}
-        
-        // Initialize the Ae components
-        void Initialize()
-        {
-            // Matrices
-            Me = ZeroMatrix(NumNodes, NumNodes);
-            De = ZeroMatrix(NumNodes, NumNodes);
-        }
-    };
-    
-   /*
-    * Mortar condition matrices
-    */
-    struct MortarConditionMatrices
-    {
-    private:
-
-    public:
-       /*
-        * Struct Member Variables
-        */
-       
-        // Mortar condition matrices - DOperator and MOperator
-        boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> DOperator;
-        boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> MOperator;
-
-       /*
-        * Struct Methods
-        */
-        // Initializer method
-        void Initialize()
-        {
-            // We initialize the D and M operators
-            DOperator = ZeroMatrix(NumNodes, NumNodes);
-            MOperator = ZeroMatrix(NumNodes, NumNodes);
-        }
-        
-        void print() 
-        {
-            KRATOS_WATCH(DOperator);
-//             LOG_MATRIX_PRETTY(DOperator);
-            KRATOS_WATCH(MOperator);
-//             LOG_MATRIX_PRETTY(MOperator);
-        }
-    };
-    
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -721,15 +597,6 @@ protected:
         LocalSystemComponents& rLocalSystem,
         const ProcessInfo& CurrentProcessInfo 
         );
-
-    /**
-     * Initialize General Variables
-     */
-    void InitializeGeneralVariables( 
-        GeneralVariables& rVariables,
-        const ProcessInfo& rCurrentProcessInfo,
-        const unsigned int& rMasterElementIndex
-        );
     
     /**
      * Initialize Contact data
@@ -762,7 +629,8 @@ protected:
         const DofData rDofData,
         const array_1d<double, 3> MasterNormal,
         const double& rPointNumber,
-        const IntegrationPointsType& IntegrationPointsSlave
+        const IntegrationPointsType& IntegrationPointsSlave,
+        const unsigned int PairIndex
         );
 
     /********************************************************************************/
@@ -905,84 +773,15 @@ protected:
     void MasterShapeFunctionValue(
         GeneralVariables& rVariables,
         const array_1d<double, 3> MasterNormal,
-        const PointType& local_point 
-        );
-
-    /*
-     * Calculates the mortar operators (D and M)
-     */
-    void CalculateMortarOperators(
-        MortarConditionMatrices& rThisMortarConditionMatrices,
-        GeneralVariables& rVariables,
-        const double& rIntegrationWeight
-        );
-    
-    /*
-     * Calculates the Ae components necessary to compute the Phi_LagrangeMultipliers shpae functions
-     */
-    void CalculateAeComponents(
-        GeneralVariables& rVariables,
-        AeData& rAeData,
-        const double& rIntegrationWeight
-        );
-    
-    /*
-     * Calculates the matrix De
-     */
-    boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> ComputeDe(        
-        const VectorType N1, 
-        const double detJ 
-        )
-    {
-        boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> De;
-    
-        for (unsigned int i = 0; i < NumNodes; i++)
-        {
-            for (unsigned int j = 0; j < NumNodes; j++)
-            {
-                if (i == j)
-                {
-                    De(i,i) = detJ * N1[i];
-                }
-                else
-                {
-                    De(i,j) = 0.0;
-                }
-            }
-        }
-        
-        return De;
-    }
-    
-    /*
-     * Calculates the matrix Ae
-     */
-    void CalculateAe(
-        DofData& rDofData,
-        AeData& rAeData
+        const PointType& LocalPoint,
+        const unsigned int PairIndex
         );
     
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
     /******************************************************************/
     
-    /*
-     * It calculates the POperator (Inverse(D x M))
-     */
-    template< unsigned int NumNodes >
-    boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> ComputePOperator(const MortarConditionMatrices& rMortarConditionMatrices)
-    {
-        // We calculate the inverse of D operator
-        double auxdet;
-        const boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> InvDOperator = MathUtils<double>::InvertMatrix<TDim>(rMortarConditionMatrices.DOperator, auxdet);
-        
-        // We calculate the P operator
-        const boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> POperator = prod(InvDOperator, rMortarConditionMatrices.MOperator);
-        
-        return POperator;
-    }
-    
-    /*
+    /**
      * It returns theintegration method considered
      */
     
