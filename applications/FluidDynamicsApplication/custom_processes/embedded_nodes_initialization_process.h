@@ -79,7 +79,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~EmbeddedNodesInitializationProcess(){}
+    ~EmbeddedNodesInitializationProcess() override{}
 
     ///@}
     ///@name Operators
@@ -201,7 +201,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "EmbeddedNodesInitializationProcess" ;
@@ -209,10 +209,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "EmbeddedNodesInitializationProcess";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "EmbeddedNodesInitializationProcess";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override {}
+    void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
