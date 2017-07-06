@@ -201,7 +201,7 @@ class SourceTermTest(UnitTest.TestCase):
 
         if self.print_reference_values:
             with open(self.reference_file+'.csv','w') as ref_file:
-                ref_file.write("#ID, {0}\n".format(self.checked_variable.Name))
+                ref_file.write("#ID, {0}\n".format(self.checked_variable.Name()))
                 for node in self.model_part.Nodes:
                     value = node.GetSolutionStepValue(self.checked_variable,0)
                     ref_file.write("{0}, {1}\n".format(node.Id, value))
@@ -250,7 +250,7 @@ class SourceTermTest(UnitTest.TestCase):
 if __name__ == '__main__':
     a = SourceTermTest()
     a.setUp()
-    a.print_reference_values = True
+    a.print_reference_values = False
     a.print_output = True
     #a.testPureDiffusion()
     #a.testConvectionDominated()
