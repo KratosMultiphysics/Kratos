@@ -517,13 +517,13 @@ namespace Kratos
             rOutput.resize( GetGeometry().IntegrationPoints(  ).size() );
         }
 
-        if (rVariable == INTEGRATION_WEIGHT)
+        if (rVariable == INTEGRATION_WEIGHT) // TODO: This is valid for SD or TL
         {
-            const unsigned int nr_of_nodes = GetGeometry().size();
-            const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+            const unsigned int number_of_nodes = GetGeometry().size();
+            const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
             const unsigned int strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 
-            KinematicVariables this_kinematic_variables(strain_size, dim, nr_of_nodes);
+            KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
             
             for (unsigned int point_number = 0; point_number < integration_points.size(); point_number++)
             {
@@ -532,16 +532,81 @@ namespace Kratos
                                                                                  this_kinematic_variables.DN_DX,
                                                                                  point_number,
                                                                                  GetGeometry().GetDefaultIntegrationMethod());
+                
                 double integration_weight = GetIntegrationWeight(integration_points,
                                                                  point_number,
                                                                  this_kinematic_variables.detJ0);
                 
-                if (dim == 2 && this->GetProperties().Has(THICKNESS))
+                if (dimension == 2 && this->GetProperties().Has(THICKNESS))
                 {
                     integration_weight *= this->GetProperties()[THICKNESS];
                 }
                 
                 rOutput[point_number] = integration_weight;
+            }
+        }
+        else if (rVariable == VON_MISES_STRESS)
+        {
+            const unsigned int number_of_nodes = GetGeometry().size();
+            const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+            const unsigned int strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+
+            KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+            ConstitutiveVariables this_constitutive_variables(strain_size);
+
+            // Create constitutive law parameters:
+            ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+            // Set constitutive law flags:
+            Flags& ConstitutiveLawOptions=Values.GetOptions();
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN, false);
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+            Values.SetStrainVector(this_constitutive_variables.StrainVector);
+            
+            // Reading integration points
+            const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
+            
+            // Displacements vector
+            Vector displacements;
+            GetValuesVector(displacements);
+            
+            for (unsigned int point_number = 0; point_number < integration_points.size(); point_number++)
+            {
+                // Compute element kinematics B, F, DN_DX ...
+                CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
+                
+                // Compute material reponse
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), displacements);
+                    
+                const Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( this_constitutive_variables.StressVector );
+                
+                double sigma_equivalent = 0.0;
+                
+                if (dimension == 2)
+                {
+                    sigma_equivalent = std::pow((stress_tensor(0,0) - stress_tensor(1,1)), 2.0) +
+                                              3*(stress_tensor(0,1) * stress_tensor(1,0));
+                }
+                else
+                {
+                    sigma_equivalent = 0.5*(std::pow((stress_tensor(0,0) - stress_tensor(1,1)), 2.0) +
+                                            std::pow((stress_tensor(1,1) - stress_tensor(2,2)), 2.0) +
+                                            std::pow((stress_tensor(2,2) - stress_tensor(0,0)), 2.0) +
+                                                   6*(stress_tensor(0,1) * stress_tensor(1,0) + 
+                                                      stress_tensor(1,2) * stress_tensor(2,1) +
+                                                      stress_tensor(2,0) * stress_tensor(0,2)));
+                }
+                
+                if( sigma_equivalent < 0.0 )
+                {
+                    rOutput[point_number] = 0.0;
+                }
+                else
+                {
+                    rOutput[point_number] = std::sqrt(sigma_equivalent);
+                }
             }
         }
         else
