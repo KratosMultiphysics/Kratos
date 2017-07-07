@@ -163,15 +163,23 @@ void  AddCustomUtilitiesToPython()
     typedef TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType,3> TrilinosPartitionedFSIUtilities3DType;
 
     class_< TrilinosPartitionedFSIUtilities2DType, boost::noncopyable > ("TrilinosPartitionedFSIUtilities2D", init < const Epetra_MpiComm& >())
+      .def("GetInterfaceArea", &TrilinosPartitionedFSIUtilities2DType::GetInterfaceArea)
+      .def("GetInterfaceResidualSize", &TrilinosPartitionedFSIUtilities2DType::GetInterfaceResidualSize)
       .def("SetUpInterfaceVector", &TrilinosPartitionedFSIUtilities2DType::SetUpInterfaceVector)
       .def("ComputeInterfaceVectorResidual", &TrilinosPartitionedFSIUtilities2DType::ComputeInterfaceVectorResidual)
       .def("UpdateInterfaceValues", &TrilinosPartitionedFSIUtilities2DType::UpdateInterfaceValues)
+      .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&TrilinosPartitionedFSIUtilities2DType::ComputeFluidInterfaceMeshVelocityResidualNorm)
+      .def("ComputeCorrectedInterfaceDisplacementDerivatives", &TrilinosPartitionedFSIUtilities2DType::ComputeCorrectedInterfaceDisplacementDerivatives)
     ;
 
     class_< TrilinosPartitionedFSIUtilities3DType, boost::noncopyable > ("TrilinosPartitionedFSIUtilities3D", init < const Epetra_MpiComm& >())
+      .def("GetInterfaceArea", &TrilinosPartitionedFSIUtilities3DType::GetInterfaceArea)
+      .def("GetInterfaceResidualSize", &TrilinosPartitionedFSIUtilities3DType::GetInterfaceResidualSize)
       .def("SetUpInterfaceVector", &TrilinosPartitionedFSIUtilities3DType::SetUpInterfaceVector)
       .def("ComputeInterfaceVectorResidual", &TrilinosPartitionedFSIUtilities3DType::ComputeInterfaceVectorResidual)
       .def("UpdateInterfaceValues", &TrilinosPartitionedFSIUtilities3DType::UpdateInterfaceValues)
+      .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&TrilinosPartitionedFSIUtilities3DType::ComputeFluidInterfaceMeshVelocityResidualNorm)
+      .def("ComputeCorrectedInterfaceDisplacementDerivatives", &TrilinosPartitionedFSIUtilities3DType::ComputeCorrectedInterfaceDisplacementDerivatives)
     ;
 
 
