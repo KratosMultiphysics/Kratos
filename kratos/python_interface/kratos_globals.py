@@ -51,5 +51,34 @@ class KratosGlobals:
             raise ValueError("\nKernel.GetVariable() ERROR: Variable {0} is defined but is of unsupported type\n".format(VarName))
         else:
             raise ValueError("\nKernel.GetVariable() ERROR: Variable {0} is unknown. Maybe you need to import the application where it is defined?\n".format(VarName))
+        
+    def HasVariable(self,VarName):
+
+        kernel = self.Kernel
+
+        if kernel.HasDoubleVariable(VarName):
+            return kernel.HasDoubleVariable(VarName)
+        elif kernel.HasArrayVariable(VarName):
+            return kernel.HasArrayVariable(VarName)
+        elif kernel.HasVariableComponent(VarName):
+            return kernel.HasVariableComponent(VarName)
+        elif kernel.HasBoolVariable(VarName):
+            return kernel.HasBoolVariable(VarName)
+        elif kernel.HasIntVariable(VarName):
+            return kernel.HasIntVariable(VarName)
+        elif kernel.HasUnsignedIntVariable(VarName):
+            return kernel.HasUnsignedIntVariable(VarName)
+        elif kernel.HasVectorVariable(VarName):
+            return kernel.HasVectorVariable(VarName)
+        elif kernel.HasMatrixVariable(VarName):
+            return kernel.HasMatrixVariable(VarName)
+        elif kernel.HasStringVariable(VarName):
+            return kernel.HasStringVariable(VarName)
+        elif kernel.HasFlagsVariable(VarName):
+            return kernel.HasFlagsVariable(VarName)
+        elif kernel.HasVariableData(VarName):
+            raise ValueError("\nKernel.GetVariable() ERROR: Variable {0} is defined but is of unsupported type\n".format(VarName))
+        else:
+            return False
 
 
