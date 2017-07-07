@@ -1214,14 +1214,14 @@ namespace Kratos
 
         Matrix delta_displacement = ZeroMatrix( number_of_nodes , dimension);
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( unsigned int i_node = 0; i_node < number_of_nodes; i_node++ )
         {
-            const array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-            const array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+            const array_1d<double, 3 >& current_displacement  = GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 >& previous_displacement = GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT,1);
 
-            for ( unsigned int j = 0; j < dimension; j++ )
+            for ( unsigned int j_dim = 0; j_dim < dimension; j_dim++ )
             {
-                delta_displacement(i, j) = CurrentDisplacement[j]-PreviousDisplacement[j];
+                delta_displacement(i_node, j_dim) = current_displacement[j_dim] - previous_displacement[j_dim];
             }
         }
 
