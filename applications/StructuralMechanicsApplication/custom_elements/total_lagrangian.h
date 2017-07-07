@@ -227,20 +227,16 @@ private:
 
     void CalculateB(
         Matrix& B,
-        Matrix& F,
-        Matrix& DN_DX,
-        unsigned int StrainSize,
+        const Matrix& F,
+        const Matrix& DN_DX,
+        const unsigned int StrainSize,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const unsigned int PointNumber
         );
 
-
-    void Comprobate_State_Vector(Vector& Result);
-    
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access

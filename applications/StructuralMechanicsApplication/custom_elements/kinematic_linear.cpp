@@ -66,6 +66,7 @@ namespace Kratos
 
         KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
         ConstitutiveVariables this_constitutive_variables(strain_size);
+        this_constitutive_variables.StressMeasure = GetStressMeasure();
 
         // Resizing as needed the LHS
         const unsigned int mat_size = number_of_nodes * dimension;
@@ -194,7 +195,7 @@ namespace Kratos
         rValues.SetStressVector(rThisConstitutiveVariables.StressVector); //F computed somewhere else
         
         // Actually do the computations in the ConstitutiveLaw    
-        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(rValues); //here the calculations are actually done 
+        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, rThisConstitutiveVariables.StressMeasure); //here the calculations are actually done 
     }
 
     //************************************************************************************
@@ -218,9 +219,9 @@ namespace Kratos
         {
             for ( unsigned int i = 0; i < number_of_nodes; ++i )
             {
-                rB( 0, i*2 ) = DN_DX( i, 0 );
+                rB( 0, i*2 + 0 ) = DN_DX( i, 0 );
                 rB( 1, i*2 + 1 ) = DN_DX( i, 1 );
-                rB( 2, i*2 ) = DN_DX( i, 1 );
+                rB( 2, i*2 + 0 ) = DN_DX( i, 1 );
                 rB( 2, i*2 + 1 ) = DN_DX( i, 0 );
             }
         }
@@ -228,14 +229,14 @@ namespace Kratos
         {
             for ( unsigned int i = 0; i < number_of_nodes; ++i )
             {
-                rB( 0, i*3 ) = DN_DX( i, 0 );
+                rB( 0, i*3 + 0 ) = DN_DX( i, 0 );
                 rB( 1, i*3 + 1 ) = DN_DX( i, 1 );
                 rB( 2, i*3 + 2 ) = DN_DX( i, 2 );
-                rB( 3, i*3 ) = DN_DX( i, 1 );
+                rB( 3, i*3 + 0 ) = DN_DX( i, 1 );
                 rB( 3, i*3 + 1 ) = DN_DX( i, 0 );
                 rB( 4, i*3 + 1 ) = DN_DX( i, 2 );
                 rB( 4, i*3 + 2 ) = DN_DX( i, 1 );
-                rB( 5, i*3 ) = DN_DX( i, 2 );
+                rB( 5, i*3 + 0 ) = DN_DX( i, 2 );
                 rB( 5, i*3 + 2 ) = DN_DX( i, 0 );
             }
         }
@@ -253,22 +254,22 @@ namespace Kratos
         
         if(dim == 2)
         {
-            F(0,0) = 1+rStrainTensor(0);  
+            F(0,0) = 1.0+rStrainTensor(0);  
             F(0,1) = 0.5*rStrainTensor(2); 
             F(1,0) = 0.5*rStrainTensor(2);   
-            F(1,1) = 1+rStrainTensor(1);
+            F(1,1) = 1.0+rStrainTensor(1);
         }
         else
         {
-            F(0,0) = 1+rStrainTensor(0);     
+            F(0,0) = 1.0+rStrainTensor(0);     
             F(0,1) = 0.5*rStrainTensor(3); 
             F(0,2) = 0.5*rStrainTensor(5);
             F(1,0) = 0.5*rStrainTensor(3);   
-            F(1,1) = 1+rStrainTensor(1);   
+            F(1,1) = 1.0+rStrainTensor(1);   
             F(1,2) = 0.5*rStrainTensor(4);
             F(2,0) = 0.5*rStrainTensor(5);   
             F(2,1) = 0.5*rStrainTensor(4); 
-            F(2,2) = 1+rStrainTensor(2);
+            F(2,2) = 1.0+rStrainTensor(2);
         }
         
         return F;

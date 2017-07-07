@@ -63,7 +63,9 @@ protected:
         Matrix  F;
         double  detJ;
         double  detJ0;
+        Matrix  J;
         Matrix  J0;
+        Matrix  InvJ;
         Matrix  InvJ0;
         Matrix  DN_DX;
         
@@ -80,13 +82,15 @@ protected:
             )
         {
             detF = 1.0;
-            detJ0 = 1.0;
+            detJ = 1.0;
             detJ0 = 1.0;
             N = ZeroVector(NumberOfNodes);
             B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
             F = IdentityMatrix(Dimension);
             DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
+            J = ZeroMatrix(Dimension, Dimension);
             J0 = ZeroMatrix(Dimension, Dimension);
+            InvJ = ZeroMatrix(Dimension, Dimension);
             InvJ0 = ZeroMatrix(Dimension, Dimension);
         }
     };
@@ -96,9 +100,11 @@ protected:
      */
     struct ConstitutiveVariables
     {
-        Vector  StrainVector;
-        Vector  StressVector;
-        Matrix  D;
+        Vector StrainVector;
+        Vector StressVector;
+        Matrix D;
+        
+        ConstitutiveLaw::StressMeasure StressMeasure;
         
         /**
          * The default constructor
@@ -109,6 +115,8 @@ protected:
             StrainVector = ZeroVector(StrainSize);
             StressVector = ZeroVector(StrainSize);
             D = ZeroMatrix(StrainSize, StrainSize);
+            
+            StressMeasure = ConstitutiveLaw::StressMeasure_PK2;
         }
     };
 public:
@@ -163,7 +171,7 @@ public:
      * Called at the beginning of each solution step
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This is called for non-linear analysis at the beginning of the iteration process
@@ -181,7 +189,7 @@ public:
      * Called at the end of eahc solution step
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
     
     /**
      * Sets on rResult the ID's of the element degrees of freedom
@@ -448,6 +456,21 @@ protected:
     virtual void InitializeMaterial();
     
     /**
+     * Gives the StressMeasure used
+     */
+    virtual ConstitutiveLaw::StressMeasure GetStressMeasure();
+    
+    /**
+     * It updates the historical database
+     * @param rThisKinematicVariables: The kinematic variables to be calculated 
+     * @param PointNumber: The integration point considered
+     */ 
+    virtual void UpdateHystoricalDatabase(
+        KinematicVariables& rThisKinematicVariables,
+        const unsigned int PointNumber
+        );
+    
+    /**
      * This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix: The LHS
      * @param rRightHandSideVector: The RHS
@@ -494,11 +517,27 @@ protected:
         );
     
     /**
+     * This methods gives us a matrix with the increment of displacement
+     */
+    Matrix CalculateDeltaDisplacement();
+    
+    /**
      * This functions calculate the derivatives in the reference frame
      */ 
-    double CalculateDerivativesOnReference(
+    virtual double CalculateDerivativesOnReference(
         Matrix& J0, 
         Matrix& InvJ0, 
+        Matrix& DN_DX, 
+        const unsigned int PointNumber,
+        IntegrationMethod ThisIntegrationMethod
+        );
+    
+    /**
+     * This functions calculate the derivatives in the current frame
+     */ 
+    virtual double CalculateDerivativesOnCurrent(
+        Matrix& J, 
+        Matrix& InvJ, 
         Matrix& DN_DX, 
         const unsigned int PointNumber,
         IntegrationMethod ThisIntegrationMethod
