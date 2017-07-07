@@ -57,27 +57,27 @@ class KratosGlobals:
         kernel = self.Kernel
 
         if kernel.HasDoubleVariable(VarName):
-            return kernel.HasDoubleVariable(VarName)
+            return True
         elif kernel.HasArrayVariable(VarName):
-            return kernel.HasArrayVariable(VarName)
+            return True
         elif kernel.HasVariableComponent(VarName):
-            return kernel.HasVariableComponent(VarName)
+            return True
         elif kernel.HasBoolVariable(VarName):
-            return kernel.HasBoolVariable(VarName)
+            return True
         elif kernel.HasIntVariable(VarName):
-            return kernel.HasIntVariable(VarName)
+            return True
         elif kernel.HasUnsignedIntVariable(VarName):
-            return kernel.HasUnsignedIntVariable(VarName)
+            return True
         elif kernel.HasVectorVariable(VarName):
-            return kernel.HasVectorVariable(VarName)
+            return True
         elif kernel.HasMatrixVariable(VarName):
-            return kernel.HasMatrixVariable(VarName)
+            return True
         elif kernel.HasStringVariable(VarName):
-            return kernel.HasStringVariable(VarName)
+            return True
         elif kernel.HasFlagsVariable(VarName):
-            return kernel.HasFlagsVariable(VarName)
+            return True
         elif kernel.HasVariableData(VarName):
-            raise ValueError("\nKernel.GetVariable() ERROR: Variable {0} is defined but is of unsupported type\n".format(VarName))
+            raise True
         else:
             return False
 
