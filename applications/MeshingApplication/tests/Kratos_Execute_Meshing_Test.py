@@ -8,7 +8,7 @@ try:
 except ImportError as e:
     missing_external_fluid_dependencies = True
 try:
-  import KratosMultiphysics.SolidMechanicsApplication as SolidMechanicsApplication
+  import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
   missing_external_solid_dependencies = False
 except ImportError as e:
     missing_external_solid_dependencies = True
@@ -65,7 +65,7 @@ class Kratos_Execute_Test:
         if (self.output_post == True):
             from gid_output_process import GiDOutputProcess
             output_settings = ProjectParameters["output_configuration"]
-            self.gid_output = KratosMultiphysics.GiDOutputProcess(self.solver.GetComputingModelPart(),
+            self.gid_output = GiDOutputProcess(self.solver.GetComputingModelPart(),
                                                self.problem_name,
                                                output_settings)
             self.gid_output.ExecuteInitialize()

@@ -12,7 +12,7 @@ try:
 except ImportError as e:
     missing_external_fluid_dependencies = True
 try:
-  import KratosMultiphysics.SolidMechanicsApplication as SolidMechanicsApplication
+  import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
   missing_external_solid_dependencies = False
 except ImportError as e:
     missing_external_solid_dependencies = True
@@ -27,7 +27,6 @@ from test_remesh_sphere import TestRemeshMMG                as TTestRemeshMMG
 from SmallTests  import TwoDHessianTest                     as TTwoDHessianTest
 from SmallTests  import ThreeDHessianTest                   as TThreeDHessianTest
 from SmallTests  import TwoDCavityTest                      as TTwoDCavityTest
-#from SmallTests  import CoarseSphereTest                    as TTestRemeshMMG
 from SmallTests  import TwoDDynamicBeamTest                 as TTwoDDynamicBeamTest
 from SmallTests  import ThreeDDynamicBeamTest               as TThreeDDynamicBeamTest
 from SmallTests  import TwoDDynamicPlasticBeamTest          as TTwoDDynamicPlasticBeamTest
