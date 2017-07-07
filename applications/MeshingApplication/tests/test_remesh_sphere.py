@@ -7,7 +7,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 class TestRemeshMMG(KratosUnittest.TestCase):
     
-    def _test_remesh_sphere(self):
+    def test_remesh_sphere(self):
         # We create the model part
         main_model_part = KratosMultiphysics.ModelPart("MainModelPart")
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
@@ -17,6 +17,9 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+
+        for node in main_model_part.Nodes:
+            node.AddDof(KratosMultiphysics.DISTANCE)
 
         # We import the model main_model_part
         KratosMultiphysics.ModelPartIO("mmg_eulerian_test/coarse_sphere_test").ReadModelPart(main_model_part)
@@ -43,6 +46,7 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         MetricParameters = KratosMultiphysics.Parameters("""
         {
             "minimal_size"                      : 1.0e-1,
+            "enforce_current"                   : false,
             "anisotropy_remeshing"              : false,
             "anisotropy_parameters"             :{
                 "hmin_over_hmax_anisotropic_ratio"  : 0.15,
@@ -64,13 +68,40 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         """)
 
         # We create the remeshing utility
-        MmgProcess = MeshingApplication.MmgProcess3D(main_model_part, MMGParameters)
+        mmg_process = MeshingApplication.MmgProcess3D(main_model_part, MMGParameters)
 
         # We remesh
-        MmgProcess.Execute()
+        mmg_process.Execute()
         
-    def test_execution(self):
-        self._test_remesh_sphere()
+        # Finally we export to GiD
+        from gid_output_process import GiDOutputProcess
+        gid_output = GiDOutputProcess(main_model_part,
+                                    "gid_output",
+                                    KratosMultiphysics.Parameters("""
+                                        {
+                                            "result_file_configuration" : {
+                                                "gidpost_flags": {
+                                                    "GiDPostMode": "GiD_PostBinary",
+                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                    "WriteConditionsFlag": "WriteConditions",
+                                                    "MultiFileFlag": "SingleFile"
+                                                },        
+                                                "nodal_results"       : []
+                                            }
+                                        }
+                                        """)
+                                    )
+
+        gid_output.ExecuteInitialize()
+        gid_output.ExecuteBeforeSolutionLoop()
+        gid_output.ExecuteInitializeSolutionStep()
+        #gid_output.PrintOutput()
+        gid_output.ExecuteFinalizeSolutionStep()
+        gid_output.ExecuteFinalize()  
+        
+        import filecmp 
+        value = filecmp.cmp("mmg_eulerian_test/coarse_sphere_test_result.mesh", "mmg_eulerian_test/coarse_sphere_test.o.mesh")
+        self.assertTrue(value)
         
 if __name__ == '__main__':
     KratosUnittest.main()
