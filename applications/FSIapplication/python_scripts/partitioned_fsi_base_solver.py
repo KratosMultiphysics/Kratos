@@ -57,7 +57,6 @@ class PartitionedFSIBaseSolver:
             "analysis_type"            : "nonlinear",
             "rotation_dofs"            : false,
             "pressure_dofs"            : false,
-            "stabilization_factor"     : null,
             "reform_dofs_at_each_step" : false,
             "line_search"              : false,
             "compute_reactions"        : true,
@@ -233,12 +232,12 @@ class PartitionedFSIBaseSolver:
 
         ## FSIApplication variables addition
         NonConformant_OneSideMap.AddVariables(self.fluid_solver.main_model_part,self.structure_solver.main_model_part)
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.VECTOR_PROJECTED)
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.FSI_INTERFACE_RESIDUAL)
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.FSI_INTERFACE_MESH_RESIDUAL)
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.POSITIVE_MAPPED_VECTOR_VARIABLE)
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.NEGATIVE_MAPPED_VECTOR_VARIABLE)
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.VECTOR_PROJECTED)
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_PROJECTED)
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_RESIDUAL)
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_MESH_RESIDUAL)
+        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_MAPPED_VECTOR_VARIABLE)
+        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_MAPPED_VECTOR_VARIABLE)
+        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_PROJECTED)
 
 
     def ImportModelPart(self):
