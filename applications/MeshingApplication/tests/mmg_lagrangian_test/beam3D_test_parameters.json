@@ -12,7 +12,7 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "solid_mechanics_implicit_dynamic_solver",
+        "solver_type"                        : "structural_mechanics_implicit_dynamic_solver",
         "echo_level"                         : 0,
         "solution_type"                      : "Dynamic",
         "time_integration_method"            : "Implicit",
@@ -21,6 +21,9 @@
             "input_type"       : "mdpa",
             "input_filename"   : "mmg_lagrangian_test/beam3D_test",
             "input_file_label" : 0
+        },
+        "material_import_settings" :{
+            "materials_filename": "mmg_lagrangian_test/materials_3D.json"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "Residual_criterion",
@@ -37,10 +40,10 @@
         "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1","SelfWeight3D_Self_weight_Auto1"]
     },
     "constraints_process_list" : [{
-        "python_module" : "assign_vector_components_to_nodes_process",
-        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorComponentsToNodesProcess",
+        "process_name"  : "AssignVectorProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
@@ -50,17 +53,16 @@
         }
     }],
     "loads_process_list"       : [{
-        "python_module" : "assign_modulus_and_direction_to_nodes_process",
-        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes all the components of a given vector variable",
         "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignModulusAndDirectionToNodesProcess",
+        "process_name"  : "AssignVectorProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "SelfWeight3D_Self_weight_Auto1",
             "variable_name"   : "VOLUME_ACCELERATION",
-            "modulus"         : 9.81,
-            "direction"       : [0.0,0.0,-1.0],
+            "value"           : [0.0,0.0,-9.81],
             "interval"        : [0.0,"End"]
         }
     }],
@@ -140,7 +142,7 @@
             "file_name_1"            : "mmg_lagrangian_test/beam3D_test_step=3.sol",
             "file_name_2"            : "mmg_lagrangian_test/beam3D_test_result.sol",
             "deterministic"          : false,
-            "error_assumed"          : 1.0e-6,
+            "error_assumed"          : 5.0e-2,
             "non_deterministic_comp" : "sol_file"
         }
     }

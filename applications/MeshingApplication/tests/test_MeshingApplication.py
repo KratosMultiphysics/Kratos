@@ -12,7 +12,7 @@ try:
 except ImportError as e:
     missing_external_fluid_dependencies = True
 try:
-  import KratosMultiphysics.SolidMechanicsApplication as SolidMechanicsApplication
+  import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
   missing_external_solid_dependencies = False
 except ImportError as e:
     missing_external_solid_dependencies = True
@@ -23,10 +23,10 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS 
 from test_refine import TestRedistance                      as TTestRedistance
+from test_remesh_sphere import TestRemeshMMG                as TTestRemeshMMG
 from SmallTests  import TwoDHessianTest                     as TTwoDHessianTest
 from SmallTests  import ThreeDHessianTest                   as TThreeDHessianTest
 from SmallTests  import TwoDCavityTest                      as TTwoDCavityTest
-from SmallTests  import CoarseSphereTest                    as TCoarseSphereTest
 from SmallTests  import TwoDDynamicBeamTest                 as TTwoDDynamicBeamTest
 from SmallTests  import ThreeDDynamicBeamTest               as TThreeDDynamicBeamTest
 from SmallTests  import TwoDDynamicPlasticBeamTest          as TTwoDDynamicPlasticBeamTest
@@ -62,7 +62,7 @@ def AssambleTestSuites():
             smallSuite.addTest(TTwoDHessianTest('test_execution'))
             smallSuite.addTest(TThreeDHessianTest('test_execution'))
             smallSuite.addTest(TTwoDCavityTest('test_execution'))
-            smallSuite.addTest(TCoarseSphereTest('test_execution'))
+            smallSuite.addTest(TTestRemeshMMG('test_remesh_sphere'))
         if (missing_external_solid_dependencies == False):
             smallSuite.addTest(TTwoDDynamicBeamTest('test_execution'))
             smallSuite.addTest(TThreeDDynamicBeamTest('test_execution'))
@@ -103,7 +103,7 @@ def AssambleTestSuites():
                     TTwoDHessianTest,
                     TThreeDHessianTest,
                     TTwoDCavityTest,
-                    TCoarseSphereTest,
+                    TTestRemeshMMG,
                     #TStanfordBunnyTest,
                     #TTwoDSphereRemeshedChannelTest,
                     #TThreeDSphereRemeshedChannelTest,
