@@ -58,7 +58,6 @@ class MechanicalSolver(object):
             },
             "rotation_dofs": false,
             "pressure_dofs": false,
-            "stabilization_factor": null,
             "reform_dofs_at_each_step": false,
             "line_search": false,
             "compute_reactions": true,
@@ -177,8 +176,6 @@ class MechanicalSolver(object):
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         print("::[MechanicalSolver]:: Initializing ...")
-        if not self.settings["stabilization_factor"].IsNull():
-            self.main_model_part.ProcessInfo[KratosMultiphysics.STABILIZATION_FACTOR] = self.settings["stabilization_factor"].GetDouble()
         # The mechanical solver is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()

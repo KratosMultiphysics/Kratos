@@ -1308,7 +1308,11 @@ class MultifileList(object):
         self.step = step
         self.name = name
         self.which_folder = which_folder
-        absolute_path_to_file = os.path.join(post_path, "_list_" + self.name + "_" + str(step) + ".post.lst")
+        if which_folder == "inner":
+            absolute_path_to_file = os.path.join(post_path, "_list_" + self.name + "_" + str(step) + ".post.lst")
+        else:
+            absolute_path_to_file = os.path.join(post_path, self.name + ".post.lst")
+            
         self.file = open(absolute_path_to_file,"w")
 
 
