@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8.6)
+cmake_minimum_required (VERSION 2.8.10)
 project (KratosMultiphysics)
 
 # Set here the version number **** only update upon tagging a release!
@@ -33,6 +33,11 @@ if(${CMAKE_COMPILER_IS_GNUCXX})
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -ffast-math -Wall -std=c++11")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -ffast-math -Wall")
   set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
+
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
+  endif(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.2)
+
   message("additional default options were set for gcc")
   message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
   message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
