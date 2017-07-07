@@ -98,10 +98,41 @@ void  LinearPlaneStress::CalculateMaterialResponsePK2 (Parameters& rValues)
     }
 }
 
-//note that since we are in the hypothesis of small strains we can use the same function for everything
+//NOTE: Note that since we are in the hypothesis of small strains we can use the same function for everything
+
 void LinearPlaneStress::CalculateMaterialResponseKirchhoff (Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
+}
+
+void LinearPlaneStress::CalculateMaterialResponsePK1 (Parameters& rValues)
+{
+    CalculateMaterialResponsePK2(rValues);
+}
+
+void LinearPlaneStress::CalculateMaterialResponseCauchy (Parameters& rValues)
+{
+    CalculateMaterialResponsePK2(rValues);
+}
+
+void LinearPlaneStress::FinalizeMaterialResponsePK1(Parameters& rValues)
+{
+    // TODO: Add if necessary
+}
+
+void LinearPlaneStress::FinalizeMaterialResponsePK2(Parameters& rValues)
+{
+    // TODO: Add if necessary
+}
+
+void LinearPlaneStress::FinalizeMaterialResponseCauchy(Parameters& rValues)
+{
+    // TODO: Add if necessary
+}
+
+void LinearPlaneStress::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
+{
+    // TODO: Add if necessary
 }
 
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
