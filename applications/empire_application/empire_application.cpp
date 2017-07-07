@@ -39,15 +39,23 @@ namespace Kratos
  	{
  		// calling base class register to register Kratos components
  		KratosApplication::Register();
- 		std::cout << "Initializing KratosEmpireApplication... " << std::endl;
+
+    std::stringstream banner;
+    banner << "    KRATOS  _____ __  __ ____ ___ ____  _____ "               << std::endl;
+    banner << "           | ____|  \\/  |  _ \\_ _|  _ \\| ____|"            << std::endl;
+    banner << "           |  _| | |\\/| | |_) | || |_) |  _| "               << std::endl;
+    banner << "           | |___| |  | |  __/| ||  _ <| |___ "               << std::endl;
+    banner << "           |_____|_|  |_|_|  |___|_| \\_\\_____| Application" << std::endl;
+
+    banner << "Initializing KratosEmpireApplication... " << std::endl;
+    
+    std::cout << banner.str();
  
 // 		KRATOS_REGISTER_VARIABLE( AUX_MESH_VAR )
 // 		KRATOS_REGISTER_VARIABLE(IS_INTERFACE);
 // 		KRATOS_REGISTER_VARIABLE(NODAL_AREA);
 
- 
  	}
 
 }  // namespace Kratos.
-
-
+                                    
