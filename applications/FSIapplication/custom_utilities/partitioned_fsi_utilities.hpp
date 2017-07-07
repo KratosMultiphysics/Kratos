@@ -254,7 +254,6 @@ public:
                 this->SetLocalValue(interface_residual, base_i+jj, fsi_res[jj]);
             }
         }
-
         // Store the L2 norm of the error in the fluid process info
         rInterfaceModelPart.GetProcessInfo().GetValue(FSI_INTERFACE_RESIDUAL_NORM) = TSpace::TwoNorm(interface_residual);
 
@@ -322,7 +321,9 @@ public:
             array_1d<double,3>& updated_value = it_node->FastGetSolutionStepValue(rSolutionVariable);
             for (unsigned int jj=0; jj<TDim; ++jj)
             {
+                KRATOS_WATCH("before" << updated_value[jj])
                 updated_value[jj] = this->GetLocalValue( rCorrectedGuess, base_i+jj );
+                KRATOS_WATCH("after" << updated_value[jj])
             }
         }
 
@@ -380,6 +381,10 @@ public:
 
         }
 
+        rInterfaceModelPart.GetCommunicator().SynchronizeVariable(VELOCITY);
+        rInterfaceModelPart.GetCommunicator().SynchronizeVariable(MESH_VELOCITY);
+        rInterfaceModelPart.GetCommunicator().SynchronizeVariable(ACCELERATION);
+
     }
 
     /*@} */
@@ -431,9 +436,6 @@ protected:
             array_1d<double, 3>& rErrorStorage = it_node->FastGetSolutionStepValue(rErrorStorageVariable);
             const array_1d<double, 3>& value_fluid = it_node->FastGetSolutionStepValue(rOriginalVariable);
             const array_1d<double, 3>& value_fluid_projected = it_node->FastGetSolutionStepValue(rModifiedVariable);
-
-            // KRATOS_WATCH(value_fluid)
-            // KRATOS_WATCH(value_fluid_projected)
 
             rErrorStorage = value_fluid - value_fluid_projected;
         }

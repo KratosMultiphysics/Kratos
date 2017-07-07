@@ -30,9 +30,11 @@ def CreateSolver(structure_main_model_part, fluid_main_model_part, project_param
 class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base_solver.TrilinosPartitionedFSIBaseSolver):
     def __init__(self, structure_main_model_part, fluid_main_model_part, project_parameters):
 
-        print("*** Trilinos partitioned Dirichlet-Neumann FSI solver construction starts...")
+        if (KratosMPI.mpi.rank == 0) : print("*** Trilinos partitioned Dirichlet-Neumann FSI solver construction starts...")
+
         super(TrilinosPartitionedFSIDirichletNeumannSolver, self).__init__(structure_main_model_part, fluid_main_model_part, project_parameters)
-        print("*** Trilinos partitioned Dirichlet-Neumann FSI solver construction finished.")
+
+        if (KratosMPI.mpi.rank == 0) : print("*** Trilinos partitioned Dirichlet-Neumann FSI solver construction finished.")
 
 
     def Initialize(self):
@@ -98,13 +100,13 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         ## Non-Linear interface coupling iteration ##
         for nl_it in range(1,self.max_nl_it+1):
 
-            print("     NL-ITERATION ",nl_it,"STARTS.")
+            if (KratosMPI.mpi.rank == 0) : print("     NL-ITERATION ",nl_it,"STARTS.")
             self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.CONVERGENCE_ACCELERATOR_ITERATION] = nl_it
             self.structure_solver.main_model_part.ProcessInfo[KratosMultiphysics.CONVERGENCE_ACCELERATOR_ITERATION] = nl_it
 
             self.coupling_utility.InitializeNonLinearIteration()
 
-            print("     Residual computation starts...")
+            if (KratosMPI.mpi.rank == 0) : print("     Residual computation starts...")
             # Sets self.iteration_value as MESH_DISPLACEMENT
             # Solves the mesh problem
             # Sets self.iteration_value derivatives as VELOCITY, ACCELERATION and MESH_VELOCITY
@@ -127,22 +129,26 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
 
             # Check convergence
             if nl_res_norm/math.sqrt(interface_dofs) < self.nl_tol:
-                print("     NON-LINEAR ITERATION CONVERGENCE ACHIEVED")
-                print("     Total non-linear iterations: ",nl_it," |res|/sqrt(Ndofs) = ",nl_res_norm/math.sqrt(interface_dofs))
+                if (KratosMPI.mpi.rank == 0):
+                    print("     NON-LINEAR ITERATION CONVERGENCE ACHIEVED")
+                    print("     Total non-linear iterations: ",nl_it," |res|/sqrt(Ndofs) = ",nl_res_norm/math.sqrt(interface_dofs))
+
                 break
             else:
                 # If convergence is not achieved, perform the correction of the prediction
-                print("     Residual computation finished. |res|/sqrt(Ndofs) =", nl_res_norm/math.sqrt(interface_dofs))
-                print("     Performing non-linear iteration ",nl_it," correction.")
-                # self.coupling_utility.UpdateSolution(vel_residual, self.iteration_value)
-                self.coupling_utility.UpdateSolution(dis_residual, self.iteration_value)
+                if (KratosMPI.mpi.rank == 0):
+                    print("     Residual computation finished. |res|/sqrt(Ndofs) =", nl_res_norm/math.sqrt(interface_dofs))
+                    print("     Performing non-linear iteration ",nl_it," correction.")
+
+                self.coupling_utility.UpdateSolution(dis_residual.GetReference(), self.iteration_value.GetReference())
                 self.coupling_utility.FinalizeNonLinearIteration()
 
         ## Compute the mesh residual as final testing (it is expected to be 0)
         self.trilinos_partitioned_fsi_utilities.ComputeFluidInterfaceMeshVelocityResidualNorm(self._GetFluidInterfaceSubmodelPart())
         mesh_res_norm = self.fluid_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.FSI_INTERFACE_MESH_RESIDUAL_NORM)
-        print("     NL residual norm: ", nl_res_norm)
-        print("     Mesh residual norm: ", mesh_res_norm)
+        if (KratosMPI.mpi.rank == 0):
+            print("     NL residual norm: ", nl_res_norm)
+            print("     Mesh residual norm: ", mesh_res_norm)
 
         ## Finalize solution step
         self.fluid_solver.FinalizeSolutionStep()
@@ -252,9 +258,12 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
 
 
     def _ComputeDisplacementResidualSingleFaced(self):
-        # Project the structure velocity onto the fluid interface
-        self.interface_mapper.InverseMap(KratosMultiphysics.DISPLACEMENT,
-                                         KratosMultiphysics.VECTOR_PROJECTED)
+        # Project the structure displacement onto the fluid interface
+        #TODO: CHECK THE VARIABLES ORDER IN MAPPING
+        # self.interface_mapper.InverseMap(KratosMultiphysics.DISPLACEMENT,
+        #                                  KratosMultiphysics.VECTOR_PROJECTED)
+        self.interface_mapper.InverseMap(KratosMultiphysics.VECTOR_PROJECTED,
+                                         KratosMultiphysics.DISPLACEMENT)
 
         # Compute the fluid interface residual vector by means of the VECTOR_PROJECTED variable
         # Besides, its norm is stored within the ProcessInfo.

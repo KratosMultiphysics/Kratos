@@ -29,7 +29,7 @@ def CreateSolver(structure_main_model_part, fluid_main_model_part, project_param
 class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFSIBaseSolver):
     def __init__(self, structure_main_model_part, fluid_main_model_part, project_parameters):
 
-        print("** Calling the partitioned FSI Trilinos base solver constructor...")
+        if (KratosMPI.mpi.rank == 0) : print("** Calling the partitioned FSI Trilinos base solver constructor...")
 
         #TODO: Overwrite the fields in the base class default_settings and call the base class constructor?¿?¿
 
@@ -40,9 +40,9 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         end_time_fluid = project_parameters["fluid_solver_settings"]["problem_data"]["end_time"].GetDouble()
 
         if start_time_structure != start_time_fluid:
-            raise("ERROR: Different initial time among subdomains!")
+            if (KratosMPI.mpi.rank == 0) : raise("ERROR: Different initial time among subdomains!")
         if end_time_structure != end_time_fluid:
-            raise("ERROR: Different final time among subdomains!")
+            if (KratosMPI.mpi.rank == 0) : raise("ERROR: Different final time among subdomains!")
 
         #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.structure_main_model_part = structure_main_model_part
@@ -157,11 +157,11 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         if (project_parameters["fluid_solver_settings"]["solver_settings"]["time_stepping"]["automatic_time_step"].GetBool()):
             project_parameters["fluid_solver_settings"]["solver_settings"]["time_stepping"]["automatic_time_step"].SetBool(False)
             time_step_fluid = time_step_structure
-            print("WARNING: Automatic fluid time stepping cannot be used. Setting structure time step as fluid time step.")
+            if (KratosMPI.mpi.rank == 0) : print("WARNING: Automatic fluid time stepping cannot be used. Setting structure time step as fluid time step.")
         else:
             time_step_fluid = project_parameters["fluid_solver_settings"]["solver_settings"]["time_stepping"]["time_step"].GetDouble()
             if time_step_structure != time_step_fluid:
-                raise("ERROR: Different time step among subdomains! No sub-stepping implemented yet.")
+                if (KratosMPI.mpi.rank == 0) : raise("ERROR: Different time step among subdomains! No sub-stepping implemented yet.")
 
         self.time_step = time_step_fluid
 
@@ -188,17 +188,17 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         structure_solver_module = __import__(self.settings["structure_solver_settings"]["solver_type"].GetString())
         self.structure_solver = structure_solver_module.CreateSolver(self.structure_main_model_part,
                                                                      self.settings["structure_solver_settings"])
-        print("* Structure solver constructed.")
+        if (KratosMPI.mpi.rank == 0) : print("* Structure solver constructed.")
 
         # Construct the fluid solver
         self.fluid_solver = python_solvers_wrapper_fluid.CreateSolver(self.fluid_main_model_part,
                                                                       project_parameters["fluid_solver_settings"])
-        print("* Fluid solver constructed.")
+        if (KratosMPI.mpi.rank == 0) : print("* Fluid solver constructed.")
 
         # Construct the coupling partitioned strategy
         import convergence_accelerator_factory
-        self.coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(coupling_utility_parameters)
-        print("* Coupling strategy constructed.")
+        self.coupling_utility = convergence_accelerator_factory.CreateTrilinosConvergenceAccelerator(coupling_utility_parameters)
+        if (KratosMPI.mpi.rank == 0) : print("* Coupling strategy constructed.")
 
         # Construct the ALE mesh solver
         mesh_solver_settings = KratosMultiphysics.Parameters("{}")
@@ -207,8 +207,9 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         self.mesh_solver_module = __import__(self.settings["coupling_solver_settings"]["mesh_solver"].GetString())
         self.mesh_solver = self.mesh_solver_module.CreateSolver(self.fluid_solver.main_model_part,
                                                                 mesh_solver_settings)
-        print("* ALE mesh solver constructed.")
-        print("** Partitioned FSI base solver constructed.")
+        if (KratosMPI.mpi.rank == 0):
+            print("* ALE mesh solver constructed.")
+            print("** Partitioned FSI base solver constructed.")
 
 
     # FROM BASE SOLVER, TODO: should this be return max()?¿?¿?¿
@@ -489,7 +490,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
     # TODO: GET IT FROM THE SERIAL BASE SOLVER ONCE THE MAPPER IN MAPPING APPLICATION IS USED IN SERIAL PROBLEMS AS WELL
     def _ComputeMeshPredictionSingleFaced(self):
 
-            print("Computing time step ",self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]," prediction...")
+            if (KratosMPI.mpi.rank == 0) : print("Computing time step ",self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]," prediction...")
             # Get the previous step fluid interface nodal fluxes
             self.interface_mapper.Map(KratosMultiphysics.REACTION,
                                       KratosStructural.POINT_LOAD,
@@ -500,13 +501,16 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
             self.structure_solver.SolveSolutionStep()
 
             # Map the obtained structure displacement to the fluid interface
-            self.interface_mapper.InverseMap(KratosMultiphysics.DISPLACEMENT,
-                                             KratosMultiphysics.MESH_DISPLACEMENT)
+            #TODO: CHECK THE VARIABLES ORDER IN MAPPING
+            # self.interface_mapper.InverseMap(KratosMultiphysics.DISPLACEMENT,
+            #                                  KratosMultiphysics.MESH_DISPLACEMENT)
+            self.interface_mapper.InverseMap(KratosMultiphysics.MESH_DISPLACEMENT,
+                                             KratosMultiphysics.DISPLACEMENT)
 
             # Solve the mesh problem
             self.mesh_solver.Solve()
 
-            print("Mesh prediction computed.")
+            if (KratosMPI.mpi.rank == 0) : print("Mesh prediction computed.")
 
 
     # FROM BASE SOLVER
