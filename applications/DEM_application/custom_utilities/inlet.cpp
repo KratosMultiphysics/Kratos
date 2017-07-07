@@ -373,8 +373,8 @@ namespace Kratos {
                 const double double_number_of_particles_to_insert = num_part_surface_time * delta_t * surface + mPartialParticleToInsert[smp_number];
 
                 if (double_number_of_particles_to_insert < INT_MAX){ // otherwise the precision is not enough to see the residuals
-                    mPartialParticleToInsert[smp_number] = double_number_of_particles_to_insert - number_of_particles_to_insert;
                     number_of_particles_to_insert = std::trunc(double_number_of_particles_to_insert);
+                    mPartialParticleToInsert[smp_number] = double_number_of_particles_to_insert - number_of_particles_to_insert;
                 }
 
                 else {
