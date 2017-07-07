@@ -333,7 +333,9 @@ public:
 
 		  if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH))
 		    {
-		      accepted=ModelerUtils.CheckOuterCentre(vertices,mrRemesh.OffsetFactor, self_contact);
+		      //problems in 3D: take care
+		      if(self_contact)
+			accepted=ModelerUtils.CheckOuterCentre(vertices,mrRemesh.OffsetFactor, self_contact);
 		    }
 		  else
 		    {
@@ -363,7 +365,12 @@ public:
 		    accepted = ModelerUtils.CheckGeometryShape(*tetrahedron,sliver);
 		
 		    if( sliver ){
-		      accepted = false;
+
+		      if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH))
+			accepted = true;
+		      else
+			accepted = false;
+		      
 		      number_of_slivers++;
 		    }
 
