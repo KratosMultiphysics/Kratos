@@ -240,6 +240,22 @@ namespace Kratos
         const Vector Displacements
         )
     {
+        // Axisymmetric case
+        if (rThisConstitutiveVariables.StrainVector.size() == 4)
+        {
+            rThisKinematicVariables.F.resize(3, 3); // We keep the old values
+            for (unsigned int index = 0; index < 1; index++)
+            {
+                rThisKinematicVariables.F(index, 2) = 0.0;
+                rThisKinematicVariables.F(2, index) = 0.0;
+            }
+
+            rThisKinematicVariables.N = GetGeometry().ShapeFunctionsValues( rThisKinematicVariables.N, IntegrationPoints[PointNumber].Coordinates() );
+            const double current_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, GetGeometry(), Current);
+            const double initial_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, GetGeometry(), Initial);
+            rThisKinematicVariables.F(2, 2) = current_radius/initial_radius;
+        }
+        
         // Here we essentially set the input parameters
         rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
         const double detFT = rThisKinematicVariables.detF * mDetF0[PointNumber];

@@ -386,10 +386,14 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         
         #A,b = self._define_movement_UL(dim)
         
+        #self.__prepare_post_process(mp)
+        
         #self._apply_BCs(bcs,A,b)
         #self._solve(mp)
-        #self._check_results(mp,A,b)
-        #self._check_outputs(mp,A,dim)
+        ##self._check_results(mp,A,b)
+        ##self._check_outputs(mp,A,dim)
+        
+        #self.__execute_post_process(mp)
         
     #def test_UL_2D_quadrilateral(self):
         #dim = 2
@@ -479,6 +483,34 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         #self._solve(mp)
         #self._check_results(mp,A,b)
         #self._check_outputs(mp,A,dim)
+
+    def __prepare_post_process(self, main_model_part):
+        from gid_output_process import GiDOutputProcess
+        self.gid_output = GiDOutputProcess(main_model_part,
+                                    "gid_output",
+                                    KratosMultiphysics.Parameters("""
+                                        {
+                                            "result_file_configuration" : {
+                                                "gidpost_flags": {
+                                                    "GiDPostMode": "GiD_PostBinary",
+                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                    "WriteConditionsFlag": "WriteConditions",
+                                                    "MultiFileFlag": "SingleFile"
+                                                },        
+                                                "nodal_results"       : ["DISPLACEMENT"]
+                                            }
+                                        }
+                                        """)
+                                    )
+
+        self.gid_output.ExecuteInitialize()
+        self.gid_output.ExecuteBeforeSolutionLoop()
+        self.gid_output.ExecuteInitializeSolutionStep()
+        
+    def __execute_post_process(self, main_model_part):
+        self.gid_output.PrintOutput()
+        self.gid_output.ExecuteFinalizeSolutionStep()
+        self.gid_output.ExecuteFinalize()
 
 if __name__ == '__main__':
     KratosUnittest.main()
