@@ -92,15 +92,15 @@ class TestRemeshMMG(KratosUnittest.TestCase):
                                         """)
                                     )
 
-        gid_output.ExecuteInitialize()
-        gid_output.ExecuteBeforeSolutionLoop()
-        gid_output.ExecuteInitializeSolutionStep()
+        #gid_output.ExecuteInitialize()
+        #gid_output.ExecuteBeforeSolutionLoop()
+        #gid_output.ExecuteInitializeSolutionStep()
         #gid_output.PrintOutput()
-        gid_output.ExecuteFinalizeSolutionStep()
-        gid_output.ExecuteFinalize()  
+        #gid_output.ExecuteFinalizeSolutionStep()
+        #gid_output.ExecuteFinalize()  
         
         import filecmp 
-        value = filecmp.cmp("mmg_eulerian_test/coarse_sphere_test_result.mesh", "mmg_eulerian_test/coarse_sphere_test.o.mesh")
+        value = filecmp.cmp("mmg_eulerian_test/coarse_sphere_test_result.mesh", "mmg_eulerian_test/coarse_sphere_test_step=0.o.mesh")
         self.assertTrue(value)
         
 if __name__ == '__main__':
