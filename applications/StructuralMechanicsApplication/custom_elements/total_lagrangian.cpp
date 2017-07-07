@@ -68,7 +68,6 @@ namespace Kratos
 
         KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
         ConstitutiveVariables this_constitutive_variables(strain_size);
-        this_constitutive_variables.StressMeasure = GetStressMeasure();
         
         // Resizing as needed the LHS
         const unsigned int mat_size = number_of_nodes * dimension;
@@ -117,7 +116,7 @@ namespace Kratos
             CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
             
             // Compute material reponse
-            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
+            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
             // Calculating weights for integration on the reference configuration
             double int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0); 
@@ -188,6 +187,7 @@ namespace Kratos
         ConstitutiveLaw::Parameters& rValues,
         const unsigned int PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure,
         const Vector Displacements
         )
     {
@@ -217,7 +217,7 @@ namespace Kratos
         rValues.SetStressVector(rThisConstitutiveVariables.StressVector); //F computed somewhere else
         
         // Actually do the computations in the ConstitutiveLaw    
-        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, rThisConstitutiveVariables.StressMeasure); //here the calculations are actually done 
+        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done 
     }
 
     //************************************************************************************

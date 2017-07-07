@@ -84,7 +84,6 @@ namespace Kratos
             
         KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
         ConstitutiveVariables this_constitutive_variables(strain_size);
-        this_constitutive_variables.StressMeasure = GetStressMeasure();
 
         // Create constitutive law parameters:
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -111,7 +110,7 @@ namespace Kratos
             CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
             
             // Call the constitutive law to update material variables
-            mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, this_constitutive_variables.StressMeasure);
+            mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, GetStressMeasure());
             
             mConstitutiveLawVector[point_number]->FinalizeSolutionStep( GetProperties(),
             GetGeometry(),
@@ -151,7 +150,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    ConstitutiveLaw::StressMeasure BaseSolidElement::GetStressMeasure()
+    ConstitutiveLaw::StressMeasure BaseSolidElement::GetStressMeasure() const
     {
         return ConstitutiveLaw::StressMeasure_PK2;
     }
@@ -592,7 +591,6 @@ namespace Kratos
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
             ConstitutiveVariables this_constitutive_variables(strain_size);
-            this_constitutive_variables.StressMeasure = GetStressMeasure();
 
             // Create constitutive law parameters:
             ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -618,17 +616,16 @@ namespace Kratos
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
                 
-                // Compute material reponse
-                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, displacements);
-
                 //call the constitutive law to update material variables
                 if( rVariable == CAUCHY_STRESS_VECTOR)
                 {
-                    mConstitutiveLawVector[point_number]->CalculateMaterialResponseCauchy(Values);
+                    // Compute material reponse
+                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy, displacements);
                 }
                 else
                 {
-                    mConstitutiveLawVector[point_number]->CalculateMaterialResponsePK2(Values);
+                    // Compute material reponse
+                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points,ConstitutiveLaw::StressMeasure_PK2, displacements);
                 }
 
                 if ( rOutput[point_number].size() != strain_size )
@@ -648,7 +645,6 @@ namespace Kratos
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
             ConstitutiveVariables this_constitutive_variables(strain_size);
-            this_constitutive_variables.StressMeasure = GetStressMeasure();
             
             // Create constitutive law parameters:
             ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -675,7 +671,7 @@ namespace Kratos
                 CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
 
                 // Compute material reponse
-                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, displacements);
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), displacements);
 
                 if ( rOutput[point_number].size() != strain_size)
                 {
@@ -714,53 +710,52 @@ namespace Kratos
         {
             rOutput.resize( GetGeometry().IntegrationPoints(  ).size() );
         }
-
+        
         if ( rVariable == CAUCHY_STRESS_TENSOR || rVariable == PK2_STRESS_TENSOR )
         {
-            std::vector<Vector> StressVector;
+            std::vector<Vector> stress_vector;
         
             if( rVariable == CAUCHY_STRESS_TENSOR )
             {
-                this->CalculateOnIntegrationPoints( CAUCHY_STRESS_VECTOR, StressVector, rCurrentProcessInfo );
+                this->CalculateOnIntegrationPoints( CAUCHY_STRESS_VECTOR, stress_vector, rCurrentProcessInfo );
             }
             else
             {
-                this->CalculateOnIntegrationPoints( PK2_STRESS_VECTOR, StressVector, rCurrentProcessInfo );
+                this->CalculateOnIntegrationPoints( PK2_STRESS_VECTOR, stress_vector, rCurrentProcessInfo );
             }
-
-            //loop integration points
-            for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
+            
+            // Loop integration points
+            for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); point_number++ )
             {
-                if ( rOutput[PointNumber].size2() != dimension )
+                if ( rOutput[point_number].size2() != dimension )
                 {
-                    rOutput[PointNumber].resize( dimension, dimension, false );
+                    rOutput[point_number].resize( dimension, dimension, false );
                 }
-
-                rOutput[PointNumber] = MathUtils<double>::StressVectorToTensor(StressVector[PointNumber]);
+                
+                rOutput[point_number] = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
             }
         }
         else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == ALMANSI_STRAIN_TENSOR)
         {
-
-            std::vector<Vector> StrainVector;
+            std::vector<Vector> strain_vector;
             if( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
             {
-                CalculateOnIntegrationPoints( GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
+                CalculateOnIntegrationPoints( GREEN_LAGRANGE_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo );
             }
             else
             {
-                CalculateOnIntegrationPoints( ALMANSI_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
+                CalculateOnIntegrationPoints( ALMANSI_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo );
             }
 
             // Loop integration points
-            for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
+            for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); point_number++ )
             {
-                if ( rOutput[PointNumber].size2() != dimension )
+                if ( rOutput[point_number].size2() != dimension )
                 {
-                    rOutput[PointNumber].resize( dimension, dimension, false );
+                    rOutput[point_number].resize( dimension, dimension, false );
                 }
 
-                rOutput[PointNumber] = MathUtils<double>::StrainVectorToTensor(StrainVector[PointNumber]);
+                rOutput[point_number] = MathUtils<double>::StrainVectorToTensor(strain_vector[point_number]);
             }
         }
         else if ( rVariable == CONSTITUTIVE_MATRIX )
@@ -771,7 +766,6 @@ namespace Kratos
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
             ConstitutiveVariables this_constitutive_variables(strain_size);
-            this_constitutive_variables.StressMeasure = GetStressMeasure();
 
             // Create constitutive law parameters:
             ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -798,10 +792,10 @@ namespace Kratos
                 CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
 
                 // Compute material reponse
-                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, displacements);
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), displacements);
 
                 // Call the constitutive law to update material variables
-                mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, this_constitutive_variables.StressMeasure);
+                mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, GetStressMeasure());
 
                 if( rOutput[point_number].size2() != this_constitutive_variables.D.size2() )
                 {
@@ -819,7 +813,6 @@ namespace Kratos
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
             ConstitutiveVariables this_constitutive_variables(strain_size);
-            this_constitutive_variables.StressMeasure = GetStressMeasure();
 
             // Reading integration points
             const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
@@ -838,7 +831,7 @@ namespace Kratos
                 CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
 
                 // Compute material reponse
-                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, displacements);
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), displacements);
 
                 if( rOutput[point_number].size2() != this_kinematic_variables.F.size2() )
                 {
@@ -870,7 +863,9 @@ namespace Kratos
         for ( unsigned int point_number = 0; point_number < GetGeometry().IntegrationPoints(  ).size(); point_number++ )
         {
             mConstitutiveLawVector[point_number]->SetValue( rVariable,
-                    rValues[point_number], rCurrentProcessInfo );
+                                                            rValues[point_number], 
+                                                            rCurrentProcessInfo 
+                                                            );
         }
 
     }
@@ -888,7 +883,9 @@ namespace Kratos
         for ( unsigned int point_number = 0; point_number < GetGeometry().IntegrationPoints(  ).size(); point_number++ )
         {
             mConstitutiveLawVector[point_number]->SetValue( rVariable,
-                    rValues[point_number], rCurrentProcessInfo );
+                                                            rValues[point_number], 
+                                                            rCurrentProcessInfo 
+                                                            );
         }
     }
 
@@ -904,7 +901,9 @@ namespace Kratos
         for ( unsigned int point_number = 0; point_number < GetGeometry().IntegrationPoints(  ).size(); point_number++ )
         {
             mConstitutiveLawVector[point_number]->SetValue( rVariable,
-                    rValues[point_number], rCurrentProcessInfo );
+                                                            rValues[point_number], 
+                                                            rCurrentProcessInfo 
+                                                            );
         }
 
     }
@@ -918,17 +917,8 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo 
         )
     {
-        if ( rValues.size() != GetGeometry().IntegrationPoints(  ).size() )
-        {
-            rValues.resize( GetGeometry().IntegrationPoints(  ).size(), false );
-        }
-
-        for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
-        {
-            rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
-        }
+        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
     }
-
 
     //************************************************************************************
     //************************************************************************************
@@ -946,27 +936,6 @@ namespace Kratos
             rValues.resize( size );
         }
 
-        //TODO: decide which is the correct one
-//         if ( rVariable == INSITU_STRESS || rVariable == PRESTRESS )
-//         {
-//             for ( unsigned int point_number = 0;
-//                     point_number < GetGeometry().IntegrationPoints(  ).size();
-//                     point_number++ )
-//             {
-//                 rValues[point_number] =
-//                     mConstitutiveLawVector[point_number]->GetValue( PRESTRESS, rValues[point_number] );
-//             }
-//         }
-//         if ( rVariable == PLASTIC_STRAIN_VECTOR )
-//         {
-//             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-//             {
-//                 if ( rValues[i].size() != 6 )
-//                     rValues[i].resize( 6 );
-//                 noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( PLASTIC_STRAIN_VECTOR, rValues[i] );
-//             }
-//         }
-//        
         if ( rVariable == STRESSES )
         {
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
@@ -978,7 +947,7 @@ namespace Kratos
                 noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( STRESSES, rValues[i] );
             }
         }
-        if ( rVariable == MATERIAL_PARAMETERS )
+        else if ( rVariable == MATERIAL_PARAMETERS )
         {
             for ( unsigned int point_number = 0; point_number < GetGeometry().IntegrationPoints(  ).size(); point_number++ )
             {
@@ -986,14 +955,37 @@ namespace Kratos
                     mConstitutiveLawVector[point_number]->GetValue( MATERIAL_PARAMETERS, rValues[point_number] );
             }
         }
-
-        if ( rVariable == INTERNAL_VARIABLES )
+        else if ( rVariable == INTERNAL_VARIABLES )
         {
             for ( unsigned int point_number = 0; point_number < GetGeometry().IntegrationPoints(  ).size(); point_number++ )
             {
                 rValues[point_number] =
                     mConstitutiveLawVector[point_number]->GetValue( INTERNAL_VARIABLES, rValues[point_number] );
             }
+        }
+//         //TODO: decide which is the correct one
+//         else if ( rVariable == INSITU_STRESS || rVariable == PRESTRESS )
+//         {
+//             for ( unsigned int point_number = 0;
+//                     point_number < GetGeometry().IntegrationPoints(  ).size();
+//                     point_number++ )
+//             {
+//                 rValues[point_number] =
+//                     mConstitutiveLawVector[point_number]->GetValue( PRESTRESS, rValues[point_number] );
+//             }
+//         }
+//         else if ( rVariable == PLASTIC_STRAIN_VECTOR )
+//         {
+//             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+//             {
+//                 if ( rValues[i].size() != 6 )
+//                     rValues[i].resize( 6 );
+//                 noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( PLASTIC_STRAIN_VECTOR, rValues[i] );
+//             }
+//         } 
+        else
+        {
+            CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
         }
     }
 
@@ -1006,21 +998,7 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo 
         )
     {
-        if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
-        {
-            CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-        }
-
-        if ( rVariable == PK2_STRESS_TENSOR )
-        {
-            CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-        }
-
-//         if ( rVariable == GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR )
-//         {
-//             CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-//         }
-
+        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
     }
 
     //************************************************************************************
@@ -1152,6 +1130,7 @@ namespace Kratos
         ConstitutiveLaw::Parameters& rValues,
         const unsigned int PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure,
         const Vector Displacements
         )
     {

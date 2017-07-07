@@ -104,8 +104,6 @@ protected:
         Vector StressVector;
         Matrix D;
         
-        ConstitutiveLaw::StressMeasure StressMeasure;
-        
         /**
          * The default constructor
          * @param StrainSize: The size of the strain vector in Voigt notation
@@ -115,8 +113,6 @@ protected:
             StrainVector = ZeroVector(StrainSize);
             StressVector = ZeroVector(StrainSize);
             D = ZeroMatrix(StrainSize, StrainSize);
-            
-            StressMeasure = ConstitutiveLaw::StressMeasure_PK2;
         }
     };
 public:
@@ -458,7 +454,7 @@ protected:
     /**
      * Gives the StressMeasure used
      */
-    virtual ConstitutiveLaw::StressMeasure GetStressMeasure();
+    virtual ConstitutiveLaw::StressMeasure GetStressMeasure() const;
     
     /**
      * It updates the historical database
@@ -505,6 +501,7 @@ protected:
      * @param rValues: The CL parameters
      * @param PointNumber: The integration point considered
      * @param IntegrationPoints: The list of integration points
+     * @param ThisStressMeasure: The stress measure considered
      * @param Displacements: The displacements vector
      */ 
     virtual void CalculateConstitutiveVariables(
@@ -513,6 +510,7 @@ protected:
         ConstitutiveLaw::Parameters& rValues,
         const unsigned int PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure,
         const Vector Displacements
         );
     
