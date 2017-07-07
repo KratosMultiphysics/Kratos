@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Import utilities
+import math
 # import NonConformant_OneSideMap                # Import non-conformant mapper #TODO: USE THE NEW MAPPER
 import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
 
@@ -139,7 +140,7 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
 
         ## Compute the mesh residual as final testing (it is expected to be 0)
         self.trilinos_partitioned_fsi_utilities.ComputeFluidInterfaceMeshVelocityResidualNorm(self._GetFluidInterfaceSubmodelPart())
-        mesh_res_norm = self.fluid_solver.main_model_part.ProcessInfo.GetValue(KratosFSI.FSI_INTERFACE_MESH_RESIDUAL_NORM)
+        mesh_res_norm = self.fluid_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.FSI_INTERFACE_MESH_RESIDUAL_NORM)
         print("     NL residual norm: ", nl_res_norm)
         print("     Mesh residual norm: ", mesh_res_norm)
 
@@ -258,8 +259,8 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         # Compute the fluid interface residual vector by means of the VECTOR_PROJECTED variable
         # Besides, its norm is stored within the ProcessInfo.
         disp_residual = self.trilinos_space.CreateEmptyVectorPointer(self.epetra_communicator)
-        self.trilinos_partitioned_fsi_utilities.SetUpInterfaceVector(self.fluid_solver.main_model_part, disp_residual)
-        self.trilinos_partitioned_fsi_utilities.ComputeInterfaceVectorResidual(self.fluid_solver.main_model_part,
+        self.trilinos_partitioned_fsi_utilities.SetUpInterfaceVector(self._GetFluidInterfaceSubmodelPart(), disp_residual)
+        self.trilinos_partitioned_fsi_utilities.ComputeInterfaceVectorResidual(self._GetFluidInterfaceSubmodelPart(),
                                                                                KratosMultiphysics.MESH_DISPLACEMENT,
                                                                                KratosMultiphysics.VECTOR_PROJECTED,
                                                                                disp_residual.GetReference())
@@ -276,18 +277,22 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         # the _GetFluidInterfaceSubmodelPart(), which is the one used to compute the interface residual,
         # gets the structure DISPLACEMENT. Think a way to properly identify the reference fluid interface.
         self.interface_mapper.StructureToPositiveFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
-                                                                 KratosFSI.VECTOR_PROJECTED,
+                                                                 KratosMultiphysics.VECTOR_PROJECTED,
                                                                  keep_sign,
                                                                  distribute_load)
         self.interface_mapper.StructureToNegativeFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
-                                                                 KratosFSI.VECTOR_PROJECTED,
+                                                                 KratosMultiphysics.VECTOR_PROJECTED,
                                                                  keep_sign,
                                                                  distribute_load)
 
         # Compute the fluid interface residual vector by means of the VECTOR_PROJECTED variable
         # Besides, its norm is stored within the ProcessInfo.
-        disp_residual = KratosMultiphysics.Vector(self.trilinos_partitioned_fsi_utilities.GetInterfaceResidualSize(self._GetFluidInterfaceSubmodelPart()))
-        self.trilinos_partitioned_fsi_utilities.ComputeInterfaceVectorResidual(self._GetFluidInterfaceSubmodelPart(), KratosMultiphysics.MESH_DISPLACEMENT, KratosFSI.VECTOR_PROJECTED, disp_residual)
+        disp_residual = self.trilinos_space.CreateEmptyVectorPointer(self.epetra_communicator)
+        self.trilinos_partitioned_fsi_utilities.SetUpInterfaceVector(self._GetFluidInterfaceSubmodelPart(), disp_residual)
+        self.trilinos_partitioned_fsi_utilities.ComputeInterfaceVectorResidual(self._GetFluidInterfaceSubmodelPart(),
+                                                                               KratosMultiphysics.MESH_DISPLACEMENT,
+                                                                               KratosMultiphysics.VECTOR_PROJECTED,
+                                                                               disp_residual.GetReference())
 
         return disp_residual
 

@@ -113,9 +113,12 @@ public:
      * number of interface nodes times the problem domain size.
      * @return the model part residual size
      */
-    inline unsigned int GetInterfaceResidualSize(const ModelPart& rInterfaceModelPart)
+    int GetInterfaceResidualSize(ModelPart& rInterfaceModelPart)
     {
-        return (rInterfaceModelPart.NumberOfNodes())*TDim;
+        int local_number_of_nodes = (rInterfaceModelPart.GetCommunicator().LocalMesh().NumberOfNodes())*TDim;
+        rInterfaceModelPart.GetCommunicator().SumAll(local_number_of_nodes);
+
+        return local_number_of_nodes;
     }
 
     /**
@@ -255,7 +258,7 @@ public:
         // Store the L2 norm of the error in the fluid process info
         rInterfaceModelPart.GetProcessInfo().GetValue(FSI_INTERFACE_RESIDUAL_NORM) = TSpace::TwoNorm(interface_residual);
 
-    };
+    }
 
     /**
      * This function computes the mesh velocity residual over the fluid interface.
@@ -268,35 +271,34 @@ public:
      */
     void ComputeFluidInterfaceMeshVelocityResidualNorm(ModelPart& rFluidInterfaceModelPart) // TODO: MPI parallelization
     {
-        KRATOS_ERROR << "This function must be reimplemented" << std::endl;
-        /*
-        VectorPointerType pFluidInterfaceMeshResidual;
+        VectorPointerType pFluidInterfaceMeshResidual = TSpace::CreateEmptyVectorPointer();
         this->SetUpInterfaceVector(rFluidInterfaceModelPart, pFluidInterfaceMeshResidual);
-        VectorType& fluid_interface_mesh_residual = *pFluidInterfaceMeshResidual;
 
         // Compute node-by-node residual
-        // this->ComputeNodeByNodeResidual(rFluidInterfaceModelPart, VELOCITY, MESH_VELOCITY, FSI_INTERFACE_MESH_RESIDUAL);
+        this->ComputeNodeByNodeResidual(rFluidInterfaceModelPart, VELOCITY, MESH_VELOCITY, FSI_INTERFACE_MESH_RESIDUAL);
 
         // Compute consitent residual
-        this->ComputeConsistentResidual(rFluidInterfaceModelPart, VELOCITY, MESH_VELOCITY, FSI_INTERFACE_MESH_RESIDUAL);
+        // this->ComputeConsistentResidual(rFluidInterfaceModelPart, VELOCITY, MESH_VELOCITY, FSI_INTERFACE_MESH_RESIDUAL);
 
         // Assemble the final consistent residual values
-        #pragma omp parallel for
-        for(int k=0; k<static_cast<int>(rFluidInterfaceModelPart.NumberOfNodes()); ++k)
+        auto& rLocalMesh = rFluidInterfaceModelPart.GetCommunicator().LocalMesh();
+        ModelPart::NodeIterator local_mesh_nodes_begin = rLocalMesh.NodesBegin();
+        #pragma omp parallel for firstprivate(local_mesh_nodes_begin)
+        for(int k=0; k<static_cast<int>(rLocalMesh.NumberOfNodes()); ++k)
         {
-            const ModelPart::NodeIterator it_node = rFluidInterfaceModelPart.NodesBegin()+k;
+            const ModelPart::NodeIterator it_node = local_mesh_nodes_begin+k;
             const unsigned int base_i = k*TDim;
 
             const array_1d<double,3>& fsi_mesh_res = it_node->FastGetSolutionStepValue(FSI_INTERFACE_MESH_RESIDUAL);
             for (unsigned int jj=0; jj<TDim; ++jj)
             {
-                TSpace::SetValue( fluid_interface_mesh_residual, base_i+jj, fsi_mesh_res[jj]);
+                this->SetLocalValue(*pFluidInterfaceMeshResidual, base_i+jj, fsi_mesh_res[jj]);
             }
         }
 
         // Store the L2 norm of the error in the fluid process info
-        rFluidInterfaceModelPart.GetProcessInfo().GetValue(FSI_INTERFACE_MESH_RESIDUAL_NORM) = TSpace::TwoNorm(fluid_interface_mesh_residual);
-*/
+        rFluidInterfaceModelPart.GetProcessInfo().GetValue(FSI_INTERFACE_MESH_RESIDUAL_NORM) = TSpace::TwoNorm(*pFluidInterfaceMeshResidual);
+
     }
 
     /**
@@ -417,16 +419,21 @@ protected:
                                    const Variable<array_1d<double, 3 > >& rErrorStorageVariable)
     {
         // Initialize the residual storage variable
-        VariableUtils().SetToZero_VectorVar(rErrorStorageVariable, rInterfaceModelPart.Nodes());
+        VariableUtils().SetToZero_VectorVar(rErrorStorageVariable, rInterfaceModelPart.GetCommunicator().LocalMesh().Nodes());
 
-        #pragma omp parallel for
-        for(int k=0; k<static_cast<int>(rInterfaceModelPart.NumberOfNodes()); ++k)
+        auto& rLocalMesh = rInterfaceModelPart.GetCommunicator().LocalMesh();
+        ModelPart::NodeIterator local_mesh_nodes_begin = rLocalMesh.NodesBegin();
+        #pragma omp parallel for firstprivate(local_mesh_nodes_begin)
+        for(int k=0; k<static_cast<int>(rLocalMesh.NumberOfNodes()); ++k)
         {
-            ModelPart::NodeIterator it_node = rInterfaceModelPart.NodesBegin()+k;
-            array_1d<double, 3>& rErrorStorage = it_node->FastGetSolutionStepValue(rErrorStorageVariable);
+            ModelPart::NodeIterator it_node = local_mesh_nodes_begin+k;
 
+            array_1d<double, 3>& rErrorStorage = it_node->FastGetSolutionStepValue(rErrorStorageVariable);
             const array_1d<double, 3>& value_fluid = it_node->FastGetSolutionStepValue(rOriginalVariable);
             const array_1d<double, 3>& value_fluid_projected = it_node->FastGetSolutionStepValue(rModifiedVariable);
+
+            // KRATOS_WATCH(value_fluid)
+            // KRATOS_WATCH(value_fluid_projected)
 
             rErrorStorage = value_fluid - value_fluid_projected;
         }

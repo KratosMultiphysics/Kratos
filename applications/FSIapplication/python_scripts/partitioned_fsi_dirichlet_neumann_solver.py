@@ -89,8 +89,8 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         for nl_it in range(1,self.max_nl_it+1):
 
             print("     NL-ITERATION ",nl_it,"STARTS.")
-            self.fluid_solver.main_model_part.ProcessInfo[KratosFSI.CONVERGENCE_ACCELERATOR_ITERATION] = nl_it
-            self.structure_solver.main_model_part.ProcessInfo[KratosFSI.CONVERGENCE_ACCELERATOR_ITERATION] = nl_it
+            self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.CONVERGENCE_ACCELERATOR_ITERATION] = nl_it
+            self.structure_solver.main_model_part.ProcessInfo[KratosMultiphysics.CONVERGENCE_ACCELERATOR_ITERATION] = nl_it
 
             self.coupling_utility.InitializeNonLinearIteration()
 
@@ -112,7 +112,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
                 dis_residual = self._ComputeDisplacementResidualSingleFaced()
 
             # Residual computation
-            nl_res_norm = self.fluid_solver.main_model_part.ProcessInfo[KratosFSI.FSI_INTERFACE_RESIDUAL_NORM]
+            nl_res_norm = self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.FSI_INTERFACE_RESIDUAL_NORM]
             interface_dofs = self.partitioned_fsi_utilities.GetInterfaceResidualSize(self._GetFluidInterfaceSubmodelPart())
 
             # Check convergence
@@ -130,7 +130,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
 
         ## Compute the mesh residual as final testing (it is expected to be 0)
         self.partitioned_fsi_utilities.ComputeFluidInterfaceMeshVelocityResidualNorm(self._GetFluidInterfaceSubmodelPart())
-        mesh_res_norm = self.fluid_solver.main_model_part.ProcessInfo.GetValue(KratosFSI.FSI_INTERFACE_MESH_RESIDUAL_NORM)
+        mesh_res_norm = self.fluid_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.FSI_INTERFACE_MESH_RESIDUAL_NORM)
         print("     NL residual norm: ", nl_res_norm)
         print("     Mesh residual norm: ", mesh_res_norm)
 
@@ -196,7 +196,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         self._ComputeCorrectedInterfaceDisplacementDerivatives()
 
         # Solve fluid problem
-        self.fluid_solver.SolverSolveSolutionStep()
+        self.fluid_solver.SolveSolutionStep()
 
 
     def _SolveStructureSingleFaced(self):
@@ -219,19 +219,19 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         keep_sign = False
         distribute_load = True
         self.interface_mapper.PositiveFluidToStructure_VectorMap(KratosMultiphysics.REACTION,
-                                                                 KratosFSI.POSITIVE_MAPPED_VECTOR_VARIABLE,
+                                                                 KratosMultiphysics.POSITIVE_MAPPED_VECTOR_VARIABLE,
                                                                  keep_sign,
                                                                  distribute_load)
         self.interface_mapper.NegativeFluidToStructure_VectorMap(KratosMultiphysics.REACTION,
-                                                                 KratosFSI.NEGATIVE_MAPPED_VECTOR_VARIABLE,
+                                                                 KratosMultiphysics.NEGATIVE_MAPPED_VECTOR_VARIABLE,
                                                                  keep_sign,
                                                                  distribute_load)
 
         # Add the two faces contributions to the POINT_LOAD variable
         # TODO: Add this to the variables utils
         for node in self._GetStructureInterfaceSubmodelPart().Nodes:
-            pos_face_force = node.GetSolutionStepValue(KratosFSI.POSITIVE_MAPPED_VECTOR_VARIABLE)
-            neg_face_force = node.GetSolutionStepValue(KratosFSI.NEGATIVE_MAPPED_VECTOR_VARIABLE)
+            pos_face_force = node.GetSolutionStepValue(KratosMultiphysics.POSITIVE_MAPPED_VECTOR_VARIABLE)
+            neg_face_force = node.GetSolutionStepValue(KratosMultiphysics.NEGATIVE_MAPPED_VECTOR_VARIABLE)
             node.SetSolutionStepValue(KratosStructural.POINT_LOAD, 0, pos_face_force+neg_face_force)
 
         # Solve the structure problem
@@ -243,14 +243,14 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         keep_sign = True
         distribute_load = False
         self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
-                                                         KratosFSI.VECTOR_PROJECTED,
+                                                         KratosMultiphysics.VECTOR_PROJECTED,
                                                          keep_sign,
                                                          distribute_load)
 
         # Compute the fluid interface residual vector by means of the VECTOR_PROJECTED variable
         # Besides, its norm is stored within the ProcessInfo.
         disp_residual = KratosMultiphysics.Vector(self.partitioned_fsi_utilities.GetInterfaceResidualSize(self._GetFluidInterfaceSubmodelPart()))
-        self.partitioned_fsi_utilities.ComputeInterfaceVectorResidual(self._GetFluidInterfaceSubmodelPart(), KratosMultiphysics.MESH_DISPLACEMENT, KratosFSI.VECTOR_PROJECTED, disp_residual)
+        self.partitioned_fsi_utilities.ComputeInterfaceVectorResidual(self._GetFluidInterfaceSubmodelPart(), KratosMultiphysics.MESH_DISPLACEMENT, KratosMultiphysics.VECTOR_PROJECTED, disp_residual)
 
         return disp_residual
 
@@ -263,11 +263,11 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         # the _GetFluidInterfaceSubmodelPart(), which is the one used to compute the interface residual,
         # gets the structure DISPLACEMENT. Think a way to properly identify the reference fluid interface.
         self.interface_mapper.StructureToPositiveFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
-                                                                 KratosFSI.VECTOR_PROJECTED,
+                                                                 KratosMultiphysics.VECTOR_PROJECTED,
                                                                  keep_sign,
                                                                  distribute_load)
         self.interface_mapper.StructureToNegativeFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
-                                                                 KratosFSI.VECTOR_PROJECTED,
+                                                                 KratosMultiphysics.VECTOR_PROJECTED,
                                                                  keep_sign,
                                                                  distribute_load)
 
