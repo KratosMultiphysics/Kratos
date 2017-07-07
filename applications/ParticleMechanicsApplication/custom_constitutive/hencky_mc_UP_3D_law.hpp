@@ -1,20 +1,29 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosParticleMechanicsApplication $
-//   Last modified by:    $Author:            Duan Wenjie   $
-//   Date:                $Date:                March 2016 $
-//   Revision:            $Revision:                  0.0 $
+//  License:		BSD License
+//					Kratos default license: kratos/license.txt
 //
+//  Main authors:    Ilaria Iaconeta
 //
 
-#if !defined (KRATOS_HYPERELASTIC_VISCOPLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED)
-#define  KRATOS_HYPERELASTIC_VISCOPLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED
+#if !defined (KRATOS_HENCKY_MC_PLASTIC_UP_3D_LAW_H_INCLUDED)
+#define       KRATOS_HENCKY_MC_PLASTIC_UP_3D_LAW_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/hyperelastic_plastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hencky_plastic_UP_3d_law.hpp"
+#include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
+#include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
+#include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
+
+
 namespace Kratos
 {
 /**
@@ -25,7 +34,11 @@ namespace Kratos
  * The functionality is limited to large displacements
  */
 
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) HyperElasticViscoplasticPlaneStrain2DLaw : public HyperElasticPlasticPlaneStrain2DLaw
+
+
+class HenckyMCPlasticUP3DLaw
+    : public HenckyElasticPlasticUP3DLaw
+
 {
 public:
     /**
@@ -35,16 +48,16 @@ public:
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
 
-    typedef FlowRule::Pointer                FlowRulePointer;
+    typedef MPMFlowRule::Pointer                MPMFlowRulePointer;
     typedef YieldCriterion::Pointer    YieldCriterionPointer;
     typedef HardeningLaw::Pointer        HardeningLawPointer;
     typedef Properties::Pointer            PropertiesPointer;
 
     /**
-     * Counted pointer of HyperElasticViscoplasticPlaneStrain2DLaw
+     * Counted pointer of HyperElasticPlasticJ2PlaneStrain2DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION( HyperElasticViscoplasticPlaneStrain2DLaw );
+    KRATOS_CLASS_POINTER_DEFINITION( HenckyMCPlasticUP3DLaw );
 
     /**
      * Life Cycle
@@ -53,22 +66,22 @@ public:
     /**
      * Default constructor.
      */
-    HyperElasticViscoplasticPlaneStrain2DLaw();
+    HenckyMCPlasticUP3DLaw();
 
 
-    HyperElasticViscoplasticPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
+    HenckyMCPlasticUP3DLaw(MPMFlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
      */
-    HyperElasticViscoplasticPlaneStrain2DLaw (const HyperElasticViscoplasticPlaneStrain2DLaw& rOther);
+    HenckyMCPlasticUP3DLaw (const HenckyMCPlasticUP3DLaw& rOther);
 
 
     /**
      * Assignment operator.
      */
 
-    //HyperElasticViscoplasticPlaneStrain2DLaw& operator=(const HyperElasticViscoplasticPlaneStrain2DLaw& rOther);
+    //HyperElasticPlasticJ2PlaneStrain2DLaw& operator=(const HyperElasticPlasticJ2PlaneStrain2DLaw& rOther);
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -79,7 +92,7 @@ public:
     /**
      * Destructor.
      */
-    ~HyperElasticViscoplasticPlaneStrain2DLaw() override;
+    ~HenckyMCPlasticUP3DLaw() override;
 
     /**
      * Operators
@@ -94,12 +107,12 @@ public:
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
      * to catch user's errors.
-     * @param rMaterialProperties
-     * @param rElementGeometry
-     * @param rCurrentProcessInfo
+     * @param props
+     * @param geom
+     * @param CurrentProcessInfo
      * @return
      */
-    //int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
+    //int Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo);
 
 
 
@@ -170,18 +183,16 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticPlasticPlaneStrain2DLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HenckyElasticPlasticUP3DLaw )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticPlasticPlaneStrain2DLaw )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HenckyElasticPlasticUP3DLaw )
     }
 
 
 
-}; // Class HyperElasticViscoplasticPlaneStrain2DLaw
+}; // Class HyperElasticPlasticMohrCoulombPlaneStrain2DLaw
 }  // namespace Kratos.
-
-
-#endif // KRATOS_HYPERELASTIC_VISCOPLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED defined
+#endif // KRATOS_HENCKY_MATSUOKA_PLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED defined
