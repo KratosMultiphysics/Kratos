@@ -28,7 +28,9 @@
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "custom_strategies/custom_convergencecriterias/error_mesh_criteria.h"
+#ifdef INCLUDE_MMG
+    #include "custom_strategies/custom_convergencecriterias/error_mesh_criteria.h"
+#endif
 
 // Builders and solvers
 
@@ -54,7 +56,9 @@ void  AddCustomStrategiesToPython()
     // Custom scheme types
 
     // Custom convergence criterion types
-    typedef ErrorMeshCriteria< SparseSpaceType,  LocalSpaceType > ErrorMeshCriteriaType;
+    #ifdef INCLUDE_MMG
+        typedef ErrorMeshCriteria< SparseSpaceType,  LocalSpaceType > ErrorMeshCriteriaType;
+    #endif
     
     // Custom builder and solvers types
     
@@ -70,15 +74,16 @@ void  AddCustomStrategiesToPython()
     //*******************CONVERGENCE CRITERIA CLASSES*********************
     //********************************************************************
 
-    // Displacement Convergence Criterion
-    class_< ErrorMeshCriteriaType,
-            bases< ConvergenceCriteriaType >, boost::noncopyable >
-            (
-            "ErrorMeshCriteria", 
-            init<ModelPart&, Parameters>())
-            .def("SetEchoLevel", &ErrorMeshCriteriaType::SetEchoLevel)
-            ;
-            
+    #ifdef INCLUDE_MMG
+        // Displacement Convergence Criterion
+        class_< ErrorMeshCriteriaType,
+                bases< ConvergenceCriteriaType >, boost::noncopyable >
+                (
+                "ErrorMeshCriteria", 
+                init<ModelPart&, Parameters>())
+                .def("SetEchoLevel", &ErrorMeshCriteriaType::SetEchoLevel)
+                ;
+    #endif         
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************
     //********************************************************************
