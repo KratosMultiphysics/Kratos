@@ -208,7 +208,8 @@ namespace Kratos
         rThisKinematicVariables.N = GetGeometry().ShapeFunctionsValues(rThisKinematicVariables.N, IntegrationPoints[PointNumber].Coordinates());
 
         // Calculating jacobian
-        rThisKinematicVariables.detJ = CalculateDerivativesOnCurrent(rThisKinematicVariables.J, rThisKinematicVariables.InvJ, rThisKinematicVariables.DN_DX, PointNumber, this_integration_method);
+        rThisKinematicVariables.J = GetGeometry().Jacobian( rThisKinematicVariables.J, PointNumber, this_integration_method );
+//         rThisKinematicVariables.detJ = CalculateDerivativesOnCurrent(rThisKinematicVariables.J, rThisKinematicVariables.InvJ, rThisKinematicVariables.DN_DX, PointNumber, this_integration_method); // NOTE: Commented to avoid unnecessary operations
         
         rThisKinematicVariables.detJ0 = CalculateDerivativesOnReference(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, this_integration_method);
         
@@ -219,9 +220,7 @@ namespace Kratos
         
         // Deformation gradient
         const unsigned int strain_size = (rThisKinematicVariables.B).size1();
-        noalias( rThisKinematicVariables.F ) = prod( rThisKinematicVariables.J0, rThisKinematicVariables.InvJ );
-//         Matrix delta_displacement = CalculateDeltaDisplacement();
-//         CalculateF(rThisKinematicVariables.F, delta_displacement,rThisKinematicVariables.DN_DX,strain_size,IntegrationPoints,PointNumber);
+        noalias( rThisKinematicVariables.F ) = prod( rThisKinematicVariables.J, rThisKinematicVariables.InvJ0 );
         
         // Calculating operator B
         CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.DN_DX, strain_size, IntegrationPoints, PointNumber );
@@ -282,104 +281,20 @@ namespace Kratos
         IntegrationMethod ThisIntegrationMethod
         )
     {
+        J0.clear();
+        
         double detJ0;
         
-        const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
+        Matrix delta_displacement = CalculateDeltaDisplacement();
+        J0 = GetGeometry().Jacobian( J0, PointNumber, ThisIntegrationMethod, delta_displacement);
         
-        J0 = GetGeometry().Jacobian( J0, PointNumber, ThisIntegrationMethod);
+        const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
         
         MathUtils<double>::InvertMatrix( J0, InvJ0, detJ0 );
         
         noalias( DN_DX ) = prod( DN_De, InvJ0);
         
         return detJ0;
-    }
-    
-    //************************************************************************************
-    //************************************************************************************
-    
-    double UpdatedLagrangian::CalculateDerivativesOnCurrent(
-        Matrix& J, 
-        Matrix& InvJ, 
-        Matrix& DN_DX, 
-        const unsigned int PointNumber,
-        IntegrationMethod ThisIntegrationMethod
-        )
-    {
-        J.clear();
-        
-        double detJ;
-        
-        Matrix delta_displacement = CalculateDeltaDisplacement();
-        J = GetGeometry().Jacobian( J, PointNumber, ThisIntegrationMethod, delta_displacement);
-        
-        const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
-        
-        MathUtils<double>::InvertMatrix( J, InvJ, detJ );
-        
-        noalias( DN_DX ) = prod( DN_De, InvJ);
-        
-        return detJ;
-    }
-    
-    //************************************************************************************
-    //************************************************************************************
-
-    void UpdatedLagrangian::CalculateF(
-        Matrix& F,
-        const Matrix& DeltaPosition,
-        const Matrix& DN_DX,
-        const unsigned int StrainSize,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber
-        )
-    {
-        KRATOS_TRY
-        
-        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-        
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            if ( StrainSize == 3 )
-            {
-                F ( 0 , 0 ) += DeltaPosition(i, 0) * DN_DX(i, 0);
-                F ( 0 , 1 ) += DeltaPosition(i, 0) * DN_DX(i, 1);
-                F ( 1 , 0 ) += DeltaPosition(i, 1) * DN_DX(i, 0);
-                F ( 1 , 1 ) += DeltaPosition(i, 1) * DN_DX(i, 1);
-            }
-            else if ( StrainSize == 4 )
-            {
-
-                F ( 0 , 0 ) += DeltaPosition(i,0) * DN_DX(i, 0);
-                F ( 0 , 1 ) += DeltaPosition(i,0) * DN_DX(i, 1);
-                F ( 1 , 0 ) += DeltaPosition(i,1) * DN_DX(i, 0);
-                F ( 1 , 1 ) += DeltaPosition(i,1) * DN_DX(i, 1);
-
-            }
-            else
-            {
-                F ( 0 , 0 ) += DeltaPosition(i, 0) * DN_DX(i, 0);
-                F ( 0 , 1 ) += DeltaPosition(i, 0) * DN_DX(i, 1);
-                F ( 0 , 2 ) += DeltaPosition(i, 0) * DN_DX(i, 2);
-                F ( 1 , 0 ) += DeltaPosition(i, 1) * DN_DX(i, 0);
-                F ( 1 , 1 ) += DeltaPosition(i, 1) * DN_DX(i, 1);
-                F ( 1 , 2 ) += DeltaPosition(i, 1) * DN_DX(i, 2);
-                F ( 2 , 0 ) += DeltaPosition(i, 2) * DN_DX(i, 0);
-                F ( 2 , 1 ) += DeltaPosition(i, 2) * DN_DX(i, 1);
-                F ( 2 , 2 ) += DeltaPosition(i, 2) * DN_DX(i, 2);
-            }
-        }
-        
-        if ( StrainSize == 4 )
-        {
-            Vector N;
-            N = GetGeometry().ShapeFunctionsValues( N, IntegrationPoints[PointNumber].Coordinates() );
-            const double CurrentRadius = StructuralMechanicsMathUtilities::CalculateRadius(N, GetGeometry(), Current);
-            const double InitialRadius = StructuralMechanicsMathUtilities::CalculateRadius(N, GetGeometry(), Initial);
-            F ( 2 , 2 ) = CurrentRadius/InitialRadius;
-        }
-
-        KRATOS_CATCH( "" )
     }
     
     //************************************************************************************

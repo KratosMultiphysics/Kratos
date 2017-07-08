@@ -229,17 +229,6 @@ protected:
         IntegrationMethod ThisIntegrationMethod
         ) override;
     
-    /**
-     * This functions calculate the derivatives in the current frame
-     */ 
-    double CalculateDerivativesOnCurrent(
-        Matrix& J, 
-        Matrix& InvJ, 
-        Matrix& DN_DX, 
-        const unsigned int PointNumber,
-        IntegrationMethod ThisIntegrationMethod
-        ) override;
-        
     ///@}
     ///@name Protected Operations
     ///@{
@@ -272,15 +261,6 @@ private:
         );
 
     void InitializeVariables();
-    
-    void CalculateF(
-        Matrix& F,
-        const Matrix& DeltaPosition,
-        const Matrix& DN_DX,
-        const unsigned int StrainSize,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber
-        );
     
     void CalculateB(
         Matrix& B,

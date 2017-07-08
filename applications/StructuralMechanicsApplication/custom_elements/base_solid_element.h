@@ -533,7 +533,7 @@ protected:
     /**
      * This functions calculate the derivatives in the current frame
      */ 
-    virtual double CalculateDerivativesOnCurrent(
+    double CalculateDerivativesOnCurrent(
         Matrix& J, 
         Matrix& InvJ, 
         Matrix& DN_DX, 

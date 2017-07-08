@@ -263,6 +263,8 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
                         coeff = Area/12.0
                     self.assertAlmostEqual(M[i*dim+k,j*dim+k],coeff)
                     
+        #self.__post_process(mp)
+                    
     def test_SmallDisplacementElement_2D_quadrilateral(self):
         dim = 2
         mp = KratosMultiphysics.ModelPart("solid_part")
@@ -301,6 +303,8 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         self._solve(mp)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
+        
+        #self.__post_process(mp)
         
     def test_SmallDisplacementElement_3D_hexa(self): 
         dim = 3
@@ -350,7 +354,9 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
         
-    def __prepare_post_process(self, main_model_part):
+        #self.__post_process(mp)
+        
+    def __post_process(self, main_model_part):
         from gid_output_process import GiDOutputProcess
         self.gid_output = GiDOutputProcess(main_model_part,
                                     "gid_output",
@@ -363,7 +369,8 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
                                                     "WriteConditionsFlag": "WriteConditions",
                                                     "MultiFileFlag": "SingleFile"
                                                 },        
-                                                "nodal_results"       : ["DISPLACEMENT"]
+                                                "nodal_results"       : ["DISPLACEMENT"],
+                                                "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR"]
                                             }
                                         }
                                         """)
@@ -372,10 +379,9 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         self.gid_output.ExecuteInitialize()
         self.gid_output.ExecuteBeforeSolutionLoop()
         self.gid_output.ExecuteInitializeSolutionStep()
-        
-    def __execute_post_process(self, main_model_part):
         self.gid_output.PrintOutput()
         self.gid_output.ExecuteFinalizeSolutionStep()
         self.gid_output.ExecuteFinalize()
+        
 if __name__ == '__main__':
     KratosUnittest.main()

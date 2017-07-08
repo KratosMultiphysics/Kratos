@@ -1218,7 +1218,7 @@ namespace Kratos
         {
             const array_1d<double, 3 >& current_displacement  = GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT);
             const array_1d<double, 3 >& previous_displacement = GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT,1);
-
+            
             for ( unsigned int j_dim = 0; j_dim < dimension; j_dim++ )
             {
                 delta_displacement(i_node, j_dim) = current_displacement[j_dim] - previous_displacement[j_dim];
@@ -1368,7 +1368,7 @@ namespace Kratos
         
         // Operation performed: rRightHandSideVector += ExtForce * IntegrationWeight
         this->CalculateAndAddExtForceContribution( rThisKinematicVariables.N, rCurrentProcessInfo, BodyForce, rRightHandSideVector, IntegrationWeight );
-
+        
         // Operation performed: rRightHandSideVector -= IntForce * IntegrationWeight
         noalias( rRightHandSideVector ) -= IntegrationWeight * prod( trans( rThisKinematicVariables.B ), StressVector );
         
