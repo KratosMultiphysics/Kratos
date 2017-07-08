@@ -76,7 +76,59 @@ namespace Kratos
             mF0[point_number] = IdentityMatrix(dimension);  
         }
     }
-    
+   
+    //************************************************************************************
+    //************************************************************************************
+
+    void UpdatedLagrangian::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+    {
+        // Create and initialize element variables:
+        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        const unsigned int strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+            
+        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        ConstitutiveVariables this_constitutive_variables(strain_size);
+
+        // Create constitutive law parameters:
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+        // Set constitutive law flags:
+        Flags& ConstitutiveLawOptions=Values.GetOptions();
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN, false);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        Values.SetStrainVector(this_constitutive_variables.StrainVector);
+        
+        // Reading integration points
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
+        
+        // Displacements vector
+        Vector displacements;
+        GetValuesVector(displacements);
+            
+        // Reading integration points
+        for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); point_number++ )
+        {
+            // Compute element kinematics B, F, DN_DX ...
+            CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
+            
+            // Call the constitutive law to update material variables
+            mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, GetStressMeasure());
+            
+            mConstitutiveLawVector[point_number]->FinalizeSolutionStep( 
+            GetProperties(),
+            GetGeometry(),
+            row( GetGeometry().ShapeFunctionsValues(  ), point_number ),
+            rCurrentProcessInfo 
+            );
+            
+            // Update the element internal variables
+            UpdateHistoricalDatabase(this_kinematic_variables, point_number);
+        }
+    }
+   
     //************************************************************************************
     //************************************************************************************
     
@@ -88,7 +140,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
     
-    void UpdatedLagrangian::UpdateHystoricalDatabase(
+    void UpdatedLagrangian::UpdateHistoricalDatabase(
         KinematicVariables& rThisKinematicVariables,
         const unsigned int PointNumber
         )

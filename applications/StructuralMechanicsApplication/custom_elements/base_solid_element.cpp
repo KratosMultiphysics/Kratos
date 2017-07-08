@@ -59,7 +59,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void BaseSolidElement::InitializeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+    void BaseSolidElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
     {
         // TODO: Add somethig if necessary
     }
@@ -67,7 +67,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void BaseSolidElement::FinalizeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+    void BaseSolidElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
     {
         // TODO: Add somethig if necessary
     }
@@ -80,7 +80,7 @@ namespace Kratos
         // Create and initialize element variables:
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        const unsigned int strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+        const unsigned int strain_size = mConstitutiveLawVector[0]->GetStrainSize();
             
         KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
         ConstitutiveVariables this_constitutive_variables(strain_size);
@@ -153,17 +153,6 @@ namespace Kratos
     ConstitutiveLaw::StressMeasure BaseSolidElement::GetStressMeasure() const
     {
         return ConstitutiveLaw::StressMeasure_PK2;
-    }
-    
-    //************************************************************************************
-    //************************************************************************************
-
-    void BaseSolidElement::UpdateHystoricalDatabase(
-        KinematicVariables& rThisKinematicVariables,
-        const unsigned int PointNumber
-        )
-    {
-        // NOTE: If nothing is done in the abse class
     }
     
     //************************************************************************************
@@ -521,7 +510,7 @@ namespace Kratos
         {
             const unsigned int number_of_nodes = GetGeometry().size();
             const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-            const unsigned int strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+            const unsigned int strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
             
@@ -549,7 +538,7 @@ namespace Kratos
         {
             const unsigned int number_of_nodes = GetGeometry().size();
             const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-            const unsigned int strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+            const unsigned int strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
             ConstitutiveVariables this_constitutive_variables(strain_size);
@@ -634,7 +623,7 @@ namespace Kratos
 
         if ( rVariable == INSITU_STRESS )
         {
-            const unsigned int strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+            const unsigned int strain_size = mConstitutiveLawVector[0]->GetStrainSize();
             Vector strain_vector( strain_size );
             
             for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); point_number++ )
@@ -652,7 +641,7 @@ namespace Kratos
             // Create and initialize element variables:
             const unsigned int number_of_nodes = GetGeometry().size();
             const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-            const unsigned int strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+            const unsigned int strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
             ConstitutiveVariables this_constitutive_variables(strain_size);
@@ -706,7 +695,7 @@ namespace Kratos
             // Create and initialize element variables:
             const unsigned int number_of_nodes = GetGeometry().size();
             const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-            const unsigned int strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+            const unsigned int strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
             ConstitutiveVariables this_constitutive_variables(strain_size);
@@ -827,7 +816,7 @@ namespace Kratos
         {
             // Create and initialize element variables:
             const unsigned int number_of_nodes = GetGeometry().size();
-            const unsigned int strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+            const unsigned int strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
             ConstitutiveVariables this_constitutive_variables(strain_size);
@@ -874,7 +863,7 @@ namespace Kratos
         {
             // Create and initialize element variables:
             const unsigned int number_of_nodes = GetGeometry().size();
-            const unsigned int strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+            const unsigned int strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
             ConstitutiveVariables this_constitutive_variables(strain_size);

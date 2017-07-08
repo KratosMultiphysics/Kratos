@@ -97,6 +97,12 @@ public:
     void Initialize() override;
     
     /**
+     * Called at the end of eahc solution step
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    
+    /**
      * Returns the currently selected integration method
      * @return current integration method selected
      */
@@ -167,10 +173,11 @@ protected:
      * @param rThisKinematicVariables: The kinematic variables to be calculated 
      * @param PointNumber: The integration point considered
      */ 
-    void UpdateHystoricalDatabase(
+    void UpdateHistoricalDatabase(
         KinematicVariables& rThisKinematicVariables,
         const unsigned int PointNumber
-        ) override;
+        );
+        
     /**
      * This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix: The LHS

@@ -457,16 +457,6 @@ protected:
     virtual ConstitutiveLaw::StressMeasure GetStressMeasure() const;
     
     /**
-     * It updates the historical database
-     * @param rThisKinematicVariables: The kinematic variables to be calculated 
-     * @param PointNumber: The integration point considered
-     */ 
-    virtual void UpdateHystoricalDatabase(
-        KinematicVariables& rThisKinematicVariables,
-        const unsigned int PointNumber
-        );
-    
-    /**
      * This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix: The LHS
      * @param rRightHandSideVector: The RHS
