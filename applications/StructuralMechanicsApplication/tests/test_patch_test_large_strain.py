@@ -382,6 +382,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         self._set_buffer(mp)
         self._apply_BCs(bcs,A,b)
         self._solve(mp)
+        self._solve(mp)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
         
@@ -423,6 +424,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         
         self._set_buffer(mp)
         self._apply_BCs(bcs,A,b)
+        self._solve(mp)
         self._solve(mp)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
@@ -476,6 +478,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         
         self._set_buffer(mp)
         self._apply_BCs(bcs,A,b)
+        self._solve(mp)
         self._solve(mp)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
