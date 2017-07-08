@@ -300,7 +300,7 @@ protected:
     /**
      * This functions calculate the derivatives in the reference frame
      */ 
-    double CalculateDerivativesOnReference(
+    double CalculateDerivativesOnReferenceConfiguration(
         Matrix& J0, 
         Matrix& InvJ0, 
         Matrix& DN_DX, 

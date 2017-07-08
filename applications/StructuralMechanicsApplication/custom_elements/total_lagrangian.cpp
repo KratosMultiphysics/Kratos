@@ -163,7 +163,7 @@ namespace Kratos
         Matrix J;
         J = GetGeometry().Jacobian( J, PointNumber, this_integration_method );
         
-        rThisKinematicVariables.detJ0 = CalculateDerivativesOnReference(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, this_integration_method);
+        rThisKinematicVariables.detJ0 = CalculateDerivativesOnReferenceConfiguration(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, this_integration_method);
         
         if (rThisKinematicVariables.detJ0 < 0.0)
         {

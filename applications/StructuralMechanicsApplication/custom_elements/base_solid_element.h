@@ -500,13 +500,14 @@ protected:
     
     /**
      * This methods gives us a matrix with the increment of displacement
+     * @return DeltaDisplacement: The matrix containing the increment of displacements
      */
-    Matrix CalculateDeltaDisplacement();
+    Matrix CalculateDeltaDisplacement(Matrix& DeltaDisplacement);
     
     /**
      * This functions calculate the derivatives in the reference frame
      */ 
-    virtual double CalculateDerivativesOnReference(
+    virtual double CalculateDerivativesOnReferenceConfiguration(
         Matrix& J0, 
         Matrix& InvJ0, 
         Matrix& DN_DX, 
@@ -517,7 +518,7 @@ protected:
     /**
      * This functions calculate the derivatives in the current frame
      */ 
-    double CalculateDerivativesOnCurrent(
+    double CalculateDerivativesOnCurrentConfiguration(
         Matrix& J, 
         Matrix& InvJ, 
         Matrix& DN_DX, 

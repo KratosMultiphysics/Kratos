@@ -155,7 +155,7 @@ namespace Kratos
         // Shape functions
         rThisKinematicVariables.N = GetGeometry().ShapeFunctionsValues(rThisKinematicVariables.N, IntegrationPoints[PointNumber].Coordinates());
         
-        rThisKinematicVariables.detJ0 = CalculateDerivativesOnReference(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, GetGeometry().GetDefaultIntegrationMethod()); 
+        rThisKinematicVariables.detJ0 = CalculateDerivativesOnReferenceConfiguration(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, GetGeometry().GetDefaultIntegrationMethod()); 
         
         if (rThisKinematicVariables.detJ0 < 0.0)
         {
@@ -219,9 +219,9 @@ namespace Kratos
         {
             for ( unsigned int i = 0; i < number_of_nodes; ++i )
             {
-                rB( 0, i*2 + 0 ) = DN_DX( i, 0 );
+                rB( 0, i*2     ) = DN_DX( i, 0 );
                 rB( 1, i*2 + 1 ) = DN_DX( i, 1 );
-                rB( 2, i*2 + 0 ) = DN_DX( i, 1 );
+                rB( 2, i*2     ) = DN_DX( i, 1 );
                 rB( 2, i*2 + 1 ) = DN_DX( i, 0 );
             }
         }
@@ -229,14 +229,14 @@ namespace Kratos
         {
             for ( unsigned int i = 0; i < number_of_nodes; ++i )
             {
-                rB( 0, i*3 + 0 ) = DN_DX( i, 0 );
+                rB( 0, i*3     ) = DN_DX( i, 0 );
                 rB( 1, i*3 + 1 ) = DN_DX( i, 1 );
                 rB( 2, i*3 + 2 ) = DN_DX( i, 2 );
-                rB( 3, i*3 + 0 ) = DN_DX( i, 1 );
+                rB( 3, i*3     ) = DN_DX( i, 1 );
                 rB( 3, i*3 + 1 ) = DN_DX( i, 0 );
                 rB( 4, i*3 + 1 ) = DN_DX( i, 2 );
                 rB( 4, i*3 + 2 ) = DN_DX( i, 1 );
-                rB( 5, i*3 + 0 ) = DN_DX( i, 2 );
+                rB( 5, i*3     ) = DN_DX( i, 2 );
                 rB( 5, i*3 + 2 ) = DN_DX( i, 0 );
             }
         }

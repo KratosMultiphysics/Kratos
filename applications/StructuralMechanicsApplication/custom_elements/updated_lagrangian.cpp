@@ -263,7 +263,7 @@ namespace Kratos
         Matrix J;
         J = GetGeometry().Jacobian( J, PointNumber, this_integration_method );
         
-        rThisKinematicVariables.detJ0 = CalculateDerivativesOnReference(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, this_integration_method);
+        rThisKinematicVariables.detJ0 = CalculateDerivativesOnReferenceConfiguration(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, this_integration_method);
         
         if (rThisKinematicVariables.detJ0 < 0.0)
         {
@@ -325,7 +325,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
     
-    double UpdatedLagrangian::CalculateDerivativesOnReference(
+    double UpdatedLagrangian::CalculateDerivativesOnReferenceConfiguration(
         Matrix& J0, 
         Matrix& InvJ0, 
         Matrix& DN_DX, 
@@ -337,7 +337,9 @@ namespace Kratos
         
         double detJ0;
         
-        Matrix delta_displacement = CalculateDeltaDisplacement();
+        Matrix delta_displacement;
+        delta_displacement = CalculateDeltaDisplacement(delta_displacement);
+        
         J0 = GetGeometry().Jacobian( J0, PointNumber, ThisIntegrationMethod, delta_displacement);
         
         const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];

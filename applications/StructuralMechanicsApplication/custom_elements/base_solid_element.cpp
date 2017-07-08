@@ -400,7 +400,7 @@ namespace Kratos
         
         for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
         {   
-            const double detJ0 = CalculateDerivativesOnReference(J0, InvJ0, DN_DX, point_number, integration_method);
+            const double detJ0 = CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, integration_method);
             const double IntegrationWeight = GetIntegrationWeight(integration_points, point_number, detJ0) * thickness;
             const Vector& N = row(Ncontainer,point_number);
             
@@ -516,7 +516,7 @@ namespace Kratos
             
             for (unsigned int point_number = 0; point_number < integration_points.size(); point_number++)
             {
-                this_kinematic_variables.detJ0 = CalculateDerivativesOnReference(this_kinematic_variables.J0,
+                this_kinematic_variables.detJ0 = CalculateDerivativesOnReferenceConfiguration(this_kinematic_variables.J0,
                                                                                  this_kinematic_variables.InvJ0,
                                                                                  this_kinematic_variables.DN_DX,
                                                                                  point_number,
@@ -1193,14 +1193,14 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
     
-    Matrix BaseSolidElement::CalculateDeltaDisplacement()
+    Matrix BaseSolidElement::CalculateDeltaDisplacement(Matrix& DeltaDisplacement)
     {
         KRATOS_TRY
 
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-        Matrix delta_displacement = ZeroMatrix( number_of_nodes , dimension);
+        DeltaDisplacement.resize(number_of_nodes , dimension);
 
         for ( unsigned int i_node = 0; i_node < number_of_nodes; i_node++ )
         {
@@ -1209,11 +1209,11 @@ namespace Kratos
             
             for ( unsigned int j_dim = 0; j_dim < dimension; j_dim++ )
             {
-                delta_displacement(i_node, j_dim) = current_displacement[j_dim] - previous_displacement[j_dim];
+                DeltaDisplacement(i_node, j_dim) = current_displacement[j_dim] - previous_displacement[j_dim];
             }
         }
 
-        return delta_displacement;
+        return DeltaDisplacement;
 
         KRATOS_CATCH( "" )
     }
@@ -1221,7 +1221,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
     
-    double BaseSolidElement::CalculateDerivativesOnReference(
+    double BaseSolidElement::CalculateDerivativesOnReferenceConfiguration(
         Matrix& J0, 
         Matrix& InvJ0, 
         Matrix& DN_DX, 
@@ -1257,7 +1257,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
     
-    double BaseSolidElement::CalculateDerivativesOnCurrent(
+    double BaseSolidElement::CalculateDerivativesOnCurrentConfiguration(
         Matrix& J, 
         Matrix& InvJ, 
         Matrix& DN_DX, 
@@ -1314,8 +1314,7 @@ namespace Kratos
     {
         KRATOS_TRY
         
-        Matrix temp = prod(D, B);
-        noalias( rLeftHandSideMatrix ) += IntegrationWeight * prod( trans( B ), temp);
+        noalias( rLeftHandSideMatrix ) += IntegrationWeight * prod( trans( B ), Matrix(prod(D, B)));
         
         KRATOS_CATCH( "" ) 
     }
