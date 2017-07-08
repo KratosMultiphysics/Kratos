@@ -104,7 +104,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION"],
+            "nodal_results"       : ["DISPLACEMENT","REACTION"],
             "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","VON_MISES_STRESS"]
         },
         "point_data_configuration"  : []
