@@ -506,7 +506,7 @@ namespace Kratos
             rOutput.resize( GetGeometry().IntegrationPoints(  ).size() );
         }
 
-        if (rVariable == INTEGRATION_WEIGHT) // TODO: This is valid for SD or TL
+        if (rVariable == INTEGRATION_WEIGHT)
         {
             const unsigned int number_of_nodes = GetGeometry().size();
             const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -757,7 +757,7 @@ namespace Kratos
         std::vector< Matrix >& rOutput, 
         const ProcessInfo& rCurrentProcessInfo 
         )
-    {
+    {        
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         
         if ( rOutput.size() != GetGeometry().IntegrationPoints(  ).size() )
@@ -1064,7 +1064,6 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo 
         )
     {
-
         //HERE IT IS ESTIMATING DELTA_TIME for explicit elements
 //         double lamda = 1.00; // parametro que depende del tipo de problema y del elemento pag 308 libro dinamica de Barbat
 //         double c1 = 0.00; //sqrt(GetProperties()[YOUNG_MODULUS]/GetProperties()[DENSITY]); velocidad del sonido en el medio

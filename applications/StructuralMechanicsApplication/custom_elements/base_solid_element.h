@@ -313,11 +313,11 @@ public:
         ) override;
 
      /**
-     * Set a double Value on the Element Constitutive Law
-     * @param rVariable: The variable we want to set
-     * @param rValues: The values to set in the integration points
-     * @param rCurrentProcessInfo: the current process info instance
-     */
+      * Set a double Value on the Element Constitutive Law
+      * @param rVariable: The variable we want to set
+      * @param rValues: The values to set in the integration points
+      * @param rCurrentProcessInfo: the current process info instance
+      */
     void SetValueOnIntegrationPoints(
         const Variable<double>& rVariable, 
         std::vector<double>& rValues, 
@@ -325,11 +325,11 @@ public:
         ) override;
     
      /**
-     * Set a Vector Value on the Element Constitutive Law
-     * @param rVariable: The variable we want to set
-     * @param rValues: The values to set in the integration points
-     * @param rCurrentProcessInfo: the current process info instance
-     */
+      * Set a Vector Value on the Element Constitutive Law
+      * @param rVariable: The variable we want to set
+      * @param rValues: The values to set in the integration points
+      * @param rCurrentProcessInfo: the current process info instance
+      */
     void SetValueOnIntegrationPoints(
         const Variable<Vector>& rVariable, 
         std::vector<Vector>& rValues, 
@@ -337,11 +337,11 @@ public:
         ) override;
 
      /**
-     * Set a Matrix Value on the Element Constitutive Law
-     * @param rVariable: The variable we want to set
-     * @param rValues: The values to set in the integration points
-     * @param rCurrentProcessInfo: the current process info instance
-     */
+      * Set a Matrix Value on the Element Constitutive Law
+      * @param rVariable: The variable we want to set
+      * @param rValues: The values to set in the integration points
+      * @param rCurrentProcessInfo: the current process info instance
+      */
     void SetValueOnIntegrationPoints(
         const Variable<Matrix>& rVariable, 
         std::vector<Matrix>& rValues, 

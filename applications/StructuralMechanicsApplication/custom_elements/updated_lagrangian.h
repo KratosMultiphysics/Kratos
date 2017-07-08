@@ -110,6 +110,78 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     /**
+     * Calculate a double Variable on the Element Constitutive Law
+     * @param rVariable: The variable we want to get
+     * @param rOutput: The values obtained int the integration points
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable, 
+        std::vector<double>& rOutput, 
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * Calculate a Matrix Variable on the Element Constitutive Law
+     * @param rVariable: The variable we want to get
+     * @param rOutput: The values obtained int the integration points
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<Matrix >& rVariable, 
+        std::vector< Matrix >& rOutput, 
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+    
+     /**
+      * Set a double Value on the Element Constitutive Law
+      * @param rVariable: The variable we want to set
+      * @param rValues: The values to set in the integration points
+      * @param rCurrentProcessInfo: the current process info instance
+      */
+    void SetValueOnIntegrationPoints(
+        const Variable<double>& rVariable, 
+        std::vector<double>& rValues, 
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+     /**
+      * Set a Matrix Value on the Element Constitutive Law
+      * @param rVariable: The variable we want to set
+      * @param rValues: The values to set in the integration points
+      * @param rCurrentProcessInfo: the current process info instance
+      */
+    void SetValueOnIntegrationPoints(
+        const Variable<Matrix>& rVariable, 
+        std::vector<Matrix>& rValues, 
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * Get on rVariable a double Value from the Element Constitutive Law
+     * @param rVariable: The variable we want to get
+     * @param rValues: The results in the integration points
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void GetValueOnIntegrationPoints(
+        const Variable<double>& rVariable, 
+        std::vector<double>& rValues, 
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * Get on rVariable a Matrix Value from the Element Constitutive Law
+     * @param rVariable: The variable we want to get
+     * @param rValues: The results in the integration points
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void GetValueOnIntegrationPoints(
+        const Variable<Matrix>& rVariable, 
+        std::vector<Matrix>& rValues, 
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+    
+    /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input

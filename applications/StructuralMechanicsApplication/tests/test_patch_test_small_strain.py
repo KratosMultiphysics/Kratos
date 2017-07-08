@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division
 import KratosMultiphysics 
 
-import KratosMultiphysics.StructuralMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 
@@ -44,9 +44,9 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
         
         if(dim == 2):
-            cl = KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
+            cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
         else:
-            cl = KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw()
+            cl = StructuralMechanicsApplication.LinearElastic3DLaw()
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl) 
             
     def _define_movement(self,dim):

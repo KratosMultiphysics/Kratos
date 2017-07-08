@@ -416,6 +416,138 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
+        
+    void UpdatedLagrangian::CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable, 
+        std::vector<double>& rValues, 
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        if (rVariable == REFERENCE_DEFORMATION_GRADIENT_DETERMINANT)
+        {
+            if (rValues.size() != mConstitutiveLawVector.size())
+            {
+                rValues.resize(mConstitutiveLawVector.size());
+            }
+            
+            for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); point_number++ )
+            {
+                rValues[point_number] = mDetF0[point_number];
+            }
+        }
+        else
+        {
+            BaseSolidElement::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        }
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
+        
+    void UpdatedLagrangian::CalculateOnIntegrationPoints(
+        const Variable<Matrix>& rVariable, 
+        std::vector<Matrix>& rValues, 
+        const ProcessInfo& rCurrentProcessInfo
+        ) 
+    {        
+        if (rVariable == REFERENCE_DEFORMATION_GRADIENT)
+        {
+            if (rValues.size() != mConstitutiveLawVector.size())
+            {
+                rValues.resize(mConstitutiveLawVector.size());
+            }
+            
+            for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); point_number++ )
+            {
+                rValues[point_number] = mF0[point_number];
+            }
+        }
+        else
+        {
+            BaseSolidElement::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        }
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
+    
+    void UpdatedLagrangian::SetValueOnIntegrationPoints(
+        const Variable<double>& rVariable, 
+        std::vector<double>& rValues, 
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        if (rVariable == REFERENCE_DEFORMATION_GRADIENT_DETERMINANT)
+        {
+            if (rValues.size() != mConstitutiveLawVector.size())
+            {
+                KRATOS_ERROR << "Can not set REFERENCE_DEFORMATION_GRADIENT_DETERMINANT, expected size: " << mConstitutiveLawVector.size() << " current size: " << rValues.size() << std::endl;
+            }
+            
+            for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); point_number++ )
+            {
+                mDetF0[point_number] = rValues[point_number];
+            }
+        }
+        else
+        {
+            BaseSolidElement::SetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        }
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+        
+    void UpdatedLagrangian::SetValueOnIntegrationPoints(
+        const Variable<Matrix>& rVariable, 
+        std::vector<Matrix>& rValues, 
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        if (rVariable == REFERENCE_DEFORMATION_GRADIENT)
+        {
+            if (rValues.size() != mConstitutiveLawVector.size())
+            {
+                KRATOS_ERROR << "Can not set REFERENCE_DEFORMATION_GRADIENT, expected size: " << mConstitutiveLawVector.size() << " current size: " << rValues.size() << std::endl;
+            }
+            
+            for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); point_number++ )
+            {
+                mF0[point_number] = rValues[point_number];
+            }
+        }
+        else
+        {
+            BaseSolidElement::SetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        }
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+        
+    void UpdatedLagrangian::GetValueOnIntegrationPoints(
+        const Variable<double>& rVariable, 
+        std::vector<double>& rValues, 
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
+        
+    void UpdatedLagrangian::GetValueOnIntegrationPoints(
+        const Variable<Matrix>& rVariable, 
+        std::vector<Matrix>& rValues, 
+        const ProcessInfo& rCurrentProcessInfo
+        ) 
+    {
+        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
 
     int  UpdatedLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
     {
