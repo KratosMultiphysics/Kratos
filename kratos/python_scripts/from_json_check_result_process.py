@@ -140,7 +140,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
     def ExecuteFinalize(self):
         pass
 
-    def __linear_interpolation(x, x_list, y_list):
+    def __linear_interpolation(self, x, x_list, y_list):
         ind_inf = 0
         ind_sup = -1
         x_inf = x_list[ind_inf]
