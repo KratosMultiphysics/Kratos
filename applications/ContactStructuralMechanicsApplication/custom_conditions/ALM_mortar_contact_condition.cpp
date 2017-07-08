@@ -516,10 +516,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                 const bool bad_shape = (TDim == 2) ? ContactUtilities::LengthCheck(decomp_geom, this->GetGeometry().Length() * 1.0e-6) : ContactUtilities::HeronCheck(decomp_geom);
                 
                 if (bad_shape == false)
-                {
-//                     Matrix delta_position;
-//                     delta_position = CalculateDeltaPosition(delta_position);
-                    
+                {                    
                     const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
                     
                     // Integrating the mortar operators
@@ -533,7 +530,6 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                         
                         // Calculate the kinematic variables
                         this->CalculateKinematics( rVariables, rDerivativeData, master_normal, local_point_decomp, local_point_parent, decomp_geom, dual_LM);
-//                         this->CalculateKinematics( rVariables, rDerivativeData, master_normal, local_point_decomp, local_point_parent, decomp_geom, dual_LM, delta_position);
                         
                         const double integration_weight = integration_points_slave[point_number].Weight();
                     
@@ -542,7 +538,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                         {
                             /* Update the derivatives */
                             // Update the derivative of DetJ
-                            this->CalculateDeltaDetjSlave(rVariables, rDerivativeData);
+                            this->CalculateDeltaDetJSlave(rVariables, rDerivativeData);
                             // Update the derivatives of the shape functions and the gap
 //                             this->CalculateDeltaN(rVariables, rDerivativeData); // FIXME: This is the old version!!!!
                             // The derivatives of the dual shape function 
@@ -681,9 +677,6 @@ bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                 
                 if (bad_shape == false)
                 {
-//                     Matrix delta_position;
-//                     delta_position = CalculateDeltaPosition(delta_position);
-                    
                     const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
                     
                     // Integrating the mortar operators
@@ -697,10 +690,9 @@ bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                         
                         // Calculate the kinematic variables
                         this->CalculateKinematics( rVariables, rDerivativeData, master_normal, local_point_decomp, local_point_parent, decomp_geom, false);
-//                         this->CalculateKinematics( rVariables, rDerivativeData, master_normal, local_point_decomp, local_point_parent, decomp_geom, false, delta_position);
                         
                         // Update the derivative of DetJ
-                        this->CalculateDeltaDetjSlave(rVariables, rDerivativeData); 
+                        this->CalculateDeltaDetJSlave(rVariables, rDerivativeData); 
                         
                         // Integrate
                         const double integration_weight = integration_points_slave[point_number].Weight();
@@ -732,16 +724,12 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     const PointType& LocalPointParent,
     GeometryPointType& GeometryDecomp,
     const bool DualLM
-//     const bool DualLM,
-//     Matrix DeltaPosition
     )
 {  
     /// SLAVE CONDITION ///
     /* CALCULATE JACOBIAN AND JACOBIAN DETERMINANT */
-    rVariables.jSlave = GeometryDecomp.Jacobian( rVariables.jSlave, LocalPointDecomp.Coordinates());
-//     rVariables.jSlave = GeometryDecomp.Jacobian( rVariables.jSlave, LocalPointDecomp.Coordinates(), DeltaPosition);
-    rVariables.DetjSlave = GeometryDecomp.DeterminantOfJacobian( LocalPointDecomp );
-//     rVariables.DetjSlave = MathUtils<double>::GeneralizedDet(rVariables.jSlave);
+    rVariables.JSlave = GeometryDecomp.Jacobian( rVariables.JSlave, LocalPointDecomp.Coordinates());
+    rVariables.DetJSlave = GeometryDecomp.DeterminantOfJacobian( LocalPointDecomp );
     
     /* SHAPE FUNCTIONS */
     GetGeometry().ShapeFunctionsValues( rVariables.NSlave, LocalPointParent.Coordinates() );
@@ -802,7 +790,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     )
 {
     /* DEFINITIONS */
-    const double DetjSlave = rVariables.DetjSlave; 
+    const double DetJSlave = rVariables.DetJSlave; 
     const VectorType Phi = rVariables.PhiLagrangeMultipliers;
     const VectorType N1  = rVariables.NSlave;
     const VectorType N2  = rVariables.NMaster;
@@ -833,24 +821,24 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
             const double n1  = N1[kSlave];
             const double n2  = N2[kSlave];
             
-            DOperator(iSlave, kSlave) += DetjSlave * rIntegrationWeight * phi * n1;
-            MOperator(iSlave, kSlave) += DetjSlave * rIntegrationWeight * phi * n2;
+            DOperator(iSlave, kSlave) += DetJSlave * rIntegrationWeight * phi * n1;
+            MOperator(iSlave, kSlave) += DetJSlave * rIntegrationWeight * phi * n2;
             
             for (unsigned int i = 0; i < TDim * TNumNodes; i++)
             {
                 DeltaDOperator[i](iSlave, kSlave) += DeltaJSlave[i] * rIntegrationWeight * phi* n1        
-                                                   + DetjSlave * rIntegrationWeight * DeltaPhi[i][iSlave] * n1
-                                                   + DetjSlave * rIntegrationWeight * phi* DeltaN1[i][kSlave];
+                                                   + DetJSlave * rIntegrationWeight * DeltaPhi[i][iSlave] * n1
+                                                   + DetJSlave * rIntegrationWeight * phi* DeltaN1[i][kSlave];
                                                                             
                 DeltaMOperator[i](iSlave, kSlave) += DeltaJSlave[i] * rIntegrationWeight * phi* n2        
-                                                   + DetjSlave * rIntegrationWeight * DeltaPhi[i][iSlave] * n2
-                                                   + DetjSlave * rIntegrationWeight * phi* DeltaN2[i][kSlave];
+                                                   + DetJSlave * rIntegrationWeight * DeltaPhi[i][iSlave] * n2
+                                                   + DetJSlave * rIntegrationWeight * phi* DeltaN2[i][kSlave];
             }
             for (unsigned int i = TDim * TNumNodes; i < 2 * TDim * TNumNodes; i++)
             {
-                DeltaDOperator[i](iSlave, kSlave) += DetjSlave * rIntegrationWeight * phi * DeltaN1[i][kSlave];
+                DeltaDOperator[i](iSlave, kSlave) += DetJSlave * rIntegrationWeight * phi * DeltaN1[i][kSlave];
                                                                             
-                DeltaMOperator[i](iSlave, kSlave) += DetjSlave * rIntegrationWeight * phi * DeltaN2[i][kSlave];
+                DeltaMOperator[i](iSlave, kSlave) += DetJSlave * rIntegrationWeight * phi * DeltaN2[i][kSlave];
             }
         }
     }
@@ -867,7 +855,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     )
 {
     /* DEFINITIONS */
-    const double DetjSlave = rVariables.DetjSlave; 
+    const double DetJSlave = rVariables.DetJSlave; 
     const VectorType Phi = rVariables.PhiLagrangeMultipliers;
     const VectorType N1  = rVariables.NSlave;
     const VectorType N2  = rVariables.NMaster;
@@ -882,8 +870,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
         
         for (unsigned int kSlave = 0; kSlave < TNumNodes; kSlave++)
         {
-            DOperator(iSlave, kSlave) += DetjSlave * rIntegrationWeight * phi * N1[kSlave];
-            MOperator(iSlave, kSlave) += DetjSlave * rIntegrationWeight * phi * N2[kSlave];
+            DOperator(iSlave, kSlave) += DetJSlave * rIntegrationWeight * phi * N1[kSlave];
+            MOperator(iSlave, kSlave) += DetJSlave * rIntegrationWeight * phi * N2[kSlave];
         }
     }
 }
@@ -901,7 +889,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 {
     /* DEFINITIONS */
     const VectorType N1 = rVariables.NSlave;
-    const double DetJ   = rVariables.DetjSlave; 
+    const double DetJ   = rVariables.DetJSlave; 
      
     rAeData.De += rIntegrationWeight * this->ComputeDe( N1, DetJ );
     rAeData.Me += rIntegrationWeight * DetJ * outer_prod(N1, N1);
@@ -1299,7 +1287,7 @@ array_1d<double,36> AugmentedLagrangianMethodMortarContactCondition<3, 4, true>:
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
-void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaDetjSlave(
+void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaDetJSlave(
    GeneralVariables& rVariables,
    DerivativeDataType& rDerivativeData
    ) // TODO: Do an explicit specialization!!!!
@@ -1309,8 +1297,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
         // Fill up the elements corresponding to the slave DOFs - the rest remains zero
         for ( unsigned int iSlave = 0, i = 0; iSlave < TNumNodes; ++iSlave, i += TDim )
         {
-            rDerivativeData.DeltaJSlave[i    ] = rVariables.jSlave( 0, 0 ) * rVariables.DNDeSlave( iSlave, 0) / rVariables.DetjSlave;
-            rDerivativeData.DeltaJSlave[i + 1] = rVariables.jSlave( 1, 0 ) * rVariables.DNDeSlave( iSlave, 0) / rVariables.DetjSlave;
+            rDerivativeData.DeltaJSlave[i    ] = rVariables.JSlave( 0, 0 ) * rVariables.DNDeSlave( iSlave, 0) / rVariables.DetJSlave;
+            rDerivativeData.DeltaJSlave[i + 1] = rVariables.JSlave( 1, 0 ) * rVariables.DNDeSlave( iSlave, 0) / rVariables.DetJSlave;
         }
     }
     else
@@ -1318,8 +1306,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
         const array_1d<double,TNumNodes>& DNDxi  = column( rVariables.DNDeSlave, 0 );
         const array_1d<double,TNumNodes>& DNDeta = column( rVariables.DNDeSlave, 1 );
         
-        const array_1d<double,TDim>& Jxi  = column( rVariables.jSlave, 0 );
-        const array_1d<double,TDim>& Jeta = column( rVariables.jSlave, 1 );
+        const array_1d<double,TDim>& Jxi  = column( rVariables.JSlave, 0 );
+        const array_1d<double,TDim>& Jeta = column( rVariables.JSlave, 1 );
         
         const array_1d<double,TDim>& Normal = prod(trans(rDerivativeData.NormalMaster), rVariables.NSlave); // FIXME: Check this!!!!
         

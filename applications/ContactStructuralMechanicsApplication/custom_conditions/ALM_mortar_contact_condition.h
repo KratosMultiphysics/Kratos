@@ -271,14 +271,14 @@ public:
 //         MatrixType DPhi_De_LagrangeMultipliers;
 
         // Determinant of slave cell's jacobian
-        double DetjSlave;
+        double DetJSlave;
         
         /*
          * Jacobians in current configuration on all integration points of slave segment
          * Only those two variables contain info on all GP
          * other variables contain info only on the currently-calculated GP
          */
-        MatrixType jSlave;
+        MatrixType JSlave;
         
         /********************************************************/
         /******************** STRUCT METHODS ********************/
@@ -300,10 +300,10 @@ public:
 //             DPhi_De_LagrangeMultipliers  = ZeroMatrix(TNumNodes, TDim - 1);
             
             // Jacobian of slave
-            DetjSlave = 0.0;
+            DetJSlave = 0.0;
            
             // Jacobians on all integration points
-            jSlave = ZeroMatrix(TDim, TDim - 1);
+            JSlave = ZeroMatrix(TDim, TDim - 1);
         }
 
         /* Setters and getters for the master element */
@@ -322,8 +322,8 @@ public:
             KRATOS_WATCH( NSlave );
             KRATOS_WATCH( NMaster );
             KRATOS_WATCH( PhiLagrangeMultipliers );
-            KRATOS_WATCH( jSlave );
-            KRATOS_WATCH( DetjSlave );
+            KRATOS_WATCH( JSlave );
+            KRATOS_WATCH( DetJSlave );
         }
     };
          
@@ -879,8 +879,6 @@ protected:
         const PointType& LocalPointParent,
         GeometryPointType& GeometryDecomp,
         const bool DualLM = true
-//         const bool DualLM = true,
-//         Matrix DeltaPosition = ZeroMatrix(TNumNodes, TDim)
         );
 
     /********************************************************************************/
@@ -951,7 +949,7 @@ protected:
     /*************** METHODS TO CALCULATE MORTAR CONDITION DERIVATIVES **************/
     /********************************************************************************/
     
-    void CalculateDeltaDetjSlave(
+    void CalculateDeltaDetJSlave(
         GeneralVariables& rVariables,
         DerivativeDataType& rDerivativeData
         );
