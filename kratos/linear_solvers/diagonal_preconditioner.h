@@ -119,7 +119,7 @@ public:
         : BaseType(Other), mDiagonal(Other.mDiagonal), mTemp(Other.mTemp) {}
 
     /// Destructor.
-    virtual ~DiagonalPreconditioner() {}
+    ~DiagonalPreconditioner() override {}
 
 
     ///@}
@@ -284,13 +284,13 @@ public:
     ///@{
 
     /// Return information about this object.
-    virtual std::string  Info() const override
+    std::string  Info() const override
     {
         return "Diagonal preconditioner";
     }
 
     /// Print information about this object.
-    virtual void  PrintInfo(std::ostream& OStream) const override
+    void  PrintInfo(std::ostream& OStream) const override
     {
         OStream << "Diagonal preconditioner";
     }

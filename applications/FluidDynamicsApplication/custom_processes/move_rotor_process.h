@@ -91,7 +91,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~MoveRotorProcess(){}
+    ~MoveRotorProcess() override{}
 
 
     void ExecuteBeforeSolutionLoop() override
@@ -165,7 +165,7 @@ public:
     }
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "MoveRotorProcess" ;
@@ -173,10 +173,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "MoveRotorProcess";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "MoveRotorProcess";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override {}
+    void PrintData(std::ostream& rOStream) const override {}
 
 
 protected:
