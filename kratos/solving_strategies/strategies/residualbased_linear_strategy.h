@@ -230,7 +230,7 @@ public:
 
     /** Destructor.
      */
-    virtual ~ResidualBasedLinearStrategy()
+    ~ResidualBasedLinearStrategy() override
     {
       // in trilinos third party library, the linear solver's
       // preconditioner should be freed before the system matrix.
