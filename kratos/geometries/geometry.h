@@ -316,7 +316,7 @@ public:
     }
 
     /// Destructor. Do nothing!!!
-    virtual ~Geometry() {}
+    ~Geometry() override {}
 
     virtual GeometryData::KratosGeometryFamily GetGeometryFamily()
     {
@@ -2081,7 +2081,7 @@ public:
      *
      * @see Name()
      */
-    virtual std::string Info() const override {
+    std::string Info() const override {
       std::stringstream buffer;
       buffer << Dimension() << " dimensional geometry in " << WorkingSpaceDimension() << "D space";
 
@@ -2111,7 +2111,7 @@ public:
      * @see PrintName()
      * @see PrintData()
      */
-    virtual void PrintInfo(std::ostream& rOStream) const override {
+    void PrintInfo(std::ostream& rOStream) const override {
       rOStream << Dimension()  << " dimensional geometry in " << WorkingSpaceDimension() << "D space";
     }
 
@@ -2136,7 +2136,7 @@ public:
      * @see PrintInfo()
      * @see PrintName()
      */
-    virtual void PrintData( std::ostream& rOStream ) const override {
+    void PrintData( std::ostream& rOStream ) const override {
       if(mpGeometryData) {
         mpGeometryData->PrintData( rOStream );
       }
@@ -2409,13 +2409,13 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const override
+    void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
 //                 rSerializer.save( "Geometry Data", mpGeometryData );
     }
 
-    virtual void load( Serializer& rSerializer ) override
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
         //rSerializer.load( "Geometry Data", const_cast<GeometryData*>( mpGeometryData ) );

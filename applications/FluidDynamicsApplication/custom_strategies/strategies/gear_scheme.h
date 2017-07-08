@@ -109,7 +109,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~GearScheme()
+    ~GearScheme() override
     {}
 
     ///@}
@@ -126,7 +126,7 @@ public:
      * @param rModelPart The fluid's ModelPart
      * @return 0 if no errors were found
      */
-    virtual int Check(ModelPart& rModelPart)
+    int Check(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
@@ -169,10 +169,10 @@ public:
     }
 
     /// Set the time iteration coefficients
-    virtual void InitializeSolutionStep(ModelPart& rModelPart,
+    void InitializeSolutionStep(ModelPart& rModelPart,
                                         TSystemMatrixType& A,
                                         TSystemVectorType& Dx,
-                                        TSystemVectorType& b)
+                                        TSystemVectorType& b) override
     {
         this->SetTimeCoefficients(rModelPart.GetProcessInfo());
 
@@ -210,10 +210,10 @@ public:
         }
     }
 
-    virtual void InitializeNonLinIteration(ModelPart& rModelPart,
+    void InitializeNonLinIteration(ModelPart& rModelPart,
                                            TSystemMatrixType& A,
                                            TSystemVectorType& Dx,
-                                           TSystemVectorType& b)
+                                           TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -222,10 +222,10 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void FinalizeNonLinIteration(ModelPart &rModelPart,
+    void FinalizeNonLinIteration(ModelPart &rModelPart,
                                          TSystemMatrixType &A,
                                          TSystemVectorType &Dx,
-                                         TSystemVectorType &b)
+                                         TSystemVectorType &b) override
     {
         const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -239,11 +239,11 @@ public:
     }
 
     /// Start the iteration by providing a first approximation to the solution.
-    virtual void Predict(ModelPart& rModelPart,
+    void Predict(ModelPart& rModelPart,
                          DofsArrayType& rDofSet,
                          TSystemMatrixType& A,
                          TSystemVectorType& Dx,
-                         TSystemVectorType& b)
+                         TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -292,11 +292,11 @@ public:
      * @param Dx Newton-Raphson iteration solution
      * @param b Newton-Raphson right hand side (unused)
      */
-    virtual void Update(ModelPart& rModelPart,
+    void Update(ModelPart& rModelPart,
                         DofsArrayType& rDofSet,
                         TSystemMatrixType& A,
                         TSystemVectorType& Dx,
-                        TSystemVectorType& b)
+                        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -309,11 +309,11 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void CalculateSystemContributions(Element::Pointer rCurrentElement,
+    void CalculateSystemContributions(Element::Pointer rCurrentElement,
             LocalSystemMatrixType& LHS_Contribution,
             LocalSystemVectorType& RHS_Contribution,
             Element::EquationIdVectorType& rEquationId,
-            ProcessInfo& rCurrentProcessInfo)
+            ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -342,7 +342,7 @@ public:
     void Calculate_RHS_Contribution(Element::Pointer rCurrentElement,
                                     LocalSystemVectorType& RHS_Contribution,
                                     Element::EquationIdVectorType& rEquationId,
-                                    ProcessInfo& rCurrentProcessInfo)
+                                    ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -366,11 +366,11 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
+    void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
             LocalSystemMatrixType& LHS_Contribution,
             LocalSystemVectorType& RHS_Contribution,
             Element::EquationIdVectorType& rEquationId,
-            ProcessInfo& rCurrentProcessInfo)
+            ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -396,10 +396,10 @@ public:
     }
 
 
-    virtual void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
+    void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
             LocalSystemVectorType& RHS_Contribution,
             Element::EquationIdVectorType& rEquationId,
-            ProcessInfo& rCurrentProcessInfo)
+            ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
