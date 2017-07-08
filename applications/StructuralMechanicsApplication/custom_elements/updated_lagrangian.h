@@ -97,6 +97,12 @@ public:
     void Initialize() override;
     
     /**
+     * Called at the beginning of each solution step
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    
+    /**
      * Called at the end of eahc solution step
      * @param rCurrentProcessInfo: the current process info instance
      */
@@ -224,8 +230,10 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    std::vector<double> mDetF0; // Historical total elastic deformation measure determinant
-    std::vector<Matrix> mF0; // Historical total elastic deformation measure
+    /* Historical total elastic deformation measure */
+    bool mF0Computed;           // To avoid computing more than once the historical total elastic deformation measure 
+    std::vector<double> mDetF0; // The historical total elastic deformation measure determinant
+    std::vector<Matrix> mF0;    // The historical total elastic deformation measure
     
     ///@}
     ///@name Protected Operators
@@ -348,6 +356,20 @@ private:
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const unsigned int PointNumber
         );
+    
+    /**
+     * It returns the reference configuration deformation gradient determinant
+     * @param PointNumber: The integration point considered
+     * @return The reference configuration deformation gradient determinant
+     */
+    double ReferenceConfigurationDeformationGradientDeterminant(const unsigned PointNumber) const;
+    
+    /**
+     * It returns the reference configuration deformation gradient
+     * @param PointNumber: The integration point considered
+     * @return The reference configuration deformation gradient
+     */
+    Matrix ReferenceConfigurationDeformationGradient(const unsigned PointNumber) const;
     
     ///@}
     ///@name Private Operations

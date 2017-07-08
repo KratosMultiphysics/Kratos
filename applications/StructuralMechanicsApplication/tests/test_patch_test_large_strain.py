@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division
 import KratosMultiphysics 
 
-import KratosMultiphysics.StructuralMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 
@@ -24,9 +24,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
         
         if(dim == 2):
-            cl = KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
+            cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
         else:
-            cl = KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw()
+            cl = StructuralMechanicsApplication.LinearElastic3DLaw()
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl) 
 
     def _set_buffer(self,mp):
@@ -145,7 +145,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         E = mp.GetProperties()[1].GetValue(KratosMultiphysics.YOUNG_MODULUS)
         NU =mp.GetProperties()[1].GetValue(KratosMultiphysics.POISSON_RATIO)
         
-        #given the matrix A, the analytic deformation graident is F+I
+        #given the matrix A, the analytic deformation gradient is F+I
         F = A
         for i in range(3):
             F[i,i] += 1.0

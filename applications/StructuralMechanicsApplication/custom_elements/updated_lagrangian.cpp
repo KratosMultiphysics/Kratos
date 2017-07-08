@@ -25,10 +25,13 @@
 namespace Kratos
 {
 
+    //******************************CONSTRUCTOR*******************************************
+    //************************************************************************************
+    
     UpdatedLagrangian::UpdatedLagrangian( IndexType NewId, GeometryType::Pointer pGeometry )
             : BaseSolidElement( NewId, pGeometry )
     {
-        //DO NOT ADD DOFS HERE!!!
+        // NOTE: DO NOT ADD DOFS HERE!!!
     }
 
     //************************************************************************************
@@ -37,13 +40,20 @@ namespace Kratos
     UpdatedLagrangian::UpdatedLagrangian( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
             : BaseSolidElement( NewId, pGeometry, pProperties )
     {
+        // NOTE: DO NOT ADD DOFS HERE!!!
     }
 
+    //************************************************************************************
+    //************************************************************************************
+    
     Element::Pointer UpdatedLagrangian::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
     {
         return Element::Pointer( new UpdatedLagrangian( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
     }
 
+    //************************************************************************************
+    //************************************************************************************
+    
     UpdatedLagrangian::~UpdatedLagrangian()
     {
     }
@@ -75,6 +85,18 @@ namespace Kratos
             mDetF0[point_number] = 1.0;  
             mF0[point_number] = IdentityMatrix(dimension);  
         }
+        
+        mF0Computed = false;
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
+
+    void UpdatedLagrangian::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+    {
+        BaseSolidElement::InitializeSolutionStep(rCurrentProcessInfo);
+        
+        mF0Computed = false;
     }
    
     //************************************************************************************
@@ -127,6 +149,8 @@ namespace Kratos
             // Update the element internal variables
             UpdateHistoricalDatabase(this_kinematic_variables, point_number);
         }
+        
+        mF0Computed = true;
     }
    
     //************************************************************************************
@@ -309,9 +333,9 @@ namespace Kratos
         
         // Here we essentially set the input parameters
         rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
-        const double detFT = rThisKinematicVariables.detF * mDetF0[PointNumber];
+        const double detFT = rThisKinematicVariables.detF * ReferenceConfigurationDeformationGradientDeterminant(PointNumber);
         rValues.SetDeterminantF(detFT); //assuming the determinant is computed somewhere else
-        const Matrix FT = prod(rThisKinematicVariables.F, mF0[PointNumber]);
+        const Matrix FT = prod(rThisKinematicVariables.F, ReferenceConfigurationDeformationGradient(PointNumber));
         rValues.SetDeformationGradientF(FT); //F computed somewhere else
         
         // Here we set the space on which the results shall be written
@@ -416,6 +440,34 @@ namespace Kratos
         KRATOS_CATCH( "" )
     }
 
+    //************************************************************************************
+    //************************************************************************************
+
+    double UpdatedLagrangian::ReferenceConfigurationDeformationGradientDeterminant(const unsigned PointNumber) const
+    {
+        if (mF0Computed == false)
+        {
+            return mDetF0[PointNumber];
+        }
+        
+        return 1.0;
+    }
+    
+    //************************************************************************************
+    //************************************************************************************
+        
+    Matrix UpdatedLagrangian::ReferenceConfigurationDeformationGradient(const unsigned PointNumber) const
+    {
+        if (mF0Computed == false)
+        {
+            return mF0[PointNumber];
+        }
+        
+        const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+        
+        return IdentityMatrix(dimension);
+    }
+    
     //************************************************************************************
     //************************************************************************************
         

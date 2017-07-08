@@ -108,9 +108,9 @@ def AssambleTestSuites():
     smallSuite.addTest(TTestPatchTestLargeStrain('test_TL_2D_triangle'))
     smallSuite.addTest(TTestPatchTestLargeStrain('test_TL_2D_quadrilateral'))
     smallSuite.addTest(TTestPatchTestLargeStrain('test_TL_3D_hexa'))
-    #smallSuite.addTest(TTestPatchTestLargeStrain('test_UL_2D_triangle'))
-    #smallSuite.addTest(TTestPatchTestLargeStrain('test_UL_2D_quadrilateral'))
-    #smallSuite.addTest(TTestPatchTestLargeStrain('test_UL_3D_hexa'))
+    smallSuite.addTest(TTestPatchTestLargeStrain('test_UL_2D_triangle'))
+    smallSuite.addTest(TTestPatchTestLargeStrain('test_UL_2D_quadrilateral'))
+    smallSuite.addTest(TTestPatchTestLargeStrain('test_UL_3D_hexa'))
     # Test loading conditions
     smallSuite.addTest(TestLoadingConditions('test_execution'))
     # Basic moving mesh test
