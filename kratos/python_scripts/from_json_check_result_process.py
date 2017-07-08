@@ -140,27 +140,12 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
     def ExecuteFinalize(self):
         pass
 
-    def __linear_interpolation(self, x, x_list, y_list):
-        ind_inf = 0
-        ind_sup = -1
-        x_inf = x_list[ind_inf]
-        x_sup = x_list[ind_sup]
+    def __linear_interpolation(self, x, x_list, y_list):        
+        tb = KratosMultiphysics.PiecewiseLinearTable()
         for i in range(len(x_list)):
-            if x_list[i] <= x:
-                ind_inf = i
-                x_inf = x_list[ind_inf]
-            if x_list[-(1 + i)] >= x:
-                ind_sup = -(1 + i)
-                x_sup = x_list[ind_sup]
-
-        if (x_sup-x_inf == 0):
-            y = y_list[ind_inf]
-        else:
-            prop_sup = (x-x_inf)/(x_sup-x_inf)
-            prop_inf = 1.0 - prop_sup
-            y = y_list[ind_inf] * prop_inf + y_list[ind_sup] * prop_sup
-
-        return y
+            tb.AddRow(x_list[i], y_list[i])
+            
+        return tb.GetNearestValue(x)
 
     def __generate_variable_list_from_input(self,param):
       '''Parse a list of variables from input.'''
