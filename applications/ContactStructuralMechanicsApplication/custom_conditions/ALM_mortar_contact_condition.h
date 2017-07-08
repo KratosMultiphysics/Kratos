@@ -878,9 +878,8 @@ protected:
         const PointType& LocalPointDecomp,
         const PointType& LocalPointParent,
         GeometryPointType& GeometryDecomp,
-        const bool DualLM = true
-//         const bool DualLM = true,
-//         Matrix DeltaPosition = ZeroMatrix(TNumNodes, TDim)
+        const bool DualLM = true,
+        Matrix DeltaPosition = ZeroMatrix(TNumNodes, TDim)
         );
 
     /********************************************************************************/
@@ -1114,11 +1113,10 @@ protected:
     }
     
     /**
-     * Returns a matrix with the increment of displacements, that can be used for compute the Jacobian in the reference configuration
-     * @return DeltaPosition: The matrix with the increment of displacements
+     * Returns a matrix with the increment of displacements, that can be used for compute the Jacobian "perturbed"
      */
     
-    Matrix CalculateDeltaPosition(Matrix& DeltaPosition);
+    Matrix CalculateDeltaPosition();
     
     ///@}
     ///@name Protected  Access
