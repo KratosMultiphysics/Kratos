@@ -517,7 +517,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                 
                 if (bad_shape == false)
                 {
-                    const Matrix delta_position = CalculateDeltaPosition();
+//                     Matrix delta_position;
+//                     delta_position = CalculateDeltaPosition(delta_position);
                     
                     const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
                     
@@ -531,7 +532,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                         GetGeometry().PointLocalCoordinates(local_point_parent, gp_global);
                         
                         // Calculate the kinematic variables
-                        this->CalculateKinematics( rVariables, rDerivativeData, master_normal, local_point_decomp, local_point_parent, decomp_geom, dual_LM, delta_position);
+                        this->CalculateKinematics( rVariables, rDerivativeData, master_normal, local_point_decomp, local_point_parent, decomp_geom, dual_LM);
+//                         this->CalculateKinematics( rVariables, rDerivativeData, master_normal, local_point_decomp, local_point_parent, decomp_geom, dual_LM, delta_position);
                         
                         const double integration_weight = integration_points_slave[point_number].Weight();
                     
@@ -679,7 +681,8 @@ bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                 
                 if (bad_shape == false)
                 {
-                    const Matrix delta_position = CalculateDeltaPosition();
+//                     Matrix delta_position;
+//                     delta_position = CalculateDeltaPosition(delta_position);
                     
                     const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
                     
@@ -693,7 +696,8 @@ bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                         GetGeometry().PointLocalCoordinates(local_point_parent, gp_global);
                         
                         // Calculate the kinematic variables
-                        this->CalculateKinematics( rVariables, rDerivativeData, master_normal, local_point_decomp, local_point_parent, decomp_geom, false, delta_position);
+                        this->CalculateKinematics( rVariables, rDerivativeData, master_normal, local_point_decomp, local_point_parent, decomp_geom, false);
+//                         this->CalculateKinematics( rVariables, rDerivativeData, master_normal, local_point_decomp, local_point_parent, decomp_geom, false, delta_position);
                         
                         // Update the derivative of DetJ
                         this->CalculateDeltaDetjSlave(rVariables, rDerivativeData); 
@@ -727,15 +731,17 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     const PointType& LocalPointDecomp,
     const PointType& LocalPointParent,
     GeometryPointType& GeometryDecomp,
-    const bool DualLM,
-    Matrix DeltaPosition
+    const bool DualLM
+//     const bool DualLM,
+//     Matrix DeltaPosition
     )
 {  
     /// SLAVE CONDITION ///
     /* CALCULATE JACOBIAN AND JACOBIAN DETERMINANT */
-    rVariables.jSlave = GeometryDecomp.Jacobian( rVariables.jSlave, LocalPointDecomp.Coordinates(), DeltaPosition);
-    rVariables.DetjSlave = MathUtils<double>::GeneralizedDet(rVariables.jSlave);
-//     rVariables.DetjSlave = GeometryDecomp.DeterminantOfJacobian( LocalPointDecomp );
+    rVariables.jSlave = GeometryDecomp.Jacobian( rVariables.jSlave, LocalPointDecomp.Coordinates());
+//     rVariables.jSlave = GeometryDecomp.Jacobian( rVariables.jSlave, LocalPointDecomp.Coordinates(), DeltaPosition);
+    rVariables.DetjSlave = GeometryDecomp.DeterminantOfJacobian( LocalPointDecomp );
+//     rVariables.DetjSlave = MathUtils<double>::GeneralizedDet(rVariables.jSlave);
     
     /* SHAPE FUNCTIONS */
     GetGeometry().ShapeFunctionsValues( rVariables.NSlave, LocalPointParent.Coordinates() );
@@ -1962,20 +1968,20 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
-Matrix AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaPosition()
+Matrix AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaPosition(Matrix& DeltaPosition)
 {
     KRATOS_TRY;
 
-    Matrix DeltaPosition(TNumNodes, TDim);
+    DeltaPosition.resize(TNumNodes, TDim);
 
     for ( unsigned int i = 0; i < TNumNodes; i++ )
     {
-        const array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-        const array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+        const array_1d<double, 3 > & current_displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+        const array_1d<double, 3 > & previous_displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
 
         for ( unsigned int j = 0; j < TDim; j++ )
         {
-            DeltaPosition(i,j) = (CurrentDisplacement[j] - PreviousDisplacement[j]);
+            DeltaPosition(i,j) = (current_displacement[j] - previous_displacement[j]);
         }
     }
 
