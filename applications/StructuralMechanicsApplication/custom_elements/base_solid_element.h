@@ -61,11 +61,8 @@ protected:
         Matrix  B;
         double  detF;
         Matrix  F;
-        double  detJ;
         double  detJ0;
-        Matrix  J;
         Matrix  J0;
-        Matrix  InvJ;
         Matrix  InvJ0;
         Matrix  DN_DX;
         
@@ -82,15 +79,12 @@ protected:
             )
         {
             detF = 1.0;
-            detJ = 1.0;
             detJ0 = 1.0;
             N = ZeroVector(NumberOfNodes);
             B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
             F = IdentityMatrix(Dimension);
             DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
-            J = ZeroMatrix(Dimension, Dimension);
             J0 = ZeroMatrix(Dimension, Dimension);
-            InvJ = ZeroMatrix(Dimension, Dimension);
             InvJ0 = ZeroMatrix(Dimension, Dimension);
         }
     };

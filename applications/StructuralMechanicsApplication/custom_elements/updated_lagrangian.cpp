@@ -260,8 +260,8 @@ namespace Kratos
         rThisKinematicVariables.N = GetGeometry().ShapeFunctionsValues(rThisKinematicVariables.N, IntegrationPoints[PointNumber].Coordinates());
 
         // Calculating jacobian
-        rThisKinematicVariables.J = GetGeometry().Jacobian( rThisKinematicVariables.J, PointNumber, this_integration_method );
-//         rThisKinematicVariables.detJ = CalculateDerivativesOnCurrent(rThisKinematicVariables.J, rThisKinematicVariables.InvJ, rThisKinematicVariables.DN_DX, PointNumber, this_integration_method); // NOTE: Commented to avoid unnecessary operations
+        Matrix J;
+        J = GetGeometry().Jacobian( J, PointNumber, this_integration_method );
         
         rThisKinematicVariables.detJ0 = CalculateDerivativesOnReference(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, this_integration_method);
         
@@ -272,7 +272,7 @@ namespace Kratos
         
         // Deformation gradient
         const unsigned int strain_size = (rThisKinematicVariables.B).size1();
-        noalias( rThisKinematicVariables.F ) = prod( rThisKinematicVariables.J, rThisKinematicVariables.InvJ0 );
+        noalias( rThisKinematicVariables.F ) = prod( J, rThisKinematicVariables.InvJ0 );
         
         // Calculating operator B
         CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.DN_DX, strain_size, IntegrationPoints, PointNumber );
