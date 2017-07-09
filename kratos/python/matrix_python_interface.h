@@ -93,7 +93,7 @@ public:
     ///@{
 
     /// Destructor.
-    virtual ~MatrixPythonInterface() {}
+    ~MatrixPythonInterface() override {}
 
 
     ///@}

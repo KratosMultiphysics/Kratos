@@ -81,7 +81,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~DistanceModificationProcess(){}
+    ~DistanceModificationProcess() override{}
 
     ///@}
     ///@name Operators
@@ -155,7 +155,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "DistanceModificationProcess" ;
@@ -163,10 +163,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "DistanceModificationProcess";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "DistanceModificationProcess";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override {}
+    void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}

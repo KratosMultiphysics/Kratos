@@ -86,7 +86,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~VelPrCriteria() {}
+    ~VelPrCriteria() override {}
 
     ///@}
     ///@name Operators
@@ -105,7 +105,7 @@ public:
                         DofsArrayType& rDofSet,
                         const TSystemMatrixType& A,
                         const TSystemVectorType& Dx,
-                        const TSystemVectorType& b )
+                        const TSystemVectorType& b ) override
     {
         if (SparseSpaceType::Size(Dx) != 0) //if we are solving for something
         {
@@ -200,7 +200,7 @@ public:
     /**
      * @param rModelPart Reference to the ModelPart containing the fluid problem. (unused)
      */
-    void Initialize( ModelPart& rModelPart	)
+    void Initialize( ModelPart& rModelPart	) override
     {
         BaseType::mConvergenceCriteriaIsInitialized = true;
     }
@@ -209,14 +209,14 @@ public:
                                     DofsArrayType& rDofSet,
                                     const TSystemMatrixType& A,
                                     const TSystemVectorType& Dx,
-                                    const TSystemVectorType& b )
+                                    const TSystemVectorType& b ) override
     {}
 
     void FinalizeSolutionStep(  ModelPart& rModelPart,
                                 DofsArrayType& rDofSet,
                                 const TSystemMatrixType& A,
                                 const TSystemVectorType& Dx,
-                                const TSystemVectorType& b )
+                                const TSystemVectorType& b ) override
     {}
 
     ///@} // Operations
