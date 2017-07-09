@@ -517,7 +517,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                 
                 if (bad_shape == false)
                 {
-                    const Matrix delta_position = CalculateDeltaPosition();
+                    Matrix delta_position;
+                    delta_position = CalculateDeltaPosition(delta_position, conditions_points_slave[i_geom]);
                     
                     const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
                     
@@ -679,7 +680,8 @@ bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                 
                 if (bad_shape == false)
                 {
-                    const Matrix delta_position = CalculateDeltaPosition();
+                    Matrix delta_position;
+                    delta_position = CalculateDeltaPosition(delta_position, conditions_points_slave[i_geom]);
                     
                     const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
                     
@@ -735,7 +737,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     /* CALCULATE JACOBIAN AND JACOBIAN DETERMINANT */
     rVariables.jSlave = GeometryDecomp.Jacobian( rVariables.jSlave, LocalPointDecomp.Coordinates(), DeltaPosition);
     rVariables.DetjSlave = MathUtils<double>::GeneralizedDet(rVariables.jSlave);
-//     rVariables.DetjSlave = GeometryDecomp.DeterminantOfJacobian( LocalPointDecomp );
+//     rVariables.DetjSlave = GeometryDecomp.DeterminantOfJacobian( LocalPointDecomp ); // TODO: Add this to the geometry.h
     
     /* SHAPE FUNCTIONS */
     GetGeometry().ShapeFunctionsValues( rVariables.NSlave, LocalPointParent.Coordinates() );
@@ -1962,20 +1964,28 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
-Matrix AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaPosition()
+Matrix AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaPosition(
+        Matrix& DeltaPosition,
+        const ConditionArrayType LocalCoordinates
+        )
 {
     KRATOS_TRY;
 
-    Matrix DeltaPosition(TNumNodes, TDim);
+    DeltaPosition = ZeroMatrix(TDim, TDim);
 
-    for ( unsigned int i = 0; i < TNumNodes; i++ )
+    for ( unsigned int i_node = 0; i_node < TNumNodes; i_node++ )
     {
-        const array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-        const array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-
-        for ( unsigned int j = 0; j < TDim; j++ )
+        const array_1d<double, 3 > & delta_displacement = GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT,1);
+        
+        for ( unsigned int j_node = 0; j_node < TDim; j_node++ )
         {
-            DeltaPosition(i,j) = (CurrentDisplacement[j] - PreviousDisplacement[j]);
+            Vector N;
+            GetGeometry().ShapeFunctionsValues( N, LocalCoordinates[j_node].Coordinates() );
+
+            for ( unsigned int j_dim = 0; j_dim < TDim; j_dim++ )
+            {
+                DeltaPosition(j_node, j_dim) += N[i_node] * delta_displacement[j_dim];
+            }
         }
     }
 

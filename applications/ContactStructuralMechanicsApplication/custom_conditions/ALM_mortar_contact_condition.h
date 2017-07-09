@@ -238,11 +238,13 @@ public:
 
     typedef typename BaseType::PropertiesType::Pointer                      PropertiesPointerType;
     
-    typedef typename std::vector<array_1d<PointType,TDim>>                 ConditionArrayListType;
+    typedef array_1d<PointType,TDim>                                           ConditionArrayType;
     
-    typedef Line2D2<Point<3>>                                                            LineType;
+    typedef typename std::vector<ConditionArrayType>                       ConditionArrayListType;
     
-    typedef Triangle3D3<Point<3>>                                                    TriangleType;
+    typedef Line2D2<PointType>                                                           LineType;
+    
+    typedef Triangle3D3<PointType>                                                   TriangleType;
     
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
     
@@ -1113,10 +1115,15 @@ protected:
     }
     
     /**
-     * Returns a matrix with the increment of displacements, that can be used for compute the Jacobian "perturbed"
+     * Returns a matrix with the increment of displacements, that can be used for compute the Jacobian reference (current) configuration
+     * @return DeltaPosition: The matrix with the increment of displacements 
+     * @param LocalCoordinates: The array containing the local coordinates of the exact integration segment
      */
     
-    Matrix CalculateDeltaPosition();
+    Matrix CalculateDeltaPosition(
+        Matrix& DeltaPosition,
+        const ConditionArrayType LocalCoordinates
+        );
     
     ///@}
     ///@name Protected  Access
