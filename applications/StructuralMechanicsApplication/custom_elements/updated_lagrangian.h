@@ -6,13 +6,12 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Riccardo Rossi
-//                   Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrándiz
 //
 
 
-#if !defined(KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED )
-#define  KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED
+#if !defined(KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED )
+#define  KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED
 
 
 // System includes
@@ -50,14 +49,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Total Lagrangian element for 2D and 3D geometries.
+/// Updated Lagrangian element for 2D and 3D geometries.
 
 /**
  * Implements a total Lagrangian definition for structural analysis.
  * This works for arbitrary geometries in 2D and 3D
  */
 
-class TotalLagrangian
+class UpdatedLagrangian
     : public BaseSolidElement
 {
 public:
@@ -70,19 +69,19 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    /// Counted pointer of TotalLagrangian
-    KRATOS_CLASS_POINTER_DEFINITION(TotalLagrangian);
+    /// Counted pointer of UpdatedLagrangian
+    KRATOS_CLASS_POINTER_DEFINITION(UpdatedLagrangian);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry);
-    TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    UpdatedLagrangian(IndexType NewId, GeometryType::Pointer pGeometry);
+    UpdatedLagrangian(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    ~TotalLagrangian() override;
+    ~UpdatedLagrangian() override;
 
     ///@}
     ///@name Operators
@@ -90,6 +89,25 @@ public:
     ///@}
     ///@name Operations
     ///@{
+    
+    /**
+     * Called to initialize the element.
+     * Must be called before any calculation is done
+     */
+    void Initialize() override;
+    
+    /**
+     * Called at the beginning of each solution step
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    
+    /**
+     * Called at the end of eahc solution step
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    
     /**
      * Returns the currently selected integration method
      * @return current integration method selected
@@ -97,6 +115,78 @@ public:
     //TODO: ADD THE OTHER CREATE FUNCTION
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
+    /**
+     * Calculate a double Variable on the Element Constitutive Law
+     * @param rVariable: The variable we want to get
+     * @param rOutput: The values obtained int the integration points
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable, 
+        std::vector<double>& rOutput, 
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * Calculate a Matrix Variable on the Element Constitutive Law
+     * @param rVariable: The variable we want to get
+     * @param rOutput: The values obtained int the integration points
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<Matrix >& rVariable, 
+        std::vector< Matrix >& rOutput, 
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+    
+     /**
+      * Set a double Value on the Element Constitutive Law
+      * @param rVariable: The variable we want to set
+      * @param rValues: The values to set in the integration points
+      * @param rCurrentProcessInfo: the current process info instance
+      */
+    void SetValueOnIntegrationPoints(
+        const Variable<double>& rVariable, 
+        std::vector<double>& rValues, 
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+     /**
+      * Set a Matrix Value on the Element Constitutive Law
+      * @param rVariable: The variable we want to set
+      * @param rValues: The values to set in the integration points
+      * @param rCurrentProcessInfo: the current process info instance
+      */
+    void SetValueOnIntegrationPoints(
+        const Variable<Matrix>& rVariable, 
+        std::vector<Matrix>& rValues, 
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * Get on rVariable a double Value from the Element Constitutive Law
+     * @param rVariable: The variable we want to get
+     * @param rValues: The results in the integration points
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void GetValueOnIntegrationPoints(
+        const Variable<double>& rVariable, 
+        std::vector<double>& rValues, 
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * Get on rVariable a Matrix Value from the Element Constitutive Law
+     * @param rVariable: The variable we want to get
+     * @param rValues: The results in the integration points
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void GetValueOnIntegrationPoints(
+        const Variable<Matrix>& rVariable, 
+        std::vector<Matrix>& rValues, 
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+    
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -135,18 +225,39 @@ public:
 protected:
     ///@name Protected static Member Variables
     ///@{
+    
     ///@}
     ///@name Protected member Variables
     ///@{
 
+    /* Historical total elastic deformation measure */
+    bool mF0Computed;           // To avoid computing more than once the historical total elastic deformation measure 
+    std::vector<double> mDetF0; // The historical total elastic deformation measure determinant
+    std::vector<Matrix> mF0;    // The historical total elastic deformation measure
+    
     ///@}
     ///@name Protected Operators
     ///@{
     
-    TotalLagrangian() : BaseSolidElement()
+    UpdatedLagrangian() : BaseSolidElement()
     {
     }
 
+    /**
+     * Gives the StressMeasure used
+     */
+    ConstitutiveLaw::StressMeasure GetStressMeasure() const override;
+    
+    /**
+     * It updates the historical database
+     * @param rThisKinematicVariables: The kinematic variables to be calculated 
+     * @param PointNumber: The integration point considered
+     */ 
+    void UpdateHistoricalDatabase(
+        KinematicVariables& rThisKinematicVariables,
+        const unsigned int PointNumber
+        );
+        
     /**
      * This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix: The LHS
@@ -194,6 +305,17 @@ protected:
         const Vector Displacements = ZeroVector(1)
         ) override;
     
+    /**
+     * This functions calculate the derivatives in the reference frame
+     */ 
+    double CalculateDerivativesOnReferenceConfiguration(
+        Matrix& J0, 
+        Matrix& InvJ0, 
+        Matrix& DN_DX, 
+        const unsigned int PointNumber,
+        IntegrationMethod ThisIntegrationMethod
+        ) override;
+    
     ///@}
     ///@name Protected Operations
     ///@{
@@ -226,19 +348,33 @@ private:
         );
 
     void InitializeVariables();
-
+    
     void CalculateB(
         Matrix& B,
-        const Matrix& F,
         const Matrix& DN_DX,
         const unsigned int StrainSize,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const unsigned int PointNumber
         );
-
+    
+    /**
+     * It returns the reference configuration deformation gradient determinant
+     * @param PointNumber: The integration point considered
+     * @return The reference configuration deformation gradient determinant
+     */
+    double ReferenceConfigurationDeformationGradientDeterminant(const unsigned PointNumber) const;
+    
+    /**
+     * It returns the reference configuration deformation gradient
+     * @param PointNumber: The integration point considered
+     * @return The reference configuration deformation gradient
+     */
+    Matrix ReferenceConfigurationDeformationGradient(const unsigned PointNumber) const;
+    
     ///@}
     ///@name Private Operations
     ///@{
+
 
     ///@}
     ///@name Private  Access
@@ -262,12 +398,12 @@ private:
     ///@name Un accessible methods
     ///@{
     /// Assignment operator.
-    //TotalLagrangian& operator=(const TotalLagrangian& rOther);
+    //UpdatedLagrangian& operator=(const UpdatedLagrangian& rOther);
     /// Copy constructor.
-    //TotalLagrangian(const TotalLagrangian& rOther);
+    //UpdatedLagrangian(const UpdatedLagrangian& rOther);
     ///@}
 
-}; // Class TotalLagrangian
+}; // Class UpdatedLagrangian
 
 ///@}
 ///@name Type Definitions
@@ -278,4 +414,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED  defined 
+#endif // KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED  defined 

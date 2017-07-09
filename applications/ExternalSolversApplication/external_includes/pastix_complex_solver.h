@@ -82,7 +82,7 @@ public:
 
     PastixComplexSolver(const PastixComplexSolver& Other) = delete;
 
-    virtual ~PastixComplexSolver()
+    ~PastixComplexSolver() override
 	{
 	}
 

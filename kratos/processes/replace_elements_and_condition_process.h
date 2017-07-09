@@ -87,7 +87,7 @@ public:
 
     
     /// Destructor.
-    virtual ~ReplaceElementsAndConditionsProcess() {}
+    ~ReplaceElementsAndConditionsProcess() override {}
 
 
     ///@}
@@ -107,7 +107,7 @@ public:
 
 
     /// Execute method is used to execute the ReplaceElementsAndConditionsProcess algorithms.
-    virtual void Execute()  override
+    void Execute()  override
     {
         ModelPart& r_root_model_part = ObtainRootModelPart( mr_model_part );
         
@@ -162,19 +162,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "ReplaceElementsAndConditionsProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ReplaceElementsAndConditionsProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

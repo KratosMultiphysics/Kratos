@@ -122,7 +122,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~HerschelBulkleyFluid()
+    ~HerschelBulkleyFluid() override
     {}
 
     ///@}
@@ -145,14 +145,14 @@ public:
      */
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const
+                            PropertiesType::Pointer pProperties) const override
     {
         return Element::Pointer(new HerschelBulkleyFluid<TBaseElement>(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
     }
 
 
 
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -184,7 +184,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "HerschelBulkleyFluid " ;
@@ -193,14 +193,14 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "HerschelBulkleyFluid ";
         TBaseElement::PrintInfo(rOStream);
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
@@ -245,11 +245,11 @@ protected:
      * @param rProcessInfo ProcessInfo instance passed from the ModelPart, containing additional data
      * @return The effective viscosity, in dynamic units (Pa*s or equivalent).
      */
-    virtual double EffectiveViscosity(double Density,
+    double EffectiveViscosity(double Density,
                                       const TShapeFunctionValues &rN,
                                       const TShapeFunctionGradients &rDN_DX,
                                       double ElemSize,
-                                      const ProcessInfo &rProcessInfo)
+                                      const ProcessInfo &rProcessInfo) override
     {
         double GammaDot = this->EquivalentStrainRate(rDN_DX);
 
@@ -309,12 +309,12 @@ protected:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, TBaseElement );
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, TBaseElement );
     }
