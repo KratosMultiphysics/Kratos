@@ -26,6 +26,7 @@
 #include "includes/condition.h"
 #include "utilities/math_utils.h"
 #include "includes/kratos_flags.h"
+#include "custom_includes/mortar_kinematic_variables.h"
 
 /* Utilities */
 #include "custom_utilities/contact_utilities.h"
@@ -63,151 +64,6 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-  
-/** \brief DerivativeData
- * This data will be used to compute the derivatives
- */
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
-class DerivativeData
-{
-public:
-    
-    // Auxiliar types
-//     typedef int zero[0]; // NOTE: Problems in Windows
-    typedef array_1d<double, TNumNodes> Type1;
-    typedef bounded_matrix<double, TNumNodes, TDim> Type2;
-    typedef bounded_matrix<double, TNumNodes, TNumNodes> Type3;
-    
-    // Auxiliar sizes
-    static const unsigned int Size1 =     (TNumNodes * TDim);
-    static const unsigned int Size2 = 2 * (TNumNodes * TDim);
-    
-    // Master and element geometries
-    GeometryType SlaveGeometry;
-    GeometryType MasterGeometry;
-    
-    // The ALM parameters
-    double PenaltyParameter;
-    double ScaleFactor;
-    
-    typename std::conditional< TFrictional,double,int >::type TangentFactor;
-    
-    // The normals of the nodes
-    Type2 NormalMaster;
-    Type2 NormalSlave;
-    
-    // Displacements and velocities
-    Type2 X1;
-    Type2 X2;
-    Type2 u1;
-    Type2 u2;
-    
-    typename std::conditional< TFrictional,Type2,int >::type u1old;
-    typename std::conditional< TFrictional,Type2,int >::type u2old;
-    
-    // Derivatives    
-    array_1d<double, Size1> DeltaJSlave;
-    array_1d<Type1,  Size1> DeltaPhi;
-    array_1d<Type1,  Size2> DeltaN1;
-    array_1d<Type1,  Size2> DeltaN2;
-    array_1d<Type2,  Size1> DeltaNormalSlave;
-    array_1d<Type2,  Size1> DeltaNormalMaster;
-    
-    // Ae
-    Type3 Ae;
-    
-    // Derivatives Ae
-    array_1d<Type3, Size1> DeltaAe;
-    
-    // Default destructor
-    ~DerivativeData(){}
-    
-    /**
-     * Initializer method 
-     * @param  GeometryInput: The geometry of the slave 
-     */
-    
-    virtual void Initialize(
-        const GeometryType& GeometryInput,
-        const ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        SlaveGeometry  = GeometryInput;
-        
-        // The normals of the nodes
-        NormalSlave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry,  NORMAL);
-        
-        // Displacements and velocities of the slave       
-        u1 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 0) 
-           - ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 1);
-        X1 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(SlaveGeometry, false, 1);
-        
-        // We get the ALM variables
-        PenaltyParameter = rCurrentProcessInfo[PENALTY_PARAMETER];
-        ScaleFactor = rCurrentProcessInfo[SCALE_FACTOR];
-        
-        // Derivatives 
-        for (unsigned int i = 0; i < TNumNodes * TDim; i++)
-        {
-            DeltaPhi[i] = ZeroVector(TNumNodes);
-            DeltaN1[i] = ZeroVector(TNumNodes);
-            DeltaN1[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
-            DeltaN2[i] = ZeroVector(TNumNodes);
-            DeltaN2[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
-            DeltaNormalSlave[i]      = ZeroMatrix(TNumNodes, TDim);
-        }
-        
-        #if (TFrictional == true)
-            TangentFactor = rCurrentProcessInfo[TANGENT_FACTOR];
-            u1old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 1) 
-                  - ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 2);
-        #endif
-    }
-    
-    /**
-     * Initialize the DeltaAe components
-     */
-    
-    void InitializeDeltaAeComponents()
-    {
-        // Ae
-        Ae = ZeroMatrix(TNumNodes, TNumNodes);
-        
-        // Derivatives Ae
-        for (unsigned int i = 0; i < TNumNodes * TDim; i++)
-        {
-            DeltaAe[i] = ZeroMatrix(TNumNodes, TNumNodes);
-        }
-    }
-
-    /**
-     * Updating the Master pair
-     * @param  pCond: The pointer of the current master
-     */
-    
-    virtual void UpdateMasterPair(const Condition::Pointer& pCond)
-    {
-        MasterGeometry =  pCond->GetGeometry();
-        
-        NormalMaster = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry,  NORMAL);
-        
-        // Displacements, coordinates and normals of the master
-        u2 = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 0)
-           - ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1);
-        X2 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(MasterGeometry, false, 1);
-
-        // Derivative of master's normal
-        for (unsigned int i = 0; i < TNumNodes * TDim; i++)
-        {
-            DeltaNormalMaster[i] = ZeroMatrix(TNumNodes, TDim);
-        }
-        
-        #if (TFrictional == true)
-            u2old = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1)
-                  - ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 2);
-        #endif
-    }
-};  // Class DerivativeData
     
 /** \brief AugmentedLagrangianMethodMortarContactCondition
  * This is a contact condition which employes the mortar method with dual lagrange multiplier 
@@ -270,7 +126,6 @@ public:
         // Shape functions local derivatives for contact pair
         MatrixType DNDeMaster;
         MatrixType DNDeSlave;
-//         MatrixType DPhi_De_LagrangeMultipliers;
 
         // Determinant of slave cell's jacobian
         double DetjSlave;
@@ -297,9 +152,8 @@ public:
             PhiLagrangeMultipliers = ZeroVector(TNumNodes);
 
             // Shape functions local derivatives
-            DNDeMaster                 = ZeroMatrix(TNumNodes, TDim - 1);
-            DNDeSlave                  = ZeroMatrix(TNumNodes, TDim - 1);
-//             DPhi_De_LagrangeMultipliers  = ZeroMatrix(TNumNodes, TDim - 1);
+            DNDeMaster = ZeroMatrix(TNumNodes, TDim - 1);
+            DNDeSlave  = ZeroMatrix(TNumNodes, TDim - 1);
             
             // Jacobian of slave
             DetjSlave = 0.0;

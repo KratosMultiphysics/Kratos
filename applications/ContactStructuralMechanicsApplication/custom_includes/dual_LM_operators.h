@@ -110,10 +110,10 @@ public:
     {
         /* DEFINITIONS */
         const Vector N1 = rKinematicVariables.NSlave;
-        const double DetJ = rKinematicVariables.DetJSlave; 
+        const double Detj = rKinematicVariables.DetjSlave; 
         
-        De += rIntegrationWeight * (ComputeDe(N1, DetJ));
-        Me += rIntegrationWeight * DetJ * outer_prod(N1, N1);
+        De += rIntegrationWeight * (ComputeDe(N1, Detj));
+        Me += rIntegrationWeight * Detj * outer_prod(N1, N1);
     }
     
     /**
