@@ -169,8 +169,8 @@ namespace Kratos
         const unsigned int PointNumber
         )
     {
-        mDetF0[PointNumber] *= rThisKinematicVariables.detF;
-        mF0[PointNumber] = prod(rThisKinematicVariables.F, mF0[PointNumber]);
+        mDetF0[PointNumber] = rThisKinematicVariables.detF;
+        mF0[PointNumber] = rThisKinematicVariables.F;
     }
      
     //************************************************************************************
@@ -296,7 +296,27 @@ namespace Kratos
         
         // Deformation gradient
         const unsigned int strain_size = (rThisKinematicVariables.B).size1();
-        noalias( rThisKinematicVariables.F ) = prod( J, rThisKinematicVariables.InvJ0 );
+        Matrix DF = prod( J, rThisKinematicVariables.InvJ0 );
+        
+        // Axisymmetric case
+        if (strain_size == 4)
+        {
+            DF.resize(3, 3); // We keep the old values
+            for (unsigned int index = 0; index < 1; index++)
+            {
+                DF(index, 2) = 0.0;
+                DF(2, index) = 0.0;
+            }
+
+            rThisKinematicVariables.N = GetGeometry().ShapeFunctionsValues( rThisKinematicVariables.N, IntegrationPoints[PointNumber].Coordinates() );
+            const double current_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, GetGeometry(), Current);
+            const double initial_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, GetGeometry(), Initial);
+            DF(2, 2) = current_radius/initial_radius;
+        }
+        
+        const double detDF = MathUtils<double>::Det(DF);
+        rThisKinematicVariables.detF = detDF * ReferenceConfigurationDeformationGradientDeterminant(PointNumber);
+        rThisKinematicVariables.F = prod(DF, ReferenceConfigurationDeformationGradient(PointNumber));
         
         // Calculating operator B
         CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.DN_DX, strain_size, IntegrationPoints, PointNumber );
@@ -314,29 +334,10 @@ namespace Kratos
         const ConstitutiveLaw::StressMeasure ThisStressMeasure,
         const Vector Displacements
         )
-    {
-        // Axisymmetric case
-        if (rThisConstitutiveVariables.StrainVector.size() == 4)
-        {
-            rThisKinematicVariables.F.resize(3, 3); // We keep the old values
-            for (unsigned int index = 0; index < 1; index++)
-            {
-                rThisKinematicVariables.F(index, 2) = 0.0;
-                rThisKinematicVariables.F(2, index) = 0.0;
-            }
-
-            rThisKinematicVariables.N = GetGeometry().ShapeFunctionsValues( rThisKinematicVariables.N, IntegrationPoints[PointNumber].Coordinates() );
-            const double current_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, GetGeometry(), Current);
-            const double initial_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, GetGeometry(), Initial);
-            rThisKinematicVariables.F(2, 2) = current_radius/initial_radius;
-        }
-        
+    {       
         // Here we essentially set the input parameters
-        rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
-        const double detFT = rThisKinematicVariables.detF * ReferenceConfigurationDeformationGradientDeterminant(PointNumber);
-        rValues.SetDeterminantF(detFT); //assuming the determinant is computed somewhere else
-        const Matrix FT = prod(rThisKinematicVariables.F, ReferenceConfigurationDeformationGradient(PointNumber));
-        rValues.SetDeformationGradientF(FT); //F computed somewhere else
+        rValues.SetDeterminantF(rThisKinematicVariables.detF); //assuming the determinant is computed somewhere else
+        rValues.SetDeformationGradientF(rThisKinematicVariables.F); //F computed somewhere else
         
         // Here we set the space on which the results shall be written
         rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.D); //assuming the determinant is computed somewhere else
