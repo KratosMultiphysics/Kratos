@@ -99,7 +99,7 @@ public:
     }
     
     /**
-     * Calculates the Ae components necessary to compute the Phi_LagrangeMultipliers shpae functions
+     * Calculates the Ae components necessary to compute the Phi_LagrangeMultipliers shape functions
      * @param rKinematicVariables: The kinematic variables
      * @param rIntegrationWeight: The integration weight considered
      */
@@ -254,6 +254,184 @@ private:
     ///@}
 
 }; // Class DualLagrangeMultiplierOperators
+
+/** \brief DualLagrangeMultiplierOperatorsWithDertivatives
+ * This is the definition dual lagrange multiplier operators with derivatives
+ */
+
+template< const unsigned int TDim, const unsigned int TNumNodes, bool TFrictional>
+class DualLagrangeMultiplierOperatorsWithDertivatives : DualLagrangeMultiplierOperators<TNumNodes>
+{
+public:
+    ///@name Type Definitions
+    ///@{
+        
+    typedef DualLagrangeMultiplierOperators<TNumNodes> BaseClassType;  
+    
+    typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes> KinematicVariables;
+    
+    typedef DerivativeData<TDim, TNumNodes, TFrictional> DerivativeDataType;
+    
+    /// Counted pointer of DualLagrangeMultiplierOperatorsWithDertivatives
+    KRATOS_CLASS_POINTER_DEFINITION( DualLagrangeMultiplierOperatorsWithDertivatives );
+         
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    DualLagrangeMultiplierOperatorsWithDertivatives(){}
+    
+    virtual ~DualLagrangeMultiplierOperatorsWithDertivatives(){}
+    
+    // Auxiliar sizes
+    static const unsigned int Size1 = (TNumNodes * TDim);
+    
+    // Derivatives matrices
+    array_1d<boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>, Size1> DeltaMe;
+    array_1d<boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>, Size1> DeltaDe;
+        
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+    
+    /**
+     * This method initialized the operators
+     */
+    void Initialize()
+    {
+        BaseClassType::Initialize();
+        
+        // Derivatives matrices
+        for (unsigned int i = 0; i < TNumNodes * TDim; i++)
+        {
+            DeltaMe[i] = ZeroMatrix(TNumNodes, TNumNodes);
+            DeltaDe[i] = ZeroMatrix(TNumNodes, TNumNodes);
+        }
+    }
+    
+    /**
+     * Calculates the Ae components and its derivatives necessary to compute the Phi_LagrangeMultipliers shape functions
+     * @param rKinematicVariables: The kinematic variables
+     * @param rIntegrationWeight: The integration weight considered
+     */
+    void CalculateDeltaAeComponents(
+        KinematicVariables& rKinematicVariables,
+        DerivativeDataType& rDerivativeData,
+        const double& rIntegrationWeight
+        )
+    {
+        /* DEFINITIONS */
+        const Vector N1 = rKinematicVariables.NSlave;
+        
+        BaseClassType::CalculateAeComponents(rKinematicVariables, rIntegrationWeight);
+        
+        for (unsigned int i = 0; i < TDim * TNumNodes; i++)
+        {
+            const double DeltaDetJ = rDerivativeData.DeltaJSlave[i];
+            
+            DeltaDe[i] += rIntegrationWeight * this->ComputeDe( N1, DeltaDetJ );
+            DeltaMe[i] += rIntegrationWeight * DeltaDetJ * outer_prod(N1, N1);
+        }
+    }
+    
+    /**
+     * This method prints the current operators
+     */
+    void print( )
+    {
+        BaseClassType::print();
+        
+//         // Derivatives matrices
+//         for (unsigned int i = 0; i < TNumNodes * TDim; i++)
+//         {
+//             KRATOS_WATCH( DeltaMe[i] );
+//             KRATOS_WATCH( DeltaDe[i] );
+//         }
+    }
+    
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+    
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+    
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+    
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+    
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    ///@}
+
+}; // Class DualLagrangeMultiplierOperatorsWithDertivatives
 
 ///@}
 

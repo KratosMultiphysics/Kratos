@@ -195,7 +195,7 @@ private:
 
 }; // Class MortarKinematicVariables
 
-template< const unsigned int TNumNodes, const unsigned int TDim>
+template< const unsigned int TDim, const unsigned int TNumNodes>
 class MortarKinematicVariablesWithDerivatives : MortarKinematicVariables<TNumNodes>
 {
 public:

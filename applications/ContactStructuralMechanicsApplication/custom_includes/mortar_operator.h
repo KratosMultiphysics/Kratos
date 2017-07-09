@@ -229,7 +229,7 @@ private:
 
 }; // Class MortarOperatorWithDerivatives
 
-template< const unsigned int TNumNodes, const unsigned int TDim, bool TFrictional>
+template< const unsigned int TDim, const unsigned int TNumNodes, bool TFrictional>
 class MortarOperatorWithDerivatives : MortarOperator<TNumNodes>
 {
 public:

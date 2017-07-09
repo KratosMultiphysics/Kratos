@@ -26,6 +26,10 @@
 #include "includes/condition.h"
 #include "utilities/math_utils.h"
 #include "includes/kratos_flags.h"
+
+/* Custom includes */
+#include "custom_includes/mortar_operator.h"
+#include "custom_includes/dual_LM_operators.h"
 #include "custom_includes/mortar_kinematic_variables.h"
 
 /* Utilities */
@@ -80,33 +84,39 @@ public:
     /// Counted pointer of AugmentedLagrangianMethodMortarContactCondition
     KRATOS_CLASS_POINTER_DEFINITION( AugmentedLagrangianMethodMortarContactCondition );
 
-    typedef Condition                                                                    BaseType;
+    typedef Condition                                                                     BaseType;
     
-    typedef typename BaseType::VectorType                                              VectorType;
+    typedef typename BaseType::VectorType                                               VectorType;
 
-    typedef typename BaseType::MatrixType                                              MatrixType;
+    typedef typename BaseType::MatrixType                                               MatrixType;
 
-    typedef typename BaseType::IndexType                                                IndexType;
+    typedef typename BaseType::IndexType                                                 IndexType;
 
-    typedef typename BaseType::GeometryType::Pointer                          GeometryPointerType;
+    typedef typename BaseType::GeometryType::Pointer                           GeometryPointerType;
 
-    typedef typename BaseType::NodesArrayType                                      NodesArrayType;
+    typedef typename BaseType::NodesArrayType                                       NodesArrayType;
 
-    typedef typename BaseType::PropertiesType::Pointer                      PropertiesPointerType;
+    typedef typename BaseType::PropertiesType::Pointer                       PropertiesPointerType;
     
-    typedef array_1d<PointType,TDim>                                           ConditionArrayType;
+    typedef array_1d<PointType,TDim>                                            ConditionArrayType;
     
-    typedef typename std::vector<ConditionArrayType>                       ConditionArrayListType;
+    typedef typename std::vector<ConditionArrayType>                        ConditionArrayListType;
     
-    typedef Line2D2<PointType>                                                           LineType;
+    typedef Line2D2<PointType>                                                            LineType;
     
-    typedef Triangle3D3<PointType>                                                   TriangleType;
+    typedef Triangle3D3<PointType>                                                    TriangleType;
     
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
+    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type  DecompositionType;
     
-    typedef DerivativeData<TDim, TNumNodes, TFrictional>                       DerivativeDataType;
+    typedef DerivativeData<TDim, TNumNodes, TFrictional>                        DerivativeDataType;
     
     static constexpr unsigned int MatrixSize = TFrictional == true ? TDim * (TNumNodes + TNumNodes + TNumNodes) : TDim * (TNumNodes + TNumNodes) + TNumNodes;
+    
+//     typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes, TFrictional> GeneralVariables;
+//     
+//     typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, TFrictional>    AeData;
+//     
+//     typedef MortarOperatorWithDerivatives<TDim, TNumNodes>                 MortarConditionMatrices;
     
     /**
      * Parameters to be used in the Condition as they are.
