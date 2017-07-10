@@ -14,6 +14,7 @@
 
 // System includes
 #include <unordered_set>
+#include <unordered_map>
 
 // External includes
 
@@ -93,6 +94,62 @@ private:
     {
         // TODO: Fill if necessary
 //         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType );
+    }
+};
+
+struct ConditionMap : std::unordered_map<Condition::Pointer, bool, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> >
+{
+    virtual ~ConditionMap(){}
+    
+    typedef std::unordered_map<Condition::Pointer, bool, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> > BaseType;
+    
+    void RemoveCondition(Condition::Pointer pCond)
+    {
+        BaseType::iterator Set = find(pCond);
+        if(Set != end())
+        {
+            erase(Set);
+        }
+    }
+    
+    void AddNewCondition(Condition::Pointer pCond)
+    {
+        insert({pCond, true}); // True by default when adding a new one
+    }
+    
+    void SetActive(Condition::Pointer pCond, const bool Active)
+    {
+        BaseType::iterator Set = find(pCond);
+        if(Set != end())
+        {
+            Set->second = Active;
+        }
+    }
+    
+    bool IsActive(Condition::Pointer pCond) const 
+    {
+        BaseType::const_iterator Set = find(pCond);
+        return (Set->second);
+    }
+    
+    void print()
+    {
+        for ( auto it = begin(); it != end(); ++it )
+        {
+            std::cout << "The condition " << (it->first)->Id() << " is ACTIVE: " << it->second;
+            
+            KRATOS_WATCH((it->first)->GetGeometry());
+        }
+    }
+    
+    void save( Serializer& rSerializer ) const
+    {
+        // TODO: Fill if necessary
+    }
+
+    void load( Serializer& rSerializer )
+    {
+        // TODO: Fill if necessary
     }
 };
 
