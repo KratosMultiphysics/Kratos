@@ -117,7 +117,7 @@ namespace Kratos
     bool Triangulate_OPT(const PolygonType& polygon,
       std::vector<Matrix>& triangles);
 
-    void Polygon::clipPolygon(
+    void clipPolygon(
       const PolygonType& polygon_1,
       const PolygonType& polygon_2,
       PolygonVectorType& polygon_vector);
@@ -137,10 +137,10 @@ namespace Kratos
     bool InCone(PointXYType &p1, PointXYType &p2,
       PointXYType &p3, PointXYType &p);
 
-    bool Polygon::IsConvex(
+    bool IsConvex(
       const array_1d<double, 2>& p1, const array_1d<double, 2>& p2,
       const array_1d<double, 2>& p3);
-    bool Polygon::IsConvex(
+    bool IsConvex(
       const PointXYType& p1, const PointXYType& p2,
       const PointXYType& p3);
     bool GetOrientation();

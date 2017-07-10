@@ -58,8 +58,8 @@ namespace Kratos
     ///@}
     ///@name Life Cycle 
     ///@{ 
-    virtual std::vector<array_1d<double, 3>> KnotSpan2d::getIntegrationPointsInFullGaussianDomain();
-    virtual std::vector<array_1d<double, 3>> KnotSpan2d::getIntegrationPointsInParameterDomain();
+    virtual std::vector<array_1d<double, 3>> getIntegrationPointsInFullGaussianDomain();
+    virtual std::vector<array_1d<double, 3>> getIntegrationPointsInParameterDomain();
 
 
     //TODO: you need to give reading access to your internals through the Calculate function

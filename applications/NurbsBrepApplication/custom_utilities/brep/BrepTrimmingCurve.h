@@ -80,9 +80,12 @@ namespace Kratos
     bool Bisection(double& parameter, const double& parameter_1, const double& parameter_2,
       const double& direction, const double& knot);
 
+    void EvaluateRationalCurveDerivatives(std::vector<Vector>& DN_De, const int& order, const double& u);
+
 
     //Shape Functions:
-    void EvaluateRationalCurveDerivatives(std::vector<Vector>& DN_De, const int& order, const double& u);
+    void EvaluateRationalCurveDerivativesPrint(std::vector<Vector>& DN_De, const int& order, const double& u);
+    void EvaluateCurveDerivativesPrint(Matrix& DN_De, const int& order, const double& u);
 
 
     //TODO: you need to give reading access to your internals through the Calculate function

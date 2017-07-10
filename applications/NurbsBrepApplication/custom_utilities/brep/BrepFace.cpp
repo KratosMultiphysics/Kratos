@@ -211,7 +211,7 @@ namespace Kratos
       //GetClosestPoint(intersection_points[i], u, v);
       if (!success)
       {
-        std::vector<array_1d<double, 2>> trimming_curve_loop = trimming_curve.CreatePolygon(20);
+        std::vector<array_1d<double, 2>> trimming_curve_loop = trimming_curve.CreatePolygon(40);
         double distance = 1e10;
         array_1d<double, 2> initial_guess;
         for (auto point_itr = trimming_curve_loop.begin(); point_itr != trimming_curve_loop.end(); ++point_itr)
@@ -338,7 +338,7 @@ namespace Kratos
         }
       }
     }
-    KRATOS_THROW_ERROR(std::runtime_error, "Brep Trimming Curve with index ", trim_index, " was not found.");
+    KRATOS_ERROR << "Brep Trimming Curve with index " << trim_index << " was not found." << std::endl;
   }
 
   void BrepFace::EnhanceShapeFunctionsSlave(
@@ -357,76 +357,125 @@ namespace Kratos
       double u = 0;
       double v = 0;
 
+      double parameter_min = 0.0;
+      double parameter_max = 0.0;
       double parameter = 0.0;
 
       bool success = false;// = NewtonRaphson(point, u, v);
-      std::cout << "Very Initial: u=" << u << ", v=" << v << std::endl;
+      //std::cout << "Very Initial: u=" << u << ", v=" << v << std::endl;
       //GetClosestPoint(point, u, v);
       if (!success)
       {
-        std::vector<array_1d<double, 3>> trimming_curve_loop = trimming_curve.CreatePolygonWithParameter(30);
+        std::vector<array_1d<double, 3>> trimming_curve_loop = trimming_curve.CreatePolygonWithParameter(300);
+        parameter_min = trimming_curve_loop[0][2];
+        parameter_max = trimming_curve_loop[trimming_curve_loop.size()-1][2];
         double distance = 1e10;
-        array_1d<double, 2> initial_guess;
-        for (auto point_itr = trimming_curve_loop.begin(); point_itr != trimming_curve_loop.end(); ++point_itr)
+        array_1d<double, 3> initial_guess;
+        //for (auto point_itr = trimming_curve_loop.begin(); point_itr != trimming_curve_loop.end(); ++point_itr)
+        for (int pt_i = 0; pt_i < trimming_curve_loop.size(); ++pt_i)
         {
           Point<3> point_global;
-          EvaluateSurfacePoint(point_global, (*point_itr)[0], (*point_itr)[1]);
-          double new_distance = sqrt((point[0] - point_global[0]) * (point[0] - point_global[0])
-            + (point[1] - point_global[1]) * (point[1] - point_global[1])
-            + (point[2] - point_global[2]) * (point[2] - point_global[2]));
+          EvaluateSurfacePoint(point_global, trimming_curve_loop[pt_i][0], trimming_curve_loop[pt_i][1]);
+
+          //std::ofstream file;
+          //file.open("slave_points.txt", std::ios_base::app | std::ios_base::out);
+          //file << point_global[0] << " " << point_global[1] << " " << point_global[2] << " " << trimming_curve_loop[pt_i][2] << "\n";
+          //file.close();
+
+          //std::ofstream file2;
+          //file2.open("master_points.txt", std::ios_base::app | std::ios_base::out);
+          //file2 << point[0] << " " << point[1] << " " << point[2] << " " << trimming_curve_loop[pt_i][2] << "\n";
+          //file2.close();
+
+          double new_distance = sqrt(((point[0] - point_global[0]) * (point[0] - point_global[0]))
+            + ((point[1] - point_global[1]) * (point[1] - point_global[1]))
+            + ((point[2] - point_global[2]) * (point[2] - point_global[2])));
           if (new_distance < distance)
           {
             distance = new_distance;
-            initial_guess = (*point_itr);
-            parameter = (*point_itr)[2];
+            initial_guess = trimming_curve_loop[pt_i];
+            parameter = trimming_curve_loop[pt_i][2];
+            if (pt_i > 0)
+              parameter_min = trimming_curve_loop[pt_i - 1][2];
+            if (pt_i < trimming_curve_loop.size() - 1)
+              parameter_max = trimming_curve_loop[pt_i + 1][2];
+            else
+              parameter_max = trimming_curve_loop[trimming_curve_loop.size() - 1][2];
           }
         }
         u = initial_guess[0];
         v = initial_guess[1];
-        std::cout << "Initial: u=" << u << ", v=" << v << std::endl;
+        //std::cout << "Initial: u=" << u << ", v=" << v <<", distance: " << distance << std::endl;
         bool success = NewtonRaphson(point, u, v);
-        std::cout << "nach newton raphson: u=" << u << ", v=" << v << std::endl;
+        //std::cout << "nach newton raphson: u=" << u << ", v=" << v << std::endl;
         if (!success) {
           std::cout << "100 iteration points needed." << std::endl;
-          trimming_curve_loop = trimming_curve.CreatePolygonWithParameter(100);
-          distance = 1e10;
-          for (auto point_itr = trimming_curve_loop.begin(); point_itr != trimming_curve_loop.end(); ++point_itr)
-          {
-            Point<3> point_global;
-            EvaluateSurfacePoint(point_global, (*point_itr)[0], (*point_itr)[1]);
-            double new_distance = sqrt((point[0] - point_global[0]) * (point[0] - point_global[0])
-              + (point[1] - point_global[1]) * (point[1] - point_global[1])
-              + (point[2] - point_global[2]) * (point[2] - point_global[2]));
-            if (new_distance < distance)
-            {
-              distance = new_distance;
-              initial_guess = (*point_itr);
-              parameter = (*point_itr)[2];
-            }
-          }
-          u = initial_guess[0];
-          v = initial_guess[1];
-          std::cout << "Initial: u=" << u << ", v=" << v << std::endl;
-          bool success = NewtonRaphson(point, u, v);
+          //trimming_curve_loop = trimming_curve.CreatePolygonWithParameter(100);
+          //distance = 1e10;
+          ////for (auto point_itr = trimming_curve_loop.begin(); point_itr != trimming_curve_loop.end(); ++point_itr)
+          //for (int pt_i = 0; pt_i < trimming_curve_loop.size(); ++pt_i)
+          //{
+          //  Point<3> point_global;
+          //  EvaluateSurfacePoint(point_global, trimming_curve_loop[pt_i][0], trimming_curve_loop[pt_i][1]);
+          //  double new_distance = sqrt((point[0] - point_global[0]) * (point[0] - point_global[0])
+          //    + (point[1] - point_global[1]) * (point[1] - point_global[1])
+          //    + (point[2] - point_global[2]) * (point[2] - point_global[2]));
+          //  if (new_distance < distance)
+          //  {
+          //    distance = new_distance;
+          //    initial_guess = trimming_curve_loop[pt_i];
+          //    if (pt_i > 0)
+          //      parameter_min = trimming_curve_loop[pt_i - 1][2];
+          //    if (pt_i < trimming_curve_loop.size() - 1)
+          //      parameter_max = trimming_curve_loop[pt_i + 1][2];
+          //    else
+          //      parameter_max = trimming_curve_loop[trimming_curve_loop.size() - 1][2];
+          //    parameter = trimming_curve_loop[pt_i][2];
+          //  }
+          //}
+          //u = initial_guess[0];
+          //v = initial_guess[1];
+          //std::cout << "Initial: u=" << u << ", v=" << v << std::endl;
+          //bool success = NewtonRaphson(point, u, v);
           //if (!success)
+          //  std::cout << "Newton Raphson did not converge for " << std::endl;
             //KRATOS_ERROR << "Point not found after 100 pts." << std::endl;
         }
       }
-      std::cout << "u=" << u << ", v=" << v << std::endl;
+      //std::cout << "u=" << u << ", v=" << v << std::endl;
       Point<2> point2d(u, v);
       Point<3> point3d;
-      std::cout << "parameter before: " << parameter << std::endl;
-      std::cout << "point2d before: " << point2d[0] << ", " << point2d[1] << std::endl;
-      success = trimming_curve.GetClosestPoint(point2d, parameter);
+      //Point<3> point3d;
+      std::vector<Vector> location;
+      //double parameter_2 = parameter;
+      //std::cout << "parameter before: " << parameter << std::endl;
+      //std::cout << "point2d before: " << point2d[0] << ", " << point2d[1] << std::endl;
+      success = trimming_curve.ProjectionNewtonRaphson(parameter, point2d);
       if (!success)
-        trimming_curve.ProjectionBisection(parameter, point2d);
-      std::cout << "parameter afterwards: " << parameter << "success: " << success <<std::endl;
+      {
+        success = trimming_curve.ProjectionBisection(parameter, point2d, parameter_min, parameter_max);// , parameter_min, parameter_max);
+        //if (!success)
+        //  parameter = parameter_2;
+      }
+      //  success = trimming_curve.ProjectionBisection(parameter, point2d, parameter_min, parameter_max);// , parameter_min, parameter_max);
+      //std::cout << "parameter afterwards: " << parameter << "success: " << success <<std::endl;
       //std::cout << "point2d afterwards: " << point2d[0] << ", " << point2d[1] << std::endl;
+      trimming_curve.GetCurveDerivatives(location, 0, parameter);
       trimming_curve.EvaluateCurvePoint(point3d, parameter);
-      std::cout << "point2d afterwards: " << point3d[0] << ", " << point3d[1] << std::endl;
+      double error_distance = sqrt((point3d[0] - location[0][0]) * (point3d[0] - location[0][0])
+        + (point3d[1] - location[0][1]) * (point3d[1] - location[0][1]));
+      //std::cout << "error_distance: " << error_distance << std::endl;
+      //if (error_distance > 0.00001)
+      //{
+      //  std::vector<Vector> DN_De;
+      //  trimming_curve.EvaluateRationalCurveDerivativesPrint(DN_De, 3, parameter);
+      //  Matrix DN_De2;
+      //  trimming_curve.EvaluateCurveDerivativesPrint(DN_De2, 3, parameter);
+      //}
+      //  KRATOS_ERROR << "Big error" << std::endl;
+      //std::cout << "point2d afterwards: " << point3d[0] << ", " << point3d[1] << std::endl;
 
       EvaluateShapeFunctionsSlaveNode(point3d[0], point3d[1], shapefunction_order, nodes[i]);
-
 
       array_1d<double, 2> tangents_basis = trimming_curve.GetBaseVector(parameter);
       Vector tangents_basis_vector(2);
@@ -450,7 +499,7 @@ namespace Kratos
     return NodeVector;
   }
 
-  void BrepFace::EvaluateShapeFunctionsSlaveNode(double& const u, double& const v, const int& shapefunction_order, Node<3>::Pointer node)
+  void BrepFace::EvaluateShapeFunctionsSlaveNode(const double& u, const double& v, const int& shapefunction_order, Node<3>::Pointer node)
   {
     //Point<3> new_point(0, 0, 0);
 
@@ -525,9 +574,9 @@ namespace Kratos
     node->SetValue(CONTROL_POINT_IDS_SLAVE, ControlPointIDs);
 
     //KRATOS_WATCH(local_parameter)
-    //  KRATOS_WATCH(rSurfacePoint->X())
-    //  KRATOS_WATCH(rSurfacePoint->Y())
-    //  KRATOS_WATCH(rSurfacePoint->Z())
+    //KRATOS_WATCH(rSurfacePoint->X())
+    //KRATOS_WATCH(rSurfacePoint->Y())
+    //KRATOS_WATCH(rSurfacePoint->Z())
     //return rSurfacePoint;
   }
 

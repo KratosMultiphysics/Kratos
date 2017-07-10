@@ -90,7 +90,7 @@ namespace Kratos
       const int& shapefunction_order, const int& trim_index, std::vector<Point<3>> intersection_points);
     bool CheckIfPointIsInside(Vector node_parameters);
     void EvaluateSurfacePoint(Point<3>& rSurfacePoint, const double& u, const double& v);
-    void EvaluateShapeFunctionsSlaveNode(double& const u, double& const v, const int& shapefunction_order, Node<3>::Pointer node);
+    void EvaluateShapeFunctionsSlaveNode(const double& u, const double& v, const int& shapefunction_order, Node<3>::Pointer node);
     Node<3>::Pointer EvaluateNode(double u, double v, const int& shapefunction_order);
     //void GetLocalParameterOfPoint(const Point<3>& point, double& u, double& v);
     void GetLocalParameterOfPointOnTrimmingCurve(const Point<3>& point, const BrepTrimmingCurve& trimming_curve, double& u, double& v);

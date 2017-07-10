@@ -61,7 +61,7 @@ namespace Kratos
     polygon.resize(number_polygon_points);
 
     // Variables needed
-    unsigned int counter = 0;
+    //unsigned int counter = 0;
 
     //KRATOS_WATCH(m_knot_vector_u)
 
@@ -81,11 +81,9 @@ namespace Kratos
       //std::cout << "u_i: " << u_i << std::endl;
       EvaluateCurvePoint(curve_point, u_i);
 
-      polygon[counter][0] = curve_point.X();
-      polygon[counter][1] = curve_point.Y();
-      polygon[counter][2] = u_i;
-
-      counter++;
+      polygon[i][0] = curve_point.X();
+      polygon[i][1] = curve_point.Y();
+      polygon[i][2] = u_i;
     }
 
     //std::cout << "polygon finished" << std::endl;
@@ -94,53 +92,62 @@ namespace Kratos
 
   void BrepTrimmingCurve::EvaluateCurvePoint(Point<3>& rCurvePoint, double parameter_u)
   {
-    const unsigned int R_Dim = 3;
+    std::vector<Vector> derivatives;
+    GetCurveDerivatives(derivatives, 1, parameter_u);
+    //Vector location = derivatives[0];
+    //double u = location(0);
+    //double v = location(1);
+    //std::cout << u << ", v=" << v << std::endl;
+    rCurvePoint[0] = derivatives[0](0);
+    rCurvePoint[1] = derivatives[0](1);
+    rCurvePoint[2] = 0;
+    //const unsigned int R_Dim = 3;
 
-    //Vector tmpHomCtrlPt;
-    Vector N;
-    Vector resulting_point(R_Dim+1);
-    Vector homPoi(R_Dim+1);
-    Matrix homCtrlPts;
+    ////Vector tmpHomCtrlPt;
+    //Vector N;
+    //Vector resulting_point(R_Dim+1);
+    //Vector homPoi(R_Dim+1);
+    //Matrix homCtrlPts;
 
-    unsigned int span_u = NurbsUtilities::find_knot_span(m_p, m_knot_vector_u, parameter_u);
-    NurbsUtilities::eval_nonzero_basis_function(N, m_knot_vector_u, parameter_u, span_u, m_p);
-    homCtrlPts.resize(R_Dim + 1, m_p + 1);
-    for (unsigned int i = 0; i <= m_p; i++)
-    {
-      int control_point_index = span_u - m_p + i;
-      //std::cout << control_point_index << std::endl;
-      //std::cout << m_control_points.size() << std::endl;
-      // tmpHomCtrlPt = m_control_points[control_point_index].getWeight();
-      // tmpHomCtrlPt = Ctrl_Pt[span-m_p+i]->get_Ctrl_Pt_Coo_w();
-      Vector tmpHomCtrlPt(R_Dim + 1);
+    //unsigned int span_u = NurbsUtilities::find_knot_span(m_p, m_knot_vector_u, parameter_u);
+    //NurbsUtilities::eval_nonzero_basis_function(N, m_knot_vector_u, parameter_u, span_u, m_p);
+    //homCtrlPts.resize(R_Dim + 1, m_p + 1);
+    //for (unsigned int i = 0; i <= m_p; i++)
+    //{
+    //  int control_point_index = span_u - m_p + i;
+    //  //std::cout << control_point_index << std::endl;
+    //  //std::cout << m_control_points.size() << std::endl;
+    //  // tmpHomCtrlPt = m_control_points[control_point_index].getWeight();
+    //  // tmpHomCtrlPt = Ctrl_Pt[span-m_p+i]->get_Ctrl_Pt_Coo_w();
+    //  Vector tmpHomCtrlPt(R_Dim + 1);
 
-      double u = m_control_points[control_point_index][0];
-      double v = m_control_points[control_point_index][1];
-      double w = m_control_points[control_point_index][2];
-      double weight = m_control_points[control_point_index][3];
+    //  double u = m_control_points[control_point_index][0];
+    //  double v = m_control_points[control_point_index][1];
+    //  double w = m_control_points[control_point_index][2];
+    //  double weight = m_control_points[control_point_index][3];
 
-      tmpHomCtrlPt[0] = u*weight;
-      tmpHomCtrlPt[1] = v*weight;
-      tmpHomCtrlPt[2] = w*weight;
-      tmpHomCtrlPt[3] = weight;
+    //  tmpHomCtrlPt[0] = u*weight;
+    //  tmpHomCtrlPt[1] = v*weight;
+    //  tmpHomCtrlPt[2] = w*weight;
+    //  tmpHomCtrlPt[3] = weight;
 
-      for (unsigned int j = 0; j <= R_Dim; j++)
-      {
-        homCtrlPts(j, i) = tmpHomCtrlPt(j);
-      }
-    }
-    homPoi = prod(homCtrlPts, N);
-    resulting_point = (1 / homPoi(R_Dim))*homPoi;
-    //std::cout << "test jolo2.1.3.6" << std::endl;
+    //  for (unsigned int j = 0; j <= R_Dim; j++)
+    //  {
+    //    homCtrlPts(j, i) = tmpHomCtrlPt(j);
+    //  }
+    //}
+    //homPoi = prod(homCtrlPts, N);
+    //resulting_point = (1 / homPoi(R_Dim))*homPoi;
+    ////std::cout << "test jolo2.1.3.6" << std::endl;
 
-    rCurvePoint[0] = resulting_point[0];
-    rCurvePoint[1] = resulting_point[1];
-    rCurvePoint[2] = resulting_point[2];
+    //rCurvePoint[0] = resulting_point[0];
+    //rCurvePoint[1] = resulting_point[1];
+    //rCurvePoint[2] = resulting_point[2];
 
-    if (std::abs(resulting_point(R_Dim) - 1.00) > 0.000001)
-    {
-      KRATOS_THROW_ERROR(std::logic_error, "NURBS 1D: evalutation curve point failed!!!", "");
-    }
+    //if (std::abs(resulting_point(R_Dim) - 1.00) > 0.000001)
+    //{
+    //  KRATOS_THROW_ERROR(std::logic_error, "NURBS 1D: evalutation curve point failed!!!", "");
+    //}
   }
 
   std::vector<array_1d<double, 3>> BrepTrimmingCurve::GetQuadraturePoints(std::vector<double> span, double polynomial_order_p)
@@ -192,7 +199,7 @@ namespace Kratos
       int new_span_u = NurbsUtilities::find_knot_span(p, knot_vector_u, trim_polygon[i][0]);
       if (span_u < new_span_u)
       {
-        std::cout << "old span: " << knot_vector_u[span_u] << ", new span u: " << knot_vector_u[new_span_u] << std::endl;
+        //std::cout << "old span: " << knot_vector_u[span_u] << ", new span u: " << knot_vector_u[new_span_u] << std::endl;
         //std::cout << "change in span u: " << knot_vector_u[new_span_u] << std::endl;
         double parameter = trim_polygon[i - 1][2];
         bool success = GetKnotIntersection(parameter, 0, knot_vector_u[new_span_u]);
@@ -216,7 +223,7 @@ namespace Kratos
       }
       if (span_u > new_span_u)
       {
-        std::cout << "old span: " << knot_vector_u[span_u] << ", new span u: " << knot_vector_u[new_span_u] << std::endl;
+        //std::cout << "old span: " << knot_vector_u[span_u] << ", new span u: " << knot_vector_u[new_span_u] << std::endl;
         //std::cout << "change in span u: " << knot_vector_u[new_span_u+1] << std::endl;
         double parameter = trim_polygon[i - 1][2];
         bool success = GetKnotIntersection(parameter, 0, knot_vector_u[span_u]);
@@ -235,14 +242,14 @@ namespace Kratos
         //double parameter = trim_polygon[i - 1][2];
         //GetKnotIntersection(parameter, intersection_base, knot_vector_u[span_u]);
         //intersections.push_back(parameter);
-        std::cout << "parameter: " << parameter << std::endl;
+        //std::cout << "parameter: " << parameter << std::endl;
         span_u = new_span_u;
       }
 
       int new_span_v = NurbsUtilities::find_knot_span(q, knot_vector_v, trim_polygon[i][1]);
       if (span_v < new_span_v)
       {
-        std::cout << "old span: " << knot_vector_v[span_v] << ", new span v: " << knot_vector_v[new_span_v] << std::endl;
+        //std::cout << "old span: " << knot_vector_v[span_v] << ", new span v: " << knot_vector_v[new_span_v] << std::endl;
         double parameter = trim_polygon[i - 1][2];
         bool success = GetKnotIntersection(parameter, 1, knot_vector_v[new_span_v]);
         if (success)
@@ -260,12 +267,12 @@ namespace Kratos
         //double parameter = trim_polygon[i - 1][2];
         //GetKnotIntersection(parameter, intersection_base, knot_vector_v[new_span_v]);
         //intersections.push_back(parameter);
-        std::cout << "parameter: " << parameter << std::endl;
+        //std::cout << "parameter: " << parameter << std::endl;
         span_v = new_span_v;
       }
       if (span_v > new_span_v)
       {
-        std::cout << "old span: " << knot_vector_v[span_v] << ", new span v: " << knot_vector_v[new_span_v] << std::endl;
+        //std::cout << "old span: " << knot_vector_v[span_v] << ", new span v: " << knot_vector_v[new_span_v] << std::endl;
         double parameter = trim_polygon[i - 1][2];
         bool success = GetKnotIntersection(parameter, 1, knot_vector_v[span_v]);
         if (success)
@@ -278,7 +285,7 @@ namespace Kratos
           else
             KRATOS_ERROR << "Newton-Raphson and Bisection did not converge!" << std::endl;
         }
-        std::cout << "parameter: " << parameter << std::endl;
+        //std::cout << "parameter: " << parameter << std::endl;
         span_v = new_span_v;
       }
     }
@@ -286,12 +293,12 @@ namespace Kratos
     intersections.push_back(m_active_range[1]);
     std::vector<double> full_intersections;
     std::sort(intersections.begin(), intersections.end());
-    std::cout << "intersections: ";
-    for (unsigned int j = 0; j < intersections.size(); j++)
-    {
-      std::cout << intersections[j] << ", ";
-    }
-    std::cout << std::endl;
+    //std::cout << "intersections: ";
+    //for (unsigned int j = 0; j < intersections.size(); j++)
+    //{
+    //  std::cout << intersections[j] << ", ";
+    //}
+    //std::cout << std::endl;
     full_intersections.push_back(intersections[0]);
     for (unsigned int j = 1; j < intersections.size(); j++)
     {
@@ -321,9 +328,9 @@ namespace Kratos
           parameter = trim_polygon[f][2];
         }
       }
-      std::cout << "paramter: " << parameter << std::endl;
+      //std::cout << "paramter: " << parameter << std::endl;
       GetClosestPoint(intersection_points[i], parameter);
-      std::cout << "intersection point: " << intersection_points[i] << ", parameter: " << parameter << std::endl;
+      //std::cout << "intersection point: " << intersection_points[i] << ", parameter: " << parameter << std::endl;
       intersections.push_back(parameter);
     }
     return intersections;
@@ -470,52 +477,21 @@ namespace Kratos
 
   void BrepTrimmingCurve::GetCurveDerivatives(std::vector<Vector>& derivatives, const int& order, const double& u)
   {
-    Matrix DN_De;
-    EvaluateCurveDerivatives(DN_De, order, u);
-    //std::vector<Vector> DN_De;
-    //EvaluateRationalCurveDerivatives(DN_De, order, u);
+    //Matrix DN_De;
+    //EvaluateCurveDerivatives(DN_De, order, u);
+    std::vector<Vector> DN_De;
+    EvaluateRationalCurveDerivatives(DN_De, order, u);
     for (int o = 0; o <= order; o++)
     {
       Vector derivative = ZeroVector(2);
       for (int k = 0; k < m_control_points.size(); k++)
       {
-        derivative[0] += DN_De(o,k) * m_control_points[k][0];
-        derivative[1] += DN_De(o,k) * m_control_points[k][1];
-        //derivative[0] += DN_De[o][k] * m_control_points[k][0];
-        //derivative[1] += DN_De[o][k] * m_control_points[k][1];
+        derivative[0] += DN_De[o][k] * m_control_points[k][0] * m_control_points[k][3];
+        derivative[1] += DN_De[o][k] * m_control_points[k][1] * m_control_points[k][3];
       }
       derivatives.push_back(derivative);
     }
   }
-    /*
-    const std::vector<std::vector<cfloat> >binCoeff = eval_Binomial_Coeff(_kth);
-    std::vector<vector<cfloat> > dAdu;
-    std::vector<vector<cfloat> > dCdu;
-    vector<cfloat> dwdu;
-    matrix<cfloat> dCwdu;
-
-    dAdu.resize(_kth + 1);
-    dCdu.resize(_kth + 1);
-    dwdu.resize(_kth + 1);
-    _dCdu.clear();
-    _dCdu.resize(_kth + 1, R_Dim + 1);
-    eval_Derivative_4D_Bspline(dCwdu, _kth, u);
-    eval_Curve_Point(dCdu[0], _uoi);
-    for (cint i = 0; i <= _kth; i++) {
-      vector<cfloat> dCwduRow = row(dCwdu, i);
-      dwdu[i] = dCwduRow(R_Dim);
-      dCwduRow.erase_element(R_Dim);
-      dAdu[i] = dCwduRow;
-    }
-    for (int k = 0; k <= _kth; k++) {
-      vector<cfloat> dAduRow = dAdu[k];
-      for (cint i = 1; i <= k; i++) {
-        dAduRow = dAduRow - binCoeff[k][i] * dwdu(i)*dCdu[k - i];
-      }
-      dCdu[k] = (1 / dwdu(0))*dAduRow;
-      row(_dCdu, k) = dCdu[k];
-    }*/
-  //}
 
   bool BrepTrimmingCurve::Bisection(
     double& parameter,
@@ -566,7 +542,7 @@ namespace Kratos
     const int& direction,
     const double& knot)
   {
-    std::cout << "Evaluate Local Parameter, u_initial: " << parameter << std::endl;
+    //std::cout << "Evaluate Local Parameter, u_initial: " << parameter << std::endl;
     double parameter_init = parameter;
     // local parameters
     int i;
@@ -594,14 +570,14 @@ namespace Kratos
       Point<3> point;
       this->EvaluateCurvePoint(point, parameter);
       array_1d<double, 2> base_vectors = this->GetBaseVector(parameter);//EvaluateCurveDerivatives(dCdu, 1, u_n);
-      std::cout << "point(direction): " << point(direction) << ", knot: " << knot << std::endl;
-      std::cout << "parameter: " << parameter << std::endl;
+      //std::cout << "point(direction): " << point(direction) << ", knot: " << knot << std::endl;
+      //std::cout << "parameter: " << parameter << std::endl;
       dynR = point(direction) - knot;
-      KRATOS_WATCH(point)
-        KRATOS_WATCH(dynR)
+      //KRATOS_WATCH(point)
+      //  KRATOS_WATCH(dynR)
       J = base_vectors(direction);
-      KRATOS_WATCH(base_vectors)
-        KRATOS_WATCH(J)
+      //KRATOS_WATCH(base_vectors)
+      //  KRATOS_WATCH(J)
       // check convergence - establish reference residuum
       if (i == 0)
       {
@@ -631,8 +607,17 @@ namespace Kratos
 
   bool BrepTrimmingCurve::ProjectionNewtonRaphson(double& parameter, const Point<2>& closest_point)
   {
+    double initial_param = parameter;
+    //KRATOS_WATCH(m_p)
+    //KRATOS_WATCH(m_knot_vector_u)
+    //KRATOS_WATCH(closest_point)
+    //KRATOS_WATCH(parameter)
+    //for (int i = 0; i < m_control_points.size(); ++i)
+    //{
+    //  KRATOS_WATCH(m_control_points[i])
+    //}
     int itmax = 20;
-    double model_tolerance = 1e-8;
+    double model_tolerance = 1e-1;
     double accuracy = 1e-8;
 
     Vector closest_point_vector(closest_point);
@@ -651,22 +636,42 @@ namespace Kratos
       std::vector<Vector> derivatives;
       this->GetCurveDerivatives(derivatives, 3, parameter);
 
-      Vector distance = derivatives[0] - closest_point_vector;
+      Vector distance = closest_point_vector - derivatives[0];
 
-      double residual = distance[0] * derivatives[0][0] + distance[1] * derivatives[0][1];
-      double jacobian = + norm_2(derivatives[1])
-        - (derivatives[2][0] * distance[0] + derivatives[2][1] * distance[1]);
+      double orthogonal_projection = inner_prod(distance, derivatives[0]);
+      //KRATOS_WATCH(orthogonal_projection)
+      double residual = distance[0] * derivatives[1][0] + distance[1] * derivatives[1][1];
+      //KRATOS_WATCH(residual)
 
-      if (abs(residual) < 10 * accuracy)
+        double jacobian = - norm_2(derivatives[1])*norm_2(derivatives[1]) + (derivatives[2][0] * distance[0] + derivatives[2][1] * distance[1]);
+      //KRATOS_WATCH(jacobian)
+      
+      if (abs(orthogonal_projection) < 100 * accuracy)
       {
-        std::cout << "Residual break" << std::endl;
-        return true;
+        if (norm_2(distance) < model_tolerance)
+        {
+          std::cout << "orthogonal_projection break" << std::endl;
+          return true;
+        }
       }
-      if (norm_2(distance) < 10 * model_tolerance)
+      if (norm_2(derivatives[1]) < 10000 * accuracy)
       {
-        std::cout << "Distance break" << std::endl;
-        return true;
+        std::cout << "You got ... a singularity" << std::endl;
+        KRATOS_ERROR << "no" << std::endl;
       }
+      if (abs(residual) < 100 * accuracy)
+      {
+        if (norm_2(distance) < model_tolerance)
+        {
+          std::cout << "Residual break" << std::endl;
+          return true;
+        }
+      }
+      //if (norm_2(distance) < 10 * model_tolerance)
+      //{
+      //  std::cout << "Distance break" << std::endl;
+      //  return true;
+      //}
 
       // compute new iteration step
       parameter = parameter - residual / jacobian;
@@ -676,7 +681,17 @@ namespace Kratos
       if (parameter > parameter_max)
         parameter = parameter_max;
     }
-    return false;
+    std::cout << "Newton Raphson did not converge" << std::endl;
+    KRATOS_WATCH(m_p)
+    KRATOS_WATCH(m_knot_vector_u)
+    KRATOS_WATCH(closest_point)
+    KRATOS_WATCH(initial_param)
+    for (int i = 0; i < m_control_points.size(); ++i)
+    {
+      KRATOS_WATCH(m_control_points[i])
+    }
+    //KRATOS_ERROR << "not converged" << std::endl;
+    return true;
   }
 
   bool BrepTrimmingCurve::ProjectionBisection(
@@ -689,36 +704,27 @@ namespace Kratos
     if (parameter_min > parameter_max)
       std::swap(parameter_min, parameter_max);
 
-    if ((parameter < parameter_min)|| (parameter > parameter_max))
-      return ProjectionBisection(parameter, closest_point, parameter_min, parameter_max);
+    //if ((parameter < parameter_min)|| (parameter > parameter_max))
+    //  return ProjectionBisection(parameter, closest_point, parameter_min, parameter_max);
 
-    Vector closest_point_vector(closest_point);
+    //Vector closest_point_vector(closest_point);
 
-    std::vector<Vector> derivatives;
-    this->GetCurveDerivatives(derivatives, 1, parameter);
-    Vector distance = derivatives[0] - closest_point_vector;
+    //std::vector<Vector> derivatives;
+    //this->GetCurveDerivatives(derivatives, 1, parameter);
+    //Vector distance = derivatives[0] - closest_point_vector;
 
-    double residual = distance[0] * derivatives[1][0] + distance[1] * derivatives[1][1];
-    if (residual < 0)
-    {
-      parameter_min = parameter;
-
-      //parameter_max = parameter + 2 * residual;
-    }
-    else
-    {
-      parameter_max = parameter;
-
-      //parameter_min = parameter - 2 * residual;
-    }
-
-    //if (parameter < parameter_min)
+    //double residual = distance[0] * derivatives[1][0] + distance[1] * derivatives[1][1];
+    //if (residual < 0)
     //{
-    //  parameter = parameter_min;
+    //  parameter_min = parameter;
+
+    //  //parameter_max = parameter + 2 * residual;
     //}
-    //if (parameter > parameter_max)
+    //else
     //{
-    //  parameter = parameter_max;
+    //  parameter_max = parameter;
+
+    //  //parameter_min = parameter - 2 * residual;
     //}
 
     return ProjectionBisection(parameter, closest_point, parameter_min, parameter_max);
@@ -731,11 +737,14 @@ namespace Kratos
     double parameter_max)
   {
     int itmax = 50;
-    double model_tolerance = 1e-8;
+    double model_tolerance = 1e-1;
     double accuracy = 1e-8;
 
     if (parameter_min > parameter_max)
       std::swap(parameter_min, parameter_max);
+
+    KRATOS_WATCH(parameter_min)
+    KRATOS_WATCH(parameter_max)
 
     Vector closest_point_vector(closest_point);
 
@@ -754,10 +763,23 @@ namespace Kratos
       double residual = distance[0] * derivatives[1][0] + distance[1] * derivatives[1][1];
       double new_distance = norm_2(distance);
 
-      if (abs(residual) < accuracy)
-        return true;
-      if (abs(orthogonal_projection) < model_tolerance)
-        return true;
+      KRATOS_WATCH(parameter)
+
+      if (abs(residual) < 1000 * accuracy)
+      {
+        if (norm_2(distance) < model_tolerance)
+        {
+          return true;
+        }
+      }
+      if (abs(orthogonal_projection) < 1000*accuracy)
+      {
+        if (norm_2(distance) < 10*model_tolerance)
+        {
+          std::cout << "orthogonal_projection break" << std::endl;
+          return true;
+        }
+      }
 
       if (residual < 0)
         parameter_min = parameter;
@@ -814,11 +836,15 @@ namespace Kratos
       //double determinant = (J(0, 0)*J(1, 1) - J(0, 1)*J(1, 0));
       double orthogonal_projection = inner_prod(difference, point);
       double residual = difference[0] * base_vector[0] + difference[1] * base_vector[1];
-      double jacobian = + sqrt(base_vector[0] * base_vector[0] + base_vector[1] * base_vector[1]) + (derivatives[2][0]*difference[0] + derivatives[2][1] * difference[1]);
+      double jacobian = + sqrt(base_vector[0] * base_vector[0] + base_vector[1] * base_vector[1])
+        + (derivatives[2][0]*difference[0] + derivatives[2][1] * difference[1]);
       if (abs(orthogonal_projection) < 100 * ModelTolerance)
       {
-        std::cout << "orthogonal_projection break" << std::endl;
-        return true;
+        if (norm_2(difference) < 100 * ModelTolerance)
+        {
+          std::cout << "orthogonal_projection break" << std::endl;
+          return true;
+        }
       }
       //KRATOS_WATCH(residual)
       //KRATOS_WATCH(derivatives[2])
@@ -975,17 +1001,19 @@ namespace Kratos
     Matrix dN;
     NurbsUtilities::eval_nonzero_basis_function_with_derivatives(dN, m_knot_vector_u, u, span, m_p, order);
 
+    //KRATOS_WATCH(dN)
+
     Vector dF = ZeroVector(order + 1);
 
     // computeDenominator
     for (int i = 0; i <= order; ++i)
     {
       // 1i.Loop over all the basis functions
-      for (int j = 0; j <= m_p; ++j)
+      for (int j = 0; j <= m_p; ++j)// m_control_points.size(); ++j)
       {
         // 1i.1.Get the Control Point index
-        int index = span - m_p + j - 1;
-        KRATOS_WATCH(index)
+        int index = span - m_p + j;
+        //KRATOS_WATCH(index)
         // 1i.2.Compute the denominator function iteratively
         dF(i) = dF(i) + dN(i, j)*m_control_points[index][3];
       }
@@ -996,24 +1024,29 @@ namespace Kratos
     // 3i.Loop over all the derivatives
     for (int k = 0; k <= order; k++)
     { 
+      Vector dR = ZeroVector(m_control_points.size());
+      DN_De.push_back(dR);
       // 3. Loop over all the basis functions
-      for (int j = 0; j <= m_p; j++)
+      for (int j = 0; j <= m_p; ++j)// m_control_points.size(); j++)
       {
-        Vector dR = ZeroVector(m_p+1);
-        DN_De.push_back(dR);
         // 3i.2. Compute the Control point index
-        int index = span - m_p + j - 1;
-        KRATOS_WATCH(index)
+        int index = span - m_p + j;
+        //KRATOS_WATCH(index)
         // 3i.3. Compute the product of the derivatives of the basis functions with the Control Point weights
         double v = dN(k, j)*m_control_points[index][3];
-
+        //KRATOS_WATCH(dN.size2())
         // 3i.4. Loop over all the involved derivatives
         for (int i = 1; i <= k; ++i)
         {
+          //KRATOS_WATCH(i)
+          //KRATOS_WATCH(NurbsUtilities::binom(k, i))
+          //KRATOS_WATCH(k)
+          //KRATOS_WATCH(dF[i])
+          //KRATOS_WATCH(DN_De[k - i][j])
           v = v - NurbsUtilities::binom(k, i)*dF[i]*DN_De[k - i][j];
         }
         // 3i.5. Divide by the denominator function
-        DN_De[k][j] = v / dF[0];
+        DN_De[k][index] = v / dF[0];
       }
     }
     //for (int k = 0; k <= order; ++k)
@@ -1022,6 +1055,152 @@ namespace Kratos
     //}
   }
 
+
+  void BrepTrimmingCurve::EvaluateRationalCurveDerivativesPrint(std::vector<Vector>& DN_De, const int& order, const double& u)
+  {
+    int span = NurbsUtilities::find_knot_span(m_p, m_knot_vector_u, u);
+
+    KRATOS_WATCH(u)
+    KRATOS_WATCH(m_knot_vector_u)
+      KRATOS_WATCH(m_p)
+      for (int i = 0; i < m_control_points.size(); i++)
+      {
+        std::cout << m_control_points[i][3];
+      }
+    std::cout << std::endl;
+
+    // 1. Compute the BSpline basis functions and their derivatives at u
+
+    // BSpline basis functions and their derivatives
+    Matrix dN;
+    NurbsUtilities::eval_nonzero_basis_function_with_derivatives(dN, m_knot_vector_u, u, span, m_p, order);
+
+    //KRATOS_WATCH(dN)
+
+    Vector dF = ZeroVector(order + 1);
+
+    // computeDenominator
+    for (int i = 0; i <= order; ++i)
+    {
+      // 1i.Loop over all the basis functions
+      for (int j = 0; j <= m_p; ++j)// m_control_points.size(); ++j)
+      {
+        // 1i.1.Get the Control Point index
+        int index = span - m_p + j;
+        //KRATOS_WATCH(index)
+        // 1i.2.Compute the denominator function iteratively
+        dF(i) = dF(i) + dN(i, j)*m_control_points[index][3];
+      }
+    }
+
+    KRATOS_WATCH(dF)
+
+    // 3i.Loop over all the derivatives
+    for (int k = 0; k <= order; k++)
+    {
+      Vector dR = ZeroVector(m_control_points.size());
+      DN_De.push_back(dR);
+      // 3. Loop over all the basis functions
+      for (int j = 0; j <= m_p; ++j)// m_control_points.size(); j++)
+      {
+        // 3i.2. Compute the Control point index
+        int index = span - m_p + j;
+        //KRATOS_WATCH(index)
+        // 3i.3. Compute the product of the derivatives of the basis functions with the Control Point weights
+        double v = dN(k, j)*m_control_points[index][3];
+        //KRATOS_WATCH(dN.size2())
+        // 3i.4. Loop over all the involved derivatives
+        for (int i = 1; i <= k; ++i)
+        {
+          //KRATOS_WATCH(i)
+          //KRATOS_WATCH(NurbsUtilities::binom(k, i))
+          //KRATOS_WATCH(k)
+          //KRATOS_WATCH(dF[i])
+          //KRATOS_WATCH(DN_De[k - i][j])
+          v = v - NurbsUtilities::binom(k, i)*dF[i] * DN_De[k - i][j];
+        }
+        // 3i.5. Divide by the denominator function
+        DN_De[k][j] = v / dF[0];
+      }
+    }
+    for (int k = 0; k <= order; ++k)
+    {
+      KRATOS_WATCH(DN_De[k])
+    }
+  }
+
+  void BrepTrimmingCurve::EvaluateCurveDerivativesPrint(Matrix& DN_De, const int& order, const double& u)
+  {
+    //DN_De = ZeroMatrix(m_control_points.size(), order);
+
+    //for (unsigned int k = 0; k <= order; k++)
+    //{
+    //  for (unsigned int n_cp_itr = 0; n_cp_itr <= DN_De.size1(); n_cp_itr++)
+    //  {
+    //    DN_De(n_cp_itr, k) = m_control_points[n_cp_itr][k];
+    //  }
+    //  for (unsigned int i = 1; i <= k; i++)
+    //  {
+    //    for (unsigned int n_cp_itr = 0; n_cp_itr <= DN_De.size1(); n_cp_itr++)
+    //    {
+    //      DN_De(n_cp_itr, k) = DN_De(n_cp_itr, k) - NurbsUtilities::binom(k,i)*DN_De(n_cp_itr,k-i);
+    //    }
+    //  }
+    //}
+
+
+    DN_De.resize(4, m_control_points.size());
+    matrix<double> N;                        //B-Spline basis functions
+    int span = NurbsUtilities::find_knot_span(m_p, m_knot_vector_u, u);
+    NurbsUtilities::eval_nonzero_basis_function_with_derivatives(N, m_knot_vector_u, u, span, m_p, 3);
+
+    double sum = 0;    //sum of weights times basis functions
+    double dsum = 0;   //sum of weights times 1st derivative of basis functions
+    double ddsum = 0;  //sum of weights times 2nd derivative of basis functions
+    double dddsum = 0; //sum of weights times 3rd derivative of basis functions
+
+    for (int i = 0; i <= m_p; i++)
+    {
+      double weight = m_control_points[i + span - m_p][3];
+
+      DN_De(0, i) = N(0, i)*weight;
+      sum += DN_De(0, i);
+      DN_De(1, i) = N(1, i)*weight;
+      dsum += DN_De(1, i);
+      DN_De(2, i) = N(2, i)*weight;
+      ddsum += DN_De(2, i);
+      DN_De(3, i) = N(3, i)*weight;
+      dddsum += DN_De(3, i);
+    }
+    KRATOS_WATCH(sum)
+    KRATOS_WATCH(dsum)
+    KRATOS_WATCH(ddsum)
+    KRATOS_WATCH(dddsum)
+    //get derivatives
+    for (int i = 0; i <= m_p; i++)
+    {
+      //3rd derivative
+      DN_De(3, i) = DN_De(3, i) / sum - 3 * DN_De(2, i)*dsum / pow(sum, 2) + 4 * DN_De(1, i)*pow(dsum, 2) / pow(sum, 3)
+        - (3 * DN_De(1, i)*ddsum + DN_De(0, i)*dddsum) / pow(sum, 2) + 2 * DN_De(0, i)*ddsum*dsum / pow(sum, 3)
+        + (2 * DN_De(1, i)*pow(dsum, 2) + 4 * DN_De(0, i)*dsum*ddsum) / pow(sum, 3)
+        - 6 * DN_De(0, i)*pow(dsum, 3) / pow(sum, 4);
+
+
+      //DN_De(3,i) = DN_De(3,i)/sum - 3*DN_De(2,i)*dsum/pow(sum,2) - 3*DN_De(1,i)*ddsum/pow(sum,2) + 4*DN_De(1,i)*dsum*ddsum/pow(sum,3)
+      //         - DN_De(0,i)*dddsum/pow(sum,2) + 2*DN_De(1,i)*pow(dsum,2)/pow(sum,3) + 6*DN_De(0,i)*dsum*ddsum/pow(sum,3) - 6*pow(dsum,3)/pow(sum,4);
+      //2nd derivative
+      DN_De(2, i) = DN_De(2, i) / sum - 2 * DN_De(1, i)*dsum / pow(sum, 2) - DN_De(0, i)*ddsum / pow(sum, 2) + 2 * DN_De(0, i)*pow(dsum, 2) / pow(sum, 3);
+
+      //1st derivative
+      DN_De(1, i) = DN_De(1, i) / sum - DN_De(0, i)*dsum / pow(sum, 2);
+
+      //basis functions
+      DN_De(0, i) = DN_De(0, i) / sum;
+    }
+
+    KRATOS_WATCH(N)
+    KRATOS_WATCH(DN_De)
+  }
 
   //to be deleted
   void BrepTrimmingCurve::EvaluateCurveDerivatives(Matrix& DN_De, const int& order, const double& u)

@@ -318,13 +318,11 @@ namespace Kratos
     }
     std::ofstream file;
     file.open("triangles.txt", std::ios_base::app | std::ios_base::out);
-    file << "[" << "\n";
     for (unsigned int i = 0; i < faces.size(); i++)
     {
       file << faces[i](0, 0) << " " << faces[i](1, 0) << " "  << faces[i](2, 0) << " " << "\n";
       file << faces[i](0, 1) << " " << faces[i](1, 1) << " "  << faces[i](2, 1) << " " << "\n";
     }
-    file << "]" << "\n";
     file.close();
 
     return IntegrationPoints;
