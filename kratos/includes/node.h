@@ -357,7 +357,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~Node()
+    ~Node() override
     {
 #ifdef _OPENMP
         omp_destroy_lock(&mNodeLock);
@@ -1192,7 +1192,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Node #" << Id();
@@ -1200,13 +1200,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
         BaseType::PrintData(rOStream);
         if(!mDofs.empty())
@@ -1304,7 +1304,7 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
 // 	  int size = rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin();
 // 	  KRATOS_WATCH(rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin());
@@ -1321,7 +1321,7 @@ private:
 // 	  KRATOS_WATCH((rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin())-size);
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
 // 	  int size = rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin();
 // 	  KRATOS_WATCH(rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin());

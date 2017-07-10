@@ -100,15 +100,15 @@ public:
     /**
      * Clone 
      */
-    virtual BaseTypePointer Clone() override
+    BaseTypePointer Clone() override
     {
       return BaseTypePointer( new ResidualBasedNewmarkDisplacementScheme(*this) );
     }
     
     /** Destructor.
      */
-    virtual ~ResidualBasedNewmarkDisplacementScheme
-    () {}
+    ~ResidualBasedNewmarkDisplacementScheme
+    () override {}
 
     ///@}
     ///@name Operators

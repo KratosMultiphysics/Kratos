@@ -100,6 +100,54 @@ public:
     void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
 
     /**
+     * Computes the material response:
+     * PK1 stresses and algorithmic ConstitutiveMatrix
+     * @param rValues: The Internalvalues of the law
+     * @see   Parameters
+     */
+    void CalculateMaterialResponsePK1 (Parameters & rValues) override;
+
+    /**
+     * Computes the material response:
+     * Cauchy stresses and algorithmic ConstitutiveMatrix
+     * @param rValues: The Internalvalues of the law
+     * @see   Parameters
+     */
+    void CalculateMaterialResponseCauchy (Parameters & rValues) override;
+    
+    /**
+     * Finalizes the material response:
+     * PK2 stresses and algorithmic ConstitutiveMatrix
+     * @param rValues: The Internalvalues of the law
+     * @see   Parameters
+     */
+    void FinalizeMaterialResponsePK2 (Parameters & rValues) override;
+
+    /**
+     * Finalizes the material response:
+     * Kirchhoff stresses and algorithmic ConstitutiveMatrix
+     * @param rValues: The Internalvalues of the law
+     * @see   Parameters
+     */
+    void FinalizeMaterialResponseKirchhoff (Parameters & rValues) override;
+
+    /**
+     * Finalizes the material response:
+     * PK1 stresses and algorithmic ConstitutiveMatrix
+     * @param rValues: The Internalvalues of the law
+     * @see   Parameters
+     */
+    void FinalizeMaterialResponsePK1 (Parameters & rValues) override;
+
+    /**
+     * Finalizes the material response:
+     * Cauchy stresses and algorithmic ConstitutiveMatrix
+     * @param rValues: The Internalvalues of the law
+     * @see   Parameters
+     */
+    void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
+
+    /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
