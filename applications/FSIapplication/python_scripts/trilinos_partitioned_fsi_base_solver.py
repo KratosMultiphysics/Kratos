@@ -245,111 +245,11 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_PROJECTED)
 
 
-    # FROM BASE SOLVER
-    # def ImportModelPart(self):
-    #     # Import structure model part
-    #     self.structure_solver.ImportModelPart()
-    #
-    #     # Import fluid model part
-    #     self.fluid_solver.ImportModelPart()
-
-
-    # FROM BASE SOLVER
-    # def AddDofs(self):
-    #     # Add DOFs structure
-    #     self.structure_solver.AddDofs()
-    #
-    #     # Add DOFs fluid
-    #     self.fluid_solver.AddDofs()
-    #     self.mesh_solver.AddDofs()
-
-
-    # FROM BASE SOLVER
-    # def Initialize(self):
-    #     # Initialize fluid, structure and coupling solvers
-    #     self.fluid_solver.SolverInitialize()
-    #     self.structure_solver.InitializeStrategy()
-    #     self.coupling_utility.Initialize()
-
-
-    # FROM BASE SOLVER
-    # def InitializeSolutionStep(self):
-    #     # Initialize solution step of fluid, structure and coupling solvers
-    #     self.fluid_solver.SolverInitializeSolutionStep()
-    #     self.structure_solver.InitializeSolutionStep()
-    #     self.coupling_utility.InitializeSolutionStep()
-
-
-    # FROM BASE SOLVER
-    # def Predict(self):
-    #     # Perform fluid and structure solvers predictions
-    #     self.fluid_solver.SolverPredict()
-    #     self.structure_solver.Predict()
-
-
-    # FROM BASE SOLVER
-    # def ComputeDeltaTime(self):
-    #     return self.time_step
-
-
-    # FROM BASE SOLVER
-    # def Solve(self):
-    #     raise Exception("Calling the partitioned FSI base solver Solve() method.\n Please implement the custom Initialize() method for your scheme (e.g. Dirichlet-Neumann).")
-
-
-    # FROM BASE SOLVER
-    # def SetEchoLevel(self, structure_echo_level, fluid_echo_level):
-    #     self.structure_solver.SetEchoLevel(self, structure_echo_level)
-    #     self.fluid_solver.SetEchoLevel(self, fluid_echo_level)
-
-
-    # FROM BASE SOLVER
-    # def SetTimeStep(self, step):
-    #     self.fluid_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_STEPS, step)
-    #     self.structure_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_STEPS, step)
-
-
-    # FROM BASE SOLVER
-    # def Clear(self):
-    #     self.fluid_solver.Clear()
-    #     self.structure_solver.Clear()
-
-
-    # FROM BASE SOLVER
-    # def Check(self):
-    #     self.fluid_solver.Check()
-    #     self.structure_solver.Check()
-
-
     #######################################################################
     ##############          PRIVATE METHODS SECTION          ##############
     #######################################################################
 
     ### AUXILIAR METHODS ###
-    # FROM BASE SOLVER
-    # def _GetFluidInterfaceSubmodelPart(self):
-    #     # Returns the fluid interface submodelpart that will be used in the residual minimization
-    #     return self.fluid_solver.main_model_part.GetSubModelPart(self.fluid_interface_submodelpart_name)
-
-
-    # FROM BASE SOLVER
-    # def _GetStructureInterfaceSubmodelPart(self):
-    #     # Returns the structure interface submodelpart that will be used in the residual minimization
-    #     return self.structure_solver.main_model_part.GetSubModelPart(self.structure_interface_submodelpart_name)
-
-
-    # FROM BASE SOLVER
-    # def _GetDomainSize(self):
-    #
-    #     fluid_domain_size = self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-    #     structure_domain_size = self.structure_solver.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-    #
-    #     if fluid_domain_size !=structure_domain_size:
-    #         raise("ERROR: Solid domain size and fluid domain size are not equal!")
-    #
-    #     return fluid_domain_size
-
-
     def _GetPartitionedFSIUtilities(self):
 
         if (self.domain_size == 2):
@@ -425,68 +325,6 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
                              in a unique submodelpart and all the negative ones in another submodelpart.")
 
 
-     # FROM BASE SOLVER
-    # def _SetStructureNeumannCondition(self):
-    #
-    #     structure_computational_submodelpart = self.structure_solver.GetComputingModelPart()
-    #
-    #     aux_count = 0
-    #     for cond in self.structure_solver.main_model_part.Conditions:
-    #         if(cond.Id > aux_count):
-    #             aux_count = cond.Id
-    #
-    #     for i in range(self.settings["coupling_solver_settings"]["structure_interfaces_list"].size()):
-    #         interface_submodelpart_name = self.settings["coupling_solver_settings"]["structure_interfaces_list"][i].GetString()
-    #         interface_submodelpart_i = self.structure_solver.main_model_part.GetSubModelPart(interface_submodelpart_name)
-    #         # NOTE: In this manner, two interface submodelparts cannot share a node (it would be repeated in the pointload conditions...)
-    #
-    #         # Create the point load condition
-    #         if self.domain_size == 2:
-    #             for node in interface_submodelpart_i.Nodes:
-    #                 aux_count+=1
-    #                 structure_computational_submodelpart.CreateNewCondition("PointLoadCondition2D1N",aux_count,[node.Id],self.structure_solver.main_model_part.Properties[0])
-    #
-    #         elif self.domain_size == 3:
-    #             for node in interface_submodelpart_i.Nodes:
-    #                 aux_count+=1
-    #                 structure_computational_submodelpart.CreateNewCondition("PointLoadCondition3D1N",aux_count,[node.Id],self.structure_solver.main_model_part.Properties[0])
-
-
-    # TODO: This function must be checked as soon as the fluid Neumann BC has been implemented.
-    # FROM BASE SOLVER
-    # def _SetFluidNeumannCondition(self):
-    #
-    #     fluid_computational_volume_submodelpart = self.fluid_solver.GetComputingModelPart()
-    #
-    #     aux_count = len(self.fluid_solver.main_model_part.Conditions)       # Get the last existing condition numbering
-    #     aux_count += 1
-    #     print("max aux_count",aux_count)
-    #     aux_count = 0
-    #     for cond in self.fluid_solver.main_model_part.Conditions:
-    #         if(cond.Id > aux_count):
-    #             aux_count = cond.Id
-    #     aux_count += 1
-    #     print("max aux_count",aux_count)
-    #
-    #
-    #     for i in range(self.settings["coupling_solver_settings"]["fluid_interfaces_list"].size()):
-    #         interface_submodelpart_name = self.settings["coupling_solver_settings"]["fluid_interfaces_list"][i].GetString()
-    #         interface_submodelpart_i = self.fluid_solver.main_model_part.GetSubModelPart(interface_submodelpart_name)
-    #         # NOTE: In this manner, two interface submodelparts cannot share a node (it would be repeated in the pointload conditions...)
-    #         # DO CreateNewCondition CHECK IF THERE EXIST A CONDITION IN A NODE?
-    #
-    #         for node in interface_submodelpart_i.Nodes:
-    #
-    #             # NOTE: THIS CONDITION REMAINS TO BE IMPLEMENTED IN THE FluidDynamicsApplication, DECIDE WHAT TO DO.
-    #             # Create the fluid load condition
-    #             if self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-    #                 fluid_computational_volume_submodelpart.CreateNewCondition("PointForce2Dfluid",aux_count,[node.Id],self.fluid_solver.main_model_part.Properties[0])
-    #             elif self.structure_solver.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
-    #                 fluid_computational_volume_submodelpart.CreateNewCondition("PointForce3Dfluid",aux_count,[node.Id],self.fluid_solver.main_model_part.Properties[0])
-    #
-    #             aux_count+=1
-
-
     # TODO: GET IT FROM THE SERIAL BASE SOLVER ONCE THE MAPPER IN MAPPING APPLICATION IS USED IN SERIAL PROBLEMS AS WELL
     def _ComputeMeshPredictionSingleFaced(self):
 
@@ -501,9 +339,6 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
             self.structure_solver.SolveSolutionStep()
 
             # Map the obtained structure displacement to the fluid interface
-            #TODO: CHECK THE VARIABLES ORDER IN MAPPING
-            # self.interface_mapper.InverseMap(KratosMultiphysics.DISPLACEMENT,
-            #                                  KratosMultiphysics.MESH_DISPLACEMENT)
             self.interface_mapper.InverseMap(KratosMultiphysics.MESH_DISPLACEMENT,
                                              KratosMultiphysics.DISPLACEMENT)
 
@@ -511,47 +346,3 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
             self.mesh_solver.Solve()
 
             if (KratosMPI.mpi.rank == 0) : print("Mesh prediction computed.")
-
-
-    # FROM BASE SOLVER
-    # def _ComputeMeshPredictionDoubleFaced(self):
-    #
-    #         print("Computing time step ",self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS],"double faced prediction...")
-    #         # Get the previous step fluid interface nodal fluxes from both positive and negative faces
-    #         keep_sign = False
-    #         distribute_load = True
-    #         self.interface_mapper.PositiveFluidToStructure_VectorMap(KratosMultiphysics.REACTION,
-    #                                                                  KratosFSI.POSITIVE_MAPPED_VECTOR_VARIABLE,
-    #                                                                  keep_sign,
-    #                                                                  distribute_load)
-    #         self.interface_mapper.NegativeFluidToStructure_VectorMap(KratosMultiphysics.REACTION,
-    #                                                                  KratosFSI.NEGATIVE_MAPPED_VECTOR_VARIABLE,
-    #                                                                  keep_sign,
-    #                                                                  distribute_load)
-    #
-    #         # Add the two faces contributions to the POINT_LOAD variable
-    #         # TODO: Add this to the variables utils
-    #         for node in self._GetStructureInterfaceSubmodelPart().Nodes:
-    #             pos_face_force = node.GetSolutionStepValue(KratosFSI.POSITIVE_MAPPED_VECTOR_VARIABLE)
-    #             neg_face_force = node.GetSolutionStepValue(KratosFSI.NEGATIVE_MAPPED_VECTOR_VARIABLE)
-    #             node.SetSolutionStepValue(KratosStructural.POINT_LOAD, 0, pos_face_force+neg_face_force)
-    #
-    #         # Solve the current step structure problem with the previous step fluid interface nodal fluxes
-    #         self.structure_solver.SolveSolutionStep()
-    #
-    #         # Map the obtained structure displacement to both positive and negative fluid interfaces
-    #         keep_sign = True
-    #         distribute_load = False
-    #         self.interface_mapper.StructureToPositiveFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
-    #                                                                  KratosMultiphysics.MESH_DISPLACEMENT,
-    #                                                                  keep_sign,
-    #                                                                  distribute_load)
-    #         self.interface_mapper.StructureToNegativeFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
-    #                                                                  KratosMultiphysics.MESH_DISPLACEMENT,
-    #                                                                  keep_sign,
-    #                                                                  distribute_load)
-    #
-    #         # Solve the mesh problem
-    #         self.mesh_solver.Solve()
-    #
-    #         print("Mesh prediction computed.")
