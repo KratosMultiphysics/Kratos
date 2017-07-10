@@ -838,8 +838,8 @@ void SphericSwimmingParticle<TBaseElement>::ComputeHydrodynamicTorque(NodeType& 
             rotational_coeff = 64 * KRATOS_M_PI / rot_reynolds;
         }
 
-        if (mHydrodynamicTorqueType == 2){ // Loth, 2008 (Re_p < 2000)
-            rotational_coeff *= 1.0 + 5 / (64 * KRATOS_M_PI) * std::pow(rot_reynolds);
+        if (mHydrodynamicTorqueType == 2){ // Loth, 2008 (Re_rot < 2000, Re_p < 20)
+            rotational_coeff *= 1.0 + 5 / (64 * KRATOS_M_PI) * std::pow(rot_reynolds, 0.6);
         }
 
         noalias(hydro_torque) = 0.5 * mFluidDensity * SWIMMING_POW_5(mRadius) * rotational_coeff * slip_rot;

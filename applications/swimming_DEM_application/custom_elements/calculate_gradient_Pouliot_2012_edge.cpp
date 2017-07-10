@@ -175,5 +175,6 @@ int ComputeGradientPouliot2012Edge<TDim, TNumNodes>::Check(const ProcessInfo& rC
 }
 
 // Explicit instantiations
+template class ComputeGradientPouliot2012Edge<2, 2>;
 template class ComputeGradientPouliot2012Edge<3, 2>;
 } // namespace Kratos
