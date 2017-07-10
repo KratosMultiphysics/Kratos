@@ -310,7 +310,7 @@ class Algorithm(object):
         self.stationarity_tool = SDP.StationarityAssessmentTool(self.pp.CFD_DEM.max_pressure_variation_rate_tol , self.custom_functions_tool)
 
         # creating a debug tool
-        self.dem_volume_tool = SDP.ProjectionDebugUtils(self.pp.CFD_DEM.fluid_domain_volume, self.fluid_model_part, self.disperse_phase_algorithm.spheres_model_part, self.custom_functions_tool)
+        self.dem_volume_tool = self.GetVolumeDebugTool()
 
         self.SetEmbeddedTools()
 
@@ -706,6 +706,9 @@ class Algorithm(object):
 
     def HistoryForceQuadratureCounter(self):
         return SDP.Counter(self.pp.CFD_DEM.time_steps_per_quadrature_step, 1, self.pp.CFD_DEM.basset_force_type)
+
+    def GetVolumeDebugTool(self):
+        return SDP.ProjectionDebugUtils(self.pp.CFD_DEM.fluid_domain_volume, self.fluid_model_part, self.disperse_phase_algorithm.spheres_model_part, self.custom_functions_tool)
 
     def GetRunCode(self):
         return SDP.CreateRunCode(self.pp)
