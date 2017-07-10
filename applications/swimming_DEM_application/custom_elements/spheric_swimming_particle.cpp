@@ -823,7 +823,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeHydrodynamicTorque(NodeType& 
         return;
     }
 
-    else if (mHydrodynamicTorqueType == 1){
+    else if (mHydrodynamicTorqueType == 1 or mHydrodynamicTorqueType == 2){
         const array_1d<double, 3> slip_rot = 0.5 * node.FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED) - node.FastGetSolutionStepValue(ANGULAR_VELOCITY);
         const double norm_of_slip_rot = SWIMMING_MODULUS_3(slip_rot);
         double rot_reynolds;
@@ -838,7 +838,12 @@ void SphericSwimmingParticle<TBaseElement>::ComputeHydrodynamicTorque(NodeType& 
             rotational_coeff = 64 * KRATOS_M_PI / rot_reynolds;
         }
 
+        if (mHydrodynamicTorqueType == 2){ // Loth, 2008 (Re_p < 2000)
+            rotational_coeff *= 1.0 + 5 / (64 * KRATOS_M_PI) * std::pow(rot_reynolds);
+        }
+
         noalias(hydro_torque) = 0.5 * mFluidDensity * SWIMMING_POW_5(mRadius) * rotational_coeff * slip_rot;
+
     }
 
     else {
