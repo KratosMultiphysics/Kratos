@@ -41,7 +41,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "scale_factor"                : 1.0,
             "tangent_factor"              : 0.1,
             "type_search"                 : "InRadius",
-            "use_exact_integration"       : true,
+            "use_exact_integration"       : false,
             "hard_clear_after_step"       : false,
             "database_step_update"        : 1,
             "integration_order"           : 2,

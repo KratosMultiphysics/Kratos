@@ -30,7 +30,7 @@ class MeshTyingProcess(KratosMultiphysics.Process):
             "active_check_factor"         : 0.01,
             "max_number_results"          : 1000,
             "bucket_size"                 : 4,
-            "use_exact_integration"       : true,
+            "use_exact_integration"       : false,
             "type_search"                 : "InRadius",
             "integration_order"           : 2
         }
