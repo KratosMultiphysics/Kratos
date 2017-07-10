@@ -181,7 +181,9 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         for fl_interface_id in range(num_fl_interfaces):
             fl_interface_name = self.settings["coupling_solver_settings"]["fluid_interfaces_list"][fl_interface_id].GetString()
             fl_interface_submodelpart = self.fluid_solver.main_model_part.GetSubModelPart(fl_interface_name)
-            self.partitioned_fsi_utilities.SetInterfaceVectorVariable(fl_interface_submodelpart, KratosMultiphysics.MESH_DISPLACEMENT, self.iteration_value)
+            self.partitioned_fsi_utilities.UpdateInterfaceValues(fl_interface_submodelpart,
+                                                                 KratosMultiphysics.MESH_DISPLACEMENT,
+                                                                 self.iteration_value)
 
         # Solve the mesh problem (or moves the interface nodes)
         if (self.solve_mesh_at_each_iteration == True):
