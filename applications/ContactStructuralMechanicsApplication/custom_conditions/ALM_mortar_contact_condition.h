@@ -428,6 +428,7 @@ protected:
     IntegrationMethod mThisIntegrationMethod;            // Integration order of the element
     unsigned int mPairSize;                              // The number of contact pairs
     std::vector<Condition::Pointer> mThisMasterElements; // Vector which contains the pointers to the master elements
+    std::vector<bool> mThisMasterElementsActive;         // Vector which contains if the conditions are active or not
    
     unsigned int mIntegrationOrder;                      // The integration order to consider
     

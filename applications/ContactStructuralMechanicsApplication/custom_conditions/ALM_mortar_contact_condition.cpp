@@ -101,12 +101,14 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     boost::shared_ptr<ConditionMap>& all_conditions_maps = this->GetValue( CONTACT_MAPS );
     mPairSize = all_conditions_maps->size();
     mThisMasterElements.resize( mPairSize );
+    mThisMasterElementsActive.resize( mPairSize );
     
-    unsigned int iCond = 0;
+    unsigned int i_cond = 0;
     for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
     {
-        mThisMasterElements[iCond] = (it_pair->first);
-        iCond += 1;
+        mThisMasterElements[i_cond] = (it_pair->first);
+        mThisMasterElementsActive[i_cond] = (it_pair->second);
+        i_cond += 1;
     }
     
     KRATOS_CATCH( "" );
@@ -120,7 +122,15 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 {
     KRATOS_TRY;
     
-    // NOTE: Add things if necessary
+    // We update the active/inactive pair
+    boost::shared_ptr<ConditionMap>& all_conditions_maps = this->GetValue( CONTACT_MAPS );
+    
+    unsigned int i_cond = 0;
+    for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
+    {
+        mThisMasterElementsActive[i_cond] = (it_pair->second);
+        i_cond += 1;
+    }
         
     KRATOS_CATCH( "" );
 }
@@ -164,11 +174,11 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     )
 {    
     // Create local system components
-    LocalSystemComponents LocalSystem;
+    LocalSystemComponents local_system;
 
     // Calculation flags
-    LocalSystem.CalculationFlags.Set(AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS, true);
-    LocalSystem.CalculationFlags.Set(AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS, true);
+    local_system.CalculationFlags.Set(AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS, true);
+    local_system.CalculationFlags.Set(AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS, true);
 
     //Initialize sizes for the system components
     if ( rLHSVariables.size( ) != rLeftHandSideMatrices.size( ) )
@@ -181,31 +191,31 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
         rRightHandSideVectors.resize( rRHSVariables.size( ) );
     }
 
-    LocalSystem.CalculationFlags.Set(AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX, true);
+    local_system.CalculationFlags.Set(AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX, true);
     for ( unsigned int i = 0; i < rLeftHandSideMatrices.size( ); i++ )
     {
         // Note: rRightHandSideVectors.size() > 0
-        this->InitializeSystemMatrices( rLeftHandSideMatrices[i], rRightHandSideVectors[0],LocalSystem.CalculationFlags );
+        this->InitializeSystemMatrices( rLeftHandSideMatrices[i], rRightHandSideVectors[0],local_system.CalculationFlags );
     }
 
-    LocalSystem.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR, true );
-    LocalSystem.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX, false ); // Temporarily only
+    local_system.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR, true );
+    local_system.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX, false ); // Temporarily only
     for ( unsigned int i = 0; i < rRightHandSideVectors.size( ); i++ )
     {
         // Note: rLeftHandSideMatrices.size() > 0
-        this->InitializeSystemMatrices( rLeftHandSideMatrices[0], rRightHandSideVectors[i], LocalSystem.CalculationFlags  );
+        this->InitializeSystemMatrices( rLeftHandSideMatrices[0], rRightHandSideVectors[i], local_system.CalculationFlags  );
     }
-    LocalSystem.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX, true ); // Reactivated again
+    local_system.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX, true ); // Reactivated again
 
     // Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrices( rLeftHandSideMatrices );
-    LocalSystem.SetRightHandSideVectors( rRightHandSideVectors );
+    local_system.SetLeftHandSideMatrices( rLeftHandSideMatrices );
+    local_system.SetRightHandSideVectors( rRightHandSideVectors );
 
-    LocalSystem.SetLeftHandSideVariables( rLHSVariables );
-    LocalSystem.SetRightHandSideVariables( rRHSVariables );
+    local_system.SetLeftHandSideVariables( rLHSVariables );
+    local_system.SetRightHandSideVariables( rRHSVariables );
 
     // Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
+    this->CalculateConditionSystem( local_system, rCurrentProcessInfo );
 }
 
 /***********************************************************************************/
@@ -221,21 +231,21 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     KRATOS_TRY;
 
     // Create local system components
-    LocalSystemComponents LocalSystem;
+    LocalSystemComponents local_system;
 
     // Calculation flags
-    LocalSystem.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX, true );
-    LocalSystem.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR, true );
+    local_system.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX, true );
+    local_system.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR, true );
 
     // Initialize sizes for the system components:
-    this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
+    this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, local_system.CalculationFlags );
     
     // Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix( rLeftHandSideMatrix );
-    LocalSystem.SetRightHandSideVector( rRightHandSideVector );
+    local_system.SetLeftHandSideMatrix( rLeftHandSideMatrix );
+    local_system.SetRightHandSideVector( rRightHandSideVector );
 
     // Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
+    this->CalculateConditionSystem( local_system, rCurrentProcessInfo );
 
     KRATOS_CATCH( "" );
 }
@@ -250,22 +260,22 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     )
 {
     // Create local system components
-    LocalSystemComponents LocalSystem;
+    LocalSystemComponents local_system;
 
     // Calculation flags
-    LocalSystem.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX, true );
+    local_system.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX, true );
 
-    VectorType RightHandSideVector = Vector( );
+    VectorType right_hand_side_vector = Vector( );
 
     // Initialize sizes for the system components:
-    this->InitializeSystemMatrices( rLeftHandSideMatrix, RightHandSideVector, LocalSystem.CalculationFlags );
+    this->InitializeSystemMatrices( rLeftHandSideMatrix, right_hand_side_vector, local_system.CalculationFlags );
 
     // Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix( rLeftHandSideMatrix );
-    LocalSystem.SetRightHandSideVector( RightHandSideVector );
+    local_system.SetLeftHandSideMatrix( rLeftHandSideMatrix );
+    local_system.SetRightHandSideVector( right_hand_side_vector );
 
     // Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
+    this->CalculateConditionSystem( local_system, rCurrentProcessInfo );
 }
 
 /***********************************************************************************/
@@ -279,25 +289,25 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     )
 {
     // Create local system components
-    LocalSystemComponents LocalSystem;
+    LocalSystemComponents local_system;
 
     // Calculation flags
-    LocalSystem.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX, true );
-    LocalSystem.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS, true );
+    local_system.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX, true );
+    local_system.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS, true );
 
-    VectorType RightHandSideVector = Vector( );
+    VectorType right_hand_side_vector = Vector( );
 
     // Initialize size for the system components
     for( unsigned int i = 0; i < rLeftHandSideMatrices.size( ); i++ )
     {
-        this->InitializeSystemMatrices( rLeftHandSideMatrices[i], RightHandSideVector, LocalSystem.CalculationFlags );
+        this->InitializeSystemMatrices( rLeftHandSideMatrices[i], right_hand_side_vector, local_system.CalculationFlags );
     }
 
-    LocalSystem.SetLeftHandSideMatrices( rLeftHandSideMatrices );
-    LocalSystem.SetRightHandSideVector( RightHandSideVector );
+    local_system.SetLeftHandSideMatrices( rLeftHandSideMatrices );
+    local_system.SetRightHandSideVector( right_hand_side_vector );
 
     // Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
+    this->CalculateConditionSystem( local_system, rCurrentProcessInfo );
 }
 
 /***********************************************************************************/
@@ -310,22 +320,22 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     )
 {
     // Create local system components
-    LocalSystemComponents LocalSystem;
+    LocalSystemComponents local_system;
 
     // Calculation flags
-    LocalSystem.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR, true);
+    local_system.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR, true);
 
-    MatrixType LeftHandSideMatrix = Matrix( );
+    MatrixType left_hand_side_matrix = Matrix( );
 
     // Initialize size for the system components
-    this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVector,LocalSystem.CalculationFlags);
+    this->InitializeSystemMatrices( left_hand_side_matrix, rRightHandSideVector,local_system.CalculationFlags);
 
     //Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix( LeftHandSideMatrix );
-    LocalSystem.SetRightHandSideVector( rRightHandSideVector );
+    local_system.SetLeftHandSideMatrix( left_hand_side_matrix );
+    local_system.SetRightHandSideVector( rRightHandSideVector );
 
     // Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
+    this->CalculateConditionSystem( local_system, rCurrentProcessInfo );
 }
 
 /***********************************************************************************/
@@ -338,26 +348,26 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     ProcessInfo& rCurrentProcessInfo )
 {
     // Create local system components
-    LocalSystemComponents LocalSystem;
+    LocalSystemComponents local_system;
 
     // Calculation flags
-    LocalSystem.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR, true );
-    LocalSystem.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS, true );
+    local_system.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR, true );
+    local_system.CalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS, true );
 
-    MatrixType LeftHandSideMatrix = Matrix( );
+    MatrixType left_hand_side_matrix = Matrix( );
 
     // Initialize size for the system components
     for( unsigned int i = 0; i < rRightHandSideVectors.size(); i++ )
     {
-        this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVectors[i], LocalSystem.CalculationFlags );
+        this->InitializeSystemMatrices( left_hand_side_matrix, rRightHandSideVectors[i], local_system.CalculationFlags );
     }
 
     // Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix( LeftHandSideMatrix );
-    LocalSystem.SetRightHandSideVectors( rRightHandSideVectors );
+    local_system.SetLeftHandSideMatrix( left_hand_side_matrix );
+    local_system.SetRightHandSideVectors( rRightHandSideVectors );
 
     // Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
+    this->CalculateConditionSystem( local_system, rCurrentProcessInfo );
 }
 
 /***********************************************************************************/
@@ -371,26 +381,26 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     Flags& rCalculationFlags 
     )
 {
-    const unsigned int ConditionSize = this->CalculateConditionSize( );
+    const unsigned int condition_size = this->CalculateConditionSize( );
     
     // Resizing as needed the LHS
     if ( rCalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX ) ) // Calculation of the matrix is required
     {
-        if ( rLeftHandSideMatrix.size1() != ConditionSize )
+        if ( rLeftHandSideMatrix.size1() != condition_size )
         {
-            rLeftHandSideMatrix.resize( ConditionSize, ConditionSize, false );
+            rLeftHandSideMatrix.resize( condition_size, condition_size, false );
         }
-        noalias( rLeftHandSideMatrix ) = ZeroMatrix( ConditionSize, ConditionSize ); // Resetting LHS
+        noalias( rLeftHandSideMatrix ) = ZeroMatrix( condition_size, condition_size ); // Resetting LHS
     }
 
     // Resizing as needed the RHS
     if ( rCalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR ) ) // Calculation of the matrix is required
     {
-        if ( rRightHandSideVector.size() != ConditionSize )
+        if ( rRightHandSideVector.size() != condition_size )
         {
-            rRightHandSideVector.resize( ConditionSize, false );
+            rRightHandSideVector.resize( condition_size, false );
         }
-        rRightHandSideVector = ZeroVector( ConditionSize ); // Resetting RHS
+        rRightHandSideVector = ZeroVector( condition_size ); // Resetting RHS
     }
 }
 
@@ -433,9 +443,9 @@ template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 
 const unsigned int AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateConditionSize( )
 {
-    const unsigned int ConditionSize = mPairSize * MatrixSize;
+    const unsigned int condition_size = mPairSize * MatrixSize;
     
-    return ConditionSize;
+    return condition_size;
 }
 
 /***********************************************************************************/
@@ -475,125 +485,128 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
     // Iterate over the master segments
     for (unsigned int pair_index = 0; pair_index < mPairSize; ++pair_index)
     {   
-        // The normal of the master condition
-        const array_1d<double, 3> master_normal = mThisMasterElements[pair_index]->GetValue(NORMAL);
-        
-        // Reading integration points
-        ConditionArrayListType conditions_points_slave;
-        const bool is_inside = integration_utility.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterElements[pair_index]->GetGeometry(), master_normal, conditions_points_slave);
-        
-        IntegrationMethod this_integration_method = GetIntegrationMethod();
-        
-        if (is_inside == true)
-        {            
-            // Initialize general variables for the current master element
-            rVariables.Initialize();
+        if (mThisMasterElementsActive[pair_index] == true)
+        {
+            // The normal of the master condition
+            const array_1d<double, 3> master_normal = mThisMasterElements[pair_index]->GetValue(NORMAL);
             
-            // Update slave element info
-            rDerivativeData.UpdateMasterPair(mThisMasterElements[pair_index]);
+            // Reading integration points
+            ConditionArrayListType conditions_points_slave;
+            const bool is_inside = integration_utility.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterElements[pair_index]->GetGeometry(), master_normal, conditions_points_slave);
             
-            // Initialize the mortar operators
-            rThisMortarConditionMatrices.Initialize();
+            IntegrationMethod this_integration_method = GetIntegrationMethod();
             
-//             if (rCurrentProcessInfo[CONSIDER_NORMAL_VARIATION] == true) // TODO: Can be needed for the shape function derivatives
-//             {
-//                 // Compute the normal derivatives of the master
-//                 this->CalculateDeltaNormalMaster(rDerivativeData, mThisMasterElements[pair_index]->GetGeometry());
-//             }
-            
-            for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); i_geom++)
-            {
-                std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
-                for (unsigned int i_node = 0; i_node < TDim; i_node++)
+            if (is_inside == true)
+            {            
+                // Initialize general variables for the current master element
+                rVariables.Initialize();
+                
+                // Update slave element info
+                rDerivativeData.UpdateMasterPair(mThisMasterElements[pair_index]);
+                
+                // Initialize the mortar operators
+                rThisMortarConditionMatrices.Initialize();
+                
+//                 if (rCurrentProcessInfo[CONSIDER_NORMAL_VARIATION] == true) // TODO: Can be needed for the shape function derivatives
+//                 {
+//                     // Compute the normal derivatives of the master
+//                     this->CalculateDeltaNormalMaster(rDerivativeData, mThisMasterElements[pair_index]->GetGeometry());
+//                 }
+                
+                for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); i_geom++)
                 {
-                    PointType global_point;
-                    GetGeometry().GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
-                    points_array[i_node] = boost::make_shared<PointType>(global_point);
-                }
-                
-                DecompositionType decomp_geom( points_array );
-                
-                const bool bad_shape = (TDim == 2) ? ContactUtilities::LengthCheck(decomp_geom, this->GetGeometry().Length() * 1.0e-6) : ContactUtilities::HeronCheck(decomp_geom);
-                
-                if (bad_shape == false)
-                {
-                    Matrix delta_position;
-                    delta_position = CalculateDeltaPosition(delta_position, conditions_points_slave[i_geom]);
-                    
-                    const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
-                    
-                    // Integrating the mortar operators
-                    for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); point_number++ )
+                    std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+                    for (unsigned int i_node = 0; i_node < TDim; i_node++)
                     {
-                        const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
-                        PointType local_point_parent;
-                        PointType gp_global;
-                        decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
-                        GetGeometry().PointLocalCoordinates(local_point_parent, gp_global);
+                        PointType global_point;
+                        GetGeometry().GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
+                        points_array[i_node] = boost::make_shared<PointType>(global_point);
+                    }
+                    
+                    DecompositionType decomp_geom( points_array );
+                    
+                    const bool bad_shape = (TDim == 2) ? ContactUtilities::LengthCheck(decomp_geom, this->GetGeometry().Length() * 1.0e-6) : ContactUtilities::HeronCheck(decomp_geom);
+                    
+                    if (bad_shape == false)
+                    {
+                        Matrix delta_position;
+                        delta_position = CalculateDeltaPosition(delta_position, conditions_points_slave[i_geom]);
                         
-                        // Calculate the kinematic variables
-                        this->CalculateKinematics( rVariables, rDerivativeData, master_normal, pair_index, local_point_decomp, local_point_parent, decomp_geom, dual_LM, delta_position);
+                        const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
                         
-                        const double integration_weight = GetIntegrationWeight(rVariables, integration_points_slave, point_number);
-                        
-                        if ( rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX ) ||
-                                rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+                        // Integrating the mortar operators
+                        for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); point_number++ )
                         {
-                            /* Update the derivatives */
-                            // Update the derivative of DetJ
-                            this->CalculateDeltaDetjSlave(rVariables, rDerivativeData);
-                            // Update the derivatives of the shape functions and the gap
-//                             this->CalculateDeltaN(rVariables, rDerivativeData); // FIXME: This is the old version!!!!
-                            // The derivatives of the dual shape function 
-                            this->CalculateDeltaPhi(rVariables, rDerivativeData);
+                            const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
+                            PointType local_point_parent;
+                            PointType gp_global;
+                            decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
+                            GetGeometry().PointLocalCoordinates(local_point_parent, gp_global);
                             
-                            rThisMortarConditionMatrices.CalculateDeltaMortarOperators(rVariables, rDerivativeData, integration_weight);    
-                        }
-                        else // In case we are computing RHS we don't compute derivatives (not necessary)
-                        {
-                            rThisMortarConditionMatrices.CalculateMortarOperators(rVariables, integration_weight);   
+                            // Calculate the kinematic variables
+                            this->CalculateKinematics( rVariables, rDerivativeData, master_normal, pair_index, local_point_decomp, local_point_parent, decomp_geom, dual_LM, delta_position);
+                            
+                            const double integration_weight = GetIntegrationWeight(rVariables, integration_points_slave, point_number);
+                            
+                            if ( rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX ) ||
+                                    rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+                            {
+                                /* Update the derivatives */
+                                // Update the derivative of DetJ
+                                this->CalculateDeltaDetjSlave(rVariables, rDerivativeData);
+                                // Update the derivatives of the shape functions and the gap
+//                                 this->CalculateDeltaN(rVariables, rDerivativeData); // FIXME: This is the old version!!!!
+                                // The derivatives of the dual shape function 
+                                this->CalculateDeltaPhi(rVariables, rDerivativeData);
+                                
+                                rThisMortarConditionMatrices.CalculateDeltaMortarOperators(rVariables, rDerivativeData, integration_weight);    
+                            }
+                            else // In case we are computing RHS we don't compute derivatives (not necessary)
+                            {
+                                rThisMortarConditionMatrices.CalculateMortarOperators(rVariables, integration_weight);   
+                            }
                         }
                     }
                 }
-            }
+                        
+//                 // Debug
+//                 std::cout << "--------------------------------------------------" << std::endl;
+//                 KRATOS_WATCH(this->Id());
+//                 KRATOS_WATCH(pair_index);
+//                 rThisMortarConditionMatrices.print();
+                
+                // Calculates the active/inactive combination pair
+                const unsigned int active_inactive = GetActiveInactiveValue(this->GetGeometry());
+                
+                // Assemble of the matrix is required
+                if ( rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX ) ||
+                        rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+                {
+                    // Calculate the local contribution
+                    const bounded_matrix<double, MatrixSize, MatrixSize> LHS_contact_pair = this->CalculateLocalLHS( rThisMortarConditionMatrices, rDerivativeData, active_inactive);
                     
-//             // Debug
-//             std::cout << "--------------------------------------------------" << std::endl;
-//             KRATOS_WATCH(this->Id());
-//             KRATOS_WATCH(pair_index);
-//             rThisMortarConditionMatrices.print();
-            
-            // Calculates the active/inactive combination pair
-            const unsigned int active_inactive = GetActiveInactiveValue(this->GetGeometry());
-            
-            // Assemble of the matrix is required
-            if ( rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX ) ||
-                    rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
-            {
-                // Calculate the local contribution
-                const bounded_matrix<double, MatrixSize, MatrixSize> LHS_contact_pair = this->CalculateLocalLHS( rThisMortarConditionMatrices, rDerivativeData, active_inactive);
+                    // Contributions to stiffness matrix calculated on the reference config
+                    this->CalculateAndAddLHS( rLocalSystem, LHS_contact_pair, pair_index );
+                    
+//                     // Debug
+//         //                 KRATOS_WATCH(LHS_contact_pair);
+//                     LOG_MATRIX_PRETTY( LHS_contact_pair );
+                }
                 
-                // Contributions to stiffness matrix calculated on the reference config
-                this->CalculateAndAddLHS( rLocalSystem, LHS_contact_pair, pair_index );
-                
-//                 // Debug
-//     //                 KRATOS_WATCH(LHS_contact_pair);
-//                 LOG_MATRIX_PRETTY( LHS_contact_pair );
-            }
-            
-            // Assemble of the vector is required
-            if ( rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR ) ||
-                    rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
-            {
-                // Calculate the local contribution
-                const array_1d<double, MatrixSize> RHS_contact_pair = this->CalculateLocalRHS( rThisMortarConditionMatrices, rDerivativeData, active_inactive);
-                
-                // Contribution to previous step contact force and residuals vector
-                this->CalculateAndAddRHS( rLocalSystem, RHS_contact_pair, pair_index );
-                
-//                 // Debug
-//     //                 KRATOS_WATCH(RHS_contact_pair);
-//                 LOG_VECTOR_PRETTY( RHS_contact_pair );
+                // Assemble of the vector is required
+                if ( rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR ) ||
+                        rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
+                {
+                    // Calculate the local contribution
+                    const array_1d<double, MatrixSize> RHS_contact_pair = this->CalculateLocalRHS( rThisMortarConditionMatrices, rDerivativeData, active_inactive);
+                    
+                    // Contribution to previous step contact force and residuals vector
+                    this->CalculateAndAddRHS( rLocalSystem, RHS_contact_pair, pair_index );
+                    
+//                     // Debug
+//         //                 KRATOS_WATCH(RHS_contact_pair);
+//                     LOG_VECTOR_PRETTY( RHS_contact_pair );
+                }
             }
         }
     }
@@ -629,66 +642,69 @@ bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     ExactMortarIntegrationUtility<TDim, TNumNodes> integration_utility = ExactMortarIntegrationUtility<TDim, TNumNodes>(mIntegrationOrder);
     
     for (unsigned int pair_index = 0; pair_index < mPairSize; ++pair_index)
-    {   
-        // The normal of the master condition
-        const array_1d<double, 3> master_normal = mThisMasterElements[pair_index]->GetValue(NORMAL);
-
-        // Reading integration points
-        ConditionArrayListType conditions_points_slave;
-        const bool is_inside = integration_utility.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterElements[pair_index]->GetGeometry(), master_normal, conditions_points_slave);
-        
-        IntegrationMethod ThisIntegrationMethod = GetIntegrationMethod();
-        
-        if (is_inside == true)
+    {
+        if (mThisMasterElementsActive[pair_index] == true)
         {
-            is_integrated = true;
+            // The normal of the master condition
+            const array_1d<double, 3> master_normal = mThisMasterElements[pair_index]->GetValue(NORMAL);
+
+            // Reading integration points
+            ConditionArrayListType conditions_points_slave;
+            const bool is_inside = integration_utility.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterElements[pair_index]->GetGeometry(), master_normal, conditions_points_slave);
             
-            // Initialize general variables for the current master element
-            rVariables.Initialize();
+            IntegrationMethod ThisIntegrationMethod = GetIntegrationMethod();
             
-            // Update slave element info
-            rDerivativeData.UpdateMasterPair(mThisMasterElements[pair_index]);
-            
-            for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); i_geom++)
+            if (is_inside == true)
             {
-                std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
-                for (unsigned int i_node = 0; i_node < TDim; i_node++)
+                is_integrated = true;
+                
+                // Initialize general variables for the current master element
+                rVariables.Initialize();
+                
+                // Update slave element info
+                rDerivativeData.UpdateMasterPair(mThisMasterElements[pair_index]);
+                
+                for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); i_geom++)
                 {
-                    PointType global_point;
-                    GetGeometry().GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
-                    points_array[i_node] = boost::make_shared<PointType>(global_point);
-                }
-                
-                DecompositionType decomp_geom( points_array );
-                
-                const bool bad_shape = (TDim == 2) ? ContactUtilities::LengthCheck(decomp_geom, this->GetGeometry().Length() * 1.0e-6) : ContactUtilities::HeronCheck(decomp_geom);
-                
-                if (bad_shape == false)
-                {
-                    Matrix delta_position;
-                    delta_position = CalculateDeltaPosition(delta_position, conditions_points_slave[i_geom]);
-                    
-                    const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
-                    
-                    // Integrating the mortar operators
-                    for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); point_number++ )
+                    std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+                    for (unsigned int i_node = 0; i_node < TDim; i_node++)
                     {
-                        const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
-                        PointType local_point_parent;
-                        PointType gp_global;
-                        decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
-                        GetGeometry().PointLocalCoordinates(local_point_parent, gp_global);
+                        PointType global_point;
+                        GetGeometry().GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
+                        points_array[i_node] = boost::make_shared<PointType>(global_point);
+                    }
+                    
+                    DecompositionType decomp_geom( points_array );
+                    
+                    const bool bad_shape = (TDim == 2) ? ContactUtilities::LengthCheck(decomp_geom, this->GetGeometry().Length() * 1.0e-6) : ContactUtilities::HeronCheck(decomp_geom);
+                    
+                    if (bad_shape == false)
+                    {
+                        Matrix delta_position;
+                        delta_position = CalculateDeltaPosition(delta_position, conditions_points_slave[i_geom]);
                         
-                        // Calculate the kinematic variables
-                        this->CalculateKinematics( rVariables, rDerivativeData, master_normal, pair_index, local_point_decomp, local_point_parent, decomp_geom, false, delta_position);
+                        const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
                         
-                        // Update the derivative of DetJ
-                        this->CalculateDeltaDetjSlave(rVariables, rDerivativeData); 
-                        
-                        // Integrate
-                        const double integration_weight = GetIntegrationWeight(rVariables, integration_points_slave, point_number);
-                        
-                        rAeData.CalculateDeltaAeComponents(rVariables, rDerivativeData, integration_weight);
+                        // Integrating the mortar operators
+                        for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); point_number++ )
+                        {
+                            const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
+                            PointType local_point_parent;
+                            PointType gp_global;
+                            decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
+                            GetGeometry().PointLocalCoordinates(local_point_parent, gp_global);
+                            
+                            // Calculate the kinematic variables
+                            this->CalculateKinematics( rVariables, rDerivativeData, master_normal, pair_index, local_point_decomp, local_point_parent, decomp_geom, false, delta_position);
+                            
+                            // Update the derivative of DetJ
+                            this->CalculateDeltaDetjSlave(rVariables, rDerivativeData); 
+                            
+                            // Integrate
+                            const double integration_weight = GetIntegrationWeight(rVariables, integration_points_slave, point_number);
+                            
+                            rAeData.CalculateDeltaAeComponents(rVariables, rDerivativeData, integration_weight);
+                        }
                     }
                 }
             }
