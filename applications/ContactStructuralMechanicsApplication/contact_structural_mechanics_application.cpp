@@ -80,7 +80,7 @@ void KratosContactStructuralMechanicsApplication::Register()
 
     // VARIABLES
     /* Mortar method general variables */
-    KRATOS_REGISTER_VARIABLE( CONTACT_SETS )                                    // An unordened map of which contains the structure which defines the contact conditions
+    KRATOS_REGISTER_VARIABLE( CONTACT_MAPS )                                    // An unordened map of which contains the structure which defines the contact conditions
     KRATOS_REGISTER_VARIABLE( INTEGRATION_ORDER_CONTACT )                       // The integration order computed in the contact
     KRATOS_REGISTER_VARIABLE( ELEMENT_POINTER )                                 // A pointer to the element belonging to this condition
     KRATOS_REGISTER_VARIABLE( MORTAR_CONTACT_OPERATOR )                         // Mortar Contact Operator

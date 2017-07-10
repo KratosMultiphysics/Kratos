@@ -78,10 +78,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,
 {
     KRATOS_TRY;   
     
-    boost::shared_ptr<ConditionSet>& AllConditionSets = this->GetValue( CONTACT_SETS );
+    boost::shared_ptr<ConditionMap>& AllConditionMaps = this->GetValue( CONTACT_MAPS );
     
     // Calculates the size of the system
-    const unsigned int ConditionSize = (TDim * ( TNumNodes + TNumNodes) + TNumNodes)* AllConditionSets->size(); 
+    const unsigned int ConditionSize = (TDim * ( TNumNodes + TNumNodes) + TNumNodes)* AllConditionMaps->size(); 
     
     if (rResult.size() != ConditionSize)
     {
@@ -91,7 +91,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,
     unsigned int index = 0;
     
     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
-    for (auto itPair = AllConditionSets->begin(); itPair != AllConditionSets->end(); ++itPair )
+    for (auto itPair = AllConditionMaps->begin(); itPair != AllConditionMaps->end(); ++itPair )
     {
         GeometryType& CurrentMaster = (*itPair)->GetGeometry( );
         
@@ -142,10 +142,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,
 {
     KRATOS_TRY;
     
-    boost::shared_ptr<ConditionSet>& AllConditionSets = this->GetValue( CONTACT_SETS );
+    boost::shared_ptr<ConditionMap>& AllConditionMaps = this->GetValue( CONTACT_MAPS );
     
     // Calculates the size of the system
-    const unsigned int ConditionSize = (TDim * ( TNumNodes + TNumNodes) + TNumNodes)* AllConditionSets->size(); 
+    const unsigned int ConditionSize = (TDim * ( TNumNodes + TNumNodes) + TNumNodes)* AllConditionMaps->size(); 
     
     if (rConditionalDofList.size() != ConditionSize)
     {
@@ -155,7 +155,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,
     unsigned int index = 0;
     
     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
-    for (auto itPair = AllConditionSets->begin(); itPair != AllConditionSets->end(); ++itPair )
+    for (auto itPair = AllConditionMaps->begin(); itPair != AllConditionMaps->end(); ++itPair )
     {
         GeometryType& CurrentMaster = (*itPair)->GetGeometry( );
 

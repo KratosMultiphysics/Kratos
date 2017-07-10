@@ -52,51 +52,6 @@ struct SharedPointerComparator
 
 typedef array_1d<double,3> Vector3;
 
-struct ConditionSet : std::unordered_set<Condition::Pointer, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> >
-{
-    virtual ~ConditionSet(){}
-    
-    typedef std::unordered_set<Condition::Pointer, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> > BaseType;
-    
-    void RemoveCondition(Condition::Pointer pCond)
-    {
-        BaseType::iterator Set = find(pCond);
-        if(Set != end())
-        {
-            erase(Set);
-        }
-    }
-    
-    void AddNewCondition(Condition::Pointer pCond)
-    {
-        insert(pCond);
-    }
-    
-    void print()
-    {
-        for (auto it = begin(); it != end(); ++it )
-        {            
-            KRATOS_WATCH((*it)->GetGeometry());
-        }
-    }
-
-private:
-
-    friend class Serializer;
-    
-    void save( Serializer& rSerializer ) const
-    {
-        // TODO: Fill if necessary
-//         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
-    }
-
-    void load( Serializer& rSerializer )
-    {
-        // TODO: Fill if necessary
-//         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType );
-    }
-};
-
 struct ConditionMap : std::unordered_map<Condition::Pointer, bool, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> >
 {
     virtual ~ConditionMap(){}
@@ -155,7 +110,7 @@ struct ConditionMap : std::unordered_map<Condition::Pointer, bool, SharedPointer
 
 // VARIABLES
 /* Mortar method */ 
-KRATOS_DEFINE_VARIABLE( boost::shared_ptr<ConditionSet>, CONTACT_SETS )              // An unordened map of which contains the structure which defines the contact conditions
+KRATOS_DEFINE_VARIABLE( boost::shared_ptr<ConditionMap>, CONTACT_MAPS )              // An unordened map of which contains the structure which defines the contact conditions
 KRATOS_DEFINE_VARIABLE( Element::Pointer, ELEMENT_POINTER )                          // A pointer to the element belonging to this condition
 KRATOS_DEFINE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                            // The integration order computed in the contact
 KRATOS_DEFINE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                            // Mortar Contact Operator

@@ -182,8 +182,8 @@ public:
         {
             auto it_cond = conditions_array.begin() + i;
 
-            it_cond->GetValue(CONTACT_SETS) = boost::shared_ptr<ConditionSet>(new ConditionSet); 
-//             it_cond->GetValue(CONTACT_SETS)->reserve(mAllocationSize); 
+            it_cond->GetValue(CONTACT_MAPS) = boost::shared_ptr<ConditionMap>(new ConditionMap); 
+//             it_cond->GetValue(CONTACT_MAPS)->reserve(mAllocationSize); 
         }
     }
     
@@ -413,7 +413,7 @@ public:
                     
                     if (number_points_found > 0)
                     {                           
-                        boost::shared_ptr<ConditionSet>& conditions_pointers_destination = it_cond->GetValue(CONTACT_SETS);
+                        boost::shared_ptr<ConditionMap>& conditions_pointers_destination = it_cond->GetValue(CONTACT_MAPS);
                         Condition::Pointer p_cond_slave = (*it_cond.base()); // MASTER
                         const array_1d<double, 3>& contact_normal_origin = p_cond_slave->GetValue(NORMAL);
                         
@@ -546,7 +546,7 @@ public:
             auto it_cond = conditions_array.begin() + i;
             if ( (it_cond)->Is(ACTIVE) == true )
             {
-                boost::shared_ptr<ConditionSet>& conditions_pointers_destination = it_cond->GetValue(CONTACT_SETS);
+                boost::shared_ptr<ConditionMap>& conditions_pointers_destination = it_cond->GetValue(CONTACT_MAPS);
                 
                 // Initialize geometries
                 const array_1d<double, 3> contact_normal = it_cond->GetValue(NORMAL);
@@ -555,7 +555,7 @@ public:
                 {
                     for (auto it_pair = conditions_pointers_destination->begin(); it_pair != conditions_pointers_destination->end(); ++it_pair )
                     {
-                        SearchUtilities::ContactContainerFiller<false>(conditions_pointers_destination, (*it_cond.base()), (*(it_pair)), contact_normal, (*(it_pair))->GetValue(NORMAL), mActiveCheckFactor, mDualSearchCheck, mStrictSearchCheck);
+                        SearchUtilities::ContactContainerFiller<false>(conditions_pointers_destination, (*it_cond.base()), (it_pair->first), contact_normal, (it_pair->first)->GetValue(NORMAL), mActiveCheckFactor, mDualSearchCheck, mStrictSearchCheck);
                     }
                 }
                 else
@@ -631,7 +631,7 @@ public:
                 KRATOS_WATCH(it_cond->Id());
                 KRATOS_WATCH(it_cond->GetGeometry());
                 
-                boost::shared_ptr<ConditionSet>& conditions_pointers_destination = it_cond->GetValue(CONTACT_SETS);
+                boost::shared_ptr<ConditionMap>& conditions_pointers_destination = it_cond->GetValue(CONTACT_MAPS);
                 KRATOS_WATCH(conditions_pointers_destination->size());
                 conditions_pointers_destination->print();
             }
@@ -707,7 +707,7 @@ protected:
      */
     
     static inline bool CheckCondition(
-        boost::shared_ptr<ConditionSet>& condition_pointers1,
+        boost::shared_ptr<ConditionMap>& condition_pointers1,
         const Condition::Pointer & pCond1,
         const Condition::Pointer & pCond2
         )
@@ -732,7 +732,7 @@ protected:
 
         if (pCond2->Is(SLAVE) == true) // Otherwise will not be necessary to check
         {
-            auto& condition_pointers2 = pCond2->GetValue(CONTACT_SETS);
+            auto& condition_pointers2 = pCond2->GetValue(CONTACT_MAPS);
             
             if (condition_pointers2->find(pCond1) != condition_pointers2->end())
             {
@@ -786,7 +786,7 @@ protected:
             {
                 it_cond->Set(ACTIVE, false);
                 
-                auto& condition_pointers = it_cond->GetValue(CONTACT_SETS);
+                auto& condition_pointers = it_cond->GetValue(CONTACT_MAPS);
                 
                 if (condition_pointers != nullptr)
                 {

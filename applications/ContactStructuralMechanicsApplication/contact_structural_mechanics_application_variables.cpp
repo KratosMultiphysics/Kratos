@@ -22,7 +22,7 @@ typedef array_1d<double,3> Vector3;
 
 // VARIABLES
 /* Mortar method general variables */
-KRATOS_CREATE_VARIABLE( boost::shared_ptr<ConditionSet>, CONTACT_SETS )              // An unordered map of which contains the structure which defines the contact conditions
+KRATOS_CREATE_VARIABLE( boost::shared_ptr<ConditionMap>, CONTACT_MAPS )              // An unordered map of which contains the structure which defines the contact conditions
 KRATOS_CREATE_VARIABLE( Element::Pointer , ELEMENT_POINTER )                         // A pointer  the element belonging to this condition
 KRATOS_CREATE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                            // The integration order computed in the contact
 KRATOS_CREATE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                            // Mortar Contact Operator

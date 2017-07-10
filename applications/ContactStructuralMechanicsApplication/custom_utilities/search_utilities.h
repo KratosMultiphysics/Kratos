@@ -98,7 +98,7 @@ public:
     ///@{
     
     /**
-     * This function fills the ConditionSet for the Mortar condition // LEGACY WAY
+     * This function fills the ConditionMap for the Mortar condition // LEGACY WAY
      * @param ConditionPointers: The map storing the potential contact conditions
      * @param pCond1: The condition pointer of the slave 
      * @param pCond2: The  condition pointer of the master 
@@ -111,7 +111,7 @@ public:
     
     template< const bool TFill>
     static inline void ContactContainerFiller(
-        boost::shared_ptr<ConditionSet>& ConditionPointers,
+        boost::shared_ptr<ConditionMap>& ConditionPointers,
         Condition::Pointer & pCond1,       // SLAVE
         const Condition::Pointer & pCond2, // MASTER
         const array_1d<double, 3> & ContactNormal1, // SLAVE
@@ -280,7 +280,7 @@ public:
     }
     
     /**
-     * This function checks the ConditionSet for the Mortar condition 
+     * This function checks the ConditionMap for the Mortar condition 
      * @param ConditionPointers: The map storing the potential contact conditions
      * @param pCondSlave: The condition pointer of the slave 
      * @param SlaveNormal: The normals of the slave
@@ -289,7 +289,7 @@ public:
     
     template< const unsigned int TDim, const unsigned int TNumNodes >
     static inline void ExactContactContainerChecker(
-        boost::shared_ptr<ConditionSet>& ConditionPointers,
+        boost::shared_ptr<ConditionMap>& ConditionPointers,
         Condition::Pointer& pCondSlave,         // SLAVE
         const array_1d<double, 3>& SlaveNormal, // SLAVE
         const double ActiveCheckLength
@@ -309,7 +309,7 @@ public:
         
         for (auto it_pair = ConditionPointers->begin(); it_pair != ConditionPointers->end(); ++it_pair )
         {  
-            Condition::Pointer p_cond_master = *(it_pair); // MASTER
+            Condition::Pointer p_cond_master = (it_pair->first); // MASTER
             const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL); 
                     
             condition_is_active = CheckExactIntegration<TDim, TNumNodes>(rVariables, rThisMortarConditionMatrices, integration_utility, pCondSlave, p_cond_master, SlaveNormal, master_normal, ActiveCheckLength);
