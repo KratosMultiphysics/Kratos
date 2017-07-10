@@ -1,4 +1,5 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+import os
 
 import KratosMultiphysics
 import KratosMultiphysics.FSIApplication as KratosFSI
@@ -159,8 +160,6 @@ class KratosExecuteConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
         res_norm = self.ComputeResidualNorm(residual)
 
         while (nl_it <= self.aitken_iterations):
-
-            print(mpi.rank,": Iteration: ", nl_it," residual norm: ", res_norm, file=sys.stderr)
 
             if res_norm > self.aitken_tolelance:
                 coupling_utility.InitializeNonLinearIteration()
