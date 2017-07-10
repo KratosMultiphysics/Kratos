@@ -238,7 +238,7 @@ public:
                         
                         rThisMortarConditionMatrices.CalculateMortarOperators(rVariables, integration_weight);   
                     }
-                    
+
                     // Setting the gap
 
                     // Current coordinates 
@@ -247,13 +247,19 @@ public:
             
                     const bounded_matrix<double, TNumNodes, TDim> Dx1Mx2 = prod(rThisMortarConditionMatrices.DOperator, x1) - prod(rThisMortarConditionMatrices.MOperator, x2); 
                     
+                    array_1d<double, TDim> aux_slave_normal;
+                    for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
+                    {
+                        aux_slave_normal[i_dim] = SlaveNormal[i_dim];
+                    }
+                    
                     for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
                     {
                         if (slave_geometry[i_node].Is(ACTIVE) == false)
                         {
                             const array_1d<double, TDim> aux_array = row(Dx1Mx2, i_node);
-                                            
-                            const double nodal_gap = inner_prod(aux_array, - SlaveNormal); 
+                            
+                            const double nodal_gap = inner_prod(aux_array, - aux_slave_normal); 
                             
                             if (nodal_gap < ActiveCheckLength)
                             {
