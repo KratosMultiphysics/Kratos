@@ -475,12 +475,12 @@ protected:
                                 const ShapeFunctionDerivativesType& rDN_DX,
                                 const ProcessInfo& rProcessInfo,
                                 MatrixType& rLHS,
-                                VectorType& rRHS);
+                                VectorType& rRHS) = 0;
 
 
     virtual void AddMassTerms(double GaussWeight,
                               const ShapeFunctionsType& rN,
-                              MatrixType& rMassMatrix);
+                              MatrixType& rMassMatrix) = 0;
 
 
     virtual void AddMassStabilization(unsigned int GaussIndex,
@@ -488,13 +488,7 @@ protected:
                                       const ShapeFunctionsType& rN,
                                       const ShapeFunctionDerivativesType& rDN_DX,
                                       const ProcessInfo& rProcessInfo,
-                                      MatrixType& rMassMatrix);
-
-
-    void AddViscousTerm(double DynamicViscosity,
-                        double GaussWeight,
-                        const ShapeFunctionDerivativesType& rDN_DX,
-                        MatrixType& rLHS);
+                                      MatrixType& rMassMatrix) = 0;
 
 
     virtual void SubscaleVelocity(unsigned int GaussIndex,
