@@ -128,20 +128,21 @@ public:
      */
     double GetInterfaceArea(ModelPart& rInterfaceModelPart)
     {
-        double InterfaceArea = 0.0;
+        double interface_area = 0.0;
 
-        #pragma omp parallel for reduction(+:InterfaceArea)
-        for(int k=0; k < static_cast<int>(rInterfaceModelPart.NumberOfConditions()); ++k)
+        auto& rLocalMesh = rInterfaceModelPart.GetCommunicator().LocalMesh();
+        ModelPart::ConditionIterator local_mesh_conditions_begin = rLocalMesh.ConditionsBegin();
+        #pragma omp parallel for firstprivate(local_mesh_conditions_begin) reduction(+:interface_area)
+        for(int k=0; k < static_cast<int>(rLocalMesh.NumberOfConditions()); ++k)
         {
-            ModelPart::ConditionIterator it_cond = rInterfaceModelPart.ConditionsBegin()+k;
-
+            const ModelPart::ConditionIterator it_cond = local_mesh_conditions_begin+k;
             const Condition::GeometryType& rGeom = it_cond->GetGeometry();
-            InterfaceArea += rGeom.Length();
+            interface_area += rGeom.Length();
         }
 
-        rInterfaceModelPart.GetCommunicator().SumAll(InterfaceArea);
+        rInterfaceModelPart.GetCommunicator().SumAll(interface_area);
 
-        return InterfaceArea;
+        return interface_area;
     }
 
     /**
@@ -151,26 +152,26 @@ public:
      * @param rVariable: variable to be set
      * @param rInterfaceDataVector: vector containing the data values to be set
      */
-    void SetInterfaceVectorVariable(ModelPart& rInterfaceModelPart,
-                                    const Variable<array_1d<double, 3 > >& rVariable,
-                                    const VectorType& rInterfaceDataVector)
-    {
-        // Initialize the variable value
-        VariableUtils().SetToZero_VectorVar(rVariable, rInterfaceModelPart.Nodes());
-
-        #pragma omp parallel for
-        for(int k=0; k<static_cast<int>(rInterfaceModelPart.NumberOfNodes()); ++k)
-        {
-            ModelPart::NodeIterator it_node = rInterfaceModelPart.NodesBegin()+k;
-            unsigned int base_i = k*TDim;
-
-            array_1d<double,3>& value_to_set = it_node->FastGetSolutionStepValue(rVariable);
-            for (unsigned int jj=0; jj<TDim; ++jj)
-            {
-                value_to_set[jj] = rInterfaceDataVector[base_i+jj];
-            }
-        }
-    }
+    // void SetInterfaceVectorVariable(ModelPart& rInterfaceModelPart,
+    //                                 const Variable<array_1d<double, 3 > >& rVariable,
+    //                                 const VectorType& rInterfaceDataVector)
+    // {
+    //     // Initialize the variable value
+    //     VariableUtils().SetToZero_VectorVar(rVariable, rInterfaceModelPart.Nodes());
+    //
+    //     #pragma omp parallel for
+    //     for(int k=0; k<static_cast<int>(rInterfaceModelPart.NumberOfNodes()); ++k)
+    //     {
+    //         ModelPart::NodeIterator it_node = rInterfaceModelPart.NodesBegin()+k;
+    //         unsigned int base_i = k*TDim;
+    //
+    //         array_1d<double,3>& value_to_set = it_node->FastGetSolutionStepValue(rVariable);
+    //         for (unsigned int jj=0; jj<TDim; ++jj)
+    //         {
+    //             value_to_set[jj] = rInterfaceDataVector[base_i+jj];
+    //         }
+    //     }
+    // }
 
     /**
      * This function sets the variable data contained in a vector over the the
@@ -180,30 +181,30 @@ public:
      * @param rFluidInterfaceDataVector: vector containing the data values to be set
      * @param FixVariable: if true, fixes the variable in the fluid interface model part
      */
-    void SetAndFixInterfaceVectorVariable(ModelPart& rInterfaceModelPart,
-                                          const Variable<array_1d<double, 3 > >& rVariable,
-                                          const VectorType& rFluidInterfaceDataVector,
-                                          const bool FixVariable)
-    {
-        this->SetInterfaceVectorVariable(rInterfaceModelPart, rVariable, rFluidInterfaceDataVector);
-
-        // If needed, apply fixity to rVariable
-        if (FixVariable)
-        {
-            // Get the variable components
-            typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-
-            const std::string variable_name = rVariable.Name();
-            const component_type varx = KratosComponents< component_type >::Get(variable_name+std::string("_X"));
-            const component_type vary = KratosComponents< component_type >::Get(variable_name+std::string("_Y"));
-            const component_type varz = KratosComponents< component_type >::Get(variable_name+std::string("_Z"));
-
-            // Fix the variable components
-            VariableUtils().ApplyFixity(varx, true, rInterfaceModelPart.Nodes());
-            VariableUtils().ApplyFixity(vary, true, rInterfaceModelPart.Nodes());
-            VariableUtils().ApplyFixity(varz, true, rInterfaceModelPart.Nodes());
-        }
-    }
+    // void SetAndFixInterfaceVectorVariable(ModelPart& rInterfaceModelPart,
+    //                                       const Variable<array_1d<double, 3 > >& rVariable,
+    //                                       const VectorType& rFluidInterfaceDataVector,
+    //                                       const bool FixVariable)
+    // {
+    //     this->SetInterfaceVectorVariable(rInterfaceModelPart, rVariable, rFluidInterfaceDataVector);
+    //
+    //     // If needed, apply fixity to rVariable
+    //     if (FixVariable)
+    //     {
+    //         // Get the variable components
+    //         typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
+    //
+    //         const std::string variable_name = rVariable.Name();
+    //         const component_type varx = KratosComponents< component_type >::Get(variable_name+std::string("_X"));
+    //         const component_type vary = KratosComponents< component_type >::Get(variable_name+std::string("_Y"));
+    //         const component_type varz = KratosComponents< component_type >::Get(variable_name+std::string("_Z"));
+    //
+    //         // Fix the variable components
+    //         VariableUtils().ApplyFixity(varx, true, rInterfaceModelPart.Nodes());
+    //         VariableUtils().ApplyFixity(vary, true, rInterfaceModelPart.Nodes());
+    //         VariableUtils().ApplyFixity(varz, true, rInterfaceModelPart.Nodes());
+    //     }
+    // }
 
     virtual void SetUpInterfaceVector(ModelPart& rInterfaceModelPart,
                                       VectorPointerType& pInterfaceVector)
