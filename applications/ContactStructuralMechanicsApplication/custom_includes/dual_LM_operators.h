@@ -280,7 +280,7 @@ public:
 
     DualLagrangeMultiplierOperatorsWithDerivatives(){}
     
-    virtual ~DualLagrangeMultiplierOperatorsWithDerivatives(){}
+    ~DualLagrangeMultiplierOperatorsWithDerivatives() override{}
     
     // Auxiliar sizes
     static const unsigned int size_1 = (TNumNodes * TDim);

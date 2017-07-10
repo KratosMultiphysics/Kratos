@@ -17,16 +17,18 @@
 // External includes
 
 // Project includes
-#include "contact_structural_mechanics_application_variables.h"
-#include "contact_structural_mechanics_application.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
-// #include "spatial_containers/bounding_volume_tree.h" // k-DOP
-#include "spatial_containers/spatial_containers.h" // kd-tree 
-#include "utilities/math_utils.h"                  // Cross Product
+
+/* Custom utilities */
 #include "custom_utilities/contact_utilities.h"
 #include "custom_utilities/search_utilities.h"
-#include "custom_utilities/point_item.h"
+
+/* Custom includes*/
+
+/* Tree structures */
+// #include "spatial_containers/bounding_volume_tree.h" // k-DOP
+#include "spatial_containers/spatial_containers.h" // kd-tree 
 
 namespace Kratos
 {
@@ -59,7 +61,6 @@ namespace Kratos
 
 class TreeContactSearch
 {
-
 public:
     ///@name Type Definitions
     ///@{
@@ -313,83 +314,6 @@ public:
             }
         } 
     }
-    
-    /**
-     * This function hard clears the mortar conditions already created (scalar version)
-     */
-    
-    void HardClearScalarMortarConditions()
-    {
-        ResetContactOperators();
-        
-        NodesArrayType& nodes_array = mrMainModelPart.Nodes();
-        const int num_nodes = static_cast<int>(nodes_array.size());
-        
-        #pragma omp parallel for 
-        for(int i = 0; i < num_nodes; i++) 
-        {
-            auto it_node = nodes_array.begin() + i;
-            if (it_node->Is(ACTIVE) == false)
-            {
-                it_node->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
-            }
-            else
-            {
-                it_node->Set(ACTIVE, false);
-                it_node->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
-            }
-        } 
-    }
-    
-    /**
-     * This function hard clears the mortar conditions already created (components version)
-     */
-        
-    void HardClearComponentsMortarConditions()
-    {
-        NodesArrayType& nodes_array = mrMainModelPart.Nodes();
-        const int num_nodes = static_cast<int>(nodes_array.size());
-        
-        #pragma omp parallel for 
-        for(int i = 0; i < num_nodes; i++) 
-        {
-            auto it_node = nodes_array.begin() + i;
-            if (it_node->Is(ACTIVE) == false)
-            {
-                it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector(3);
-            }
-            else
-            {
-                it_node->Set(ACTIVE, false);
-                it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector(3);
-            }
-        } 
-    }
-    
-    /**
-     * This function hard clears the ALM frictionless mortar conditions already created 
-     */
-    
-    void HardClearALMFrictionlessMortarConditions()
-    {
-        NodesArrayType& nodes_array = mrMainModelPart.Nodes();
-        const int num_nodes = static_cast<int>(nodes_array.size());
-        
-        #pragma omp parallel for 
-        for(int i = 0; i < num_nodes; i++) 
-        {
-            auto it_node = nodes_array.begin() + i;
-            if (it_node->Is(ACTIVE) == false)
-            {
-                it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
-            }
-            else
-            {
-                it_node->Set(ACTIVE, false);
-                it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
-            }
-        } 
-    }
       
     /**
      * This function creates a lists  points ready for the Mortar method
@@ -490,21 +414,46 @@ public:
                     if (number_points_found > 0)
                     {                           
                         boost::shared_ptr<ConditionSet>& conditions_pointers_destination = it_cond->GetValue(CONTACT_SETS);
-                        const array_1d<double, 3> contact_normal_origin = it_cond->GetValue(NORMAL);
+                        const array_1d<double, 3>& contact_normal_origin = it_cond->GetValue(NORMAL);
                         
-                        for(unsigned int i = 0; i < number_points_found; i++)
-                        {   
-                            Condition::Pointer p_cond_origin = points_found[i]->GetCondition();
-                            
-                            const bool condition_checked_right = CheckCondition(conditions_pointers_destination, (*it_cond.base()), p_cond_origin);
-                            
-                            if (condition_checked_right == true)
-                            {    
-                                // If not active we check if can be potentially in contact
-                                SearchUtilities::ContactContainerFiller<true>(conditions_pointers_destination, (*it_cond.base()), p_cond_origin, contact_normal_origin, p_cond_origin->GetValue(NORMAL), mActiveCheckFactor, mDualSearchCheck, mStrictSearchCheck, mUseExactIntegration); 
+//                         // If not active we check if can be potentially in contact
+//                         if (mUseExactIntegration == false) // LEGACY WAY
+//                         {
+                            for(unsigned int i = 0; i < number_points_found; i++)
+                            {   
+                                Condition::Pointer p_cond_origin = points_found[i]->GetCondition();
+                                
+                                const bool condition_checked_right = SearchUtilities::CheckCondition(conditions_pointers_destination, (*it_cond.base()), p_cond_origin);
+                                
+                                if (condition_checked_right == true)
+                                {    
+                                    SearchUtilities::ContactContainerFiller<true>(conditions_pointers_destination, (*it_cond.base()), p_cond_origin, contact_normal_origin, p_cond_origin->GetValue(NORMAL), mActiveCheckFactor, mDualSearchCheck, mStrictSearchCheck); 
+                                }
                             }
-                        }
-                        
+//                         }
+//                         else
+//                         {
+//                             const unsigned int number_of_nodes = (it_cond->GetGeometry()).size();
+//                             const unsigned int dimension = (it_cond->GetGeometry()).WorkingSpaceDimension();
+//                             
+//                             if (dimension == 2 && number_of_nodes == 2)
+//                             {
+//                                 SearchUtilities::ExactContactContainerFiller<2,2>(conditions_pointers_destination, points_found, (*it_cond.base()), contact_normal_origin, mActiveCheckFactor); 
+//                             }
+//                             else if (dimension == 3 && number_of_nodes == 3)
+//                             {
+//                                 SearchUtilities::ExactContactContainerFiller<3,3>(conditions_pointers_destination, points_found, (*it_cond.base()), contact_normal_origin, mActiveCheckFactor); 
+//                             }
+//                             else if (dimension == 3 && number_of_nodes == 4)
+//                             {
+//                                 SearchUtilities::ExactContactContainerFiller<3,4>(conditions_pointers_destination, points_found, (*it_cond.base()), contact_normal_origin, mActiveCheckFactor); 
+//                             }
+//                             else
+//                             {
+//                                 KRATOS_ERROR << "INTEGRATION NOT IMPLEMENTED: dimension = " << dimension << " number_of_nodes = " << number_of_nodes << std::endl;
+//                             }
+//                         }
+//                         
                         if (conditions_pointers_destination->size() > 0)
                         {                        
                             it_cond->Set(ACTIVE, true);
@@ -527,17 +476,44 @@ public:
             auto it_cond = conditions_array.begin() + i;
             if ( (it_cond)->Is(ACTIVE) == true )
             {
-                auto& condition_pointers = it_cond->GetValue(CONTACT_SETS);
+                boost::shared_ptr<ConditionSet>& conditions_pointers_destination = it_cond->GetValue(CONTACT_SETS);
                 
                 // Initialize geometries
                 const array_1d<double, 3> contact_normal = it_cond->GetValue(NORMAL);
                 
-                for (auto it_pair = condition_pointers->begin(); it_pair != condition_pointers->end(); ++it_pair )
-                {
-                    SearchUtilities::ContactContainerFiller<false>(condition_pointers, (*it_cond.base()), (*(it_pair)), contact_normal, (*(it_pair))->GetValue(NORMAL), mActiveCheckFactor, mDualSearchCheck, mStrictSearchCheck, mUseExactIntegration);
-                }
+//                 if (mUseExactIntegration == false) // LEGACY WAY
+//                 {
+                    for (auto it_pair = conditions_pointers_destination->begin(); it_pair != conditions_pointers_destination->end(); ++it_pair )
+                    {
+                        SearchUtilities::ContactContainerFiller<false>(conditions_pointers_destination, (*it_cond.base()), (*(it_pair)), contact_normal, (*(it_pair))->GetValue(NORMAL), mActiveCheckFactor, mDualSearchCheck, mStrictSearchCheck);
+                    }
+//                 }
+//                 else
+//                 {
+//                     const unsigned int number_of_nodes = (it_cond->GetGeometry()).size();
+//                     const unsigned int dimension = (it_cond->GetGeometry()).WorkingSpaceDimension();
+//                  
+//                     const array_1d<double, 3>& contact_normal_origin = it_cond->GetValue(NORMAL);
+//                     
+//                     if (dimension == 2 && number_of_nodes == 2)
+//                     {
+//                         SearchUtilities::ExactContactContainerChecker<2,2>(conditions_pointers_destination, (*it_cond.base()), contact_normal_origin, mActiveCheckFactor); 
+//                     }
+//                     else if (dimension == 3 && number_of_nodes == 3)
+//                     {
+//                         SearchUtilities::ExactContactContainerChecker<3,3>(conditions_pointers_destination, (*it_cond.base()), contact_normal_origin, mActiveCheckFactor); 
+//                     }
+//                     else if (dimension == 3 && number_of_nodes == 4)
+//                     {
+//                         SearchUtilities::ExactContactContainerChecker<3,4>(conditions_pointers_destination, (*it_cond.base()), contact_normal_origin, mActiveCheckFactor); 
+//                     }
+//                     else
+//                     {
+//                         KRATOS_ERROR << "INTEGRATION NOT IMPLEMENTED: dimension = " << dimension << " number_of_nodes = " << number_of_nodes << std::endl;
+//                     }
+//                 }
                 
-                bool deactivate_condition = (condition_pointers->size() == 0) ? true : false;
+                bool deactivate_condition = (conditions_pointers_destination->size() == 0) ? true : false;
                 
                 if (deactivate_condition == false)
                 {
@@ -557,9 +533,9 @@ public:
                 {
                     it_cond->Set(ACTIVE, false);
                     
-                    if (condition_pointers != nullptr)
+                    if (conditions_pointers_destination != nullptr)
                     {
-                        condition_pointers->clear();
+                        conditions_pointers_destination->clear();
                     }
                 }
             }
@@ -678,51 +654,7 @@ protected:
  
         return std::sqrt(radius); 
     } 
-    
-    /**
-     * It check the conditions if they are correctly detected
-     * @return condition_pointers1: A vector containing the pointers to the conditions 
-     * @param pCond1: The pointer to the condition in the destination model part
-     * @param pCond2: The pointer to the condition in the destination model part  
-     */
-    
-    bool CheckCondition(
-        boost::shared_ptr<ConditionSet>& condition_pointers1,
-        const Condition::Pointer & pCond1,
-        const Condition::Pointer & pCond2
-        )
-    {
-        if (((pCond1 != pCond2) && (pCond1->GetValue(ELEMENT_POINTER) != pCond2->GetValue(ELEMENT_POINTER))) == false) // Avoiding "auto self-contact" and "auto element contact"
-        {
-            return false;
-        }
 
-        // Avoid conditions oriented in the same direction
-        const double tolerance = 1.0e-16;
-        if (norm_2(pCond1->GetValue(NORMAL) - pCond2->GetValue(NORMAL)) < tolerance)
-        {
-            return false;
-        }
-
-        // To avoid to repeat twice the same condition 
-        if (condition_pointers1->find(pCond2) != condition_pointers1->end())
-        {
-            return false;
-        }
-
-        if (pCond2->Is(SLAVE) == true) // Otherwise will not be necessary to check
-        {
-            auto& condition_pointers2 = pCond2->GetValue(CONTACT_SETS);
-            
-            if (condition_pointers2->find(pCond1) != condition_pointers2->end())
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-    
     /**
      * This resets the contact operators
      */

@@ -215,7 +215,7 @@ public:
      * Destructor.
      */
     
-    virtual ~ResidualBasedNewtonRaphsonContactStrategy()
+    ~ResidualBasedNewtonRaphsonContactStrategy() override
     {
     }
     
@@ -226,7 +226,7 @@ public:
      * Initialization of member variables and prior operations
      */
      
-    virtual void Initialize() override
+    void Initialize() override
     {
         KRATOS_TRY;
 
@@ -241,7 +241,7 @@ public:
      * after solving the solution step.
      */
     
-    virtual void FinalizeSolutionStep() override
+    void FinalizeSolutionStep() override
     {
         KRATOS_TRY;
 
@@ -260,7 +260,7 @@ public:
      * Solves the current step. This function returns true if a solution has been found, false otherwise.
      */
     
-    virtual bool SolveSolutionStep() override
+    bool SolveSolutionStep() override
     {
         bool IsConverged = BaseType::SolveSolutionStep();
         
@@ -431,7 +431,7 @@ protected:
      * A member variable should be used as a flag to make sure this function is called only once per step.
      */
         
-    virtual void InitializeSolutionStep() override
+    void InitializeSolutionStep() override
     {
         BaseType::InitializeSolutionStep();
         
@@ -586,7 +586,7 @@ protected:
      * Here the database is updated
      */
      
-    virtual void UpdateDatabase(
+    void UpdateDatabase(
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b,

@@ -144,7 +144,7 @@ public:
     AugmentedLagrangianMethodMortarContactCondition( AugmentedLagrangianMethodMortarContactCondition const& rOther){}
 
     /// Destructor.
-    virtual ~AugmentedLagrangianMethodMortarContactCondition();
+    ~AugmentedLagrangianMethodMortarContactCondition() override;
 
     /**
      * Flags related to the element computation
@@ -225,7 +225,7 @@ public:
      * @return a Pointer to the new element
      */
     
-    virtual Condition::Pointer Create( 
+    Condition::Pointer Create( 
         IndexType NewId,
         NodesArrayType const& rThisNodes,
         PropertiesType::Pointer pProperties 
@@ -239,7 +239,7 @@ public:
      * @return a Pointer to the new element
      */
     
-    virtual Condition::Pointer Create(
+    Condition::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
@@ -255,7 +255,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     
-    virtual void EquationIdVector( 
+    void EquationIdVector( 
         EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo
         ) override;
@@ -266,7 +266,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     
-    virtual void GetDofList( 
+    void GetDofList( 
         DofsVectorType& rConditionalDofList,
         ProcessInfo& rCurrentProcessInfo 
         ) override;
@@ -456,7 +456,7 @@ protected:
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo 
-        );
+        ) override;
 
     /**
      * This function provides a more general interface to the condition.
@@ -474,7 +474,7 @@ protected:
         std::vector< VectorType >& rRightHandSideVectors,
         const std::vector< Variable< VectorType > >& rRHSVariables,
         ProcessInfo& rCurrentProcessInfo 
-        );
+        ) override;
 
     /**
      * This is called during the assembling process in order
@@ -486,7 +486,7 @@ protected:
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo 
-        );
+        ) override;
 
     /**
      * This function provides a more general interface to the condition.
@@ -500,7 +500,7 @@ protected:
         std::vector< VectorType >& rRightHandSideVectors,
         const std::vector< Variable< VectorType > >& rRHSVariables,
         ProcessInfo& rCurrentProcessInfo 
-        );
+        ) override;
 
     /**
      * This is called during the assembling process in order
@@ -512,7 +512,7 @@ protected:
     void CalculateLeftHandSide( 
         MatrixType& rLeftHandSideMatrix,
         ProcessInfo& rCurrentProcessInfo 
-        );
+        ) override;
 
     /**
      * This function provides a more general interface to the condition.
@@ -526,7 +526,7 @@ protected:
         std::vector< MatrixType >& rLeftHandSideMatrices,
         const std::vector< Variable< MatrixType > >& rLHSVariables,
         ProcessInfo& rCurrentProcessInfo 
-        );
+        ) override;
 
     /**
      * Calculates the condition contribution
@@ -715,7 +715,7 @@ protected:
      * It returns theintegration method considered
      */
     
-    IntegrationMethod GetIntegrationMethod()
+    IntegrationMethod GetIntegrationMethod() override
     {
         if (mIntegrationOrder == 1)
         {
@@ -810,12 +810,12 @@ private:
     
     friend class Serializer;
     
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
     }

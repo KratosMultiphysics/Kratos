@@ -91,7 +91,7 @@ public:
     }
 
     /// Destructor.
-    ~PointItem(){}
+    ~PointItem() override{}
 
     ///@}
     ///@name Operators

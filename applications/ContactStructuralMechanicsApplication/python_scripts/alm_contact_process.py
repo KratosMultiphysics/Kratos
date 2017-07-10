@@ -276,9 +276,9 @@ class ALMContactProcess(KratosMultiphysics.Process):
     def _clear_sets(self):
         if (self.hard_clear_after_step == True):
             if self.params["contact_type"].GetString() == "Frictionless":  
-                self.contact_search.HardClearALMFrictionlessMortarConditions()
+                self.contact_search.TotalClearALMFrictionlessMortarConditions()
             else:
-                self.contact_search.HardClearComponentsMortarConditions()
+                self.contact_search.TotalClearComponentsMortarConditions()
         else:
             if self.params["contact_type"].GetString() == "Frictionless":
                 self.contact_search.PartialClearALMFrictionlessMortarConditions()

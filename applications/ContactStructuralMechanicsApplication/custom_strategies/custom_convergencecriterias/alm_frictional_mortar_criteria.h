@@ -101,7 +101,7 @@ public:
     }
 
     /// Destructor
-    virtual ~ALMFrictionalMortarConvergenceCriteria() {}
+    ~ALMFrictionalMortarConvergenceCriteria() override {}
 
     ///@}
     ///@name Operators

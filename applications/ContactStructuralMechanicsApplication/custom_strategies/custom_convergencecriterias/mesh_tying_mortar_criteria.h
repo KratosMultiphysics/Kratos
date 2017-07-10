@@ -94,7 +94,7 @@ public:
     }
 
     /// Destructor
-    virtual ~MeshTyingMortarConvergenceCriteria() {}
+    ~MeshTyingMortarConvergenceCriteria() override {}
 
     ///@}
     ///@name Operators

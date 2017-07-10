@@ -129,7 +129,7 @@ public:
     }
     
     /// Destructor.
-    virtual ~DisplacementLagrangeMultiplierContactCriteria() {}
+    ~DisplacementLagrangeMultiplierContactCriteria() override {}
 
     ///@}
     ///@name Operators

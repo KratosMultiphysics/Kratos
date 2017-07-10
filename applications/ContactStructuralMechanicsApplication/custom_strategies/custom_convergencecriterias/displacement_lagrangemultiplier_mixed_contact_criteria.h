@@ -133,7 +133,7 @@ public:
     }
     
     /// Destructor.
-    virtual ~DisplacementLagrangeMultiplierMixedContactCriteria() {}
+    ~DisplacementLagrangeMultiplierMixedContactCriteria() override {}
 
     ///@}
     ///@name Operators

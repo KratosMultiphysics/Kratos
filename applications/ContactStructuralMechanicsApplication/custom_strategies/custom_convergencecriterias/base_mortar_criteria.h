@@ -89,7 +89,7 @@ public:
     }
 
     /// Destructor
-    virtual ~BaseMortarConvergenceCriteria() {}
+    ~BaseMortarConvergenceCriteria() override {}
 
     ///@}
     ///@name Operators
@@ -105,7 +105,7 @@ public:
      * @return true if convergence is achieved, false otherwise
      */
     
-    virtual bool PreCriteria(
+    bool PreCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
@@ -126,7 +126,7 @@ public:
      * @return true if convergence is achieved, false otherwise
      */
 
-    virtual bool PostCriteria(
+    bool PostCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
@@ -142,7 +142,7 @@ public:
      * @param rModelPart: The model part of interest
      */ 
     
-    virtual void Initialize(ModelPart& rModelPart) override
+    void Initialize(ModelPart& rModelPart) override
     {
         KRATOS_ERROR << "WARNING:: YOUR ARE CALLING THE BASE MORTAR CRITERIA" << std::endl;
     }
@@ -156,7 +156,7 @@ public:
      * @param b RHS vector (residual)
      */
     
-    virtual void InitializeSolutionStep(
+    void InitializeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
@@ -175,7 +175,7 @@ public:
      * @param b RHS vector (residual)
      */
     
-    virtual void FinalizeSolutionStep(
+    void FinalizeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
@@ -194,7 +194,7 @@ public:
      * @param b RHS vector (residual)
      */
     
-    virtual void InitializeNonLinearIteration(
+    void InitializeNonLinearIteration(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
@@ -213,7 +213,7 @@ public:
      * @param b RHS vector (residual)
      */
     
-    virtual void FinalizeNonLinearIteration(
+    void FinalizeNonLinearIteration(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,

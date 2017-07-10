@@ -126,7 +126,7 @@ public:
 
     /** Destructor.
     */
-    virtual ~MortarAndConvergenceCriteria () {}
+    ~MortarAndConvergenceCriteria () override {}
 
     ///@}
     ///@name Operators

@@ -211,7 +211,7 @@ public:
 
     MortarKinematicVariablesWithDerivatives(){}
     
-    virtual ~MortarKinematicVariablesWithDerivatives(){}
+    ~MortarKinematicVariablesWithDerivatives() override{}
   
     // Shape functions local derivatives for contact pair
     Matrix DNDeMaster, DNDeSlave;

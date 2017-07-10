@@ -190,7 +190,7 @@ public:
      * Destructor.
      */
     
-    virtual ~LineSearchContactStrategy()
+    ~LineSearchContactStrategy() override
     {
     }
         

@@ -122,7 +122,7 @@ public:
     }
 
     /// Destructor.
-   virtual  ~AugmentedLagrangianMethodFrictionalMortarContactCondition();
+    ~AugmentedLagrangianMethodFrictionalMortarContactCondition() override;
 
     ///@}
     ///@name Operators

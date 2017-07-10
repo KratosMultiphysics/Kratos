@@ -103,7 +103,7 @@ public:
     }
 
     /// Destructor
-    virtual ~ALMFrictionlessMortarConvergenceCriteria() {}
+    ~ALMFrictionlessMortarConvergenceCriteria() override {}
 
     ///@}
     ///@name Operators

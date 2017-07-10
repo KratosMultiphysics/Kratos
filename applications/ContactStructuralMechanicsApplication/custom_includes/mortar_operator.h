@@ -250,7 +250,7 @@ public:
 
     MortarOperatorWithDerivatives(){}
     
-    virtual ~MortarOperatorWithDerivatives(){}
+    ~MortarOperatorWithDerivatives() override{}
     
     static const unsigned int size_2 = 2 * (TNumNodes * TDim);
     
