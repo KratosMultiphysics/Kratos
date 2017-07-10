@@ -229,7 +229,7 @@ public:
     virtual void ComputeInterfaceVectorResidual(ModelPart& rInterfaceModelPart,
                                                 const Variable<array_1d<double, 3 > >& rOriginalVariable,
                                                 const Variable<array_1d<double, 3 > >& rModifiedVariable,
-                                                VectorType& interface_residual) // TODO: MPI parallelization
+                                                VectorType& interface_residual)
     {
         TSpace::SetToZero(interface_residual);
 
@@ -254,6 +254,7 @@ public:
                 this->SetLocalValue(interface_residual, base_i+jj, fsi_res[jj]);
             }
         }
+
         // Store the L2 norm of the error in the fluid process info
         rInterfaceModelPart.GetProcessInfo().GetValue(FSI_INTERFACE_RESIDUAL_NORM) = TSpace::TwoNorm(interface_residual);
 
@@ -268,7 +269,7 @@ public:
      * the FSI_INTERFACE_MESH_RESIDUAL_NORM variable.
      * @param rFluidInterfaceModelPart: interface modelpart in where the residual is computed
      */
-    void ComputeFluidInterfaceMeshVelocityResidualNorm(ModelPart& rFluidInterfaceModelPart) // TODO: MPI parallelization
+    void ComputeFluidInterfaceMeshVelocityResidualNorm(ModelPart& rFluidInterfaceModelPart)
     {
         VectorPointerType pFluidInterfaceMeshResidual = TSpace::CreateEmptyVectorPointer();
         this->SetUpInterfaceVector(rFluidInterfaceModelPart, pFluidInterfaceMeshResidual);
@@ -321,9 +322,7 @@ public:
             array_1d<double,3>& updated_value = it_node->FastGetSolutionStepValue(rSolutionVariable);
             for (unsigned int jj=0; jj<TDim; ++jj)
             {
-                KRATOS_WATCH("before" << updated_value[jj])
                 updated_value[jj] = this->GetLocalValue( rCorrectedGuess, base_i+jj );
-                KRATOS_WATCH("after" << updated_value[jj])
             }
         }
 

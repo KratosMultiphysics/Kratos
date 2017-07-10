@@ -164,7 +164,7 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
 
         # Initialize the iteration value for the residual computation
         self.iteration_value = self.trilinos_space.CreateEmptyVectorPointer(self.epetra_communicator)
-        self.trilinos_partitioned_fsi_utilities.SetUpInterfaceVector(self.fluid_solver.main_model_part,self.iteration_value)
+        self.trilinos_partitioned_fsi_utilities.SetUpInterfaceVector(self._GetFluidInterfaceSubmodelPart(),self.iteration_value)
 
 
     def _InitializeDirichletNeumannInterface(self):
