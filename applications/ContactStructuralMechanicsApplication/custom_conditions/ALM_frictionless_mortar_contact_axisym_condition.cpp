@@ -58,50 +58,16 @@ AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition<TNumNodes, TNo
 /***********************************************************************************/
 
 template< unsigned int TNumNodes, bool TNormalVariation >
-void AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition<TNumNodes,TNormalVariation>::CalculateMortarOperators(
-    MortarConditionMatrices& rThisMortarConditionMatrices,
+double AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition<TNumNodes,TNormalVariation>::GetIntegrationWeight(
     GeneralVariables& rVariables,
-    DerivativeDataType& rDerivativeData,
-    const double& rIntegrationWeight
+    const GeometryType::IntegrationPointsArrayType& ThisIntegrationMethod,
+    const unsigned int PointNumber
     )
 {
     const double Radius = CalculateRadius(rVariables);
     const double Thickness = (this->GetValue(ELEMENT_POINTER))->GetProperties()[THICKNESS];
     const double AxiSymCoefficient = 2.0 * M_PI * Radius/Thickness;
-    MortarBaseType::CalculateMortarOperators(rThisMortarConditionMatrices, rVariables, rDerivativeData, AxiSymCoefficient * rIntegrationWeight);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TNumNodes, bool TNormalVariation >
-void AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition<TNumNodes,TNormalVariation>::CalculateMortarOperators(
-    MortarConditionMatrices& rThisMortarConditionMatrices,
-    GeneralVariables& rVariables,
-    const double& rIntegrationWeight
-    )
-{
-    const double Radius = CalculateRadius(rVariables);
-    const double Thickness = (this->GetValue(ELEMENT_POINTER))->GetProperties()[THICKNESS];
-    const double AxiSymCoefficient = 2.0 * M_PI * Radius/Thickness;
-    MortarBaseType::CalculateMortarOperators(rThisMortarConditionMatrices, rVariables, AxiSymCoefficient * rIntegrationWeight);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TNumNodes, bool TNormalVariation >
-void AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition<TNumNodes,TNormalVariation>::CalculateDeltaAeComponents(
-        GeneralVariables& rVariables,
-        DerivativeDataType& rDerivativeData,
-        AeData& rAeData,
-        const double& rIntegrationWeight
-        )
-{
-    const double Radius = CalculateRadius(rVariables);
-    const double Thickness = (this->GetValue(ELEMENT_POINTER))->GetProperties()[THICKNESS];
-    const double AxiSymCoefficient = 2.0 * M_PI * Radius/Thickness;
-    MortarBaseType::CalculateDeltaAeComponents(rVariables, rDerivativeData, rAeData, AxiSymCoefficient * rIntegrationWeight);
+    return MortarBaseType::GetIntegrationWeight(rVariables, ThisIntegrationMethod, PointNumber) * AxiSymCoefficient;
 }
 
 /*************************COMPUTE AXYSIMMETRIC RADIUS*******************************/

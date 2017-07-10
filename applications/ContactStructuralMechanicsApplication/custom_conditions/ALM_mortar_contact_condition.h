@@ -112,86 +112,11 @@ public:
     
     static constexpr unsigned int MatrixSize = TFrictional == true ? TDim * (TNumNodes + TNumNodes + TNumNodes) : TDim * (TNumNodes + TNumNodes) + TNumNodes;
     
-//     typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes, TFrictional> GeneralVariables;
-//     
-//     typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, TFrictional>    AeData;
-//     
-//     typedef MortarOperatorWithDerivatives<TDim, TNumNodes>                 MortarConditionMatrices;
+    typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes>              GeneralVariables;
     
-    /**
-     * Parameters to be used in the Condition as they are.
-     */
-    struct GeneralVariables
-    {
-    private:
-        // Contact pair information
-        Condition::Pointer pMasterElement;   // Pointer to the master contact segment only
-
-    public:
-        // Shape functions for contact pair
-        VectorType NMaster;
-        VectorType NSlave;
-        VectorType PhiLagrangeMultipliers;
-
-        // Shape functions local derivatives for contact pair
-        MatrixType DNDeMaster;
-        MatrixType DNDeSlave;
-
-        // Determinant of slave cell's jacobian
-        double DetjSlave;
-        
-        /*
-         * Jacobians in current configuration on all integration points of slave segment
-         * Only those two variables contain info on all GP
-         * other variables contain info only on the currently-calculated GP
-         */
-        MatrixType jSlave;
-        
-        /********************************************************/
-        /******************** STRUCT METHODS ********************/
-        /********************************************************/
-
-        // Initializer method 
-        void Initialize()
-        {
-            pMasterElement = nullptr;
-
-            // Shape functions
-            NMaster                = ZeroVector(TNumNodes);
-            NSlave                 = ZeroVector(TNumNodes);
-            PhiLagrangeMultipliers = ZeroVector(TNumNodes);
-
-            // Shape functions local derivatives
-            DNDeMaster = ZeroMatrix(TNumNodes, TDim - 1);
-            DNDeSlave  = ZeroMatrix(TNumNodes, TDim - 1);
-            
-            // Jacobian of slave
-            DetjSlave = 0.0;
-           
-            // Jacobians on all integration points
-            jSlave = ZeroMatrix(TDim, TDim - 1);
-        }
-
-        /* Setters and getters for the master element */
-        void SetMasterElement( Condition::Pointer rMasterElement ) 
-        { 
-            pMasterElement = rMasterElement;
-        }
-        
-        Condition::Pointer GetMasterElement( ) 
-        { 
-            return pMasterElement;
-        }
-        
-        void print( )
-        {
-            KRATOS_WATCH( NSlave );
-            KRATOS_WATCH( NMaster );
-            KRATOS_WATCH( PhiLagrangeMultipliers );
-            KRATOS_WATCH( jSlave );
-            KRATOS_WATCH( DetjSlave );
-        }
-    };
+    typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, TFrictional>    AeData;
+    
+    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, TFrictional>    MortarConditionMatrices;
          
     ///@}
     ///@name Life Cycle
@@ -496,100 +421,6 @@ protected:
             const std::vector< Variable< VectorType > >& GetRightHandSideVariables() { return *mpRightHandSideVariables; };
     };
 
-    /** 
-     * This data will be used to compute the Ae and DeltaAe matrices
-     */ 
-    struct AeData
-    {
-    public:
-        
-        // Auxiliar types
-        typedef bounded_matrix<double, TNumNodes, TNumNodes> Type3;
-        
-        // Auxiliar sizes
-        static const unsigned int Size1 = (TNumNodes * TDim);
-        
-        // Matrices
-        Type3 Me;
-        Type3 De;
-
-        // Derivatives matrices
-        array_1d<Type3, Size1> DeltaMe;
-        array_1d<Type3, Size1> DeltaDe;
-        
-        // Default destructor
-        ~AeData(){}
-        
-        // Initialize the DeltaAe components
-        void Initialize()
-        {
-            // Matrices
-            Me = ZeroMatrix(TNumNodes, TNumNodes);
-            De = ZeroMatrix(TNumNodes, TNumNodes);
-            // Derivatives matrices
-            for (unsigned int i = 0; i < TNumNodes * TDim; i++)
-            {
-                DeltaMe[i] = ZeroMatrix(TNumNodes, TNumNodes);
-                DeltaDe[i] = ZeroMatrix(TNumNodes, TNumNodes);
-            }
-        }
-    };
-    
-    
-   /*
-    * Mortar condition matrices
-    */
-    struct MortarConditionMatrices
-    {
-    private:
-
-    public:
-       /*
-        * Struct Member Variables
-        */
-       
-        static const unsigned int Size2 = 2 * (TNumNodes * TDim);
-       
-        // Mortar condition matrices - DOperator and MOperator
-        bounded_matrix<double, TNumNodes, TNumNodes> DOperator;
-        bounded_matrix<double, TNumNodes, TNumNodes> MOperator;
-        
-        // D and M directional derivatives
-        array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, Size2> DeltaDOperator;
-        array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, Size2> DeltaMOperator;
-
-       /*
-        * Struct Methods
-        */
-        // Initializer method
-        void Initialize()
-        {
-            // We initialize the D and M operators
-            DOperator = ZeroMatrix(TNumNodes, TNumNodes);
-            MOperator = ZeroMatrix(TNumNodes, TNumNodes);
-            
-            for (unsigned int i = 0; i < TNumNodes * TDim; i++)
-            {
-                DeltaDOperator[i] = ZeroMatrix(TNumNodes, TNumNodes);
-                DeltaDOperator[i + TNumNodes * TDim] = ZeroMatrix(TNumNodes, TNumNodes);
-                DeltaMOperator[i] = ZeroMatrix(TNumNodes, TNumNodes);
-                DeltaMOperator[i + TNumNodes * TDim] = ZeroMatrix(TNumNodes, TNumNodes);
-            }
-        }
-        
-        void print() 
-        {
-            KRATOS_WATCH(DOperator);
-            KRATOS_WATCH(MOperator);
-            
-//             for (unsigned int i = 0; i < TNumNodes * TDim; i++)
-//             {
-//                 KRATOS_WATCH(DeltaDOperator[i]);
-//                 KRATOS_WATCH(DeltaMOperator[i]);
-//             }
-        }
-    };
-
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -705,16 +536,6 @@ protected:
         LocalSystemComponents& rLocalSystem,
         const ProcessInfo& CurrentProcessInfo 
         );
-
-    /**
-     * Initialize General Variables
-     */
-    
-    void InitializeGeneralVariables( 
-        GeneralVariables& rVariables,
-        const ProcessInfo& rCurrentProcessInfo,
-        const unsigned int& rMasterElementIndex
-        );
     
     /**
      * Calculate Ae and DeltaAe matrices
@@ -741,6 +562,7 @@ protected:
         GeneralVariables& rVariables,
         const DerivativeDataType rDerivativeData,
         const array_1d<double, 3> MasterNormal,
+        const unsigned int PairIndex,
         const PointType& LocalPointDecomp,
         const PointType& LocalPointParent,
         GeometryPointType& GeometryDecomp,
@@ -836,7 +658,10 @@ protected:
      * Calculates the increment of the normal and in the master condition
      */
     
-    void CalculateDeltaNormalMaster(DerivativeDataType& rDerivativeData);
+    void CalculateDeltaNormalMaster(
+        DerivativeDataType& rDerivativeData,
+        GeometryType& MasterGeometry
+        );
     
     /**
      * Calculates the increment of the shape functions and the gap
@@ -867,69 +692,9 @@ protected:
     void MasterShapeFunctionValue(
         GeneralVariables& rVariables,
         const array_1d<double, 3> MasterNormal,
-        const PointType& local_point 
+        const PointType& LocalPoint,
+        const unsigned int PairIndex
     );
-    
-    /**
-     * Calculates the componets necessaries to compute the mortar operators and its derivatives
-     * @param rVariables: Internal values
-     * @param rDerivativeData: The derivative data
-     * @param rIntegrationWeight: The integration weight
-     * @return rThisMortarConditionMatrices: The mortar operators
-     */
-    
-    virtual void CalculateMortarOperators(
-        MortarConditionMatrices& rThisMortarConditionMatrices,
-        GeneralVariables& rVariables,
-        DerivativeDataType& rDerivativeData,
-        const double& rIntegrationWeight
-        );
-
-    /**
-     * Calculates the componets necessaries to compute the mortar operators
-     * @param rVariables: Internal values
-     * @param rIntegrationWeight: The integration weight
-     * @return rThisMortarConditionMatrices: The mortar operators
-     */
-        
-    virtual void CalculateMortarOperators(
-        MortarConditionMatrices& rThisMortarConditionMatrices,
-        GeneralVariables& rVariables,
-        const double& rIntegrationWeight
-        );
-    
-    /**
-     * Calculates the componets necessaries to compute the derivatives of Phi
-     * @param rVariables: Internal values
-     * @param rDerivativeData: The derivative data
-     * @param rIntegrationWeight: The integration weight
-     * @return AeData: The Ae matrix and derivatives
-     */
-    
-    virtual void CalculateDeltaAeComponents(
-        GeneralVariables& rVariables,
-        DerivativeDataType& rDerivativeData,
-        AeData& rAeData,
-        const double& rIntegrationWeight
-        );
-    
-    /**
-     * Calculates the matrix De
-     */
-    
-    bounded_matrix<double, TNumNodes, TNumNodes> ComputeDe(        
-        const VectorType N1, 
-        const double detJ 
-        );
-    
-    /**
-     * Calculates the matrix DeltaAe
-     */
-    
-    bool CalculateDeltaAe(
-        DerivativeDataType& rDerivativeData,
-        AeData& rAeData
-        );
     
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
@@ -987,6 +752,17 @@ protected:
     Matrix CalculateDeltaPosition(
         Matrix& DeltaPosition,
         const ConditionArrayType LocalCoordinates
+        );
+    
+    /**
+     * This functions computes the integration weight to consider
+     * @param ThisIntegrationMethod: The array containing the integration points
+     * @param PointNumber: The id of the integration point considered
+     */
+    virtual double GetIntegrationWeight(
+        GeneralVariables& rVariables,
+        const GeometryType::IntegrationPointsArrayType& ThisIntegrationMethod,
+        const unsigned int PointNumber
         );
     
     ///@}

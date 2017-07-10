@@ -75,9 +75,7 @@ public:
     virtual ~MortarKinematicVariables(){}
     
     // Shape functions for contact pair
-    Vector NMaster;
-    Vector NSlave;
-    Vector PhiLagrangeMultipliers;
+    Vector NMaster, NSlave, PhiLagrangeMultipliers;
 
     // Determinant of slave cell's jacobian
     double DetjSlave;
@@ -196,7 +194,7 @@ private:
 }; // Class MortarKinematicVariables
 
 template< const unsigned int TDim, const unsigned int TNumNodes>
-class MortarKinematicVariablesWithDerivatives : MortarKinematicVariables<TNumNodes>
+class MortarKinematicVariablesWithDerivatives : public MortarKinematicVariables<TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -214,10 +212,9 @@ public:
     MortarKinematicVariablesWithDerivatives(){}
     
     virtual ~MortarKinematicVariablesWithDerivatives(){}
-    
+  
     // Shape functions local derivatives for contact pair
-    Matrix DNDeMaster;
-    Matrix DNDeSlave;
+    Matrix DNDeMaster, DNDeSlave;
     
     /*
     * Jacobians in current configuration on all integration points of slave segment
@@ -344,69 +341,72 @@ template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 class DerivativeData
 {
 public:
+    ///@name Type Definitions
+    ///@{
     
     // Auxiliar types
 //     typedef int zero[0]; // NOTE: Problems in Windows
-    typedef array_1d<double, TNumNodes> Type1;
-    typedef bounded_matrix<double, TNumNodes, TDim> Type2;
-    typedef bounded_matrix<double, TNumNodes, TNumNodes> Type3;
+    typedef array_1d<double, TNumNodes> type_1;
+    typedef bounded_matrix<double, TNumNodes, TDim> type_2;
+    typedef bounded_matrix<double, TNumNodes, TNumNodes> type_3;
     
     // Auxiliar sizes
-    static const unsigned int Size1 =     (TNumNodes * TDim);
-    static const unsigned int Size2 = 2 * (TNumNodes * TDim);
+    static const unsigned int size_1 =     (TNumNodes * TDim);
+    static const unsigned int size_2 = 2 * (TNumNodes * TDim);
     
-    // Master and element geometries
-    GeometryType SlaveGeometry;
-    GeometryType MasterGeometry;
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    DerivativeData(){}
+    
+    virtual ~DerivativeData(){}
     
     // The ALM parameters
-    double PenaltyParameter;
-    double ScaleFactor;
+    double PenaltyParameter, ScaleFactor;
     
     typename std::conditional< TFrictional,double,int >::type TangentFactor;
     
     // The normals of the nodes
-    Type2 NormalMaster;
-    Type2 NormalSlave;
+    type_2 NormalMaster, NormalSlave;
     
     // Displacements and velocities
-    Type2 X1;
-    Type2 X2;
-    Type2 u1;
-    Type2 u2;
+    type_2 X1, X2, u1, u2;
     
-    typename std::conditional< TFrictional,Type2,int >::type u1old;
-    typename std::conditional< TFrictional,Type2,int >::type u2old;
+    typename std::conditional< TFrictional,type_2,int >::type u1old, u2old;
     
     // Derivatives    
-    array_1d<double, Size1> DeltaJSlave;
-    array_1d<Type1,  Size1> DeltaPhi;
-    array_1d<Type1,  Size2> DeltaN1;
-    array_1d<Type1,  Size2> DeltaN2;
-    array_1d<Type2,  Size1> DeltaNormalSlave;
-    array_1d<Type2,  Size1> DeltaNormalMaster;
+    array_1d<double, size_1> DeltaDetjSlave;
+    array_1d<type_1, size_1> DeltaPhi;
+    array_1d<type_1, size_2> DeltaN1, DeltaN2;
+    array_1d<type_2, size_1> DeltaNormalSlave, DeltaNormalMaster;
     
     // Ae
-    Type3 Ae;
+    type_3 Ae;
     
     // Derivatives Ae
-    array_1d<Type3, Size1> DeltaAe;
+    array_1d<type_3, size_1> DeltaAe;
     
-    // Default destructor
-    ~DerivativeData(){}
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
     
     /**
      * Initializer method 
-     * @param  GeometryInput: The geometry of the slave 
+     * @param SlaveGeometry: The geometry of the slave 
+     * @param rCurrentProcessInfo: The process info from the system
      */
     
-    virtual void Initialize(
-        const GeometryType& GeometryInput,
+    void Initialize(
+        const GeometryType& SlaveGeometry,
         const ProcessInfo& rCurrentProcessInfo
         )
-    {
-        SlaveGeometry  = GeometryInput;
-        
+    {        
         // The normals of the nodes
         NormalSlave = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry,  NORMAL);
         
@@ -460,7 +460,7 @@ public:
     
     virtual void UpdateMasterPair(const Condition::Pointer& pCond)
     {
-        MasterGeometry =  pCond->GetGeometry();
+        GeometryType MasterGeometry =  pCond->GetGeometry();
         
         NormalMaster = ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry,  NORMAL);
         
@@ -480,6 +480,84 @@ public:
                   - ContactUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 2);
         #endif
     }
+    
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+    
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+    
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+    
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+    
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    ///@}
+    
 };  // Class DerivativeData
 
 ///@}

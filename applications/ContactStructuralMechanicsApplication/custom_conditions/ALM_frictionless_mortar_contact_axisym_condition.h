@@ -166,46 +166,14 @@ public:
     /******************************************************************/
 
     /**
-     * Calculates the componets necessaries to compute the mortar operators and its derivatives
-     * @param rVariables: Internal values
-     * @param rDerivativeData: The derivative data
-     * @param rIntegrationWeight: The integration weight
-     * @return rThisMortarConditionMatrices: The mortar operators
+     * This functions computes the integration weight to consider
+     * @param ThisIntegrationMethod: The array containing the integration points
+     * @param PointNumber: The id of the integration point considered
      */
-    
-    void CalculateMortarOperators(
-        MortarConditionMatrices& rThisMortarConditionMatrices,
+    double GetIntegrationWeight(
         GeneralVariables& rVariables,
-        DerivativeDataType& rDerivativeData,
-        const double& rIntegrationWeight
-        ) override;
-    
-    /**
-     * Calculates the componets necessaries to compute the mortar operators
-     * @param rVariables: Internal values
-     * @param rIntegrationWeight: The integration weight
-     * @return rThisMortarConditionMatrices: The mortar operators
-     */
-    
-    void CalculateMortarOperators(
-        MortarConditionMatrices& rThisMortarConditionMatrices,
-        GeneralVariables& rVariables,
-        const double& rIntegrationWeight
-        ) override;
-    
-    /**
-     * Calculates the componets necessaries to compute the derivatives of Phi
-     * @param rVariables: Internal values
-     * @param rDerivativeData: The derivative data
-     * @param rIntegrationWeight: The integration weight
-     * @return AeData: The Ae matrix and derivatives
-     */
-    
-    void CalculateDeltaAeComponents(
-        GeneralVariables& rVariables,
-        DerivativeDataType& rDerivativeData,
-        AeData& rAeData,
-        const double& rIntegrationWeight
+        const GeometryType::IntegrationPointsArrayType& ThisIntegrationMethod,
+        const unsigned int PointNumber
         ) override;
     
     /**

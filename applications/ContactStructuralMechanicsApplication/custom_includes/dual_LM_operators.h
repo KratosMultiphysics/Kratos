@@ -76,8 +76,7 @@ public:
     
     virtual ~DualLagrangeMultiplierOperators(){}
     
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> Me;
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> De;
+    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> Me, De;
         
     ///@}
     ///@name Operators
@@ -109,11 +108,11 @@ public:
         )
     {
         /* DEFINITIONS */
-        const Vector N1 = rKinematicVariables.NSlave;
-        const double Detj = rKinematicVariables.DetjSlave; 
+        const Vector n1 = rKinematicVariables.NSlave;
+        const double det_j = rKinematicVariables.DetjSlave; 
         
-        De += rIntegrationWeight * (ComputeDe(N1, Detj));
-        Me += rIntegrationWeight * Detj * outer_prod(N1, N1);
+        De += rIntegrationWeight * (ComputeDe(n1, det_j));
+        Me += rIntegrationWeight * det_j * outer_prod(n1, n1);
     }
     
     /**
@@ -255,12 +254,12 @@ private:
 
 }; // Class DualLagrangeMultiplierOperators
 
-/** \brief DualLagrangeMultiplierOperatorsWithDertivatives
+/** \brief DualLagrangeMultiplierOperatorsWithDerivatives
  * This is the definition dual lagrange multiplier operators with derivatives
  */
 
 template< const unsigned int TDim, const unsigned int TNumNodes, bool TFrictional>
-class DualLagrangeMultiplierOperatorsWithDertivatives : DualLagrangeMultiplierOperators<TNumNodes>
+class DualLagrangeMultiplierOperatorsWithDerivatives : public DualLagrangeMultiplierOperators<TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -272,23 +271,23 @@ public:
     
     typedef DerivativeData<TDim, TNumNodes, TFrictional> DerivativeDataType;
     
-    /// Counted pointer of DualLagrangeMultiplierOperatorsWithDertivatives
-    KRATOS_CLASS_POINTER_DEFINITION( DualLagrangeMultiplierOperatorsWithDertivatives );
+    /// Counted pointer of DualLagrangeMultiplierOperatorsWithDerivatives
+    KRATOS_CLASS_POINTER_DEFINITION( DualLagrangeMultiplierOperatorsWithDerivatives );
          
     ///@}
     ///@name Life Cycle
     ///@{
 
-    DualLagrangeMultiplierOperatorsWithDertivatives(){}
+    DualLagrangeMultiplierOperatorsWithDerivatives(){}
     
-    virtual ~DualLagrangeMultiplierOperatorsWithDertivatives(){}
+    virtual ~DualLagrangeMultiplierOperatorsWithDerivatives(){}
     
     // Auxiliar sizes
-    static const unsigned int Size1 = (TNumNodes * TDim);
+    static const unsigned int size_1 = (TNumNodes * TDim);
     
     // Derivatives matrices
-    array_1d<boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>, Size1> DeltaMe;
-    array_1d<boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>, Size1> DeltaDe;
+    array_1d<boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>, size_1> DeltaMe;
+    array_1d<boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>, size_1> DeltaDe;
         
     ///@}
     ///@name Operators
@@ -326,17 +325,58 @@ public:
         )
     {
         /* DEFINITIONS */
-        const Vector N1 = rKinematicVariables.NSlave;
+        const Vector n1 = rKinematicVariables.NSlave;
         
         BaseClassType::CalculateAeComponents(rKinematicVariables, rIntegrationWeight);
         
         for (unsigned int i = 0; i < TDim * TNumNodes; i++)
         {
-            const double DeltaDetJ = rDerivativeData.DeltaJSlave[i];
+            const double delta_det_j = rDerivativeData.DeltaDetjSlave[i];
             
-            DeltaDe[i] += rIntegrationWeight * this->ComputeDe( N1, DeltaDetJ );
-            DeltaMe[i] += rIntegrationWeight * DeltaDetJ * outer_prod(N1, N1);
+            DeltaDe[i] += rIntegrationWeight * this->ComputeDe( n1, delta_det_j );
+            DeltaMe[i] += rIntegrationWeight * delta_det_j * outer_prod(n1, n1);
         }
+    }
+ 
+    /**
+     * Calculates the matrix DeltaAe
+     */
+    bool CalculateDeltaAe(DerivativeDataType& rDerivativeData)
+    {        
+        double aux_det;
+        const double tolerance = std::numeric_limits<double>::epsilon();
+        
+        // We compute the norm
+        const double norm_Me = norm_frobenius(BaseClassType::Me);
+        
+        // Now we normalize the matrix
+        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_Me = BaseClassType::Me/norm_Me;
+        
+        // We compute the normalized inverse
+        aux_det = MathUtils<double>::DetMat<TNumNodes>(normalized_Me);
+        if (std::abs(aux_det) < tolerance)
+        {
+            return false;
+        }
+        
+        const bounded_matrix<double, TNumNodes, TNumNodes> normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance); 
+        
+        // Now we compute the inverse
+        const bounded_matrix<double, TNumNodes, TNumNodes> inv_Me = normalized_inv_Me/norm_Me;
+        
+        noalias(rDerivativeData.Ae) = prod(BaseClassType::De, inv_Me);
+        
+        static const unsigned int size_1 = (TNumNodes * TDim);
+        array_1d<bounded_matrix<double, TNumNodes, TNumNodes> , size_1>& DeltaAe = rDerivativeData.DeltaAe;
+        
+        for (unsigned int i = 0; i < TDim * TNumNodes; i++)
+        {
+            DeltaAe[i] = DeltaDe[i] - prod(rDerivativeData.Ae, DeltaMe[i]);
+            DeltaAe[i] = prod(rDerivativeData.DeltaAe[i], inv_Me);
+    //         DeltaAe[i] = ZeroMatrix(TNumNodes, TNumNodes); // NOTE: Test with zero derivative
+        }
+        
+        return true;
     }
     
     /**
@@ -431,7 +471,7 @@ private:
 
     ///@}
 
-}; // Class DualLagrangeMultiplierOperatorsWithDertivatives
+}; // Class DualLagrangeMultiplierOperatorsWithDerivatives
 
 ///@}
 

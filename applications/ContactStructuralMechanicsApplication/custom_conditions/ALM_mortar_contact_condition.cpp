@@ -482,15 +482,15 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
         ConditionArrayListType conditions_points_slave;
         const bool is_inside = integration_utility.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterElements[pair_index]->GetGeometry(), master_normal, conditions_points_slave);
         
-        IntegrationMethod ThisIntegrationMethod = GetIntegrationMethod();
+        IntegrationMethod this_integration_method = GetIntegrationMethod();
         
         if (is_inside == true)
         {            
             // Initialize general variables for the current master element
-            this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, pair_index );
+            rVariables.Initialize();
             
             // Update slave element info
-            rDerivativeData.UpdateMasterPair(mThisMasterElements[pair_index] );
+            rDerivativeData.UpdateMasterPair(mThisMasterElements[pair_index]);
             
             // Initialize the mortar operators
             rThisMortarConditionMatrices.Initialize();
@@ -498,7 +498,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
 //             if (rCurrentProcessInfo[CONSIDER_NORMAL_VARIATION] == true) // TODO: Can be needed for the shape function derivatives
 //             {
 //                 // Compute the normal derivatives of the master
-//                 this->CalculateDeltaNormalMaster(rDerivativeData);
+//                 this->CalculateDeltaNormalMaster(rDerivativeData, mThisMasterElements[pair_index]->GetGeometry());
 //             }
             
             for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); i_geom++)
@@ -520,7 +520,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                     Matrix delta_position;
                     delta_position = CalculateDeltaPosition(delta_position, conditions_points_slave[i_geom]);
                     
-                    const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
+                    const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
                     
                     // Integrating the mortar operators
                     for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); point_number++ )
@@ -532,10 +532,10 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                         GetGeometry().PointLocalCoordinates(local_point_parent, gp_global);
                         
                         // Calculate the kinematic variables
-                        this->CalculateKinematics( rVariables, rDerivativeData, master_normal, local_point_decomp, local_point_parent, decomp_geom, dual_LM, delta_position);
+                        this->CalculateKinematics( rVariables, rDerivativeData, master_normal, pair_index, local_point_decomp, local_point_parent, decomp_geom, dual_LM, delta_position);
                         
-                        const double integration_weight = integration_points_slave[point_number].Weight();
-                    
+                        const double integration_weight = GetIntegrationWeight(rVariables, integration_points_slave, point_number);
+                        
                         if ( rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX ) ||
                                 rLocalSystem.CalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
                         {
@@ -547,11 +547,11 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
                             // The derivatives of the dual shape function 
                             this->CalculateDeltaPhi(rVariables, rDerivativeData);
                             
-                            this->CalculateMortarOperators(rThisMortarConditionMatrices, rVariables, rDerivativeData, integration_weight);    
+                            rThisMortarConditionMatrices.CalculateDeltaMortarOperators(rVariables, rDerivativeData, integration_weight);    
                         }
                         else // In case we are computing RHS we don't compute derivatives (not necessary)
                         {
-                            this->CalculateMortarOperators(rThisMortarConditionMatrices, rVariables, integration_weight);   
+                            rThisMortarConditionMatrices.CalculateMortarOperators(rVariables, integration_weight);   
                         }
                     }
                 }
@@ -611,21 +611,6 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
-void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::InitializeGeneralVariables(
-    GeneralVariables& rVariables,
-    const ProcessInfo& rCurrentProcessInfo,
-    const unsigned int& rMasterElementIndex
-    )
-{
-    // Slave element info
-    rVariables.Initialize();
-    rVariables.SetMasterElement( mThisMasterElements[rMasterElementIndex] );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateAeAndDeltaAe(
     DerivativeDataType& rDerivativeData,
     GeneralVariables& rVariables,
@@ -659,7 +644,7 @@ bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
             is_integrated = true;
             
             // Initialize general variables for the current master element
-            this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, pair_index );
+            rVariables.Initialize();
             
             // Update slave element info
             rDerivativeData.UpdateMasterPair(mThisMasterElements[pair_index]);
@@ -695,14 +680,15 @@ bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                         GetGeometry().PointLocalCoordinates(local_point_parent, gp_global);
                         
                         // Calculate the kinematic variables
-                        this->CalculateKinematics( rVariables, rDerivativeData, master_normal, local_point_decomp, local_point_parent, decomp_geom, false, delta_position);
+                        this->CalculateKinematics( rVariables, rDerivativeData, master_normal, pair_index, local_point_decomp, local_point_parent, decomp_geom, false, delta_position);
                         
                         // Update the derivative of DetJ
                         this->CalculateDeltaDetjSlave(rVariables, rDerivativeData); 
                         
                         // Integrate
-                        const double integration_weight = integration_points_slave[point_number].Weight();
-                        this->CalculateDeltaAeComponents(rVariables, rDerivativeData, rAeData, integration_weight);
+                        const double integration_weight = GetIntegrationWeight(rVariables, integration_points_slave, point_number);
+                        
+                        rAeData.CalculateDeltaAeComponents(rVariables, rDerivativeData, integration_weight);
                     }
                 }
             }
@@ -712,7 +698,7 @@ bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     // We can consider the pair if at least one integration point is considered
     if (is_integrated == true)
     {
-        return this->CalculateDeltaAe(rDerivativeData, rAeData);
+        return rAeData.CalculateDeltaAe(rDerivativeData);
     }
     
     return false;
@@ -726,6 +712,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     GeneralVariables& rVariables,
     const DerivativeDataType rDerivativeData,
     const array_1d<double, 3> MasterNormal,
+    const unsigned int PairIndex,
     const PointType& LocalPointDecomp,
     const PointType& LocalPointParent,
     GeometryPointType& GeometryDecomp,
@@ -754,7 +741,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     GetGeometry().ShapeFunctionsLocalGradients( rVariables.DNDeSlave, LocalPointParent );
     
     /// MASTER CONDITION ///
-    this->MasterShapeFunctionValue( rVariables, MasterNormal, LocalPointParent);
+    this->MasterShapeFunctionValue( rVariables, MasterNormal, LocalPointParent, PairIndex);
 }
  
 /***********************************************************************************/
@@ -765,223 +752,26 @@ template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::MasterShapeFunctionValue(
     GeneralVariables& rVariables,
     const array_1d<double, 3> MasterNormal,
-    const PointType& LocalPoint 
+    const PointType& LocalPoint,
+    const unsigned int PairIndex
     )
 {    
-    GeometryType& MasterSegment = (rVariables.GetMasterElement())->GetGeometry();
+    GeometryType& master_geometry = mThisMasterElements[PairIndex]->GetGeometry();
 
-    PointType ProjectedGPGlobal;
-    const array_1d<double,3> GPNormal = ContactUtilities::GaussPointNormal(rVariables.NSlave, GetGeometry());
+    PointType projected_gp_global;
+    const array_1d<double,3> gp_normal = ContactUtilities::GaussPointNormal(rVariables.NSlave, GetGeometry());
     
-    GeometryType::CoordinatesArrayType SlaveGPGlobal;
-    this->GetGeometry( ).GlobalCoordinates( SlaveGPGlobal, LocalPoint );
-    ContactUtilities::FastProjectDirection( MasterSegment, SlaveGPGlobal, ProjectedGPGlobal, MasterNormal, -GPNormal ); // The opposite direction
+    GeometryType::CoordinatesArrayType slave_gp_global;
+    this->GetGeometry( ).GlobalCoordinates( slave_gp_global, LocalPoint );
+    ContactUtilities::FastProjectDirection( master_geometry, slave_gp_global, projected_gp_global, MasterNormal, -gp_normal ); // The opposite direction
     
-    GeometryType::CoordinatesArrayType ProjectedGPLocal;
+    GeometryType::CoordinatesArrayType projected_gp_local;
     
-    MasterSegment.PointLocalCoordinates( ProjectedGPLocal, ProjectedGPGlobal.Coordinates( ) ) ;
+    master_geometry.PointLocalCoordinates( projected_gp_local, projected_gp_global.Coordinates( ) ) ;
 
     // SHAPE FUNCTIONS 
-    MasterSegment.ShapeFunctionsValues(         rVariables.NMaster,    ProjectedGPLocal );         
-    MasterSegment.ShapeFunctionsLocalGradients( rVariables.DNDeMaster, ProjectedGPLocal );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
-void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateMortarOperators(
-    MortarConditionMatrices& rThisMortarConditionMatrices,
-    GeneralVariables& rVariables,
-    DerivativeDataType& rDerivativeData,
-    const double& rIntegrationWeight
-    )
-{
-    /* DEFINITIONS */
-    const double DetjSlave = rVariables.DetjSlave; 
-    const VectorType Phi = rVariables.PhiLagrangeMultipliers;
-    const VectorType N1  = rVariables.NSlave;
-    const VectorType N2  = rVariables.NMaster;
-    
-    // Derivatives
-    constexpr unsigned int Size1 =     (TNumNodes * TDim);
-    constexpr unsigned int Size2 = 2 * (TNumNodes * TDim);
-
-    const array_1d<double, Size1> DeltaJSlave  = rDerivativeData.DeltaJSlave;
-    const array_1d<array_1d<double, TNumNodes >, Size1> DeltaPhi = rDerivativeData.DeltaPhi;
-    const array_1d<array_1d<double, TNumNodes >, Size2> DeltaN1  = rDerivativeData.DeltaN1;
-    const array_1d<array_1d<double, TNumNodes >, Size2> DeltaN2  = rDerivativeData.DeltaN2;
-    
-    // Mortar condition matrices - DOperator and MOperator
-    bounded_matrix<double, TNumNodes, TNumNodes>& DOperator = rThisMortarConditionMatrices.DOperator;
-    bounded_matrix<double, TNumNodes, TNumNodes>& MOperator = rThisMortarConditionMatrices.MOperator;
-    
-    // D and M directional derivatives
-    array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, Size2>& DeltaDOperator = rThisMortarConditionMatrices.DeltaDOperator;
-    array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, Size2>& DeltaMOperator = rThisMortarConditionMatrices.DeltaMOperator;
-    
-    for (unsigned int iSlave = 0; iSlave < TNumNodes; iSlave++)
-    {
-        const double phi = Phi[iSlave];
-        
-        for (unsigned int kSlave = 0; kSlave < TNumNodes; kSlave++)
-        {
-            const double n1  = N1[kSlave];
-            const double n2  = N2[kSlave];
-            
-            DOperator(iSlave, kSlave) += DetjSlave * rIntegrationWeight * phi * n1;
-            MOperator(iSlave, kSlave) += DetjSlave * rIntegrationWeight * phi * n2;
-            
-            for (unsigned int i = 0; i < TDim * TNumNodes; i++)
-            {
-                DeltaDOperator[i](iSlave, kSlave) += DeltaJSlave[i] * rIntegrationWeight * phi* n1        
-                                                   + DetjSlave * rIntegrationWeight * DeltaPhi[i][iSlave] * n1
-                                                   + DetjSlave * rIntegrationWeight * phi* DeltaN1[i][kSlave];
-                                                                            
-                DeltaMOperator[i](iSlave, kSlave) += DeltaJSlave[i] * rIntegrationWeight * phi* n2        
-                                                   + DetjSlave * rIntegrationWeight * DeltaPhi[i][iSlave] * n2
-                                                   + DetjSlave * rIntegrationWeight * phi* DeltaN2[i][kSlave];
-            }
-            for (unsigned int i = TDim * TNumNodes; i < 2 * TDim * TNumNodes; i++)
-            {
-                DeltaDOperator[i](iSlave, kSlave) += DetjSlave * rIntegrationWeight * phi * DeltaN1[i][kSlave];
-                                                                            
-                DeltaMOperator[i](iSlave, kSlave) += DetjSlave * rIntegrationWeight * phi * DeltaN2[i][kSlave];
-            }
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
-void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateMortarOperators(
-    MortarConditionMatrices& rThisMortarConditionMatrices,
-    GeneralVariables& rVariables,
-    const double& rIntegrationWeight
-    )
-{
-    /* DEFINITIONS */
-    const double DetjSlave = rVariables.DetjSlave; 
-    const VectorType Phi = rVariables.PhiLagrangeMultipliers;
-    const VectorType N1  = rVariables.NSlave;
-    const VectorType N2  = rVariables.NMaster;
-
-    // Mortar condition matrices - DOperator and MOperator
-    bounded_matrix<double, TNumNodes, TNumNodes>& DOperator = rThisMortarConditionMatrices.DOperator;
-    bounded_matrix<double, TNumNodes, TNumNodes>& MOperator = rThisMortarConditionMatrices.MOperator;
-    
-    for (unsigned int iSlave = 0; iSlave < TNumNodes; iSlave++)
-    {
-        const double phi = Phi[iSlave];
-        
-        for (unsigned int kSlave = 0; kSlave < TNumNodes; kSlave++)
-        {
-            DOperator(iSlave, kSlave) += DetjSlave * rIntegrationWeight * phi * N1[kSlave];
-            MOperator(iSlave, kSlave) += DetjSlave * rIntegrationWeight * phi * N2[kSlave];
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
-void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaAeComponents(
-    GeneralVariables& rVariables,
-    DerivativeDataType& rDerivativeData,
-    AeData& rAeData,
-    const double& rIntegrationWeight
-    )
-{
-    /* DEFINITIONS */
-    const VectorType N1 = rVariables.NSlave;
-    const double DetJ   = rVariables.DetjSlave; 
-     
-    rAeData.De += rIntegrationWeight * this->ComputeDe( N1, DetJ );
-    rAeData.Me += rIntegrationWeight * DetJ * outer_prod(N1, N1);
-    
-    for (unsigned int i = 0; i < TDim * TNumNodes; i++)
-    {
-        const double DeltaDetJ = rDerivativeData.DeltaJSlave[i];
-        
-        rAeData.DeltaDe[i] += rIntegrationWeight * this->ComputeDe( N1, DeltaDetJ );
-        rAeData.DeltaMe[i] += rIntegrationWeight * DeltaDetJ * outer_prod(N1, N1);
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
-bounded_matrix<double, TNumNodes, TNumNodes> AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::ComputeDe(
-        const VectorType N1, 
-        const double detJ 
-        )
-{
-    bounded_matrix<double, TNumNodes, TNumNodes> De;
-    
-    for (unsigned int i = 0; i < TNumNodes; i++)
-    {
-        for (unsigned int j = 0; j < TNumNodes; j++)
-        {
-            if (i == j)
-            {
-                De(i, i) = detJ * N1[i];
-            }
-            else
-            {
-                De(i,j) = 0.0;
-            }
-        }
-    }
-    
-    return De;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
-bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaAe(
-    DerivativeDataType& rDerivativeData,
-    AeData& rAeData
-    )
-{        
-    double AuxDet;
-    const double Tolerance = std::numeric_limits<double>::epsilon();
-    
-    // We compute the norm
-    const double NormMe = norm_frobenius(rAeData.Me);
-    
-    // Now we normalize the matrix
-    const bounded_matrix<double, TNumNodes, TNumNodes> NormalizedMe = rAeData.Me/NormMe;
-    
-    // We compute the normalized inverse
-    AuxDet = MathUtils<double>::DetMat<TNumNodes>(NormalizedMe);
-    if (std::abs(AuxDet) < Tolerance)
-    {
-        return false;
-    }
-    const bounded_matrix<double, TNumNodes, TNumNodes> NormalizedInvMe = MathUtils<double>::InvertMatrix<TNumNodes>(NormalizedMe, AuxDet, Tolerance); 
-    
-    // Now we compute the inverse
-    const bounded_matrix<double, TNumNodes, TNumNodes> InvMe = NormalizedInvMe/NormMe;
-    
-    noalias(rDerivativeData.Ae) = prod(rAeData.De, InvMe);
-    
-    static const unsigned int Size1 = (TNumNodes * TDim);
-    array_1d<bounded_matrix<double, TNumNodes, TNumNodes> , Size1>& DeltaAe = rDerivativeData.DeltaAe;
-    
-    for (unsigned int i = 0; i < TDim * TNumNodes; i++)
-    {
-        DeltaAe[i] = rAeData.DeltaDe[i] - prod(rDerivativeData.Ae, rAeData.DeltaMe[i]);
-        DeltaAe[i] = prod(rDerivativeData.DeltaAe[i], InvMe);
-//         DeltaAe[i] = ZeroMatrix(TNumNodes, TNumNodes); // NOTE: Test with zero derivative
-    }
-    
-    return true;
+    master_geometry.ShapeFunctionsValues(         rVariables.NMaster,    projected_gp_local );         
+    master_geometry.ShapeFunctionsLocalGradients( rVariables.DNDeMaster, projected_gp_local );
 }
 
 /***********************************************************************************/
@@ -1303,10 +1093,10 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     if (TDim == 2)
     {
         // Fill up the elements corresponding to the slave DOFs - the rest remains zero
-        for ( unsigned int iSlave = 0, i = 0; iSlave < TNumNodes; ++iSlave, i += TDim )
+        for ( unsigned int i_slave = 0, i = 0; i_slave < TNumNodes; ++i_slave, i += TDim )
         {
-            rDerivativeData.DeltaJSlave[i    ] = rVariables.jSlave( 0, 0 ) * rVariables.DNDeSlave( iSlave, 0) / rVariables.DetjSlave;
-            rDerivativeData.DeltaJSlave[i + 1] = rVariables.jSlave( 1, 0 ) * rVariables.DNDeSlave( iSlave, 0) / rVariables.DetjSlave;
+            rDerivativeData.DeltaDetjSlave[i    ] = rVariables.jSlave( 0, 0 ) * rVariables.DNDeSlave( i_slave, 0) / rVariables.DetjSlave;
+            rDerivativeData.DeltaDetjSlave[i + 1] = rVariables.jSlave( 1, 0 ) * rVariables.DNDeSlave( i_slave, 0) / rVariables.DetjSlave;
         }
     }
     else
@@ -1321,21 +1111,21 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
         
         bounded_matrix<double, TDim, TDim> DeltaJxixJeta;
         
-        for ( unsigned int iSlave = 0, i = 0; iSlave < TNumNodes; ++iSlave, i += TDim )
+        for ( unsigned int i_slave = 0, i = 0; i_slave < TNumNodes; ++i_slave, i += TDim )
         {
             DeltaJxixJeta(0,0) = 0.0;
-            DeltaJxixJeta(0,1) =  Jeta(2) * DNDxi(iSlave) - Jxi(2) * DNDeta(iSlave); 
-            DeltaJxixJeta(0,2) = -Jeta(1) * DNDxi(iSlave) + Jxi(1) * DNDeta(iSlave); 
-            DeltaJxixJeta(1,0) = -Jeta(2) * DNDxi(iSlave) + Jxi(2) * DNDeta(iSlave); 
+            DeltaJxixJeta(0,1) =  Jeta(2) * DNDxi(i_slave) - Jxi(2) * DNDeta(i_slave); 
+            DeltaJxixJeta(0,2) = -Jeta(1) * DNDxi(i_slave) + Jxi(1) * DNDeta(i_slave); 
+            DeltaJxixJeta(1,0) = -Jeta(2) * DNDxi(i_slave) + Jxi(2) * DNDeta(i_slave); 
             DeltaJxixJeta(1,1) = 0.0;
-            DeltaJxixJeta(1,2) =  Jeta(0) * DNDxi(iSlave) - Jxi(0) * DNDeta(iSlave);
-            DeltaJxixJeta(2,0) =  Jeta(1) * DNDxi(iSlave) - Jxi(1) * DNDeta(iSlave); 
-            DeltaJxixJeta(2,1) = -Jeta(0) * DNDxi(iSlave) + Jxi(0) * DNDeta(iSlave); 
+            DeltaJxixJeta(1,2) =  Jeta(0) * DNDxi(i_slave) - Jxi(0) * DNDeta(i_slave);
+            DeltaJxixJeta(2,0) =  Jeta(1) * DNDxi(i_slave) - Jxi(1) * DNDeta(i_slave); 
+            DeltaJxixJeta(2,1) = -Jeta(0) * DNDxi(i_slave) + Jxi(0) * DNDeta(i_slave); 
             DeltaJxixJeta(2,2) = 0.0;
             
-            rDerivativeData.DeltaJSlave[i    ] = inner_prod( Normal, column( DeltaJxixJeta, 0 ) );
-            rDerivativeData.DeltaJSlave[i + 1] = inner_prod( Normal, column( DeltaJxixJeta, 1 ) );
-            rDerivativeData.DeltaJSlave[i + 2] = inner_prod( Normal, column( DeltaJxixJeta, 2 ) );
+            rDerivativeData.DeltaDetjSlave[i    ] = inner_prod( Normal, column( DeltaJxixJeta, 0 ) );
+            rDerivativeData.DeltaDetjSlave[i + 1] = inner_prod( Normal, column( DeltaJxixJeta, 1 ) );
+            rDerivativeData.DeltaDetjSlave[i + 2] = inner_prod( Normal, column( DeltaJxixJeta, 2 ) );
         }
     }
 }
@@ -1484,15 +1274,15 @@ bounded_matrix<double, TDim, TDim> AugmentedLagrangianMethodMortarContactConditi
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional> // NOTE: Formulation taken from Mohamed Khalil work
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaNormalSlave(DerivativeDataType& rDerivativeData)
 {
-    for ( unsigned int iSlave = 0, i = 0; iSlave < TNumNodes; ++iSlave, i += TDim )
+    for ( unsigned int i_slave = 0, i = 0; i_slave < TNumNodes; ++i_slave, i += TDim )
     {
-        bounded_matrix<double, TDim, TDim> DeltaNormal = GetGeometry()[iSlave].GetValue(DELTA_NORMAL);
-//         bounded_matrix<double, TDim, TDim> DeltaNormal = this->LocalDeltaNormal(GetGeometry(), iSlave);
-        for (unsigned iDoF = 0; iDoF < TDim; iDoF++) 
+        bounded_matrix<double, TDim, TDim> DeltaNormal = GetGeometry()[i_slave].GetValue(DELTA_NORMAL);
+//         bounded_matrix<double, TDim, TDim> DeltaNormal = this->LocalDeltaNormal(GetGeometry(), i_slave);
+        for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
         {
-            for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+            for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
             {
-                row(rDerivativeData.DeltaNormalSlave[iSlave * TDim + iDoF], iNode) = trans(column(DeltaNormal, iDoF)); 
+                row(rDerivativeData.DeltaNormalSlave[i_slave * TDim + i_dof], i_node) = trans(column(DeltaNormal, i_dof)); 
             }
         }
     }
@@ -1502,17 +1292,20 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional> // NOTE: Formulation taken from Mohamed Khalil work
-void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaNormalMaster(DerivativeDataType& rDerivativeData)
+void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::CalculateDeltaNormalMaster(
+    DerivativeDataType& rDerivativeData,
+    GeometryType& MasterGeometry
+    )
 {
-    for ( unsigned int iMaster = 0, i = 0; iMaster < TNumNodes; ++iMaster, i += TDim )
+    for ( unsigned int i_master = 0, i = 0; i_master < TNumNodes; ++i_master, i += TDim )
     {
-//         bounded_matrix<double, TDim, TDim> DeltaNormal = GetGeometry[iMaster].GetValue(DELTA_NORMAL);
-        bounded_matrix<double, TDim, TDim> DeltaNormal = this->LocalDeltaNormal(rDerivativeData.MasterGeometry, iMaster);
-        for (unsigned iDoF = 0; iDoF < TDim; iDoF++) 
+//        const bounded_matrix<double, TDim, TDim> delta_normal = GetGeometry[i_master].GetValue(DELTA_NORMAL);
+        const bounded_matrix<double, TDim, TDim> delta_normal = this->LocalDeltaNormal(MasterGeometry, i_master);
+        for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
         {
-            for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+            for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
             {
-                row(rDerivativeData.DeltaNormalMaster[iMaster * TDim + iDoF], iNode) = trans(column(DeltaNormal, iDoF)); 
+                row(rDerivativeData.DeltaNormalMaster[i_master * TDim + i_dof], i_node) = trans(column(delta_normal, i_dof)); 
             }
         }
     }
@@ -1613,54 +1406,54 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
       }
       
       // Derivatives slave
-      for (unsigned int iSlave = 0; iSlave < TNumNodes; iSlave++)
+      for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
       {
          for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
          {
-            const unsigned int iDoF = iSlave * TDim + i_dim;
+            const unsigned int i_dof = i_slave * TDim + i_dim;
             
-            const array_1d<double, TNumNodes > DNormalSlaveg = prod(trans(DNormalSlave[iDoF]), N1);
+            const array_1d<double, TNumNodes > DNormalSlaveg = prod(trans(DNormalSlave[i_dof]), N1);
             array_1d<double, TNumNodes > AuxVector = ZeroVector(TNumNodes);
             AuxVector[i_dim] = 1.0;
-            const array_1d<double, TNumNodes > Deltavector_nodes = - N1[iSlave] * AuxVector;
+            const array_1d<double, TNumNodes > Deltavector_nodes = - N1[i_slave] * AuxVector;
             const double DeltaDist = ((inner_prod(Deltavector_nodes, NormalMasterg))* inner_prod(NormalSlaveg, NormalMasterg) - inner_prod(vector_nodes, NormalMasterg) * (inner_prod(DNormalSlaveg, NormalMasterg)))/std::pow(inner_prod(NormalSlaveg, NormalMasterg) + tol, 2);
-            const array_1d<double, TNumNodes > Deltax1g = N1[iSlave] * AuxVector;
+            const array_1d<double, TNumNodes > Deltax1g = N1[i_slave] * AuxVector;
             const array_1d<double, TNumNodes > Deltax2g = Deltax1g + DeltaDist * NormalSlaveg + Dist * DNormalSlaveg;
             
             if (TDim == 2)
             {
                if (TNumNodes == 2)
                {
-                  rDerivativeData.DeltaN2[iDoF][0] =  (Deltax2g[0] + Deltax2g[1])/div2;
-                  rDerivativeData.DeltaN2[iDoF][1] =  - rDerivativeData.DeltaN2[iDoF][0];
+                  rDerivativeData.DeltaN2[i_dof][0] =  (Deltax2g[0] + Deltax2g[1])/div2;
+                  rDerivativeData.DeltaN2[i_dof][1] =  - rDerivativeData.DeltaN2[i_dof][0];
                }
             }
             else
             {
                if (TNumNodes == 3)
                {
-                  rDerivativeData.DeltaN2[iDoF][1] = - (mult1 * (Deltax2g[0] + Deltax2g[1]) + mult2 * (Deltax2g[0] + Deltax2g[2]))/div1;
-                  rDerivativeData.DeltaN2[iDoF][2] =   (mult3 *  Deltax2g[0] + mult4 * Deltax2g[1] + mult5 * Deltax2g[2])/div2;
-                  rDerivativeData.DeltaN2[iDoF][0] =  - rDerivativeData.DeltaN2[iDoF][1] - rDerivativeData.DeltaN2[iDoF][2];
+                  rDerivativeData.DeltaN2[i_dof][1] = - (mult1 * (Deltax2g[0] + Deltax2g[1]) + mult2 * (Deltax2g[0] + Deltax2g[2]))/div1;
+                  rDerivativeData.DeltaN2[i_dof][2] =   (mult3 *  Deltax2g[0] + mult4 * Deltax2g[1] + mult5 * Deltax2g[2])/div2;
+                  rDerivativeData.DeltaN2[i_dof][0] =  - rDerivativeData.DeltaN2[i_dof][1] - rDerivativeData.DeltaN2[i_dof][2];
                }
             }
          }
       }
       
       // Derivatives master
-      for (unsigned int iMaster = 0; iMaster < TNumNodes; iMaster++)
+      for (unsigned int i_master = 0; i_master < TNumNodes; i_master++)
       {
          for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
          {
-            const unsigned int iDoF = (TNumNodes + iMaster) * TDim + i_dim;
+            const unsigned int i_dof = (TNumNodes + i_master) * TDim + i_dim;
             
-            const array_1d<double, TNumNodes > DNormalMasterg = prod(trans(DNormalMaster[iDoF - TNumNodes * TDim]), N2);
+            const array_1d<double, TNumNodes > DNormalMasterg = prod(trans(DNormalMaster[i_dof - TNumNodes * TDim]), N2);
             array_1d<double, TNumNodes > AuxVector = ZeroVector(TNumNodes);
-//             if (iMaster == 0) // NOTE: This is the way I considered in the symbolic
+//             if (i_master == 0) // NOTE: This is the way I considered in the symbolic
 //             {
                 AuxVector[i_dim] = 1.0;
 //             }
-            const array_1d<double, TNumNodes > Deltavector_nodes = N2[iMaster] * AuxVector;
+            const array_1d<double, TNumNodes > Deltavector_nodes = N2[i_master] * AuxVector;
             const double DeltaDist = ((inner_prod(Deltavector_nodes, NormalMasterg) + inner_prod(vector_nodes, DNormalMasterg))* inner_prod(NormalSlaveg, NormalMasterg) - inner_prod(vector_nodes, NormalMasterg) * (inner_prod(NormalSlaveg, DNormalMasterg)))/std::pow(inner_prod(NormalSlaveg, NormalMasterg) + tol, 2);;
             const array_1d<double, TNumNodes > x2g = prod(trans(X2 + u2), N2);
             const array_1d<double, TNumNodes > Deltax2g = DeltaDist * NormalSlaveg;
@@ -1669,16 +1462,16 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
             {
                if (TNumNodes == 2)
                {
-                   if (iMaster == 0)
+                   if (i_master == 0)
                    {
-                       rDerivativeData.DeltaN2[iDoF][0] =  ( ((u2(1,0) + X2(1,0) + u2(1,1) + X2(1,1)) - x2g[0] - x2g[1]) + div2 * (Deltax2g[0] + Deltax2g[1]))/std::pow(div2, 2);
+                       rDerivativeData.DeltaN2[i_dof][0] =  ( ((u2(1,0) + X2(1,0) + u2(1,1) + X2(1,1)) - x2g[0] - x2g[1]) + div2 * (Deltax2g[0] + Deltax2g[1]))/std::pow(div2, 2);
                    }
                    else 
                    {
-                       rDerivativeData.DeltaN2[iDoF][0] =  ((-(u2(0,0) + X2(0,0) + u2(0,1) + X2(0,1)) + x2g[0] + x2g[1]) + div2 * (Deltax2g[0] + Deltax2g[1]))/std::pow(div2, 2);
+                       rDerivativeData.DeltaN2[i_dof][0] =  ((-(u2(0,0) + X2(0,0) + u2(0,1) + X2(0,1)) + x2g[0] + x2g[1]) + div2 * (Deltax2g[0] + Deltax2g[1]))/std::pow(div2, 2);
                    }
                   
-                  rDerivativeData.DeltaN2[iDoF][1] =  - rDerivativeData.DeltaN2[iDoF][0];
+                  rDerivativeData.DeltaN2[i_dof][1] =  - rDerivativeData.DeltaN2[i_dof][0];
                }
             }
             else
@@ -1698,124 +1491,124 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
                    const double coefmaster4 = ( -u2(0, 0) - u2(0, 1) - X2(0, 0) - X2(0, 1) + x2g[0] + x2g[1]);
                    const double coefmaster5 = ( (u2(0, 1) + X2(0, 1)) * (u2(1, 0) + u2(1, 2) + X2(1, 0) + X2(1, 2) - x2g[0] - x2g[2]));
                    
-                   if ((iDoF - TDim * TNumNodes) == 0)
+                   if ((i_dof - TDim * TNumNodes) == 0)
                    {
-                       rDerivativeData.DeltaN2[iDoF][1] =  ((u2(1, 1) - u2(1, 2) - u2(2, 1) + u2(2, 2) + X2(1, 1) - 
+                       rDerivativeData.DeltaN2[i_dof][1] =  ((u2(1, 1) - u2(1, 2) - u2(2, 1) + u2(2, 2) + X2(1, 1) - 
                                                            X2(1, 2) - X2(2, 1) + X2(2, 2)) * (multmaster0*multmaster2 + 
                                                            multmaster1*multmaster3) - (div1) * (u2(0, 1) - u2(0, 2) + 
                                                            X2(0, 1) - X2(0, 2) - x2g[1] + x2g[2] + 
                                                            mult1 * (-1 + Deltax2g[0] + Deltax2g[1]) + 
                                                            mult2 * (-1 + Deltax2g[0] + Deltax2g[2])) )/std::pow(div1, 2);
                                                            
-                       rDerivativeData.DeltaN2[iDoF][2] =  ( -(u2(1, 1) - u2(1, 2) - u2(2, 1) + u2(2, 2) + X2(1, 1) - 
+                       rDerivativeData.DeltaN2[i_dof][2] =  ( -(u2(1, 1) - u2(1, 2) - u2(2, 1) + u2(2, 2) + X2(1, 1) - 
                                                             X2(1, 2) - X2(2, 1) + X2(2, 2)) * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * 
                                                             multmaster5 + coefmaster1 - coefmaster5 - 
                                                             multmaster4 * multmaster6) + (div2) * (u2(1, 1) - u2(1, 2) + 
                                                             X2(1, 1) - X2(1, 2) - x2g[1] + x2g[2] + mult3 * Deltax2g[0] + 
                                                             mult4 * Deltax2g[1] + mult5 * Deltax2g[2]))/std::pow(div2, 2);
                    }
-                   else if ((iDoF - TDim * TNumNodes) == 1)
+                   else if ((i_dof - TDim * TNumNodes) == 1)
                    {
-                       rDerivativeData.DeltaN2[iDoF][1] =  ((-u2(1, 0) - u2(1, 2) + u2(2, 0) + u2(2, 2) - X2(1, 0) - 
+                       rDerivativeData.DeltaN2[i_dof][1] =  ((-u2(1, 0) - u2(1, 2) + u2(2, 0) + u2(2, 2) - X2(1, 0) - 
                                                             X2(1, 2) + X2(2, 0) + X2(2, 2)) * (multmaster0*multmaster2 + 
                                                             multmaster1*multmaster3) - (div1) * (-u2(0, 0) - u2(0, 2) - 
                                                             X2(0, 0) - X2(0, 2) + x2g[0] + x2g[2] + 
                                                             mult1 * (-1 + Deltax2g[0] + Deltax2g[1]) + 
                                                             mult2 * (Deltax2g[0] + Deltax2g[2])) )/std::pow(div1, 2);
                                                             
-                       rDerivativeData.DeltaN2[iDoF][2] =  (-(-u2(1, 0) - u2(1, 2) + u2(2, 0) + u2(2, 2) - X2(1, 0) - 
+                       rDerivativeData.DeltaN2[i_dof][2] =  (-(-u2(1, 0) - u2(1, 2) + u2(2, 0) + u2(2, 2) - X2(1, 0) - 
                                                              X2(1, 2) + X2(2, 0) + X2(2, 2)) * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * 
                                                              multmaster5 + coefmaster1 - coefmaster5 - 
                                                              multmaster4 * multmaster6) + (div2) * (-u2(1, 0) - u2(1, 2) - 
                                                              X2(1, 0) - X2(1, 2) + x2g[0] + x2g[2] + mult3 * Deltax2g[0] + 
                                                              mult4 * Deltax2g[1] + mult5 * Deltax2g[2]) )/std::pow(div2, 2);
                    }
-                   else if ((iDoF - TDim * TNumNodes) == 2)
+                   else if ((i_dof - TDim * TNumNodes) == 2)
                    {
-                       rDerivativeData.DeltaN2[iDoF][1] =  ( (u2(1, 0) + u2(1, 1) - u2(2, 0) - u2(2, 1) + X2(1, 0) + 
+                       rDerivativeData.DeltaN2[i_dof][1] =  ( (u2(1, 0) + u2(1, 1) - u2(2, 0) - u2(2, 1) + X2(1, 0) + 
                                                             X2(1, 1) - X2(2, 0) - X2(2, 1)) * (multmaster0*multmaster2 + 
                                                             multmaster1*multmaster3) - (div1) * (u2(0, 0) + u2(0, 1) + 
                                                             X2(0, 0) + X2(0, 1) - x2g[0] - x2g[1] + 
                                                             mult1 * (Deltax2g[0] + Deltax2g[1]) + 
                                                             mult2 * (-1 + Deltax2g[0] + Deltax2g[2])))/std::pow(div1, 2);
                         
-                       rDerivativeData.DeltaN2[iDoF][2] =  (-(u2(1, 0) + u2(1, 1) - u2(2, 0) - u2(2, 1) + X2(1, 0) + 
+                       rDerivativeData.DeltaN2[i_dof][2] =  (-(u2(1, 0) + u2(1, 1) - u2(2, 0) - u2(2, 1) + X2(1, 0) + 
                                                             X2(1, 1) - X2(2, 0) - X2(2, 1)) * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * 
                                                             multmaster5 + coefmaster1 - coefmaster5 - 
                                                             multmaster4 * multmaster6) + (div2) * (u2(1, 0) + u2(1, 1) + 
                                                             X2(1, 0) + X2(1, 1) - x2g[0] - x2g[1] + mult3 * Deltax2g[0] + 
                                                             mult4 * Deltax2g[1] + mult5 * Deltax2g[2]) )/std::pow(div2, 2);
                    }
-                   else if ((iDoF - TDim * TNumNodes) == 3)
+                   else if ((i_dof - TDim * TNumNodes) == 3)
                    {
-                       rDerivativeData.DeltaN2[iDoF][1] =  ( (-u2(0, 1) + u2(0, 2) + u2(2, 1) - u2(2, 2) - X2(0, 1) + 
+                       rDerivativeData.DeltaN2[i_dof][1] =  ( (-u2(0, 1) + u2(0, 2) + u2(2, 1) - u2(2, 2) - X2(0, 1) + 
                                                             X2(0, 2) + X2(2, 1) - X2(2, 2)) * (multmaster0*multmaster2 + 
                                                             multmaster1 * multmaster3) - (div1) * (+mult1 * (Deltax2g[0] + Deltax2g[1]) + 
                                                             mult2 * (Deltax2g[0] + Deltax2g[2])))/std::pow(div1, 2);
                                                             
-                       rDerivativeData.DeltaN2[iDoF][2] =  ( -(-u2(0, 1) + u2(0, 2) + u2(2, 1) - u2(2, 2) - X2(0, 1) + 
+                       rDerivativeData.DeltaN2[i_dof][2] =  ( -(-u2(0, 1) + u2(0, 2) + u2(2, 1) - u2(2, 2) - X2(0, 1) + 
                                                               X2(0, 2) + X2(2, 1) - X2(2, 2)) * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * 
                                                               multmaster5 + coefmaster1 - coefmaster5 - 
                                                               multmaster4 * multmaster6) + (div2) * (-u2(0, 1) + u2(0, 2) - 
                                                               X2(0, 1) + X2(0, 2) + x2g[1] - x2g[2] + mult3 * Deltax2g[0] + 
                                                               mult4 * Deltax2g[1] + mult5 * Deltax2g[2]))/std::pow(div2, 2);
                    }
-                   else if ((iDoF - TDim * TNumNodes) == 4)
+                   else if ((i_dof - TDim * TNumNodes) == 4)
                    {
-                       rDerivativeData.DeltaN2[iDoF][1] =  ( multmaster0*(multmaster0*multmaster2 + 
+                       rDerivativeData.DeltaN2[i_dof][1] =  ( multmaster0*(multmaster0*multmaster2 + 
                                                            multmaster1 * multmaster3) - (div1) * (+mult1 * (Deltax2g[0] + Deltax2g[1]) + 
                                                            mult2 * (Deltax2g[0] + Deltax2g[2])))/std::pow(div1, 2);
                                                            
-                       rDerivativeData.DeltaN2[iDoF][2] =  ( +mult1 * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * multmaster5 + 
+                       rDerivativeData.DeltaN2[i_dof][2] =  ( +mult1 * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * multmaster5 + 
                                                             coefmaster1 - coefmaster5 - multmaster4 * multmaster6) + (div2) * (coefmaster3 + 
                                                             mult3 * Deltax2g[0] + mult4 * Deltax2g[1] + mult5 * Deltax2g[2]))/std::pow(div2, 2);
                    }
-                   else if ((iDoF - TDim * TNumNodes) == 5)
+                   else if ((i_dof - TDim * TNumNodes) == 5)
                    {
-                       rDerivativeData.DeltaN2[iDoF][1] =  ( multmaster1 *(multmaster0*multmaster2 + 
+                       rDerivativeData.DeltaN2[i_dof][1] =  ( multmaster1 *(multmaster0*multmaster2 + 
                                                            multmaster1 * multmaster3) - (div1) * (+mult1 * (Deltax2g[0] + Deltax2g[1]) + 
                                                            mult2 * (Deltax2g[0] + Deltax2g[2])))/std::pow(div1, 2);
                                                            
-                       rDerivativeData.DeltaN2[iDoF][2] =  ( -multmaster1 *  (coefmaster2 + (u2(0, 2) + X2(0, 2)) * multmaster5 +
+                       rDerivativeData.DeltaN2[i_dof][2] =  ( -multmaster1 *  (coefmaster2 + (u2(0, 2) + X2(0, 2)) * multmaster5 +
                                                             coefmaster1 - coefmaster5 -  multmaster4 * multmaster6) + (div2) * (coefmaster4 + 
                                                             mult3 * Deltax2g[0] + mult4 * Deltax2g[1] + mult5 * Deltax2g[2]))/std::pow(div2, 2);
                    }
-                   else if ((iDoF - TDim * TNumNodes) == 6)
+                   else if ((i_dof - TDim * TNumNodes) == 6)
                    {
-                       rDerivativeData.DeltaN2[iDoF][1] =  (mult3 *(multmaster0*multmaster2 + 
+                       rDerivativeData.DeltaN2[i_dof][1] =  (mult3 *(multmaster0*multmaster2 + 
                                                           multmaster1*multmaster3) - (div1) * (-u2(0, 1) + u2(0, 2) - 
                                                           X2(0, 1) + X2(0, 2) + x2g[1] - x2g[2] + 
                                                           mult1 * (Deltax2g[0] + Deltax2g[1]) + 
                                                           mult2 * (Deltax2g[0] + Deltax2g[2])) )/std::pow(div1, 2);
                                                           
-                       rDerivativeData.DeltaN2[iDoF][2] =  ( -mult3 * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * multmaster5 + 
+                       rDerivativeData.DeltaN2[i_dof][2] =  ( -mult3 * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * multmaster5 + 
                                                             coefmaster1 - coefmaster5 - multmaster4 * multmaster6) + (div2) * (mult3 * Deltax2g[0] + 
                                                             mult4 * Deltax2g[1] + mult5 * Deltax2g[2]))/std::pow(div2, 2);
                    }
-                   else if ((iDoF - TDim * TNumNodes) == 7)
+                   else if ((i_dof - TDim * TNumNodes) == 7)
                    {
-                       rDerivativeData.DeltaN2[iDoF][1] =  (mult4 *(multmaster0*multmaster2 + 
+                       rDerivativeData.DeltaN2[i_dof][1] =  (mult4 *(multmaster0*multmaster2 + 
                                                           multmaster1*multmaster3) - (div1) * (coefmaster3 + 
                                                           mult1 * (Deltax2g[0] + Deltax2g[1]) + 
                                                           mult2 * (Deltax2g[0] + Deltax2g[2])))/std::pow(div1, 2);
                                                           
-                       rDerivativeData.DeltaN2[iDoF][2] =  ( -mult4 * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * multmaster5 + 
+                       rDerivativeData.DeltaN2[i_dof][2] =  ( -mult4 * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * multmaster5 + 
                                                             coefmaster1 - coefmaster5 - multmaster4 * multmaster6) + (div2) * (mult3 * Deltax2g[0] + 
                                                             mult4 * Deltax2g[1] + mult5 * Deltax2g[2]))/std::pow(div2, 2);
                    }
-                   else if ((iDoF - TDim * TNumNodes) == 8)
+                   else if ((i_dof - TDim * TNumNodes) == 8)
                    {
-                       rDerivativeData.DeltaN2[iDoF][1] =  (mult5 *(multmaster0*multmaster2 + 
+                       rDerivativeData.DeltaN2[i_dof][1] =  (mult5 *(multmaster0*multmaster2 + 
                                                           multmaster1*multmaster3) - (div1) * (coefmaster4 + 
                                                           mult1 * (Deltax2g[0] + Deltax2g[1]) + 
                                                           mult2 * (Deltax2g[0] + Deltax2g[2])))/std::pow(div1, 2);
                                                           
-                       rDerivativeData.DeltaN2[iDoF][2] =  (-mult5 * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * multmaster5 + 
+                       rDerivativeData.DeltaN2[i_dof][2] =  (-mult5 * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * multmaster5 + 
                                                           coefmaster1 - coefmaster5 - multmaster4 * multmaster6) + (div2) * (mult3 * Deltax2g[0] + 
                                                           mult4 * Deltax2g[1] + mult5 * Deltax2g[2]) )/std::pow(div2, 2);
                    }
 
-                  rDerivativeData.DeltaN2[iDoF][0] =  - rDerivativeData.DeltaN2[iDoF][1] - rDerivativeData.DeltaN2[iDoF][2];
+                  rDerivativeData.DeltaN2[i_dof][0] =  - rDerivativeData.DeltaN2[i_dof][1] - rDerivativeData.DeltaN2[i_dof][2];
                }
             }
          }
@@ -1835,13 +1628,13 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     // Shape functions
     const VectorType N1 = rVariables.NSlave;
     
-    for (unsigned int iSlave = 0; iSlave < TNumNodes; iSlave++)
+    for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
     {
         for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
         {
-            const unsigned int iDoF = iSlave * TDim + i_dim;
+            const unsigned int i_dof = i_slave * TDim + i_dim;
             
-            rDerivativeData.DeltaPhi[iDoF] = prod(rDerivativeData.DeltaAe[iDoF], N1);;
+            rDerivativeData.DeltaPhi[i_dof] = prod(rDerivativeData.DeltaAe[i_dof], N1);;
         }
     }
 }
@@ -1994,6 +1787,19 @@ Matrix AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictiona
     KRATOS_CATCH( "" );
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
+double AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::GetIntegrationWeight(
+    GeneralVariables& rVariables,
+    const GeometryType::IntegrationPointsArrayType& ThisIntegrationMethod,
+    const unsigned int PointNumber
+    )
+{
+    return ThisIntegrationMethod[PointNumber].Weight();
+}
+    
 /***********************************************************************************/
 /***********************************************************************************/
 

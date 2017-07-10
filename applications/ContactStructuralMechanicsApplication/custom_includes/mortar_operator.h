@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-// #include "contact_structural_mechanics_application.h"
+// #include "contact_classural_mechanics_application.h"
 #include "contact_structural_mechanics_application_variables.h"
 #include "custom_includes/mortar_kinematic_variables.h"
 
@@ -76,8 +76,7 @@ public:
     virtual ~MortarOperator(){}
     
     // Mortar condition matrices - DOperator and MOperator
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> DOperator;
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> MOperator;
+    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> DOperator, MOperator;
 
     ///@}
     ///@name Operators
@@ -109,19 +108,19 @@ public:
         )
     {
         /* DEFINITIONS */
-        const double DetjSlave = rKinematicVariables.DetjSlave; 
-        const Vector Phi = rKinematicVariables.PhiLagrangeMultipliers;
-        const Vector N1  = rKinematicVariables.NSlave;
-        const Vector N2  = rKinematicVariables.NMaster;
+        const double det_j_slave = rKinematicVariables.DetjSlave; 
+        const Vector phi_vector = rKinematicVariables.PhiLagrangeMultipliers;
+        const Vector n1_vector  = rKinematicVariables.NSlave;
+        const Vector n2_vector  = rKinematicVariables.NMaster;
         
         for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
         {
             for (unsigned int j_slave = 0; j_slave < TNumNodes; j_slave++)
             {
-                const double phi = Phi[i_slave];
+                const double phi = phi_vector[i_slave];
                 
-                DOperator(i_slave, j_slave) += DetjSlave * rIntegrationWeight * phi * N1[j_slave];
-                MOperator(i_slave, j_slave) += DetjSlave * rIntegrationWeight * phi * N2[j_slave];
+                DOperator(i_slave, j_slave) += det_j_slave * rIntegrationWeight * phi * n1_vector[j_slave];
+                MOperator(i_slave, j_slave) += det_j_slave * rIntegrationWeight * phi * n2_vector[j_slave];
             }
         }
     }
@@ -230,7 +229,7 @@ private:
 }; // Class MortarOperatorWithDerivatives
 
 template< const unsigned int TDim, const unsigned int TNumNodes, bool TFrictional>
-class MortarOperatorWithDerivatives : MortarOperator<TNumNodes>
+class MortarOperatorWithDerivatives : public MortarOperator<TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -253,11 +252,10 @@ public:
     
     virtual ~MortarOperatorWithDerivatives(){}
     
-    static const unsigned int Size2 = 2 * (TNumNodes * TDim);
-       
+    static const unsigned int size_2 = 2 * (TNumNodes * TDim);
+    
     // D and M directional derivatives
-    array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, Size2> DeltaDOperator;
-    array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, Size2> DeltaMOperator;
+    array_1d<bounded_matrix<double, TNumNodes, TNumNodes>, size_2> DeltaDOperator, DeltaMOperator;
 
     ///@}
     ///@name Operators
@@ -290,54 +288,54 @@ public:
      * @param rKinematicVariables: Corresponds with the kinematic variables
      * @param rIntegrationWeight: The corresponding integration weight
      */
-    void CalculateMortarOperators(
+    void CalculateDeltaMortarOperators(
         KinematicVariables& rKinematicVariables,
         DerivativeDataType& rDerivativeData,
         const double& rIntegrationWeight
         )
     {
         /* DEFINITIONS */
-        const double DetjSlave = rKinematicVariables.DetjSlave; 
-        const Vector Phi = rKinematicVariables.PhiLagrangeMultipliers;
-        const Vector N1  = rKinematicVariables.NSlave;
-        const Vector N2  = rKinematicVariables.NMaster;
+        const double det_j_slave = rKinematicVariables.DetjSlave; 
+        const Vector vector_phi = rKinematicVariables.PhiLagrangeMultipliers;
+        const Vector vector_n1  = rKinematicVariables.NSlave;
+        const Vector vector_n2  = rKinematicVariables.NMaster;
         
         // Derivatives
-        constexpr unsigned int Size1 =     (TNumNodes * TDim);
-        constexpr unsigned int Size2 = 2 * (TNumNodes * TDim);
+        constexpr unsigned int size_1 =     (TNumNodes * TDim);
+        constexpr unsigned int size_2 = 2 * (TNumNodes * TDim);
 
-        const array_1d<double, Size1> DeltaJSlave  = rDerivativeData.DeltaJSlave;
-        const array_1d<array_1d<double, TNumNodes >, Size1> DeltaPhi = rDerivativeData.DeltaPhi;
-        const array_1d<array_1d<double, TNumNodes >, Size2> DeltaN1  = rDerivativeData.DeltaN1;
-        const array_1d<array_1d<double, TNumNodes >, Size2> DeltaN2  = rDerivativeData.DeltaN2;
+        const array_1d<double, size_1> delta_j_slave  = rDerivativeData.DeltaDetjSlave;
+        const array_1d<array_1d<double, TNumNodes >, size_1> delta_phi = rDerivativeData.DeltaPhi;
+        const array_1d<array_1d<double, TNumNodes >, size_2> delta_n1  = rDerivativeData.DeltaN1;
+        const array_1d<array_1d<double, TNumNodes >, size_2> delta_n2  = rDerivativeData.DeltaN2;
         
         for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
         {
-            const double phi = Phi[i_slave];
+            const double phi = vector_phi[i_slave];
             
             for (unsigned int j_slave = 0; j_slave < TNumNodes; j_slave++)
             {
-                const double n1  = N1[j_slave];
-                const double n2  = N2[j_slave];
+                const double n1 = vector_n1[j_slave];
+                const double n2 = vector_n2[j_slave];
                 
-                BaseClassType::DOperator(i_slave, j_slave) += DetjSlave * rIntegrationWeight * phi * n1;
-                BaseClassType::MOperator(i_slave, j_slave) += DetjSlave * rIntegrationWeight * phi * n2;
+                BaseClassType::DOperator(i_slave, j_slave) += det_j_slave * rIntegrationWeight * phi * n1;
+                BaseClassType::MOperator(i_slave, j_slave) += det_j_slave * rIntegrationWeight * phi * n2;
                 
                 for (unsigned int i = 0; i < TDim * TNumNodes; i++)
                 {
-                    DeltaDOperator[i](i_slave, j_slave) += DeltaJSlave[i] * rIntegrationWeight * phi* n1        
-                                                    + DetjSlave * rIntegrationWeight * DeltaPhi[i][i_slave] * n1
-                                                    + DetjSlave * rIntegrationWeight * phi* DeltaN1[i][j_slave];
+                    DeltaDOperator[i](i_slave, j_slave) += delta_j_slave[i] * rIntegrationWeight * phi* n1        
+                                                    + det_j_slave * rIntegrationWeight * delta_phi[i][i_slave] * n1
+                                                    + det_j_slave * rIntegrationWeight * phi* delta_n1[i][j_slave];
                                                                                 
-                    DeltaMOperator[i](i_slave, j_slave) += DeltaJSlave[i] * rIntegrationWeight * phi* n2        
-                                                    + DetjSlave * rIntegrationWeight * DeltaPhi[i][i_slave] * n2
-                                                    + DetjSlave * rIntegrationWeight * phi* DeltaN2[i][j_slave];
+                    DeltaMOperator[i](i_slave, j_slave) += delta_j_slave[i] * rIntegrationWeight * phi* n2        
+                                                    + det_j_slave * rIntegrationWeight * delta_phi[i][i_slave] * n2
+                                                    + det_j_slave * rIntegrationWeight * phi* delta_n2[i][j_slave];
                 }
                 for (unsigned int i = TDim * TNumNodes; i < 2 * TDim * TNumNodes; i++)
                 {
-                    DeltaDOperator[i](i_slave, j_slave) += DetjSlave * rIntegrationWeight * phi * DeltaN1[i][j_slave];
+                    DeltaDOperator[i](i_slave, j_slave) += det_j_slave * rIntegrationWeight * phi * delta_n1[i][j_slave];
                                                                                 
-                    DeltaMOperator[i](i_slave, j_slave) += DetjSlave * rIntegrationWeight * phi * DeltaN2[i][j_slave];
+                    DeltaMOperator[i](i_slave, j_slave) += det_j_slave * rIntegrationWeight * phi * delta_n2[i][j_slave];
                 }
             }
         }
