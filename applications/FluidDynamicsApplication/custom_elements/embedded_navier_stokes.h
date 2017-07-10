@@ -124,7 +124,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~EmbeddedNavierStokes() {};
+    ~EmbeddedNavierStokes() override {};
 
     ///@}
     ///@name Operators
@@ -239,7 +239,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -403,7 +403,7 @@ public:
 
     /// Turn back information as a string.
 
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "EmbeddedNavierStokes3D #";
     }
@@ -1688,12 +1688,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }

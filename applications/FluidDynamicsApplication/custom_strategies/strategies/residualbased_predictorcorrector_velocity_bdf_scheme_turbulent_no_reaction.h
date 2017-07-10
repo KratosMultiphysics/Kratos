@@ -128,7 +128,7 @@ namespace Kratos {
 		//************************************************************************************************
 		//************************************************************************************************
 
-		void ComputeReactions(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b)
+		void ComputeReactions(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
 		{}
 		/*@} */
 		/**@name Operations */
