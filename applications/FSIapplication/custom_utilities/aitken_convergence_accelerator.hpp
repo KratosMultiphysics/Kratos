@@ -159,7 +159,8 @@ public:
     {
         KRATOS_TRY;
 
-        mpResidualVector_0 = mpResidualVector_1;
+        // mpResidualVector_0 = mpResidualVector_1;
+        std::swap(mpResidualVector_0, mpResidualVector_1);
         mConvergenceAcceleratorIteration += 1;
 
         KRATOS_CATCH( "" );
