@@ -69,7 +69,8 @@ class ThermalCouplingTest(UnitTest.TestCase):
 
             self.setUpOuterBoundaryCondition(self.left_model_part,0.0,303.15)
             self.setUpOuterBoundaryCondition(self.right_model_part,1.0,293.15)
-            self.setUpDirichletCouplingBoundary(self.right_model_part)
+            #self.setUpDirichletCouplingBoundary(self.right_model_part)
+            self.setUpDirichletCouplingBoundary(self.left_model_part)
 
             self.runTest()
 
@@ -182,14 +183,19 @@ class ThermalCouplingTest(UnitTest.TestCase):
             iter = 0
             while iter < self.num_coupling_iterations:
                 self.left_solver.Solve()
-                self.mapper.FluidToStructure_ScalarMap(TEMPERATURE,TEMPERATURE,True)
-                self.right_solver.Solve()
-                #self.mapper.StructureToFluid_ScalarMap(TEMPERATURE,TEMPERATURE,True)
-                for node in self.right_model_part.Nodes:
-                    node.SetSolutionStepValue(NORMAL_TO_WALL_X,node.GetSolutionStepValue(REACTION_FLUX))
-                self.mapper.StructureToFluid_VectorMap(NORMAL_TO_WALL,NORMAL_TO_WALL,False,True)
+                #self.mapper.FluidToStructure_ScalarMap(TEMPERATURE,TEMPERATURE,True)
                 for node in self.left_model_part.Nodes:
+                    node.SetSolutionStepValue(NORMAL_TO_WALL_X,node.GetSolutionStepValue(REACTION_FLUX))
+                self.mapper.FluidToStructure_VectorMap(NORMAL_TO_WALL,NORMAL_TO_WALL,False,True)
+                for node in self.right_model_part.Nodes:
                     node.SetSolutionStepValue(FACE_HEAT_FLUX,node.GetSolutionStepValue(NORMAL_TO_WALL_X))
+                self.right_solver.Solve()
+                self.mapper.StructureToFluid_ScalarMap(TEMPERATURE,TEMPERATURE,True)
+                #for node in self.right_model_part.Nodes:
+                #    node.SetSolutionStepValue(NORMAL_TO_WALL_X,node.GetSolutionStepValue(REACTION_FLUX))
+                #self.mapper.StructureToFluid_VectorMap(NORMAL_TO_WALL,NORMAL_TO_WALL,False,True)
+                #for node in self.left_model_part.Nodes:
+                #    node.SetSolutionStepValue(FACE_HEAT_FLUX,node.GetSolutionStepValue(NORMAL_TO_WALL_X))
                 #self.mapper.StructureToFluid_ScalarMap(REACTION_FLUX,FACE_HEAT_FLUX,True)
 
                 iter += 1
@@ -241,6 +247,7 @@ class ThermalCouplingTest(UnitTest.TestCase):
         gid_io.WriteNodalResults(CONDUCTIVITY,model_part.Nodes,label,0)
         gid_io.WriteNodalResults(SPECIFIC_HEAT,model_part.Nodes,label,0)
         gid_io.WriteNodalResults(HEAT_FLUX,model_part.Nodes,label,0)
+        gid_io.WriteNodalResults(FACE_HEAT_FLUX,model_part.Nodes,label,0)
         gid_io.WriteNodalResults(REACTION_FLUX,model_part.Nodes,label,0)
 
         gid_io.FinalizeResults()
