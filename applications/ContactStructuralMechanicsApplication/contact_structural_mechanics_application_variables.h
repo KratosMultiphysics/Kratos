@@ -13,8 +13,6 @@
 #define  KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED
 
 // System includes
-#include <unordered_set>
-#include <unordered_map>
 
 // External includes
 
@@ -23,90 +21,12 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
+#include "custom_includes/condition_map.h"
 
 namespace Kratos
 {
 
-#if !defined(SHARED_POINTER_HASHER)
-#define SHARED_POINTER_HASHER
-template<class TSharedPointer>
-struct SharedPointerHasher
-{
-    size_t operator()(const TSharedPointer& pCond) const
-    {
-        return reinterpret_cast<size_t>(pCond.get());
-    }
-};
-#endif
-#if !defined(SHARED_POINTER_COMPARATOR)
-#define SHARED_POINTER_COMPARATOR
-template<class TSharedPointer>
-struct SharedPointerComparator
-{
-    bool operator()(const TSharedPointer& first, const TSharedPointer& second) const
-    {
-		return first.get() == second.get();
-    }
-};
-#endif
-
 typedef array_1d<double,3> Vector3;
-
-struct ConditionMap : std::unordered_map<Condition::Pointer, bool, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> >
-{
-    virtual ~ConditionMap(){}
-    
-    typedef std::unordered_map<Condition::Pointer, bool, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> > BaseType;
-    
-    void RemoveCondition(Condition::Pointer pCond)
-    {
-        BaseType::iterator Set = find(pCond);
-        if(Set != end())
-        {
-            erase(Set);
-        }
-    }
-    
-    void AddNewCondition(Condition::Pointer pCond)
-    {
-        insert({pCond, true}); // True by default when adding a new one
-    }
-    
-    void SetActive(Condition::Pointer pCond, const bool Active)
-    {
-        BaseType::iterator Set = find(pCond);
-        if(Set != end())
-        {
-            Set->second = Active;
-        }
-    }
-    
-    bool IsActive(Condition::Pointer pCond) const 
-    {
-        BaseType::const_iterator Set = find(pCond);
-        return (Set->second);
-    }
-    
-    void print()
-    {
-        for ( auto it = begin(); it != end(); ++it )
-        {
-            std::cout << "The condition " << (it->first)->Id() << " is ACTIVE: " << it->second;
-            
-            KRATOS_WATCH((it->first)->GetGeometry());
-        }
-    }
-    
-    void save( Serializer& rSerializer ) const
-    {
-        // TODO: Fill if necessary
-    }
-
-    void load( Serializer& rSerializer )
-    {
-        // TODO: Fill if necessary
-    }
-};
 
 // VARIABLES
 /* Mortar method */ 

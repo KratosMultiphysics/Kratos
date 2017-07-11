@@ -453,13 +453,17 @@ public:
                                     
                                     if (condition_checked_right == true)
                                     {   
-                                        condition_is_active = SearchUtilities::CheckExactIntegration<2, 2>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave, p_cond_master, contact_normal_origin, master_normal, active_check_length);
-                                    }
-                                    
-                                    // If condition is active we add
-                                    if (condition_is_active == true)
-                                    {
-                                        conditions_pointers_destination->AddNewCondition(p_cond_master);
+                                        condition_is_active = SearchUtilities::CheckExactIntegration<2, 2>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
+                                        
+                                        // If condition is active we add
+                                        if (condition_is_active == true)
+                                        {
+                                            conditions_pointers_destination->AddNewActiveCondition(p_cond_master);
+                                        }
+                                        else
+                                        {
+                                            conditions_pointers_destination->AddNewInactiveCondition(p_cond_master);
+                                        }
                                     }
                                 }
                             }
@@ -480,13 +484,17 @@ public:
                                     
                                     if (condition_checked_right == true)
                                     {   
-                                        condition_is_active = SearchUtilities::CheckExactIntegration<3, 3>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave, p_cond_master, contact_normal_origin, master_normal, active_check_length);
-                                    }
-                                    
-                                    // If condition is active we add
-                                    if (condition_is_active == true)
-                                    {
-                                        conditions_pointers_destination->AddNewCondition(p_cond_master);
+                                        condition_is_active = SearchUtilities::CheckExactIntegration<3, 3>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
+                                        
+                                        // If condition is active we add
+                                        if (condition_is_active == true)
+                                        {
+                                            conditions_pointers_destination->AddNewActiveCondition(p_cond_master);
+                                        }
+                                        else
+                                        {
+                                            conditions_pointers_destination->AddNewInactiveCondition(p_cond_master);
+                                        }
                                     }
                                 }
                             }
@@ -507,13 +515,17 @@ public:
                                     
                                     if (condition_checked_right == true)
                                     {   
-                                        condition_is_active = SearchUtilities::CheckExactIntegration<3, 4>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave, p_cond_master, contact_normal_origin, master_normal, active_check_length);
-                                    }
-                                    
-                                    // If condition is active we add
-                                    if (condition_is_active == true)
-                                    {
-                                        conditions_pointers_destination->AddNewCondition(p_cond_master);
+                                        condition_is_active = SearchUtilities::CheckExactIntegration<3, 4>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
+                                        
+                                        // If condition is active we add
+                                        if (condition_is_active == true)
+                                        {
+                                            conditions_pointers_destination->AddNewActiveCondition(p_cond_master);
+                                        }
+                                        else
+                                        {
+                                            conditions_pointers_destination->AddNewInactiveCondition(p_cond_master);
+                                        }
                                     }
                                 }
                             }
@@ -522,8 +534,9 @@ public:
                                 KRATOS_ERROR << "INTEGRATION NOT IMPLEMENTED: dimension = " << dimension << " number_of_nodes = " << number_of_nodes << std::endl;
                             }
                         }
-//                         
-                        if (conditions_pointers_destination->size() > 0)
+                    
+                        if ((conditions_pointers_destination->size() > 0) && 
+                            (conditions_pointers_destination->AtLeastOnePairActive() == true))
                         {                        
                             it_cond->Set(ACTIVE, true);
                         }
@@ -570,45 +583,19 @@ public:
                     
                     if (dimension == 2 && number_of_nodes == 2)
                     {
-                        SearchUtilities::ExactContactContainerChecker<2,2>(conditions_pointers_destination, (*it_cond.base()), contact_normal_origin, active_check_length); 
+                        SearchUtilities::ExactContactContainerChecker<2,2>(conditions_pointers_destination, it_cond->GetGeometry(), contact_normal_origin, active_check_length); 
                     }
                     else if (dimension == 3 && number_of_nodes == 3)
                     {
-                        SearchUtilities::ExactContactContainerChecker<3,3>(conditions_pointers_destination, (*it_cond.base()), contact_normal_origin, active_check_length); 
+                        SearchUtilities::ExactContactContainerChecker<3,3>(conditions_pointers_destination, it_cond->GetGeometry(), contact_normal_origin, active_check_length); 
                     }
                     else if (dimension == 3 && number_of_nodes == 4)
                     {
-                        SearchUtilities::ExactContactContainerChecker<3,4>(conditions_pointers_destination, (*it_cond.base()), contact_normal_origin, active_check_length); 
+                        SearchUtilities::ExactContactContainerChecker<3,4>(conditions_pointers_destination, it_cond->GetGeometry(), contact_normal_origin, active_check_length); 
                     }
                     else
                     {
                         KRATOS_ERROR << "INTEGRATION NOT IMPLEMENTED: dimension = " << dimension << " number_of_nodes = " << number_of_nodes << std::endl;
-                    }
-                }
-                
-                bool deactivate_condition = (conditions_pointers_destination->size() == 0) ? true : false;
-                
-                if (deactivate_condition == false)
-                {
-                    deactivate_condition = true;
-                    for(unsigned int iNode = 0; iNode < it_cond->GetGeometry().size(); iNode++)
-                    {
-                        if (it_cond->GetGeometry()[iNode].Is(ACTIVE) == true)
-                        {
-                            deactivate_condition = false;
-                            break;
-                        }
-                    }
-                }
-                
-                // We deactivate the condition if necessary
-                if (deactivate_condition == true)
-                {
-                    it_cond->Set(ACTIVE, false);
-                    
-                    if (conditions_pointers_destination != nullptr)
-                    {
-                        conditions_pointers_destination->clear();
                     }
                 }
             }

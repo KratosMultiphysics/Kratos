@@ -205,38 +205,6 @@ public:
             }
         }
         
-        // We update the pairs if necessary
-        if (rModelPart.GetProcessInfo()[CONSIDER_PAIR_VARIATION] == true)
-        {
-            ConditionsArrayType& conditions_array = rModelPart.GetSubModelPart("Contact").Conditions();
-            const int num_conditions = static_cast<int>(conditions_array.size());
-
-            #pragma omp parallel for 
-            for(int i = 0; i < num_conditions; i++) 
-            {
-                auto it_cond = conditions_array.begin() + i;
-                if ( (it_cond)->Is(ACTIVE) == true )
-                {
-                    bool deactivate_condition = true;
-                    
-                    for(unsigned int i_node = 0; i_node < it_cond->GetGeometry().size(); i_node++)
-                    {
-                        if (it_cond->GetGeometry()[i_node].Is(ACTIVE) == true)
-                        {
-                            deactivate_condition = false;
-                            break;
-                        }
-                    }
-                    
-                    // We deactivate the condition if necessary
-                    if (deactivate_condition == true)
-                    {
-                        it_cond->Set(ACTIVE, false);
-                    }
-                }
-            }
-        }
-        
         if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
         {
             if (mpTable != nullptr)

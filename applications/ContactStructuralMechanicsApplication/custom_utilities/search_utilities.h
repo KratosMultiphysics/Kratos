@@ -133,11 +133,15 @@ public:
         // If condition is active we add
         if (condition_is_active == true && TFill == true)
         {
-            ConditionPointers->AddNewCondition(pCond2);
+            ConditionPointers->AddNewActiveCondition(pCond2);
         }
-        if (condition_is_active == false && TFill == false)
+        else if (condition_is_active == false && TFill == true)
         {
-            ConditionPointers->RemoveCondition(pCond2);
+            ConditionPointers->AddNewInactiveCondition(pCond2);
+        }
+        else if (condition_is_active == false && TFill == false)
+        {
+            ConditionPointers->SetActive(pCond2, false);
         }
     }
     
@@ -158,8 +162,8 @@ public:
         MortarKinematicVariables<TNumNodes> rVariables,
         MortarOperator<TNumNodes> rThisMortarConditionMatrices,   
         ExactMortarIntegrationUtility<TDim, TNumNodes> IntegrationUtility,
-        Condition::Pointer& pCondSlave,          // SLAVE
-        Condition::Pointer& pCondMaster,         // MASTER
+        GeometryType& SlaveGeometry,              // SLAVE
+        GeometryType& MasterGeometry,             // MASTER
         const array_1d<double, 3>& SlaveNormal,  // SLAVE
         const array_1d<double, 3>& MasterNormal, // SLAVE
         const double ActiveCheckLength
@@ -169,12 +173,9 @@ public:
         bool condition_is_active = false;
         IntegrationMethod this_integration_method = GeometryData::GI_GAUSS_2;
 
-        GeometryType& slave_geometry = pCondSlave->GetGeometry();
-        GeometryType& master_geometry = pCondMaster->GetGeometry();
-
         // Reading integration points
         std::vector<array_1d<PointType,TDim>> conditions_points_slave;
-        const bool is_inside = IntegrationUtility.GetExactIntegration(slave_geometry, SlaveNormal, master_geometry, MasterNormal, conditions_points_slave);
+        const bool is_inside = IntegrationUtility.GetExactIntegration(SlaveGeometry, SlaveNormal, MasterGeometry, MasterNormal, conditions_points_slave);
         
         if (is_inside == true)
         {
@@ -190,13 +191,13 @@ public:
                 for (unsigned int i_node = 0; i_node < TDim; i_node++)
                 {
                     PointType global_point;
-                    slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
+                    SlaveGeometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
                     points_array[i_node] = boost::make_shared<PointType>(global_point);
                 }
                 
                 typename std::conditional<TDim == 2, LineType, TriangleType >::type decomp_geom( points_array );
                 
-                const bool bad_shape = (TDim == 2) ? ContactUtilities::LengthCheck(decomp_geom, slave_geometry.Length() * 1.0e-6) : ContactUtilities::HeronCheck(decomp_geom);
+                const bool bad_shape = (TDim == 2) ? ContactUtilities::LengthCheck(decomp_geom, SlaveGeometry.Length() * 1.0e-6) : ContactUtilities::HeronCheck(decomp_geom);
                 
                 if (bad_shape == false)
                 {
@@ -209,41 +210,41 @@ public:
                         PointType local_point_parent;
                         PointType gp_global;
                         decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
-                        slave_geometry.PointLocalCoordinates(local_point_parent, gp_global);
+                        SlaveGeometry.PointLocalCoordinates(local_point_parent, gp_global);
                         
                         // Calculate the kinematic variables
                         const PointType& LocalPoint = integration_points_slave[point_number].Coordinates();
 
                         /// SLAVE CONDITION ///
-                        slave_geometry.ShapeFunctionsValues( rVariables.NSlave, LocalPoint.Coordinates() );
+                        SlaveGeometry.ShapeFunctionsValues( rVariables.NSlave, LocalPoint.Coordinates() );
                         rVariables.PhiLagrangeMultipliers = rVariables.NSlave;
-                        rVariables.DetjSlave = slave_geometry.DeterminantOfJacobian( LocalPoint );
+                        rVariables.DetjSlave = SlaveGeometry.DeterminantOfJacobian( LocalPoint );
                         
                         /// MASTER CONDITION ///
                         PointType projected_gp_global;
-                        const array_1d<double,3> gp_normal = ContactUtilities::GaussPointNormal(rVariables.NSlave, slave_geometry);
+                        const array_1d<double,3> gp_normal = ContactUtilities::GaussPointNormal(rVariables.NSlave, SlaveGeometry);
                         
                         GeometryType::CoordinatesArrayType slave_gp_global;
-                        slave_geometry.GlobalCoordinates( slave_gp_global, LocalPoint );
-                        ContactUtilities::FastProjectDirection( master_geometry, slave_gp_global, projected_gp_global, MasterNormal, -gp_normal ); // The opposite direction
+                        SlaveGeometry.GlobalCoordinates( slave_gp_global, LocalPoint );
+                        ContactUtilities::FastProjectDirection( MasterGeometry, slave_gp_global, projected_gp_global, MasterNormal, -gp_normal ); // The opposite direction
                         
                         GeometryType::CoordinatesArrayType projected_gp_local;
                         
-                        master_geometry.PointLocalCoordinates(projected_gp_local, projected_gp_global.Coordinates( ) ) ;
+                        MasterGeometry.PointLocalCoordinates(projected_gp_local, projected_gp_global.Coordinates( ) ) ;
                         
                         // SHAPE FUNCTIONS 
-                        master_geometry.ShapeFunctionsValues( rVariables.NMaster, projected_gp_local );    
+                        MasterGeometry.ShapeFunctionsValues( rVariables.NMaster, projected_gp_local );    
                         
                         const double integration_weight = integration_points_slave[point_number].Weight(); // NOTE: Error in axisymmetric
                         
                         rThisMortarConditionMatrices.CalculateMortarOperators(rVariables, integration_weight);   
                     }
 
-                    // Setting the gap
+                    /* Setting the gap */
 
                     // Current coordinates 
-                    const bounded_matrix<double, TNumNodes, TDim> x1 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(slave_geometry);
-                    const bounded_matrix<double, TNumNodes, TDim> x2 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(master_geometry);
+                    const bounded_matrix<double, TNumNodes, TDim> x1 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(SlaveGeometry);
+                    const bounded_matrix<double, TNumNodes, TDim> x2 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(MasterGeometry);
             
                     const bounded_matrix<double, TNumNodes, TDim> Dx1Mx2 = prod(rThisMortarConditionMatrices.DOperator, x1) - prod(rThisMortarConditionMatrices.MOperator, x2); 
                     
@@ -255,7 +256,7 @@ public:
                     
                     for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
                     {
-                        if (slave_geometry[i_node].Is(ACTIVE) == false)
+                        if (SlaveGeometry[i_node].Is(ACTIVE) == false)
                         {
                             const array_1d<double, TDim> aux_array = row(Dx1Mx2, i_node);
                             
@@ -263,7 +264,7 @@ public:
                             
                             if (nodal_gap < ActiveCheckLength)
                             {
-                                slave_geometry[i_node].Set(ACTIVE, true);
+                                SlaveGeometry[i_node].Set(ACTIVE, true);
                                 condition_is_active = true;
                             }
                         }
@@ -290,7 +291,7 @@ public:
     template< const unsigned int TDim, const unsigned int TNumNodes >
     static inline void ExactContactContainerChecker(
         boost::shared_ptr<ConditionMap>& ConditionPointers,
-        Condition::Pointer& pCondSlave,         // SLAVE
+        GeometryType& SlaveGeometry,            // SLAVE
         const array_1d<double, 3>& SlaveNormal, // SLAVE
         const double ActiveCheckLength
         )
@@ -312,12 +313,12 @@ public:
             Condition::Pointer p_cond_master = (it_pair->first); // MASTER
             const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL); 
                     
-            condition_is_active = CheckExactIntegration<TDim, TNumNodes>(rVariables, rThisMortarConditionMatrices, integration_utility, pCondSlave, p_cond_master, SlaveNormal, master_normal, ActiveCheckLength);
+            condition_is_active = CheckExactIntegration<TDim, TNumNodes>(rVariables, rThisMortarConditionMatrices, integration_utility, SlaveGeometry, p_cond_master->GetGeometry(), SlaveNormal, master_normal, ActiveCheckLength);
             
             // If condition is active we add
             if (condition_is_active == false)
             {
-                ConditionPointers->RemoveCondition(p_cond_master);
+                ConditionPointers->SetActive(p_cond_master, false);
             }
         }
     }

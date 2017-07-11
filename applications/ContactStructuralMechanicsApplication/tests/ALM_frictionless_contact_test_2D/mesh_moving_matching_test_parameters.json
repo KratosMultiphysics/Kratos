@@ -149,7 +149,7 @@
         "process_name"  : "ALMContactProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
-            "assume_master_slave"         : "Parts_Parts_Auto1",
+            "assume_master_slave"         : "Parts_Parts_Auto2",
             "contact_model_part"          : "CONTACT_Contact_Auto1",
             "contact_type"                : "Frictionless",
             "search_factor"               : 2.0,
@@ -161,9 +161,10 @@
             "dual_search_check"           : false,
             "stiffness_factor"            : 10.0,
             "penalty_scale_factor"        : 1.0,
+            "hard_clear_after_step"       : false,
             "manual_ALM"                  : true,
-            "penalty"                     : 1.0e6,
-            "scale_factor"                : 1.0e6,
+            "penalty"                     : 1.0e0,
+            "scale_factor"                : 1.0e0,
             "debug_mode"                  : false
         }
     }],

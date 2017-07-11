@@ -23,6 +23,7 @@
 /* Utilities */
 #include "utilities/math_utils.h"
 #include "custom_utilities/exact_mortar_segmentation_utility.h"
+#include "custom_utilities/search_utilities.h"
 
 namespace Kratos 
 {
@@ -122,14 +123,17 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 {
     KRATOS_TRY;
     
-    // We update the active/inactive pair
-    boost::shared_ptr<ConditionMap>& all_conditions_maps = this->GetValue( CONTACT_MAPS );
-    
-    unsigned int i_cond = 0;
-    for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
+    if (rCurrentProcessInfo[CONSIDER_PAIR_VARIATION] == true)
     {
-        mThisMasterElementsActive[i_cond] = (it_pair->second);
-        i_cond += 1;
+        // We update the active/inactive pair
+        boost::shared_ptr<ConditionMap>& all_conditions_maps = this->GetValue( CONTACT_MAPS );
+        
+        unsigned int i_cond = 0;
+        for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
+        {
+            mThisMasterElementsActive[i_cond] = (it_pair->second);
+            i_cond += 1;
+        }
     }
         
     KRATOS_CATCH( "" );
@@ -157,6 +161,15 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
     KRATOS_TRY;
     
     this->Set(VISITED, true);
+    
+    if (rCurrentProcessInfo[CONSIDER_PAIR_VARIATION] == true)
+    {
+        // Check pairs
+        boost::shared_ptr<ConditionMap>& all_conditions_maps = this->GetValue( CONTACT_MAPS );
+        GeometryType& this_geometry = GetGeometry();
+        const double active_check_length = this_geometry.Length() * GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
+        SearchUtilities::ExactContactContainerChecker<TDim,TNumNodes>(all_conditions_maps, this_geometry, this->GetValue(NORMAL), active_check_length); 
+    }
     
     KRATOS_CATCH( "" );
 }
