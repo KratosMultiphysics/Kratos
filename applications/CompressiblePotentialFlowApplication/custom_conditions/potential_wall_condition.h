@@ -148,7 +148,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~PotentialWallCondition() {}
+    ~PotentialWallCondition() override {}
 
 
     ///@}
@@ -173,13 +173,13 @@ public:
       @param ThisNodes An array containing the nodes of the new condition
       @param pProperties Pointer to the element's properties
       */
-    virtual Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         return Condition::Pointer(new PotentialWallCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
 
 
-    virtual Condition::Pointer Create(IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
+    Condition::Pointer Create(IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         return Condition::Pointer(new PotentialWallCondition(NewId, pGeom, pProperties));
     }
@@ -192,7 +192,7 @@ public:
      * @return a Pointer to the new element
      */
 
-    virtual Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
+    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
     {
         Condition::Pointer pNewCondition = Create(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
@@ -203,7 +203,7 @@ public:
     }
 
 
-    virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                        ProcessInfo& rCurrentProcessInfo) override
     {
         VectorType RHS;
@@ -218,7 +218,7 @@ public:
       @param rRightHandSideVector Right-hand side vector
       @param rCurrentProcessInfo ProcessInfo instance (unused)
       */
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
                                       ProcessInfo& rCurrentProcessInfo) override
     {
@@ -244,7 +244,7 @@ public:
 
 
     /// Check that all data required by this condition is available and reasonable
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -288,7 +288,7 @@ public:
          * @param rResult A vector containing the global Id of each row
          * @param rCurrentProcessInfo the current process info object (unused)
          */
-        virtual void EquationIdVector(EquationIdVectorType& rResult,
+        void EquationIdVector(EquationIdVectorType& rResult,
                                       ProcessInfo& rCurrentProcessInfo) override
         {
             if (rResult.size() != TNumNodes)
@@ -304,7 +304,7 @@ public:
          * @param ElementalDofList the list of DOFs
          * @param rCurrentProcessInfo the current process info instance
          */
-        virtual void GetDofList(DofsVectorType& ConditionDofList,
+        void GetDofList(DofsVectorType& ConditionDofList,
                                 ProcessInfo& CurrentProcessInfo) override
         {
             if (ConditionDofList.size() != TNumNodes)
@@ -334,7 +334,7 @@ public:
         ///@{
 
         /// Turn back information as a string.
-        virtual std::string Info() const override
+        std::string Info() const override
         {
             std::stringstream buffer;
             this->PrintInfo(buffer);
@@ -342,13 +342,13 @@ public:
         }
 
         /// Print information about this object.
-        virtual void PrintInfo(std::ostream& rOStream) const override
+        void PrintInfo(std::ostream& rOStream) const override
         {
             rOStream << "PotentialWallCondition" << TDim << "D #" << this->Id();
         }
 
         /// Print object's data.
-        virtual void PrintData(std::ostream& rOStream) const override
+        void PrintData(std::ostream& rOStream) const override
         {
             this->pGetGeometry()->PrintData(rOStream);
         }
@@ -446,12 +446,12 @@ private:
 
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const override
+        void save(Serializer& rSerializer) const override
         {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
         }
 
-        virtual void load(Serializer& rSerializer) override
+        void load(Serializer& rSerializer) override
         {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
         }

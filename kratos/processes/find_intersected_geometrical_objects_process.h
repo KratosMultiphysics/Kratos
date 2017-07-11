@@ -248,7 +248,7 @@ namespace Kratos
 
 
 	  /// Destructor.
-	  virtual ~FindIntersectedGeometricalObjectsProcess() {}
+	  ~FindIntersectedGeometricalObjectsProcess() override {}
 
 	  ///@name Member Variables
 	  ///@{
@@ -273,20 +273,20 @@ namespace Kratos
 
 	  virtual void Clear();
 
-	  virtual void Execute() override;
+	  void Execute() override;
 
       ///@}
       ///@name Input and output
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const override;
+      std::string Info() const override;
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const override;
+      void PrintInfo(std::ostream& rOStream) const override;
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const override;
+      void PrintData(std::ostream& rOStream) const override;
 
       ///@}
 
