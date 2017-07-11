@@ -140,7 +140,7 @@ public:
      * @param pCond: The condition to set
      * @param Active: The flag, true if active, false otherwise
      */
-    void SetActive(Condition::Pointer pCond, const bool Active)
+    void SetActive(Condition::Pointer pCond, const bool Active = true)
     {
         BaseType::iterator set = find(pCond);
         if(set != end())

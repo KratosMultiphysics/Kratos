@@ -45,6 +45,8 @@ namespace Kratos
     
     enum SearchTreeType {KdtreeInRadius = 0, KdtreeInBox = 1, Kdop = 2};
     
+    enum CheckResult {Fail = 0, AlreadyInTheMap = 1, OK = 2};
+    
 ///@}
 ///@name  Functions
 ///@{
@@ -423,11 +425,15 @@ public:
                             {   
                                 Condition::Pointer p_cond_origin = points_found[i_pair]->GetCondition();
                                 
-                                const bool condition_checked_right = CheckCondition(conditions_pointers_destination, p_cond_slave, p_cond_origin);
+                                const CheckResult condition_checked_right = CheckCondition(conditions_pointers_destination, p_cond_slave, p_cond_origin);
                                 
-                                if (condition_checked_right == true)
+                                if (condition_checked_right == OK)
                                 {    
                                     SearchUtilities::ContactContainerFiller<true>(conditions_pointers_destination, p_cond_slave, p_cond_origin, contact_normal_origin, p_cond_origin->GetValue(NORMAL), active_check_length, mDualSearchCheck, mStrictSearchCheck); 
+                                }
+                                else if (condition_checked_right == AlreadyInTheMap)
+                                {
+                                    SearchUtilities::ContactContainerFiller<false>(conditions_pointers_destination, p_cond_slave, p_cond_origin, contact_normal_origin, p_cond_origin->GetValue(NORMAL), active_check_length, mDualSearchCheck, mStrictSearchCheck); 
                                 }
                             }
                         }
@@ -449,9 +455,9 @@ public:
                                     Condition::Pointer p_cond_master = points_found[i_pair]->GetCondition(); // MASTER
                                     const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL); 
                                                         
-                                    const bool condition_checked_right = CheckCondition(conditions_pointers_destination, p_cond_slave, p_cond_master);
+                                    const CheckResult condition_checked_right = CheckCondition(conditions_pointers_destination, p_cond_slave, p_cond_master);
                                     
-                                    if (condition_checked_right == true)
+                                    if (condition_checked_right == OK)
                                     {   
                                         condition_is_active = SearchUtilities::CheckExactIntegration<2, 2>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
                                         
@@ -463,6 +469,15 @@ public:
                                         else
                                         {
                                             conditions_pointers_destination->AddNewInactiveCondition(p_cond_master);
+                                        }
+                                    }
+                                    else if (condition_checked_right == AlreadyInTheMap)
+                                    {
+                                        condition_is_active = SearchUtilities::CheckExactIntegration<2, 2>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
+                                        
+                                        if (condition_is_active == true)
+                                        {
+                                            conditions_pointers_destination->SetActive(p_cond_master);
                                         }
                                     }
                                 }
@@ -480,9 +495,9 @@ public:
                                     Condition::Pointer p_cond_master = points_found[i_pair]->GetCondition(); // MASTER
                                     const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL); 
                                                         
-                                    const bool condition_checked_right = CheckCondition(conditions_pointers_destination, p_cond_slave, p_cond_master);
+                                    const CheckResult condition_checked_right = CheckCondition(conditions_pointers_destination, p_cond_slave, p_cond_master);
                                     
-                                    if (condition_checked_right == true)
+                                    if (condition_checked_right == OK)
                                     {   
                                         condition_is_active = SearchUtilities::CheckExactIntegration<3, 3>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
                                         
@@ -494,6 +509,15 @@ public:
                                         else
                                         {
                                             conditions_pointers_destination->AddNewInactiveCondition(p_cond_master);
+                                        }
+                                    }
+                                    else if (condition_checked_right == AlreadyInTheMap)
+                                    {
+                                        condition_is_active = SearchUtilities::CheckExactIntegration<3, 3>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
+                                        
+                                        if (condition_is_active == true)
+                                        {
+                                            conditions_pointers_destination->SetActive(p_cond_master);
                                         }
                                     }
                                 }
@@ -511,9 +535,9 @@ public:
                                     Condition::Pointer p_cond_master = points_found[i_pair]->GetCondition(); // MASTER
                                     const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL); 
                                                         
-                                    const bool condition_checked_right = CheckCondition(conditions_pointers_destination, p_cond_slave, p_cond_master);
+                                    const CheckResult condition_checked_right = CheckCondition(conditions_pointers_destination, p_cond_slave, p_cond_master);
                                     
-                                    if (condition_checked_right == true)
+                                    if (condition_checked_right == OK)
                                     {   
                                         condition_is_active = SearchUtilities::CheckExactIntegration<3, 4>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
                                         
@@ -525,6 +549,15 @@ public:
                                         else
                                         {
                                             conditions_pointers_destination->AddNewInactiveCondition(p_cond_master);
+                                        }
+                                    }
+                                    else if (condition_checked_right == AlreadyInTheMap)
+                                    {
+                                        condition_is_active = SearchUtilities::CheckExactIntegration<3, 4>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
+                                        
+                                        if (condition_is_active == true)
+                                        {
+                                            conditions_pointers_destination->SetActive(p_cond_master);
                                         }
                                     }
                                 }
@@ -696,7 +729,7 @@ protected:
      * @param pCond2: The pointer to the condition in the destination model part  
      */
     
-    static inline bool CheckCondition(
+    static inline CheckResult CheckCondition(
         boost::shared_ptr<ConditionMap>& condition_pointers1,
         const Condition::Pointer & pCond1,
         const Condition::Pointer & pCond2
@@ -704,20 +737,14 @@ protected:
     {
         if (((pCond1 != pCond2) && (pCond1->GetValue(ELEMENT_POINTER) != pCond2->GetValue(ELEMENT_POINTER))) == false) // Avoiding "auto self-contact" and "auto element contact"
         {
-            return false;
+            return Fail;
         }
 
         // Avoid conditions oriented in the same direction
         const double tolerance = 1.0e-16;
         if (norm_2(pCond1->GetValue(NORMAL) - pCond2->GetValue(NORMAL)) < tolerance)
         {
-            return false;
-        }
-
-        // To avoid to repeat twice the same condition 
-        if (condition_pointers1->find(pCond2) != condition_pointers1->end())
-        {
-            return false;
+            return Fail;
         }
 
         if (pCond2->Is(SLAVE) == true) // Otherwise will not be necessary to check
@@ -726,11 +753,17 @@ protected:
             
             if (condition_pointers2->find(pCond1) != condition_pointers2->end())
             {
-                return false;
+                return Fail;
             }
         }
+        
+        // To avoid to repeat twice the same condition 
+        if (condition_pointers1->find(pCond2) != condition_pointers1->end())
+        {
+            return AlreadyInTheMap;
+        }
 
-        return true;
+        return OK;
     }
     
     /**  

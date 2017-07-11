@@ -33,7 +33,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "max_number_results"          : 1000,
             "bucket_size"                 : 4,
             "normal_variation"            : false,
-            "pair_variation"              : false,
+            "pair_variation"              : true,
             "manual_ALM"                  : false,
             "stiffness_factor"            : 10.0,
             "penalty_scale_factor"        : 1.0,

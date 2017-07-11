@@ -143,6 +143,10 @@ public:
         {
             ConditionPointers->SetActive(pCond2, false);
         }
+        else
+        {
+            ConditionPointers->SetActive(pCond2);
+        }
     }
     
     /**
@@ -316,7 +320,11 @@ public:
             condition_is_active = CheckExactIntegration<TDim, TNumNodes>(rVariables, rThisMortarConditionMatrices, integration_utility, SlaveGeometry, p_cond_master->GetGeometry(), SlaveNormal, master_normal, ActiveCheckLength);
             
             // If condition is active we add
-            if (condition_is_active == false)
+            if (condition_is_active == true)
+            {
+                ConditionPointers->SetActive(p_cond_master);
+            }
+            else if (condition_is_active == false)
             {
                 ConditionPointers->SetActive(p_cond_master, false);
             }
