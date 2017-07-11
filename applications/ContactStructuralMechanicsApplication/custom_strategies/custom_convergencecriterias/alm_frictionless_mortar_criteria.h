@@ -158,7 +158,7 @@ public:
         BaseType::CalculateContactReactions(rModelPart, rDofSet, b);
         
         // Defining the convergence
-        bool is_converged = true;
+        unsigned int is_converged = 0;
         
         const double epsilon = rModelPart.GetProcessInfo()[PENALTY_PARAMETER]; 
         const double scale_factor = rModelPart.GetProcessInfo()[SCALE_FACTOR]; 
@@ -189,7 +189,8 @@ public:
                     if ((it_node)->Is(ACTIVE) == false )
                     {
                         (it_node)->Set(ACTIVE, true);
-                        is_converged = false;
+                        #pragma omp atomic
+                        is_converged += 1;
                     }
                 }
                 else
@@ -199,7 +200,8 @@ public:
                     if ((it_node)->Is(ACTIVE) == true )
                     {
                         (it_node)->Set(ACTIVE, false);
-                        is_converged = false;
+                        #pragma omp atomic
+                        is_converged += 1;
                     }
                 }
             }
@@ -210,49 +212,49 @@ public:
             if (mpTable != nullptr)
             {
                 auto& table = mpTable->GetTable();
-                if (is_converged == true)
+                if (is_converged == 0)
                 {
                     #if !defined(_WIN32)
-                            table << BOLDFONT(FGRN("       Achieved"));
+                        table << BOLDFONT(FGRN("       Achieved"));
                     #else
-                            table << "Achieved";
-                            //const std::basic_ostream<char, std::char_traits<char>>& ThisStream = std::cout << colorwin::color(colorwin::green) << "Achieved";
-                            //Table << &ThisStream;
+                        table << "Achieved";
+                        //const std::basic_ostream<char, std::char_traits<char>>& ThisStream = std::cout << colorwin::color(colorwin::green) << "Achieved";
+                        //Table << &ThisStream;
                     #endif
                 }
                 else
                 {
                     #if !defined(_WIN32)
-                            table << BOLDFONT(FRED("   Not achieved"));
+                        table << BOLDFONT(FRED("   Not achieved"));
                     #else
-                            table << "Not achieved";
+                        table << "Not achieved";
                         //std::basic_ostream<char, std::char_traits<char>>& ThisStream = std::cout << colorwin::color(colorwin::red) << "   Not achieved";
-                            //Table << (&ThisStream);
+                        //Table << (&ThisStream);
                     #endif
                 }
             }
             else
             {
-                if (is_converged == true)
+                if (is_converged == 0)
                 {
                     #if !defined(_WIN32)
-                            std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
+                        std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
                     #else
-                            std::cout << "\tActive set convergence is achieved" << std::endl;
+                        std::cout << "\tActive set convergence is achieved" << std::endl;
                     #endif
                 }
                 else
                 {
                     #if !defined(_WIN32)
-                            std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
+                        std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
                     #else
-                            std::cout << "\tActive set convergence is not achieved" << std::endl;
+                        std::cout << "\tActive set convergence is not achieved" << std::endl;
                     #endif
                 }
             }
         }
         
-        return is_converged;
+        return (is_converged == 0 ? true : false);
     }
     
     /**

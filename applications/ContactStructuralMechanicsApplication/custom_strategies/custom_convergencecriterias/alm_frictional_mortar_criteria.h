@@ -156,8 +156,8 @@ public:
         BaseType::CalculateContactReactions(rModelPart, rDofSet, b);
         
         // Defining the convergence
-        bool is_converged_active = true;
-        bool is_converged_slip = true;
+        unsigned int is_converged_active = 0;
+        unsigned int is_converged_slip = 0;
         
         const double epsilon = rModelPart.GetProcessInfo()[PENALTY_PARAMETER]; 
         const double scale_factor = rModelPart.GetProcessInfo()[SCALE_FACTOR];
@@ -195,7 +195,8 @@ public:
                     if ((it_node)->Is(ACTIVE) == false )
                     {
                         (it_node)->Set(ACTIVE, true);
-                        is_converged_active = false;
+                        #pragma omp atomic
+                        is_converged_active += 1;
                     }
                     
                     // Computing the augmented tangent pressure
@@ -216,7 +217,8 @@ public:
                         if ((it_node)->Is(SLIP) == true )
                         {
                             (it_node)->Set(SLIP, false);
-                            is_converged_slip = false;
+                            #pragma omp atomic
+                            is_converged_slip += 1;
                         }
                     }
                     else
@@ -224,7 +226,8 @@ public:
                         if ((it_node)->Is(SLIP) == false )
                         {
                             (it_node)->Set(SLIP, true);
-                            is_converged_slip = false;
+                            #pragma omp atomic
+                            is_converged_slip += 1;
                         }
                     }   
                 }
@@ -235,7 +238,8 @@ public:
                     if ((it_node)->Is(ACTIVE) == true )
                     {
                         (it_node)->Set(ACTIVE, false);
-                        is_converged_active = false;
+                        #pragma omp atomic
+                        is_converged_active += 1;
                     }
                 }
             }
@@ -246,78 +250,78 @@ public:
             if (mpTable != nullptr)
             {
                 auto& table = mpTable->GetTable();
-                if (is_converged_active == true)
+                if (is_converged_active == 0)
                 {
                     #if !defined(_WIN32)
-                            table << BOLDFONT(FGRN("       Achieved"));
+                        table << BOLDFONT(FGRN("       Achieved"));
                     #else
-                            table << "Achieved";
+                        table << "Achieved";
                     #endif
                 }
                 else
                 {
                     #if !defined(_WIN32)
-                            table << BOLDFONT(FRED("   Not achieved"));
+                        table << BOLDFONT(FRED("   Not achieved"));
                     #else
-                            table << "Not achieved";
+                        table << "Not achieved";
                     #endif
                 }
-                if (is_converged_slip == true)
+                if (is_converged_slip == 0)
                 {
                     #if !defined(_WIN32)
-                            table << BOLDFONT(FGRN("       Achieved"));
+                        table << BOLDFONT(FGRN("       Achieved"));
                     #else
-                            table << "Achieved";
+                        table << "Achieved";
                     #endif
                 }
                 else
                 {
                     #if !defined(_WIN32)
-                            table << BOLDFONT(FRED("   Not achieved"));
+                        table << BOLDFONT(FRED("   Not achieved"));
                     #else
-                            table << "Not achieved";
+                        table << "Not achieved";
                     #endif
                 }
             }
             else
             {
-                if (is_converged_active == true)
+                if (is_converged_active == 0)
                 {
                     #if !defined(_WIN32)
-                            std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
+                        std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
                     #else
-                            std::cout << "\tActive set convergence is achieved" << std::endl;
+                        std::cout << "\tActive set convergence is achieved" << std::endl;
                     #endif
                 }
                 else
                 {
                     #if !defined(_WIN32)
-                            std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
+                        std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
                     #else
-                            std::cout << "\tActive set convergence is not achieved" << std::endl;
+                        std::cout << "\tActive set convergence is not achieved" << std::endl;
                     #endif
                 }
                 
-                if (is_converged_slip == true)
+                if (is_converged_slip == 0)
                 {
                     #if !defined(_WIN32)
-                            std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
+                        std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
                     #else
-                            std::cout << "\tSlip/stick set convergence is achieved" << std::endl;
+                        std::cout << "\tSlip/stick set convergence is achieved" << std::endl;
                     #endif
                 }
                 else
                 {
                     #if !defined(_WIN32)
-                            std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
+                        std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
                     #else
-                            std::cout << "\tSlip/stick set  convergence is not achieved" << std::endl;
+                        std::cout << "\tSlip/stick set  convergence is not achieved" << std::endl;
                     #endif
                 }
             }
         }
         
-        return is_converged_active && is_converged_slip;
+        return ((is_converged_active + is_converged_slip) == 0 ? true : false);
     }
     
     /**
