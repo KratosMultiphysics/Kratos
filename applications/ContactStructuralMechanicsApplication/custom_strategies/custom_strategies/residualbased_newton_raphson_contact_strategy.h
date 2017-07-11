@@ -141,9 +141,7 @@ public:
         {
             "adaptative_strategy"              : false,
             "split_factor"                     : 10.0,
-            "max_number_splits"                : 3,
-            "rescale_factor"                   : false,
-            "path_following_penalty"           : false
+            "max_number_splits"                : 3
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
@@ -151,9 +149,6 @@ public:
         mAdaptativeStrategy = ThisParameters["adaptative_strategy"].GetBool();
         mSplitFactor = ThisParameters["split_factor"].GetDouble();
         mMaxNumberSplits = ThisParameters["max_number_splits"].GetInt();
-        mRecalculateFactor = ThisParameters["rescale_factor"].GetBool();
-        mPenaltyPathFollowing = ThisParameters["path_following_penalty"].GetBool();
-        mInitialPenaltyParameter = 0.0;
 
         KRATOS_CATCH("");
     }
@@ -194,9 +189,7 @@ public:
         {
             "adaptative_strategy"              : false,
             "split_factor"                     : 10.0,
-            "max_number_splits"                : 3,
-            "rescale_factor"                   : false,
-            "path_following_penalty"           : false
+            "max_number_splits"                : 3
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
@@ -204,9 +197,6 @@ public:
         mAdaptativeStrategy = ThisParameters["adaptative_strategy"].GetBool();
         mSplitFactor = ThisParameters["split_factor"].GetDouble();
         mMaxNumberSplits = ThisParameters["max_number_splits"].GetInt();
-        mRecalculateFactor = ThisParameters["rescale_factor"].GetBool();
-        mPenaltyPathFollowing = ThisParameters["path_following_penalty"].GetBool();
-        mInitialPenaltyParameter = 0.0;
 
         KRATOS_CATCH("");
     }
@@ -417,9 +407,6 @@ protected:
     
     // OTHER PARAMETERS
     int mConvergenceCriteriaEchoLevel; // The echo level of the convergence criteria
-    bool mRecalculateFactor;           // To check if we recalculate or not the scale factor
-    bool mPenaltyPathFollowing;        // To check if we recalculate or not the penalty parameter
-    double mInitialPenaltyParameter;   // The initial penalty parameter
 
     ///@}
     ///@name Protected Operators
@@ -435,152 +422,8 @@ protected:
     {
         BaseType::InitializeSolutionStep();
         
-        // TODO: MOVE THIS TO A PROCESS!!!
-        // Now we rescale the scale factor
-        if (mRecalculateFactor == true && StrategyBaseType::GetModelPart().GetProcessInfo()[TIME_STEPS] == 1)
-        {
-            RescaleFactor();
-        }
+        // TODO: Add something if necessary
     }
-    
-    /**
-     * We rescale the scale factor in function of the norm of the RHS
-     */
-    
-    void RescaleFactor()
-    {
-        // We get the scale factor
-        double& ScaleFactor = StrategyBaseType::GetModelPart().GetProcessInfo()[SCALE_FACTOR]; 
-        if (ScaleFactor == 0.0)
-        {
-            KRATOS_ERROR << "You don't have any value assigned to SCALE_FACTOR" << std::endl;
-        }
-        
-        // Pointers needed in the solution
-        typename TSchemeType::Pointer pScheme = BaseType::GetScheme();
-        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = BaseType::GetBuilderAndSolver();
-        
-        // We recalculate the RHS
-        TSystemVectorType& b = *BaseType::mpb;
-        TSparseSpace::SetToZero(b);
-        pBuilderAndSolver->BuildRHS(pScheme, StrategyBaseType::GetModelPart(), b);
-        
-        // We initialize the values of the contact and non contact norm
-        double AuxContact = 0.0;
-        double AuxNonContact = 0.0;
-        
-        // Now we iterate over all the nodes
-        NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().GetSubModelPart("Contact").Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size());
-        
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(numNodes); i++) 
-        {
-            auto itNode = NodesArray.begin() + i;
-    
-            for(auto itDoF = itNode->GetDofs().begin() ; itDoF != itNode->GetDofs().end() ; itDoF++)
-            {
-                const int j = (itDoF)->EquationId();
-                std::size_t CurrVar = (itDoF)->GetVariable().Key();
-                
-                if ((CurrVar == DISPLACEMENT_X) || (CurrVar == DISPLACEMENT_Y) || (CurrVar == DISPLACEMENT_Z))
-                {          
-                    #pragma omp atomic
-                    AuxNonContact += b[j] * b[j];
-                }
-                else // Corresponding with contact
-                {
-                    #pragma omp atomic
-                    AuxContact += b[j] * b[j];
-                }
-            }
-        }
-        
-        ScaleFactor *= std::sqrt(AuxNonContact/AuxContact);
-        
-        if (StrategyBaseType::mEchoLevel > 0)
-        {
-            std::cout << "The new SCALE_FACTOR is: " << ScaleFactor << std::endl;
-        }
-    }
-    
-//     /**
-//      * We recalculate the penalty parameter using the path following method for the frictionless case
-//      */
-//     
-//     void CalculatePenaltyPathFollowingFrictionless()
-//     {
-//         // We get the penalty parameter
-//         double& PenaltyParameter = StrategyBaseType::GetModelPart().GetProcessInfo()[PENALTY_PARAMETER]; 
-//         
-//         if (PenaltyParameter == 0.0)
-//         {
-//             KRATOS_ERROR << "You don't have any value assigned to PENALTY_PARAMETER" << std::endl;
-//         }
-//         
-// //         const double Tolerance = 1.0e-4;
-//         
-//         // We get the scale factor
-//         const double ScaleFactor = StrategyBaseType::GetModelPart().GetProcessInfo()[SCALE_FACTOR]; 
-// 
-//         // We initialize the values for the path following
-//         double Vfunction0      = 0.0;
-//         double Vfunction       = 0.0;
-//         double DeltaVfunction  = 0.0;
-//         
-//         // Now we iterate over all the nodes
-//         NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().GetSubModelPart("Contact").Nodes();
-//         const int numNodes = static_cast<int>(NodesArray.size());
-//         
-//         #pragma omp parallel for
-//         for(int i = 0; i < numNodes; i++)  // TODO: ADDtangent contact
-//         {
-//             auto itNode = NodesArray.begin() + i;
-//     
-//             if (itNode->Is(ACTIVE) == true)
-//             {
-//                 const double NormalPressure = (itNode)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
-//                 const double WeightedGap    = (itNode)->FastGetSolutionStepValue(WEIGHTED_GAP);    
-//                 
-//                 const double AugmentedNormalPressure  = (ScaleFactor * NormalPressure + PenaltyParameter * WeightedGap);
-//                 const double AugmentedNormalPressure0 = (ScaleFactor * NormalPressure + mInitialPenaltyParameter * WeightedGap);
-//                                 
-//                 // Initial penalized values
-//                 #pragma omp atomic
-//                 Vfunction0 +=  AugmentedNormalPressure0 * AugmentedNormalPressure0/(2.0 * mInitialPenaltyParameter);
-//                 
-//                 // Current penalized values 
-//                 #pragma omp atomic
-//                 Vfunction +=  AugmentedNormalPressure * AugmentedNormalPressure/(2.0 * PenaltyParameter);
-//                 #pragma omp atomic
-//                 DeltaVfunction += AugmentedNormalPressure * AugmentedNormalPressure/(2.0 * PenaltyParameter * PenaltyParameter) + WeightedGap/(2.0 * PenaltyParameter) * AugmentedNormalPressure;
-//             }
-//         }
-//         
-//         const double E = PenaltyParameter * PenaltyParameter * DeltaVfunction * 1.0/(Vfunction - Vfunction0 - PenaltyParameter * DeltaVfunction);
-//         const double C2 = (E * (E + PenaltyParameter) * (Vfunction - Vfunction0))/PenaltyParameter;
-//         const double C1 = Vfunction0 + C2/E;
-// 
-//         const double m = C1 - C2/(E + PenaltyParameter); // NOTE: We need to calculate the new one!!!!
-//         const double Beta = C1 - m;
-//         PenaltyParameter = C2/Beta - E;
-// 
-//         if (StrategyBaseType::mEchoLevel > 0)
-//         {
-//             std::cout << "The path following parameters: " << std::endl;
-//             std::cout << "E: " << E << " C1: " << C1 << " C2: " << C2 << " m: " << m << " Beta: " << Beta << std::endl;
-//             std::cout << "The new PENALTY_PARAMETER is: " << PenaltyParameter << std::endl;
-//         }
-//     }
-//     
-//     /**
-//      * We recalculate the penalty parameter using the path following method for the frictional case
-//      */
-//     
-//     void CalculatePenaltyPathFollowingFrictional()
-//     {
-//         // TODO: Finish me!!!
-//     }
     
     /**
      * Here the database is updated
@@ -595,24 +438,7 @@ protected:
     {
         BaseType::UpdateDatabase(A,Dx,b,MoveMesh);
         
-        // TODO: Move this to a process!!!
-//         // We recalculate the penalty parameter in case we want
-//         if (mPenaltyPathFollowing == true)
-//         {
-//             if (StrategyBaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] == 1)
-//             {
-//                 mInitialPenaltyParameter = StrategyBaseType::GetModelPart().GetProcessInfo()[PENALTY_PARAMETER];
-//             }
-// 
-//             if (StrategyBaseType::GetModelPart().Is(SLIP) == true)
-//             {
-//                 CalculatePenaltyPathFollowingFrictional();
-//             }
-//             else
-//             {
-//                 CalculatePenaltyPathFollowingFrictionless();
-//             }
-//         }
+        // TODO: Add something if necessary
     }
     
     /**

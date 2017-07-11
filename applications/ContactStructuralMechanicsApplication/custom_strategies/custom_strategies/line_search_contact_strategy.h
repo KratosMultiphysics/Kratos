@@ -136,12 +136,9 @@ public:
 
         Parameters DefaultParameters = Parameters(R"(
         {
-            "rescale_factor"                   : false
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
-        
-        mRecalculateFactor = ThisParameters["rescale_factor"].GetBool();
 
         KRATOS_CATCH("");
     }
@@ -176,12 +173,9 @@ public:
 
         Parameters DefaultParameters = Parameters(R"(
         {
-            "rescale_factor"                   : false
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
-        
-        mRecalculateFactor = ThisParameters["rescale_factor"].GetBool();
 
         KRATOS_CATCH("");
     }
@@ -235,72 +229,7 @@ protected:
     {
         BaseType::InitializeSolutionStep();
         
-        // Now we rescale the scale factor
-        if (mRecalculateFactor == true && StrategyBaseType::GetModelPart().GetProcessInfo()[TIME_STEPS] == 1)
-        {
-            RescaleFactor();
-        }
-    }
-    
-    /**
-     * We rescale the scale factor in function of the norm of the RHS
-     */
-    
-    void RescaleFactor()
-    {
-        // We get the scale factor
-        double& ScaleFactor = StrategyBaseType::GetModelPart().GetProcessInfo()[SCALE_FACTOR]; 
-        if (ScaleFactor == 0.0)
-        {
-            KRATOS_ERROR << "You don't have any value assigned to SCALE_FACTOR" << std::endl;
-        }
-        
-        // Pointers needed in the solution
-        typename TSchemeType::Pointer pScheme = BaseType::GetScheme();
-        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = BaseType::GetBuilderAndSolver();
-        
-        // We recalculate the RHS
-        TSystemVectorType& b = *BaseType::mpb;
-        TSparseSpace::SetToZero(b);
-        pBuilderAndSolver->BuildRHS(pScheme, StrategyBaseType::GetModelPart(), b);
-        
-        // We initialize the values of the contact and non contact norm
-        double AuxContact = 0.0;
-        double AuxNonContact = 0.0;
-        
-        // Now we iterate over all the nodes
-        NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().GetSubModelPart("Contact").Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size()); 
-        
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(numNodes); i++) 
-        {
-            auto itNode = NodesArray.begin() + i;
-    
-            for(auto itDoF = itNode->GetDofs().begin() ; itDoF != itNode->GetDofs().end() ; itDoF++)
-            {
-                const int j = (itDoF)->EquationId();
-                std::size_t CurrVar = (itDoF)->GetVariable().Key();
-                
-                if ((CurrVar == DISPLACEMENT_X) || (CurrVar == DISPLACEMENT_Y) || (CurrVar == DISPLACEMENT_Z))
-                {          
-                    #pragma omp atomic
-                    AuxNonContact += b[j] * b[j];
-                }
-                else // Corresponding with contact
-                {
-                    #pragma omp atomic
-                    AuxContact += b[j] * b[j];
-                }
-            }
-        }
-        
-        ScaleFactor *= std::sqrt(AuxNonContact/AuxContact);
-        
-        if (StrategyBaseType::mEchoLevel > 0)
-        {
-            std::cout << "The new SCALE_FACTOR is: " << ScaleFactor << std::endl;
-        }
+        // TODO: Add something if necessary
     }
     
     /**

@@ -39,9 +39,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                 "ensure_contact": false,
                 "adaptative_strategy": false,
                 "split_factor": 10.0,
-                "max_number_splits": 3,
-                "rescale_factor": false,
-                "path_following_penalty": false
+                "max_number_splits": 3
             }
         }
         """)
@@ -251,7 +249,6 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         mechanical_convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
         newton_parameters = KratosMultiphysics.Parameters("""{}""")
-        newton_parameters.AddValue("rescale_factor",self.settings["rescale_factor"])
         return ContactStructuralMechanicsApplication.LineSearchContactStrategy(computing_model_part, 
                                                                                mechanical_scheme, 
                                                                                linear_solver, 
@@ -273,8 +270,6 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         newton_parameters.AddValue("adaptative_strategy",self.contact_settings["adaptative_strategy"])
         newton_parameters.AddValue("split_factor",self.contact_settings["split_factor"])
         newton_parameters.AddValue("max_number_splits",self.contact_settings["max_number_splits"])
-        newton_parameters.AddValue("rescale_factor",self.contact_settings["rescale_factor"])
-        newton_parameters.AddValue("path_following_penalty",self.contact_settings["path_following_penalty"])
         return ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactStrategy(computing_model_part, 
                                                                                                mechanical_scheme, 
                                                                                                linear_solver, 
