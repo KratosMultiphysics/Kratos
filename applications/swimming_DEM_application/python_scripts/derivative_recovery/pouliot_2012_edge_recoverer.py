@@ -21,10 +21,27 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         #self.FillSetOfAllEdges(set_of_all_edges)
         self.recovery_model_part.Nodes = self.model_part.Nodes
         self.recovery_model_part.ProcessInfo = self.model_part.ProcessInfo
-        self.meshing_tool = DerivativeRecoveryMeshingTools()
+        self.meshing_tool = DerivativeRecoveryMeshingTools2D()
+        print('9999999999')
         self.meshing_tool.FillUpEdgesModelPartFromTetrahedraModelPart(self.recovery_model_part, self.model_part, element_type)
         # for i, edge in enumerate(set_of_all_edges):
         #     self.recovery_model_part.CreateNewElement(element_type, i + 1000000, list(edge), self.model_part.GetProperties()[0])
+        number_of_elements = len(self.recovery_model_part.Elements)
+        i_rep_edge = 0
+
+        for elem in self.model_part.Elements:
+            a = 1
+            for i, first_node in enumerate(elem.GetNodes()[: - 1]):
+                for j, second_node in enumerate(elem.GetNodes()[i + 1 :]):
+                    i_rep_edge += 1
+
+                    edge = tuple(sorted((first_node.Id, second_node.Id)))
+                    set_of_all_edges.add(edge)
+            print('python number of edges: ', len(set_of_all_edges))
+            print('c++ number of edges: ', number_of_elements)
+            print('c++ number of repeated edges: ', i_rep_edge)
+            print('c++ number of repeated edges over 6: ', i_rep_edge / 6)
+        print('number_of_elements: ', len(self.model_part.Elements))
 
     def FillSetOfAllEdges(self, set_of_all_edges):
         for elem in self.model_part.Elements:
@@ -132,13 +149,31 @@ class Pouliot2012EdgeMaterialAccelerationRecoverer(Pouliot2012EdgeGradientRecove
 class Pouliot2012EdgeLaplacianRecoverer(Pouliot2012EdgeMaterialAccelerationRecoverer, recoverer.LaplacianRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
         Pouliot2012EdgeDerivativesRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
-        self.element_type = "ComputeVelocityLaplacianSimplex3D"
-        self.condition_type = "ComputeLaplacianSimplexCondition3D"
+        self.element_type = self.GetElementType(pp)
+        self.condition_type = self.GetConditionType(pp)
         self.FillUpModelPart(self.element_type)
-        self.DOFs = (VELOCITY_LAPLACIAN_X, VELOCITY_LAPLACIAN_Y, VELOCITY_LAPLACIAN_Z)
+        self.DOFs = self.GetDofs(pp)
         self.AddDofs(self.DOFs)
 
     def RecoverVelocityLaplacian(self):
         print("\nSolving for the laplacian...")
         self.SetToZero(VELOCITY_LAPLACIAN)
         self.recovery_strategy.Solve()
+
+    def GetElementType(self, pp):
+        if pp.domain_size == 2:
+            return 'ComputeVelocityLaplacianSimplex2D'
+        else:
+            return 'ComputeVelocityLaplacianSimplex3D'
+
+    def GetConditionType(self, pp):
+        if pp.domain_size == 2:
+            return 'ComputeLaplacianSimplexCondition2D'
+        else:
+            return 'ComputeLaplacianSimplexCondition3D'
+
+    def GetDofs(self, pp):
+        if pp.domain_size == 2:
+            return (VELOCITY_LAPLACIAN_X, VELOCITY_LAPLACIAN_Y)
+        else:
+            return (VELOCITY_LAPLACIAN_X, VELOCITY_LAPLACIAN_Y, VELOCITY_LAPLACIAN_Z)
