@@ -114,7 +114,7 @@ KRATOS_DEFINE_VARIABLE( boost::shared_ptr<ConditionMap>, CONTACT_MAPS )         
 KRATOS_DEFINE_VARIABLE( Element::Pointer, ELEMENT_POINTER )                          // A pointer to the element belonging to this condition
 KRATOS_DEFINE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                            // The integration order computed in the contact
 KRATOS_DEFINE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                            // Mortar Contact Operator
-KRATOS_DEFINE_VARIABLE( double, ACTIVE_CHECK_FACTOR )                                // The factor employed to serach an active/inactive node
+KRATOS_DEFINE_VARIABLE( double, ACTIVE_CHECK_FACTOR )                                // The factor employed to search an active/inactive node
 
 /* Weighted values */
 KRATOS_DEFINE_VARIABLE( double, WEIGHTED_GAP )                                       // The integrated gap employed in mortar formulation

@@ -53,7 +53,6 @@ class MeshTyingProcess(KratosMultiphysics.Process):
 
         self.type_variable     = self.params["type_variable"].GetString() 
         self.geometry_element  = self.params["geometry_element"].GetString() 
-        self.integration_order = self.params["integration_order"].GetInt() 
         
     def ExecuteInitialize(self):
         
@@ -64,8 +63,10 @@ class MeshTyingProcess(KratosMultiphysics.Process):
         else:
             interface_model_part = computing_model_part.CreateSubModelPart("Contact")
             
+        # Setting the integration order and active check factor
         for prop in computing_model_part.GetProperties():
-            prop[ContactStructuralMechanicsApplication.INTEGRATION_ORDER_CONTACT] = self.integration_order
+            prop[ContactStructuralMechanicsApplication.INTEGRATION_ORDER_CONTACT] = self.params["integration_order"].GetInt() 
+            prop[ContactStructuralMechanicsApplication.ACTIVE_CHECK_FACTOR] = self.params["active_check_factor"].GetDouble()
             
         for node in self.mesh_tying_model_part.Nodes:
             node.Set(KratosMultiphysics.INTERFACE, True)
@@ -109,7 +110,6 @@ class MeshTyingProcess(KratosMultiphysics.Process):
         search_parameters.AddValue("allocation_size",self.params["max_number_results"])
         search_parameters.AddValue("bucket_size",self.params["bucket_size"])
         search_parameters.AddValue("search_factor",self.params["search_factor"])
-        search_parameters.AddValue("active_check_factor",self.params["active_check_factor"])
         search_parameters.AddValue("use_exact_integration",self.params["use_exact_integration"])
         self.contact_search = ContactStructuralMechanicsApplication.TreeContactSearch(computing_model_part, search_parameters)
         

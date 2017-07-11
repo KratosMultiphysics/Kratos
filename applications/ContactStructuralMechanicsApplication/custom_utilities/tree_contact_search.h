@@ -117,7 +117,6 @@ public:
             "bucket_size"                          : 4, 
             "search_factor"                        : 2.0, 
             "type_search"                          : "InRadius", 
-            "active_check_factor"                  : 0.01,
             "dual_search_check"                    : false,
             "strict_search_check"                  : true,
             "use_exact_integration"                : true
@@ -127,7 +126,6 @@ public:
 
         mAllocationSize = ThisParameters["allocation_size"].GetInt();
         mSearchFactor = ThisParameters["search_factor"].GetDouble();
-        mActiveCheckFactor = ThisParameters["active_check_factor"].GetDouble();
         mDualSearchCheck = ThisParameters["dual_search_check"].GetBool();
         mStrictSearchCheck = ThisParameters["strict_search_check"].GetBool();
         mUseExactIntegration = ThisParameters["use_exact_integration"].GetBool();
@@ -416,6 +414,7 @@ public:
                         boost::shared_ptr<ConditionMap>& conditions_pointers_destination = it_cond->GetValue(CONTACT_MAPS);
                         Condition::Pointer p_cond_slave = (*it_cond.base()); // MASTER
                         const array_1d<double, 3>& contact_normal_origin = p_cond_slave->GetValue(NORMAL);
+                        const double active_check_length = p_cond_slave->GetGeometry().Length() * p_cond_slave->GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
                         
                         // If not active we check if can be potentially in contact
                         if (mUseExactIntegration == false) // LEGACY WAY
@@ -428,7 +427,7 @@ public:
                                 
                                 if (condition_checked_right == true)
                                 {    
-                                    SearchUtilities::ContactContainerFiller<true>(conditions_pointers_destination, p_cond_slave, p_cond_origin, contact_normal_origin, p_cond_origin->GetValue(NORMAL), mActiveCheckFactor, mDualSearchCheck, mStrictSearchCheck); 
+                                    SearchUtilities::ContactContainerFiller<true>(conditions_pointers_destination, p_cond_slave, p_cond_origin, contact_normal_origin, p_cond_origin->GetValue(NORMAL), active_check_length, mDualSearchCheck, mStrictSearchCheck); 
                                 }
                             }
                         }
@@ -454,7 +453,7 @@ public:
                                     
                                     if (condition_checked_right == true)
                                     {   
-                                        condition_is_active = SearchUtilities::CheckExactIntegration<2, 2>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave, p_cond_master, contact_normal_origin, master_normal, mActiveCheckFactor);
+                                        condition_is_active = SearchUtilities::CheckExactIntegration<2, 2>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave, p_cond_master, contact_normal_origin, master_normal, active_check_length);
                                     }
                                     
                                     // If condition is active we add
@@ -481,7 +480,7 @@ public:
                                     
                                     if (condition_checked_right == true)
                                     {   
-                                        condition_is_active = SearchUtilities::CheckExactIntegration<3, 3>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave, p_cond_master, contact_normal_origin, master_normal, mActiveCheckFactor);
+                                        condition_is_active = SearchUtilities::CheckExactIntegration<3, 3>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave, p_cond_master, contact_normal_origin, master_normal, active_check_length);
                                     }
                                     
                                     // If condition is active we add
@@ -508,7 +507,7 @@ public:
                                     
                                     if (condition_checked_right == true)
                                     {   
-                                        condition_is_active = SearchUtilities::CheckExactIntegration<3, 4>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave, p_cond_master, contact_normal_origin, master_normal, mActiveCheckFactor);
+                                        condition_is_active = SearchUtilities::CheckExactIntegration<3, 4>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave, p_cond_master, contact_normal_origin, master_normal, active_check_length);
                                     }
                                     
                                     // If condition is active we add
@@ -534,6 +533,9 @@ public:
 //         }
     }
     
+    /**
+     * This function has as pourpose to clean the existing pairs
+     */
     
     void CleanMortarConditions()
     {
@@ -550,12 +552,13 @@ public:
                 
                 // Initialize geometries
                 const array_1d<double, 3> contact_normal = it_cond->GetValue(NORMAL);
+                const double active_check_length = it_cond->GetGeometry().Length() * it_cond->GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
                 
                 if (mUseExactIntegration == false) // LEGACY WAY
                 {
                     for (auto it_pair = conditions_pointers_destination->begin(); it_pair != conditions_pointers_destination->end(); ++it_pair )
                     {
-                        SearchUtilities::ContactContainerFiller<false>(conditions_pointers_destination, (*it_cond.base()), (it_pair->first), contact_normal, (it_pair->first)->GetValue(NORMAL), mActiveCheckFactor, mDualSearchCheck, mStrictSearchCheck);
+                        SearchUtilities::ContactContainerFiller<false>(conditions_pointers_destination, (*it_cond.base()), (it_pair->first), contact_normal, (it_pair->first)->GetValue(NORMAL), active_check_length, mDualSearchCheck, mStrictSearchCheck);
                     }
                 }
                 else
@@ -567,15 +570,15 @@ public:
                     
                     if (dimension == 2 && number_of_nodes == 2)
                     {
-                        SearchUtilities::ExactContactContainerChecker<2,2>(conditions_pointers_destination, (*it_cond.base()), contact_normal_origin, mActiveCheckFactor); 
+                        SearchUtilities::ExactContactContainerChecker<2,2>(conditions_pointers_destination, (*it_cond.base()), contact_normal_origin, active_check_length); 
                     }
                     else if (dimension == 3 && number_of_nodes == 3)
                     {
-                        SearchUtilities::ExactContactContainerChecker<3,3>(conditions_pointers_destination, (*it_cond.base()), contact_normal_origin, mActiveCheckFactor); 
+                        SearchUtilities::ExactContactContainerChecker<3,3>(conditions_pointers_destination, (*it_cond.base()), contact_normal_origin, active_check_length); 
                     }
                     else if (dimension == 3 && number_of_nodes == 4)
                     {
-                        SearchUtilities::ExactContactContainerChecker<3,4>(conditions_pointers_destination, (*it_cond.base()), contact_normal_origin, mActiveCheckFactor); 
+                        SearchUtilities::ExactContactContainerChecker<3,4>(conditions_pointers_destination, (*it_cond.base()), contact_normal_origin, active_check_length); 
                     }
                     else
                     {
@@ -854,7 +857,6 @@ private:
     unsigned int mDimension;                  // Dimension size of the space
     unsigned int mAllocationSize;             // Allocation size for the vectors and max number of potential results
     double mSearchFactor;                     // The search factor to be considered
-    double mActiveCheckFactor;                // The check factor to be considered
     bool mDualSearchCheck;                    // The search is done reciprocally
     bool mStrictSearchCheck;                  // The search is done requiring IsInside as true
     bool mUseExactIntegration;                // The search filter the results with the exact integration

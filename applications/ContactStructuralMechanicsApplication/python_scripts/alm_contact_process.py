@@ -77,12 +77,10 @@ class ALMContactProcess(KratosMultiphysics.Process):
                 node.Set(KratosMultiphysics.SLAVE, True)
             del(node)
         
-        self.normal_variation  = self.params["normal_variation"].GetBool()
         self.axisymmetric  = self.params["axisymmetric"].GetBool()
         if (self.axisymmetric == True) and (self.dimension == 3):
             raise NameError("3D and axisymmetric makes no sense")
-        self.pair_variation  = self.params["pair_variation"].GetBool()
-        self.integration_order = self.params["integration_order"].GetInt() 
+        self.normal_variation = self.params["normal_variation"].GetBool()
         self.database_step_update = self.params["database_step_update"].GetInt() 
         self.database_step = 0
         self.frictional_law = self.params["frictional_law"].GetString()
@@ -116,7 +114,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
         # We recompute the normal at each iteration (false by default)
         self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.CONSIDER_NORMAL_VARIATION] = self.normal_variation
         # We recompute the pairs at each iteration (true by default)
-        self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.CONSIDER_PAIR_VARIATION] = self.pair_variation
+        self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.CONSIDER_PAIR_VARIATION] = self.params["pair_variation"].GetBool()
         
         # We set the value that scales in the tangent direction the penalty and scale parameter
         if self.params["contact_type"].GetString() == "Frictional":
@@ -125,9 +123,10 @@ class ALMContactProcess(KratosMultiphysics.Process):
         # Copying the properties in the contact model part
         self.contact_model_part.SetProperties(computing_model_part.GetProperties())
         
-        # Setting the integration order
+        # Setting the integration order and active check factor
         for prop in computing_model_part.GetProperties():
-            prop[ContactStructuralMechanicsApplication.INTEGRATION_ORDER_CONTACT] = self.integration_order
+            prop[ContactStructuralMechanicsApplication.INTEGRATION_ORDER_CONTACT] = self.params["integration_order"].GetInt() 
+            prop[ContactStructuralMechanicsApplication.ACTIVE_CHECK_FACTOR] = self.params["active_check_factor"].GetDouble()
             
         for node in self.contact_model_part.Nodes:
             node.Set(KratosMultiphysics.INTERFACE, True)
@@ -189,13 +188,9 @@ class ALMContactProcess(KratosMultiphysics.Process):
             self.alm_var_process = ContactStructuralMechanicsApplication.ALMVariablesCalculationProcess(self.contact_model_part,KratosMultiphysics.NODAL_H, alm_var_parameters)
             self.alm_var_process.Execute()
         else:
-            # Penalty and scalar factor
-            penalty = self.params["penalty"].GetDouble()
-            scale_factor = self.params["scale_factor"].GetDouble()
-            
             # We set the values in the process info
-            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.PENALTY_PARAMETER] = penalty
-            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.SCALE_FACTOR]  = scale_factor
+            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.PENALTY_PARAMETER] = self.params["penalty"].GetDouble()
+            self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.SCALE_FACTOR] = self.params["scale_factor"].GetDouble()
             
         # We print the parameters considered
         print("The parameters considered finally are: ")            
@@ -219,7 +214,6 @@ class ALMContactProcess(KratosMultiphysics.Process):
         search_parameters.AddValue("allocation_size",self.params["max_number_results"])
         search_parameters.AddValue("bucket_size",self.params["bucket_size"])
         search_parameters.AddValue("search_factor",self.params["search_factor"])
-        search_parameters.AddValue("active_check_factor",self.params["active_check_factor"])
         search_parameters.AddValue("dual_search_check",self.params["dual_search_check"])
         search_parameters.AddValue("strict_search_check",self.params["strict_search_check"])
         search_parameters.AddValue("use_exact_integration",self.params["use_exact_integration"])
