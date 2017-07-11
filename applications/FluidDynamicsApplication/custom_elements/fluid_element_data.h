@@ -43,18 +43,18 @@ namespace Kratos
       ///@name Public enum
       ///@{
 
-      enum NodalData {
-          velocity_x,
-          velocity_y,
-          velocity_z,
-          pressure,
-          density,
-          viscosity,
-          mesh_velocity_x,
-          mesh_velocity_y,
-          mesh_velocity_z,
-          size
-      };
+        enum ScalarValue {
+          Pressure,
+          Density,
+          Viscosity,
+          NumberOfScalarValues          
+        };
+
+        enum VectorValue {
+          Velocity,
+          MeshVelocity,
+          NumberOfVectorValues
+        };
 
       ///@}
       ///@name Life Cycle
@@ -70,11 +70,17 @@ namespace Kratos
       ///@name Access
       ///@{
 
-      double GetValue(NodalData Value, unsigned int Node);
+      const array_1d<double,TNumNodes>& GetNodalValues(ScalarValue Value);
 
-      void Evaluate(const Kratos::Vector& rShapeFunctions, NodalData Value, double &rOutput);
+      const boost::numeric::ublas::bounded_matrix<double, 3, TNumNodes >& GetNodalValues(VectorValue Value);
 
-      void EvaluateGradient(const Kratos::Matrix& rShapeFunctionGradients, NodalData Value, array_1d<double,3> &rGradient);
+      void Evaluate(const Kratos::Vector& rShapeFunctions, ScalarValue Value, double &rOutput);
+
+      void Evaluate(const Kratos::Vector& rShapeFunctions, VectorValue Value, array_1d<double,3>& rOutput);
+
+      void EvaluateGradient(const Kratos::Matrix& rShapeFunctionGradients, ScalarValue Value, array_1d<double,3> &rGradient);
+
+      void EvaluateGradient(const Kratos::Matrix& rShapeFunctionGradients, VectorValue Value, boost::numeric::ublas::bounded_matrix<double, 3,3> &rGradient);
 
       ///@}
 
@@ -82,7 +88,9 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
-      boost::numeric::ublas::bounded_matrix< double, size, TNumNodes > mNodalData;
+      array_1d< double, TNumNodes > mScalarData[NumberOfScalarValues];
+
+      boost::numeric::ublas::bounded_matrix< double, 3, TNumNodes > mVectorData[NumberOfVectorValues];
 
       ///@}
       ///@name Un accessible methods

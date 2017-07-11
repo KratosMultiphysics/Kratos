@@ -16,25 +16,25 @@ namespace Kratos
 {
 
 template< unsigned int TNumNodes >
-FluidElementData<TNumNodes>::FluidElementData(Geometry< Node<3> > &rGeom):
-  mNodalData(size, TNumNodes)
+FluidElementData<TNumNodes>::FluidElementData(Geometry< Node<3> > &rGeom)
 {
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
         Node<3> &rNode = rGeom[i];
-        const array_1d<double,3> &rVel = rNode.FastGetSolutionStepValue(VELOCITY);
-        mNodalData(velocity_x, i) = rVel[0];
-        mNodalData(velocity_y, i) = rVel[1];
-        mNodalData(velocity_z, i) = rVel[2];
+        const array_1d<double,3> &rNodalVel = rNode.FastGetSolutionStepValue(VELOCITY);
+        const array_1d<double,3> &rNodalMeshVel = rNode.FastGetSolutionStepValue(MESH_VELOCITY);
+        auto & rVel = mVectorData[Velocity];
+        auto & rMeshVel = mVectorData[MeshVelocity];
 
-        mNodalData(pressure, i)  = rNode.FastGetSolutionStepValue(PRESSURE);
-        mNodalData(density, i)   = rNode.FastGetSolutionStepValue(DENSITY);
-        mNodalData(viscosity, i) = rNode.FastGetSolutionStepValue(VISCOSITY);
+        for (unsigned int d = 0; d < 3; d++)
+        {
+            rVel(i,d) = rNodalVel[d];
+            rMeshVel(i,d) = rNodalMeshVel[d];
+        }
 
-        const array_1d<double,3> &rMeshVel = rNode.FastGetSolutionStepValue(MESH_VELOCITY);
-        mNodalData(mesh_velocity_x, i) = rMeshVel[0];
-        mNodalData(mesh_velocity_y, i) = rMeshVel[1];
-        mNodalData(mesh_velocity_z, i) = rMeshVel[2];
+        mScalarData[Pressure ](i) = rNode.FastGetSolutionStepValue(PRESSURE);
+        mScalarData[Density  ](i) = rNode.FastGetSolutionStepValue(DENSITY);
+        mScalarData[Viscosity](i) = rNode.FastGetSolutionStepValue(VISCOSITY);
     }
 }
 
@@ -44,34 +44,79 @@ FluidElementData<TNumNodes>::~FluidElementData()
 
 }
 
+
 template< unsigned int TNumNodes >
-double FluidElementData<TNumNodes>::GetValue(NodalData Value, unsigned int node)
+const array_1d<double,TNumNodes>& FluidElementData<TNumNodes>::GetNodalValues(ScalarValue Value)
 {
-    return mNodalData(Value,node);
+    return mScalarData[Value];
 }
 
 template< unsigned int TNumNodes >
-void FluidElementData<TNumNodes>::Evaluate(const Kratos::Vector& rShapeFunctions, NodalData Value, double &rOutput)
+const boost::numeric::ublas::bounded_matrix<double, 3, TNumNodes >& FluidElementData<TNumNodes>::GetNodalValues(VectorValue Value)
 {
-    rOutput = rShapeFunctions[0] * mNodalData(Value,0);
+    return mVectorData[Value];
+}
+
+template< unsigned int TNumNodes >
+void FluidElementData<TNumNodes>::Evaluate(const Kratos::Vector& rShapeFunctions, ScalarValue Value, double &rOutput)
+{
+    const array_1d<double,TNumNodes> &rNodalData = mScalarData[Value];
+    rOutput = rShapeFunctions[0] * rNodalData[0];
     for (unsigned int i = 1; i < TNumNodes; i++)
     {
-        rOutput += rShapeFunctions[i] * mNodalData(Value,i);
+        rOutput += rShapeFunctions[i] * rNodalData[Value];
     }
 }
 
 template< unsigned int TNumNodes >
-void FluidElementData<TNumNodes>::EvaluateGradient(const Kratos::Matrix& rShapeFunctionGradients, NodalData Value, array_1d<double,3> &rGradient)
+void FluidElementData<TNumNodes>::Evaluate(const Kratos::Vector& rShapeFunctions, VectorValue Value, array_1d<double,3>& rOutput)
 {
+    const boost::numeric::ublas::bounded_matrix<double,3,TNumNodes> &rNodalData = mVectorData[Value];
+
+    rOutput[0] = 0.0;
+    rOutput[1] = 0.0;
+    rOutput[2] = 0.0;
+
+    for (unsigned int i = 0; i < TNumNodes; i++)
+    {
+        const double N = rShapeFunctions[i];
+        for (unsigned int d = 0; d < 3; d++)
+        {
+            rOutput[d] += N * rNodalData(d,i);
+        }
+    }
+}
+
+template< unsigned int TNumNodes >
+void FluidElementData<TNumNodes>::EvaluateGradient(const Kratos::Matrix& rShapeFunctionGradients, ScalarValue Value, array_1d<double,3> &rGradient)
+{
+    const array_1d<double,TNumNodes> &rNodalData = mScalarData[Value];
     rGradient[0] = 0.0;
     rGradient[1] = 0.0;
     rGradient[2] = 0.0;
 
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
-        for (unsigned int d = 0; d < rShapeFunctionGradients.size2(); d++)
+        for (unsigned int d = 0; d < 3; d++)
         {
-            rGradient[d] += rShapeFunctionGradients(i,d) * mNodalData(Value,i);
+            rGradient[d] += rShapeFunctionGradients(i,d) * rNodalData[i];
+        }
+    }
+}
+
+template< unsigned int TNumNodes >
+void FluidElementData<TNumNodes>::EvaluateGradient(const Kratos::Matrix& rShapeFunctionGradients, VectorValue Value, boost::numeric::ublas::bounded_matrix<double, 3,3> &rGradient)
+{
+    const boost::numeric::ublas::bounded_matrix<double,3,TNumNodes> &rNodalData = mVectorData[Value];
+
+    noalias(rGradient) = ZeroMatrix(3,3);
+    
+    for (unsigned int i = 0; i < TNumNodes; i++)
+    {
+        for (unsigned int j = 0; j < 3; j++)
+        {
+            for (unsigned int k = 0; k < 3; k++)
+                rGradient(j,k) += rShapeFunctionGradients(i,k) * rNodalData(j,i);
         }
     }
 }
