@@ -125,7 +125,6 @@ public:
             mConsistentBackwardMapping = false;
         }
 
-        ComputeMappingMatrix();
     }
 
     /// Destructor.
@@ -182,7 +181,7 @@ public:
         unsigned int i = 0;
         for(auto& node_i : mrDesignSurface.Nodes())
             node_i.SetValue(MAPPING_ID,i++);
-    }        
+    }
 
     // --------------------------------------------------------------------------
     void ComputeMappingMatrix()
@@ -210,7 +209,7 @@ public:
             NodeVector neighbor_nodes( mMaxNumberOfNeighbors );
             std::vector<double> resulting_squared_distances( mMaxNumberOfNeighbors );
             unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                             mFilterRadius, 
+                                                                             mFilterRadius,
                                                                              neighbor_nodes.begin(),
                                                                              resulting_squared_distances.begin(),
                                                                              mMaxNumberOfNeighbors );
@@ -218,7 +217,7 @@ public:
             std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
             double sum_of_weights = 0.0;
 
-            ThrowWarningIfMaxNodeNeighborsReached( node_i, number_of_neighbors );                                                                               
+            ThrowWarningIfMaxNodeNeighborsReached( node_i, number_of_neighbors );
             ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
             FillMappingMatrixWithWeights( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
         }
@@ -232,7 +231,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void ComputeWeightForAllNeighbors(  ModelPart::NodeType& design_node,
+    virtual void ComputeWeightForAllNeighbors(  ModelPart::NodeType& design_node,
                                         NodeVector& neighbor_nodes,
                                         unsigned int number_of_neighbors,
                                         std::vector<double>& list_of_weights,
@@ -358,6 +357,7 @@ public:
     // --------------------------------------------------------------------------
     void MultiplyVectorsWithConsistentBackwardMappingMatrix()
     {
+        // for the case of matching grids in geometry and design space, use the forward mapping matrix
         noalias(x_variables_in_design_space) = prod(mMappingMatrix,x_variables_in_geometry_space);
         noalias(y_variables_in_design_space) = prod(mMappingMatrix,y_variables_in_geometry_space);
         noalias(z_variables_in_design_space) = prod(mMappingMatrix,z_variables_in_geometry_space);
@@ -411,12 +411,7 @@ public:
             sumOfAllCoordinates += coord[0] + coord[1] + coord[2];
         }
 
-        if(IsFirstMappingOperation())
-        {
-            mControlSum = sumOfAllCoordinates;
-            return false;
-        }
-        else if (mControlSum == sumOfAllCoordinates)
+        if (mControlSum == sumOfAllCoordinates)
             return false;
         else
         {
@@ -430,16 +425,6 @@ public:
     {
         mpSearchTree.reset();
         mMappingMatrix.clear();
-    }
-
-
-    // --------------------------------------------------------------------------
-    bool IsFirstMappingOperation()
-    {
-        if(mControlSum == 0.0)
-            return true;
-        else
-             return false;
     }
 
     // ==============================================================================
@@ -492,6 +477,11 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    // // ==============================================================================
+    // // Initialized by class constructor
+    // // ==============================================================================
+    ModelPart& mrDesignSurface;
+    FilterFunction::Pointer mpFilterFunction;
 
     ///@}
     ///@name Protected Operators
@@ -532,12 +522,10 @@ private:
     // // ==============================================================================
     // // Initialized by class constructor
     // // ==============================================================================
-    ModelPart& mrDesignSurface;
     const unsigned int mNumberOfDesignVariables;
     std::string mFilterType;
     double mFilterRadius;
     unsigned int mMaxNumberOfNeighbors;
-    FilterFunction::Pointer mpFilterFunction;
     bool mConsistentBackwardMapping;
 
     // ==============================================================================
