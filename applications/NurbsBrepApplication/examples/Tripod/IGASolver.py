@@ -31,7 +31,7 @@ from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 #from KratosMultiphysics.NurbsBrepApplication import *
 from KratosMultiphysics.IGAStructuralMechanicsApplication import *
-from KratosMultiphysics.NURBSBRepApplication import *
+from KratosMultiphysics.NurbsBrepApplication import *
 import KratosMultiphysics.ExternalSolversApplication 
 
 import json

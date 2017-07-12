@@ -1,7 +1,7 @@
 # importing the Kratos Library
 from KratosMultiphysics import *
 import KratosMultiphysics.IGAStructuralMechanicsApplication
-import KratosMultiphysics.NURBSBRepApplication
+import KratosMultiphysics.NurbsBrepApplication
 from KratosMultiphysics.SolidMechanicsApplication import *
 from beam_sections_python_utility import SetProperties
 import json

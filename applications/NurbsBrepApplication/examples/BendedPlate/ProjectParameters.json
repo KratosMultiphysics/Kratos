@@ -163,22 +163,22 @@
       "iga_model_part": "LOAD_3",
       "parameters": {
         "properties_id": 1,
-        "control_points": [ "KratosMultiphysics.NURBSBRepApplication.CONTROL_POINT_IDS" ],
+        "control_points": [ "KratosMultiphysics.NurbsBrepApplication.CONTROL_POINT_IDS" ],
         "variables": [
           {
-            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_VALUES",
+            "cad_variable": "KratosMultiphysics.NurbsBrepApplication.SHAPE_FUNCTION_VALUES",
             "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_VALUES"
           },
           {
-            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_DERIVATIVES",
+            "cad_variable": "KratosMultiphysics.NurbsBrepApplication.SHAPE_FUNCTION_DERIVATIVES",
             "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_LOCAL_DERIVATIVES"
           },
           {
-            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.INTEGRATION_WEIGHT",
+            "cad_variable": "KratosMultiphysics.NurbsBrepApplication.INTEGRATION_WEIGHT",
             "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.INTEGRATION_WEIGHT"
           },
           {
-            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.TANGENTS_BASIS_VECTOR",
+            "cad_variable": "KratosMultiphysics.NurbsBrepApplication.TANGENTS_BASIS_VECTOR",
             "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.TANGENTS"
           }
         ]
@@ -190,22 +190,22 @@
       "iga_model_part": "SUPPORT_2",
       "parameters": {
         "properties_id": 1,
-        "control_points": [ "KratosMultiphysics.NURBSBRepApplication.CONTROL_POINT_IDS" ],
+        "control_points": [ "KratosMultiphysics.NurbsBrepApplication.CONTROL_POINT_IDS" ],
         "variables": [
           {
-            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_VALUES",
+            "cad_variable": "KratosMultiphysics.NurbsBrepApplication.SHAPE_FUNCTION_VALUES",
             "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_VALUES"
           },
           {
-            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_DERIVATIVES",
+            "cad_variable": "KratosMultiphysics.NurbsBrepApplication.SHAPE_FUNCTION_DERIVATIVES",
             "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_LOCAL_DERIVATIVES"
           },
           {
-            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.INTEGRATION_WEIGHT",
+            "cad_variable": "KratosMultiphysics.NurbsBrepApplication.INTEGRATION_WEIGHT",
             "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.INTEGRATION_WEIGHT"
           },
           {
-            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.TANGENTS_BASIS_VECTOR",
+            "cad_variable": "KratosMultiphysics.NurbsBrepApplication.TANGENTS_BASIS_VECTOR",
             "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.TANGENTS"
           }
         ]
@@ -217,34 +217,34 @@
       "iga_model_part": "CONTINUITY_EDGES",
       "parameters": {
         "properties_id": 1,
-        "control_points": [ "KratosMultiphysics.NURBSBRepApplication.CONTROL_POINT_IDS", "KratosMultiphysics.NURBSBRepApplication.CONTROL_POINT_IDS_SLAVE" ],
+        "control_points": [ "KratosMultiphysics.NurbsBrepApplication.CONTROL_POINT_IDS", "KratosMultiphysics.NurbsBrepApplication.CONTROL_POINT_IDS_SLAVE" ],
         "variables": [
           {
-            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_VALUES",
+            "cad_variable": "KratosMultiphysics.NurbsBrepApplication.SHAPE_FUNCTION_VALUES",
             "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_VALUES"
           },
           {
-            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_DERIVATIVES",
+            "cad_variable": "KratosMultiphysics.NurbsBrepApplication.SHAPE_FUNCTION_DERIVATIVES",
             "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_LOCAL_DERIVATIVES"
           },
           {
-            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.INTEGRATION_WEIGHT",
+            "cad_variable": "KratosMultiphysics.NurbsBrepApplication.INTEGRATION_WEIGHT",
             "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.INTEGRATION_WEIGHT"
           },
           {
-            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.TANGENTS_BASIS_VECTOR",
+            "cad_variable": "KratosMultiphysics.NurbsBrepApplication.TANGENTS_BASIS_VECTOR",
             "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.TANGENTS"
           },
           {
-            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_SLAVE",
+            "cad_variable": "KratosMultiphysics.NurbsBrepApplication.SHAPE_FUNCTION_SLAVE",
             "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_VALUES_SLAVE"
           },
           {
-            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_DERIVATIVES_SLAVE",
+            "cad_variable": "KratosMultiphysics.NurbsBrepApplication.SHAPE_FUNCTION_DERIVATIVES_SLAVE",
             "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE"
           },
           {
-            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.TANGENTS_BASIS_VECTOR_SLAVE",
+            "cad_variable": "KratosMultiphysics.NurbsBrepApplication.TANGENTS_BASIS_VECTOR_SLAVE",
             "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.TANGENTS_SLAVE"
           }
         ]
@@ -258,22 +258,22 @@
       "iga_model_part": "STRUCTURAL_ANALYSIS_2",
       "parameters": {
         "properties_id": 1,
-        "control_points": "KratosMultiphysics.NURBSBRepApplication.CONTROL_POINT_IDS",
+        "control_points": "KratosMultiphysics.NurbsBrepApplication.CONTROL_POINT_IDS",
         "variables": [
           {
-            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_VALUES",
+            "cad_variable": "KratosMultiphysics.NurbsBrepApplication.SHAPE_FUNCTION_VALUES",
             "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_VALUES"
           },
           {
-            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_DERIVATIVES",
+            "cad_variable": "KratosMultiphysics.NurbsBrepApplication.SHAPE_FUNCTION_DERIVATIVES",
             "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_LOCAL_DERIVATIVES"
           },
           {
-            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.INTEGRATION_WEIGHT",
+            "cad_variable": "KratosMultiphysics.NurbsBrepApplication.INTEGRATION_WEIGHT",
             "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.INTEGRATION_WEIGHT"
           },
           {
-            "cad_variable": "KratosMultiphysics.NURBSBRepApplication.SHAPE_FUNCTION_SECOND_DERIVATIVES",
+            "cad_variable": "KratosMultiphysics.NurbsBrepApplication.SHAPE_FUNCTION_SECOND_DERIVATIVES",
             "iga_variable": "KratosMultiphysics.IGAStructuralMechanicsApplication.SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES"
           }
         ]
