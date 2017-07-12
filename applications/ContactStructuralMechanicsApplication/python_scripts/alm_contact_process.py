@@ -246,13 +246,13 @@ class ALMContactProcess(KratosMultiphysics.Process):
             if (self.predict_with_linear_solver == True and self.global_step > 1):
                 # Debug
                 if (self.debug_mode == True):
-                    self._debug_output(self.database_step, "_LINEARPRED")
+                    self._debug_output(self.global_step, "_LINEARPRED")
                 self._linear_solver_predict()
                 self.contact_search.CleanMortarConditions()
                 
             # Debug
             if (self.debug_mode == True):
-               self._debug_output(self.database_step, "")
+               self._debug_output(self.global_step, "")
         
     def ExecuteFinalizeSolutionStep(self):
         pass
