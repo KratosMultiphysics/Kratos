@@ -168,7 +168,9 @@ namespace Kratos
             //verify that the variables are correctly initialized
 
             if ( JACOBIAN.Key() == 0 )
-               KRATOS_THROW_ERROR( std::invalid_argument, "PRESSURE has Key zero! (check if the application is correctly registered", "" )
+            KRATOS_THROW_ERROR( std::invalid_argument, "JACOBIAN has Key zero! (check if the application is correctly registered", "" )
+
+
 
                   return correct;
 
@@ -258,6 +260,15 @@ namespace Kratos
       //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
       rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
 
+    //stabilization factor
+    double StabilizationFactor = 0.20;
+    if( GetProperties().Has(STABILIZATION_FACTOR_J) ) {
+        StabilizationFactor = GetProperties()[STABILIZATION_FACTOR_J];
+    }
+    else if( rCurrentProcessInfo.Has(STABILIZATION_FACTOR_J) ) {
+        StabilizationFactor = rCurrentProcessInfo[STABILIZATION_FACTOR_J];
+    }
+    GetProperties().SetValue(STABILIZATION_FACTOR_J, StabilizationFactor);
 
 
    }
@@ -358,6 +369,103 @@ namespace Kratos
 
       KRATOS_CATCH( "" )
    }
+//************************************************************************************
+//************************************************************************************
+
+void AxisymUpdatedLagrangianUJElement::CalculateGreenLagrangeStrain(const Matrix& rF,
+        Vector& rStrainVector )
+{
+    KRATOS_TRY
+
+    const unsigned int dimension  = GetGeometry().WorkingSpaceDimension();
+
+    //Right Cauchy-Green Calculation
+    Matrix C ( 3, 3 );
+    noalias( C ) = prod( trans( rF ), rF );
+
+    if( dimension == 2 )
+    {
+
+        //Green Lagrange Strain Calculation
+        if ( rStrainVector.size() != 4 ) rStrainVector.resize( 4, false );
+
+        rStrainVector[0] = 0.5 * ( C( 0, 0 ) - 1.00 );
+
+        rStrainVector[1] = 0.5 * ( C( 1, 1 ) - 1.00 );
+
+        rStrainVector[2] = 0.5 * ( C( 2, 2 ) - 1.00 );
+
+        rStrainVector[3] = C( 0, 1 ); // xy
+
+    }
+    else if( dimension == 3 )
+    {
+
+        std::cout<<" AXISYMMETRIC case and 3D is not possible "<<std::endl;
+
+    }
+    else
+    {
+
+        KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
+        Vector& rStrainVector )
+{
+    KRATOS_TRY
+
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    //Left Cauchy-Green Calculation
+    Matrix LeftCauchyGreen(rF.size1(),rF.size1());
+    noalias(LeftCauchyGreen) = prod( rF, trans( rF ) );
+
+    //Calculating the inverse of the jacobian
+    Matrix InverseLeftCauchyGreen(rF.size1(),rF.size1());
+    double det_b=0;
+    MathUtils<double>::InvertMatrix( LeftCauchyGreen, InverseLeftCauchyGreen, det_b);
+
+    if( dimension == 2 )
+    {
+
+        //Almansi Strain Calculation
+        if ( rStrainVector.size() != 4 ) rStrainVector.resize( 4, false );
+
+        rStrainVector[0] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 0, 0 ) );
+
+        rStrainVector[1] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 1, 1 ) );
+
+        rStrainVector[2] = 0.5 * ( 1.00 - InverseLeftCauchyGreen( 2, 2 ) );
+
+        rStrainVector[3] = - InverseLeftCauchyGreen( 0, 1 ); // xy
+
+    }
+    else if( dimension == 3 )
+    {
+
+        std::cout<<" AXISYMMETRIC case and 3D is not possible "<<std::endl;
+
+    }
+    else
+    {
+
+        KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
+
+    }
+
+
+    KRATOS_CATCH( "" )
+}
+
+
 
    //************* COMPUTING  METHODS
    //************************************************************************************
@@ -697,7 +805,7 @@ namespace Kratos
          double& rIntegrationWeight)
    {
 
-      // VALE, HO TINC BÉ, O COM A MÍNIM SEMBLANT EN EL MATLAB.
+      
       KRATOS_TRY
 
       const unsigned int number_of_nodes = GetGeometry().size();
@@ -707,59 +815,42 @@ namespace Kratos
       Matrix ConstitutiveMatrix = rVariables.ConstitutiveMatrix;
       unsigned int voigtsize = 4;
 
-      Matrix Identity = ZeroMatrix( voigtsize, 1);
+    // Trying to do it new
+    Vector Identity = ZeroVector(voigtsize);
+    for (unsigned int i = 0; i < 3; i++)
+        Identity(i) = 1.0;
 
-      for (unsigned int i = 0; i < 3; i++) {
-         Identity(i,0) = 1.0;
-      }
+    Vector ConstVector = prod( ConstitutiveMatrix, Identity);
+    ConstVector /= dimension_double;
 
-      ConstitutiveMatrix = prod( ConstitutiveMatrix, (Identity) );
-      ConstitutiveMatrix /= dimension_double;
+    ConstVector += ( 2.0/dimension_double-1.0) * rVariables.StressVector;
 
+    double ElementJacobian = 0.0;
 
-      for ( unsigned int i = 0; i < voigtsize; i++)
-      {
-         ConstitutiveMatrix(i,0) += ( 2/dimension_double - 1.0 ) * rVariables.StressVector(i); 
-      }
-
-      double ElementJacobian = 0;
       for ( unsigned int i = 0; i <  number_of_nodes ; i++)
          ElementJacobian += GetGeometry()[i].GetSolutionStepValue( JACOBIAN ) * rVariables.N[i] ;
 
+    ConstVector /= ElementJacobian;
 
-      ConstitutiveMatrix /= ElementJacobian;
+    Vector KuJ = prod( trans( rVariables.B), (ConstVector) );
 
-      Matrix KuJ = prod ( trans( rVariables.B), ConstitutiveMatrix);
-      Matrix SecondMatrix = ZeroMatrix( dimension*number_of_nodes, number_of_nodes);
+          Matrix SecondMatrix = ZeroMatrix( dimension*number_of_nodes, number_of_nodes);
 
-      for (unsigned int i = 0; i < dimension*number_of_nodes; i++)
-      {
-         for (unsigned int j = 0; j < number_of_nodes; j++)
-         {
-            SecondMatrix(i,j) = KuJ(i,0)*rVariables.N[j];
+    for (unsigned int i = 0; i < dimension*number_of_nodes; i++) {
+        for (unsigned int j = 0; j < number_of_nodes; j++) {
+            SecondMatrix(i,j) =KuJ(i) * rVariables.N[j];
          }
       }
-
       SecondMatrix *= rIntegrationWeight;
 
-      // ARA HE DE POSAR LA MATRIU AL SEU LLOC ( I AMB EL SEU SIGNE, NEGATIU??)
+
+      // Add the matrix in its place
       MatrixType Kh=rLeftHandSideMatrix;
-      unsigned int indexi = 0;
-      unsigned int indexj = 0;
-      for (unsigned int i = 0; i < number_of_nodes; i++)
-      {
-         for (unsigned int idim = 0; idim < dimension; idim++)
-         {
-            indexj = 0; 
-            for (unsigned int j = 0; j < number_of_nodes; j++)
-            {
-               for (unsigned int jdim = 0; jdim < 1; jdim++)
-               {
-                  rLeftHandSideMatrix(indexi+i, indexj + 2*j+2) += SecondMatrix(indexi, indexj);
-                  indexj++;
+    for (unsigned int i = 0; i < number_of_nodes; i++) {
+        for (unsigned int idim = 0; idim < dimension; idim++) {
+            for (unsigned int j = 0; j < number_of_nodes; j++) {
+                rLeftHandSideMatrix(i*(dimension+1) + idim, (dimension+1)*(j+1) -1 ) += SecondMatrix( i*(dimension) + idim, j);
                }
-            }
-            indexi++;
          }
       }
 
@@ -1007,6 +1098,94 @@ namespace Kratos
 
    }
 
+   //************************************************************************************
+   //************************************************************************************
+   // Calculate mass matrix. copied from AxisymUpdatedLagrangianUPElement
+   void AxisymUpdatedLagrangianUJElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+   {
+      KRATOS_TRY
+
+      //lumped
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+      const unsigned int number_of_nodes = GetGeometry().size();
+      unsigned int MatSize = number_of_nodes * dimension + number_of_nodes;
+
+      if ( rMassMatrix.size1() != MatSize )
+         rMassMatrix.resize( MatSize, MatSize, false );
+
+      rMassMatrix = ZeroMatrix( MatSize, MatSize );
+
+      // Not Lumped Mass Matrix (numerical integration):
+
+      //reading integration points
+      IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::GI_GAUSS_2; //GeometryData::GI_GAUSS_1;
+
+      const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
+
+      GeneralVariables Variables;
+      this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+
+
+      for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+      {
+
+         //compute element kinematics
+         this->CalculateKinematics( Variables, PointNumber );
+
+         //getting informations for integration
+         double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ * 2.0 * 3.141592654 * Variables.CurrentRadius;
+
+
+         //compute point volume change
+         double PointVolumeChange = 0;
+         PointVolumeChange = this->CalculateVolumeChange( PointVolumeChange, Variables );
+
+         double CurrentDensity = PointVolumeChange * GetProperties()[DENSITY];
+
+         for ( unsigned int i = 0; i < number_of_nodes; i++ )
+         {
+            unsigned int indexupi = dimension * i + i;
+
+            for ( unsigned int j = 0; j < number_of_nodes; j++ )
+            {
+               unsigned int indexupj = dimension * j + j;
+
+               for ( unsigned int k = 0; k < dimension; k++ )
+               {
+                  rMassMatrix( indexupi+k , indexupj+k ) += Variables.N[i] * Variables.N[j] * CurrentDensity * IntegrationWeight;
+               }
+            }
+         }
+
+      }
+
+      // Lumped Mass Matrix:
+
+      // double TotalMass = 0;
+
+      // this->CalculateTotalMass( TotalMass, rCurrentProcessInfo );
+
+      // Vector LumpFact = ZeroVector(number_of_nodes);
+
+      // LumpFact = GetGeometry().LumpingFactors( LumpFact );
+
+      // for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      // 	{
+      // 	  double temp = LumpFact[i] * TotalMass;
+
+      // 	  unsigned int indexup = dimension * i + i;
+
+      // 	  for ( unsigned int j = 0; j < dimension; j++ )
+      // 	    {
+      // 	      rMassMatrix( indexup+j , indexup+j ) += temp;
+      // 	    }
+      // 	}
+
+      // std::cout<<std::endl;
+      // std::cout<<" Mass Matrix "<<rMassMatrix<<std::endl;
+
+      KRATOS_CATCH( "" )
+   }
 
    //************************************************************************************
    //************************************************************************************
@@ -1023,7 +1202,6 @@ namespace Kratos
 
 
    void AxisymUpdatedLagrangianUJElement::ComputeConstitutiveVariables(  GeneralVariables& rVariables, Matrix& rFT, double& rDetFT)
-      //void AxisymUpdatedLagrangianUJElement::ComputeConstitutiteVariables( const GeneralVariables& rVariables, Matrix& rFT, double& rDetFT)
    {
       KRATOS_TRY
 
@@ -1043,6 +1221,8 @@ namespace Kratos
       std::vector< Matrix > EECCInverseDefGrad;
       ProcessInfo SomeProcessInfo;
       this->GetValueOnIntegrationPoints( INVERSE_DEFORMATION_GRADIENT, EECCInverseDefGrad, SomeProcessInfo);
+    if(  EECCInverseDefGrad[0].size1() == 0)
+        return;
       Matrix EECCInverseBig = EECCInverseDefGrad[0];
       Matrix EECCDefGradInverse = ZeroMatrix(3,3);
 
@@ -1102,15 +1282,11 @@ namespace Kratos
    void AxisymUpdatedLagrangianUJElement::save( Serializer& rSerializer ) const
    {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UpdatedLagrangianUJElement )
-         rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
-      rSerializer.save("DeterminantF0",mDeterminantF0);
    }
 
    void AxisymUpdatedLagrangianUJElement::load( Serializer& rSerializer )
    {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UpdatedLagrangianUJElement )
-         rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
-      rSerializer.load("DeterminantF0",mDeterminantF0);
    }
 
 

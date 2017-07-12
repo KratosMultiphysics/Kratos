@@ -175,6 +175,25 @@ namespace Kratos
           */
          void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
+         //************* COMPUTING  METHODS
+
+         /**
+          * this is called during the assembling process in order
+          * to calculate the elemental mass matrix
+          * @param rMassMatrix: the elemental mass matrix
+          * @param rCurrentProcessInfo: the current process info instance
+          */
+         void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+
+         /**
+          * this is called during the assembling process in order
+          * to calculate the elemental damping matrix
+          * @param rDampingMatrix: the elemental damping matrix
+          * @param rCurrentProcessInfo: the current process info instance
+          */
+         void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
+
+
          //************************************************************************************
          //************************************************************************************
          /**

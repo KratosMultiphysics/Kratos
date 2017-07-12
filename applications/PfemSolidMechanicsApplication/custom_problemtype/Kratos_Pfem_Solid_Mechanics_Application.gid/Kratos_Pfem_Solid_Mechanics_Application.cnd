@@ -144,6 +144,28 @@ QUESTION: Time_Interval:(Start,End)
 VALUE: #N# 2 0 0
 END CONDITION
 
+
+CONDITION: group_WATER_PRESSURE
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: points lines surfaces volumes nodes elements
+QUESTION: by_function#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Value,#CURRENT#,RESTORE,Function,#CURRENT#)
+DEPENDENCIES: (False,RESTORE,Value,#CURRENT#,HIDE,Function,#CURRENT#)
+QUESTION: Value
+VALUE: 0.0
+QUESTION: Function
+VALUE:
+QUESTION: Time_Evolution#CB#(INITIAL,FULL,INTERVAL)
+VALUE: FULL
+DEPENDENCIES:(INTERVAL,RESTORE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(INITIAL,HIDE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(FULL,HIDE,Time_Interval,#CURRENT#)
+QUESTION: Time_Interval:(Start,End)
+VALUE: #N# 2 0 0
+END CONDITION
+
 # Loads
 
 BOOK: Loads
@@ -188,7 +210,7 @@ CONDMESHTYPE: over elements faces
 GROUPALLOW: lines nodes elements faces
 QUESTION: Variable#CB#(LINE_LOAD)
 VALUE: LINE_LOAD
-QUESTION: ConditionType#CB#(LineLoadCondition2D2N,LineLoadAxisymCondition2D2N)
+QUESTION: ConditionType#CB#(LineLoadCondition2D2N,AxisymLineLoadCondition2D2N)
 VALUE: LineLoadCondition2D2N
 QUESTION: by_function#CB#(True,False)
 VALUE: False
@@ -250,7 +272,7 @@ CONDMESHTYPE: over elements faces
 GROUPALLOW: lines nodes elements faces
 QUESTION: Variable#CB#(POSITIVE_FACE_PRESSURE)
 VALUE: POSITIVE_FACE_PRESSURE
-QUESTION: ConditionType#CB#(LineLoadCondition2D2N,LineLoadAxisymCondition2D2N)
+QUESTION: ConditionType#CB#(LineLoadCondition2D2N,AxisymLineLoadCondition2D2N)
 VALUE: LineLoadCondition2D2N
 QUESTION: by_function#CB#(True,False)
 VALUE: False

@@ -14,7 +14,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/updated_lagrangian_U_P_Second_element.hpp"
+#include "custom_elements/updated_lagrangian_U_Pressure_element.hpp"
 
 namespace Kratos
 {
@@ -39,7 +39,7 @@ namespace Kratos
 
 
    class AxisymUpdatedLagrangianUPressureElement
-      : public UpdatedLagrangianUPSecondElement
+      : public UpdatedLagrangianUPressureElement
    {
 
 
@@ -188,16 +188,6 @@ namespace Kratos
           */
          virtual void InitializeGeneralVariables(GeneralVariables & rVariables, 
                const ProcessInfo& rCurrentProcessInfo);
-
-
-
-         virtual double GetElementSize( const Matrix& rDN_DX);
-         /**
-          * Set Variables of the Element to the Parameters of the Constitutive Law
-          */
-         //virtual void SetGeneralVariables(GeneralVariables& rVariables,
-         //                                 ConstitutiveLaw::Parameters& rValues,
-         //                                 const int & rPointNumber);
 
 
          /**

@@ -18,41 +18,44 @@
 
 namespace Kratos
 {
-const unsigned int ConstitutiveLaw::msIndexVoigt3D6C [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
-const unsigned int ConstitutiveLaw::msIndexVoigt2D4C [4][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1} };
-const unsigned int ConstitutiveLaw::msIndexVoigt2D3C [3][2] = { {0, 0}, {1, 1}, {0, 1} };
-
-/**
- * Flags related to the Parameters of the Contitutive Law
- */
-KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRAIN,              0 );
-KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRESS,              1 );
-KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_CONSTITUTIVE_TENSOR, 2 );
-KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRAIN_ENERGY,       3 );
-
-KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ISOCHORIC_TENSOR_ONLY,       4 );
-KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, VOLUMETRIC_TENSOR_ONLY,      5 );
-
-KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, TOTAL_TENSOR,                6 );
-
-KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINALIZE_MATERIAL_RESPONSE,  7 );
+    const unsigned int ConstitutiveLaw::msIndexVoigt3D6C [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
+    const unsigned int ConstitutiveLaw::msIndexVoigt2D4C [4][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1} };
+    const unsigned int ConstitutiveLaw::msIndexVoigt2D3C [3][2] = { {0, 0}, {1, 1}, {0, 1} };
 
 
-/**
- * Flags related to the Features of the Contitutive Law
- */
-KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINITE_STRAINS,              8 );
-KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, INFINITESIMAL_STRAINS,       9 );
+    /**
+     * Flags related to the Parameters of the Contitutive Law
+     */
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRAIN,               0 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRESS,               1 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_CONSTITUTIVE_TENSOR,  2 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRAIN_ENERGY,        3 );
+  
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ISOCHORIC_TENSOR_ONLY,        4 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, VOLUMETRIC_TENSOR_ONLY,       5 );
 
-KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, THREE_DIMENSIONAL_LAW,      10 );
-KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, PLANE_STRAIN_LAW,           11 );
-KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, PLANE_STRESS_LAW,           12 );
-KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, AXISYMMETRIC_LAW,           13 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, MECHANICAL_RESPONSE_ONLY,     6 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, THERMAL_RESPONSE_ONLY,        7 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, INCREMENTAL_STRAIN_MEASURE,   8 );
 
-KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, U_P_LAW,                    14 );
-KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ISOTROPIC,                  15 );
-KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ANISOTROPIC,                16 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, INITIALIZE_MATERIAL_RESPONSE, 9 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINALIZE_MATERIAL_RESPONSE,  10 );
+  
 
+    /**
+     * Flags related to the Features of the Contitutive Law
+     */
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINITE_STRAINS,              1 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, INFINITESIMAL_STRAINS,       2 );
+
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, THREE_DIMENSIONAL_LAW,       3 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, PLANE_STRAIN_LAW,            4 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, PLANE_STRESS_LAW,            5 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, AXISYMMETRIC_LAW,            6 );
+
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, U_P_LAW,                     7 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ISOTROPIC,                   8 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ANISOTROPIC,                 9 );
 
 /**
  * Constructor.
@@ -297,17 +300,81 @@ void ConstitutiveLaw::SetValue(const Variable<array_1d<double, 6 > >& rVariable,
     KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;;
 }
 
+
+
 /**
- * Is called to check whether the provided material parameters in the Properties
- * match the requirements of current constitutive model.
- * @param rMaterialProperties the current Properties to be validated against.
- * @return true, if parameters are correct; false, if parameters are insufficient / faulty
- * NOTE: this has to implemented by each constitutive model. Returns false in base class since
- * no valid implementation is contained here.
+ * calculates the value of a specified variable
+ * @param rParameterValues the needed parameters for the CL calculation
+ * @param rThisVariable the variable to be returned
+ * @param rValue a reference to the returned value
+ * @param rValue output: the value of the specified variable
  */
-bool ConstitutiveLaw::ValidateInput(const Properties& rMaterialProperties)
+int& ConstitutiveLaw::CalculateValue(Parameters& rParameterValues, const Variable<int>& rThisVariable, int& rValue)
 {
-    return false;
+    return rValue;
+}
+
+/**
+ * returns the value of a specified variable
+ * @param rParameterValues the needed parameters for the CL calculation
+ * @param rThisVariable the variable to be returned
+ * @param rValue a reference to the returned value
+ * @param rValue output: the value of the specified variable
+ */
+double& ConstitutiveLaw::CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue)
+{
+    return rValue;
+}
+
+/**
+ * returns the value of a specified variable
+ * @param rParameterValues the needed parameters for the CL calculation
+ * @param rThisVariable the variable to be returned
+ * @param rValue a reference to the returned value
+ * @param rValue output: the value of the specified variable
+ */
+Vector& ConstitutiveLaw::CalculateValue(Parameters& rParameterValues, const Variable<Vector>& rThisVariable, Vector& rValue)
+{
+    return rValue;
+}
+
+/**
+ * returns the value of a specified variable
+ * @param rParameterValues the needed parameters for the CL calculation
+ * @param rThisVariable the variable to be returned
+ * @param rValue a reference to the returned value
+ * @param rValue output: the value of the specified variable
+ */
+Matrix& ConstitutiveLaw::CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue)
+{
+    return rValue;
+}
+
+/**
+ * returns the value of a specified variable
+ * @param rParameterValues the needed parameters for the CL calculation
+ * @param rThisVariable the variable to be returned
+ * @param rValue a reference to the returned value
+ * @param rValue output: the value of the specified variable
+ */
+array_1d<double, 3 > & ConstitutiveLaw::CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double, 3 > >& rVariable,
+        array_1d<double, 3 > & rValue)
+{
+    return rValue;
+}
+
+
+  /**
+ * returns the value of a specified variable
+ * @param rParameterValues the needed parameters for the CL calculation
+ * @param rThisVariable the variable to be returned
+ * @param rValue a reference to the returned value
+ * @param rValue output: the value of the specified variable
+ */
+array_1d<double, 6 > & ConstitutiveLaw::CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double, 6 > >& rVariable,
+        array_1d<double, 6 > & rValue)
+{
+    return rValue;
 }
 
 /**
@@ -490,6 +557,78 @@ void ConstitutiveLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     KRATOS_ERROR <<  "Calling virtual function for CalculateMaterialResponseCauchy"<< std::endl;;
 }
 
+
+    /**
+     * Initialize the material response,  called by the element in InitializeSolutionStep.
+     * @see Parameters
+     * @see StressMeasures
+     */
+
+    void ConstitutiveLaw::InitializeMaterialResponse(Parameters& rValues,const StressMeasure& rStressMeasure)
+    {
+      switch(rStressMeasure)
+	{
+	case StressMeasure_PK1:         InitializeMaterialResponsePK1(rValues);
+	  break;
+      
+	case StressMeasure_PK2:         InitializeMaterialResponsePK2(rValues);
+	  break;
+	  
+	case StressMeasure_Kirchhoff: 	InitializeMaterialResponseKirchhoff(rValues);
+	  break;
+
+	case StressMeasure_Cauchy:	InitializeMaterialResponseCauchy(rValues);
+	  break;
+	  
+	default:
+	  KRATOS_THROW_ERROR(std::logic_error, " Stress Measure not Defined ", "");
+	  break;
+
+	}
+    }
+
+
+    /**
+     * Initialize the material response in terms of 1st Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+
+     void ConstitutiveLaw::InitializeMaterialResponsePK1 (Parameters& rValues)
+    {
+      KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for InitializeMaterialResponsePK1", "");
+    }
+
+    /**
+     * Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+
+     void ConstitutiveLaw::InitializeMaterialResponsePK2 (Parameters& rValues)
+    {
+      KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for InitializeMaterialResponsePK2", "");
+    }
+
+    /**
+     * Initialize the material response in terms of Kirchhoff stresses
+     * @see Parameters
+     */
+
+     void ConstitutiveLaw::InitializeMaterialResponseKirchhoff (Parameters& rValues)
+    {
+      KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for InitializeMaterialResponseKirchhoff", "");
+    }
+
+    /**
+     * Initialize the material response in terms of Cauchy stresses
+     * @see Parameters
+     */
+
+     void ConstitutiveLaw::InitializeMaterialResponseCauchy (Parameters& rValues)
+    {
+      KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for InitializeMaterialResponseCauchy", "");
+    }
+    
+
 /**
  * Updates the material response,  called by the element in FinalizeSolutionStep.
  * @see Parameters
@@ -522,11 +661,6 @@ void ConstitutiveLaw::FinalizeMaterialResponse(Parameters& rValues,const StressM
     }
 }
 
-
-/**
- * Updates the material response in terms of 1st Piola-Kirchhoff stresses
- * @see Parameters
- */
 
 void ConstitutiveLaw::FinalizeMaterialResponsePK1 (Parameters& rValues)
 {
