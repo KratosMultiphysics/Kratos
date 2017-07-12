@@ -68,6 +68,7 @@ class ConvectionDiffusionSolver(object):
 
         #Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
         self.theta = 0.5
+        self.dynamic_tau = 0.0
         
         if not self.model_part.ProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS):
             raise Exception("the provided model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
@@ -118,6 +119,7 @@ class ConvectionDiffusionSolver(object):
         self.ValidateInput(verbose)
 
         self.model_part.ProcessInfo[THETA] = self.theta
+        self.model_part.ProcessInfo[DYNAMIC_TAU] = self.dynamic_tau
 
     def Solve(self):
         ''' Solve an iteration of the convection-diffusion problem
