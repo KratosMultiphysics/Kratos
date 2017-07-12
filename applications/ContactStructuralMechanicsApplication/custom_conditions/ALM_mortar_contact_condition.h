@@ -760,10 +760,20 @@ protected:
      * @param ThisIntegrationMethod: The array containing the integration points
      * @param PointNumber: The id of the integration point considered
      */
+    
     virtual double GetIntegrationWeight(
         GeneralVariables& rVariables,
         const GeometryType::IntegrationPointsArrayType& ThisIntegrationMethod,
         const unsigned int PointNumber
+        );
+    
+    /**
+     * This function adapts the value of the penalty parameter
+     */
+    
+    void AdaptPenaltyValue(
+        const MortarConditionMatrices& rMortarConditionMatrices,
+        DerivativeDataType& rDerivativeData
         );
     
     ///@}

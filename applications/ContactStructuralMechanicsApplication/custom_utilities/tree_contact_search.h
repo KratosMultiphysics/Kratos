@@ -486,7 +486,7 @@ public:
                             {
                                 MortarKinematicVariables<3> rVariables;
                                 MortarOperator<3> rThisMortarConditionMatrices;
-                                ExactMortarIntegrationUtility<3, 3> integration_utility = ExactMortarIntegrationUtility<3, 3>(2);
+                                ExactMortarIntegrationUtility<3, 3> integration_utility = ExactMortarIntegrationUtility<3, 3>(3);
                                 
                                 for(unsigned int i_pair = 0; i_pair < number_points_found; i_pair++)
                                 {   
@@ -526,7 +526,7 @@ public:
                             {
                                 MortarKinematicVariables<4> rVariables;
                                 MortarOperator<4> rThisMortarConditionMatrices;
-                                ExactMortarIntegrationUtility<3, 4> integration_utility = ExactMortarIntegrationUtility<3, 4>(2);
+                                ExactMortarIntegrationUtility<3, 4> integration_utility = ExactMortarIntegrationUtility<3, 4>(3);
                                 
                                 for(unsigned int i_pair = 0; i_pair < number_points_found; i_pair++)
                                 {   

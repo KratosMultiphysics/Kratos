@@ -166,8 +166,8 @@ public:
         MortarKinematicVariables<TNumNodes> rVariables,
         MortarOperator<TNumNodes> rThisMortarConditionMatrices,   
         ExactMortarIntegrationUtility<TDim, TNumNodes> IntegrationUtility,
-        GeometryType& SlaveGeometry,              // SLAVE
-        GeometryType& MasterGeometry,             // MASTER
+        GeometryType& SlaveGeometry,             // SLAVE
+        GeometryType& MasterGeometry,            // MASTER
         const array_1d<double, 3>& SlaveNormal,  // SLAVE
         const array_1d<double, 3>& MasterNormal, // SLAVE
         const double ActiveCheckLength
@@ -310,7 +310,7 @@ public:
         MortarOperator<TNumNodes> rThisMortarConditionMatrices;
         
         // We call the exact integration utility
-        ExactMortarIntegrationUtility<TDim, TNumNodes> integration_utility = ExactMortarIntegrationUtility<TDim, TNumNodes>(2);
+        ExactMortarIntegrationUtility<TDim, TNumNodes> integration_utility = ExactMortarIntegrationUtility<TDim, TNumNodes>(TDim);
         
         for (auto it_pair = ConditionPointers->begin(); it_pair != ConditionPointers->end(); ++it_pair )
         {  
