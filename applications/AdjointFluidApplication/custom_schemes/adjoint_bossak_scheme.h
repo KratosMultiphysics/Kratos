@@ -158,7 +158,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~AdjointBossakScheme()
+    ~AdjointBossakScheme() override
     {
     }
 
@@ -170,7 +170,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Initialize(ModelPart& rModelPart) override
+    void Initialize(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
@@ -220,7 +220,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void InitializeSolutionStep(ModelPart& rModelPart,
+    void InitializeSolutionStep(ModelPart& rModelPart,
                                         SystemMatrixType& rA,
                                         SystemVectorType& rDx,
                                         SystemVectorType& rb) override
@@ -255,7 +255,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void FinalizeSolutionStep(ModelPart& rModelPart,
+    void FinalizeSolutionStep(ModelPart& rModelPart,
                                       SystemMatrixType& rA,
                                       SystemVectorType& rDx,
                                       SystemVectorType& rb) override
@@ -274,7 +274,7 @@ public:
     }
 
     /// Update adjoint and adjoint acceleration.
-    virtual void Update(ModelPart& rModelPart,
+    void Update(ModelPart& rModelPart,
                         DofsArrayType& rDofSet,
                         SystemMatrixType& rA,
                         SystemVectorType& rDx,
@@ -414,7 +414,7 @@ public:
     }
 
     /// Calculate residual based element contributions to transient adjoint.
-    virtual void CalculateSystemContributions(Element::Pointer pCurrentElement,
+    void CalculateSystemContributions(Element::Pointer pCurrentElement,
                                               LocalSystemMatrixType& rLHS_Contribution,
                                               LocalSystemVectorType& rRHS_Contribution,
                                               Element::EquationIdVectorType& rEquationId,
@@ -486,7 +486,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void Calculate_LHS_Contribution(Element::Pointer pCurrentElement,
+    void Calculate_LHS_Contribution(Element::Pointer pCurrentElement,
                                             LocalSystemMatrixType& LHS_Contribution,
                                             Element::EquationIdVectorType& EquationId,
                                             ProcessInfo& CurrentProcessInfo) override
@@ -503,7 +503,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void Condition_CalculateSystemContributions(
+    void Condition_CalculateSystemContributions(
         Condition::Pointer pCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
@@ -518,7 +518,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void Condition_Calculate_LHS_Contribution(Condition::Pointer pCurrentCondition,
+    void Condition_Calculate_LHS_Contribution(Condition::Pointer pCurrentCondition,
                                                       LocalSystemMatrixType& LHS_Contribution,
                                                       Condition::EquationIdVectorType& EquationId,
                                                       ProcessInfo& CurrentProcessInfo) override
@@ -531,7 +531,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void GetElementalDofList(Element::Pointer rCurrentElement,
+    void GetElementalDofList(Element::Pointer rCurrentElement,
                                      Element::DofsVectorType& ElementalDofList,
                                      ProcessInfo& CurrentProcessInfo) override
     {

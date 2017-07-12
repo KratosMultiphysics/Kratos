@@ -10,7 +10,6 @@ import KratosMultiphysics
 import KratosMultiphysics.ALEApplication as KratosALE
 import KratosMultiphysics.FSIApplication as KratosFSI
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 # Check that KratosMultiphysics was imported in the main script
@@ -136,8 +135,8 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         print("     Mesh residual norm: ", mesh_res_norm)
 
         ## Finalize solution step
-        self.fluid_solver.SolverFinalizeSolutionStep()
-        self.structure_solver.SolverFinalizeSolutionStep()
+        self.fluid_solver.FinalizeSolutionStep()
+        self.structure_solver.FinalizeSolutionStep()
         self.coupling_utility.FinalizeSolutionStep()
 
 
@@ -206,12 +205,12 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         keep_sign = False
         distribute_load = True
         self.interface_mapper.FluidToStructure_VectorMap(KratosMultiphysics.REACTION,
-                                                         KratosSolid.POINT_LOAD,
+                                                         KratosStructural.POINT_LOAD,
                                                          keep_sign,
                                                          distribute_load)
 
         # Solve the structure problem
-        self.structure_solver.SolverSolveSolutionStep()
+        self.structure_solver.SolveSolutionStep()
 
 
     def _SolveStructureDoubleFaced(self):
@@ -233,10 +232,10 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         for node in self._GetStructureInterfaceSubmodelPart().Nodes:
             pos_face_force = node.GetSolutionStepValue(KratosFSI.POSITIVE_MAPPED_VECTOR_VARIABLE)
             neg_face_force = node.GetSolutionStepValue(KratosFSI.NEGATIVE_MAPPED_VECTOR_VARIABLE)
-            node.SetSolutionStepValue(KratosSolid.POINT_LOAD, 0, pos_face_force+neg_face_force)
+            node.SetSolutionStepValue(KratosStructural.POINT_LOAD, 0, pos_face_force+neg_face_force)
 
         # Solve the structure problem
-        self.structure_solver.SolverSolveSolutionStep()
+        self.structure_solver.SolveSolutionStep()
 
 
     def _ComputeDisplacementResidualSingleFaced(self):

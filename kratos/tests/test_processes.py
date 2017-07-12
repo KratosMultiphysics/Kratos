@@ -580,6 +580,45 @@ class TestProcesses(KratosUnittest.TestCase):
             for node in cond.GetNodes():
                 self.assertEqual(v[i],node.X+node.Y*t+node.Z)
                 i=i+1
+                
+    def test_assign_scalar_field_component_to_conditions(self):
+        model_part = ModelPart("Main")
+        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        settings = Parameters(
+            """
+            {
+                "process_list" : [
+                    {
+                        "python_module"   : "assign_scalar_to_conditions_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"          : "AssignScalarToConditionsProcess",
+                        "Parameters"            : {
+                            "model_part_name":"Main",
+                            "variable_name": "DISPLACEMENT_X",
+                            "value" : "t"
+                        }
+                    }
+                    ]
+                }
+            """
+            )
+
+        Model = {"Main":model_part}
+
+        import process_factory
+        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+
+        model_part.CloneTimeStep(5.0)
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        t = model_part.ProcessInfo[TIME]
+        for cond in model_part.Conditions:
+            v = cond.GetValue(DISPLACEMENT)
+            self.assertEqual(v[0],t)
 
     def test_find_nodal_h_process(self):
         model_part = ModelPart("Main")

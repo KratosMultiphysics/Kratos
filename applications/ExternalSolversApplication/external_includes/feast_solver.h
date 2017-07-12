@@ -69,7 +69,7 @@ public:
     
     typedef amgcl::solver::skyline_lu<DataType> SolverType;
 
-    ~SkylineLUSolver()
+    ~SkylineLUSolver() override
     {
         Clear();
     }
@@ -221,7 +221,7 @@ public:
     FEASTSolver(const FEASTSolver& Other) = delete;
 
     /// Destructor.
-    virtual ~FEASTSolver() {}
+    ~FEASTSolver() override {}
 
     ///@}
     ///@name Operators
@@ -238,11 +238,11 @@ public:
     /**
      * K is a symmetric matrix. M is a symmetric positive-definite matrix.
      */
-    virtual void Solve(
+    void Solve(
             SparseMatrixType& K,
             SparseMatrixType& M,
             DenseVectorType& Eigenvalues,
-            DenseMatrixType& Eigenvectors)
+            DenseMatrixType& Eigenvectors) override
     {
         const auto SystemSize = K.size1();
 
@@ -286,13 +286,13 @@ public:
     ///@{
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "FEAST solver.";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
