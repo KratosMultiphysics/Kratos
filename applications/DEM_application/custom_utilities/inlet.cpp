@@ -496,7 +496,7 @@ namespace Kratos {
                                                                                             number_of_added_spheres,
                                                                                             mStrategyForContinuum);
                                                
-                        UpdatePartialThroughput(*p_cluster, smp_number);
+                        //UpdatePartialThroughput(*p_cluster, smp_number);
                         max_Id += number_of_added_spheres;                        
                     }
 

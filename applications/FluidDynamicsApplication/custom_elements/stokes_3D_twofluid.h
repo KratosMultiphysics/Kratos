@@ -368,7 +368,7 @@ public:
                 //this is ok under the hypothesis that no history dependent behaviour is employed
                 mp_constitutive_law->CalculateMaterialResponseCauchy(Values);
 
-                Output = inner_prod(data.stress, strain);
+                Output = 0.5*inner_prod(data.stress, strain);
             }
         }
 
