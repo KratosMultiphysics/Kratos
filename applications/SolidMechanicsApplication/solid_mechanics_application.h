@@ -34,7 +34,6 @@
 #include "includes/constitutive_law.h"
 #include "includes/ublas_interface.h"
 #include "includes/kratos_application.h"
-
 #include "containers/flags.h"
 
 //conditions
