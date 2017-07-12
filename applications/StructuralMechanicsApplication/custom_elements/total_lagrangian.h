@@ -7,12 +7,12 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrándiz
 //
 
 
 #if !defined(KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED )
 #define  KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED
-
 
 
 // System includes
@@ -181,6 +181,7 @@ protected:
      * @param rValues: The CL parameters
      * @param PointNumber: The integration point considered
      * @param IntegrationPoints: The list of integration points
+     * @param ThisStressMeasure: The stress measure considered
      * @param Displacements: The displacements vector
      */ 
     void CalculateConstitutiveVariables(
@@ -189,6 +190,7 @@ protected:
         ConstitutiveLaw::Parameters& rValues,
         const unsigned int PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure,
         const Vector Displacements = ZeroVector(1)
         ) override;
     
@@ -218,45 +220,25 @@ private:
     ///@name Private Operators
     ///@{
 
-    void CalculateAndAddKm(
-        MatrixType& K,
-        Matrix& B,
-        Matrix& D,
-        double weight);
-
-    /**
-     * Calculation of the Geometric Stiffness Matrix. Kg = dB * S
-     */
-    void CalculateAndAddKg(
-        MatrixType& K,
-        Matrix& DN_DX,
-        Vector& StressVector,
-        double weight
-    );
-
     void CalculateBodyForces(
         Vector& BodyForce,
         const ProcessInfo& CurrentProcessInfo
-    );
+        );
 
     void InitializeVariables();
 
     void CalculateB(
         Matrix& B,
-        Matrix& F,
-        Matrix& DN_DX,
-        unsigned int StrainSize,
+        const Matrix& F,
+        const Matrix& DN_DX,
+        const unsigned int StrainSize,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const unsigned int PointNumber
         );
 
-
-    void Comprobate_State_Vector(Vector& Result);
-    
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access

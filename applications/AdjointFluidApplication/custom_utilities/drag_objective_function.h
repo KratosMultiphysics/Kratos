@@ -98,7 +98,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~DragObjectiveFunction()
+    ~DragObjectiveFunction() override
     {
     }
 
@@ -110,7 +110,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Initialize(ModelPart& rModelPart)
+    void Initialize(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
@@ -143,7 +143,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void InitializeSolutionStep(ModelPart& rModelPart)
+    void InitializeSolutionStep(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
@@ -166,10 +166,10 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void CalculateAdjointVelocityContribution(const Element& rElem,
+    void CalculateAdjointVelocityContribution(const Element& rElem,
                                                       const Matrix& rAdjointMatrix,
                                                       Vector& rRHSContribution,
-                                                      ProcessInfo& rProcessInfo)
+                                                      ProcessInfo& rProcessInfo) override
     {
         KRATOS_TRY
 
@@ -182,10 +182,10 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void CalculateAdjointAccelerationContribution(const Element& rElem,
+    void CalculateAdjointAccelerationContribution(const Element& rElem,
                                                           const Matrix& rAdjointMatrix,
                                                           Vector& rRHSContribution,
-                                                          ProcessInfo& rProcessInfo)
+                                                          ProcessInfo& rProcessInfo) override
     {
         KRATOS_TRY
 
@@ -198,10 +198,10 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void CalculateSensitivityContribution(const Element& rElem,
+    void CalculateSensitivityContribution(const Element& rElem,
                                                   const Matrix& rDerivativesMatrix,
                                                   Vector& rRHSContribution,
-                                                  ProcessInfo& rProcessInfo)
+                                                  ProcessInfo& rProcessInfo) override
     {
         KRATOS_TRY
 
