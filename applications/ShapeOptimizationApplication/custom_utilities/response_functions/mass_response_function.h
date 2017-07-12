@@ -97,10 +97,10 @@ public:
 			double delta = responseSettings["step_size"].GetDouble();
 			mDelta = delta;
 		}
-
 		// Throw error message in case of wrong specification
 		else
 			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. Options are: finite_differencing ", gradientMode);
+
 		try{
 			mConsiderDiscretization =  responseSettings["consider_discretization"].GetBool();
 		}
@@ -180,72 +180,6 @@ public:
 
 		switch (m_gradient_mode)
 		{
-		// directly considering weighting in calculation at element level
-		case 4:
-		{
-			for (ModelPart::ElementIterator elem_i = mr_model_part.ElementsBegin(); elem_i != mr_model_part.ElementsEnd(); ++elem_i)
-			{
-				double mass_before_fd = 0.0;
-				double elem_density = elem_i->GetProperties()[DENSITY];
-				double mass_after_fd = 0.0;
-				double elem_volume = 0.0;
-				Element::GeometryType& element_geometry = elem_i->GetGeometry();
-				bool tmpIsShell = isElementOfTypeShell(element_geometry);
-				if( tmpIsShell )
-						elem_volume = element_geometry.Area()*elem_i->GetProperties()[THICKNESS];
-					else
-						elem_volume = element_geometry.Volume();
-					mass_after_fd +=  elem_density*elem_volume;
-
-				Vector ScalingFactors(element_geometry.size());
-				if (mConsiderDiscretization){
-					noalias(ScalingFactors) = ZeroVector(element_geometry.size());
-					ScalingFactors = element_geometry.LumpingFactors( ScalingFactors );
-					ScalingFactors *= elem_volume;
-				}
-				else{
-					KRATOS_WATCH(mConsiderDiscretization);
-					for (unsigned int i=0; i<element_geometry.size(); ++i)
-						ScalingFactors[i] = 1.0;
-				}
-
-				array_3d gradient(3, 0.0);
-				for (ModelPart::NodeIterator node_i = element_geometry.begin(); node_i != element_geometry.end(); ++node_i)
-				{
-					node_i->X() += mDelta;
-					if( tmpIsShell )
-						elem_volume = element_geometry.Area()*elem_i->GetProperties()[THICKNESS];
-					else
-						elem_volume = element_geometry.Volume();
-					mass_after_fd +=  elem_density*elem_volume;
-					gradient[0] = (mass_after_fd - mass_before_fd) / mDelta;
-					node_i->X() -= mDelta;
-
-					node_i->Y() += mDelta;
-					if( tmpIsShell )
-						elem_volume = element_geometry.Area()*elem_i->GetProperties()[THICKNESS];
-					else
-						elem_volume = element_geometry.Volume();
-					mass_after_fd +=  elem_density*elem_volume;
-					gradient[1] = (mass_after_fd - mass_before_fd) / mDelta;
-					node_i->Y() -= mDelta;
-
-					node_i->Z() += mDelta;
-					if( tmpIsShell )
-						elem_volume = element_geometry.Area()*elem_i->GetProperties()[THICKNESS];
-					else
-						elem_volume = element_geometry.Volume();
-					mass_after_fd +=  elem_density*elem_volume;
-					gradient[2] = (mass_after_fd - mass_before_fd) / mDelta;
-					node_i->Z() -= mDelta;
-
-					gradient /= ScalingFactors[node_i-element_geometry.begin()];
-
-					// Compute sensitivity
-					noalias(node_i->FastGetSolutionStepValue(MASS_SHAPE_GRADIENT)) = gradient;
-				}
-			}
-		}
 		case 3: //old
 		{
 			// Start process to identify element neighbors for every node
@@ -512,7 +446,6 @@ private:
 	double m_initial_value;
 	bool m_initial_value_defined;
 	bool mConsiderDiscretization;
-	bool mConsiderDiscretizationDirect;
 
 	///@}
 ///@name Private Operators
