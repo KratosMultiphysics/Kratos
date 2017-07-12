@@ -167,7 +167,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~DistanceCalculationElementSimplex()
+    ~DistanceCalculationElementSimplex() override
     {}
 
 
@@ -195,7 +195,7 @@ public:
     }
 
     /// Calculate the element's local contribution to the system for the current step.
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
                                       ProcessInfo& rCurrentProcessInfo) override
     {
@@ -225,6 +225,7 @@ public:
         for(unsigned int i=0; i<number_of_points; i++)
         {
             distances[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
+			if (distances[i] >= 0.0 && distances[i] < 1e-30) distances[i] = 1e-30;
         }
 
         const unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
@@ -383,7 +384,7 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
+    void EquationIdVector(EquationIdVectorType& rResult,
                                   ProcessInfo& rCurrentProcessInfo) override
     {
 
@@ -405,7 +406,7 @@ public:
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void GetDofList(DofsVectorType& rElementalDofList,
+    void GetDofList(DofsVectorType& rElementalDofList,
                             ProcessInfo& rCurrentProcessInfo) override
     {
         unsigned int number_of_nodes = TDim+1;
@@ -451,7 +452,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) override
 {
         KRATOS_TRY
 
@@ -503,7 +504,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "DistanceCalculationElementSimplex #" << Id();
@@ -511,7 +512,7 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "DistanceCalculationElementSimplex" << TDim << "D";
     }
@@ -549,7 +550,7 @@ protected:
         Vector positive_side_rhs = ZeroVector(rhs.size());
         Vector negative_side_rhs = ZeroVector(rhs.size());
 
-        CondenseLocally(lhs,rhs, distances,  1.0, positive_side_lhs, positive_side_rhs);
+		CondenseLocally(lhs,rhs, distances,  1.0, positive_side_lhs, positive_side_rhs);
         CondenseLocally(lhs,rhs, distances,  -1.0, negative_side_lhs, negative_side_rhs);
         noalias(lhs) = positive_side_lhs + negative_side_lhs;
         noalias(rhs) = positive_side_rhs + negative_side_rhs;
@@ -682,12 +683,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }

@@ -17,7 +17,8 @@ class MeshingDomain(object):
     ##real construction shall be delayed to the function "Initialize" which 
     ##will be called once the modeler is already filled
     def __init__(self, main_model_part, custom_settings):
-        
+
+        self.echo_level = 1
         self.main_model_part = main_model_part    
         
         ##settings string in json format
@@ -118,19 +119,21 @@ class MeshingDomain(object):
         self.SetMeshingParameters()
         
         # Meshing Stratety
+        self.MeshingStrategy.SetEchoLevel(self.echo_level)
         self.MeshingStrategy.Initialize(self.MeshingParameters, self.domain_size)
         
         print("::[Meshing Domain]:: -END- ")
 
     #### 
-    
+
+    #    
     def SetInfoParameters(self):
 
         # Create InfoParameters        
         self.InfoParameters  = KratosPfemBase.MeshingInfoParameters()
         self.InfoParameters.Initialize()
         
-        
+    #        
     def SetTransferParameters(self):
         
         # Create TransferParameters
@@ -140,7 +143,8 @@ class MeshingDomain(object):
         #    self.TransferParameters.SetVariable( KratosMultiphysics.KratosGlobals.GetVariable( variable.GetString() ) )
         for i in range(0, transfer_variables.size() ):            
             self.TransferParameters.SetVariable(KratosMultiphysics.KratosGlobals.GetVariable(transfer_variables[i].GetString()))
-
+            
+    #
     def SetRefiningParameters(self):
         
         # Create RefiningParameters
@@ -213,7 +217,7 @@ class MeshingDomain(object):
         self.RefiningParameters.SetRefiningOptions(refining_options)
         self.RefiningParameters.SetRemovingOptions(removing_options)
 
-
+    #
     def SetMeshingParameters(self):
               
         # Create MeshingParameters
@@ -236,13 +240,13 @@ class MeshingDomain(object):
             self.MeshingParameters.SetTransferParameters(self.TransferParameters)
             self.MeshingParameters.SetRefiningParameters(self.RefiningParameters)
         
-
+    #
     def ExecuteMeshing(self):
 
         if( self.active_remeshing ):
             self.MeshingStrategy.GenerateMesh()
         
-        
+    #        
     def SetMeshSizeValues(self):
 
         critical_mesh_size = self.settings["refining_parameters"]["critical_size"].GetDouble()
@@ -262,7 +266,7 @@ class MeshingDomain(object):
         self.RefiningParameters.SetCriticalRadius(critical_mesh_size)                       
         self.RefiningParameters.SetCriticalSide(critical_mesh_side)
 
-
+    #
     def Check(self):
         
         # set modeler utilities
@@ -274,6 +278,10 @@ class MeshingDomain(object):
         critical_radius = self.modeler_utils.CheckCriticalRadius(self.main_model_part,critical_mesh_size,self.mesh_id)
         print(" CriticalRadius ", critical_radius)
 
-        
+    #        
     def Active(self):
         return self.active_remeshing
+
+    #
+    def SetEchoLevel(self, echo_level):
+        self.echo_level = echo_level

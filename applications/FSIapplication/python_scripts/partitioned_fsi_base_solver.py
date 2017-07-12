@@ -9,7 +9,6 @@ import KratosMultiphysics
 import KratosMultiphysics.ALEApplication as KratosALE
 import KratosMultiphysics.FSIApplication as KratosFSI
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 # Check that KratosMultiphysics was imported in the main script
@@ -45,10 +44,13 @@ class PartitionedFSIBaseSolver:
         {
         "structure_solver_settings":
             {
-            "solver_type": "solid_mechanics_implicit_dynamic_solver",
+            "solver_type": "structural_mechanics_implicit_dynamic_solver",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
+            },
+            "material_import_settings" :{
+                "materials_filename": "materials.json"
             },
             "echo_level": 0,
             "time_integration_method": "Implicit",
@@ -61,7 +63,6 @@ class PartitionedFSIBaseSolver:
             "compute_reactions": true,
             "compute_contact_forces": false,
             "block_builder": false,
-            "component_wise": false,
             "move_mesh_flag": true,
             "solution_type": "Dynamic",
             "scheme_type": "Newmark",
@@ -130,8 +131,6 @@ class PartitionedFSIBaseSolver:
             "solver_type"                    : "partitioned_fsi_solver",
             "nl_tol"                         : 1e-5,
             "nl_max_it"                      : 50,
-            "move_interface"                 : true,
-            "mesh_prediction"                : true,
             "solve_mesh_at_each_iteration"   : true,
             "coupling_strategy" : {
                 "solver_type"       : "Relaxation",
@@ -142,7 +141,12 @@ class PartitionedFSIBaseSolver:
             "mesh_reform_dofs_each_step"     : false,
             "structure_interfaces_list"      : [""],
             "fluid_interfaces_list"          : [""]
-            }
+            },
+        "mapper_settings"              : [{
+            "mapper_face"                                : "Unique",
+            "positive_fluid_interface_submodelpart_name" : "Default_interface_submodelpart_name",
+            "structure_interface_submodelpart_name"      : "Default_interface_submodelpart_name"
+            }]
         }
         """)
 
@@ -165,6 +169,7 @@ class PartitionedFSIBaseSolver:
         self.settings.AddValue("structure_solver_settings",project_parameters["structure_solver_settings"]["solver_settings"])
         self.settings.AddValue("fluid_solver_settings",project_parameters["fluid_solver_settings"]["solver_settings"])
         self.settings.AddValue("coupling_solver_settings",project_parameters["coupling_solver_settings"]["solver_settings"])
+        self.settings.AddValue("mapper_settings",project_parameters["coupling_solver_settings"]["mapper_settings"])
 
         # Overwrite the default settings with user-provided parameters
         self.settings.RecursivelyValidateAndAssignDefaults(default_settings)
@@ -173,8 +178,6 @@ class PartitionedFSIBaseSolver:
         self.max_nl_it = self.settings["coupling_solver_settings"]["nl_max_it"].GetInt()
         self.nl_tol = self.settings["coupling_solver_settings"]["nl_tol"].GetDouble()
         self.solve_mesh_at_each_iteration = self.settings["coupling_solver_settings"]["solve_mesh_at_each_iteration"].GetBool()
-        # self.move_interface = self.settings["coupling_solver_settings"]["move_interface"].GetBool()
-        # self.mesh_prediction = self.settings["coupling_solver_settings"]["mesh_prediction"].GetBool()
         self.coupling_algorithm = self.settings["coupling_solver_settings"]["coupling_scheme"].GetString()
         self.fluid_interface_submodelpart_name = self.settings["coupling_solver_settings"]["fluid_interfaces_list"][0].GetString()
         self.structure_interface_submodelpart_name = self.settings["coupling_solver_settings"]["structure_interfaces_list"][0].GetString()
@@ -234,6 +237,8 @@ class PartitionedFSIBaseSolver:
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.VECTOR_PROJECTED)
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.FSI_INTERFACE_RESIDUAL)
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.FSI_INTERFACE_MESH_RESIDUAL)
+        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.POSITIVE_MAPPED_VECTOR_VARIABLE)
+        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.NEGATIVE_MAPPED_VECTOR_VARIABLE)
         self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.VECTOR_PROJECTED)
 
 
@@ -256,23 +261,22 @@ class PartitionedFSIBaseSolver:
 
     def Initialize(self):
         # Initialize fluid, structure and coupling solvers
-        self.fluid_solver.SolverInitialize()
-        self.structure_solver.SolverInitialize()
+        self.fluid_solver.Initialize()
+        self.structure_solver.Initialize()
         self.coupling_utility.Initialize()
 
 
     def InitializeSolutionStep(self):
         # Initialize solution step of fluid, structure and coupling solvers
-        self.fluid_solver.SolverInitializeSolutionStep()
-        self.structure_solver.SolverInitializeSolutionStep()
+        self.fluid_solver.InitializeSolutionStep()
+        self.structure_solver.InitializeSolutionStep()
         self.coupling_utility.InitializeSolutionStep()
 
 
     def Predict(self):
         # Perform fluid and structure solvers predictions
-        self.fluid_solver.SolverPredict()
-        self.structure_solver.SolverPredict()
-
+        self.fluid_solver.Predict()
+        self.structure_solver.Predict()
 
     def GetComputingModelPart(self):
         pass
@@ -320,10 +324,12 @@ class PartitionedFSIBaseSolver:
 
     ### AUXILIAR METHODS ###
     def _GetFluidInterfaceSubmodelPart(self):
+        # Returns the fluid interface submodelpart that will be used in the residual minimization
         return self.fluid_solver.main_model_part.GetSubModelPart(self.fluid_interface_submodelpart_name)
 
 
     def _GetStructureInterfaceSubmodelPart(self):
+        # Returns the structure interface submodelpart that will be used in the residual minimization
         return self.structure_solver.main_model_part.GetSubModelPart(self.structure_interface_submodelpart_name)
 
 
@@ -341,9 +347,66 @@ class PartitionedFSIBaseSolver:
     def _GetPartitionedFSIUtilities(self):
 
         if (self.domain_size == 2):
-            return KratosFSI.PartitionedFSIUtilities2D(self._GetFluidInterfaceSubmodelPart(), self._GetStructureInterfaceSubmodelPart())
+            return KratosFSI.PartitionedFSIUtilities2D()
         else:
-            return KratosFSI.PartitionedFSIUtilities3D(self._GetFluidInterfaceSubmodelPart(), self._GetStructureInterfaceSubmodelPart())
+            return KratosFSI.PartitionedFSIUtilities3D()
+
+
+    def _SetUpMapper(self):
+
+        # Recall, to set the INTERFACE flag in both the fluid and solid interface before the mapper construction
+        # Currently this is done with the FSI application Python process set_interface_process.py
+        # TODO: SINCE WE HAVE SUBMODELPARTS, TO SET THE INTERFACE FLAG SEEMS TO NOT BE STRICKLY NECESSARY
+        search_radius_factor = 2.0
+        mapper_max_iterations = 200
+        mapper_tolerance = 1e-12
+
+        if (self.settings["mapper_settings"].size() == 1):
+            fluid_submodelpart_name = self.settings["mapper_settings"][0]["fluid_interface_submodelpart_name"].GetString()
+            structure_submodelpart_name = self.settings["mapper_settings"][0]["structure_interface_submodelpart_name"].GetString()
+
+            fluid_submodelpart = self.fluid_solver.main_model_part.GetSubModelPart(fluid_submodelpart_name)
+            structure_submodelpart = self.structure_solver.main_model_part.GetSubModelPart(structure_submodelpart_name)
+
+            self.interface_mapper = NonConformant_OneSideMap.NonConformant_OneSideMap(fluid_submodelpart,
+                                                                                      structure_submodelpart,
+                                                                                      search_radius_factor,
+                                                                                      mapper_max_iterations,
+                                                                                      mapper_tolerance)
+
+            self.double_faced_structure = False
+
+        elif (self.settings["mapper_settings"].size() == 2):
+            # Get the fluid interface faces submodelpart names
+            for mapper_id in range(2):
+                if (self.settings["mapper_settings"][mapper_id]["mapper_face"].GetString() == "Positive"):
+                    pos_face_submodelpart_name = self.settings["mapper_settings"][mapper_id]["fluid_interface_submodelpart_name"].GetString()
+                elif (self.settings["mapper_settings"][mapper_id]["mapper_face"].GetString() == "Negative"):
+                    neg_face_submodelpart_name = self.settings["mapper_settings"][mapper_id]["fluid_interface_submodelpart_name"].GetString()
+                else:
+                    raise Exception("Unique mapper flag has been set but more than one mapper exist in mapper_settings.")
+            # Get the structure submodelpart name
+            structure_submodelpart_name = self.settings["mapper_settings"][0]["structure_interface_submodelpart_name"].GetString()
+
+            # Grab the interface submodelparts
+            pos_fluid_submodelpart = self.fluid_solver.main_model_part.GetSubModelPart(pos_face_submodelpart_name)
+            neg_fluid_submodelpart = self.fluid_solver.main_model_part.GetSubModelPart(neg_face_submodelpart_name)
+            structure_submodelpart = self.structure_solver.main_model_part.GetSubModelPart(structure_submodelpart_name)
+
+            self.interface_mapper = NonConformant_OneSideMap.NonConformantTwoFaces_OneSideMap(pos_fluid_submodelpart,
+                                                                                              neg_fluid_submodelpart,
+                                                                                              structure_submodelpart,
+                                                                                              search_radius_factor,
+                                                                                              mapper_max_iterations,
+                                                                                              mapper_tolerance)
+
+            self.double_faced_structure = True
+
+        else:
+            raise Exception("Case with more than 2 mappers has not been implemented yet.\n \
+                             Please, in case you are using single faced immersed bodies, set the skin entities in a unique submodelpart.\n \
+                             In case you are considering double faced immersed bodies (shells or membranes), set all the positive faces \
+                             in a unique submodelpart and all the negative ones in another submodelpart.")
 
 
     def _SetStructureNeumannCondition(self):
@@ -406,27 +469,70 @@ class PartitionedFSIBaseSolver:
                 aux_count+=1
 
 
-    def _ComputeMeshPrediction(self):
+    def _ComputeMeshPredictionSingleFaced(self):
 
             print("Computing time step ",self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]," prediction...")
             # Get the previous step fluid interface nodal fluxes
             keep_sign = False
             distribute_load = True
             self.interface_mapper.FluidToStructure_VectorMap(KratosMultiphysics.REACTION,
-                                                             KratosSolid.POINT_LOAD,
+                                                             KratosStructural.POINT_LOAD,
                                                              keep_sign,
                                                              distribute_load)
 
             # Solve the current step structure problem with the previous step fluid interface nodal fluxes
-            self.structure_solver.SolverSolveSolutionStep()
+            self.structure_solver.SolveSolutionStep()
 
             # Map the obtained structure displacement to the fluid interface
             keep_sign = True
             distribute_load = False
             self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
-                                                             KratosALE.MESH_DISPLACEMENT,
+                                                             KratosMultiphysics.MESH_DISPLACEMENT,
                                                              keep_sign,
                                                              distribute_load)
+
+            # Solve the mesh problem
+            self.mesh_solver.Solve()
+
+            print("Mesh prediction computed.")
+
+
+    def _ComputeMeshPredictionDoubleFaced(self):
+
+            print("Computing time step ",self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS],"double faced prediction...")
+            # Get the previous step fluid interface nodal fluxes from both positive and negative faces
+            keep_sign = False
+            distribute_load = True
+            self.interface_mapper.PositiveFluidToStructure_VectorMap(KratosMultiphysics.REACTION,
+                                                                     KratosFSI.POSITIVE_MAPPED_VECTOR_VARIABLE,
+                                                                     keep_sign,
+                                                                     distribute_load)
+            self.interface_mapper.NegativeFluidToStructure_VectorMap(KratosMultiphysics.REACTION,
+                                                                     KratosFSI.NEGATIVE_MAPPED_VECTOR_VARIABLE,
+                                                                     keep_sign,
+                                                                     distribute_load)
+
+            # Add the two faces contributions to the POINT_LOAD variable
+            # TODO: Add this to the variables utils
+            for node in self._GetStructureInterfaceSubmodelPart().Nodes:
+                pos_face_force = node.GetSolutionStepValue(KratosFSI.POSITIVE_MAPPED_VECTOR_VARIABLE)
+                neg_face_force = node.GetSolutionStepValue(KratosFSI.NEGATIVE_MAPPED_VECTOR_VARIABLE)
+                node.SetSolutionStepValue(KratosStructural.POINT_LOAD, 0, pos_face_force+neg_face_force)
+
+            # Solve the current step structure problem with the previous step fluid interface nodal fluxes
+            self.structure_solver.SolveSolutionStep()
+
+            # Map the obtained structure displacement to both positive and negative fluid interfaces
+            keep_sign = True
+            distribute_load = False
+            self.interface_mapper.StructureToPositiveFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
+                                                                     KratosMultiphysics.MESH_DISPLACEMENT,
+                                                                     keep_sign,
+                                                                     distribute_load)
+            self.interface_mapper.StructureToNegativeFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
+                                                                     KratosMultiphysics.MESH_DISPLACEMENT,
+                                                                     keep_sign,
+                                                                     distribute_load)
 
             # Solve the mesh problem
             self.mesh_solver.Solve()

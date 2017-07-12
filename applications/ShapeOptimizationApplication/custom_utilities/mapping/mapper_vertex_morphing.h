@@ -29,18 +29,18 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "../../kratos/includes/define.h"
-#include "../../kratos/processes/process.h"
-#include "../../kratos/includes/node.h"
-#include "../../kratos/includes/element.h"
-#include "../../kratos/includes/model_part.h"
-#include "../../kratos/includes/kratos_flags.h"
-#include "../../kratos/spatial_containers/spatial_containers.h"
-#include "../../kratos/utilities/timer.h"
-#include "../../kratos/processes/node_erase_process.h"
-#include "../../kratos/utilities/binbased_fast_point_locator.h"
-#include "../../kratos/utilities/normal_calculation_utils.h"
-#include "../../kratos/spaces/ublas_space.h"
+#include "includes/define.h"
+#include "processes/process.h"
+#include "includes/node.h"
+#include "includes/element.h"
+#include "includes/model_part.h"
+#include "includes/kratos_flags.h"
+#include "spatial_containers/spatial_containers.h"
+#include "utilities/timer.h"
+#include "processes/node_erase_process.h"
+#include "utilities/binbased_fast_point_locator.h"
+#include "utilities/normal_calculation_utils.h"
+#include "spaces/ublas_space.h"
 #include "shape_optimization_application.h"
 #include "filter_function.h"
 
@@ -146,10 +146,12 @@ public:
     // ==============================================================================
     void CreateListOfNodesOfDesignSurface()
     {
+        mListOfNodesOfDesignSurface.resize(mNumberOfDesignVariables);
+        std::size_t counter = 0;
         for (ModelPart::NodesContainerType::iterator node_it = mrDesignSurface.NodesBegin(); node_it != mrDesignSurface.NodesEnd(); ++node_it)
         {
             NodeTypePointer pnode = *(node_it.base());
-            mListOfNodesOfDesignSurface.push_back(pnode);
+            mListOfNodesOfDesignSurface[counter++] = pnode;
         }
     }
 
@@ -178,9 +180,9 @@ public:
     void AssignMappingIds()
     {
         unsigned int i = 0;
-        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
-            node_i->SetValue(MAPPING_ID,i++);
-    }
+        for(auto& node_i : mrDesignSurface.Nodes())
+            node_i.SetValue(MAPPING_ID,i++);
+    }        
 
     // --------------------------------------------------------------------------
     void ComputeMappingMatrix()
@@ -203,14 +205,12 @@ public:
     // --------------------------------------------------------------------------
     void ComputeEntriesOfMappingMatrix()
     {
-        for (ModelPart::NodeIterator node_itr = mrDesignSurface.NodesBegin(); node_itr != mrDesignSurface.NodesEnd(); ++node_itr)
+        for(auto& node_i : mrDesignSurface.Nodes())
         {
-            ModelPart::NodeType& design_node = *node_itr;
-
             NodeVector neighbor_nodes( mMaxNumberOfNeighbors );
             std::vector<double> resulting_squared_distances( mMaxNumberOfNeighbors );
-            unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( design_node,
-                                                                             mFilterRadius,
+            unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
+                                                                             mFilterRadius, 
                                                                              neighbor_nodes.begin(),
                                                                              resulting_squared_distances.begin(),
                                                                              mMaxNumberOfNeighbors );
@@ -218,9 +218,9 @@ public:
             std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
             double sum_of_weights = 0.0;
 
-            ThrowWarningIfMaxNodeNeighborsReached( design_node, number_of_neighbors );
-            ComputeWeightForAllNeighbors( design_node, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
-            FillMappingMatrixWithWeights( design_node, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
+            ThrowWarningIfMaxNodeNeighborsReached( node_i, number_of_neighbors );                                                                               
+            ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
+            FillMappingMatrixWithWeights( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
         }
     }
 
@@ -317,10 +317,10 @@ public:
         y_variables_in_geometry_space.clear();
         z_variables_in_geometry_space.clear();
 
-        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+        for(auto& node_i : mrDesignSurface.Nodes())
         {
-            int i = node_i->GetValue(MAPPING_ID);
-            array_3d& nodal_variable = node_i->FastGetSolutionStepValue(rNodalVariable);
+            int i = node_i.GetValue(MAPPING_ID);
+            array_3d& nodal_variable = node_i.FastGetSolutionStepValue(rNodalVariable);
             x_variables_in_geometry_space[i] = nodal_variable[0];
             y_variables_in_geometry_space[i] = nodal_variable[1];
             z_variables_in_geometry_space[i] = nodal_variable[2];
@@ -337,10 +337,10 @@ public:
         y_variables_in_geometry_space.clear();
         z_variables_in_geometry_space.clear();
 
-        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+        for(auto& node_i : mrDesignSurface.Nodes())
         {
-            int i = node_i->GetValue(MAPPING_ID);
-            array_3d& nodal_variable = node_i->FastGetSolutionStepValue(rNodalVariable);
+            int i = node_i.GetValue(MAPPING_ID);
+            array_3d& nodal_variable = node_i.FastGetSolutionStepValue(rNodalVariable);
             x_variables_in_design_space[i] = nodal_variable[0];
             y_variables_in_design_space[i] = nodal_variable[1];
             z_variables_in_design_space[i] = nodal_variable[2];
@@ -374,30 +374,30 @@ public:
     // --------------------------------------------------------------------------
     void AssignResultingDesignVectorsToNodalVariable( const Variable<array_3d> &rNodalVariable )
     {
-        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+        for(auto& node_i : mrDesignSurface.Nodes())
         {
-            int i = node_i->GetValue(MAPPING_ID);
+            int i = node_i.GetValue(MAPPING_ID);
 
             Vector node_vector = ZeroVector(3);
             node_vector(0) = x_variables_in_design_space[i];
             node_vector(1) = y_variables_in_design_space[i];
             node_vector(2) = z_variables_in_design_space[i];
-            node_i->FastGetSolutionStepValue(rNodalVariable) = node_vector;
+            node_i.FastGetSolutionStepValue(rNodalVariable) = node_vector;
         }
     }
 
     // --------------------------------------------------------------------------
     void AssignResultingGeometryVectorsToNodalVariable( const Variable<array_3d> &rNodalVariable )
     {
-        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+        for(auto& node_i : mrDesignSurface.Nodes())
         {
-            int i = node_i->GetValue(MAPPING_ID);
+            int i = node_i.GetValue(MAPPING_ID);
 
             Vector node_vector = ZeroVector(3);
             node_vector(0) = x_variables_in_geometry_space[i];
             node_vector(1) = y_variables_in_geometry_space[i];
             node_vector(2) = z_variables_in_geometry_space[i];
-            node_i->FastGetSolutionStepValue(rNodalVariable) = node_vector;
+            node_i.FastGetSolutionStepValue(rNodalVariable) = node_vector;
         }
     }
 
@@ -405,9 +405,9 @@ public:
     bool HasGeometryChanged()
     {
         double sumOfAllCoordinates = 0.0;
-        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
+        for(auto& node_i : mrDesignSurface.Nodes())
         {
-            array_3d& coord = node_i->Coordinates();
+            array_3d& coord = node_i.Coordinates();
             sumOfAllCoordinates += coord[0] + coord[1] + coord[2];
         }
 

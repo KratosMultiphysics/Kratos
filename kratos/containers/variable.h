@@ -126,7 +126,7 @@ public:
     Variable(const VariableType& rOtherVariable) : VariableData(rOtherVariable), mZero(rOtherVariable.mZero) {}
 
     /// Destructor.
-    virtual ~Variable() {}
+    ~Variable() override {}
 
     ///@}
     ///@name Operators
@@ -180,18 +180,18 @@ public:
         rOStream << Name() << " : " << *static_cast<const TDataType* >(pSource) ;
     }
 
-    virtual void Save(Serializer& rSerializer, void* pData) const override
+    void Save(Serializer& rSerializer, void* pData) const override
     {
         // I'm saving by the value, it can be done by the pointer to detect shared data. Pooyan.
         rSerializer.save("Data",*static_cast<TDataType* >(pData));
     }
 
-    virtual void Allocate(void** pData) const override
+    void Allocate(void** pData) const override
     {
         *pData = new TDataType;
     }
 
-    virtual void Load(Serializer& rSerializer, void* pData) const override
+    void Load(Serializer& rSerializer, void* pData) const override
     {
         rSerializer.load("Data",*static_cast<TDataType* >(pData));
     }
@@ -220,7 +220,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << Name() << " variable";
@@ -228,7 +228,7 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Name() << " variable";
     }
@@ -308,13 +308,13 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, VariableData );
         rSerializer.save("Zero",mZero);
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, VariableData );
         rSerializer.load("Zero",mZero);

@@ -29,6 +29,8 @@ namespace Kratos {
     typedef Tetrahedra3D4<PointType>  GeometryType;
     typedef GeometryType::Pointer     GeometryPtrType;
 
+    static bool exceptionThrown = false;
+
     /** Generates a sample Tetrahedra3D4.
      * Generates a tetrahedra defined by three random points in the space.
      * @return  Pointer to a Tetrahedra3D4
@@ -398,12 +400,12 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      auto criteria = GeometryType::QualityCriteria::VOLUME_TO_EDGE_LENGTH;
+      auto criteria = GeometryType::QualityCriteria::VOLUME_TO_RMS_EDGE_LENGTH;
 
       KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), -1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria),  1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria),  1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.839947, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.769800, TOLERANCE);
     }
 
 

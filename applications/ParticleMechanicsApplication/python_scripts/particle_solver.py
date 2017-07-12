@@ -63,6 +63,8 @@ def AddVariables(model_part, config=None):
                 # add specific variables for the problem (pressure dofs)
                 model_part.AddNodalSolutionStepVariable(PRESSURE)
                 model_part.AddNodalSolutionStepVariable(PRESSURE_REACTION);
+                model_part.AddNodalSolutionStepVariable(NODAL_MPRESSURE)
+                model_part.AddNodalSolutionStepVariable(AUX_PRESSURE)
         if hasattr(config, "time_integration_method"):
             if config.time_integration_method == "Explicit" :
                 model_part.AddNodalSolutionStepVariable(NODAL_MASS)
@@ -97,19 +99,20 @@ def AddDofs(model_part, config=None):
 class ParticleSolver:
     #
 
-    def __init__(self, model_part1, model_part2, new_element, domain_size, geometry_element, num_particle):
+    def __init__(self, model_part1, model_part2, model_part3, new_element, domain_size, geometry_element, number_particle):
 
         # default settings
         
         self.echo_level = 2
         self.model_part1 = model_part1  #grid_model_part
-        self.model_part2 = model_part2  #mpm_model_part
+        self.model_part2 = model_part2  #initial_model_part
+        self.model_part3 = model_part3  #mpm_model_part
         
         self.new_element = new_element
         
         self.domain_size = domain_size
         self.geometry_element = geometry_element
-        self.num_particle = num_particle
+        self.number_particle = number_particle
 
         self.buffer_size = 3 #default buffer_size
         self.linear_solver = SkylineLUFactorizationSolver()
@@ -137,9 +140,9 @@ class ParticleSolver:
        
        
         if(self.domain_size==2):
-            self.particle_solver = MPM2D(self.model_part1, self.model_part2, self.linear_solver, self.new_element, self.move_mesh_flag, self.scheme_type, self.geometry_element,self.num_particle)
+            self.particle_solver = MPM2D(self.model_part1, self.model_part2, self.model_part3, self.linear_solver, self.new_element, self.move_mesh_flag, self.scheme_type, self.geometry_element, self.number_particle)
         else:
-            self.particle_solver = MPM3D(self.model_part1, self.model_part2, self.linear_solver, self.new_element, self.move_mesh_flag, self.scheme_type, self.geometry_element, self.num_particle)
+            self.particle_solver = MPM3D(self.model_part1, self.model_part2, self.model_part3, self.linear_solver, self.new_element, self.move_mesh_flag, self.scheme_type, self.geometry_element,  self.number_particle)
       
         
         (self.particle_solver).SetEchoLevel(self.echo_level)
@@ -188,9 +191,9 @@ class ParticleSolver:
 
 #
 #
-def CreateSolver(model_part1, model_part2, new_element, config, geometry_element, num_par):
+def CreateSolver(model_part1, model_part2, model_part3, new_element, config, geometry_element, number_particle):
 
-    structural_solver = ParticleSolver(model_part1, model_part2,new_element, config.domain_size,geometry_element, num_par)
+    structural_solver = ParticleSolver(model_part1, model_part2, model_part3, new_element, config.domain_size,geometry_element, number_particle)
 
     #Explicit scheme parameters
     if(hasattr(config, "max_delta_time")):

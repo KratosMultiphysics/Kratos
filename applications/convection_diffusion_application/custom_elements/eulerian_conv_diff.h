@@ -59,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/cfd_variables.h"
 #include "includes/serializer.h"
 #include "utilities/math_utils.h"
-#include "utilities/geometry_utilities.h" 
+#include "utilities/geometry_utilities.h"
 
 
 
@@ -72,7 +72,7 @@ class KRATOS_API(CONVECTION_DIFFUSION_APPLICATION) EulerianConvectionDiffusionEl
     : public Element
 {
 public:
-    /// Counted pointer of 
+    /// Counted pointer of
     KRATOS_CLASS_POINTER_DEFINITION(EulerianConvectionDiffusionElement);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -82,7 +82,7 @@ public:
     EulerianConvectionDiffusionElement() : Element()
     {
     }
-    
+
     EulerianConvectionDiffusionElement(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
     {}
@@ -102,15 +102,15 @@ public:
         return Element::Pointer(new EulerianConvectionDiffusionElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
         KRATOS_CATCH("");
     }
-    
+
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
-    
+
     void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo);
-    
+
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-	
+
 	void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-	
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     virtual std::string Info() const
@@ -128,7 +128,7 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-	
+
     struct ElementVariables
     {
         double theta;
@@ -140,21 +140,24 @@ protected:
         double density;
         double beta;
         double div_v;
-        
+
         array_1d<double,TNumNodes> phi;
         array_1d<double,TNumNodes> phi_old;
+        array_1d<double,TNumNodes> volumetric_source;
         array_1d< array_1d<double,3 >, TNumNodes> v;
         array_1d< array_1d<double,3 >, TNumNodes> vold;
     };
-	
+
     void InitializeEulerianElement(ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo);
-    
-    void CalculateGeometry(boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim>& rDN_DX, double& rVolume); 
+
+    void CalculateGeometry(boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim>& rDN_DX, double& rVolume);
 
     double ComputeH(boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim>& rDN_DX);
 
     void GetNodalValues(ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo);
-	
+
+    double CalculateTau(const ElementVariables& rVariables, double norm_vel, double h);
+
     // Member Variables
 
 
@@ -181,6 +184,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_EULERIAN_CONVECTION_DIFFUSION_ELEMENT_INCLUDED  defined 
-
-
+#endif // KRATOS_EULERIAN_CONVECTION_DIFFUSION_ELEMENT_INCLUDED  defined

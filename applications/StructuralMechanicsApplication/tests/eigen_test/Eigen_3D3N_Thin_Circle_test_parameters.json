@@ -19,6 +19,9 @@
             "input_filename"   : "eigen_test/Eigen_3D3N_Thin_Circle_test",
             "input_file_label" : 0
         },
+        "material_import_settings" :{
+            "materials_filename": "eigen_test/Eigen_3D3N_Thin_Circle_test_materials.json"
+        },
         "eigensolver_settings":{
             "solver_type": "FEAST",
             "print_feast_output": false,
@@ -26,7 +29,10 @@
             "solve_eigenvalue_problem": true,
             "lambda_min": 0.0,
             "lambda_max": 4.0e5,
-            "search_dimension": 15
+            "search_dimension": 15,
+            "linear_solver_settings":{
+                "solver_type": "skyline_lu"
+            }
 	},
         "problem_domain_sub_model_part_list" : ["Parts_plate"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_support","ROTATION_support"],

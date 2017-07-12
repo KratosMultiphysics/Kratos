@@ -21,10 +21,10 @@
 
 namespace Kratos
 {
-namespace Python
-{
-void  AddCustomConditionsToPython();
-}  // namespace Python.
+  namespace Python
+  {
+    void  AddCustomConditionsToPython();
+  }  // namespace Python.
 
 }  // namespace Kratos.
 

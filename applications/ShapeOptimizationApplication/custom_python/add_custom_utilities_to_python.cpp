@@ -33,6 +33,8 @@
 #include "custom_utilities/response_functions/strain_energy_response_function.h"
 #include "custom_utilities/response_functions/mass_response_function.h"
 #include "custom_utilities/input_output/universal_file_io.h"
+#include "custom_utilities/input_output/vtk_file_io.h"
+
 
 // ==============================================================================
 
@@ -128,7 +130,12 @@ void  AddCustomUtilitiesToPython()
     class_<UniversalFileIO, bases<Process> >("UniversalFileIO", init<ModelPart&, Parameters&>())
         .def("initializeLogging", &UniversalFileIO::initializeLogging)
         .def("logNodalResults", &UniversalFileIO::logNodalResults)
-        ;
+        ;           
+     
+    class_<VTKFileIO, bases<Process> >("VTKFileIO", init<ModelPart&, Parameters&>())
+        .def("initializeLogging", &VTKFileIO::initializeLogging)
+        .def("logNodalResults", &VTKFileIO::logNodalResults)
+        ;           
 }
 
 

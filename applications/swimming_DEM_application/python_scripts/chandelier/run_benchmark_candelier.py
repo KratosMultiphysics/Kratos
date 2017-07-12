@@ -9,7 +9,7 @@ def PrintMessage(run_name, radial_error, tolerance):
         messages_to_print = [run_name, error_message]
         max_len = max([len(msg) for msg in {run_name, error_message}])
 
-        if radial_error < tolerance:
+        if radial_error != None and radial_error < tolerance:
             veredict_msg = 'OK'
         else:
             veredict_msg = 'Fail'
@@ -31,15 +31,15 @@ varying_parameters['basset_force_type'] = 0
 
 # No history force benchmark
 import candelier_algorithm
-test = script.Solution(candelier_algorithm, varying_parameters)
+test = script.Solution(candelier_algorithm.Algorithm(varying_parameters), varying_parameters)
 error_names.append('No history force, Daitche')
-errors.append(test.Run())
+errors.append(test.alg.Run())
 
 varying_parameters['basset_force_type'] = 2
 # Second-order accurate Daitche benchmark
-test = script.Solution(candelier_algorithm, varying_parameters)
+test = script.Solution(candelier_algorithm.Algorithm(varying_parameters), varying_parameters)
 error_names.append('All forces, Daitche')
-errors.append(test.Run())
+errors.append(test.alg.Run())
 
 # Output
 print()

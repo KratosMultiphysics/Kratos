@@ -15,6 +15,7 @@
 #include "includes/model_part_io.h"
 #include "input_output/logger.h"
 #include "utilities/quaternion.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
@@ -52,7 +53,7 @@ namespace Kratos
 
         if (!(pFile->is_open()))
         {
-            KRATOS_THROW_ERROR(std::invalid_argument, "Error opening output file : ", mFilename.c_str());
+            KRATOS_THROW_ERROR(std::invalid_argument, "Error opening mdpa file : ", mFilename.c_str());
         }
 
         // Store the pointer as a regular std::iostream
@@ -677,7 +678,7 @@ namespace Kratos
 			buffer << mBaseFilename << "_" << i << ".mdpa";
             std::ofstream* p_ofstream = new std::ofstream(buffer.str().c_str());
             if(!(*p_ofstream))
-                KRATOS_THROW_ERROR(std::invalid_argument, "Error opening output file : ", buffer.str());
+                KRATOS_THROW_ERROR(std::invalid_argument, "Error opening mdpa file : ", buffer.str());
 
             output_files.push_back(p_ofstream);
         }
@@ -1247,12 +1248,31 @@ namespace Kratos
          read_coordinates[ReorderedNodeId(id)] = coords;
 	  number_of_nodes_read++;
 	}
-
-	for(map_type::const_iterator it = read_coordinates.begin(); it!=read_coordinates.end(); ++it)
+	
+	
+	//make this to construct the nodes "in parallel" - the idea is that first touch is being done in parallel but the reading is actually sequential
+	const int nnodes = read_coordinates.size();
+	const int nthreads = OpenMPUtils::GetNumThreads();
+        std::vector<int> partition;
+        OpenMPUtils::DivideInPartitions(nnodes, nthreads, partition);
+        
+        map_type::const_iterator it = read_coordinates.begin();
+        for(int ithread=0; ithread<nthreads; ithread++)
         {
-            const unsigned int node_id = it->first;
-            const array_1d<double,3>& coords = it->second;
-            rModelPart.CreateNewNode(node_id,coords[0],coords[1],coords[2]);
+            #pragma omp parallel
+            {
+                //note that the reading is only done by one of the threads
+                if(OpenMPUtils::ThisThread() == ithread)
+                {
+                    for(int i=partition[ithread]; i<partition[ithread+1]; i++)
+                    {
+                        const unsigned int node_id = it->first;
+                        const array_1d<double,3>& coords = it->second;
+                        rModelPart.CreateNewNode(node_id,coords[0],coords[1],coords[2]);
+                        it++;
+                    }
+                }
+            }
         }
 
 	std::cout << number_of_nodes_read << " nodes read]" << std::endl;

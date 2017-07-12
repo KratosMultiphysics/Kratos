@@ -176,7 +176,7 @@ public:
 
     /** Destructor.
      */
-    virtual ~ResidualBasedBlockBuilderAndSolver()
+    ~ResidualBasedBlockBuilderAndSolver() override
     {
     }
 
@@ -727,6 +727,7 @@ public:
     //**************************************************************************
 
     void ResizeAndInitializeVectors(
+        typename TSchemeType::Pointer pScheme,
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
@@ -761,7 +762,7 @@ public:
         if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
         {
             A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
-            ConstructMatrixStructure(A, rElements, rConditions, CurrentProcessInfo);
+            ConstructMatrixStructure(pScheme, A, rElements, rConditions, CurrentProcessInfo);
         }
         else
         {
@@ -769,7 +770,7 @@ public:
             {
                 KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
                 A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
-                ConstructMatrixStructure(A, rElements, rConditions, CurrentProcessInfo);
+                ConstructMatrixStructure(pScheme, A, rElements, rConditions, CurrentProcessInfo);
             }
         }
         if (Dx.size() != BaseType::mEquationSystemSize)
@@ -778,8 +779,6 @@ public:
             b.resize(BaseType::mEquationSystemSize, false);
 
         //
-
-
 
 
         KRATOS_CATCH("")
@@ -958,7 +957,7 @@ public:
      * @param r_model_part
      * @return 0 all ok
      */
-    virtual int Check(ModelPart& r_mUSE_GOOGLE_HASHodel_part) override
+    int Check(ModelPart& r_mUSE_GOOGLE_HASHodel_part) override
     {
         KRATOS_TRY
 
@@ -1008,6 +1007,7 @@ protected:
     //**************************************************************************
 
     virtual void ConstructMatrixStructure(
+        typename TSchemeType::Pointer pScheme,
         TSystemMatrixType& A,
         ElementsContainerType& rElements,
         ConditionsArrayType& rConditions,
@@ -1016,7 +1016,7 @@ protected:
         //filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
 
-        const std::size_t equation_size = BaseType::mDofSet.size();
+        const std::size_t equation_size = BaseType::mEquationSystemSize;
 
 #ifdef USE_GOOGLE_HASH
         std::vector<google::dense_hash_set<std::size_t> > indices(equation_size);
@@ -1042,8 +1042,7 @@ protected:
         for(int iii=0; iii<nelements; iii++)
         {
             typename ElementsContainerType::iterator i_element = rElements.begin() + iii;
-            (i_element)->EquationIdVector(ids, CurrentProcessInfo);
-
+            pScheme->EquationId( *(i_element.base()) , ids, CurrentProcessInfo);
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
@@ -1064,7 +1063,7 @@ protected:
         for (int iii = 0; iii<nconditions; iii++)
         {
             typename ConditionsArrayType::iterator i_condition = rConditions.begin() + iii;
-            (i_condition)->EquationIdVector(ids, CurrentProcessInfo);
+            pScheme->Condition_EquationId( *(i_condition.base()), ids, CurrentProcessInfo);
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP

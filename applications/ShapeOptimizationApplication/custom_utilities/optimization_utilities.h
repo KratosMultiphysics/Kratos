@@ -29,15 +29,15 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "../../kratos/includes/define.h"
-#include "../../kratos/processes/process.h"
-#include "../../kratos/includes/node.h"
-#include "../../kratos/includes/element.h"
-#include "../../kratos/includes/model_part.h"
-#include "../../kratos/includes/kratos_flags.h"
-#include "../../kratos/utilities/timer.h"
+#include "includes/define.h"
+#include "processes/process.h"
+#include "includes/node.h"
+#include "includes/element.h"
+#include "includes/model_part.h"
+#include "includes/kratos_flags.h"
+#include "utilities/timer.h"
+#include "spaces/ublas_space.h"
 #include "shape_optimization_application.h"
-#include "../../kratos/spaces/ublas_space.h"
 
 // ==============================================================================
 

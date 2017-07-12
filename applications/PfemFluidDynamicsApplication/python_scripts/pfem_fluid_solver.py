@@ -149,7 +149,8 @@ class PfemFluidSolver:
         # PFEM fluid variables
         # self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NORMVELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FREESURFACE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INTERF)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION)
 
         print("::[Pfem Fluid Solver]:: Variables ADDED")
                 
@@ -191,8 +192,8 @@ class PfemFluidSolver:
                 params.AddValue("bodies_list",self.settings["bodies_list"])         
 
             # CheckAndPrepareModelProcess creates the fluid_computational model part
-            import check_and_prepare_model_process_fluid
-            check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
+            import pfem_check_and_prepare_model_process_fluid
+            pfem_check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
             # Set Properties to nodes : Deprecated
             #self.SetProperties()
@@ -272,8 +273,10 @@ class PfemFluidSolver:
         #self.fluid_solver.Initialize()
 
     def InitializeSolutionStep(self):
-        pass
-        #self.fluid_solver.InitializeSolutionStep()
+        #pass
+        self.fluid_solver.InitializeSolutionStep()
+        #split_elements = KratosPfemFluid.SplitElementsProcess(self.main_model_part,self.settings["echo_level"].GetInt())
+        #split_elements.ExecuteInitialize()
 
     def Predict(self):
         pass
@@ -285,7 +288,9 @@ class PfemFluidSolver:
 
     def FinalizeSolutionStep(self):
         #pass
-        self.fluid_solver.FinalizeSolutionStep()
+        self.fluid_solver.FinalizeSolutionStep()  
+        #split_elements = KratosPfemFluid.SplitElementsProcess(self.main_model_part,self.settings["echo_level"].GetInt())
+        #split_elements.ExecuteFinalize()
         
         #self.fluid_solver.CalculateAccelerations()  # ACCELERATION
         #self.fluid_solver.CalculateDisplacements()  # DISPLACEMENTS

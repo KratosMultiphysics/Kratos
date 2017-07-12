@@ -300,11 +300,11 @@ namespace Kratos
       v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
 
       MathUtils<double>::CrossProduct(An,v1,v2);
-      An *= 0.5;
 
       array_1d<double,3>& normal = (it)->GetValue(NORMAL);
 
       noalias(normal) = An/norm_2(An);
+      
     }
 
 
@@ -389,7 +389,7 @@ namespace Kratos
 	  }
 
       KRATOS_CATCH( "" )
-	}
+    }
 
     /// Calculates the "area normal" (vector oriented as the normal with a dimension proportional to the area).
     /** This is done on the base of the Conditions provided which should be

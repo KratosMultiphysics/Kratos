@@ -112,7 +112,7 @@ public:
 
     KRATOS_TRY
 
-      if( mEchoLevel > 0 ){
+      if( mEchoLevel > 1 ){
 	std::cout<<" [ REMOVE CLOSE NODES: "<<std::endl;
       }
 
@@ -129,19 +129,19 @@ public:
     //if the remove_node switch is activated, we check if the nodes got too close
     if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES))
       {
-	if( mEchoLevel > 0 )
+	if( mEchoLevel > 1 )
 	  std::cout<<" REMOVE_NODES is TRUE "<<std::endl;
 	bool any_node_removed_on_error = false;
 	////////////////////////////////////////////////////////////
 	if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES_ON_ERROR))	      
 	  {
-	    if( mEchoLevel > 0 )
+	    if( mEchoLevel > 1 )
 	      std::cout<<" REMOVE_NODES_ON_ERROR is TRUE "<<std::endl;
 	  
 	    any_node_removed_on_error = RemoveNodesOnError(error_nodes_removed); //2D and 3D
 	  }
 	//////////////////////////////////////////////////////////// 
-	if( mEchoLevel > 0 )
+	if( mEchoLevel > 1 )
 	  std::cout<<"error_nodes_removed :"<<error_nodes_removed<<std::endl;
 	bool any_convex_condition_removed = false;
 
@@ -149,7 +149,7 @@ public:
 	////////////////////////////////////////////////////////////
 	if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES_ON_DISTANCE))	      
 	  {
-	    if( mEchoLevel > 0 )
+	    if( mEchoLevel > 1 )
 	      std::cout<<" REMOVE_NODES_ON_DISTANCE is TRUE "<<std::endl;
 	    // double  MeanRadius=0;
 	    any_node_removed_on_distance = RemoveNodesOnDistance(inside_nodes_removed, boundary_nodes_removed, any_condition_removed); 
@@ -181,7 +181,7 @@ public:
 		//RemoveConditions.back().SetId(id);
 	      }
 	      else{
-		if( mEchoLevel > 0 )
+		if( mEchoLevel > 1 )
 		  std::cout<<"   Condition RELEASED:"<<ic->Id()<<std::endl;
 	      }
 	    }
@@ -201,7 +201,7 @@ public:
       
     RemovedConditions -= mrModelPart.NumberOfConditions(mMeshId);
       
-    if( mEchoLevel > 0 ){
+    if( mEchoLevel > 1 ){
       std::cout<<"  remove_mesh_nodes_process_for_fluids  [ CONDITIONS ( removed : "<<RemovedConditions<<" ) ]"<<std::endl;
       std::cout<<"   [ NODES      ( removed : "<<mrRemesh.Info->RemovedNodes<<" ) ]"<<std::endl;
       std::cout<<"   [ Error(removed: "<<error_nodes_removed<<"); Distance(removed: "<<distance_remove<<"; inside: "<<inside_nodes_removed<<"; boundary: "<<boundary_nodes_removed<<") ]"<<std::endl;
@@ -416,7 +416,7 @@ private:
     double initialMeanRadius=0;
     initialMeanRadius=mrRemesh.Refine->InitialRadius;
 
-    if( mEchoLevel > 0 )
+    if( mEchoLevel > 1 )
       std::cout<<"initialMeanRadius "<<initialMeanRadius<<std::endl;
     double size_for_distance_inside       = 0.6 * initialMeanRadius;//compared to element radius
     double size_for_distance_boundary     = 0.6 * initialMeanRadius; //compared to element radius
@@ -462,6 +462,9 @@ private:
        
     for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(mMeshId); in != mrModelPart.NodesEnd(mMeshId); in++)
       {
+	if(in->Is(TO_ERASE)){
+	  any_node_removed = true;
+	}
 	bool on_contact_tip = false;
 	bool contact_active = false;
 	   
@@ -574,7 +577,7 @@ private:
 
 		  if(counter > 1 && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(NEW_ENTITY) && !on_contact_tip ){ //Can be inserted in the boundary refine
 		    in->Set(TO_ERASE);
-		    if( mEchoLevel > 0 )
+		    if( mEchoLevel > 1 )
 		      std::cout<<"     Removed Boundary Node ["<<in->Id()<<"] on Distance "<<std::endl;
 		    any_node_removed = true;
 		    boundary_nodes_removed++;
@@ -582,7 +585,7 @@ private:
 		  }
 		  else if ( counter > 2 && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(NEW_ENTITY) && on_contact_tip && derefine_wall_tip_contact) {
 		    in->Set(TO_ERASE);
-		    if( mEchoLevel > 0 )
+		    if( mEchoLevel > 1 )
 		      std::cout << "     Removing a TIP POINT due to that criterion [" << in->Id() << "]" << std::endl;
 		    any_node_removed = true;
 		    boundary_nodes_removed++;
@@ -630,12 +633,12 @@ private:
  
 
     if(erased_nodes>0){
-      if( mEchoLevel > 0 ) 
+      if( mEchoLevel > 1 ) 
 	std::cout<<"layer_nodes_removed "<<erased_nodes<<std::endl;
       any_node_removed = true;
     }
     //Build boundary after removing boundary nodes due distance criterion
-    if( mEchoLevel > 0 ){
+    if( mEchoLevel > 1 ){
       std::cout<<"boundary_nodes_removed "<<boundary_nodes_removed<<std::endl;
       std::cout<<"inside_nodes_removed "<<inside_nodes_removed<<std::endl;
     }
@@ -736,19 +739,20 @@ private:
 	  erased_nodes += 1;
 	  inside_nodes_removed++;
 	}
-	// if the node is near to the wall byt not too close, if possible, is not erased but just moved in the middle of its largest edge (not shared with a wall node)
-	else if(height<safetyCoefficient2D*wallLength){
-	  bool eraseNode=true;
-	  eraseNode=CheckForMovingLayerNodes(Element[i],wallLength);
 
-	    if(eraseNode==true){
-	      // std::cout<<"I will erase this node because too close to neighbour nodes "<<std::endl;
-	      // std::cout<<"(distances:  "<<maxNeighDistance<<" vs "<<wallLength<<")"<<std::endl;
-	    Element[i].Set(TO_ERASE);
-	    erased_nodes += 1;
-	    inside_nodes_removed++;
-	  }
-	}
+	// // if the node is near to the wall but not too close, if possible, it is not erased but just moved in the middle of its largest edge (not shared with a wall node)
+	// else if(height<safetyCoefficient2D*wallLength){
+	//   bool eraseNode=true;
+	//   eraseNode=CheckForMovingLayerNodes(Element[i],wallLength);
+
+	//     if(eraseNode==true){
+	//       // std::cout<<"I will erase this node because too close to neighbour nodes "<<std::endl;
+	//       std::cout<<"(distances:  "<<height<<" vs "<<wallLength<<")"<<std::endl;
+	//     Element[i].Set(TO_ERASE);
+	//     erased_nodes += 1;
+	//     inside_nodes_removed++;
+	//   }
+	// }
 
 
       }
@@ -955,7 +959,7 @@ private:
     WeakPointerVector< Node < 3 > >::iterator j = neighb_nodes.begin();
     for (WeakPointerVector< Node <3> >::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); nn++)
       {
-	if(nn->IsNot(RIGID)){
+	if(nn->IsNot(RIGID) && nn->IsNot(SOLID)){
 	  // std::cout<<"neigh coordinates: "<<nn->X()<<" "<<nn->Y()<<std::endl;
 	  array_1d<double,3>  CoorNeighDifference=CheckedNode.Coordinates()-nn->Coordinates();
 	  double squaredDistance=CoorNeighDifference[0]*CoorNeighDifference[0]+CoorNeighDifference[1]*CoorNeighDifference[1];
@@ -971,7 +975,7 @@ private:
       }
     //I have looked for the biggest edge for moving there the layer node
     double maxNeighDistance=sqrt(maxSquaredDistance);
-    if(maxNeighDistance>wallLength){
+    if(maxNeighDistance>wallLength && wallLength>0){
       for (WeakPointerVector< Node<3> >::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); nn++)
 	{
 	  if(nn==j){
@@ -1002,10 +1006,6 @@ private:
 	  }
 	  eraseNode=false;
 	}
-
-    }else{
-      std::cout<<"(distances:  "<<maxNeighDistance<<" vs "<<wallLength<<")"<<std::endl;
-      
     }
     return eraseNode;
 

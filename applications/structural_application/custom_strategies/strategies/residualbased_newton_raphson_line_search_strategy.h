@@ -221,7 +221,7 @@ public:
         TSystemVectorPointerType pDelta_p;
 
         // asignando tamaño
-        pBuilderAndSolver->ResizeAndInitializeVectors(this->mpA, pX_old, pDelta_p, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
+        pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, this->mpA, pX_old, pDelta_p, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
 
         TSystemVectorType& X_old = *pX_old;
         TSystemVectorType& Delta_p = *pDelta_p;

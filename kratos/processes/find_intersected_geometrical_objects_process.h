@@ -248,8 +248,12 @@ namespace Kratos
 
 
 	  /// Destructor.
-	  virtual ~FindIntersectedGeometricalObjectsProcess() {}
+	  ~FindIntersectedGeometricalObjectsProcess() override {}
 
+	  ///@name Member Variables
+	  ///@{
+
+	  std::vector<PointerVector<GeometricalObject>> mIntersectedObjects;
 
       ///@}
       ///@name Operations
@@ -257,20 +261,32 @@ namespace Kratos
 
 	  virtual void Initialize();
 
-	  virtual void Execute();
+	  virtual void FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults);
+
+	  virtual void FindIntersections();
+
+	  virtual std::vector<PointerVector<GeometricalObject>>& GetIntersections();
+
+	  virtual ModelPart& GetModelPart1();
+
+	  virtual OctreeBinary<OctreeBinaryCell<Internals::DistanceSpatialContainersConfigure>>* GetOctreePointer();
+
+	  virtual void Clear();
+
+	  void Execute() override;
 
       ///@}
       ///@name Input and output
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const;
+      std::string Info() const override;
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const;
+      void PrintInfo(std::ostream& rOStream) const override;
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const;
+      void PrintData(std::ostream& rOStream) const override;
 
       ///@}
 
@@ -295,6 +311,7 @@ namespace Kratos
 		void SetOctreeBoundingBox();
 		void MarkIfIntersected(Element& rElement1, std::vector<OctreeType::cell_type*>& leaves);
 		bool HasIntersection(Element::GeometryType& rFirstGeometry, Element::GeometryType& rSecondGeometry);
+		void FindIntersectedSkinObjects(Element& rElement1, std::vector<OctreeType::cell_type*>& leaves, PointerVector<GeometricalObject>& rResults);
 
 
       ///@}

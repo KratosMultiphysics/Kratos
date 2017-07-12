@@ -48,6 +48,9 @@
 #include "utilities/connectivity_preserve_modeler.h"
 #include "utilities/cutting_utility.h"
 
+#include "utilities/python_function_callback_utility.h"
+#include "utilities/interval_utility.h"
+
 namespace Kratos
 {
 
@@ -55,58 +58,7 @@ namespace Python
 {
 
 
-class PythonGenericFunctionUtility
-{
-    public:
-        PythonGenericFunctionUtility(  ModelPart::NodesContainerType& rNodes, PyObject* obj): mrNodes(rNodes), mpy_obj(obj)
-        {}
 
-        void ApplyFunctionToScalar(const Variable<double>& rVariable, const double t)
-        {
-            //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
-            for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
-            {
-                ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
-                const double value = CallFunction(i->X(), i->Y(), i->Z(), t);
-                i->FastGetSolutionStepValue(rVariable) = value;
-            }
-        }
-
-        void ApplyFunctionToComponent(const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& rVariable, const double t)
-        {
-            //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
-            for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
-            {
-                ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
-                const double value = CallFunction(i->X(), i->Y(), i->Z(), t);
-                i->FastGetSolutionStepValue(rVariable) = value;
-            }
-        }
-
-        std::vector <double> ReturnFunction(const double t)
-        {
-            std::vector<double> values;
-            //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
-            for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
-            {
-                ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
-                const double value = CallFunction(i->X(), i->Y(), i->Z(), t);
-                values.push_back(value);
-            }
-
-            return values;
-        }
-
-    private:
-        ModelPart::NodesContainerType& mrNodes;
-        PyObject* mpy_obj;
-
-
-        double CallFunction(const double x, const double y, const double z, const double t)
-        {
-            return boost::python::call_method<double>(mpy_obj, "f", x,y,z,t);
-        }
-};
 
 void GenerateModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const char* ElementName, const char* ConditionName)
 {
@@ -121,14 +73,25 @@ void GenerateModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin_model_
 
 }
 
+
+
 void AddUtilitiesToPython()
 {
     using namespace boost::python;
 
-    class_<PythonGenericFunctionUtility >("PythonGenericFunctionUtility", init<ModelPart::NodesContainerType& , PyObject*>() )
-    .def("ApplyFunction", &PythonGenericFunctionUtility::ApplyFunctionToScalar)
-    .def("ApplyFunction", &PythonGenericFunctionUtility::ApplyFunctionToComponent)
-    .def("ReturnFunction", &PythonGenericFunctionUtility::ReturnFunction)
+    // NOTE: this function is special in that it accepts a "pyObject" - this is the reason for which it is defined in this same file
+    class_<PythonGenericFunctionUtility,  PythonGenericFunctionUtility::Pointer >("PythonGenericFunctionUtility", init<const std::string&>() )
+    .def(init<const std::string&, Parameters>())
+    .def("UseLocalSystem", &PythonGenericFunctionUtility::UseLocalSystem)
+    .def("DependsOnSpace", &PythonGenericFunctionUtility::DependsOnSpace)
+    .def("RotateAndCallFunction", &PythonGenericFunctionUtility::RotateAndCallFunction)
+    .def("CallFunction", &PythonGenericFunctionUtility::CallFunction)
+    ;
+
+    class_<ApplyFunctionToNodesUtility >("ApplyFunctionToNodesUtility", init<ModelPart::NodesContainerType&, PythonGenericFunctionUtility::Pointer >() )
+    .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction< Variable<double> >)
+    .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
+    .def("ReturnFunction", &ApplyFunctionToNodesUtility::ReturnFunction)
     ;
 
 
@@ -141,6 +104,9 @@ void AddUtilitiesToPython()
     .def("SetVectorVar", &VariableUtils::SetVectorVar)
     .def("SetScalarVar", &VariableUtils::SetScalarVar< Variable<double> >)
     .def("SetScalarVar", &VariableUtils::SetScalarVar< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >)
+    .def("SetFlag", &VariableUtils::SetFlag< ModelPart::NodesContainerType >)
+    .def("SetFlag", &VariableUtils::SetFlag< ModelPart::ConditionsContainerType >)
+    .def("SetFlag", &VariableUtils::SetFlag< ModelPart::ElementsContainerType >)
     .def("SaveVectorVar", &VariableUtils::SaveVectorVar)
     .def("SaveScalarVar", &VariableUtils::SaveScalarVar)
     .def("SelectNodeList", &VariableUtils::SelectNodeList)
@@ -154,22 +120,24 @@ void AddUtilitiesToPython()
     .def("ApplyFixity", &VariableUtils::ApplyFixity< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > > )
     .def("ApplyVector", &VariableUtils::ApplyVector< Variable<double> >)
     .def("ApplyVector", &VariableUtils::ApplyVector< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > > )
-
     .def("SumHistoricalNodeScalarVariable", &VariableUtils::SumHistoricalNodeScalarVariable< Variable<double> > )
     .def("SumHistoricalNodeScalarVariable", &VariableUtils::SumHistoricalNodeScalarVariable< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
     .def("SumHistoricalNodeVectorVariable", &VariableUtils::SumHistoricalNodeVectorVariable)
-
     .def("SumNonHistoricalNodeScalarVariable", &VariableUtils::SumNonHistoricalNodeScalarVariable< Variable<double> > )
     .def("SumNonHistoricalNodeScalarVariable", &VariableUtils::SumNonHistoricalNodeScalarVariable< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
     .def("SumNonHistoricalNodeVectorVariable", &VariableUtils::SumNonHistoricalNodeVectorVariable)
-
     .def("SumConditionScalarVariable", &VariableUtils::SumConditionScalarVariable< Variable<double> > )
     .def("SumConditionScalarVariable", &VariableUtils::SumConditionScalarVariable< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
     .def("SumConditionVectorVariable", &VariableUtils::SumConditionVectorVariable)
-
     .def("SumElementScalarVariable", &VariableUtils::SumElementScalarVariable< Variable<double> > )
     .def("SumElementScalarVariable", &VariableUtils::SumElementScalarVariable< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
     .def("SumElementVectorVariable", &VariableUtils::SumElementVectorVariable)
+    .def("AddDof", &VariableUtils::AddDof< Variable<double> > )
+    .def("AddDof", &VariableUtils::AddDof< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
+    .def("AddDof", &VariableUtils::AddDofWithReaction< Variable<double> > )
+    .def("AddDof", &VariableUtils::AddDofWithReaction< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
+	.def("CheckVariableKeys", &VariableUtils::CheckVariableKeys)
+	.def("CheckDofs", &VariableUtils::CheckDofs)
     ;
 
     // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
@@ -362,6 +330,12 @@ void AddUtilitiesToPython()
     .def("UpdateCutData", &CuttingUtility ::UpdateCutData)
     .def("AddSkinConditions", &CuttingUtility ::AddSkinConditions)
     .def("FindSmallestEdge", &CuttingUtility ::FindSmallestEdge)
+    ;
+
+    class_<IntervalUtility >("IntervalUtility", init<Parameters >())
+    .def("GetIntervalBegin", &IntervalUtility::GetIntervalBegin)
+    .def("GetIntervalEnd", &IntervalUtility::GetIntervalEnd)
+    .def("IsInInterval", &IntervalUtility ::IsInInterval)
     ;
 }
 

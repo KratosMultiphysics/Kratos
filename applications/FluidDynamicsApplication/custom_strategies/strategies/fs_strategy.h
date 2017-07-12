@@ -1,3 +1,16 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Jordi Cotela
+//
+
+
 #ifndef KRATOS_FS_STRATEGY_H
 #define KRATOS_FS_STRATEGY_H
 
@@ -203,7 +216,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~FSStrategy(){}
+    ~FSStrategy() override{}
 
     ///@}
     ///@name Operators
@@ -214,7 +227,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual int Check()
+    int Check() override
     {
         KRATOS_TRY;
 
@@ -253,7 +266,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    virtual double Solve()
+    double Solve() override
     {
         // Initialize BDF2 coefficients
         ModelPart& rModelPart = BaseType::GetModelPart();
@@ -373,7 +386,7 @@ public:
         mExtraIterationSteps.clear();
     }
 
-    virtual void Clear()
+    void Clear() override
     {
         mpMomentumStrategy->Clear();
         mpPressureStrategy->Clear();
@@ -384,7 +397,7 @@ public:
     ///@name Access
     ///@{
 
-    virtual void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
         BaseType::SetEchoLevel(Level);
         int StrategyLevel = Level > 0 ? Level - 1 : 0;
@@ -554,7 +567,7 @@ protected:
         if (BaseType::GetEchoLevel() > 0 && Rank == 0)
             std::cout << "Calculating Pressure." << std::endl;
         double NormDp = mpPressureStrategy->Solve();
-        
+
 #pragma omp parallel
         {
             ModelPart::NodeIterator NodesBegin;
@@ -1062,9 +1075,9 @@ private:
             bool PredictorCorrector)
     {
         KRATOS_TRY;
-        
+
         mTimeOrder = rSolverConfig.GetTimeOrder();
-        
+
         // Check that input parameters are reasonable and sufficient.
         this->Check();
 

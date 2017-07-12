@@ -42,6 +42,7 @@
 #include "includes/kratos_flags.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
+#include "processes/calculate_distance_to_skin_process.h"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -297,7 +298,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~CalculateSignedDistanceTo3DSkinProcess()
+    ~CalculateSignedDistanceTo3DSkinProcess() override
     {
     }
 
@@ -319,13 +320,15 @@ public:
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    virtual void Execute() override
+    void Execute() override
     {
         KRATOS_TRY;
 
         GenerateOctree();
 
-        DistanceFluidStructure();
+        //DistanceFluidStructure();
+
+		CalculateDistanceToSkinProcess(mrFluidModelPart, mrBodyModelPart).Execute();
 
         //          ------------------------------------------------------------------
         //          GenerateNodes();
@@ -1532,8 +1535,8 @@ public:
 
     void GenerateSkinModelPart( ModelPart& mrNewSkinModelPart )
     {
-        unsigned int id_node = 1;
-        unsigned int id_condition = 1;
+        unsigned int id_node = mrFluidModelPart.NumberOfNodes() + 1;
+        unsigned int id_condition = mrFluidModelPart.NumberOfConditions() + 1;
 
         mrNewSkinModelPart.Nodes().reserve(mrFluidModelPart.Nodes().size());
         mrNewSkinModelPart.Conditions().reserve(mrFluidModelPart.Elements().size());
@@ -1542,7 +1545,7 @@ public:
             i_fluid_element != mrFluidModelPart.ElementsEnd();
             i_fluid_element++)
         {
-            bool is_split = i_fluid_element->GetValue(SPLIT_ELEMENT);
+            bool is_split = i_fluid_element->Is(TO_SPLIT);
             if(is_split == true)
             {
                 const Vector& distances = i_fluid_element->GetValue(ELEMENTAL_DISTANCES);
@@ -2057,9 +2060,9 @@ public:
         double& node_distance =  rNode.GetSolutionStepValue(DISTANCE);
 
         //const double epsilon = 1.00e-12;
-        if(fabs(node_distance) > fabs(distance))
-            node_distance = distance;
-        else if (distance*node_distance < 0.00) // assigning the correct sign
+        //if(fabs(node_distance) > fabs(distance))
+        //    node_distance = distance;
+        /*else*/ if (distance*node_distance < 0.00) // assigning the correct sign
             node_distance = -node_distance;
     }
 
@@ -2392,13 +2395,23 @@ public:
         if (norm_2(n) == 0)            // triangle is degenerate
             return -1;                 // do not deal with this case
 
-        for(int i = 0 ; i < 3 ; i++)
+		double triangle_origin_distance = -inner_prod(n, rGeometry[0]);
+		Point<3> ray_point_1, ray_point_2;
+		
+		for(int i = 0 ; i < 3 ; i++)
         {
             dir[i] = RayPoint2[i] - RayPoint1[i];             // ray direction vector
             w0[i] = RayPoint1[i] - rGeometry[0][i];
-        }
+			ray_point_1[i] = RayPoint1[i];
+			ray_point_2[i] = RayPoint2[i];
+		}
 
-        a = -inner_prod(n,w0);
+		double sign_distance_1 = inner_prod(n, ray_point_1) + triangle_origin_distance;
+		double sign_distance_2 = inner_prod(n, ray_point_2) + triangle_origin_distance;
+
+		if (sign_distance_1*sign_distance_2 > epsilon) // segment line point on the same side of plane
+			return 0;
+		a = -inner_prod(n,w0);
         b = inner_prod(n,dir);
 
         if (fabs(b) < epsilon) {     // ray is parallel to triangle plane
@@ -2459,19 +2472,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "CalculateSignedDistanceTo3DSkinProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "CalculateSignedDistanceTo3DSkinProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

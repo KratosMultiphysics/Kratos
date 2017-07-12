@@ -101,7 +101,7 @@ public:
      }
 
     /// Destructor.
-    virtual ~TranslationOperation() {}
+    ~TranslationOperation() override {}
 
 
     ///@}
@@ -142,7 +142,7 @@ public:
 */
 
     /// this function will be executed at every time step BEFORE performing the solve phase
-    virtual void ExecuteInitializeSolutionStep() override
+    void ExecuteInitializeSolutionStep() override
     {
 	KRATOS_TRY
 	if ((mr_model_part.NumberOfTables())==0)

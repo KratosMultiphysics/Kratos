@@ -1,3 +1,16 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Jordi Cotela
+//
+
+
 #ifndef KRATOS_RESIDUALBASED_BLOCK_BUILDER_AND_SOLVER_PERIODIC_H
 #define KRATOS_RESIDUALBASED_BLOCK_BUILDER_AND_SOLVER_PERIODIC_H
 
@@ -101,7 +114,7 @@ public:
 
     /** Destructor.
      */
-    virtual ~ResidualBasedBlockBuilderAndSolverPeriodic()
+    ~ResidualBasedBlockBuilderAndSolverPeriodic() override
     {
     }
 
@@ -116,7 +129,7 @@ public:
     /*@{ */
 
 
-    virtual void SetUpSystem(ModelPart &r_model_part)
+    void SetUpSystem(ModelPart &r_model_part) override
     {
         // Assign an Equation Id to all non-duplicate nodes
         unsigned int EqId = 0;
@@ -132,7 +145,7 @@ public:
         {
             // PeriodicCondition always have exactly 2 nodes
             ModelPart::ConditionType::GeometryType& rGeom = itCond->GetGeometry();
-            if (rGeom.PointsNumber() == 2)
+            if ( (itCond->Is(PERIODIC)) && (rGeom.PointsNumber() == 2) )
             {
                 int Node0 = rGeom[0].Id();
                 int Node0Pair = rGeom[0].FastGetSolutionStepValue(mPeriodicIdVar);
@@ -154,11 +167,11 @@ public:
         BaseType::mEquationSystemSize = EqId;
     }
 
-    virtual void ApplyDirichletConditions(typename TSchemeType::Pointer pScheme,
+    void ApplyDirichletConditions(typename TSchemeType::Pointer pScheme,
                                           ModelPart &r_model_part,
                                           TSystemMatrixType &A,
                                           TSystemVectorType &Dx,
-                                          TSystemVectorType &b)
+                                          TSystemVectorType &b) override
     {
         double* Avalues = A.value_data().begin();
         std::size_t* Arow_indices = A.index1_data().begin();

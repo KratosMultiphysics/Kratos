@@ -19,17 +19,6 @@ class SwimmingStrategy(BaseStrategy):
 
         return class_name
 
-    def GetSchemeInstance(self, class_name): # parent counterpart must not be called due to different 'globals()'
-        return globals().get(class_name)()
-
-    def Initialize(self):
-        BaseStrategy.Initialize(self)
-        BaseStrategy.SetVariablesAndOptions(self)
-
-        self.CheckMomentumConservation()
-
-        self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy (C++) Initialize function (initializes all elements and performs other necessary tasks before starting the time loop in Python)
-
     def CreateCPlusPlusStrategy(self):
         self.SetVariablesAndOptions()
         print('self.Parameters.IntegrationScheme',self.Parameters.IntegrationScheme)
@@ -40,7 +29,7 @@ class SwimmingStrategy(BaseStrategy):
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                               self.time_integration_scheme, self.search_strategy, self.Parameters.do_search_neighbours)
 
-        elif self.Parameters.IntegrationScheme == 'Hybrid_Bashforth':
+        elif self.Parameters.IntegrationScheme in {'Hybrid_Bashforth', 'TerminalVelocityScheme'}:
             self.cplusplus_strategy = AdamsBashforthStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                               self.time_integration_scheme, self.search_strategy, self.Parameters.do_search_neighbours)
@@ -49,5 +38,8 @@ class SwimmingStrategy(BaseStrategy):
             self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                              self.time_integration_scheme, self.search_strategy, self.Parameters.do_search_neighbours)
+                                                             
+    def GetSchemeInstance(self, class_name):
+        return globals().get(class_name)()
 
 

@@ -10,7 +10,6 @@ import KratosMultiphysics
 import KratosMultiphysics.ALEApplication as KratosALE
 import KratosMultiphysics.FSIApplication as KratosFSI
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 # Check that KratosMultiphysics was imported in the main script
@@ -54,16 +53,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         self.mesh_solver.Initialize()
 
         # Construct the interface mapper
-        # Recall, to set the INTERFACE flag in both the fluid and solid interface before the mapper construction
-        # Currently this is done with the FSI application Python process set_interface_process.py
-        search_radius_factor = 2.0
-        mapper_max_iterations = 200
-        mapper_tolerance = 1e-12
-        self.interface_mapper = NonConformant_OneSideMap.NonConformant_OneSideMap(self.fluid_solver.main_model_part,
-                                                                                  self.structure_solver.main_model_part,
-                                                                                  search_radius_factor,
-                                                                                  mapper_max_iterations,
-                                                                                  mapper_tolerance)
+        self._SetUpMapper()
 
         # Set the Neumann B.C. in the structure interface
         self._SetStructureNeumannCondition() #TODO change when the interface is able to correctly transfer distributed forces
@@ -90,7 +80,10 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         self.Predict()
 
         ## Compute mesh prediction ##
-        self._ComputeMeshPrediction()
+        if (self.double_faced_structure):
+            self._ComputeMeshPredictionDoubleFaced()
+        else:
+            self._ComputeMeshPredictionSingleFaced()
 
         ## Non-Linear interface coupling iteration ##
         for nl_it in range(1,self.max_nl_it+1):
@@ -110,12 +103,17 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
 
             # Sets the structure POINT_LOAD as the fluid interface REACTION
             # Solves the structure problem
-            self._SolveStructure()
+
+            if (self.double_faced_structure):
+                self._SolveStructureDoubleFaced()
+                dis_residual = self._ComputeDisplacementResidualDoubleFaced()
+            else:
+                self._SolveStructureSingleFaced()
+                dis_residual = self._ComputeDisplacementResidualSingleFaced()
 
             # Residual computation
-            dis_residual = self._ComputeDisplacementResidual()
             nl_res_norm = self.fluid_solver.main_model_part.ProcessInfo[KratosFSI.FSI_INTERFACE_RESIDUAL_NORM]
-            interface_dofs = self.partitioned_fsi_utilities.GetFluidInterfaceResidualSize()
+            interface_dofs = self.partitioned_fsi_utilities.GetInterfaceResidualSize(self._GetFluidInterfaceSubmodelPart())
 
             # Check convergence
             if nl_res_norm/math.sqrt(interface_dofs) < self.nl_tol:
@@ -131,43 +129,59 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
                 self.coupling_utility.FinalizeNonLinearIteration()
 
         ## Compute the mesh residual as final testing (it is expected to be 0)
-        self.partitioned_fsi_utilities.ComputeFluidInterfaceMeshVelocityResidualNorm()
+        self.partitioned_fsi_utilities.ComputeFluidInterfaceMeshVelocityResidualNorm(self._GetFluidInterfaceSubmodelPart())
         mesh_res_norm = self.fluid_solver.main_model_part.ProcessInfo.GetValue(KratosFSI.FSI_INTERFACE_MESH_RESIDUAL_NORM)
         print("     NL residual norm: ", nl_res_norm)
         print("     Mesh residual norm: ", mesh_res_norm)
 
         ## Finalize solution step
-        self.fluid_solver.SolverFinalizeSolutionStep()
-        self.structure_solver.SolverFinalizeSolutionStep()
+        self.fluid_solver.FinalizeSolutionStep()
+        self.structure_solver.FinalizeSolutionStep()
         self.coupling_utility.FinalizeSolutionStep()
 
 
     def _InitializeIterationValueVector(self):
         # Note that the FSI problem is defined in terms of the fluid interface
+        # Besides, one of the two interfaces is considered for the residual vector computation
+        # in case a shell structure is analised. This is due to the fact that the same mesh_solver
+        # displacement is map to both fluid sides.
+
         # Initialize the iteration value for the residual computation
-        fluid_interface_residual_size = self.partitioned_fsi_utilities.GetFluidInterfaceResidualSize()
+        fluid_interface_residual_size = self.partitioned_fsi_utilities.GetInterfaceResidualSize(self._GetFluidInterfaceSubmodelPart())
         self.iteration_value = KratosMultiphysics.Vector(fluid_interface_residual_size)
         for i in range(0,fluid_interface_residual_size):
             self.iteration_value[i] = 0.0
 
 
     def _InitializeDirichletNeumannInterface(self):
-        # Fix the VELOCITY and MESH_VELOCITY variables
-        # MESH_DISPLACEMENT variable is supposed to be already fixed by the set_interface_process
-        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_X, True, self._GetFluidInterfaceSubmodelPart().Nodes)
-        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_Y, True, self._GetFluidInterfaceSubmodelPart().Nodes)
-        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_VELOCITY_X, True, self._GetFluidInterfaceSubmodelPart().Nodes)
-        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_VELOCITY_Y, True, self._GetFluidInterfaceSubmodelPart().Nodes)
-        if (self.domain_size == 3):
-            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_Z, True, self._GetFluidInterfaceSubmodelPart().Nodes)
-            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_VELOCITY_Z, True, self._GetFluidInterfaceSubmodelPart().Nodes)
+        # Fix the VELOCITY, MESH_DISPLACEMENT and MESH_VELOCITY variables in all the fluid interface submodelparts
+        # TODO: This method allows to supress the set_interface_process
+        num_fl_interfaces = self.settings["coupling_solver_settings"]["fluid_interfaces_list"].size()
+        for fl_interface_id in range(num_fl_interfaces):
+            fl_interface_name = self.settings["coupling_solver_settings"]["fluid_interfaces_list"][fl_interface_id].GetString()
+            fl_interface_submodelpart = self.fluid_solver.main_model_part.GetSubModelPart(fl_interface_name)
+
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_X, True, fl_interface_submodelpart.Nodes)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_Y, True, fl_interface_submodelpart.Nodes)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_VELOCITY_X, True, fl_interface_submodelpart.Nodes)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_VELOCITY_Y, True, fl_interface_submodelpart.Nodes)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_DISPLACEMENT_X, True, fl_interface_submodelpart.Nodes)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_DISPLACEMENT_Y, True, fl_interface_submodelpart.Nodes)
+            if (self.domain_size == 3):
+                KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_Z, True, fl_interface_submodelpart.Nodes)
+                KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_VELOCITY_Z, True, fl_interface_submodelpart.Nodes)
+                KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.MESH_DISPLACEMENT_Z, True, fl_interface_submodelpart.Nodes)
 
 
 
     def _SolveMeshAndFluid(self):
 
         # Set the mesh displacement as the iteration_value displacement
-        self.partitioned_fsi_utilities.SetFluidInterfaceVectorVariable(KratosALE.MESH_DISPLACEMENT, self.iteration_value)
+        num_fl_interfaces = self.settings["coupling_solver_settings"]["fluid_interfaces_list"].size()
+        for fl_interface_id in range(num_fl_interfaces):
+            fl_interface_name = self.settings["coupling_solver_settings"]["fluid_interfaces_list"][fl_interface_id].GetString()
+            fl_interface_submodelpart = self.fluid_solver.main_model_part.GetSubModelPart(fl_interface_name)
+            self.partitioned_fsi_utilities.SetInterfaceVectorVariable(fl_interface_submodelpart, KratosMultiphysics.MESH_DISPLACEMENT, self.iteration_value)
 
         # Solve the mesh problem (or moves the interface nodes)
         if (self.solve_mesh_at_each_iteration == True):
@@ -185,21 +199,46 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         self.fluid_solver.SolverSolveSolutionStep()
 
 
-    def _SolveStructure(self):
+    def _SolveStructureSingleFaced(self):
 
         # Transfer fluid reaction to solid interface
         keep_sign = False
         distribute_load = True
         self.interface_mapper.FluidToStructure_VectorMap(KratosMultiphysics.REACTION,
-                                                         KratosSolid.POINT_LOAD,
+                                                         KratosStructural.POINT_LOAD,
                                                          keep_sign,
                                                          distribute_load)
 
         # Solve the structure problem
-        self.structure_solver.SolverSolveSolutionStep()
+        self.structure_solver.SolveSolutionStep()
 
 
-    def _ComputeDisplacementResidual(self):
+    def _SolveStructureDoubleFaced(self):
+
+        # Transfer fluid reaction from both sides to the structure interface
+        keep_sign = False
+        distribute_load = True
+        self.interface_mapper.PositiveFluidToStructure_VectorMap(KratosMultiphysics.REACTION,
+                                                                 KratosFSI.POSITIVE_MAPPED_VECTOR_VARIABLE,
+                                                                 keep_sign,
+                                                                 distribute_load)
+        self.interface_mapper.NegativeFluidToStructure_VectorMap(KratosMultiphysics.REACTION,
+                                                                 KratosFSI.NEGATIVE_MAPPED_VECTOR_VARIABLE,
+                                                                 keep_sign,
+                                                                 distribute_load)
+
+        # Add the two faces contributions to the POINT_LOAD variable
+        # TODO: Add this to the variables utils
+        for node in self._GetStructureInterfaceSubmodelPart().Nodes:
+            pos_face_force = node.GetSolutionStepValue(KratosFSI.POSITIVE_MAPPED_VECTOR_VARIABLE)
+            neg_face_force = node.GetSolutionStepValue(KratosFSI.NEGATIVE_MAPPED_VECTOR_VARIABLE)
+            node.SetSolutionStepValue(KratosStructural.POINT_LOAD, 0, pos_face_force+neg_face_force)
+
+        # Solve the structure problem
+        self.structure_solver.SolveSolutionStep()
+
+
+    def _ComputeDisplacementResidualSingleFaced(self):
         # Project the structure velocity onto the fluid interface
         keep_sign = True
         distribute_load = False
@@ -210,8 +249,32 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
 
         # Compute the fluid interface residual vector by means of the VECTOR_PROJECTED variable
         # Besides, its norm is stored within the ProcessInfo.
-        disp_residual = KratosMultiphysics.Vector(self.partitioned_fsi_utilities.GetFluidInterfaceResidualSize())
-        self.partitioned_fsi_utilities.ComputeFluidInterfaceVectorResidual(KratosALE.MESH_DISPLACEMENT, KratosFSI.VECTOR_PROJECTED, disp_residual)
+        disp_residual = KratosMultiphysics.Vector(self.partitioned_fsi_utilities.GetInterfaceResidualSize(self._GetFluidInterfaceSubmodelPart()))
+        self.partitioned_fsi_utilities.ComputeInterfaceVectorResidual(self._GetFluidInterfaceSubmodelPart(), KratosMultiphysics.MESH_DISPLACEMENT, KratosFSI.VECTOR_PROJECTED, disp_residual)
+
+        return disp_residual
+
+
+    def _ComputeDisplacementResidualDoubleFaced(self):
+        # Project the structure velocity onto the fluid interface
+        keep_sign = True
+        distribute_load = False
+        #TODO: One of these mappings is not needed. At the moment both are performed to ensure that
+        # the _GetFluidInterfaceSubmodelPart(), which is the one used to compute the interface residual,
+        # gets the structure DISPLACEMENT. Think a way to properly identify the reference fluid interface.
+        self.interface_mapper.StructureToPositiveFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
+                                                                 KratosFSI.VECTOR_PROJECTED,
+                                                                 keep_sign,
+                                                                 distribute_load)
+        self.interface_mapper.StructureToNegativeFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
+                                                                 KratosFSI.VECTOR_PROJECTED,
+                                                                 keep_sign,
+                                                                 distribute_load)
+
+        # Compute the fluid interface residual vector by means of the VECTOR_PROJECTED variable
+        # Besides, its norm is stored within the ProcessInfo.
+        disp_residual = KratosMultiphysics.Vector(self.partitioned_fsi_utilities.GetInterfaceResidualSize(self._GetFluidInterfaceSubmodelPart()))
+        self.partitioned_fsi_utilities.ComputeInterfaceVectorResidual(self._GetFluidInterfaceSubmodelPart(), KratosMultiphysics.MESH_DISPLACEMENT, KratosFSI.VECTOR_PROJECTED, disp_residual)
 
         return disp_residual
 
@@ -229,7 +292,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         i = 0
         if (self.domain_size == 2):
             for node in self._GetFluidInterfaceSubmodelPart().Nodes:
-                u_n = node.GetSolutionStepValue(KratosALE.MESH_DISPLACEMENT,1)
+                u_n = node.GetSolutionStepValue(KratosMultiphysics.MESH_DISPLACEMENT,1)
                 v_n = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1)
                 a_n = node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION,1)
 
@@ -255,7 +318,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
 
         else:
             for node in self._GetFluidInterfaceSubmodelPart().Nodes:
-                u_n = node.GetSolutionStepValue(KratosALE.MESH_DISPLACEMENT,1)
+                u_n = node.GetSolutionStepValue(KratosMultiphysics.MESH_DISPLACEMENT,1)
                 v_n = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1)
                 a_n = node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION,1)
 

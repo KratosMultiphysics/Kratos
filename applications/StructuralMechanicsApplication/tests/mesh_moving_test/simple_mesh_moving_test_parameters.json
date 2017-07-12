@@ -21,6 +21,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "mesh_moving_test/simple_mesh_moving_test"
         },
+        "material_import_settings" :{
+                "materials_filename": "mesh_moving_test/simple_mesh_moving_test_materials.json"
+        },
         "problem_domain_sub_model_part_list" : ["Parts_All"],
         "processes_sub_model_part_list"      : ["Parts_All","DISPLACEMENT_support","DISPLACEMENT_movement"],
         "rotation_dofs"                      : false
@@ -41,7 +44,7 @@
         }
     },
     {
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module"   : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
         "process_name"          : "ImposeVectorValueByComponentsProcess",
@@ -49,23 +52,24 @@
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_movement",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
-            "value"           : [0.01,0.0,0.0]
+            "value"           : ["0.01*t",0.0,0.0]
         }
     }],
-    "list_other_processes" :[
+    "check_analytic_results_process" : [
     {
-        "python_module"   : "simple_mesh_moving_test_local_process",
-        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
-        "help"                  : "",
-        "process_name"          : "ApplyLocalProcess",
+        "python_module"   : "check_scalar_to_nodes_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "process_name"          : "AssignValueProcess",
         "Parameters"            : {
-            "model_part_name"  : "Parts_All"
+                "model_part_name" : "DISPLACEMENT_movement",
+                "variable_name"   : "DISPLACEMENT_X",
+                "interval"        : [0.0, "End"],
+                "value"           : "0.01*(t+0.005)",
+                "tolerance_rank"  : 16
         }
     }
     ],
+    "list_other_processes" :[],
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {

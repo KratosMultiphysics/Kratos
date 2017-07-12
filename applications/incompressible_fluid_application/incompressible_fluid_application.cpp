@@ -1,22 +1,22 @@
 // Kratos Multi-Physics
-// 
+//
 // Copyright (c) 2015, Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-// 
+//
 // 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer 
+// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
 // 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement: 
+// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
 // 			This product includes Kratos Multi-Physics technology.
 // 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-// 	
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY 
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF 
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
@@ -47,7 +47,6 @@ namespace Kratos
 //	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(CONV_PROJ)
 
 KRATOS_CREATE_VARIABLE( double, MACH_NUMBER )
-KRATOS_CREATE_VARIABLE( double, PRESSURE_COEFFICIENT )
 //	KRATOS_CREATE_VARIABLE( double, PRESSURE_OLD_IT )
 //	KRATOS_CREATE_VARIABLE( Vector, BDF_COEFFICIENTS )
 //	KRATOS_CREATE_VARIABLE(double, NODAL_MASS)
@@ -97,7 +96,7 @@ mVP_PRECOND2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Elemen
     mASGSCompressible2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
     mASGS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 )))),
 mASGS3D_ENR(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 )))),
- 		mASGS3D_COMP_ENR(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 )))),	
+ 		mASGS3D_COMP_ENR(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 )))),
     mASGSCompressible3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 )))),
     mASGSCOMPPRDC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
     mASGSCOMPPRDC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 )))),
@@ -172,7 +171,7 @@ void KratosIncompressibleFluidApplication::Register()
     KRATOS_REGISTER_VARIABLE(FRONT_MEETING)
     KRATOS_REGISTER_VARIABLE(INLET_VELOCITY)
 	KRATOS_REGISTER_VARIABLE(INLET_PRESSURE)
-	
+
     KRATOS_REGISTER_VARIABLE(ENRICHED_PRESSURE)
     KRATOS_REGISTER_VARIABLE(ENRICHED_PRESSURE_IT)
     KRATOS_REGISTER_VARIABLE( ACTIVATE_TAU2)
@@ -195,21 +194,21 @@ void KratosIncompressibleFluidApplication::Register()
 
 	KRATOS_REGISTER_ELEMENT("Fluid2DCoupled", mFluid2DCoupled);
 	KRATOS_REGISTER_ELEMENT("Fluid3DCoupled", mFluid3DCoupled);
-	
+
 	KRATOS_REGISTER_CONDITION("Fluid3DNeumann", mFluid3DNeumann);
 	KRATOS_REGISTER_CONDITION("Monolithic2DNeumann", mMonolithic2DNeumann);
 	KRATOS_REGISTER_CONDITION("Monolithic3DNeumann", mMonolithic3DNeumann);
-		
+
 	KRATOS_REGISTER_ELEMENT("NDFluid2D", mNDFluid2D);
 	KRATOS_REGISTER_ELEMENT("NDFluid3D", mNDFluid3D);
 
 
 		KRATOS_REGISTER_ELEMENT("ASGS2D", mASGS2D);
 		KRATOS_REGISTER_ELEMENT("VP_PRECOND2D", mVP_PRECOND2D);
-		KRATOS_REGISTER_ELEMENT("ASGS3D", mASGS3D);	
-		KRATOS_REGISTER_ELEMENT("ASGS3D_ENR", mASGS3D_ENR);	
- 		KRATOS_REGISTER_ELEMENT("ASGS3D_COMP_ENR", mASGS3D_COMP_ENR);	
-		KRATOS_REGISTER_ELEMENT("ASGSPRDC2D", mASGSPRDC2D);	
+		KRATOS_REGISTER_ELEMENT("ASGS3D", mASGS3D);
+		KRATOS_REGISTER_ELEMENT("ASGS3D_ENR", mASGS3D_ENR);
+ 		KRATOS_REGISTER_ELEMENT("ASGS3D_COMP_ENR", mASGS3D_COMP_ENR);
+		KRATOS_REGISTER_ELEMENT("ASGSPRDC2D", mASGSPRDC2D);
  		KRATOS_REGISTER_ELEMENT("ASGSCompressible2D", mASGSCompressible2D);
  		KRATOS_REGISTER_ELEMENT("ASGSCompressible3D", mASGSCompressible3D);
  		KRATOS_REGISTER_ELEMENT("ASGSCOMPPRDC2D", mASGSCOMPPRDC2D);
@@ -271,5 +270,3 @@ void KratosIncompressibleFluidApplication::Register()
 	const Fluid3DCoupled  KratosIncompressibleFluidApplication::msFluid3DCoupled(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 ))));
 	*/
 }  // namespace Kratos.
-
-

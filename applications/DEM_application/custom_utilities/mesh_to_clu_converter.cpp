@@ -1,4 +1,4 @@
-// Translated to C++ from the original work in FORTRAN by Alberto Férriz, 2016
+// Translated to C++ from the original work in FORTRAN by Alberto Fï¿½rriz, 2016
 
 #include <iostream>
 #include <fstream>
@@ -18,12 +18,12 @@ int main() {
     // Hacer una primera pasada para saber NUM_OF_NODES y NUM_OF_ELEMENTS
     // Pasar el nombre del caso como argumento de un script de python y crear el fichero clu
     // Poner esto el PreUtilities?
-    // Salta un segmentation fault al reservar la memoria de los arrays para grandes tamaños
-    // Debería poderse optimizar el uso de la memoria para evitar eso
-    // Primera aproximación de Size: Longitud de la diagonal máxima del prisma contenedor
-    // Mover el centroide del objeto al origen si no lo está ya
+    // Salta un segmentation fault al reservar la memoria de los arrays para grandes tamaï¿½os
+    // Deberï¿½a poderse optimizar el uso de la memoria para evitar eso
+    // Primera aproximaciï¿½n de Size: Longitud de la diagonal mï¿½xima del prisma contenedor
+    // Mover el centroide del objeto al origen si no lo estï¿½ ya
     // Para el clu, se necesita la inercia por unidad de masa
-    // Entonces, mover el objeto al origen y girarlo tal que esté en sus ejes principales
+    // Entonces, mover el objeto al origen y girarlo tal que estï¿½ en sus ejes principales
     
     int node_counter = 0;
     while (std::getline(infile, line)) {
@@ -150,7 +150,7 @@ int main() {
         total_volume += Volum[element_counter];
         Vmass[element_counter] = Volum[element_counter]*density;
 
-        //Cálculo del baricentro de cada tetraedro
+        //Cï¿½lculo del baricentro de cada tetraedro
         BARIC[0][element_counter]= (tcoord[0][NodeA-1]+tcoord[0][NodeB-1]+tcoord[0][NodeC-1]+tcoord[0][NodeD-1])/4;
         BARIC[1][element_counter]= (tcoord[1][NodeA-1]+tcoord[1][NodeB-1]+tcoord[1][NodeC-1]+tcoord[1][NodeD-1])/4;
         BARIC[2][element_counter]= (tcoord[2][NodeA-1]+tcoord[2][NodeB-1]+tcoord[2][NodeC-1]+tcoord[2][NodeD-1])/4;
@@ -158,14 +158,14 @@ int main() {
 
     std::cout << "\nTotal volume: " << total_volume << '\n';
 
-    //Cálculo de la masa total del cluster o piedra
+    //Cï¿½lculo de la masa total del cluster o piedra
     double Vmaspiedra=0.0;
     for (int element_counter = 0; element_counter < NUM_OF_ELEMENTS; element_counter++) {
         Vmaspiedra+=Vmass[element_counter];
     }
-    std::cout << "Total mass: " << Vmaspiedra << '\n';
+    //std::cout << "Total mass: " << Vmaspiedra << '\n';
     
-    //Cálculo del centro de gravedad del cluster o piedra
+    //Cï¿½lculo del centro de gravedad del cluster o piedra
     double Valor1=0.0;
     double Valor2=0.0;
     double Valor3=0.0;
@@ -196,7 +196,7 @@ int main() {
         sphcoord[2][spheres_counter] -= Zcdgrav;
     }
 
-    // Cálculo del tensor de inercias de cada elemento con respecto al CDG de cada piedra o cluster
+    // Cï¿½lculo del tensor de inercias de cada elemento con respecto al CDG de cada piedra o cluster
     for (int element_counter = 0; element_counter < NUM_OF_ELEMENTS; element_counter++) {
 
         Local[0][element_counter]= BARIC[0][element_counter]-Xcdgrav;
@@ -229,7 +229,7 @@ int main() {
         VNERT[8]+=Vnerc[8][element_counter];
     }
 
-    // Queremos las inercias por unidad de masa, así que dividimos las inercias por la masa total=total_volume*density (density = 1, no la ponemos en la fórmula)
+    // Queremos las inercias por unidad de masa, asï¿½ que dividimos las inercias por la masa total=total_volume*density (density = 1, no la ponemos en la fï¿½rmula)
     std::cout << "Inertias: " << VNERT[0]/total_volume << " " << VNERT[1]/total_volume << " " << VNERT[2]/total_volume << '\n';
     std::cout << "Inertias: " << VNERT[3]/total_volume << " " << VNERT[4]/total_volume << " " << VNERT[5]/total_volume << '\n';
     std::cout << "Inertias: " << VNERT[6]/total_volume << " " << VNERT[7]/total_volume << " " << VNERT[8]/total_volume << "\n\n";

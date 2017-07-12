@@ -171,7 +171,7 @@ public:
     {
     }
     /// Destructor.
-    virtual ~TwoFluidVMS()
+    ~TwoFluidVMS() override
     {
     }
     ///@}
@@ -189,13 +189,13 @@ public:
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const
+                            PropertiesType::Pointer pProperties) const override
     {
         return boost::make_shared< TwoFluidVMS >(NewId, (this->GetGeometry()).Create(ThisNodes), pProperties);
     }
     Element::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
-                           PropertiesType::Pointer pProperties) const
+                           PropertiesType::Pointer pProperties) const override
     {
         return boost::make_shared< TwoFluidVMS >(NewId, pGeom, pProperties);
     }
@@ -209,8 +209,8 @@ public:
      * @param rCurrentProcessInfo ProcessInfo instance from the ModelPart. It is
      * expected to contain values for DYNAMIC_TAU and DELTA_TIME
      */
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo)
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                        ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int local_size = (TDim+1)*(TDim+1);
         Matrix tmp(local_size,local_size);
@@ -225,7 +225,7 @@ public:
      * @param rMassMatrix Will be filled with the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_THROW_ERROR(std::logic_error,"MassMatrix function shall not be called when using this type of element","");
     }
@@ -235,9 +235,9 @@ public:
     /// this function is essentially identical to the one of the father element, to which it only
     /// adds a term in the momentum equation to allow imposing weakly the tangential component of the velocity
     /// on the cut elements
-        virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+        void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                           VectorType& rRightHandSideVector,
-                                          ProcessInfo& rCurrentProcessInfo)
+                                          ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
     
@@ -717,9 +717,9 @@ KRATOS_WATCH(Ngauss);  */
      * @param Output 
      * @param rCurrentProcessInfo 
      */
-    virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
+    void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                            array_1d<double, 3 > & rOutput,
-                           const ProcessInfo& rCurrentProcessInfo)
+                           const ProcessInfo& rCurrentProcessInfo) override
     {
 
     }
@@ -732,7 +732,7 @@ KRATOS_WATCH(Ngauss);  */
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
         // Perform basic element checks
@@ -812,14 +812,14 @@ KRATOS_WATCH(Ngauss);  */
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "TwoFluidVMS #" << this->Id();
         return buffer.str();
     }
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "TwoFluidVMS" << TDim << "D";
     }
@@ -912,9 +912,9 @@ protected:
      * @param rShapeFunc: The values of the form functions in the point
      * @param Step: The time Step (Defaults to 0 = Current)
      */
-    virtual void EvaluateInPoint(double& rResult,
+    void EvaluateInPoint(double& rResult,
                                  const Variable< double >& rVariable,
-                                 const array_1d< double, TNumNodes >& rShapeFunc)
+                                 const array_1d< double, TNumNodes >& rShapeFunc) override
     {
         //compute sign of distance on gauss point
         double dist = 0.0;
@@ -967,9 +967,9 @@ protected:
      * @param rVariable: The nodal variable to be read
      * @param rShapeFunc: The values of the form functions in the point
      */
-    virtual void EvaluateInPoint(array_1d< double, 3 > & rResult,
+    void EvaluateInPoint(array_1d< double, 3 > & rResult,
                                  const Variable< array_1d< double, 3 > >& rVariable,
-                                 const array_1d< double, TNumNodes >& rShapeFunc)
+                                 const array_1d< double, TNumNodes >& rShapeFunc) override
     {
         //compute sign of distance on gauss point
         double dist = 0.0;
@@ -1111,11 +1111,11 @@ private:
     ///@name Serialization
     ///@{
     friend class Serializer;
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ElementBaseType);
     }
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ElementBaseType);
     }

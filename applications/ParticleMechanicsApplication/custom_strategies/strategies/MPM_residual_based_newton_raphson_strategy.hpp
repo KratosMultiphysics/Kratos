@@ -210,7 +210,7 @@ public:
     {
         KRATOS_TRY
 
-	//std::cout<<" STRATEGY: MPMResidualBasedNewtonRaphsonStrategy " <<std::endl;
+        //std::cout<<" STRATEGY: MPMResidualBasedNewtonRaphsonStrategy " <<std::endl;
 
         mKeepSystemConstantDuringIterations = false;
 
@@ -291,12 +291,12 @@ public:
 
     void SetInitializePerformedFlag(bool InitializePerformedFlag = true)
     {
-      mInitializeWasPerformed = InitializePerformedFlag;
+        mInitializeWasPerformed = InitializePerformedFlag;
     }
 
     bool GetInitializePerformedFlag()
     {
-      return mInitializeWasPerformed;
+        return mInitializeWasPerformed;
     }
 
     void SetCalculateReactionsFlag(bool CalculateReactionsFlag)
@@ -333,12 +333,12 @@ public:
 
     void SetFinalizeSolutionStepFlag(bool FinalizeSolutionStepFlag = true)
     {
-      mFinalizeSolutionStep = FinalizeSolutionStepFlag;
+        mFinalizeSolutionStep = FinalizeSolutionStepFlag;
     }
 
     bool GetFinalizeSolutionStepFlag()
     {
-      return mFinalizeSolutionStep;
+        return mFinalizeSolutionStep;
     }
 
     //level of echo for the solving strategy
@@ -352,7 +352,7 @@ public:
     {
         BaseType::mEchoLevel = Level;
         GetBuilderAndSolver()->SetEchoLevel(Level);
-	mpConvergenceCriteria->SetEchoLevel(Level);
+        mpConvergenceCriteria->SetEchoLevel(Level);
     }
 
     //*********************************************************************************
@@ -400,8 +400,8 @@ public:
     void Initialize()
     {
         KRATOS_TRY
-        
-        
+
+
         typename TSchemeType::Pointer pScheme = GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
 
@@ -414,9 +414,9 @@ public:
         {
             std::cout<<"in Initialize of solver"<<std::endl;
             if(mInitializeWasPerformed == true)
-            KRATOS_THROW_ERROR( std::logic_error, " Initialize was already performed ", mInitializeWasPerformed );
+                KRATOS_THROW_ERROR( std::logic_error, " Initialize was already performed ", mInitializeWasPerformed );
 
-          
+
             //pointers needed in the solution
             //typename TSchemeType::Pointer pScheme = GetScheme();
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
@@ -429,7 +429,7 @@ public:
             if (pScheme->ElementsAreInitialized() == false)
                 pScheme->InitializeElements(BaseType::GetModelPart());
             std::cout<<"initialize the conditions"<<std::endl;
-        //Initialize The Conditions - OPERATIONS TO BE DONE ONCE
+            //Initialize The Conditions - OPERATIONS TO BE DONE ONCE
             if (pScheme->ConditionsAreInitialized() == false)
                 pScheme->InitializeConditions(BaseType::GetModelPart());
             std::cout<<"initialize the convergence criteria"<<std::endl;
@@ -471,7 +471,7 @@ public:
      */
     //**********************************************************************
     virtual bool SolveSolutionStep()
-	{
+    {
         typename TSchemeType::Pointer pScheme = GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
         TSystemMatrixType& mA = *mpA;
@@ -494,7 +494,7 @@ public:
         //std::cout<<"mRebuildLevel"<<BaseType::mRebuildLevel<<std::endl;
         //std::cout<<"mStiffnessMatrixIsBuilt"<<BaseType::mStiffnessMatrixIsBuilt<<std::endl;
         if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false)
-        {   
+        {
             //std::cout<<"SetToZero the matrix and vectors of the system"<<std::endl;
             TSparseSpace::SetToZero(mA);
             TSparseSpace::SetToZero(mDx);
@@ -511,7 +511,7 @@ public:
             pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
             std::cout<<"BuildRHSAndSolve"<<std::endl;
         }
-	
+
 
         if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
         {
@@ -575,15 +575,15 @@ public:
             if (SparseSpaceType::Size(mDx) != 0)
             {
                 if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false )
-                {	
-					//std::cout<<" GetKeepSystemConstantDuringIterations "<<GetKeepSystemConstantDuringIterations()<<std::endl;
+                {
+                    //std::cout<<" GetKeepSystemConstantDuringIterations "<<GetKeepSystemConstantDuringIterations()<<std::endl;
                     if( GetKeepSystemConstantDuringIterations() == false)
                     {
                         //mA = 0.00;
                         TSparseSpace::SetToZero(mA);
                         TSparseSpace::SetToZero(mDx);
                         TSparseSpace::SetToZero(mb);
-						//std::cout<<" pBuilderAndSolver->BuildAndSolve "<<std::endl;
+                        //std::cout<<" pBuilderAndSolver->BuildAndSolve "<<std::endl;
                         pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
                     }
                     else
@@ -638,19 +638,20 @@ public:
 
 
         //plots a warning if the maximum number of iterations is exceeded
-        if (iteration_number >= mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0){
-	  if (this->GetEchoLevel() > 1) 
-            MaxIterationsExceeded();
-	}
+        if (iteration_number >= mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+        {
+            if (this->GetEchoLevel() > 1)
+                MaxIterationsExceeded();
+        }
 
-        
-        
-        
-        
-        
-        
-		return true;
-	}
+
+
+
+
+
+
+        return true;
+    }
     //*********************************************************************************
     /**
     the problem of interest is solved
@@ -660,7 +661,7 @@ public:
     {
         KRATOS_TRY
 
-	//pointers needed in the solution
+        //pointers needed in the solution
         typename TSchemeType::Pointer pScheme = GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
 
@@ -695,11 +696,11 @@ public:
         //updates the database with a prediction of the solution
         //std::cout<<"predict"<<std::endl;
         Predict();
-        
+
         //initialize solution step
         if (mSolutionStepIsInitialized == false)
             InitializeSolutionStep();
-            //std::cout<<"initialize solution step strategy finished"<<std::endl;
+        //std::cout<<"initialize solution step strategy finished"<<std::endl;
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb = *mpb;
@@ -720,7 +721,7 @@ public:
         //std::cout<<"mRebuildLevel"<<BaseType::mRebuildLevel<<std::endl;
         //std::cout<<"mStiffnessMatrixIsBuilt"<<BaseType::mStiffnessMatrixIsBuilt<<std::endl;
         if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false)
-        {   
+        {
             //std::cout<<"SetToZero the matrix and vectors of the system"<<std::endl;
             TSparseSpace::SetToZero(mA);
             TSparseSpace::SetToZero(mDx);
@@ -737,7 +738,7 @@ public:
             pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
             std::cout<<"BuildRHSAndSolve"<<std::endl;
         }
-	
+
 
         if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
         {
@@ -801,15 +802,15 @@ public:
             if (SparseSpaceType::Size(mDx) != 0)
             {
                 if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false )
-                {	
-					//std::cout<<" GetKeepSystemConstantDuringIterations "<<GetKeepSystemConstantDuringIterations()<<std::endl;
+                {
+                    //std::cout<<" GetKeepSystemConstantDuringIterations "<<GetKeepSystemConstantDuringIterations()<<std::endl;
                     if( GetKeepSystemConstantDuringIterations() == false)
                     {
                         //mA = 0.00;
                         TSparseSpace::SetToZero(mA);
                         TSparseSpace::SetToZero(mDx);
                         TSparseSpace::SetToZero(mb);
-						//std::cout<<" pBuilderAndSolver->BuildAndSolve "<<std::endl;
+                        //std::cout<<" pBuilderAndSolver->BuildAndSolve "<<std::endl;
                         pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
                     }
                     else
@@ -864,10 +865,11 @@ public:
 
 
         //plots a warning if the maximum number of iterations is exceeded
-        if (iteration_number >= mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0){
-	  if (this->GetEchoLevel() > 1) 
-            MaxIterationsExceeded();
-	}
+        if (iteration_number >= mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+        {
+            if (this->GetEchoLevel() > 1)
+                MaxIterationsExceeded();
+        }
 
         //recalculate residual if needed
         // (note that some convergence criteria need it to be recalculated)
@@ -892,14 +894,15 @@ public:
         //operations to be done after achieving convergence, for example the
         //Final Residual Vector (mb) has to be saved in there
         //to avoid error accumulation
-	if( mFinalizeSolutionStep ){
-      //std::cout<<"i'm here"<<std::endl;
-	  //std::cout<<"CALLING THE FINALIZE SOLUTION STEP"<<std::endl;
-	  pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-	  
-	  pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+        if( mFinalizeSolutionStep )
+        {
+            //std::cout<<"i'm here"<<std::endl;
+            //std::cout<<"CALLING THE FINALIZE SOLUTION STEP"<<std::endl;
+            pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
 
-	}
+            pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+
+        }
 
         //Cleaning memory after the solution
         pScheme->Clean();
@@ -974,14 +977,14 @@ public:
     {
         KRATOS_TRY
 
-	if (this->GetEchoLevel() > 1) //if it is needed to print info
-	  //std::cout << "Newton Raphson strategy Clear function used" << std::endl;
+        if (this->GetEchoLevel() > 1) //if it is needed to print info
+            //std::cout << "Newton Raphson strategy Clear function used" << std::endl;
 
-        
-        
-        
 
-        SparseSpaceType::Clear(mpA);
+
+
+
+            SparseSpaceType::Clear(mpA);
         TSystemMatrixType& mA = *mpA;
         SparseSpaceType::Resize(mA, 0, 0);
 
@@ -1152,31 +1155,31 @@ protected:
         KRATOS_TRY
 
 
-            //initialize solution step
+        //initialize solution step
         if (mSolutionStepIsInitialized == false)
-            {
-                typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
-                typename TSchemeType::Pointer pScheme = GetScheme();
-                //std::cout<<"in InitializeSolution Step of strategy"<<std::endl;
-                //std::cout<<"ResizeAndInitializeVectors"<<std::endl;
-                //setting up the Vectors involved to the correct size
-                pBuilderAndSolver->ResizeAndInitializeVectors(mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
-                
-                TSystemMatrixType& mA = *mpA;
-                TSystemVectorType& mDx = *mpDx;
-                TSystemVectorType& mb = *mpb;
-                //std::cout<<"I call InitializeSolutionStep of builder and solver"<<std::endl;
-                //initial operations ... things that are constant over the Solution Step
-                pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-                //std::cout<<"I call InitializeSolutionStep of the scheme"<<std::endl;
-                //initial operations ... things that are constant over the Solution Step
-                pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-                
-                mSolutionStepIsInitialized = true;
-            }
-            //std::cout<<"initialize solution step strategy finished"<<std::endl;
-        
-       
+        {
+            typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+            typename TSchemeType::Pointer pScheme = GetScheme();
+            //std::cout<<"in InitializeSolution Step of strategy"<<std::endl;
+            //std::cout<<"ResizeAndInitializeVectors"<<std::endl;
+            //setting up the Vectors involved to the correct size
+            pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
+
+            TSystemMatrixType& mA = *mpA;
+            TSystemVectorType& mDx = *mpDx;
+            TSystemVectorType& mb = *mpb;
+            //std::cout<<"I call InitializeSolutionStep of builder and solver"<<std::endl;
+            //initial operations ... things that are constant over the Solution Step
+            pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+            //std::cout<<"I call InitializeSolutionStep of the scheme"<<std::endl;
+            //initial operations ... things that are constant over the Solution Step
+            pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+
+            mSolutionStepIsInitialized = true;
+        }
+        //std::cout<<"initialize solution step strategy finished"<<std::endl;
+
+
 
         KRATOS_CATCH( "" )
     }
@@ -1201,11 +1204,12 @@ protected:
         //operations to be done after achieving convergence, for example the
         //Final Residual Vector (mb) has to be saved in there
         //to avoid error accumulation
-        if( mFinalizeSolutionStep ){
-          
-          pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-          
-          pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+        if( mFinalizeSolutionStep )
+        {
+
+            pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+
+            pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
 
         }
 
@@ -1223,9 +1227,9 @@ protected:
 
             this->Clear();
         }
-        
-        
-        
+
+
+
         KRATOS_CATCH( "" )
     }
 
@@ -1244,7 +1248,7 @@ protected:
     int Check()
     {
         KRATOS_TRY
-        
+
         BaseType::Check();
 
         GetBuilderAndSolver()->Check(BaseType::GetModelPart());

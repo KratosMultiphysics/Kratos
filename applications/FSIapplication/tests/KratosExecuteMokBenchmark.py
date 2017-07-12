@@ -1,10 +1,13 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 from KratosMultiphysics import *
-from KratosMultiphysics.ALEApplication import *
 from KratosMultiphysics.FSIApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.SolidMechanicsApplication import *
+try:
+    from KratosMultiphysics.ALEApplication import *
+    from KratosMultiphysics.FluidDynamicsApplication import *
+    from KratosMultiphysics.StructuralMechanicsApplication import *
+except ImportError:
+    pass
 
 import process_factory
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -26,7 +29,7 @@ class KratosExecuteMokBenchmark(KratosUnittest.TestCase):
         SolidModel = {self.ProjectParameters["structure_solver_settings"]["problem_data"]["model_part_name"].GetString() : self.structure_main_model_part}
 
         ## Solver construction
-        solver_module = __import__("partitioned_fsi_solver") # Currently there is only one FSI solver up to date
+        solver_module = __import__(ProjectParameters["coupling_solver_settings"]["solver_settings"]["solver_type"].GetString())
         self.solver = solver_module.CreateSolver(self.structure_main_model_part, self.fluid_main_model_part, self.ProjectParameters)
 
         self.solver.AddVariables()

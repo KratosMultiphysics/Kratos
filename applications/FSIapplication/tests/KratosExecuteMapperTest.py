@@ -1,10 +1,13 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 from KratosMultiphysics import *
-from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.StructuralMechanicsApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.FSIApplication import *
+try:
+    from KratosMultiphysics.ALEApplication import *
+    from KratosMultiphysics.FluidDynamicsApplication import *
+    from KratosMultiphysics.StructuralMechanicsApplication import *
+except ImportError:
+    pass
 
 import os
 import process_factory
@@ -22,7 +25,7 @@ class KratosExecuteMapperTest:
         self.structure_main_model_part = ModelPart("structure_part")
         self.fluid_main_model_part = ModelPart("fluid_part")
 
-        # Set the domain size (2D test)
+        # Set the domain size (2D or 3D test)
         self.structure_main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParametersFluid["problem_data"]["domain_size"].GetInt())
         self.fluid_main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParametersSolid["problem_data"]["domain_size"].GetInt())
 
@@ -58,8 +61,8 @@ class KratosExecuteMapperTest:
         prepare_model_part_settings_structure.AddEmptyValue("computing_model_part_name").SetString(computing_model_part_name)
         prepare_model_part_settings_structure.AddValue("problem_domain_sub_model_part_list",ProjectParametersSolid["solver_settings"]["problem_domain_sub_model_part_list"])
         prepare_model_part_settings_structure.AddValue("processes_sub_model_part_list",ProjectParametersSolid["solver_settings"]["processes_sub_model_part_list"])
-        import check_and_prepare_model_process_solid
-        check_and_prepare_model_process_solid.CheckAndPrepareModelProcess(self.structure_main_model_part, prepare_model_part_settings_structure).Execute()
+        import check_and_prepare_model_process_structural
+        check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.structure_main_model_part, prepare_model_part_settings_structure).Execute()
 
         # Get the list of the skin submodel parts where the fluid interface submodel part is stored
         for i in range(ProjectParametersFluid["solver_settings"]["skin_parts"].size()):
@@ -85,12 +88,14 @@ class KratosExecuteMapperTest:
             process.ExecuteInitialize()
 
         # Mapper construction
-        search_radius_factor = 1.0
-        mapper_max_iteration = 25
+        search_radius_factor = 2.0
+        mapper_max_iterations = 200
+        mapper_tolerance = 1e-12
         self.mapper = NonConformant_OneSideMap.NonConformant_OneSideMap(self.fluid_main_model_part,
                                                                         self.structure_main_model_part,
                                                                         search_radius_factor,
-                                                                        mapper_max_iteration)
+                                                                        mapper_max_iterations,
+                                                                        mapper_tolerance)
 
         # Output settings
         self.output_post = False # Set this variable to True if it is need to print the results for debugging purposes
