@@ -107,7 +107,7 @@ namespace Kratos
        	;
 
       class_< SmallStrainOrthotropic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-       	( "SmallstrainOrthotropic3DLaw",
+       	( "SmallStrainOrthotropic3DLaw",
        	  init<>() )
       	.def( init<ConstitutiveModelPointer>() )
       	;
