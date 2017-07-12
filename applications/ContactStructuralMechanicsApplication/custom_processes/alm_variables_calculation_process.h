@@ -213,10 +213,10 @@ public:
         MeanYoungModulusMaster /= (TotalVolumeMaster + 1.0e-12);
         
         // Finally we compute the penalty factor
-        const double PenaltyParameterSlave  = mFactorStiffness * MeanYoungModulusSlave/MeanNodalHSlave;
-        const double ScaleFactorSlave    = mPenaltyScale * mFactorStiffness * MeanYoungModulusSlave/MeanNodalHSlave;
-        const double PenaltyParameterMaster = mFactorStiffness * MeanYoungModulusMaster/MeanNodalHMaster;
-        const double ScaleFactorMaster   = mPenaltyScale * mFactorStiffness * MeanYoungModulusMaster/MeanNodalHMaster; 
+        const double PenaltyParameterSlave  = mFactorStiffness * MeanYoungModulusSlave/(MeanNodalHSlave + 1.0e-12);
+        const double ScaleFactorSlave    = mPenaltyScale * mFactorStiffness * MeanYoungModulusSlave/(MeanNodalHSlave + 1.0e-12);
+        const double PenaltyParameterMaster = mFactorStiffness * MeanYoungModulusMaster/(MeanNodalHMaster + 1.0e-12);
+        const double ScaleFactorMaster   = mPenaltyScale * mFactorStiffness * MeanYoungModulusMaster/(MeanNodalHMaster + 1.0e-12); 
         
         mrThisModelPart.GetProcessInfo()[PENALTY_PARAMETER] = (PenaltyParameterSlave > PenaltyParameterMaster) ? PenaltyParameterSlave : PenaltyParameterMaster; // NOTE: > or <? , we are supposed to take the largest of the values (more stiff)
         mrThisModelPart.GetProcessInfo()[SCALE_FACTOR]   = (ScaleFactorSlave > ScaleFactorMaster) ? ScaleFactorSlave : ScaleFactorMaster;

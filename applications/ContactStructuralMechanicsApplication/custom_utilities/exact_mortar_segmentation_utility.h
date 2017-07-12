@@ -104,8 +104,7 @@ public:
         const unsigned int IntegrationOrder = 0,
         const double DistanceThreshold = 1.3333
         )
-    :mIntegrationOrder(IntegrationOrder),
-     mDistanceThreshold(DistanceThreshold)
+    :mIntegrationOrder(IntegrationOrder)
     {
         GetIntegrationMethod();
     }
@@ -128,7 +127,6 @@ public:
      * @param OriginalMasterGeometry: The geometry of the master condition
      * @param MasterNormal: The normal of the master condition
      * @param ConditionsPointsSlave: The points that perform the exact integration
-     * @param FilterFarGeometries: If the geometries are checked in first place if they are far away
      * @return True if there is a common area (the geometries intersect), false otherwise
      */
     
@@ -137,8 +135,7 @@ public:
         const array_1d<double, 3>& SlaveNormal,
         GeometryNodeType& OriginalMasterGeometry,
         const array_1d<double, 3>& MasterNormal,
-        ConditionArrayListType& ConditionsPointsSlave, 
-        const bool FilterFarGeometries = true
+        ConditionArrayListType& ConditionsPointsSlave
         );
     
     /**
@@ -148,7 +145,6 @@ public:
      * @param OriginalMasterGeometry: The geometry of the master condition
      * @param MasterNormal: The normal of the master condition
      * @param IntegrationPointsSlave: The integrations points that belong to the slave
-     * @param FilterFarGeometries: If the geometries are checked in first place if they are far away
      * @return True if there is a common area (the geometries intersect), false otherwise
      */
     
@@ -157,13 +153,12 @@ public:
         const array_1d<double, 3>& SlaveNormal,
         GeometryNodeType& OriginalMasterGeometry,
         const array_1d<double, 3>& MasterNormal,
-        IntegrationPointsType& IntegrationPointsSlave,
-        const bool FilterFarGeometries = true
+        IntegrationPointsType& IntegrationPointsSlave
         )
     {
         ConditionArrayListType conditions_points_slave;
         
-        const bool is_inside = GetExactIntegration(OriginalSlaveGeometry, SlaveNormal, OriginalMasterGeometry, MasterNormal, conditions_points_slave, FilterFarGeometries);
+        const bool is_inside = GetExactIntegration(OriginalSlaveGeometry, SlaveNormal, OriginalMasterGeometry, MasterNormal, conditions_points_slave);
         
         for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); i_geom++)
         {
@@ -214,7 +209,7 @@ public:
     {
         IntegrationPointsType integration_points_slave;
         
-        const bool solution = GetExactIntegration(SlaveCond->GetGeometry(), SlaveCond->GetValue(NORMAL), MasterCond->GetGeometry(), MasterCond->GetValue(NORMAL), integration_points_slave, false);
+        const bool solution = GetExactIntegration(SlaveCond->GetGeometry(), SlaveCond->GetValue(NORMAL), MasterCond->GetGeometry(), MasterCond->GetValue(NORMAL), integration_points_slave);
         
         CustomSolution.resize(integration_points_slave.size(), TDim, false);
         
@@ -853,7 +848,6 @@ private:
     ///@{
 
     unsigned int mIntegrationOrder;          // The integration order to consider
-    double mDistanceThreshold;               // The distance threshold considered
     IntegrationMethod mAuxIntegrationMethod; // The auxiliar list of Gauss Points taken from the geometry
     
     ///@}
@@ -892,20 +886,9 @@ private:
         const array_1d<double, 3>& SlaveNormal,
         GeometryNodeType& OriginalMasterGeometry,
         const array_1d<double, 3>& MasterNormal,
-        ConditionArrayListType& ConditionsPointsSlave,
-        const bool FilterFarGeometries
+        ConditionArrayListType& ConditionsPointsSlave
         )
     {
-        // First we check if the geometries are far away
-        if (FilterFarGeometries == true)
-        {
-            if (ContactUtilities::DistanceCheck(OriginalSlaveGeometry, OriginalMasterGeometry, mDistanceThreshold) == true)
-            {
-                ConditionsPointsSlave.clear();
-                return false;
-            }
-        }
-        
         // We take the geometry GP from the core 
         const double tolerance = 1.0e-6; // std::numeric_limits<double>::epsilon();
         
@@ -1048,20 +1031,9 @@ private:
         const array_1d<double, 3>& SlaveNormal,
         GeometryNodeType& OriginalMasterGeometry,
         const array_1d<double, 3>& MasterNormal,
-        ConditionArrayListType& ConditionsPointsSlave,
-        const bool FilterFarGeometries
+        ConditionArrayListType& ConditionsPointsSlave
         )
     {
-        // First we check if the geometries are far away
-        if (FilterFarGeometries == true)
-        {
-            if (ContactUtilities::DistanceCheck(OriginalSlaveGeometry, OriginalMasterGeometry, mDistanceThreshold) == true)
-            {
-                ConditionsPointsSlave.clear();
-                return false;
-            }
-        }
-        
         // NOTE: We are in a linear triangle, all the nodes belong already to the plane, so, the step one can be avoided, we directly project  the master nodes
         
         // We define the tolerance
@@ -1204,20 +1176,9 @@ private:
         const array_1d<double, 3>& SlaveNormal,
         GeometryNodeType& OriginalMasterGeometry,
         const array_1d<double, 3>& MasterNormal,
-        ConditionArrayListType& ConditionsPointsSlave,
-        const bool FilterFarGeometries
+        ConditionArrayListType& ConditionsPointsSlave
         )
     {        
-        // First we check if the geometries are far away
-        if (FilterFarGeometries == true)
-        {
-            if (ContactUtilities::DistanceCheck(OriginalSlaveGeometry, OriginalMasterGeometry, mDistanceThreshold) == true)
-            {
-                ConditionsPointsSlave.clear();
-                return false;
-            }
-        }
-        
         // We define the tolerance
         const double tolerance = 1.0e-8; // std::numeric_limits<double>::epsilon();
         

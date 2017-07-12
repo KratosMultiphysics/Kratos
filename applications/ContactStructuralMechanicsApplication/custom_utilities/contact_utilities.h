@@ -700,32 +700,6 @@ public:
     }
     
     /**
-     * This function check if the geometries are far away
-     * @param OriginalSlaveGeometry: The geometry of the slave condition
-     * @param OriginalMasterGeometry: The geometry of the master condition
-     * @return True if they are far way, false otherwise
-     */
-    
-    static inline bool DistanceCheck(
-        GeometryType& OriginalSlaveGeometry,
-        GeometryType& OriginalMasterGeometry,
-        const double DistFactor = 1.3333333333
-        ) 
-    {
-        // We do a little check that help us to extend the functionality
-        if (DistFactor < 0.0) 
-        {
-            return false;
-        }
-        
-        const double distance = ContactUtilities::DistancePoints(OriginalSlaveGeometry.Center(), OriginalMasterGeometry.Center());
-        
-        const double length_threshold = DistFactor * OriginalSlaveGeometry.Length();   
-        
-        return (distance > length_threshold) ? true : false;
-    }
-    
-    /**
      * It calculates the matrix of coordinates of a geometry
      * @param nodes: The geometry to calculate
      * @param current: If we calculate the current coordinates or the initial ones
