@@ -454,7 +454,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~ConstitutiveLaw(){};
+    ~ConstitutiveLaw() override{};
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -1099,7 +1099,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "ConstitutiveLaw";
@@ -1107,13 +1107,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ConstitutiveLaw";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "ConstitutiveLaw has no data";
     }
@@ -1250,12 +1250,12 @@ private:
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
     }

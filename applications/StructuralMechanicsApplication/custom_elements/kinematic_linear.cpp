@@ -7,6 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrándiz
 //
 
 // System includes
@@ -92,9 +93,6 @@ namespace Kratos
 
         // Reading integration points and local gradients
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
-
-        // Auxiliary terms
-        Vector body_force = ZeroVector(3);
         
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
@@ -111,13 +109,16 @@ namespace Kratos
         Vector displacements;
         GetValuesVector(displacements);
         
+        // Contribution to external forces
+        const Vector body_force = this->GetBodyForce();
+        
         for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
         {
             // Compute element kinematics B, F, DN_DX ...
             CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
             
             // Compute material reponse
-            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, displacements);
+            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), displacements);
             
             // Calculating weights for integration on the reference configuration
             double int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0); 
@@ -130,27 +131,12 @@ namespace Kratos
             if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
             {
                 // Contributions to stiffness matrix calculated on the reference config
-                Matrix temp = prod(this_constitutive_variables.D, this_kinematic_variables.B);
-                noalias( rLeftHandSideMatrix ) += int_to_reference_weight * prod( trans( this_kinematic_variables.B ), temp);
+                this->CalculateAndAddKm( rLeftHandSideMatrix, this_kinematic_variables.B, this_constitutive_variables.D, int_to_reference_weight );
             }
 
             if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
             {
-                // Contribution to external forces
-                if (GetProperties().Has( VOLUME_ACCELERATION ) == true)
-                {
-                    body_force += GetProperties()[VOLUME_ACCELERATION];
-                }
-                if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) )
-                {
-                    body_force += GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-                }
-
-                // Operation performed: rRightHandSideVector += ExtForce*int_to_reference_weight
-                CalculateAndAdd_ExtForceContribution( this_kinematic_variables.N, rCurrentProcessInfo, body_force, rRightHandSideVector, int_to_reference_weight );
-
-                // Operation performed: rRightHandSideVector -= IntForce*int_to_reference_weight
-                noalias( rRightHandSideVector ) -= int_to_reference_weight * prod( trans( this_kinematic_variables.B ), this_constitutive_variables.StressVector );
+                this->CalculateAndAddResidualVector(rRightHandSideVector, this_kinematic_variables, rCurrentProcessInfo, body_force, this_constitutive_variables.StressVector, int_to_reference_weight);
             }
         }
         
@@ -169,7 +155,12 @@ namespace Kratos
         // Shape functions
         rThisKinematicVariables.N = GetGeometry().ShapeFunctionsValues(rThisKinematicVariables.N, IntegrationPoints[PointNumber].Coordinates());
         
-        rThisKinematicVariables.detJ0 = CalculateDerivativesOnReference(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, GetGeometry().GetDefaultIntegrationMethod()); 
+        rThisKinematicVariables.detJ0 = CalculateDerivativesOnReferenceConfiguration(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, GetGeometry().GetDefaultIntegrationMethod()); 
+        
+        if (rThisKinematicVariables.detJ0 < 0.0)
+        {
+            KRATOS_ERROR << "WARNING:: ELEMENT ID: " << this->Id() << " INVERTED. DETJ0: " << rThisKinematicVariables.detJ0 << std::endl;
+        }
         
         // Compute B
         CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.DN_DX, IntegrationPoints, PointNumber );
@@ -184,6 +175,7 @@ namespace Kratos
         ConstitutiveLaw::Parameters& rValues,
         const unsigned int PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure,
         const Vector Displacements
         )
     {        
@@ -203,36 +195,7 @@ namespace Kratos
         rValues.SetStressVector(rThisConstitutiveVariables.StressVector); //F computed somewhere else
         
         // Actually do the computations in the ConstitutiveLaw    
-        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(rValues); //here the calculations are actually done 
-    }
-    
-    //************************************************************************************
-    //************************************************************************************
-
-    inline void KinematicLinear::CalculateAndAdd_ExtForceContribution(
-        const Vector& N,
-        const ProcessInfo& CurrentProcessInfo,
-        Vector& body_force,
-        VectorType& rRightHandSideVector,
-        const double weight
-        )
-    {
-        KRATOS_TRY;
-        
-        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            const unsigned int index = dimension * i;
-
-            for ( unsigned int j = 0; j < dimension; j++ ) 
-            {
-                rRightHandSideVector[index + j] += weight * N[i] * body_force[j];
-            }
-        }
-
-        KRATOS_CATCH( "" )
+        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done 
     }
 
     //************************************************************************************
@@ -256,9 +219,9 @@ namespace Kratos
         {
             for ( unsigned int i = 0; i < number_of_nodes; ++i )
             {
-                rB( 0, i*2 ) = DN_DX( i, 0 );
+                rB( 0, i*2     ) = DN_DX( i, 0 );
                 rB( 1, i*2 + 1 ) = DN_DX( i, 1 );
-                rB( 2, i*2 ) = DN_DX( i, 1 );
+                rB( 2, i*2     ) = DN_DX( i, 1 );
                 rB( 2, i*2 + 1 ) = DN_DX( i, 0 );
             }
         }
@@ -266,14 +229,14 @@ namespace Kratos
         {
             for ( unsigned int i = 0; i < number_of_nodes; ++i )
             {
-                rB( 0, i*3 ) = DN_DX( i, 0 );
+                rB( 0, i*3     ) = DN_DX( i, 0 );
                 rB( 1, i*3 + 1 ) = DN_DX( i, 1 );
                 rB( 2, i*3 + 2 ) = DN_DX( i, 2 );
-                rB( 3, i*3 ) = DN_DX( i, 1 );
+                rB( 3, i*3     ) = DN_DX( i, 1 );
                 rB( 3, i*3 + 1 ) = DN_DX( i, 0 );
                 rB( 4, i*3 + 1 ) = DN_DX( i, 2 );
                 rB( 4, i*3 + 2 ) = DN_DX( i, 1 );
-                rB( 5, i*3 ) = DN_DX( i, 2 );
+                rB( 5, i*3     ) = DN_DX( i, 2 );
                 rB( 5, i*3 + 2 ) = DN_DX( i, 0 );
             }
         }
@@ -291,22 +254,22 @@ namespace Kratos
         
         if(dim == 2)
         {
-            F(0,0) = 1+rStrainTensor(0);  
+            F(0,0) = 1.0+rStrainTensor(0);  
             F(0,1) = 0.5*rStrainTensor(2); 
             F(1,0) = 0.5*rStrainTensor(2);   
-            F(1,1) = 1+rStrainTensor(1);
+            F(1,1) = 1.0+rStrainTensor(1);
         }
         else
         {
-            F(0,0) = 1+rStrainTensor(0);     
+            F(0,0) = 1.0+rStrainTensor(0);     
             F(0,1) = 0.5*rStrainTensor(3); 
             F(0,2) = 0.5*rStrainTensor(5);
             F(1,0) = 0.5*rStrainTensor(3);   
-            F(1,1) = 1+rStrainTensor(1);   
+            F(1,1) = 1.0+rStrainTensor(1);   
             F(1,2) = 0.5*rStrainTensor(4);
             F(2,0) = 0.5*rStrainTensor(5);   
             F(2,1) = 0.5*rStrainTensor(4); 
-            F(2,2) = 1+rStrainTensor(2);
+            F(2,2) = 1.0+rStrainTensor(2);
         }
         
         return F;
