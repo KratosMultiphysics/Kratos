@@ -106,12 +106,15 @@ public:
     {
 
         KRATOS_TRY;
-
+	
 	if( ! mIsSpatialField ){
 
 	  const ProcessInfo& rCurrentProcessInfo = mr_model_part.GetProcessInfo();
-	  const double& rCurrentTime = rCurrentProcessInfo[TIME];
-
+	  const double& rCurrentTime  = rCurrentProcessInfo[TIME];
+	  const ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousTimeStepInfo();
+	  const double& rPreviousTime = rPreviousProcessInfo[TIME];
+	  
+	  this->CallTimeFunction(rPreviousTime, mprevious_value);
 	  this->CallTimeFunction(rCurrentTime, mvalue);
 	  
 	  ApplyRigidBodyRotationToNodesProcess::Execute();
@@ -299,7 +302,8 @@ private:
 	  array_1d<double,3> radius;
 	  array_1d<double,3> distance;
 	  array_1d<double,3> rotation;
-	  
+	  array_1d<double,3> delta_rotation;
+
 	  double norm = norm_2(mdirection);
 	  if(norm!=0)
 	    mdirection/=norm;
@@ -313,6 +317,8 @@ private:
 	  const ProcessInfo& rCurrentProcessInfo = mr_model_part.GetProcessInfo();
 	  const double& rDeltaTime = rCurrentProcessInfo[DELTA_TIME];
 	  const double& rCurrentTime = rCurrentProcessInfo[TIME];
+	  const ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousTimeStepInfo();
+	  const double& rPreviousTime = rPreviousProcessInfo[TIME];
 	  
 	  array_1d<double,3> angular_velocity;
 	  angular_velocity.clear();
@@ -338,8 +344,7 @@ private:
 	    time_factor = rDeltaTime * rDeltaTime;
 	  }
 
-
-         //#pragma omp parallel for  //it does not work in parallel
+	  //#pragma omp parallel for  //it does not work in parallel
 	  for(int i = 0; i<nnodes; i++)
             {
 	      ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -347,11 +352,15 @@ private:
 	      this->CallFunction(*(it.base()), rCurrentTime, value);
       
 	      rotation = value * mdirection;
-
+	      
 	      rotation *= time_factor;
 	      
 	      if( dynamic_angular_velocity ){
-		angular_velocity = rotation / rDeltaTime;
+
+		this->CallFunction(*(it.base()), rPreviousTime, value);
+		delta_rotation  = rotation - time_factor * value * mdirection;	
+		
+		angular_velocity = delta_rotation / rDeltaTime;
 		if( dynamic_angular_acceleration ){
 		  angular_acceleration = angular_velocity / rDeltaTime;
 		}
@@ -376,12 +385,12 @@ private:
 
 		//compute the contribution of the angular velocity to the velocity v = Wxr
 		array_1d<double,3>& velocity = it->FastGetSolutionStepValue(VELOCITY);
-		velocity += prod(rotation_matrix,radius);
+		velocity = prod(rotation_matrix,radius);
 
 		if( dynamic_angular_acceleration ){ 
 		  //compute the contribution of the centripetal acceleration ac = Wx(Wxr)
 		  array_1d<double,3>& acceleration = it->FastGetSolutionStepValue(ACCELERATION);
-		  acceleration += prod(rotation_matrix,velocity);
+		  acceleration = prod(rotation_matrix,velocity);
 		  
 		  //compute the contribution of the angular acceleration to the acceleration a = Axr
 		  BeamMathUtils<double>::VectorToSkewSymmetricTensor(angular_acceleration, rotation_matrix);

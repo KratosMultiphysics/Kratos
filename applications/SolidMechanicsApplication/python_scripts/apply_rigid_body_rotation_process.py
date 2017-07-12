@@ -94,7 +94,7 @@ class ApplyRigidBodyRotationProcess(BaseProcess.AssignScalarToNodesProcess):
         self.fix_derivated_variable = False
         if( self.fix_derivated_variable == False ):
             for dynamic_variable in self.LinearDynamicVariables:
-                if dynamic_variable is self.variable_name:
+                if dynamic_variable == self.variable_name:
                     self.derivated_variable_name = "DISPLACEMENT"
                     self.fix_derivated_variable = True
                     break
@@ -128,7 +128,7 @@ class ApplyRigidBodyRotationProcess(BaseProcess.AssignScalarToNodesProcess):
         else:
             for dynamic_variable in self.LinearDynamicVariables:
                 counter = 0
-                if dynamic_variable is self.variable_name:
+                if dynamic_variable == self.variable_name:
                     self.variable_name = self.AngularDynamicVariables[counter]
                     break
                 counter = counter + 1

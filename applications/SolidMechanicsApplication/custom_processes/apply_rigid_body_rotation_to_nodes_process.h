@@ -119,7 +119,7 @@ public:
     {
 
         KRATOS_TRY;
- 
+		
 	this->ApplyRigidBodyRotation();
 
         KRATOS_CATCH("");
@@ -147,6 +147,7 @@ public:
     /// this function will be executed at every time step AFTER performing the solve phase
     virtual void ExecuteFinalizeSolutionStep()
     {
+	mprevious_value = mvalue;
     }
 
 
@@ -217,6 +218,7 @@ protected:
     ModelPart& mr_model_part;
     std::string mvariable_name;
     double mvalue;
+    double mprevious_value;
     array_1d<double,3> mdirection;
     array_1d<double,3> mcenter;
     std::size_t mmesh_id;
@@ -262,6 +264,8 @@ private:
    
       const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
 
+      //std::cout<<" Apply rigid body rotation "<<std::endl;
+
       if(nnodes != 0)
         {
 	  ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
@@ -276,7 +280,6 @@ private:
 
 
 	  //Possible prescribed variables: ROTATION / ANGULAR_VELOCITY / ANGULAR_ACCELERATION
-	  double value = 0.0;
 	  bool dynamic_angular_velocity = false;
 	  bool dynamic_angular_acceleration = false;
 
@@ -288,29 +291,32 @@ private:
 	  array_1d<double,3> angular_acceleration;
 	  angular_acceleration.clear();
 	  
+	  double time_factor = 0.0;
 	  if(mvariable_name == "ROTATION"){
 
-	    value = mvalue;
+	    time_factor = 1.0;
 	    
 	  }
 	  else if(mvariable_name == "ANGULAR_VELOCITY"){
 	    
 	    dynamic_angular_velocity = true;
-	    value = mvalue * rDeltaTime;
+	    time_factor = rDeltaTime;
 	      
 	  }
 	  else if(mvariable_name == "ANGULAR_ACCELERATION"){
 
 	    dynamic_angular_velocity = true;
 	    dynamic_angular_acceleration = true;
-	    value = mvalue * rDeltaTime * rDeltaTime;
+	    time_factor = rDeltaTime * rDeltaTime;
 
 	  }
-	    
-	  array_1d<double,3> rotation = value * mdirection;
+	   
+	  array_1d<double,3> delta_rotation = time_factor * (mvalue - mprevious_value) * mdirection;
+ 
+	  array_1d<double,3> rotation = time_factor * mvalue * mdirection;
 	  
 	  if( dynamic_angular_velocity ){
-	    angular_velocity = rotation / rDeltaTime;
+	    angular_velocity = delta_rotation / rDeltaTime;
 	    if( dynamic_angular_acceleration ){
 	      angular_acceleration = angular_velocity / rDeltaTime;
 	    }
@@ -319,7 +325,7 @@ private:
 	  //Get rotation matrix
 	  Quaternion<double> total_quaternion = Quaternion<double>::FromRotationVector<array_1d<double,3> >(rotation);
 
-          #pragma omp parallel for private(distance,radius, rotation_matrix)
+          #pragma omp parallel for private(distance,radius,rotation_matrix)
 	  for(int i = 0; i<nnodes; i++)
             {
 
@@ -333,7 +339,6 @@ private:
 
 	      array_1d<double,3>& displacement = it->FastGetSolutionStepValue(DISPLACEMENT);
 	      displacement =  radius - distance; //(mcenter + radius) - it->GetInitialPosition();
-
 	      
 	      if( dynamic_angular_velocity ){
 		
@@ -342,16 +347,18 @@ private:
 
 		//compute the contribution of the angular velocity to the velocity v = Wxr
 		array_1d<double,3>& velocity = it->FastGetSolutionStepValue(VELOCITY);
-		velocity += prod(rotation_matrix,radius);
+		velocity = prod(rotation_matrix,radius);
+
 
 		if( dynamic_angular_acceleration ){ 
 		  //compute the contribution of the centripetal acceleration ac = Wx(Wxr)
 		  array_1d<double,3>& acceleration = it->FastGetSolutionStepValue(ACCELERATION);
-		  acceleration += prod(rotation_matrix,velocity);
+		  acceleration = prod(rotation_matrix,velocity);
 
 		  //compute the contribution of the angular acceleration to the acceleration a = Axr
 		  BeamMathUtils<double>::VectorToSkewSymmetricTensor(angular_acceleration, rotation_matrix);
 		  acceleration += prod(rotation_matrix,radius);
+
 		}
 
 	      }
