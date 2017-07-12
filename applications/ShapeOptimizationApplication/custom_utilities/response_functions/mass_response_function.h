@@ -180,7 +180,8 @@ public:
 
 		switch (m_gradient_mode)
 		{
-		case 3: //old
+		// Global finite differencing
+    	case 3:
 		{
 			// Start process to identify element neighbors for every node
 			FindNodalNeighboursProcess neighorFinder = FindNodalNeighboursProcess(mr_model_part, 10, 10);
