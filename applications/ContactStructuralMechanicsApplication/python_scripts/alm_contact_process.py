@@ -248,7 +248,16 @@ class ALMContactProcess(KratosMultiphysics.Process):
                 if (self.debug_mode == True):
                     self._debug_output(self.global_step, "_LINEARPRED")
                 self._linear_solver_predict()
-                self.contact_search.CleanMortarConditions()
+                if (self.hard_clear_after_step == True):
+                    if self.params["contact_type"].GetString() == "Frictionless":  
+                        self.contact_search.TotalClearALMFrictionlessMortarConditions()
+                    else:
+                        self.contact_search.TotalClearComponentsMortarConditions()
+                        
+                    self.contact_search.UpdateMortarConditions()
+                    #self.contact_search.CheckMortarConditions()
+                else:
+                    self.contact_search.CleanMortarConditions()
                 
             # Debug
             if (self.debug_mode == True):
@@ -286,7 +295,6 @@ class ALMContactProcess(KratosMultiphysics.Process):
         linear_solver = linear_solver_factory.ConstructSolver(self.params["linear_solver_settings"])
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
         
         compute_reactions = True
         reform_step_dofs = True
@@ -317,8 +325,12 @@ class ALMContactProcess(KratosMultiphysics.Process):
         
         gid_io.WriteNodalFlags(KratosMultiphysics.INTERFACE, "INTERFACE", self.main_model_part.Nodes, label)
         gid_io.WriteNodalFlags(KratosMultiphysics.ACTIVE, "ACTIVE", self.main_model_part.Nodes, label)
+        gid_io.WriteNodalFlags(KratosMultiphysics.SLAVE, "ACTIVE", self.main_model_part.Nodes, label)
         gid_io.WriteNodalResultsNonHistorical(KratosMultiphysics.NORMAL, self.main_model_part.Nodes, label)
+        gid_io.WriteNodalResultsNonHistorical(KratosMultiphysics.AUGMENTED_NORMAL_CONTACT_PRESSURE, self.main_model_part.Nodes, label)
         gid_io.WriteNodalResults(KratosMultiphysics.DISPLACEMENT, self.main_model_part.Nodes, label, 0)
+        gid_io.WriteNodalResults(KratosMultiphysics.NORMAL_CONTACT_STRESS, self.main_model_part.Nodes, label, 0)
+        gid_io.WriteNodalResults(KratosMultiphysics.WEIGHTED_GAP, self.main_model_part.Nodes, label, 0)
         
         gid_io.FinalizeResults()
         
