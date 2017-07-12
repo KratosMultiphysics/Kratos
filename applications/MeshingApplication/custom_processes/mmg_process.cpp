@@ -1935,32 +1935,44 @@ void MmgProcess<2>::SetConditions(
     const int index
     )
 {
-    const int id1 = Geom[0].Id(); // First node id
-    const int id2 = Geom[1].Id(); // Second node id
+    if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Point2D) // Point
+    {
+        KRATOS_ERROR << "WARNING:: Nodal condition, will be meshed with the node. Condition existence after meshing not guaranteed" << std::endl;
+    }
+    else if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2) // Line
+    {
+        const int id1 = Geom[0].Id(); // First node id
+        const int id2 = Geom[1].Id(); // Second node id
 
-    if ( MMG2D_Set_edge(mmgMesh, id1, id2, color, index) != 1 ) 
-    {
-        exit(EXIT_FAILURE);
-    }
-    
-    // Set fixed boundary
-    bool blocked1 = false;
-    if (Geom[0].IsDefined(BLOCKED) == true)
-    {
-        blocked1 = Geom[0].Is(BLOCKED);
-    }
-    bool blocked2 = false;
-    if (Geom[1].IsDefined(BLOCKED) == true)
-    {
-        blocked2 = Geom[1].Is(BLOCKED);
-    }
-
-    if ((blocked1 && blocked2) == true)
-    {
-        if ( MMG2D_Set_requiredEdge(mmgMesh, index) != 1 ) 
+        if ( MMG2D_Set_edge(mmgMesh, id1, id2, color, index) != 1 ) 
         {
-            exit(EXIT_FAILURE); 
-        }   
+            exit(EXIT_FAILURE);
+        }
+        
+        // Set fixed boundary
+        bool blocked1 = false;
+        if (Geom[0].IsDefined(BLOCKED) == true)
+        {
+            blocked1 = Geom[0].Is(BLOCKED);
+        }
+        bool blocked2 = false;
+        if (Geom[1].IsDefined(BLOCKED) == true)
+        {
+            blocked2 = Geom[1].Is(BLOCKED);
+        }
+
+        if ((blocked1 && blocked2) == true)
+        {
+            if ( MMG2D_Set_requiredEdge(mmgMesh, index) != 1 ) 
+            {
+                exit(EXIT_FAILURE); 
+            }   
+        }
+    }
+    else
+    {
+        const unsigned int SizeGeometry = Geom.size();
+        KRATOS_ERROR << "WARNING: I DO NOT KNOW WHAT IS THIS. Size: " << SizeGeometry << " Type: " << Geom.GetGeometryType() << std::endl;
     }
 }
 
@@ -1974,13 +1986,48 @@ void MmgProcess<3>::SetConditions(
     const int index
     )
 {
-    const int Id1 = Geom[0].Id(); // First node Id
-    const int Id2 = Geom[1].Id(); // Second node Id
-    const int Id3 = Geom[2].Id(); // Third node Id
-    
-    if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) // Triangle
+    if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Point3D) // Point
     {
-        if ( MMG3D_Set_triangle(mmgMesh, Id1, Id2, Id3, color, index) != 1 )  
+        KRATOS_ERROR << "WARNING:: Nodal condition, will be meshed with the node. Condition existence after meshing not guaranteed" << std::endl;
+    }
+    else if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line3D2) // Line
+    {
+        KRATOS_ERROR << "Kratos_Line3D2 remeshing pending to be implemented" << std::endl;
+//         const int id1 = Geom[0].Id(); // First node id
+//         const int id2 = Geom[1].Id(); // Second node id
+// 
+//         if ( MMG3D_Set_edge(mmgMesh, id1, id2, color, index) != 1 ) 
+//         {
+//             exit(EXIT_FAILURE);
+//         }
+//         
+//         // Set fixed boundary
+//         bool blocked1 = false;
+//         if (Geom[0].IsDefined(BLOCKED) == true)
+//         {
+//             blocked1 = Geom[0].Is(BLOCKED);
+//         }
+//         bool blocked2 = false;
+//         if (Geom[1].IsDefined(BLOCKED) == true)
+//         {
+//             blocked2 = Geom[1].Is(BLOCKED);
+//         }
+// 
+//         if ((blocked1 && blocked2) == true)
+//         {
+//             if ( MMG3D_Set_requiredEdge(mmgMesh, index) != 1 ) 
+//             {
+//                 exit(EXIT_FAILURE); 
+//             }   
+//         }
+    }
+    else if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) // Triangle
+    {
+        const int id1 = Geom[0].Id(); // First node Id
+        const int id2 = Geom[1].Id(); // Second node Id
+        const int id3 = Geom[2].Id(); // Third node Id
+    
+        if ( MMG3D_Set_triangle(mmgMesh, id1, id2, id3, color, index) != 1 )  
         {
             exit(EXIT_FAILURE); 
         }
@@ -2012,9 +2059,12 @@ void MmgProcess<3>::SetConditions(
     }
     else if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) // Quadrilaterals
     {
-        const int Id4 = Geom[3].Id(); // Fourth node Id
+        const int id1 = Geom[0].Id(); // First node Id
+        const int id2 = Geom[1].Id(); // Second node Id
+        const int id3 = Geom[2].Id(); // Third node Id
+        const int id4 = Geom[3].Id(); // Fourth node Id
         
-        if ( MMG3D_Set_quadrilateral(mmgMesh, Id1, Id2, Id3, Id4, color, index) != 1 )  
+        if ( MMG3D_Set_quadrilateral(mmgMesh, id1, id2, id3, id4, color, index) != 1 )  
         {
             exit(EXIT_FAILURE); 
         }
@@ -2022,7 +2072,7 @@ void MmgProcess<3>::SetConditions(
     else
     {
         const unsigned int SizeGeometry = Geom.size();
-        KRATOS_ERROR << "WARNING: I DO NOT KNOW WHAT IS THIS. Size: " << SizeGeometry << std::endl;
+        KRATOS_ERROR << "WARNING: I DO NOT KNOW WHAT IS THIS. Size: " << SizeGeometry << " Type: " << Geom.GetGeometryType() << std::endl;
     }
 }
 
