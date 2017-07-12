@@ -1223,11 +1223,12 @@ public:
         reduced_model_part.Conditions().clear();
         reduced_model_part.Elements().clear();
         reduced_model_part.Nodes().clear();
+        unsigned int NumberOfProperties = full_model_part.NumberOfProperties();
       
 	//change the name of the var to another one  - otherwise confusing
 	for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; in != full_model_part.NodesEnd() ; ++in)
 	{	  	
-	in->FastGetSolutionStepValue(IS_INACTIVE)=false;
+	in->FastGetSolutionStepValue(MATERIAL)=false;
 	in->FastGetSolutionStepValue(MATERIAL_VARIABLE)=false;
 	}
 
@@ -1270,7 +1271,7 @@ public:
 
 		for (int i=0;i<n_nodes;i++)
 			{
-			im->GetGeometry()[i].FastGetSolutionStepValue(IS_INACTIVE)=true;
+			im->GetGeometry()[i].FastGetSolutionStepValue(MATERIAL)=true;
 			}               
             }
 
@@ -1283,7 +1284,7 @@ public:
 
 	for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; in != full_model_part.NodesEnd() ; ++in)
         {
-            int n_disabled=in->FastGetSolutionStepValue(IS_INACTIVE);
+            int n_disabled=in->FastGetSolutionStepValue(MATERIAL);
             if (n_disabled==1)
             {
                 reduced_model_part.Nodes().push_back(*(in.base()));
