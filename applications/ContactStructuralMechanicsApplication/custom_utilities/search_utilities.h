@@ -161,7 +161,7 @@ public:
      * @param ActiveCheckLength: The threshold distance to check the potential contact
      * @return condition_is_active: True if at least one node is active, false otherwise
      */
-    template< const unsigned int TDim, const unsigned int TNumNodes >
+    template< const unsigned int TDim, const unsigned int TNumNodes, const bool TFill>
     static inline bool CheckExactIntegration(
         MortarKinematicVariables<TNumNodes> rVariables,
         MortarOperator<TNumNodes> rThisMortarConditionMatrices,   
@@ -258,9 +258,31 @@ public:
                         aux_slave_normal[i_dim] = SlaveNormal[i_dim];
                     }
                     
-                    for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+                    if (TFill == true)
                     {
-                        if (SlaveGeometry[i_node].Is(ACTIVE) == false)
+                        for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+                        {
+                            if (SlaveGeometry[i_node].Is(ACTIVE) == false)
+                            {
+                                const array_1d<double, TDim> aux_array = row(Dx1Mx2, i_node);
+                                
+                                const double nodal_gap = inner_prod(aux_array, - aux_slave_normal); 
+                                
+                                if (nodal_gap < ActiveCheckLength)
+                                {
+                                    SlaveGeometry[i_node].Set(ACTIVE, true);
+                                    condition_is_active = true;
+                                }
+                            }
+                            else
+                            {
+                                condition_is_active = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
                         {
                             const array_1d<double, TDim> aux_array = row(Dx1Mx2, i_node);
                             
@@ -268,13 +290,8 @@ public:
                             
                             if (nodal_gap < ActiveCheckLength)
                             {
-                                SlaveGeometry[i_node].Set(ACTIVE, true);
-                                condition_is_active = true;
+                                return true;
                             }
-                        }
-                        else
-                        {
-                            condition_is_active = true;
                         }
                     }
                 }
@@ -317,7 +334,7 @@ public:
             Condition::Pointer p_cond_master = (it_pair->first); // MASTER
             const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL); 
                     
-            condition_is_active = CheckExactIntegration<TDim, TNumNodes>(rVariables, rThisMortarConditionMatrices, integration_utility, SlaveGeometry, p_cond_master->GetGeometry(), SlaveNormal, master_normal, ActiveCheckLength);
+            condition_is_active = CheckExactIntegration<TDim, TNumNodes, false>(rVariables, rThisMortarConditionMatrices, integration_utility, SlaveGeometry, p_cond_master->GetGeometry(), SlaveNormal, master_normal, ActiveCheckLength);
             
             // If condition is active we add
             if (condition_is_active == true)

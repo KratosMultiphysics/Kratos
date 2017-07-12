@@ -459,7 +459,7 @@ public:
                                     
                                     if (condition_checked_right == OK)
                                     {   
-                                        condition_is_active = SearchUtilities::CheckExactIntegration<2, 2>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
+                                        condition_is_active = SearchUtilities::CheckExactIntegration<2, 2, true>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
                                         
                                         // If condition is active we add
                                         if (condition_is_active == true)
@@ -473,7 +473,7 @@ public:
                                     }
                                     else if (condition_checked_right == AlreadyInTheMap)
                                     {
-                                        condition_is_active = SearchUtilities::CheckExactIntegration<2, 2>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
+                                        condition_is_active = SearchUtilities::CheckExactIntegration<2, 2, true>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
                                         
                                         if (condition_is_active == true)
                                         {
@@ -499,7 +499,7 @@ public:
                                     
                                     if (condition_checked_right == OK)
                                     {   
-                                        condition_is_active = SearchUtilities::CheckExactIntegration<3, 3>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
+                                        condition_is_active = SearchUtilities::CheckExactIntegration<3, 3, true>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
                                         
                                         // If condition is active we add
                                         if (condition_is_active == true)
@@ -513,7 +513,7 @@ public:
                                     }
                                     else if (condition_checked_right == AlreadyInTheMap)
                                     {
-                                        condition_is_active = SearchUtilities::CheckExactIntegration<3, 3>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
+                                        condition_is_active = SearchUtilities::CheckExactIntegration<3, 3, true>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
                                         
                                         if (condition_is_active == true)
                                         {
@@ -539,7 +539,7 @@ public:
                                     
                                     if (condition_checked_right == OK)
                                     {   
-                                        condition_is_active = SearchUtilities::CheckExactIntegration<3, 4>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
+                                        condition_is_active = SearchUtilities::CheckExactIntegration<3, 4, true>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
                                         
                                         // If condition is active we add
                                         if (condition_is_active == true)
@@ -553,7 +553,7 @@ public:
                                     }
                                     else if (condition_checked_right == AlreadyInTheMap)
                                     {
-                                        condition_is_active = SearchUtilities::CheckExactIntegration<3, 4>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
+                                        condition_is_active = SearchUtilities::CheckExactIntegration<3, 4, true>(rVariables, rThisMortarConditionMatrices, integration_utility, p_cond_slave->GetGeometry(), p_cond_master->GetGeometry(), contact_normal_origin, master_normal, active_check_length);
                                         
                                         if (condition_is_active == true)
                                         {

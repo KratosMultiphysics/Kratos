@@ -167,8 +167,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
         // Check pairs
         boost::shared_ptr<ConditionMap>& all_conditions_maps = this->GetValue( CONTACT_MAPS );
         GeometryType& this_geometry = GetGeometry();
-        const double active_check_length = 0.0;
-//         const double active_check_length = this_geometry.Length() * GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
+        const double active_check_length = this_geometry.Length() * GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
         SearchUtilities::ExactContactContainerChecker<TDim,TNumNodes>(all_conditions_maps, this_geometry, this->GetValue(NORMAL), active_check_length); 
     }
     
