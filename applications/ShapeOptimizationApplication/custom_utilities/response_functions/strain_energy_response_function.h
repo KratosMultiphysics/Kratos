@@ -112,14 +112,6 @@ public:
 			mConsiderDiscretization = false;
 		}
 
-		try{
-			mConsiderDiscretizationDirect =  responseSettings["consider_discretization_direct"].GetBool();
-		}
-		catch (...)
-		{
-			mConsiderDiscretizationDirect = false;
-		}
-
 		// Initialize member variables to NULL
 		m_initial_value = 0.0;
 		m_initial_value_defined = false;
@@ -191,7 +183,7 @@ public:
 
 			// Compute strain energy
 			m_strain_energy += 0.5 * inner_prod(u,prod(LHS,u));
-		}	
+		}
 
 		// Set initial value if not done yet
 		if(!m_initial_value_defined)
@@ -423,13 +415,6 @@ protected:
 			// Get adjoint variables (Corresponds to 1/2*u)
 			lambda = 0.5*u;
 
-			double scaling_factor = 1.0;
-			if (mConsiderDiscretizationDirect)
-			{
-				Element::GeometryType& element_geometry = elem_i->GetGeometry();
-				scaling_factor = 1.0/element_geometry.DomainSize();
-			}
-
 			// Semi-analytic computation of partial derivative of state equation w.r.t. node coordinates
 			elem_i->CalculateRightHandSide(RHS, CurrentProcessInfo);
 			for (ModelPart::NodeIterator node_i = elem_i->GetGeometry().begin(); node_i != elem_i->GetGeometry().end(); ++node_i)
@@ -440,7 +425,7 @@ protected:
 				// Pertubation, gradient analysis and recovery of x
 				node_i->X0() += mDelta;
 				elem_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-				gradient_contribution[0] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta)*scaling_factor;
+				gradient_contribution[0] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
 				node_i->X0() -= mDelta;
 
 				// Reset pertubed vector
@@ -449,7 +434,7 @@ protected:
 				// Pertubation, gradient analysis and recovery of y
 				node_i->Y0() += mDelta;
 				elem_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-				gradient_contribution[1] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta)*scaling_factor;
+				gradient_contribution[1] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
 				node_i->Y0() -= mDelta;
 
 				// Reset pertubed vector
@@ -458,7 +443,7 @@ protected:
 				// Pertubation, gradient analysis and recovery of z
 				node_i->Z0() += mDelta;
 				elem_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-				gradient_contribution[2] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta)*scaling_factor;
+				gradient_contribution[2] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
 				node_i->Z0() -= mDelta;
 
 				// Assemble sensitivity to node
@@ -608,24 +593,20 @@ protected:
 		std::cout<< "> Considering discretization size!" << std::endl;
 		for(ModelPart::NodeIterator node_i=mr_model_part.NodesBegin(); node_i!=mr_model_part.NodesEnd(); node_i++)
 		{
-			// Get all neighbor elements of current node
 			WeakPointerVector<Element >& ng_elem = node_i->GetValue(NEIGHBOUR_ELEMENTS);
 
-			// Compute total mass of all neighbor elements before finite differencing
 			double scaling_factor = 0.0;
 			for(unsigned int i = 0; i < ng_elem.size(); i++)
 			{
 				Kratos::Element& ng_elem_i = ng_elem[i];
 				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
 
-				// Compute mass according to element dimension
 				if( isElementOfTypeShell(element_geometry) )
 					scaling_factor += element_geometry.Area();
 				else
 					scaling_factor += element_geometry.Volume();
 			}
 
-			// apply scaling
 			node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT) /= scaling_factor;
 		}
 	}
@@ -670,7 +651,6 @@ private:
 	double m_initial_value;
 	bool m_initial_value_defined;
 	bool mConsiderDiscretization;
-	bool mConsiderDiscretizationDirect;
 
 	///@}
 ///@name Private Operators
