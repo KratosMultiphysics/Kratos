@@ -99,6 +99,7 @@ namespace Kratos
 		//~ boost::numeric::ublas::bounded_matrix<double,2,1> inv_h_grad;
 		double height;
 		double inv_height;
+		double divU;
 		//
 		double Ctau;        // Stabilization parameter >0.005 (R.Codina, CMAME 197, 2008, 1305-1322)
 		double depth;
@@ -194,17 +195,20 @@ namespace Kratos
 
 		// Previous height iteration at current time step
 		height = norm_1(prod(msN_height,ms_unknown));
+		//~ height = inner_prod(msN_height,ms_unknown);
 		inv_height = 1/height;
 		// Previous momentum iteration at current time step
 		momentum = prod(msN_mom,ms_unknown);
 		// Previous inv height gradient at current time step
 		inv_h_grad[0] = msDN_DX(0,0)/ms_unknown[2] + msDN_DX(1,0)/ms_unknown[5] + msDN_DX(2,0)/ms_unknown[8];
 		inv_h_grad[1] = msDN_DX(0,1)/ms_unknown[2] + msDN_DX(1,1)/ms_unknown[5] + msDN_DX(2,1)/ms_unknown[8];
-		//~ for (unsigned int i = 0; i < 9; i++)
-			//~ ms_inv_unknown[i] = 1/ms_unknown[1];
-		//~ inv_h_grad = prod(msDN_DX_height,ms_inv_unknown);
-		//~ inv_h_grad[0] = 1/inv_h_grad[0];
-		//~ inv_h_grad[1] = 1/inv_h_grad[1];
+		// Previous div(U) iteration
+		divU  = msDN_DX(0,0)*ms_unknown[0]/ms_unknown[2];
+		divU += msDN_DX(0,1)*ms_unknown[1]/ms_unknown[2];
+		divU += msDN_DX(1,0)*ms_unknown[3]/ms_unknown[5];
+		divU += msDN_DX(1,1)*ms_unknown[4]/ms_unknown[5];
+		divU += msDN_DX(2,0)*ms_unknown[6]/ms_unknown[8];
+		divU += msDN_DX(2,1)*ms_unknown[7]/ms_unknown[8];
 
 
 
@@ -225,7 +229,8 @@ namespace Kratos
 		// Main loop
 		// LHS
 		// Cross terms
-		noalias(rLeftHandSideMatrix)  = prod(trans(msN_height),msDN_DX_mom);                 // Add <q,div(hu)> to Mass Eq.
+		noalias(rLeftHandSideMatrix)  = ZeroMatrix(9,9);
+		//~ noalias(rLeftHandSideMatrix)  = prod(trans(msN_height),msDN_DX_mom);                 // Add <q,div(hu)> to Mass Eq.
 		noalias(msC)                  = gravity*height*prod(trans(msN_mom),msDN_DX_height);  // Add <w,g*h*grad(h)> to Momentum Eq.
 		noalias(rLeftHandSideMatrix) += msC;
 
@@ -238,17 +243,19 @@ namespace Kratos
 		for (unsigned int i = 0; i < 9; i++)
 			m_aux1x9(0,i) = v_aux1x9[i];
 		noalias(m_aux9x9) = prod(trans(msN_height),m_aux1x9);
-		noalias(rLeftHandSideMatrix) += height * m_aux9x9;              // Add <q,h*grad(1/h)*(hu)> to Mass Eq.
+		//~ noalias(rLeftHandSideMatrix) += height * m_aux9x9;              // Add <q,h*grad(1/h)*(hu)> to Mass Eq.
 
 		noalias(v_aux1x9) = prod(inv_h_grad,msN_mom);
 		noalias(m_aux2x9) = outer_prod(momentum,v_aux1x9);
 		noalias(m_aux9x9) = prod(trans(msN_mom),m_aux2x9);
-		noalias(rLeftHandSideMatrix) += m_aux9x9;                       // Add <w,(hu)*grad(1/h)*(hu)> to Momentum Eq.
+		//~ noalias(rLeftHandSideMatrix) += m_aux9x9;                       // Add <w,(hu)*grad(1/h)*(hu)> to Momentum Eq.
 
 		noalias(m_aux2x9) = prod(ms_hU,msGrad_mom);
 		noalias(m_aux9x9) = prod(msN_mom,m_aux2x9);
 		//~ noalias(rLeftHandSideMatrix) += inv_height * m_aux9x9;          // Add <w,(1/h)*(hu)*grad(hu)> to Momentum Eq.
 
+		//~ noalias(rLeftHandSideMatrix) += divU * prod(msN_height,msN_height);  // Add <q,div(u)*h> to Mass Eq.
+		//~ noalias(rLeftHandSideMatrix) += divU * prod(msN_mom,msN_mom);        // Add <w,div(u)*hu> to Momentum Eq.
 
 
 		//~ KRATOS_WATCH(rLeftHandSideMatrix)
@@ -257,10 +264,15 @@ namespace Kratos
 
 		// Inertia terms
 		// Compute the mass matrix
-		CalculateConsistentMassMatrix(msMass);
-		//~ CalculateLumpedMassMatrix(msMass);
+		//~ CalculateConsistentMassMatrix(msMass);
+		CalculateLumpedMassMatrix(msMass);
 		// LHS += bdf*M
 		noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * msMass;
+
+
+		//~ noalias(rLeftHandSideMatrix) += prod(trans(msN_height),msDN_DX_mom);   // Add <q,div(hu)> to Mass Eq.
+		noalias(rLeftHandSideMatrix) += divU * msMass;        // Add <q,div(u)*h> to Mass Eq.
+		noalias(rLeftHandSideMatrix) += divU * msMass;        // Add <w,div(u)*hu> to Momentum Eq.
 
 
 
@@ -269,11 +281,11 @@ namespace Kratos
 
 
 		// Stabilization parameters
-		Ctau = 0.05;
+		Ctau = 0.01;
 		depth = norm_1(prod(msN_height,ms_depth));
-		tau_h = Ctau*elem_size*pow(depth/gravity,0.5);
-		tau_u(0,0) = Ctau*elem_size*pow(gravity/depth,0.5);
-		tau_u(1,1) = Ctau*elem_size*pow(gravity/depth,0.5);
+		tau_h = Ctau/elem_size*pow(depth/gravity,0.5);
+		tau_u(0,0) = Ctau/elem_size*pow(gravity/depth,0.5);
+		tau_u(1,1) = Ctau/elem_size*pow(gravity/depth,0.5);
 		// Stabilization term
 		noalias(rLeftHandSideMatrix) += tau_h * prod(trans(msDN_DX_mom), msDN_DX_mom);                    // Add artifficial diffusion to Mass eq.
 		noalias(rLeftHandSideMatrix) += prod(trans(msDN_DX_height), Matrix(prod(tau_u,msDN_DX_height)));  // Add artifficial diffusion to Momentum eq.
@@ -303,7 +315,7 @@ namespace Kratos
 
 		// RHS
 		// TODO: SOURCE TERM
-		noalias(rRightHandSideVector) = prod(msC, ms_depth);
+		noalias(rRightHandSideVector) = prod(msC, ms_depth);            // Add <w,g*h*grad(H)> to RHS (Momentum Eq.)
 
 		// Inertia terms
 		// RHS += M*vhistory

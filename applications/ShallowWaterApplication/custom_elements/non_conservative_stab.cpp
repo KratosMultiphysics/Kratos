@@ -98,7 +98,7 @@ namespace Kratos
 		array_1d<double,2> ms_velocity;
 		double ms_height;
 		//
-		double Ctau = 0.01;      // Stabilization parameter >0.005 (R.Codina, CMAME 197, 2008, 1305-1322)
+		double Ctau = 0.02;      // Stabilization parameter >0.005 (R.Codina, CMAME 197, 2008, 1305-1322)
 		double depth;
 		double tau_h;
 		boost::numeric::ublas::bounded_matrix<double,2,2> tau_u = ZeroMatrix(2,2);
@@ -197,8 +197,8 @@ namespace Kratos
 		// Main loop
 		// LHS
 		// Cross terms
-		noalias(rLeftHandSideMatrix)  = ms_height*prod(trans(msN_height),msDN_DX_vel);          // Mass: q*h*div(u)
-		noalias(msC)                  = prod(trans(msN_vel),Matrix(prod(msG,msDN_DX_height)));  // Momentum: w*g*grad(h)
+		noalias(rLeftHandSideMatrix)  = ms_height*prod(trans(msN_height),msDN_DX_vel);      // Mass: q*h*div(u)
+		noalias(msC)                  = gravity*prod(trans(msN_vel),msDN_DX_height);        // Momentum: w*g*grad(h)
 		noalias(rLeftHandSideMatrix) += msC;
 
 		// Inertia terms
@@ -215,7 +215,7 @@ namespace Kratos
 		tau_u(1,1) = Ctau*elem_size*pow(gravity/depth,0.5);
 		// Stabilization term
 		noalias(rLeftHandSideMatrix) += tau_h * prod(trans(msDN_DX_vel), msDN_DX_vel);                    // Artifficial diffusion to Mass eq.
-		noalias(rLeftHandSideMatrix) += prod(trans(msDN_DX_height), Matrix(prod(tau_u,msDN_DX_height)));  // artifficial diffusion to Momentum eq.
+		noalias(rLeftHandSideMatrix) += prod(trans(msDN_DX_height), Matrix(prod(tau_u,msDN_DX_height)));  // Artifficial diffusion to Momentum eq.
 
 		// RHS
 		// TODO: SOURCE TERM
