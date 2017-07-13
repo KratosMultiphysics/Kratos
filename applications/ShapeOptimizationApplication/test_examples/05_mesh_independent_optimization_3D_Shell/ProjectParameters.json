@@ -105,7 +105,7 @@
                 "matrix_free_filtering": false,
                 "max_nodes_in_filter_radius": 10000
             },
-            "input_model_part_name": "3D_Shell",
+            "input_model_part_name": "3D_Shell_diagonal",
             "integration": true,
             "integration_method": 0
         },
@@ -181,7 +181,7 @@
         "echo_level": 0,
         "end_time": 1.0,
         "model_part_name": "Structure",
-        "problem_name": "3D_Shell",
+        "problem_name": "3D_Shell_diagonal",
         "start_time": 0.0,
         "time_step": 1.1
     },
@@ -205,7 +205,7 @@
         },
         "max_iteration": 10,
         "model_import_settings": {
-            "input_filename": "3D_Shell",
+            "input_filename": "3D_Shell_diagonal",
             "input_type": "mdpa"
         },
         "problem_domain_sub_model_part_list": [
