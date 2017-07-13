@@ -110,34 +110,6 @@ public:
     ///@{
         
     /**
-     * Criterias that need to be called before getting the solution
-     * @param rModelPart Reference to the ModelPart containing the contact problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
-     * @return true if convergence is achieved, false otherwise
-     */
-    
-    bool PreCriteria(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
-        ) override
-    {
-        // We update the normals if necessary
-        if (rModelPart.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] == true)
-        {
-            // Update normal of the conditions
-            ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart.GetSubModelPart("Contact") ); 
-        }
-        
-        return true;
-    }
-    
-    /**
      * Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
@@ -155,7 +127,7 @@ public:
         const TSystemVectorType& b
         ) override
     {
-        BaseType::CalculateContactReactions(rModelPart, rDofSet, b);
+//         BaseType::CalculateContactReactions(rModelPart, rDofSet, b); // NOTE: Already computed in the PreCriteria
         
         // Defining the convergence
         unsigned int is_converged = 0;

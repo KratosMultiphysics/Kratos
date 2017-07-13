@@ -252,78 +252,79 @@ public:
     
     bool SolveSolutionStep() override
     {
-        bool IsConverged = BaseType::SolveSolutionStep();
+//         bool is_converged = BaseType::SolveSolutionStep(); // FIXME: Requires to separate the non linear iterations 
+        bool is_converged = BaseSolveSolutionStep();
         
         // Plots a warning if the maximum number of iterations is exceeded
-        if ((mAdaptativeStrategy == true) && (IsConverged == false))
+        if ((mAdaptativeStrategy == true) && (is_converged == false))
         {
             if (mpMyProcesses == nullptr && StrategyBaseType::mEchoLevel > 0)
             {
                 std::cout << "WARNING:: If you have not implemented any method to recalculate BC or loads in function of time, this strategy will be USELESS" << std::endl;
             }
         
-            ProcessInfo& ThisProcessInfo = StrategyBaseType::GetModelPart().GetProcessInfo();
+            ProcessInfo& this_process_info = StrategyBaseType::GetModelPart().GetProcessInfo();
 
-            const double OriginalDeltaTime = ThisProcessInfo[DELTA_TIME]; // We save the delta time to restore later
+            const double original_delta_time = this_process_info[DELTA_TIME]; // We save the delta time to restore later
             
-            unsigned int SplitNumber = 0;
+            unsigned int split_number = 0;
             
             // We iterate until we reach the convergence or we split more than desired
-            while (IsConverged == false && SplitNumber <= mMaxNumberSplits)
+            while (is_converged == false && split_number <= mMaxNumberSplits)
             {                   
                 // Expliting time step as a way to try improve the convergence
-                SplitNumber += 1;
-                double AuxDeltaTime;
-                double CurrentTime; 
-                const double AuxTime = SplitTimeStep(AuxDeltaTime, CurrentTime);
+                split_number += 1;
+                double aux_delta_time;
+                double current_time; 
+                const double aux_time = SplitTimeStep(aux_delta_time, current_time);
                 
-                bool InsideTheSplitIsConverged = true;
-                unsigned int InnerIteration = 0;
-                while (InsideTheSplitIsConverged == true && ThisProcessInfo[TIME] <= AuxTime)
+                bool inside_the_split_is_converged = true;
+                unsigned int inner_iteration = 0;
+                while (inside_the_split_is_converged == true && this_process_info[TIME] <= aux_time)
                 {      
-                    CurrentTime += AuxDeltaTime;
-                    InnerIteration += 1;
-                    ThisProcessInfo[TIME_STEPS] += 1;
+                    current_time += aux_delta_time;
+                    inner_iteration += 1;
+                    this_process_info[TIME_STEPS] += 1;
                     
-                    if (InnerIteration == 1)
+                    if (inner_iteration == 1)
                     {
                         if (StrategyBaseType::MoveMeshFlag() == true)
                         {
                             UnMoveMesh();
                         }
                         
-                        NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().Nodes();
-                        const int numNodes = static_cast<int>(NodesArray.size());
+                        NodesArrayType& nodes_array = StrategyBaseType::GetModelPart().Nodes();
+                        const int num_nodes = static_cast<int>(nodes_array.size());
                         
                         #pragma omp parallel for
-                        for(int i = 0; i < numNodes; i++)  
+                        for(int i = 0; i < num_nodes; i++)  
                         {
-                            auto itNode = NodesArray.begin() + i;
+                            auto it_node = nodes_array.begin() + i;
                             
-                            itNode->OverwriteSolutionStepData(1, 0);
-//                             itNode->OverwriteSolutionStepData(2, 1);
+                            it_node->OverwriteSolutionStepData(1, 0);
+//                             it_node->OverwriteSolutionStepData(2, 1);
                         }
                         
-                        ThisProcessInfo.SetCurrentTime(CurrentTime); // Reduces the time step
+                        this_process_info.SetCurrentTime(current_time); // Reduces the time step
                         
                         FinalizeSolutionStep();
                     }
                     else
                     {
-                        NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().Nodes();
-                        const int numNodes = static_cast<int>(NodesArray.size());
+                        NodesArrayType& nodes_array = StrategyBaseType::GetModelPart().Nodes();
+                        const int num_nodes = static_cast<int>(nodes_array.size());
                         
                         #pragma omp parallel for
-                        for(int i = 0; i < numNodes; i++)  
+                        for(int i = 0; i < num_nodes; i++)  
                         {
-                            auto itNode = NodesArray.begin() + i;
+                            auto it_node = nodes_array.begin() + i;
                             
-                            itNode->CloneSolutionStepData();
+                            it_node->CloneSolutionStepData();
                         }
                         
-                        ThisProcessInfo.CloneSolutionStepInfo();
-                        ThisProcessInfo.ClearHistory(StrategyBaseType::GetModelPart().GetBufferSize());
-                        ThisProcessInfo.SetAsTimeStepInfo(CurrentTime); // Sets the new time step
+                        this_process_info.CloneSolutionStepInfo();
+                        this_process_info.ClearHistory(StrategyBaseType::GetModelPart().GetBufferSize());
+                        this_process_info.SetAsTimeStepInfo(current_time); // Sets the new time step
                     }
                     
                     // We execute the processes before the non-linear iteration
@@ -341,7 +342,7 @@ public:
                     Initialize();
                     InitializeSolutionStep();
                     BaseType::Predict();
-                    InsideTheSplitIsConverged = BaseType::SolveSolutionStep();
+                    inside_the_split_is_converged = BaseType::SolveSolutionStep();
                     FinalizeSolutionStep();
                     
                     // We execute the processes after the non-linear iteration
@@ -354,23 +355,23 @@ public:
                     }
                 }
                 
-                if (InsideTheSplitIsConverged == true)
+                if (inside_the_split_is_converged == true)
                 {
-                    IsConverged = true;
+                    is_converged = true;
                 }
             }
             
             // Plots a warning if the maximum number of iterations and splits are exceeded
-            if (IsConverged == false)
+            if (is_converged == false)
             {
                 MaxIterationsAndSplitsExceeded();
             }
             
             // Restoring original DELTA_TIME
-            ThisProcessInfo[DELTA_TIME] = OriginalDeltaTime;
+            this_process_info[DELTA_TIME] = original_delta_time;
         }
 
-        return IsConverged;
+        return is_converged;
     }
         
     ///@}
@@ -413,6 +414,177 @@ protected:
     ///@{
     
     /**
+     * Solves the current step. This function returns true if a solution has been found, false otherwise.
+     */
+    
+    bool BaseSolveSolutionStep()
+    {
+        // Pointers needed in the solution
+        typename TSchemeType::Pointer pScheme = BaseType::GetScheme();
+        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = BaseType::GetBuilderAndSolver();
+
+        TSystemMatrixType& A = *BaseType::mpA;
+        TSystemVectorType& Dx = *BaseType::mpDx;
+        TSystemVectorType& b = *BaseType::mpb;
+
+        //initializing the parameters of the Newton-Raphson cicle
+        unsigned int iteration_number = 1;
+        StrategyBaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+
+        bool is_converged = false;
+        bool residual_is_updated = false;
+        pScheme->InitializeNonLinIteration(StrategyBaseType::GetModelPart(), A, Dx, b);
+        is_converged = BaseType::mpConvergenceCriteria->PreCriteria(StrategyBaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
+
+        //function to perform the building and the solving phase.
+        if (StrategyBaseType::mRebuildLevel > 1 || StrategyBaseType::mStiffnessMatrixIsBuilt == false)
+        {
+            TSparseSpace::SetToZero(A);
+            TSparseSpace::SetToZero(Dx);
+            TSparseSpace::SetToZero(b);
+
+            pBuilderAndSolver->BuildAndSolve(pScheme, StrategyBaseType::GetModelPart(), A, Dx, b);
+        }
+        else
+        {
+            TSparseSpace::SetToZero(Dx); //Dx=0.00;
+            TSparseSpace::SetToZero(b);
+
+            pBuilderAndSolver->BuildRHSAndSolve(pScheme, StrategyBaseType::GetModelPart(), A, Dx, b);
+        }
+        
+        // Debugging info
+        BaseType::EchoInfo(iteration_number);
+        
+        // Updating the results stored in the database
+        UpdateDatabase(A, Dx, b, StrategyBaseType::MoveMeshFlag());
+
+        pScheme->FinalizeNonLinIteration(StrategyBaseType::GetModelPart(), A, Dx, b);
+
+        if (is_converged == true)
+        {
+            //initialisation of the convergence criteria
+            BaseType::mpConvergenceCriteria->InitializeSolutionStep(StrategyBaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
+
+            if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag() == true)
+            {
+                TSparseSpace::SetToZero(b);
+
+                pBuilderAndSolver->BuildRHS(pScheme, StrategyBaseType::GetModelPart(), b);
+            }
+
+            is_converged = BaseType::mpConvergenceCriteria->PostCriteria(StrategyBaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
+        }
+
+
+        //Iteration Cicle... performed only for NonLinearProblems
+        while (is_converged == false &&
+                iteration_number++<BaseType::mMaxIterationNumber)
+        {
+            //setting the number of iteration
+            StrategyBaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+
+            pScheme->InitializeNonLinIteration(StrategyBaseType::GetModelPart(), A, Dx, b);
+
+            // To be able to calculate the current gap and recalulate the penalty
+            TSparseSpace::SetToZero(b);
+            pBuilderAndSolver->BuildRHS(pScheme, StrategyBaseType::GetModelPart(), b);
+                    
+            is_converged = BaseType::mpConvergenceCriteria->PreCriteria(StrategyBaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
+
+            //call the linear system solver to find the correction mDx for the
+            //it is not called if there is no system to solve
+            if (SparseSpaceType::Size(Dx) != 0)
+            {
+                if (StrategyBaseType::mRebuildLevel > 1 || StrategyBaseType::mStiffnessMatrixIsBuilt == false )
+                {
+                    if( BaseType::GetKeepSystemConstantDuringIterations() == false)
+                    {
+                        //A = 0.00;
+                        TSparseSpace::SetToZero(A);
+                        TSparseSpace::SetToZero(Dx);
+                        TSparseSpace::SetToZero(b);
+
+                        pBuilderAndSolver->BuildAndSolve(pScheme, StrategyBaseType::GetModelPart(), A, Dx, b);
+                    }
+                    else
+                    {
+                        TSparseSpace::SetToZero(Dx);
+                        TSparseSpace::SetToZero(b);
+
+                        pBuilderAndSolver->BuildRHSAndSolve(pScheme, StrategyBaseType::GetModelPart(), A, Dx, b);
+                    }
+                }
+                else
+                {
+                    TSparseSpace::SetToZero(Dx);
+                    TSparseSpace::SetToZero(b);
+
+                    pBuilderAndSolver->BuildRHSAndSolve(pScheme, StrategyBaseType::GetModelPart(), A, Dx, b);
+                }
+            }
+            else
+            {
+                std::cout << "ATTENTION: no free DOFs!! " << std::endl;
+            }
+
+            // Debugging info
+            BaseType::EchoInfo(iteration_number);
+        
+            // Updating the results stored in the database
+            UpdateDatabase(A, Dx, b, StrategyBaseType::MoveMeshFlag());
+
+            pScheme->FinalizeNonLinIteration(StrategyBaseType::GetModelPart(), A, Dx, b);
+
+            residual_is_updated = false;
+
+            if (is_converged == true)
+            {
+
+                if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag() == true)
+                {
+                    TSparseSpace::SetToZero(b);
+
+                    pBuilderAndSolver->BuildRHS(pScheme, StrategyBaseType::GetModelPart(), b);
+                    residual_is_updated = true;
+                    //std::cout << "mb is calculated" << std::endl;
+                }
+
+                is_converged = BaseType::mpConvergenceCriteria->PostCriteria(StrategyBaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
+            }
+        }
+
+
+        //plots a warning if the maximum number of iterations is exceeded
+        if (iteration_number >= BaseType::mMaxIterationNumber && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+        {
+            MaxIterationsExceeded();
+        }
+
+        //recalculate residual if needed
+        //(note that some convergence criteria need it to be recalculated)
+        if (residual_is_updated == false)
+        {
+            // NOTE:
+            // The following part will be commented because it is time consuming
+            // and there is no obvious reason to be here. If someone need this
+            // part please notify the community via mailing list before uncommenting it.
+            // Pooyan.
+
+            //    TSparseSpace::SetToZero(mb);
+            //    pBuilderAndSolver->BuildRHS(pScheme, StrategyBaseType::GetModelPart(), mb);
+        }
+
+        //calculate reactions if required
+        if (BaseType::mCalculateReactionsFlag == true)
+        {
+            pBuilderAndSolver->CalculateReactions(pScheme, StrategyBaseType::GetModelPart(), A, Dx, b);
+        }
+
+        return is_converged;
+    }
+    
+    /**
      * Performs all the required operations that should be done (for each step) 
      * before solving the solution step.
      * A member variable should be used as a flag to make sure this function is called only once per step.
@@ -452,9 +624,9 @@ protected:
     {
         KRATOS_TRY;
 
-        const double AuxTime = StrategyBaseType::GetModelPart().GetProcessInfo()[TIME];
+        const double aux_time = StrategyBaseType::GetModelPart().GetProcessInfo()[TIME];
         AuxDeltaTime = StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
-        CurrentTime = AuxTime - AuxDeltaTime;
+        CurrentTime = aux_time - AuxDeltaTime;
         
         StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] =   CurrentTime; // Restore time to the previous one
         AuxDeltaTime /= mSplitFactor;
@@ -462,7 +634,7 @@ protected:
         
         CoutSplittingTime(AuxDeltaTime);
         
-        return AuxTime;
+        return aux_time;
         
         KRATOS_CATCH("");
     }
@@ -480,16 +652,16 @@ protected:
             KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT var is not in the model_part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
         }
 
-        NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size());
+        NodesArrayType& nodes_array = StrategyBaseType::GetModelPart().Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size());
 
         #pragma omp parallel for
-        for(int i = 0; i < numNodes; i++)  
+        for(int i = 0; i < num_nodes; i++)  
         {
-            auto itNode = NodesArray.begin() + i;
+            auto it_node = nodes_array.begin() + i;
 
-            noalias(itNode->Coordinates()) = itNode->GetInitialPosition().Coordinates();
-            noalias(itNode->Coordinates()) += itNode->FastGetSolutionStepValue(DISPLACEMENT, 1);
+            noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
+            noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
         }
 
         KRATOS_CATCH("");

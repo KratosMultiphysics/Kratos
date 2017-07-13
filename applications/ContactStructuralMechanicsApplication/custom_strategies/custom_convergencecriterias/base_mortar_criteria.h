@@ -19,6 +19,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "custom_processes/aalm_adapt_penalty_value_process.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 namespace Kratos
@@ -113,6 +114,19 @@ public:
         const TSystemVectorType& b
         ) override
     {
+        // We update the normals if necessary
+        if (rModelPart.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] == true)
+        {
+            // Update normal of the conditions
+            ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart.GetSubModelPart("Contact") ); 
+        }
+        
+        CalculateContactReactions(rModelPart, rDofSet, b);
+        
+        // We recalculate the penalty parameter
+        AALMAdaptPenaltyValueProcess aalm_adaptation_of_penalty = AALMAdaptPenaltyValueProcess( rModelPart );
+        aalm_adaptation_of_penalty.Execute();
+        
         return true;
     }
     
@@ -270,26 +284,26 @@ protected:
     {       
         const double ScaleFactor = (rModelPart.GetProcessInfo()[SCALE_FACTOR] > 0.0) ? rModelPart.GetProcessInfo()[SCALE_FACTOR] : 1.0;
               
-        int numDof = rDofSet.end() - rDofSet.begin();
+        const int numDof = rDofSet.end() - rDofSet.begin();
 
 //         #pragma omp parallel for
-		for (int i = 0; i < numDof; i++)
-		{
-			typename DofsArrayType::iterator itDoF = rDofSet.begin() + i;
+        for (int i = 0; i < numDof; i++)
+        {
+            typename DofsArrayType::iterator itDoF = rDofSet.begin() + i;
 
-			if ((itDoF)->IsFixed() == false) // TODO: Ask Riccardo how the elimination builder and solver orders the DoFs 
-			{
-				const std::size_t j = (itDoF)->EquationId();
+            if ((itDoF)->IsFixed() == false) // TODO: Ask Riccardo how the elimination builder and solver orders the DoFs 
+            {
+                const std::size_t j = (itDoF)->EquationId();
 
-				if (((itDoF)->GetReaction().Name()).find("WEIGHTED") != std::string::npos) // Corresponding with contact
-				{
-					(itDoF)->GetSolutionStepReactionValue() = -b[j] / ScaleFactor;
-				}
-				else if ((itDoF)->GetReaction().Name() != "NONE") // The others
-				{
-					(itDoF)->GetSolutionStepReactionValue() = -b[j];
-				}
-			}
+                if (((itDoF)->GetReaction().Name()).find("WEIGHTED") != std::string::npos) // Corresponding with contact
+                {
+                    (itDoF)->GetSolutionStepReactionValue() = -b[j] / ScaleFactor;
+                }
+                else if ((itDoF)->GetReaction().Name() != "NONE") // The others
+                {
+                    (itDoF)->GetSolutionStepReactionValue() = -b[j];
+                }
+            }
         }
     }
     
