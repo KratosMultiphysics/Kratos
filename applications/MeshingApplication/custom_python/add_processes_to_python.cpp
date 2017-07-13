@@ -24,6 +24,7 @@
 #include "custom_processes/metrics_levelset_process.h"
 #include "custom_processes/metrics_hessian_process.h"
 #include "custom_processes/metrics_error_process.h"
+#include "custom_processes/metrics_spr_error_process.h"
 // #include "custom_processes/nodal_values_interpolation_process.h"
 #include "custom_processes/internal_variables_interpolation_process.h"
 // #include "custom_processes/set_h_map_process.h"
@@ -127,6 +128,29 @@ void  AddProcessesToPython()
         .def("Execute",&ComputeErrorSolMetricProcess<3>::Execute)
         ;
         
+        //SPR_ERROR
+        // SPR_ERROR DOUBLE
+        class_<ComputeSPRErrorSolMetricProcess<2, Variable<double>>, bases<Process> >("ComputeSPRErrorSolMetricProcess2D", init<ModelPart&, Variable<double>&>())
+        .def(init<ModelPart&, Variable<double>&, Parameters>())
+        .def("Execute",&ComputeSPRErrorSolMetricProcess<2, Variable<double>>::Execute)
+        ;
+   
+        class_<ComputeSPRErrorSolMetricProcess<3, Variable<double>>, bases<Process> >("ComputeSPRErrorSolMetricProcess3D", init<ModelPart&, Variable<double>&>())
+        .def(init<ModelPart&, Variable<double>&, Parameters>())
+        .def("Execute",&ComputeSPRErrorSolMetricProcess<3, Variable<double>>::Execute)
+        ;
+        
+        // SPR_ERROR ARRAY 1D
+        class_<ComputeSPRErrorSolMetricProcess<2, component_type>, bases<Process> >("ComputeSPRErrorSolMetricProcessComp2D", init<ModelPart&, component_type&>())
+        .def(init<ModelPart&, component_type&, Parameters>())
+        .def("Execute",&ComputeSPRErrorSolMetricProcess<2, component_type>::Execute)
+        ;
+        
+        class_<ComputeSPRErrorSolMetricProcess<3, component_type>, bases<Process> >("ComputeSPRErrorSolMetricProcessComp3D", init<ModelPart&, component_type&>())
+        .def(init<ModelPart&, component_type&, Parameters>())
+        .def("Execute",&ComputeSPRErrorSolMetricProcess<3, component_type>::Execute)
+        ;
+
         /* MMG PROCESS */
         #ifdef INCLUDE_MMG
             // 2D
