@@ -182,7 +182,6 @@ bool AssessStationarity(ModelPart& r_model_part, const double& tol)
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-
 double CalculateDomainVolume(ModelPart& r_fluid_model_part)
 {
     OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_fluid_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
@@ -572,6 +571,23 @@ std::vector<vector<double> > mFirstRowsOfB;
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
+inline double CalculateArea(const double x0, const double y0,
+                            const double x1, const double y1,
+                            const double x2, const double y2)
+{
+    const double x10 = x1 - x0;
+    const double y10 = y1 - y0;
+
+    const double x20 = x2 - x0;
+    const double y20 = y2 - y0;
+
+    const double area = 0.5 * std::abs(x10 * y20 - x20 * y10);
+
+    return area;
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
 inline double CalculateVol(const double x0, const double y0, const double z0,
                            const double x1, const double y1, const double z1,
                            const double x2, const double y2, const double z2,
@@ -598,23 +614,36 @@ inline double CalculateVol(const double x0, const double y0, const double z0,
 
 //***************************************************************************************************************
 //***************************************************************************************************************
-
 double CalculateElementalVolume(const Geometry<Node <3> >& geom)
 {
-    double x0 = geom[0].X();
-    double y0 = geom[0].Y();
-    double z0 = geom[0].Z();
-    double x1 = geom[1].X();
-    double y1 = geom[1].Y();
-    double z1 = geom[1].Z();
-    double x2 = geom[2].X();
-    double y2 = geom[2].Y();
-    double z2 = geom[2].Z();
-    double x3 = geom[3].X();
-    double y3 = geom[3].Y();
-    double z3 = geom[3].Z();
+    double vol;
 
-    double vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+    if (TDim == 2){
+        double x0 = geom[0].X();
+        double y0 = geom[0].Y();
+        double x1 = geom[1].X();
+        double y1 = geom[1].Y();
+        double x2 = geom[2].X();
+        double y2 = geom[2].Y();
+        vol = CalculateArea(x0, y0, x1, y1, x2, y2);
+    }
+
+    else {
+        double x0 = geom[0].X();
+        double y0 = geom[0].Y();
+        double z0 = geom[0].Z();
+        double x1 = geom[1].X();
+        double y1 = geom[1].Y();
+        double z1 = geom[1].Z();
+        double x2 = geom[2].X();
+        double y2 = geom[2].Y();
+        double z2 = geom[2].Z();
+        double x3 = geom[3].X();
+        double y3 = geom[3].Y();
+        double z3 = geom[3].Z();
+
+        vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+    }
 
     if (vol == 0.0){
         KRATOS_THROW_ERROR(std::logic_error, "element with zero area found with the current geometry ", geom);

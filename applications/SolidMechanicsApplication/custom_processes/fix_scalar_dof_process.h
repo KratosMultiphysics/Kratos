@@ -353,10 +353,10 @@ private:
             for(int i = 0; i<nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
-		it->pAddDof(rVar)->FixDof();
-		//it->Fix(rVar);
-                
-            }
+		//it->pAddDof(rVar)->FixDof();
+		it->Fix(rVar);
+
+           }
         }
     }
 
