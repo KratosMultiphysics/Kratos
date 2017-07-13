@@ -421,7 +421,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void InitializeComputationOfMappingMatrix()
+    virtual void InitializeComputationOfMappingMatrix()
     {
         mpSearchTree.reset();
         mMappingMatrix.clear();

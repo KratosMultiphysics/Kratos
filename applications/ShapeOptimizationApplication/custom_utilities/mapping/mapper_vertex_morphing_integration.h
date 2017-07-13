@@ -159,30 +159,29 @@ public:
             ModelPart::NodeType& node_j = *neighbor_nodes[j_itr];
 
             // Get all neighbour conditions
-            const WeakPointerVector<Condition>& rConditions = node_j.GetValue(NEIGHBOUR_CONDITIONS);
+            if (mAreaWeightedNodeSum){
+                // Computation of weight according specified weighting function
+                // Note that we did not compute the square root of the distances to save this expensive computation (it is not needed here)
+                double Aij = mpFilterFunction->compute_weight(node_j.Coordinates(),node_i.Coordinates());
+                Aij *= nodalAreas[node_j.GetValue(MAPPING_ID)];
+;
+                // Add values to list
+                list_of_weights[j_itr] += Aij;
 
-            // loop conditions
-            for(unsigned int c_itr=0; c_itr<rConditions.size(); c_itr++)
+                // Computed for integration of weighting function later using post-scaling
+                sum_of_weights += Aij;
+            }
+            else
             {
-                // Get geometry of current condition
-                Condition rCondition = rConditions[c_itr];
-                Condition::GeometryType& geom_i = rCondition.GetGeometry();
+                const WeakPointerVector<Condition>& rConditions = node_j.GetValue(NEIGHBOUR_CONDITIONS);
 
-                if (mAreaWeightedNodeSum){
-
-                    // Computation of weight according specified weighting function
-                    // Note that we did not compute the square root of the distances to save this expensive computation (it is not needed here)
-                    double Aij = mpFilterFunction->compute_weight(node_j.Coordinates(),node_i.Coordinates());
-                    Aij *= geom_i.DomainSize();
-
-                    // Add values to list
-                    list_of_weights[j_itr] += Aij;
-
-                    // Computed for integration of weighting function later using post-scaling
-                    sum_of_weights += Aij;
-                }
-                else
+                // loop conditions
+                for(unsigned int c_itr=0; c_itr<rConditions.size(); c_itr++)
                 {
+                    // Get geometry of current condition
+                    Condition rCondition = rConditions[c_itr];
+                    Condition::GeometryType& geom_i = rCondition.GetGeometry();
+
                     // Get geometry information of current condition
                     unsigned int n_nodes = geom_i.size();
                     int localNodeIndex = -1;
@@ -226,6 +225,34 @@ public:
                         // Computed for integration of weighting function later using post-scaling
                         sum_of_weights += Aij;
                     }
+                }
+            }
+        }
+    }
+
+    virtual void InitializeComputationOfMappingMatrix()
+    {
+        // from base class
+        MapperVertexMorphing::InitializeComputationOfMappingMatrix();
+
+        // necessary for this class
+        if (mAreaWeightedNodeSum)
+        {
+            nodalAreas.resize(mrDesignSurface.Nodes().size(),0.0);
+            for(auto& node_i : mrDesignSurface.Nodes())
+            {
+                int i = node_i.GetValue(MAPPING_ID);
+
+                // Get all neighbour conditions
+                const WeakPointerVector<Condition>& rConditions = node_i.GetValue(NEIGHBOUR_CONDITIONS);
+
+                // loop conditions
+                for(unsigned int c_itr=0; c_itr<rConditions.size(); c_itr++)
+                {
+                    // Get geometry of current condition
+                    Condition rCondition = rConditions[c_itr];
+                    Condition::GeometryType& geom_i = rCondition.GetGeometry();
+                    nodalAreas[i] += geom_i.DomainSize() / geom_i.size();
                 }
             }
         }
@@ -323,6 +350,7 @@ private:
     // ==============================================================================
     Element::IntegrationMethod mIntegrationMethod;
     bool mAreaWeightedNodeSum;
+    std::vector<double> nodalAreas;
 
     ///@}
     ///@name Private Operators
