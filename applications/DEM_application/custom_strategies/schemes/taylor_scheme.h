@@ -8,8 +8,7 @@
 // System includes
 #include <string>
 #include <iostream> 
-
-// External includes 
+#include <cfloat>
 
 // Project includes
 #include "dem_integration_scheme.h"
@@ -21,19 +20,15 @@
 
 namespace Kratos {
 
-    class TaylorScheme : public DEMIntegrationScheme {
+    class KRATOS_API(DEM_APPLICATION) TaylorScheme : public DEMIntegrationScheme {
     public:
-        ///@name Type Definitions
-        ///@{
 
         typedef ModelPart::NodesContainerType NodesArrayType;
-        typedef ModelPart::ElementsContainerType ElementsArrayType;
 
         /// Pointer definition of TaylorScheme
         KRATOS_CLASS_POINTER_DEFINITION(TaylorScheme);
 
         /// Default constructor.
-
         TaylorScheme() {}
 
         /// Destructor.
@@ -48,38 +43,49 @@ namespace Kratos {
             DEMIntegrationScheme::Pointer cloned_scheme(new TaylorScheme(*this));
             return cloned_scheme;
         }
-
+        
         void SetIntegrationSchemeInProperties(Properties::Pointer pProp) const override;
         
-        /*void AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption)  override;
-
-        void AddClustersVariables(ModelPart & r_model_part, bool TRotationOption)  override;*/
+        /*void AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption) override;
+    
+        void AddClustersVariables(ModelPart & r_model_part, bool TRotationOption) override;*/
 
         void UpdateTranslationalVariables(
-                int StepFlag,
-                Node < 3 > & i,
-                array_1d<double, 3 >& coor,
-                array_1d<double, 3 >& displ,
-                array_1d<double, 3 >& delta_displ,
-                array_1d<double, 3 >& vel,
-                const array_1d<double, 3 >& initial_coor,
-                const array_1d<double, 3 >& force,
-                const double force_reduction_factor,
-                const double mass,
-                const double delta_t,
-                const bool Fix_vel[3])  override;
-
-        void UpdateRotationalVariables(
-                int StepFlag,
-                const Node < 3 > & i,
-                array_1d<double, 3 >& rotated_angle,
-                array_1d<double, 3 >& delta_rotation,
-                array_1d<double, 3 >& angular_velocity,
-                array_1d<double, 3 >& angular_acceleration,
-                const double delta_t,
-                const bool Fix_Ang_vel[3])  override;
+            int StepFlag,
+            Node < 3 > & i,
+            array_1d<double, 3 >& coor,
+            array_1d<double, 3 >& displ,
+            array_1d<double, 3 >& delta_displ,
+            array_1d<double, 3 >& vel,
+            const array_1d<double, 3 >& initial_coor,
+            const array_1d<double, 3 >& force,
+            const double force_reduction_factor,
+            const double mass,
+            const double delta_t,
+            const bool Fix_vel[3]) override;
         
-        void UpdateRotationalVariablesOfCluster(
+//         void UpdateRotationalVariables(
+//                 int StepFlag,
+//                 const Node < 3 > & i,
+//                 array_1d<double, 3 >& rotated_angle,
+//                 array_1d<double, 3 >& delta_rotation,
+//                 array_1d<double, 3 >& angular_velocity,
+//                 array_1d<double, 3 >& angular_acceleration,
+//                 const double delta_t,
+//                 const bool Fix_Ang_vel[3]) override;
+
+//         void UpdateRotationalVariablesOfSpheres(
+//                 const Node < 3 > & i,
+//                 const double& moment_of_inertia,
+//                 array_1d<double, 3 >& rotated_angle,
+//                 array_1d<double, 3 >& delta_rotation,
+//                 Quaternion<double  >& Orientation,
+//                 const array_1d<double, 3 >& angular_momentum,
+//                 array_1d<double, 3 >& angular_velocity,
+//                 const double delta_t,
+//                 const bool Fix_Ang_vel[3]) override;
+                
+        void UpdateRotationalVariables(
                 const Node < 3 > & i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,
@@ -96,7 +102,15 @@ namespace Kratos {
                 array_1d<double, 3 >& delta_rotation,
                 const array_1d<double, 3 >& angular_velocity,
                 const double delta_t,
-                const bool Fix_Ang_vel[3])  override;
+                const bool Fix_Ang_vel[3]) override;
+
+//         void QuaternionCalculateMidAngularVelocities(
+//                 const Quaternion<double>& Orientation,
+//                 const double MomentofInertiaInv,
+//                 const array_1d<double, 3>& angular_momentum,
+//                 const double dt,
+//                 const array_1d<double, 3>& InitialAngularVel,
+//                 array_1d<double, 3>& FinalAngularVel)  override;
                 
         void QuaternionCalculateMidAngularVelocities(
                 const Quaternion<double>& Orientation,
@@ -111,22 +125,30 @@ namespace Kratos {
                 const double LocalTensorInv[3][3],
                 const array_1d<double, 3>& angular_momentum,
                 array_1d<double, 3>& angular_velocity)  override;
-
-        void CalculateLocalAngularAcceleration(
-                const Node < 3 > & i,
-                const double moment_of_inertia,
-                const array_1d<double, 3 >& torque,
-                const double moment_reduction_factor,
-                array_1d<double, 3 >& angular_acceleration) override;
-
-        void CalculateLocalAngularAccelerationByEulerEquations(
-                const Node < 3 > & i,
-                const array_1d<double, 3 >& local_angular_velocity,
-                const array_1d<double, 3 >& moments_of_inertia,
-                const array_1d<double, 3 >& local_torque,
-                const double moment_reduction_factor,
-                array_1d<double, 3 >& local_angular_acceleration) override;
         
+//         void CalculateLocalAngularAcceleration(
+//                                 const Node < 3 > & i,
+//                                 const double moment_of_inertia,
+//                                 const array_1d<double, 3 >& torque, 
+//                                 const double moment_reduction_factor,
+//                                 array_1d<double, 3 >& angular_acceleration) override;
+        
+        void CalculateLocalAngularAccelerationByEulerEquations(
+                                    const Node < 3 > & i,
+                                    const array_1d<double, 3 >& local_angular_velocity,
+                                    const array_1d<double, 3 >& moments_of_inertia,
+                                    const array_1d<double, 3 >& local_torque, 
+                                    const double moment_reduction_factor,
+                                    array_1d<double, 3 >& local_angular_acceleration) override;
+
+//         void CalculateAngularVelocityRK(
+//                                     const Quaternion<double  >& Orientation,
+//                                     const double& moments_of_inertia,
+//                                     const array_1d<double, 3 >& angular_momentum,
+//                                     array_1d<double, 3 > & angular_velocity,
+//                                     const double delta_t,
+//                                     const bool Fix_Ang_vel[3]) override;
+                                    
         void CalculateAngularVelocityRK(
                                     const Quaternion<double  >& Orientation,
                                     const array_1d<double, 3 >& moments_of_inertia,
@@ -134,6 +156,8 @@ namespace Kratos {
                                     array_1d<double, 3 > & angular_velocity,
                                     const double delta_t,
                                     const bool Fix_Ang_vel[3]) override;
+        
+        /// Turn back information as a string.
 
         virtual std::string Info() const override{
             std::stringstream buffer;
@@ -158,6 +182,7 @@ namespace Kratos {
 
     private:
 
+
         /// Assignment operator.
 
         TaylorScheme& operator=(TaylorScheme const& rOther) {
@@ -171,16 +196,15 @@ namespace Kratos {
         }
 
 
-    };
+        ///@}    
 
-    /// input stream function
+    }; // Class TaylorScheme 
+
 
     inline std::istream& operator>>(std::istream& rIStream,
             TaylorScheme& rThis) {
         return rIStream;
     }
-
-    /// output stream function
 
     inline std::ostream& operator<<(std::ostream& rOStream,
             const TaylorScheme& rThis) {

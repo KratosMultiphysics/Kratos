@@ -20,7 +20,7 @@
 
 namespace Kratos {
 
-    class NewmarkBetaScheme : public DEMIntegrationScheme {
+    class KRATOS_API(DEM_APPLICATION) NewmarkBetaScheme : public DEMIntegrationScheme {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;
@@ -64,17 +64,28 @@ namespace Kratos {
             const double delta_t,
             const bool Fix_vel[3]) override;
         
+//         void UpdateRotationalVariables(
+//                 int StepFlag,
+//                 const Node < 3 > & i,
+//                 array_1d<double, 3 >& rotated_angle,
+//                 array_1d<double, 3 >& delta_rotation,
+//                 array_1d<double, 3 >& angular_velocity,
+//                 array_1d<double, 3 >& angular_acceleration,
+//                 const double delta_t,
+//                 const bool Fix_Ang_vel[3]) override;
+
+//         void UpdateRotationalVariablesOfSpheres(
+//                 const Node < 3 > & i,
+//                 const double& moment_of_inertia,
+//                 array_1d<double, 3 >& rotated_angle,
+//                 array_1d<double, 3 >& delta_rotation,
+//                 Quaternion<double  >& Orientation,
+//                 const array_1d<double, 3 >& angular_momentum,
+//                 array_1d<double, 3 >& angular_velocity,
+//                 const double delta_t,
+//                 const bool Fix_Ang_vel[3]) override;
+                
         void UpdateRotationalVariables(
-                int StepFlag,
-                const Node < 3 > & i,
-                array_1d<double, 3 >& rotated_angle,
-                array_1d<double, 3 >& delta_rotation,
-                array_1d<double, 3 >& angular_velocity,
-                array_1d<double, 3 >& angular_acceleration,
-                const double delta_t,
-                const bool Fix_Ang_vel[3]) override;
-        
-        void UpdateRotationalVariablesOfCluster(
                 const Node < 3 > & i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,
@@ -83,16 +94,24 @@ namespace Kratos {
                 const array_1d<double, 3 >& angular_momentum,
                 array_1d<double, 3 >& angular_velocity,
                 const double delta_t,
-                const bool Fix_Ang_vel[3]) override; 
-
+                const bool Fix_Ang_vel[3]) override;
+                
         void UpdateRotationalVariables(
                 const Node < 3 > & i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 const array_1d<double, 3 >& angular_velocity,
                 const double delta_t,
-                const bool Fix_Ang_vel[3])  override;
+                const bool Fix_Ang_vel[3]) override;
 
+//         void QuaternionCalculateMidAngularVelocities(
+//                 const Quaternion<double>& Orientation,
+//                 const double MomentofInertiaInv,
+//                 const array_1d<double, 3>& angular_momentum,
+//                 const double dt,
+//                 const array_1d<double, 3>& InitialAngularVel,
+//                 array_1d<double, 3>& FinalAngularVel)  override;
+                
         void QuaternionCalculateMidAngularVelocities(
                 const Quaternion<double>& Orientation,
                 const double LocalTensorInv[3][3],
@@ -100,19 +119,19 @@ namespace Kratos {
                 const double dt,
                 const array_1d<double, 3>& InitialAngularVel,
                 array_1d<double, 3>& FinalAngularVel)  override;
-
+    
         void UpdateAngularVelocity(
                 const Quaternion<double>& Orientation,
                 const double LocalTensorInv[3][3],
                 const array_1d<double, 3>& angular_momentum,
                 array_1d<double, 3>& angular_velocity)  override;
         
-        void CalculateLocalAngularAcceleration(
-                                const Node < 3 > & i,
-                                const double moment_of_inertia,
-                                const array_1d<double, 3 >& torque, 
-                                const double moment_reduction_factor,
-                                array_1d<double, 3 >& angular_acceleration) override;
+//         void CalculateLocalAngularAcceleration(
+//                                 const Node < 3 > & i,
+//                                 const double moment_of_inertia,
+//                                 const array_1d<double, 3 >& torque, 
+//                                 const double moment_reduction_factor,
+//                                 array_1d<double, 3 >& angular_acceleration) override;
         
         void CalculateLocalAngularAccelerationByEulerEquations(
                                     const Node < 3 > & i,
@@ -121,6 +140,14 @@ namespace Kratos {
                                     const array_1d<double, 3 >& local_torque, 
                                     const double moment_reduction_factor,
                                     array_1d<double, 3 >& local_angular_acceleration) override;
+
+//         void CalculateAngularVelocityRK(
+//                                     const Quaternion<double  >& Orientation,
+//                                     const double& moments_of_inertia,
+//                                     const array_1d<double, 3 >& angular_momentum,
+//                                     array_1d<double, 3 > & angular_velocity,
+//                                     const double delta_t,
+//                                     const bool Fix_Ang_vel[3]) override;
                                     
         void CalculateAngularVelocityRK(
                                     const Quaternion<double  >& Orientation,

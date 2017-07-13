@@ -44,29 +44,61 @@ namespace Kratos {
         } // dimensions
     }
 
+//     void ForwardEulerScheme::UpdateRotationalVariables(
+//                 int StepFlag,
+//                 const Node < 3 > & i,
+//                 array_1d<double, 3 >& rotated_angle,
+//                 array_1d<double, 3 >& delta_rotation,
+//                 array_1d<double, 3 >& angular_velocity,
+//                 array_1d<double, 3 >& angular_acceleration,
+//                 const double delta_t,
+//                 const bool Fix_Ang_vel[3]) {
+// 
+//         for (int k = 0; k < 3; k++) {
+//             if (Fix_Ang_vel[k] == false) {
+//                 delta_rotation[k] = angular_velocity[k] * delta_t;
+//                 rotated_angle[k] += delta_rotation[k];
+//                 angular_velocity[k] += delta_t * angular_acceleration[k];
+//             } else {
+//                 delta_rotation[k] = angular_velocity[k] * delta_t;
+//                 rotated_angle[k] += delta_rotation[k];
+//             }
+//         }
+//     }
+    
+//     void ForwardEulerScheme::UpdateRotationalVariablesOfSpheres(
+//                 const Node < 3 > & i,
+//                 const double& moment_of_inertia,
+//                 array_1d<double, 3 >& rotated_angle,
+//                 array_1d<double, 3 >& delta_rotation,
+//                 Quaternion<double  >& Orientation,
+//                 const array_1d<double, 3 >& angular_momentum,
+//                 array_1d<double, 3 >& angular_velocity,
+//                 const double delta_t,
+//                 const bool Fix_Ang_vel[3]) {
+// 
+//         for (int k = 0; k < 3; k++) {
+//                 delta_rotation[k] = angular_velocity[k] * delta_t;
+//                 rotated_angle[k] += delta_rotation[k];
+//         }
+//         
+//         array_1d<double, 3 > angular_velocity_aux;
+//         
+//         double MomentofInertiaInv = 1 / moment_of_inertia;
+// 
+//         GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);
+//         
+//         angular_velocity_aux = angular_momentum;
+//         DEM_MULTIPLY_BY_SCALAR_3(angular_velocity_aux, MomentofInertiaInv)
+// 
+//         for (int j = 0; j < 3; j++) {
+//             if (Fix_Ang_vel[j] == false){
+//                 angular_velocity[j] = angular_velocity_aux[j];
+//             }
+//         }           
+//     }
+
     void ForwardEulerScheme::UpdateRotationalVariables(
-                int StepFlag,
-                const Node < 3 > & i,
-                array_1d<double, 3 >& rotated_angle,
-                array_1d<double, 3 >& delta_rotation,
-                array_1d<double, 3 >& angular_velocity,
-                array_1d<double, 3 >& angular_acceleration,
-                const double delta_t,
-                const bool Fix_Ang_vel[3]) {
-
-        for (int k = 0; k < 3; k++) {
-            if (Fix_Ang_vel[k] == false) {
-                delta_rotation[k] = angular_velocity[k] * delta_t;
-                rotated_angle[k] += delta_rotation[k];
-                angular_velocity[k] += delta_t * angular_acceleration[k];
-            } else {
-                delta_rotation[k] = angular_velocity[k] * delta_t;
-                rotated_angle[k] += delta_rotation[k];
-            }
-        }
-    } 
-
-    void ForwardEulerScheme::UpdateRotationalVariablesOfCluster(
                 const Node < 3 > & i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,
@@ -102,10 +134,35 @@ namespace Kratos {
                 const array_1d<double, 3 >& angular_velocity,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-        
-        delta_rotation = angular_velocity * delta_t;
-        rotated_angle += delta_rotation;
+
+        for (int k = 0; k < 3; k++) {
+            if (Fix_Ang_vel[k] == false) {
+                delta_rotation[k] = angular_velocity[k] * delta_t;
+                rotated_angle[k] += delta_rotation[k];
+            } else {
+                delta_rotation[k] = angular_velocity[k] * delta_t;
+                rotated_angle[k] += delta_rotation[k];
+            }
+        }
     }
+    
+//     void ForwardEulerScheme::QuaternionCalculateMidAngularVelocities(
+//                 const Quaternion<double>& Orientation,
+//                 const double MomentofInertiaInv,
+//                 const array_1d<double, 3>& angular_momentum,
+//                 const double dt,
+//                 const array_1d<double, 3>& InitialAngularVel,
+//                 array_1d<double, 3>& FinalAngularVel) {
+//         
+//         array_1d<double, 3 > TempDeltaRotation = InitialAngularVel;
+//         DEM_MULTIPLY_BY_SCALAR_3(TempDeltaRotation, dt);
+// 
+//         Quaternion<double> TempOrientation;
+//         GeometryFunctions::UpdateOrientation(Orientation, TempOrientation, TempDeltaRotation);
+//         
+//         FinalAngularVel = angular_momentum;
+//         DEM_MULTIPLY_BY_SCALAR_3(FinalAngularVel, MomentofInertiaInv);
+//     }
     
     void ForwardEulerScheme::QuaternionCalculateMidAngularVelocities(
                 const Quaternion<double>& Orientation,
@@ -139,18 +196,18 @@ namespace Kratos {
         GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensorInv, angular_momentum, angular_velocity);
     }
     
-    void ForwardEulerScheme::CalculateLocalAngularAcceleration(
-                                const Node < 3 > & i,
-                                const double moment_of_inertia,
-                                const array_1d<double, 3 >& torque, 
-                                const double moment_reduction_factor,
-                                array_1d<double, 3 >& angular_acceleration){
-        
-        double moment_of_inertia_inv = 1.0 / moment_of_inertia;
-        for (int j = 0; j < 3; j++) {
-            angular_acceleration[j] = moment_reduction_factor * torque[j] * moment_of_inertia_inv;
-        }
-    }
+//     void ForwardEulerScheme::CalculateLocalAngularAcceleration(
+//                                 const Node < 3 > & i,
+//                                 const double moment_of_inertia,
+//                                 const array_1d<double, 3 >& torque, 
+//                                 const double moment_reduction_factor,
+//                                 array_1d<double, 3 >& angular_acceleration){
+//         
+//         double moment_of_inertia_inv = 1.0 / moment_of_inertia;
+//         for (int j = 0; j < 3; j++) {
+//             angular_acceleration[j] = moment_reduction_factor * torque[j] * moment_of_inertia_inv;
+//         }
+//     }
     
     void ForwardEulerScheme::CalculateLocalAngularAccelerationByEulerEquations(
                                 const Node < 3 > & i,
@@ -166,6 +223,32 @@ namespace Kratos {
             local_angular_acceleration[j] = local_angular_acceleration[j] * moment_reduction_factor;            
         }
     }
+
+//     void ForwardEulerScheme::CalculateAngularVelocityRK(
+//                                     const Quaternion<double  >& Orientation,
+//                                     const double& moment_of_inertia,
+//                                     const array_1d<double, 3 >& angular_momentum,
+//                                     array_1d<double, 3 >& angular_velocity,
+//                                     const double delta_t,
+//                                     const bool Fix_Ang_vel[3]) {
+//         
+//             double dt = delta_t;
+//             
+//             double MomentofInertiaInv = 1 / moment_of_inertia;
+//             
+//             array_1d<double, 3 > angular_velocity1 = angular_velocity;
+//             array_1d<double, 3 > angular_velocity2, angular_velocity3, angular_velocity4;
+// 
+//             QuaternionCalculateMidAngularVelocities(Orientation, MomentofInertiaInv, angular_momentum, 0.5*dt, angular_velocity1, angular_velocity2);
+//             QuaternionCalculateMidAngularVelocities(Orientation, MomentofInertiaInv, angular_momentum, 0.5*dt, angular_velocity2, angular_velocity3);
+//             QuaternionCalculateMidAngularVelocities(Orientation, MomentofInertiaInv, angular_momentum,     dt, angular_velocity3, angular_velocity4);
+// 
+//             for (int j = 0; j < 3; j++) {
+//                 if (Fix_Ang_vel[j] == false){
+//                     angular_velocity[j] = 0.16666666666666667 * (angular_velocity1[j] + 2*angular_velocity2[j] + 2*angular_velocity3[j] + angular_velocity4[j]);
+//                 }
+//             }
+//     }
     
     void ForwardEulerScheme::CalculateAngularVelocityRK(
                                     const Quaternion<double  >& Orientation,
@@ -194,5 +277,4 @@ namespace Kratos {
                 }
             }
     }
-    
 } //namespace Kratos

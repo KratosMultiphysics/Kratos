@@ -63,41 +63,41 @@ namespace Kratos {
 
     }//VerletVelocityScheme
         
-    void VerletVelocityScheme::UpdateRotationalVariables(
-            int StepFlag,
-            const Node < 3 > & i,
-            array_1d<double, 3 >& rotated_angle,
-            array_1d<double, 3 >& delta_rotation,
-            array_1d<double, 3 >& angular_velocity,
-            array_1d<double, 3 >& angular_acceleration,
-            const double delta_t,
-            const bool Fix_Ang_vel[3]) {
-      
-            if (StepFlag == 1) //PREDICT
-            {
-                for (int k = 0; k < 3; k++) {
-                    if (Fix_Ang_vel[k] == false) {
-                        delta_rotation[k] = angular_velocity[k] * delta_t + 0.5 * delta_t * delta_t * angular_acceleration[k];
-                        rotated_angle[k] += delta_rotation[k];
-                        angular_velocity[k] += 0.5 * angular_acceleration[k] * delta_t;
-                    } else {
-                        delta_rotation[k] = angular_velocity[k] * delta_t;
-                        rotated_angle[k] += delta_rotation[k];
-                        }
-               }
-            }
-            
-            else if(StepFlag == 2) //CORRECT
-            {
-                for (int k = 0; k < 3; k++) {
-                    if (Fix_Ang_vel[k] == false) {
-                        angular_velocity[k] += 0.5 * angular_acceleration[k] * delta_t;
-                    }
-               }
-            }//CORRECT
-    }
+//     void VerletVelocityScheme::UpdateRotationalVariables(
+//             int StepFlag,
+//             const Node < 3 > & i,
+//             array_1d<double, 3 >& rotated_angle,
+//             array_1d<double, 3 >& delta_rotation,
+//             array_1d<double, 3 >& angular_velocity,
+//             array_1d<double, 3 >& angular_acceleration,
+//             const double delta_t,
+//             const bool Fix_Ang_vel[3]) {
+//       
+//             if (StepFlag == 1) //PREDICT
+//             {
+//                 for (int k = 0; k < 3; k++) {
+//                     if (Fix_Ang_vel[k] == false) {
+//                         delta_rotation[k] = angular_velocity[k] * delta_t + 0.5 * delta_t * delta_t * angular_acceleration[k];
+//                         rotated_angle[k] += delta_rotation[k];
+//                         angular_velocity[k] += 0.5 * angular_acceleration[k] * delta_t;
+//                     } else {
+//                         delta_rotation[k] = angular_velocity[k] * delta_t;
+//                         rotated_angle[k] += delta_rotation[k];
+//                         }
+//                }
+//             }
+//             
+//             else if(StepFlag == 2) //CORRECT
+//             {
+//                 for (int k = 0; k < 3; k++) {
+//                     if (Fix_Ang_vel[k] == false) {
+//                         angular_velocity[k] += 0.5 * angular_acceleration[k] * delta_t;
+//                     }
+//                }
+//             }//CORRECT
+//     }
     
-    void VerletVelocityScheme::UpdateRotationalVariablesOfCluster(
+    void VerletVelocityScheme::UpdateRotationalVariables(
                 const Node < 3 > & i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,
@@ -179,18 +179,18 @@ namespace Kratos {
         GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensorInv, angular_momentum, angular_velocity);
     }
     
-    void VerletVelocityScheme::CalculateLocalAngularAcceleration(
-                                const Node < 3 > & i,
-                                const double moment_of_inertia,
-                                const array_1d<double, 3 >& torque, 
-                                const double moment_reduction_factor,
-                                array_1d<double, 3 >& angular_acceleration){
-        
-        double moment_of_inertia_inv = 1.0 / moment_of_inertia;
-        for (int j = 0; j < 3; j++) {
-            angular_acceleration[j] = moment_reduction_factor * torque[j] * moment_of_inertia_inv;
-        }
-    }
+//     void VerletVelocityScheme::CalculateLocalAngularAcceleration(
+//                                 const Node < 3 > & i,
+//                                 const double moment_of_inertia,
+//                                 const array_1d<double, 3 >& torque, 
+//                                 const double moment_reduction_factor,
+//                                 array_1d<double, 3 >& angular_acceleration){
+//         
+//         double moment_of_inertia_inv = 1.0 / moment_of_inertia;
+//         for (int j = 0; j < 3; j++) {
+//             angular_acceleration[j] = moment_reduction_factor * torque[j] * moment_of_inertia_inv;
+//         }
+//     }
     
     
     void VerletVelocityScheme::CalculateLocalAngularAccelerationByEulerEquations(

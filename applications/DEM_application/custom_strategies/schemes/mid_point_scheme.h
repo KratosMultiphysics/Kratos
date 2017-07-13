@@ -117,17 +117,17 @@ namespace Kratos {
             }
         }
 
-        void CalculateLocalAngularAcceleration(
-                const Node < 3 > & i,
-                const double moment_of_inertia,
-                const array_1d<double, 3 >& torque,
-                const double moment_reduction_factor,
-                array_1d<double, 3 >& angular_acceleration)  override {
-
-            for (int j = 0; j < 3; j++) {
-                angular_acceleration[j] = moment_reduction_factor * torque[j] / moment_of_inertia;
-            }
-        }
+//         void CalculateLocalAngularAcceleration(
+//                 const Node < 3 > & i,
+//                 const double moment_of_inertia,
+//                 const array_1d<double, 3 >& torque,
+//                 const double moment_reduction_factor,
+//                 array_1d<double, 3 >& angular_acceleration)  override {
+// 
+//             for (int j = 0; j < 3; j++) {
+//                 angular_acceleration[j] = moment_reduction_factor * torque[j] / moment_of_inertia;
+//             }
+//         }
 
         void CalculateLocalAngularAccelerationByEulerEquations(
                 const Node < 3 > & i,
