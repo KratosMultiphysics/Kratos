@@ -1,7 +1,5 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-
-
 def ConstructPreconditioner(configuration):
     import KratosMultiphysics
     if(configuration["preconditioner_type"].GetString() == "None"):
@@ -41,8 +39,7 @@ def ConstructSolver(configuration):
     elif(solver_type == "SkylineLUFactorizationSolver"):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver(configuration)
 
-
-    ################################## following solvers need importing the ExternalSolversApplication
+    ################################## Following solvers need importing the ExternalSolversApplication
     elif(solver_type == "GMRESSolver"):
         import KratosMultiphysics.ExternalSolversApplication
         linear_solver = KratosMultiphysics.ExternalSolversApplication.GMRESSolver( configuration, ConstructPreconditioner(configuration) )
@@ -60,22 +57,32 @@ def ConstructSolver(configuration):
     elif(solver_type == "AMGCL_NS_Solver"):
         linear_solver = KratosMultiphysics.AMGCL_NS_Solver(configuration)
         
-        
-        
- 
-    ################################## following solvers need importing the MKLSolversApplication
-    elif (solver_type == "ParallelMKLPardisoSolver"):
-        import KratosMultiphysics.MKLSolversApplication
-        linear_solver = KratosMultiphysics.MKLSolversApplication.ParallelMKLPardisoSolver(configuration)
-
-
+    ################################## Following solvers need importing the MKLSolversApplication
+    elif (solver_type == "ParallelMKLPardisoSolver" or solver_type == "Parallel MKL Pardiso" or solver_type == "Parallel_MKL_Pardiso"):
+        import KratosMultiphysics.MKLSolversApplication as MKLSolversApplication
+        linear_solver = MKLSolversApplication.ParallelMKLPardisoSolver(configuration)
 
     ###################################### FAILED TO FIND solver_type
     else:
-        raise Exception("solver type not found. Asking for :" + solver_type)
+        print("*****************************************************************")
+        print("Inexisting solver type. Possibilities are:")
+        print("Conjugate gradient")
+        print("BiConjugate gradient stabilized")
+        print("GMRES")
+        print("Deflated Conjugate gradient")
+        print("AMGCL")
+        print("GMRES-UP Block")
+        print("Skyline LU factorization")
+        print("Super LU (requires ExternalSolversApplication)")
+        print("SuperLUIterativeSolver (requires ExternalSolversApplication)")
+        print("PastixDirect (requires ExternalSolversApplication + shall be habilitated at compilation time)")
+        print("PastixIterative (requires ExternalSolversApplication + shall be habilitated at compilation time)")
+        print("Parallel MKL Pardiso (requires MKLSolversApplication)")
+        print("*****************************************************************")
+        raise Exception("Solver type not found. Asking for :" + solver_type)
 
 
-    ###### here decide if a prescaling is to be applied 
+    ###### Here decide if a prescaling is to be applied 
     if(scaling == False):
         return linear_solver
     else:
