@@ -65,7 +65,7 @@ public:
     PointMoment3DCondition( PointMoment3DCondition const& rOther);
 
     /// Destructor.
-    virtual ~PointMoment3DCondition();
+    ~PointMoment3DCondition() override;
 
 
     ///@}
@@ -83,56 +83,40 @@ public:
     /**
      * Called at the beginning of each solution step
      */
-    void Initialize();
+    void Initialize() override;
 
 
     /**
      * Called at the beginning of each iteration
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
 
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
     //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo);
-
-    /** 
-     * this function is designed to make the element to assemble an rRHS vector
-     * identified by a variable rRHSVariable by assembling it to the nodes on the variable
-     * rDestinationVariable.
-     * @param rRHSVector: input variable containing the RHS vector to be assembled
-     * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
-     * @param rCurrentProcessInfo: the current process info instance
-     */      
-    void AddExplicitContribution(const VectorType& rRHSVector, 
-				 const Variable<VectorType>& rRHSVariable, 
-				 Variable<array_1d<double,3> >& rDestinationVariable, 
-				 const ProcessInfo& rCurrentProcessInfo);
-
-
-
+    void GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo) override;
+	
 
     /**
      * Get on rVariable a double Value
      */
-    void GetValueOnIntegrationPoints( const Variable<double>& rVariable, 
-				      std::vector<double>& rValues, 
-				      const ProcessInfo& rCurrentProcessInfo );
+    void GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+                                      std::vector<double>& rValues,
+                                      const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * Calculate a double Variable
      */
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, 
-				      std::vector<double>& rOutput, 
-				      const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                      std::vector<double>& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
 
     ///@}
@@ -175,11 +159,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    /**
-     * Energy variable for loads
-     */
-    double mEnergy; 
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -221,9 +200,9 @@ private:
     // A private default constructor necessary for serialization
     PointMoment3DCondition() {};
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Operators

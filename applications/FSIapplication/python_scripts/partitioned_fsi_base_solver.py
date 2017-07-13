@@ -9,7 +9,6 @@ import KratosMultiphysics
 import KratosMultiphysics.ALEApplication as KratosALE
 import KratosMultiphysics.FSIApplication as KratosFSI
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 # Check that KratosMultiphysics was imported in the main script
@@ -45,10 +44,13 @@ class PartitionedFSIBaseSolver:
         {
         "structure_solver_settings":
             {
-            "solver_type": "solid_mechanics_implicit_dynamic_solver",
+            "solver_type": "structural_mechanics_implicit_dynamic_solver",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
+            },
+            "material_import_settings" :{
+                "materials_filename": "materials.json"
             },
             "echo_level": 0,
             "time_integration_method": "Implicit",
@@ -61,7 +63,6 @@ class PartitionedFSIBaseSolver:
             "compute_reactions": true,
             "compute_contact_forces": false,
             "block_builder": false,
-            "component_wise": false,
             "move_mesh_flag": true,
             "solution_type": "Dynamic",
             "scheme_type": "Newmark",
@@ -260,23 +261,22 @@ class PartitionedFSIBaseSolver:
 
     def Initialize(self):
         # Initialize fluid, structure and coupling solvers
-        self.fluid_solver.SolverInitialize()
-        self.structure_solver.SolverInitialize()
+        self.fluid_solver.Initialize()
+        self.structure_solver.Initialize()
         self.coupling_utility.Initialize()
 
 
     def InitializeSolutionStep(self):
         # Initialize solution step of fluid, structure and coupling solvers
-        self.fluid_solver.SolverInitializeSolutionStep()
-        self.structure_solver.SolverInitializeSolutionStep()
+        self.fluid_solver.InitializeSolutionStep()
+        self.structure_solver.InitializeSolutionStep()
         self.coupling_utility.InitializeSolutionStep()
 
 
     def Predict(self):
         # Perform fluid and structure solvers predictions
-        self.fluid_solver.SolverPredict()
-        self.structure_solver.SolverPredict()
-
+        self.fluid_solver.Predict()
+        self.structure_solver.Predict()
 
     def GetComputingModelPart(self):
         pass
@@ -476,12 +476,12 @@ class PartitionedFSIBaseSolver:
             keep_sign = False
             distribute_load = True
             self.interface_mapper.FluidToStructure_VectorMap(KratosMultiphysics.REACTION,
-                                                             KratosSolid.POINT_LOAD,
+                                                             KratosStructural.POINT_LOAD,
                                                              keep_sign,
                                                              distribute_load)
 
             # Solve the current step structure problem with the previous step fluid interface nodal fluxes
-            self.structure_solver.SolverSolveSolutionStep()
+            self.structure_solver.SolveSolutionStep()
 
             # Map the obtained structure displacement to the fluid interface
             keep_sign = True
@@ -517,10 +517,10 @@ class PartitionedFSIBaseSolver:
             for node in self._GetStructureInterfaceSubmodelPart().Nodes:
                 pos_face_force = node.GetSolutionStepValue(KratosFSI.POSITIVE_MAPPED_VECTOR_VARIABLE)
                 neg_face_force = node.GetSolutionStepValue(KratosFSI.NEGATIVE_MAPPED_VECTOR_VARIABLE)
-                node.SetSolutionStepValue(KratosSolid.POINT_LOAD, 0, pos_face_force+neg_face_force)
+                node.SetSolutionStepValue(KratosStructural.POINT_LOAD, 0, pos_face_force+neg_face_force)
 
             # Solve the current step structure problem with the previous step fluid interface nodal fluxes
-            self.structure_solver.SolverSolveSolutionStep()
+            self.structure_solver.SolveSolutionStep()
 
             # Map the obtained structure displacement to both positive and negative fluid interfaces
             keep_sign = True
