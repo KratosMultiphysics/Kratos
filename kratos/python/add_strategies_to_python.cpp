@@ -151,12 +151,15 @@ namespace Kratos
 
         void MoveMesh(Scheme< SparseSpaceType, LocalSpaceType >& dummy, ModelPart::NodesContainerType& rNodes)
         {
-            for (ModelPart::NodeIterator i = rNodes.begin(); i != rNodes.end(); ++i)
+            int numNodes = static_cast<int>(rNodes.size());
+            
+            #pragma omp parallel for
+            for(int i = 0; i < numNodes; i++)  
             {
-                const array_1d<double, 3 > & disp = i->FastGetSolutionStepValue(DISPLACEMENT);
-                (i)->X() = (i)->X0() + disp[0];
-                (i)->Y() = (i)->Y0() + disp[1];
-                (i)->Z() = (i)->Z0() + disp[2];
+                auto itNode = rNodes.begin() + i;
+
+                noalias(itNode->Coordinates()) = itNode->GetInitialPosition().Coordinates();
+                noalias(itNode->Coordinates()) += itNode->FastGetSolutionStepValue(DISPLACEMENT);
             }
         }
 

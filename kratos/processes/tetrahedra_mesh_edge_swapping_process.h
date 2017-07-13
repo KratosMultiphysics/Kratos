@@ -61,7 +61,7 @@ namespace Kratos
       TetrahedraMeshEdgeSwappingProcess(ModelPart & rModelPart);
 
       /// Destructor.
-      virtual ~TetrahedraMeshEdgeSwappingProcess();
+      ~TetrahedraMeshEdgeSwappingProcess() override;
 
 
       ///@}
@@ -91,13 +91,13 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const override;
+      std::string Info() const override;
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const override;
+      void PrintInfo(std::ostream& rOStream) const override;
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const override;
+      void PrintData(std::ostream& rOStream) const override;
 
 
       ///@}

@@ -69,7 +69,7 @@ namespace Kratos
       TetrahedraMeshQualityWeightedSmoothingProcess(ModelPart& rModelPart, double AptQuality = 0.75, std::size_t IterationsNumber=1);
 
       /// Destructor.
-      virtual ~TetrahedraMeshQualityWeightedSmoothingProcess();
+      ~TetrahedraMeshQualityWeightedSmoothingProcess() override;
 
 
       ///@}
@@ -96,7 +96,7 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const override;
+      std::string Info() const override;
 
 
       ///@}

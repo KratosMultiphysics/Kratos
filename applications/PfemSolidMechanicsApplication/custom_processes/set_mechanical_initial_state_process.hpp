@@ -104,7 +104,7 @@ namespace Kratos
 
          std::vector<double> mInitialStress;
 
-         ModelPart mrModelPart;
+         ModelPart& mrModelPart;
 
    }; //end class SetMechanicalInitialStateProcess
 

@@ -106,7 +106,7 @@ public:
 
 
     /// Destructor.
-    virtual ~ReorderConsecutiveModelPartIO();
+    ~ReorderConsecutiveModelPartIO() override;
 
 
     ///@}

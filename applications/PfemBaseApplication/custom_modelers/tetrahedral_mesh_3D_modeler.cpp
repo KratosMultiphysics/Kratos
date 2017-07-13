@@ -416,9 +416,10 @@ namespace Kratos
     KRATOS_TRY
 
     //delete modeler container
-    rMesh.Finalize();   
-    ClearTetgenIO(tr); // blocks tetgen automatic destructor deletation of a NULL pointer []
-   
+    // rMesh.Finalize();   
+    // ClearTetgenIO(tr); // blocks tetgen automatic destructor deletation of a NULL pointer []
+      tr.deinitialize();   
+      tr.initialize();   
     KRATOS_CATCH( "" )
   }
 

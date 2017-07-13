@@ -86,7 +86,7 @@ public:
 
     /// Destructor.
 
-    virtual ~WindkesselModel()
+    ~WindkesselModel() override
     {
     }
 
@@ -101,7 +101,7 @@ public:
     ///@{
 
     /// Solve an iteration of the turbulent viscosity
-    void Execute()
+    void Execute() override
     {
         KRATOS_TRY
         double Flow_total=0.0;
@@ -175,7 +175,7 @@ public:
 
     /// Turn back information as a string.
 
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "WindkesselModel";
@@ -184,14 +184,14 @@ public:
 
     /// Print information about this object.
 
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "WindkesselModel";
     }
 
     /// Print object's data.
 
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

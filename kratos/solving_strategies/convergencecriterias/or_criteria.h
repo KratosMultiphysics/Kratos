@@ -127,7 +127,7 @@ public:
 
     /** Destructor.
     */
-    virtual ~Or_Criteria () {}
+    ~Or_Criteria () override {}
 
 
     ///@}

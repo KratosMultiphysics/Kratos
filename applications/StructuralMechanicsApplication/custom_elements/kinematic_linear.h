@@ -7,13 +7,12 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrándiz
 //
 
 
 #if !defined(KRATOS_KINEMATIC_LINEAR_H_INCLUDED )
 #define  KRATOS_KINEMATIC_LINEAR_H_INCLUDED
-
-
 
 // System includes
 
@@ -179,6 +178,7 @@ protected:
      * @param rValues: The CL parameters
      * @param PointNumber: The integration point considered
      * @param IntegrationPoints: The list of integration points
+     * @param ThisStressMeasure: The stress measure considered
      * @param Displacements: The displacements vector
      */ 
     void CalculateConstitutiveVariables(
@@ -187,6 +187,7 @@ protected:
         ConstitutiveLaw::Parameters& rValues,
         const unsigned int PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure,
         const Vector Displacements
         ) override;
 
@@ -236,26 +237,12 @@ private:
     ///@name Private Operators
     ///@{
 
-    void CalculateAndAddKm(
-        MatrixType& K,
-        Matrix& B,
-        Matrix& D,
-        double weight);
-
     void CalculateBodyForces(
         Vector& BodyForce,
         const ProcessInfo& CurrentProcessInfo
-    );
+        );
 
     void InitializeVariables();
-
-    void CalculateAndAdd_ExtForceContribution(
-        const Vector& N,
-        const ProcessInfo& CurrentProcessInfo,
-        Vector& BodyForce,
-        VectorType& mResidualVector,
-        const double weight
-    );
 
     void CalculateStrain(
         const Matrix& C,
