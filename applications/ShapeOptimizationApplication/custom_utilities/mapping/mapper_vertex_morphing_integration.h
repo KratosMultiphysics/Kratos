@@ -16,36 +16,17 @@
 // ------------------------------------------------------------------------------
 #include <iostream>
 #include <string>
-#include <algorithm>
 
 // ------------------------------------------------------------------------------
 // External includes
 // ------------------------------------------------------------------------------
-#include <boost/python.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
 
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
 #include "mapper_vertex_morphing.h"
-#include "includes/define.h"
-#include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
-#include "includes/model_part.h"
-#include "includes/kratos_flags.h"
-#include "spatial_containers/spatial_containers.h"
-#include "utilities/timer.h"
-#include "processes/node_erase_process.h"
-#include "utilities/binbased_fast_point_locator.h"
-#include "utilities/normal_calculation_utils.h"
-#include "spaces/ublas_space.h"
 #include "processes/find_conditions_neighbours_process.h"
 #include "utilities/math_utils.h"
-#include "shape_optimization_application.h"
-#include "filter_function.h"
 
 // ==============================================================================
 
@@ -241,7 +222,7 @@ public:
             nodalAreas.resize(mrDesignSurface.Nodes().size(),0.0);
             for(auto& node_i : mrDesignSurface.Nodes())
             {
-                int i = node_i.GetValue(MAPPING_ID);
+                const int& i = node_i.GetValue(MAPPING_ID);
 
                 // Get all neighbour conditions
                 const WeakPointerVector<Condition>& rConditions = node_i.GetValue(NEIGHBOUR_CONDITIONS);
