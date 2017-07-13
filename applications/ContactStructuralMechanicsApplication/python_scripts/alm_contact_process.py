@@ -327,10 +327,10 @@ class ALMContactProcess(KratosMultiphysics.Process):
         gid_io.WriteNodalFlags(KratosMultiphysics.ACTIVE, "ACTIVE", self.main_model_part.Nodes, label)
         gid_io.WriteNodalFlags(KratosMultiphysics.SLAVE, "ACTIVE", self.main_model_part.Nodes, label)
         gid_io.WriteNodalResultsNonHistorical(KratosMultiphysics.NORMAL, self.main_model_part.Nodes, label)
-        gid_io.WriteNodalResultsNonHistorical(KratosMultiphysics.AUGMENTED_NORMAL_CONTACT_PRESSURE, self.main_model_part.Nodes, label)
+        gid_io.WriteNodalResultsNonHistorical(ContactStructuralMechanicsApplication.AUGMENTED_NORMAL_CONTACT_PRESSURE, self.main_model_part.Nodes, label)
         gid_io.WriteNodalResults(KratosMultiphysics.DISPLACEMENT, self.main_model_part.Nodes, label, 0)
         gid_io.WriteNodalResults(KratosMultiphysics.NORMAL_CONTACT_STRESS, self.main_model_part.Nodes, label, 0)
-        gid_io.WriteNodalResults(KratosMultiphysics.WEIGHTED_GAP, self.main_model_part.Nodes, label, 0)
+        gid_io.WriteNodalResults(ContactStructuralMechanicsApplication.WEIGHTED_GAP, self.main_model_part.Nodes, label, 0)
         
         gid_io.FinalizeResults()
         
