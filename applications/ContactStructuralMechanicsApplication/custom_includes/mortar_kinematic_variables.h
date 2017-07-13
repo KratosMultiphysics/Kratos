@@ -363,7 +363,8 @@ public:
     virtual ~DerivativeData(){}
     
     // The ALM parameters
-    double PenaltyParameter, ScaleFactor;
+    array_1d<double, TNumNodes> PenaltyParameter;
+    double ScaleFactor;
     
     typename std::conditional< TFrictional,double,int >::type TangentFactor;
     
@@ -416,7 +417,12 @@ public:
         X1 = ContactUtilities::GetCoordinates<TDim,TNumNodes>(SlaveGeometry, false, 1);
         
         // We get the ALM variables
-        PenaltyParameter = rCurrentProcessInfo[PENALTY_PARAMETER];
+//         const double penalty_parameter = rCurrentProcessInfo[PENALTY_PARAMETER];
+        for (unsigned int i = 0; i < TNumNodes; i++)
+        {
+//             PenaltyParameter[i] = penalty_parameter;
+            PenaltyParameter[i] = SlaveGeometry[i].GetValue(PENALTY_PARAMETER);
+        }
         ScaleFactor = rCurrentProcessInfo[SCALE_FACTOR];
         
         // Derivatives 

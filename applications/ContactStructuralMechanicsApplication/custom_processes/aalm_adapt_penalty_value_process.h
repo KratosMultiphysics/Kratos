@@ -1,3 +1,4 @@
+ 
 // KRATOS  ___|  |                   |                   |
 //       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
 //             | |   |    |   | (    |   |   | |   (   | |
@@ -9,8 +10,8 @@
 //  Main authors:    Vicente Mataix Ferrándiz
 //
 
-#if !defined(KRATOS_ALM_FAST_INIT_PROCESS)
-#define KRATOS_ALM_FAST_INIT_PROCESS
+#if !defined(KRATOS_AALM_ADAPT_PENALTY_VALUE_PROCESS)
+#define KRATOS_AALM_ADAPT_PENALTY_VALUE_PROCESS
 
 // System includes
 
@@ -39,18 +40,18 @@ namespace Kratos
 ///@{
     
 /// Short class definition.
-// This process initializes the variables related with the ALM 
+// This process adapts the penalty following the algorithm (Algorithm 3) from "The adapted augmented Lagrangian method: a new method for the resolution of the mechanical frictional contact problem" Philippe Bussetta · Daniel Marceau ·Jean-Philippe Ponthot
 /** Detail class definition.
 */
-class ALMFastInit
+class AALMAdaptPenaltyValueProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of ALMFastInit
-    KRATOS_CLASS_POINTER_DEFINITION(ALMFastInit);
+    /// Pointer definition of AALMAdaptPenaltyValueProcess
+    KRATOS_CLASS_POINTER_DEFINITION(AALMAdaptPenaltyValueProcess);
     
     // General type definitions
     typedef Node<3>                                          NodeType;
@@ -63,7 +64,7 @@ public:
     ///@{
 
     /// Default constructor.
-    ALMFastInit( ModelPart& rThisModelPart):mrThisModelPart(rThisModelPart)
+    AALMAdaptPenaltyValueProcess( ModelPart& rThisModelPart):mrThisModelPart(rThisModelPart)
     {
         KRATOS_TRY;
         
@@ -71,7 +72,7 @@ public:
     }
 
     /// Destructor.
-    ~ALMFastInit() override
+    ~AALMAdaptPenaltyValueProcess() override
     {
     }
 
@@ -109,73 +110,59 @@ public:
         KRATOS_TRY;
         
         // We initialize the zero vector
-        const array_1d<double, 3> zero_vector(3, 0.0);
-        
-        // We differentiate between frictional or frictionless
-        const bool is_frictional = mrThisModelPart.Is(SLIP);
-        
-        // We initialize the penalty parameter
-        const double& epsilon = mrThisModelPart.GetProcessInfo()[PENALTY_PARAMETER];
-        
-        bool init_delta_normal = false;
-        Matrix zero_delta_normal;
-        if (mrThisModelPart.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] == true)
-        {
-            init_delta_normal = true;
-            const unsigned int dimension = mrThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
-            zero_delta_normal = ZeroMatrix( dimension, dimension );
-        }
+        const double penalty_parameter = mrThisModelPart.GetProcessInfo()[PENALTY_PARAMETER];
         
         // We iterate over the node
         NodesArrayType& nodes_array = mrThisModelPart.Nodes();
         const int num_nodes = static_cast<int>(nodes_array.size());
         
-        #pragma omp parallel for firstprivate(zero_vector)
+        #pragma omp parallel for 
         for(int i = 0; i < num_nodes; i++) 
         {
             auto it_node = nodes_array.begin() + i;
             
             // Weighted values
-            it_node->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
-            if (is_frictional == true)
+            const double& current_gap = it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
+            const double& previous_gap = it_node->FastGetSolutionStepValue(WEIGHTED_GAP,1);
+            
+            // Nodal H
+            const double& nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
+            const double max_gap = 0.1 * nodal_h; // NOTE: This value must be studied
+            
+            if ((current_gap * previous_gap) < 0.0)
             {
-                it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = 0.0;
+                if (previous_gap > max_gap)
+                {
+                    it_node->SetValue(PENALTY_PARAMETER, std::abs(penalty_parameter * previous_gap / (current_gap) * (std::abs(current_gap) + max_gap)/(current_gap - previous_gap)));
+                }
+                else
+                {
+                    it_node->SetValue(PENALTY_PARAMETER, std::abs(penalty_parameter * previous_gap / (10.0 * current_gap)));
+                }
             }
-            
-            // Penalty parameter
-            it_node->SetValue(PENALTY_PARAMETER, epsilon);
-            
-            // Nodal area
-            it_node->SetValue(NODAL_AREA, 0.0);
-            
-            // Auxiliar values
-            it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, 0.0);
-            if (is_frictional == true)
+            else if (current_gap > max_gap)
             {
-                it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, 0.0);
+                if (std::abs(current_gap - previous_gap) > std::max(current_gap/10.0, std::max(previous_gap/1.0, 5 * max_gap)))
+                {
+                    it_node->SetValue(PENALTY_PARAMETER, 2.0 * penalty_parameter);
+                }
+                else if ((std::abs(current_gap) <= std::abs(previous_gap) * 1.01 || std::abs(current_gap) >= std::abs(previous_gap) * 0.99) && (std::abs(current_gap) < 10.0 *  max_gap))
+                {
+                    it_node->SetValue(PENALTY_PARAMETER, penalty_parameter * std::pow((std::sqrt(std::abs(current_gap)/max_gap - 1.0) + 1.0), 2.0));
+                }
+                else if (std::abs(current_gap) > std::abs(previous_gap) * 1.01)
+                {
+                    it_node->SetValue(PENALTY_PARAMETER, 2.0 * penalty_parameter * (previous_gap/current_gap));
+                }
+                else
+                {
+                    it_node->SetValue(PENALTY_PARAMETER, penalty_parameter * (std::sqrt(std::abs(current_gap)/max_gap - 1.0) + 1.0));
+                }
             }
-            
-            // The normal and tangents vectors
-            it_node->SetValue(NORMAL, zero_vector);
-            
-            // The delta normal if necessary
-            if (init_delta_normal == true)
+            else
             {
-                it_node->SetValue(DELTA_NORMAL, zero_delta_normal);
+                it_node->SetValue(PENALTY_PARAMETER, penalty_parameter);
             }
-        }
-        
-        // Now we iterate over the conditions
-        ConditionsArrayType& conditions_array = mrThisModelPart.Conditions();
-        const int num_conditions = static_cast<int>(conditions_array.size());
-        
-        #pragma omp parallel for firstprivate(zero_vector)
-        for(int i = 0; i < num_conditions; i++) 
-        {
-            auto it_cond = conditions_array.begin() + i;
-            
-            // The normal and tangents vectors
-            it_cond->SetValue(NORMAL, zero_vector);
         }
 
         KRATOS_CATCH("");
@@ -198,13 +185,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ALMFastInit";
+        return "AALMAdaptPenaltyValueProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ALMFastInit";
+        rOStream << "AALMAdaptPenaltyValueProcess";
     }
 
     /// Print object's data.
@@ -264,6 +251,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    
     ModelPart& mrThisModelPart;
 
     ///@}
@@ -290,15 +278,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    ALMFastInit& operator=(ALMFastInit const& rOther);
+    AALMAdaptPenaltyValueProcess& operator=(AALMAdaptPenaltyValueProcess const& rOther);
 
     /// Copy constructor.
-    //ALMFastInit(ALMFastInit const& rOther);
+    //AALMAdaptPenaltyValueProcess(AALMAdaptPenaltyValueProcess const& rOther);
 
 
     ///@}
 
-}; // Class ALMFastInit
+}; // Class AALMAdaptPenaltyValueProcess
 
 ///@}
 
@@ -312,11 +300,11 @@ private:
 
 /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
-//                                   ALMFastInit& rThis);
+//                                   AALMAdaptPenaltyValueProcess& rThis);
 // 
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const ALMFastInit& rThis)
+//                                   const AALMAdaptPenaltyValueProcess& rThis)
 // {
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
@@ -326,4 +314,4 @@ private:
 // }
 
 }
-#endif /* KRATOS_ALM_FAST_INIT_PROCESS defined */
+#endif /* KRATOS_AALM_ADAPT_PENALTY_VALUE_PROCESS defined */

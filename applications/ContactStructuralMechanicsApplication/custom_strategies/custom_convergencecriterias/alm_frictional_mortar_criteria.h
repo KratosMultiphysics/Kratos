@@ -159,9 +159,9 @@ public:
         unsigned int is_converged_active = 0;
         unsigned int is_converged_slip = 0;
         
-        const double epsilon = rModelPart.GetProcessInfo()[PENALTY_PARAMETER]; 
-        const double scale_factor = rModelPart.GetProcessInfo()[SCALE_FACTOR];
-        const double tangent_factor = rModelPart.GetProcessInfo()[TANGENT_FACTOR];
+//         const double& epsilon = rModelPart.GetProcessInfo()[PENALTY_PARAMETER]; 
+        const double& scale_factor = rModelPart.GetProcessInfo()[SCALE_FACTOR];
+        const double& tangent_factor = rModelPart.GetProcessInfo()[TANGENT_FACTOR];
         
         const array_1d<double,3> zero_vector(0.0);
         
@@ -173,6 +173,8 @@ public:
         {
             auto it_node = nodes_array.begin() + i;
             
+            const double& epsilon = it_node->GetValue(PENALTY_PARAMETER); 
+            
             // Check if the node is slave
             bool node_is_slave = true;
             if ((it_node)->IsDefined(SLAVE))
@@ -182,8 +184,8 @@ public:
             
             if (node_is_slave == true)
             {
-                const array_1d<double,3> lagrange_multiplier = (it_node)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-                const array_1d<double,3> nodal_normal = (it_node)->GetValue(NORMAL);
+                const array_1d<double,3>& lagrange_multiplier = (it_node)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                const array_1d<double,3>& nodal_normal = (it_node)->GetValue(NORMAL);
                 const double normal_lagrange_multiplier = inner_prod(nodal_normal, lagrange_multiplier);
                 
                 const double augmented_normal_pressure = scale_factor * normal_lagrange_multiplier + epsilon * (it_node)->FastGetSolutionStepValue(WEIGHTED_GAP);     
@@ -204,10 +206,10 @@ public:
                     const double lambda_tangent = norm_2(tangent_lagrange_multiplier); 
                     
                     // The friction coefficient
-                    const double mu = (it_node)->GetValue(WEIGHTED_FRICTION);
+                    const double& mu = (it_node)->GetValue(WEIGHTED_FRICTION);
                     
                     // Finally we compute the augmented tangent pressure
-                    const double gt = (it_node)->FastGetSolutionStepValue(WEIGHTED_SLIP);
+                    const double& gt = (it_node)->FastGetSolutionStepValue(WEIGHTED_SLIP);
                     const double augmented_tangent_pressure = std::abs(scale_factor * lambda_tangent + tangent_factor * epsilon * gt) + mu * augmented_normal_pressure;
                     
                     (it_node)->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, augmented_tangent_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)

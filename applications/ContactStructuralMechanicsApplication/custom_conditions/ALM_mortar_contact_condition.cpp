@@ -501,7 +501,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
         if (mThisMasterElementsActive[pair_index] == true)
         {
             // The normal of the master condition
-            const array_1d<double, 3> master_normal = mThisMasterElements[pair_index]->GetValue(NORMAL);
+            const array_1d<double, 3>& master_normal = mThisMasterElements[pair_index]->GetValue(NORMAL);
             
             // Reading integration points
             ConditionArrayListType conditions_points_slave;
@@ -659,7 +659,7 @@ bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
         if (mThisMasterElementsActive[pair_index] == true)
         {
             // The normal of the master condition
-            const array_1d<double, 3> master_normal = mThisMasterElements[pair_index]->GetValue(NORMAL);
+            const array_1d<double, 3>& master_normal = mThisMasterElements[pair_index]->GetValue(NORMAL);
 
             // Reading integration points
             ConditionArrayListType conditions_points_slave;
@@ -1178,7 +1178,7 @@ bounded_matrix<double, TDim, TDim> AugmentedLagrangianMethodMortarContactConditi
     
     bounded_matrix<double, TDim, TDim> DeltaNormal = ZeroMatrix(TDim,TDim);
     
-    const array_1d<double, 3> Ne = this->GetValue(NORMAL); // Normalized condition normal
+    const array_1d<double, 3>& Ne = this->GetValue(NORMAL); // Normalized condition normal
     bounded_matrix<double, TDim, TDim> NeoNe = subrange( outer_prod( Ne, Ne ), 0, TDim, 0, TDim );
     
     if (TDim == 2)
@@ -1328,7 +1328,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>
 {
     for ( unsigned int i_master = 0, i = 0; i_master < TNumNodes; ++i_master, i += TDim )
     {
-//        const bounded_matrix<double, TDim, TDim> delta_normal = GetGeometry[i_master].GetValue(DELTA_NORMAL);
+//        const bounded_matrix<double, TDim, TDim>& delta_normal = GetGeometry[i_master].GetValue(DELTA_NORMAL);
         const bounded_matrix<double, TDim, TDim> delta_normal = this->LocalDeltaNormal(MasterGeometry, i_master);
         for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
         {
@@ -1797,7 +1797,7 @@ Matrix AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictiona
 
     for ( unsigned int i_node = 0; i_node < TNumNodes; i_node++ )
     {
-        const array_1d<double, 3 > & delta_displacement = GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT,1);
+        const array_1d<double, 3 > delta_displacement = GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT,1);
         
         for ( unsigned int j_node = 0; j_node < TDim; j_node++ )
         {
@@ -1827,22 +1827,6 @@ double AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictiona
     )
 {
     return ThisIntegrationMethod[PointNumber].Weight();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
-void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional>::AdaptPenaltyValue(
-    const MortarConditionMatrices& rMortarConditionMatrices,
-    DerivativeDataType& rDerivativeData
-    )
-{
-    KRATOS_TRY;
-    
-    // TODO: Fill this!!!
-    
-    KRATOS_CATCH( "" );
 }
     
 /***********************************************************************************/
